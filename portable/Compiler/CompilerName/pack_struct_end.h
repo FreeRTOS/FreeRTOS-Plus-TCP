@@ -1,6 +1,6 @@
 /*
 FreeRTOS+TCP V2.0.11
-Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -29,20 +29,4 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Compiler_Porting.html
  *
  *****************************************************************************/
-
-#pragma pack(push,1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+; /* FIX ME. Update for the compiler specifier needed at end of a struct declartion to pack the struct. */
