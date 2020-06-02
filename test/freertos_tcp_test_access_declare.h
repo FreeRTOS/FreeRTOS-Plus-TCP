@@ -23,26 +23,22 @@
  * http://www.FreeRTOS.org
  */
 
-/**
- * @file aws_ota_pal_test_access_define.h
- * @brief Function wrappers that access private methods in aws_ota_pal.c.
- *
- * Needed for testing private functions.
- */
+#ifndef _FREERTOS_TCP_TEST_ACCESS_DECLARE_H_
+#define _FREERTOS_TCP_TEST_ACCESS_DECLARE_H_
 
-#ifndef _AWS_FREERTOS_TCP_TEST_ACCESS_DNS_DEFINE_H_
-#define _AWS_FREERTOS_TCP_TEST_ACCESS_DNS_DEFINE_H_
-
-#include "iot_freertos_tcp_test_access_declare.h"
-
-/*-----------------------------------------------------------*/
+#include <stdint.h>
+#include "FreeRTOS.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_IP.h"
+#include "portmacro.h"
 
 uint32_t TEST_FreeRTOS_TCP_prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                                              size_t xBufferLength,
-                                             TickType_t xIdentifier )
-{
-    return prvParseDNSReply( pucUDPPayloadBuffer, xBufferLength, xIdentifier );
-}
-/*-----------------------------------------------------------*/
+                                             TickType_t xIdentifier );
 
-#endif /* ifndef _AWS_FREERTOS_TCP_TEST_ACCESS_DNS_DEFINE_H_ */
+void TEST_FreeRTOS_TCP_prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+                                        NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+void TEST_FreeRTOS_TCP_prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket );
+
+#endif /* ifndef _FREERTOS_TCP_TEST_ACCESS_DECLARE_H_ */
