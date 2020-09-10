@@ -26,20 +26,24 @@ GEN_DIR ?= ${ROOT_DIR}/build/generated
 
 SRC_DIR ?= ${ROOT_DIR}/..
 
-EXAMPLE_DIR ?= ${ROOT_DIR}/tests/example
+EXAMPLE_DIR ?= ${ROOT_DIR}/example
 
-CONFIG_FILES_DIR ?= $(ROOT_DIR)/Config_files
+FREERTOS_ARP_DIR ?= ${ROOT_DIR}/FreeRTOS_ARP
+
+CONFIG_FILES_DIR ?= $(ROOT_DIR)/ConfigFiles
 TEST_DIR ?= test
 
 KERNEL_INCLUDES ?= ${ROOT_DIR}/../../../FreeRTOS/Source/include
 
 # ${FREE_RTOS_INCLUDE_DIR}/FreeRTOS_IP.h       -I ${FREE_RTOS_INCLUDE_DIR}
 
-INCLUDE_DIR ?= -I ${ROOT_DIR} -I ${ROOT_DIR}/tests/example -I $(CONFIG_FILES_DIR) -I ${CMOCK_INCLUDE_DIR} -I ${UNITY_INCLUDE_DIR} -I ${MOCKS_DIR} -I ${UNITY_FIXTURE_DIR} -I ${SRC_DIR} -I ${UNITY_MEMORY_DIR}
+INCLUDE_DIR ?= -I ${ROOT_DIR} -I ${ROOT_DIR}/example -I $(CONFIG_FILES_DIR) -I ${CMOCK_INCLUDE_DIR} -I ${UNITY_INCLUDE_DIR} -I ${MOCKS_DIR} -I ${UNITY_FIXTURE_DIR} -I ${SRC_DIR} -I ${UNITY_MEMORY_DIR} -I ${SRC_DIR}/include -I ${ROOT_DIR}/stubs
 
-MOCK_HEADERS ?= ${ROOT_DIR}/tests/example/some_value.h
+MOCK_HEADERS ?= ${SRC_DIR}/include/FreeRTOS_ARP.h
 
 CODE_COVERAGE ?= -fprofile-arcs -ftest-coverage -fprofile-generate
+
+DEFINE ?= -DipconfigUSE_ARP_REMOVE_ENTRY=1 -DipconfigUSE_ARP_REVERSED_LOOKUP=1
 
 .PHONY: all clean directories mocks coverage run
 
@@ -66,19 +70,22 @@ ${LIB_DIR}/libunity.so: ${UNITY_SRC_DIR}/unity.c ${CMOCK_SRC_DIR}/cmock.h Makefi
 
 #=============================================================================================
 #============== LIST ALL THE HEADERS YOU WANT TO MOCK IN SIMILAR MANNER  =====================
-${LIB_DIR}/mock_some_value.o: ${MOCKS_DIR}/mock_some_value.c mocks Makefile
+#${LIB_DIR}/mock_some_value.o: ${MOCKS_DIR}/mock_some_value.c mocks Makefile
+#	${CC} -c $< -o $@ ${INCLUDE_DIR} -fPIC
+
+${LIB_DIR}/mock_FreeRTOS_ARP.o: ${MOCKS_DIR}/mock_FreeRTOS_ARP.c mocks Makefile
 	${CC} -c $< -o $@ ${INCLUDE_DIR} -fPIC
 
-COMMON_OBJECTS ?= ${LIB_DIR}/mock_some_value.o
+COMMON_OBJECTS ?= ${LIB_DIR}/mock_FreeRTOS_ARP.o
 
 
 #=============================================================================================
 #======================== LIST ALL THE TEST SOURCE FILES HERE ================================
-TEST_FILES ?= ${EXAMPLE_DIR}/hello_world_test.c
+TEST_FILES ?= ${FREERTOS_ARP_DIR}/ulARPRemoveCacheEntryByMac_test.c
 
 #=============================================================================================
 #===================== LIST ALL THE SOURCE FILES UNDER TEST HERE =============================
-SOURCE_FILES ?= ${EXAMPLE_DIR}/hello_world.c
+SOURCE_FILES ?= ${SRC_DIR}/FreeRTOS_ARP.c
 #---------------------------------------------------------------------------------------------
 #=============================================================================================
 
@@ -88,12 +95,12 @@ ${LIB_DIR}/libcommon.so: ${COMMON_OBJECTS}
 
 
 ${GEN_DIR}/${EXECUTABLE}_test_runner.c: mocks Makefile ${LIB_DIR}/libunity.so ${LIB_DIR}/libcmock.so
-	ruby ${UNITY_BIN_DIR}/generate_test_runner.rb   ${CONFIGURATION_DIR}/project.yml ${ROOT_DIR}/tests/example/hello_world_test.c $@
+	ruby ${UNITY_BIN_DIR}/generate_test_runner.rb   ${CONFIGURATION_DIR}/project.yml ${FREERTOS_ARP_DIR}/ulARPRemoveCacheEntryByMac_test.c $@
 	@echo "\n"
 
 
 ${BIN_DIR}/${EXECUTABLE}: ${GEN_DIR}/${EXECUTABLE}_test_runner.c ${TEST_FILES} ${SOURCE_FILES} ${LIB_DIR}/libcommon.so
-	${CC} --coverage -o $@  $+  ${INCLUDE_DIR} -L ${LIB_DIR} -Wl,-rpath,${LIB_DIR} -lunity -lcmock -lcommon
+	${CC} --coverage -o $@  $+  ${INCLUDE_DIR} -L ${LIB_DIR} -Wl,-rpath,${LIB_DIR} -lunity -lcmock -lcommon ${DEFINE}
 	@echo "\n"
 
 clean:

@@ -36,6 +36,7 @@ will be removed. */
 /* This file provides default values for configuration options that are missing
 from the FreeRTOSIPConfig.h configuration header file. */
 
+#define _static
 
 /* Ensure defined configuration constants are using the most up to date naming. */
 #ifdef tcpconfigIP_TIME_TO_LIVE

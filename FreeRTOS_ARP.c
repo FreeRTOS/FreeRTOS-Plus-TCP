@@ -67,7 +67,7 @@ static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup, MACAddress
 /*-----------------------------------------------------------*/
 
 /* The ARP cache. */
-static ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
+_static ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
 
 /* The time at which the last gratuitous ARP was sent.  Gratuitous ARPs are used
 to ensure ARP tables are up to date and to detect IP address conflicts. */
@@ -174,6 +174,8 @@ uint32_t ulTargetProtocolAddress, ulSenderProtocolAddress;
 	{
 	BaseType_t x;
 	uint32_t lResult = 0;
+
+		configASSERT( pxMACAddress != NULL );
 
 		/* For each entry in the ARP cache table. */
 		for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )

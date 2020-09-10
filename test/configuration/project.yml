@@ -1,4 +1,3 @@
-
 :cmock:
   :mock_prefix: mock_
   :when_no_prototypes: :warn
@@ -22,6 +21,10 @@
     - <stdbool.h>
     - <stdint.h>
     - <fcntl.h>
+    - "FreeRTOS.h"
+    - "FreeRTOS_IP.h"
+    - "FreeRTOS_IP_Private.h"
+    - "FreeRTOS_UDP_IP.h"
   :weak: __attribute__((weak))
   :verbosity: 3
   :attributes:
@@ -32,7 +35,7 @@
     - portDONT_DISCARD
     - '(?:fcntl\s*\(+.*?\)+)' # this function is causing some trouble with code coverage as the annotations are calling the mocked one, so we won't mock it
 
-    #No stop some functions from being mocked..
+    #Stop some functions from being mocked..
     - '(?:<YOUR_FUNCTION_NAME>\s*\(+.*?\)+)'
     - '(?:FreeRTOS_max_uint32\s*\(+.*?\)+)'
     - '(?:FreeRTOS_min_int32\s*\(+.*?\)+)'
