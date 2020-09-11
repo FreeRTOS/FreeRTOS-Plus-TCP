@@ -69,7 +69,7 @@ void test_ulARPRemoveCacheEntryByMac_UseNULLPointer( void )
 
 void test_eARPGetCacheEntryByMac_GetNormalEntry( void )
 {
-    uint32_t ulIPPointer;
+    uint32_t ulIPPointer = 12345;
     eARPLookupResult_t xResult;
     uint8_t offset = ARPCacheEntryToCheck * 10;
     MACAddress_t xMACAddress = { offset + 0, offset + 1, offset + 2, offset + 3, offset + 4, offset + 5 };
@@ -97,4 +97,13 @@ void test_eARPGetCacheEntryByMac_GetAbsentEntry( void )
 
     TEST_ASSERT_EQUAL( xResult, eARPCacheMiss );
     TEST_ASSERT_EQUAL( ulIPPointer, 12345 );
+}
+
+void test_eARPGetCacheEntryByMac_UseNULLPointer( void )
+{
+    uint32_t * ulIPPointer = NULL;
+    MACAddress_t * const pxMACAddress = NULL;
+
+    /* Expect this test to his an ASSERT. */
+    eARPGetCacheEntryByMac( pxMACAddress, ulIPPointer );
 }

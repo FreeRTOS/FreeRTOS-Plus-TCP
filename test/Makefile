@@ -81,7 +81,7 @@ COMMON_OBJECTS ?= ${LIB_DIR}/mock_FreeRTOS_ARP.o
 
 #=============================================================================================
 #======================== LIST ALL THE TEST SOURCE FILES HERE ================================
-TEST_FILES ?= ${FREERTOS_ARP_DIR}/ulARPRemoveCacheEntryByMac_test.c
+TEST_FILES ?= ${FREERTOS_ARP_DIR}/FreeRTOS_ARP_test.c
 
 #=============================================================================================
 #===================== LIST ALL THE SOURCE FILES UNDER TEST HERE =============================
@@ -95,7 +95,7 @@ ${LIB_DIR}/libcommon.so: ${COMMON_OBJECTS}
 
 
 ${GEN_DIR}/${EXECUTABLE}_test_runner.c: mocks Makefile ${LIB_DIR}/libunity.so ${LIB_DIR}/libcmock.so
-	ruby ${UNITY_BIN_DIR}/generate_test_runner.rb   ${CONFIGURATION_DIR}/project.yml ${FREERTOS_ARP_DIR}/ulARPRemoveCacheEntryByMac_test.c $@
+	ruby ${UNITY_BIN_DIR}/generate_test_runner.rb   ${CONFIGURATION_DIR}/project.yml ${FREERTOS_ARP_DIR}/FreeRTOS_ARP_test.c $@
 	@echo "\n"
 
 

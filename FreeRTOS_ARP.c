@@ -364,6 +364,9 @@ uint8_t ucMinAgeFound = 0U;
 	BaseType_t x;
 	eARPLookupResult_t eReturn = eARPCacheMiss;
 
+		configASSERT( pxMACAddress != NULL );
+		configASSERT( pulIPAddress != NULL );
+
 		/* Loop through each entry in the ARP cache. */
 		for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
 		{
