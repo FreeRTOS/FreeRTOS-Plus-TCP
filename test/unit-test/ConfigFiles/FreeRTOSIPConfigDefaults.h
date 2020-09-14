@@ -291,11 +291,11 @@ from the FreeRTOSIPConfig.h configuration header file. */
 #endif
 
 #ifndef ipconfigUSE_ARP_REVERSED_LOOKUP
-	#define ipconfigUSE_ARP_REVERSED_LOOKUP		0
+	#define ipconfigUSE_ARP_REVERSED_LOOKUP		1
 #endif
 
 #ifndef ipconfigUSE_ARP_REMOVE_ENTRY
-	#define	ipconfigUSE_ARP_REMOVE_ENTRY		0
+	#define	ipconfigUSE_ARP_REMOVE_ENTRY		1
 #endif
 
 #ifndef ipconfigINCLUDE_FULL_INET_ADDR

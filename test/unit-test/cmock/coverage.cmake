@@ -1,6 +1,8 @@
 # Taken from amazon-freertos repository
 cmake_minimum_required(VERSION 3.13)
 set(BINARY_DIR ${CMAKE_BINARY_DIR})
+set(CMOCK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/CMock )
+
 
 # reset coverage counters
 execute_process(
@@ -39,7 +41,7 @@ endforeach()
 
 # generate Junit style xml output
 execute_process(COMMAND ruby
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/CMock/vendor/unity/auto/parse_output.rb
+    ${CMOCK_DIR}/vendor/unity/auto/parse_output.rb
                     -xml ${REPORT_FILE}
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             )

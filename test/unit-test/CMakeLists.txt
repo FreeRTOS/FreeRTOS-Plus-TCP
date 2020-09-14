@@ -14,10 +14,9 @@ list(APPEND mock_list
 list(APPEND mock_include_list
             .
             ${TCP_INCLUDE_DIRS}
-            ${MODULE_ROOT_DIR}/test/unit-test/stubs
+            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
         )
-message(STATUS "${MODULE_ROOT_DIR}/test/unit-test/stubs")
 
 #list the definitions of your mocks to control what to be included
 list(APPEND mock_define_list
@@ -35,7 +34,7 @@ list(APPEND real_include_directories
             .
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
-            ${MODULE_ROOT_DIR}/test/unit-test/stubs
+            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${CMOCK_DIR}/vendor/unity/src
 	)
 

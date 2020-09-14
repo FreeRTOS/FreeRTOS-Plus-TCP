@@ -116,7 +116,6 @@ function(create_mock_list mock_name
                   ${CMOCK_DIR}/lib/cmock.rb
                   -o${cmock_config} ${mock_file_abs}
                   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-		  COMMENT " THIS COMMAND "
                 )
         target_sources(${mock_name} PUBLIC
                        ${mocks_dir}/mock_${mock_file_name}.c
