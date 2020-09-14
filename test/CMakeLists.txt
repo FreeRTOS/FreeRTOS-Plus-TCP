@@ -32,7 +32,7 @@ set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 # ===================================== Coverity Analysis Configuration =================================================
 
 # Include filepaths for source and include.
-include( {CMAKE_CURRENT_LIST_DIR}/TCPFilePaths.cmake )
+include( ${MODULE_ROOT_DIR}/test/TCPFilePaths.cmake )
 
 # Target for Coverity analysis that builds the library.
 #add_library( coverity_analysis
@@ -87,6 +87,6 @@ add_subdirectory( unit-test )
 # Add a target for running coverage on tests.
 add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
-    DEPENDS cmock unity #core_mqtt_utest core_mqtt_serializer_utest core_mqtt_state_utest
+    DEPENDS cmock unity FreeRTOS_ARP_test #core_mqtt_utest core_mqtt_serializer_utest core_mqtt_state_utest
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )

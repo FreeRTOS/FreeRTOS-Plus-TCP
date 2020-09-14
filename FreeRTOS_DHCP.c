@@ -560,7 +560,7 @@ static void prvCloseDHCPSocket( void )
 }
 /*-----------------------------------------------------------*/
 
-static void prvCreateDHCPSocket( void )
+_static void prvCreateDHCPSocket( void )
 {
 struct freertos_sockaddr xAddress;
 BaseType_t xReturn;

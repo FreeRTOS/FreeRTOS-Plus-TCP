@@ -16,6 +16,7 @@
 #include "FreeRTOS_ARP_stubs.c"
 
 #define ARPCacheEntryToCheck  2
+
 #if ARPCacheEntryToCheck >= ipconfigARP_CACHE_ENTRIES
 	#error "ARPCacheEntryToCheck cannot be greater than ipconfigARP_CACHE_ENTRIES"
 #endif
@@ -24,9 +25,10 @@ extern ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
 
 void FillARPCache( void )
 {
-    for( int i =0; i < ipconfigARP_CACHE_ENTRIES; i++ )
+    int i,j;
+    for( i =0; i < ipconfigARP_CACHE_ENTRIES; i++ )
     {
-	for( int j = 0; j < ipMAC_ADDRESS_LENGTH_BYTES; j++ )
+	for( j = 0; j < ipMAC_ADDRESS_LENGTH_BYTES; j++ )
 	{
             xARPCache[ i ].xMACAddress.ucBytes[ j ] = i*10 + j;
 	}
