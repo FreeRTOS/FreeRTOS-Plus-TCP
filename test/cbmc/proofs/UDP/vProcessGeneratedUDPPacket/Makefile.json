@@ -6,7 +6,7 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS)/../FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP/FreeRTOS_UDP_IP.goto"
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_UDP_IP.goto"
   ],
   "INSTFLAGS":
   [
@@ -18,8 +18,8 @@
   ],
   "INC":
   [
-    "$(FREERTOS)/../FreeRTOS-Plus/Test/CBMC/include",
-    "$(FREERTOS)/../FreeRTOS-Plus/Test/CBMC/proofs/utility",
-    "$(FREERTOS)/../FreeRTOS-Plus/Test/CBMC/stubs"
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/include",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/proofs/utility",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs"
   ]
 }

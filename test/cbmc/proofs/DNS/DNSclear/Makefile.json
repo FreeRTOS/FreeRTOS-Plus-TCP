@@ -3,7 +3,7 @@
   ################################################################
   # This configuration flag uses DNS cache
   "USE_CACHE":1,
-  "CBMCFLAGS": 
+  "CBMCFLAGS":
   [
   	"--unwind 1",
 	"--nondet-static"
@@ -11,7 +11,7 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS)/../FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP/FreeRTOS_DNS.goto"
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_DNS.goto"
   ],
   "DEF":
   [

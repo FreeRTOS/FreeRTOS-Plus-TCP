@@ -7,8 +7,8 @@
   ],
   "OBJS":
   [
-    "$(FREERTOS)/Source/list.goto",
-    "$(FREERTOS)/../FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP/FreeRTOS_Sockets.goto",
+    "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/list.goto",
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_Sockets.goto",
     "$(ENTRY)_harness.goto"
   ],
   "INSTFLAGS":
@@ -21,8 +21,8 @@
   ],
   "INC":
   [
-    "$(FREERTOS)/../FreeRTOS-Plus/Test/CBMC/include",
-    "$(FREERTOS)/../FreeRTOS-Plus/Test/CBMC/proofs/utility"
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/include",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/proofs/utility"
   ]
 }
 

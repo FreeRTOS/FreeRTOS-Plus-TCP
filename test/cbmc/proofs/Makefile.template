@@ -131,8 +131,8 @@ coverage: coverage.xml
 report: cbmc.txt property.xml coverage.xml
 	$(VIEWER) \
 	--goto $(ENTRY).goto \
-	--srcdir $(FREERTOS) \
-	--blddir $(FREERTOS) \
+	--srcdir $(FREERTOS_PLUS_TCP) \
+	--blddir $(FREERTOS_PLUS_TCP) \
 	--htmldir html \
 	--srcexclude "(.@FORWARD_SLASH@doc|.@FORWARD_SLASH@tests|.@FORWARD_SLASH@vendors)" \
 	--result cbmc.txt \

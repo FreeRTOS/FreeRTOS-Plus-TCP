@@ -8,7 +8,7 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS)/../FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP/FreeRTOS_IP.goto"
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_IP.goto"
   ],
   "DEF":
   [
@@ -16,6 +16,6 @@
   ],
   "INC":
   [
-    "$(FREERTOS)/tools/cbmc/include"
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/include"
   ]
 }

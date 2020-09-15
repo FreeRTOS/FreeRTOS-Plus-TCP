@@ -7,7 +7,7 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS)/../FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP/FreeRTOS_ARP.goto"
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_ARP.goto"
   ],
   "DEF":
   [

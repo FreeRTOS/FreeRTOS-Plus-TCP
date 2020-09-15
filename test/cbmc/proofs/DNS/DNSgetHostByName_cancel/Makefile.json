@@ -15,9 +15,9 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS)/../FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP/FreeRTOS_DNS.goto",
-    "$(FREERTOS)/Source/tasks.goto",
-    "$(FREERTOS)/Source/list.goto"
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_DNS.goto",
+    "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/tasks.goto",
+    "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/list.goto"
   ],
   "DEF":
   [

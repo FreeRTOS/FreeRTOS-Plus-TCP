@@ -35,6 +35,6 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS)/../FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP/FreeRTOS_DHCP.goto"
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_DHCP.goto"
   ]
 }
