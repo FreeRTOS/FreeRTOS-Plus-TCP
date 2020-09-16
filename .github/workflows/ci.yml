@@ -23,11 +23,11 @@ jobs:
           -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_C_FLAGS='--coverage -Wall -Wextra -DNDEBUG'
           # make -C build/ all
-      #- name: Test
-      #  run: |
-      #    cd build/
-      #    ctest -E system --output-on-failure
-      #    cd ..
+      - name: Test
+        run: |
+          cd build/
+          ctest -E system --output-on-failure
+          cd ..
       - name: Coverage
         run: |
           make -C test/unit-test/build/ coverage
