@@ -18,7 +18,7 @@ jobs:
       - name: Build
         run: |
           sudo apt-get install -y lcov
-          cmake -S test/unit-test -B build/ \
+          cmake -S test/unit-test -B test/unit-test/build/ \
           -G "Unix Makefiles" \
           -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_C_FLAGS='--coverage -Wall -Wextra -DNDEBUG'
@@ -30,7 +30,7 @@ jobs:
       #    cd ..
       - name: Coverage
         run: |
-          make -C build/ coverage
+          make -C test/unit-test/build/ coverage
           lcov --rc lcov_branch_coverage=1 --remove build/coverage.info '*test*' --output-file build/coverage.info
           lcov --rc lcov_branch_coverage=1 --remove build/coverage.info '*CMakeCCompilerId*' --output-file build/coverage.info
           lcov --rc lcov_branch_coverage=1 --remove build/coverage.info '*third-party*' --output-file build/coverage.info
