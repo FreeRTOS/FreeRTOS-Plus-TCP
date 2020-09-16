@@ -190,7 +190,7 @@ uint32_t ulTargetProtocolAddress, ulSenderProtocolAddress;
 			}
 		}
 
-		return lResult;
+		return 0;//lResult;
 	}
 
 #endif	/* ipconfigUSE_ARP_REMOVE_ENTRY != 0 */
