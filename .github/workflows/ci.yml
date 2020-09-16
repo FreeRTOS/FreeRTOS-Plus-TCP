@@ -25,7 +25,7 @@ jobs:
           # make -C build/ all
       - name: Test
         run: |
-          cd build/
+          cd test/unit-test/build/
           ctest -E system --output-on-failure
           cd ..
       - name: Coverage
