@@ -23,6 +23,8 @@
  * http://www.FreeRTOS.org
  */
 
+/* Comment to check the CI setup. */
+
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
