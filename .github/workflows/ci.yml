@@ -1,0 +1,42 @@
+name: CI Checks
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone This Repo
+        uses: actions/checkout@v2
+      - name: Build
+        run: |
+          sudo apt-get install -y lcov
+          cmake -S test/unit-test -B build/ \
+          -G "Unix Makefiles" \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_C_FLAGS='--coverage -Wall -Wextra -DNDEBUG'
+          # make -C build/ all
+      #- name: Test
+      #  run: |
+      #    cd build/
+      #    ctest -E system --output-on-failure
+      #    cd ..
+      - name: Coverage
+        run: |
+          make -C build/ coverage
+          lcov --rc lcov_branch_coverage=1 --remove build/coverage.info '*test*' --output-file build/coverage.info
+          lcov --rc lcov_branch_coverage=1 --remove build/coverage.info '*CMakeCCompilerId*' --output-file build/coverage.info
+          lcov --rc lcov_branch_coverage=1 --remove build/coverage.info '*third-party*' --output-file build/coverage.info
+          lcov --rc lcov_branch_coverage=1 --remove build/coverage.info '*mocks*' --output-file build/coverage.info
+          lcov --list build/coverage.info
+      #- name: lcov-cop
+      #  uses: ChicagoFlutter/lcov-cop@v1.0.2
+      #  with:
+      #    path: "build/coverage.info"
+      #    min_coverage: 99
+      #    exclude: "**/*test*"
