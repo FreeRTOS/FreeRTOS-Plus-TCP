@@ -23,15 +23,14 @@ jobs:
           -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_C_FLAGS='--coverage -Wall -Wextra -DNDEBUG'
           # make -C build/ all
-      #- name: Test
-      #  run: |
-      #    cd build/
-      #    ctest -E system --output-on-failure
-      #    cd ..
+      - name: Test
+        run: |
+          cd test/unit-test/build/
+          ctest -E system --output-on-failure
+          cd ..
       - name: Coverage
         run: |
           make -C test/unit-test/build/ coverage
-          make -C test/unit-test/build/ test
           lcov --rc lcov_branch_coverage=1 --remove test/unit-test/build/coverage.info '*test*' --output-file test/unit-test/build/coverage.info
           lcov --rc lcov_branch_coverage=1 --remove test/unit-test/build/coverage.info '*CMakeCCompilerId*' --output-file test/unit-test/build/coverage.info
           lcov --rc lcov_branch_coverage=1 --remove test/unit-test/build/coverage.info '*third-party*' --output-file test/unit-test/build/coverage.info
