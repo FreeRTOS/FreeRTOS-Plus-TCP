@@ -22,7 +22,7 @@ jobs:
           -G "Unix Makefiles" \
           -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_C_FLAGS='--coverage -Wall -Wextra -DNDEBUG'
-          # make -C build/ all
+          make -C test/unit-test/build/ all
       - name: Test
         run: |
           cd test/unit-test/build/
