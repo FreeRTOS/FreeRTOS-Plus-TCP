@@ -18,7 +18,8 @@ jobs:
       - name: Build
         run: |
           git submodule update --checkout
-          git submodule update --init --recursive
+          git pull --recurse-submodules
+          git submodule update --recursive
           sudo apt-get install -y lcov
           cmake -S test/unit-test -B test/unit-test/build/ \
           -G "Unix Makefiles" \
