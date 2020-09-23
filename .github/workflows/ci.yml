@@ -17,11 +17,10 @@ jobs:
           submodules: recursive
       - name: Build
         run: |
-          #git submodule update --checkout
-          #cd tools/CMock
-          #git pull --recurse-submodules
-          git submodule update --init --recursive
-          #cd ..
+          git submodule update --checkout
+          cd tools/CMock
+          git submodule update --init vendor/unity
+          cd ../..
           sudo apt-get install -y lcov
           cmake -S test/unit-test -B test/unit-test/build/ \
           -G "Unix Makefiles" \
