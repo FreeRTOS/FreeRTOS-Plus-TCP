@@ -12,7 +12,7 @@
 [1;34m./FreeRTOS_TCP_WIN.c[39m
 
 [01;32m[K  1554[m[K						  [01;31m[KAAAAAAA[m[K BBBBBBB << acked
-[01;32m[K  1555[m[K						  [01;31m[Kaaaaaaa[m[K aaaa    << sent */
+[00;32m[K  1555[m[K						  [01;31m[Kaaaaaaa[m[K aaaa    << sent */
 
 [1;34m./portable/NetworkInterface/STM32Fxx/stm32fxx_hal_eth.c[39m
 
