@@ -242,6 +242,18 @@ def add_proof_jobs(proof_directory, proof_root, litani):
         "--description", ("%s: computing coverage" % proof_name),
     ], check=True)
 
+    # Check whether the CBMC proof actually passed. More details in the
+    # Makefile rule for check-cbmc-result.
+    run_cmd([
+        str(litani), "add-job",
+        "--command", "make check-cbmc-result",
+        "--inputs", cbmc_out,
+        "--pipeline-name", proof_name,
+        "--ci-stage", "report",
+        "--cwd", str(proof_directory),
+        "--description", ("%s: checking CBMC result" % proof_name),
+    ], check=True)
+
     # Generate report
     run_cmd([
         str(litani), "add-job",
