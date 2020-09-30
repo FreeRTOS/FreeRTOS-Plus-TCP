@@ -18,6 +18,7 @@ git clone https://github.com/FreeRTOS/FreeRTOS-Plus-TCP.git --recurse-submodules
 Using SSH:
 ```
 git clone git@github.com:FreeRTOS/FreeRTOS-Plus-TCP.git --recurse-submodules
+git submodule update --checkout
 ```
 
 If you have downloaded the repo without using the `--recurse-submodules` argument, you need to run:
