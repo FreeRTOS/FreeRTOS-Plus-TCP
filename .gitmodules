@@ -1,0 +1,12 @@
+[submodule "tools/CMock"]
+	path = tools/CMock
+	url = https://github.com/ThrowTheSwitch/CMock
+	update = none
+[submodule "test/FreeRTOS-Kernel"]
+	path = test/FreeRTOS-Kernel
+	url = https://github.com/FreeRTOS/FreeRTOS-Kernel
+	update = none
+[submodule "test/cbmc/aws-build-accumulator"]
+	path = test/litani
+	url = https://github.com/awslabs/aws-build-accumulator
+	update = none
