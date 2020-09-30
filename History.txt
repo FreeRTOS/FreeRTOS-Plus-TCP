@@ -1,3 +1,7 @@
+Changes between V2.2.2 and V2.3.0 releases:
+	+ Moved FreeRTOS+TCP source code to an independent repository
+	  FreeRTOS/FreeRTOS-Plus-TCP.
+
 Changes between V2.2.1 and V2.2.2 releases:
 	+ Updated the source code to adhere to stricter MISRA compliance.
 
