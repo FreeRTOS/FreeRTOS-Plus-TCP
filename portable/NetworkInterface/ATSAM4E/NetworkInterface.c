@@ -1,5 +1,5 @@
 /*
-FreeRTOS+TCP V2.2.1
+FreeRTOS+TCP V2.2.2
 Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -376,7 +376,7 @@ const TickType_t xShortTime = pdMS_TO_TICKS( 100UL );
 
 		if( ( xEndTime - xStartTime ) > xMaxTime )
 		{
-			/* Wated more than xMaxTime, return. */
+			/* Waited more than xMaxTime, return. */
 			xReturn = pdFALSE;
 			break;
 		}

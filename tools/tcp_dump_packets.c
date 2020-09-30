@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.2.1
+ * FreeRTOS+TCP V2.2.2
  * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -98,7 +98,7 @@ static HANDLE pvProcessHandle;
 static UBaseType_t uxNextPacketNumber;
 static BaseType_t xFirstPacket = 1;
 
-/* Bollean 'xDumpingReady' becomes true once all desired packet have been collected.
+/* Boolean 'xDumpingReady' becomes true once all desired packet have been collected.
 Further packets will be dropped (ignored). */
 static volatile BaseType_t xDumpingReady = pdFALSE;
 

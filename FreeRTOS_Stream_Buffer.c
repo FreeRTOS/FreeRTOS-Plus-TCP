@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.2.1
+ * FreeRTOS+TCP V2.2.2
  * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -182,7 +182,7 @@ size_t uxSize, uxCount, uxFirst, uxNextTail;
 
 		if( ( xPeek == pdFALSE ) && ( uxOffset == 0UL ) )
 		{
-			/* Move the tail pointer to effecively remove the data read from
+			/* Move the tail pointer to effectively remove the data read from
 			the buffer. */
 			uxNextTail += uxCount;
 

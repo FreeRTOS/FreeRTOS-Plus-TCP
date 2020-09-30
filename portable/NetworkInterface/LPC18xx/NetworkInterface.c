@@ -1,5 +1,5 @@
 /*
-FreeRTOS+TCP V2.2.1
+FreeRTOS+TCP V2.2.2
 Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -616,7 +616,7 @@ size_t xExpectedLength;
 IPPacket_t *pxIPPacket;
 
 	pxIPPacket = ( IPPacket_t * ) pxDescriptor->pucEthernetBuffer;
-	/* Look at the actual length of the packet, translate it to a host-endial notation. */
+	/* Look at the actual length of the packet, translate it to a host-endian notation. */
 	xExpectedLength = sizeof( EthernetHeader_t ) + ( size_t ) FreeRTOS_htons( pxIPPacket->xIPHeader.usLength );
 
 	if( xExpectedLength == ( pxDescriptor->xDataLength + 4 ) )

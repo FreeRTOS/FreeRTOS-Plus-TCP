@@ -1,5 +1,5 @@
 /*
-FreeRTOS+TCP V2.2.1
+FreeRTOS+TCP V2.2.2
 Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -651,7 +651,7 @@ static const char *prvRemoveSpaces( char *pcBuffer, int aBuflen, const char *pcM
 {
 	char *pcTarget = pcBuffer;
 
-	/* Utility function used to formap messages being printed only. */
+	/* Utility function used to format messages being printed only. */
 	while( ( *pcMessage != 0 ) && ( pcTarget < ( pcBuffer + aBuflen - 1 ) ) )
 	{
 		*( pcTarget++ ) = *pcMessage;

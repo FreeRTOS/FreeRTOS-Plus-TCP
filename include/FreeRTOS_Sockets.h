@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.2.1
+ * FreeRTOS+TCP V2.2.2
  * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -116,7 +116,7 @@ FreeRTOS_setsockopt(). */
 #endif /* ipconfigUSE_CALLBACKS */
 
 #define FREERTOS_SO_REUSE_LISTEN_SOCKET	( 11 )		/* When a listening socket gets connected, do not create a new one but re-use it */
-#define FREERTOS_SO_CLOSE_AFTER_SEND	( 12 )		/* As soon as the last byte has been transmitted, finalise the connection */
+#define FREERTOS_SO_CLOSE_AFTER_SEND	( 12 )		/* As soon as the last byte has been transmitted, finalize the connection */
 #define FREERTOS_SO_WIN_PROPERTIES		( 13 )		/* Set all buffer and window properties in one call, parameter is pointer to WinProperties_t */
 #define FREERTOS_SO_SET_FULL_SIZE		( 14 )		/* Refuse to send packets smaller than MSS  */
 
@@ -204,6 +204,23 @@ extern const char *FreeRTOS_inet_ntoa( uint32_t ulIPAddress, char *pcBuffer );
 struct xSOCKET;
 typedef struct xSOCKET *Socket_t;
 typedef struct xSOCKET const * ConstSocket_t;
+
+static portINLINE unsigned int prvSocketValid( Socket_t xSocket )
+{
+    unsigned int lReturnValue = pdFALSE;
+    /*
+     * There are two values which can indicate an invalid socket:
+     * FREERTOS_INVALID_SOCKET and NULL.  In order to compare against
+     * both values, the code cannot be compliant with rule 11.4,
+     * hence the Coverity suppression statement below.
+     */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
+    if( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) )
+    {
+	    lReturnValue = pdTRUE;
+    }
+    return lReturnValue;
+}
 
 #if( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 	/* The SocketSet_t type is the equivalent to the fd_set type used by the
@@ -416,16 +433,4 @@ void FreeRTOS_netstat( void );
 #endif
 
 #endif /* FREERTOS_SOCKETS_H */
-
-
-
-
-
-
-
-
-
-
-
-
 

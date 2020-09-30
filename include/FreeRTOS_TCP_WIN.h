@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.2.1
+ * FreeRTOS+TCP V2.2.2
  * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -188,7 +188,7 @@ BaseType_t xTCPWindowTxHasData( TCPWindow_t const * pxWindow, uint32_t ulWindowS
 BaseType_t xTCPWindowTxDone( const TCPWindow_t *pxWindow );
 
 /* Fetches data to be sent.
- * apPos will point to a location with the circular data buffer: txStream */
+ * plPosition will point to a location with the circular data buffer: txStream */
 uint32_t ulTCPWindowTxGet( TCPWindow_t *pxWindow, uint32_t ulWindowSize, int32_t *plPosition );
 
 /* Receive a normal ACK */

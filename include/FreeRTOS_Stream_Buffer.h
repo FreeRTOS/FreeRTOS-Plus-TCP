@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.2.1
+ * FreeRTOS+TCP V2.2.2
  * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -26,9 +26,9 @@
 /*
  *	FreeRTOS_Stream_Buffer.h
  *
- *	A cicular character buffer
+ *	A circular character buffer
  *	An implementation of a circular buffer without a length field
- *	If LENGTH defines the size of the buffer, a maximum of (LENGT-1) bytes can be stored
+ *	If LENGTH defines the size of the buffer, a maximum of (LENGTH-1) bytes can be stored
  *	In order to add or read data from the buffer, memcpy() will be called at most 2 times
  */
 

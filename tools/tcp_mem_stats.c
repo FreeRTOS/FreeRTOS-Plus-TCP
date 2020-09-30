@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.2.1
+ * FreeRTOS+TCP V2.2.2
  * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -24,7 +24,7 @@
  */
 /*
  * tcp_mem_stats.c
- * Used to create a CSV file with detaild information about the memory usage of FreeRTOS+TCP.
+ * Used to create a CSV file with detailed information about the memory usage of FreeRTOS+TCP.
  * See tools/tcp_mem_stats.md for further description.
  */
 

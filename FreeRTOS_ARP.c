@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.2.1
+ * FreeRTOS+TCP V2.2.2
  * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -76,10 +76,10 @@ static TickType_t xLastGratuitousARPTime = ( TickType_t ) 0;
 /*
  * IP-clash detection is currently only used internally. When DHCP doesn't respond, the
  * driver can try out a random LinkLayer IP address (169.254.x.x).  It will send out a
- * gratuitos ARP message and, after a period of time, check the variables here below:
+ * gratuitous ARP message and, after a period of time, check the variables here below:
  */
 #if( ipconfigARP_USE_CLASH_DETECTION != 0 )
-	/* Becomes non-zero if another device responded to a gratuitos ARP message. */
+	/* Becomes non-zero if another device responded to a gratuitous ARP message. */
 	BaseType_t xARPHadIPClash;
 	/* MAC-address of the other device containing the same IP-address. */
 	MACAddress_t xARPClashMacAddress;
@@ -92,11 +92,21 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 eFrameProcessingResult_t eReturn = eReleaseBuffer;
 ARPHeader_t *pxARPHeader;
 uint32_t ulTargetProtocolAddress, ulSenderProtocolAddress;
+/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+const void *pvCopySource;
+void *pvCopyDest;
 
 	pxARPHeader = &( pxARPFrame->xARPHeader );
 
 	/* The field ulSenderProtocolAddress is badly aligned, copy byte-by-byte. */
-	( void ) memcpy( &( ulSenderProtocolAddress ), pxARPHeader->ucSenderProtocolAddress, sizeof( ulSenderProtocolAddress ) );
+	/*
+	 * Use helper variables for memcpy() to remain
+	 * compliant with MISRA Rule 21.15.  These should be
+	 * optimized away.
+	 */
+	pvCopySource = pxARPHeader->ucSenderProtocolAddress;
+	pvCopyDest = &ulSenderProtocolAddress;
+	( void ) memcpy( pvCopyDest, pvCopySource, sizeof( ulSenderProtocolAddress ) );
 	/* The field ulTargetProtocolAddress is well-aligned, a 32-bits copy. */
 	ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
 
@@ -126,17 +136,41 @@ uint32_t ulTargetProtocolAddress, ulSenderProtocolAddress;
 					{
 						/* A double IP address is detected! */
 						/* Give the sources MAC address the value of the broadcast address, will be swapped later */
-						( void ) memcpy( pxARPFrame->xEthernetHeader.xSourceAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( xBroadcastMACAddress ) );
+						/*
+						 * Use helper variables for memcpy() to remain
+						 * compliant with MISRA Rule 21.15.  These should be
+						 * optimized away.
+						 */
+						pvCopySource = xBroadcastMACAddress.ucBytes;
+						pvCopyDest = pxARPFrame->xEthernetHeader.xSourceAddress.ucBytes;
+						( void ) memcpy( pvCopyDest, pvCopySource, sizeof( xBroadcastMACAddress ) );
+
 						( void ) memset( pxARPHeader->xTargetHardwareAddress.ucBytes, 0, sizeof( MACAddress_t ) );
 						pxARPHeader->ulTargetProtocolAddress = 0UL;
 					}
 					else
 					{
-						( void ) memcpy( pxARPHeader->xTargetHardwareAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( MACAddress_t ) );
+						/*
+						 * Use helper variables for memcpy() to remain
+						 * compliant with MISRA Rule 21.15.  These should be
+						 * optimized away.
+						 */
+						pvCopySource = pxARPHeader->xSenderHardwareAddress.ucBytes;
+						pvCopyDest = pxARPHeader->xTargetHardwareAddress.ucBytes;
+						( void ) memcpy( pvCopyDest, pvCopySource, sizeof( MACAddress_t ) );
 						pxARPHeader->ulTargetProtocolAddress = ulSenderProtocolAddress;
 					}
-					( void ) memcpy( pxARPHeader->xSenderHardwareAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-					( void ) memcpy( pxARPHeader->ucSenderProtocolAddress, ipLOCAL_IP_ADDRESS_POINTER, sizeof( pxARPHeader->ucSenderProtocolAddress ) );
+					/*
+					 * Use helper variables for memcpy() to remain
+					 * compliant with MISRA Rule 21.15.  These should be
+					 * optimized away.
+					 */
+					pvCopySource = ipLOCAL_MAC_ADDRESS;
+					pvCopyDest = pxARPHeader->xSenderHardwareAddress.ucBytes;
+					( void ) memcpy( pvCopyDest, pvCopySource, sizeof( MACAddress_t ) );
+					pvCopySource = ipLOCAL_IP_ADDRESS_POINTER;
+					pvCopyDest = pxARPHeader->ucSenderProtocolAddress;
+					( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxARPHeader->ucSenderProtocolAddress ) );
 
 					eReturn = eReturnEthernetFrame;
 				}
@@ -307,7 +341,7 @@ uint8_t ucMinAgeFound = 0U;
 			}
 			else
 			{
-				/* Nothing happes to this cache entry for now. */
+				/* Nothing happens to this cache entry for now. */
 			}
 		}
 
@@ -655,13 +689,17 @@ static const uint8_t xDefaultPartARPPacketHeader[] =
 
 ARPPacket_t *pxARPPacket;
 
+/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+const void *pvCopySource;
+void *pvCopyDest;
+
 	/* Buffer allocation ensures that buffers always have space
 	for an ARP packet. See buffer allocation implementations 1
 	and 2 under portable/BufferManagement. */
 	configASSERT( pxNetworkBuffer != NULL );
 	configASSERT( pxNetworkBuffer->xDataLength >= sizeof(ARPPacket_t) );
 
-	pxARPPacket = ipPOINTER_CAST( ARPPacket_t *, pxNetworkBuffer->pucEthernetBuffer );
+	pxARPPacket = ipCAST_PTR_TO_TYPE_PTR( ARPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
 
 	/* memcpy the const part of the header information into the correct
 	location in the packet.  This copies:
@@ -674,11 +712,26 @@ ARPPacket_t *pxARPPacket;
 		xARPHeader.usOperation;
 		xARPHeader.xTargetHardwareAddress;
 	*/
-	( void ) memcpy( pxARPPacket, xDefaultPartARPPacketHeader, sizeof( xDefaultPartARPPacketHeader ) );
-	( void ) memcpy( pxARPPacket->xEthernetHeader.xSourceAddress.ucBytes , ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
-	( void ) memcpy( pxARPPacket->xARPHeader.xSenderHardwareAddress.ucBytes, ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+	/*
+	 * Use helper variables for memcpy() to remain
+	 * compliant with MISRA Rule 21.15.  These should be
+	 * optimized away.
+	 */
+	pvCopySource = xDefaultPartARPPacketHeader;
+	pvCopyDest = pxARPPacket;
+	( void ) memcpy( pvCopyDest, pvCopySource, sizeof( xDefaultPartARPPacketHeader ) );
 
-	( void ) memcpy( pxARPPacket->xARPHeader.ucSenderProtocolAddress, ipLOCAL_IP_ADDRESS_POINTER, sizeof( pxARPPacket->xARPHeader.ucSenderProtocolAddress ) );
+	pvCopySource = ipLOCAL_MAC_ADDRESS;
+	pvCopyDest = pxARPPacket->xEthernetHeader.xSourceAddress.ucBytes;
+	( void ) memcpy( pvCopyDest, pvCopySource, ipMAC_ADDRESS_LENGTH_BYTES );
+
+	pvCopySource = ipLOCAL_MAC_ADDRESS;
+	pvCopyDest = pxARPPacket->xARPHeader.xSenderHardwareAddress.ucBytes;
+	( void ) memcpy( pvCopyDest, pvCopySource, ipMAC_ADDRESS_LENGTH_BYTES );
+
+	pvCopySource = ipLOCAL_IP_ADDRESS_POINTER;
+	pvCopyDest = pxARPPacket->xARPHeader.ucSenderProtocolAddress;
+	( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxARPPacket->xARPHeader.ucSenderProtocolAddress ) );
 	pxARPPacket->xARPHeader.ulTargetProtocolAddress = pxNetworkBuffer->ulIPAddress;
 
 	pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t );
@@ -698,7 +751,7 @@ BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor, BaseT
 {
 BaseType_t xResult = pdFALSE;
 NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
-const IPPacket_t *pxIPPacket = ipPOINTER_CAST( IPPacket_t *, pxUseDescriptor->pucEthernetBuffer );
+const IPPacket_t *pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxUseDescriptor->pucEthernetBuffer );
 
 	/* This function will check if the target IP-address belongs to this device.
 	 * If so, the packet will be passed to the IP-stack, who will answer it.
