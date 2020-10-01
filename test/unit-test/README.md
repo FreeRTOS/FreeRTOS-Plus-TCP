@@ -9,19 +9,33 @@ To compile and run this project successfully, you must have the following:
     - Not found? Try `apt-get install make`.
 2. Ruby (You can check whether you have this by typing `ruby --version`)
     - Not found? Try `apt-get install ruby`.
-3. Downloaded the repo with --recurse-submodules option to include CMock (and by extension Unity) in the cloned repo.
-    - `git clone https://github.com/FreeRTOS/FreeRTOS.git --recurse-submodules ./FreeRTOS_Dir`
+3. CMake version > 3.13.0 (You can check whether you have this by typing `cmake --version`)
+    - Not found? Try `apt-get install cmake`
+    - Try the `cmake --version` command. If still the version number is >= 3.13.0, skip to (4.) or else, continue.
+    - You will need to get the latest CMake version using curl or wget (or similar command).
+        - Uninstall the current version of CMake using `sudo apt remove --purge --auto-remove cmake`.
+        - Download the 3.13.0 version using `wget https://cmake.org/files/v3.13/cmake-3.13.0.tar.gz`.
+        - Extract the cmake download using `tar -xzvf cmake-3.13.0.tar.gz`.
+        - Go to the extracted folder (`cd cmake-3.13.0`) and run `./bootstrap`.
+        - Run `make -j$(nproc)' and then run `sudo make install`.
+        - Check the version using `cmake --version` command.
+4. Download the repo and include the submodules using the following commands.
+    - `git clone https://github.com/FreeRTOS/FreeRTOS.git ./FreeRTOS_Dir`
+    - `git submodule update --checkout --init --recursive tools/CMock test/FreeRTOS-Kernel`
 
 ### To run the Unit tests:
-Go to `FreeRTOS/FreeRTOS-Plus/Test/Unit-Tests`. Most probably you are in the mentioned directory already.
-Run:
-- `make clean`
+Go to `test/unit-test`.
+CMake: (do replace the `<your-build-directory>` with directory of your choice)
+- `cmake -B<your-build-directory> .`
+Make and coverage:
+- `cd <your-build-directory>`
+- `make all`
 - `make coverage`
 
 You should see an output similar to this:
 ```
 -----------------------
-3 Tests 0 Failures 0 Ignored 
+6 Tests 0 Failures 0 Ignored 
 OK
 Capturing coverage data from .
 ... <Skipped some lines here for the sake of brevity>
@@ -31,12 +45,3 @@ Overall coverage rate:
   branches...: 50.0% (2 of 4 branches)
 
 ```
-
-NOTE: after this point all directories mentioned in the README will be relative to this path: `FreeRTOS/FreeRTOS-Plus/Test/Unit-Tests`
-
-## Examples:
-The examples are present in `/tests/example` directory. The examples are in the form of a few small '.c' and '.h' files. Open those files and have a look at all of them. These files try to show all scenarios which you might find in actual libraries (e.g. One module calling functions defined in other modules by including corresponding header files etc.).
-The file that tests the functions in `hello_world.c` file is aptly named `hello_world_test.c`. It includes a header file `mock_some_value.h`. This header is present there since we will be mocking the functions declared in the file `some_value.h`.
-
-### The Makefile
-The makefile is used to make the development easier by doing all the backend work required to make CMock and Unity work. The Makefile has a special section which is bound by commented headings directing what is to be added in which section. Else everything should be self explanatory.
