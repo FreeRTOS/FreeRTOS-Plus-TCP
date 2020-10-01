@@ -14,17 +14,12 @@ Note: If you download the ZIP file provided by GitHub UI, you will not get the c
 To clone using HTTPS:
 ```
 git clone https://github.com/FreeRTOS/FreeRTOS-Plus-TCP.git --recurse-submodules
-git submodule update --checkout
+git submodule update --checkout --init --recursive tools/CMock test/FreeRTOS-Kernel
 ```
 Using SSH:
 ```
 git clone git@github.com:FreeRTOS/FreeRTOS-Plus-TCP.git --recurse-submodules
-git submodule update --checkout
-```
-
-If you have downloaded the repo without using the `--recurse-submodules` argument, you need to run:
-```
-git submodule update --init --recursive
+git submodule update --checkout --init --recursive tools/CMock test/FreeRTOS-Kernel
 ```
 
 ## Porting
