@@ -34,4 +34,4 @@ At this time it is recommended to use BufferAllocation_2.c in which case it is e
 ### Kernel sources
 The FreeRTOS Kernel Source is in [FreeRTOS/FreeRTOS-Kernel repository](https://github.com/FreeRTOS/FreeRTOS-Kernel), and it is consumed by testing/PR checks as a submodule in this repository.
 
-The version of the FreeRTOS Kernel Source in use could be accessed at ```./FreeRTOS/Source``` directory.
+The version of the FreeRTOS Kernel Source in use could be accessed at ```./test/FreeRTOS-Kernel``` directory.
