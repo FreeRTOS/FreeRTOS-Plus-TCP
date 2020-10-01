@@ -36,7 +36,7 @@
 	#include "xil_cache.h"
 	#include "xuartps.h"
 	#include "xscugic.h"
-	#include "xemacps.h"    /* defines XEmacPs API */
+	#include "xemacps.h" /* defines XEmacPs API */
 
 /*#include "netif/xpqueue.h" */
 /*#include "xlwipconfig.h" */

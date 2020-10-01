@@ -127,12 +127,12 @@
 			List_t xRxSegments;                                                /* A linked list of reception segments, order depends on sequence of arrival */
 		#else
 			/* For tiny TCP, there is only 1 outstanding TX segment */
-			TCPSegment_t xTxSegment;    /* Priority queue */
+			TCPSegment_t xTxSegment; /* Priority queue */
 		#endif
-		uint16_t usOurPortNumber;       /* Mostly for debugging/logging: our TCP port number */
-		uint16_t usPeerPortNumber;      /* debugging/logging: the peer's TCP port number */
-		uint16_t usMSS;                 /* Current accepted MSS */
-		uint16_t usMSSInit;             /* MSS as configured by the socket owner */
+		uint16_t usOurPortNumber;    /* Mostly for debugging/logging: our TCP port number */
+		uint16_t usPeerPortNumber;   /* debugging/logging: the peer's TCP port number */
+		uint16_t usMSS;              /* Current accepted MSS */
+		uint16_t usMSSInit;          /* MSS as configured by the socket owner */
 	} TCPWindow_t;
 
 

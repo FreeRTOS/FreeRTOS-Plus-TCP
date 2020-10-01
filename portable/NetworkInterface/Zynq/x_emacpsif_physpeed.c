@@ -420,7 +420,7 @@ u32 phy_addr, id;
 				XEmacPs_PhyWrite( xemacpsp, phy_addr, 0, 0x0100 );
 				return 10;
 			}
-		#else  /* if XPAR_GIGE_PCS_PMA_CORE_PRESENT == 1 */
+		#else /* if XPAR_GIGE_PCS_PMA_CORE_PRESENT == 1 */
 			if( ( ( partner_capabilities >> 14 ) & 3 ) == 2 ) /* 1000Mbps */
 			{
 				return 1000;
@@ -429,7 +429,7 @@ u32 phy_addr, id;
 			{
 				return 100;
 			}
-			else            /* 10Mbps */
+			else /* 10Mbps */
 			{
 				return 10;
 			}
@@ -536,7 +536,7 @@ volatile u32 slcrBaseAddress;
 			*( volatile unsigned int * ) ( slcrBaseAddress ) =
 				SLCR_GEM_10M_CLK_CTRL_VALUE;
 		}
-	#else  /* ifdef PEEP */
+	#else /* ifdef PEEP */
 		if( speed == 1000 )
 		{
 			if( ( unsigned long ) mac_baseaddr == EMAC0_BASE_ADDRESS )

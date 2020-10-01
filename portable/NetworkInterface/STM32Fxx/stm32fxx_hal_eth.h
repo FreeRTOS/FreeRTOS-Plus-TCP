@@ -480,16 +480,16 @@
   */
 	typedef enum
 	{
-		HAL_ETH_STATE_RESET = 0x00U,          /*!< Peripheral not yet Initialized or disabled         */
-		HAL_ETH_STATE_READY = 0x01U,          /*!< Peripheral Initialized and ready for use           */
-		HAL_ETH_STATE_BUSY = 0x02U,           /*!< an internal process is ongoing                     */
-		HAL_ETH_STATE_BUSY_TX = 0x12U,        /*!< Data Transmission process is ongoing               */
-		HAL_ETH_STATE_BUSY_RX = 0x22U,        /*!< Data Reception process is ongoing                  */
-		HAL_ETH_STATE_BUSY_TX_RX = 0x32U,     /*!< Data Transmission and Reception process is ongoing */
-		HAL_ETH_STATE_BUSY_WR = 0x42U,        /*!< Write process is ongoing                           */
-		HAL_ETH_STATE_BUSY_RD = 0x82U,        /*!< Read process is ongoing                            */
-		HAL_ETH_STATE_TIMEOUT = 0x03U,        /*!< Timeout state                                      */
-		HAL_ETH_STATE_ERROR = 0x04U           /*!< Reception process is ongoing                       */
+		HAL_ETH_STATE_RESET = 0x00U,      /*!< Peripheral not yet Initialized or disabled         */
+		HAL_ETH_STATE_READY = 0x01U,      /*!< Peripheral Initialized and ready for use           */
+		HAL_ETH_STATE_BUSY = 0x02U,       /*!< an internal process is ongoing                     */
+		HAL_ETH_STATE_BUSY_TX = 0x12U,    /*!< Data Transmission process is ongoing               */
+		HAL_ETH_STATE_BUSY_RX = 0x22U,    /*!< Data Reception process is ongoing                  */
+		HAL_ETH_STATE_BUSY_TX_RX = 0x32U, /*!< Data Transmission and Reception process is ongoing */
+		HAL_ETH_STATE_BUSY_WR = 0x42U,    /*!< Write process is ongoing                           */
+		HAL_ETH_STATE_BUSY_RD = 0x82U,    /*!< Read process is ongoing                            */
+		HAL_ETH_STATE_TIMEOUT = 0x03U,    /*!< Timeout state                                      */
+		HAL_ETH_STATE_ERROR = 0x04U       /*!< Reception process is ongoing                       */
 	} HAL_ETH_StateTypeDef;
 
 /**
@@ -704,13 +704,13 @@
 	uint32_t Buffer2NextDescAddr;   /*!< Buffer2 or next descriptor address pointer */
 
 		/*!< Enhanced Ethernet DMA PTP Descriptors */
-		uint32_t ExtendedStatus;    /*!< Extended status for PTP receive descriptor */
+		uint32_t ExtendedStatus; /*!< Extended status for PTP receive descriptor */
 
-		uint32_t Reserved1;         /*!< Reserved */
+		uint32_t Reserved1;      /*!< Reserved */
 
-		uint32_t TimeStampLow;      /*!< Time Stamp Low value for transmit and receive */
+		uint32_t TimeStampLow;   /*!< Time Stamp Low value for transmit and receive */
 
-		uint32_t TimeStampHigh;     /*!< Time Stamp High value for transmit and receive */
+		uint32_t TimeStampHigh;  /*!< Time Stamp High value for transmit and receive */
 	} ETH_DMADescTypeDef;
 
 

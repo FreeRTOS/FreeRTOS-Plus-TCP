@@ -776,7 +776,7 @@ size_t uxPayloadLength;
 					break;
 				}
 			}
-			#else  /* if ( ipconfigSUPPORT_SIGNALS != 0 ) */
+			#else /* if ( ipconfigSUPPORT_SIGNALS != 0 ) */
 			{
 				( void ) xEventBits;
 			}
@@ -1591,10 +1591,10 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
 						   if( pxSocket->ucProtocol != ( uint8_t ) uxProtocol )
 						   {
-							   break;   /* will return -pdFREERTOS_ERRNO_EINVAL */
+							   break; /* will return -pdFREERTOS_ERRNO_EINVAL */
 						   }
 					   }
-					   #else  /* if ( ipconfigUSE_TCP == 1 ) */
+					   #else /* if ( ipconfigUSE_TCP == 1 ) */
 					   {
 						   /* No need to check if the socket has the right
 						   protocol, because only UDP socket can be created. */
@@ -1766,7 +1766,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 					xReturn = 0;
 					break;
 
-				case FREERTOS_SO_CLOSE_AFTER_SEND:  /* As soon as the last byte has been transmitted, finalize the connection */
+				case FREERTOS_SO_CLOSE_AFTER_SEND: /* As soon as the last byte has been transmitted, finalize the connection */
 				   {
 					   if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
 					   {
@@ -1812,7 +1812,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 					xReturn = 0;
 					break;
 
-				case FREERTOS_SO_STOP_RX:   /* Refuse to receive more packts */
+				case FREERTOS_SO_STOP_RX: /* Refuse to receive more packts */
 				   {
 					   if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
 					   {

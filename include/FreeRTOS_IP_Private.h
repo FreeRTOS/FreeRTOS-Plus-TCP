@@ -681,7 +681,7 @@ socket events. */
 			#endif /* ipconfigUSE_TCP_WIN */
 			/* Buffer space to store the last TCP header received. */
 			LastTCPPacket_t xPacket;
-			uint8_t tcpflags;   /* TCP flags */
+			uint8_t tcpflags; /* TCP flags */
 			#if ( ipconfigUSE_TCP_WIN != 0 )
 				uint8_t ucMyWinScaleFactor;
 				uint8_t ucPeerWinScaleFactor;

@@ -130,10 +130,10 @@ BaseType_t xResult;
 		case PHY_ID_LAN8742A:
 		case PHY_ID_KSZ8041:
 
-        /*
-                case PHY_ID_KSZ8051: // same ID as 8041
-                case PHY_ID_KSZ8081: // same ID as 8041
-        */
+		/*
+		        case PHY_ID_KSZ8051: // same ID as 8041
+		        case PHY_ID_KSZ8081: // same ID as 8041
+		*/
 		case PHY_ID_KSZ8081MNXIA:
 
 		case PHY_ID_KSZ8863:

@@ -599,7 +599,7 @@ const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS );
 						tx_release_count[ 1 ]++;
 					}
 				}
-				#else  /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+				#else /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
 				{
 					tx_release_count[ 0 ]++;
 				}

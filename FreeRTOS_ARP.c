@@ -337,7 +337,7 @@ uint8_t ucMinAgeFound = 0U;
 					{
 						xMacEntry = x;
 					}
-				#else  /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 ) */
+				#else /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 ) */
 					xMacEntry = x;
 				#endif /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 ) */
 			}

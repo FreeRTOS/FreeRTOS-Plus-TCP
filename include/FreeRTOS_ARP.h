@@ -49,9 +49,9 @@
 
 	typedef enum
 	{
-		eARPCacheMiss = 0,      /* 0 An ARP table lookup did not find a valid entry. */
-		eARPCacheHit,           /* 1 An ARP table lookup found a valid entry. */
-		eCantSendPacket         /* 2 There is no IP address, or an ARP is still in progress, so the packet cannot be sent. */
+		eARPCacheMiss = 0, /* 0 An ARP table lookup did not find a valid entry. */
+		eARPCacheHit,      /* 1 An ARP table lookup found a valid entry. */
+		eCantSendPacket    /* 2 There is no IP address, or an ARP is still in progress, so the packet cannot be sent. */
 	} eARPLookupResult_t;
 
 /*

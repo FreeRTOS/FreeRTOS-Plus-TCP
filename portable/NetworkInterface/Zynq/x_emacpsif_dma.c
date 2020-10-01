@@ -427,7 +427,7 @@ int head = xemacpsif->rxHead;
 
 				pxLastDescriptor = pxBuffer;
 			}
-			#else  /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
+			#else /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
 			{
 				prvPassEthMessages( pxBuffer );
 			}

@@ -1673,7 +1673,7 @@ eFrameProcessingResult_t eReturn = eProcessBuffer;
 			}
 		}
 	}
-	#else  /* if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) */
+	#else /* if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) */
 	{
 		if( eReturn == eProcessBuffer )
 		{
@@ -1784,7 +1784,7 @@ uint8_t ucProtocol;
 					pxIPHeader->ucVersionHeaderLength = ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
 														( ( ipSIZE_OF_IPv4_HEADER >> 2 ) & 0x0FU );
 				}
-				#else  /* if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 ) */
+				#else /* if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 ) */
 				{
 					/* 'ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS' is not set, so packets carrying
 					IP-options will be dropped. */
@@ -2339,7 +2339,7 @@ uint16_t ucVersionHeaderLength;
 				}
 				#endif /* ( ipconfigHAS_PRINTF != 0 ) */
 			}
-			#else  /* if ( ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS == 0 ) */
+			#else /* if ( ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS == 0 ) */
 			{
 				/* Sender hasn't set the checksum, no use to calculate it. */
 				usChecksum = ipCORRECT_CRC;
@@ -2975,7 +2975,7 @@ const char *pcName;
 
 		case pdFREERTOS_ERRNO_EWOULDBLOCK:
 			pcName = "EWOULDBLOCK";
-			break;                                                           /* same as EAGAIN */
+			break; /* same as EAGAIN */
 
 		case pdFREERTOS_ERRNO_EISCONN:
 			pcName = "EISCONN";

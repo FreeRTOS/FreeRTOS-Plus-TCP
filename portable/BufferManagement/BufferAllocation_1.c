@@ -148,7 +148,7 @@ section macros. */
 	}
 	/*-----------------------------------------------------------*/
 
-#else  /* if ( ipconfigTCP_IP_SANITY != 0 ) */
+#else /* if ( ipconfigTCP_IP_SANITY != 0 ) */
 	static UBaseType_t bIsValidNetworkDescriptor( const NetworkBufferDescriptor_t * pxDesc )
 	{
 		( void ) pxDesc;

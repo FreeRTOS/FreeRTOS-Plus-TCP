@@ -594,7 +594,7 @@ with two fields: type and class
 		}
 
 		if( ( pcHostName != NULL ) && ( xLengthOk != pdFALSE ) )
-		#else  /* if ( ipconfigUSE_DNS_CACHE != 0 ) */
+		#else /* if ( ipconfigUSE_DNS_CACHE != 0 ) */
 			if( pcHostName != NULL )
 		#endif /* ( ipconfigUSE_DNS_CACHE != 0 ) */
 		{

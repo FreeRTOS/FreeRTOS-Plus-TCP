@@ -452,7 +452,7 @@ const TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 50 );
 				until it has been sent.  So don't release it now. */
 				bReleaseAfterSend = false;
 			}
-			#else  /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+			#else /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
 			{
 				/* The data is copied from the network buffer descriptor into
 				the DMA's descriptor. */
@@ -717,7 +717,7 @@ IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
 					}
 
 					if( pxNewDescriptor != NULL )
-				#else  /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
+				#else /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
 					if( uxGetNumberOfFreeNetworkBuffers() > uxMinimumBuffersRemaining )
 				#endif /* ipconfigZERO_COPY_RX_DRIVER */
 				{
@@ -744,7 +744,7 @@ IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
 						and the received messages is dropped. */
 						configASSERT( pxDescriptor != NULL );
 					}
-					#else  /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
+					#else /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
 					{
 						/* Create a buffer of exactly the required length. */
 						pxDescriptor = pxGetNetworkBufferWithDescriptor( usLength, xDescriptorWaitTime );

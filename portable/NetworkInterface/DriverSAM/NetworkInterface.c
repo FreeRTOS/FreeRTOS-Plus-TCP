@@ -125,7 +125,7 @@ FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
 	}
 	/*-----------------------------------------------------------*/
 
-#else  /* if ( __DCACHE_PRESENT != 0 ) && defined( CONF_BOARD_ENABLE_CACHE ) */
+#else /* if ( __DCACHE_PRESENT != 0 ) && defined( CONF_BOARD_ENABLE_CACHE ) */
 	#warning Sure there is no caching?
 	#define     cache_clean_invalidate()						do {} while( 0 )
 	#define     cache_clean_invalidate_by_addr( addr, size )	do {} while( 0 )
@@ -683,7 +683,7 @@ static void prvEthernetUpdateConfig( BaseType_t xForce )
 				GMAC->GMAC_NCR &= ~GMAC_NCR_MPE;
 			}
 		}
-		#else  /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
+		#else /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
 		{
 			if( xPHYProperties.ucDuplex == PHY_DUPLEX_FULL )
 			{
@@ -944,7 +944,7 @@ const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS );
 						tx_release_count[ 1 ]++;
 					}
 				}
-				#else  /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+				#else /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
 				{
 					tx_release_count[ 0 ]++;
 				}

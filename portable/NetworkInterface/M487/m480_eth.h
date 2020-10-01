@@ -96,7 +96,7 @@
 
 
 /* Frame Descriptor's Owner bit */
-	#define OWNERSHIP_EMAC    0x80000000/* 1 = EMAC */
+	#define OWNERSHIP_EMAC    0x80000000 /* 1 = EMAC */
 /*#define OWNERSHIP_CPU 0x7fffffff  // 0 = CPU */
 
 

@@ -602,7 +602,7 @@ BaseType_t xIndex;
 				pxDMADescriptor->Status = ETH_DMARXDESC_OWN;
 			}
 		}
-		#else  /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
+		#else /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
 		{
 			/* Set Buffer1 address pointer */
 			pxDMADescriptor->Buffer1Addr = ( uint32_t ) ( Rx_Buff[ xIndex ] );
@@ -997,7 +997,7 @@ uint8_t *pucBuffer;
 
 				pxLastDescriptor = pxCurDescriptor;
 			}
-			#else  /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
+			#else /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
 			{
 				prvPassEthMessages( pxCurDescriptor );
 			}

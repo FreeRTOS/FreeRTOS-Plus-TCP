@@ -2905,7 +2905,7 @@
 				/* The ack will not be postponed, and there was no stored ack ( in 'pxAckMessage' ). */
 			}
 		}
-		#else  /* if ipconfigUSE_TCP_WIN == 1 */
+		#else /* if ipconfigUSE_TCP_WIN == 1 */
 		{
 			/* Remove compiler warnings. */
 			( void ) ulReceiveLength;
