@@ -37,8 +37,16 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 						  BaseType_t xType,
 						  BaseType_t xProtocol )
 {
-	return nondet_bool() ?
-		   FREERTOS_INVALID_SOCKET : malloc( sizeof( Socket_t ) );
+	if( nondet_bool() )
+	{
+		return FREERTOS_INVALID_SOCKET;
+	}
+	else
+	{
+	void *ptr = malloc( sizeof( Socket_t ) );
+		__CPROVER_assume( ptr != NULL );
+		return ptr;
+	}
 }
 
 /****************************************************************

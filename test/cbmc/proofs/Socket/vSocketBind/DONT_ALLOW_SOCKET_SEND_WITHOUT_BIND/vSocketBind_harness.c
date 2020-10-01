@@ -54,6 +54,8 @@ FreeRTOS_Socket_t *pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
 
 	/* malloc instead of safeMalloc since we do not allow socket without binding. */
 	struct freertos_sockaddr * pxBindAddress = malloc( sizeof( struct freertos_sockaddr ) );
+	__CPROVER_assume( pxBindAddress != NULL );
+
 
 	/* uxAddressLength is not used in this implementation. */
 	size_t uxAddressLength;

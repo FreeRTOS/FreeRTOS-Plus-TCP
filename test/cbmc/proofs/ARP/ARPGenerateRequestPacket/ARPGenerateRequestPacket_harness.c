@@ -18,6 +18,7 @@ void harness()
 
 	__CPROVER_assume( ucBUFFER_SIZE >= sizeof( ARPPacket_t ) && ucBUFFER_SIZE < 2 * sizeof( ARPPacket_t ) );
 	void *xBuffer = malloc( ucBUFFER_SIZE );
+	__CPROVER_assume( xBuffer != NULL );
 
 	NetworkBufferDescriptor_t xNetworkBuffer2;
 	xNetworkBuffer2.pucEthernetBuffer = xBuffer;

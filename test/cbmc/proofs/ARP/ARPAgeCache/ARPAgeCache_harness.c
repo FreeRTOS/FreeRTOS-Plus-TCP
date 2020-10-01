@@ -14,7 +14,11 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 {
 NetworkBufferDescriptor_t *pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) malloc( sizeof( NetworkBufferDescriptor_t ) );
 
+	__CPROVER_assume( pxNetworkBuffer != NULL );
+
 	pxNetworkBuffer->pucEthernetBuffer = malloc( xRequestedSizeBytes );
+	__CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
 	pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
 	return pxNetworkBuffer;
 }
