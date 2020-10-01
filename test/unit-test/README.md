@@ -1,5 +1,5 @@
-# Unit Tests for FreeRTOS-Plus libraries
-This directory is made for the purpose of Unit testing and tries to provide the tools for developing unit tests along with a simple example. To that end, this directory submodules the [CMock](https://github.com/ThrowTheSwitch/CMock) framework (which submodules [Unity](https://github.com/throwtheswitch/unity/tree/cf949f45ca6d172a177b00da21310607b97bc7a7)).
+# Unit Tests for FreeRTOS-Plus-TCP library
+This directory is made for the purpose of Unit testing and tries to provide the tools for developing unit tests. To that end, this directory submodules the [CMock](https://github.com/ThrowTheSwitch/CMock) framework (which submodules [Unity](https://github.com/throwtheswitch/unity/tree/cf949f45ca6d172a177b00da21310607b97bc7a7)) and the [FreeRTOS-Kernel](https://github.com/FreeRTOS/FreeRTOS-Kernel/).
 
 ## Getting Started
 ### Prerequisites
