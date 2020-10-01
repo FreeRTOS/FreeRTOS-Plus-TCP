@@ -59,134 +59,134 @@
 #include "NetworkConfig.h"
 
 
-    #include "iot_wifi.h"
+#include "iot_wifi.h"
 
-    /* local definitions and data */
-
-
-    /* FreeRTOS implementation functions */
-    BaseType_t xNetworkInterfaceInitialise( void )
-    {
-        WIFINetworkParams_t xNetworkParams;
-
-        xNetworkParams.pcSSID = clientcredentialWIFI_SSID;
-        xNetworkParams.ucSSIDLength = sizeof( clientcredentialWIFI_SSID );
-        xNetworkParams.pcPassword = clientcredentialWIFI_PASSWORD;
-        xNetworkParams.ucPasswordLength = sizeof( clientcredentialWIFI_PASSWORD );
-        xNetworkParams.xSecurity = clientcredentialWIFI_SECURITY;
-        xNetworkParams.cChannel = M2M_WIFI_CH_ALL; /* Scan all channels (255) */
-
-        /*Turn  WiFi ON */
-        if( WIFI_On() != eWiFiSuccess )
-        {
-            return pdFAIL;
-        }
-
-        /* Connect to the AP */
-        if( WIFI_ConnectAP( &xNetworkParams ) != eWiFiSuccess )
-        {
-            return pdFAIL;
-        }
-
-        return pdPASS;
-    }
+/* local definitions and data */
 
 
-    /*-----------------------------------------------------------*/
+/* FreeRTOS implementation functions */
+BaseType_t xNetworkInterfaceInitialise( void )
+{
+WIFINetworkParams_t xNetworkParams;
 
-    BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
-                                        BaseType_t xReleaseAfterSend )
-    {
-        BaseType_t retRes = pdFALSE;
+	xNetworkParams.pcSSID = clientcredentialWIFI_SSID;
+	xNetworkParams.ucSSIDLength = sizeof( clientcredentialWIFI_SSID );
+	xNetworkParams.pcPassword = clientcredentialWIFI_PASSWORD;
+	xNetworkParams.ucPasswordLength = sizeof( clientcredentialWIFI_PASSWORD );
+	xNetworkParams.xSecurity = clientcredentialWIFI_SECURITY;
+	xNetworkParams.cChannel = M2M_WIFI_CH_ALL;     /* Scan all channels (255) */
 
-        if( ( pxDescriptor != 0 ) && ( pxDescriptor->pucEthernetBuffer != 0 ) && ( pxDescriptor->xDataLength != 0 ) )
-        {
-            /* There you go */
-            if( WDRV_EXT_DataSend( pxDescriptor->xDataLength, pxDescriptor->pucEthernetBuffer ) == 0 )
-            {
-                retRes = pdTRUE;
-            }
+	/*Turn  WiFi ON */
+	if( WIFI_On() != eWiFiSuccess )
+	{
+		return pdFAIL;
+	}
 
-            /* The buffer has been sent so can be released. */
-            if( xReleaseAfterSend != pdFALSE )
-            {
-                vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-            }
-        }
+	/* Connect to the AP */
+	if( WIFI_ConnectAP( &xNetworkParams ) != eWiFiSuccess )
+	{
+		return pdFAIL;
+	}
 
-        return retRes;
-    }
-
-
-    /************************************* Section: helper functions ************************************************** */
-    /* */
+	return pdPASS;
+}
 
 
+/*-----------------------------------------------------------*/
 
-    /************************************* Section: worker code ************************************************** */
-    /* */
+BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
+									BaseType_t xReleaseAfterSend )
+{
+BaseType_t retRes = pdFALSE;
 
-    void xNetworkFrameReceived( uint32_t len,
-                                uint8_t const * const frame )
-    {
-        bool pktSuccess, pktLost;
-        NetworkBufferDescriptor_t * pxNetworkBuffer = NULL;
-        IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
+	if( ( pxDescriptor != 0 ) && ( pxDescriptor->pucEthernetBuffer != 0 ) && ( pxDescriptor->xDataLength != 0 ) )
+	{
+		/* There you go */
+		if( WDRV_EXT_DataSend( pxDescriptor->xDataLength, pxDescriptor->pucEthernetBuffer ) == 0 )
+		{
+			retRes = pdTRUE;
+		}
 
-        pktSuccess = pktLost = false;
+		/* The buffer has been sent so can be released. */
+		if( xReleaseAfterSend != pdFALSE )
+		{
+			vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+		}
+	}
 
-        while( true )
-        {
-            if( eConsiderFrameForProcessing( frame ) != eProcessBuffer )
-            {
-                break;
-            }
+	return retRes;
+}
 
-            /* get the network descriptor (no data buffer) to hold this packet */
-            pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( len, 0 );
 
-            if( pxNetworkBuffer == NULL )
-            {
-                pktLost = true;
-                break;
-            }
+/************************************* Section: helper functions ************************************************** */
+/* */
 
-            /* Set the actual packet length, in case a larger buffer was 
-            returned. */
-            pxNetworkBuffer->xDataLength = len;
-            
-            /* Copy the packet. */
-            memcpy( pxNetworkBuffer->pucEthernetBuffer, frame, len );
 
-            /* Send the data to the TCP/IP stack. */
-            xRxEvent.pvData = ( void * ) pxNetworkBuffer;
 
-            if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
-            { /* failed */
-                pktLost = true;
-            }
-            else
-            { /* success */
-                pktSuccess = true;
-                iptraceNETWORK_INTERFACE_RECEIVE();
-            }
+/************************************* Section: worker code ************************************************** */
+/* */
 
-            break;
-        }
+void xNetworkFrameReceived( uint32_t len,
+							uint8_t const * const frame )
+{
+bool pktSuccess, pktLost;
+NetworkBufferDescriptor_t * pxNetworkBuffer = NULL;
+IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
 
-        if( !pktSuccess )
-        { /* something went wrong; nothing sent to the */
-            if( pxNetworkBuffer != NULL )
-            {
-                pxNetworkBuffer->pucEthernetBuffer = 0;
-                vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-            }
+	pktSuccess = pktLost = false;
 
-            if( pktLost )
-            {
-                iptraceETHERNET_RX_EVENT_LOST();
-            }
-        }
-    }
+	while( true )
+	{
+		if( eConsiderFrameForProcessing( frame ) != eProcessBuffer )
+		{
+			break;
+		}
+
+		/* get the network descriptor (no data buffer) to hold this packet */
+		pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( len, 0 );
+
+		if( pxNetworkBuffer == NULL )
+		{
+			pktLost = true;
+			break;
+		}
+
+		/* Set the actual packet length, in case a larger buffer was
+		returned. */
+		pxNetworkBuffer->xDataLength = len;
+
+		/* Copy the packet. */
+		memcpy( pxNetworkBuffer->pucEthernetBuffer, frame, len );
+
+		/* Send the data to the TCP/IP stack. */
+		xRxEvent.pvData = ( void * ) pxNetworkBuffer;
+
+		if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+		{     /* failed */
+			pktLost = true;
+		}
+		else
+		{     /* success */
+			pktSuccess = true;
+			iptraceNETWORK_INTERFACE_RECEIVE();
+		}
+
+		break;
+	}
+
+	if( !pktSuccess )
+	{     /* something went wrong; nothing sent to the */
+		if( pxNetworkBuffer != NULL )
+		{
+			pxNetworkBuffer->pucEthernetBuffer = 0;
+			vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+		}
+
+		if( pktLost )
+		{
+			iptraceETHERNET_RX_EVENT_LOST();
+		}
+	}
+}
 
 #endif /* #ifndef PIC32_USE_ETHERNET */

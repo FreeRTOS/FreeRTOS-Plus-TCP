@@ -17,26 +17,30 @@
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
-#if( ipconfigUSE_LLMNR == 1 )
+#if ( ipconfigUSE_LLMNR == 1 )
 	#include "FreeRTOS_DNS.h"
 #endif /* ipconfigUSE_LLMNR */
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 
-void *pvPortMalloc( size_t xWantedSize ){
-	return malloc(xWantedSize);
+void * pvPortMalloc( size_t xWantedSize )
+{
+	return malloc( xWantedSize );
 }
 
 
-void vPortFree( void *pv ){
-	free(pv);
+void vPortFree( void *pv )
+{
+	free( pv );
 }
 
 /*
  * This function function writes a buffer to the network.  We stub it
  * out here, and assume it has no side effects relevant to memory safety.
  */
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor, BaseType_t bReleaseAfterSend ){
+BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
+									BaseType_t bReleaseAfterSend )
+{
 	if( bReleaseAfterSend != pdFALSE )
 	{
 		vReleaseNetworkBufferAndDescriptor( pxDescriptor );
@@ -45,10 +49,11 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
 
 void harness()
 {
-	BaseType_t xRes = xNetworkBuffersInitialise();
-	if(xRes == pdPASS){
-		uint32_t ulIPAddress;
+BaseType_t xRes = xNetworkBuffersInitialise();
+
+	if( xRes == pdPASS )
+	{
+	uint32_t ulIPAddress;
 		FreeRTOS_OutputARPRequest( ulIPAddress );
 	}
 }
-

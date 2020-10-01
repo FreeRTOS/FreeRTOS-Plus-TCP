@@ -56,17 +56,17 @@ heap_4 can be used. */
 /* The obtained network buffer must be large enough to hold a packet that might
 replace the packet that was requested to be sent. */
 #if ipconfigUSE_TCP == 1
-	#define baMINIMAL_BUFFER_SIZE		sizeof( TCPPacket_t )
+	#define baMINIMAL_BUFFER_SIZE	 sizeof( TCPPacket_t )
 #else
-	#define baMINIMAL_BUFFER_SIZE		sizeof( ARPPacket_t )
+	#define baMINIMAL_BUFFER_SIZE	 sizeof( ARPPacket_t )
 #endif /* ipconfigUSE_TCP == 1 */
 
 /*_RB_ This is too complex not to have an explanation. */
 #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
-	#define ASSERT_CONCAT_(a, b) a##b
-	#define ASSERT_CONCAT(a, b) ASSERT_CONCAT_(a, b)
-	#define STATIC_ASSERT(e) \
-		;enum { ASSERT_CONCAT(assert_line_, __LINE__) = 1/(!!(e)) }
+	#define ASSERT_CONCAT_( a, b )	  a ## b
+	#define ASSERT_CONCAT( a, b )	  ASSERT_CONCAT_( a, b )
+	#define STATIC_ASSERT( e ) \
+	; enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( !!( e ) ) }
 
 	STATIC_ASSERT( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE );
 #endif
@@ -115,9 +115,9 @@ uint32_t x;
 
 			/* If the trace recorder code is included name the semaphore for viewing
 			in FreeRTOS+Trace.  */
-			#if( ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS == 1 )
+			#if ( ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS == 1 )
 			{
-				extern QueueHandle_t xNetworkEventQueue;
+			extern QueueHandle_t xNetworkEventQueue;
 				vTraceSetQueueName( xNetworkEventQueue, "IPStackEvent" );
 				vTraceSetQueueName( xNetworkBufferSemaphore, "NetworkBufferCount" );
 			}
@@ -155,7 +155,7 @@ uint32_t x;
 }
 /*-----------------------------------------------------------*/
 
-uint8_t *pucGetNetworkBuffer( size_t *pxRequestedSizeBytes )
+uint8_t * pucGetNetworkBuffer( size_t *pxRequestedSizeBytes )
 {
 uint8_t *pucEthernetBuffer;
 size_t xSize = *pxRequestedSizeBytes;
@@ -173,6 +173,7 @@ size_t xSize = *pxRequestedSizeBytes;
 	{
 		xSize = ( xSize | ( sizeof( size_t ) - 1U ) ) + 1U;
 	}
+
 	*pxRequestedSizeBytes = xSize;
 
 	/* Allocate a buffer large enough to store the requested Ethernet frame size
@@ -206,7 +207,8 @@ void vReleaseNetworkBuffer( uint8_t *pucEthernetBuffer )
 }
 /*-----------------------------------------------------------*/
 
-NetworkBufferDescriptor_t *pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes, TickType_t xBlockTimeTicks )
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
+															  TickType_t xBlockTimeTicks )
 {
 NetworkBufferDescriptor_t *pxReturn = NULL;
 size_t uxCount;
@@ -223,6 +225,7 @@ size_t uxCount;
 		/* Add 2 bytes to xRequestedSizeBytes and round up xRequestedSizeBytes
 		to the nearest multiple of N bytes, where N equals 'sizeof( size_t )'. */
 		xRequestedSizeBytes += 2U;
+
 		if( ( xRequestedSizeBytes & ( sizeof( size_t ) - 1U ) ) != 0U )
 		{
 			xRequestedSizeBytes = ( xRequestedSizeBytes | ( sizeof( size_t ) - 1U ) ) + 1U;
@@ -249,6 +252,7 @@ size_t uxCount;
 
 			/* Allocate storage of exactly the requested size to the buffer. */
 			configASSERT( pxReturn->pucEthernetBuffer == NULL );
+
 			if( xRequestedSizeBytes > 0U )
 			{
 				/* Extra space is obtained so a pointer to the network buffer can
@@ -276,7 +280,7 @@ size_t uxCount;
 					greater than the original requested size. */
 					pxReturn->xDataLength = xRequestedSizeBytes;
 
-					#if( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+					#if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
 					{
 						/* make sure the buffer is not linked */
 						pxReturn->pxNextBuffer = NULL;
@@ -335,7 +339,7 @@ BaseType_t xListItemAlreadyInFreeList;
 	 */
 	if( xListItemAlreadyInFreeList == pdFALSE )
 	{
-		if ( xSemaphoreGive( xNetworkBufferSemaphore ) == pdTRUE )
+		if( xSemaphoreGive( xNetworkBufferSemaphore ) == pdTRUE )
 		{
 			iptraceNETWORK_BUFFER_RELEASED( pxNetworkBuffer );
 		}
@@ -363,7 +367,8 @@ UBaseType_t uxGetMinimumFreeNetworkBuffers( void )
 }
 /*-----------------------------------------------------------*/
 
-NetworkBufferDescriptor_t *pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer, size_t xNewSizeBytes )
+NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
+																 size_t xNewSizeBytes )
 {
 size_t xOriginalLength;
 uint8_t *pucBuffer;
@@ -381,6 +386,7 @@ uint8_t *pucBuffer;
 	else
 	{
 		pxNetworkBuffer->xDataLength = xNewSizeBytes;
+
 		if( xNewSizeBytes > xOriginalLength )
 		{
 			xNewSizeBytes = xOriginalLength;
@@ -393,4 +399,3 @@ uint8_t *pucBuffer;
 
 	return pxNetworkBuffer;
 }
-

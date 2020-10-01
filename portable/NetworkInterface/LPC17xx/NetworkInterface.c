@@ -48,17 +48,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "NetworkInterface.h"
 
 #if ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES != 1
-	#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) eProcessBuffer
+	#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )	eProcessBuffer
 #else
-	#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
+	#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )	eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
 #endif
 
 /* When a packet is ready to be sent, if it cannot be sent immediately then the
 task performing the transmit will block for niTX_BUFFER_FREE_WAIT
 milliseconds.  It will do this a maximum of niMAX_TX_ATTEMPTS before giving
 up. */
-#define niTX_BUFFER_FREE_WAIT	( pdMS_TO_TICKS( 2UL ) )
-#define niMAX_TX_ATTEMPTS		( 5 )
+#define niTX_BUFFER_FREE_WAIT		( pdMS_TO_TICKS( 2UL ) )
+#define niMAX_TX_ATTEMPTS			( 5 )
 
 /* The length of the queue used to send interrupt status words from the
 interrupt handler to the deferred handler task. */
@@ -128,8 +128,8 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
 {
 BaseType_t xReturn = pdFAIL;
 int32_t x;
-extern void EMAC_StartTransmitNextBuffer( uint32_t ulLength );
-extern void EMAC_SetNextPacketToSend( uint8_t * pucBuffer );
+	extern void EMAC_StartTransmitNextBuffer( uint32_t ulLength );
+	extern void EMAC_SetNextPacketToSend( uint8_t * pucBuffer );
 
 
 	/* Attempt to obtain access to a Tx buffer. */
@@ -154,6 +154,7 @@ extern void EMAC_SetNextPacketToSend( uint8_t * pucBuffer );
 				/* The Tx has been initiated. */
 				xReturn = pdPASS;
 			}
+
 			break;
 		}
 		else
@@ -209,17 +210,19 @@ NetworkBufferDescriptor_t *pxNetworkBuffer;
 IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
 
 /* This is not included in the header file for some reason. */
-extern uint8_t *EMAC_NextPacketToRead( void );
+	extern uint8_t * EMAC_NextPacketToRead( void );
 
 	( void ) pvParameters;
 	configASSERT( xEMACRxEventSemaphore != NULL );
 
-	for( ;; )
+	for( ; ; )
 	{
 		/* Wait for the EMAC interrupt to indicate that another packet has been
 		received.  The while() loop is only needed if INCLUDE_vTaskSuspend is
 		set to 0 in FreeRTOSConfig.h. */
-		while( xSemaphoreTake( xEMACRxEventSemaphore, portMAX_DELAY ) == pdFALSE );
+		while( xSemaphoreTake( xEMACRxEventSemaphore, portMAX_DELAY ) == pdFALSE )
+		{
+		}
 
 		/* At least one packet has been received. */
 		while( EMAC_CheckReceiveIndex() != FALSE )
@@ -264,4 +267,3 @@ extern uint8_t *EMAC_NextPacketToRead( void );
 	}
 }
 /*-----------------------------------------------------------*/
-
