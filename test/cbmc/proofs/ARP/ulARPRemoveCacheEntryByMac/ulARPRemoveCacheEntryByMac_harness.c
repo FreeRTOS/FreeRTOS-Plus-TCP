@@ -10,8 +10,9 @@
 #include "FreeRTOS_ARP.h"
 
 
-void harness() {
-	const MACAddress_t xMACAddress;
+void harness()
+{
+const MACAddress_t xMACAddress;
 
 	/* The pointer passed to ulARPRemoveCacheEntryByMac cannot be NULL
 	 * (see the API definition). */

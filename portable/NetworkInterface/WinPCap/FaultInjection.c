@@ -1,11 +1,11 @@
-#define xBUFFER_CACHE_SIZE			10
-#define xMAX_FAULT_INJECTION_RATE	15
-#define xMIN_FAULT_INJECTION_RATE	3
-#define xNUM_FAULT_TYPES			1
+#define xBUFFER_CACHE_SIZE			 10
+#define xMAX_FAULT_INJECTION_RATE	 15
+#define xMIN_FAULT_INJECTION_RATE	 3
+#define xNUM_FAULT_TYPES			 1
 
 static NetworkBufferDescriptor_t *xNetworkBufferCache[ xBUFFER_CACHE_SIZE ] = { 0 };
 
-#define xFAULT_LOG_SIZE 2048
+#define xFAULT_LOG_SIZE    2048
 uint32_t ulInjectedFault[ xFAULT_LOG_SIZE ];
 uint32_t ulFaultLogIndex = 0;
 
@@ -27,7 +27,7 @@ BaseType_t x, xReturn = pdFALSE;
 }
 /*-----------------------------------------------------------*/
 
-static NetworkBufferDescriptor_t *prvGetCachedPacket( void )
+static NetworkBufferDescriptor_t * prvGetCachedPacket( void )
 {
 BaseType_t x;
 NetworkBufferDescriptor_t *pxReturn = NULL;
@@ -46,7 +46,8 @@ NetworkBufferDescriptor_t *pxReturn = NULL;
 }
 /*-----------------------------------------------------------*/
 
-static NetworkBufferDescriptor_t *prvDuplicatePacket( NetworkBufferDescriptor_t * pxOriginalPacket, const uint8_t *pucPacketData )
+static NetworkBufferDescriptor_t * prvDuplicatePacket( NetworkBufferDescriptor_t * pxOriginalPacket,
+													   const uint8_t *pucPacketData )
 {
 NetworkBufferDescriptor_t *pxReturn;
 
@@ -64,14 +65,15 @@ NetworkBufferDescriptor_t *pxReturn;
 }
 /*-----------------------------------------------------------*/
 
-static NetworkBufferDescriptor_t *prvRxFaultInjection( NetworkBufferDescriptor_t *pxNetworkBufferIn, const uint8_t *pucPacketData )
+static NetworkBufferDescriptor_t * prvRxFaultInjection( NetworkBufferDescriptor_t *pxNetworkBufferIn,
+														const uint8_t *pucPacketData )
 {
 static uint32_t ulCallCount = 0, ulNextFaultCallCount = 0;
 NetworkBufferDescriptor_t *pxReturn = pxNetworkBufferIn;
 IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
 uint32_t ulFault;
 
-return pxNetworkBufferIn;
+	return pxNetworkBufferIn;
 
 	ulCallCount++;
 
@@ -79,6 +81,7 @@ return pxNetworkBufferIn;
 	{
 		xApplicationGetRandomNumber( &( ulNextFaultCallCount ) );
 		ulNextFaultCallCount = ulNextFaultCallCount % xMAX_FAULT_INJECTION_RATE;
+
 		if( ulNextFaultCallCount < xMIN_FAULT_INJECTION_RATE )
 		{
 			ulNextFaultCallCount = xMIN_FAULT_INJECTION_RATE;
@@ -104,6 +107,7 @@ return pxNetworkBufferIn;
 				break;
 
 			case 1:
+
 				/* Store the packet in the cache for later. */
 				if( prvCachePacket( pxNetworkBufferIn ) == pdTRUE )
 				{
@@ -111,11 +115,13 @@ return pxNetworkBufferIn;
 					now. */
 					pxReturn = NULL;
 				}
+
 				break;
 
 			case 2:
 				/* Send a cached packet. */
 				pxReturn = prvGetCachedPacket();
+
 				if( pxReturn != NULL )
 				{
 					/* A cached packet was obtained so drop the original
@@ -128,6 +134,7 @@ return pxNetworkBufferIn;
 					the packet that was passed in. */
 					pxReturn = pxNetworkBufferIn;
 				}
+
 				break;
 
 			case 4:
@@ -137,16 +144,19 @@ return pxNetworkBufferIn;
 
 				/* Send the original packet to the stack. */
 				xRxEvent.pvData = ( void * ) pxNetworkBufferIn;
+
 				if( xSendEventStructToIPTask( &xRxEvent, ( TickType_t ) 0 ) == pdFAIL )
 				{
 					vReleaseNetworkBufferAndDescriptor( pxNetworkBufferIn );
 				}
+
 				break;
 
 			case 5:
 
 				/* Send both a cached packet and the current packet. */
 				xRxEvent.pvData = ( void * ) prvGetCachedPacket();
+
 				if( xRxEvent.pvData != NULL )
 				{
 					if( xSendEventStructToIPTask( &xRxEvent, ( TickType_t ) 0 ) == pdFAIL )
@@ -154,11 +164,13 @@ return pxNetworkBufferIn;
 						vReleaseNetworkBufferAndDescriptor( pxNetworkBufferIn );
 					}
 				}
+
 				break;
 
 			case 6:
 			case 7:
 			case 8:
+
 				/* Store the packet in the cache for later. */
 				if( prvCachePacket( pxNetworkBufferIn ) == pdTRUE )
 				{
@@ -166,6 +178,7 @@ return pxNetworkBufferIn;
 					now. */
 					pxReturn = NULL;
 				}
+
 				break;
 		}
 	}

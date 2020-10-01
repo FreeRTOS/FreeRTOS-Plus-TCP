@@ -48,14 +48,14 @@
  ****************************************************************/
 
 uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                           size_t xBufferLength,
-                           BaseType_t xExpected )
+						   size_t xBufferLength,
+						   BaseType_t xExpected )
 {
-    __CPROVER_assert(pucUDPPayloadBuffer != NULL,
-		     "Precondition: pucUDPPayloadBuffer != NULL");
+	__CPROVER_assert( pucUDPPayloadBuffer != NULL,
+					  "Precondition: pucUDPPayloadBuffer != NULL" );
 
-    __CPROVER_havoc_object( pucUDPPayloadBuffer );
-    return nondet_uint32();
+	__CPROVER_havoc_object( pucUDPPayloadBuffer );
+	return nondet_uint32();
 }
 
 /****************************************************************
@@ -68,23 +68,25 @@ uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
  ****************************************************************/
 
 size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
-                            const char * pcHostName,
-                            TickType_t uxIdentifier )
+							const char * pcHostName,
+							TickType_t uxIdentifier )
 {
-    __CPROVER_assert(pucUDPPayloadBuffer != NULL,
-		     "Precondition: pucUDPPayloadBuffer != NULL");
-    __CPROVER_assert(pcHostName != NULL,
-		     "Precondition: pcHostName != NULL");
+	__CPROVER_assert( pucUDPPayloadBuffer != NULL,
+					  "Precondition: pucUDPPayloadBuffer != NULL" );
+	__CPROVER_assert( pcHostName != NULL,
+					  "Precondition: pcHostName != NULL" );
 
-    __CPROVER_havoc_object( pucUDPPayloadBuffer );
-    return nondet_sizet();
+	__CPROVER_havoc_object( pucUDPPayloadBuffer );
+	return nondet_sizet();
 }
 
 /****************************************************************
  * A stub for a function callback.
  ****************************************************************/
 
-void func(const char * pcHostName, void * pvSearchID, uint32_t ulIPAddress)
+void func( const char * pcHostName,
+		   void * pvSearchID,
+		   uint32_t ulIPAddress )
 {
 }
 
@@ -92,19 +94,20 @@ void func(const char * pcHostName, void * pvSearchID, uint32_t ulIPAddress)
  * The proof for FreeRTOS_gethostbyname_a.
  ****************************************************************/
 
-void harness() {
-    size_t len;
+void harness()
+{
+size_t len;
 
-    __CPROVER_assume( len <= MAX_HOSTNAME_LEN );
-    char * pcHostName = safeMalloc( len );
+	__CPROVER_assume( len <= MAX_HOSTNAME_LEN );
+	char * pcHostName = safeMalloc( len );
 
-    __CPROVER_assume( len > 0 ); /* prvProcessDNSCache strcmp */
-    __CPROVER_assume( pcHostName != NULL );
-    pcHostName[ len - 1 ] = NULL;
+	__CPROVER_assume( len > 0 ); /* prvProcessDNSCache strcmp */
+	__CPROVER_assume( pcHostName != NULL );
+	pcHostName[ len - 1 ] = NULL;
 
-    FOnDNSEvent pCallback = func;
-    TickType_t xTimeout;
-    void *pvSearchID;
+	FOnDNSEvent pCallback = func;
+	TickType_t xTimeout;
+	void *pvSearchID;
 
-    FreeRTOS_gethostbyname_a(pcHostName, pCallback, pvSearchID, xTimeout);
+	FreeRTOS_gethostbyname_a( pcHostName, pCallback, pvSearchID, xTimeout );
 }

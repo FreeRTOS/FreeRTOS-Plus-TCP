@@ -55,14 +55,14 @@ As long as the part has no caching, this section can be placed anywhere in RAM.
 On an STM32F7 with an L1 data cache, it shall be placed in the first 64KB of RAM, which is always uncached.
 The linker script must be changed for this, for instance as follows:
 
-   .data : 
+   .data :
    {
      . = ALIGN(4);
      _sdata = .;        // create a global symbol at data start
 +    *(.first_data)     // .first_data sections
      *(.data)           // .data sections
      *(.data*)          // .data* sections
- 
+
      . = ALIGN(4);
      _edata = .;        // define a global symbol at data end
    } >RAM AT> FLASH

@@ -24,8 +24,8 @@
   * the maximum offset into an object in CBMC, and hence a bound on the
   * size of objects in CBMC.
   */
-#define CBMC_BITS               7
-#define CBMC_MAX_OBJECT_SIZE    ( 0xFFFFFFFF >> ( CBMC_BITS + 1 ) )
+#define CBMC_BITS				7
+#define CBMC_MAX_OBJECT_SIZE	( 0xFFFFFFFF >> ( CBMC_BITS + 1 ) )
 
 #define IMPLIES( a, b )    ( !( a ) || ( b ) )
 
@@ -43,39 +43,39 @@ void * safeMalloc( size_t size );
 
 enum CBMC_LOOP_CONDITION
 {
-    CBMC_LOOP_BREAK, CBMC_LOOP_CONTINUE, CBMC_LOOP_RETURN
+	CBMC_LOOP_BREAK, CBMC_LOOP_CONTINUE, CBMC_LOOP_RETURN
 };
 
 /* CBMC specification: capture old value for precondition and */
 /* postcondition checking */
 
-#define OLDVAL( var )              _old_ ## var
-#define SAVE_OLDVAL( var, typ )    const typ OLDVAL( var ) = var
+#define OLDVAL( var )			   _old_ ## var
+#define SAVE_OLDVAL( var, typ )	   const typ OLDVAL( var ) = var
 
 /* CBMC specification: capture old value for values passed by */
 /* reference in function abstractions */
 
-#define OBJ( var )                 ( * var )
-#define OLDOBJ( var )              _oldobj_ ## var
-#define SAVE_OLDOBJ( var, typ )    const typ OLDOBJ( var ) = OBJ( var )
+#define OBJ( var )				   ( * var )
+#define OLDOBJ( var )			   _oldobj_ ## var
+#define SAVE_OLDOBJ( var, typ )	   const typ OLDOBJ( var ) = OBJ( var )
 
 /* CBMC debugging: printfs for expressions */
 
-#define __CPROVER_printf( var )          { uint32_t ValueOf_ ## var = ( uint32_t ) var; }
-#define __CPROVER_printf2( str, exp )    { uint32_t ValueOf_ ## str = ( uint32_t ) ( exp ); }
+#define __CPROVER_printf( var )			 { uint32_t ValueOf_ ## var = ( uint32_t ) var; }
+#define __CPROVER_printf2( str, exp )	 { uint32_t ValueOf_ ## str = ( uint32_t ) ( exp ); }
 
 /* CBMC debugging: printfs for pointer expressions */
 
-#define __CPROVER_printf_ptr( var )          { uint8_t * ValueOf_ ## var = ( uint8_t * ) var; }
-#define __CPROVER_printf2_ptr( str, exp )    { uint8_t * ValueOf_ ## str = ( uint8_t * ) ( exp ); }
+#define __CPROVER_printf_ptr( var )			 { uint8_t * ValueOf_ ## var = ( uint8_t * ) var; }
+#define __CPROVER_printf2_ptr( str, exp )	 { uint8_t * ValueOf_ ## str = ( uint8_t * ) ( exp ); }
 
 /*
   * An assertion that pvPortMalloc returns NULL when asked to allocate 0 bytes.
   * This assertion is used in some of the TaskPool proofs.
   */
-#define __CPROVER_assert_zero_allocation()       \
-    __CPROVER_assert( pvPortMalloc( 0 ) == NULL, \
-                      "pvPortMalloc allows zero-allocated memory." )
+#define __CPROVER_assert_zero_allocation()		 \
+	__CPROVER_assert( pvPortMalloc( 0 ) == NULL, \
+					  "pvPortMalloc allows zero-allocated memory." )
 
 /*
   * A stub for pvPortMalloc that nondeterministically chooses to return
@@ -85,16 +85,16 @@ enum CBMC_LOOP_CONDITION
   */
 void * pvPortMalloc( size_t xWantedSize )
 {
-    if( xWantedSize == 0 )
-    {
-        return NULL;
-    }
+	if( xWantedSize == 0 )
+	{
+		return NULL;
+	}
 
-    return nondet_bool() ? malloc( xWantedSize ) : NULL;
+	return nondet_bool() ? malloc( xWantedSize ) : NULL;
 }
 
 void vPortFree( void * pv )
 {
-    ( void ) pv;
-    free( pv );
+	( void ) pv;
+	free( pv );
 }

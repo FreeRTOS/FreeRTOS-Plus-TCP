@@ -8,9 +8,10 @@
 #include "FreeRTOS_IP_Private.h"
 
 
-void harness() {
-	if( ipconfigUSE_DNS_CACHE != 0 ) {
+void harness()
+{
+	if( ipconfigUSE_DNS_CACHE != 0 )
+	{
 		FreeRTOS_dnsclear();
-	}	
-	
+	}
 }

@@ -7,6 +7,6 @@
 
 void * safeMalloc( size_t size )
 {
-    __CPROVER_assert( size < CBMC_MAX_OBJECT_SIZE, "safeMalloc size too big" );
-    return nondet_bool() ? NULL : malloc( size );
+	__CPROVER_assert( size < CBMC_MAX_OBJECT_SIZE, "safeMalloc size too big" );
+	return nondet_bool() ? NULL : malloc( size );
 }

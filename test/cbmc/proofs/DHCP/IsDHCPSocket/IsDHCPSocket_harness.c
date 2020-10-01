@@ -42,8 +42,8 @@
  */
 void harness()
 {
-  Socket_t xSocket;
-  BaseType_t xResult;
+Socket_t xSocket;
+BaseType_t xResult;
 
-  xResult = xIsDHCPSocket( xSocket );
+	xResult = xIsDHCPSocket( xSocket );
 }

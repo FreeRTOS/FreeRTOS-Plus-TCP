@@ -44,7 +44,10 @@
  * will be used when TCP data is received while earlier data is still missing.
  * If 'pucData' equals NULL, the function is called to advance 'uxHead' only.
  */
-size_t uxStreamBufferAdd( StreamBuffer_t *pxBuffer, size_t uxOffset, const uint8_t *pucData, size_t uxByteCount )
+size_t uxStreamBufferAdd( StreamBuffer_t *pxBuffer,
+						  size_t uxOffset,
+						  const uint8_t *pucData,
+						  size_t uxByteCount )
 {
 size_t uxSpace, uxNextHead, uxFirst;
 size_t uxCount = uxByteCount;
@@ -73,6 +76,7 @@ size_t uxCount = uxByteCount;
 		{
 			/* ( uxOffset > 0 ) means: write in front if the uxHead marker */
 			uxNextHead += uxOffset;
+
 			if( uxNextHead >= pxBuffer->LENGTH )
 			{
 				uxNextHead -= pxBuffer->LENGTH;
@@ -103,10 +107,12 @@ size_t uxCount = uxByteCount;
 		{
 			/* ( uxOffset == 0 ) means: write at uxHead position */
 			uxNextHead += uxCount;
+
 			if( uxNextHead >= pxBuffer->LENGTH )
 			{
 				uxNextHead -= pxBuffer->LENGTH;
 			}
+
 			pxBuffer->uxHead = uxNextHead;
 		}
 
@@ -128,7 +134,11 @@ size_t uxCount = uxByteCount;
  * if 'xPeek' is pdTRUE, or if 'uxOffset' is non-zero, the 'lTail' pointer will
  * not be advanced.
  */
-size_t uxStreamBufferGet( StreamBuffer_t *pxBuffer, size_t uxOffset, uint8_t *pucData, size_t uxMaxCount, BaseType_t xPeek )
+size_t uxStreamBufferGet( StreamBuffer_t *pxBuffer,
+						  size_t uxOffset,
+						  uint8_t *pucData,
+						  size_t uxMaxCount,
+						  BaseType_t xPeek )
 {
 size_t uxSize, uxCount, uxFirst, uxNextTail;
 
@@ -154,6 +164,7 @@ size_t uxSize, uxCount, uxFirst, uxNextTail;
 		if( uxOffset != 0U )
 		{
 			uxNextTail += uxOffset;
+
 			if( uxNextTail >= pxBuffer->LENGTH )
 			{
 				uxNextTail -= pxBuffer->LENGTH;
@@ -197,4 +208,3 @@ size_t uxSize, uxCount, uxFirst, uxNextTail;
 
 	return uxCount;
 }
-

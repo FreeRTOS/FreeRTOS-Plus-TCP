@@ -48,7 +48,7 @@ Here is some contents of the output file:
     /*-----------------------------------------------------------*/
 
 tcp_dump_packets has an enum of all possible properties of network packets:
-    ICMP4, ICMP6, UDP, TCP, DNS, REPLY, REQUEST, SYN, 
+    ICMP4, ICMP6, UDP, TCP, DNS, REPLY, REQUEST, SYN,
     FIN, RST, ACK, IN, OUT, ARP, FRAME_ARP, FRAME_4, and FRAME_6
 
 Each property is defined as a bit so they can be combined as in:

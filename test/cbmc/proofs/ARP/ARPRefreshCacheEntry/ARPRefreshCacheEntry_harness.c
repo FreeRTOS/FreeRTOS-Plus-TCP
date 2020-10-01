@@ -8,8 +8,9 @@
 
 void harness()
 {
-  MACAddress_t xMACAddress;
-  uint32_t ulIPAddress;
-  vARPRefreshCacheEntry( &xMACAddress, ulIPAddress );
-  vARPRefreshCacheEntry( NULL, ulIPAddress );
+MACAddress_t xMACAddress;
+uint32_t ulIPAddress;
+
+	vARPRefreshCacheEntry( &xMACAddress, ulIPAddress );
+	vARPRefreshCacheEntry( NULL, ulIPAddress );
 }
