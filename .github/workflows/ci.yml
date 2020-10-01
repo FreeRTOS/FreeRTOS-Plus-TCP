@@ -69,4 +69,4 @@ jobs:
       - name: Complexity
         run: |
           find . -iname '*.c' |\
-          xargs complexity --scores --threshold=0 --horrid-threshold=8
+          xargs complexity --scores --threshold=0 --horrid-threshold=55
