@@ -46,7 +46,7 @@ jobs:
       #    path: "build/coverage.info"
       #    min_coverage: 99
       #    exclude: "**/*test*"
-    
+
   formatting:
     runs-on: ubuntu-latest
     steps:
