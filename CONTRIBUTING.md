@@ -17,7 +17,7 @@ If you discover a potential security issue in this project we ask that you notif
 
 ## Submitting a bugs/feature request
 Have a bug to report or feature to request? Follow these steps:
-1. Search on the [FreeRTOS Community Support Forums](https://forums.freertos.org/) and [GitHub issue tracker](https://github.com/FreeRTOS/FreeRTOS/issues?utf8=%E2%9C%93&q=is%3Aissue) to be sure this hasn't been already reported or discussed.
+1. Search on the [FreeRTOS Community Support Forums](https://forums.freertos.org/), [FreeRTOS-Plus-TCP issue tracker](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/issues?utf8=%E2%9C%93&q=is%3Aissue) and [FreeRTOS GitHub issue tracker](https://github.com/FreeRTOS/FreeRTOS/issues?utf8=%E2%9C%93&q=is%3Aissue) to be sure this hasn't been already reported or discussed.
 2. If your search turns up empty, create a new topic in the [forums](https://forums.freertos.org/) and work with the community to help clarify issues or refine the idea. Include as many of the details listed below.
 3. Once the community has had time to discuss and digest, we welcome you to create an [issue](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/issues) to report bugs or suggest features.
 
@@ -63,7 +63,7 @@ Looking at the existing issues is a great way to find something to contribute on
 
 
 ## Licensing
-The FreeRTOS-Plus-TCP library is released under the MIT open source license, the text of which can be found [here](https://github.com/FreeRTOS/FreeRTOS/blob/master/FreeRTOS/License/license.txt)
+The FreeRTOS-Plus-TCP library is released under the MIT open source license, the text of which can be found [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/master/LICENSE.md)
 
 Additional license files can be found in the folders containing any supplementary libraries licensed by their respective copyright owners where applicable.
 
