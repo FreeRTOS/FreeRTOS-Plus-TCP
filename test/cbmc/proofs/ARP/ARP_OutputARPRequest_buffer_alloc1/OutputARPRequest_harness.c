@@ -33,6 +33,7 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 		#else
 			current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) );
 		#endif
+		__CPROVER_assume( current->pucEthernetBuffer != NULL );
 		current->xDataLength = sizeof( ARPPacket_t );
 	}
 }
@@ -47,7 +48,10 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
    safety point of view. */
 void * pvPortMalloc( size_t xWantedSize )
 {
-	return malloc( xWantedSize );
+void *ptr = malloc( xWantedSize );
+
+	__CPROVER_assume( ptr != NULL );
+	return ptr;
 }
 
 /*

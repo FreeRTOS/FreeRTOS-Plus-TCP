@@ -25,7 +25,10 @@
 
 void * pvPortMalloc( size_t xWantedSize )
 {
-	return malloc( xWantedSize );
+void *ptr = malloc( xWantedSize );
+
+	__CPROVER_assume( ptr != NULL );
+	return ptr;
 }
 
 

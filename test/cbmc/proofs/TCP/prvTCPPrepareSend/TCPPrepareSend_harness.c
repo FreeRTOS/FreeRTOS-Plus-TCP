@@ -55,6 +55,7 @@ size_t bufferSize = sizeof( NetworkBufferDescriptor_t );
 		/* The code does not expect pucEthernetBuffer to be equal to NULL if
 		pxBuffer is not NULL. */
 		pxBuffer->pucEthernetBuffer = malloc( xRequestedSizeBytes );
+		__CPROVER_assume( pxBuffer->pucEthernetBuffer != NULL );
 		pxBuffer->xDataLength = xRequestedSizeBytes;
 	}
 
@@ -75,6 +76,7 @@ size_t bufferSize = sizeof( TCPPacket_t );
 		/* The code does not expect pucEthernetBuffer to be equal to NULL if
 		pxNetworkBuffer is not NULL. */
 		pxNetworkBuffer->pucEthernetBuffer = malloc( bufferSize );
+		__CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 	}
 
 	UBaseType_t uxOptionsLength;
