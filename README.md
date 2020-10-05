@@ -31,13 +31,13 @@ The porting guide is available on [this page](http://www.FreeRTOS.org/FreeRTOS-P
 This repository contains the FreeRTOS-Plus-TCP repository and a number of supplementary libraries for testing/PR Checks.
 Below is the breakdown of what each directory contains:
 - tools
-    - This directory contains the tools and related files (CMock/uncrustify) required for tests/checks for the TCP source code.
+    - This directory contains the tools and related files (CMock/uncrustify) required to run tests/checks on the TCP source code.
 - tests
     - This directory contains all the tests (unit tests and CBMC) and the dependencies ([FreeRTOS-Kernel](https://github.com/FreeRTOS/FreeRTOS-Kernel)/[Litani-port](https://github.com/awslabs/aws-build-accumulator)) the tests require.
 - portable
-    - This directory contains the portable files required to compile the FreeRTOS-Plus-TCP source code for different hardwares/compilers.
+    - This directory contains the portable files required to compile the FreeRTOS-Plus-TCP source code for different hardware/compilers.
 - include
-    - The include directory has all 'core' the header files of FreeRTOS-Plus-TCP source.
+    - The include directory has all the 'core' header files of FreeRTOS-Plus-TCP source.
 
 ## Note
 At this time it is recommended to use BufferAllocation_2.c in which case it is essential to use the heap_4.c memory allocation scheme. See [memory management](http://www.FreeRTOS.org/a00111.html).
