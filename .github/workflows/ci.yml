@@ -68,5 +68,5 @@ jobs:
         run: sudo apt-get install complexity
       - name: Complexity
         run: |
-          find . -iname '*.c' |\
+          find . \( -iname '*.c' ! -iname 'test*' \) |\
           xargs complexity --scores --threshold=0 --horrid-threshold=55
