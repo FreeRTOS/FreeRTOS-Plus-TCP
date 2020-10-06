@@ -27,11 +27,11 @@
 #define _AWS_FREERTOS_TCP_TEST_ACCESS_DECLARE_H_
 
 uint32_t TEST_FreeRTOS_TCP_prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                                             size_t xBufferLength,
-                                             TickType_t xIdentifier );
+											 size_t xBufferLength,
+											 TickType_t xIdentifier );
 
 void TEST_FreeRTOS_TCP_prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                        NetworkBufferDescriptor_t * pxNetworkBuffer );
+										NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 void TEST_FreeRTOS_TCP_prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket );
 

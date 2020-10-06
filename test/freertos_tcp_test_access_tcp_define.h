@@ -38,15 +38,15 @@
 /*-----------------------------------------------------------*/
 
 void TEST_FreeRTOS_TCP_prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                        NetworkBufferDescriptor_t * pxNetworkBuffer )
+										NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
-    prvCheckOptions( pxSocket, pxNetworkBuffer );
+	prvCheckOptions( pxSocket, pxNetworkBuffer );
 }
 /*-----------------------------------------------------------*/
 
 void TEST_FreeRTOS_TCP_prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket )
 {
-    prvTCPCreateWindow( pxSocket );
+	prvTCPCreateWindow( pxSocket );
 }
 /*-----------------------------------------------------------*/
 
