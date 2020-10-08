@@ -1,7 +1,7 @@
 name : "FreeRTOS-Plus-TCP"
 version: "V2.3.0"
 description: |-
-  "FreeRTOS TCP/IP stack working on top of FreeRTOS-Kernel to implement IP protocol. Suitable for microcontrollers."
+  "Threadsafe FreeRTOS TCP/IP stack working on top of the FreeRTOS-Kernel to implement the TCP/IP protocol. Suitable for microcontrollers."
 
 dependencies:
   - name: "FreeRTOS-Kernel"
