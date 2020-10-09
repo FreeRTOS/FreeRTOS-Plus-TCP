@@ -148,29 +148,37 @@ FreeRTOS_setsockopt(). */
 	#define FREERTOS_MSG_DONTROUTE					  ( 8 )  /* send without using routing tables */
 	#define FREERTOS_MSG_DONTWAIT					  ( 16 ) /* Can be used with recvfrom(), sendto(), recv(), and send(). */
 
+
+/**
+* Structure to hold the properties of Tx/Rx buffers and windows.
+*/
 	typedef struct xWIN_PROPS
 	{
 		/* Properties of the Tx buffer and Tx window */
-		int32_t lTxBufSize; /* Unit: bytes */
-		int32_t lTxWinSize; /* Unit: MSS */
+		int32_t lTxBufSize; /**< Unit: bytes */
+		int32_t lTxWinSize; /**< Unit: MSS */
 
 		/* Properties of the Rx buffer and Rx window */
-		int32_t lRxBufSize; /* Unit: bytes */
-		int32_t lRxWinSize; /* Unit: MSS */
+		int32_t lRxBufSize; /**< Unit: bytes */
+		int32_t lRxWinSize; /**< Unit: MSS */
 	} WinProperties_t;
 
+	/**
+	* Structure to pass for the 'FREERTOS_SO_SET_LOW_HIGH_WATER' option 
+	*/
 	typedef struct xLOW_HIGH_WATER
 	{
-		/* Structure to pass for the 'FREERTOS_SO_SET_LOW_HIGH_WATER' option */
-		size_t uxLittleSpace; /* Send a STOP when buffer space drops below X bytes */
-		size_t uxEnoughSpace; /* Send a GO when buffer space grows above X bytes */
+		size_t uxLittleSpace; /**< Send a STOP when buffer space drops below X bytes */
+		size_t uxEnoughSpace; /**< Send a GO when buffer space grows above X bytes */
 	} LowHighWater_t;
 
-/* For compatibility with the expected Berkeley sockets naming. */
+	/* For compatibility with the expected Berkeley sockets naming. */
 	#define socklen_t    uint32_t
 
-/* For this limited implementation, only two members are required in the
-Berkeley style sockaddr structure. */
+	/**
+	* For this limited implementation, only two members are required in the
+	* Berkeley style sockaddr structure.
+	*/
 	struct freertos_sockaddr
 	{
 		/* _HT_ On 32- and 64-bit architectures, the addition of the two uint8_t
@@ -178,10 +186,10 @@ Berkeley style sockaddr structure. */
 		The fields are inserted as a preparation for IPv6. */
 
 		/* sin_len and sin_family not used in the IPv4-only release. */
-		uint8_t sin_len;    /* length of this structure. */
-		uint8_t sin_family; /* FREERTOS_AF_INET. */
-		uint16_t sin_port;
-		uint32_t sin_addr;
+		uint8_t sin_len;    /**< length of this structure. */
+		uint8_t sin_family; /**< FREERTOS_AF_INET. */
+		uint16_t sin_port; /**< The port */
+		uint32_t sin_addr; /**< The IP address */
 	};
 
 	extern const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
