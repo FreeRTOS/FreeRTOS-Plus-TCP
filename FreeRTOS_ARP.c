@@ -23,6 +23,11 @@
  * http://www.FreeRTOS.org
  */
 
+/**
+ * @file FreeRTOS_ARP.c
+ * @brief Implements the Address Resolution Protocol for the FreeRTOS+TCP network stack.
+ */
+
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
@@ -87,7 +92,13 @@ static TickType_t xLastGratuitousARPTime = ( TickType_t ) 0;
 #endif /* ipconfigARP_USE_CLASH_DETECTION */
 
 /*-----------------------------------------------------------*/
-
+/**
+ * @brief Process the ARP packets.
+ *
+ * @param[in] input The ARP Frame (the ARP packet).
+ *
+ * @return An enum which says whether to release the frame or not.
+*/
 eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 {
 eFrameProcessingResult_t eReturn = eReleaseBuffer;

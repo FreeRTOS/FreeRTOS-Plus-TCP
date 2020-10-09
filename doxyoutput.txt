@@ -1,0 +1,16 @@
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:58: warning: Member arpMAX_ARP_AGE_BEFORE_NEW_ARP_REQUEST (macro definition) of file FreeRTOS_ARP.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:62: warning: Member arpGRATUITOUS_ARP_PERIOD (macro definition) of file FreeRTOS_ARP.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:555: warning: Member prvCacheLookup(uint32_t ulAddressToLookup, MACAddress_t *const pxMACAddress) (function) of file FreeRTOS_ARP.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:249: warning: Member vARPRefreshCacheEntry(const MACAddress_t *pxMACAddress, const uint32_t ulIPAddress) (function) of file FreeRTOS_ARP.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:449: warning: Member eARPGetCacheEntry(uint32_t *pulIPAddress, MACAddress_t *const pxMACAddress) (function) of file FreeRTOS_ARP.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:589: warning: Member vARPAgeCache(void) (function) of file FreeRTOS_ARP.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:641: warning: Member vARPSendGratuitous(void) (function) of file FreeRTOS_ARP.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:652: warning: Member FreeRTOS_OutputARPRequest(uint32_t ulIPAddress) (function) of file FreeRTOS_ARP.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:703: warning: Member vARPGenerateRequestPacket(NetworkBufferDescriptor_t *const pxNetworkBuffer) (function) of file FreeRTOS_ARP.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:777: warning: Member FreeRTOS_ClearARP(void) (function) of file FreeRTOS_ARP.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:784: warning: Member xCheckLoopback(NetworkBufferDescriptor_t *const pxDescriptor, BaseType_t bReleaseAfterSend) (function) of file FreeRTOS_ARP.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:76: warning: Member xARPCache[ipconfigARP_CACHE_ENTRIES] (variable) of file FreeRTOS_ARP.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:80: warning: Member xLastGratuitousARPTime (variable) of file FreeRTOS_ARP.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:97: warning: argument 'input' of command @param is not found in the argument list of eARPProcessPacket(ARPPacket_t *const pxARPFrame)
+/root/Desktop/AddDoxygen/FreeRTOS_ARP.c:102: warning: The following parameter of eARPProcessPacket(ARPPacket_t *const pxARPFrame) is not documented:
+  parameter 'pxARPFrame'
