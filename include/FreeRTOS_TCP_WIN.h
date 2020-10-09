@@ -36,16 +36,16 @@
 	#endif
 
 	/**
-	* The name xTCPTimer was already use as the name of an IP-timer. 
+	* The name xTCPTimer was already use as the name of an IP-timer.
 	*/
 	typedef struct xTCPTimerStruct
 	{
-	uint32_t ulBorn;	/**< The time when this timer is created. */
+	uint32_t ulBorn;    /**< The time when this timer is created. */
 	} TCPTimer_t;
 
-        /**
-        * Structure to hold the information about a TCP segment.
-        */
+	/**
+	* Structure to hold the information about a TCP segment.
+	*/
 	typedef struct xTCP_SEGMENT
 	{
 	uint32_t ulSequenceNumber;      /**< The sequence number of the first byte in this packet */
@@ -65,7 +65,7 @@
 					bIsForRx : 1;        /**< pdTRUE if segment is used for reception */
 			} bits;
 			uint32_t ulFlags;
-		} u;	/**< Use a union to store the 32-bit flag field and the breakdown in the same location. */
+		} u;                                /**< Use a union to store the 32-bit flag field and the breakdown in the same location. */
 		#if ( ipconfigUSE_TCP_WIN != 0 )
 			struct xLIST_ITEM xQueueItem;   /**< TX only: segments can be linked in one of three queues: xPriorityQueue, xTxQueue, and xWaitQueue */
 			struct xLIST_ITEM xSegmentItem; /**< With this item the segment can be connected to a list, depending on who is owning it */
@@ -77,8 +77,8 @@
 */
 	typedef struct xTCP_WINSIZE
 	{
-	uint32_t ulRxWindowLength;	/**< The size of the receive window. */
-	uint32_t ulTxWindowLength;	/**< The size of the send window. */
+	uint32_t ulRxWindowLength;  /**< The size of the receive window. */
+	uint32_t ulTxWindowLength;  /**< The size of the send window. */
 	} TCPWinSize_t;
 
 /*
@@ -108,8 +108,8 @@
 					bTimeStamps : 1;   /**< Socket is supposed to use TCP time-stamps. This depends on the */
 			} bits;                    /**< party which opens the connection */
 			uint32_t ulFlags;
-		} u;	/**< Use a union to store the 32-bit flag field and the breakdown at the same place. */
-		TCPWinSize_t xSize;	/**< Size of the TCP window. */
+		} u;                           /**< Use a union to store the 32-bit flag field and the breakdown at the same place. */
+		TCPWinSize_t xSize;            /**< Size of the TCP window. */
 		struct
 		{
 		uint32_t ulFirstSequenceNumber;                                        /**< Logging & debug: the first segment received/sent in this connection
@@ -119,8 +119,8 @@
 		                                  * In other words: the sequence number of the left side of the sliding window */
 		uint32_t ulFINSequenceNumber;                                          /**< The sequence number which carried the FIN flag */
 		uint32_t ulHighestSequenceNumber;                                      /**< Sequence number of the right-most byte + 1 */
-		} rx, /**< Structure for the receiver for TCP. */
-		tx;  /**< Structure for the transmitter for TCP. */
+		} rx,                                                                  /**< Structure for the receiver for TCP. */
+		  tx;                                                                  /**< Structure for the transmitter for TCP. */
 
 		uint32_t ulOurSequenceNumber;                                          /**< The SEQ number we're sending out */
 		uint32_t ulUserDataLength;                                             /**< Number of bytes in Rx buffer which may be passed to the user, after having received a 'missing packet' */

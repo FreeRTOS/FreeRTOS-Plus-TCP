@@ -164,12 +164,12 @@ FreeRTOS_setsockopt(). */
 	} WinProperties_t;
 
 	/**
-	* Structure to pass for the 'FREERTOS_SO_SET_LOW_HIGH_WATER' option 
+	* Structure to pass for the 'FREERTOS_SO_SET_LOW_HIGH_WATER' option
 	*/
 	typedef struct xLOW_HIGH_WATER
 	{
-		size_t uxLittleSpace; /**< Send a STOP when buffer space drops below X bytes */
-		size_t uxEnoughSpace; /**< Send a GO when buffer space grows above X bytes */
+	size_t uxLittleSpace;     /**< Send a STOP when buffer space drops below X bytes */
+	size_t uxEnoughSpace;     /**< Send a GO when buffer space grows above X bytes */
 	} LowHighWater_t;
 
 	/* For compatibility with the expected Berkeley sockets naming. */
@@ -188,8 +188,8 @@ FreeRTOS_setsockopt(). */
 		/* sin_len and sin_family not used in the IPv4-only release. */
 		uint8_t sin_len;    /**< length of this structure. */
 		uint8_t sin_family; /**< FREERTOS_AF_INET. */
-		uint16_t sin_port; /**< The port */
-		uint32_t sin_addr; /**< The IP address */
+		uint16_t sin_port;  /**< The port */
+		uint32_t sin_addr;  /**< The IP address */
 	};
 
 	extern const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,

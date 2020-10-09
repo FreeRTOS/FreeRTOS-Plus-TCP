@@ -64,11 +64,11 @@
 */
 	typedef struct xNetworkAddressingParameters
 	{
-	uint32_t ulDefaultIPAddress;	/**< The default IP address */
-	uint32_t ulNetMask;    /**< The netmask */
-	uint32_t ulGatewayAddress;    /**< The gateway address */
-	uint32_t ulDNSServerAddress;    /**< The DNS server address */
-	uint32_t ulBroadcastAddress;    /**< The Broadcast address */
+	uint32_t ulDefaultIPAddress; /**< The default IP address */
+	uint32_t ulNetMask;          /**< The netmask */
+	uint32_t ulGatewayAddress;   /**< The gateway address */
+	uint32_t ulDNSServerAddress; /**< The DNS server address */
+	uint32_t ulBroadcastAddress; /**< The Broadcast address */
 	} NetworkAddressingParameters_t;
 
 	extern BaseType_t xTCPWindowLoggingLevel;
@@ -178,15 +178,15 @@
 	#include "pack_struct_start.h"
 	struct xTCP_HEADER
 	{
-	uint16_t usSourcePort;      /**< The Source port                      +  2 =  2 */
-	uint16_t usDestinationPort; /**< The destination port                 +  2 =  4 */
-	uint32_t ulSequenceNumber;  /**< The Sequence number                  +  4 =  8 */
-	uint32_t ulAckNr;           /**< The acknowledgement number           +  4 = 12 */
-	uint8_t ucTCPOffset;        /**< The value of TCP offset              +  1 = 13 */
-	uint8_t ucTCPFlags;         /**< The TCP-flags field                  +  1 = 14 */
-	uint16_t usWindow;          /**< The size of the receive window       +  2 = 15 */
-	uint16_t usChecksum;        /**< The checksum of the header           +  2 = 18 */
-	uint16_t usUrgent;          /**< Pointer to the last urgent data byte +  2 = 20 */
+	uint16_t usSourcePort;                           /**< The Source port                      +  2 =  2 */
+	uint16_t usDestinationPort;                      /**< The destination port                 +  2 =  4 */
+	uint32_t ulSequenceNumber;                       /**< The Sequence number                  +  4 =  8 */
+	uint32_t ulAckNr;                                /**< The acknowledgement number           +  4 = 12 */
+	uint8_t ucTCPOffset;                             /**< The value of TCP offset              +  1 = 13 */
+	uint8_t ucTCPFlags;                              /**< The TCP-flags field                  +  1 = 14 */
+	uint16_t usWindow;                               /**< The size of the receive window       +  2 = 15 */
+	uint16_t usChecksum;                             /**< The checksum of the header           +  2 = 18 */
+	uint16_t usUrgent;                               /**< Pointer to the last urgent data byte +  2 = 20 */
 		#if ipconfigUSE_TCP == 1
 			uint8_t ucOptdata[ ipSIZE_TCP_OPTIONS ]; /**< The options + 12 = 32 */
 		#endif
@@ -240,8 +240,8 @@
 	struct xICMP_PACKET
 	{
 	EthernetHeader_t xEthernetHeader; /**< The Ethernet header of an ICMP packet. */
-	IPHeader_t xIPHeader; /**< The IP header of an ICMP packet. */
-	ICMPHeader_t xICMPHeader; /**< The ICMP header of an ICMP packet. */
+	IPHeader_t xIPHeader;             /**< The IP header of an ICMP packet. */
+	ICMPHeader_t xICMPHeader;         /**< The ICMP header of an ICMP packet. */
 	}
 	#include "pack_struct_end.h"
 	typedef struct xICMP_PACKET ICMPPacket_t;
@@ -298,10 +298,10 @@
 */
 	typedef union XPROT_PACKET
 	{
-	ARPPacket_t xARPPacket;  /**< Union member: ARP packet struct */
-	TCPPacket_t xTCPPacket;  /**< Union member: TCP packet struct */
-	UDPPacket_t xUDPPacket;  /**< Union member: UDP packet struct */
-	ICMPPacket_t xICMPPacket;  /**< Union member: ICMP packet struct */
+	ARPPacket_t xARPPacket;   /**< Union member: ARP packet struct */
+	TCPPacket_t xTCPPacket;   /**< Union member: TCP packet struct */
+	UDPPacket_t xUDPPacket;   /**< Union member: UDP packet struct */
+	ICMPPacket_t xICMPPacket; /**< Union member: ICMP packet struct */
 	} ProtocolPacket_t;
 
 	static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
@@ -319,9 +319,9 @@
 	*/
 	typedef union xPROT_HEADERS
 	{
-	ICMPHeader_t xICMPHeader;  /**< Union member: ICMP header */
-	UDPHeader_t xUDPHeader;    /**< Union member: UDP header */
-	TCPHeader_t xTCPHeader; /**< Union member: TCP header */
+	ICMPHeader_t xICMPHeader; /**< Union member: ICMP header */
+	UDPHeader_t xUDPHeader;   /**< Union member: UDP header */
+	TCPHeader_t xTCPHeader;   /**< Union member: TCP header */
 	} ProtocolHeaders_t;
 
 	static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
@@ -369,7 +369,7 @@
 	typedef struct IP_TASK_COMMANDS
 	{
 	eIPEvent_t eEventType; /**< The event-type enum */
-	void *pvData; /**< The data in the event */
+	void *pvData;          /**< The data in the event */
 	} IPStackEvent_t;
 
 	#define ipBROADCAST_IP_ADDRESS				 0xffffffffUL
@@ -423,12 +423,12 @@ defined const for quick reference. */
 	extern uint16_t usPacketIdentifier;
 
 /**
-* Define a default UDP packet header (declared in FreeRTOS_UDP_IP.c) 
+* Define a default UDP packet header (declared in FreeRTOS_UDP_IP.c)
 */
 	typedef union xUDPPacketHeader
 	{
-	uint8_t ucBytes[ 24 ];		/**< Member: 8-bit array */
-	uint32_t ulWords[ 6 ];		/**< Member: 32-bit array */
+	uint8_t ucBytes[ 24 ];      /**< Member: 8-bit array */
+	uint32_t ulWords[ 6 ];      /**< Member: 32-bit array */
 	} UDPPacketHeader_t;
 	extern UDPPacketHeader_t xDefaultPartUDPPacketHeader;
 
@@ -615,15 +615,15 @@ socket events. */
 		{
 			struct
 			{
-				uint64_t ullAlignmentWord; /**< Increase the alignment of this union by adding a 64-bit variable. */
-			} a;  /**< A struct to increase alignment. */
+			uint64_t ullAlignmentWord; /**< Increase the alignment of this union by adding a 64-bit variable. */
+			} a;                       /**< A struct to increase alignment. */
 			struct
 			{
 				/* The next field only serves to give 'ucLastPacket' a correct
 				alignment of 8 + 2.  See comments in FreeRTOS_IP.h */
 				uint8_t ucFillPacket[ ipconfigPACKET_FILLER_SIZE ];
 				uint8_t ucLastPacket[ sizeof( TCPPacket_t ) ];
-			} u;  /**< The structure to give an alignment of 8 + 2 */
+			} u; /**< The structure to give an alignment of 8 + 2 */
 		} LastTCPPacket_t;
 
 		/**
@@ -640,34 +640,34 @@ socket events. */
 			{
 				/* Most compilers do like bit-flags */
 				uint32_t
-					bMssChange : 1,      /**< This socket has seen a change in MSS */
-					bPassAccept : 1,     /**< when true, this socket may be returned in a call to accept() */
-					bPassQueued : 1,     /**< when true, this socket is an orphan until it gets connected
+					bMssChange : 1,       /**< This socket has seen a change in MSS */
+					bPassAccept : 1,      /**< when true, this socket may be returned in a call to accept() */
+					bPassQueued : 1,      /**< when true, this socket is an orphan until it gets connected
 		                             * Why an orphan? Because it may not be returned in a accept() call until it
 		                             * gets the state eESTABLISHED */
-					bReuseSocket : 1,    /**< When a listening socket gets a connection, do not create a new instance but keep on using it */
-					bCloseAfterSend : 1, /**< As soon as the last byte has been transmitted, finalise the connection
+					bReuseSocket : 1,     /**< When a listening socket gets a connection, do not create a new instance but keep on using it */
+					bCloseAfterSend : 1,  /**< As soon as the last byte has been transmitted, finalise the connection
 		                             * Useful in e.g. FTP connections, where the last data bytes are sent along with the FIN flag */
-					bUserShutdown : 1,   /**< User requesting a graceful shutdown */
-					bCloseRequested : 1, /**< Request to finalise the connection */
-					bLowWater : 1,       /**< high-water level has been reached. Cleared as soon as 'rx-count < lo-water' */
-					bWinChange : 1,      /**< The value of bLowWater has changed, must send a window update */
-					bSendKeepAlive : 1,  /**< When this flag is true, a TCP keep-alive message must be send */
-					bWaitKeepAlive : 1,  /**< When this flag is true, a TCP keep-alive reply is expected */
-					bConnPrepared : 1,   /**< Connecting socket: Message has been prepared */
+					bUserShutdown : 1,    /**< User requesting a graceful shutdown */
+					bCloseRequested : 1,  /**< Request to finalise the connection */
+					bLowWater : 1,        /**< high-water level has been reached. Cleared as soon as 'rx-count < lo-water' */
+					bWinChange : 1,       /**< The value of bLowWater has changed, must send a window update */
+					bSendKeepAlive : 1,   /**< When this flag is true, a TCP keep-alive message must be send */
+					bWaitKeepAlive : 1,   /**< When this flag is true, a TCP keep-alive reply is expected */
+					bConnPrepared : 1,    /**< Connecting socket: Message has been prepared */
 				#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-					bConnPassed : 1,     /**< Connecting socket: Socket has been passed in a successful select()  */
+					bConnPassed : 1,      /**< Connecting socket: Socket has been passed in a successful select()  */
 				#endif /* ipconfigSUPPORT_SELECT_FUNCTION */
-				bFinAccepted : 1,        /**< This socket has received (or sent) a FIN and accepted it */
-					bFinSent : 1,        /**< We've sent out a FIN */
-					bFinRecv : 1,        /**< We've received a FIN from our peer */
-					bFinAcked : 1,       /**< Our FIN packet has been acked */
-					bFinLast : 1,        /**< The last ACK (after FIN and FIN+ACK) has been sent or will be sent by the peer */
-					bRxStopped : 1,      /**< Application asked to temporarily stop reception */
-					bMallocError : 1,    /**< There was an error allocating a stream */
-					bWinScaling : 1;     /**< A TCP-Window Scaling option was offered and accepted in the SYN phase. */
-			} bits; /**< The bits structure */
-			uint32_t ulHighestRxAllowed; /**< The highest sequence number that we can receive at any moment */
+				bFinAccepted : 1,         /**< This socket has received (or sent) a FIN and accepted it */
+					bFinSent : 1,         /**< We've sent out a FIN */
+					bFinRecv : 1,         /**< We've received a FIN from our peer */
+					bFinAcked : 1,        /**< Our FIN packet has been acked */
+					bFinLast : 1,         /**< The last ACK (after FIN and FIN+ACK) has been sent or will be sent by the peer */
+					bRxStopped : 1,       /**< Application asked to temporarily stop reception */
+					bMallocError : 1,     /**< There was an error allocating a stream */
+					bWinScaling : 1;      /**< A TCP-Window Scaling option was offered and accepted in the SYN phase. */
+			} bits;                       /**< The bits structure */
+			uint32_t ulHighestRxAllowed;  /**< The highest sequence number that we can receive at any moment */
 			uint16_t usTimeout;           /**< Time (in ticks) after which this socket needs attention */
 			uint16_t usCurMSS;            /**< Current Maximum Segment Size */
 			uint16_t usInitMSS;           /**< Initial maximum segment Size */
@@ -683,36 +683,36 @@ socket events. */
 				TickType_t xLastAliveTime; /**< The last value of keepalive time.*/
 			#endif /* ipconfigTCP_KEEP_ALIVE */
 			#if ( ipconfigTCP_HANG_PROTECTION == 1 )
-				TickType_t xLastActTime; /**< The last time when hang-protection was done.*/
+				TickType_t xLastActTime;                 /**< The last time when hang-protection was done.*/
 			#endif /* ipconfigTCP_HANG_PROTECTION */
-			size_t uxLittleSpace; /**< The value deemed as low amount of space. */
-			size_t uxEnoughSpace; /**< The value deemed as enough space. */
-			size_t uxRxStreamSize; /**< The Receive stream size */
-			size_t uxTxStreamSize; /**< The transmit stream size */
-			StreamBuffer_t *rxStream; /**< The pointer to the recevie stream buffer. */
-			StreamBuffer_t *txStream; /**< The pointer to the transmit stream buffer. */
+			size_t uxLittleSpace;                        /**< The value deemed as low amount of space. */
+			size_t uxEnoughSpace;                        /**< The value deemed as enough space. */
+			size_t uxRxStreamSize;                       /**< The Receive stream size */
+			size_t uxTxStreamSize;                       /**< The transmit stream size */
+			StreamBuffer_t *rxStream;                    /**< The pointer to the recevie stream buffer. */
+			StreamBuffer_t *txStream;                    /**< The pointer to the transmit stream buffer. */
 			#if ( ipconfigUSE_TCP_WIN == 1 )
 				NetworkBufferDescriptor_t *pxAckMessage; /**< The pointer to the ACK message */
 			#endif /* ipconfigUSE_TCP_WIN */
-			LastTCPPacket_t xPacket; /**< Buffer space to store the last TCP header received. */
-			uint8_t tcpflags; /**< TCP flags */
+			LastTCPPacket_t xPacket;                     /**< Buffer space to store the last TCP header received. */
+			uint8_t tcpflags;                            /**< TCP flags */
 			#if ( ipconfigUSE_TCP_WIN != 0 )
-				uint8_t ucMyWinScaleFactor;  /**< Scaling factor of this device. */
-				uint8_t ucPeerWinScaleFactor; /**< Scaling factor of the peer. */
+				uint8_t ucMyWinScaleFactor;              /**< Scaling factor of this device. */
+				uint8_t ucPeerWinScaleFactor;            /**< Scaling factor of the peer. */
 			#endif
 			#if ( ipconfigUSE_CALLBACKS == 1 )
 				FOnTCPReceive_t pxHandleReceive;  /**<
 	                                             * In case of a TCP socket:
 	                                             * typedef void (* FOnTCPReceive_t) (Socket_t xSocket, void *pData, size_t xLength );
 	                                             */
-				FOnTCPSent_t pxHandleSent; /**< Function pointer to handle a successful send event.  */
+				FOnTCPSent_t pxHandleSent;        /**< Function pointer to handle a successful send event.  */
 				FOnConnected_t pxHandleConnected; /**< Actually type: typedef void (* FOnConnected_t) (Socket_t xSocket, BaseType_t ulConnected ); */
 			#endif /* ipconfigUSE_CALLBACKS */
 			uint32_t ulWindowSize;                /**< Current Window size advertised by peer */
 			size_t uxRxWinSize;                   /**< Fixed value: size of the TCP reception window */
 			size_t uxTxWinSize;                   /**< Fixed value: size of the TCP transmit window */
 
-			TCPWindow_t xTCPWindow; /**< The TCP window struct*/
+			TCPWindow_t xTCPWindow;               /**< The TCP window struct*/
 		} IPTCPSocket_t;
 
 	#endif /* ipconfigUSE_TCP */
@@ -731,7 +731,7 @@ socket events. */
 	                                         * In case of a UDP socket:
 	                                         * typedef void (* FOnUDPReceive_t) (Socket_t xSocket, void *pData, size_t xLength, struct freertos_sockaddr *pxAddr );
 	                                         */
-			FOnUDPSent_t pxHandleSent; /**< Function pointer to handle the events after a successful send. */
+			FOnUDPSent_t pxHandleSent;       /**< Function pointer to handle the events after a successful send. */
 		#endif /* ipconfigUSE_CALLBACKS */
 	} IPUDPSocket_t;
 
@@ -754,29 +754,29 @@ socket events. */
 */
 	typedef struct xSOCKET
 	{
-	EventBits_t xEventBits; /**< The eventbits to keep track of events. */
-	EventGroupHandle_t xEventGroup; /**< The event group for this socket. */
+	EventBits_t xEventBits;                    /**< The eventbits to keep track of events. */
+	EventGroupHandle_t xEventGroup;            /**< The event group for this socket. */
 
-	ListItem_t xBoundSocketListItem; /**< Used to reference the socket from a bound sockets list. */
-	TickType_t xReceiveBlockTime;    /**< if recv[to] is called while no data is available, wait this amount of time. Unit in clock-ticks */
-	TickType_t xSendBlockTime;       /**< if send[to] is called while there is not enough space to send, wait this amount of time. Unit in clock-ticks */
+	ListItem_t xBoundSocketListItem;           /**< Used to reference the socket from a bound sockets list. */
+	TickType_t xReceiveBlockTime;              /**< if recv[to] is called while no data is available, wait this amount of time. Unit in clock-ticks */
+	TickType_t xSendBlockTime;                 /**< if send[to] is called while there is not enough space to send, wait this amount of time. Unit in clock-ticks */
 
-	uint16_t usLocalPort;            /**< Local port on this machine */
-	uint8_t ucSocketOptions;         /**< Socket options */
-	uint8_t ucProtocol;              /**< choice of FREERTOS_IPPROTO_UDP/TCP */
+	uint16_t usLocalPort;                      /**< Local port on this machine */
+	uint8_t ucSocketOptions;                   /**< Socket options */
+	uint8_t ucProtocol;                        /**< choice of FREERTOS_IPPROTO_UDP/TCP */
 		#if ( ipconfigSOCKET_HAS_USER_SEMAPHORE == 1 )
 			SemaphoreHandle_t pxUserSemaphore; /**< The user semaphore */
 		#endif /* ipconfigSOCKET_HAS_USER_SEMAPHORE */
 		#if ( ipconfigSOCKET_HAS_USER_WAKE_CALLBACK == 1 )
-			SocketWakeupCallback_t pxUserWakeCallback;  /**< Pointer to the callback function. */
+			SocketWakeupCallback_t pxUserWakeCallback; /**< Pointer to the callback function. */
 		#endif /* ipconfigSOCKET_HAS_USER_WAKE_CALLBACK */
 
 		#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 			struct xSOCKET_SET *pxSocketSet; /**< Pointer to the socket set structure */
-			EventBits_t xSelectBits; /**< User may indicate which bits are interesting for this socket. */
+			EventBits_t xSelectBits;         /**< User may indicate which bits are interesting for this socket. */
 
-			EventBits_t xSocketBits; /**< These bits indicate the events which have actually occurred.
-                        They are maintained by the IP-task */
+			EventBits_t xSocketBits;         /**< These bits indicate the events which have actually occurred.
+	                    They are maintained by the IP-task */
 		#endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 		/* TCP/UDP specific fields: */
 		/* Before accessing any member of this structure, it should be confirmed */
@@ -784,14 +784,14 @@ socket events. */
 
 		union
 		{
-		IPUDPSocket_t xUDP; /**< Union member: UDP socket*/
+		IPUDPSocket_t xUDP;               /**< Union member: UDP socket*/
 			#if ( ipconfigUSE_TCP == 1 )
-				IPTCPSocket_t xTCP; /**< Union member: TCP socket */
+				IPTCPSocket_t xTCP;       /**< Union member: TCP socket */
 
 				uint64_t ullTCPAlignment; /**< Make sure that xTCP is 8-bytes aligned by
-                                declaring a 64-bit variable in the same union */
+		                        declaring a 64-bit variable in the same union */
 			#endif /* ipconfigUSE_TCP */
-		} u; /**< Union of TCP/UDP socket */
+		} u;                              /**< Union of TCP/UDP socket */
 	} FreeRTOS_Socket_t;
 
 	static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )

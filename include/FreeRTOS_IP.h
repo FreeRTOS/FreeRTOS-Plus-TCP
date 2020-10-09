@@ -125,6 +125,7 @@ buffer will have the following contents:
 	} NetworkBufferDescriptor_t;
 
 	#include "pack_struct_start.h"
+
 	/**
 	* MAC address structure.
 	*/
@@ -157,11 +158,11 @@ ipconfigSUPPORT_OUTGOING_PINGS is not enabled. */
 	typedef struct xIP_TIMER
 	{
 	uint32_t
-			bActive : 1,  /**< This timer is running and must be processed. */
-			bExpired : 1; /**< Timer has expired and a task must be processed. */
-		TimeOut_t xTimeOut; /**< The timeout value. */
+			bActive : 1,            /**< This timer is running and must be processed. */
+			bExpired : 1;           /**< Timer has expired and a task must be processed. */
+		TimeOut_t xTimeOut;         /**< The timeout value. */
 		TickType_t ulRemainingTime; /**< The amount of time remaining. */
-		TickType_t ulReloadTime; /**< The value of reload time. */
+		TickType_t ulReloadTime;    /**< The value of reload time. */
 	} IPTimer_t;
 
 /* Endian related definitions. */

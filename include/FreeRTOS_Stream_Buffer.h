@@ -44,11 +44,11 @@
 	*/
 	typedef struct xSTREAM_BUFFER
 	{
-	volatile size_t uxTail;     /**< next item to read */
-	volatile size_t uxMid;      /**< iterator within the valid items */
-	volatile size_t uxHead;     /**< next position store a new item */
-	volatile size_t uxFront;    /**< iterator within the free space */
-	size_t LENGTH;              /**< const value: number of reserved elements */
+	volatile size_t uxTail;              /**< next item to read */
+	volatile size_t uxMid;               /**< iterator within the valid items */
+	volatile size_t uxHead;              /**< next position store a new item */
+	volatile size_t uxFront;             /**< iterator within the free space */
+	size_t LENGTH;                       /**< const value: number of reserved elements */
 	uint8_t ucArray[ sizeof( size_t ) ]; /**< array big enough to store any pointer address */
 	} StreamBuffer_t;
 

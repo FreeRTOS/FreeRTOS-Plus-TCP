@@ -69,14 +69,14 @@
 */
 	struct xDHCP_DATA
 	{
-	uint32_t ulTransactionId; /**< The ID of the DHCP transaction */
-	uint32_t ulOfferedIPAddress; /**< The IP address offered by the DHCP server */
+	uint32_t ulTransactionId;     /**< The ID of the DHCP transaction */
+	uint32_t ulOfferedIPAddress;  /**< The IP address offered by the DHCP server */
 	uint32_t ulDHCPServerAddress; /**< The IP address of the DHCP server */
-	uint32_t ulLeaseTime; /**< The time for which the current IP address is leased */
-		TickType_t xDHCPTxTime;/**< Hold information on the current timer state. */
-		TickType_t xDHCPTxPeriod;/**< Hold information on the current timer state. */
-		BaseType_t xUseBroadcast;/**< Try both without and with the broadcast flag */
-		eDHCPState_t eDHCPState;/**< Maintains the DHCP state machine state. */
+	uint32_t ulLeaseTime;         /**< The time for which the current IP address is leased */
+	TickType_t xDHCPTxTime;       /**< Hold information on the current timer state. */
+	TickType_t xDHCPTxPeriod;     /**< Hold information on the current timer state. */
+	BaseType_t xUseBroadcast;     /**< Try both without and with the broadcast flag */
+	eDHCPState_t eDHCPState;      /**< Maintains the DHCP state machine state. */
 	};
 
 	typedef struct xDHCP_DATA DHCPData_t;
