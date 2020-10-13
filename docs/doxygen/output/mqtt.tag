@@ -437,6 +437,20 @@
       <anchor>a9d09a6b3e592978816bf2d7fdd98b699</anchor>
       <arglist>(void)</arglist>
     </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>xIsDHCPSocket</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>aed005283591e5af559f10afb9090eae0</anchor>
+      <arglist>(Socket_t xSocket)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vDHCPProcess</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a513cb227506fa5ca324c1270b347fde3</anchor>
+      <arglist>(BaseType_t xReset)</arglist>
+    </member>
     <member kind="variable">
       <type>_static Socket_t</type>
       <name>xDHCPSocket</name>

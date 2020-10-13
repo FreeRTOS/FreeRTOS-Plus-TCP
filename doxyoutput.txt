@@ -1,2 +1,0 @@
-/root/Desktop/AddDoxygen/FreeRTOS_DHCP.c:258: warning: Member xIsDHCPSocket(Socket_t xSocket) (function) of file FreeRTOS_DHCP.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_DHCP.c:275: warning: Member vDHCPProcess(BaseType_t xReset) (function) of file FreeRTOS_DHCP.c is not documented.

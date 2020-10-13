@@ -250,11 +250,11 @@ _static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hr
 static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_h_c_p_8c.html#a9d09a6b3e592978816bf2d7fdd98b699">prvCloseDHCPSocket</a> (void)</td></tr>
 <tr class="memdesc:a9d09a6b3e592978816bf2d7fdd98b699"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close the DHCP socket. <br /></td></tr>
 <tr class="separator:a9d09a6b3e592978816bf2d7fdd98b699"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aed005283591e5af559f10afb9090eae0"><td class="memItemLeft" align="right" valign="top"><a id="aed005283591e5af559f10afb9090eae0"></a>
-BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><b>xIsDHCPSocket</b> (Socket_t xSocket)</td></tr>
+<tr class="memitem:aed005283591e5af559f10afb9090eae0"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_h_c_p_8c.html#aed005283591e5af559f10afb9090eae0">xIsDHCPSocket</a> (Socket_t xSocket)</td></tr>
+<tr class="memdesc:aed005283591e5af559f10afb9090eae0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check whether a given socket is the DHCP socket or not.  <a href="_free_r_t_o_s___d_h_c_p_8c.html#aed005283591e5af559f10afb9090eae0">More...</a><br /></td></tr>
 <tr class="separator:aed005283591e5af559f10afb9090eae0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a513cb227506fa5ca324c1270b347fde3"><td class="memItemLeft" align="right" valign="top"><a id="a513cb227506fa5ca324c1270b347fde3"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>vDHCPProcess</b> (BaseType_t xReset)</td></tr>
+<tr class="memitem:a513cb227506fa5ca324c1270b347fde3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_h_c_p_8c.html#a513cb227506fa5ca324c1270b347fde3">vDHCPProcess</a> (BaseType_t xReset)</td></tr>
+<tr class="memdesc:a513cb227506fa5ca324c1270b347fde3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process the DHCP state machine based on current state.  <a href="_free_r_t_o_s___d_h_c_p_8c.html#a513cb227506fa5ca324c1270b347fde3">More...</a><br /></td></tr>
 <tr class="separator:a513cb227506fa5ca324c1270b347fde3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
@@ -866,6 +866,59 @@ _static DHCPData_t&#160;</td><td class="memItemRight" valign="bottom"><a class="
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Ethernet buffer of the partially created DHCP packet. </dd></dl>
+
+</div>
+</div>
+<a id="aed005283591e5af559f10afb9090eae0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed005283591e5af559f10afb9090eae0">&#9670;&nbsp;</a></span>xIsDHCPSocket()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t xIsDHCPSocket </td>
+          <td>(</td>
+          <td class="paramtype">Socket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Check whether a given socket is the DHCP socket or not. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>The socket we want to check.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>If the socket given as parameter is the DHCP socket - return pdTRUE, else pdFALSE. </dd></dl>
+
+</div>
+</div>
+<a id="a513cb227506fa5ca324c1270b347fde3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a513cb227506fa5ca324c1270b347fde3">&#9670;&nbsp;</a></span>vDHCPProcess()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void vDHCPProcess </td>
+          <td>(</td>
+          <td class="paramtype">BaseType_t&#160;</td>
+          <td class="paramname"><em>xReset</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Process the DHCP state machine based on current state. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xReset</td><td>Is the DHCP state machine starting over? pdTRUE/pdFALSE. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

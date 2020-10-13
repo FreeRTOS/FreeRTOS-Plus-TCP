@@ -253,8 +253,13 @@
 /*-----------------------------------------------------------*/
 
 	/**
-	*
-	*/
+	 * @brief Check whether a given socket is the DHCP socket or not.
+	 *
+	 * @param[in] xSocket: The socket we want to check.
+	 *
+	 * @return If the socket given as parameter is the DHCP socket - return
+	 *         pdTRUE, else pdFALSE.
+	 */
 	BaseType_t xIsDHCPSocket( Socket_t xSocket )
 	{
 	BaseType_t xReturn;
@@ -272,6 +277,11 @@
 	}
 	/*-----------------------------------------------------------*/
 
+	/**
+	 * @brief Process the DHCP state machine based on current state.
+	 *
+	 * @param[in] xReset: Is the DHCP state machine starting over? pdTRUE/pdFALSE.
+	 */
 	void vDHCPProcess( BaseType_t xReset )
 	{
 	BaseType_t xGivingUp = pdFALSE;
