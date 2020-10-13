@@ -4,12 +4,452 @@
     <name>FreeRTOS_ARP.c</name>
     <path>/root/Desktop/AddDoxygen/</path>
     <filename>_free_r_t_o_s___a_r_p_8c.html</filename>
+    <member kind="define">
+      <type>#define</type>
+      <name>arpMAX_ARP_AGE_BEFORE_NEW_ARP_REQUEST</name>
+      <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
+      <anchor>a22f53fd4d5218d841f6176b29603a955</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>arpGRATUITOUS_ARP_PERIOD</name>
+      <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
+      <anchor>a7b4eb297ab0d35cfe95b1879495a3d7f</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static eARPLookupResult_t</type>
+      <name>prvCacheLookup</name>
+      <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
+      <anchor>a78b76b83a58bdb609db07f2949b39dcb</anchor>
+      <arglist>(uint32_t ulAddressToLookup, MACAddress_t *const pxMACAddress)</arglist>
+    </member>
     <member kind="function">
       <type>eFrameProcessingResult_t</type>
       <name>eARPProcessPacket</name>
       <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
       <anchor>aa06d3a8a2d409547e12b4825ebc885b5</anchor>
       <arglist>(ARPPacket_t *const pxARPFrame)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vARPRefreshCacheEntry</name>
+      <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
+      <anchor>aa9740bba27acb79ac417f9b187630e3b</anchor>
+      <arglist>(const MACAddress_t *pxMACAddress, const uint32_t ulIPAddress)</arglist>
+    </member>
+    <member kind="function">
+      <type>eARPLookupResult_t</type>
+      <name>eARPGetCacheEntry</name>
+      <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
+      <anchor>a1ee3377f9c286506135c17be1962d8d6</anchor>
+      <arglist>(uint32_t *pulIPAddress, MACAddress_t *const pxMACAddress)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vARPAgeCache</name>
+      <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
+      <anchor>a3d3934dd27e4d024ab7a14ed0c80b3cc</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vARPSendGratuitous</name>
+      <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
+      <anchor>aa96d87a3e4505229094bf3d81330c2f4</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_OutputARPRequest</name>
+      <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
+      <anchor>a87ebc2f32c8cda6cdc24a265df2388c0</anchor>
+      <arglist>(uint32_t ulIPAddress)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vARPGenerateRequestPacket</name>
+      <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
+      <anchor>a27861e019fb0f3c1d5579f6806f75b4c</anchor>
+      <arglist>(NetworkBufferDescriptor_t *const pxNetworkBuffer)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_ClearARP</name>
+      <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
+      <anchor>a7ad41b60042629fc57086d4990fc6347</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>xCheckLoopback</name>
+      <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
+      <anchor>a0927214ffe1d8b142d6e49fc26430339</anchor>
+      <arglist>(NetworkBufferDescriptor_t *const pxDescriptor, BaseType_t bReleaseAfterSend)</arglist>
+    </member>
+    <member kind="variable">
+      <type>_static ARPCacheRow_t</type>
+      <name>xARPCache</name>
+      <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
+      <anchor>afdc43c741d35db756e9a4ca5cd064bf1</anchor>
+      <arglist>[ipconfigARP_CACHE_ENTRIES]</arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static TickType_t</type>
+      <name>xLastGratuitousARPTime</name>
+      <anchorfile>_free_r_t_o_s___a_r_p_8c.html</anchorfile>
+      <anchor>aa9c3721b546b6d8021730dbc1d49c263</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="file">
+    <name>FreeRTOS_DHCP.c</name>
+    <path>/root/Desktop/AddDoxygen/</path>
+    <filename>_free_r_t_o_s___d_h_c_p_8c.html</filename>
+    <class kind="struct">struct</class>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpCLIENT_HARDWARE_ADDRESS_LENGTH</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a9dfdebcc673e74887f8512868fa361ef</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpSERVER_HOST_NAME_LENGTH</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a3460ffc5d7a95ff76742f7dc24a60fd8</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpBOOT_FILE_NAME_LENGTH</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a525076903bc0e6179e9f18f11067018a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpINITIAL_TIMER_PERIOD</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a7e77d690aa573e19c016d4bab59a51b7</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpINITIAL_DHCP_TX_PERIOD</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>ae21108aea9e8f67970c05f03ae882832</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpIPv4_ZERO_PAD_OPTION_CODE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a8c7929e27cfef12a81737179f4844eec</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpIPv4_SUBNET_MASK_OPTION_CODE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a9b5e6f35b4d3c21e7339fd864b2eb083</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpIPv4_GATEWAY_OPTION_CODE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a4c597e1ce55a624d96d679c7905ce68a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpIPv4_DNS_SERVER_OPTIONS_CODE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a152cd2137919e452b5329615b580f263</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpIPv4_DNS_HOSTNAME_OPTIONS_CODE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a0e26813b27eb5216e4b4a69190f0e2a2</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpIPv4_REQUEST_IP_ADDRESS_OPTION_CODE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a199afb602e62b7b4a8264ca6b4ce3d39</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpIPv4_LEASE_TIME_OPTION_CODE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>aee62afab740f4b806fcb62947799bf22</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpIPv4_MESSAGE_TYPE_OPTION_CODE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a2dfbd401c9846f500668864b7fb2710c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a1ae323b48e61a9cd0f8ea6d6f96bd9bb</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpIPv4_PARAMETER_REQUEST_OPTION_CODE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>ab0415fe448ea9cf9bd3978ab4a5a2db4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpIPv4_CLIENT_IDENTIFIER_OPTION_CODE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>ae5814df2d0f5ab149f9528a8cec3ff89</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpMESSAGE_TYPE_DISCOVER</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a2e24721bd39e17d9b183e2125687d62d</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpMESSAGE_TYPE_OFFER</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a62c031313a09d86b89496ba6a9cae006</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpMESSAGE_TYPE_REQUEST</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a869e3c5f0c92896e6cb35e3e655b46b9</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpMESSAGE_TYPE_ACK</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a775354bab8931849febdbe263c58d1d0</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpMESSAGE_TYPE_NACK</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a6b165aa67cc11f56afbf388e7ac97264</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpCLIENT_IDENTIFIER_OFFSET</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a4ceff5f0da2ce1cb99569c34fef4d681</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpREQUESTED_IP_ADDRESS_OFFSET</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a25caf50e4ba7269beaf6c6075fd46464</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpDHCP_SERVER_IP_ADDRESS_OFFSET</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>aeb87759824da5d6e8f7f89ed9319258c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpREQUEST_OPCODE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a73c6f002510653b02300a1c673f72c9d</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpREPLY_OPCODE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a3024e6e8ac856f362aa981ee5a8b9135</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpADDRESS_TYPE_ETHERNET</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>aa0d773d9ec08477bcad8103f5a38c3a4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpETHERNET_ADDRESS_LENGTH</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a2767c2133228aee9dfb336269332dabc</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>EP_DHCPData</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>adfb2f90932de3ba1166a8ae0e22cfa16</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>EP_IPv4_SETTINGS</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a7855dad00c2e1354eaafb18a0ec8d999</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpDEFAULT_LEASE_TIME</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a10e722aeaae4c7083c3e373361e4289c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpMINIMUM_LEASE_TIME</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>ab94b8bccbab25d280da8ccdaf4455d57</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpOPTION_END_BYTE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>af99f3d8cdc1153ec6629288600a967f7</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpFIRST_OPTION_BYTE_OFFSET</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a91ced274d25f700a12f7c520388e2fdf</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpCLIENT_PORT_IPv4</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a6314ef4310bb7e7b007fc8f8bd7caa64</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpSERVER_PORT_IPv4</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a8312231f5161d99c7b8b752fde8cb030</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpCOOKIE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a9c0d01ea72440e996e7cf6599efa518e</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dhcpBROADCAST</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a399a2cda3f448f8b5c56fa4708ee4793</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE</type>
+      <name>ipDECL_CAST_PTR_FUNC_FOR_TYPE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a828bde991d7f730cc44a775b504d85f8</anchor>
+      <arglist>(DHCPMessage_IPv4_t)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE</type>
+      <name>ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a83261d43472efe09f8f0d99c8a4c14d4</anchor>
+      <arglist>(DHCPMessage_IPv4_t)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvSendDHCPDiscover</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a751fb09098c8c93997f7a122c8f02f4f</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>_static BaseType_t</type>
+      <name>prvProcessDHCPReplies</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a03acd9164ad584eb639fd70356794366</anchor>
+      <arglist>(BaseType_t xExpectedMessageType)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvSendDHCPRequest</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>ad4a2682a52bc640066ca0528dbc33c18</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvInitialiseDHCP</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a0b627c523231206cd31f2bb46372e44e</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static uint8_t *</type>
+      <name>prvCreatePartDHCPMessage</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a8d2f4ae9d52b68d32dae4991f3cb3229</anchor>
+      <arglist>(struct freertos_sockaddr *pxAddress, BaseType_t xOpcode, const uint8_t *const pucOptionsArray, size_t *pxOptionsArraySize)</arglist>
+    </member>
+    <member kind="function">
+      <type>_static void</type>
+      <name>prvCreateDHCPSocket</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>aaff6679eef687e2c208ac49d368eabff</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvCloseDHCPSocket</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a9d09a6b3e592978816bf2d7fdd98b699</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="variable">
+      <type>_static Socket_t</type>
+      <name>xDHCPSocket</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>aea41a17995bc1183eb373bf376e90ae5</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>_static DHCPData_t</type>
+      <name>xDHCPData</name>
+      <anchorfile>_free_r_t_o_s___d_h_c_p_8c.html</anchorfile>
+      <anchor>a501856edb97370508c912a8b49dbf3cb</anchor>
+      <arglist></arglist>
     </member>
   </compound>
   <compound kind="struct">
@@ -909,6 +1349,111 @@
   <compound kind="struct">
     <name>struct</name>
     <filename>structstruct.html</filename>
+    <member kind="variable">
+      <type>uint8_t</type>
+      <name>ucOpcode</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>ad884a11402ccadd1b88ca8f9394ce0fc</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint8_t</type>
+      <name>ucAddressType</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>abfa2426341ed766152ea7edfcd30ad7b</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint8_t</type>
+      <name>ucAddressLength</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a14e877b0915020479dfd71609dd6f60b</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint8_t</type>
+      <name>ucHops</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a0c8d8fde35ef807181a3af28302931e9</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint32_t</type>
+      <name>ulTransactionID</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>ade137bb75fbc6cf8b3076fd707de4807</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usElapsedTime</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>ab65dc4a8cd915d8a3123f4452679930a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usFlags</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a9ca7c93121ebde17c241c6090c313f93</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint32_t</type>
+      <name>ulClientIPAddress_ciaddr</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a4eecb7fd87bcbac3b01d61207829c585</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint32_t</type>
+      <name>ulYourIPAddress_yiaddr</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>ae058b7eaa364f8fcf38ee855b8fb648c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint32_t</type>
+      <name>ulServerIPAddress_siaddr</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a0a54655dc8374e96f97de34aafa9d409</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint32_t</type>
+      <name>ulRelayAgentIPAddress_giaddr</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a1da36384572e810902bc854cd28f00b0</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint8_t</type>
+      <name>ucClientHardwareAddress</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a13ee27d7a1edfa18cf81cc9b91272487</anchor>
+      <arglist>[dhcpCLIENT_HARDWARE_ADDRESS_LENGTH]</arglist>
+    </member>
+    <member kind="variable">
+      <type>uint8_t</type>
+      <name>ucServerHostName</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>aee417fad4b56e93f970d8dc2c258452a</anchor>
+      <arglist>[dhcpSERVER_HOST_NAME_LENGTH]</arglist>
+    </member>
+    <member kind="variable">
+      <type>uint8_t</type>
+      <name>ucBootFileName</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>ab24e7f933bf7a8f0282e440be4e5ff78</anchor>
+      <arglist>[dhcpBOOT_FILE_NAME_LENGTH]</arglist>
+    </member>
+    <member kind="variable">
+      <type>uint32_t</type>
+      <name>ulDHCPCookie</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a1d3d088b7f2d720efef9773d8ba4c3bc</anchor>
+      <arglist></arglist>
+    </member>
     <member kind="variable">
       <type>uint8_t</type>
       <name>ucBytes</name>

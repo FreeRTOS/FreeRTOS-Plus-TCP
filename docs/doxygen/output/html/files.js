@@ -2,6 +2,7 @@ var files =
 [
     [ "FreeRTOS_ARP.c", "_free_r_t_o_s___a_r_p_8c.html", "_free_r_t_o_s___a_r_p_8c" ],
     [ "FreeRTOS_ARP.h", "_free_r_t_o_s___a_r_p_8h_source.html", null ],
+    [ "FreeRTOS_DHCP.c", "_free_r_t_o_s___d_h_c_p_8c.html", "_free_r_t_o_s___d_h_c_p_8c" ],
     [ "FreeRTOS_DHCP.h", "_free_r_t_o_s___d_h_c_p_8h_source.html", null ],
     [ "FreeRTOS_DNS.h", "_free_r_t_o_s___d_n_s_8h_source.html", null ],
     [ "FreeRTOS_errno_TCP.h", "_free_r_t_o_s__errno___t_c_p_8h_source.html", null ],

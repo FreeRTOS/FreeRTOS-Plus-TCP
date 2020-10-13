@@ -52,12 +52,12 @@
 #include "NetworkInterface.h"
 
 
-/* When the age of an entry in the ARP table reaches this value (it counts down
+/** @brief When the age of an entry in the ARP table reaches this value (it counts down
 to zero, so this is an old entry) an ARP request will be sent to see if the
 entry is still valid and can therefore be refreshed. */
 #define arpMAX_ARP_AGE_BEFORE_NEW_ARP_REQUEST    ( 3 )
 
-/* The time between gratuitous ARPs. */
+/** @brief The time between gratuitous ARPs. */
 #ifndef arpGRATUITOUS_ARP_PERIOD
 	#define arpGRATUITOUS_ARP_PERIOD    ( pdMS_TO_TICKS( 20000U ) )
 #endif
@@ -72,10 +72,10 @@ static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
 
 /*-----------------------------------------------------------*/
 
-/* The ARP cache. */
+/** @brief The ARP cache. */
 _static ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
 
-/* The time at which the last gratuitous ARP was sent.  Gratuitous ARPs are used
+/** @brief  The time at which the last gratuitous ARP was sent.  Gratuitous ARPs are used
 to ensure ARP tables are up to date and to detect IP address conflicts. */
 static TickType_t xLastGratuitousARPTime = ( TickType_t ) 0;
 
@@ -95,7 +95,7 @@ static TickType_t xLastGratuitousARPTime = ( TickType_t ) 0;
 /**
  * @brief Process the ARP packets.
  *
- * @param[in] input The ARP Frame (the ARP packet).
+ * @param[in] pxARPFrame: The ARP Frame (the ARP packet).
  *
  * @return An enum which says whether to release the frame or not.
 */
@@ -246,6 +246,14 @@ uint32_t ulTargetProtocolAddress, ulSenderProtocolAddress;
 #endif /* ipconfigUSE_ARP_REMOVE_ENTRY != 0 */
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Add/update the ARP cache entry MAC-address to IP-address mapping.
+ *
+ * @param[in] pxMACAddress: Pointer to the MAC address whose mapping is being
+ *                          updated.
+ * @param[in] ulIPAddress: 32-bit representation of the IP-address whose mapping
+ *                         is being updated.
+*/
 void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 							const uint32_t ulIPAddress )
 {
@@ -446,6 +454,20 @@ uint8_t ucMinAgeFound = 0U;
 
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Look for ulIPAddress in the ARP cache.
+ *
+ * @param[in] pulIPAddress: Pointer to the IP-address to be queried to the ARP cache.
+ * @param[in] pxMACAddress: Pointer to a MACAddress_t variable where the MAC address
+ *                          will be stored, if found.
+ *
+ * @return If the IP address exists, copy the associated MAC address into pxMACAddress,
+ *         refresh the ARP cache entry's age, and return eARPCacheHit. If the IP
+ *         address does not exist in the ARP cache return eARPCacheMiss. If the packet
+ *         cannot be sent for any reason (maybe DHCP is still in process, or the
+ *         addressing needs a gateway but there isn't a gateway defined) then return
+ *         eCantSendPacket.
+*/
 eARPLookupResult_t eARPGetCacheEntry( uint32_t *pulIPAddress,
 									  MACAddress_t * const pxMACAddress )
 {
@@ -552,6 +574,18 @@ uint32_t ulAddressToLookup;
 
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Lookup an IP address in the ARP cache.
+ *
+ * @param[in] ulAddressToLookup: The 32-bit representation of an IP address to
+ *                               lookup.
+ * @param[in] pxMACAddress: A pointer to MACAddress_t variable where, if there
+ *                          is an ARP cache hit, the MAC address correspong to
+ *                          the IP address will be stored.
+ *
+ * @return The status of where the cache search was hit/miss/found an invalid 
+ *         entry.
+*/
 static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
 										  MACAddress_t * const pxMACAddress )
 {
@@ -585,7 +619,14 @@ eARPLookupResult_t eReturn = eARPCacheMiss;
 	return eReturn;
 }
 /*-----------------------------------------------------------*/
-
+/**
+ * @brief A call to this function will update (or 'Age') the ARP cache entries.
+ *        The function will also try to prevent a removal of entry by sending
+ *        an ARP query. It will also check whether we are waiting on an ARP
+ *        reply - if we are, then an ARP request will be re-sent.
+ *        In case an ARP entry has 'Aged' to 0, it will be removed from the ARP
+ *        cache.
+*/
 void vARPAgeCache( void )
 {
 BaseType_t x;
@@ -638,6 +679,10 @@ TickType_t xTimeNow;
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Send a Gratuitous ARP packet to allow this node to announce the IP-MAC
+ *        mapping to the entire network.
+*/
 void vARPSendGratuitous( void )
 {
 	/* Setting xLastGratuitousARPTime to 0 will force a gratuitous ARP the next
@@ -649,6 +694,12 @@ void vARPSendGratuitous( void )
 }
 
 /*-----------------------------------------------------------*/
+/**
+ * @brief Create and send an ARP request packet.
+ *
+ * @param[in] ulIPAddress: A 32-bit representation of the IP-address whose
+ *                         physical (MAC) address is required.
+*/
 void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 {
 NetworkBufferDescriptor_t *pxNetworkBuffer;
@@ -699,7 +750,15 @@ NetworkBufferDescriptor_t *pxNetworkBuffer;
 		}
 	}
 }
+/*--------------------------------------*/
 
+/**
+ * @brief Generate an ARP request packet by copying various constant details to
+ *        the buffer.
+ *
+ * @param[in] pxNetworkBuffer: Pointer to the buffer which has to be filled with
+ *                             the ARP request packet details.
+*/
 void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
 /* Part of the Ethernet and ARP headers are always constant when sending an IPv4
@@ -773,7 +832,9 @@ packet to be filled in using a simple memcpy() instead of individual writes. */
 	iptraceCREATING_ARP_REQUEST( pxNetworkBuffer->ulIPAddress );
 }
 /*-----------------------------------------------------------*/
-
+/**
+ * @brief A call to this function will clear the ARP cache.
+*/
 void FreeRTOS_ClearARP( void )
 {
 	( void ) memset( xARPCache, 0, sizeof( xARPCache ) );
@@ -781,17 +842,24 @@ void FreeRTOS_ClearARP( void )
 /*-----------------------------------------------------------*/
 
 #if 1
+	/**
+	 * @brief  This function will check if the target IP-address belongs to this device.
+         *         If so, the packet will be passed to the IP-stack, who will answer it.
+         *         The function is to be called within the function xNetworkInterfaceOutput().
+	 *
+	 * @param[in] pxDescriptor: The network buffer which is to be checked for loop-back.
+	 * @param[in] bReleaseAfterSend: pdTRUE: Driver is allowed to transfer ownership of descriptor.
+	 *                              pdFALSE: Driver is not allowed to take ownership of descriptor,
+	 *                                       make a copy of it.
+	 *
+	 * @return pdTRUE/pdFALSE: There is/isn't a loopback address in the packet.
+	*/
 	BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
 							   BaseType_t bReleaseAfterSend )
 	{
 	BaseType_t xResult = pdFALSE;
 	NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
 	const IPPacket_t *pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxUseDescriptor->pucEthernetBuffer );
-
-		/* This function will check if the target IP-address belongs to this device.
-		 * If so, the packet will be passed to the IP-stack, who will answer it.
-		 * The function is to be called within the function xNetworkInterfaceOutput().
-		 */
 
 		if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
 		{

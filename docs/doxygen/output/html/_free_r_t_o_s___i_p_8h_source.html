@@ -221,7 +221,7 @@ $(document).ready(function(){initNavTree('_free_r_t_o_s___i_p_8h_source.html',''
 <div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160; </div>
 <div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;<span class="preprocessor">    #include &quot;pack_struct_start.h&quot;</span></div>
 <div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160; </div>
-<div class="line"><a name="l00132"></a><span class="lineno"><a class="line" href="structstruct.html">  132</a></span>&#160;    <span class="keyword">struct </span>xMAC_ADDRESS</div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;    <span class="keyword">struct </span>xMAC_ADDRESS</div>
 <div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;    {</div>
 <div class="line"><a name="l00134"></a><span class="lineno"><a class="line" href="structstruct.html#a42f7aefbd34c2b9c513a9d7cb8d289aa">  134</a></span>&#160;    uint8_t ucBytes[ ipMAC_ADDRESS_LENGTH_BYTES ];  </div>
 <div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    }</div>
@@ -418,7 +418,7 @@ $(document).ready(function(){initNavTree('_free_r_t_o_s___i_p_8h_source.html',''
 <div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;    uint32_t FreeRTOS_GetGatewayAddress( <span class="keywordtype">void</span> );</div>
 <div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;    uint32_t FreeRTOS_GetDNSServerAddress( <span class="keywordtype">void</span> );</div>
 <div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;    uint32_t FreeRTOS_GetNetmask( <span class="keywordtype">void</span> );</div>
-<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;    <span class="keywordtype">void</span> FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );</div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="_free_r_t_o_s___a_r_p_8c.html#a87ebc2f32c8cda6cdc24a265df2388c0">FreeRTOS_OutputARPRequest</a>( uint32_t ulIPAddress );</div>
 <div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;    BaseType_t FreeRTOS_IsNetworkUp( <span class="keywordtype">void</span> );</div>
 <div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160; </div>
 <div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;<span class="preprocessor">    #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )</span></div>
@@ -447,7 +447,7 @@ $(document).ready(function(){initNavTree('_free_r_t_o_s___i_p_8h_source.html',''
 <div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;        <span class="keywordtype">void</span> FreeRTOS_PrintARPCache( <span class="keywordtype">void</span> );</div>
 <div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;<span class="preprocessor">    #endif</span></div>
 <div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160; </div>
-<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;    <span class="keywordtype">void</span> FreeRTOS_ClearARP( <span class="keywordtype">void</span> );</div>
+<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="_free_r_t_o_s___a_r_p_8c.html#a7ad41b60042629fc57086d4990fc6347">FreeRTOS_ClearARP</a>( <span class="keywordtype">void</span> );</div>
 <div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160; </div>
 <div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;<span class="comment">/* Return pdTRUE if the IPv4 address is a multicast address. */</span></div>
 <div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;    BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );</div>
@@ -520,12 +520,14 @@ $(document).ready(function(){initNavTree('_free_r_t_o_s___i_p_8h_source.html',''
 <div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* FREERTOS_IP_H */</span><span class="preprocessor"></span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
+<div class="ttc" id="a_free_r_t_o_s___a_r_p_8c_html_a87ebc2f32c8cda6cdc24a265df2388c0"><div class="ttname"><a href="_free_r_t_o_s___a_r_p_8c.html#a87ebc2f32c8cda6cdc24a265df2388c0">FreeRTOS_OutputARPRequest</a></div><div class="ttdeci">void FreeRTOS_OutputARPRequest(uint32_t ulIPAddress)</div><div class="ttdoc">Create and send an ARP request packet.</div><div class="ttdef"><b>Definition:</b> FreeRTOS_ARP.c:703</div></div>
 <div class="ttc" id="astruct_network_buffer_descriptor__t_html"><div class="ttname"><a href="struct_network_buffer_descriptor__t.html">NetworkBufferDescriptor_t</a></div><div class="ttdef"><b>Definition:</b> FreeRTOS_IP.h:115</div></div>
 <div class="ttc" id="astruct_network_buffer_descriptor__t_html_a03acb46a1d606b0a1fa383fd29e3ba2e"><div class="ttname"><a href="struct_network_buffer_descriptor__t.html#a03acb46a1d606b0a1fa383fd29e3ba2e">NetworkBufferDescriptor_t::usBoundPort</a></div><div class="ttdeci">uint16_t usBoundPort</div><div class="ttdef"><b>Definition:</b> FreeRTOS_IP.h:121</div></div>
 <div class="ttc" id="astruct_i_p_timer__t_html_a7244df48107f28b502e0482d80d5ed79"><div class="ttname"><a href="struct_i_p_timer__t.html#a7244df48107f28b502e0482d80d5ed79">IPTimer_t::bExpired</a></div><div class="ttdeci">uint32_t bExpired</div><div class="ttdef"><b>Definition:</b> FreeRTOS_IP.h:162</div></div>
 <div class="ttc" id="astruct_i_p_timer__t_html_aec37c3212367cf4478cd02b26cb9fdb9"><div class="ttname"><a href="struct_i_p_timer__t.html#aec37c3212367cf4478cd02b26cb9fdb9">IPTimer_t::ulReloadTime</a></div><div class="ttdeci">TickType_t ulReloadTime</div><div class="ttdef"><b>Definition:</b> FreeRTOS_IP.h:165</div></div>
 <div class="ttc" id="astruct_network_buffer_descriptor__t_html_a8f99bd5f37c30f0479c46ef33edbbbef"><div class="ttname"><a href="struct_network_buffer_descriptor__t.html#a8f99bd5f37c30f0479c46ef33edbbbef">NetworkBufferDescriptor_t::xDataLength</a></div><div class="ttdeci">size_t xDataLength</div><div class="ttdef"><b>Definition:</b> FreeRTOS_IP.h:119</div></div>
 <div class="ttc" id="astruct_network_buffer_descriptor__t_html_a2686bee348dfc8652b3d533d8f3fc834"><div class="ttname"><a href="struct_network_buffer_descriptor__t.html#a2686bee348dfc8652b3d533d8f3fc834">NetworkBufferDescriptor_t::xBufferListItem</a></div><div class="ttdeci">ListItem_t xBufferListItem</div><div class="ttdef"><b>Definition:</b> FreeRTOS_IP.h:116</div></div>
+<div class="ttc" id="a_free_r_t_o_s___a_r_p_8c_html_a7ad41b60042629fc57086d4990fc6347"><div class="ttname"><a href="_free_r_t_o_s___a_r_p_8c.html#a7ad41b60042629fc57086d4990fc6347">FreeRTOS_ClearARP</a></div><div class="ttdeci">void FreeRTOS_ClearARP(void)</div><div class="ttdoc">A call to this function will clear the ARP cache.</div><div class="ttdef"><b>Definition:</b> FreeRTOS_ARP.c:838</div></div>
 <div class="ttc" id="astruct_network_buffer_descriptor__t_html_a7c33c718263189dfb7e5d69faed2acd6"><div class="ttname"><a href="struct_network_buffer_descriptor__t.html#a7c33c718263189dfb7e5d69faed2acd6">NetworkBufferDescriptor_t::usPort</a></div><div class="ttdeci">uint16_t usPort</div><div class="ttdef"><b>Definition:</b> FreeRTOS_IP.h:120</div></div>
 <div class="ttc" id="astruct_i_p_timer__t_html_a1fbb967ea7d847861fcdc91fac46f664"><div class="ttname"><a href="struct_i_p_timer__t.html#a1fbb967ea7d847861fcdc91fac46f664">IPTimer_t::xTimeOut</a></div><div class="ttdeci">TimeOut_t xTimeOut</div><div class="ttdef"><b>Definition:</b> FreeRTOS_IP.h:163</div></div>
 <div class="ttc" id="astruct_network_buffer_descriptor__t_html_abf478d3a5f40ee8fcff38b60d40d3ad9"><div class="ttname"><a href="struct_network_buffer_descriptor__t.html#abf478d3a5f40ee8fcff38b60d40d3ad9">NetworkBufferDescriptor_t::pucEthernetBuffer</a></div><div class="ttdeci">uint8_t * pucEthernetBuffer</div><div class="ttdef"><b>Definition:</b> FreeRTOS_IP.h:118</div></div>
