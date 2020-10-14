@@ -75,9 +75,11 @@ then
     if [ -f $DIRNAME/lexicon.txt ]
     then
         LEXICON=$DIRNAME/lexicon.txt
+	echo "Found lexicon file here: $LEXICON"
     else
         LEXICON=/dev/null
         TERSE=1
+	echo "Lexicon file not found."
     fi
 fi
 
