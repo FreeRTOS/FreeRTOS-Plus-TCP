@@ -53,10 +53,10 @@ jobs:
       - name: Check spelling
         run: |
           PATH=$PATH:$PWD/tools/spell
-          for lexfile in `find . -name temp.txt`
+          for lexfile in `find . -name lexicon.txt`
           do dir=${lexfile%/lexicon.txt}
             echo $dir
-            find-unknown-comment-words --directory $dir
+            find-unknown-comment-words --directory .
             if [ $? -ne "0" ]
             then
               exit 1
