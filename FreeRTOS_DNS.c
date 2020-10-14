@@ -23,6 +23,11 @@
  * http://www.FreeRTOS.org
  */
 
+/**
+ * @file FreeRTOS_DNS.c
+ * @brief Implements the Domain Name System for the FreeRTOS+TCP network stack.
+ */
+
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
@@ -48,62 +53,62 @@
 #if ( ipconfigUSE_DNS != 0 )
 
 	#if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
-		#define dnsDNS_PORT				0x3500U
-		#define dnsONE_QUESTION			0x0100U
-		#define dnsOUTGOING_FLAGS		0x0001U     /* Standard query. */
-		#define dnsRX_FLAGS_MASK		0x0f80U     /* The bits of interest in the flags field of incoming DNS messages. */
-		#define dnsEXPECTED_RX_FLAGS	0x0080U     /* Should be a response, without any errors. */
+		#define dnsDNS_PORT				0x3500U  /**< Little endian: Port used for DNS. */
+		#define dnsONE_QUESTION			0x0100U     /**< Little endian representation of a DNS question.*/
+		#define dnsOUTGOING_FLAGS		0x0001U     /**< Little endian representation of standard query. */
+		#define dnsRX_FLAGS_MASK		0x0f80U     /**< Little endian:  The bits of interest in the flags field of incoming DNS messages. */
+		#define dnsEXPECTED_RX_FLAGS	0x0080U     /**< Little Endian: Should be a response, without any errors. */
 	#else
-		#define dnsDNS_PORT				0x0035U
-		#define dnsONE_QUESTION			0x0001U
-		#define dnsOUTGOING_FLAGS		0x0100U     /* Standard query. */
-		#define dnsRX_FLAGS_MASK		0x800fU     /* The bits of interest in the flags field of incoming DNS messages. */
-		#define dnsEXPECTED_RX_FLAGS	0x8000U     /* Should be a response, without any errors. */
+		#define dnsDNS_PORT				0x0035U  /**< Big endian: Port used for DNS. */
+		#define dnsONE_QUESTION			0x0001U     /**< Big endian representation of a DNS question.*/
+		#define dnsOUTGOING_FLAGS		0x0100U     /**< Big endian representation of standard query. */
+		#define dnsRX_FLAGS_MASK		0x800fU     /**< Big endian: The bits of interest in the flags field of incoming DNS messages. */
+		#define dnsEXPECTED_RX_FLAGS	0x8000U     /**< Big endian: Should be a response, without any errors. */
 
 	#endif /* ipconfigBYTE_ORDER */
 
-/* The maximum number of times a DNS request should be sent out if a response
-is not received, before giving up. */
+	/** @brief The maximum number of times a DNS request should be sent out if a response
+	is not received, before giving up. */
 	#ifndef ipconfigDNS_REQUEST_ATTEMPTS
 		#define ipconfigDNS_REQUEST_ATTEMPTS    5
 	#endif
 
-/* If the top two bits in the first character of a name field are set then the
-name field is an offset to the string, rather than the string itself. */
+	/** @brief If the top two bits in the first character of a name field are set then the
+	name field is an offset to the string, rather than the string itself. */
 	#define dnsNAME_IS_OFFSET    ( ( uint8_t ) 0xc0 )
 
-/* NBNS flags. */
+	/* NBNS flags. */
 	#if ( ipconfigUSE_NBNS == 1 )
-		#define dnsNBNS_FLAGS_RESPONSE		  0x8000U
-		#define dnsNBNS_FLAGS_OPCODE_MASK	  0x7800U
-		#define dnsNBNS_FLAGS_OPCODE_QUERY	  0x0000U
+		#define dnsNBNS_FLAGS_RESPONSE		  0x8000U /**< NBNS response flag. */
+		#define dnsNBNS_FLAGS_OPCODE_MASK	  0x7800U /**< NBNS opcode bitmask. */
+		#define dnsNBNS_FLAGS_OPCODE_QUERY	  0x0000U /**< NBNS opcode query. */
 	#endif /* ( ipconfigUSE_NBNS == 1 ) */
 
-/* Host types. */
-	#define dnsTYPE_A_HOST	  0x01U
-	#define dnsCLASS_IN		  0x01U
+	/* Host types. */
+	#define dnsTYPE_A_HOST	  0x01U /**< DNS type A host. */
+	#define dnsCLASS_IN		  0x01U  /**< DNS class IN (Internet). */
 
 	#ifndef _lint
 		/* LLMNR constants. */
-		#define dnsLLMNR_TTL_VALUE			 300000UL
-		#define dnsLLMNR_FLAGS_IS_REPONSE	 0x8000U
+		#define dnsLLMNR_TTL_VALUE			 300000UL /**< LLMNR time to live value. */
+		#define dnsLLMNR_FLAGS_IS_REPONSE	 0x8000U /**< LLMNR flag value for response. */
 	#endif /* _lint */
 
-/* NBNS constants. */
+	/* NBNS constants. */
 	#if ( ipconfigUSE_NBNS != 0 )
-		#define dnsNBNS_TTL_VALUE				3600UL /* 1 hour valid */
-		#define dnsNBNS_TYPE_NET_BIOS			0x0020U
-		#define dnsNBNS_CLASS_IN				0x01U
-		#define dnsNBNS_NAME_FLAGS				0x6000U
-		#define dnsNBNS_ENCODED_NAME_LENGTH		32
+		#define dnsNBNS_TTL_VALUE				3600UL /**< NBNS TTL: 1 hour valid. */
+		#define dnsNBNS_TYPE_NET_BIOS			0x0020U /**< NBNS Type: NetBIOS. */
+		#define dnsNBNS_CLASS_IN				0x01U /**< NBNS Class: IN (Internet). */
+		#define dnsNBNS_NAME_FLAGS				0x6000U /**< NBNS name flags. */
+		#define dnsNBNS_ENCODED_NAME_LENGTH		32 /**< NBNS encoded name length. */
 
-		/* If the queried NBNS name matches with the device's name,
+		/** @brief If the queried NBNS name matches with the device's name,
 		the query will be responded to with these flags: */
-		#define dnsNBNS_QUERY_RESPONSE_FLAGS	( 0x8500U )
+		#define dnsNBNS_QUERY_RESPONSE_FLAGS	( 0x8500U ) 
 	#endif /* ( ipconfigUSE_NBNS != 0 ) */
 
-/* Flag DNS parsing errors in situations where an IPv4 address is the return
-type. */
+	/** @brief Flag DNS parsing errors in situations where an IPv4 address is the return
+	type. */
 	#define dnsPARSE_ERROR    0UL
 
 	#ifndef _lint
@@ -114,41 +119,41 @@ type. */
 		#endif
 	#endif
 
-/* Define the ASCII value of '.' (Period/Full-stop). */
+	/** @brief Define the ASCII value of '.' (Period/Full-stop). */
 	#define ASCII_BASELINE_DOT    46U
 
-/*
- * Create a socket and bind it to the standard DNS port number.  Return the
- * the created socket - or NULL if the socket could not be created or bound.
- */
+	/*
+	 * Create a socket and bind it to the standard DNS port number.  Return the
+	 * the created socket - or NULL if the socket could not be created or bound.
+	 */
 	static Socket_t prvCreateDNSSocket( void );
 
-/*
- * Create the DNS message in the zero copy buffer passed in the first parameter.
- */
+	/*
+	 * Create the DNS message in the zero copy buffer passed in the first parameter.
+	 */
 	_static size_t prvCreateDNSMessage( uint8_t *pucUDPPayloadBuffer,
 										const char *pcHostName,
 										TickType_t uxIdentifier );
 
-/*
- * Simple routine that jumps over the NAME field of a resource record.
- * It returns the number of bytes read.
- */
+	/*
+	 * Simple routine that jumps over the NAME field of a resource record.
+	 * It returns the number of bytes read.
+	 */
 	_static size_t prvSkipNameField( const uint8_t *pucByte,
 									 size_t uxLength );
 
-/*
- * Process a response packet from a DNS server.
- * The parameter 'xExpected' indicates whether the identifier in the reply
- * was expected, and thus if the DNS cache may be updated with the reply.
- */
+	/*
+	 * Process a response packet from a DNS server.
+	 * The parameter 'xExpected' indicates whether the identifier in the reply
+	 * was expected, and thus if the DNS cache may be updated with the reply.
+	 */
 	_static uint32_t prvParseDNSReply( uint8_t *pucUDPPayloadBuffer,
 									   size_t uxBufferLength,
 									   BaseType_t xExpected );
 
-/*
- * Check if hostname is already known. If not, call prvGetHostByName() to send a DNS request.
- */
+	/*
+	 * Check if hostname is already known. If not, call prvGetHostByName() to send a DNS request.
+	 */
 	#if ( ipconfigDNS_USE_CALLBACKS == 1 )
 		static uint32_t prvPrepareLookup( const char *pcHostName,
 										  FOnDNSEvent pCallback,
@@ -158,10 +163,10 @@ type. */
 		static uint32_t prvPrepareLookup( const char *pcHostName );
 	#endif
 
-/*
- * Prepare and send a message to a DNS server.  'uxReadTimeOut_ticks' will be passed as
- * zero, in case the user has supplied a call-back function.
- */
+	/*
+	 * Prepare and send a message to a DNS server.  'uxReadTimeOut_ticks' will be passed as
+	 * zero, in case the user has supplied a call-back function.
+	 */
 	static uint32_t prvGetHostByName( const char *pcHostName,
 									  TickType_t uxIdentifier,
 									  TickType_t uxReadTimeOut_ticks );
@@ -180,9 +185,9 @@ type. */
 										  uint32_t ulIPAddress );
 	#endif /* ipconfigDNS_USE_CALLBACKS */
 
-/*
- * The NBNS and the LLMNR protocol share this reply function.
- */
+	/*
+	 * The NBNS and the LLMNR protocol share this reply function.
+	 */
 	#if ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) )
 		static void prvReplyDNSMessage( NetworkBufferDescriptor_t *pxNetworkBuffer,
 										BaseType_t lNetLength );
@@ -230,65 +235,87 @@ type. */
 	#endif /* ipconfigUSE_DNS_CACHE == 1 */
 
 	#if ( ipconfigUSE_LLMNR == 1 )
+	 /** @brief The MAC address used for LLMNR. */
 	const MACAddress_t xLLMNR_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfc } };
 	#endif /* ipconfigUSE_LLMNR == 1 */
 
-/*-----------------------------------------------------------*/
+	/*-----------------------------------------------------------*/
 
-/* Below #include just tells the compiler to pack the structure.
- * It is included in to make the code more readable */
+	/* Below #include just tells the compiler to pack the structure.
+	 * It is included in to make the code more readable */
 	#include "pack_struct_start.h"
 	struct xDNSMessage
 	{
-	uint16_t usIdentifier;
-	uint16_t usFlags;
-	uint16_t usQuestions;
-	uint16_t usAnswers;
-	uint16_t usAuthorityRRs;
-	uint16_t usAdditionalRRs;
+	uint16_t usIdentifier; /**< Query identifier. Used to match up replies to outstanding queries. */
+	uint16_t usFlags; /**< Flags. */
+	uint16_t usQuestions; /**< Number of questions asked in this query. */
+	uint16_t usAnswers; /**< Number of answers being provided in this query. */
+	uint16_t usAuthorityRRs; /**< Authoritative name server resource records. */
+	uint16_t usAdditionalRRs; /**< Additional resource records.*/
 	}
 	#include "pack_struct_end.h"
 	typedef struct xDNSMessage DNSMessage_t;
 
+	/**
+	 * @brief Utility function to cast pointer of a type to pointer of type DNSMessage_t.
+	 *
+	 * @return The casted pointer.
+	 */
 	static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSMessage_t )
 	{
 		return ( DNSMessage_t * ) pvArgument;
 	}
+
+        /**
+         * @brief Utility function to cast a const pointer of a type to a const pointer of type DNSMessage_t.
+         *
+         * @return The casted pointer.
+         */
 	static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( DNSMessage_t )
 	{
 		return ( const DNSMessage_t * ) pvArgument;
 	}
 
-/* A DNS query consists of a header, as described in 'struct xDNSMessage'
-It is followed by 1 or more queries, each one consisting of a name and a tail,
-with two fields: type and class
-*/
+	/* A DNS query consists of a header, as described in 'struct xDNSMessage'
+	It is followed by 1 or more queries, each one consisting of a name and a tail,
+	with two fields: type and class
+	*/
 	#include "pack_struct_start.h"
 	struct xDNSTail
 	{
-	uint16_t usType;
-	uint16_t usClass;
+	uint16_t usType; /**< Type of DNS message. */
+	uint16_t usClass; /**< Class of DNS message. */
 	}
 	#include "pack_struct_end.h"
 	typedef struct xDNSTail DNSTail_t;
 
+        /**
+         * @brief Utility function to cast pointer of a type to pointer of type DNSTail_t.
+         *
+         * @return The casted pointer.
+         */
 	static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSTail_t )
 	{
 		return ( DNSTail_t * ) pvArgument;
 	}
 
-/* DNS answer record header. */
+	/* DNS answer record header. */
 	#include "pack_struct_start.h"
 	struct xDNSAnswerRecord
 	{
-	uint16_t usType;
-	uint16_t usClass;
-	uint32_t ulTTL;
-	uint16_t usDataLength;
+	uint16_t usType; /**< Type of DNS answer record. */
+	uint16_t usClass; /**< Class of DNS answer record. */
+	uint32_t ulTTL; /**< Number of seconds the result can be cached. */
+	uint16_t usDataLength; /**< Length of the data field. */
 	}
 	#include "pack_struct_end.h"
 	typedef struct xDNSAnswerRecord DNSAnswerRecord_t;
 
+        /**
+         * @brief Utility function to cast pointer of a type to pointer of type DNSAnswerRecord_t.
+         *
+         * @return The casted pointer.
+         */
 	static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSAnswerRecord_t )
 	{
 		return ( DNSAnswerRecord_t * ) pvArgument;
@@ -299,17 +326,22 @@ with two fields: type and class
 		#include "pack_struct_start.h"
 		struct xLLMNRAnswer
 		{
-		uint8_t ucNameCode;
-		uint8_t ucNameOffset;   /* The name is not repeated in the answer, only the offset is given with "0xc0 <offs>" */
-		uint16_t usType;
-		uint16_t usClass;
-		uint32_t ulTTL;
-		uint16_t usDataLength;
-		uint32_t ulIPAddress;
+		uint8_t ucNameCode; /**< Name type. */
+		uint8_t ucNameOffset;   /**< The name is not repeated in the answer, only the offset is given with "0xc0 <offs>" */
+		uint16_t usType; /**< Type of the Resource record. */
+		uint16_t usClass; /**< Class of the Resource record. */
+		uint32_t ulTTL; /**< Seconds till this entry can be cached. */
+		uint16_t usDataLength; /**< Length of the address in this record. */
+		uint32_t ulIPAddress; /**< The IP-address. */
 		}
 		#include "pack_struct_end.h"
 		typedef struct xLLMNRAnswer LLMNRAnswer_t;
 
+		/**
+	         * @brief Utility function to cast pointer of a type to pointer of type LLMNRAnswer_t.
+        	 *
+	         * @return The casted pointer.
+        	 */
 		static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( LLMNRAnswer_t )
 		{
 			return ( LLMNRAnswer_t * ) pvArgument;
@@ -323,17 +355,17 @@ with two fields: type and class
 		#include "pack_struct_start.h"
 		struct xNBNSRequest
 		{
-		uint16_t usRequestId;
-		uint16_t usFlags;
-		uint16_t ulRequestCount;
-		uint16_t usAnswerRSS;
-		uint16_t usAuthRSS;
-		uint16_t usAdditionalRSS;
-		uint8_t ucNameSpace;
-		uint8_t ucName[ dnsNBNS_ENCODED_NAME_LENGTH ];
-		uint8_t ucNameZero;
-		uint16_t usType;
-		uint16_t usClass;
+		uint16_t usRequestId; /**< NBNS request ID. */
+		uint16_t usFlags; /**< Flags of the DNS message. */
+		uint16_t ulRequestCount; /**< The number of requests/questions in this query. */
+		uint16_t usAnswerRSS; /**< The number of answers in this query. */
+		uint16_t usAuthRSS; /**< Number of authoritative resource records. */
+		uint16_t usAdditionalRSS; /**< Number of additional resource records. */
+		uint8_t ucNameSpace; /**< Length of name. */
+		uint8_t ucName[ dnsNBNS_ENCODED_NAME_LENGTH ]; /**< The domain name. */
+		uint8_t ucNameZero; /**< Terminator of the name. */
+		uint16_t usType; /**< Type of NBNS record. */
+		uint16_t usClass; /**< Class of NBNS request. */
 		}
 		#include "pack_struct_end.h"
 		typedef struct xNBNSRequest NBNSRequest_t;
@@ -341,16 +373,21 @@ with two fields: type and class
 		#include "pack_struct_start.h"
 		struct xNBNSAnswer
 		{
-		uint16_t usType;
-		uint16_t usClass;
-		uint32_t ulTTL;
-		uint16_t usDataLength;
-		uint16_t usNbFlags;     /* NetBIOS flags 0x6000 : IP-address, big-endian */
-		uint32_t ulIPAddress;
+		uint16_t usType; /**< Type of NBNS answer. */
+		uint16_t usClass; /**< Class of NBNS answer. */
+		uint32_t ulTTL; /**< Time in seconds for which the answer can be cached. */
+		uint16_t usDataLength; /**< Data length. */
+		uint16_t usNbFlags;     /**< NetBIOS flags 0x6000 : IP-address, big-endian. */
+		uint32_t ulIPAddress; /**< The IPv4 address. */
 		}
 		#include "pack_struct_end.h"
 		typedef struct xNBNSAnswer NBNSAnswer_t;
 
+               /**
+                 * @brief Utility function to cast pointer of a type to pointer of type NBNSAnswer_t.
+                 *
+                 * @return The casted pointer.
+                 */
 		static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NBNSAnswer_t )
 		{
 			return ( NBNSAnswer_t * ) pvArgument;
@@ -358,7 +395,7 @@ with two fields: type and class
 
 	#endif /* ipconfigUSE_NBNS == 1 */
 
-/*-----------------------------------------------------------*/
+	/*-----------------------------------------------------------*/
 
 	#if ( ipconfigUSE_DNS_CACHE == 1 )
 		uint32_t FreeRTOS_dnslookup( const char *pcHostName )
@@ -369,46 +406,66 @@ with two fields: type and class
 			return ulIPAddress;
 		}
 	#endif /* ipconfigUSE_DNS_CACHE == 1 */
-/*-----------------------------------------------------------*/
+	/*-----------------------------------------------------------*/
 
 	#if ( ipconfigDNS_USE_CALLBACKS == 1 )
 
+		/** @brief The structure to hold information for a DNS callback. */
 		typedef struct xDNS_Callback
 		{
-		TickType_t uxRemaningTime;      /* Timeout in ms */
-		FOnDNSEvent pCallbackFunction;  /* Function to be called when the address has been found or when a timeout has been reached */
-		TimeOut_t uxTimeoutState;
-		void *pvSearchID;
-			struct xLIST_ITEM xListItem;
-			char pcName[ 1 ];
+		TickType_t uxRemaningTime;      /**< Timeout in ms */
+		FOnDNSEvent pCallbackFunction;  /**< Function to be called when the address has been found or when a timeout has been reached */
+		TimeOut_t uxTimeoutState; /**< Timeout state. */
+		void *pvSearchID; /**< Search ID of the callback function. */
+		struct xLIST_ITEM xListItem; /**< List struct. */
+		char pcName[ 1 ]; /**< 1 character name. */
 		} DNSCallback_t;
 
+
+		/**
+	         * @brief Utility function to cast pointer of a type to pointer of type DNSCallback_t.
+        	 *
+	         * @return The casted pointer.
+        	 */
 		static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSCallback_t )
 		{
 			return ( DNSCallback_t * ) pvArgument;
 		}
 
+		/** @brief The list of all callback structures. */
 		static List_t xCallbackList;
 
-		/* Define FreeRTOS_gethostbyname() as a normal blocking call. */
+		/**
+		 * @brief Define FreeRTOS_gethostbyname() as a normal blocking call.
+		 *
+		 * @param[in] pcHostName: The hostname whose IP address is being searched for.
+		 *
+		 * @return The IP-address of the hostname.
+		 */
 		uint32_t FreeRTOS_gethostbyname( const char *pcHostName )
 		{
 			return FreeRTOS_gethostbyname_a( pcHostName, NULL, ( void * ) NULL, 0 );
 		}
 		/*-----------------------------------------------------------*/
 
-		/* Initialise the list of call-back structures. */
+		/** @brief Initialise the list of call-back structures.
+		 */
 		void vDNSInitialise( void )
 		{
 			vListInitialise( &xCallbackList );
 		}
 		/*-----------------------------------------------------------*/
 
-		/* Iterate through the list of call-back structures and remove
-		old entries which have reached a timeout.
-		As soon as the list has become empty, the DNS timer will be stopped
-		In case pvSearchID is supplied, the user wants to cancel a DNS request
-		*/
+		/**
+		 * @brief Iterate through the list of call-back structures and remove
+                 *        old entries which have reached a timeout.
+                 *        As soon as the list has become empty, the DNS timer will be stopped.
+                 *        In case pvSearchID is supplied, the user wants to cancel a DNS request.
+		 *
+		 * @param[in] pvSearchID: The search ID of callback function whose associated
+		 *                 DNS request is being cancelled. If non-ID specific checking of
+		 *                 all requests is required, then this field should be kept as NULL.
+		 */
 		void vDNSCheckCallBack( void *pvSearchID )
 		{
 		const ListItem_t * pxIterator;
@@ -450,6 +507,12 @@ with two fields: type and class
 		}
 		/*-----------------------------------------------------------*/
 
+		/**
+		 * @brief Remove the entry defined by the search ID to cancel a DNS request.
+		 *
+		 * @param[in] pvSearchID: The search ID of the callback function associated with
+		 *                        the DNS request being cancelled.
+		 */
 		void FreeRTOS_gethostbyname_cancel( void *pvSearchID )
 		{
 			/* _HT_ Should better become a new API call to have the IP-task remove the callback */
@@ -457,8 +520,16 @@ with two fields: type and class
 		}
 		/*-----------------------------------------------------------*/
 
-		/* FreeRTOS_gethostbyname_a() was called along with callback parameters.
-		Store them in a list for later reference. */
+		/**
+		 * @brief FreeRTOS_gethostbyname_a() was called along with callback parameters.
+		 *        Store them in a list for later reference.
+		 *
+		 * @param[in] pcHostName: The hostname whose IP address is being searched for.
+                 * @param[in] pvSearchID: The search ID of the DNS callback function to set.
+                 * @param[in] pCallbackFunction: The callback function pointer.
+                 * @param[in] uxTimeout: Timeout of the callback function.
+                 * @param[in] uxIdentifier: Random number used as ID in the DNS message.
+		 */
 		static void vDNSSetCallBack( const char *pcHostName,
 									 void *pvSearchID,
 									 FOnDNSEvent pCallbackFunction,
@@ -495,8 +566,16 @@ with two fields: type and class
 		}
 		/*-----------------------------------------------------------*/
 
-		/* A DNS reply was received, see if there is any matching entry and
-		call the handler.  Returns pdTRUE if uxIdentifier was recognized. */
+		/**
+		 * @brief A DNS reply was received, see if there is any matching entry and
+		 *        call the handler.
+		 *
+		 * @param[in] uxIdentifier: Identifier associated with the callback function.
+                 * @param[in] pcName: The name associated with the callback function.
+                 * @param[in] ulIPAddress: IP-address identified from the DNS record.
+		 *
+		 * @return Returns pdTRUE if uxIdentifier was recognized.
+ 		*/
 		static BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
 										  const char *pcName,
 										  uint32_t ulIPAddress )
@@ -535,14 +614,31 @@ with two fields: type and class
 		}
 
 	#endif /* ipconfigDNS_USE_CALLBACKS == 1 */
-/*-----------------------------------------------------------*/
+	/*-----------------------------------------------------------*/
 
 	#if ( ipconfigDNS_USE_CALLBACKS == 0 )
+		/**
+                 * @brief Get the IP-address corresponding to the given hostname.
+                 *
+                 * @param[in] pcHostName: The hostname whose IP address is being queried.
+                 *
+                 * @return The IP-address corresponding to the hostname.
+                 */
 		uint32_t FreeRTOS_gethostbyname( const char *pcHostName )
 		{
 			return prvPrepareLookup( pcHostName );
 		}
 	#else
+		/**
+                 * @brief Get the IP-address corresponding to the given hostname.
+                 *
+                 * @param[in] pcHostName: The hostname whose IP address is being queried.
+                 * @param[in] pCallback: The callback function which will be called upon DNS response.
+                 * @param[in] pvSearchID: Search ID for the callback function.
+                 * @param[in] uxTimeout: Timeout for the callback function.
+                 *
+                 * @return The IP-address corresponding to the hostname.
+                 */
 		uint32_t FreeRTOS_gethostbyname_a( const char *pcHostName,
 										   FOnDNSEvent pCallback,
 										   void *pvSearchID,
@@ -553,21 +649,38 @@ with two fields: type and class
 	#endif /* if ( ipconfigDNS_USE_CALLBACKS == 0 ) */
 
 	#if ( ipconfigDNS_USE_CALLBACKS == 1 )
+               /**
+                 * @brief Check if hostname is already known. If not, call prvGetHostByName() to send a DNS request.
+                 *
+                 * @param[in] pcHostName: The hostname whose IP address is being queried.
+                 * @param[in] pCallback: The callback function which will be called upon DNS response.
+                 * @param[in] pvSearchID: Search ID for the callback function.
+                 * @param[in] uxTimeout: Timeout for the callback function.
+                 *
+                 * @return The IP-address corresponding to the hostname.
+                 */
 		static uint32_t prvPrepareLookup( const char *pcHostName,
 										  FOnDNSEvent pCallback,
 										  void *pvSearchID,
 										  TickType_t uxTimeout )
 	#else
+		/**
+		 * @brief Check if hostname is already known. If not, call prvGetHostByName() to send a DNS request.
+		 *
+		 * @param[in] pcHostName: The hostname whose IP address is being queried.
+		 *
+		 * @return The IP-address corresponding to the hostname.
+		 */
 		static uint32_t prvPrepareLookup( const char *pcHostName )
 	#endif
 	{
 	uint32_t ulIPAddress = 0UL;
 	TickType_t uxReadTimeOut_ticks = ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS;
 
-/* Generate a unique identifier for this query. Keep it in a local variable
- as gethostbyname() may be called from different threads */
-		BaseType_t xHasRandom = pdFALSE;
-		TickType_t uxIdentifier = 0U;
+	/* Generate a unique identifier for this query. Keep it in a local variable
+	 as gethostbyname() may be called from different threads */
+	BaseType_t xHasRandom = pdFALSE;
+	TickType_t uxIdentifier = 0U;
 
 		#if ( ipconfigUSE_DNS_CACHE != 0 )
 			BaseType_t xLengthOk = pdFALSE;
@@ -666,8 +779,19 @@ with two fields: type and class
 
 		return ulIPAddress;
 	}
-/*-----------------------------------------------------------*/
+	/*-----------------------------------------------------------*/
 
+	/**
+	 * @brief Prepare and send a message to a DNS server.  'uxReadTimeOut_ticks' will be passed as
+         	  zero, in case the user has supplied a call-back function.
+	 *
+	 * @param[in] pcHostName: The hostname for which an IP address is required.
+         * @param[in] uxIdentifier: Identifier to send in the DNS message.
+         * @param[in] uxReadTimeOut_ticks: The timout in ticks for waiting. In case the user has supplied
+	 *                                 a call-back function, this value should be zero.
+	 *
+	 * @return The IPv4 IP address for the hostname being queried.
+	 */
 	static uint32_t prvGetHostByName( const char *pcHostName,
 									  TickType_t uxIdentifier,
 									  TickType_t uxReadTimeOut_ticks )
@@ -832,8 +956,18 @@ with two fields: type and class
 
 		return ulIPAddress;
 	}
-/*-----------------------------------------------------------*/
+	/*-----------------------------------------------------------*/
 
+	/**
+	 * @brief Create the DNS message in the zero copy buffer passed in the first parameter.
+	 *
+	 * @param[in] pucUDPPayloadBuffer: The zero copy buffer where the DNS message will be created.
+         * @param[in] pcHostName: Hostname we want the IP address for.
+         * @param[in] uxIdentifier: The identifier to be added to the DNS message.
+	 *
+	 * @return Total size of the generated message, which is the space from the last written byte
+	 *         to the beginning of the buffer.
+	 */
 	_static size_t prvCreateDNSMessage( uint8_t *pucUDPPayloadBuffer,
 										const char *pcHostName,
 										TickType_t uxIdentifier )
@@ -850,9 +984,9 @@ with two fields: type and class
 			0,                 /* No authorities. */
 			0                  /* No additional authorities. */
 		};
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-		const void *pvCopySource;
-		void *pvCopyDest;
+	/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+	const void *pvCopySource;
+	void *pvCopyDest;
 
 		/* Copy in the const part of the header. Intentionally using different
 		 * pointers with memcpy() to put the information in to correct place. */
@@ -922,10 +1056,21 @@ with two fields: type and class
 		the last written byte to the beginning of the buffer. */
 		return ( ( uint32_t ) pucByte - ( uint32_t ) pucUDPPayloadBuffer + 1U ) + sizeof( DNSTail_t );
 	}
-/*-----------------------------------------------------------*/
+	/*-----------------------------------------------------------*/
 
 	#if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
 
+		/**
+		 * @brief Read the Name field out of a DNS response packet.
+		 *
+		 * @param[in] pucByte: Pointer to the DNS response.
+                 * @param[in] uxRemainingBytes: Length of the DNS response.
+                 * @param[out] pcName: The pointer in which the name in the DNS response will be returned.
+                 * @param[in] uxDestLen: Size of the pcName array. 
+		 *
+		 * @return If a fully fored name was found, then return the index-offset of the end of the
+		 *         name into the pucByte string. Else, return 0.
+		 */
 		_static size_t prvReadNameField( const uint8_t *pucByte,
 										 size_t uxRemainingBytes,
 										 char *pcName,
@@ -1024,8 +1169,16 @@ with two fields: type and class
 			return uxIndex;
 		}
 	#endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
-/*-----------------------------------------------------------*/
+	/*-----------------------------------------------------------*/
 
+	/**
+	 * @brief Simple routine that jumps over the NAME field of a resource record.
+	 *
+	 * @param[in] pucByte: The pointer to the resource record.
+         * @param[in] uxLength: Length of the resource record.
+	 *
+	 * @return It returns the number of bytes read.
+	 */
 	_static size_t prvSkipNameField( const uint8_t *pucByte,
 									 size_t uxLength )
 	{
@@ -1089,13 +1242,21 @@ with two fields: type and class
 
 		return uxIndex;
 	}
-/*-----------------------------------------------------------*/
+	/*-----------------------------------------------------------*/
 
-/* The function below will only be called :
-when ipconfigDNS_USE_CALLBACKS == 1
-when ipconfigUSE_LLMNR == 1
-for testing purposes, by the module test_freertos_tcp.c
-*/
+	/* The function below will only be called :
+	when ipconfigDNS_USE_CALLBACKS == 1
+	when ipconfigUSE_LLMNR == 1
+	for testing purposes, by the module test_freertos_tcp.c
+	*/
+
+	/**
+	 * @brief Perform some prelimnary checks and then parse the DNS packet.
+	 *
+	 * @param[in] pxNetworkBuffer: The network buffer to be parsed.
+	 *
+	 * @return Always pdFAIL to indicate that the packet was not consumed.
+	 */
 	uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t *pxNetworkBuffer )
 	{
 	DNSMessage_t *pxDNSMessageHeader;
@@ -1122,10 +1283,17 @@ for testing purposes, by the module test_freertos_tcp.c
 		/* The packet was not consumed. */
 		return pdFAIL;
 	}
-/*-----------------------------------------------------------*/
+	/*-----------------------------------------------------------*/
 
 	#if ( ipconfigUSE_NBNS == 1 )
 
+		/**
+		 * @brief Handle an NBNS packet.
+		 *
+		 * @param[in] pxNetworkBuffer: The network buffer holding the NBNS packet.
+		 *
+		 * @return pdFAIL to show that the packet was not consumed.
+		 */
 		uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
 		{
 		UDPPacket_t *pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
@@ -1140,28 +1308,42 @@ for testing purposes, by the module test_freertos_tcp.c
 		}
 
 	#endif /* ipconfigUSE_NBNS */
-/*-----------------------------------------------------------*/
+	/*-----------------------------------------------------------*/
 
+	/**
+	 * @brief Process a response packet from a DNS server.
+	 *
+	 * @param[in] pucUDPPayloadBuffer: The DNS response received as a UDP
+	 *                                 payload.
+	 * @param[in] uxBufferLength: Length of the UDP payload buffer.
+	 * @param[in] xExpected: indicates whether the identifier in the reply
+	 *                       was expected, and thus if the DNS cache may be
+	 *                       updated with the reply.
+	 *
+	 * @return The IP address in the DNS response if present and if xExpected is set to pdTRUE.
+	 *         An error code (dnsPARSE_ERROR) if there was an error in the DNS response.
+	 *         0 if xExpected set to pdFALSE.
+	 */
 	_static uint32_t prvParseDNSReply( uint8_t *pucUDPPayloadBuffer,
 									   size_t uxBufferLength,
 									   BaseType_t xExpected )
 	{
 	DNSMessage_t *pxDNSMessageHeader;
-/* This pointer is not used to modify anything */
-		const DNSAnswerRecord_t *pxDNSAnswerRecord;
-		uint32_t ulIPAddress = 0UL;
+	/* This pointer is not used to modify anything */
+	const DNSAnswerRecord_t *pxDNSAnswerRecord;
+	uint32_t ulIPAddress = 0UL;
 
-		#if ( ipconfigUSE_LLMNR == 1 )
-			char *pcRequestedName = NULL;
-		#endif
-		uint8_t *pucByte;
-		size_t uxSourceBytesRemaining;
-		uint16_t x, usDataLength, usQuestions;
-		uint16_t usType = 0U;
-		BaseType_t xReturn = pdTRUE;
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-		const void *pvCopySource;
-		void *pvCopyDest;
+	#if ( ipconfigUSE_LLMNR == 1 )
+		char *pcRequestedName = NULL;
+	#endif
+	uint8_t *pucByte;
+	size_t uxSourceBytesRemaining;
+	uint16_t x, usDataLength, usQuestions;
+	uint16_t usType = 0U;
+	BaseType_t xReturn = pdTRUE;
+	/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+	const void *pvCopySource;
+	void *pvCopyDest;
 
 		#if ( ipconfigUSE_LLMNR == 1 )
 			uint16_t usClass = 0U;
@@ -1532,10 +1714,17 @@ for testing purposes, by the module test_freertos_tcp.c
 
 		return ulIPAddress;
 	}
-/*-----------------------------------------------------------*/
+	/*-----------------------------------------------------------*/
 
 	#if ( ipconfigUSE_NBNS == 1 )
 
+		/**
+		 * @brief Respond to an NBNS message.
+		 *
+		 * @param[in] pucPayload: the UDP payload of the NBNS query.
+                 * @param[in] uxBufferLength: Length of the Buffer.
+                 * @param[in] ulIPAddress: IP address of the sender.
+		 */
 		static void prvTreatNBNS( uint8_t *pucPayload,
 								  size_t uxBufferLength,
 								  uint32_t ulIPAddress )
@@ -1683,8 +1872,13 @@ for testing purposes, by the module test_freertos_tcp.c
 		}
 
 	#endif /* ipconfigUSE_NBNS */
-/*-----------------------------------------------------------*/
+	/*-----------------------------------------------------------*/
 
+	/**
+	 * @brief Create a socket and bind it to the standard DNS port number.
+	 *
+	 * @return The created socket - or NULL if the socket could not be created or could not be bound.
+	 */
 	static Socket_t prvCreateDNSSocket( void )
 	{
 	Socket_t xSocket;
@@ -1724,6 +1918,12 @@ for testing purposes, by the module test_freertos_tcp.c
 
 	#if ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) )
 
+		/**
+		 * @brief Send a DNS message to be used in NBNS or LLMNR
+		 *
+		 * @param[in] pxNetworkBuffer: The network buffer descriptor with the DNS message.
+                 * @param[in] lNetLength: The length of the DNS message.
+		 */
 		static void prvReplyDNSMessage( NetworkBufferDescriptor_t *pxNetworkBuffer,
 										BaseType_t lNetLength )
 		{

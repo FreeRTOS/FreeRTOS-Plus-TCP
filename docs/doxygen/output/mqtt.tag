@@ -466,6 +466,956 @@
       <arglist></arglist>
     </member>
   </compound>
+  <compound kind="file">
+    <name>FreeRTOS_DNS.c</name>
+    <path>/root/Desktop/AddDoxygen/</path>
+    <filename>_free_r_t_o_s___d_n_s_8c.html</filename>
+    <class kind="struct">struct</class>
+    <class kind="struct">struct</class>
+    <class kind="struct">struct</class>
+    <class kind="struct">struct</class>
+    <class kind="struct">struct</class>
+    <class kind="struct">struct</class>
+    <class kind="struct">DNSCallback_t</class>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsDNS_PORT</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a8cca321343618c8fa0a260fd8a819473</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsONE_QUESTION</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a8b428fe7de1758f2b1b8e657a1ef47b6</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsOUTGOING_FLAGS</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a3d0da0f6f7b0dedccdad53936eb78ae3</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsRX_FLAGS_MASK</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a2f2d9e5e60a455c209b38793a2a67914</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsEXPECTED_RX_FLAGS</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a8ef84cca921f793513d8559c542bd831</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipconfigDNS_REQUEST_ATTEMPTS</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a7bf53c7d169359031def8b0e480a2a07</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsNAME_IS_OFFSET</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>ab4a05dba8a79bc6a0726ea852247186a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsNBNS_FLAGS_RESPONSE</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a81dadf70a217c0616c8d44ec042cbd48</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsNBNS_FLAGS_OPCODE_MASK</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a09346ef677131535076a2bad887c440f</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsNBNS_FLAGS_OPCODE_QUERY</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a8a10899c4a10c6c8b4c481c7dadfa3b4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsTYPE_A_HOST</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a9d6929d8badbc074a31f8e7d82a6db08</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsCLASS_IN</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>ac9b1a453ec5f5fa4ac573e4e26f07efc</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsLLMNR_TTL_VALUE</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a6d6507fae08709343eecb47140c20339</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsLLMNR_FLAGS_IS_REPONSE</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>ac8a96b45af40fbae735b159cf60024e5</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsNBNS_TTL_VALUE</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a8be33ea2d0671ca94acc1f6f3f743631</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsNBNS_TYPE_NET_BIOS</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a7a7208ad3a0d52636d21af3692832ec9</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsNBNS_CLASS_IN</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a2312cbbbf89cc258051715b0baee1204</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsNBNS_NAME_FLAGS</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a898ba9455e4b297a5f82ef9a7498ca78</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsNBNS_ENCODED_NAME_LENGTH</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a9332d7b813faaec069dfcb7f16db3454</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsNBNS_QUERY_RESPONSE_FLAGS</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a7ede7682a08c4a122d4d4191a54724e4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>dnsPARSE_ERROR</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a3c0262be7e4c69b9a7e6763cc3bacc04</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ASCII_BASELINE_DOT</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>ac30e7dd81c154bb807ffcfb12a5c3db7</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static Socket_t</type>
+      <name>prvCreateDNSSocket</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a063465bac49177bfa4b33b0dfa51d0b8</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>_static size_t</type>
+      <name>prvCreateDNSMessage</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a46f16170c8337a04643aa443d1b2c28c</anchor>
+      <arglist>(uint8_t *pucUDPPayloadBuffer, const char *pcHostName, TickType_t uxIdentifier)</arglist>
+    </member>
+    <member kind="function">
+      <type>_static size_t</type>
+      <name>prvSkipNameField</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a0a5a65eaad2e66f4776e42e5657d9828</anchor>
+      <arglist>(const uint8_t *pucByte, size_t uxLength)</arglist>
+    </member>
+    <member kind="function">
+      <type>_static uint32_t</type>
+      <name>prvParseDNSReply</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a8fc27b08cd9f232f256f0b31a8451bd8</anchor>
+      <arglist>(uint8_t *pucUDPPayloadBuffer, size_t uxBufferLength, BaseType_t xExpected)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static uint32_t</type>
+      <name>prvPrepareLookup</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a614dd060ab2026ff3b1ce9f107d4ea1d</anchor>
+      <arglist>(const char *pcHostName, FOnDNSEvent pCallback, void *pvSearchID, TickType_t uxTimeout)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static uint32_t</type>
+      <name>prvGetHostByName</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a51955624ad265fc7e0a54f2fcba5a526</anchor>
+      <arglist>(const char *pcHostName, TickType_t uxIdentifier, TickType_t uxReadTimeOut_ticks)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>vDNSSetCallBack</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>aec205a2c074cd4053f12742127206470</anchor>
+      <arglist>(const char *pcHostName, void *pvSearchID, FOnDNSEvent pCallbackFunction, TickType_t uxTimeout, TickType_t uxIdentifier)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>xDNSDoCallback</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>ab1c8c7ff4cc58998ddebd08e3493d3b1</anchor>
+      <arglist>(TickType_t uxIdentifier, const char *pcName, uint32_t ulIPAddress)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvReplyDNSMessage</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a5346e54c0e7d9500ff620d4093a92079</anchor>
+      <arglist>(NetworkBufferDescriptor_t *pxNetworkBuffer, BaseType_t lNetLength)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE void</type>
+      <name>prvTreatNBNS</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a2c0bc0834d9400fa4f163e87cf88a4e5</anchor>
+      <arglist>(uint8_t *pucPayload, size_t uxBufferLength, uint32_t ulIPAddress)</arglist>
+    </member>
+    <member kind="function">
+      <type>_static size_t</type>
+      <name>prvReadNameField</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a9be17b9ef1b9acb444489556f65e15c4</anchor>
+      <arglist>(const uint8_t *pucByte, size_t uxRemainingBytes, char *pcName, size_t uxDestLen)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE</type>
+      <name>ipDECL_CAST_PTR_FUNC_FOR_TYPE</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a50f1fe3a9127acf4661c35b9dad5ba7d</anchor>
+      <arglist>(DNSMessage_t)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE</type>
+      <name>ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a06c387b3a061ae83b2ba510fb414daa6</anchor>
+      <arglist>(DNSMessage_t)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE</type>
+      <name>ipDECL_CAST_PTR_FUNC_FOR_TYPE</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>adc9fb4649bb1dc3f0444924c30018aad</anchor>
+      <arglist>(DNSTail_t)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE</type>
+      <name>ipDECL_CAST_PTR_FUNC_FOR_TYPE</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a11317ec8a3156abc9d6d9b7b7b606a91</anchor>
+      <arglist>(DNSAnswerRecord_t)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE</type>
+      <name>ipDECL_CAST_PTR_FUNC_FOR_TYPE</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>acf9b85bceb8f9d6a00bf66f6407a8fe7</anchor>
+      <arglist>(LLMNRAnswer_t)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE</type>
+      <name>ipDECL_CAST_PTR_FUNC_FOR_TYPE</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>aaeed97a20d7783f062334ea3aa787ac9</anchor>
+      <arglist>(NBNSAnswer_t)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE</type>
+      <name>ipDECL_CAST_PTR_FUNC_FOR_TYPE</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a437c735abe2d2bb1925fb5905706e3be</anchor>
+      <arglist>(DNSCallback_t)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint32_t</type>
+      <name>FreeRTOS_gethostbyname</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a71b77cb5028f171304f1535f7406766f</anchor>
+      <arglist>(const char *pcHostName)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vDNSInitialise</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>ad8cd6ab9c87ad7e087c0ec09b118c9b7</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vDNSCheckCallBack</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a492ba3e0cfc6bb68ca22ec7015909cdc</anchor>
+      <arglist>(void *pvSearchID)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_gethostbyname_cancel</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>ad6746bbebd1cca52f8a6d4cafcc5bbcf</anchor>
+      <arglist>(void *pvSearchID)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint32_t</type>
+      <name>FreeRTOS_gethostbyname_a</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a585a2b637e9683132af556a2b3147ad0</anchor>
+      <arglist>(const char *pcHostName, FOnDNSEvent pCallback, void *pvSearchID, TickType_t uxTimeout)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint32_t</type>
+      <name>ulDNSHandlePacket</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>ae560e9af4e296059183eb6ddbe9458a1</anchor>
+      <arglist>(const NetworkBufferDescriptor_t *pxNetworkBuffer)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint32_t</type>
+      <name>ulNBNSHandlePacket</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a9da21a35903e781448c9d2bc89075beb</anchor>
+      <arglist>(NetworkBufferDescriptor_t *pxNetworkBuffer)</arglist>
+    </member>
+    <member kind="variable">
+      <type>const MACAddress_t</type>
+      <name>xLLMNR_MacAdress</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a446a9cc680b225064e8acf91d92fa7d8</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static List_t</type>
+      <name>xCallbackList</name>
+      <anchorfile>_free_r_t_o_s___d_n_s_8c.html</anchorfile>
+      <anchor>a407c6353786ffeed66a0b5ffef3f46e3</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="file">
+    <name>FreeRTOS_IP.c</name>
+    <path>/root/Desktop/AddDoxygen/</path>
+    <filename>_free_r_t_o_s___i_p_8c.html</filename>
+    <class kind="union">xUnion32</class>
+    <class kind="union">xUnionPtr</class>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipEXPECTED_EthernetHeader_t_SIZE</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a8ef9c6533cd9f34111f6ff1e5843507d</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipEXPECTED_ARPHeader_t_SIZE</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ac13c9f74e9fe374fa459f8df1864dc72</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipEXPECTED_IPHeader_t_SIZE</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a43457a3ba4fd6f16a4d33394af459536</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipEXPECTED_IGMPHeader_t_SIZE</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a527470135bea5ef3d75f3c1206431584</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipEXPECTED_ICMPHeader_t_SIZE</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a0dc89907d7a25a7f795f2abcd9eb6aa6</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipEXPECTED_UDPHeader_t_SIZE</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a2cc551f421556711f0924201c04c9f82</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipEXPECTED_TCPHeader_t_SIZE</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ada34cd2dcc842a6c43cd9c85acd0ebc2</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipICMP_ECHO_REQUEST</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a576713b2b5c693d521be50e120d1d106</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipICMP_ECHO_REPLY</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a20f4a6a59729b84b4f858c9e2532fa9f</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipFIRST_MULTI_CAST_IPv4</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a8d61855955d5d08f6933f84bc668d80f</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipLAST_MULTI_CAST_IPv4</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ac31c27794ca5338cda64cc9282dadfed</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipIPV4_VERSION_HEADER_LENGTH_MIN</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a599ef40bb9c6a811c74e16ae1a00fdf2</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipIPV4_VERSION_HEADER_LENGTH_MAX</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>af3e37d63f99e31d8af56e446b8ddd837</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipINITIALISATION_RETRY_DELAY</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>af982816b81c2c41e4e50643993a23085</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipARP_TIMER_PERIOD_MS</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a7e4e7fc3c3cb2528f45fbff05a95c278</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>iptraceIP_TASK_STARTING</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ac51b5f3c553cd23a5fd940017637737f</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipCONSIDER_FRAME_FOR_PROCESSING</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a615aa656020ebf93f31e4ccbd47a880d</anchor>
+      <arglist>(pucEthernetBuffer)</arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipFRAGMENT_OFFSET_BIT_MASK</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ac47f6670e30fff23d3f497bf36987eca</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipconfigMAX_IP_TASK_SLEEP_TIME</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>aba7b582c7eacfa1a6448433f019cad23</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipUNHANDLED_PROTOCOL</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>aa61c957eee4cfdb4853c29cfef224e33</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipCORRECT_CRC</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>afde58aa20087aac4f57fbe82401f39b8</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipWRONG_CRC</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ad2652c0fbddea6f0fe507d8d28e8816f</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipINVALID_LENGTH</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a21e1d2184955efc68fe033a6ffdc44f4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>DEBUG_DECLARE_TRACE_VARIABLE</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a167d6d53f49e298310e581dbdf4128de</anchor>
+      <arglist>(type, var, init)</arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>DEBUG_SET_TRACE_VARIABLE</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a9e73738efbee764aa5e89b9d6445410e</anchor>
+      <arglist>(var, value)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE</type>
+      <name>ipDECL_CAST_PTR_FUNC_FOR_TYPE</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a52fc9e0117c61a8d8e0895e01552250e</anchor>
+      <arglist>(NetworkBufferDescriptor_t)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvIPTask</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a4a02bc45b29f74e5f48bd71bca5c1b61</anchor>
+      <arglist>(void *pvParameters)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvProcessEthernetPacket</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>abbd5bae218c03d5d539d8f2fa8148a87</anchor>
+      <arglist>(NetworkBufferDescriptor_t *const pxNetworkBuffer)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static eFrameProcessingResult_t</type>
+      <name>prvProcessIPPacket</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a0ff2a58fc92561f47bdd9c45f20cf4f9</anchor>
+      <arglist>(IPPacket_t *pxIPPacket, NetworkBufferDescriptor_t *const pxNetworkBuffer)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvProcessNetworkDownEvent</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ac20b2833c8912039201c1baf2f25a8f6</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvCheckNetworkTimers</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>af5ce8d5c2384dfac1c01fd0a63d87581</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static TickType_t</type>
+      <name>prvCalculateSleepTime</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>aeb2c5b32a896922e43d1183953922815</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvHandleEthernetPacket</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a9d5b9dd29ac8f3830bc4b1531b10228a</anchor>
+      <arglist>(NetworkBufferDescriptor_t *pxBuffer)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvIPTimerStart</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a6bbcca14e07b67e72962278309dd8d07</anchor>
+      <arglist>(IPTimer_t *pxTimer, TickType_t xTime)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvIPTimerCheck</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ad2a2e3f4cbb0aee222276cfbae2b1590</anchor>
+      <arglist>(IPTimer_t *pxTimer)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvIPTimerReload</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ae25d502fab7e4af29bc9b30dffc75ccf</anchor>
+      <arglist>(IPTimer_t *pxTimer, TickType_t xTime)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static eFrameProcessingResult_t</type>
+      <name>prvAllowIPPacket</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a0a84cb5865863076c9fd79c75c442bcb</anchor>
+      <arglist>(const IPPacket_t *const pxIPPacket, const NetworkBufferDescriptor_t *const pxNetworkBuffer, UBaseType_t uxHeaderLength)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>xIsCallingFromIPTask</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a9844166e6474d5f406df1c57aa4da98f</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_NetworkDown</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>aa2c7afd343400f1ec8b01cde2f1a8f2e</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_NetworkDownFromISR</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>adb922d3358a892833f3a4383f7c9c552</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>void *</type>
+      <name>FreeRTOS_GetUDPPayloadBuffer</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>aca554a4fa9d8738e5423e3a2912bf340</anchor>
+      <arglist>(size_t uxRequestedSizeBytes, TickType_t uxBlockTimeTicks)</arglist>
+    </member>
+    <member kind="function">
+      <type>NetworkBufferDescriptor_t *</type>
+      <name>pxDuplicateNetworkBufferWithDescriptor</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ad104b025d007fc96fbc8d7192c019c2b</anchor>
+      <arglist>(const NetworkBufferDescriptor_t *const pxNetworkBuffer, size_t uxNewLength)</arglist>
+    </member>
+    <member kind="function">
+      <type>NetworkBufferDescriptor_t *</type>
+      <name>pxUDPPayloadBuffer_to_NetworkBuffer</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a75b905aeed098b75f34aa8bf80ea22d5</anchor>
+      <arglist>(const void *pvBuffer)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_ReleaseUDPPayloadBuffer</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ab9acf473a4cda3f58dde4180091464ed</anchor>
+      <arglist>(void const *pvBuffer)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_IPInit</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ae5a03616eca530b4ac3ab7d05ff4cc51</anchor>
+      <arglist>(const uint8_t ucIPAddress[ipIP_ADDRESS_LENGTH_BYTES], const uint8_t ucNetMask[ipIP_ADDRESS_LENGTH_BYTES], const uint8_t ucGatewayAddress[ipIP_ADDRESS_LENGTH_BYTES], const uint8_t ucDNSServerAddress[ipIP_ADDRESS_LENGTH_BYTES], const uint8_t ucMACAddress[ipMAC_ADDRESS_LENGTH_BYTES])</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_GetAddressConfiguration</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ad802acf10146e09bb75437c6fef04632</anchor>
+      <arglist>(uint32_t *pulIPAddress, uint32_t *pulNetMask, uint32_t *pulGatewayAddress, uint32_t *pulDNSServerAddress)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_SetAddressConfiguration</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a17cb4b8b79208cca6a95244620ec45c5</anchor>
+      <arglist>(const uint32_t *pulIPAddress, const uint32_t *pulNetMask, const uint32_t *pulGatewayAddress, const uint32_t *pulDNSServerAddress)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>xSendEventToIPTask</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a64324b01a1fc85efdb7129316e8f7737</anchor>
+      <arglist>(eIPEvent_t eEvent)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>xSendEventStructToIPTask</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a7190bc18fa344fe1fd79021a6db05f84</anchor>
+      <arglist>(const IPStackEvent_t *pxEvent, TickType_t uxTimeout)</arglist>
+    </member>
+    <member kind="function">
+      <type>eFrameProcessingResult_t</type>
+      <name>eConsiderFrameForProcessing</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ab15bee3df12f185ea7a1ba671121d19f</anchor>
+      <arglist>(const uint8_t *const pucEthernetBuffer)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vIPNetworkUpCalls</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>abd469315acbf173d5cc16168721a17fb</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>xIsIPv4Multicast</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a3c787bfa6502ecfd173ee8f6974e8628</anchor>
+      <arglist>(uint32_t ulIPAddress)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vSetMultiCastIPv4MacAddress</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>af110bcf8c7910fc9149a4a09895efcf4</anchor>
+      <arglist>(uint32_t ulIPAddress, MACAddress_t *pxMACAddress)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint16_t</type>
+      <name>usGenerateProtocolChecksum</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>aad4d89d0e834cef68e0746e0404f319d</anchor>
+      <arglist>(const uint8_t *const pucEthernetBuffer, size_t uxBufferLength, BaseType_t xOutgoingPacket)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint16_t</type>
+      <name>usGenerateChecksum</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a97162cfd5b071ccee8fec503879a3e43</anchor>
+      <arglist>(uint16_t usSum, const uint8_t *pucNextData, size_t uxByteCount)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vReturnEthernetFrame</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a5fb218e96c829c263a677428fe4d5d24</anchor>
+      <arglist>(NetworkBufferDescriptor_t *pxNetworkBuffer, BaseType_t xReleaseAfterSend)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint32_t</type>
+      <name>FreeRTOS_GetIPAddress</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>aeaf07062b415dab09f3e333134b97103</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_SetIPAddress</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a99f06ef42d1ac00f4ede5a68962a1502</anchor>
+      <arglist>(uint32_t ulIPAddress)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint32_t</type>
+      <name>FreeRTOS_GetGatewayAddress</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a6a9033775f90dafde04eaa8236ca36c7</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint32_t</type>
+      <name>FreeRTOS_GetDNSServerAddress</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a0445e00d7886a94e4b39ec47a7e96964</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint32_t</type>
+      <name>FreeRTOS_GetNetmask</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ac94f1e03ad9facdc02d68063f7ba3101</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_UpdateMACAddress</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>af4d5550342028837be656fbf35cae815</anchor>
+      <arglist>(const uint8_t ucMACAddress[ipMAC_ADDRESS_LENGTH_BYTES])</arglist>
+    </member>
+    <member kind="function">
+      <type>const uint8_t *</type>
+      <name>FreeRTOS_GetMACAddress</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a5245023fe8eda88775545c90d39c7763</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_SetNetmask</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a69b7f10a7f753fc50ea2bf7712dbcd5b</anchor>
+      <arglist>(uint32_t ulNetmask)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_SetGatewayAddress</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a3329850735ce894baeef8fbac70be579</anchor>
+      <arglist>(uint32_t ulGatewayAddress)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vIPSetDHCPTimerEnableState</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ab4f26bbec48d40bb077621b734adddc8</anchor>
+      <arglist>(BaseType_t xEnableState)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vIPReloadDHCPTimer</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a880467f5ff22e0154bf8124fa437ea8e</anchor>
+      <arglist>(uint32_t ulLeaseTime)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vIPSetDnsTimerEnableState</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a575576b2fe366f64e201c7cef093f454</anchor>
+      <arglist>(BaseType_t xEnableState)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vIPReloadDNSTimer</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ab6d1e820182a6f16577d5f36cd2e0819</anchor>
+      <arglist>(uint32_t ulCheckTime)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>xIPIsNetworkTaskReady</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a52b2222c2b48904fb90674927a2c489d</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_IsNetworkUp</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ac1f02ee6cc4e8f633ed3ddbc3d01e943</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>const char *</type>
+      <name>FreeRTOS_strerror_r</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a738b12572023fadb0e5ed3c3204a2ccb</anchor>
+      <arglist>(BaseType_t xErrnum, char *pcBuffer, size_t uxLength)</arglist>
+    </member>
+    <member kind="variable">
+      <type>QueueHandle_t</type>
+      <name>xNetworkEventQueue</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a7447ea310c26bfce949913de72f3d6f2</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usPacketIdentifier</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a292a9f76f680f80f60d785e0c7bb20f0</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>const MACAddress_t</type>
+      <name>xBroadcastMACAddress</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a4eda95e8d4e0340cd07f7fd0e9637ec4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>NetworkAddressingParameters_t</type>
+      <name>xNetworkAddressing</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>af505b2f99bf8fc1c3b4d61cd5ecd21e0</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>NetworkAddressingParameters_t</type>
+      <name>xDefaultAddressing</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ab27de5a3f6e8a7b47b696604cb837c18</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static volatile BaseType_t</type>
+      <name>xNetworkDownEventPending</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a0113c3af0709b245d34e7dec5df16119</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static TaskHandle_t</type>
+      <name>xIPTaskHandle</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>ac45764b03f1eb0385c0cd08bc62394d4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static BaseType_t</type>
+      <name>xNetworkUp</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a6831050baaf1f467735e027fb77ba98e</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static IPTimer_t</type>
+      <name>xARPTimer</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a847894eed20607f2865876d8d034d445</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static IPTimer_t</type>
+      <name>xDHCPTimer</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>af1400bc732b7f47d9e33033fcb35f907</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static IPTimer_t</type>
+      <name>xDNSTimer</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a457d35af454ec380c8e37f2c00ea8c49</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static BaseType_t</type>
+      <name>xIPTaskInitialised</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a9fdfb0a695267908cfd8d1b792efaf13</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
   <compound kind="struct">
     <name>ARPCacheRow_t</name>
     <filename>struct_a_r_p_cache_row__t.html</filename>
@@ -556,6 +1506,52 @@
       <anchorfile>structx_d_h_c_p___d_a_t_a.html</anchorfile>
       <anchor>a5dd7a3139a5d159a65c6604a44afe5fc</anchor>
       <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="struct">
+    <name>DNSCallback_t</name>
+    <filename>struct_d_n_s_callback__t.html</filename>
+    <member kind="variable">
+      <type>TickType_t</type>
+      <name>uxRemaningTime</name>
+      <anchorfile>struct_d_n_s_callback__t.html</anchorfile>
+      <anchor>add4c492671d7a66d13dbb9f766a66399</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>FOnDNSEvent</type>
+      <name>pCallbackFunction</name>
+      <anchorfile>struct_d_n_s_callback__t.html</anchorfile>
+      <anchor>ac09c7cd402a8a9fcd004a7732dc283f9</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>TimeOut_t</type>
+      <name>uxTimeoutState</name>
+      <anchorfile>struct_d_n_s_callback__t.html</anchorfile>
+      <anchor>ab9f9a9a1e2fa1680adf0bed9596b3977</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>void *</type>
+      <name>pvSearchID</name>
+      <anchorfile>struct_d_n_s_callback__t.html</anchorfile>
+      <anchor>a0645204b5bcb9458b18dd206f5e96782</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>struct xLIST_ITEM</type>
+      <name>xListItem</name>
+      <anchorfile>struct_d_n_s_callback__t.html</anchorfile>
+      <anchor>a229e8071c1bf899f6dbb900a9a546b76</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>char</type>
+      <name>pcName</name>
+      <anchorfile>struct_d_n_s_callback__t.html</anchorfile>
+      <anchor>ae287a16502741b744be1b4b5a286d67c</anchor>
+      <arglist>[1]</arglist>
     </member>
   </compound>
   <compound kind="struct">
@@ -1469,6 +2465,153 @@
       <arglist></arglist>
     </member>
     <member kind="variable">
+      <type>uint16_t</type>
+      <name>usIdentifier</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>af96f1fbbc84c6ac1c3719857392f8597</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usQuestions</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a7752f9ed2e25dd035b4f31b368de8fe0</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usAnswers</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a483bc958fc50d3b5e47ddf9a539d4344</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usAuthorityRRs</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>ae2aa9304babbd2541f1bf4dbb8c309e0</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usAdditionalRRs</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a4bb8658bff14067061b80cacf6761e11</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usType</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>afa179e4aeb32555362ee66606d2324bd</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usClass</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>adf285d61ed77b0940467158cdfaf8aa3</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint32_t</type>
+      <name>ulTTL</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a34ae47269739c65e8469f7fd09b96964</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usDataLength</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a9ffbda20e045457c9bbe403a24759404</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint8_t</type>
+      <name>ucNameCode</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a4b50a198a9df148cbde7b2c95f81843b</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint8_t</type>
+      <name>ucNameOffset</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a257301885c032e92e9542267e86469cd</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint32_t</type>
+      <name>ulIPAddress</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a7e9ec58f99b2f9e37f65003da0eda465</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usRequestId</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a07f39d1e5a960e4f38338e95fab5a090</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>ulRequestCount</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>aa3543798540fd8600ebeefed7bce7e39</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usAnswerRSS</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a643bbda4fc302ec6b950f43a9cb2aa39</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usAuthRSS</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a8583be7db5798133650c8c427c593d62</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usAdditionalRSS</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a5932152b28319245098e34ba6dbe9435</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint8_t</type>
+      <name>ucNameSpace</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a788d06e257ae1419413056158496e5b8</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint8_t</type>
+      <name>ucName</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a291119af58dc7278af21aba45c6d7c98</anchor>
+      <arglist>[dnsNBNS_ENCODED_NAME_LENGTH]</arglist>
+    </member>
+    <member kind="variable">
+      <type>uint8_t</type>
+      <name>ucNameZero</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>a1cc2f4af20d58eac892fa1d77c91e958</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint16_t</type>
+      <name>usNbFlags</name>
+      <anchorfile>structstruct.html</anchorfile>
+      <anchor>af9009784cc534974da828691cd9a7f6b</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
       <type>uint8_t</type>
       <name>ucBytes</name>
       <anchorfile>structstruct.html</anchorfile>
@@ -1648,13 +2791,6 @@
       <name>usChecksum</name>
       <anchorfile>structstruct.html</anchorfile>
       <anchor>af1e30c3a15d68c6692928407fc26d225</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>uint16_t</type>
-      <name>usIdentifier</name>
-      <anchorfile>structstruct.html</anchorfile>
-      <anchor>af96f1fbbc84c6ac1c3719857392f8597</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">

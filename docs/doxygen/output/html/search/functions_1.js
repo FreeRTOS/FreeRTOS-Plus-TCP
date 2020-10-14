@@ -1,5 +1,26 @@
 var searchData=
 [
-  ['freertos_5fcleararp_333',['FreeRTOS_ClearARP',['../_free_r_t_o_s___a_r_p_8c.html#a7ad41b60042629fc57086d4990fc6347',1,'FreeRTOS_ARP.c']]],
-  ['freertos_5foutputarprequest_334',['FreeRTOS_OutputARPRequest',['../_free_r_t_o_s___a_r_p_8c.html#a87ebc2f32c8cda6cdc24a265df2388c0',1,'FreeRTOS_ARP.c']]]
+  ['freertos_5fcleararp_490',['FreeRTOS_ClearARP',['../_free_r_t_o_s___a_r_p_8c.html#a7ad41b60042629fc57086d4990fc6347',1,'FreeRTOS_ARP.c']]],
+  ['freertos_5fgetaddressconfiguration_491',['FreeRTOS_GetAddressConfiguration',['../_free_r_t_o_s___i_p_8c.html#ad802acf10146e09bb75437c6fef04632',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fgetdnsserveraddress_492',['FreeRTOS_GetDNSServerAddress',['../_free_r_t_o_s___i_p_8c.html#a0445e00d7886a94e4b39ec47a7e96964',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fgetgatewayaddress_493',['FreeRTOS_GetGatewayAddress',['../_free_r_t_o_s___i_p_8c.html#a6a9033775f90dafde04eaa8236ca36c7',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fgethostbyname_494',['FreeRTOS_gethostbyname',['../_free_r_t_o_s___d_n_s_8c.html#a71b77cb5028f171304f1535f7406766f',1,'FreeRTOS_DNS.c']]],
+  ['freertos_5fgethostbyname_5fa_495',['FreeRTOS_gethostbyname_a',['../_free_r_t_o_s___d_n_s_8c.html#a585a2b637e9683132af556a2b3147ad0',1,'FreeRTOS_DNS.c']]],
+  ['freertos_5fgethostbyname_5fcancel_496',['FreeRTOS_gethostbyname_cancel',['../_free_r_t_o_s___d_n_s_8c.html#ad6746bbebd1cca52f8a6d4cafcc5bbcf',1,'FreeRTOS_DNS.c']]],
+  ['freertos_5fgetipaddress_497',['FreeRTOS_GetIPAddress',['../_free_r_t_o_s___i_p_8c.html#aeaf07062b415dab09f3e333134b97103',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fgetmacaddress_498',['FreeRTOS_GetMACAddress',['../_free_r_t_o_s___i_p_8c.html#a5245023fe8eda88775545c90d39c7763',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fgetnetmask_499',['FreeRTOS_GetNetmask',['../_free_r_t_o_s___i_p_8c.html#ac94f1e03ad9facdc02d68063f7ba3101',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fgetudppayloadbuffer_500',['FreeRTOS_GetUDPPayloadBuffer',['../_free_r_t_o_s___i_p_8c.html#aca554a4fa9d8738e5423e3a2912bf340',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fipinit_501',['FreeRTOS_IPInit',['../_free_r_t_o_s___i_p_8c.html#ae5a03616eca530b4ac3ab7d05ff4cc51',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fisnetworkup_502',['FreeRTOS_IsNetworkUp',['../_free_r_t_o_s___i_p_8c.html#ac1f02ee6cc4e8f633ed3ddbc3d01e943',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fnetworkdown_503',['FreeRTOS_NetworkDown',['../_free_r_t_o_s___i_p_8c.html#aa2c7afd343400f1ec8b01cde2f1a8f2e',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fnetworkdownfromisr_504',['FreeRTOS_NetworkDownFromISR',['../_free_r_t_o_s___i_p_8c.html#adb922d3358a892833f3a4383f7c9c552',1,'FreeRTOS_IP.c']]],
+  ['freertos_5foutputarprequest_505',['FreeRTOS_OutputARPRequest',['../_free_r_t_o_s___a_r_p_8c.html#a87ebc2f32c8cda6cdc24a265df2388c0',1,'FreeRTOS_ARP.c']]],
+  ['freertos_5freleaseudppayloadbuffer_506',['FreeRTOS_ReleaseUDPPayloadBuffer',['../_free_r_t_o_s___i_p_8c.html#ab9acf473a4cda3f58dde4180091464ed',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fsetaddressconfiguration_507',['FreeRTOS_SetAddressConfiguration',['../_free_r_t_o_s___i_p_8c.html#a17cb4b8b79208cca6a95244620ec45c5',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fsetgatewayaddress_508',['FreeRTOS_SetGatewayAddress',['../_free_r_t_o_s___i_p_8c.html#a3329850735ce894baeef8fbac70be579',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fsetipaddress_509',['FreeRTOS_SetIPAddress',['../_free_r_t_o_s___i_p_8c.html#a99f06ef42d1ac00f4ede5a68962a1502',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fsetnetmask_510',['FreeRTOS_SetNetmask',['../_free_r_t_o_s___i_p_8c.html#a69b7f10a7f753fc50ea2bf7712dbcd5b',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fstrerror_5fr_511',['FreeRTOS_strerror_r',['../_free_r_t_o_s___i_p_8c.html#a738b12572023fadb0e5ed3c3204a2ccb',1,'FreeRTOS_IP.c']]],
+  ['freertos_5fupdatemacaddress_512',['FreeRTOS_UpdateMACAddress',['../_free_r_t_o_s___i_p_8c.html#af4d5550342028837be656fbf35cae815',1,'FreeRTOS_IP.c']]]
 ];
