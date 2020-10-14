@@ -55,7 +55,7 @@ jobs:
           PATH=$PATH:$PWD/tools/spell
           # Make sure that the portable directory is not included in the spellcheck.
           sed -i 's/find $DIRNAME/find $DIRNAME -not -path '*portable*'/g' $PWD/tools/spell/find-unknown-comment-words
-          find-unknown-comment-words --directory ./
+          find-unknown-comment-words --directory ./ -l lexicon.txt
           if [ "$?" = "0" ]; then
             exit 0
           else
