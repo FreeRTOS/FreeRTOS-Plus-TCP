@@ -52,16 +52,15 @@ jobs:
           sudo apt-get install util-linux
       - name: Check spelling
         run: |
-          PATH=$PATH:$PWD/tools/spell
-          for lexfile in `find . -name lexicon.txt`
-          do dir=${lexfile%/lexicon.txt}
-            echo $dir
-            find-unknown-comment-words --directory .
-            if [ $? -ne "0" ]
-            then
-              exit 1
-            fi
-          done
+          PATH=$PATH:main/tools/spell
+          # Make sure that the portable directory is not included in the spellcheck.
+          sed -i 's/find $DIRNAME/find $DIRNAME -not -path '*portable*'/g' main/tools/spell/find-unknown-comment-words
+          find-unknown-comment-words --directory ./
+          if [ "$?" = "0" ]; then
+            exit 0
+          else
+            exit 1
+          fi
 
   formatting:
     runs-on: ubuntu-latest
