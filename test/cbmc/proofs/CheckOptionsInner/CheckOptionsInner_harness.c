@@ -25,8 +25,8 @@
  ****************************************************************/
 
 void prvReadSackOption( const uint8_t * const pucPtr,
-                        size_t uxIndex,
-                        FreeRTOS_Socket_t * const pxSocket );
+						size_t uxIndex,
+						FreeRTOS_Socket_t * const pxSocket );
 
 /****************************************************************
  * Proof of prvReadSackOption function contract
@@ -34,61 +34,67 @@ void prvReadSackOption( const uint8_t * const pucPtr,
 
 void harness()
 {
-    /* pucPtr points into a buffer */
-    size_t buffer_size;
-    uint8_t * pucPtr = malloc( buffer_size );
+	/* pucPtr points into a buffer */
+	size_t buffer_size;
+	uint8_t * pucPtr = malloc( buffer_size );
 
-    /* uxIndex in an index into the buffer */
-    size_t uxIndex;
+	__CPROVER_assume( pucPtr != NULL );
 
-    /* pxSocket can be any socket with some initialized values */
-    FreeRTOS_Socket_t * pxSocket = malloc( sizeof( FreeRTOS_Socket_t ) );
+	/* uxIndex in an index into the buffer */
+	size_t uxIndex;
 
-    pxSocket->u.xTCP.txStream = malloc( sizeof( StreamBuffer_t ) );
+	/* pxSocket can be any socket with some initialized values */
+	FreeRTOS_Socket_t * pxSocket = malloc( sizeof( FreeRTOS_Socket_t ) );
+	__CPROVER_assume( pxSocket != NULL );
 
-    vListInitialise( &pxSocket->u.xTCP.xTCPWindow.xWaitQueue );
+	pxSocket->u.xTCP.txStream = malloc( sizeof( StreamBuffer_t ) );
+	__CPROVER_assume( pxSocket->u.xTCP.txStream != NULL );
 
-    if( nondet_bool() )
-    {
-        TCPSegment_t * segment = malloc( sizeof( TCPSegment_t ) );
-        listSET_LIST_ITEM_OWNER( &segment->xQueueItem, ( void * ) segment );
-        vListInsertEnd( &pxSocket->u.xTCP.xTCPWindow.xWaitQueue, &segment->xQueueItem );
-    }
+	vListInitialise( &pxSocket->u.xTCP.xTCPWindow.xWaitQueue );
 
-    vListInitialise( &pxSocket->u.xTCP.xTCPWindow.xTxSegments );
+	if( nondet_bool() )
+	{
+	TCPSegment_t * segment = malloc( sizeof( TCPSegment_t ) );
+		__CPROVER_assume( segment != NULL );
+		listSET_LIST_ITEM_OWNER( &segment->xQueueItem, ( void * ) segment );
+		vListInsertEnd( &pxSocket->u.xTCP.xTCPWindow.xWaitQueue, &segment->xQueueItem );
+	}
 
-    if( nondet_bool() )
-    {
-        TCPSegment_t * segment = malloc( sizeof( TCPSegment_t ) );
-        vListInitialiseItem( &segment->xSegmentItem );
-        listSET_LIST_ITEM_OWNER( &segment->xQueueItem, ( void * ) segment );
-        vListInsertEnd( &pxSocket->u.xTCP.xTCPWindow.xTxSegments, &segment->xQueueItem );
-    }
+	vListInitialise( &pxSocket->u.xTCP.xTCPWindow.xTxSegments );
 
-    vListInitialise( &pxSocket->u.xTCP.xTCPWindow.xPriorityQueue );
+	if( nondet_bool() )
+	{
+	TCPSegment_t * segment = malloc( sizeof( TCPSegment_t ) );
+		__CPROVER_assume( segment != NULL );
+		vListInitialiseItem( &segment->xSegmentItem );
+		listSET_LIST_ITEM_OWNER( &segment->xQueueItem, ( void * ) segment );
+		vListInsertEnd( &pxSocket->u.xTCP.xTCPWindow.xTxSegments, &segment->xQueueItem );
+	}
 
-    extern List_t xSegmentList;
-    vListInitialise( &xSegmentList );
+	vListInitialise( &pxSocket->u.xTCP.xTCPWindow.xPriorityQueue );
 
-    /****************************************************************
-     * Specification and proof of CheckOptions inner loop
-     ****************************************************************/
+	extern List_t xSegmentList;
+	vListInitialise( &xSegmentList );
 
-    /* Preconditions */
+	/****************************************************************
+	 * Specification and proof of CheckOptions inner loop
+	 ****************************************************************/
 
-    /* CBMC model of pointers limits the size of the buffer */
-    __CPROVER_assume( buffer_size < CBMC_MAX_OBJECT_SIZE );
+	/* Preconditions */
 
-    /* Both preconditions are required to avoid integer overflow in the */
-    /* pointer offset of the pointer pucPtr + uxIndex + 8 */
-    __CPROVER_assume( uxIndex <= buffer_size );
-    __CPROVER_assume( uxIndex + 8 <= buffer_size );
+	/* CBMC model of pointers limits the size of the buffer */
+	__CPROVER_assume( buffer_size < CBMC_MAX_OBJECT_SIZE );
 
-    /* Assuming quite a bit more about the initialization of pxSocket */
-    __CPROVER_assume( pucPtr != NULL );
-    __CPROVER_assume( pxSocket != NULL );
+	/* Both preconditions are required to avoid integer overflow in the */
+	/* pointer offset of the pointer pucPtr + uxIndex + 8 */
+	__CPROVER_assume( uxIndex <= buffer_size );
+	__CPROVER_assume( uxIndex + 8 <= buffer_size );
 
-    prvReadSackOption( pucPtr, uxIndex, pxSocket );
+	/* Assuming quite a bit more about the initialization of pxSocket */
+	__CPROVER_assume( pucPtr != NULL );
+	__CPROVER_assume( pxSocket != NULL );
 
-    /* No postconditions required */
+	prvReadSackOption( pucPtr, uxIndex, pxSocket );
+
+	/* No postconditions required */
 }

@@ -1,6 +1,6 @@
 /*
-FreeRTOS+TCP V2.2.1
-Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+FreeRTOS+TCP V2.3.0
+Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -44,17 +44,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "NetworkInterface.h"
 
 #if ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES != 1
-	#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) eProcessBuffer
+	#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )	eProcessBuffer
 #else
-	#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
+	#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )	eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
 #endif
 
 /* When a packet is ready to be sent, if it cannot be sent immediately then the
 task performing the transmit will block for niTX_BUFFER_FREE_WAIT
 milliseconds.  It will do this a maximum of niMAX_TX_ATTEMPTS before giving
 up. */
-#define niTX_BUFFER_FREE_WAIT	( ( TickType_t ) 2UL / portTICK_PERIOD_MS )
-#define niMAX_TX_ATTEMPTS		( 5 )
+#define niTX_BUFFER_FREE_WAIT		( ( TickType_t ) 2UL / portTICK_PERIOD_MS )
+#define niMAX_TX_ATTEMPTS			( 5 )
 
 /* The length of the queue used to send interrupt status words from the
 interrupt handler to the deferred handler task. */
@@ -86,9 +86,9 @@ extern uint8_t ucMACAddress[ 6 ];
 	vInitEmac();
 
 	while( lEMACWaitForLink() != pdPASS )
-    {
-        vTaskDelay( 20 );
-    }
+	{
+		vTaskDelay( 20 );
+	}
 
 	vSemaphoreCreateBinary( xEMACRxEventSemaphore );
 	configASSERT( xEMACRxEventSemaphore );
@@ -104,7 +104,8 @@ extern uint8_t ucMACAddress[ 6 ];
 
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
-extern void vEMACCopyWrite( uint8_t * pucBuffer, uint16_t usLength );
+	extern void vEMACCopyWrite( uint8_t * pucBuffer,
+								uint16_t usLength );
 
 	vEMACCopyWrite( pxNetworkBuffer->pucBuffer, pxNetworkBuffer->xDataLength );
 
@@ -114,5 +115,3 @@ extern void vEMACCopyWrite( uint8_t * pucBuffer, uint16_t usLength );
 	return pdTRUE;
 }
 /*-----------------------------------------------------------*/
-
-

@@ -1,6 +1,6 @@
 /*
  * FreeRTOS memory safety proofs with CBMC.
- * Copyright (C) 2019 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,9 +36,10 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-// The harness test proceeds to call SendEventToIPTask with an unconstrained value
+/* The harness test proceeds to call SendEventToIPTask with an unconstrained value */
 void harness()
 {
-  eIPEvent_t eEvent;
-  xSendEventToIPTask( eEvent );
+eIPEvent_t eEvent;
+
+	xSendEventToIPTask( eEvent );
 }

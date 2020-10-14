@@ -1,6 +1,6 @@
 /*
-FreeRTOS+TCP V2.2.1
-Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+FreeRTOS+TCP V2.3.0
+Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -48,7 +48,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* For an Ethernet interrupt to be able to obtain a network buffer there must
 be at least this number of buffers available. */
-#define baINTERRUPT_BUFFER_GET_THRESHOLD	( 3 )
+#define baINTERRUPT_BUFFER_GET_THRESHOLD    ( 3 )
 
 /* A list of free (available) NetworkBufferDescriptor_t structures. */
 static List_t xFreeBuffersList;
@@ -71,7 +71,7 @@ const BaseType_t xBufferAllocFixedSize = pdTRUE;
 /* The semaphore used to obtain network buffers. */
 static SemaphoreHandle_t xNetworkBufferSemaphore = NULL;
 
-#if( ipconfigTCP_IP_SANITY != 0 )
+#if ( ipconfigTCP_IP_SANITY != 0 )
 	static char cIsLow = pdFALSE;
 	UBaseType_t bIsValidNetworkDescriptor( const NetworkBufferDescriptor_t * pxDesc );
 #else
@@ -86,46 +86,46 @@ are not defined then default them to call the normal enter/exit critical
 section macros. */
 #if !defined( ipconfigBUFFER_ALLOC_LOCK )
 
-	#define ipconfigBUFFER_ALLOC_INIT( ) do {} while ( ipFALSE_BOOL )
-	#define ipconfigBUFFER_ALLOC_LOCK_FROM_ISR()		\
-		UBaseType_t uxSavedInterruptStatus = ( UBaseType_t ) portSET_INTERRUPT_MASK_FROM_ISR(); \
-		{
+	#define ipconfigBUFFER_ALLOC_INIT()    do {} while( ipFALSE_BOOL )
+	#define ipconfigBUFFER_ALLOC_LOCK_FROM_ISR()											\
+	UBaseType_t uxSavedInterruptStatus = ( UBaseType_t ) portSET_INTERRUPT_MASK_FROM_ISR();	\
+	{
+	#define ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR()				 \
+	portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus ); \
+	}
 
-	#define ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR()		\
-			portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus ); \
-		}
-
-	#define ipconfigBUFFER_ALLOC_LOCK()					taskENTER_CRITICAL()
-	#define ipconfigBUFFER_ALLOC_UNLOCK()				taskEXIT_CRITICAL()
+	#define ipconfigBUFFER_ALLOC_LOCK()		 taskENTER_CRITICAL()
+	#define ipconfigBUFFER_ALLOC_UNLOCK()	 taskEXIT_CRITICAL()
 
 #endif /* ipconfigBUFFER_ALLOC_LOCK */
 
 /*-----------------------------------------------------------*/
 
-#if( ipconfigTCP_IP_SANITY != 0 )
+#if ( ipconfigTCP_IP_SANITY != 0 )
 
 	/* HT: SANITY code will be removed as soon as the library is stable
-	 * and and ready to become public
-	 * Function below gives information about the use of buffers */
-	#define WARN_LOW		( 2 )
-	#define WARN_HIGH		( ( 5 * ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ) / 10 )
+	* and and ready to become public
+	* Function below gives information about the use of buffers */
+	#define WARN_LOW	 ( 2 )
+	#define WARN_HIGH	 ( ( 5 * ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ) / 10 )
 
 #endif /* ipconfigTCP_IP_SANITY */
 
 /*-----------------------------------------------------------*/
 
-#if( ipconfigTCP_IP_SANITY != 0 )
+#if ( ipconfigTCP_IP_SANITY != 0 )
 
 	BaseType_t prvIsFreeBuffer( const NetworkBufferDescriptor_t *pxDescr )
 	{
 		return ( bIsValidNetworkDescriptor( pxDescr ) != 0 ) &&
-			( listIS_CONTAINED_WITHIN( &xFreeBuffersList, &( pxDescr->xBufferListItem ) ) != 0 );
+			   ( listIS_CONTAINED_WITHIN( &xFreeBuffersList, &( pxDescr->xBufferListItem ) ) != 0 );
 	}
 	/*-----------------------------------------------------------*/
 
 	static void prvShowWarnings( void )
 	{
-		UBaseType_t uxCount = uxGetNumberOfFreeNetworkBuffers( );
+	UBaseType_t uxCount = uxGetNumberOfFreeNetworkBuffers();
+
 		if( ( ( cIsLow == 0 ) && ( uxCount <= WARN_LOW ) ) || ( ( cIsLow != 0 ) && ( uxCount >= WARN_HIGH ) ) )
 		{
 			cIsLow = !cIsLow;
@@ -136,16 +136,20 @@ section macros. */
 
 	UBaseType_t bIsValidNetworkDescriptor( const NetworkBufferDescriptor_t * pxDesc )
 	{
-		uint32_t offset = ( uint32_t ) ( ((const char *)pxDesc) - ((const char *)xNetworkBuffers) );
+	uint32_t offset = ( uint32_t ) ( ( ( const char * ) pxDesc ) - ( ( const char * ) xNetworkBuffers ) );
+
 		if( ( offset >= sizeof( xNetworkBuffers ) ) ||
-			( ( offset % sizeof( xNetworkBuffers[0] ) ) != 0 ) )
+			( ( offset % sizeof( xNetworkBuffers[ 0 ] ) ) != 0 ) )
+		{
 			return pdFALSE;
-		return (UBaseType_t) (pxDesc - xNetworkBuffers) + 1;
+		}
+
+		return ( UBaseType_t ) ( pxDesc - xNetworkBuffers ) + 1;
 	}
 	/*-----------------------------------------------------------*/
 
-#else
-	static UBaseType_t bIsValidNetworkDescriptor (const NetworkBufferDescriptor_t * pxDesc)
+#else /* if ( ipconfigTCP_IP_SANITY != 0 ) */
+	static UBaseType_t bIsValidNetworkDescriptor( const NetworkBufferDescriptor_t * pxDesc )
 	{
 		( void ) pxDesc;
 		return ( UBaseType_t ) pdTRUE;
@@ -161,7 +165,8 @@ section macros. */
 
 BaseType_t xNetworkBuffersInitialise( void )
 {
-BaseType_t xReturn, x;
+BaseType_t xReturn;
+uint32_t x;
 
 	/* Only initialise the buffers and their associated kernel objects if they
 	have not been initialised before. */
@@ -182,7 +187,8 @@ BaseType_t xReturn, x;
 			from the network interface, and different hardware has different
 			requirements. */
 			vNetworkInterfaceAllocateRAMToBuffers( xNetworkBuffers );
-			for( x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
+
+			for( x = 0U; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
 			{
 				/* Initialise and set the owner of the buffer list items. */
 				vListInitialiseItem( &( xNetworkBuffers[ x ].xBufferListItem ) );
@@ -209,7 +215,8 @@ BaseType_t xReturn, x;
 }
 /*-----------------------------------------------------------*/
 
-NetworkBufferDescriptor_t *pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes, TickType_t xBlockTimeTicks )
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
+															  TickType_t xBlockTimeTicks )
 {
 NetworkBufferDescriptor_t *pxReturn = NULL;
 BaseType_t xInvalid = pdFALSE;
@@ -247,11 +254,12 @@ UBaseType_t uxCount;
 			{
 				/* _RB_ Can printf() be called from an interrupt?  (comment
 				above says this can be called from an interrupt too) */
+
 				/* _HT_ The function shall not be called from an ISR. Comment
 				was indeed misleading. Hopefully clear now?
 				So the printf()is OK here. */
 				FreeRTOS_debug_printf( ( "pxGetNetworkBufferWithDescriptor: INVALID BUFFER: %p (valid %lu)\n",
-					pxReturn, bIsValidNetworkDescriptor( pxReturn ) ) );
+										 pxReturn, bIsValidNetworkDescriptor( pxReturn ) ) );
 				pxReturn = NULL;
 			}
 			else
@@ -268,19 +276,20 @@ UBaseType_t uxCount;
 
 				pxReturn->xDataLength = xRequestedSizeBytes;
 
-				#if( ipconfigTCP_IP_SANITY != 0 )
+				#if ( ipconfigTCP_IP_SANITY != 0 )
 				{
 					prvShowWarnings();
 				}
 				#endif /* ipconfigTCP_IP_SANITY */
 
-				#if( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+				#if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
 				{
 					/* make sure the buffer is not linked */
 					pxReturn->pxNextBuffer = NULL;
 				}
 				#endif /* ipconfigUSE_LINKED_RX_MESSAGES */
 			}
+
 			iptraceNETWORK_BUFFER_OBTAINED( pxReturn );
 		}
 		else
@@ -294,7 +303,7 @@ UBaseType_t uxCount;
 }
 /*-----------------------------------------------------------*/
 
-NetworkBufferDescriptor_t *pxNetworkBufferGetFromISR( size_t xRequestedSizeBytes )
+NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t xRequestedSizeBytes )
 {
 NetworkBufferDescriptor_t *pxReturn = NULL;
 
@@ -379,13 +388,14 @@ BaseType_t xListItemAlreadyInFreeList;
 		if( xListItemAlreadyInFreeList )
 		{
 			FreeRTOS_debug_printf( ( "vReleaseNetworkBufferAndDescriptor: %p ALREADY RELEASED (now %lu)\n",
-				pxNetworkBuffer, uxGetNumberOfFreeNetworkBuffers( ) ) );
+									 pxNetworkBuffer, uxGetNumberOfFreeNetworkBuffers() ) );
 		}
 		else
 		{
 			( void ) xSemaphoreGive( xNetworkBufferSemaphore );
 			prvShowWarnings();
 		}
+
 		iptraceNETWORK_BUFFER_RELEASED( pxNetworkBuffer );
 	}
 }
@@ -402,7 +412,8 @@ UBaseType_t uxGetNumberOfFreeNetworkBuffers( void )
 	return listCURRENT_LIST_LENGTH( &xFreeBuffersList );
 }
 
-NetworkBufferDescriptor_t *pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer, size_t xNewSizeBytes )
+NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
+																 size_t xNewSizeBytes )
 {
 	/* In BufferAllocation_1.c all network buffer are allocated with a
 	maximum size of 'ipTOTAL_ETHERNET_FRAME_SIZE'.No need to resize the

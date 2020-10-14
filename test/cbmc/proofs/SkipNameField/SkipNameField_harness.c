@@ -24,31 +24,31 @@
  * Signature of function under test
  ****************************************************************/
 
-size_t prvSkipNameField( const uint8_t *pucByte, size_t uxLength );
+size_t prvSkipNameField( const uint8_t *pucByte,
+						 size_t uxLength );
 
 /****************************************************************
  * Proof of prvSkipNameField function contract
  ****************************************************************/
 
-void harness() {
+void harness()
+{
+	__CPROVER_assert( NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE,
+					  "NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE" );
 
-  __CPROVER_assert(NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE,
-		   "NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE");
+	size_t uxLength;
+	uint8_t *pucByte = malloc( uxLength );
 
-  size_t uxLength;
-  uint8_t *pucByte = malloc( uxLength );
+	/* Preconditions */
 
-  /* Preconditions */
+	__CPROVER_assume( uxLength < CBMC_MAX_OBJECT_SIZE );
+	__CPROVER_assume( uxLength <= NETWORK_BUFFER_SIZE );
+	__CPROVER_assume( pucByte != NULL );
 
-  __CPROVER_assume(uxLength < CBMC_MAX_OBJECT_SIZE);
-  __CPROVER_assume(uxLength <= NETWORK_BUFFER_SIZE);
-  __CPROVER_assume(pucByte != NULL);
+	size_t index = prvSkipNameField( pucByte, uxLength );
 
-  size_t index = prvSkipNameField( pucByte, uxLength );
+	/* Postconditions */
 
-  /* Postconditions */
-
-  __CPROVER_assert(index <= uxLength,
-		   "prvSkipNameField: index <= uxLength");
-
+	__CPROVER_assert( index <= uxLength,
+					  "prvSkipNameField: index <= uxLength" );
 }

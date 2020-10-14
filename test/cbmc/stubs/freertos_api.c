@@ -34,11 +34,19 @@
  ****************************************************************/
 
 Socket_t FreeRTOS_socket( BaseType_t xDomain,
-                          BaseType_t xType,
-                          BaseType_t xProtocol )
+						  BaseType_t xType,
+						  BaseType_t xProtocol )
 {
-    return nondet_bool() ?
-           FREERTOS_INVALID_SOCKET : malloc( sizeof( Socket_t ) );
+	if( nondet_bool() )
+	{
+		return FREERTOS_INVALID_SOCKET;
+	}
+	else
+	{
+	void *ptr = malloc( sizeof( Socket_t ) );
+		__CPROVER_assume( ptr != NULL );
+		return ptr;
+	}
 }
 
 /****************************************************************
@@ -47,16 +55,16 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  ****************************************************************/
 
 BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
-                                int32_t lLevel,
-                                int32_t lOptionName,
-                                const void * pvOptionValue,
-                                size_t uxOptionLength )
+								int32_t lLevel,
+								int32_t lOptionName,
+								const void * pvOptionValue,
+								size_t uxOptionLength )
 {
-    __CPROVER_assert( xSocket != NULL,
-                      "FreeRTOS precondition: xSocket != NULL" );
-    __CPROVER_assert( pvOptionValue != NULL,
-                      "FreeRTOS precondition: pvOptionValue != NULL" );
-    return nondet_BaseType();
+	__CPROVER_assert( xSocket != NULL,
+					  "FreeRTOS precondition: xSocket != NULL" );
+	__CPROVER_assert( pvOptionValue != NULL,
+					  "FreeRTOS precondition: pvOptionValue != NULL" );
+	return nondet_BaseType();
 }
 
 /****************************************************************
@@ -66,9 +74,9 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
 BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
 {
-    __CPROVER_assert( xSocket != NULL,
-                      "FreeRTOS precondition: xSocket != NULL" );
-    return nondet_BaseType();
+	__CPROVER_assert( xSocket != NULL,
+					  "FreeRTOS precondition: xSocket != NULL" );
+	return nondet_BaseType();
 }
 
 /****************************************************************
@@ -77,14 +85,14 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
  ****************************************************************/
 
 BaseType_t FreeRTOS_bind( Socket_t xSocket,
-                          struct freertos_sockaddr * pxAddress,
-                          socklen_t xAddressLength )
+						  struct freertos_sockaddr * pxAddress,
+						  socklen_t xAddressLength )
 {
-    __CPROVER_assert( xSocket != NULL,
-                      "FreeRTOS precondition: xSocket != NULL" );
-    __CPROVER_assert( pxAddress != NULL,
-                      "FreeRTOS precondition: pxAddress != NULL" );
-    return nondet_BaseType();
+	__CPROVER_assert( xSocket != NULL,
+					  "FreeRTOS precondition: xSocket != NULL" );
+	__CPROVER_assert( pxAddress != NULL,
+					  "FreeRTOS precondition: pxAddress != NULL" );
+	return nondet_BaseType();
 }
 
 /****************************************************************
@@ -94,9 +102,9 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
 
 uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
 {
-    __CPROVER_assert( pcIPAddress != NULL,
-                      "FreeRTOS precondition: pcIPAddress != NULL" );
-    return nondet_uint32();
+	__CPROVER_assert( pcIPAddress != NULL,
+					  "FreeRTOS precondition: pcIPAddress != NULL" );
+	return nondet_uint32();
 }
 
 /****************************************************************
@@ -109,67 +117,68 @@ uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
  ****************************************************************/
 
 int32_t FreeRTOS_recvfrom( Socket_t xSocket,
-                           void * pvBuffer,
-                           size_t uxBufferLength,
-                           BaseType_t xFlags,
-                           struct freertos_sockaddr * pxSourceAddress,
-                           socklen_t * pxSourceAddressLength )
+						   void * pvBuffer,
+						   size_t uxBufferLength,
+						   BaseType_t xFlags,
+						   struct freertos_sockaddr * pxSourceAddress,
+						   socklen_t * pxSourceAddressLength )
 
 {
-    /****************************************************************
-     * "If the zero copy calling semantics are used (the ulFlasg
-     * parameter does not have the FREERTOS_ZERO_COPY bit set) then
-     * pvBuffer does not point to a buffer and xBufferLength is not
-     * used."  This is from the documentation.
-     ****************************************************************/
-    __CPROVER_assert( xFlags & FREERTOS_ZERO_COPY, "I can only do ZERO_COPY" );
+	/****************************************************************
+	 * "If the zero copy calling semantics are used (the ulFlasg
+	 * parameter does not have the FREERTOS_ZERO_COPY bit set) then
+	 * pvBuffer does not point to a buffer and xBufferLength is not
+	 * used."  This is from the documentation.
+	 ****************************************************************/
+	__CPROVER_assert( xFlags & FREERTOS_ZERO_COPY, "I can only do ZERO_COPY" );
 
-    __CPROVER_assert( pvBuffer != NULL,
-                      "FreeRTOS precondition: pvBuffer != NULL" );
+	__CPROVER_assert( pvBuffer != NULL,
+					  "FreeRTOS precondition: pvBuffer != NULL" );
 
-    /****************************************************************
-     * TODO: We need to check this out.
-     *
-     * The code calls recvfrom with these parameters NULL, it is not
-     * clear from the documentation that this is allowed.
-     ****************************************************************/
-    #if 0
-        __CPROVER_assert( pxSourceAddress != NULL,
-                          "FreeRTOS precondition: pxSourceAddress != NULL" );
-        __CPROVER_assert( pxSourceAddressLength != NULL,
-                          "FreeRTOS precondition: pxSourceAddress != NULL" );
-    #endif
+	/****************************************************************
+	 * TODO: We need to check this out.
+	 *
+	 * The code calls recvfrom with these parameters NULL, it is not
+	 * clear from the documentation that this is allowed.
+	 ****************************************************************/
+	#if 0
+		__CPROVER_assert( pxSourceAddress != NULL,
+						  "FreeRTOS precondition: pxSourceAddress != NULL" );
+		__CPROVER_assert( pxSourceAddressLength != NULL,
+						  "FreeRTOS precondition: pxSourceAddress != NULL" );
+	#endif
 
-    size_t payload_size;
-    __CPROVER_assume( payload_size + sizeof( UDPPacket_t )
-		      < CBMC_MAX_OBJECT_SIZE );
+	size_t payload_size;
+	__CPROVER_assume( payload_size + sizeof( UDPPacket_t )
+					  < CBMC_MAX_OBJECT_SIZE );
 
-    /****************************************************************
-     * TODO: We need to make this lower bound explicit in the Makefile.json
-     *
-     * DNSMessage_t is a typedef in FreeRTOS_DNS.c
-     * sizeof(DNSMessage_t) = 6 * sizeof(uint16_t)
-     ****************************************************************/
-    __CPROVER_assume( payload_size >= 6 * sizeof( uint16_t ) );
+	/****************************************************************
+	 * TODO: We need to make this lower bound explicit in the Makefile.json
+	 *
+	 * DNSMessage_t is a typedef in FreeRTOS_DNS.c
+	 * sizeof(DNSMessage_t) = 6 * sizeof(uint16_t)
+	 ****************************************************************/
+	__CPROVER_assume( payload_size >= 6 * sizeof( uint16_t ) );
 
-    #ifdef CBMC_FREERTOS_RECVFROM_BUFFER_BOUND
-        __CPROVER_assume( payload_size <= CBMC_FREERTOS_RECVFROM_BUFFER_BOUND );
-    #endif
+	#ifdef CBMC_FREERTOS_RECVFROM_BUFFER_BOUND
+		__CPROVER_assume( payload_size <= CBMC_FREERTOS_RECVFROM_BUFFER_BOUND );
+	#endif
 
-    uint32_t buffer_size = payload_size + sizeof( UDPPacket_t );
-    uint8_t *buffer = safeMalloc( buffer_size );
-	
-    if ( buffer == NULL ) {
-      buffer_size = 0;
-    }
-    else
-    {
-      buffer = buffer + sizeof( UDPPacket_t );
-      buffer_size = buffer_size - sizeof( UDPPacket_t );
-    }
-    
-    *( ( uint8_t ** ) pvBuffer ) = buffer;
-    return buffer_size;
+	uint32_t buffer_size = payload_size + sizeof( UDPPacket_t );
+	uint8_t *buffer = safeMalloc( buffer_size );
+
+	if( buffer == NULL )
+	{
+		buffer_size = 0;
+	}
+	else
+	{
+		buffer = buffer + sizeof( UDPPacket_t );
+		buffer_size = buffer_size - sizeof( UDPPacket_t );
+	}
+
+	*( ( uint8_t ** ) pvBuffer ) = buffer;
+	return buffer_size;
 }
 
 /****************************************************************
@@ -178,19 +187,19 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
  ****************************************************************/
 
 int32_t FreeRTOS_sendto( Socket_t xSocket,
-                         const void * pvBuffer,
-                         size_t uxTotalDataLength,
-                         BaseType_t xFlags,
-                         const struct freertos_sockaddr * pxDestinationAddress,
-                         socklen_t xDestinationAddressLength )
+						 const void * pvBuffer,
+						 size_t uxTotalDataLength,
+						 BaseType_t xFlags,
+						 const struct freertos_sockaddr * pxDestinationAddress,
+						 socklen_t xDestinationAddressLength )
 {
-    __CPROVER_assert( xSocket != NULL,
-                      "FreeRTOS precondition: xSocket != NULL" );
-    __CPROVER_assert( pvBuffer != NULL,
-                      "FreeRTOS precondition: pvBuffer != NULL" );
-    __CPROVER_assert( pxDestinationAddress != NULL,
-                      "FreeRTOS precondition: pxDestinationAddress != NULL" );
-    return nondet_int32();
+	__CPROVER_assert( xSocket != NULL,
+					  "FreeRTOS precondition: xSocket != NULL" );
+	__CPROVER_assert( pvBuffer != NULL,
+					  "FreeRTOS precondition: pvBuffer != NULL" );
+	__CPROVER_assert( pxDestinationAddress != NULL,
+					  "FreeRTOS precondition: pxDestinationAddress != NULL" );
+	return nondet_int32();
 }
 
 /****************************************************************
@@ -203,15 +212,15 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
  ****************************************************************/
 
 void * FreeRTOS_GetUDPPayloadBuffer( size_t xRequestedSizeBytes,
-                                     TickType_t xBlockTimeTicks )
+									 TickType_t xBlockTimeTicks )
 {
-    size_t size;
+size_t size;
 
-    __CPROVER_assume( size < CBMC_MAX_OBJECT_SIZE );
-    __CPROVER_assume( size >= sizeof( UDPPacket_t ) );
+	__CPROVER_assume( size < CBMC_MAX_OBJECT_SIZE );
+	__CPROVER_assume( size >= sizeof( UDPPacket_t ) );
 
-    uint8_t *buffer = safeMalloc( size );
-    return buffer == NULL ? buffer : buffer + sizeof( UDPPacket_t );
+	uint8_t *buffer = safeMalloc( size );
+	return buffer == NULL ? buffer : buffer + sizeof( UDPPacket_t );
 }
 
 /****************************************************************
@@ -221,13 +230,13 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t xRequestedSizeBytes,
 
 void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
 {
-    __CPROVER_assert( pvBuffer != NULL,
-                      "FreeRTOS precondition: pvBuffer != NULL" );
-    __CPROVER_assert( __CPROVER_POINTER_OFFSET( pvBuffer )
-		      == sizeof( UDPPacket_t ),
-                      "FreeRTOS precondition: pvBuffer offset" );
+	__CPROVER_assert( pvBuffer != NULL,
+					  "FreeRTOS precondition: pvBuffer != NULL" );
+	__CPROVER_assert( __CPROVER_POINTER_OFFSET( pvBuffer )
+					  == sizeof( UDPPacket_t ),
+					  "FreeRTOS precondition: pvBuffer offset" );
 
-    free( pvBuffer - sizeof( UDPPacket_t ) );
+	free( pvBuffer - sizeof( UDPPacket_t ) );
 }
 
 /****************************************************************
@@ -240,65 +249,66 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
 uint32_t GetNetworkBuffer_failure_count;
 
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
-                                                              TickType_t xBlockTimeTicks )
+															  TickType_t xBlockTimeTicks )
 {
-    __CPROVER_assert(
-        xRequestedSizeBytes + ipBUFFER_PADDING < CBMC_MAX_OBJECT_SIZE,
-        "pxGetNetworkBufferWithDescriptor: request too big" );
+	__CPROVER_assert(
+		xRequestedSizeBytes + ipBUFFER_PADDING < CBMC_MAX_OBJECT_SIZE,
+		"pxGetNetworkBufferWithDescriptor: request too big" );
 
-    /*
-      * The semantics of this function is to wait until a buffer with
-      * at least the requested number of bytes becomes available.  If a
-      * timeout occurs before the buffer is available, then return a
-      * NULL pointer.
-      */
+	/*
+	  * The semantics of this function is to wait until a buffer with
+	  * at least the requested number of bytes becomes available.  If a
+	  * timeout occurs before the buffer is available, then return a
+	  * NULL pointer.
+	  */
 
-    NetworkBufferDescriptor_t * desc = safeMalloc( sizeof( *desc ) );
+	NetworkBufferDescriptor_t * desc = safeMalloc( sizeof( *desc ) );
 
-    #ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
-        /*
-          * This interprets the failure bound as being one greater than the
-          * actual number of times GetNetworkBuffer should be allowed to
-          * fail.
-          *
-          * This makes it possible to use the same bound for loop unrolling
-          * which must be one greater than the actual number of times the
-          * loop should be unwound.
-          *
-          * NOTE: Using this bound with --nondet-static requires setting
-          * (or assuming) GetNetworkBuffer_failure_count to a value (like 0)
-          * in the proof harness that won't induce an integer overflow.
-          */
-        GetNetworkBuffer_failure_count++;
-        __CPROVER_assume(
-	    IMPLIES(
-	        GetNetworkBuffer_failure_count >= CBMC_GETNETWORKBUFFER_FAILURE_BOUND,
-		desc != NULL ) );
-    #endif
+	#ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
 
-    if( desc != NULL )
-    {
-        /*
-          * We may want to experiment with allocating space other than
-          * (more than) the exact amount of space requested.
-          */
+		/*
+		  * This interprets the failure bound as being one greater than the
+		  * actual number of times GetNetworkBuffer should be allowed to
+		  * fail.
+		  *
+		  * This makes it possible to use the same bound for loop unrolling
+		  * which must be one greater than the actual number of times the
+		  * loop should be unwound.
+		  *
+		  * NOTE: Using this bound with --nondet-static requires setting
+		  * (or assuming) GetNetworkBuffer_failure_count to a value (like 0)
+		  * in the proof harness that won't induce an integer overflow.
+		  */
+		GetNetworkBuffer_failure_count++;
+		__CPROVER_assume(
+			IMPLIES(
+				GetNetworkBuffer_failure_count >= CBMC_GETNETWORKBUFFER_FAILURE_BOUND,
+				desc != NULL ) );
+	#endif
 
-        size_t size = xRequestedSizeBytes;
-        __CPROVER_assume( size < CBMC_MAX_OBJECT_SIZE );
+	if( desc != NULL )
+	{
+		/*
+		  * We may want to experiment with allocating space other than
+		  * (more than) the exact amount of space requested.
+		  */
 
-        desc->pucEthernetBuffer = safeMalloc( size );
-        desc->xDataLength = desc->pucEthernetBuffer == NULL ? 0 : size;
+		size_t size = xRequestedSizeBytes;
+		__CPROVER_assume( size < CBMC_MAX_OBJECT_SIZE );
 
-        #ifdef CBMC_REQUIRE_NETWORKBUFFER_ETHERNETBUFFER_NONNULL
-            /* This may be implied by the semantics of the function. */
-            __CPROVER_assume( desc->pucEthernetBuffer != NULL );
-        #endif
+		desc->pucEthernetBuffer = safeMalloc( size );
+		desc->xDataLength = desc->pucEthernetBuffer == NULL ? 0 : size;
 
-	/* Allow method to fail again next time */
-	GetNetworkBuffer_failure_count = 0;
-    }
+		#ifdef CBMC_REQUIRE_NETWORKBUFFER_ETHERNETBUFFER_NONNULL
+			/* This may be implied by the semantics of the function. */
+			__CPROVER_assume( desc->pucEthernetBuffer != NULL );
+		#endif
 
-    return desc;
+		/* Allow method to fail again next time */
+		GetNetworkBuffer_failure_count = 0;
+	}
+
+	return desc;
 }
 
 /****************************************************************
@@ -308,15 +318,15 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
 void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
-    __CPROVER_assert( pxNetworkBuffer != NULL,
-                      "Precondition: pxNetworkBuffer != NULL" );
+	__CPROVER_assert( pxNetworkBuffer != NULL,
+					  "Precondition: pxNetworkBuffer != NULL" );
 
-    if( pxNetworkBuffer->pucEthernetBuffer != NULL )
-    {
-        free( pxNetworkBuffer->pucEthernetBuffer );
-    }
+	if( pxNetworkBuffer->pucEthernetBuffer != NULL )
+	{
+		free( pxNetworkBuffer->pucEthernetBuffer );
+	}
 
-    free( pxNetworkBuffer );
+	free( pxNetworkBuffer );
 }
 
 /****************************************************************
@@ -325,29 +335,29 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
  ****************************************************************/
 
 void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
-                                       uint32_t * pulNetMask,
-                                       uint32_t * pulGatewayAddress,
-                                       uint32_t * pulDNSServerAddress )
+									   uint32_t * pulNetMask,
+									   uint32_t * pulGatewayAddress,
+									   uint32_t * pulDNSServerAddress )
 {
-    if( pulIPAddress != NULL )
-    {
-        *pulIPAddress = nondet_unint32();
-    }
+	if( pulIPAddress != NULL )
+	{
+		*pulIPAddress = nondet_unint32();
+	}
 
-    if( pulNetMask != NULL )
-    {
-        *pulNetMask = nondet_unint32();
-    }
+	if( pulNetMask != NULL )
+	{
+		*pulNetMask = nondet_unint32();
+	}
 
-    if( pulGatewayAddress != NULL )
-    {
-        *pulGatewayAddress = nondet_unint32();
-    }
+	if( pulGatewayAddress != NULL )
+	{
+		*pulGatewayAddress = nondet_unint32();
+	}
 
-    if( pulDNSServerAddress != NULL )
-    {
-        *pulDNSServerAddress = nondet_unint32();
-    }
+	if( pulDNSServerAddress != NULL )
+	{
+		*pulDNSServerAddress = nondet_unint32();
+	}
 }
 
 /****************************************************************/
@@ -373,7 +383,7 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 
 const char * pcApplicationHostnameHook( void )
 {
-    return "hostname";
+	return "hostname";
 }
 
 /****************************************************************/
@@ -383,14 +393,15 @@ const char * pcApplicationHostnameHook( void )
  * Abstract xNetworkInterfaceOutput
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Porting.html#xNetworkInterfaceOutput
  ****************************************************************/
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer, BaseType_t bReleaseAfterSend )
+BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+									BaseType_t bReleaseAfterSend )
 {
-        __CPROVER_assert( pxNetworkBuffer != NULL, "The networkbuffer cannot be NULL" );
+	__CPROVER_assert( pxNetworkBuffer != NULL, "The networkbuffer cannot be NULL" );
 
 	BaseType_t xReturn;
 
-        /* Return some random value. */
-        return xReturn;
+	/* Return some random value. */
+	return xReturn;
 }
 
 /****************************************************************/

@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.2.1
- * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.0
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -44,7 +44,10 @@
  * will be used when TCP data is received while earlier data is still missing.
  * If 'pucData' equals NULL, the function is called to advance 'uxHead' only.
  */
-size_t uxStreamBufferAdd( StreamBuffer_t *pxBuffer, size_t uxOffset, const uint8_t *pucData, size_t uxByteCount )
+size_t uxStreamBufferAdd( StreamBuffer_t *pxBuffer,
+						  size_t uxOffset,
+						  const uint8_t *pucData,
+						  size_t uxByteCount )
 {
 size_t uxSpace, uxNextHead, uxFirst;
 size_t uxCount = uxByteCount;
@@ -73,6 +76,7 @@ size_t uxCount = uxByteCount;
 		{
 			/* ( uxOffset > 0 ) means: write in front if the uxHead marker */
 			uxNextHead += uxOffset;
+
 			if( uxNextHead >= pxBuffer->LENGTH )
 			{
 				uxNextHead -= pxBuffer->LENGTH;
@@ -103,10 +107,12 @@ size_t uxCount = uxByteCount;
 		{
 			/* ( uxOffset == 0 ) means: write at uxHead position */
 			uxNextHead += uxCount;
+
 			if( uxNextHead >= pxBuffer->LENGTH )
 			{
 				uxNextHead -= pxBuffer->LENGTH;
 			}
+
 			pxBuffer->uxHead = uxNextHead;
 		}
 
@@ -128,7 +134,11 @@ size_t uxCount = uxByteCount;
  * if 'xPeek' is pdTRUE, or if 'uxOffset' is non-zero, the 'lTail' pointer will
  * not be advanced.
  */
-size_t uxStreamBufferGet( StreamBuffer_t *pxBuffer, size_t uxOffset, uint8_t *pucData, size_t uxMaxCount, BaseType_t xPeek )
+size_t uxStreamBufferGet( StreamBuffer_t *pxBuffer,
+						  size_t uxOffset,
+						  uint8_t *pucData,
+						  size_t uxMaxCount,
+						  BaseType_t xPeek )
 {
 size_t uxSize, uxCount, uxFirst, uxNextTail;
 
@@ -154,6 +164,7 @@ size_t uxSize, uxCount, uxFirst, uxNextTail;
 		if( uxOffset != 0U )
 		{
 			uxNextTail += uxOffset;
+
 			if( uxNextTail >= pxBuffer->LENGTH )
 			{
 				uxNextTail -= pxBuffer->LENGTH;
@@ -182,7 +193,7 @@ size_t uxSize, uxCount, uxFirst, uxNextTail;
 
 		if( ( xPeek == pdFALSE ) && ( uxOffset == 0UL ) )
 		{
-			/* Move the tail pointer to effecively remove the data read from
+			/* Move the tail pointer to effectively remove the data read from
 			the buffer. */
 			uxNextTail += uxCount;
 
@@ -197,4 +208,3 @@ size_t uxSize, uxCount, uxFirst, uxNextTail;
 
 	return uxCount;
 }
-

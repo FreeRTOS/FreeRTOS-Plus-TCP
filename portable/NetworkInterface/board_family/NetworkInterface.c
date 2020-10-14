@@ -1,6 +1,6 @@
 /*
-FreeRTOS+TCP V2.2.1
-Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+FreeRTOS+TCP V2.3.0
+Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -33,10 +33,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
 driver will filter incoming packets and only pass the stack those packets it
 considers need processing. */
-#if( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
-#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) eProcessBuffer
+#if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
+	#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )	eProcessBuffer
 #else
-#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
+	#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )	eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
 #endif
 
 BaseType_t xNetworkInterfaceInitialise( void )
@@ -45,7 +45,8 @@ BaseType_t xNetworkInterfaceInitialise( void )
 	return pdFALSE;
 }
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer, BaseType_t xReleaseAfterSend )
+BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+									BaseType_t xReleaseAfterSend )
 {
 	/* FIX ME. */
 	return pdFALSE;

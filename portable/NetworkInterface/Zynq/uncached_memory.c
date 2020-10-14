@@ -69,14 +69,14 @@
 #include "uncached_memory.h"
 
 /* Reserve 1 MB of memory. */
-#define uncMEMORY_SIZE				0x100000uL
+#define uncMEMORY_SIZE		   0x100000uL
 
 /* Make sure that each pointer has an alignment of 4 KB. */
-#define uncALIGNMENT_SIZE			0x1000uL
+#define uncALIGNMENT_SIZE	   0x1000uL
 
-#define DDR_MEMORY_END	(XPAR_PS7_DDR_0_S_AXI_HIGHADDR+1)
+#define DDR_MEMORY_END		   ( XPAR_PS7_DDR_0_S_AXI_HIGHADDR + 1 )
 
-#define uncMEMORY_ATTRIBUTE			0x1C02
+#define uncMEMORY_ATTRIBUTE	   0x1C02
 
 static void vInitialiseUncachedMemory( void );
 
@@ -109,15 +109,16 @@ uint8_t ucReturn;
 }
 /*-----------------------------------------------------------*/
 
-uint8_t *pucGetUncachedMemory( uint32_t ulSize )
+uint8_t * pucGetUncachedMemory( uint32_t ulSize )
 {
 uint8_t *pucReturn;
 uint32_t ulSkipSize;
 
 	if( pucStartOfMemory == NULL )
 	{
-		vInitialiseUncachedMemory( );
+		vInitialiseUncachedMemory();
 	}
+
 	if( ( pucStartOfMemory == NULL ) || ( ulSize > ulMemorySize ) )
 	{
 		pucReturn = NULL;
@@ -135,15 +136,15 @@ uint32_t ulSkipSize;
 }
 /*-----------------------------------------------------------*/
 
-static void vInitialiseUncachedMemory( )
+static void vInitialiseUncachedMemory()
 {
 	/* At the end of program's space... */
 	pucStartOfMemory = ( uint8_t * ) &( _end );
 
 	/* Align the start address to 1 MB boundary. */
-	pucStartOfMemory = ( uint8_t * )( ( ( uint32_t )pucStartOfMemory + uncMEMORY_SIZE ) & ( ~( uncMEMORY_SIZE - 1 ) ) );
+	pucStartOfMemory = ( uint8_t * ) ( ( ( uint32_t ) pucStartOfMemory + uncMEMORY_SIZE ) & ( ~( uncMEMORY_SIZE - 1 ) ) );
 
-	if( ( ( u32 )pucStartOfMemory ) + uncMEMORY_SIZE > DDR_MEMORY_END )
+	if( ( ( u32 ) pucStartOfMemory ) + uncMEMORY_SIZE > DDR_MEMORY_END )
 	{
 		FreeRTOS_printf( ( "vInitialiseUncachedMemory: Can not allocate uncached memory\n" ) );
 	}

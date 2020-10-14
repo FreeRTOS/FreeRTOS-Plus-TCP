@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP V2.2.0
- * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -154,12 +154,12 @@ http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Trace.html */
 	#define iptraceSENDING_DNS_REQUEST()
 #endif
 
-#ifndef	iptraceWAITING_FOR_TX_DMA_DESCRIPTOR
+#ifndef iptraceWAITING_FOR_TX_DMA_DESCRIPTOR
 	#define iptraceWAITING_FOR_TX_DMA_DESCRIPTOR()
 #endif
 
 #ifndef ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
-	#define ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS 0
+	#define ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS    0
 #endif
 
 #ifndef iptraceFAILED_TO_NOTIFY_SELECT_GROUP
@@ -167,7 +167,7 @@ http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Trace.html */
 #endif
 
 #ifndef pvPortMallocSocket
-	#define pvPortMallocSocket(xSize) pvPortMalloc( ( xSize ) )
+	#define pvPortMallocSocket( xSize )    pvPortMalloc( ( xSize ) )
 #endif
 
 #ifndef iptraceRECVFROM_TIMEOUT

@@ -1,6 +1,6 @@
 /*
   * FreeRTOS memory safety proofs with CBMC.
-  * Copyright (C) 2019 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
   *
   * Permission is hereby granted, free of charge, to any person
   * obtaining a copy of this software and associated documentation
@@ -49,7 +49,7 @@ void prvCreateDHCPSocket();
 
 /* Static member defined in freertos_api.c */
 #ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
-    extern uint32_t GetNetworkBuffer_failure_count;
+	extern uint32_t GetNetworkBuffer_failure_count;
 #endif
 
 /****************************************************************
@@ -64,7 +64,7 @@ void vDHCPProcess( BaseType_t xReset );
 
 BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType )
 {
-    return nondet_BaseType();
+	return nondet_BaseType();
 }
 
 /****************************************************************
@@ -73,30 +73,30 @@ BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType )
 
 void harness()
 {
-    BaseType_t xReset;
+BaseType_t xReset;
 
-    /****************************************************************
-     * Initialize the counter used to bound the number of times
-     * GetNetworkBufferWithDescriptor can fail.
-     ****************************************************************/
+	/****************************************************************
+	 * Initialize the counter used to bound the number of times
+	 * GetNetworkBufferWithDescriptor can fail.
+	 ****************************************************************/
 
-    #ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
-        GetNetworkBuffer_failure_count = 0;
-    #endif
+	#ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
+		GetNetworkBuffer_failure_count = 0;
+	#endif
 
-    /****************************************************************
-     * Assume a valid socket in most states of the DHCP state machine.
-     *
-     * The socket is created in the eWaitingSendFirstDiscover state.
-     * xReset==True resets the state to eWaitingSendFirstDiscover.
-     ****************************************************************/
+	/****************************************************************
+	 * Assume a valid socket in most states of the DHCP state machine.
+	 *
+	 * The socket is created in the eWaitingSendFirstDiscover state.
+	 * xReset==True resets the state to eWaitingSendFirstDiscover.
+	 ****************************************************************/
 
-    if( !( ( xDHCPData.eDHCPState == eWaitingSendFirstDiscover ) ||
-           ( xReset != pdFALSE ) ) )
-    {
-        prvCreateDHCPSocket();
-        __CPROVER_assume( xDHCPSocket != NULL );
-    }
+	if( !( ( xDHCPData.eDHCPState == eWaitingSendFirstDiscover ) ||
+		   ( xReset != pdFALSE ) ) )
+	{
+		prvCreateDHCPSocket();
+		__CPROVER_assume( xDHCPSocket != NULL );
+	}
 
-    vDHCPProcess( xReset );
+	vDHCPProcess( xReset );
 }

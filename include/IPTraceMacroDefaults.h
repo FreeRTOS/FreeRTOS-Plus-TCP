@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.2.1
- * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.0
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -154,12 +154,12 @@ http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Trace.html */
 	#define iptraceSENDING_DNS_REQUEST()
 #endif
 
-#ifndef	iptraceWAITING_FOR_TX_DMA_DESCRIPTOR
+#ifndef iptraceWAITING_FOR_TX_DMA_DESCRIPTOR
 	#define iptraceWAITING_FOR_TX_DMA_DESCRIPTOR()
 #endif
 
 #ifndef ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
-	#define ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS 0
+	#define ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS    0
 #endif
 
 #ifndef iptraceFAILED_TO_NOTIFY_SELECT_GROUP
@@ -167,7 +167,7 @@ http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Trace.html */
 #endif
 
 #ifndef pvPortMallocSocket
-	#define pvPortMallocSocket(xSize) pvPortMalloc( ( xSize ) )
+	#define pvPortMallocSocket( xSize )    pvPortMalloc( ( xSize ) )
 #endif
 
 #ifndef iptraceRECVFROM_TIMEOUT
@@ -191,10 +191,10 @@ http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Trace.html */
 #endif
 
 #ifndef ipconfigUSE_TCP_MEM_STATS
-	#define ipconfigUSE_TCP_MEM_STATS	0
+	#define ipconfigUSE_TCP_MEM_STATS    0
 #endif
 
-#if( ipconfigUSE_TCP_MEM_STATS == 0 )
+#if ( ipconfigUSE_TCP_MEM_STATS == 0 )
 
 	/* See tools/tcp_mem_stat.c */
 
@@ -210,13 +210,13 @@ http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Trace.html */
 		#define iptraceMEM_STATS_CLOSE()
 	#endif
 
-#endif	/* ( ipconfigUSE_TCP_MEM_STATS != 0 ) */
+#endif /* ( ipconfigUSE_TCP_MEM_STATS != 0 ) */
 
 #ifndef ipconfigUSE_DUMP_PACKETS
-	#define ipconfigUSE_DUMP_PACKETS	0
+	#define ipconfigUSE_DUMP_PACKETS    0
 #endif
 
-#if( ipconfigUSE_DUMP_PACKETS == 0 )
+#if ( ipconfigUSE_DUMP_PACKETS == 0 )
 
 	/* See tools/tcp_dump_packets.c */
 
@@ -228,6 +228,6 @@ http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Trace.html */
 		#define iptraceDUMP_PACKET( pucBuffer, uxLength, xIncoming )
 	#endif
 
-#endif	/* ( ipconfigUSE_DUMP_PACKETS != 0 ) */
+#endif /* ( ipconfigUSE_DUMP_PACKETS != 0 ) */
 
 #endif /* UDP_TRACE_MACRO_DEFAULTS_H */

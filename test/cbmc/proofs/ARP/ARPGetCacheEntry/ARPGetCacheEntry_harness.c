@@ -10,8 +10,8 @@
 
 void harness()
 {
-  uint32_t ulIPAddress;
-  MACAddress_t xMACAddress;
+uint32_t ulIPAddress;
+MACAddress_t xMACAddress;
 
-  eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
+	eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
 }

@@ -18,7 +18,8 @@ uint16_t prvGetPrivatePortNumber( BaseType_t xProtocol );
 
 uint16_t prvGetPrivatePortNumber( BaseType_t xProtocol )
 {
-	uint16_t usResult;
+uint16_t usResult;
+
 	return usResult;
 }
 
@@ -49,7 +50,7 @@ BaseType_t xApplicationGetRandomNumber( uint32_t *pulNumber )
 
 void harness()
 {
-	FreeRTOS_Socket_t *pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
+FreeRTOS_Socket_t *pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
 
 	__CPROVER_assume( pxSocket != NULL );
 	__CPROVER_assume( pxSocket != FREERTOS_INVALID_SOCKET );
