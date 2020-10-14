@@ -42,3 +42,25 @@ jobs:
       #    path: "build/coverage.info"
       #    min_coverage: 99
       #    exclude: "**/*test*"
+
+  spell-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone This Repo
+        uses: actions/checkout@v2
+      - name: Install spell
+        run: |
+          sudo apt-get install spell
+          sudo apt-get install util-linux
+      - name: Check spelling
+        run: |
+          PATH=$PATH:$PWD/tools/spell
+          for lexfile in `find . -name temp.txt`
+          do dir=${lexfile%/lexicon.txt}
+            echo $dir
+            find-unknown-comment-words --directory $dir
+            if [ $? -ne "0" ]
+            then
+              exit 1
+            fi
+          done
