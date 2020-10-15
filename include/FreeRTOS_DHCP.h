@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP V2.3.0
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,85 +24,109 @@
  */
 
 #ifndef FREERTOS_DHCP_H
-	#define FREERTOS_DHCP_H
+#define FREERTOS_DHCP_H
 
-	#ifdef __cplusplus
-	extern "C" {
-	#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Application level configuration options. */
-	#include "FreeRTOSIPConfig.h"
-	#include "IPTraceMacroDefaults.h"
+#include "FreeRTOSIPConfig.h"
+#include "IPTraceMacroDefaults.h"
 
-	#if ( ipconfigUSE_DHCP_HOOK != 0 )
-		/* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
-		typedef enum eDHCP_PHASE
-		{
-			eDHCPPhasePreDiscover, /* Driver is about to send a DHCP discovery. */
-			eDHCPPhasePreRequest   /* Driver is about to request DHCP an IP address. */
-		} eDHCPCallbackPhase_t;
+/* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
+typedef enum eDHCP_PHASE
+{
+	eDHCPPhasePreDiscover,	/* Driver is about to send a DHCP discovery. */
+	eDHCPPhasePreRequest	/* Driver is about to request DHCP an IP address. */
+} eDHCPCallbackPhase_t;
 
-		/* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
-		typedef enum eDHCP_ANSWERS
-		{
-			eDHCPContinue,      /* Continue the DHCP process */
-			eDHCPUseDefaults,   /* Stop DHCP and use the static defaults. */
-			eDHCPStopNoChanges, /* Stop DHCP and continue with current settings. */
-		} eDHCPCallbackAnswer_t;
-	#endif /* #if( ipconfigUSE_DHCP_HOOK != 0 ) */
+/* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
+typedef enum eDHCP_ANSWERS
+{
+	eDHCPContinue,			/* Continue the DHCP process */
+	eDHCPUseDefaults,		/* Stop DHCP and use the static defaults. */
+	eDHCPStopNoChanges,		/* Stop DHCP and continue with current settings. */
+} eDHCPCallbackAnswer_t;
 
 /* DHCP state machine states. */
-	typedef enum
-	{
-		eWaitingSendFirstDiscover = 0, /* Initial state.  Send a discover the first time it is called, and reset all timers. */
-		eWaitingOffer,                 /* Either resend the discover, or, if the offer is forthcoming, send a request. */
-		eWaitingAcknowledge,           /* Either resend the request. */
-		#if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-			eGetLinkLayerAddress,      /* When DHCP didn't respond, try to obtain a LinkLayer address 168.254.x.x. */
-		#endif
-		eLeasedAddress,                /* Resend the request at the appropriate time to renew the lease. */
-		eNotUsingLeasedAddress         /* DHCP failed, and a default IP address is being used. */
-	} eDHCPState_t;
+typedef enum
+{
+	aInitialWait = 0,				/* Initial state: open a socket and wait a short time. */
+	eWaitingSendFirstDiscover,		/* Send a discover the first time it is called, and reset all timers. */
+	eWaitingOffer,					/* Either resend the discover, or, if the offer is forthcoming, send a request. */
+	eWaitingAcknowledge,			/* Either resend the request. */
+	#if( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
+		eGetLinkLayerAddress,		/* When DHCP didn't respond, try to obtain a LinkLayer address 168.254.x.x. */
+	#endif
+	eLeasedAddress,					/* Resend the request at the appropriate time to renew the lease. */
+	eNotUsingLeasedAddress			/* DHCP failed, and a default IP address is being used. */
+} eDHCPState_t;
 
 /* Hold information in between steps in the DHCP state machine. */
-	struct xDHCP_DATA
-	{
+struct xDHCP_DATA
+{
 	uint32_t ulTransactionId;
 	uint32_t ulOfferedIPAddress;
 	uint32_t ulDHCPServerAddress;
 	uint32_t ulLeaseTime;
-		/* Hold information on the current timer state. */
-		TickType_t xDHCPTxTime;
-		TickType_t xDHCPTxPeriod;
-		/* Try both without and with the broadcast flag */
-		BaseType_t xUseBroadcast;
-		/* Maintains the DHCP state machine state. */
-		eDHCPState_t eDHCPState;
-	};
+	/* Hold information on the current timer state. */
+	TickType_t xDHCPTxTime;
+	TickType_t xDHCPTxPeriod;
+	/* Try both without and with the broadcast flag */
+	BaseType_t xUseBroadcast;
+	/* Maintains the DHCP state machine state. */
+	eDHCPState_t eDHCPState;
+	eDHCPState_t eExpectedState;
+	Socket_t xDHCPSocket;
+};
 
-	typedef struct xDHCP_DATA DHCPData_t;
+typedef struct xDHCP_DATA DHCPData_t;
+
+/* Returns the current state of a DHCP process. */
+eDHCPState_t eGetDHCPState( struct xNetworkEndPoint *pxEndPoint );
+
+struct xNetworkEndPoint;
+
+#if( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+	/*
+	* Send a message to the IP-task, which will call vDHCPProcess().
+	*/
+	BaseType_t xSendDHCPEvent( struct xNetworkEndPoint *pxEndPoint );
+#endif
 
 /*
  * NOT A PUBLIC API FUNCTION.
+ * It will be called when the DHCP timer expires, or when
+ * data has been received on the DHCP socket.
  */
-	void vDHCPProcess( BaseType_t xReset );
+void vDHCPProcess( BaseType_t xReset, struct xNetworkEndPoint *pxEndPoint );
 
 /* Internal call: returns true if socket is the current DHCP socket */
-	BaseType_t xIsDHCPSocket( Socket_t xSocket );
+BaseType_t xIsDHCPSocket( Socket_t xSocket );
 
-	#if ( ipconfigUSE_DHCP_HOOK != 0 )
+/* Prototype of the hook (or callback) function that must be provided by the
+application if ipconfigUSE_DHCP_HOOK is set to 1.  See the following URL for
+usage information:
+http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
+*/
+eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase, uint32_t ulIPAddress );
 
-		/* Prototype of the hook (or callback) function that must be provided by the
-		application if ipconfigUSE_DHCP_HOOK is set to 1.  See the following URL for
-		usage information:
-		http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
-		*/
-		eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
-													uint32_t ulIPAddress );
-	#endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */
-
-	#ifdef __cplusplus
-	} /* extern "C" */
-	#endif
+#ifdef __cplusplus
+}	/* extern "C" */
+#endif
 
 #endif /* FREERTOS_DHCP_H */
+
+
+
+
+
+
+
+
+
+
+
+
+
