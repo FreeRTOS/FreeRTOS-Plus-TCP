@@ -69,18 +69,18 @@ BaseType_t xNetworkInterfaceInitialise( void )
 {
 WIFINetworkParams_t xNetworkParams;
 
-    xNetworkParams.ucSSIDLength = strnlen( clientcredentialWIFI_SSID, 
-                                           wificonfigMAX_SSID_LEN );
-    memcpy( xNetworkParams.ucSSID, 
-            clientcredentialWIFI_SSID, 
-            xNetworkParams.ucSSIDLength );
-    
-    xNetworkParams.xPassword.xWPA.ucLength = strnlen( clientcredentialWIFI_PASSWORD,
-                                                      wificonfigMAX_PASSPHRASE_LEN );
-    memcpy( xNetworkParams.xPassword.xWPA.cPassphrase, 
-            clientcredentialWIFI_PASSWORD,
-            xNetworkParams.xPassword.xWPA.ucLength );
-    
+	xNetworkParams.ucSSIDLength = strnlen( clientcredentialWIFI_SSID,
+										   wificonfigMAX_SSID_LEN );
+	memcpy( xNetworkParams.ucSSID,
+			clientcredentialWIFI_SSID,
+			xNetworkParams.ucSSIDLength );
+
+	xNetworkParams.xPassword.xWPA.ucLength = strnlen( clientcredentialWIFI_PASSWORD,
+													  wificonfigMAX_PASSPHRASE_LEN );
+	memcpy( xNetworkParams.xPassword.xWPA.cPassphrase,
+			clientcredentialWIFI_PASSWORD,
+			xNetworkParams.xPassword.xWPA.ucLength );
+
 	xNetworkParams.xSecurity = clientcredentialWIFI_SECURITY;
 	xNetworkParams.ucChannel = M2M_WIFI_CH_ALL; /* Scan all channels (255) */
 
@@ -170,11 +170,11 @@ IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
 		xRxEvent.pvData = ( void * ) pxNetworkBuffer;
 
 		if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
-		{   /* failed */
+		{ /* failed */
 			pktLost = true;
 		}
 		else
-		{   /* success */
+		{ /* success */
 			pktSuccess = true;
 			iptraceNETWORK_INTERFACE_RECEIVE();
 		}
@@ -183,7 +183,7 @@ IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
 	}
 
 	if( !pktSuccess )
-	{   /* something went wrong; nothing sent to the */
+	{ /* something went wrong; nothing sent to the */
 		if( pxNetworkBuffer != NULL )
 		{
 			pxNetworkBuffer->pucEthernetBuffer = 0;
