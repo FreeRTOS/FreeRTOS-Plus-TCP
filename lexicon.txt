@@ -107,6 +107,7 @@ cgcr
 ch
 checkoptions
 checkoptionsinner
+checkoptionsouter
 checksummode
 checksumoffload
 checksum
@@ -177,7 +178,8 @@ dmatxdesctoclear
 dmix
 dns
 dnsanswerrecord
-dont
+doesn
+don
 dont
 downshift
 dr
@@ -221,6 +223,7 @@ eestabl
 eevent
 eeventtype
 eframeconsumed
+eg
 egetlinklayeraddress
 ehertype
 einprogress
@@ -254,6 +257,7 @@ enhanceddescriptorformat
 enotusingleasedaddress
 eof
 eprocessbuffer
+ereleasebuffer
 ereturn
 ereturned
 ereturnethernetframe
@@ -301,6 +305,7 @@ fes
 ff
 fifo
 fifo
+finalise
 fixedburst
 flushreceivedframe
 fmc
@@ -313,6 +318,7 @@ freertos
 freertos
 freertosconfig
 freertosip
+freertosipconfig
 freertosconfig
 freertosipconfigdefaults
 fromisr
@@ -348,6 +354,7 @@ hresp
 hresp
 ht
 html
+hton
 http
 https
 huc
@@ -378,6 +385,7 @@ initialise
 initialised
 initialisenetwork
 initialises
+initialising
 inlined
 initialises
 inlining
@@ -507,6 +515,7 @@ mhz
 mib
 micrel
 microcontroller
+microcontrollers
 microsoft
 mii
 miiar
@@ -640,6 +649,7 @@ prvcheckoptions
 prvcheckrxdata
 prvcopydatatoqueue
 prvcreatednsmessage
+prvdeterminesocketsize
 prvemacdeferredinterrupthandlertask
 prvemachandlertask
 prvgethostbyname
@@ -766,6 +776,7 @@ que
 queuegenericcreate
 quickstart
 ra
+randomised
 ramfunc
 rbus
 rcomp
@@ -843,6 +854,7 @@ rxtail
 rxubr
 sa
 saf
+safemalloc
 safemallocsaif
 sam
 sck
@@ -862,9 +874,11 @@ seq
 setsockopt
 shouldn
 sht
+shtml
 si
 signalled
 sizeof
+skipnamefield
 snd
 snprintf
 sockaddr
@@ -976,6 +990,7 @@ uctcpstate
 uctimetolive
 uctransmitcount
 uctypeofmessage
+uctypeofservice
 ucvalid
 ucversionheaderlength
 udp
@@ -999,6 +1014,7 @@ ulfifolength
 ulfinsequencenumber
 ulfirst
 ulfirstsequencenumber
+ulflag
 ulflags
 ulgetruntimecountervalue
 ulhighestrxallowed
@@ -1010,6 +1026,7 @@ ulinterruptcause
 ulinterruptmask
 ulip
 ulipaddress
+ulipaddresses
 ullast
 ulleasetime
 ullength
@@ -1095,6 +1112,7 @@ usquestions
 usremoteport
 ussequencenumber
 ussourceport
+ussum
 ustimeout
 ustype
 usurgent
@@ -1128,6 +1146,7 @@ uxoffset
 uxoptionslength
 uxremainingbytes
 uxremainingtime
+uxremaningtime
 uxright
 uxrxwinsize
 uxsourcelen
@@ -1138,6 +1157,7 @@ uxtail
 uxtaskgetsystemstate
 uxtxwinsize
 uxupper
+uxwinsize
 val
 vapplicationipnetworkeventhook
 vapplicationpingreplyhook
@@ -1162,7 +1182,7 @@ vportfree
 vprocessgeneratedudppacket
 vreleasenetworkbufferanddescriptor
 vrxfaultinjection
-vsocketbind(
+vsocketbind
 vsocketclose
 vsocketselect
 vsocketwakeupuser
@@ -1251,6 +1271,7 @@ xlwipconfig
 xmacaddress
 xmaxtime
 xmicreldevice
+xmitcount
 xnetworkaddressing
 xnetworkbuffer
 xnetworkbufferdescriptor

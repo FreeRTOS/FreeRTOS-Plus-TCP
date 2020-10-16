@@ -147,7 +147,7 @@
 	#endif /* !defined( SEND_REPEATED_COUNT ) */
 
 /*
- * Define a maximum perdiod of time (ms) to leave a TCP-socket unattended.
+ * Define a maximum period of time (ms) to leave a TCP-socket unattended.
  * When a TCP timer expires, retries and keep-alive messages will be checked.
  */
 	#ifndef tcpMAXIMUM_TCP_WAKEUP_TIME_MS
