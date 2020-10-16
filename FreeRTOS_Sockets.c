@@ -1812,7 +1812,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 					xReturn = 0;
 					break;
 
-				case FREERTOS_SO_STOP_RX: /* Refuse to receive more packts */
+				case FREERTOS_SO_STOP_RX: /* Refuse to receive more packets */
 				   {
 					   if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
 					   {

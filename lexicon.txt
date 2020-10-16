@@ -525,10 +525,12 @@ mmc
 mo
 mqtt
 msec
+msecs
 msg
 msl
 msp
 mss
+msvc
 mtu
 multicastframesfilter
 mutex
@@ -569,6 +571,7 @@ opendns
 optimisation
 optimise
 optimised
+optlen
 ored
 org
 osf
