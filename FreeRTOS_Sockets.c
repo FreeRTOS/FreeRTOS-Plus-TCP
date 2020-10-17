@@ -23,6 +23,13 @@
  * http://www.FreeRTOS.org
  */
 
+/**
+ * @file FreeRTOS_Sockets.c
+ * @brief Implements the Sockets API based on Berkeley sockets for the FreeRTOS+TCP network stack.
+ *        Sockets are used by the application processes to interact with the IP-task which in turn
+ *        interacts with the hardware.
+ */
+
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
@@ -49,43 +56,50 @@ See also tools/tcp_mem_stats.md */
 #include "tcp_mem_stats.h"
 
 /* The ItemValue of the sockets xBoundSocketListItem member holds the socket's
-port number. */
+ * port number. */
+/** @brief Set the port number for the socket in the xBoundSocketListItem. */
 #define socketSET_SOCKET_PORT( pxSocket, usPort )	 listSET_LIST_ITEM_VALUE( ( &( ( pxSocket )->xBoundSocketListItem ) ), ( usPort ) )
+/** @brief Get the port number for the socket in the xBoundSocketListItem. */
 #define socketGET_SOCKET_PORT( pxSocket )			 listGET_LIST_ITEM_VALUE( ( &( ( pxSocket )->xBoundSocketListItem ) ) )
 
-/* Test if a socket it bound which means it is either included in
-xBoundUDPSocketsList or xBoundTCPSocketsList */
+/** @brief Test if a socket it bound which means it is either included in
+ *         xBoundUDPSocketsList or xBoundTCPSocketsList
+ */
 #define socketSOCKET_IS_BOUND( pxSocket )			 ( listLIST_ITEM_CONTAINER( &( pxSocket )->xBoundSocketListItem ) != NULL )
 
-/* If FreeRTOS_sendto() is called on a socket that is not bound to a port
-number then, depending on the FreeRTOSIPConfig.h settings, it might be that a
-port number is automatically generated for the socket.  Automatically generated
-port numbers will be between socketAUTO_PORT_ALLOCATION_START_NUMBER and
-0xffff.
-
-Per https://tools.ietf.org/html/rfc6056, "the dynamic ports consist of the range
-49152-65535. However, ephemeral port selection algorithms should use the whole
-range 1024-65535" excluding those already in use (inbound or outbound). */
+/** @brief If FreeRTOS_sendto() is called on a socket that is not bound to a port
+ *         number then, depending on the FreeRTOSIPConfig.h settings, it might be
+ *         that a port number is automatically generated for the socket.
+ *         Automatically generated port numbers will be between
+ *         socketAUTO_PORT_ALLOCATION_START_NUMBER and 0xffff.
+ *
+ * @note Per https://tools.ietf.org/html/rfc6056, "the dynamic ports consist of
+ *       the range 49152-65535. However, ephemeral port selection algorithms should
+ *       use the whole range 1024-65535" excluding those already in use (inbound
+ *       or outbound).
+ */
 #if !defined( socketAUTO_PORT_ALLOCATION_START_NUMBER )
 	#define socketAUTO_PORT_ALLOCATION_START_NUMBER	   ( ( uint16_t ) 0x0400 )
 #endif
 
+/** @brief Maximum value of port number which can be auto assigned. */
 #define socketAUTO_PORT_ALLOCATION_MAX_NUMBER		   ( ( uint16_t ) 0xffff )
 
-/* The number of octets that make up an IP address. */
+/** @brief The number of octets that make up an IP address. */
 #define socketMAX_IP_ADDRESS_OCTETS					   4U
 
-/* A block time of 0 simply means "don't block". */
+/** @brief A block time of 0 simply means "don't block". */
 #define socketDONT_BLOCK							   ( ( TickType_t ) 0 )
 
+/** @brief TCP timer period in milliseconds. */
 #if ( ( ipconfigUSE_TCP == 1 ) && !defined( ipTCP_TIMER_PERIOD_MS ) )
 	#define ipTCP_TIMER_PERIOD_MS					   ( 1000U )
 #endif
 
 /* Some helper macro's for defining the 20/80 % limits of uxLittleSpace / uxEnoughSpace. */
-#define sock20_PERCENT	   20U
-#define sock80_PERCENT	   80U
-#define sock100_PERCENT	   100U
+#define sock20_PERCENT	   20U /**< 20% of the defined limit. */
+#define sock80_PERCENT	   80U /**< 80% of the defined limit. */
+#define sock100_PERCENT	   100U /**< 100% of the defined limit. */
 
 #if ( ipconfigUSE_CALLBACKS != 0 )
 	static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( F_TCP_UDP_Handler_t )
@@ -204,8 +218,10 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
 /*-----------------------------------------------------------*/
 
-/* The list that contains mappings between sockets and port numbers.  Accesses
-to this list must be protected by critical sections of one kind or another. */
+/** @brief The list that contains mappings between sockets and port numbers.
+ *         Accesses to this list must be protected by critical sections of
+ *         some kind.
+ */
 static List_t xBoundUDPSocketsList;
 
 #if ipconfigUSE_TCP == 1
@@ -2205,6 +2221,7 @@ const void *pvCopySource;
 }
 /*-----------------------------------------------------------*/
 
+
 uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
 {
 uint32_t ulReturn = 0UL;
@@ -2217,7 +2234,15 @@ uint32_t ulReturn = 0UL;
 /*-----------------------------------------------------------*/
 
 
-/* Function to get the local address and IP port */
+/**
+ * @brief Function to get the local address and IP port of the given socket.
+ *
+ * @param[in] xSocket: Socket whose port is to be added to the pxAddress.
+ * @param[out] pxAddress: Structre in which the IP address and the port number
+ *                        is returned.
+ *
+ * @return Size of the freertos_sockaddr structure.
+ */
 size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
 								 struct freertos_sockaddr *pxAddress )
 {
@@ -2234,6 +2259,11 @@ const FreeRTOS_Socket_t *pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
 
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Wake up the user of the given socket through event-groups.
+ *
+ * @param[in] pxSocket: The socket whose user is to be woken up.
+ */
 void vSocketWakeUpUser( FreeRTOS_Socket_t *pxSocket )
 {
 /* _HT_ must work this out, now vSocketWakeUpUser will be called for any important
@@ -3959,6 +3989,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t *pxSocket )
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
+	/**
+	 * @brief This function waits on given sockets to change status/receive events.
+	 *
+	 * @param[in] pxSocketSet: The socket set which is to be waited on for change.
+	 */
 	void vSocketSelect( SocketSelect_t *pxSocketSet )
 	{
 	BaseType_t xRound;

@@ -950,9 +950,12 @@ socket events. */
 
 	#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
+		/** @brief Structure for event groups of the Socket Select functions */
 		typedef struct xSOCKET_SET
 		{
-		EventGroupHandle_t xSelectGroup;
+			/** @brief Event group for the socket select function.
+			 */
+			EventGroupHandle_t xSelectGroup;
 		} SocketSelect_t;
 
 		static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
@@ -966,11 +969,11 @@ socket events. */
 
 		extern void vSocketSelect( SocketSelect_t *pxSocketSet );
 
-/* Define the data that must be passed for a 'eSocketSelectEvent'. */
+		/** @brief Define the data that must be passed for a 'eSocketSelectEvent'. */
 		typedef struct xSocketSelectMessage
 		{
-		TaskHandle_t xTaskhandle;
-		SocketSelect_t *pxSocketSet;
+			TaskHandle_t xTaskhandle; /**< Task handle for use in the socket select functionality. */
+			SocketSelect_t *pxSocketSet; /**< The event group for the socket select functionality. */
 		} SocketSelectMessage_t;
 
 		static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )

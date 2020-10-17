@@ -121,6 +121,12 @@ Data Fields</h2></td></tr>
 <tr class="separator:a5c58826d6de231ea85fbd8232d483e73"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4957f47b13a4cab656e3394af700dea8"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_free_r_t_o_s___socket__t.html#a4957f47b13a4cab656e3394af700dea8">ucProtocol</a></td></tr>
 <tr class="separator:a4957f47b13a4cab656e3394af700dea8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9d04341596f66a37c9d07a74ed0072a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structstruct.html">struct</a> xSOCKET_SET *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_free_r_t_o_s___socket__t.html#aa9d04341596f66a37c9d07a74ed0072a">pxSocketSet</a></td></tr>
+<tr class="separator:aa9d04341596f66a37c9d07a74ed0072a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c47e1e3ea0d3f73530f37086e5fd1c5"><td class="memItemLeft" align="right" valign="top">EventBits_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_free_r_t_o_s___socket__t.html#a6c47e1e3ea0d3f73530f37086e5fd1c5">xSelectBits</a></td></tr>
+<tr class="separator:a6c47e1e3ea0d3f73530f37086e5fd1c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af47947f9665f96f2f2c5746f6ea1b1c4"><td class="memItemLeft" align="right" valign="top">EventBits_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_free_r_t_o_s___socket__t.html#af47947f9665f96f2f2c5746f6ea1b1c4">xSocketBits</a></td></tr>
+<tr class="separator:af47947f9665f96f2f2c5746f6ea1b1c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af45d92a8fd3ac7bbe14eb37eb769079b"><td class="memItemLeft" >union {</td></tr>
 <tr class="memitem:a65cf3556f389f75ac07c05500caaee23"><td class="memItemLeft" >&#160;&#160;&#160;<a class="el" href="struct_i_p_u_d_p_socket__t.html">IPUDPSocket_t</a>&#160;&#160;&#160;<a class="el" href="struct_free_r_t_o_s___socket__t.html#af7d20b59a58392c60e90742d7e05f9eb">xUDP</a></td></tr>
 <tr class="separator:a65cf3556f389f75ac07c05500caaee23"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -251,6 +257,51 @@ Data Fields</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>choice of FREERTOS_IPPROTO_UDP/TCP </p>
+
+</div>
+</div>
+<a id="aa9d04341596f66a37c9d07a74ed0072a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9d04341596f66a37c9d07a74ed0072a">&#9670;&nbsp;</a></span>pxSocketSet</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structstruct.html">struct</a> xSOCKET_SET* FreeRTOS_Socket_t::pxSocketSet</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Pointer to the socket set structure </p>
+
+</div>
+</div>
+<a id="a6c47e1e3ea0d3f73530f37086e5fd1c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c47e1e3ea0d3f73530f37086e5fd1c5">&#9670;&nbsp;</a></span>xSelectBits</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">EventBits_t FreeRTOS_Socket_t::xSelectBits</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>User may indicate which bits are interesting for this socket. </p>
+
+</div>
+</div>
+<a id="af47947f9665f96f2f2c5746f6ea1b1c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af47947f9665f96f2f2c5746f6ea1b1c4">&#9670;&nbsp;</a></span>xSocketBits</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">EventBits_t FreeRTOS_Socket_t::xSocketBits</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>These bits indicate the events which have actually occurred. They are maintained by the IP-task </p>
 
 </div>
 </div>

@@ -1416,6 +1416,116 @@
       <arglist></arglist>
     </member>
   </compound>
+  <compound kind="file">
+    <name>FreeRTOS_Sockets.c</name>
+    <path>/root/Desktop/AddDoxygen/</path>
+    <filename>_free_r_t_o_s___sockets_8c.html</filename>
+    <member kind="define">
+      <type>#define</type>
+      <name>socketSET_SOCKET_PORT</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a8fc4e3506e42e9eef4b51ffd91e665b3</anchor>
+      <arglist>(pxSocket, usPort)</arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>socketGET_SOCKET_PORT</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>ab3a0b0023a907a0cff7dc53d226f80cd</anchor>
+      <arglist>(pxSocket)</arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>socketSOCKET_IS_BOUND</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a2e01dee7309f496afde943fed947729c</anchor>
+      <arglist>(pxSocket)</arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>socketAUTO_PORT_ALLOCATION_START_NUMBER</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a350b6e0f49c270cb5c13c6aeeae116af</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>socketAUTO_PORT_ALLOCATION_MAX_NUMBER</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a3319ecf6f85a2b64a8d48396e0279e24</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>socketMAX_IP_ADDRESS_OCTETS</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>afc265c349a43891cb7ab972fd58630e9</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>socketDONT_BLOCK</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a42f8714f024edfbb0a683d31d2ee7e60</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>sock20_PERCENT</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a68795ded8df36253a9ae4a48f728f863</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>sock80_PERCENT</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a63599b39bbf9eea1e37fcbb06035027d</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>sock100_PERCENT</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a67b2a67aa4db57cbda7a7150eb4f58f6</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="function">
+      <type>Socket_t</type>
+      <name>FreeRTOS_socket</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a0707f288bef6f9a6cafd3dc3c4cfab99</anchor>
+      <arglist>(BaseType_t xDomain, BaseType_t xType, BaseType_t xProtocol)</arglist>
+    </member>
+    <member kind="function">
+      <type>size_t</type>
+      <name>FreeRTOS_GetLocalAddress</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a5cfd261a29fa206a8664ab5171ad9570</anchor>
+      <arglist>(ConstSocket_t xSocket, struct freertos_sockaddr *pxAddress)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vSocketWakeUpUser</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a0387edebc3e7bcf7fcf038a01a098213</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vSocketSelect</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>abc66394397377cd08c86af20547f9302</anchor>
+      <arglist>(SocketSelect_t *pxSocketSet)</arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static List_t</type>
+      <name>xBoundUDPSocketsList</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a0bb39b9379d9271063dad16351b7d3ab</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
   <compound kind="struct">
     <name>ARPCacheRow_t</name>
     <filename>struct_a_r_p_cache_row__t.html</filename>
@@ -1689,6 +1799,27 @@
       <arglist></arglist>
     </member>
     <member kind="variable">
+      <type>struct xSOCKET_SET *</type>
+      <name>pxSocketSet</name>
+      <anchorfile>struct_free_r_t_o_s___socket__t.html</anchorfile>
+      <anchor>aa9d04341596f66a37c9d07a74ed0072a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>EventBits_t</type>
+      <name>xSelectBits</name>
+      <anchorfile>struct_free_r_t_o_s___socket__t.html</anchorfile>
+      <anchor>a6c47e1e3ea0d3f73530f37086e5fd1c5</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>EventBits_t</type>
+      <name>xSocketBits</name>
+      <anchorfile>struct_free_r_t_o_s___socket__t.html</anchorfile>
+      <anchor>af47947f9665f96f2f2c5746f6ea1b1c4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
       <type>IPUDPSocket_t</type>
       <name>xUDP</name>
       <anchorfile>struct_free_r_t_o_s___socket__t.html</anchorfile>
@@ -1834,6 +1965,13 @@
       <name>bConnPrepared</name>
       <anchorfile>struct_i_p_t_c_p_socket__t.html</anchorfile>
       <anchor>af610864692c1bb9612186b6124399381</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint32_t</type>
+      <name>bConnPassed</name>
+      <anchorfile>struct_i_p_t_c_p_socket__t.html</anchorfile>
+      <anchor>a8f6097b20b01bde570d44fde1b991838</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
@@ -2307,6 +2445,35 @@
       <name>xICMPPacket</name>
       <anchorfile>union_protocol_packet__t.html</anchorfile>
       <anchor>abf91797faa0b5541232bbe007fd5c358</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="struct">
+    <name>SocketSelect_t</name>
+    <filename>struct_socket_select__t.html</filename>
+    <member kind="variable">
+      <type>EventGroupHandle_t</type>
+      <name>xSelectGroup</name>
+      <anchorfile>struct_socket_select__t.html</anchorfile>
+      <anchor>ad8778bf9441050e999d8c1a887e56ddf</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="struct">
+    <name>SocketSelectMessage_t</name>
+    <filename>struct_socket_select_message__t.html</filename>
+    <member kind="variable">
+      <type>TaskHandle_t</type>
+      <name>xTaskhandle</name>
+      <anchorfile>struct_socket_select_message__t.html</anchorfile>
+      <anchor>aeb82944475acabab3da61b8a1eb6fbf0</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>SocketSelect_t *</type>
+      <name>pxSocketSet</name>
+      <anchorfile>struct_socket_select_message__t.html</anchorfile>
+      <anchor>a743e5052f1c84acf389d5b58f874711a</anchor>
       <arglist></arglist>
     </member>
   </compound>

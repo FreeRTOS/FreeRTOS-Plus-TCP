@@ -10,6 +10,7 @@ var files =
     [ "FreeRTOS_IP.c", "_free_r_t_o_s___i_p_8c.html", "_free_r_t_o_s___i_p_8c" ],
     [ "FreeRTOS_IP.h", "_free_r_t_o_s___i_p_8h_source.html", null ],
     [ "FreeRTOS_IP_Private.h", "_free_r_t_o_s___i_p___private_8h_source.html", null ],
+    [ "FreeRTOS_Sockets.c", "_free_r_t_o_s___sockets_8c.html", "_free_r_t_o_s___sockets_8c" ],
     [ "FreeRTOS_Sockets.h", "_free_r_t_o_s___sockets_8h_source.html", null ],
     [ "FreeRTOS_Stream_Buffer.h", "_free_r_t_o_s___stream___buffer_8h_source.html", null ],
     [ "FreeRTOS_TCP_IP.h", "_free_r_t_o_s___t_c_p___i_p_8h_source.html", null ],

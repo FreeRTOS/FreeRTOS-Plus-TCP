@@ -334,7 +334,7 @@ $(document).ready(function(){initNavTree('_free_r_t_o_s___sockets_8h_source.html
 <div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;        <span class="keyword">typedef</span> <span class="keyword">struct </span>xSOCKET_SET *SocketSet_t;</div>
 <div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;<span class="preprocessor">    #endif </span><span class="comment">/* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */</span><span class="preprocessor"></span></div>
 <div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160; </div>
-<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;    Socket_t FreeRTOS_socket( BaseType_t xDomain,</div>
+<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;    Socket_t <a class="code" href="_free_r_t_o_s___sockets_8c.html#a0707f288bef6f9a6cafd3dc3c4cfab99">FreeRTOS_socket</a>( BaseType_t xDomain,</div>
 <div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;                              BaseType_t xType,</div>
 <div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;                              BaseType_t xProtocol );</div>
 <div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;    int32_t FreeRTOS_recvfrom( Socket_t xSocket,</div>
@@ -354,7 +354,7 @@ $(document).ready(function(){initNavTree('_free_r_t_o_s___sockets_8h_source.html
 <div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;                              socklen_t xAddressLength );</div>
 <div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160; </div>
 <div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;<span class="comment">/* function to get the local address and IP port */</span></div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;    <span class="keywordtype">size_t</span> FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,</div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;    <span class="keywordtype">size_t</span> <a class="code" href="_free_r_t_o_s___sockets_8c.html#a5cfd261a29fa206a8664ab5171ad9570">FreeRTOS_GetLocalAddress</a>( ConstSocket_t xSocket,</div>
 <div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;                                     <span class="keyword">struct</span> <a class="code" href="structfreertos__sockaddr.html">freertos_sockaddr</a> *pxAddress );</div>
 <div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160; </div>
 <div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;<span class="preprocessor">    #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 1 )</span></div>
@@ -605,6 +605,8 @@ $(document).ready(function(){initNavTree('_free_r_t_o_s___sockets_8h_source.html
 </div><!-- doc-content -->
 <div class="ttc" id="astructfreertos__sockaddr_html_a7bdc446dabdc9f6a4ddf3f75fa80bcb1"><div class="ttname"><a href="structfreertos__sockaddr.html#a7bdc446dabdc9f6a4ddf3f75fa80bcb1">freertos_sockaddr::sin_port</a></div><div class="ttdeci">uint16_t sin_port</div><div class="ttdef"><b>Definition:</b> FreeRTOS_Sockets.h:191</div></div>
 <div class="ttc" id="astruct_low_high_water__t_html_ad06f5b9357359dd6d4fe360b27d58576"><div class="ttname"><a href="struct_low_high_water__t.html#ad06f5b9357359dd6d4fe360b27d58576">LowHighWater_t::uxLittleSpace</a></div><div class="ttdeci">size_t uxLittleSpace</div><div class="ttdef"><b>Definition:</b> FreeRTOS_Sockets.h:171</div></div>
+<div class="ttc" id="a_free_r_t_o_s___sockets_8c_html_a0707f288bef6f9a6cafd3dc3c4cfab99"><div class="ttname"><a href="_free_r_t_o_s___sockets_8c.html#a0707f288bef6f9a6cafd3dc3c4cfab99">FreeRTOS_socket</a></div><div class="ttdeci">Socket_t FreeRTOS_socket(BaseType_t xDomain, BaseType_t xType, BaseType_t xProtocol)</div><div class="ttdef"><b>Definition:</b> FreeRTOS_Sockets.c:341</div></div>
+<div class="ttc" id="a_free_r_t_o_s___sockets_8c_html_a5cfd261a29fa206a8664ab5171ad9570"><div class="ttname"><a href="_free_r_t_o_s___sockets_8c.html#a5cfd261a29fa206a8664ab5171ad9570">FreeRTOS_GetLocalAddress</a></div><div class="ttdeci">size_t FreeRTOS_GetLocalAddress(ConstSocket_t xSocket, struct freertos_sockaddr *pxAddress)</div><div class="ttdoc">Function to get the local address and IP port of the given socket.</div><div class="ttdef"><b>Definition:</b> FreeRTOS_Sockets.c:2245</div></div>
 <div class="ttc" id="astruct_low_high_water__t_html"><div class="ttname"><a href="struct_low_high_water__t.html">LowHighWater_t</a></div><div class="ttdef"><b>Definition:</b> FreeRTOS_Sockets.h:170</div></div>
 <div class="ttc" id="astructfreertos__sockaddr_html"><div class="ttname"><a href="structfreertos__sockaddr.html">freertos_sockaddr</a></div><div class="ttdef"><b>Definition:</b> FreeRTOS_Sockets.h:183</div></div>
 <div class="ttc" id="astructfreertos__sockaddr_html_ae3dd93b37bd98e67a7eee205880fab42"><div class="ttname"><a href="structfreertos__sockaddr.html#ae3dd93b37bd98e67a7eee205880fab42">freertos_sockaddr::sin_len</a></div><div class="ttdeci">uint8_t sin_len</div><div class="ttdef"><b>Definition:</b> FreeRTOS_Sockets.h:189</div></div>

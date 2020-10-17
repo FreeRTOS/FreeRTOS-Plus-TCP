@@ -2203,7 +2203,8 @@ PREDEFINED             = "DOXYGEN=1"	\
                          "ipconfigUSE_DNS=1"  \
                          "ipconfigUSE_LLMNR=1"  \
                          "ipconfigUSE_NBNS=1"  \
-                         "ipconfigDNS_USE_CALLBACKS=1"
+                         "ipconfigDNS_USE_CALLBACKS=1" \
+                         "ipconfigSUPPORT_SELECT_FUNCTION=1"
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The
