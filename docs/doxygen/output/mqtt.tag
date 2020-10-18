@@ -1490,12 +1490,110 @@
       <anchor>a67b2a67aa4db57cbda7a7150eb4f58f6</anchor>
       <arglist></arglist>
     </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>sockDIGIT_COUNT</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>ad93067b1b641f4859cd5501786573802</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE</type>
+      <name>ipDECL_CAST_PTR_FUNC_FOR_TYPE</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a52fc9e0117c61a8d8e0895e01552250e</anchor>
+      <arglist>(NetworkBufferDescriptor_t)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE</type>
+      <name>ipDECL_CAST_PTR_FUNC_FOR_TYPE</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>aa30c98bf08053c764516fab0d9e76673</anchor>
+      <arglist>(StreamBuffer_t)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static uint16_t</type>
+      <name>prvGetPrivatePortNumber</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a83a99d42729cdba57e78dd6c3c9e66e1</anchor>
+      <arglist>(BaseType_t xProtocol)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static const ListItem_t *</type>
+      <name>pxListFindListItemWithValue</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a0788754fab0379fd522b0ff849692fc4</anchor>
+      <arglist>(const List_t *pxList, TickType_t xWantedItemValue)</arglist>
+    </member>
     <member kind="function">
       <type>Socket_t</type>
       <name>FreeRTOS_socket</name>
       <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
       <anchor>a0707f288bef6f9a6cafd3dc3c4cfab99</anchor>
       <arglist>(BaseType_t xDomain, BaseType_t xType, BaseType_t xProtocol)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>vSocketBind</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>add35977107add8357366416d55c64e69</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, struct freertos_sockaddr *pxBindAddress, size_t uxAddressLength, BaseType_t xInternal)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_setsockopt</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a7faeae52e5489bc7b5ee8ab9392630d5</anchor>
+      <arglist>(Socket_t xSocket, int32_t lLevel, int32_t lOptionName, const void *pvOptionValue, size_t uxOptionLength)</arglist>
+    </member>
+    <member kind="function">
+      <type>FreeRTOS_Socket_t *</type>
+      <name>pxUDPSocketLookup</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>ad924ce49378843372b331ddd89a6d389</anchor>
+      <arglist>(UBaseType_t uxLocalPort)</arglist>
+    </member>
+    <member kind="function">
+      <type>const char *</type>
+      <name>FreeRTOS_inet_ntoa</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>ad284624af0262fa60b7ebe59711dfd47</anchor>
+      <arglist>(uint32_t ulIPAddress, char *pcBuffer)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_inet_pton</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a47ae572a3caf62d61b5aaeb462914516</anchor>
+      <arglist>(BaseType_t xAddressFamily, const char *pcSource, void *pvDestination)</arglist>
+    </member>
+    <member kind="function">
+      <type>const char *</type>
+      <name>FreeRTOS_inet_ntop</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a252d2f28fb55a14a47aab86579e5c8cc</anchor>
+      <arglist>(BaseType_t xAddressFamily, const void *pvSource, char *pcDestination, socklen_t uxSize)</arglist>
+    </member>
+    <member kind="function">
+      <type>const char *</type>
+      <name>FreeRTOS_inet_ntop4</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>aab5898b7c8a6d8f924d0cf144dec218f</anchor>
+      <arglist>(const void *pvSource, char *pcDestination, socklen_t uxSize)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_inet_pton4</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>ae3306e04e9b856682503e39f856ec7ff</anchor>
+      <arglist>(const char *pcSource, void *pvDestination)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint32_t</type>
+      <name>FreeRTOS_inet_addr</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a17f785c94c2b8d0c80cf615a898c70b8</anchor>
+      <arglist>(const char *pcIPAddress)</arglist>
     </member>
     <member kind="function">
       <type>size_t</type>

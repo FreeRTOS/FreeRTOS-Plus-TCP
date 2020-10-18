@@ -1,30 +1,16 @@
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1989: warning: Member sockDIGIT_COUNT (macro definition) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:116: warning: Member ipDECL_CAST_PTR_FUNC_FOR_TYPE(NetworkBufferDescriptor_t) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:122: warning: Member ipDECL_CAST_PTR_FUNC_FOR_TYPE(StreamBuffer_t) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1867: warning: Member prvGetPrivatePortNumber(BaseType_t xProtocol) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1929: warning: Member pxListFindListItemWithValue(const List_t *pxList, TickType_t xWantedItemValue) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:233: warning: Member prvValidSocket(const FreeRTOS_Socket_t *pxSocket, BaseType_t xProtocol, BaseType_t xIsBound) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1456: warning: Member prvSockopt_so_buffer(FreeRTOS_Socket_t *pxSocket, int32_t lOptionName, const void *pvOptionValue) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:274: warning: Member prvDetermineSocketSize(BaseType_t xDomain, BaseType_t xType, BaseType_t xProtocol, size_t *pxSocketSize) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:659: warning: Member prvFindSelectedSocket(SocketSelect_t *pxSocketSet) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:262: warning: Member vNetworkSocketsInit(void) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:461: warning: Member FreeRTOS_CreateSocketSet(void) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:492: warning: Member FreeRTOS_DeleteSocketSet(SocketSet_t xSocketSet) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:508: warning: Member FreeRTOS_FD_SET(Socket_t xSocket, SocketSet_t xSocketSet, EventBits_t xBitsToSet) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:540: warning: Member FreeRTOS_FD_CLR(Socket_t xSocket, SocketSet_t xSocketSet, EventBits_t xBitsToClear) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:569: warning: Member FreeRTOS_FD_ISSET(Socket_t xSocket, SocketSet_t xSocketSet) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:599: warning: Member FreeRTOS_select(SocketSet_t xSocketSet, TickType_t xBlockTimeTicks) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:714: warning: Member FreeRTOS_recvfrom(Socket_t xSocket, void *pvBuffer, size_t uxBufferLength, BaseType_t xFlags, struct freertos_sockaddr *pxSourceAddress, socklen_t *pxSourceAddressLength) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:892: warning: Member FreeRTOS_sendto(Socket_t xSocket, const void *pvBuffer, size_t uxTotalDataLength, BaseType_t xFlags, const struct freertos_sockaddr *pxDestinationAddress, socklen_t xDestinationAddressLength) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1048: warning: Member FreeRTOS_bind(Socket_t xSocket, struct freertos_sockaddr const *pxAddress, socklen_t xAddressLength) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1120: warning: Member vSocketBind(FreeRTOS_Socket_t *pxSocket, struct freertos_sockaddr *pxBindAddress, size_t uxAddressLength, BaseType_t xInternal) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1262: warning: Member FreeRTOS_closesocket(Socket_t xSocket) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1314: warning: Member vSocketClose(FreeRTOS_Socket_t *pxSocket) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1500: warning: Member FreeRTOS_setsockopt(Socket_t xSocket, int32_t lLevel, int32_t lOptionName, const void *pvOptionValue, size_t uxOptionLength) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1956: warning: Member pxUDPSocketLookup(UBaseType_t uxLocalPort) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1979: warning: Member FreeRTOS_inet_ntoa(uint32_t ulIPAddress, char *pcBuffer) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:2054: warning: Member FreeRTOS_inet_pton(BaseType_t xAddressFamily, const char *pcSource, void *pvDestination) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:2076: warning: Member FreeRTOS_inet_ntop(BaseType_t xAddressFamily, const void *pvSource, char *pcDestination, socklen_t uxSize) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:2100: warning: Member FreeRTOS_inet_ntop4(const void *pvSource, char *pcDestination, socklen_t uxSize) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:2125: warning: Member FreeRTOS_inet_pton4(const char *pcSource, void *pvDestination) (function) of file FreeRTOS_Sockets.c is not documented.
-/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:2224: warning: Member FreeRTOS_inet_addr(const char *pcIPAddress) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:243: warning: Member prvValidSocket(const FreeRTOS_Socket_t *pxSocket, BaseType_t xProtocol, BaseType_t xIsBound) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1475: warning: Member prvSockopt_so_buffer(FreeRTOS_Socket_t *pxSocket, int32_t lOptionName, const void *pvOptionValue) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:284: warning: Member prvDetermineSocketSize(BaseType_t xDomain, BaseType_t xType, BaseType_t xProtocol, size_t *pxSocketSize) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:669: warning: Member prvFindSelectedSocket(SocketSelect_t *pxSocketSet) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:272: warning: Member vNetworkSocketsInit(void) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:471: warning: Member FreeRTOS_CreateSocketSet(void) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:502: warning: Member FreeRTOS_DeleteSocketSet(SocketSet_t xSocketSet) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:518: warning: Member FreeRTOS_FD_SET(Socket_t xSocket, SocketSet_t xSocketSet, EventBits_t xBitsToSet) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:550: warning: Member FreeRTOS_FD_CLR(Socket_t xSocket, SocketSet_t xSocketSet, EventBits_t xBitsToClear) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:579: warning: Member FreeRTOS_FD_ISSET(Socket_t xSocket, SocketSet_t xSocketSet) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:609: warning: Member FreeRTOS_select(SocketSet_t xSocketSet, TickType_t xBlockTimeTicks) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:724: warning: Member FreeRTOS_recvfrom(Socket_t xSocket, void *pvBuffer, size_t uxBufferLength, BaseType_t xFlags, struct freertos_sockaddr *pxSourceAddress, socklen_t *pxSourceAddressLength) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:902: warning: Member FreeRTOS_sendto(Socket_t xSocket, const void *pvBuffer, size_t uxTotalDataLength, BaseType_t xFlags, const struct freertos_sockaddr *pxDestinationAddress, socklen_t xDestinationAddressLength) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1058: warning: Member FreeRTOS_bind(Socket_t xSocket, struct freertos_sockaddr const *pxAddress, socklen_t xAddressLength) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1281: warning: Member FreeRTOS_closesocket(Socket_t xSocket) (function) of file FreeRTOS_Sockets.c is not documented.
+/root/Desktop/AddDoxygen/FreeRTOS_Sockets.c:1333: warning: Member vSocketClose(FreeRTOS_Socket_t *pxSocket) (function) of file FreeRTOS_Sockets.c is not documented.

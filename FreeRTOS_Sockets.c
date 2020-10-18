@@ -113,12 +113,22 @@ See also tools/tcp_mem_stats.md */
 #endif
 
 
+/**
+ * @brief Utility function to cast pointer of a type to pointer of type NetworkBufferDescriptor_t.
+ *
+ * @return The casted pointer.
+ */
 static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
 {
 	return ( NetworkBufferDescriptor_t * ) pvArgument;
 }
 
 
+/**
+ * @brief Utility function to cast pointer of a type to pointer of type StreamBuffer_t.
+ *
+ * @return The casted pointer.
+ */
 static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( StreamBuffer_t )
 {
 	return ( StreamBuffer_t * ) pvArgument;
@@ -1111,11 +1121,20 @@ BaseType_t xReturn = 0;
 
 	return xReturn;
 }
+/*-----------------------------------------------------------*/
 
-/*
- * vSocketBind(): internal version of bind() that should not be called directly.
- * 'xInternal' is used for TCP sockets only: it allows to have several
- * (connected) child sockets bound to the same server port.
+/**
+ * @brief Internal version of bind() that should not be called directly.
+ *        'xInternal' is used for TCP sockets only: it allows to have several
+ *        (connected) child sockets bound to the same server port.
+ *
+ * @param[in] pxSocket: The socket is to be bound.
+ * @param[in] pxBindAddress: The port to which this socket should be bound.
+ * @param[in] uxAddressLength: The address length.
+ * @param[in] xInternal: pdTRUE is calling internally, else pdFALSE.
+ *
+ * @return If the socket was bound to a port successfully, then a 0 is returned.
+ *         Or else, an error code is returned.
  */
 BaseType_t vSocketBind( FreeRTOS_Socket_t *pxSocket,
 						struct freertos_sockaddr * pxBindAddress,
@@ -1497,6 +1516,21 @@ BaseType_t xReturn;
 
 /* FreeRTOS_setsockopt calls itself, but in a very limited way,
 only when FREERTOS_SO_WIN_PROPERTIES is being set. */
+
+/**
+ * @brief Set the socket options for the given socket.
+ *
+ * @param[in] xSocket: The socket for which the options are to be set.
+ * @param[in] lLevel: Not used. Parameter is used to maintain the Berkeley sockets
+ *                    standard.
+ * @param[in] lOptionName: The name of the option to be set.
+ * @param[in] pvOptionValue: The value of the option to be set.
+ * @param[in] uxOptionLength: Not used. Parameter is used to maintain the Berkeley
+ *                            sockets standard.
+ *
+ * @return If the option can be set with the given value, then 0 is returned. Else,
+ *         an error code is returned.
+ */
 BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 								int32_t lLevel,
 								int32_t lOptionName,
@@ -1863,7 +1897,14 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
 /*-----------------------------------------------------------*/
 
-/* Find an available port number per https://tools.ietf.org/html/rfc6056. */
+/**
+ * @brief Find an available port number per https://tools.ietf.org/html/rfc6056.
+ *
+ * @param[in] xProtocol: FREERTOS_IPPROTO_TCP/FREERTOS_IPPROTO_UDP.
+ *
+ * @return If a protocol port is found then that port number is returned. Or else,
+ *         0 is returned.
+ */
 static uint16_t prvGetPrivatePortNumber( BaseType_t xProtocol )
 {
 const uint16_t usEphemeralPortCount =
@@ -1924,8 +1965,15 @@ const List_t *pxList;
 }
 /*-----------------------------------------------------------*/
 
-/* pxListFindListItemWithValue: find a list item in a bound socket list
-'xWantedItemValue' refers to a port number */
+/**
+ * @brief Find a list item associated with the wanted-item.
+ *
+ * @param[in] pxList: The list through which the search is to be conducted.
+ * @param[in] xWantedItemValue: The wanted item whose association is to be found.
+ *
+ * @return The list item holding the value being searched for. If nothing is found,
+ *         then a NULL is returned.
+ */
 static const ListItem_t * pxListFindListItemWithValue( const List_t *pxList,
 													   TickType_t xWantedItemValue )
 {
@@ -1953,6 +2001,14 @@ const ListItem_t * pxResult = NULL;
 
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Find the UDP socket corresponding to the port number.
+ *
+ * @param[in] uxLocalPort: The port whose corresponding bound UDP socket
+ *                         is to be found.
+ *
+ * @return The socket owning the port if found or else NULL.
+ */
 FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
 {
 const ListItem_t *pxListItem;
@@ -1976,6 +2032,19 @@ FreeRTOS_Socket_t *pxSocket = NULL;
 
 /*-----------------------------------------------------------*/
 
+#define sockDIGIT_COUNT    ( 3U ) /**< Each nibble is expressed in at most 3 digits such as "192". */
+
+/**
+ * @brief Convert the 32-bit representation of the IP-address to the dotted decimal
+ *        notation after some checks.
+ *
+ * @param[in] ulIPAddress: 32-bit representation of the IP-address.
+ * @param[in] pcBuffer: The buffer where the dotted decimal representation will be
+ *                      stored if all checks pass.
+ *
+ * @return If all checks pass, then the pointer returned will be same as pcBuffer
+ *         and will have the address stored in the location. Else, NULL is returned.
+ */
 const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
 								 char *pcBuffer )
 {
@@ -1984,9 +2053,6 @@ socklen_t uxIndex = 0;
 const uint8_t *pucAddress = ( const uint8_t * ) &( ulIPAddress );
 const char *pcResult = pcBuffer;
 const socklen_t uxSize = 16;
-
-/* Each nibble is expressed in at most 3 digits, like e.g. "192". */
-#define sockDIGIT_COUNT    ( 3U )
 
 	for( uxNibble = 0; uxNibble < ipSIZE_OF_IPv4_ADDRESS; uxNibble++ )
 	{
@@ -2051,6 +2117,18 @@ const socklen_t uxSize = 16;
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Convert the dotted decimal format of the IP-address to the 32-bit representation.
+ *
+ * @param[in] xAddressFamily: The Address family to which the IP-address belongs to. Only
+ *                            FREERTOS_AF_INET is supported.
+ * @param[in] pcSource: Pointer to the string holding the dotted decimal representation of
+ *                      the IP-address.
+ * @param[out] pvDestination: The pointer to the address struct/variable where the converted
+ *                            IP-address will be stored.
+ *
+ * @return If all checks pass, then pdPASS is returned or else pdFAIL is returned.
+ */
 BaseType_t FreeRTOS_inet_pton( BaseType_t xAddressFamily,
 							   const char *pcSource,
 							   void *pvDestination )
@@ -2073,6 +2151,21 @@ BaseType_t xResult;
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Convert the 32-bit representation of the IP-address to the dotted
+ *        decimal format based on the Address Family. (Only FREERTOS_AF_INET
+ *        is allowed).
+ *
+ * @param[in] xAddressFamily: The address family of the IP-address.
+ * @param[in] pvSource: Pointer to the 32-bit representation of IP-address.
+ * @param[in] pcDestination: The pointer to the character array where the dotted
+ *                            decimal address will be stored if every check does pass.
+ * @param[in] uxSize: Size of the character array. This value makes sure that the code
+ *                    doesn't write beyond it's bounds.
+ *
+ * @return If every check does pass, then the pointer to the pcDestination is returned
+ *         holding the dotted decimal format of IP-address. Else, a NULL is returned.
+ */
 const char * FreeRTOS_inet_ntop( BaseType_t xAddressFamily,
 								 const void *pvSource,
 								 char *pcDestination,
@@ -2097,6 +2190,19 @@ const char *pcResult;
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Convert the 32-bit representation of the IP-address to the dotted decimal format.
+ *
+ * @param[in] pvSource: The pointer to the 32-bit representation of the IP-address.
+ * @param[in] pcDestination: The pointer to a character array where the string of the
+ *                           dotted decimal IP format.
+ * @param[in] uxSize: Size of the character array. This value makes sure that the code
+ *                    doesn't write beyond it's bounds.
+ *
+ * @return The pointer to the string holding the dotted decimal format of the IP-address. If
+ *         everything passes correctly, then the pointer being returned is the same as
+ *         pcDestination, else a NULL is returned.
+ */
 const char * FreeRTOS_inet_ntop4( const void *pvSource,
 								  char *pcDestination,
 								  socklen_t uxSize )
@@ -2122,6 +2228,16 @@ const char *pcReturn;
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief This function converts the character string pcSource into a network address
+ *        structure, then copies the network address structure to pvDestination.
+ *        pvDestination is written in network byte order.
+ *
+ * @param[in] pcSource: The character string in holding the IP address.
+ * @param[out] pvDestination: The returned network address in 32-bit format.
+ *
+ * @return pdPASS if the translation was successful or else pdFAIL.
+ */
 BaseType_t FreeRTOS_inet_pton4( const char *pcSource,
 								void *pvDestination )
 {
@@ -2221,7 +2337,14 @@ const void *pvCopySource;
 }
 /*-----------------------------------------------------------*/
 
-
+/**
+ * @brief Convert the IP address from "w.x.y.z" (dotted decimal) format to the 32-bit format.
+ *
+ * @param[in] pcIPAddress: The character string pointer holding the IP-address in the "W.X.Y.Z"
+ *                         (dotted decimal) format.
+ *
+ * @return The 32-bit representation of IP(v4) address.
+ */
 uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
 {
 uint32_t ulReturn = 0UL;
