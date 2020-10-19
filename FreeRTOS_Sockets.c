@@ -240,6 +240,16 @@ static List_t xBoundUDPSocketsList;
 
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Check whether the socket is valid or not.
+ *
+ * @param[in] pxSocket: The socket being checked.
+ * @param[in] xProtocol: The protocol for which the socket was created.
+ * @param[in] xIsBound: If the socket is bound or not.
+ *
+ * @return If the socket is valid, then pdPASS is returned or else, pdFAIL
+ *         is returned.
+ */
 static BaseType_t prvValidSocket( const FreeRTOS_Socket_t *pxSocket,
 								  BaseType_t xProtocol,
 								  BaseType_t xIsBound )
@@ -269,6 +279,9 @@ BaseType_t xReturn;
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Initialise the bound TCP/UDP socket list.
+ */
 void vNetworkSocketsInit( void )
 {
 	vListInitialise( &xBoundUDPSocketsList );
@@ -281,6 +294,18 @@ void vNetworkSocketsInit( void )
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Determine the socket size for the given protocol.
+ *
+ * @param[in] xDomain: The domain for which the size of socket is being determined.
+ * @param[in] xType: Is this a datagram socket or a stream socket.
+ * @param[in] xProtocol: The protocol being used.
+ * @param[out] pxSocketSize: Pointer to a variable in which the size shall be returned
+ *                           if all checks pass.
+ *
+ * @return pdPASS if socket size was determined and put in the parameter pxSocketSize
+ *         correctly, else pdFAIL.
+ */
 static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
 										  BaseType_t xType,
 										  BaseType_t xProtocol,
@@ -468,6 +493,11 @@ FreeRTOS_Socket_t *pxSocket;
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
+	/**
+	 * @brief Create a socket set.
+	 *
+	 * @return The new socket set which was created.
+	 */
 	SocketSet_t FreeRTOS_CreateSocketSet( void )
 	{
 	SocketSelect_t *pxSocketSet;
@@ -499,6 +529,11 @@ FreeRTOS_Socket_t *pxSocket;
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
+	/**
+	 * @brief Delete a given socket set.
+	 *
+	 * @param[in] xSocketSet: The socket set being deleted.
+	 */
 	void FreeRTOS_DeleteSocketSet( SocketSet_t xSocketSet )
 	{
 	SocketSelect_t *pxSocketSet = ( SocketSelect_t * ) xSocketSet;
@@ -514,7 +549,13 @@ FreeRTOS_Socket_t *pxSocket;
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-	/* Add a socket to a set */
+	/**
+	 * @brief Add a socket to a set.
+	 *
+	 * @param[in] xSocket: The socket being added.
+         * @param[in] xSocketSet: The socket set being added to.
+         * @param[in] xBitsToSet: The bits to set.
+	 */
 	void FreeRTOS_FD_SET( Socket_t xSocket,
 						  SocketSet_t xSocketSet,
 						  EventBits_t xBitsToSet )
@@ -545,8 +586,14 @@ FreeRTOS_Socket_t *pxSocket;
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-	/* Clear select bits for a socket
-	If the mask becomes 0, remove the socket from the set */
+	/**
+	 * @brief Clear select bits for a socket. If the mask becomes 0,
+	 *        remove the socket from the set.
+	 *
+	 * @param[in] xSocket: The socket whose select bits are being cleared.
+         * @param[in] xSocketSet: The seocket set of the socket.
+         * @param[in] xBitsToClear: The bits to be cleared.
+	 */
 	void FreeRTOS_FD_CLR( Socket_t xSocket,
 						  SocketSet_t xSocketSet,
 						  EventBits_t xBitsToClear )
@@ -575,7 +622,16 @@ FreeRTOS_Socket_t *pxSocket;
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-	/* Test if a socket belongs to a socket-set */
+	/**
+	 * @brief Test if a socket belongs to a socket-set.
+	 *
+	 * @param[in] xSocket: The socket which is being checked whether it belongs
+	 *                     to the SocketSet.
+         * @param[in] xSocketSet: The socket set being checked.
+	 *
+	 * @return 0 if the socket doesn't belong to the set. Else, the logical and
+	 *         of eSELECT_ALL and the eventbits of the socket.
+	 */
 	EventBits_t FreeRTOS_FD_ISSET( Socket_t xSocket,
 								   SocketSet_t xSocketSet )
 	{
@@ -604,8 +660,18 @@ FreeRTOS_Socket_t *pxSocket;
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-	/* The select() statement: wait for an event to occur on any of the sockets
-	included in a socket set */
+	/**
+	 * @brief The select() statement: wait for an event to occur on any of the sockets
+	 *        included in a socket set.
+	 *
+	 * @param[in] xSocketSet: The socket set including the sockets on which we are
+	 *                        waiting for an event to occur.
+         * @param[in] xBlockTimeTicks: Maximum time ticks to wait for an event to occur.
+	 *                   If the value is 'portMAX_DELAY' then the function will wait
+	 *                   indefinately.
+	 *
+	 * @return The socket which might have triggered the event bit.
+	 */
 	BaseType_t FreeRTOS_select( SocketSet_t xSocketSet,
 								TickType_t xBlockTimeTicks )
 	{
@@ -664,8 +730,12 @@ FreeRTOS_Socket_t *pxSocket;
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-	/* Send a message to the IP-task to have it check all sockets belonging to
-	'pxSocketSet' */
+	/**
+	 * @brief Send a message to the IP-task to have it check all sockets belonging to
+	 *        'pxSocketSet'
+	 *
+	 * @param[in] pxSocketSet: The socket set being asked to check.
+	 */
 	static void prvFindSelectedSocket( SocketSelect_t *pxSocketSet )
 	{
 	IPStackEvent_t xSelectEvent;
@@ -716,10 +786,21 @@ FreeRTOS_Socket_t *pxSocket;
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
 /*-----------------------------------------------------------*/
 
-/*
- * FreeRTOS_recvfrom: receive data from a bound socket
- * In this library, the function can only be used with connection-less sockets
- * (UDP)
+/**
+ * @brief Receive data from a bound socket. In this library, the function
+ *        can only be used with connection-less sockets (UDP).
+ *
+ * @param[in] xSocket: The socket to which the data is sent i.e. the
+ *                     listening socket.
+ * @param[in] pvBuffer: The buffer in which the data being received is to
+ *                      be stored.
+ * @param[in] uxBufferLength: The length of the buffer.
+ * @param[in] xFlags: The flags to indicate preferences while calling this function.
+ * @param[in] pxSourceAddress: The source address from which the data is being sent.
+ * @param[in] pxSourceAddressLength: This parameter is used only to adhere to Berkeley
+ *                              sockets standard. It is not used internally.
+ *
+ * @return The number of bytes received. Or else, an error code is returned.
  */
 int32_t FreeRTOS_recvfrom( Socket_t xSocket,
 						   void *pvBuffer,
@@ -899,6 +980,20 @@ size_t uxPayloadLength;
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Send data to a socket. The socket must have already been created by a
+ *        successful call to FreeRTOS_socket().
+ *
+ * @param[in] xSocket: The socket being sent to.
+ * @param[in] pvBuffer: Pointer to the data being sent to.
+ * @param[in] uxTotalDataLength: Length (in bytes) of the data being sent.
+ * @param[in] xFlags: Flags used to communicate preferences to the function.
+ * @param[in] pxDestinationAddress: The address to which the data is to be sent.
+ * @param[in] xDestinationAddressLength: This parameter is present to adhere to the
+ *                  Berkeley sockets standard. Else, it is not used.
+ *
+ * @return The total number of bytes sent.
+ */
 int32_t FreeRTOS_sendto( Socket_t xSocket,
 						 const void *pvBuffer,
 						 size_t uxTotalDataLength,
@@ -1048,12 +1143,22 @@ const size_t uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv4;
 } /* Tested */
 /*-----------------------------------------------------------*/
 
-/*
- * FreeRTOS_bind() : binds a socket to a local port number.  If port 0 is
- * provided, a system provided port number will be assigned.  This function can
- * be used for both UDP and TCP sockets.  The actual binding will be performed
- * by the IP-task to avoid mutual access to the bound-socket-lists
- * (xBoundUDPSocketsList or xBoundTCPSocketsList).
+/**
+ * @brief binds a socket to a local port number. If port 0 is provided,
+ *        a system provided port number will be assigned. This function
+ *        can be used for both UDP and TCP sockets. The actual binding
+ *        will be performed by the IP-task to avoid mutual access to the
+ *        bound-socket-lists (xBoundUDPSocketsList or xBoundTCPSocketsList).
+ *
+ * @param[in] xSocket: The socket being bound.
+ * @param[in] pxAddress: The address struct carrying the port number to which
+ *                       this socket is to be bound.
+ * @param[in] xAddressLength: This parameter is not used internally. The
+ *                       function signature is used to adhere to standard
+ *                       Berkeley sockets API.
+ *
+ * @return The return value is 0 if the bind is successful.
+ *         If some error occured, then a negative value is returned.
  */
 BaseType_t FreeRTOS_bind( Socket_t xSocket,
 						  struct freertos_sockaddr const * pxAddress,
@@ -1272,11 +1377,19 @@ List_t *pxSocketList;
 } /* Tested */
 /*-----------------------------------------------------------*/
 
-/*
- * Close a socket and free the allocated space
- * In case of a TCP socket: the connection will not be closed automatically
- * Subsequent messages for the closed socket will be responded to with a RST
- * The IP-task will actually close the socket, after receiving a 'eSocketCloseEvent' message
+/**
+ * @brief Close a socket and free the allocated space. In case of a TCP socket:
+ *        the connection will not be closed automatically. Subsequent messages
+ *        for the closed socket will be responded to with a RST. The IP-task
+ *        will actually close the socket, after receiving a 'eSocketCloseEvent'
+ *        message.
+ *
+ * @param[in] xSocket: the socket being closed.
+ *
+ * @return There are three distinct values which can be returned:
+ *         0: If the xSocket is NULL/invalid.
+ *         1: If the socket was successfully closed (read the brief above).
+ *        -1: If the socket was valid but could not be closed due to some reason.
  */
 BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
 {
@@ -1321,14 +1434,19 @@ IPStackEvent_t xCloseEvent;
 		else
 		{
 			xResult = 1;
-		}
+		}x
 	}
 
 	return xResult;
 }
 
-/* This is the internal version of FreeRTOS_closesocket()
- * It will be called by the IPtask only to avoid problems with synchronicity
+/**
+ * @brief This is the internal version of FreeRTOS_closesocket(). It will
+ *        be called by the IPtask only to avoid problems with synchronicity
+ *
+ * @param[in] pxSocket: The socket descriptor of the socket being closed.
+ *
+ * @return Returns NULL, always.
  */
 void * vSocketClose( FreeRTOS_Socket_t *pxSocket )
 {
@@ -1435,11 +1553,13 @@ NetworkBufferDescriptor_t *pxNetworkBuffer;
 
 #if ipconfigUSE_TCP == 1
 
-	/*
-	* When a child socket gets closed, make sure to update the child-count of the
-	* parent.  When a listening parent socket is closed, make sure no child-sockets
-	* keep a pointer to it.
-	*/
+	/**
+	 * @brief When a child socket gets closed, make sure to update the child-count of the
+	 *        parent. When a listening parent socket is closed, make sure no child-sockets
+	 *        keep a pointer to it.
+	 *
+	 * @param[in] pxSocketToDelete: The socket being closed.
+	 */
 	static void prvTCPSetSocketCount( FreeRTOS_Socket_t const * pxSocketToDelete )
 	{
 	const ListItem_t *pxIterator;
@@ -1472,6 +1592,16 @@ NetworkBufferDescriptor_t *pxNetworkBuffer;
 
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Set the value of receive/send buffer after some prelimnary checks.
+ *
+ * @param[in] pxSocket: The socket whose options are being set.
+ * @param[in] lOptionName: The option name.
+ * @param[in] pvOptionValue: The value of the option being set.
+ *
+ * @return If there is no error, then 0 is returned. Or an error value is
+ *         returned.
+ */
 static BaseType_t prvSockopt_so_buffer( FreeRTOS_Socket_t *pxSocket,
 										int32_t lOptionName,
 										const void *pvOptionValue )

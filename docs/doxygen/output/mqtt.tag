@@ -1525,6 +1525,41 @@
       <anchor>a0788754fab0379fd522b0ff849692fc4</anchor>
       <arglist>(const List_t *pxList, TickType_t xWantedItemValue)</arglist>
     </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvValidSocket</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a4328ec58511a541031cc6a60da027ab4</anchor>
+      <arglist>(const FreeRTOS_Socket_t *pxSocket, BaseType_t xProtocol, BaseType_t xIsBound)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvSockopt_so_buffer</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a43126375c017bf52614bff3f1702d1b1</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, int32_t lOptionName, const void *pvOptionValue)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvDetermineSocketSize</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a4ed71e4108c462911d2fa3229eec6df6</anchor>
+      <arglist>(BaseType_t xDomain, BaseType_t xType, BaseType_t xProtocol, size_t *pxSocketSize)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvFindSelectedSocket</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a69915c323634b32c5534bd1a17b79673</anchor>
+      <arglist>(SocketSelect_t *pxSocketSet)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vNetworkSocketsInit</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a4143378ec838cd340efd7f95b30444a5</anchor>
+      <arglist>(void)</arglist>
+    </member>
     <member kind="function">
       <type>Socket_t</type>
       <name>FreeRTOS_socket</name>
@@ -1533,11 +1568,88 @@
       <arglist>(BaseType_t xDomain, BaseType_t xType, BaseType_t xProtocol)</arglist>
     </member>
     <member kind="function">
+      <type>SocketSet_t</type>
+      <name>FreeRTOS_CreateSocketSet</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a6ffb7662be38da18db6ec8e87da4735e</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_DeleteSocketSet</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a427e342cb8d9c513d117ba772f427cca</anchor>
+      <arglist>(SocketSet_t xSocketSet)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_FD_SET</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>accf33877d948d53b4b189ddc41718ccd</anchor>
+      <arglist>(Socket_t xSocket, SocketSet_t xSocketSet, EventBits_t xBitsToSet)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_FD_CLR</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a7ecd213d4d45a6dbc0e900f52f2b4541</anchor>
+      <arglist>(Socket_t xSocket, SocketSet_t xSocketSet, EventBits_t xBitsToClear)</arglist>
+    </member>
+    <member kind="function">
+      <type>EventBits_t</type>
+      <name>FreeRTOS_FD_ISSET</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a038d57f22343be8a68a4d3431b94a306</anchor>
+      <arglist>(Socket_t xSocket, SocketSet_t xSocketSet)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_select</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a659a570c1f1b5a11c17d816cb5541291</anchor>
+      <arglist>(SocketSet_t xSocketSet, TickType_t xBlockTimeTicks)</arglist>
+    </member>
+    <member kind="function">
+      <type>int32_t</type>
+      <name>FreeRTOS_recvfrom</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a72b60b05c7a0fded34d9823536bb013a</anchor>
+      <arglist>(Socket_t xSocket, void *pvBuffer, size_t uxBufferLength, BaseType_t xFlags, struct freertos_sockaddr *pxSourceAddress, socklen_t *pxSourceAddressLength)</arglist>
+    </member>
+    <member kind="function">
+      <type>int32_t</type>
+      <name>FreeRTOS_sendto</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a1493cacf34d993b8b87c41242d7fc6d1</anchor>
+      <arglist>(Socket_t xSocket, const void *pvBuffer, size_t uxTotalDataLength, BaseType_t xFlags, const struct freertos_sockaddr *pxDestinationAddress, socklen_t xDestinationAddressLength)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_bind</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a6fe933805d4f44b09b3b04a13ed28e72</anchor>
+      <arglist>(Socket_t xSocket, struct freertos_sockaddr const *pxAddress, socklen_t xAddressLength)</arglist>
+    </member>
+    <member kind="function">
       <type>BaseType_t</type>
       <name>vSocketBind</name>
       <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
       <anchor>add35977107add8357366416d55c64e69</anchor>
       <arglist>(FreeRTOS_Socket_t *pxSocket, struct freertos_sockaddr *pxBindAddress, size_t uxAddressLength, BaseType_t xInternal)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_closesocket</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>abefb0186bf6e06816a6acd12432dae9b</anchor>
+      <arglist>(Socket_t xSocket)</arglist>
+    </member>
+    <member kind="function">
+      <type>void *</type>
+      <name>vSocketClose</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a6f2765a0d6dddbae7dee11b966813905</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket)</arglist>
     </member>
     <member kind="function">
       <type>BaseType_t</type>
