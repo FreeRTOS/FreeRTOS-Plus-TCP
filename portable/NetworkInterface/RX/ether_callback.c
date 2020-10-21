@@ -24,17 +24,17 @@
 ***********************************************************************************************************************/
 
 /**********************************************************************************************************************
-* History : DD.MM.YYYY Version  Description
-*         : 05.01.2015 ----     Clean up source code.
-***********************************************************************************************************************/
+ * History : DD.MM.YYYY Version  Description
+ *         : 05.01.2015 ----     Clean up source code.
+ ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
-Includes   <System Includes> , "Project Includes"
+*  Includes   <System Includes> , "Project Includes"
 ***********************************************************************************************************************/
 #include "r_ether_rx_if.h"
 
 /***********************************************************************************************************************
-Private global variables and functions
+*  Private global variables and functions
 ***********************************************************************************************************************/
 int32_t callback_ether_regist( void );
 void callback_ether( void * pparam );
@@ -61,32 +61,32 @@ void prvLinkStatusChange( BaseType_t xStatus );
 ***********************************************************************************************************************/
 int32_t callback_ether_regist( void )
 {
-ether_param_t param;
-ether_cb_t cb_func;
+    ether_param_t param;
+    ether_cb_t cb_func;
 
-int32_t ret;
+    int32_t ret;
 
-	/* Set the callback function (LAN cable connect/disconnect event) */
-	cb_func.pcb_func = &callback_ether;
-	param.ether_callback = cb_func;
-	ret = R_ETHER_Control( CONTROL_SET_CALLBACK, param );
+    /* Set the callback function (LAN cable connect/disconnect event) */
+    cb_func.pcb_func = &callback_ether;
+    param.ether_callback = cb_func;
+    ret = R_ETHER_Control( CONTROL_SET_CALLBACK, param );
 
-	if( ETHER_SUCCESS != ret )
-	{
-		return -1;
-	}
+    if( ETHER_SUCCESS != ret )
+    {
+        return -1;
+    }
 
-	/* Set the callback function (Ether interrupt event) */
-	cb_func.pcb_int_hnd = &EINT_Trig_isr;
-	param.ether_callback = cb_func;
-	ret = R_ETHER_Control( CONTROL_SET_INT_HANDLER, param );
+    /* Set the callback function (Ether interrupt event) */
+    cb_func.pcb_int_hnd = &EINT_Trig_isr;
+    param.ether_callback = cb_func;
+    ret = R_ETHER_Control( CONTROL_SET_INT_HANDLER, param );
 
-	if( ETHER_SUCCESS != ret )
-	{
-		return -1;
-	}
+    if( ETHER_SUCCESS != ret )
+    {
+        return -1;
+    }
 
-	return 0;
+    return 0;
 } /* End of function callback_ether_regist() */
 
 /***********************************************************************************************************************
@@ -98,32 +98,32 @@ int32_t ret;
 ***********************************************************************************************************************/
 void callback_ether( void * pparam )
 {
-ether_cb_arg_t * pdecode;
-uint32_t channel;
+    ether_cb_arg_t * pdecode;
+    uint32_t channel;
 
-	pdecode = ( ether_cb_arg_t * ) pparam;
-	channel = pdecode->channel; /* Get Ethernet channel number */
+    pdecode = ( ether_cb_arg_t * ) pparam;
+    channel = pdecode->channel; /* Get Ethernet channel number */
 
-	switch( pdecode->event_id )
-	{
-		/* Callback function that notifies user to have detected magic packet. */
-		case ETHER_CB_EVENT_ID_WAKEON_LAN:
-			callback_wakeon_lan( channel );
-			break;
+    switch( pdecode->event_id )
+    {
+        /* Callback function that notifies user to have detected magic packet. */
+        case ETHER_CB_EVENT_ID_WAKEON_LAN:
+            callback_wakeon_lan( channel );
+            break;
 
-		/* Callback function that notifies user to have become Link up. */
-		case ETHER_CB_EVENT_ID_LINK_ON:
-			callback_link_on( channel );
-			break;
+        /* Callback function that notifies user to have become Link up. */
+        case ETHER_CB_EVENT_ID_LINK_ON:
+            callback_link_on( channel );
+            break;
 
-		/* Callback function that notifies user to have become Link down. */
-		case ETHER_CB_EVENT_ID_LINK_OFF:
-			callback_link_off( channel );
-			break;
+        /* Callback function that notifies user to have become Link down. */
+        case ETHER_CB_EVENT_ID_LINK_OFF:
+            callback_link_off( channel );
+            break;
 
-		default:
-			break;
-	}
+        default:
+            break;
+    }
 } /* End of function callback_ether() */
 
 /***********************************************************************************************************************
@@ -135,12 +135,12 @@ uint32_t channel;
 ***********************************************************************************************************************/
 static void callback_wakeon_lan( uint32_t channel )
 {
-	if( ETHER_CHANNEL_MAX > channel )
-	{
-		magic_packet_detect[ channel ] = 1;
+    if( ETHER_CHANNEL_MAX > channel )
+    {
+        magic_packet_detect[ channel ] = 1;
 
-		/* Please add necessary processing when magic packet is detected.  */
-	}
+        /* Please add necessary processing when magic packet is detected.  */
+    }
 } /* End of function callback_wakeon_lan() */
 
 /***********************************************************************************************************************
@@ -152,13 +152,13 @@ static void callback_wakeon_lan( uint32_t channel )
 ***********************************************************************************************************************/
 static void callback_link_on( uint32_t channel )
 {
-	if( ETHER_CHANNEL_MAX > channel )
-	{
-		link_detect[ channel ] = ETHER_FLAG_ON_LINK_ON;
+    if( ETHER_CHANNEL_MAX > channel )
+    {
+        link_detect[ channel ] = ETHER_FLAG_ON_LINK_ON;
 
-		/* Please add necessary processing when becoming Link up. */
-		prvLinkStatusChange( 1 );
-	}
+        /* Please add necessary processing when becoming Link up. */
+        prvLinkStatusChange( 1 );
+    }
 } /* End of function callback_link_on() */
 
 /***********************************************************************************************************************
@@ -170,13 +170,13 @@ static void callback_link_on( uint32_t channel )
 ***********************************************************************************************************************/
 static void callback_link_off( uint32_t channel )
 {
-	if( ETHER_CHANNEL_MAX > channel )
-	{
-		link_detect[ channel ] = ETHER_FLAG_ON_LINK_OFF;
+    if( ETHER_CHANNEL_MAX > channel )
+    {
+        link_detect[ channel ] = ETHER_FLAG_ON_LINK_OFF;
 
-		/* Please add necessary processing when becoming Link down. */
-		prvLinkStatusChange( 0 );
-	}
+        /* Please add necessary processing when becoming Link down. */
+        prvLinkStatusChange( 0 );
+    }
 } /* End of function ether_cb_link_off() */
 
 /* End of File */
