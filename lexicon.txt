@@ -12,7 +12,7 @@ addr
 addressalignedbeats
 addrstart
 addtogroup
-advertize
+advertise
 afe
 ahb
 amba
@@ -79,13 +79,12 @@ bsendfullsize
 bsendkeepalive
 btimestamps
 buf
-buffermanagement
 buffna
 busershutdown
 bwaitkeepalive
 bwinchange
 bwinscaling
-byt
+byte
 bytecount
 callbacklist
 calloc
@@ -130,7 +129,6 @@ cwd
 da
 daif
 datalen
-datasheet
 dbf
 dc
 dcrs
@@ -734,7 +732,6 @@ pxtcpwindow
 pxudpsocketlookup
 pxwindow
 qmu
-que
 queuegenericcreate
 quickstart
 ra
