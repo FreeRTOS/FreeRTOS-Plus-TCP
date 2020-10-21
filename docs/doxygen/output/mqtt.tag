@@ -941,6 +941,13 @@
     </member>
     <member kind="define">
       <type>#define</type>
+      <name>ipTCP_TIMER_PERIOD_MS</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>aef1630538f6d0701a36f878b67bbff8f</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
       <name>ipCONSIDER_FRAME_FOR_PROCESSING</name>
       <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
       <anchor>a615aa656020ebf93f31e4ccbd47a880d</anchor>
@@ -1382,6 +1389,13 @@
     </member>
     <member kind="variable" static="yes">
       <type>static BaseType_t</type>
+      <name>xProcessedTCPMessage</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>af2ee87b297b5e8d2b71edb828b44c834</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static BaseType_t</type>
       <name>xNetworkUp</name>
       <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
       <anchor>a6831050baaf1f467735e027fb77ba98e</anchor>
@@ -1399,6 +1413,13 @@
       <name>xDHCPTimer</name>
       <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
       <anchor>af1400bc732b7f47d9e33033fcb35f907</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static IPTimer_t</type>
+      <name>xTCPTimer</name>
+      <anchorfile>_free_r_t_o_s___i_p_8c.html</anchorfile>
+      <anchor>a173c03d7a816518ad4d362a7c61088f6</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
@@ -1467,6 +1488,13 @@
       <name>socketDONT_BLOCK</name>
       <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
       <anchor>a42f8714f024edfbb0a683d31d2ee7e60</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipTCP_TIMER_PERIOD_MS</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>aef1630538f6d0701a36f878b67bbff8f</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
@@ -1545,6 +1573,41 @@
       <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
       <anchor>a4ed71e4108c462911d2fa3229eec6df6</anchor>
       <arglist>(BaseType_t xDomain, BaseType_t xType, BaseType_t xProtocol, size_t *pxSocketSize)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static StreamBuffer_t *</type>
+      <name>prvTCPCreateStream</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a6fbe49f69aeaa10ff6d5d7d2cc82c71d</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, BaseType_t xIsInputStream)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static int32_t</type>
+      <name>prvTCPSendCheck</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>ad719999c8bcbddf392affdeb6be2f554</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, size_t uxDataLength)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvTCPSetSocketCount</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a91064db1bf7a4b1f49922c8f9927c701</anchor>
+      <arglist>(FreeRTOS_Socket_t const *pxSocketToDelete)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvTCPConnectStart</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a5d910cb9c6b4f63d7f8a75cd1ed7fa62</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, struct freertos_sockaddr const *pxAddress)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>bMayConnect</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>ae8a5f1c37d0260304e2acb616ca18247</anchor>
+      <arglist>(FreeRTOS_Socket_t const *pxSocket)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>
@@ -1722,6 +1785,146 @@
       <arglist>(FreeRTOS_Socket_t *pxSocket)</arglist>
     </member>
     <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_connect</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>aa17e87db63f5dd047cc4fe5c2368555e</anchor>
+      <arglist>(Socket_t xClientSocket, struct freertos_sockaddr *pxAddress, socklen_t xAddressLength)</arglist>
+    </member>
+    <member kind="function">
+      <type>Socket_t</type>
+      <name>FreeRTOS_accept</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a1b0aabc4d95b9a61e531429839f50852</anchor>
+      <arglist>(Socket_t xServerSocket, struct freertos_sockaddr *pxAddress, socklen_t *pxAddressLength)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_recv</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a44ab7ba5fddce925519c7ccc7b887033</anchor>
+      <arglist>(Socket_t xSocket, void *pvBuffer, size_t uxBufferLength, BaseType_t xFlags)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint8_t *</type>
+      <name>FreeRTOS_get_tx_head</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>acf2b08087032671c04f786b3992fdc58</anchor>
+      <arglist>(ConstSocket_t xSocket, BaseType_t *pxLength)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_send</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>abfb04a35d27c55380be674ebd8204351</anchor>
+      <arglist>(Socket_t xSocket, const void *pvBuffer, size_t uxDataLength, BaseType_t xFlags)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_listen</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a1718a2539e0de40d95472ea59859be5c</anchor>
+      <arglist>(Socket_t xSocket, BaseType_t xBacklog)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_shutdown</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>af3c0198b40cbd5c5e4bb4f173df4fff1</anchor>
+      <arglist>(Socket_t xSocket, BaseType_t xHow)</arglist>
+    </member>
+    <member kind="function">
+      <type>TickType_t</type>
+      <name>xTCPTimerCheck</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>ad3802e1a3603f571bcb185f2afbd48de</anchor>
+      <arglist>(BaseType_t xWillSleep)</arglist>
+    </member>
+    <member kind="function">
+      <type>FreeRTOS_Socket_t *</type>
+      <name>pxTCPSocketLookup</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>ae8099cad140d7cf14f3d25392eb74bea</anchor>
+      <arglist>(uint32_t ulLocalIP, UBaseType_t uxLocalPort, uint32_t ulRemoteIP, UBaseType_t uxRemotePort)</arglist>
+    </member>
+    <member kind="function">
+      <type>const struct xSTREAM_BUFFER *</type>
+      <name>FreeRTOS_get_rx_buf</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a0c996d1928c4d004672d4d996f1d12c1</anchor>
+      <arglist>(ConstSocket_t xSocket)</arglist>
+    </member>
+    <member kind="function">
+      <type>int32_t</type>
+      <name>lTCPAddRxdata</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a712ce92b8518f62444aad31e0fb1d424</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, size_t uxOffset, const uint8_t *pcData, uint32_t ulByteCount)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_GetRemoteAddress</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a9e0d7303574cd99128cbdb79e54adc89</anchor>
+      <arglist>(ConstSocket_t xSocket, struct freertos_sockaddr *pxAddress)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_maywrite</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a50d7c4b5b3eeea34905a4f16b6f13965</anchor>
+      <arglist>(ConstSocket_t xSocket)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_tx_space</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>ab49ef118747de118579ce9ba6e2d3d10</anchor>
+      <arglist>(ConstSocket_t xSocket)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_tx_size</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>af92a73b86b115ac2caeaf6d98d696723</anchor>
+      <arglist>(ConstSocket_t xSocket)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_issocketconnected</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>ad8dffb3417a60b9c98108408052579ad</anchor>
+      <arglist>(ConstSocket_t xSocket)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_mss</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a10a19083f6bdd12aa4e0a8e508454385</anchor>
+      <arglist>(ConstSocket_t xSocket)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_connstatus</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a0a6df495a5df34259dd6ef400992a46f</anchor>
+      <arglist>(ConstSocket_t xSocket)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>FreeRTOS_rx_size</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a6780a9d34f029526febb9b8a26f1b0c5</anchor>
+      <arglist>(ConstSocket_t xSocket)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>FreeRTOS_netstat</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>a48a287752bb66a04cb00ab0e427f4808</anchor>
+      <arglist>(void)</arglist>
+    </member>
+    <member kind="function">
       <type>void</type>
       <name>vSocketSelect</name>
       <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
@@ -1734,6 +1937,478 @@
       <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
       <anchor>a0bb39b9379d9271063dad16351b7d3ab</anchor>
       <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>List_t</type>
+      <name>xBoundTCPSocketsList</name>
+      <anchorfile>_free_r_t_o_s___sockets_8c.html</anchorfile>
+      <anchor>ae02571e6608569169207562135f16785</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="file">
+    <name>FreeRTOS_Stream_Buffer.c</name>
+    <path>/root/Desktop/AddDoxygen/</path>
+    <filename>_free_r_t_o_s___stream___buffer_8c.html</filename>
+    <member kind="function">
+      <type>size_t</type>
+      <name>uxStreamBufferAdd</name>
+      <anchorfile>_free_r_t_o_s___stream___buffer_8c.html</anchorfile>
+      <anchor>a1616165d71579114071ce6c9fcec9d74</anchor>
+      <arglist>(StreamBuffer_t *pxBuffer, size_t uxOffset, const uint8_t *pucData, size_t uxByteCount)</arglist>
+    </member>
+    <member kind="function">
+      <type>size_t</type>
+      <name>uxStreamBufferGet</name>
+      <anchorfile>_free_r_t_o_s___stream___buffer_8c.html</anchorfile>
+      <anchor>ab2e63d3708d238cb5b6dd9f8372f8a62</anchor>
+      <arglist>(StreamBuffer_t *pxBuffer, size_t uxOffset, uint8_t *pucData, size_t uxMaxCount, BaseType_t xPeek)</arglist>
+    </member>
+  </compound>
+  <compound kind="file">
+    <name>FreeRTOS_TCP_IP.c</name>
+    <path>/root/Desktop/AddDoxygen/</path>
+    <filename>_free_r_t_o_s___t_c_p___i_p_8c.html</filename>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_FLAG_FIN</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>aa23ea9f1090719d5fe63b05b916f8475</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_FLAG_SYN</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>aab413c82652ca09af97361cf9477a47c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_FLAG_RST</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>aeaca8c0103423aaab32d151387adee18</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_FLAG_PSH</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a71daac922d12e3e3ff760fbfc7db8875</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_FLAG_ACK</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a96dee2ad910b9b2121318ab0a22291dd</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_FLAG_URG</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a0cecc71bb9663461bbcdd14e1cca10b0</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_FLAG_ECN</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a9bd4fe51b7e508a123941990ff10ffee</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_FLAG_CWR</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>aa88c66473fde8218a9e885b645e41a13</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_FLAG_CTRL</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>ac11f82b0e649e5d88a6a1196b08b401d</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_OPT_END</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a0bba2554431f5b7fda5d97d222ef9786</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_OPT_NOOP</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a0fdf7f0c704090fc5e0439f993a40f8f</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_OPT_MSS</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a1ca14d2b8c5971642e2d2645c492cc2a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_OPT_WSOPT</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a7fd42af6084ca092b20953b996f39719</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_OPT_SACK_P</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a7cecfff8a8e16e2059268c16af8f5615</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_OPT_SACK_A</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>adc66468782cc29eb6ce182a07b2d11d6</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_OPT_TIMESTAMP</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a7fedb3a976274f11461a300b2d9568e6</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_OPT_MSS_LEN</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a0d7cfb33a05d29167808c7c7a093d5bf</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_OPT_WSOPT_LEN</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a3fe51ca2c0ca39f68c207456152fad2e</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_OPT_TIMESTAMP_LEN</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>ad565b934d8982b674a926eefa85481fb</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipconfigTCP_ACK_EARLIER_PACKET</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>ab2443d4b4e820eba87abb0cc920cccff</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpNOW_CONNECTED</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>aa179a7d374ac0a969dba186a61621db1</anchor>
+      <arglist>(status)</arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpVALID_BITS_IN_TCP_OFFSET_BYTE</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a70d3b988aa560daa7b2675ff9986c01b</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpDELAYED_ACK_SHORT_DELAY_MS</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>ae3395a76923220eca4221c12dff07d3e</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpDELAYED_ACK_LONGER_DELAY_MS</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a2813bcb2476a861459453422d1960008</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpREDUCED_MSS_THROUGH_INTERNET</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>abc72505b99e0b00f63279c6c4b6ab24c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_OFFSET_LENGTH_BITS</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a61dd1d433f631a2c079b0ef7703cf764</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpTCP_OFFSET_STANDARD_LENGTH</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>ae9e28e136632b3bc7881c2ef87e966c2</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>SEND_REPEATED_COUNT</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a45c75cc05cf4bbf1d8160191dff0c303</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>tcpMAXIMUM_TCP_WAKEUP_TIME_MS</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>aa70b9afd422a764386be33ca7847d5bc</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>xIPHeaderSize</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a688a156ac82e335f6acb73564af691e7</anchor>
+      <arglist>(pxNetworkBuffer)</arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>uxIPHeaderSizeSocket</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a8136ac000e6a04d5f098cd691ac1a14b</anchor>
+      <arglist>(pxSocket)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvTCPSocketIsActive</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a074e94106db91d94f21c0580affde782</anchor>
+      <arglist>(eIPTCPState_t xStatus)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static int32_t</type>
+      <name>prvTCPSendPacket</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>abfb9df3f6539966ec17c4752cd99e035</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static int32_t</type>
+      <name>prvTCPSendRepeated</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>ae55092c8fe479837a69c29167b5e16ae</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, NetworkBufferDescriptor_t **ppxNetworkBuffer)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvTCPReturnPacket</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a90c3299ce1b59128557449658e170da3</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, NetworkBufferDescriptor_t *pxDescriptor, uint32_t ulLen, BaseType_t xReleaseAfterSend)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvTCPCreateWindow</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a486e0a50c3dc44834ee585ed9c62766b</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvTCPPrepareConnect</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a259d393932637c52fd7e1eb22c10b3c6</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket)</arglist>
+    </member>
+    <member kind="function">
+      <type>_static void</type>
+      <name>prvCheckOptions</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>aaa4372b4f0f440715d288b7fd5681be3</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, const NetworkBufferDescriptor_t *pxNetworkBuffer)</arglist>
+    </member>
+    <member kind="function">
+      <type>_static size_t</type>
+      <name>prvSingleStepTCPHeaderOptions</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a8f5ccd90ad6e056252cbde7d34c9bda0</anchor>
+      <arglist>(const uint8_t *const pucPtr, size_t uxTotalLength, FreeRTOS_Socket_t *const pxSocket, BaseType_t xHasSYNFlag)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static UBaseType_t</type>
+      <name>prvSetSynAckOptions</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a0ffa471bf4c769535d3f7b9d5a968cdb</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, TCPHeader_t *pxTCPHeader)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvTCPTouchSocket</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>af1e47864a5591d814aa9baf281c20cd5</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static int32_t</type>
+      <name>prvTCPPrepareSend</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a03f032b5eef69f4f6a2ba16a2c516954</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, NetworkBufferDescriptor_t **ppxNetworkBuffer, UBaseType_t uxOptionsLength)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static TickType_t</type>
+      <name>prvTCPNextTimeout</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>ae80be66ff5dea32208cc3303072fbfa3</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvTCPAddTxData</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a5c3b5073967e63a162c6fd13dc9b2a45</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvTCPHandleFin</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>aed19306eb74e28863615dd7be8e2e1a7</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, const NetworkBufferDescriptor_t *pxNetworkBuffer)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvCheckRxData</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a5273259449f802266c3c5a8d0ef03389</anchor>
+      <arglist>(const NetworkBufferDescriptor_t *pxNetworkBuffer, uint8_t **ppucRecvData)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvStoreRxData</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a918dc39521690f49ba16c2ed9deacf4e</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, const uint8_t *pucRecvData, NetworkBufferDescriptor_t *pxNetworkBuffer, uint32_t ulReceiveLength)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static UBaseType_t</type>
+      <name>prvSetOptions</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a2f106d9f19f8c57b3b851fb77eab9445</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, const NetworkBufferDescriptor_t *pxNetworkBuffer)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvHandleSynReceived</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a38bfd1b31c5ec1532040b5c728b52222</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, const NetworkBufferDescriptor_t *pxNetworkBuffer, uint32_t ulReceiveLength, UBaseType_t uxOptionsLength)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvHandleEstablished</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a321329a25c8f6de7856bec44678d6326</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, NetworkBufferDescriptor_t **ppxNetworkBuffer, uint32_t ulReceiveLength, UBaseType_t uxOptionsLength)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvSendData</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>ad48f7b6332e810a14c8269f17775ea10</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, NetworkBufferDescriptor_t **ppxNetworkBuffer, uint32_t ulReceiveLength, BaseType_t xByteCount)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvTCPHandleState</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a396f3542839fd1e377e333918afd81a4</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, NetworkBufferDescriptor_t **ppxNetworkBuffer)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvTCPSendSpecialPacketHelper</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a1f06e746cb1cfac5d3e8c5a9465ba950</anchor>
+      <arglist>(NetworkBufferDescriptor_t *pxNetworkBuffer, uint8_t ucTCPFlags)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvTCPSendChallengeAck</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>abd027c2104ce7522015fe84d02681516</anchor>
+      <arglist>(NetworkBufferDescriptor_t *pxNetworkBuffer)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvTCPSendReset</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>ac7a1dc6f7c485315189b8b0f3094d839</anchor>
+      <arglist>(NetworkBufferDescriptor_t *pxNetworkBuffer)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>prvSocketSetMSS</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>adfc845a88dfffbbcd658bb30f10508ad</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static FreeRTOS_Socket_t *</type>
+      <name>prvHandleListen</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>ac2785c9db86dfb1f5f6b01155ddd54e0</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, NetworkBufferDescriptor_t *pxNetworkBuffer)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static BaseType_t</type>
+      <name>prvTCPSocketCopy</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>af01e793e6003047552ed3f542f0a66ff</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxNewSocket, FreeRTOS_Socket_t *pxSocket)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static NetworkBufferDescriptor_t *</type>
+      <name>prvTCPBufferResize</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>ad42a8368c193b45516ebc2082c8c6ea3</anchor>
+      <arglist>(const FreeRTOS_Socket_t *pxSocket, NetworkBufferDescriptor_t *pxNetworkBuffer, int32_t lDataLen, UBaseType_t uxOptionsLength)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>xTCPSocketCheck</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a6f0ad2de00346e1017a692e4da7c3f0c</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vTCPStateChange</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a97d34454b4f1d4b0a4f5e5b998fdf578</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket, enum eTCP_STATE eTCPState)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>xProcessReceivedTCPPacket</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a3afd3312f86e44f4b4d95ab1e7bd34be</anchor>
+      <arglist>(NetworkBufferDescriptor_t *pxDescriptor)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>xTCPCheckNewClient</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>abd9d9857511e8c986d7eb52849cfe73d</anchor>
+      <arglist>(FreeRTOS_Socket_t *pxSocket)</arglist>
     </member>
   </compound>
   <compound kind="struct">

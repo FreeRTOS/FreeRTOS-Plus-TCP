@@ -148,8 +148,11 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a42f8714f024edfbb0a683d31d2ee7e60">socketDONT_BLOCK</a>&#160;&#160;&#160;( ( TickType_t ) 0 )</td></tr>
 <tr class="memdesc:a42f8714f024edfbb0a683d31d2ee7e60"><td class="mdescLeft">&#160;</td><td class="mdescRight">A block time of 0 simply means "don't block". <br /></td></tr>
 <tr class="separator:a42f8714f024edfbb0a683d31d2ee7e60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef1630538f6d0701a36f878b67bbff8f"><td class="memItemLeft" align="right" valign="top"><a id="aef1630538f6d0701a36f878b67bbff8f"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#aef1630538f6d0701a36f878b67bbff8f">ipTCP_TIMER_PERIOD_MS</a>&#160;&#160;&#160;( 1000U )</td></tr>
+<tr class="memdesc:aef1630538f6d0701a36f878b67bbff8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">TCP timer period in milliseconds. <br /></td></tr>
+<tr class="separator:aef1630538f6d0701a36f878b67bbff8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68795ded8df36253a9ae4a48f728f863"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a68795ded8df36253a9ae4a48f728f863">sock20_PERCENT</a>&#160;&#160;&#160;20U</td></tr>
-<tr class="memdesc:a68795ded8df36253a9ae4a48f728f863"><td class="mdescLeft">&#160;</td><td class="mdescRight">TCP timer period in milliseconds.  <a href="_free_r_t_o_s___sockets_8c.html#a68795ded8df36253a9ae4a48f728f863">More...</a><br /></td></tr>
 <tr class="separator:a68795ded8df36253a9ae4a48f728f863"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63599b39bbf9eea1e37fcbb06035027d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a63599b39bbf9eea1e37fcbb06035027d">sock80_PERCENT</a>&#160;&#160;&#160;80U</td></tr>
 <tr class="separator:a63599b39bbf9eea1e37fcbb06035027d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -181,6 +184,21 @@ Functions</h2></td></tr>
 <tr class="memitem:a4ed71e4108c462911d2fa3229eec6df6"><td class="memItemLeft" align="right" valign="top">static BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a4ed71e4108c462911d2fa3229eec6df6">prvDetermineSocketSize</a> (BaseType_t xDomain, BaseType_t xType, BaseType_t xProtocol, size_t *pxSocketSize)</td></tr>
 <tr class="memdesc:a4ed71e4108c462911d2fa3229eec6df6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determine the socket size for the given protocol.  <a href="_free_r_t_o_s___sockets_8c.html#a4ed71e4108c462911d2fa3229eec6df6">More...</a><br /></td></tr>
 <tr class="separator:a4ed71e4108c462911d2fa3229eec6df6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6fbe49f69aeaa10ff6d5d7d2cc82c71d"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="struct_stream_buffer__t.html">StreamBuffer_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a6fbe49f69aeaa10ff6d5d7d2cc82c71d">prvTCPCreateStream</a> (<a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *pxSocket, BaseType_t xIsInputStream)</td></tr>
+<tr class="memdesc:a6fbe49f69aeaa10ff6d5d7d2cc82c71d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create the stream buffer for the given socket.  <a href="_free_r_t_o_s___sockets_8c.html#a6fbe49f69aeaa10ff6d5d7d2cc82c71d">More...</a><br /></td></tr>
+<tr class="separator:a6fbe49f69aeaa10ff6d5d7d2cc82c71d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad719999c8bcbddf392affdeb6be2f554"><td class="memItemLeft" align="right" valign="top">static int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#ad719999c8bcbddf392affdeb6be2f554">prvTCPSendCheck</a> (<a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *pxSocket, size_t uxDataLength)</td></tr>
+<tr class="memdesc:ad719999c8bcbddf392affdeb6be2f554"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called from <a class="el" href="_free_r_t_o_s___sockets_8c.html#abfb04a35d27c55380be674ebd8204351" title="Send data using a TCP socket. It is not necessary to have the socket connected already....">FreeRTOS_send()</a>: some checks which will be done before sending a TCP packed.  <a href="_free_r_t_o_s___sockets_8c.html#ad719999c8bcbddf392affdeb6be2f554">More...</a><br /></td></tr>
+<tr class="separator:ad719999c8bcbddf392affdeb6be2f554"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91064db1bf7a4b1f49922c8f9927c701"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a91064db1bf7a4b1f49922c8f9927c701">prvTCPSetSocketCount</a> (<a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> const *pxSocketToDelete)</td></tr>
+<tr class="memdesc:a91064db1bf7a4b1f49922c8f9927c701"><td class="mdescLeft">&#160;</td><td class="mdescRight">When a child socket gets closed, make sure to update the child-count of the parent. When a listening parent socket is closed, make sure no child-sockets keep a pointer to it.  <a href="_free_r_t_o_s___sockets_8c.html#a91064db1bf7a4b1f49922c8f9927c701">More...</a><br /></td></tr>
+<tr class="separator:a91064db1bf7a4b1f49922c8f9927c701"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d910cb9c6b4f63d7f8a75cd1ed7fa62"><td class="memItemLeft" align="right" valign="top">static BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a5d910cb9c6b4f63d7f8a75cd1ed7fa62">prvTCPConnectStart</a> (<a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *pxSocket, <a class="el" href="structstruct.html">struct</a> <a class="el" href="structfreertos__sockaddr.html">freertos_sockaddr</a> const *pxAddress)</td></tr>
+<tr class="memdesc:a5d910cb9c6b4f63d7f8a75cd1ed7fa62"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called from <a class="el" href="_free_r_t_o_s___sockets_8c.html#aa17e87db63f5dd047cc4fe5c2368555e" title="Connect to a remote port.">FreeRTOS_connect()</a>: make some checks and if allowed, send a message to the IP-task to start connecting to a remote socket.  <a href="_free_r_t_o_s___sockets_8c.html#a5d910cb9c6b4f63d7f8a75cd1ed7fa62">More...</a><br /></td></tr>
+<tr class="separator:a5d910cb9c6b4f63d7f8a75cd1ed7fa62"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8a5f1c37d0260304e2acb616ca18247"><td class="memItemLeft" align="right" valign="top">static BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#ae8a5f1c37d0260304e2acb616ca18247">bMayConnect</a> (<a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> const *pxSocket)</td></tr>
+<tr class="memdesc:ae8a5f1c37d0260304e2acb616ca18247"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if it makes any sense to wait for a connect event.  <a href="_free_r_t_o_s___sockets_8c.html#ae8a5f1c37d0260304e2acb616ca18247">More...</a><br /></td></tr>
+<tr class="separator:ae8a5f1c37d0260304e2acb616ca18247"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a69915c323634b32c5534bd1a17b79673"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a69915c323634b32c5534bd1a17b79673">prvFindSelectedSocket</a> (<a class="el" href="struct_socket_select__t.html">SocketSelect_t</a> *pxSocketSet)</td></tr>
 <tr class="memdesc:a69915c323634b32c5534bd1a17b79673"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send a message to the IP-task to have it check all sockets belonging to 'pxSocketSet'.  <a href="_free_r_t_o_s___sockets_8c.html#a69915c323634b32c5534bd1a17b79673">More...</a><br /></td></tr>
 <tr class="separator:a69915c323634b32c5534bd1a17b79673"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -256,6 +274,67 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_fre
 <tr class="memitem:a0387edebc3e7bcf7fcf038a01a098213"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a0387edebc3e7bcf7fcf038a01a098213">vSocketWakeUpUser</a> (<a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *pxSocket)</td></tr>
 <tr class="memdesc:a0387edebc3e7bcf7fcf038a01a098213"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wake up the user of the given socket through event-groups.  <a href="_free_r_t_o_s___sockets_8c.html#a0387edebc3e7bcf7fcf038a01a098213">More...</a><br /></td></tr>
 <tr class="separator:a0387edebc3e7bcf7fcf038a01a098213"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa17e87db63f5dd047cc4fe5c2368555e"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#aa17e87db63f5dd047cc4fe5c2368555e">FreeRTOS_connect</a> (Socket_t xClientSocket, <a class="el" href="structstruct.html">struct</a> <a class="el" href="structfreertos__sockaddr.html">freertos_sockaddr</a> *pxAddress, socklen_t xAddressLength)</td></tr>
+<tr class="memdesc:aa17e87db63f5dd047cc4fe5c2368555e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Connect to a remote port.  <a href="_free_r_t_o_s___sockets_8c.html#aa17e87db63f5dd047cc4fe5c2368555e">More...</a><br /></td></tr>
+<tr class="separator:aa17e87db63f5dd047cc4fe5c2368555e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b0aabc4d95b9a61e531429839f50852"><td class="memItemLeft" align="right" valign="top">Socket_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a1b0aabc4d95b9a61e531429839f50852">FreeRTOS_accept</a> (Socket_t xServerSocket, <a class="el" href="structstruct.html">struct</a> <a class="el" href="structfreertos__sockaddr.html">freertos_sockaddr</a> *pxAddress, socklen_t *pxAddressLength)</td></tr>
+<tr class="memdesc:a1b0aabc4d95b9a61e531429839f50852"><td class="mdescLeft">&#160;</td><td class="mdescRight">Accept a connection on an listening socket.  <a href="_free_r_t_o_s___sockets_8c.html#a1b0aabc4d95b9a61e531429839f50852">More...</a><br /></td></tr>
+<tr class="separator:a1b0aabc4d95b9a61e531429839f50852"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44ab7ba5fddce925519c7ccc7b887033"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a44ab7ba5fddce925519c7ccc7b887033">FreeRTOS_recv</a> (Socket_t xSocket, void *pvBuffer, size_t uxBufferLength, BaseType_t xFlags)</td></tr>
+<tr class="memdesc:a44ab7ba5fddce925519c7ccc7b887033"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read incoming data from a TCP socket. Only after the last byte has been read, a close error might be returned.  <a href="_free_r_t_o_s___sockets_8c.html#a44ab7ba5fddce925519c7ccc7b887033">More...</a><br /></td></tr>
+<tr class="separator:a44ab7ba5fddce925519c7ccc7b887033"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf2b08087032671c04f786b3992fdc58"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#acf2b08087032671c04f786b3992fdc58">FreeRTOS_get_tx_head</a> (ConstSocket_t xSocket, BaseType_t *pxLength)</td></tr>
+<tr class="memdesc:acf2b08087032671c04f786b3992fdc58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a direct pointer to the circular transmit buffer.  <a href="_free_r_t_o_s___sockets_8c.html#acf2b08087032671c04f786b3992fdc58">More...</a><br /></td></tr>
+<tr class="separator:acf2b08087032671c04f786b3992fdc58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abfb04a35d27c55380be674ebd8204351"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#abfb04a35d27c55380be674ebd8204351">FreeRTOS_send</a> (Socket_t xSocket, const void *pvBuffer, size_t uxDataLength, BaseType_t xFlags)</td></tr>
+<tr class="memdesc:abfb04a35d27c55380be674ebd8204351"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send data using a TCP socket. It is not necessary to have the socket connected already. Outgoing data will be stored and delivered as soon as the socket gets connected.  <a href="_free_r_t_o_s___sockets_8c.html#abfb04a35d27c55380be674ebd8204351">More...</a><br /></td></tr>
+<tr class="separator:abfb04a35d27c55380be674ebd8204351"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1718a2539e0de40d95472ea59859be5c"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a1718a2539e0de40d95472ea59859be5c">FreeRTOS_listen</a> (Socket_t xSocket, BaseType_t xBacklog)</td></tr>
+<tr class="memdesc:a1718a2539e0de40d95472ea59859be5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Request to put a socket in listen mode.  <a href="_free_r_t_o_s___sockets_8c.html#a1718a2539e0de40d95472ea59859be5c">More...</a><br /></td></tr>
+<tr class="separator:a1718a2539e0de40d95472ea59859be5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3c0198b40cbd5c5e4bb4f173df4fff1"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#af3c0198b40cbd5c5e4bb4f173df4fff1">FreeRTOS_shutdown</a> (Socket_t xSocket, BaseType_t xHow)</td></tr>
+<tr class="memdesc:af3c0198b40cbd5c5e4bb4f173df4fff1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shutdown - shut down part of a full-duplex connection.  <a href="_free_r_t_o_s___sockets_8c.html#af3c0198b40cbd5c5e4bb4f173df4fff1">More...</a><br /></td></tr>
+<tr class="separator:af3c0198b40cbd5c5e4bb4f173df4fff1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3802e1a3603f571bcb185f2afbd48de"><td class="memItemLeft" align="right" valign="top">TickType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#ad3802e1a3603f571bcb185f2afbd48de">xTCPTimerCheck</a> (BaseType_t xWillSleep)</td></tr>
+<tr class="memdesc:ad3802e1a3603f571bcb185f2afbd48de"><td class="mdescLeft">&#160;</td><td class="mdescRight">A TCP timer has expired, now check all TCP sockets for:  <a href="_free_r_t_o_s___sockets_8c.html#ad3802e1a3603f571bcb185f2afbd48de">More...</a><br /></td></tr>
+<tr class="separator:ad3802e1a3603f571bcb185f2afbd48de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8099cad140d7cf14f3d25392eb74bea"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#ae8099cad140d7cf14f3d25392eb74bea">pxTCPSocketLookup</a> (uint32_t ulLocalIP, UBaseType_t uxLocalPort, uint32_t ulRemoteIP, UBaseType_t uxRemotePort)</td></tr>
+<tr class="memdesc:ae8099cad140d7cf14f3d25392eb74bea"><td class="mdescLeft">&#160;</td><td class="mdescRight">As multiple sockets may be bound to the same local port number looking up a socket is a little more complex: Both a local port, and a remote port and IP address are being used. For a socket in listening mode, the remote port and IP address are both 0.  <a href="_free_r_t_o_s___sockets_8c.html#ae8099cad140d7cf14f3d25392eb74bea">More...</a><br /></td></tr>
+<tr class="separator:ae8099cad140d7cf14f3d25392eb74bea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c996d1928c4d004672d4d996f1d12c1"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structstruct.html">struct</a> xSTREAM_BUFFER *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a0c996d1928c4d004672d4d996f1d12c1">FreeRTOS_get_rx_buf</a> (ConstSocket_t xSocket)</td></tr>
+<tr class="memdesc:a0c996d1928c4d004672d4d996f1d12c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">For the web server: borrow the circular Rx buffer for inspection. HTML driver wants to see if a sequence of 13/10/13/10 is available.  <a href="_free_r_t_o_s___sockets_8c.html#a0c996d1928c4d004672d4d996f1d12c1">More...</a><br /></td></tr>
+<tr class="separator:a0c996d1928c4d004672d4d996f1d12c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a712ce92b8518f62444aad31e0fb1d424"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a712ce92b8518f62444aad31e0fb1d424">lTCPAddRxdata</a> (<a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *pxSocket, size_t uxOffset, const uint8_t *pcData, uint32_t ulByteCount)</td></tr>
+<tr class="memdesc:a712ce92b8518f62444aad31e0fb1d424"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add data to the RxStream. When uxOffset &gt; 0, data has come in out-of-order and will be put in front of the head so it can not be popped by the user.  <a href="_free_r_t_o_s___sockets_8c.html#a712ce92b8518f62444aad31e0fb1d424">More...</a><br /></td></tr>
+<tr class="separator:a712ce92b8518f62444aad31e0fb1d424"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e0d7303574cd99128cbdb79e54adc89"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a9e0d7303574cd99128cbdb79e54adc89">FreeRTOS_GetRemoteAddress</a> (ConstSocket_t xSocket, <a class="el" href="structstruct.html">struct</a> <a class="el" href="structfreertos__sockaddr.html">freertos_sockaddr</a> *pxAddress)</td></tr>
+<tr class="memdesc:a9e0d7303574cd99128cbdb79e54adc89"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to get the remote address and IP port.  <a href="_free_r_t_o_s___sockets_8c.html#a9e0d7303574cd99128cbdb79e54adc89">More...</a><br /></td></tr>
+<tr class="separator:a9e0d7303574cd99128cbdb79e54adc89"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50d7c4b5b3eeea34905a4f16b6f13965"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a50d7c4b5b3eeea34905a4f16b6f13965">FreeRTOS_maywrite</a> (ConstSocket_t xSocket)</td></tr>
+<tr class="memdesc:a50d7c4b5b3eeea34905a4f16b6f13965"><td class="mdescLeft">&#160;</td><td class="mdescRight">the number of bytes that may be added to txStream.  <a href="_free_r_t_o_s___sockets_8c.html#a50d7c4b5b3eeea34905a4f16b6f13965">More...</a><br /></td></tr>
+<tr class="separator:a50d7c4b5b3eeea34905a4f16b6f13965"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab49ef118747de118579ce9ba6e2d3d10"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#ab49ef118747de118579ce9ba6e2d3d10">FreeRTOS_tx_space</a> (ConstSocket_t xSocket)</td></tr>
+<tr class="memdesc:ab49ef118747de118579ce9ba6e2d3d10"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the number of bytes that can be written in the Tx buffer of the given socket.  <a href="_free_r_t_o_s___sockets_8c.html#ab49ef118747de118579ce9ba6e2d3d10">More...</a><br /></td></tr>
+<tr class="separator:ab49ef118747de118579ce9ba6e2d3d10"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af92a73b86b115ac2caeaf6d98d696723"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#af92a73b86b115ac2caeaf6d98d696723">FreeRTOS_tx_size</a> (ConstSocket_t xSocket)</td></tr>
+<tr class="memdesc:af92a73b86b115ac2caeaf6d98d696723"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the size of the Tx buffer.  <a href="_free_r_t_o_s___sockets_8c.html#af92a73b86b115ac2caeaf6d98d696723">More...</a><br /></td></tr>
+<tr class="separator:af92a73b86b115ac2caeaf6d98d696723"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8dffb3417a60b9c98108408052579ad"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#ad8dffb3417a60b9c98108408052579ad">FreeRTOS_issocketconnected</a> (ConstSocket_t xSocket)</td></tr>
+<tr class="memdesc:ad8dffb3417a60b9c98108408052579ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is the socket connected.  <a href="_free_r_t_o_s___sockets_8c.html#ad8dffb3417a60b9c98108408052579ad">More...</a><br /></td></tr>
+<tr class="separator:ad8dffb3417a60b9c98108408052579ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a10a19083f6bdd12aa4e0a8e508454385"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a10a19083f6bdd12aa4e0a8e508454385">FreeRTOS_mss</a> (ConstSocket_t xSocket)</td></tr>
+<tr class="memdesc:a10a19083f6bdd12aa4e0a8e508454385"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the actual size of MSS being used.  <a href="_free_r_t_o_s___sockets_8c.html#a10a19083f6bdd12aa4e0a8e508454385">More...</a><br /></td></tr>
+<tr class="separator:a10a19083f6bdd12aa4e0a8e508454385"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a6df495a5df34259dd6ef400992a46f"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a0a6df495a5df34259dd6ef400992a46f">FreeRTOS_connstatus</a> (ConstSocket_t xSocket)</td></tr>
+<tr class="memdesc:a0a6df495a5df34259dd6ef400992a46f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the connection status.  <a href="_free_r_t_o_s___sockets_8c.html#a0a6df495a5df34259dd6ef400992a46f">More...</a><br /></td></tr>
+<tr class="separator:a0a6df495a5df34259dd6ef400992a46f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6780a9d34f029526febb9b8a26f1b0c5"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a6780a9d34f029526febb9b8a26f1b0c5">FreeRTOS_rx_size</a> (ConstSocket_t xSocket)</td></tr>
+<tr class="memdesc:a6780a9d34f029526febb9b8a26f1b0c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of bytes which can be read.  <a href="_free_r_t_o_s___sockets_8c.html#a6780a9d34f029526febb9b8a26f1b0c5">More...</a><br /></td></tr>
+<tr class="separator:a6780a9d34f029526febb9b8a26f1b0c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48a287752bb66a04cb00ab0e427f4808"><td class="memItemLeft" align="right" valign="top"><a id="a48a287752bb66a04cb00ab0e427f4808"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a48a287752bb66a04cb00ab0e427f4808">FreeRTOS_netstat</a> (void)</td></tr>
+<tr class="memdesc:a48a287752bb66a04cb00ab0e427f4808"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the net status. <br /></td></tr>
+<tr class="separator:a48a287752bb66a04cb00ab0e427f4808"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc66394397377cd08c86af20547f9302"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#abc66394397377cd08c86af20547f9302">vSocketSelect</a> (<a class="el" href="struct_socket_select__t.html">SocketSelect_t</a> *pxSocketSet)</td></tr>
 <tr class="memdesc:abc66394397377cd08c86af20547f9302"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function waits on given sockets to change status/receive events.  <a href="_free_r_t_o_s___sockets_8c.html#abc66394397377cd08c86af20547f9302">More...</a><br /></td></tr>
 <tr class="separator:abc66394397377cd08c86af20547f9302"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -266,6 +345,10 @@ Variables</h2></td></tr>
 static List_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#a0bb39b9379d9271063dad16351b7d3ab">xBoundUDPSocketsList</a></td></tr>
 <tr class="memdesc:a0bb39b9379d9271063dad16351b7d3ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">The list that contains mappings between sockets and port numbers. Accesses to this list must be protected by critical sections of some kind. <br /></td></tr>
 <tr class="separator:a0bb39b9379d9271063dad16351b7d3ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae02571e6608569169207562135f16785"><td class="memItemLeft" align="right" valign="top"><a id="ae02571e6608569169207562135f16785"></a>
+List_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___sockets_8c.html#ae02571e6608569169207562135f16785">xBoundTCPSocketsList</a></td></tr>
+<tr class="memdesc:ae02571e6608569169207562135f16785"><td class="mdescLeft">&#160;</td><td class="mdescRight">The list that contains mappings between sockets and port numbers. Accesses to this list must be protected by critical sections of some kind. <br /></td></tr>
+<tr class="separator:ae02571e6608569169207562135f16785"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Implements the Sockets API based on Berkeley sockets for the FreeRTOS+TCP network stack. Sockets are used by the application processes to interact with the IP-task which in turn interacts with the hardware. </p>
@@ -298,8 +381,6 @@ static List_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>TCP timer period in milliseconds. </p>
 <p>20% of the defined limit. </p>
 
 </div>
@@ -652,6 +733,213 @@ static List_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>pdPASS if socket size was determined and put in the parameter pxSocketSize correctly, else pdFAIL. </dd></dl>
+
+</div>
+</div>
+<a id="a6fbe49f69aeaa10ff6d5d7d2cc82c71d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6fbe49f69aeaa10ff6d5d7d2cc82c71d">&#9670;&nbsp;</a></span>prvTCPCreateStream()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="struct_stream_buffer__t.html">StreamBuffer_t</a> * prvTCPCreateStream </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *&#160;</td>
+          <td class="paramname"><em>pxSocket</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">BaseType_t&#160;</td>
+          <td class="paramname"><em>xIsInputStream</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Create the stream buffer for the given socket. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxSocket</td><td>the socket to create the stream for. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">xIsInputStream</td><td>Is this input stream? pdTRUE/pdFALSE?</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The stream buffer. </dd></dl>
+
+</div>
+</div>
+<a id="ad719999c8bcbddf392affdeb6be2f554"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad719999c8bcbddf392affdeb6be2f554">&#9670;&nbsp;</a></span>prvTCPSendCheck()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int32_t prvTCPSendCheck </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *&#160;</td>
+          <td class="paramname"><em>pxSocket</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>uxDataLength</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Called from <a class="el" href="_free_r_t_o_s___sockets_8c.html#abfb04a35d27c55380be674ebd8204351" title="Send data using a TCP socket. It is not necessary to have the socket connected already....">FreeRTOS_send()</a>: some checks which will be done before sending a TCP packed. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxSocket</td><td>The socket owning the connection. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">uxDataLength</td><td>The length of the data to be sent.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0: representing OK, Else a non-zero value is returned. </dd></dl>
+
+</div>
+</div>
+<a id="a91064db1bf7a4b1f49922c8f9927c701"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91064db1bf7a4b1f49922c8f9927c701">&#9670;&nbsp;</a></span>prvTCPSetSocketCount()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void prvTCPSetSocketCount </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> const *&#160;</td>
+          <td class="paramname"><em>pxSocketToDelete</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>When a child socket gets closed, make sure to update the child-count of the parent. When a listening parent socket is closed, make sure no child-sockets keep a pointer to it. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxSocketToDelete</td><td>The socket being closed. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a5d910cb9c6b4f63d7f8a75cd1ed7fa62"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d910cb9c6b4f63d7f8a75cd1ed7fa62">&#9670;&nbsp;</a></span>prvTCPConnectStart()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static BaseType_t prvTCPConnectStart </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *&#160;</td>
+          <td class="paramname"><em>pxSocket</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structstruct.html">struct</a> <a class="el" href="structfreertos__sockaddr.html">freertos_sockaddr</a> const *&#160;</td>
+          <td class="paramname"><em>pxAddress</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Called from <a class="el" href="_free_r_t_o_s___sockets_8c.html#aa17e87db63f5dd047cc4fe5c2368555e" title="Connect to a remote port.">FreeRTOS_connect()</a>: make some checks and if allowed, send a message to the IP-task to start connecting to a remote socket. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxSocket</td><td>The socket attempting to connect to a remote port. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxAddress</td><td>The address the socket is trying to connect to.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 on successful checks or a negative error code. </dd></dl>
+
+</div>
+</div>
+<a id="ae8a5f1c37d0260304e2acb616ca18247"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8a5f1c37d0260304e2acb616ca18247">&#9670;&nbsp;</a></span>bMayConnect()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static BaseType_t bMayConnect </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> const *&#160;</td>
+          <td class="paramname"><em>pxSocket</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Check if it makes any sense to wait for a connect event. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxSocket</td><td>The socket trying to connect.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>It may return: -EINPROGRESS, -EAGAIN, or 0 for OK. </dd></dl>
 
 </div>
 </div>
@@ -1610,6 +1898,707 @@ static List_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="aa17e87db63f5dd047cc4fe5c2368555e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa17e87db63f5dd047cc4fe5c2368555e">&#9670;&nbsp;</a></span>FreeRTOS_connect()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t FreeRTOS_connect </td>
+          <td>(</td>
+          <td class="paramtype">Socket_t&#160;</td>
+          <td class="paramname"><em>xClientSocket</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structstruct.html">struct</a> <a class="el" href="structfreertos__sockaddr.html">freertos_sockaddr</a> *&#160;</td>
+          <td class="paramname"><em>pxAddress</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">socklen_t&#160;</td>
+          <td class="paramname"><em>xAddressLength</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Connect to a remote port. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xClientSocket</td><td>The socket initiating the connection. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxAddress</td><td>The address of the remote socket. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">xAddressLength</td><td>This parameter is not used. It is kept in the function signature to adhere to the Berkeley sockets standard.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 is returned on a successful connection, else a negative error code is returned. </dd></dl>
+
+</div>
+</div>
+<a id="a1b0aabc4d95b9a61e531429839f50852"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b0aabc4d95b9a61e531429839f50852">&#9670;&nbsp;</a></span>FreeRTOS_accept()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Socket_t FreeRTOS_accept </td>
+          <td>(</td>
+          <td class="paramtype">Socket_t&#160;</td>
+          <td class="paramname"><em>xServerSocket</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structstruct.html">struct</a> <a class="el" href="structfreertos__sockaddr.html">freertos_sockaddr</a> *&#160;</td>
+          <td class="paramname"><em>pxAddress</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">socklen_t *&#160;</td>
+          <td class="paramname"><em>pxAddressLength</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Accept a connection on an listening socket. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xServerSocket</td><td>The socket in listening mode. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">pxAddress</td><td>The address of the machine trying to connect to this node is returned in this pointer. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">pxAddressLength</td><td>The length of the address of the remote machine.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>FreeRTOS_accept: can return a new connected socket if the server socket is in listen mode and receives a connection request. The new socket will be bound already to the same port number as the listening socket. </dd></dl>
+
+</div>
+</div>
+<a id="a44ab7ba5fddce925519c7ccc7b887033"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a44ab7ba5fddce925519c7ccc7b887033">&#9670;&nbsp;</a></span>FreeRTOS_recv()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t FreeRTOS_recv </td>
+          <td>(</td>
+          <td class="paramtype">Socket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>pvBuffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>uxBufferLength</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">BaseType_t&#160;</td>
+          <td class="paramname"><em>xFlags</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read incoming data from a TCP socket. Only after the last byte has been read, a close error might be returned. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>The socket owning the connection. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pvBuffer</td><td>The buffer to store the incoming data in. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">uxBufferLength</td><td>The length of the buffer so that the function does not do out of bound access. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">xFlags</td><td>The flags for conveying preference.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of bytes actually received and stored in the pvBuffer. </dd></dl>
+
+</div>
+</div>
+<a id="acf2b08087032671c04f786b3992fdc58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf2b08087032671c04f786b3992fdc58">&#9670;&nbsp;</a></span>FreeRTOS_get_tx_head()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t* FreeRTOS_get_tx_head </td>
+          <td>(</td>
+          <td class="paramtype">ConstSocket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">BaseType_t *&#160;</td>
+          <td class="paramname"><em>pxLength</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get a direct pointer to the circular transmit buffer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>The socket owning the buffer. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxLength</td><td>This will contain the number of bytes that may be written.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Head of the circular transmit buffer if all checks pass. Or else, NULL is returned. </dd></dl>
+
+</div>
+</div>
+<a id="abfb04a35d27c55380be674ebd8204351"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abfb04a35d27c55380be674ebd8204351">&#9670;&nbsp;</a></span>FreeRTOS_send()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t FreeRTOS_send </td>
+          <td>(</td>
+          <td class="paramtype">Socket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>pvBuffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>uxDataLength</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">BaseType_t&#160;</td>
+          <td class="paramname"><em>xFlags</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Send data using a TCP socket. It is not necessary to have the socket connected already. Outgoing data will be stored and delivered as soon as the socket gets connected. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>The socket owning the connection. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pvBuffer</td><td>The buffer containing the data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">uxDataLength</td><td>The length of the data to be added. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">xFlags</td><td>This parameter is not used.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of bytes actually send. </dd></dl>
+
+</div>
+</div>
+<a id="a1718a2539e0de40d95472ea59859be5c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1718a2539e0de40d95472ea59859be5c">&#9670;&nbsp;</a></span>FreeRTOS_listen()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t FreeRTOS_listen </td>
+          <td>(</td>
+          <td class="paramtype">Socket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">BaseType_t&#160;</td>
+          <td class="paramname"><em>xBacklog</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Request to put a socket in listen mode. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>the socket to be put in listening mode. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">xBacklog</td><td>Maximum number of child sockets.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 in case of success, or else a negative error code is returned. </dd></dl>
+
+</div>
+</div>
+<a id="af3c0198b40cbd5c5e4bb4f173df4fff1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3c0198b40cbd5c5e4bb4f173df4fff1">&#9670;&nbsp;</a></span>FreeRTOS_shutdown()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t FreeRTOS_shutdown </td>
+          <td>(</td>
+          <td class="paramtype">Socket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">BaseType_t&#160;</td>
+          <td class="paramname"><em>xHow</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Shutdown - shut down part of a full-duplex connection. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>The socket owning the connection. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">xHow</td><td>Not used. Just present to stick to Berkeley standard.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 on successful shutdown or else a negative error code. </dd></dl>
+
+</div>
+</div>
+<a id="ad3802e1a3603f571bcb185f2afbd48de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3802e1a3603f571bcb185f2afbd48de">&#9670;&nbsp;</a></span>xTCPTimerCheck()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">TickType_t xTCPTimerCheck </td>
+          <td>(</td>
+          <td class="paramtype">BaseType_t&#160;</td>
+          <td class="paramname"><em>xWillSleep</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A TCP timer has expired, now check all TCP sockets for: </p>
+<ul>
+<li>Active connect</li>
+<li>Send a delayed ACK</li>
+<li>Send new data</li>
+<li>Send a keep-alive packet</li>
+<li>Check for timeout (in non-connected states only)</li>
+</ul>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xWillSleep</td><td>Whether the calling task is going to sleep.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Minimum amount of time before the timer shall expire. </dd></dl>
+
+</div>
+</div>
+<a id="ae8099cad140d7cf14f3d25392eb74bea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8099cad140d7cf14f3d25392eb74bea">&#9670;&nbsp;</a></span>pxTCPSocketLookup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a>* pxTCPSocketLookup </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>ulLocalIP</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">UBaseType_t&#160;</td>
+          <td class="paramname"><em>uxLocalPort</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>ulRemoteIP</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">UBaseType_t&#160;</td>
+          <td class="paramname"><em>uxRemotePort</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>As multiple sockets may be bound to the same local port number looking up a socket is a little more complex: Both a local port, and a remote port and IP address are being used. For a socket in listening mode, the remote port and IP address are both 0. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ulLocalIP</td><td>Local IP address. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">uxLocalPort</td><td>Local port number. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ulRemoteIP</td><td>Remote (peer) IP address. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">uxRemotePort</td><td>Remote (peer) port.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The socket which was found. </dd></dl>
+
+</div>
+</div>
+<a id="a0c996d1928c4d004672d4d996f1d12c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c996d1928c4d004672d4d996f1d12c1">&#9670;&nbsp;</a></span>FreeRTOS_get_rx_buf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="structstruct.html">struct</a> xSTREAM_BUFFER* FreeRTOS_get_rx_buf </td>
+          <td>(</td>
+          <td class="paramtype">ConstSocket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>For the web server: borrow the circular Rx buffer for inspection. HTML driver wants to see if a sequence of 13/10/13/10 is available. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>The socket whose Rx stream is to be returned.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The Rx stream of the socket if all checks pass, else NULL. </dd></dl>
+
+</div>
+</div>
+<a id="a712ce92b8518f62444aad31e0fb1d424"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a712ce92b8518f62444aad31e0fb1d424">&#9670;&nbsp;</a></span>lTCPAddRxdata()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t lTCPAddRxdata </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *&#160;</td>
+          <td class="paramname"><em>pxSocket</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>uxOffset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>pcData</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>ulByteCount</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Add data to the RxStream. When uxOffset &gt; 0, data has come in out-of-order and will be put in front of the head so it can not be popped by the user. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxSocket</td><td>The socket to whose RxStream data is to be added. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">uxOffset</td><td>Offset of the packet. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pcData</td><td>The data to be added to the RxStream. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ulByteCount</td><td>Number of bytes in the data.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of bytes actually added to the RxStream. Or else, a negative error code is returned. </dd></dl>
+
+</div>
+</div>
+<a id="a9e0d7303574cd99128cbdb79e54adc89"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e0d7303574cd99128cbdb79e54adc89">&#9670;&nbsp;</a></span>FreeRTOS_GetRemoteAddress()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t FreeRTOS_GetRemoteAddress </td>
+          <td>(</td>
+          <td class="paramtype">ConstSocket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structstruct.html">struct</a> <a class="el" href="structfreertos__sockaddr.html">freertos_sockaddr</a> *&#160;</td>
+          <td class="paramname"><em>pxAddress</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Function to get the remote address and IP port. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>Socket owning the connection. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">pxAddress</td><td>The address pointer to which the address is to be added.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The size of the address being returned. Or else a negative error code will be returned. </dd></dl>
+
+</div>
+</div>
+<a id="a50d7c4b5b3eeea34905a4f16b6f13965"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50d7c4b5b3eeea34905a4f16b6f13965">&#9670;&nbsp;</a></span>FreeRTOS_maywrite()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t FreeRTOS_maywrite </td>
+          <td>(</td>
+          <td class="paramtype">ConstSocket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>the number of bytes that may be added to txStream. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>The socket to be checked.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the number of bytes that may be added to txStream or else an error code. </dd></dl>
+
+</div>
+</div>
+<a id="ab49ef118747de118579ce9ba6e2d3d10"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab49ef118747de118579ce9ba6e2d3d10">&#9670;&nbsp;</a></span>FreeRTOS_tx_space()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t FreeRTOS_tx_space </td>
+          <td>(</td>
+          <td class="paramtype">ConstSocket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the number of bytes that can be written in the Tx buffer of the given socket. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>the socket to be checked.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The bytes that can be written. Or else an error code. </dd></dl>
+
+</div>
+</div>
+<a id="af92a73b86b115ac2caeaf6d98d696723"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af92a73b86b115ac2caeaf6d98d696723">&#9670;&nbsp;</a></span>FreeRTOS_tx_size()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t FreeRTOS_tx_size </td>
+          <td>(</td>
+          <td class="paramtype">ConstSocket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the size of the Tx buffer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>The socket to be checked.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The size of the Tx buffer of the socket. Or an error code. </dd></dl>
+
+</div>
+</div>
+<a id="ad8dffb3417a60b9c98108408052579ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad8dffb3417a60b9c98108408052579ad">&#9670;&nbsp;</a></span>FreeRTOS_issocketconnected()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t FreeRTOS_issocketconnected </td>
+          <td>(</td>
+          <td class="paramtype">ConstSocket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Is the socket connected. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>The socket being checked.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>pdTRUE if TCP socket is connected. </dd></dl>
+
+</div>
+</div>
+<a id="a10a19083f6bdd12aa4e0a8e508454385"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a10a19083f6bdd12aa4e0a8e508454385">&#9670;&nbsp;</a></span>FreeRTOS_mss()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t FreeRTOS_mss </td>
+          <td>(</td>
+          <td class="paramtype">ConstSocket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the actual size of MSS being used. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>The socket whose MSS is to be returned.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the actual size of MSS being used or an error code. </dd></dl>
+
+</div>
+</div>
+<a id="a0a6df495a5df34259dd6ef400992a46f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a6df495a5df34259dd6ef400992a46f">&#9670;&nbsp;</a></span>FreeRTOS_connstatus()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t FreeRTOS_connstatus </td>
+          <td>(</td>
+          <td class="paramtype">ConstSocket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the connection status. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>Socket to get the connection status from.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The connection status or an error code.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>For internal use only. </dd></dl>
+
+</div>
+</div>
+<a id="a6780a9d34f029526febb9b8a26f1b0c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6780a9d34f029526febb9b8a26f1b0c5">&#9670;&nbsp;</a></span>FreeRTOS_rx_size()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t FreeRTOS_rx_size </td>
+          <td>(</td>
+          <td class="paramtype">ConstSocket_t&#160;</td>
+          <td class="paramname"><em>xSocket</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the number of bytes which can be read. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">xSocket</td><td>the socket to get the number of bytes from.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns the number of bytes which can be read. Or an error code is returned. </dd></dl>
 
 </div>
 </div>

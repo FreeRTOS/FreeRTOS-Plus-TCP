@@ -168,6 +168,10 @@ Macros</h2></td></tr>
 <tr class="separator:a7e4e7fc3c3cb2528f45fbff05a95c278"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac51b5f3c553cd23a5fd940017637737f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___i_p_8c.html#ac51b5f3c553cd23a5fd940017637737f">iptraceIP_TASK_STARTING</a>()&#160;&#160;&#160;do {} while( ipFALSE_BOOL )</td></tr>
 <tr class="separator:ac51b5f3c553cd23a5fd940017637737f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef1630538f6d0701a36f878b67bbff8f"><td class="memItemLeft" align="right" valign="top"><a id="aef1630538f6d0701a36f878b67bbff8f"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___i_p_8c.html#aef1630538f6d0701a36f878b67bbff8f">ipTCP_TIMER_PERIOD_MS</a>&#160;&#160;&#160;( 1000U )</td></tr>
+<tr class="memdesc:aef1630538f6d0701a36f878b67bbff8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">When initialising the TCP timer, give it an initial time-out of 1 second. <br /></td></tr>
+<tr class="separator:aef1630538f6d0701a36f878b67bbff8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a615aa656020ebf93f31e4ccbd47a880d"><td class="memItemLeft" align="right" valign="top"><a id="a615aa656020ebf93f31e4ccbd47a880d"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___i_p_8c.html#a615aa656020ebf93f31e4ccbd47a880d">ipCONSIDER_FRAME_FOR_PROCESSING</a>(pucEthernetBuffer)&#160;&#160;&#160;<a class="el" href="_free_r_t_o_s___i_p_8c.html#ab15bee3df12f185ea7a1ba671121d19f">eConsiderFrameForProcessing</a>( ( pucEthernetBuffer ) )</td></tr>
 <tr class="memdesc:a615aa656020ebf93f31e4ccbd47a880d"><td class="mdescLeft">&#160;</td><td class="mdescRight">If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet driver will filter incoming packets and only pass the stack those packets it considers need processing. In this case <a class="el" href="_free_r_t_o_s___i_p_8c.html#a615aa656020ebf93f31e4ccbd47a880d" title="If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet driver will filter inco...">ipCONSIDER_FRAME_FOR_PROCESSING()</a> can be #-defined away. If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 0 then the Ethernet driver will pass all received packets to the stack, and the stack must do the filtering itself. In this case ipCONSIDER_FRAME_FOR_PROCESSING needs to call eConsiderFrameForProcessing. <br /></td></tr>
@@ -378,6 +382,10 @@ static volatile BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a
 static TaskHandle_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___i_p_8c.html#ac45764b03f1eb0385c0cd08bc62394d4">xIPTaskHandle</a> = NULL</td></tr>
 <tr class="memdesc:ac45764b03f1eb0385c0cd08bc62394d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores the handle of the task that handles the stack. The handle is used (indirectly) by some utility function to determine if the utility function is being called by a task (in which case it is ok to block) or by the IP task itself (in which case it is not ok to block). <br /></td></tr>
 <tr class="separator:ac45764b03f1eb0385c0cd08bc62394d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2ee87b297b5e8d2b71edb828b44c834"><td class="memItemLeft" align="right" valign="top"><a id="af2ee87b297b5e8d2b71edb828b44c834"></a>
+static BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___i_p_8c.html#af2ee87b297b5e8d2b71edb828b44c834">xProcessedTCPMessage</a></td></tr>
+<tr class="memdesc:af2ee87b297b5e8d2b71edb828b44c834"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to a non-zero value if one or more TCP message have been processed within the last round. <br /></td></tr>
+<tr class="separator:af2ee87b297b5e8d2b71edb828b44c834"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6831050baaf1f467735e027fb77ba98e"><td class="memItemLeft" align="right" valign="top"><a id="a6831050baaf1f467735e027fb77ba98e"></a>
 static BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___i_p_8c.html#a6831050baaf1f467735e027fb77ba98e">xNetworkUp</a> = pdFALSE</td></tr>
 <tr class="memdesc:a6831050baaf1f467735e027fb77ba98e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple set to pdTRUE or pdFALSE depending on whether the network is up or down (connected, not connected) respectively. <br /></td></tr>
@@ -391,6 +399,10 @@ static <a class="el" href="struct_i_p_timer__t.html">IPTimer_t</a>&#160;</td><td
 <tr class="memdesc:af1400bc732b7f47d9e33033fcb35f907"><td class="mdescLeft">&#160;</td><td class="mdescRight">DHCP timer, to send requests and to renew a reservation. <br  />
  <br /></td></tr>
 <tr class="separator:af1400bc732b7f47d9e33033fcb35f907"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a173c03d7a816518ad4d362a7c61088f6"><td class="memItemLeft" align="right" valign="top"><a id="a173c03d7a816518ad4d362a7c61088f6"></a>
+static <a class="el" href="struct_i_p_timer__t.html">IPTimer_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___i_p_8c.html#a173c03d7a816518ad4d362a7c61088f6">xTCPTimer</a></td></tr>
+<tr class="memdesc:a173c03d7a816518ad4d362a7c61088f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">TCP timer, to check for timeouts, resends. <br /></td></tr>
+<tr class="separator:a173c03d7a816518ad4d362a7c61088f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a457d35af454ec380c8e37f2c00ea8c49"><td class="memItemLeft" align="right" valign="top"><a id="a457d35af454ec380c8e37f2c00ea8c49"></a>
 static <a class="el" href="struct_i_p_timer__t.html">IPTimer_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___i_p_8c.html#a457d35af454ec380c8e37f2c00ea8c49">xDNSTimer</a></td></tr>
 <tr class="memdesc:a457d35af454ec380c8e37f2c00ea8c49"><td class="mdescLeft">&#160;</td><td class="mdescRight">DNS timer, to check for timeouts when looking-up a domain. <br /></td></tr>
