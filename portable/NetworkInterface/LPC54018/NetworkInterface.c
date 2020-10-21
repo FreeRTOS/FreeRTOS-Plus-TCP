@@ -44,7 +44,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "fsl_debug_console.h"
 
 
-#define PHY_ADDRESS			   ( 0x00U )
+#define PHY_ADDRESS					   ( 0x00U )
 /* MDIO operations. */
 #define EXAMPLE_MDIO_OPS			   lpc_enet_ops
 /* PHY operations. */
@@ -155,58 +155,62 @@ status_t status;
 		ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
 		BaseType_t receiving = pdTRUE;
+
 		while( receiving == pdTRUE )
 		{
 			status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
 
-
-			switch(status)
+			switch( status )
 			{
-			case kStatus_Success: // there is a frame.  process it
-				if(length)
-				{
-					pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
+				case kStatus_Success: /* there is a frame.  process it */
 
-					if( pxBufferDescriptor != NULL )
+					if( length )
 					{
-						status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
-						pxBufferDescriptor->xDataLength = length;
+						pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
 
-						if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+						if( pxBufferDescriptor != NULL )
 						{
-							xRxEvent.eEventType = eNetworkRxEvent;
-							xRxEvent.pvData = ( void * ) pxBufferDescriptor;
+							status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
+							pxBufferDescriptor->xDataLength = length;
 
-							if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+							if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
 							{
-								vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-								iptraceETHERNET_RX_EVENT_LOST();
+								xRxEvent.eEventType = eNetworkRxEvent;
+								xRxEvent.pvData = ( void * ) pxBufferDescriptor;
+
+								if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+								{
+									vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+									iptraceETHERNET_RX_EVENT_LOST();
+								}
+								else
+								{
+									/* Message successfully transfered to the stack */
+								}
 							}
 							else
 							{
-								/* Message successfully transfered to the stack */
+								vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+								/* Not sure if a trace is required.  The stack did not want this message */
 							}
 						}
 						else
 						{
-							vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-							/* Not sure if a trace is required.  The stack did not want this message */
+							/* No buffer available to receive this message */
+							iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
 						}
 					}
-					else
-					{
-						/* No buffer available to receive this message */
-						iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
-					}
-				}
-				break;
-			case kStatus_ENET_RxFrameEmpty: // Received an empty frame.  Ignore it
-				receiving = pdFALSE;
-				break;
-			case kStatus_ENET_RxFrameError: // Received an error frame.  Read & drop it
-				ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0);
-				/* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
-				break;
+
+					break;
+
+				case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
+					receiving = pdFALSE;
+					break;
+
+				case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
+					ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
+					/* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
+					break;
 			}
 		}
 	}
@@ -232,10 +236,11 @@ bool link = false;
 
 phy_config_t phyConfig;
 
-	int bufferIndex;
-	for(bufferIndex=0;bufferIndex<ENET_RXBD_NUM;bufferIndex++)
+int bufferIndex;
+
+	for( bufferIndex = 0; bufferIndex < ENET_RXBD_NUM; bufferIndex++ )
 	{
-		rxbuffer[ bufferIndex ] = ( uint32_t ) &receiveBuffer[bufferIndex];
+		rxbuffer[ bufferIndex ] = ( uint32_t ) &receiveBuffer[ bufferIndex ];
 	}
 
 	phyConfig.phyAddr = PHY_ADDRESS;
@@ -350,4 +355,3 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 		buffers[ x ][ 0 ] = ( uint32_t ) &pxNetworkBuffers[ x ];
 	}
 }
-
