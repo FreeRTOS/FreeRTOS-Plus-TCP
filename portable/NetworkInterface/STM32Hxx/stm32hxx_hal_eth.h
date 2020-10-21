@@ -464,8 +464,8 @@
   */
 		typedef enum
 		{
-			HAL_ETH_MII_MODE = 0x00U,     /*!<  Media Independent Interface               */
-			HAL_ETH_RMII_MODE = 0x01U     /*!<   Reduced Media Independent Interface       */
+			HAL_ETH_MII_MODE = 0x00U, /*!<  Media Independent Interface               */
+			HAL_ETH_RMII_MODE = 0x01U /*!<   Reduced Media Independent Interface       */
 		} ETH_MediaInterfaceTypeDef;
 
 /**
@@ -584,7 +584,7 @@
 /**
   * @brief  HAL ETH Callback pointer definition
   */
-				typedef  void (*pETH_CallbackTypeDef)( ETH_HandleTypeDef * heth );/*!< pointer to an ETH callback function */
+				typedef  void (*pETH_CallbackTypeDef)( ETH_HandleTypeDef * heth ); /*!< pointer to an ETH callback function */
 
 		#endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
 
@@ -1612,7 +1612,7 @@
 		#define __HAL_ETH_MAC_GET_IT( __HANDLE__, __INTERRUPT__ )			( ( ( __HANDLE__ )->Instance->MACISR & ( __INTERRUPT__ ) ) == ( __INTERRUPT__ ) )
 
 /*!< External interrupt line 86 Connected to the ETH wakeup EXTI Line */
-		#define ETH_WAKEUP_EXTI_LINE    ( ( uint32_t ) 0x00400000U )/* !<  86 - 64 = 22 */
+		#define ETH_WAKEUP_EXTI_LINE    ( ( uint32_t ) 0x00400000U ) /* !<  86 - 64 = 22 */
 
 /**
   * @brief Enable the ETH WAKEUP Exti Line.

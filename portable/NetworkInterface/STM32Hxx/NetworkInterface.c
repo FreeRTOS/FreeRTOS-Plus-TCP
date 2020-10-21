@@ -553,7 +553,7 @@ BaseType_t xReturn = 0;
 				FreeRTOS_printf( ( "Strange: no descriptor received\n" ) );
 			}
 		}
-		#else  /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
+		#else /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
 		{
 			/* Reserve the length of the packet that was just received. */
 			uxLength = uxDataLength;
@@ -585,7 +585,7 @@ BaseType_t xReturn = 0;
 				/* Allocating a new buffer failed. */
 			}
 		}
-		#else  /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
+		#else /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
 		{
 			if( pxBufferDescriptor != NULL )
 			{

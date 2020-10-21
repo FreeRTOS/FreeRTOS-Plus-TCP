@@ -341,7 +341,7 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
 					/* Init the low level hardware */
 					heth->MspInitCallback( heth );
 				}
-			#else  /* if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 ) */
+			#else /* if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 ) */
 				/* Check the ETH peripheral state */
 				if( heth->gState == HAL_ETH_STATE_RESET )
 				{
