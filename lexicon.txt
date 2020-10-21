@@ -79,6 +79,7 @@ bsendfullsize
 bsendkeepalive
 btimestamps
 buf
+buffermanagement
 buffna
 busershutdown
 bwaitkeepalive
@@ -750,6 +751,7 @@ receiveown
 receivestoreforward
 receivethresholdcontrol
 receivetime
+recognised
 recv
 recvfrom
 reg
