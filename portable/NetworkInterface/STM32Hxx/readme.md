@@ -104,13 +104,13 @@ The most important DMAC registers, along with their names which are used in the 
     __IO uint32_t DMACCR;          // ETH_DMACCR        DMA Channel control register
     __IO uint32_t DMACTCR;         // ETH_DMACTXCR      Channel Tx transmit control register
     __IO uint32_t DMACRCR;         // ETH_DMACRXCR      Channel Rx receive control register
-    __IO uint32_t DMACTDLAR;       // ETH_DMACTXDLAR    Channel Tx descriptor list address register 
+    __IO uint32_t DMACTDLAR;       // ETH_DMACTXDLAR    Channel Tx descriptor list address register
     __IO uint32_t DMACRDLAR;       // ETH_DMACRXDLAR    Channel Rx descriptor list address register
     __IO uint32_t DMACTDTPR;       // ETH_DMACTXDTPR    Channel TX tail pointer
     __IO uint32_t DMACRDTPR;       // ETH_DMACRXDTPR    Channel RX tail pointer
     __IO uint32_t DMACTDRLR;       // ETH_DMACTXRLR     Channel Tx descriptor ring length register
     __IO uint32_t DMACRDRLR;       // ETH_DMACRXRLR     Channel Rx descriptor ring length register
-    __IO uint32_t DMACIER;         // ETH_DMACIER       Channel interrupt enable register 
+    __IO uint32_t DMACIER;         // ETH_DMACIER       Channel interrupt enable register
     __IO uint32_t DMACRIWTR;       // ETH_DMACRXIWTR    Channel Rx interrupt watchdog timer register
     __IO uint32_t DMACCATDR;       // ETH_DMACCATXDR    Channel Tx current application transmit descriptor register
     __IO uint32_t DMACCARDR;       // ETH_DMACCARXDR    Channel Rx current application receive descriptor register
