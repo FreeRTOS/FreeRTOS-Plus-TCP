@@ -44,21 +44,21 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "fsl_debug_console.h"
 
 
-#define PHY_ADDRESS                    ( 0x00U )
+#define PHY_ADDRESS			   ( 0x00U )
 /* MDIO operations. */
-#define MDIO_OPS                       lpc_enet_ops
+#define EXAMPLE_MDIO_OPS			   lpc_enet_ops
 /* PHY operations. */
-#define PHY_OPS                        phylan8720a_ops
+#define EXAMPLE_PHY_OPS				   phylan8720a_ops
 #define ENET_RXBD_NUM				   ( 4 )
 #define ENET_TXBD_NUM				   ( 4 )
 #define ENET_RXBUFF_SIZE			   ( ENET_FRAME_MAX_FRAMELEN )
 #define ENET_BuffSizeAlign( n )	   ENET_ALIGN( n, ENET_BUFF_ALIGNMENT )
 #define ENET_ALIGN( x, align )	   ( ( unsigned int ) ( ( x ) + ( ( align ) - 1 ) ) & ( unsigned int ) ( ~( unsigned int ) ( ( align ) - 1 ) ) )
-#define ENET_FRAME_HEADSIZE	   ( 14U )
-#define ENET_DATA_LENGTH	   ( 1000U )
-#define ENET_FRAME_SIZE		   ( ENET_DATA_LENGTH + ENET_FRAME_HEADSIZE )
-#define ENET_PACKAGETYPE	   ( 4U )
-#define ENET_LOOP_COUNT		   ( 20U )
+#define ENET_EXAMPLE_FRAME_HEADSIZE	   ( 14U )
+#define ENET_EXAMPLE_DATA_LENGTH	   ( 1000U )
+#define ENET_EXAMPLE_FRAME_SIZE		   ( ENET_EXAMPLE_DATA_LENGTH + ENET_EXAMPLE_FRAME_HEADSIZE )
+#define ENET_EXAMPLE_PACKAGETYPE	   ( 4U )
+#define ENET_EXAMPLE_LOOP_COUNT		   ( 20U )
 
 #if defined( __GNUC__ )
 	#ifndef __ALIGN_END
@@ -68,17 +68,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		#define __ALIGN_BEGIN
 	#endif
 #else
-#ifndef __ALIGN_END
-#define __ALIGN_END
-#endif
-#ifndef __ALIGN_BEGIN
-#if defined(__CC_ARM) || defined(__ARMCC_VERSION)
-#define __ALIGN_BEGIN __attribute__((aligned(ENET_BUFF_ALIGNMENT)))
-#elif defined(__ICCARM__)
-#define __ALIGN_BEGIN
-#endif
-#endif
-#endif
+	#ifndef __ALIGN_END
+		#define __ALIGN_END
+	#endif
+	#ifndef __ALIGN_BEGIN
+		#if defined( __CC_ARM ) || defined( __ARMCC_VERSION )
+			#define __ALIGN_BEGIN    __attribute__( ( aligned( ENET_BUFF_ALIGNMENT ) ) )
+		#elif defined( __ICCARM__ )
+			#define __ALIGN_BEGIN
+		#endif
+	#endif
+#endif /* if defined( __GNUC__ ) */
 
 /* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
 driver will filter incoming packets and only pass the stack those packets it
@@ -102,19 +102,24 @@ __ALIGN_BEGIN enet_rx_bd_struct_t g_rxBuffDescrip[ ENET_RXBD_NUM ] __ALIGN_END;
 __ALIGN_BEGIN enet_tx_bd_struct_t g_txBuffDescrip[ ENET_TXBD_NUM ] __ALIGN_END;
 
 enet_handle_t g_handle = { 0 };
-
 /* The MAC address for ENET device. */
-/* @todo the MAC address is being overridden in the TCP stack */
 uint8_t g_macAddr[ 6 ] = { 0xd4, 0xbe, 0xd9, 0x45, 0x22, 0x60 };
+uint8_t multicastAddr[ 6 ] = { 0x01, 0x00, 0x5e, 0x00, 0x01, 0x81 };
+uint8_t g_frame[ ENET_EXAMPLE_PACKAGETYPE ][ ENET_EXAMPLE_FRAME_SIZE ];
+uint8_t *g_txbuff[ ENET_TXBD_NUM ];
+uint32_t g_txIdx = 0;
+uint8_t g_txbuffIdx = 0;
+uint8_t g_txCosumIdx = 0;
+uint32_t g_testIdx = 0;
+uint32_t g_rxIndex = 0;
+uint32_t g_rxCheckIdx = 0;
 
 /*! @brief Enet PHY and MDIO interface handler. */
-static mdio_handle_t mdioHandle = { .ops = &MDIO_OPS };
-static phy_handle_t phyHandle = { .phyAddr = PHY_ADDRESS, .mdioHandle = &mdioHandle, .ops = &PHY_OPS };
+static mdio_handle_t mdioHandle = { .ops = &EXAMPLE_MDIO_OPS };
+static phy_handle_t phyHandle = { .phyAddr = PHY_ADDRESS, .mdioHandle = &mdioHandle, .ops = &EXAMPLE_PHY_OPS };
 
-/* @brief DMA Buffers for receiving */
-/* @todo use Zero copy buffers with the tcp stack */
-__ALIGN_BEGIN uint32_t receiveBuffer[4][ ENET_RXBUFF_SIZE / sizeof( uint32_t ) + 1 ] __ALIGN_END;
-uint32_t rxbuffer[ ENET_RXBD_NUM ] = { ( uint32_t ) &receiveBuffer[0], ( uint32_t ) &receiveBuffer[1], ( uint32_t ) &receiveBuffer[2], ( uint32_t ) &receiveBuffer[3] };
+__ALIGN_BEGIN uint32_t receiveBuffer[ ENET_RXBD_NUM ][ ENET_RXBUFF_SIZE / sizeof( uint32_t ) + 1 ] __ALIGN_END;
+uint32_t rxbuffer[ ENET_RXBD_NUM ];
 
 TaskHandle_t receiveTaskHandle;
 
@@ -149,39 +154,59 @@ status_t status;
 	{
 		ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
-		status = ENET_GetRxFrameSize( EXAMPLE_ENET_BASE, &g_handle, &length, 0 );
-
-		if( ( status == kStatus_Success ) && ( length > 0 ) )
+		BaseType_t receiving = pdTRUE;
+		while( receiving == pdTRUE )
 		{
-			pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
+			status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
 
-			if( pxBufferDescriptor != NULL )
+
+			switch(status)
 			{
-				status = ENET_ReadFrame( EXAMPLE_ENET_BASE, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
-				pxBufferDescriptor->xDataLength = length;
-
-				if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+			case kStatus_Success: // there is a frame.  process it
+				if(length)
 				{
-					xRxEvent.eEventType = eNetworkRxEvent;
-					xRxEvent.pvData = ( void * ) pxBufferDescriptor;
+					pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
 
-					if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+					if( pxBufferDescriptor != NULL )
 					{
-						/* put this back if using bufferallocation_2.c */
-						/* vReleaseNetworkBuffer(pxBufferDescriptor); */
+						status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
+						pxBufferDescriptor->xDataLength = length;
 
+						if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+						{
+							xRxEvent.eEventType = eNetworkRxEvent;
+							xRxEvent.pvData = ( void * ) pxBufferDescriptor;
 
-						iptraceETHERNET_RX_EVENT_LOST();
+							if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+							{
+								vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+								iptraceETHERNET_RX_EVENT_LOST();
+							}
+							else
+							{
+								/* Message successfully transfered to the stack */
+							}
+						}
+						else
+						{
+							vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+							/* Not sure if a trace is required.  The stack did not want this message */
+						}
 					}
 					else
 					{
-						vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+						/* No buffer available to receive this message */
+						iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
 					}
 				}
-			}
-			else
-			{
-				iptraceETHERNET_RX_EVENT_LOST();
+				break;
+			case kStatus_ENET_RxFrameEmpty: // Received an empty frame.  Ignore it
+				receiving = pdFALSE;
+				break;
+			case kStatus_ENET_RxFrameError: // Received an error frame.  Read & drop it
+				ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0);
+				/* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
+				break;
 			}
 		}
 	}
@@ -195,6 +220,7 @@ bool link;
 	return link ? pdTRUE : pdFALSE;
 }
 
+
 BaseType_t xNetworkInterfaceInitialise( void )
 {
 enet_config_t config;
@@ -205,6 +231,12 @@ status_t status;
 bool link = false;
 
 phy_config_t phyConfig;
+
+	int bufferIndex;
+	for(bufferIndex=0;bufferIndex<ENET_RXBD_NUM;bufferIndex++)
+	{
+		rxbuffer[ bufferIndex ] = ( uint32_t ) &receiveBuffer[bufferIndex];
+	}
 
 	phyConfig.phyAddr = PHY_ADDRESS;
 	phyConfig.autoNeg = true;
@@ -249,7 +281,7 @@ phy_config_t phyConfig;
 	config.miiDuplex = ( enet_mii_duplex_t ) duplex;
 
 	/* Initialize ENET. */
-	ENET_Init( ENET, &config, g_macAddr, refClock );
+	ENET_Init( ENET, &config, &g_macAddr[ 0 ], refClock );
 
 	/* Enable the rx interrupt. */
 	ENET_EnableInterrupts( ENET, ( kENET_DmaRx ) );
@@ -282,37 +314,37 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
 BaseType_t response = pdFALSE;
 status_t status;
 
-    if( xGetPhyLinkStatus() == pdTRUE )
-    {
-        status = ENET_SendFrame( ENET, &g_handle, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
+	if( xGetPhyLinkStatus() )
+	{
+		status = ENET_SendFrame( ENET, &g_handle, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
 
-        switch( status )
-        {
-            default: /* anything not Success will be a failure */
-            case kStatus_ENET_TxFrameBusy:
-                break;
+		switch( status )
+		{
+			default: /* anything not Success will be a failure */
+			case kStatus_ENET_TxFrameBusy:
+				break;
 
-            case kStatus_Success:
-                iptraceNETWORK_INTERFACE_TRANSMIT();
-                response = pdTRUE;
-                break;
-        }
-    }
+			case kStatus_Success:
+				iptraceNETWORK_INTERFACE_TRANSMIT();
+				response = pdTRUE;
+				break;
+		}
+	}
 
-    if(xReleaseAfterSend != pdFALSE)
-    {
-    	vReleaseNetworkBufferAndDescriptor(pxNetworkBuffer);
-    }
+	if( xReleaseAfterSend != pdFALSE )
+	{
+		vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+	}
 
 	return response;
 }
 
 /* statically allocate the buffers */
 /* allocating them as uint32_t's to force them into word alignment, a requirement of the DMA. */
-static uint32_t buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ ( ipBUFFER_PADDING + ENET_RXBUFF_SIZE ) / sizeof( uint32_t ) + 1 ] __attribute__( ( aligned( 4 ) ) );
+__ALIGN_BEGIN static uint32_t buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ ( ipBUFFER_PADDING + ENET_RXBUFF_SIZE ) / sizeof( uint32_t ) + 1 ] __ALIGN_END;
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
-	for(int x=0;x< ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++)
+	for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
 	{
 		pxNetworkBuffers[ x ].pucEthernetBuffer = ( uint8_t * ) &buffers[ x ][ 0 ] + ipBUFFER_PADDING;
 		buffers[ x ][ 0 ] = ( uint32_t ) &pxNetworkBuffers[ x ];
