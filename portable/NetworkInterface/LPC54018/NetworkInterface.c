@@ -149,45 +149,41 @@ status_t status;
 	{
 		ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
-        while( pdTRUE ) // loop here because the notification is not an event queue.  Multiple packets could be in the receive buffer so we must loop here until the receiver is empty.
-        {
-            status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
+		status = ENET_GetRxFrameSize( EXAMPLE_ENET_BASE, &g_handle, &length, 0 );
 
-            if( ( status != kStatus_Success ) || ( length == 0 ) )
-            {
-                break; // no more packets to break out and wait to be notified
-            }
-            else
-            {
-                pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
+		if( ( status == kStatus_Success ) && ( length > 0 ) )
+		{
+			pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
 
-                if( pxBufferDescriptor != NULL )
-                {
-                    status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
-                    pxBufferDescriptor->xDataLength = length;
+			if( pxBufferDescriptor != NULL )
+			{
+				status = ENET_ReadFrame( EXAMPLE_ENET_BASE, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
+				pxBufferDescriptor->xDataLength = length;
 
-                    if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
-                    {
-                        xRxEvent.eEventType = eNetworkRxEvent;
-                        xRxEvent.pvData = ( void * ) pxBufferDescriptor;
+				if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+				{
+					xRxEvent.eEventType = eNetworkRxEvent;
+					xRxEvent.pvData = ( void * ) pxBufferDescriptor;
 
-                        if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFAIL )
-                        {
-                            vReleaseNetworkBufferAndDescriptor(pxBufferDescriptor);
-                            iptraceETHERNET_RX_EVENT_LOST();
-                        }
-                        else
-                        {
-                            iptraceNETWORK_INTERFACE_RECEIVE();
-                        }
-                    }
-                }
-                else
-                {
-                    iptraceETHERNET_RX_EVENT_LOST();
-                }
-            }
-        }
+					if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+					{
+						/* put this back if using bufferallocation_2.c */
+						/* vReleaseNetworkBuffer(pxBufferDescriptor); */
+
+
+						iptraceETHERNET_RX_EVENT_LOST();
+					}
+					else
+					{
+						vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+					}
+				}
+			}
+			else
+			{
+				iptraceETHERNET_RX_EVENT_LOST();
+			}
+		}
 	}
 }
 
@@ -313,12 +309,13 @@ status_t status;
 
 /* statically allocate the buffers */
 /* allocating them as uint32_t's to force them into word alignment, a requirement of the DMA. */
-__ALIGN_BEGIN static uint32_t buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ ( ipBUFFER_PADDING + ENET_RXBUFF_SIZE ) / sizeof( uint32_t ) + 1 ] __ALIGN_END;
+static uint32_t buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ ( ipBUFFER_PADDING + ENET_RXBUFF_SIZE ) / sizeof( uint32_t ) + 1 ] __attribute__( ( aligned( 4 ) ) );
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
 	for(int x=0;x< ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++)
 	{
-		pxNetworkBuffers[x].pucEthernetBuffer = (uint8_t *)&buffers[x][0];
+		pxNetworkBuffers[ x ].pucEthernetBuffer = ( uint8_t * ) &buffers[ x ][ 0 ] + ipBUFFER_PADDING;
+		buffers[ x ][ 0 ] = ( uint32_t ) &pxNetworkBuffers[ x ];
 	}
 }
 
