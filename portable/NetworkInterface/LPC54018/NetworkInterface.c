@@ -44,8 +44,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "fsl_debug_console.h"
 
 
-#define EXAMPLE_ENET_BASE			   ENET
-#define EXAMPLE_PHY_ADDRESS			   ( 0x00U )
+#define PHY_ADDRESS					   ( 0x00U )
 /* MDIO operations. */
 #define EXAMPLE_MDIO_OPS			   lpc_enet_ops
 /* PHY operations. */
@@ -117,13 +116,10 @@ uint32_t g_rxCheckIdx = 0;
 
 /*! @brief Enet PHY and MDIO interface handler. */
 static mdio_handle_t mdioHandle = { .ops = &EXAMPLE_MDIO_OPS };
-static phy_handle_t phyHandle = { .phyAddr = EXAMPLE_PHY_ADDRESS, .mdioHandle = &mdioHandle, .ops = &EXAMPLE_PHY_OPS };
+static phy_handle_t phyHandle = { .phyAddr = PHY_ADDRESS, .mdioHandle = &mdioHandle, .ops = &EXAMPLE_PHY_OPS };
 
-uint32_t receiveBuffer0[ ENET_RXBUFF_SIZE / sizeof( uint32_t ) + 1 ];
-uint32_t receiveBuffer1[ ENET_RXBUFF_SIZE / sizeof( uint32_t ) + 1 ];
-uint32_t receiveBuffer2[ ENET_RXBUFF_SIZE / sizeof( uint32_t ) + 1 ];
-uint32_t receiveBuffer3[ ENET_RXBUFF_SIZE / sizeof( uint32_t ) + 1 ];
-uint32_t rxbuffer[ ENET_RXBD_NUM ] = { ( uint32_t ) receiveBuffer0, ( uint32_t ) receiveBuffer1, ( uint32_t ) receiveBuffer2, ( uint32_t ) receiveBuffer3 };
+__ALIGN_BEGIN uint32_t receiveBuffer[ ENET_RXBD_NUM ][ ENET_RXBUFF_SIZE / sizeof( uint32_t ) + 1 ] __ALIGN_END;
+uint32_t rxbuffer[ ENET_RXBD_NUM ];
 
 TaskHandle_t receiveTaskHandle;
 
@@ -158,43 +154,76 @@ status_t status;
 	{
 		ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
-		status = ENET_GetRxFrameSize( EXAMPLE_ENET_BASE, &g_handle, &length, 0 );
+		BaseType_t receiving = pdTRUE;
 
-		if( ( status == kStatus_Success ) && ( length > 0 ) )
+		while( receiving == pdTRUE )
 		{
-			pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
+			status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
 
-			if( pxBufferDescriptor != NULL )
+			switch( status )
 			{
-				status = ENET_ReadFrame( EXAMPLE_ENET_BASE, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
-				pxBufferDescriptor->xDataLength = length;
+				case kStatus_Success: /* there is a frame.  process it */
 
-				if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
-				{
-					xRxEvent.eEventType = eNetworkRxEvent;
-					xRxEvent.pvData = ( void * ) pxBufferDescriptor;
-
-					if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+					if( length )
 					{
-						/* put this back if using bufferallocation_2.c */
-						/* vReleaseNetworkBuffer(pxBufferDescriptor); */
+						pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
 
+						if( pxBufferDescriptor != NULL )
+						{
+							status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
+							pxBufferDescriptor->xDataLength = length;
 
-						iptraceETHERNET_RX_EVENT_LOST();
+							if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+							{
+								xRxEvent.eEventType = eNetworkRxEvent;
+								xRxEvent.pvData = ( void * ) pxBufferDescriptor;
+
+								if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+								{
+									vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+									iptraceETHERNET_RX_EVENT_LOST();
+								}
+								else
+								{
+									/* Message successfully transfered to the stack */
+								}
+							}
+							else
+							{
+								vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+								/* Not sure if a trace is required.  The stack did not want this message */
+							}
+						}
+						else
+						{
+							/* No buffer available to receive this message */
+							iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
+						}
 					}
-					else
-					{
-						vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-					}
-				}
-			}
-			else
-			{
-				iptraceETHERNET_RX_EVENT_LOST();
+
+					break;
+
+				case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
+					receiving = pdFALSE;
+					break;
+
+				case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
+					ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
+					/* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
+					break;
 			}
 		}
 	}
 }
+
+BaseType_t xGetPhyLinkStatus( void )
+{
+bool link;
+
+	PHY_GetLinkStatus( &phyHandle, &link );
+	return link ? pdTRUE : pdFALSE;
+}
+
 
 BaseType_t xNetworkInterfaceInitialise( void )
 {
@@ -207,9 +236,16 @@ bool link = false;
 
 phy_config_t phyConfig;
 
-	phyConfig.phyAddr = EXAMPLE_PHY_ADDRESS;
+int bufferIndex;
+
+	for( bufferIndex = 0; bufferIndex < ENET_RXBD_NUM; bufferIndex++ )
+	{
+		rxbuffer[ bufferIndex ] = ( uint32_t ) &receiveBuffer[ bufferIndex ];
+	}
+
+	phyConfig.phyAddr = PHY_ADDRESS;
 	phyConfig.autoNeg = true;
-	mdioHandle.resource.base = EXAMPLE_ENET_BASE;
+	mdioHandle.resource.base = ENET;
 
 	/* prepare the buffer configuration. */
 	enet_buffer_config_t buffConfig[ 1 ] =
@@ -250,20 +286,20 @@ phy_config_t phyConfig;
 	config.miiDuplex = ( enet_mii_duplex_t ) duplex;
 
 	/* Initialize ENET. */
-	ENET_Init( EXAMPLE_ENET_BASE, &config, &g_macAddr[ 0 ], refClock );
+	ENET_Init( ENET, &config, &g_macAddr[ 0 ], refClock );
 
 	/* Enable the rx interrupt. */
-	ENET_EnableInterrupts( EXAMPLE_ENET_BASE, ( kENET_DmaRx ) );
+	ENET_EnableInterrupts( ENET, ( kENET_DmaRx ) );
 
 	/* Initialize Descriptor. */
-	ENET_DescriptorInit( EXAMPLE_ENET_BASE, &config, &buffConfig[ 0 ] );
+	ENET_DescriptorInit( ENET, &config, &buffConfig[ 0 ] );
 
 	/* Create the handler. */
-	ENET_CreateHandler( EXAMPLE_ENET_BASE, &g_handle, &config, &buffConfig[ 0 ], ENET_IntCallback, NULL );
+	ENET_CreateHandler( ENET, &g_handle, &config, &buffConfig[ 0 ], ENET_IntCallback, NULL );
 	NVIC_SetPriority( 65 - 16, 4 ); /* TODO this feels like a hack and I would expect a nice ENET API for priority. */
 
 	/* Active TX/RX. */
-	ENET_StartRxTx( EXAMPLE_ENET_BASE, 1, 1 );
+	ENET_StartRxTx( ENET, 1, 1 );
 
 	if( xTaskCreate( rx_task, "rx_task", 512, NULL, 5, &receiveTaskHandle ) != pdPASS )
 	{
@@ -281,18 +317,23 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
 									BaseType_t xReleaseAfterSend )
 {
 BaseType_t response = pdFALSE;
-status_t status = ENET_SendFrame( EXAMPLE_ENET_BASE, &g_handle, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
+status_t status;
 
-	switch( status )
+	if( xGetPhyLinkStatus() )
 	{
-		default: /* anything not Success will be a failure */
-		case kStatus_ENET_TxFrameBusy:
-			break;
+		status = ENET_SendFrame( ENET, &g_handle, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
 
-		case kStatus_Success:
-			iptraceNETWORK_INTERFACE_TRANSMIT();
-			response = pdTRUE;
-			break;
+		switch( status )
+		{
+			default: /* anything not Success will be a failure */
+			case kStatus_ENET_TxFrameBusy:
+				break;
+
+			case kStatus_Success:
+				iptraceNETWORK_INTERFACE_TRANSMIT();
+				response = pdTRUE;
+				break;
+		}
 	}
 
 	if( xReleaseAfterSend != pdFALSE )
@@ -305,7 +346,7 @@ status_t status = ENET_SendFrame( EXAMPLE_ENET_BASE, &g_handle, pxNetworkBuffer-
 
 /* statically allocate the buffers */
 /* allocating them as uint32_t's to force them into word alignment, a requirement of the DMA. */
-static uint32_t buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ ( ipBUFFER_PADDING + ENET_RXBUFF_SIZE ) / sizeof( uint32_t ) + 1 ] __attribute__( ( aligned( 4 ) ) );
+__ALIGN_BEGIN static uint32_t buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ ( ipBUFFER_PADDING + ENET_RXBUFF_SIZE ) / sizeof( uint32_t ) + 1 ] __ALIGN_END;
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
 	for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
@@ -313,12 +354,4 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 		pxNetworkBuffers[ x ].pucEthernetBuffer = ( uint8_t * ) &buffers[ x ][ 0 ] + ipBUFFER_PADDING;
 		buffers[ x ][ 0 ] = ( uint32_t ) &pxNetworkBuffers[ x ];
 	}
-}
-
-BaseType_t xGetPhyLinkStatus( void )
-{
-bool link;
-
-	PHY_GetLinkStatus( &phyHandle, &link );
-	return link ? pdTRUE : pdFALSE;
 }
