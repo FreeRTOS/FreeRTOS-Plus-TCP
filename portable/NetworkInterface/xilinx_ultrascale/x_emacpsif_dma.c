@@ -50,31 +50,33 @@
 #endif
 
 /* Two defines used to set or clear the EMAC interrupt */
-#if( ipconfigULTRASCALE == 1 )
-	/*
-	 * XPAR_SCUGIC_0_CPU_BASEADDR  0xF9020000U
-	 * XPAR_SCUGIC_0_DIST_BASEADDR 0xF9010000U
-	 */
-	#define INTC_BASE_ADDR		XPAR_SCUGIC_0_CPU_BASEADDR
-	#define INTC_DIST_BASE_ADDR	XPAR_SCUGIC_0_DIST_BASEADDR
-#else
-	/*
-	 * XPAR_SCUGIC_CPU_BASEADDR   (XPS_SCU_PERIPH_BASE + 0x00000100U)
-	 * XPAR_SCUGIC_DIST_BASEADDR  (XPS_SCU_PERIPH_BASE + 0x00001000U)
-	 */
+#if ( ipconfigULTRASCALE == 1 )
 
-	#define INTC_BASE_ADDR		XPAR_SCUGIC_CPU_BASEADDR
-	#define INTC_DIST_BASE_ADDR	XPAR_SCUGIC_DIST_BASEADDR
+	/*
+	* XPAR_SCUGIC_0_CPU_BASEADDR  0xF9020000U
+	* XPAR_SCUGIC_0_DIST_BASEADDR 0xF9010000U
+	*/
+	#define INTC_BASE_ADDR		   XPAR_SCUGIC_0_CPU_BASEADDR
+	#define INTC_DIST_BASE_ADDR	   XPAR_SCUGIC_0_DIST_BASEADDR
+#else
+
+	/*
+	* XPAR_SCUGIC_CPU_BASEADDR   (XPS_SCU_PERIPH_BASE + 0x00000100U)
+	* XPAR_SCUGIC_DIST_BASEADDR  (XPS_SCU_PERIPH_BASE + 0x00001000U)
+	*/
+
+	#define INTC_BASE_ADDR		   XPAR_SCUGIC_CPU_BASEADDR
+	#define INTC_DIST_BASE_ADDR	   XPAR_SCUGIC_DIST_BASEADDR
 #endif
 
-#if( ipconfigPACKET_FILLER_SIZE != 2 )
+#if ( ipconfigPACKET_FILLER_SIZE != 2 )
 	#error Please define ipconfigPACKET_FILLER_SIZE as the value '2'
 #endif
 #define TX_OFFSET				ipconfigPACKET_FILLER_SIZE
 
-#define dmaRX_TX_BUFFER_SIZE			1536
+#define dmaRX_TX_BUFFER_SIZE	1536
 
-#if( ipconfigULTRASCALE == 1 )
+#if ( ipconfigULTRASCALE == 1 )
 	extern XScuGic xInterruptController;
 #endif
 
@@ -82,31 +84,31 @@
 extern TaskHandle_t xEMACTaskHandle;
 
 /*
-	pxDMA_tx_buffers: these are character arrays, each one is big enough to hold 1 MTU.
-	The actual TX buffers are located in uncached RAM.
+    pxDMA_tx_buffers: these are character arrays, each one is big enough to hold 1 MTU.
+    The actual TX buffers are located in uncached RAM.
 */
 static unsigned char *pxDMA_tx_buffers[ ipconfigNIC_N_TX_DESC ] = { NULL };
 
 /*
-	pxDMA_rx_buffers: these are pointers to 'NetworkBufferDescriptor_t'.
-	Once a message has been received by the EMAC, the descriptor can be passed
-	immediately to the IP-task.
+    pxDMA_rx_buffers: these are pointers to 'NetworkBufferDescriptor_t'.
+    Once a message has been received by the EMAC, the descriptor can be passed
+    immediately to the IP-task.
 */
 static NetworkBufferDescriptor_t *pxDMA_rx_buffers[ ipconfigNIC_N_RX_DESC ] = { NULL };
 
 /*
-	The FreeRTOS+TCP port is using a fixed 'topology', which is declared in
-	./portable/NetworkInterface/Zynq/NetworkInterface.c
+    The FreeRTOS+TCP port is using a fixed 'topology', which is declared in
+    ./portable/NetworkInterface/Zynq/NetworkInterface.c
 */
 extern struct xtopology_t xXTopology;
 
 static SemaphoreHandle_t xTXDescriptorSemaphore = NULL;
 
 /*
-	The FreeRTOS+TCP port does not make use of "src/xemacps_bdring.c".
-	In stead 'struct xemacpsif_s' has a "head" and a "tail" index.
-	"head" is the next index to be written, used.
-	"tail" is the next index to be read, freed.
+    The FreeRTOS+TCP port does not make use of "src/xemacps_bdring.c".
+    In stead 'struct xemacpsif_s' has a "head" and a "tail" index.
+    "head" is the next index to be written, used.
+    "tail" is the next index to be read, freed.
 */
 
 int is_tx_space_available( xemacpsif_s *xemacpsif )
@@ -140,6 +142,7 @@ size_t uxCount = ( ( UBaseType_t ) ipconfigNIC_N_TX_DESC ) - uxSemaphoreGetCount
 		{
 			break;
 		}
+
 		{
 		void *pvBuffer = pxDMA_tx_buffers[ tail ];
 		NetworkBufferDescriptor_t *pxBuffer;
@@ -148,6 +151,7 @@ size_t uxCount = ( ( UBaseType_t ) ipconfigNIC_N_TX_DESC ) - uxSemaphoreGetCount
 			{
 				pxDMA_tx_buffers[ tail ] = NULL;
 				pxBuffer = pxPacketBuffer_to_NetworkBuffer( pvBuffer );
+
 				if( pxBuffer != NULL )
 				{
 					vReleaseNetworkBufferAndDescriptor( pxBuffer );
@@ -158,6 +162,7 @@ size_t uxCount = ( ( UBaseType_t ) ipconfigNIC_N_TX_DESC ) - uxSemaphoreGetCount
 				}
 			}
 		}
+
 		/* Clear all but the "used" and "wrap" bits. */
 		if( tail < ipconfigNIC_N_TX_DESC - 1 )
 		{
@@ -167,20 +172,21 @@ size_t uxCount = ( ( UBaseType_t ) ipconfigNIC_N_TX_DESC ) - uxSemaphoreGetCount
 		{
 			xemacpsif->txSegments[ tail ].flags = XEMACPS_TXBUF_USED_MASK | XEMACPS_TXBUF_WRAP_MASK;
 		}
+
 		uxCount--;
 		/* Tell the counting semaphore that one more TX descriptor is available. */
 		xSemaphoreGive( xTXDescriptorSemaphore );
+
 		if( ++tail == ipconfigNIC_N_TX_DESC )
 		{
 			tail = 0;
 		}
+
 		xemacpsif->txTail = tail;
 	}
-
-	return;
 }
 
-void emacps_send_handler(void *arg)
+void emacps_send_handler( void *arg )
 {
 xemacpsif_s *xemacpsif;
 BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -190,7 +196,7 @@ BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	/* This function is called from an ISR. The Xilinx ISR-handler has already
 	cleared the TXCOMPL and TXSR_USEDREAD status bits in the XEMACPS_TXSR register.
 	But it forgets to do a read-back. Do so now to avoid ever-returning ISR's. */
-	( void ) XEmacPs_ReadReg(xemacpsif->emacps.Config.BaseAddress, XEMACPS_TXSR_OFFSET);
+	( void ) XEmacPs_ReadReg( xemacpsif->emacps.Config.BaseAddress, XEMACPS_TXSR_OFFSET );
 
 	/* In this port for FreeRTOS+TCP, the EMAC interrupts will only set a bit in
 	"isr_events". The task in NetworkInterface will wake-up and do the necessary work.
@@ -222,7 +228,9 @@ BaseType_t xReturn;
 	return xReturn;
 }
 
-XStatus emacps_send_message(xemacpsif_s *xemacpsif, NetworkBufferDescriptor_t *pxBuffer, int iReleaseAfterSend )
+XStatus emacps_send_message( xemacpsif_s *xemacpsif,
+							 NetworkBufferDescriptor_t *pxBuffer,
+							 int iReleaseAfterSend )
 {
 int head = xemacpsif->txHead;
 int iHasSent = 0;
@@ -255,10 +263,12 @@ TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 5000U );
 
 		/* Pass the pointer (and its ownership) directly to DMA. */
 		pxDMA_tx_buffers[ head ] = pxBuffer->pucEthernetBuffer;
+
 		if( ucIsCachedMemory( pxBuffer->pucEthernetBuffer ) != 0 )
 		{
 			Xil_DCacheFlushRange( ( INTPTR ) pxBuffer->pucEthernetBuffer, ( INTPTR ) pxBuffer->xDataLength );
 		}
+
 		/* Buffer has been transferred, do not release it. */
 		iReleaseAfterSend = pdFALSE;
 
@@ -266,6 +276,7 @@ TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 5000U );
 		the TXBUF_LAST bit will be set. */
 		ulFlags |= XEMACPS_TXBUF_LAST_MASK;
 		ulFlags |= ( pxBuffer->xDataLength & XEMACPS_TXBUF_LEN_MASK );
+
 		if( head == ( ipconfigNIC_N_TX_DESC - 1 ) )
 		{
 			ulFlags |= XEMACPS_TXBUF_WRAP_MASK;
@@ -276,10 +287,12 @@ TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 5000U );
 		xemacpsif->txSegments[ head ].flags = ulFlags;
 
 		iHasSent = pdTRUE;
+
 		if( ++head == ipconfigNIC_N_TX_DESC )
 		{
 			head = 0;
 		}
+
 		/* Update the TX-head index. These variable are declared volatile so they will be
 		accessed as little as possible.	*/
 		xemacpsif->txHead = head;
@@ -304,15 +317,16 @@ TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 5000U );
 		/* Read back the register to make sure the data is flushed. */
 		( void ) XEmacPs_ReadReg( ulBaseAddress, XEMACPS_NWCTRL_OFFSET );
 	}
+
 	dsb();
 
 	return 0;
 }
 
-void emacps_recv_handler(void *arg)
+void emacps_recv_handler( void *arg )
 {
-	xemacpsif_s *xemacpsif;
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+xemacpsif_s *xemacpsif;
+BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
 	xemacpsif = ( xemacpsif_s * ) arg;
 	xemacpsif->isr_events |= EMAC_IF_RX_EVENT;
@@ -342,11 +356,11 @@ IPStackEvent_t xRxEvent;
 		/* The buffer could not be sent to the stack so	must be released again.
 		This is a deferred handler taskr, not a real interrupt, so it is ok to
 		use the task level function here. */
-		#if( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+		#if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
 		{
 			do
 			{
-				NetworkBufferDescriptor_t *pxNext = pxDescriptor->pxNextBuffer;
+			NetworkBufferDescriptor_t *pxNext = pxDescriptor->pxNextBuffer;
 				vReleaseNetworkBufferAndDescriptor( pxDescriptor );
 				pxDescriptor = pxNext;
 			} while( pxDescriptor != NULL );
@@ -355,7 +369,7 @@ IPStackEvent_t xRxEvent;
 		{
 			vReleaseNetworkBufferAndDescriptor( pxDescriptor );
 		}
-		#endif	/* ipconfigUSE_LINKED_RX_MESSAGES */
+		#endif /* ipconfigUSE_LINKED_RX_MESSAGES */
 		iptraceETHERNET_RX_EVENT_LOST();
 		FreeRTOS_printf( ( "prvPassEthMessages: Can not queue return packet!\n" ) );
 	}
@@ -367,18 +381,19 @@ NetworkBufferDescriptor_t *pxBuffer, *pxNewBuffer;
 int rx_bytes;
 volatile int msgCount = 0;
 int head = xemacpsif->rxHead;
-#if( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-	NetworkBufferDescriptor_t *pxFirstDescriptor = NULL;
-	NetworkBufferDescriptor_t *pxLastDescriptor = NULL;
-#endif	/* ipconfigUSE_LINKED_RX_MESSAGES */
+
+	#if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+		NetworkBufferDescriptor_t *pxFirstDescriptor = NULL;
+		NetworkBufferDescriptor_t *pxLastDescriptor = NULL;
+	#endif /* ipconfigUSE_LINKED_RX_MESSAGES */
 
 	/* There seems to be an issue (SI# 692601), see comments below. */
-	resetrx_on_no_rxdata(xemacpsif);
+	resetrx_on_no_rxdata( xemacpsif );
 
 	/* This FreeRTOS+TCP driver shall be compiled with the option
 	"ipconfigUSE_LINKED_RX_MESSAGES" enabled.  It allows the driver to send a
 	chain of RX messages within one message to the IP-task.	*/
-	for( ;; )
+	for( ; ; )
 	{
 		if( ( ( xemacpsif->rxSegments[ head ].address & XEMACPS_RXBUF_NEW_MASK ) == 0 ) ||
 			( pxDMA_rx_buffers[ head ] == NULL ) )
@@ -387,11 +402,12 @@ int head = xemacpsif->rxHead;
 		}
 
 		pxNewBuffer = pxGetNetworkBufferWithDescriptor( dmaRX_TX_BUFFER_SIZE, ( TickType_t ) 0 );
+
 		if( pxNewBuffer == NULL )
 		{
 			/* A packet has been received, but there is no replacement for this Network Buffer.
 			The packet will be dropped, and it Network Buffer will stay in place. */
-			FreeRTOS_printf( ("emacps_check_rx: unable to allocate a Network Buffer\n" ) );
+			FreeRTOS_printf( ( "emacps_check_rx: unable to allocate a Network Buffer\n" ) );
 			pxNewBuffer = ( NetworkBufferDescriptor_t * ) pxDMA_rx_buffers[ head ];
 		}
 		else
@@ -416,42 +432,46 @@ int head = xemacpsif->rxHead;
 			/* store it in the receive queue, where it'll be processed by a
 			different handler. */
 			iptraceNETWORK_INTERFACE_RECEIVE();
-			#if( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+			#if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
 			{
 				pxBuffer->pxNextBuffer = NULL;
 
 				if( pxFirstDescriptor == NULL )
 				{
-					// Becomes the first message
+					/* Becomes the first message */
 					pxFirstDescriptor = pxBuffer;
 				}
 				else if( pxLastDescriptor != NULL )
 				{
-					// Add to the tail
+					/* Add to the tail */
 					pxLastDescriptor->pxNextBuffer = pxBuffer;
 				}
 
 				pxLastDescriptor = pxBuffer;
 			}
-			#else
+			#else /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
 			{
 				prvPassEthMessages( pxBuffer );
 			}
-			#endif	/* ipconfigUSE_LINKED_RX_MESSAGES */
+			#endif /* ipconfigUSE_LINKED_RX_MESSAGES */
 
 			msgCount++;
 		}
+
 		{
 			if( ucIsCachedMemory( pxNewBuffer->pucEthernetBuffer ) != 0 )
 			{
 				Xil_DCacheInvalidateRange( ( ( uintptr_t ) pxNewBuffer->pucEthernetBuffer ) - ipconfigPACKET_FILLER_SIZE, ( uint32_t ) dmaRX_TX_BUFFER_SIZE );
 			}
+
 			{
-				uintptr_t addr = ( ( uintptr_t ) pxNewBuffer->pucEthernetBuffer ) & XEMACPS_RXBUF_ADD_MASK;
+			uintptr_t addr = ( ( uintptr_t ) pxNewBuffer->pucEthernetBuffer ) & XEMACPS_RXBUF_ADD_MASK;
+
 				if( head == ( ipconfigNIC_N_RX_DESC - 1 ) )
 				{
 					addr |= XEMACPS_RXBUF_WRAP_MASK;
 				}
+
 				/* Clearing 'XEMACPS_RXBUF_NEW_MASK'       0x00000001 *< Used bit.. */
 				xemacpsif->rxSegments[ head ].flags = 0;
 				xemacpsif->rxSegments[ head ].address = addr;
@@ -464,22 +484,23 @@ int head = xemacpsif->rxHead;
 		{
 			head = 0;
 		}
+
 		xemacpsif->rxHead = head;
 	}
 
-	#if( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+	#if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
 	{
 		if( pxFirstDescriptor != NULL )
 		{
 			prvPassEthMessages( pxFirstDescriptor );
 		}
 	}
-	#endif	/* ipconfigUSE_LINKED_RX_MESSAGES */
+	#endif /* ipconfigUSE_LINKED_RX_MESSAGES */
 
 	return msgCount;
 }
 
-void clean_dma_txdescs(xemacpsif_s *xemacpsif)
+void clean_dma_txdescs( xemacpsif_s *xemacpsif )
 {
 int index;
 
@@ -487,22 +508,23 @@ int index;
 	{
 		xemacpsif->txSegments[ index ].address = ( uintptr_t ) NULL;
 		xemacpsif->txSegments[ index ].flags = XEMACPS_TXBUF_USED_MASK;
-		pxDMA_tx_buffers[ index ] = ( unsigned char * )NULL;
+		pxDMA_tx_buffers[ index ] = ( unsigned char * ) NULL;
 	}
+
 	xemacpsif->txSegments[ ipconfigNIC_N_TX_DESC - 1 ].flags =
 		XEMACPS_TXBUF_USED_MASK | XEMACPS_TXBUF_WRAP_MASK;
 }
 
-XStatus init_dma(xemacpsif_s *xemacpsif)
+XStatus init_dma( xemacpsif_s *xemacpsif )
 {
-	NetworkBufferDescriptor_t *pxBuffer;
+NetworkBufferDescriptor_t *pxBuffer;
 
-	int iIndex;
-	UBaseType_t xRxSize;
-	UBaseType_t xTxSize;
+int iIndex;
+UBaseType_t xRxSize;
+UBaseType_t xTxSize;
 	struct xtopology_t *xtopologyp = &xXTopology;
 	XEmacPs_BdRing * rxRing;
-	XEmacPs * emac = &(xemacpsif->emacps);
+	XEmacPs * emac = &( xemacpsif->emacps );
 	XEmacPs_Bd bdTemplate;
 	XEmacPs_Bd * dmaBdPtr = NULL;
 	uint32_t status;
@@ -511,7 +533,8 @@ XStatus init_dma(xemacpsif_s *xemacpsif)
 
 	xTxSize = ipconfigNIC_N_TX_DESC * sizeof( xemacpsif->txSegments[ 0 ] );
 
-	xemacpsif->uTxUnitSize = ( dmaRX_TX_BUFFER_SIZE  + 0x1000UL ) & ~0xfffUL;
+	xemacpsif->uTxUnitSize = ( dmaRX_TX_BUFFER_SIZE + 0x1000UL ) & ~0xfffUL;
+
 	/*
 	 * We allocate 65536 bytes for RX BDs which can accommodate a
 	 * maximum of 8192 BDs which is much more than any application
@@ -520,70 +543,82 @@ XStatus init_dma(xemacpsif_s *xemacpsif)
 	xemacpsif->rxSegments = ( struct xBD_TYPE * ) ( pucGetUncachedMemory( xRxSize ) );
 	xemacpsif->txSegments = ( struct xBD_TYPE * ) ( pucGetUncachedMemory( xTxSize ) );
 
-	configASSERT(xemacpsif->rxSegments);
-	configASSERT(xemacpsif->txSegments);
-	configASSERT((((uintptr_t)xemacpsif->rxSegments) % XEMACPS_DMABD_MINIMUM_ALIGNMENT) == 0);
-	configASSERT((((uintptr_t)xemacpsif->txSegments) % XEMACPS_DMABD_MINIMUM_ALIGNMENT) == 0);
+	configASSERT( xemacpsif->rxSegments );
+	configASSERT( xemacpsif->txSegments );
+	configASSERT( ( ( ( uintptr_t ) xemacpsif->rxSegments ) % XEMACPS_DMABD_MINIMUM_ALIGNMENT ) == 0 );
+	configASSERT( ( ( ( uintptr_t ) xemacpsif->txSegments ) % XEMACPS_DMABD_MINIMUM_ALIGNMENT ) == 0 );
 
 
 	rxRing = &( XEmacPs_GetRxRing( emac ) );
-	XEmacPs_BdClear(bdTemplate);
+	XEmacPs_BdClear( bdTemplate );
 
-	status = XEmacPs_BdRingCreate(rxRing, (UINTPTR) xemacpsif->rxSegments,
-				(UINTPTR) xemacpsif->rxSegments, XEMACPS_DMABD_MINIMUM_ALIGNMENT,
-				ipconfigNIC_N_RX_DESC);
+	status = XEmacPs_BdRingCreate( rxRing, ( UINTPTR ) xemacpsif->rxSegments,
+								   ( UINTPTR ) xemacpsif->rxSegments, XEMACPS_DMABD_MINIMUM_ALIGNMENT,
+								   ipconfigNIC_N_RX_DESC );
 
-	if (status != 0)
+	if( status != 0 )
+	{
 		return status;
+	}
 
-	status = XEmacPs_BdRingClone(rxRing, &bdTemplate, XEMACPS_RECV);
+	status = XEmacPs_BdRingClone( rxRing, &bdTemplate, XEMACPS_RECV );
 
-	if (status != 0)
+	if( status != 0 )
+	{
 		return status;
+	}
 
 	if( xTXDescriptorSemaphore == NULL )
 	{
 		xTXDescriptorSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) ipconfigNIC_N_TX_DESC, ( UBaseType_t ) ipconfigNIC_N_TX_DESC );
 		configASSERT( xTXDescriptorSemaphore != NULL );
 	}
+
 	/*
 	 * Allocate RX descriptors, 1 RxBD at a time.
 	 */
 	for( iIndex = 0; iIndex < ipconfigNIC_N_RX_DESC; iIndex++ )
 	{
 		pxBuffer = pxDMA_rx_buffers[ iIndex ];
+
 		if( pxBuffer == NULL )
 		{
 			pxBuffer = pxGetNetworkBufferWithDescriptor( dmaRX_TX_BUFFER_SIZE, ( TickType_t ) 0 );
+
 			if( pxBuffer == NULL )
 			{
-				FreeRTOS_printf( ("Unable to allocate a network buffer in recv_handler\n" ) );
+				FreeRTOS_printf( ( "Unable to allocate a network buffer in recv_handler\n" ) );
 				return -1;
 			}
 		}
 
 		status = XEmacPs_BdRingAlloc( rxRing, 1, &dmaBdPtr );
 
-		if (status != 0)
+		if( status != 0 )
+		{
 			return status;
+		}
 
 		XEmacPs_BdSetAddressRx( dmaBdPtr,
-			( ( uintptr_t ) pxBuffer->pucEthernetBuffer ) & XEMACPS_RXBUF_ADD_MASK );
+								( ( uintptr_t ) pxBuffer->pucEthernetBuffer ) & XEMACPS_RXBUF_ADD_MASK );
 
-		status = XEmacPs_BdRingToHw(rxRing, 1, dmaBdPtr);
+		status = XEmacPs_BdRingToHw( rxRing, 1, dmaBdPtr );
 
-		if (status != 0)
+		if( status != 0 )
+		{
 			return status;
+		}
 
 		/* Writing for debug - can look at it in RX processing */
-		xemacpsif->rxSegments[iIndex].reserved = iIndex;
+		xemacpsif->rxSegments[ iIndex ].reserved = iIndex;
 
 		pxDMA_rx_buffers[ iIndex ] = pxBuffer;
+
 		/* Make sure this memory is not in cache for now. */
 		if( ucIsCachedMemory( pxBuffer->pucEthernetBuffer ) != 0 )
 		{
 			Xil_DCacheInvalidateRange( ( ( uintptr_t ) pxBuffer->pucEthernetBuffer ) - ipconfigPACKET_FILLER_SIZE,
-				( unsigned ) dmaRX_TX_BUFFER_SIZE );
+									   ( unsigned ) dmaRX_TX_BUFFER_SIZE );
 		}
 	}
 
@@ -592,57 +627,57 @@ XStatus init_dma(xemacpsif_s *xemacpsif)
 	clean_dma_txdescs( xemacpsif );
 
 	{
-		uint32_t value;
+	uint32_t value;
 		value = XEmacPs_ReadReg( xemacpsif->emacps.Config.BaseAddress, XEMACPS_DMACR_OFFSET );
 
-		// 1xxxx: Attempt to use INCR16 AHB bursts
+		/* 1xxxx: Attempt to use INCR16 AHB bursts */
 		value = ( value & ~( XEMACPS_DMACR_BLENGTH_MASK ) ) | XEMACPS_DMACR_INCR16_AHB_BURST;
-#if( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
-		value |= XEMACPS_DMACR_TCPCKSUM_MASK;
-#else
-#warning Are you sure the EMAC should not calculate outgoing checksums?
-		value &= ~XEMACPS_DMACR_TCPCKSUM_MASK;
-#endif
+		#if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+			value |= XEMACPS_DMACR_TCPCKSUM_MASK;
+		#else
+		#warning Are you sure the EMAC should not calculate outgoing checksums?
+			value &= ~XEMACPS_DMACR_TCPCKSUM_MASK;
+		#endif
 		XEmacPs_WriteReg( xemacpsif->emacps.Config.BaseAddress, XEMACPS_DMACR_OFFSET, value );
 	}
 	{
-		uint32_t value;
+	uint32_t value;
 		value = XEmacPs_ReadReg( xemacpsif->emacps.Config.BaseAddress, XEMACPS_NWCFG_OFFSET );
 
 		/* Network buffers are 32-bit aligned + 2 bytes (because ipconfigPACKET_FILLER_SIZE = 2 ).
 		Now tell the EMAC that received messages should be stored at "address + 2". */
 		value = ( value & ~XEMACPS_NWCFG_RXOFFS_MASK ) | 0x8000;
 
-#if( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM != 0 )
-		value |= XEMACPS_NWCFG_RXCHKSUMEN_MASK;
-#else
-#warning Are you sure the EMAC should not calculate incoming checksums?
-		value &= ~( ( uint32_t ) XEMACPS_NWCFG_RXCHKSUMEN_MASK );
-#endif
+		#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM != 0 )
+			value |= XEMACPS_NWCFG_RXCHKSUMEN_MASK;
+		#else
+		#warning Are you sure the EMAC should not calculate incoming checksums?
+			value &= ~( ( uint32_t ) XEMACPS_NWCFG_RXCHKSUMEN_MASK );
+		#endif
 		XEmacPs_WriteReg( xemacpsif->emacps.Config.BaseAddress, XEMACPS_NWCFG_OFFSET, value );
 	}
 
 	/* Set terminating BDs for US+ GEM */
 	if( xemacpsif->emacps.Version > 2 )
 	{
-		xemacpsif->rxBdTerminator = (struct xBD_TYPE *) pucGetUncachedMemory( sizeof( *xemacpsif->rxBdTerminator ) );
-		xemacpsif->txBdTerminator = (struct xBD_TYPE *) pucGetUncachedMemory( sizeof( *xemacpsif->txBdTerminator ) );
+		xemacpsif->rxBdTerminator = ( struct xBD_TYPE * ) pucGetUncachedMemory( sizeof( *xemacpsif->rxBdTerminator ) );
+		xemacpsif->txBdTerminator = ( struct xBD_TYPE * ) pucGetUncachedMemory( sizeof( *xemacpsif->txBdTerminator ) );
 
 		XEmacPs_BdClear( xemacpsif->rxBdTerminator );
-		XEmacPs_BdSetAddressRx( xemacpsif->rxBdTerminator, (XEMACPS_RXBUF_NEW_MASK |
-						XEMACPS_RXBUF_WRAP_MASK ) );
+		XEmacPs_BdSetAddressRx( xemacpsif->rxBdTerminator, ( XEMACPS_RXBUF_NEW_MASK |
+															 XEMACPS_RXBUF_WRAP_MASK ) );
 		XEmacPs_Out32( ( emac->Config.BaseAddress + XEMACPS_RXQ1BASE_OFFSET ),
-				   ( UINTPTR )xemacpsif->rxBdTerminator );
+					   ( UINTPTR ) xemacpsif->rxBdTerminator );
 
 		XEmacPs_BdClear( xemacpsif->txBdTerminator );
 		XEmacPs_BdSetStatus( xemacpsif->txBdTerminator,
-			( XEMACPS_TXBUF_USED_MASK | XEMACPS_TXBUF_WRAP_MASK ) );
+							 ( XEMACPS_TXBUF_USED_MASK | XEMACPS_TXBUF_WRAP_MASK ) );
 		XEmacPs_Out32( ( emac->Config.BaseAddress + XEMACPS_TXQBASE_OFFSET ),
-				   ( UINTPTR ) xemacpsif->txBdTerminator );
+					   ( UINTPTR ) xemacpsif->txBdTerminator );
 	}
 
 	/* These variables will be used in XEmacPs_Start (see src/xemacps.c). */
-	XEmacPs_SetQueuePtr(emac, (uintptr_t) xemacpsif->rxSegments, 0, XEMACPS_RECV);
+	XEmacPs_SetQueuePtr( emac, ( uintptr_t ) xemacpsif->rxSegments, 0, XEMACPS_RECV );
 
 	if( xemacpsif->emacps.Version > 2 )
 	{
@@ -657,6 +692,7 @@ XStatus init_dma(xemacpsif_s *xemacpsif)
 					 xtopologyp->scugic_emac_intr,
 					 XEmacPs_IntrHandler,
 					 emac );
+
 	/*
 	 * Enable the interrupt for emacps.
 	 */
@@ -679,32 +715,34 @@ XStatus init_dma(xemacpsif_s *xemacpsif)
  *
  */
 
-void resetrx_on_no_rxdata(xemacpsif_s *xemacpsif)
+void resetrx_on_no_rxdata( xemacpsif_s *xemacpsif )
 {
 uint32_t regctrl;
 uint32_t tempcntr;
 
 	tempcntr = XEmacPs_ReadReg( xemacpsif->emacps.Config.BaseAddress, XEMACPS_RXCNT_OFFSET );
-	if ( ( tempcntr == 0 ) && ( xemacpsif->last_rx_frms_cntr == 0 ) )
+
+	if( ( tempcntr == 0 ) && ( xemacpsif->last_rx_frms_cntr == 0 ) )
 	{
-		regctrl = XEmacPs_ReadReg(xemacpsif->emacps.Config.BaseAddress,
-				XEMACPS_NWCTRL_OFFSET);
-		regctrl &= (~XEMACPS_NWCTRL_RXEN_MASK);
-		XEmacPs_WriteReg(xemacpsif->emacps.Config.BaseAddress,
-				XEMACPS_NWCTRL_OFFSET, regctrl);
-		regctrl = XEmacPs_ReadReg(xemacpsif->emacps.Config.BaseAddress, XEMACPS_NWCTRL_OFFSET);
-		regctrl |= (XEMACPS_NWCTRL_RXEN_MASK);
-		XEmacPs_WriteReg(xemacpsif->emacps.Config.BaseAddress, XEMACPS_NWCTRL_OFFSET, regctrl);
+		regctrl = XEmacPs_ReadReg( xemacpsif->emacps.Config.BaseAddress,
+								   XEMACPS_NWCTRL_OFFSET );
+		regctrl &= ( ~XEMACPS_NWCTRL_RXEN_MASK );
+		XEmacPs_WriteReg( xemacpsif->emacps.Config.BaseAddress,
+						  XEMACPS_NWCTRL_OFFSET, regctrl );
+		regctrl = XEmacPs_ReadReg( xemacpsif->emacps.Config.BaseAddress, XEMACPS_NWCTRL_OFFSET );
+		regctrl |= ( XEMACPS_NWCTRL_RXEN_MASK );
+		XEmacPs_WriteReg( xemacpsif->emacps.Config.BaseAddress, XEMACPS_NWCTRL_OFFSET, regctrl );
 	}
+
 	xemacpsif->last_rx_frms_cntr = tempcntr;
 }
 
-void EmacDisableIntr(void)
+void EmacDisableIntr( void )
 {
-	XScuGic_DisableIntr(INTC_DIST_BASE_ADDR, xXTopology.scugic_emac_intr);
+	XScuGic_DisableIntr( INTC_DIST_BASE_ADDR, xXTopology.scugic_emac_intr );
 }
 
-void EmacEnableIntr(void)
+void EmacEnableIntr( void )
 {
 	XScuGic_Enable( &xInterruptController, xXTopology.scugic_emac_intr );
 }

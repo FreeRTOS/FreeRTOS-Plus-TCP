@@ -68,20 +68,20 @@
 
 #include "uncached_memory.h"
 
-#if( ipconfigULTRASCALE == 1 )
+#if ( ipconfigULTRASCALE == 1 )
 	/* Reserve 2 MB of memory. */
-	#define uncMEMORY_SIZE				0x200000U
-	#define DDR_MEMORY_END	(XPAR_PSU_DDR_0_S_AXI_HIGHADDR)
-	#define uncMEMORY_ATTRIBUTE			NORM_NONCACHE | INNER_SHAREABLE
+	#define uncMEMORY_SIZE		   0x200000U
+	#define DDR_MEMORY_END		   ( XPAR_PSU_DDR_0_S_AXI_HIGHADDR )
+	#define uncMEMORY_ATTRIBUTE	   NORM_NONCACHE | INNER_SHAREABLE
 #else
 	/* Reserve 1 MB of memory. */
-	#define uncMEMORY_SIZE				0x100000U
-	#define DDR_MEMORY_END	(XPAR_PS7_DDR_0_S_AXI_HIGHADDR+1)
-	#define uncMEMORY_ATTRIBUTE			0x1C02
+	#define uncMEMORY_SIZE		   0x100000U
+	#define DDR_MEMORY_END		   ( XPAR_PS7_DDR_0_S_AXI_HIGHADDR + 1 )
+	#define uncMEMORY_ATTRIBUTE	   0x1C02
 #endif /* ( ipconfigULTRASCALE == 1 ) */
 
 /* Make sure that each pointer has an alignment of 4 KB. */
-#define uncALIGNMENT_SIZE			0x1000uL
+#define uncALIGNMENT_SIZE    0x1000uL
 
 static void vInitialiseUncachedMemory( void );
 
@@ -115,15 +115,16 @@ uint8_t ucReturn;
 }
 /*-----------------------------------------------------------*/
 
-uint8_t *pucGetUncachedMemory( uint32_t ulSize )
+uint8_t * pucGetUncachedMemory( uint32_t ulSize )
 {
 uint8_t *pucReturn;
 uint32_t ulSkipSize;
 
 	if( pucStartOfMemory == NULL )
 	{
-		vInitialiseUncachedMemory( );
+		vInitialiseUncachedMemory();
 	}
+
 	if( ( pucStartOfMemory == NULL ) || ( ulSize > ulMemorySize ) )
 	{
 		pucReturn = NULL;
@@ -141,13 +142,12 @@ uint32_t ulSkipSize;
 }
 /*-----------------------------------------------------------*/
 
-static void vInitialiseUncachedMemory( )
+static void vInitialiseUncachedMemory()
 {
 	/* At the end of program's space... */
 	pucStartOfMemory = pucUncachedMemory;
 
-
-	if( ( ( uintptr_t )pucStartOfMemory ) + uncMEMORY_SIZE > DDR_MEMORY_END )
+	if( ( ( uintptr_t ) pucStartOfMemory ) + uncMEMORY_SIZE > DDR_MEMORY_END )
 	{
 		FreeRTOS_printf( ( "vInitialiseUncachedMemory: Can not allocate uncached memory\n" ) );
 	}
