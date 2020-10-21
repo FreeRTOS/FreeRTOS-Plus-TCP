@@ -840,17 +840,17 @@ with two fields: type and class
 	size_t uxStart, uxIndex;
 	DNSTail_t const * pxTail;
 	static const DNSMessage_t xDefaultPartDNSHeader =
-	{
-		0,                 /* The identifier will be overwritten. */
-		dnsOUTGOING_FLAGS, /* Flags set for standard query. */
-		dnsONE_QUESTION,   /* One question is being asked. */
-		0,                 /* No replies are included. */
-		0,                 /* No authorities. */
-		0                  /* No additional authorities. */
-	};
-	/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-	const void *pvCopySource;
-	void *pvCopyDest;
+		{
+			0,                 /* The identifier will be overwritten. */
+			dnsOUTGOING_FLAGS, /* Flags set for standard query. */
+			dnsONE_QUESTION,   /* One question is being asked. */
+			0,                 /* No replies are included. */
+			0,                 /* No authorities. */
+			0                  /* No additional authorities. */
+		};
+		/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+		const void *pvCopySource;
+		void *pvCopyDest;
 
 		/* Copy in the const part of the header. Intentionally using different
 		 * pointers with memcpy() to put the information in to correct place. */
@@ -910,10 +910,10 @@ with two fields: type and class
 		pxTail = ipCAST_PTR_TO_TYPE_PTR( DNSTail_t, &( pucUDPPayloadBuffer[ uxStart + 1U ] ) );
 
 		#if defined( _lint ) || defined( __COVERITY__ )
-		( void ) pxTail;
+			( void ) pxTail;
 		#else
-		vSetField16( pxTail, DNSTail_t, usType, dnsTYPE_A_HOST );
-		vSetField16( pxTail, DNSTail_t, usClass, dnsCLASS_IN );
+			vSetField16( pxTail, DNSTail_t, usType, dnsTYPE_A_HOST );
+			vSetField16( pxTail, DNSTail_t, usClass, dnsCLASS_IN );
 		#endif
 
 		/* Return the total size of the generated message, which is the space from

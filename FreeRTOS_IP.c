@@ -195,9 +195,10 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 													NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+
 	/*
-	 * Process incoming ICMP packets.
-	 */
+	* Process incoming ICMP packets.
+	*/
 	static eFrameProcessingResult_t prvProcessICMPPacket( ICMPPacket_t * const pxICMPPacket );
 #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
 
@@ -255,6 +256,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
 												  UBaseType_t uxHeaderLength );
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
+
 	/* Even when the driver takes care of checksum calculations,
 	the IP-task will still check if the length fields are OK. */
 	static BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
@@ -264,7 +266,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
 /*
  * Returns the network buffer descriptor that owns a given packet buffer.
  */
-static NetworkBufferDescriptor_t *prvPacketBuffer_to_NetworkBuffer( const void *pvBuffer, size_t uxOffset );
+static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void *pvBuffer,
+																	 size_t uxOffset );
 
 /*-----------------------------------------------------------*/
 
@@ -299,6 +302,7 @@ itself (in which case it is not ok to block). */
 static TaskHandle_t xIPTaskHandle = NULL;
 
 #if ( ipconfigUSE_TCP != 0 )
+
 	/* Set to a non-zero value if one or more TCP message have been processed
 	within the last round. */
 	static BaseType_t xProcessedTCPMessage;
@@ -918,7 +922,8 @@ NetworkBufferDescriptor_t * pxNewBuffer;
 }
 /*-----------------------------------------------------------*/
 
-static NetworkBufferDescriptor_t *prvPacketBuffer_to_NetworkBuffer( const void *pvBuffer, size_t uxOffset )
+static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void *pvBuffer,
+																	 size_t uxOffset )
 {
 uintptr_t uxBuffer;
 NetworkBufferDescriptor_t *pxResult;
@@ -944,7 +949,7 @@ NetworkBufferDescriptor_t *pxResult;
 			/* The following statement may trigger a:
 			warning: cast increases required alignment of target type [-Wcast-align].
 			It has been confirmed though that the alignment is suitable. */
-			pxResult = * ( ( NetworkBufferDescriptor_t ** ) uxBuffer );
+			pxResult = *( ( NetworkBufferDescriptor_t ** ) uxBuffer );
 		}
 		else
 		{
@@ -956,15 +961,15 @@ NetworkBufferDescriptor_t *pxResult;
 }
 /*-----------------------------------------------------------*/
 
-#if( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )
-	NetworkBufferDescriptor_t *pxPacketBuffer_to_NetworkBuffer( const void *pvBuffer )
+#if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )
+	NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void *pvBuffer )
 	{
 		return prvPacketBuffer_to_NetworkBuffer( pvBuffer, 0U );
 	}
 #endif /* ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
 /*-----------------------------------------------------------*/
 
-NetworkBufferDescriptor_t *pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer )
+NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer )
 {
 	return prvPacketBuffer_to_NetworkBuffer( pvBuffer, sizeof( UDPPacket_t ) );
 }
@@ -993,6 +998,7 @@ BaseType_t xReturn = pdFALSE;
 	configASSERT( xIPIsNetworkTaskReady() == pdFALSE );
 	configASSERT( xNetworkEventQueue == NULL );
 	configASSERT( xIPTaskHandle == NULL );
+
 	if( sizeof( uintptr_t ) == 8 )
 	{
 		/* This is a 64-bit platform, make sure there is enough space in
@@ -1385,7 +1391,7 @@ static void prvProcessNetworkDownEvent( void )
 
 		xCallEventHook = pdTRUE;
 	}
-	#endif
+	#endif /* if ipconfigUSE_NETWORK_EVENT_HOOK == 1 */
 
 	/* Per the ARP Cache Validation section of https://tools.ietf.org/html/rfc1122,
 	treat network down as a "delivery problem" and flush the ARP cache for this
@@ -1795,6 +1801,7 @@ uint8_t ucProtocol;
 				switch( ucProtocol )
 				{
 					case ipPROTOCOL_ICMP:
+
 						/* The IP packet contained an ICMP frame.  Don't bother checking
 						the ICMP checksum, as if it is wrong then the wrong data will
 						also be returned, and the source of the ping will know something
@@ -1807,6 +1814,7 @@ uint8_t ucProtocol;
 								/* Map the buffer onto a ICMP-Packet struct to easily access the
 								 * fields of ICMP packet. */
 								ICMPPacket_t *pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+
 								if( pxIPHeader->ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
 								{
 									eReturn = prvProcessICMPPacket( pxICMPPacket );
@@ -2652,7 +2660,6 @@ EthernetHeader_t *pxEthernetHeader;
 	#endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
 
 	#if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-
 		if( xReleaseAfterSend == pdFALSE )
 		{
 			pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, pxNetworkBuffer->xDataLength );
@@ -2692,6 +2699,7 @@ EthernetHeader_t *pxEthernetHeader;
 #if ( ipconfigHAS_PRINTF != 0 )
 
 	#ifndef ipMONITOR_MAX_HEAP
+
 		/* As long as the heap has more space than e.g. 1 MB, there
 		will be no messages. */
 		#define ipMONITOR_MAX_HEAP    ( 1024U * 1024U )
