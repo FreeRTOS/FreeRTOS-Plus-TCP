@@ -1096,7 +1096,7 @@ for testing purposes, by the module test_freertos_tcp.c
 */
 	uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t *pxNetworkBuffer )
 	{
-	DNSMessage_t *pxDNSMessageHeader;
+	uint8_t *pucPayLoadBuffer;
 	size_t uxPayloadSize;
 
 		/* Only proceed if the payload length indicated in the header
@@ -1107,11 +1107,10 @@ for testing purposes, by the module test_freertos_tcp.c
 
 			if( uxPayloadSize >= sizeof( DNSMessage_t ) )
 			{
-				pxDNSMessageHeader =
-					ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pxNetworkBuffer->pucEthernetBuffer );
+				pucPayLoadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] );
 
 				/* The parameter pdFALSE indicates that the reply was not expected. */
-				( void ) prvParseDNSReply( ( uint8_t * ) pxDNSMessageHeader,
+				( void ) prvParseDNSReply( pucPayLoadBuffer,
 										   uxPayloadSize,
 										   pdFALSE );
 			}
