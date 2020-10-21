@@ -84,7 +84,7 @@
 	#define tcpTCP_OPT_NOOP						  1U /* "No-operation" TCP option */
 	#define tcpTCP_OPT_MSS						  2U /* Maximum segment size TCP option */
 	#define tcpTCP_OPT_WSOPT					  3U /* TCP Window Scale Option (3-byte long) */
-	#define tcpTCP_OPT_SACK_P					  4U /* Advertize that SACK is permitted */
+	#define tcpTCP_OPT_SACK_P					  4U /* Advertise that SACK is permitted */
 	#define tcpTCP_OPT_SACK_A					  5U /* SACK option with first/last */
 	#define tcpTCP_OPT_TIMESTAMP				  8U /* Time-stamp option */
 
