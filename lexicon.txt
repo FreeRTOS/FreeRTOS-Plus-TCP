@@ -12,7 +12,6 @@ addr
 addressalignedbeats
 addrstart
 addtogroup
-advertise
 afe
 ahb
 amba
@@ -85,7 +84,6 @@ busershutdown
 bwaitkeepalive
 bwinchange
 bwinscaling
-byte
 bytecount
 callbacklist
 calloc
