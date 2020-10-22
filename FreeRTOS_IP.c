@@ -269,6 +269,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
 static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void * pvBuffer,
                                                                      size_t uxOffset );
 
+
 /*-----------------------------------------------------------*/
 
 /* The queue used to pass events into the IP-task for processing. */
@@ -960,6 +961,20 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
 NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer )
 {
     return prvPacketBuffer_to_NetworkBuffer( pvBuffer, sizeof( UDPPacket_t ) );
+}
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )
+	NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void *pvBuffer )
+	{
+		return prvPacketBuffer_to_NetworkBuffer( pvBuffer, 0U );
+	}
+#endif /* ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
+/*-----------------------------------------------------------*/
+
+NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer )
+{
+	return prvPacketBuffer_to_NetworkBuffer( pvBuffer, sizeof( UDPPacket_t ) );
 }
 /*-----------------------------------------------------------*/
 

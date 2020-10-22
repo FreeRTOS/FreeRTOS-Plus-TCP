@@ -369,7 +369,7 @@
     #endif /* ipconfigUSE_DNS_CACHE == 1 */
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+#if ( ipconfigDNS_USE_CALLBACKS == 1 )
 
         typedef struct xDNS_Callback
         {
@@ -1118,6 +1118,7 @@
         /* The packet was not consumed. */
         return pdFAIL;
     }
+
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_NBNS == 1 )
@@ -1143,7 +1144,7 @@
                                        BaseType_t xExpected )
     {
         DNSMessage_t * pxDNSMessageHeader;
-/* This pointer is not used to modify anything */
+        /* This pointer is not used to modify anything */
         const DNSAnswerRecord_t * pxDNSAnswerRecord;
         uint32_t ulIPAddress = 0UL;
 
@@ -1155,7 +1156,7 @@
         uint16_t x, usDataLength, usQuestions;
         uint16_t usType = 0U;
         BaseType_t xReturn = pdTRUE;
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+        /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
         const void * pvCopySource;
         void * pvCopyDest;
 
