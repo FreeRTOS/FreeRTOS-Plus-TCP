@@ -18,40 +18,40 @@
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
 #if ( ipconfigUSE_LLMNR == 1 )
-	#include "FreeRTOS_DNS.h"
+    #include "FreeRTOS_DNS.h"
 #endif /* ipconfigUSE_LLMNR */
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
-	for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
-	{
-	NetworkBufferDescriptor_t *current = &pxNetworkBuffers[ x ];
-		#ifdef ipconfigETHERNET_MINIMUM_PACKET_BYTES
-			current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) + ( ipconfigETHERNET_MINIMUM_PACKET_BYTES - sizeof( ARPPacket_t ) ) );
-		#else
-			current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) );
-		#endif
-		__CPROVER_assume( current->pucEthernetBuffer != NULL );
-		current->xDataLength = sizeof( ARPPacket_t );
-	}
+    for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
+    {
+        NetworkBufferDescriptor_t * current = &pxNetworkBuffers[ x ];
+        #ifdef ipconfigETHERNET_MINIMUM_PACKET_BYTES
+            current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) + ( ipconfigETHERNET_MINIMUM_PACKET_BYTES - sizeof( ARPPacket_t ) ) );
+        #else
+            current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) );
+        #endif
+        __CPROVER_assume( current->pucEthernetBuffer != NULL );
+        current->xDataLength = sizeof( ARPPacket_t );
+    }
 }
 
 /* The code expects that the Semaphore creation relying on pvPortMalloc
-   is successful. This is checked by an assert statement, that gets
-   triggered when the allocation fails. Nevertheless, the code is perfectly
-   guarded against a failing Semaphore allocation. To make the assert pass,
-   it is assumed for now, that pvPortMalloc doesn't fail. Using a model allowing
-   failures of the allocation might be possible
-   after removing the assert in l.105 of BufferAllocation_1.c, from a memory
-   safety point of view. */
+ * is successful. This is checked by an assert statement, that gets
+ * triggered when the allocation fails. Nevertheless, the code is perfectly
+ * guarded against a failing Semaphore allocation. To make the assert pass,
+ * it is assumed for now, that pvPortMalloc doesn't fail. Using a model allowing
+ * failures of the allocation might be possible
+ * after removing the assert in l.105 of BufferAllocation_1.c, from a memory
+ * safety point of view. */
 void * pvPortMalloc( size_t xWantedSize )
 {
-void *ptr = malloc( xWantedSize );
+    void * ptr = malloc( xWantedSize );
 
-	__CPROVER_assume( ptr != NULL );
-	return ptr;
+    __CPROVER_assume( ptr != NULL );
+    return ptr;
 }
 
 /*
@@ -62,21 +62,21 @@ void *ptr = malloc( xWantedSize );
  * how to write this code out to the network.
  */
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
-									BaseType_t bReleaseAfterSend )
+                                    BaseType_t bReleaseAfterSend )
 {
-	if( bReleaseAfterSend != pdFALSE )
-	{
-		vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-	}
+    if( bReleaseAfterSend != pdFALSE )
+    {
+        vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+    }
 }
 
 void harness()
 {
-BaseType_t xRes = xNetworkBuffersInitialise();
+    BaseType_t xRes = xNetworkBuffersInitialise();
 
-	if( xRes == pdPASS )
-	{
-	uint32_t ulIPAddress;
-		FreeRTOS_OutputARPRequest( ulIPAddress );
-	}
+    if( xRes == pdPASS )
+    {
+        uint32_t ulIPAddress;
+        FreeRTOS_OutputARPRequest( ulIPAddress );
+    }
 }
