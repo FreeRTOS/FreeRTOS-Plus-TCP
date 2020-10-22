@@ -69,12 +69,20 @@ BaseType_t xNetworkInterfaceInitialise( void )
 {
 WIFINetworkParams_t xNetworkParams;
 
-	xNetworkParams.pcSSID = clientcredentialWIFI_SSID;
-	xNetworkParams.ucSSIDLength = sizeof( clientcredentialWIFI_SSID );
-	xNetworkParams.pcPassword = clientcredentialWIFI_PASSWORD;
-	xNetworkParams.ucPasswordLength = sizeof( clientcredentialWIFI_PASSWORD );
+	xNetworkParams.ucSSIDLength = strnlen( clientcredentialWIFI_SSID,
+										   wificonfigMAX_SSID_LEN );
+	memcpy( xNetworkParams.ucSSID,
+			clientcredentialWIFI_SSID,
+			xNetworkParams.ucSSIDLength );
+
+	xNetworkParams.xPassword.xWPA.ucLength = strnlen( clientcredentialWIFI_PASSWORD,
+													  wificonfigMAX_PASSPHRASE_LEN );
+	memcpy( xNetworkParams.xPassword.xWPA.cPassphrase,
+			clientcredentialWIFI_PASSWORD,
+			xNetworkParams.xPassword.xWPA.ucLength );
+
 	xNetworkParams.xSecurity = clientcredentialWIFI_SECURITY;
-	xNetworkParams.cChannel = M2M_WIFI_CH_ALL; /* Scan all channels (255) */
+	xNetworkParams.ucChannel = M2M_WIFI_CH_ALL; /* Scan all channels (255) */
 
 	/*Turn  WiFi ON */
 	if( WIFI_On() != eWiFiSuccess )

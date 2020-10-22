@@ -42,8 +42,6 @@
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
-#include "FreeRTOSIPConfigDefaults.h"
-
 /* Exclude the entire file if DNS is not enabled. */
 #if ( ipconfigUSE_DNS != 0 )
 
@@ -393,7 +391,7 @@ with two fields: type and class
 		/* Define FreeRTOS_gethostbyname() as a normal blocking call. */
 		uint32_t FreeRTOS_gethostbyname( const char *pcHostName )
 		{
-			return FreeRTOS_gethostbyname_a( pcHostName, NULL, ( void * ) NULL, 0 );
+			return FreeRTOS_gethostbyname_a( pcHostName, NULL, ( void * ) NULL, 0U );
 		}
 		/*-----------------------------------------------------------*/
 
@@ -496,7 +494,7 @@ with two fields: type and class
 		/*-----------------------------------------------------------*/
 
 		/* A DNS reply was received, see if there is any matching entry and
-		call the handler.  Returns pdTRUE if uxIdentifier was recognized. */
+		call the handler.  Returns pdTRUE if uxIdentifier was recognised. */
 		static BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
 										  const char *pcName,
 										  uint32_t ulIPAddress )
@@ -839,7 +837,7 @@ with two fields: type and class
 										TickType_t uxIdentifier )
 	{
 	DNSMessage_t *pxDNSMessageHeader;
-	uint8_t *pucStart, *pucByte;
+	size_t uxStart, uxIndex;
 	DNSTail_t const * pxTail;
 	static const DNSMessage_t xDefaultPartDNSHeader =
 		{
@@ -850,7 +848,7 @@ with two fields: type and class
 			0,                 /* No authorities. */
 			0                  /* No additional authorities. */
 		};
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+		/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
 		const void *pvCopySource;
 		void *pvCopyDest;
 
@@ -873,43 +871,43 @@ with two fields: type and class
 
 		/* Create the resource record at the end of the header.  First
 		find the end of the header. */
-		pucStart = &( pucUDPPayloadBuffer[ sizeof( xDefaultPartDNSHeader ) ] );
+		uxStart = sizeof( xDefaultPartDNSHeader );
 
-		/* Leave a gap for the first length bytes. */
-		pucByte = &( pucStart[ 1 ] );
+		/* Leave a gap for the first length byte. */
+		uxIndex = uxStart + 1U;
 
 		/* Copy in the host name. */
-		( void ) strcpy( ( char * ) pucByte, pcHostName );
+		( void ) strcpy( ( char * ) &( pucUDPPayloadBuffer[ uxIndex ] ), pcHostName );
 
-		/* Mark the end of the string. */
-		pucByte = &( pucByte[ strlen( pcHostName ) ] );
-		*pucByte = 0x00U;
-
-		/* Walk the string to replace the '.' characters with byte counts.
-		pucStart holds the address of the byte count.  Walking the string
-		starts after the byte count position. */
-		pucByte = pucStart;
+		/* Walk through the string to replace the '.' characters with byte
+		counts.  pucStart holds the address of the byte count.  Walking the
+		string starts after the byte count position. */
+		uxIndex = uxStart;
 
 		do
 		{
-			pucByte++;
+		size_t uxLength;
 
-			while( ( *pucByte != ( uint8_t ) 0U ) && ( *pucByte != ( uint8_t ) ASCII_BASELINE_DOT ) )
+			/* Skip the length byte. */
+			uxIndex++;
+
+			while( ( pucUDPPayloadBuffer[ uxIndex ] != ( uint8_t ) 0U ) &&
+				   ( pucUDPPayloadBuffer[ uxIndex ] != ( uint8_t ) ASCII_BASELINE_DOT ) )
 			{
-				pucByte++;
+				uxIndex++;
 			}
 
 			/* Fill in the byte count, then move the pucStart pointer up to
 			the found byte position. */
-			*pucStart = ( uint8_t ) ( ( uint32_t ) pucByte - ( uint32_t ) pucStart );
-			( *pucStart )--;
+			uxLength = uxIndex - ( uxStart + 1U );
+			pucUDPPayloadBuffer[ uxStart ] = ( uint8_t ) uxLength;
 
-			pucStart = pucByte;
-		} while( *pucByte != ( uint8_t ) 0U );
+			uxStart = uxIndex;
+		} while( pucUDPPayloadBuffer[ uxIndex ] != ( uint8_t ) 0U );
 
 		/* Finish off the record. Cast the record onto DNSTail_t structure to easily
 		 * access the fields of the DNS Message. */
-		pxTail = ipCAST_PTR_TO_TYPE_PTR( DNSTail_t, &( pucByte[ 1 ] ) );
+		pxTail = ipCAST_PTR_TO_TYPE_PTR( DNSTail_t, &( pucUDPPayloadBuffer[ uxStart + 1U ] ) );
 
 		#if defined( _lint ) || defined( __COVERITY__ )
 			( void ) pxTail;
@@ -920,7 +918,7 @@ with two fields: type and class
 
 		/* Return the total size of the generated message, which is the space from
 		the last written byte to the beginning of the buffer. */
-		return ( ( uint32_t ) pucByte - ( uint32_t ) pucUDPPayloadBuffer + 1U ) + sizeof( DNSTail_t );
+		return uxIndex + sizeof( DNSTail_t ) + 1U;
 	}
 /*-----------------------------------------------------------*/
 
@@ -1098,7 +1096,7 @@ for testing purposes, by the module test_freertos_tcp.c
 */
 	uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t *pxNetworkBuffer )
 	{
-	DNSMessage_t *pxDNSMessageHeader;
+	uint8_t *pucPayLoadBuffer;
 	size_t uxPayloadSize;
 
 		/* Only proceed if the payload length indicated in the header
@@ -1109,11 +1107,10 @@ for testing purposes, by the module test_freertos_tcp.c
 
 			if( uxPayloadSize >= sizeof( DNSMessage_t ) )
 			{
-				pxDNSMessageHeader =
-					ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pxNetworkBuffer->pucEthernetBuffer );
+				pucPayLoadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] );
 
 				/* The parameter pdFALSE indicates that the reply was not expected. */
-				( void ) prvParseDNSReply( ( uint8_t * ) pxDNSMessageHeader,
+				( void ) prvParseDNSReply( pucPayLoadBuffer,
 										   uxPayloadSize,
 										   pdFALSE );
 			}
@@ -1170,6 +1167,7 @@ for testing purposes, by the module test_freertos_tcp.c
 			BaseType_t xDoStore = xExpected;
 			char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ] = "";
 		#endif
+		const size_t uxAddressLength = ipSIZE_OF_IPv4_ADDRESS;
 
 		/* Ensure that the buffer is of at least minimal DNS message length. */
 		if( uxBufferLength < sizeof( DNSMessage_t ) )
@@ -1318,7 +1316,7 @@ for testing purposes, by the module test_freertos_tcp.c
 
 						if( usType == ( uint16_t ) dnsTYPE_A_HOST )
 						{
-							if( uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + ipSIZE_OF_IPv4_ADDRESS ) )
+							if( uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + uxAddressLength ) )
 							{
 								xDoAccept = pdTRUE;
 							}
@@ -1342,7 +1340,7 @@ for testing purposes, by the module test_freertos_tcp.c
 							pxDNSAnswerRecord = ipCAST_PTR_TO_TYPE_PTR( DNSAnswerRecord_t, pucByte );
 
 							/* Sanity check the data length of an IPv4 answer. */
-							if( FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ) == ( uint16_t ) sizeof( uint32_t ) )
+							if( FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ) == ( uint16_t ) uxAddressLength )
 							{
 								/* Copy the IP address out of the record. Using different pointers
 								 * to copy only the portion we want is intentional here. */
@@ -1354,7 +1352,7 @@ for testing purposes, by the module test_freertos_tcp.c
 								 */
 								pvCopySource = &pucByte[ sizeof( DNSAnswerRecord_t ) ];
 								pvCopyDest = &ulIPAddress;
-								( void ) memcpy( pvCopyDest, pvCopySource, sizeof( uint32_t ) );
+								( void ) memcpy( pvCopyDest, pvCopySource, uxAddressLength );
 
 								#if ( ipconfigDNS_USE_CALLBACKS == 1 )
 								{
@@ -1390,8 +1388,8 @@ for testing purposes, by the module test_freertos_tcp.c
 								#endif /* ipconfigUSE_DNS_CACHE */
 							}
 
-							pucByte = &( pucByte[ sizeof( DNSAnswerRecord_t ) + sizeof( uint32_t ) ] );
-							uxSourceBytesRemaining -= ( sizeof( DNSAnswerRecord_t ) + sizeof( uint32_t ) );
+							pucByte = &( pucByte[ sizeof( DNSAnswerRecord_t ) + uxAddressLength ] );
+							uxSourceBytesRemaining -= ( sizeof( DNSAnswerRecord_t ) + uxAddressLength );
 						}
 						else if( uxSourceBytesRemaining >= sizeof( DNSAnswerRecord_t ) )
 						{
@@ -1751,7 +1749,7 @@ for testing purposes, by the module test_freertos_tcp.c
 
 			#if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
 			{
-				/* calculate the IP header checksum */
+				/* Calculate the IP header checksum. */
 				pxIPHeader->usHeaderChecksum = 0U;
 				pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ipSIZE_OF_IPv4_HEADER );
 				pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
