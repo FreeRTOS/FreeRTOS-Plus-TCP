@@ -3168,7 +3168,7 @@ BaseType_t xIPIsNetworkTaskReady( void )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Returns whether this node is connected to nwtwork or not.
+ * @brief Returns whether this node is connected to network or not.
  *
  * @return pdTRUE if network is connected, else pdFALSE.
  */

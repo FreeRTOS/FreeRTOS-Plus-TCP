@@ -148,6 +148,8 @@ destinationaddrfilter
 deviceid
 dff
 dhcp
+dhcpbroadcast
+dhcpcookie
 didn
 dm
 dma
@@ -192,6 +194,7 @@ edhcpphaseprediscover
 edhcpphaseprerequest
 edhcpstopnochanges
 edhcpusedefaults
+edhcpstate
 edmac
 eecs
 eedi
@@ -234,6 +237,7 @@ enetworktxevent
 enetworkup
 enhanceddescriptorformat
 enotusingleasedaddress
+enum
 eof
 eprocessbuffer
 ereleasebuffer
@@ -260,6 +264,7 @@ ethernetif
 ethertype
 etv
 eunknown
+eventbits
 ewaitingacknowledge
 ewaitingoffer
 ewaitingsendfirstdiscover
@@ -382,6 +387,7 @@ june
 kahb
 kbyte
 kbytes
+keepalive
 knowns
 lan
 lastpacket
@@ -389,6 +395,7 @@ lbytes
 lc
 lca
 lco
+ldatalen
 ldatalength
 ldistance
 leds
@@ -401,17 +408,21 @@ linksstatus
 linkstatus
 linux
 ll
+llevel
 llmnr
 lm
 lmax
 lmaxlength
 lminlength
+lnetlength
 loffset
+loptionname
 loopback
 loopbackmode
 lpacketcount
 lpback
 lpcopen
+lposition
 lreceivelength
 lrxbufsize
 lrxspace
@@ -492,6 +503,7 @@ mtu
 multicastframesfilter
 mutex
 mutexes
+nack
 nanosec
 nbns
 nc
@@ -548,14 +560,18 @@ pcallbackfunction
 pcap
 pcapplicationhostnamehook
 pcbuffer
+pcdata
+pcdestination
 pce
 pcf
 pcfrom
+pcipaddress
 pchostname
 pcmessage
 pcname
 pcnetworkbuffer
 pcs
+pcsource
 pcto
 pd
 pdata
@@ -594,6 +610,8 @@ posix
 pparam
 ppkt
 ppointer
+ppucrecvdata
+ppxnetworkbuffer
 pr
 pre
 printf
@@ -641,6 +659,7 @@ prvtcpreturnpacket
 prvtcpsendpacket
 prvtcpsendrepeated
 prvtcpsendreset
+prvtcpsendspecialpackethelper
 prvtcpsocketcopy
 prvtcpsocketisactive
 prvtcpstatusagecheck
@@ -666,6 +685,7 @@ pucinterfacename
 pucname
 pucnewbuffer
 pucnextdata
+pucoptionsarray
 pucptr
 pucrecvdata
 pucstart

@@ -1067,7 +1067,7 @@
                  * @param[out] pcName: The pointer in which the name in the DNS response will be returned.
                  * @param[in] uxDestLen: Size of the pcName array. 
 		 *
-		 * @return If a fully fored name was found, then return the index-offset of the end of the
+		 * @return If a fully formed name was found, then return the index-offset of the end of the
 		 *         name into the pucByte string. Else, return 0.
 		 */
 		_static size_t prvReadNameField( const uint8_t *pucByte,
@@ -1250,7 +1250,7 @@
 	*/
 
 	/**
-	 * @brief Perform some prelimnary checks and then parse the DNS packet.
+	 * @brief Perform some preliminary checks and then parse the DNS packet.
 	 *
 	 * @param[in] pxNetworkBuffer: The network buffer to be parsed.
 	 *

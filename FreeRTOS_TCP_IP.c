@@ -147,7 +147,7 @@
 	#endif /* !defined( SEND_REPEATED_COUNT ) */
 
 /** @brief
- * Define a maximum perdiod of time (ms) to leave a TCP-socket unattended.
+ * Define a maximum period of time (ms) to leave a TCP-socket unattended.
  * When a TCP timer expires, retries and keep-alive messages will be checked.
  */
 	#ifndef tcpMAXIMUM_TCP_WAKEUP_TIME_MS
@@ -1871,7 +1871,7 @@
 	 * @brief Resize a given TCP buffer.
 	 *
 	 * @param[in] pxSocket: Socket whose buffer is being resized.
-         * @param[in] pxNetworkBuffer: The netowrk buffer whose size is being increased.
+         * @param[in] pxNetworkBuffer: The network buffer whose size is being increased.
          * @param[in] lDataLen: Length of the data to be put in the buffer.
          * @param[in] uxOptionsLength: Length of options.
 	 *
@@ -3418,7 +3418,7 @@
 	 *
 	 * @param[in] pxDescriptor: The descriptor in which the TCP packet is held.
 	 *
-	 * @return If the processing od the packet was successful, then pdPASS is returned
+	 * @return If the processing of the packet was successful, then pdPASS is returned
 	 *         or else pdFAIL.
 	 *
 	 * @note FreeRTOS_TCP_IP has only 2 public functions, this is the second one:
