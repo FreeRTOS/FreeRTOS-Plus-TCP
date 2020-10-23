@@ -1740,7 +1740,7 @@ eFrameProcessingResult_t eReturned = eReleaseBuffer;
 /**
  * @brief Is the IP address an IPv4 multicast address.
  *
- * @param[in] ulIPAddress: The IP address bein checked.
+ * @param[in] ulIPAddress: The IP address being checked.
  *
  * @return pdTRUE if the IP address is a multicast address or else, pdFALSE.
  */

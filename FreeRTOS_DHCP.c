@@ -71,7 +71,7 @@
 	#endif
 
 	/* Codes of interest found in the DHCP options field. */
-	#define dhcpIPv4_ZERO_PAD_OPTION_CODE			   ( 0U ) /**< Used to pad other options to make them alligned. See RFC 2132. */
+	#define dhcpIPv4_ZERO_PAD_OPTION_CODE			   ( 0U ) /**< Used to pad other options to make them aligned. See RFC 2132. */
 	#define dhcpIPv4_SUBNET_MASK_OPTION_CODE		   ( 1U ) /**< Subnet mask. See RFC 2132. */
 	#define dhcpIPv4_GATEWAY_OPTION_CODE			   ( 3U ) /**< Available routers. See RFC 2132. */
 	#define dhcpIPv4_DNS_SERVER_OPTIONS_CODE		   ( 6U ) /**< Domain name server. See RFC 2132. */

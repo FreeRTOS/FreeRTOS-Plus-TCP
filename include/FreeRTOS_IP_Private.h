@@ -147,7 +147,7 @@
 	{
 	uint8_t ucTypeOfMessage;   /**< The ICMP type                     0 + 1 = 1 */
 	uint8_t ucTypeOfService;   /**< The ICMP subtype                  1 + 1 = 2 */
-	uint16_t usChecksum;       /**< The chekcsum of whole ICMP packet 2 + 2 = 4 */
+	uint16_t usChecksum;       /**< The checksum of whole ICMP packet 2 + 2 = 4 */
 	uint16_t usIdentifier;     /**< Used in some types of ICMP        4 + 2 = 6 */
 	uint16_t usSequenceNumber; /**< Used in some types of ICMP        6 + 2 = 8 */
 	}

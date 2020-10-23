@@ -580,7 +580,7 @@ uint32_t ulAddressToLookup;
  * @param[in] ulAddressToLookup: The 32-bit representation of an IP address to
  *                               lookup.
  * @param[in] pxMACAddress: A pointer to MACAddress_t variable where, if there
- *                          is an ARP cache hit, the MAC address correspong to
+ *                          is an ARP cache hit, the MAC address corresponding to
  *                          the IP address will be stored.
  *
  * @return The status of where the cache search was hit/miss/found an invalid 
