@@ -10,7 +10,7 @@
 void harness()
 {
 	/*
-	 * The assumption made here is that the buffer pointed by pucEthernerBuffer
+	 * The assumption made here is that the buffer pointed by pucEthernetBuffer
 	 * is at least allocated to sizeof(ARPPacket_t) size but eventually a even larger buffer.
 	 * This is not checked inside vARPGenerateRequestPacket.
 	 */

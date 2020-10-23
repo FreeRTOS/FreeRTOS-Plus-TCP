@@ -672,7 +672,7 @@ FreeRTOS_Socket_t *pxSocket;
 	 *                        waiting for an event to occur.
          * @param[in] xBlockTimeTicks: Maximum time ticks to wait for an event to occur.
 	 *                   If the value is 'portMAX_DELAY' then the function will wait
-	 *                   indefinately.
+	 *                   indefinitely.
 	 *
 	 * @return The socket which might have triggered the event bit.
 	 */
@@ -1162,7 +1162,7 @@ const size_t uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv4;
  *                       Berkeley sockets API.
  *
  * @return The return value is 0 if the bind is successful.
- *         If some error occured, then a negative value is returned.
+ *         If some error occurred, then a negative value is returned.
  */
 BaseType_t FreeRTOS_bind( Socket_t xSocket,
 						  struct freertos_sockaddr const * pxAddress,
@@ -1438,7 +1438,7 @@ IPStackEvent_t xCloseEvent;
 		else
 		{
 			xResult = 1;
-		}x
+		}
 	}
 
 	return xResult;
@@ -1597,7 +1597,7 @@ NetworkBufferDescriptor_t *pxNetworkBuffer;
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Set the value of receive/send buffer after some prelimnary checks.
+ * @brief Set the value of receive/send buffer after some preliminary checks.
  *
  * @param[in] pxSocket: The socket whose options are being set.
  * @param[in] lOptionName: The option name.
@@ -1996,7 +1996,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 					xReturn = 0;
 					break;
 
-				case FREERTOS_SO_STOP_RX: /* Refuse to receive more packts */
+				case FREERTOS_SO_STOP_RX: /* Refuse to receive more packets */
 				   {
 					   if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
 					   {

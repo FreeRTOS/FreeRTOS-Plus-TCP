@@ -119,7 +119,7 @@
 	struct xIP_HEADER
 	{
 	uint8_t ucVersionHeaderLength;        /**< The version field + internet header length 0 + 1 =  1 */
-	uint8_t ucDifferentiatedServicesCode; /**< Diffrentiated services code point + ECN    1 + 1 =  2 */
+	uint8_t ucDifferentiatedServicesCode; /**< Differentiated services code point + ECN    1 + 1 =  2 */
 	uint16_t usLength;                    /**< Entire Packet size                         2 + 2 =  4 */
 	uint16_t usIdentification;            /**< Identification field                       4 + 2 =  6 */
 	uint16_t usFragmentOffset;            /**< Fragment flags and fragment offset         6 + 2 =  8 */
@@ -147,7 +147,7 @@
 	{
 	uint8_t ucTypeOfMessage;   /**< The ICMP type                     0 + 1 = 1 */
 	uint8_t ucTypeOfService;   /**< The ICMP subtype                  1 + 1 = 2 */
-	uint16_t usChecksum;       /**< The chekcsum of whole ICMP packet 2 + 2 = 4 */
+	uint16_t usChecksum;       /**< The checksum of whole ICMP packet 2 + 2 = 4 */
 	uint16_t usIdentifier;     /**< Used in some types of ICMP        4 + 2 = 6 */
 	uint16_t usSequenceNumber; /**< Used in some types of ICMP        6 + 2 = 8 */
 	}

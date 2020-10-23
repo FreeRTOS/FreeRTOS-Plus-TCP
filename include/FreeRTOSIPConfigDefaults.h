@@ -130,7 +130,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 #endif
 
 #ifdef ipconfigDHCP_USES_USER_HOOK
-	#error ipconfigDHCP_USES_USER_HOOK and its associated callback have been superceded - see http: /*www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK */
+	#error ipconfigDHCP_USES_USER_HOOK and its associated callback have been superseded - see http: /*www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK */
 #endif
 
 #ifndef ipconfigUSE_TCP

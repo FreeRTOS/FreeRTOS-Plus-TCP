@@ -83,9 +83,10 @@
 	#define tcpTCP_OPT_NOOP						  1U /**< "No-operation" TCP option. */
 	#define tcpTCP_OPT_MSS						  2U /**< Maximum segment size TCP option. */
 	#define tcpTCP_OPT_WSOPT					  3U /**< TCP Window Scale Option (3-byte long). */
-	#define tcpTCP_OPT_SACK_P					  4U /**< Advertize that SACK is permitted. */
+	#define tcpTCP_OPT_SACK_P					  4U /**< Advertise that SACK is permitted. */
 	#define tcpTCP_OPT_SACK_A					  5U /**< SACK option with first/last. */
 	#define tcpTCP_OPT_TIMESTAMP				  8U /**< Time-stamp option. */
+
 
 	#define tcpTCP_OPT_MSS_LEN					  4U /**< Length of TCP MSS option. */
 	#define tcpTCP_OPT_WSOPT_LEN				  3U /**< Length of TCP WSOPT option. */
@@ -146,7 +147,7 @@
 	#endif /* !defined( SEND_REPEATED_COUNT ) */
 
 /** @brief
- * Define a maximum perdiod of time (ms) to leave a TCP-socket unattended.
+ * Define a maximum period of time (ms) to leave a TCP-socket unattended.
  * When a TCP timer expires, retries and keep-alive messages will be checked.
  */
 	#ifndef tcpMAXIMUM_TCP_WAKEUP_TIME_MS
@@ -1870,7 +1871,7 @@
 	 * @brief Resize a given TCP buffer.
 	 *
 	 * @param[in] pxSocket: Socket whose buffer is being resized.
-         * @param[in] pxNetworkBuffer: The netowrk buffer whose size is being increased.
+         * @param[in] pxNetworkBuffer: The network buffer whose size is being increased.
          * @param[in] lDataLen: Length of the data to be put in the buffer.
          * @param[in] uxOptionsLength: Length of options.
 	 *
@@ -3417,7 +3418,7 @@
 	 *
 	 * @param[in] pxDescriptor: The descriptor in which the TCP packet is held.
 	 *
-	 * @return If the processing od the packet was successful, then pdPASS is returned
+	 * @return If the processing of the packet was successful, then pdPASS is returned
 	 *         or else pdFAIL.
 	 *
 	 * @note FreeRTOS_TCP_IP has only 2 public functions, this is the second one:
