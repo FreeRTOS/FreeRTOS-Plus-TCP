@@ -1438,7 +1438,7 @@ IPStackEvent_t xCloseEvent;
 		else
 		{
 			xResult = 1;
-		}x
+		}
 	}
 
 	return xResult;
