@@ -103,7 +103,7 @@ __ALIGN_BEGIN enet_tx_bd_struct_t g_txBuffDescrip[ ENET_TXBD_NUM ] __ALIGN_END;
 
 enet_handle_t g_handle = { 0 };
 /* The MAC address for ENET device. */
-uint8_t g_macAddr[ 6 ] = { 0xd4, 0xbe, 0xd9, 0x45, 0x22, 0x60 };
+uint8_t g_macAddr[ 6 ] = { 0xde, 0xad, 0x00, 0xbe, 0xef, 0x01 };
 uint8_t multicastAddr[ 6 ] = { 0x01, 0x00, 0x5e, 0x00, 0x01, 0x81 };
 uint8_t g_frame[ ENET_EXAMPLE_PACKAGETYPE ][ ENET_EXAMPLE_FRAME_SIZE ];
 uint8_t *g_txbuff[ ENET_TXBD_NUM ];
@@ -154,6 +154,7 @@ status_t status;
 	{
 		ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
+		PRINTF("RX Task Notify - ");
 		BaseType_t receiving = pdTRUE;
 
 		while( receiving == pdTRUE )
@@ -173,6 +174,13 @@ status_t status;
 							status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
 							pxBufferDescriptor->xDataLength = length;
 
+							PRINTF("Receiving : ");
+							for(int x=0;x<pxBufferDescriptor->xDataLength;x++)
+							{
+								PRINTF(" %02x",pxBufferDescriptor->pucEthernetBuffer[x]);
+							}
+							PRINTF(" - ");
+
 							if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
 							{
 								xRxEvent.eEventType = eNetworkRxEvent;
@@ -182,20 +190,25 @@ status_t status;
 								{
 									vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
 									iptraceETHERNET_RX_EVENT_LOST();
+									PRINTF( "RX Event Lost\n" );
 								}
 								else
 								{
+									PRINTF( "RX Event Sent\n" );
 									/* Message successfully transfered to the stack */
 								}
 							}
 							else
 							{
+								PRINTF( "RX Event not to be considered\n" );
 								vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
 								/* Not sure if a trace is required.  The stack did not want this message */
 							}
 						}
 						else
 						{
+							PRINTF( "RX No Buffer Available\n" );
+							ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
 							/* No buffer available to receive this message */
 							iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
 						}
@@ -204,13 +217,19 @@ status_t status;
 					break;
 
 				case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
+					PRINTF( "RX Received an empty frame\n" );
 					receiving = pdFALSE;
 					break;
 
 				case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
+					PRINTF( "RX Receive Error\n" );
 					ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
 					/* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
 					break;
+				default:
+					PRINTF( "RX Receive default\n" );
+					break;
+
 			}
 		}
 	}
@@ -268,11 +287,11 @@ int bufferIndex;
 		}
 		else if( kStatus_PHY_AutoNegotiateFail == status )
 		{
-			PRINTF( "\r\nPHY Auto-negotiation failed. Please check the cable connection and link partner setting.\r\n" );
+			PRINTF( "\nPHY Auto-negotiation failed. Please check the cable connection and link partner setting.\n" );
 		}
 		else
 		{
-			PRINTF( "\r\nUnknown PHY failure %d\r\n", status );
+			PRINTF( "\nUnknown PHY failure %d\n", status );
 		}
 	}
 
@@ -286,7 +305,7 @@ int bufferIndex;
 	config.miiDuplex = ( enet_mii_duplex_t ) duplex;
 
 	/* Initialize ENET. */
-	ENET_Init( ENET, &config, &g_macAddr[ 0 ], refClock );
+	ENET_Init( ENET, &config, g_macAddr, refClock );
 
 	/* Enable the rx interrupt. */
 	ENET_EnableInterrupts( ENET, ( kENET_DmaRx ) );
@@ -301,9 +320,9 @@ int bufferIndex;
 	/* Active TX/RX. */
 	ENET_StartRxTx( ENET, 1, 1 );
 
-	if( xTaskCreate( rx_task, "rx_task", 512, NULL, 5, &receiveTaskHandle ) != pdPASS )
+	if( xTaskCreate( rx_task, "rx_task", 512, NULL, (configMAX_PRIORITIES - 1), &receiveTaskHandle ) != pdPASS )
 	{
-		PRINTF( "Network Receive Task creation failed!.\r\n" );
+		PRINTF( "Network Receive Task creation failed!.\n" );
 
 		while( 1 )
 		{
@@ -321,15 +340,23 @@ status_t status;
 
 	if( xGetPhyLinkStatus() )
 	{
+		PRINTF("Sending : ");
+		for(int x=0;x<pxNetworkBuffer->xDataLength;x++)
+		{
+			PRINTF(" %02x",pxNetworkBuffer->pucEthernetBuffer[x]);
+		}
+		PRINTF(" - ");
 		status = ENET_SendFrame( ENET, &g_handle, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
 
 		switch( status )
 		{
 			default: /* anything not Success will be a failure */
 			case kStatus_ENET_TxFrameBusy:
+				PRINTF("TX Frame Busy\n");
 				break;
 
 			case kStatus_Success:
+				PRINTF("TX Successful\n");
 				iptraceNETWORK_INTERFACE_TRANSMIT();
 				response = pdTRUE;
 				break;
@@ -338,6 +365,7 @@ status_t status;
 
 	if( xReleaseAfterSend != pdFALSE )
 	{
+		PRINTF("TX Release Buffer\n");
 		vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
 	}
 
