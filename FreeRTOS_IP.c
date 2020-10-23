@@ -58,9 +58,9 @@ a constant. */
 	#define ipEXPECTED_EthernetHeader_t_SIZE	( ( size_t ) 14 ) /**< Ethernet Header size in bytes. */
 	#define ipEXPECTED_ARPHeader_t_SIZE			( ( size_t ) 28 ) /**< ARP header size in bytes. */
 	#define ipEXPECTED_IPHeader_t_SIZE			( ( size_t ) 20 ) /**< IP header size in bytes. */
-	#define ipEXPECTED_IGMPHeader_t_SIZE		( ( size_t ) 8 ) /**< IGMP header size in bytes. */
-	#define ipEXPECTED_ICMPHeader_t_SIZE		( ( size_t ) 8 ) /**< ICMP header size in bytes. */
-	#define ipEXPECTED_UDPHeader_t_SIZE			( ( size_t ) 8 ) /**< UDP header size in bytes. */
+	#define ipEXPECTED_IGMPHeader_t_SIZE		( ( size_t ) 8 )  /**< IGMP header size in bytes. */
+	#define ipEXPECTED_ICMPHeader_t_SIZE		( ( size_t ) 8 )  /**< ICMP header size in bytes. */
+	#define ipEXPECTED_UDPHeader_t_SIZE			( ( size_t ) 8 )  /**< UDP header size in bytes. */
 	#define ipEXPECTED_TCPHeader_t_SIZE			( ( size_t ) 20 ) /**< TCP header size in bytes. */
 #endif
 
@@ -150,10 +150,10 @@ had an invalid length. */
 /* Trace macros to aid in debugging, disabled if ipconfigHAS_PRINTF != 1 */
 #if ( ipconfigHAS_PRINTF == 1 )
 	#define DEBUG_DECLARE_TRACE_VARIABLE( type, var, init )	   type var = ( init ) /**< Trace macro to set "type var = init". */
-	#define DEBUG_SET_TRACE_VARIABLE( var, value )			   var = ( value ) /**< Trace macro to set var = value. */
+	#define DEBUG_SET_TRACE_VARIABLE( var, value )			   var = ( value )     /**< Trace macro to set var = value. */
 #else
-	#define DEBUG_DECLARE_TRACE_VARIABLE( type, var, init ) /**< Empty definition since ipconfigHAS_PRINTF != 1. */
-	#define DEBUG_SET_TRACE_VARIABLE( var, value ) /**< Empty definition since ipconfigHAS_PRINTF != 1. */
+	#define DEBUG_DECLARE_TRACE_VARIABLE( type, var, init )                        /**< Empty definition since ipconfigHAS_PRINTF != 1. */
+	#define DEBUG_SET_TRACE_VARIABLE( var, value )                                 /**< Empty definition since ipconfigHAS_PRINTF != 1. */
 #endif
 
 /*-----------------------------------------------------------*/
@@ -371,7 +371,7 @@ static void prvIPTask( void *pvParameters )
 IPStackEvent_t xReceivedEvent;
 TickType_t xNextIPSleep;
 FreeRTOS_Socket_t *pxSocket;
-struct freertos_sockaddr xAddress;
+	struct freertos_sockaddr xAddress;
 
 	/* Just to prevent compiler warnings about unused parameters. */
 	( void ) pvParameters;
@@ -1060,13 +1060,14 @@ NetworkBufferDescriptor_t *pxResult;
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )
+
 	/**
-	 * @brief Get the network buffer from the packet buffer.
-	 *
-	 * @param[in] pvBuffer: Pointer to the packet buffer.
-	 *
-	 * @return The network buffer if the alignment is correct. Else a NULL is returned.
-	 */
+	* @brief Get the network buffer from the packet buffer.
+	*
+	* @param[in] pvBuffer: Pointer to the packet buffer.
+	*
+	* @return The network buffer if the alignment is correct. Else a NULL is returned.
+	*/
 	NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void *pvBuffer )
 	{
 		return prvPacketBuffer_to_NetworkBuffer( pvBuffer, 0U );
@@ -1303,15 +1304,15 @@ void FreeRTOS_SetAddressConfiguration( const uint32_t *pulIPAddress,
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
 	/**
-	 * @brief Send a ping request to the given IP address.
-	 *
-	 * @param[in] ulIPAddress: The IP address to which the ping is to be sent.
-         * @param[in] uxNumberOfBytesToSend: Number of bytes in the ping request.
-         * @param[in] uxBlockTimeTicks: Maximum number of ticks to wait.
-	 *
-	 * @return If successfully sent to IP task for processing then the sequence
-	 *         number of the ping packet or else, pdFAIL.
-	 */
+	* @brief Send a ping request to the given IP address.
+	*
+	* @param[in] ulIPAddress: The IP address to which the ping is to be sent.
+	* @param[in] uxNumberOfBytesToSend: Number of bytes in the ping request.
+	* @param[in] uxBlockTimeTicks: Maximum number of ticks to wait.
+	*
+	* @return If successfully sent to IP task for processing then the sequence
+	*         number of the ping packet or else, pdFAIL.
+	*/
 	BaseType_t FreeRTOS_SendPingRequest( uint32_t ulIPAddress,
 										 size_t uxNumberOfBytesToSend,
 										 TickType_t uxBlockTimeTicks )
@@ -2395,7 +2396,7 @@ uint8_t ucProtocol;
  * @param[in] uxBufferLength: the length of the buffer.
  * @param[in] xOutgoingPacket: Whether this is an outgoing packet or not.
  *
- * @return The checksum/error code. 
+ * @return The checksum/error code.
  */
 uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
 									 size_t uxBufferLength,
@@ -2857,6 +2858,7 @@ aid though to optimise the calculations. */
 
 /* This function is used in other files, has external linkage e.g. in
  * FreeRTOS_DNS.c. Not to be made static. */
+
 /**
  * @brief Send the ethernet frame after checking for some conditions.
  *
@@ -2868,8 +2870,8 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
 {
 EthernetHeader_t *pxEthernetHeader;
 /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-const void *pvCopySource;
-void *pvCopyDest;
+	const void *pvCopySource;
+	void *pvCopyDest;
 
 	#if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
 		NetworkBufferDescriptor_t *pxNewBuffer;
@@ -3113,11 +3115,12 @@ void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_DHCP == 1 )
+
 	/**
-	 * @brief Enable/disable the DHCP timer.
-	 *
-	 * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
-	 */
+	* @brief Enable/disable the DHCP timer.
+	*
+	* @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
+	*/
 	void vIPSetDHCPTimerEnableState( BaseType_t xEnableState )
 	{
 		if( xEnableState != pdFALSE )
@@ -3133,11 +3136,12 @@ void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_DHCP == 1 )
+
 	/**
-	 * @brief Reload the DHCP timer.
-	 *
-	 * @param[in] ulLeaseTime: The reload value.
-	 */
+	* @brief Reload the DHCP timer.
+	*
+	* @param[in] ulLeaseTime: The reload value.
+	*/
 	void vIPReloadDHCPTimer( uint32_t ulLeaseTime )
 	{
 		prvIPTimerReload( &xDHCPTimer, ulLeaseTime );
@@ -3146,11 +3150,12 @@ void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigDNS_USE_CALLBACKS == 1 )
-       /**
-         * @brief Enable/disable the DNS timer.
-         *
-         * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
-         */
+
+	/**
+	* @brief Enable/disable the DNS timer.
+	*
+	* @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
+	*/
 	void vIPSetDnsTimerEnableState( BaseType_t xEnableState )
 	{
 		if( xEnableState != 0 )
@@ -3166,11 +3171,12 @@ void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
+
 	/**
-         * @brief Reload the DNS timer.
-         *
-         * @param[in] ulCheckTime: The reload value.
-         */
+	* @brief Reload the DNS timer.
+	*
+	* @param[in] ulCheckTime: The reload value.
+	*/
 	void vIPReloadDNSTimer( uint32_t ulCheckTime )
 	{
 		prvIPTimerReload( &xDNSTimer, ulCheckTime );
@@ -3201,11 +3207,12 @@ BaseType_t FreeRTOS_IsNetworkUp( void )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
+
 	/**
-	 * @brief Get the minimum space in the IP task queue.
-	 *
-	 * @return The minimum possible space in the IP task queue.
-	 */
+	* @brief Get the minimum space in the IP task queue.
+	*
+	* @return The minimum possible space in the IP task queue.
+	*/
 	UBaseType_t uxGetMinimumIPQueueSpace( void )
 	{
 		return uxQueueMinimumSpace;

@@ -58,11 +58,11 @@
 	} eARPLookupResult_t;
 
 	/*
-	 * If ulIPAddress is already in the ARP cache table then reset the age of the
-	 * entry back to its maximum value.  If ulIPAddress is not already in the ARP
-	 * cache table then add it - replacing the oldest current entry if there is not
-	 * a free space available.
-	 */
+	* If ulIPAddress is already in the ARP cache table then reset the age of the
+	* entry back to its maximum value.  If ulIPAddress is not already in the ARP
+	* cache table then add it - replacing the oldest current entry if there is not
+	* a free space available.
+	*/
 	void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 								const uint32_t ulIPAddress );
 
@@ -84,13 +84,13 @@
 	#endif /* ipconfigUSE_ARP_REMOVE_ENTRY != 0 */
 
 	/*
-	 * Look for ulIPAddress in the ARP cache.  If the IP address exists, copy the
-	 * associated MAC address into pxMACAddress, refresh the ARP cache entry's
-	 * age, and return eARPCacheHit.  If the IP address does not exist in the ARP
-	 * cache return eARPCacheMiss.  If the packet cannot be sent for any reason
-	 * (maybe DHCP is still in process, or the addressing needs a gateway but there
-	 * isn't a gateway defined) then return eCantSendPacket.
-	 */
+	* Look for ulIPAddress in the ARP cache.  If the IP address exists, copy the
+	* associated MAC address into pxMACAddress, refresh the ARP cache entry's
+	* age, and return eARPCacheHit.  If the IP address does not exist in the ARP
+	* cache return eARPCacheMiss.  If the packet cannot be sent for any reason
+	* (maybe DHCP is still in process, or the addressing needs a gateway but there
+	* isn't a gateway defined) then return eCantSendPacket.
+	*/
 	eARPLookupResult_t eARPGetCacheEntry( uint32_t *pulIPAddress,
 										  MACAddress_t * const pxMACAddress );
 
@@ -103,39 +103,39 @@
 	#endif
 
 	/*
-	 * Reduce the age count in each entry within the ARP cache.  An entry is no
-	 * longer considered valid and is deleted if its age reaches zero.
-	 */
+	* Reduce the age count in each entry within the ARP cache.  An entry is no
+	* longer considered valid and is deleted if its age reaches zero.
+	*/
 	void vARPAgeCache( void );
 
 	/*
-	 * Send out an ARP request for the IP address contained in pxNetworkBuffer, and
-	 * add an entry into the ARP table that indicates that an ARP reply is
-	 * outstanding so re-transmissions can be generated.
-	 */
+	* Send out an ARP request for the IP address contained in pxNetworkBuffer, and
+	* add an entry into the ARP table that indicates that an ARP reply is
+	* outstanding so re-transmissions can be generated.
+	*/
 	void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 	/*
-	 * After DHCP is ready and when changing IP address, force a quick send of our new IP
-	 * address
-	 */
+	* After DHCP is ready and when changing IP address, force a quick send of our new IP
+	* address
+	*/
 	void vARPSendGratuitous( void );
 
 	/* This function will check if the target IP-address belongs to this device.
-	 * If so, the packet will be passed to the IP-stack, who will answer it.
-	 * The function is to be called within the function xNetworkInterfaceOutput()
-	 * in NetworkInterface.c as follows:
-	 *
-	 *   if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
-	 *   {
-	 *      / * The packet has been sent back to the IP-task.
-         *	 * The IP-task will further handle it.
-	 *        * Do not release the descriptor.
-         *	 * /
-	 *       return pdTRUE;
-	 *   }
-	 *   / * Send the packet as usual. * /
-	 */
+	* If so, the packet will be passed to the IP-stack, who will answer it.
+	* The function is to be called within the function xNetworkInterfaceOutput()
+	* in NetworkInterface.c as follows:
+	*
+	*   if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
+	*   {
+	*      / * The packet has been sent back to the IP-task.
+	*	 * The IP-task will further handle it.
+	*        * Do not release the descriptor.
+	*	 * /
+	*       return pdTRUE;
+	*   }
+	*   / * Send the packet as usual. * /
+	*/
 	BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
 							   BaseType_t bReleaseAfterSend );
 

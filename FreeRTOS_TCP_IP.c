@@ -384,13 +384,13 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Check whether the socket is active or not.
-	 *
-	 * @param[in] xStatus: The status of the socket.
-	 *
-	 * @return pdTRUE if the socket must be checked. Non-active sockets
-	 *         are waiting for user action, either connect() or close().
-	 */
+	* @brief Check whether the socket is active or not.
+	*
+	* @param[in] xStatus: The status of the socket.
+	*
+	* @return pdTRUE if the socket must be checked. Non-active sockets
+	*         are waiting for user action, either connect() or close().
+	*/
 	static BaseType_t prvTCPSocketIsActive( eIPTCPState_t xStatus )
 	{
 	BaseType_t xResult;
@@ -424,12 +424,12 @@
 	#if ( ipconfigTCP_HANG_PROTECTION == 1 )
 
 		/**
-		 * @brief 
-		 *
-		 * @param[in] 
-		 *
-		 * @return 
-		 */
+		* @brief
+		*
+		* @param[in]
+		*
+		* @return
+		*/
 		static BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t *pxSocket )
 		{
 		BaseType_t xResult;
@@ -517,22 +517,22 @@
 	#endif /* if ( ipconfigTCP_HANG_PROTECTION == 1 ) */
 
 	/**
-	 * @brief As soon as a TCP socket timer expires, this function will be called
-	 *       (from xTCPTimerCheck). It can send a delayed ACK or new data.
-	 *
-	 * @param[in] pxSocket: socket to be checked.
-	 *
-	 * @return 0 on success, a negative error code on failure.
-	 *
-	 * @note Sequence of calling (normally) :
-	 * 	IP-Task:
-	 *		xTCPTimerCheck()				// Check all sockets ( declared in FreeRTOS_Sockets.c )
-	 *		xTCPSocketCheck()				// Either send a delayed ACK or call prvTCPSendPacket()
-	 *		prvTCPSendPacket()				// Either send a SYN or call prvTCPSendRepeated ( regular messages )
-	 *		prvTCPSendRepeated()			// Send at most 8 messages on a row
-	 *			prvTCPReturnPacket()		// Prepare for returning
-	 *			xNetworkInterfaceOutput()	// Sends data to the NIC ( declared in portable/NetworkInterface/xxx )
-	 */
+	* @brief As soon as a TCP socket timer expires, this function will be called
+	*       (from xTCPTimerCheck). It can send a delayed ACK or new data.
+	*
+	* @param[in] pxSocket: socket to be checked.
+	*
+	* @return 0 on success, a negative error code on failure.
+	*
+	* @note Sequence of calling (normally) :
+	* 	IP-Task:
+	*		xTCPTimerCheck()				// Check all sockets ( declared in FreeRTOS_Sockets.c )
+	*		xTCPSocketCheck()				// Either send a delayed ACK or call prvTCPSendPacket()
+	*		prvTCPSendPacket()				// Either send a SYN or call prvTCPSendRepeated ( regular messages )
+	*		prvTCPSendRepeated()			// Send at most 8 messages on a row
+	*			prvTCPReturnPacket()		// Prepare for returning
+	*			xNetworkInterfaceOutput()	// Sends data to the NIC ( declared in portable/NetworkInterface/xxx )
+	*/
 	BaseType_t xTCPSocketCheck( FreeRTOS_Socket_t *pxSocket )
 	{
 	BaseType_t xResult = 0;
@@ -627,14 +627,14 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief prvTCPSendPacket() will be called when the socket time-out has been reached.
-	 *
-	 * @param[in] pxSocket: The socket owning the connection.
-	 *
-	 * @return Number of bytes to be sent.
-	 *
-	 * @note It is only called by xTCPSocketCheck().
-	 */
+	* @brief prvTCPSendPacket() will be called when the socket time-out has been reached.
+	*
+	* @param[in] pxSocket: The socket owning the connection.
+	*
+	* @return Number of bytes to be sent.
+	*
+	* @note It is only called by xTCPSocketCheck().
+	*/
 	static int32_t prvTCPSendPacket( FreeRTOS_Socket_t *pxSocket )
 	{
 	int32_t lResult = 0;
@@ -714,15 +714,15 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief prvTCPSendRepeated will try to send a series of messages, as
-	 *        long as there is data to be sent and as long as the transmit
-	 *        window isn't full.
-	 *
-	 * @param[in] pxSocket: The socket owning the connection.
-         * @param[in] ppxNetworkBuffer: Pointer to pointer to the network buffer.
-	 *
-	 * @return Total number of bytes sent.
-	 */
+	* @brief prvTCPSendRepeated will try to send a series of messages, as
+	*        long as there is data to be sent and as long as the transmit
+	*        window isn't full.
+	*
+	* @param[in] pxSocket: The socket owning the connection.
+	* @param[in] ppxNetworkBuffer: Pointer to pointer to the network buffer.
+	*
+	* @return Total number of bytes sent.
+	*/
 	static int32_t prvTCPSendRepeated( FreeRTOS_Socket_t *pxSocket,
 									   NetworkBufferDescriptor_t **ppxNetworkBuffer )
 	{
@@ -760,18 +760,18 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief  Return (or send) a packet the the peer. The data is stored in pxBuffer,
-	 *         which may either point to a real network buffer or to a TCP socket field
-	 *         called 'xTCP.xPacket'. A temporary xNetworkBuffer will be used to pass
-	 *         the data to the NIC.
-	 *
-	 * @param[in] pxSocket: The socket owning the connection.
-         * @param[in] pxDescriptor: The network buffer descriptor carrying the packet.
-         * @param[in] ulLen: Length of the packet being sent.
-         * @param[in] xReleaseAfterSend: ipconfigZERO_COPY_TX_DRIVER - in case no copying is
-	 *                               required.
-         *                               Any non zero value if copying is desired.
-	 */
+	* @brief  Return (or send) a packet the the peer. The data is stored in pxBuffer,
+	*         which may either point to a real network buffer or to a TCP socket field
+	*         called 'xTCP.xPacket'. A temporary xNetworkBuffer will be used to pass
+	*         the data to the NIC.
+	*
+	* @param[in] pxSocket: The socket owning the connection.
+	* @param[in] pxDescriptor: The network buffer descriptor carrying the packet.
+	* @param[in] ulLen: Length of the packet being sent.
+	* @param[in] xReleaseAfterSend: ipconfigZERO_COPY_TX_DRIVER - in case no copying is
+	*                               required.
+	*                               Any non zero value if copying is desired.
+	*/
 	static void prvTCPReturnPacket( FreeRTOS_Socket_t *pxSocket,
 									NetworkBufferDescriptor_t *pxDescriptor,
 									uint32_t ulLen,
@@ -785,9 +785,9 @@
 	const TCPWindow_t *pxTCPWindow;
 	NetworkBufferDescriptor_t *pxNetworkBuffer = pxDescriptor;
 	NetworkBufferDescriptor_t xTempBuffer;
-	/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-	const void *pvCopySource;
-	void *pvCopyDest;
+		/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+		const void *pvCopySource;
+		void *pvCopyDest;
 
 		/* For sending, a pseudo network buffer will be used, as explained above. */
 
@@ -1044,14 +1044,14 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Create the TCP window for the given socket.
-	 *
-	 * @param[in] pxSocket: The socket for which the window is being created.
-	 *
-	 * @note The SYN event is very important: the sequence numbers, which have a kind of
-         *       random starting value, are being synchronized. The sliding window manager
-         *       (in FreeRTOS_TCP_WIN.c) needs to know them, along with the Maximum Segment
-	 */
+	* @brief Create the TCP window for the given socket.
+	*
+	* @param[in] pxSocket: The socket for which the window is being created.
+	*
+	* @note The SYN event is very important: the sequence numbers, which have a kind of
+	*       random starting value, are being synchronized. The sliding window manager
+	*       (in FreeRTOS_TCP_WIN.c) needs to know them, along with the Maximum Segment
+	*/
 	static void prvTCPCreateWindow( FreeRTOS_Socket_t *pxSocket )
 	{
 		if( xTCPWindowLoggingLevel != 0 )
@@ -1074,19 +1074,19 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Let ARP look-up the MAC-address of the peer and initialise the first SYN
- 	 *        packet.
-	 *
-	 * @param[in] pxSocket: The socket owning the TCP connection. The first packet shall
-	 *               be created in this socket.
-	 *
-	 * @return pdTRUE: if the packet was successfully created. Else pdFALSE.
-	 *
-	 * @note Connecting sockets have a special state: eCONNECT_SYN. In this phase,
-	 *       the Ethernet address of the target will be found using ARP. In case the
-	 *       target IP address is not within the netmask, the hardware address of the
-	 *       gateway will be used.
-	 */
+	* @brief Let ARP look-up the MAC-address of the peer and initialise the first SYN
+	*        packet.
+	*
+	* @param[in] pxSocket: The socket owning the TCP connection. The first packet shall
+	*               be created in this socket.
+	*
+	* @return pdTRUE: if the packet was successfully created. Else pdFALSE.
+	*
+	* @note Connecting sockets have a special state: eCONNECT_SYN. In this phase,
+	*       the Ethernet address of the target will be found using ARP. In case the
+	*       target IP address is not within the netmask, the hardware address of the
+	*       gateway will be used.
+	*/
 	static BaseType_t prvTCPPrepareConnect( FreeRTOS_Socket_t *pxSocket )
 	{
 	TCPPacket_t *pxTCPPacket;
@@ -1226,12 +1226,12 @@
 	#if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
 		/**
-		 * @brief Print out the value of flags in a human readable manner.
-		 *
-		 * @param[in] xFlags: The TCP flags.
-		 *
-		 * @return The string containing the flags.
-		 */
+		* @brief Print out the value of flags in a human readable manner.
+		*
+		* @param[in] xFlags: The TCP flags.
+		*
+		* @return The string containing the flags.
+		*/
 		static const char * prvTCPFlagMeaning( UBaseType_t xFlags )
 		{
 		static char retString[ 10 ];
@@ -1254,16 +1254,16 @@
 	#endif /* ipconfigHAS_DEBUG_PRINTF */
 
 	/**
-	 * @brief Parse the TCP option(s) received, if present.
-	 *
-	 * @param[in] pxSocket: The socket handling the connection.
-         * @param[in] pxNetworkBuffer: The network buffer containing the TCP
-	 *                             packet.
-	 *
-	 * @note It has already been verified that:
-	 *       ((pxTCPHeader->ucTCPOffset & 0xf0) > 0x50), meaning that
-	 *       the TP header is longer than the usual 20 (5 x 4) bytes.
-	 */
+	* @brief Parse the TCP option(s) received, if present.
+	*
+	* @param[in] pxSocket: The socket handling the connection.
+	* @param[in] pxNetworkBuffer: The network buffer containing the TCP
+	*                             packet.
+	*
+	* @note It has already been verified that:
+	*       ((pxTCPHeader->ucTCPOffset & 0xf0) > 0x50), meaning that
+	*       the TP header is longer than the usual 20 (5 x 4) bytes.
+	*/
 	_static void prvCheckOptions( FreeRTOS_Socket_t *pxSocket,
 								  const NetworkBufferDescriptor_t *pxNetworkBuffer )
 	{
@@ -1273,11 +1273,11 @@
 	const TCPHeader_t * pxTCPHeader;
 	const uint8_t *pucPtr;
 	BaseType_t xHasSYNFlag;
-	/* Offset in the network packet where the first option byte is stored. */
-	size_t uxOptionOffset = uxTCPHeaderOffset + ( sizeof( TCPHeader_t ) - sizeof( pxTCPHeader->ucOptdata ) );
-	size_t uxOptionsLength;
-	size_t uxResult;
-	uint8_t ucLength;
+		/* Offset in the network packet where the first option byte is stored. */
+		size_t uxOptionOffset = uxTCPHeaderOffset + ( sizeof( TCPHeader_t ) - sizeof( pxTCPHeader->ucOptdata ) );
+		size_t uxOptionsLength;
+		size_t uxResult;
+		uint8_t ucLength;
 
 		pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
 
@@ -1336,17 +1336,17 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Identify and deal with a single TCP header option, advancing the pointer to
- 	 *        the header.
-	 *
-	 * @param[in] pucPtr: Pointer to the TCP packet options.
-         * @param[in] uxTotalLength: Length of the TCP packet options.
-         * @param[in] pxSocket: Socket handling the connection.
-         * @param[in] xHasSYNFlag: Whether the header has SYN flag or not.
-	 *
-	 * @return This function returns pdTRUE or pdFALSE depending on whether the caller
-	 *         should continue to parse more header options or break the loop.
-	 */
+	* @brief Identify and deal with a single TCP header option, advancing the pointer to
+	*        the header.
+	*
+	* @param[in] pucPtr: Pointer to the TCP packet options.
+	* @param[in] uxTotalLength: Length of the TCP packet options.
+	* @param[in] pxSocket: Socket handling the connection.
+	* @param[in] xHasSYNFlag: Whether the header has SYN flag or not.
+	*
+	* @return This function returns pdTRUE or pdFALSE depending on whether the caller
+	*         should continue to parse more header options or break the loop.
+	*/
 	_static size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
 												  size_t uxTotalLength,
 												  FreeRTOS_Socket_t * const pxSocket,
@@ -1505,13 +1505,13 @@
 	#if ( ipconfigUSE_TCP_WIN == 1 )
 
 		/**
-		 * @brief Skip past TCP header options when doing Selective ACK, until there are no
-		 *        more options left.
-		 *
-		 * @param[in] pucPtr: Pointer to the TCP packet options.
-                 * @param[in] uxIndex: Index of options in the TCP packet options.
-                 * @param[in] pxSocket: Socket handling the TCP connection.
-		 */
+		* @brief Skip past TCP header options when doing Selective ACK, until there are no
+		*        more options left.
+		*
+		* @param[in] pucPtr: Pointer to the TCP packet options.
+		* @param[in] uxIndex: Index of options in the TCP packet options.
+		* @param[in] pxSocket: Socket handling the TCP connection.
+		*/
 		_static void prvReadSackOption( const uint8_t * const pucPtr,
 										size_t uxIndex,
 										FreeRTOS_Socket_t * const pxSocket )
@@ -1560,12 +1560,12 @@
 	#if ( ipconfigUSE_TCP_WIN != 0 )
 
 		/**
-		 * @brief Get the window scaling factor for the TCP connection.
-		 *
-		 * @param[in] pxSocket: The socket owning the TCP connection.
-		 *
-		 * @return The scaling factor.
-		 */
+		* @brief Get the window scaling factor for the TCP connection.
+		*
+		* @param[in] pxSocket: The socket owning the TCP connection.
+		*
+		* @return The scaling factor.
+		*/
 		static uint8_t prvWinScaleFactor( const FreeRTOS_Socket_t *pxSocket )
 		{
 		size_t uxWinSize;
@@ -1594,19 +1594,19 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief When opening a TCP connection, while SYN's are being sent, the  parties may
-	 *        communicate what MSS (Maximum Segment Size) they intend to use.
-	 *
-	 * @param[in] pxSocket: The socket being used for communication. It is used to set
-	 *                      the MSS.
-	 * @param[in,out] pxTCPHeader: The TCP packet header being used in the SYN transmission.
-	 *                             The MSS and corresponding options shall be set in this
-	 *                             header itself.
-	 *
-	 * @return The option length after the TCP header was updated.
-	 *
-	 * @note MSS is the net size of the payload, an is always smaller than MTU.
-	 */
+	* @brief When opening a TCP connection, while SYN's are being sent, the  parties may
+	*        communicate what MSS (Maximum Segment Size) they intend to use.
+	*
+	* @param[in] pxSocket: The socket being used for communication. It is used to set
+	*                      the MSS.
+	* @param[in,out] pxTCPHeader: The TCP packet header being used in the SYN transmission.
+	*                             The MSS and corresponding options shall be set in this
+	*                             header itself.
+	*
+	* @return The option length after the TCP header was updated.
+	*
+	* @note MSS is the net size of the payload, an is always smaller than MTU.
+	*/
 	static UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t *pxSocket,
 											TCPHeader_t * pxTCPHeader )
 	{
@@ -1649,14 +1649,14 @@
 	}
 
 	/**
-	 * @brief 'Touch' the socket to keep it alive/updated.
-	 *
-	 * @param[in] pxSocket: The socket to be updated.
-	 *
-	 * @note This is used for anti-hanging protection and TCP keep-alive messages.
-	 *       Called in two places: after receiving a packet and after a state change.
-	 *       The socket's alive timer may be reset.
-	 */
+	* @brief 'Touch' the socket to keep it alive/updated.
+	*
+	* @param[in] pxSocket: The socket to be updated.
+	*
+	* @note This is used for anti-hanging protection and TCP keep-alive messages.
+	*       Called in two places: after receiving a packet and after a state change.
+	*       The socket's alive timer may be reset.
+	*/
 	static void prvTCPTouchSocket( FreeRTOS_Socket_t *pxSocket )
 	{
 		#if ( ipconfigTCP_HANG_PROTECTION == 1 )
@@ -1679,14 +1679,14 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Changing to a new state. Centralized here to do specific actions such as
-	 *        resetting the alive timer, calling the user's OnConnect handler to notify
-	 *        that a socket has got (dis)connected, and setting bit to unblock a call to
-	 *        FreeRTOS_select().
-	 *
-	 * @param[in] pxSocket: The socket whose state we are trying to change.
-         * @param[in] eTCPState: The state to which we want to change to.
-	 */
+	* @brief Changing to a new state. Centralized here to do specific actions such as
+	*        resetting the alive timer, calling the user's OnConnect handler to notify
+	*        that a socket has got (dis)connected, and setting bit to unblock a call to
+	*        FreeRTOS_select().
+	*
+	* @param[in] pxSocket: The socket whose state we are trying to change.
+	* @param[in] eTCPState: The state to which we want to change to.
+	*/
 	void vTCPStateChange( FreeRTOS_Socket_t *pxSocket,
 						  enum eTCP_STATE eTCPState )
 	{
@@ -1868,20 +1868,20 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Resize a given TCP buffer.
-	 *
-	 * @param[in] pxSocket: Socket whose buffer is being resized.
-         * @param[in] pxNetworkBuffer: The network buffer whose size is being increased.
-         * @param[in] lDataLen: Length of the data to be put in the buffer.
-         * @param[in] uxOptionsLength: Length of options.
-	 *
-	 * @return If the resizing is successful: The new buffer with the size being asked for
-	 *                with old data copied in it.
-	 *         Else, NULL.
-	 *
-	 * @note The old network buffer will be released if the resizing is successful and
-	 *       cannot be used any longer.
-	 */
+	* @brief Resize a given TCP buffer.
+	*
+	* @param[in] pxSocket: Socket whose buffer is being resized.
+	* @param[in] pxNetworkBuffer: The network buffer whose size is being increased.
+	* @param[in] lDataLen: Length of the data to be put in the buffer.
+	* @param[in] uxOptionsLength: Length of options.
+	*
+	* @return If the resizing is successful: The new buffer with the size being asked for
+	*                with old data copied in it.
+	*         Else, NULL.
+	*
+	* @note The old network buffer will be released if the resizing is successful and
+	*       cannot be used any longer.
+	*/
 	static NetworkBufferDescriptor_t * prvTCPBufferResize( const FreeRTOS_Socket_t *pxSocket,
 														   NetworkBufferDescriptor_t *pxNetworkBuffer,
 														   int32_t lDataLen,
@@ -1973,15 +1973,15 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Prepare an outgoing message, in case anything has to be sent.
-	 *
-	 * @param[in] pxSocket: The socket owning the connection.
-         * @param[in] ppxNetworkBuffer: Pointer to the pointer to the network buffer.
-         * @param[in] uxOptionsLength: The length of the TCP options.
-	 *
-	 * @return Length of the data to be sent if everything is correct. Else, -1
-	 *         is returned in case of any error.
-	 */
+	* @brief Prepare an outgoing message, in case anything has to be sent.
+	*
+	* @param[in] pxSocket: The socket owning the connection.
+	* @param[in] ppxNetworkBuffer: Pointer to the pointer to the network buffer.
+	* @param[in] uxOptionsLength: The length of the TCP options.
+	*
+	* @return Length of the data to be sent if everything is correct. Else, -1
+	*         is returned in case of any error.
+	*/
 	static int32_t prvTCPPrepareSend( FreeRTOS_Socket_t *pxSocket,
 									  NetworkBufferDescriptor_t **ppxNetworkBuffer,
 									  UBaseType_t uxOptionsLength )
@@ -2182,12 +2182,12 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Calculate after how much time this socket needs to be checked again.
-	 *
-	 * @param[in] pxSocket: The socket to be checked.
-	 *
-	 * @return The number of clock ticks before the timer expires.
-	 */
+	* @brief Calculate after how much time this socket needs to be checked again.
+	*
+	* @param[in] pxSocket: The socket to be checked.
+	*
+	* @return The number of clock ticks before the timer expires.
+	*/
 	static TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t *pxSocket )
 	{
 	TickType_t ulDelayMs = ( TickType_t ) tcpMAXIMUM_TCP_WAKEUP_TIME_MS;
@@ -2254,11 +2254,11 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief The API FreeRTOS_send() adds data to the TX stream. Add
-	 *        this data to the windowing system to it can be transmitted.
-	 *
-	 * @param[in] pxSocket: The socket owning the connection.
-	 */
+	* @brief The API FreeRTOS_send() adds data to the TX stream. Add
+	*        this data to the windowing system to it can be transmitted.
+	*
+	* @param[in] pxSocket: The socket owning the connection.
+	*/
 	static void prvTCPAddTxData( FreeRTOS_Socket_t *pxSocket )
 	{
 	int32_t lCount, lLength;
@@ -2294,28 +2294,28 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief prvTCPHandleFin() will be called to handle socket closure. The
-	 *        closure starts when either a FIN has been received and accepted,
-	 *        or when the socket has sent a FIN flag to the peer. Before being
-	 *        called, it has been checked that both reception and transmission
-	 *        are complete.
-	 *
-	 * @param[in] pxSocket: Socket owning the the connection.
-         * @param[in] pxNetworkBuffer: The network buffer carrying the TCP packet.
-	 *
-	 * @return Length of the packet to be sent.
-	 */
+	* @brief prvTCPHandleFin() will be called to handle socket closure. The
+	*        closure starts when either a FIN has been received and accepted,
+	*        or when the socket has sent a FIN flag to the peer. Before being
+	*        called, it has been checked that both reception and transmission
+	*        are complete.
+	*
+	* @param[in] pxSocket: Socket owning the the connection.
+	* @param[in] pxNetworkBuffer: The network buffer carrying the TCP packet.
+	*
+	* @return Length of the packet to be sent.
+	*/
 	static BaseType_t prvTCPHandleFin( FreeRTOS_Socket_t *pxSocket,
 									   const NetworkBufferDescriptor_t *pxNetworkBuffer )
 	{
-	/* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-	ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
-					   &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
-	TCPHeader_t *pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
-	uint8_t ucIntermediateResult = 0, ucTCPFlags = pxTCPHeader->ucTCPFlags;
-	TCPWindow_t *pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-	BaseType_t xSendLength = 0;
-	uint32_t ulAckNr = FreeRTOS_ntohl( pxTCPHeader->ulAckNr );
+		/* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+		ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+																	   &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+		TCPHeader_t *pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+		uint8_t ucIntermediateResult = 0, ucTCPFlags = pxTCPHeader->ucTCPFlags;
+		TCPWindow_t *pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+		BaseType_t xSendLength = 0;
+		uint32_t ulAckNr = FreeRTOS_ntohl( pxTCPHeader->ulAckNr );
 
 		if( ( ucTCPFlags & tcpTCP_FLAG_FIN ) != 0U )
 		{
@@ -2401,29 +2401,29 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief prvCheckRxData(): called from prvTCPHandleState(). The
-	 *        first thing that will be done is find the TCP payload data
-	 *        and check the length of this data.
-	 *
-	 * @param[in] pxNetworkBuffer: The network buffer holding the received data.
-         * @param[out] ppucRecvData: It will point to first byte of the TCP payload.
-	 *
-	 * @return Length of the received buffer.
-	 */
+	* @brief prvCheckRxData(): called from prvTCPHandleState(). The
+	*        first thing that will be done is find the TCP payload data
+	*        and check the length of this data.
+	*
+	* @param[in] pxNetworkBuffer: The network buffer holding the received data.
+	* @param[out] ppucRecvData: It will point to first byte of the TCP payload.
+	*
+	* @return Length of the received buffer.
+	*/
 	static BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t *pxNetworkBuffer,
 									  uint8_t **ppucRecvData )
 	{
-	/* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-	const ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+		/* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+		const ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
 																			 &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
-	const TCPHeader_t *pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
-	int32_t lLength, lTCPHeaderLength, lReceiveLength, lUrgentLength;
+		const TCPHeader_t *pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+		int32_t lLength, lTCPHeaderLength, lReceiveLength, lUrgentLength;
 
-	/* Map the buffer onto an IPHeader_t struct for easy access to fields. */
-	const IPHeader_t *pxIPHeader = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPHeader_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-	const size_t xIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
-	uint16_t usLength;
-	uint8_t ucIntermediateResult = 0;
+		/* Map the buffer onto an IPHeader_t struct for easy access to fields. */
+		const IPHeader_t *pxIPHeader = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPHeader_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+		const size_t xIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
+		uint16_t usLength;
+		uint8_t ucIntermediateResult = 0;
 
 		/* Determine the length and the offset of the user-data sent to this
 		node.
@@ -2482,30 +2482,30 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief prvStoreRxData(): called from prvTCPHandleState().
-	 *        The second thing is to do is check if the payload data may
-	 *        be accepted. If so, they will be added to the reception queue.
-	 *
-	 * @param[in] pxSocket: The socket owning the connection.
-         * @param[in] pucRecvData: Pointer to received data.
-         * @param[in] pxNetworkBuffer: The network buffer descriptor.
-         * @param[in] ulReceiveLength: The length of the received data.
-	 *
-	 * @return 0 on success, -1 on failure of storing data.
-	 */
+	* @brief prvStoreRxData(): called from prvTCPHandleState().
+	*        The second thing is to do is check if the payload data may
+	*        be accepted. If so, they will be added to the reception queue.
+	*
+	* @param[in] pxSocket: The socket owning the connection.
+	* @param[in] pucRecvData: Pointer to received data.
+	* @param[in] pxNetworkBuffer: The network buffer descriptor.
+	* @param[in] ulReceiveLength: The length of the received data.
+	*
+	* @return 0 on success, -1 on failure of storing data.
+	*/
 	static BaseType_t prvStoreRxData( FreeRTOS_Socket_t *pxSocket,
 									  const uint8_t *pucRecvData,
 									  NetworkBufferDescriptor_t *pxNetworkBuffer,
 									  uint32_t ulReceiveLength )
 	{
-	/* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-	const ProtocolHeaders_t *pxProtocolHeaders = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t,
+		/* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+		const ProtocolHeaders_t *pxProtocolHeaders = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t,
 																						 &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
-	const TCPHeader_t *pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
-	TCPWindow_t *pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-	uint32_t ulSequenceNumber, ulSpace;
-	int32_t lOffset, lStored;
-	BaseType_t xResult = 0;
+		const TCPHeader_t *pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+		TCPWindow_t *pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+		uint32_t ulSequenceNumber, ulSpace;
+		int32_t lOffset, lStored;
+		BaseType_t xResult = 0;
 
 		ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
 
@@ -2574,25 +2574,25 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Set the TCP options (if any) for the outgoing packet.
-	 *
-	 * @param[in] pxSocket: The socket owning the connection.
-         * @param[in] pxNetworkBuffer: The network buffer holding the packet.
-	 *
-	 * @return Length of the TCP options after they are set.
-	 */
+	* @brief Set the TCP options (if any) for the outgoing packet.
+	*
+	* @param[in] pxSocket: The socket owning the connection.
+	* @param[in] pxNetworkBuffer: The network buffer holding the packet.
+	*
+	* @return Length of the TCP options after they are set.
+	*/
 	static UBaseType_t prvSetOptions( FreeRTOS_Socket_t *pxSocket,
 									  const NetworkBufferDescriptor_t *pxNetworkBuffer )
 	{
-	/* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-	ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+		/* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+		ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
 																	   &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
-	TCPHeader_t *pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
-	const TCPWindow_t *pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-	UBaseType_t uxOptionsLength = pxTCPWindow->ucOptionLength;
-	/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-	const void *pvCopySource;
-	void *pvCopyDest;
+		TCPHeader_t *pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+		const TCPWindow_t *pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+		UBaseType_t uxOptionsLength = pxTCPWindow->ucOptionLength;
+		/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+		const void *pvCopySource;
+		void *pvCopyDest;
 
 		#if ( ipconfigUSE_TCP_WIN == 1 )
 			if( uxOptionsLength != 0U )
@@ -2652,35 +2652,35 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief prvHandleSynReceived(): called from prvTCPHandleState(). Called
-	 *        from the states: eSYN_RECEIVED and eCONNECT_SYN. If the flags
-	 *        received are correct, the socket will move to eESTABLISHED.
-	 *
-	 * @param[in] pxSocket: The socket handling the connection.
-         * @param[in] pxNetworkBuffer: The pointer to the network buffer carrying
-	 *                             the packet.
-         * @param[in] ulReceiveLength: Length in bytes of the data received.
-         * @param[in] uxOptionsLength: Length of the TCP options in bytes.
-	 *
-	 * @return Length of the data to be sent.
-	 */
+	* @brief prvHandleSynReceived(): called from prvTCPHandleState(). Called
+	*        from the states: eSYN_RECEIVED and eCONNECT_SYN. If the flags
+	*        received are correct, the socket will move to eESTABLISHED.
+	*
+	* @param[in] pxSocket: The socket handling the connection.
+	* @param[in] pxNetworkBuffer: The pointer to the network buffer carrying
+	*                             the packet.
+	* @param[in] ulReceiveLength: Length in bytes of the data received.
+	* @param[in] uxOptionsLength: Length of the TCP options in bytes.
+	*
+	* @return Length of the data to be sent.
+	*/
 	static BaseType_t prvHandleSynReceived( FreeRTOS_Socket_t *pxSocket,
 											const NetworkBufferDescriptor_t *pxNetworkBuffer,
 											uint32_t ulReceiveLength,
 											UBaseType_t uxOptionsLength )
 	{
-	/* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-	ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+		/* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+		ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
 																	   &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
-	TCPHeader_t *pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
-	TCPWindow_t *pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-	uint8_t ucTCPFlags = pxTCPHeader->ucTCPFlags;
-	uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
-	BaseType_t xSendLength = 0;
-	UBaseType_t uxIntermediateResult = 0;
+		TCPHeader_t *pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+		TCPWindow_t *pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+		uint8_t ucTCPFlags = pxTCPHeader->ucTCPFlags;
+		uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
+		BaseType_t xSendLength = 0;
+		UBaseType_t uxIntermediateResult = 0;
 
-	/* Either expect a ACK or a SYN+ACK. */
-	uint8_t ucExpect = tcpTCP_FLAG_ACK;
+		/* Either expect a ACK or a SYN+ACK. */
+		uint8_t ucExpect = tcpTCP_FLAG_ACK;
 
 		if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCONNECT_SYN )
 		{
@@ -2789,35 +2789,35 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief prvHandleEstablished(): called from prvTCPHandleState()
- 	 *        Called if the status is eESTABLISHED. Data reception has been handled
-	 *        earlier. Here the ACK's from peer will be checked, and if a FIN is received,
-	 *        the code will check if it may be accepted, i.e. if all expected data has been
-	 *        completely received.
-	 *
-	 * @param[in] pxSocket: The socket owning the connection.
-         * @param[in] ppxNetworkBuffer: Pointer to pointer to the network buffer.
-         * @param[in] ulReceiveLength: The length of the received packet.
-         * @param[in] uxOptionsLength: Length of TCP options.
-	 *
-	 * @return The send length of the packet to be sent.
-	 */
+	* @brief prvHandleEstablished(): called from prvTCPHandleState()
+	*        Called if the status is eESTABLISHED. Data reception has been handled
+	*        earlier. Here the ACK's from peer will be checked, and if a FIN is received,
+	*        the code will check if it may be accepted, i.e. if all expected data has been
+	*        completely received.
+	*
+	* @param[in] pxSocket: The socket owning the connection.
+	* @param[in] ppxNetworkBuffer: Pointer to pointer to the network buffer.
+	* @param[in] ulReceiveLength: The length of the received packet.
+	* @param[in] uxOptionsLength: Length of TCP options.
+	*
+	* @return The send length of the packet to be sent.
+	*/
 	static BaseType_t prvHandleEstablished( FreeRTOS_Socket_t *pxSocket,
 											NetworkBufferDescriptor_t **ppxNetworkBuffer,
 											uint32_t ulReceiveLength,
 											UBaseType_t uxOptionsLength )
 	{
-	/* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-	ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+		/* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+		ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
 																	   &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
-	TCPHeader_t *pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
-	TCPWindow_t *pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-	uint8_t ucTCPFlags = pxTCPHeader->ucTCPFlags;
-	uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber ), ulCount, ulIntermediateResult = 0;
-	BaseType_t xSendLength = 0, xMayClose = pdFALSE, bRxComplete, bTxDone;
-	int32_t lDistance, lSendResult;
-	uint16_t usWindow;
-	UBaseType_t uxIntermediateResult = 0;
+		TCPHeader_t *pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+		TCPWindow_t *pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+		uint8_t ucTCPFlags = pxTCPHeader->ucTCPFlags;
+		uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber ), ulCount, ulIntermediateResult = 0;
+		BaseType_t xSendLength = 0, xMayClose = pdFALSE, bRxComplete, bTxDone;
+		int32_t lDistance, lSendResult;
+		uint16_t usWindow;
+		UBaseType_t uxIntermediateResult = 0;
 
 		/* Remember the window size the peer is advertising. */
 		usWindow = FreeRTOS_ntohs( pxTCPHeader->usWindow );
@@ -2970,31 +2970,31 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Called from prvTCPHandleState(). There is data to be sent. If
-	 *        ipconfigUSE_TCP_WIN is defined, and if only an ACK must be sent, it will be
-	 *        checked if it would better be postponed for efficiency.
-	 *
-	 * @param[in] pxSocket: The socket owning the TCP connection.
-         * @param[in] ppxNetworkBuffer: Pointer to pointer to the network buffer.
-         * @param[in] ulReceiveLength: The length of the received buffer.
-         * @param[in] xByteCount: Length of the data to be sent.
-	 *
-	 * @return The number of bytes actually sent.
-	 */
+	* @brief Called from prvTCPHandleState(). There is data to be sent. If
+	*        ipconfigUSE_TCP_WIN is defined, and if only an ACK must be sent, it will be
+	*        checked if it would better be postponed for efficiency.
+	*
+	* @param[in] pxSocket: The socket owning the TCP connection.
+	* @param[in] ppxNetworkBuffer: Pointer to pointer to the network buffer.
+	* @param[in] ulReceiveLength: The length of the received buffer.
+	* @param[in] xByteCount: Length of the data to be sent.
+	*
+	* @return The number of bytes actually sent.
+	*/
 	static BaseType_t prvSendData( FreeRTOS_Socket_t *pxSocket,
 								   NetworkBufferDescriptor_t **ppxNetworkBuffer,
 								   uint32_t ulReceiveLength,
 								   BaseType_t xByteCount )
 	{
-	/* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-	const ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
-							 &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
-	const TCPHeader_t *pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
-	const TCPWindow_t *pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-	/* Find out what window size we may advertised. */
-	int32_t lRxSpace;
-	BaseType_t xSendLength = xByteCount;
-	uint32_t ulRxBufferSpace;
+		/* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+		const ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+																			 &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
+		const TCPHeader_t *pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+		const TCPWindow_t *pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+		/* Find out what window size we may advertised. */
+		int32_t lRxSpace;
+		BaseType_t xSendLength = xByteCount;
+		uint32_t ulRxBufferSpace;
 
 		#if ( ipconfigUSE_TCP_WIN == 1 )
 			#if ( ipconfigTCP_ACK_EARLIER_PACKET == 0 )
@@ -3118,52 +3118,52 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Check incoming packets for valid data and handle the state of the
-	 *        TCP connection and respond according to the situation.
-	 *
-	 * @param[in] pxSocket: The socket whose connection state is being handled.
-         * @param[in] ppxNetworkBuffer: The network buffer descriptor holding the
-	 *            packet received from the peer.
-	 *
-	 * @return If the data is correct and some packet was sent to the peer, then
-	 *         the number of bytes sent is returned, or else a negative value is
-	 *         returned indicating an error.
-	 *
-	 * @note prvTCPHandleState() is the most important function of this TCP stack
-	 * We've tried to keep it (relatively short) by putting a lot of code in
-	 * the static functions above:
-	 *
-	 *		prvCheckRxData()
-	 *		prvStoreRxData()
-	 *		prvSetOptions()
-	 *		prvHandleSynReceived()
-	 *		prvHandleEstablished()
-	 *		prvSendData()
-	 *
-	 * As these functions are declared static, and they're called from one location
-	 * only, most compilers will inline them, thus avoiding a call and return.
-	 */
+	* @brief Check incoming packets for valid data and handle the state of the
+	*        TCP connection and respond according to the situation.
+	*
+	* @param[in] pxSocket: The socket whose connection state is being handled.
+	* @param[in] ppxNetworkBuffer: The network buffer descriptor holding the
+	*            packet received from the peer.
+	*
+	* @return If the data is correct and some packet was sent to the peer, then
+	*         the number of bytes sent is returned, or else a negative value is
+	*         returned indicating an error.
+	*
+	* @note prvTCPHandleState() is the most important function of this TCP stack
+	* We've tried to keep it (relatively short) by putting a lot of code in
+	* the static functions above:
+	*
+	*		prvCheckRxData()
+	*		prvStoreRxData()
+	*		prvSetOptions()
+	*		prvHandleSynReceived()
+	*		prvHandleEstablished()
+	*		prvSendData()
+	*
+	* As these functions are declared static, and they're called from one location
+	* only, most compilers will inline them, thus avoiding a call and return.
+	*/
 	static BaseType_t prvTCPHandleState( FreeRTOS_Socket_t *pxSocket,
 										 NetworkBufferDescriptor_t **ppxNetworkBuffer )
 	{
-	/* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-	ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+		/* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+		ProtocolHeaders_t *pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
 																	   &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
-	TCPHeader_t *pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
-	BaseType_t xSendLength = 0;
-	uint32_t ulReceiveLength; /* Number of bytes contained in the TCP message. */
-	uint8_t *pucRecvData;
-	uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
+		TCPHeader_t *pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+		BaseType_t xSendLength = 0;
+		uint32_t ulReceiveLength; /* Number of bytes contained in the TCP message. */
+		uint8_t *pucRecvData;
+		uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
 
-	/* uxOptionsLength: the size of the options to be sent (always a multiple of
-	4 bytes)
-	1. in the SYN phase, we shall communicate the MSS
-	2. in case of a SACK, Selective ACK, ack a segment which comes in
-	out-of-order. */
-	UBaseType_t uxOptionsLength = 0U;
-	uint8_t ucTCPFlags = pxTCPHeader->ucTCPFlags;
-	TCPWindow_t *pxTCPWindow = &( pxSocket->u.xTCP.xTCPWindow );
-	UBaseType_t uxIntermediateResult = 0;
+		/* uxOptionsLength: the size of the options to be sent (always a multiple of
+		4 bytes)
+		1. in the SYN phase, we shall communicate the MSS
+		2. in case of a SACK, Selective ACK, ack a segment which comes in
+		out-of-order. */
+		UBaseType_t uxOptionsLength = 0U;
+		uint8_t ucTCPFlags = pxTCPHeader->ucTCPFlags;
+		TCPWindow_t *pxTCPWindow = &( pxSocket->u.xTCP.xTCPWindow );
+		UBaseType_t uxIntermediateResult = 0;
 
 		/* First get the length and the position of the received data, if any.
 		pucRecvData will point to the first byte of the TCP payload. */
@@ -3327,14 +3327,14 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Common code for sending a TCP protocol control packet (i.e. no options, no
-	 *        payload, just flags).
-	 *
-	 * @param[in] pxNetworkBuffer: The network buffer received from the peer.
-         * @param[in] ucTCPFlags: The flags to determine what kind of packet this is.
-	 *
-	 * @return pdFAIL always indicating that the packet was not consumed.
-	 */
+	* @brief Common code for sending a TCP protocol control packet (i.e. no options, no
+	*        payload, just flags).
+	*
+	* @param[in] pxNetworkBuffer: The network buffer received from the peer.
+	* @param[in] ucTCPFlags: The flags to determine what kind of packet this is.
+	*
+	* @return pdFAIL always indicating that the packet was not consumed.
+	*/
 	static BaseType_t prvTCPSendSpecialPacketHelper( NetworkBufferDescriptor_t *pxNetworkBuffer,
 													 uint8_t ucTCPFlags )
 	{
@@ -3361,15 +3361,15 @@
 	}
 	/*-----------------------------------------------------------*/
 
-        /**
-         * @brief A "challenge ACK" is as per https://tools.ietf.org/html/rfc5961#section-3.2,
-	 *        case #3. In summary, an RST was received with a sequence number that is
-	 *        unexpected but still within the window.
-         *
-         * @param[in] pxNetworkBuffer: The network buffer descriptor with the packet.
-         *
-         * @return Returns the value back from #prvTCPSendSpecialPacketHelper.
-         */
+	/**
+	* @brief A "challenge ACK" is as per https://tools.ietf.org/html/rfc5961#section-3.2,
+	*        case #3. In summary, an RST was received with a sequence number that is
+	*        unexpected but still within the window.
+	*
+	* @param[in] pxNetworkBuffer: The network buffer descriptor with the packet.
+	*
+	* @return Returns the value back from #prvTCPSendSpecialPacketHelper.
+	*/
 	static BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t *pxNetworkBuffer )
 	{
 		return prvTCPSendSpecialPacketHelper( pxNetworkBuffer, tcpTCP_FLAG_ACK );
@@ -3377,12 +3377,12 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Send a RST (Reset) to peer in case the packet cannot be handled.
-	 *
-	 * @param[in] pxNetworkBuffer: The network buffer descriptor with the packet.
-	 *
-	 * @return Returns the value back from #prvTCPSendSpecialPacketHelper.
-	 */
+	* @brief Send a RST (Reset) to peer in case the packet cannot be handled.
+	*
+	* @param[in] pxNetworkBuffer: The network buffer descriptor with the packet.
+	*
+	* @return Returns the value back from #prvTCPSendSpecialPacketHelper.
+	*/
 	static BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t *pxNetworkBuffer )
 	{
 		return prvTCPSendSpecialPacketHelper( pxNetworkBuffer,
@@ -3391,10 +3391,10 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Set the MSS (Maximum segment size) associated with the given socket.
-	 *
-	 * @param[in] pxSocket: The socket whose MSS is to be set.
-	 */
+	* @brief Set the MSS (Maximum segment size) associated with the given socket.
+	*
+	* @param[in] pxSocket: The socket whose MSS is to be set.
+	*/
 	static void prvSocketSetMSS( FreeRTOS_Socket_t *pxSocket )
 	{
 	uint32_t ulMSS = ipconfigTCP_MSS;
@@ -3414,40 +3414,40 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Process the received TCP packet.
-	 *
-	 * @param[in] pxDescriptor: The descriptor in which the TCP packet is held.
-	 *
-	 * @return If the processing of the packet was successful, then pdPASS is returned
-	 *         or else pdFAIL.
-	 *
-	 * @note FreeRTOS_TCP_IP has only 2 public functions, this is the second one:
-	 *	xProcessReceivedTCPPacket()
-	 *		prvTCPHandleState()
-	 *			prvTCPPrepareSend()
-	 *				prvTCPReturnPacket()
-	 *				xNetworkInterfaceOutput()	// Sends data to the NIC
-	 *		prvTCPSendRepeated()
-	 *			prvTCPReturnPacket()		// Prepare for returning
-	 *			xNetworkInterfaceOutput()	// Sends data to the NIC
-	 */
+	* @brief Process the received TCP packet.
+	*
+	* @param[in] pxDescriptor: The descriptor in which the TCP packet is held.
+	*
+	* @return If the processing of the packet was successful, then pdPASS is returned
+	*         or else pdFAIL.
+	*
+	* @note FreeRTOS_TCP_IP has only 2 public functions, this is the second one:
+	*	xProcessReceivedTCPPacket()
+	*		prvTCPHandleState()
+	*			prvTCPPrepareSend()
+	*				prvTCPReturnPacket()
+	*				xNetworkInterfaceOutput()	// Sends data to the NIC
+	*		prvTCPSendRepeated()
+	*			prvTCPReturnPacket()		// Prepare for returning
+	*			xNetworkInterfaceOutput()	// Sends data to the NIC
+	*/
 	BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t *pxDescriptor )
 	{
-	/* Function might modify the parameter. */
-	NetworkBufferDescriptor_t *pxNetworkBuffer = pxDescriptor;
+		/* Function might modify the parameter. */
+		NetworkBufferDescriptor_t *pxNetworkBuffer = pxDescriptor;
 
-	/* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
-	const ProtocolHeaders_t *pxProtocolHeaders = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t,
+		/* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
+		const ProtocolHeaders_t *pxProtocolHeaders = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t,
 																						 &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
-	FreeRTOS_Socket_t *pxSocket;
-	uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
-	uint32_t ulLocalIP;
-	uint16_t xLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
-	uint16_t xRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
-	uint32_t ulRemoteIP;
-	uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
-	uint32_t ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
-	BaseType_t xResult = pdPASS;
+		FreeRTOS_Socket_t *pxSocket;
+		uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
+		uint32_t ulLocalIP;
+		uint16_t xLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
+		uint16_t xRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
+		uint32_t ulRemoteIP;
+		uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
+		uint32_t ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
+		BaseType_t xResult = pdPASS;
 
 		configASSERT( pxNetworkBuffer != NULL );
 		configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
@@ -3671,21 +3671,21 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Handle 'listen' event on the given socket.
-	 *
-	 * @param[in] pxSocket: The socket on which the listen occurred.
-         * @param[in] pxNetworkBuffer: The network buffer carrying the packet.
-	 *
-	 * @return If a new socket/duplicate socket is created, then the pointer to
-	 *         that socket is returned or else, a NULL pointer is returned.
-	 */
+	* @brief Handle 'listen' event on the given socket.
+	*
+	* @param[in] pxSocket: The socket on which the listen occurred.
+	* @param[in] pxNetworkBuffer: The network buffer carrying the packet.
+	*
+	* @return If a new socket/duplicate socket is created, then the pointer to
+	*         that socket is returned or else, a NULL pointer is returned.
+	*/
 	static FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t *pxSocket,
 												NetworkBufferDescriptor_t *pxNetworkBuffer )
 	{
-	/* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
-	const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
-	FreeRTOS_Socket_t *pxReturn = NULL;
-	uint32_t ulInitialSequenceNumber;
+		/* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
+		const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+		FreeRTOS_Socket_t *pxReturn = NULL;
+		uint32_t ulInitialSequenceNumber;
 
 		/* Assume that a new Initial Sequence Number will be required. Request
 		it now in order to fail out if necessary. */
@@ -3775,14 +3775,14 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief Duplicates a socket after a listening socket receives a connection and bind
-	 *        the new socket to the same port as the listening socket.
-	 *
-	 * @param[in] pxNewSocket: Pointer to the new socket.
-         * @param[in] pxSocket: Pointer to the socket being duplicated.
-	 *
-	 * @return If all steps all successful, then pdTRUE is returned. Else, pdFALSE.
-	 */
+	* @brief Duplicates a socket after a listening socket receives a connection and bind
+	*        the new socket to the same port as the listening socket.
+	*
+	* @param[in] pxNewSocket: Pointer to the new socket.
+	* @param[in] pxSocket: Pointer to the socket being duplicated.
+	*
+	* @return If all steps all successful, then pdTRUE is returned. Else, pdFALSE.
+	*/
 	static BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t *pxNewSocket,
 										FreeRTOS_Socket_t *pxSocket )
 	{
@@ -3917,13 +3917,13 @@
 	/*-----------------------------------------------------------*/
 
 	/**
-	 * @brief In the API accept(), the user asks is there is a new client? As API's can
-	 *        not walk through the xBoundTCPSocketsList the IP-task will do this.
-	 *
-	 * @param[in] pxSocket: The socket for which the bound socket list will be iterated.
-	 *
-	 * @return if there is a new client, then pdTRUE is returned or else, pdFALSE.
-	 */
+	* @brief In the API accept(), the user asks is there is a new client? As API's can
+	*        not walk through the xBoundTCPSocketsList the IP-task will do this.
+	*
+	* @param[in] pxSocket: The socket for which the bound socket list will be iterated.
+	*
+	* @return if there is a new client, then pdTRUE is returned or else, pdFALSE.
+	*/
 	BaseType_t xTCPCheckNewClient( FreeRTOS_Socket_t *pxSocket )
 	{
 	TickType_t uxLocalPort = ( TickType_t ) FreeRTOS_htons( pxSocket->usLocalPort );

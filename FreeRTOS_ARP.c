@@ -92,6 +92,7 @@ static TickType_t xLastGratuitousARPTime = ( TickType_t ) 0;
 #endif /* ipconfigARP_USE_CLASH_DETECTION */
 
 /*-----------------------------------------------------------*/
+
 /**
  * @brief Process the ARP packets.
  *
@@ -583,7 +584,7 @@ uint32_t ulAddressToLookup;
  *                          is an ARP cache hit, the MAC address corresponding to
  *                          the IP address will be stored.
  *
- * @return The status of where the cache search was hit/miss/found an invalid 
+ * @return The status of where the cache search was hit/miss/found an invalid
  *         entry.
 */
 static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
@@ -619,6 +620,7 @@ eARPLookupResult_t eReturn = eARPCacheMiss;
 	return eReturn;
 }
 /*-----------------------------------------------------------*/
+
 /**
  * @brief A call to this function will update (or 'Age') the ARP cache entries.
  *        The function will also try to prevent a removal of entry by sending
@@ -694,6 +696,7 @@ void vARPSendGratuitous( void )
 }
 
 /*-----------------------------------------------------------*/
+
 /**
  * @brief Create and send an ARP request packet.
  *
@@ -832,6 +835,7 @@ packet to be filled in using a simple memcpy() instead of individual writes. */
 	iptraceCREATING_ARP_REQUEST( pxNetworkBuffer->ulIPAddress );
 }
 /*-----------------------------------------------------------*/
+
 /**
  * @brief A call to this function will clear the ARP cache.
 */
@@ -842,17 +846,18 @@ void FreeRTOS_ClearARP( void )
 /*-----------------------------------------------------------*/
 
 #if 1
+
 	/**
-	 * @brief  This function will check if the target IP-address belongs to this device.
-         *         If so, the packet will be passed to the IP-stack, who will answer it.
-         *         The function is to be called within the function xNetworkInterfaceOutput().
-	 *
-	 * @param[in] pxDescriptor: The network buffer which is to be checked for loop-back.
-	 * @param[in] bReleaseAfterSend: pdTRUE: Driver is allowed to transfer ownership of descriptor.
-	 *                              pdFALSE: Driver is not allowed to take ownership of descriptor,
-	 *                                       make a copy of it.
-	 *
-	 * @return pdTRUE/pdFALSE: There is/isn't a loopback address in the packet.
+	* @brief  This function will check if the target IP-address belongs to this device.
+	*         If so, the packet will be passed to the IP-stack, who will answer it.
+	*         The function is to be called within the function xNetworkInterfaceOutput().
+	*
+	* @param[in] pxDescriptor: The network buffer which is to be checked for loop-back.
+	* @param[in] bReleaseAfterSend: pdTRUE: Driver is allowed to transfer ownership of descriptor.
+	*                              pdFALSE: Driver is not allowed to take ownership of descriptor,
+	*                                       make a copy of it.
+	*
+	* @return pdTRUE/pdFALSE: There is/isn't a loopback address in the packet.
 	*/
 	BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
 							   BaseType_t bReleaseAfterSend )

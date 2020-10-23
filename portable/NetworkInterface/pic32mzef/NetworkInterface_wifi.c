@@ -170,11 +170,11 @@ IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
 		xRxEvent.pvData = ( void * ) pxNetworkBuffer;
 
 		if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
-		{   /* failed */
+		{ /* failed */
 			pktLost = true;
 		}
 		else
-		{   /* success */
+		{ /* success */
 			pktSuccess = true;
 			iptraceNETWORK_INTERFACE_RECEIVE();
 		}
@@ -183,7 +183,7 @@ IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
 	}
 
 	if( !pktSuccess )
-	{   /* something went wrong; nothing sent to the */
+	{ /* something went wrong; nothing sent to the */
 		if( pxNetworkBuffer != NULL )
 		{
 			pxNetworkBuffer->pucEthernetBuffer = 0;

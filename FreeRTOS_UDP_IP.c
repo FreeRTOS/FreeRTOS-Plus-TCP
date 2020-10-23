@@ -87,11 +87,11 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
  */
 void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
-	UDPPacket_t *pxUDPPacket;
-	IPHeader_t *pxIPHeader;
-	eARPLookupResult_t eReturned;
-	uint32_t ulIPAddress = pxNetworkBuffer->ulIPAddress;
-	size_t uxPayloadSize;
+UDPPacket_t *pxUDPPacket;
+IPHeader_t *pxIPHeader;
+eARPLookupResult_t eReturned;
+uint32_t ulIPAddress = pxNetworkBuffer->ulIPAddress;
+size_t uxPayloadSize;
 	/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
 	const void *pvCopySource;
 	void *pvCopyDest;

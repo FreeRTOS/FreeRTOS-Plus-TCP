@@ -972,8 +972,8 @@ socket events. */
 		/** @brief Define the data that must be passed for a 'eSocketSelectEvent'. */
 		typedef struct xSocketSelectMessage
 		{
-			TaskHandle_t xTaskhandle; /**< Task handle for use in the socket select functionality. */
-			SocketSelect_t *pxSocketSet; /**< The event group for the socket select functionality. */
+		TaskHandle_t xTaskhandle;     /**< Task handle for use in the socket select functionality. */
+		SocketSelect_t *pxSocketSet;  /**< The event group for the socket select functionality. */
 		} SocketSelectMessage_t;
 
 		static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
