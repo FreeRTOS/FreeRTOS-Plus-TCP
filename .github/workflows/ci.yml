@@ -48,7 +48,7 @@ jobs:
       - name: Install Uncrustify
         run: sudo apt-get install uncrustify
       - name: Run Uncrustify
-        run: echo $(uncrustify --version)
+        run: uncrustify --version
              find . -iname "*.[hc]" -exec uncrustify --check -c tools/uncrustify.cfg {} +
       - name: Check For Trailing Whitespace
         run: |
