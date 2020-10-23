@@ -23,6 +23,7 @@ BaseType_t xTaskGetSchedulerState( void )
     return xState;
 }
 
+
 /* This function is another method apart from overwritting the defines to init the max
  * loop bound. */
 void vInitTaskCheckForTimeOut( BaseType_t maxCounter,
