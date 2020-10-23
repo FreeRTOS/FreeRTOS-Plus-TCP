@@ -687,6 +687,7 @@ pucname
 pucnewbuffer
 pucnextdata
 pucoptionsarray
+pucpayload
 pucptr
 pucrecvdata
 pucstart
@@ -704,6 +705,7 @@ pulnumber
 pulvalue
 pvbuffer
 pvdata
+pvdestination
 pvoptionvalue
 pvparam
 pvparameters
