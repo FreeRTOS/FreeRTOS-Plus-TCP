@@ -525,7 +525,7 @@
 	* @return 0 on success, a negative error code on failure.
 	*
 	* @note Sequence of calling (normally) :
-	* 	IP-Task:
+	*   IP-Task:
 	*		xTCPTimerCheck()				// Check all sockets ( declared in FreeRTOS_Sockets.c )
 	*		xTCPSocketCheck()				// Either send a delayed ACK or call prvTCPSendPacket()
 	*		prvTCPSendPacket()				// Either send a SYN or call prvTCPSendRepeated ( regular messages )

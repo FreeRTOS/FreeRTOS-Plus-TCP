@@ -92,7 +92,7 @@ section macros. */
 	{
 	#define ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR()				 \
 	portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus ); \
-}
+	}
 
 	#define ipconfigBUFFER_ALLOC_LOCK()		 taskENTER_CRITICAL()
 	#define ipconfigBUFFER_ALLOC_UNLOCK()	 taskEXIT_CRITICAL()

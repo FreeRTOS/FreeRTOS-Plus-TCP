@@ -117,7 +117,7 @@ functions anyway. */
 uses the same semantics as the standard C assert() macro. */
 extern void vAssertCalled( unsigned long ulLine,
 						   const char * const pcFileName );
-#define configASSERT( x )    if( x == 0 ) TEST_ABORT( )
+#define configASSERT( x )    if( x == 0 ) TEST_ABORT()
 
 #define configINCLUDE_MESSAGE_BUFFER_AMP_DEMO    0
 #if ( configINCLUDE_MESSAGE_BUFFER_AMP_DEMO == 1 )
