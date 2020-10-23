@@ -1012,6 +1012,14 @@ NetworkBufferDescriptor_t * pxNewBuffer;
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Get the network buffer descriptor from the packet buffer.
+ *
+ * @param[in] pvBuffer: The pointer to packet buffer.
+ * @param[in] uxOffset: Additional offset (such as the packet length of UDP packet etc.).
+ *
+ * @return The network buffer descriptor if the allignment is correct. Else a NULL is returned.
+ */
 static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void *pvBuffer,
 																	 size_t uxOffset )
 {
@@ -1052,6 +1060,13 @@ NetworkBufferDescriptor_t *pxResult;
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )
+	/**
+	 * @brief Get the network buffer from the packet buffer.
+	 *
+	 * @param[in] pvBuffer: Pointer to the packet buffer.
+	 *
+	 * @return The network buffer if the allignment is correct. Else a NULL is returned.
+	 */
 	NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void *pvBuffer )
 	{
 		return prvPacketBuffer_to_NetworkBuffer( pvBuffer, 0U );
@@ -1059,6 +1074,13 @@ NetworkBufferDescriptor_t *pxResult;
 #endif /* ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Get the network buffer from the UDP Payload buffer.
+ *
+ * @param[in] pvBuffer: Pointer to the UDP payload buffer.
+ *
+ * @return The network buffer if the allignment is correct. Else a NULL is returned.
+ */
 NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer )
 {
 	return prvPacketBuffer_to_NetworkBuffer( pvBuffer, sizeof( UDPPacket_t ) );
