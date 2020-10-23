@@ -8,7 +8,7 @@
 #include "FreeRTOS_ARP.h"
 
 /*We assume that the pxGetNetworkBufferWithDescriptor function is implemented correctly and returns a valid data structure. */
-/*This is the mock to mimic the correct expected bahvior. If this allocation fails, this might invalidate the proof. */
+/*This is the mock to mimic the correct expected behavior. If this allocation fails, this might invalidate the proof. */
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
 															  TickType_t xBlockTimeTicks )
 {
