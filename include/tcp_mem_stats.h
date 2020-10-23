@@ -67,7 +67,7 @@
     vTCPMemStatClose()
     #else /* if ( ipconfigUSE_TCP_MEM_STATS != 0 ) */
 
-        /* The header file 'IPTraceMacroDefaults.h' will define the default empty macro's. */
+/* The header file 'IPTraceMacroDefaults.h' will define the default empty macro's. */
 
     #endif /* ipconfigUSE_TCP_MEM_STATS != 0 */
 

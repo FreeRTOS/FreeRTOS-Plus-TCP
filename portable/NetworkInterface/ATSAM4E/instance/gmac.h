@@ -1438,8 +1438,8 @@
 
     #if ( GMAC_STATS != 0 )
 
-        /* Here below some code to study the types and
-         * frequencies of  GMAC interrupts. */
+/* Here below some code to study the types and
+ * frequencies of  GMAC interrupts. */
         #define GMAC_IDX_RXUBR    0
         #define GMAC_IDX_TUR      1
         #define GMAC_IDX_RLEX     2

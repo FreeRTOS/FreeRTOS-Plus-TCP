@@ -231,8 +231,8 @@
 
     #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-        /* The SocketSet_t type is the equivalent to the fd_set type used by the
-         * Berkeley API. */
+/* The SocketSet_t type is the equivalent to the fd_set type used by the
+ * Berkeley API. */
         struct xSOCKET_SET;
         typedef struct xSOCKET_SET * SocketSet_t;
     #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
@@ -295,8 +295,8 @@
             /* Send a signal to the task which is waiting for a given socket. */
             BaseType_t FreeRTOS_SignalSocket( Socket_t xSocket );
 
-            /* Send a signal to the task which reads from this socket (FromISR
-             * version). */
+/* Send a signal to the task which reads from this socket (FromISR
+ * version). */
             BaseType_t FreeRTOS_SignalSocketFromISR( Socket_t xSocket,
                                                      BaseType_t * pxHigherPriorityTaskWoken );
         #endif /* ipconfigSUPPORT_SIGNALS */
@@ -307,10 +307,10 @@
 
         #if ( ipconfigUSE_TCP == 1 )
 
-            /* Returns pdTRUE if TCP socket is connected. */
+/* Returns pdTRUE if TCP socket is connected. */
             BaseType_t FreeRTOS_issocketconnected( ConstSocket_t xSocket );
 
-            /* Returns the actual size of MSS being used. */
+/* Returns the actual size of MSS being used. */
             BaseType_t FreeRTOS_mss( ConstSocket_t xSocket );
 
         #endif
@@ -356,15 +356,15 @@
 
     #if ( ipconfigUSE_CALLBACKS != 0 )
 
-        /*
-         * Connect / disconnect handler for a TCP socket
-         * For example:
-         *		static void vMyConnectHandler (Socket_t xSocket, BaseType_t ulConnected)
-         *		{
-         *		}
-         *       F_TCP_UDP_Handler_t xHnd = { vMyConnectHandler };
-         *       FreeRTOS_setsockopt( sock, 0, FREERTOS_SO_TCP_CONN_HANDLER, ( void * ) &xHnd, sizeof( xHnd ) );
-         */
+/*
+ * Connect / disconnect handler for a TCP socket
+ * For example:
+ *		static void vMyConnectHandler (Socket_t xSocket, BaseType_t ulConnected)
+ *		{
+ *		}
+ *       F_TCP_UDP_Handler_t xHnd = { vMyConnectHandler };
+ *       FreeRTOS_setsockopt( sock, 0, FREERTOS_SO_TCP_CONN_HANDLER, ( void * ) &xHnd, sizeof( xHnd ) );
+ */
 
         #ifdef __COVERITY__
             typedef void (* FOnConnected_t )( Socket_t xSocket,
@@ -374,19 +374,19 @@
                                               BaseType_t );
         #endif
 
-        /*
-         * Reception handler for a TCP socket
-         * A user-proved function will be called on reception of a message
-         * If the handler returns a positive number, the messages will not be stored
-         * For example:
-         *		static BaseType_t xOnTCPReceive( Socket_t xSocket, void * pData, size_t uxLength )
-         *		{
-         *			// handle the message
-         *			return 1;
-         *		}
-         *		F_TCP_UDP_Handler_t xHand = { xOnTCPReceive };
-         *		FreeRTOS_setsockopt( sock, 0, FREERTOS_SO_TCP_RECV_HANDLER, ( void * ) &xHand, sizeof( xHand ) );
-         */
+/*
+ * Reception handler for a TCP socket
+ * A user-proved function will be called on reception of a message
+ * If the handler returns a positive number, the messages will not be stored
+ * For example:
+ *		static BaseType_t xOnTCPReceive( Socket_t xSocket, void * pData, size_t uxLength )
+ *		{
+ *			// handle the message
+ *			return 1;
+ *		}
+ *		F_TCP_UDP_Handler_t xHand = { xOnTCPReceive };
+ *		FreeRTOS_setsockopt( sock, 0, FREERTOS_SO_TCP_RECV_HANDLER, ( void * ) &xHand, sizeof( xHand ) );
+ */
         #ifdef __COVERITY__
             typedef BaseType_t (* FOnTCPReceive_t )( Socket_t xSocket,
                                                      void * pData,
@@ -401,11 +401,11 @@
                                             size_t );
         #endif /* ifdef __COVERITY__ */
 
-        /*
-         * Reception handler for a UDP socket
-         * A user-proved function will be called on reception of a message
-         * If the handler returns a positive number, the messages will not be stored
-         */
+/*
+ * Reception handler for a UDP socket
+ * A user-proved function will be called on reception of a message
+ * If the handler returns a positive number, the messages will not be stored
+ */
         #ifdef __COVERITY__
             typedef BaseType_t (* FOnUDPReceive_t ) ( Socket_t xSocket,
                                                       void * pData,
@@ -475,7 +475,7 @@
 
     #if ipconfigSUPPORT_SELECT_FUNCTION == 1
 
-        /* For FD_SET and FD_CLR, a combination of the following bits can be used: */
+/* For FD_SET and FD_CLR, a combination of the following bits can be used: */
 
         typedef enum eSELECT_EVENT
         {

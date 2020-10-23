@@ -114,6 +114,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
             pxIPHeader = &( pxUDPPacket->xIPHeader );
 
             #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+
                 /* Is it possible that the packet is not actually a UDP packet
                  * after all, but an ICMP packet. */
                 if( pxNetworkBuffer->usPort != ( uint16_t ) ipPACKET_CONTAINS_ICMP_DATA )
@@ -383,6 +384,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
          * be for this node. */
 
         #if ( ipconfigUSE_DNS == 1 ) && ( ipconfigDNS_USE_CALLBACKS == 1 )
+
             /* A DNS reply, check for the source port.  Although the DNS client
              * does open a UDP socket to send a messages, this socket will be
              * closed after a short timeout.  Messages that come late (after the

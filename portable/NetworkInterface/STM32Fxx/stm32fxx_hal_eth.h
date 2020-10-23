@@ -438,9 +438,9 @@
 /* Ethernet Missed frames counter Shift */
     #define  ETH_DMA_RX_OVERFLOW_MISSEDFRAMES_COUNTERSHIFT    17U
 
-    /**
-     * @}
-     */
+/**
+ * @}
+ */
 
     #ifdef _lint
         #ifdef __IO
@@ -525,9 +525,9 @@
     } ETH_InitTypeDef;
 
 
-    /**
-     * @brief  ETH MAC Configuration Structure definition
-     */
+/**
+ * @brief  ETH MAC Configuration Structure definition
+ */
 
     typedef struct
     {
@@ -754,9 +754,9 @@
         HAL_LockTypeDef Lock;             /*!< ETH Lock                    */
     } ETH_HandleTypeDef;
 
-    /**
-     * @}
-     */
+/**
+ * @}
+ */
 
 /* Exported constants --------------------------------------------------------*/
 
@@ -776,20 +776,20 @@
     #define ETH_MAX_ETH_PAYLOAD        ( ( uint32_t ) 1500U ) /*!< Maximum Ethernet payload size */
     #define ETH_JUMBO_FRAME_PAYLOAD    ( ( uint32_t ) 9000U ) /*!< Jumbo frame payload size */
 
-    /* Ethernet driver receive buffers are organized in a chained linked-list, when
-     * an Ethernet packet is received, the Rx-DMA will transfer the packet from RxFIFO
-     * to the driver receive buffers memory.
-     *
-     * Depending on the size of the received Ethernet packet and the size of
-     * each Ethernet driver receive buffer, the received packet can take one or more
-     * Ethernet driver receive buffer.
-     *
-     * In below are defined the size of one Ethernet driver receive buffer ETH_RX_BUF_SIZE
-     * and the total count of the driver receive buffers ETH_RXBUFNB.
-     *
-     * The configured value for ETH_RX_BUF_SIZE and ETH_RXBUFNB are only provided as
-     * example, they can be reconfigured in the application layer to fit the application
-     * needs */
+/* Ethernet driver receive buffers are organized in a chained linked-list, when
+ * an Ethernet packet is received, the Rx-DMA will transfer the packet from RxFIFO
+ * to the driver receive buffers memory.
+ *
+ * Depending on the size of the received Ethernet packet and the size of
+ * each Ethernet driver receive buffer, the received packet can take one or more
+ * Ethernet driver receive buffer.
+ *
+ * In below are defined the size of one Ethernet driver receive buffer ETH_RX_BUF_SIZE
+ * and the total count of the driver receive buffers ETH_RXBUFNB.
+ *
+ * The configured value for ETH_RX_BUF_SIZE and ETH_RXBUFNB are only provided as
+ * example, they can be reconfigured in the application layer to fit the application
+ * needs */
 
 /* Here we configure each Ethernet driver receive buffer to fit the Max size Ethernet
  * packet */
@@ -804,20 +804,20 @@
     #endif
 
 
-    /* Ethernet driver transmit buffers are organized in a chained linked-list, when
-     * an Ethernet packet is transmitted, Tx-DMA will transfer the packet from the
-     * driver transmit buffers memory to the TxFIFO.
-     *
-     * Depending on the size of the Ethernet packet to be transmitted and the size of
-     * each Ethernet driver transmit buffer, the packet to be transmitted can take
-     * one or more Ethernet driver transmit buffer.
-     *
-     * In below are defined the size of one Ethernet driver transmit buffer ETH_TX_BUF_SIZE
-     * and the total count of the driver transmit buffers ETH_TXBUFNB.
-     *
-     * The configured value for ETH_TX_BUF_SIZE and ETH_TXBUFNB are only provided as
-     * example, they can be reconfigured in the application layer to fit the application
-     * needs */
+/* Ethernet driver transmit buffers are organized in a chained linked-list, when
+ * an Ethernet packet is transmitted, Tx-DMA will transfer the packet from the
+ * driver transmit buffers memory to the TxFIFO.
+ *
+ * Depending on the size of the Ethernet packet to be transmitted and the size of
+ * each Ethernet driver transmit buffer, the packet to be transmitted can take
+ * one or more Ethernet driver transmit buffer.
+ *
+ * In below are defined the size of one Ethernet driver transmit buffer ETH_TX_BUF_SIZE
+ * and the total count of the driver transmit buffers ETH_TXBUFNB.
+ *
+ * The configured value for ETH_TX_BUF_SIZE and ETH_TXBUFNB are only provided as
+ * example, they can be reconfigured in the application layer to fit the application
+ * needs */
 
 /* Here we configure each Ethernet driver transmit buffer to fit the Max size Ethernet
  * packet */
@@ -831,9 +831,9 @@
         #define ETH_TXBUFNB    ( ( uint32_t ) 5U )   /* 5  Tx buffers of size ETH_TX_BUF_SIZE */
     #endif
 
-    /**
-     * @}
-     */
+/**
+ * @}
+ */
 
 /** @defgroup ETH_DMA_TX_Descriptor ETH DMA TX Descriptor
  * @{
@@ -901,11 +901,11 @@
  */
     #define ETH_DMATXDESC_B2AP                      ( ( uint32_t ) 0xFFFFFFFFU ) /*!< Buffer2 Address Pointer */
 
-    /*---------------------------------------------------------------------------------------------
-     * TDES6 |                         Transmit Time Stamp Low [31:0]                                 |
-     * -----------------------------------------------------------------------------------------------
-     * TDES7 |                         Transmit Time Stamp High [31:0]                                |
-     * ----------------------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------------------------
+ * TDES6 |                         Transmit Time Stamp Low [31:0]                                 |
+ * -----------------------------------------------------------------------------------------------
+ * TDES7 |                         Transmit Time Stamp High [31:0]                                |
+ * ----------------------------------------------------------------------------------------------*/
 
 /* Bit definition of TDES6 register */
     #define ETH_DMAPTPTXDESC_TTSL    ( ( uint32_t ) 0xFFFFFFFFU ) /* Transmit Time Stamp Low */
@@ -1017,9 +1017,9 @@
  * @}
  */
 
-    /** @defgroup ETH_AutoNegotiation ETH AutoNegotiation
-     * @{
-     */
+/** @defgroup ETH_AutoNegotiation ETH AutoNegotiation
+ * @{
+ */
     #define ETH_AUTONEGOTIATION_ENABLE     ( ( uint32_t ) 0x00000001U )
     #define ETH_AUTONEGOTIATION_DISABLE    ( ( uint32_t ) 0x00000000U )
 

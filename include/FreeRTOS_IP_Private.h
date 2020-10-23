@@ -379,11 +379,11 @@
 
     #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
 
-        /* Ethernet frame types. */
+/* Ethernet frame types. */
         #define ipARP_FRAME_TYPE                ( 0x0608U )
         #define ipIPv4_FRAME_TYPE               ( 0x0008U )
 
-        /* ARP related definitions. */
+/* ARP related definitions. */
         #define ipARP_PROTOCOL_TYPE             ( 0x0008U )
         #define ipARP_HARDWARE_TYPE_ETHERNET    ( 0x0100U )
         #define ipARP_REQUEST                   ( 0x0100U )
@@ -391,11 +391,11 @@
 
     #else /* if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
 
-        /* Ethernet frame types. */
+/* Ethernet frame types. */
         #define ipARP_FRAME_TYPE                ( 0x0806U )
         #define ipIPv4_FRAME_TYPE               ( 0x0800U )
 
-        /* ARP related definitions. */
+/* ARP related definitions. */
         #define ipARP_PROTOCOL_TYPE             ( 0x0800U )
         #define ipARP_HARDWARE_TYPE_ETHERNET    ( 0x0001U )
         #define ipARP_REQUEST                   ( 0x0001 )
@@ -577,23 +577,23 @@
 
     #if ( ipconfigUSE_TCP == 1 )
 
-        /*
-         * Actually a user thing, but because xBoundTCPSocketsList, let it do by the
-         * IP-task
-         */
+/*
+ * Actually a user thing, but because xBoundTCPSocketsList, let it do by the
+ * IP-task
+ */
         #if ( ipconfigHAS_PRINTF != 0 )
             void vTCPNetStat( void );
         #endif
 
-        /*
-         * At least one socket needs to check for timeouts
-         */
+/*
+ * At least one socket needs to check for timeouts
+ */
         TickType_t xTCPTimerCheck( BaseType_t xWillSleep );
 
-        /* Every TCP socket has a buffer space just big enough to store
-         * the last TCP header received.
-         * As a reference of this field may be passed to DMA, force the
-         * alignment to 8 bytes. */
+/* Every TCP socket has a buffer space just big enough to store
+ * the last TCP header received.
+ * As a reference of this field may be passed to DMA, force the
+ * alignment to 8 bytes. */
         typedef union
         {
             struct
@@ -610,12 +610,12 @@
             } u;
         } LastTCPPacket_t;
 
-        /*
-         * Note that the values of all short and long integers in these structs
-         * are being stored in the native-endian way
-         * Translation should take place when accessing any structure which defines
-         * network packets, such as IPHeader_t and TCPHeader_t
-         */
+/*
+ * Note that the values of all short and long integers in these structs
+ * are being stored in the native-endian way
+ * Translation should take place when accessing any structure which defines
+ * network packets, such as IPHeader_t and TCPHeader_t
+ */
         typedef struct TCPSOCKET
         {
             uint32_t ulRemoteIP;   /* IP address of remote machine */
@@ -787,10 +787,10 @@
 
     #if ( ipconfigUSE_TCP == 1 )
 
-        /*
-         * Lookup a TCP socket, using a multiple matching: both port numbers and
-         * return IP address.
-         */
+/*
+ * Lookup a TCP socket, using a multiple matching: both port numbers and
+ * return IP address.
+ */
         FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                                UBaseType_t uxLocalPort,
                                                uint32_t ulRemoteIP,
@@ -910,11 +910,11 @@
 
     #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
 
-        /*
-         * For the case where the network driver passes a buffer directly to a DMA
-         * descriptor, this function can be used to translate a 'network buffer' to
-         * a 'network buffer descriptor'.
-         */
+/*
+ * For the case where the network driver passes a buffer directly to a DMA
+ * descriptor, this function can be used to translate a 'network buffer' to
+ * a 'network buffer descriptor'.
+ */
         NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void * pvBuffer );
     #endif
 

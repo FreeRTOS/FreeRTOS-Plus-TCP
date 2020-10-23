@@ -129,26 +129,26 @@ static SemaphoreHandle_t xNetworkBufferSemaphore = NULL;
 
 #ifdef PIC32_USE_ETHERNET
 
-    /* PIC32 specific stuff */
-    /* */
+/* PIC32 specific stuff */
+/* */
 
-    /* MAC packet acknowledgment, once MAC is done with it */
+/* MAC packet acknowledgment, once MAC is done with it */
     static bool PIC32_MacPacketAcknowledge( TCPIP_MAC_PACKET * pPkt,
                                             const void * param );
 
-    /* allocates a MAC packet that holds a data buffer that can be used by both: */
-    /*  - the FreeRTOSIP (NetworkBufferDescriptor_t->pucEthernetBuffer) */
-    /*  - the Harmony MAC driver: TCPIP_MAC_PACKET->pDSeg->segLoad */
-    /* from the beginning of the buffer: */
-    /*      - 4 bytes pointer to the network descriptor (FreeRTOS) */
-    /*      - 4 bytes pointer to the MAC packet (pic32_NetworkInterface.c) */
-    /*      - 2 bytes offset from the MAC packet (Harmony MAC driver: segLoadOffset) */
-    /* */
-    /* NOTE: segLoadLen should NOT include: */
-    /*          - the TCPIP_MAC_FRAME_OFFSET (== ipBUFFER_PADDING which should be == 10!) */
-    /*          - the sizeof(TCPIP_MAC_ETHERNET_HEADER) */
-    /*       These are added by the MAC packet allocation! */
-    /* */
+/* allocates a MAC packet that holds a data buffer that can be used by both: */
+/*  - the FreeRTOSIP (NetworkBufferDescriptor_t->pucEthernetBuffer) */
+/*  - the Harmony MAC driver: TCPIP_MAC_PACKET->pDSeg->segLoad */
+/* from the beginning of the buffer: */
+/*      - 4 bytes pointer to the network descriptor (FreeRTOS) */
+/*      - 4 bytes pointer to the MAC packet (pic32_NetworkInterface.c) */
+/*      - 2 bytes offset from the MAC packet (Harmony MAC driver: segLoadOffset) */
+/* */
+/* NOTE: segLoadLen should NOT include: */
+/*          - the TCPIP_MAC_FRAME_OFFSET (== ipBUFFER_PADDING which should be == 10!) */
+/*          - the sizeof(TCPIP_MAC_ETHERNET_HEADER) */
+/*       These are added by the MAC packet allocation! */
+/* */
     static uint8_t * PIC32_PktAlloc( uint16_t pktLen,
                                      uint16_t segLoadLen,
                                      TCPIP_MAC_PACKET_ACK_FUNC ackF,
@@ -180,11 +180,11 @@ static SemaphoreHandle_t xNetworkBufferSemaphore = NULL;
 
 
 
-    /* standard PIC32 MAC allocation function for a MAC packet */
-    /* this packet saves room for the FreeRTOS network descriptor */
-    /* at the beginning of the data buffer */
-    /* see NetworkBufferAllocate */
-    /* Note: flags parameter is ignored since that's used in the Harmony stack only */
+/* standard PIC32 MAC allocation function for a MAC packet */
+/* this packet saves room for the FreeRTOS network descriptor */
+/* at the beginning of the data buffer */
+/* see NetworkBufferAllocate */
+/* Note: flags parameter is ignored since that's used in the Harmony stack only */
     TCPIP_MAC_PACKET * PIC32_MacPacketAllocate( uint16_t pktLen,
                                                 uint16_t segLoadLen,
                                                 TCPIP_MAC_PACKET_FLAGS flags )
@@ -196,8 +196,8 @@ static SemaphoreHandle_t xNetworkBufferSemaphore = NULL;
         return pPkt;
     }
 
-    /* standard PIC32 MAC packet acknowledgment */
-    /* function called once MAC is done with it */
+/* standard PIC32 MAC packet acknowledgment */
+/* function called once MAC is done with it */
     static bool PIC32_MacPacketAcknowledge( TCPIP_MAC_PACKET * pPkt,
                                             const void * param )
     {
@@ -208,8 +208,8 @@ static SemaphoreHandle_t xNetworkBufferSemaphore = NULL;
         return false;
     }
 
-    /* associates the current MAC packet with a network descriptor */
-    /* mainly for RX packet */
+/* associates the current MAC packet with a network descriptor */
+/* mainly for RX packet */
     void PIC32_MacAssociate( TCPIP_MAC_PACKET * pRxPkt,
                              NetworkBufferDescriptor_t * pxBufferDescriptor,
                              size_t pktLength )
@@ -236,31 +236,31 @@ static SemaphoreHandle_t xNetworkBufferSemaphore = NULL;
         *ppDcpt = pxBufferDescriptor;
     }
 
-    /* debug functionality */
+/* debug functionality */
     void PIC32_MacPacketOrphan( TCPIP_MAC_PACKET * pPkt )
     {
         TCPIP_PKT_PacketFree( pPkt );
         configASSERT( false );
     }
 
-    /* FreeRTOS allocation functions */
+/* FreeRTOS allocation functions */
 
-    /* allocates a buffer that can be used by both: */
-    /*  - the FreeRTOSIP (NetworkBufferDescriptor_t->pucEthernetBuffer) */
-    /*  - the Harmony MAC driver: TCPIP_MAC_PACKET */
-    /*  See PIC32_PktAlloc for details */
-    /* */
-    /* NOTE: reqLength should NOT include the ipBUFFER_PADDING (which should be == 10!) */
-    /*       or the sizeof(TCPIP_MAC_ETHERNET_HEADER) */
-    /*       These are added by the MAC packet allocation! */
-    /* */
+/* allocates a buffer that can be used by both: */
+/*  - the FreeRTOSIP (NetworkBufferDescriptor_t->pucEthernetBuffer) */
+/*  - the Harmony MAC driver: TCPIP_MAC_PACKET */
+/*  See PIC32_PktAlloc for details */
+/* */
+/* NOTE: reqLength should NOT include the ipBUFFER_PADDING (which should be == 10!) */
+/*       or the sizeof(TCPIP_MAC_ETHERNET_HEADER) */
+/*       These are added by the MAC packet allocation! */
+/* */
     uint8_t * NetworkBufferAllocate( size_t reqLength )
     {
         return PIC32_PktAlloc( sizeof( TCPIP_MAC_PACKET ), reqLength, PIC32_MacPacketAcknowledge, 0 );
     }
 
-    /* deallocates a network buffer previously allocated */
-    /* with NetworkBufferAllocate */
+/* deallocates a network buffer previously allocated */
+/* with NetworkBufferAllocate */
     void NetworkBufferFree( uint8_t * pNetworkBuffer )
     {
         if( pNetworkBuffer != 0 )

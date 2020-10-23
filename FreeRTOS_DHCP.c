@@ -49,8 +49,8 @@
 
     #if ( ipconfigUSE_DHCP != 0 ) && ( ipconfigNETWORK_MTU < 586U )
 
-        /* DHCP must be able to receive an options field of 312 bytes, the fixed
-         * part of the DHCP packet is 240 bytes, and the IP/UDP headers take 28 bytes. */
+/* DHCP must be able to receive an options field of 312 bytes, the fixed
+ * part of the DHCP packet is 240 bytes, and the IP/UDP headers take 28 bytes. */
         #error ipconfigNETWORK_MTU needs to be at least 586 to use DHCP
     #endif
 
@@ -173,7 +173,7 @@
         #define LINK_LAYER_ADDRESS_0    169
         #define LINK_LAYER_ADDRESS_1    254
 
-        /* Define the netmask used: 255.255.0.0 */
+/* Define the netmask used: 255.255.0.0 */
         #define LINK_LAYER_NETMASK_0    255
         #define LINK_LAYER_NETMASK_1    255
         #define LINK_LAYER_NETMASK_2    0

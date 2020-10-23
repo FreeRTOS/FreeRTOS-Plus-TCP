@@ -57,10 +57,10 @@
 
     #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
 
-        /*
-         * The following function should be provided by the user and return true if it
-         * matches the domain name.
-         */
+/*
+ * The following function should be provided by the user and return true if it
+ * matches the domain name.
+ */
         extern BaseType_t xApplicationDNSQueryHook( const char * pcName );
     #endif /* ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
 
@@ -76,41 +76,41 @@
 
     #if ( ipconfigUSE_NBNS != 0 )
 
-        /*
-         * Inspect a NetBIOS Names-Service message.  If the name matches with ours
-         * (xApplicationDNSQueryHook returns true) an answer will be sent back.
-         * Note that LLMNR is a better protocol for name services on a LAN as it is
-         * less polluted
-         */
+/*
+ * Inspect a NetBIOS Names-Service message.  If the name matches with ours
+ * (xApplicationDNSQueryHook returns true) an answer will be sent back.
+ * Note that LLMNR is a better protocol for name services on a LAN as it is
+ * less polluted
+ */
         uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
     #endif /* ipconfigUSE_NBNS */
 
     #if ( ipconfigUSE_DNS_CACHE != 0 )
 
-        /* Look for the indicated host name in the DNS cache. Returns the IPv4
-         * address if present, or 0x0 otherwise. */
+/* Look for the indicated host name in the DNS cache. Returns the IPv4
+ * address if present, or 0x0 otherwise. */
         uint32_t FreeRTOS_dnslookup( const char * pcHostName );
 
-        /* Remove all entries from the DNS cache. */
+/* Remove all entries from the DNS cache. */
         void FreeRTOS_dnsclear( void );
 
     #endif /* ipconfigUSE_DNS_CACHE != 0 */
 
     #if ( ipconfigDNS_USE_CALLBACKS != 0 )
 
-        /*
-         * Users may define this type of function as a callback.
-         * It will be called when a DNS reply is received or when a timeout has been reached.
-         */
+/*
+ * Users may define this type of function as a callback.
+ * It will be called when a DNS reply is received or when a timeout has been reached.
+ */
         typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
                                         void * /* pvSearchID */,
                                         uint32_t /* ulIPAddress */ );
 
-        /*
-         * Asynchronous version of gethostbyname()
-         * xTimeout is in units of ms.
-         */
+/*
+ * Asynchronous version of gethostbyname()
+ * xTimeout is in units of ms.
+ */
         uint32_t FreeRTOS_gethostbyname_a( const char * pcHostName,
                                            FOnDNSEvent pCallback,
                                            void * pvSearchID,
@@ -128,18 +128,18 @@
 
     #if ( ipconfigDNS_USE_CALLBACKS == 1 )
 
-        /*
-         * The function vDNSInitialise() initialises the DNS module.
-         * It will be called "internally", by the IP-task.
-         */
+/*
+ * The function vDNSInitialise() initialises the DNS module.
+ * It will be called "internally", by the IP-task.
+ */
         void vDNSInitialise( void );
     #endif /* ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
     #if ( ipconfigDNS_USE_CALLBACKS == 1 )
 
-        /*
-         * A function local to the library.
-         */
+/*
+ * A function local to the library.
+ */
         extern void vDNSCheckCallBack( void * pvSearchID );
     #endif
 

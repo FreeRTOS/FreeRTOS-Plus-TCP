@@ -55,7 +55,7 @@ enum CBMC_LOOP_CONDITION
 /* CBMC specification: capture old value for values passed by */
 /* reference in function abstractions */
 
-#define OBJ( var )                 ( *var )
+#define OBJ( var )                 ( * var )
 #define OLDOBJ( var )              _oldobj_ ## var
 #define SAVE_OLDOBJ( var, typ )    const typ OLDOBJ( var ) = OBJ( var )
 

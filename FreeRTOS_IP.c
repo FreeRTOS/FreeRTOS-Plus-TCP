@@ -93,8 +93,8 @@
 
 #if ( ( ipconfigUSE_TCP == 1 ) && !defined( ipTCP_TIMER_PERIOD_MS ) )
 
-    /* When initialising the TCP timer,
-     * give it an initial time-out of 1 second. */
+/* When initialising the TCP timer,
+ * give it an initial time-out of 1 second. */
     #define ipTCP_TIMER_PERIOD_MS    ( 1000U )
 #endif
 
@@ -196,9 +196,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
-    /*
-     * Process incoming ICMP packets.
-     */
+/*
+ * Process incoming ICMP packets.
+ */
     static eFrameProcessingResult_t prvProcessICMPPacket( ICMPPacket_t * const pxICMPPacket );
 #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
 
@@ -257,8 +257,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
 
-    /* Even when the driver takes care of checksum calculations,
-     *  the IP-task will still check if the length fields are OK. */
+/* Even when the driver takes care of checksum calculations,
+ *  the IP-task will still check if the length fields are OK. */
     static BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
                                         size_t uxBufferLength );
 #endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
@@ -303,8 +303,8 @@ static TaskHandle_t xIPTaskHandle = NULL;
 
 #if ( ipconfigUSE_TCP != 0 )
 
-    /* Set to a non-zero value if one or more TCP message have been processed
-     * within the last round. */
+/* Set to a non-zero value if one or more TCP message have been processed
+ * within the last round. */
     static BaseType_t xProcessedTCPMessage;
 #endif
 
@@ -494,11 +494,11 @@ static void prvIPTask( void * pvParameters )
                  * and update the socket field xSocketBits. */
                 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
                     #if ( ipconfigSELECT_USES_NOTIFY != 0 )
-                       {
-                           SocketSelectMessage_t * pxMessage = ipCAST_PTR_TO_TYPE_PTR( SocketSelectMessage_t, xReceivedEvent.pvData );
-                           vSocketSelect( pxMessage->pxSocketSet );
-                           ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
-                       }
+                        {
+                            SocketSelectMessage_t * pxMessage = ipCAST_PTR_TO_TYPE_PTR( SocketSelectMessage_t, xReceivedEvent.pvData );
+                            vSocketSelect( pxMessage->pxSocketSet );
+                            ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
+                        }
                     #else
                         {
                             vSocketSelect( ipCAST_PTR_TO_TYPE_PTR( SocketSelect_t, xReceivedEvent.pvData ) );
@@ -509,6 +509,7 @@ static void prvIPTask( void * pvParameters )
 
             case eSocketSignalEvent:
                 #if ( ipconfigSUPPORT_SIGNALS != 0 )
+
                     /* Some task wants to signal the user of this socket in
                      * order to interrupt a call to recv() or a call to select(). */
                     ( void ) FreeRTOS_SignalSocket( ipPOINTER_CAST( Socket_t, xReceivedEvent.pvData ) );
@@ -517,6 +518,7 @@ static void prvIPTask( void * pvParameters )
 
             case eTCPTimerEvent:
                 #if ( ipconfigUSE_TCP == 1 )
+
                     /* Simply mark the TCP timer as expired so it gets processed
                      * the next time prvCheckNetworkTimers() is called. */
                     xTCPTimer.bExpired = pdTRUE_UNSIGNED;
@@ -1573,6 +1575,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
     #if ( ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 ) || ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) )
         const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
     #else
+
         /* or else, the parameter won't be used and the function will be optimised
          * away */
         ( void ) pxIPPacket;
@@ -2021,8 +2024,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
 
-    /* Although the driver will take care of checksum calculations,
-     * the IP-task will still check if the length fields are OK. */
+/* Although the driver will take care of checksum calculations,
+ * the IP-task will still check if the length fields are OK. */
     static BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
                                         size_t uxBufferLength )
     {
@@ -2681,8 +2684,8 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
 
     #ifndef ipMONITOR_MAX_HEAP
 
-        /* As long as the heap has more space than e.g. 1 MB, there
-         * will be no messages. */
+/* As long as the heap has more space than e.g. 1 MB, there
+ * will be no messages. */
         #define ipMONITOR_MAX_HEAP    ( 1024U * 1024U )
     #endif /* ipMONITOR_MAX_HEAP */
 

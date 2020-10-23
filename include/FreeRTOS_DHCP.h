@@ -42,7 +42,7 @@
             eDHCPPhasePreRequest   /* Driver is about to request DHCP an IP address. */
         } eDHCPCallbackPhase_t;
 
-        /* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
+/* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
         typedef enum eDHCP_ANSWERS
         {
             eDHCPContinue,      /* Continue the DHCP process */
@@ -92,11 +92,11 @@
 
     #if ( ipconfigUSE_DHCP_HOOK != 0 )
 
-        /* Prototype of the hook (or callback) function that must be provided by the
-         * application if ipconfigUSE_DHCP_HOOK is set to 1.  See the following URL for
-         * usage information:
-         * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
-         */
+/* Prototype of the hook (or callback) function that must be provided by the
+ * application if ipconfigUSE_DHCP_HOOK is set to 1.  See the following URL for
+ * usage information:
+ * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
+ */
         eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
                                                     uint32_t ulIPAddress );
     #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */

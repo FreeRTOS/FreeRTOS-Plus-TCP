@@ -72,10 +72,10 @@
 
     #if ( ipconfigUSE_ARP_REMOVE_ENTRY != 0 )
 
-        /*
-         * In some rare cases, it might be useful to remove a ARP cache entry of a
-         * known MAC address to make sure it gets refreshed.
-         */
+/*
+ * In some rare cases, it might be useful to remove a ARP cache entry of a
+ * known MAC address to make sure it gets refreshed.
+ */
         uint32_t ulARPRemoveCacheEntryByMac( const MACAddress_t * pxMACAddress );
 
     #endif /* ipconfigUSE_ARP_REMOVE_ENTRY != 0 */
@@ -93,7 +93,7 @@
 
     #if ( ipconfigUSE_ARP_REVERSED_LOOKUP != 0 )
 
-        /* Lookup an IP-address if only the MAC-address is known */
+/* Lookup an IP-address if only the MAC-address is known */
         eARPLookupResult_t eARPGetCacheEntryByMac( MACAddress_t * const pxMACAddress,
                                                    uint32_t * pulIPAddress );
 

@@ -68,9 +68,9 @@
 
 #ifndef EMAC_MAX_BLOCK_TIME_MS
 
-    /* The task 'prvEMACHandlerTask()' will wake-up every 100 ms, to see
-     * if something has to be done, mostly checking if the PHY has a
-     * change in Link Status. */
+/* The task 'prvEMACHandlerTask()' will wake-up every 100 ms, to see
+ * if something has to be done, mostly checking if the PHY has a
+ * change in Link Status. */
     #define EMAC_MAX_BLOCK_TIME_MS    100ul
 #endif
 

@@ -201,9 +201,9 @@
  *
  */
 
-        /**
-         * @brief  Transmit Packet Configuration structure definition
-         */
+/**
+ * @brief  Transmit Packet Configuration structure definition
+ */
         typedef struct
         {
             uint32_t Attributes;          /*!< Tx packet HW features capabilities.
@@ -545,16 +545,16 @@
                                                     *    This parameter can be a value of @ref ETHEx_LPI_Event */
 
                 #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                    void ( * TxCpltCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Tx Complete Callback */
-                    void ( * RxCpltCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Rx  Complete Callback     */
-                    void ( * DMAErrorCallback )( struct __ETH_HandleTypeDef * heth );  /*!< ETH DMA Error Callback   */
-                    void ( * MACErrorCallback )( struct __ETH_HandleTypeDef * heth );  /*!< ETH MAC Error Callback     */
-                    void ( * PMTCallback )( struct __ETH_HandleTypeDef * heth );       /*!< ETH Power Management Callback            */
-                    void ( * EEECallback )( struct __ETH_HandleTypeDef * heth );       /*!< ETH EEE Callback   */
-                    void ( * WakeUpCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Wake UP Callback   */
+                    void ( *TxCpltCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Tx Complete Callback */
+                    void ( *RxCpltCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Rx  Complete Callback     */
+                    void ( *DMAErrorCallback )( struct __ETH_HandleTypeDef * heth );  /*!< ETH DMA Error Callback   */
+                    void ( *MACErrorCallback )( struct __ETH_HandleTypeDef * heth );  /*!< ETH MAC Error Callback     */
+                    void ( *PMTCallback )( struct __ETH_HandleTypeDef * heth );       /*!< ETH Power Management Callback            */
+                    void ( *EEECallback )( struct __ETH_HandleTypeDef * heth );       /*!< ETH EEE Callback   */
+                    void ( *WakeUpCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Wake UP Callback   */
 
-                    void ( * MspInitCallback )( struct __ETH_HandleTypeDef * heth );   /*!< ETH Msp Init callback              */
-                    void ( * MspDeInitCallback )( struct __ETH_HandleTypeDef * heth ); /*!< ETH Msp DeInit callback            */
+                    void ( *MspInitCallback )( struct __ETH_HandleTypeDef * heth );   /*!< ETH Msp Init callback              */
+                    void ( *MspDeInitCallback )( struct __ETH_HandleTypeDef * heth ); /*!< ETH Msp DeInit callback            */
                 #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
             } ETH_HandleTypeDef;
 
@@ -1186,9 +1186,9 @@
  * @}
  */
 
-            /** @defgroup ETH_Burst_Mode ETH Burst Mode
-             * @{
-             */
+/** @defgroup ETH_Burst_Mode ETH Burst Mode
+ * @{
+ */
         #define ETH_BURSTLENGTH_FIXED          ETH_DMASBMR_FB
         #define ETH_BURSTLENGTH_MIXED          ETH_DMASBMR_MB
         #define ETH_BURSTLENGTH_UNSPECIFIED    ( ( uint32_t ) 0x00000000U )

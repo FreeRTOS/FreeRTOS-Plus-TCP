@@ -112,8 +112,8 @@
 
 #ifdef  HAS_TX_CRC_OFFLOADING
 
-    /* _HT_ As these macro names have changed, throw an error
-     * if they're still defined. */
+/* _HT_ As these macro names have changed, throw an error
+ * if they're still defined. */
     #error now called: ipconfigHAS_TX_CRC_OFFLOADING
 #endif
 
@@ -139,7 +139,7 @@
 
 #if ipconfigUSE_TCP
 
-    /* Include support for TCP scaling windows */
+/* Include support for TCP scaling windows */
     #ifndef ipconfigUSE_TCP_WIN
         #define ipconfigUSE_TCP_WIN    ( 1 )
     #endif
@@ -150,8 +150,8 @@
 
     #ifndef ipconfigIGNORE_UNKNOWN_PACKETS
 
-        /* When non-zero, TCP will not send RST packets in reply to
-         * TCP packets which are unknown, or out-of-order. */
+/* When non-zero, TCP will not send RST packets in reply to
+ * TCP packets which are unknown, or out-of-order. */
         #define ipconfigIGNORE_UNKNOWN_PACKETS    ( 0 )
     #endif
 #endif /* if ipconfigUSE_TCP */
@@ -358,10 +358,10 @@
 
 #ifndef ipconfigUDP_MAX_RX_PACKETS
 
-    /* Make positive to define the maximum number of packets which will be buffered
-     * for each UDP socket.
-     * Can be overridden with the socket option FREERTOS_SO_UDP_MAX_RX_PACKETS
-     */
+/* Make positive to define the maximum number of packets which will be buffered
+ * for each UDP socket.
+ * Can be overridden with the socket option FREERTOS_SO_UDP_MAX_RX_PACKETS
+ */
     #define ipconfigUDP_MAX_RX_PACKETS    0U
 #endif
 
@@ -375,11 +375,11 @@
 
 #ifndef ipconfigDHCP_FALL_BACK_AUTO_IP
 
-    /*
-     * Only applicable when DHCP is in use:
-     * If no DHCP server responds, use "Auto-IP" : the
-     * device will allocate a random LinkLayer IP address.
-     */
+/*
+ * Only applicable when DHCP is in use:
+ * If no DHCP server responds, use "Auto-IP" : the
+ * device will allocate a random LinkLayer IP address.
+ */
     #define ipconfigDHCP_FALL_BACK_AUTO_IP    ( 0 )
 #endif
 
@@ -443,8 +443,8 @@
 #if ( ipconfigUSE_DNS_CACHE != 0 )
     #ifndef ipconfigDNS_CACHE_NAME_LENGTH
 
-        /* Per https://tools.ietf.org/html/rfc1035, 253 is the maximum string length
-         * of a DNS name. The following default accounts for a null terminator. */
+/* Per https://tools.ietf.org/html/rfc1035, 253 is the maximum string length
+ * of a DNS name. The following default accounts for a null terminator. */
         #define ipconfigDNS_CACHE_NAME_LENGTH    254U
     #endif
 
@@ -502,8 +502,8 @@
 
 #ifndef ipconfigWATCHDOG_TIMER
 
-    /* This macro will be called in every loop the IP-task makes.  It may be
-     * replaced by user-code that triggers a watchdog */
+/* This macro will be called in every loop the IP-task makes.  It may be
+ * replaced by user-code that triggers a watchdog */
     #define ipconfigWATCHDOG_TIMER()
 #endif
 
@@ -514,11 +514,11 @@
 #if ( ipconfigUSE_CALLBACKS != 0 )
     #ifndef ipconfigIS_VALID_PROG_ADDRESS
 
-        /* Replace this macro with a test returning non-zero if the memory pointer to by x
-         * is valid memory which can contain executable code
-         * In fact this is an extra safety measure: if a handler points to invalid memory,
-         * it will not be called
-         */
+/* Replace this macro with a test returning non-zero if the memory pointer to by x
+ * is valid memory which can contain executable code
+ * In fact this is an extra safety measure: if a handler points to invalid memory,
+ * it will not be called
+ */
         #define ipconfigIS_VALID_PROG_ADDRESS( x )    ( ( x ) != NULL )
     #endif
 #endif
@@ -533,16 +533,16 @@
 
 #ifndef ipconfigZERO_COPY_TX_DRIVER
 
-    /* When non-zero, the buffers passed to the SEND routine may be passed
-     * to DMA. As soon as sending is ready, the buffers must be released by
-     * calling vReleaseNetworkBufferAndDescriptor(), */
+/* When non-zero, the buffers passed to the SEND routine may be passed
+ * to DMA. As soon as sending is ready, the buffers must be released by
+ * calling vReleaseNetworkBufferAndDescriptor(), */
     #define ipconfigZERO_COPY_TX_DRIVER    ( 0 )
 #endif
 
 #ifndef ipconfigZERO_COPY_RX_DRIVER
 
-    /* This define doesn't mean much to the driver, except that it makes
-     * sure that pxPacketBuffer_to_NetworkBuffer() will be included. */
+/* This define doesn't mean much to the driver, except that it makes
+ * sure that pxPacketBuffer_to_NetworkBuffer() will be included. */
     #define ipconfigZERO_COPY_RX_DRIVER    ( 0 )
 #endif
 
@@ -607,9 +607,9 @@
 
 #ifndef ipconfigBUFFER_PADDING
 
-    /* Expert option: define a value for 'ipBUFFER_PADDING'.
-     * When 'ipconfigBUFFER_PADDING' equals 0,
-     * 'ipBUFFER_PADDING' will get a default value of 8 + 2 bytes. */
+/* Expert option: define a value for 'ipBUFFER_PADDING'.
+ * When 'ipconfigBUFFER_PADDING' equals 0,
+ * 'ipBUFFER_PADDING' will get a default value of 8 + 2 bytes. */
     #define ipconfigBUFFER_PADDING    0U
 #endif
 

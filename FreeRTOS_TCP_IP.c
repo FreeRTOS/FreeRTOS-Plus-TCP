@@ -196,9 +196,9 @@
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
-        /*
-         * For logging and debugging: make a string showing the TCP flags.
-         */
+/*
+ * For logging and debugging: make a string showing the TCP flags.
+ */
         static const char * prvTCPFlagMeaning( UBaseType_t xFlags );
     #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
 
@@ -220,10 +220,10 @@
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
 
-        /*
-         * Skip past TCP header options when doing Selective ACK, until there are no
-         * more options left.
-         */
+/*
+ * Skip past TCP header options when doing Selective ACK, until there are no
+ * more options left.
+ */
         _static void prvReadSackOption( const uint8_t * const pucPtr,
                                         size_t uxIndex,
                                         FreeRTOS_Socket_t * const pxSocket );

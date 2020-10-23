@@ -97,10 +97,10 @@ static gmac_rx_descriptor_t gs_rx_desc[ GMAC_RX_BUFFERS ];
 
 #if ( ipconfigZERO_COPY_TX_DRIVER == 0 )
 
-    /** Send Buffer. Section 3.6 of AMBA 2.0 spec states that burst should not cross the
-     * 1K Boundaries. Receive buffer manager write operations are burst of 2 words => 3 lsb bits
-     * of the address shall be set to 0.
-     */
+/** Send Buffer. Section 3.6 of AMBA 2.0 spec states that burst should not cross the
+ * 1K Boundaries. Receive buffer manager write operations are burst of 2 words => 3 lsb bits
+ * of the address shall be set to 0.
+ */
     COMPILER_ALIGNED( 8 )
     static uint8_t gs_uc_tx_buffer[ GMAC_TX_BUFFERS * GMAC_TX_UNITSIZE ];
 #endif /* ipconfigZERO_COPY_TX_DRIVER */
@@ -439,6 +439,7 @@ void gmac_dev_init( Gmac * p_gmac,
     /* Clear interrupts */
     gmac_get_interrupt_status( p_gmac );
     #if !defined( ETHERNET_CONF_DATA_OFFSET )
+
         /*  Receive Buffer Offset
          * Indicates the number of bytes by which the received data
          * is offset from the start of the receive buffer
@@ -1011,6 +1012,7 @@ void gmac_handler( gmac_device_t * p_gmac_dev )
         #endif /* GMAC_USES_TX_CALLBACK */
 
         #if ( GMAC_USES_WAKEUP_CALLBACK )
+
             /* If a wakeup has been scheduled, notify upper layer that it can
              * send other packets, and the sending will be successful. */
             if( ( CIRC_SPACE( p_gmac_dev->l_tx_head, p_gmac_dev->l_tx_tail,
@@ -1028,7 +1030,7 @@ void gmac_handler( gmac_device_t * p_gmac_dev )
 /*/ @cond 0 */
 /**INDENT-OFF**/
 #ifdef __cplusplus
-}
+    }
 #endif
 /**INDENT-ON**/
 /*/ @endcond */

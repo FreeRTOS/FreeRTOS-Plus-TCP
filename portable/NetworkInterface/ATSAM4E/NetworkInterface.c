@@ -53,8 +53,8 @@
 
 #ifndef PHY_LS_HIGH_CHECK_TIME_MS
 
-    /* Check if the LinkSStatus in the PHY is still high after 15 seconds of not
-     * receiving packets. */
+/* Check if the LinkSStatus in the PHY is still high after 15 seconds of not
+ * receiving packets. */
     #define PHY_LS_HIGH_CHECK_TIME_MS    15000
 #endif
 

@@ -60,9 +60,9 @@
 
 #ifdef PIC32_USE_ETHERNET
 
-    /* local definitions and data */
+/* local definitions and data */
 
-    /* debug messages */
+/* debug messages */
     #if ( PIC32_MAC_DEBUG_MESSAGES != 0 )
         #define PIC32_MAC_DbgPrint( format, ... )    SYS_CONSOLE_PRINT( format, ## __VA_ARGS__ )
     #else
@@ -101,7 +101,7 @@
 
     static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInit;
 
-    /* local prototypes */
+/* local prototypes */
     static bool StartInitMac( void );
     static void StartInitCleanup( void );
 
@@ -110,28 +110,28 @@
     static bool MacSyncFunction( void * synchHandle,
                                  TCPIP_MAC_SYNCH_REQUEST req );
 
-    /* the PIC32 MAC task function */
+/* the PIC32 MAC task function */
     static void MacHandlerTask( void * params );
 
-    /* MAC interrupt event function */
+/* MAC interrupt event function */
     static void MAC_EventFunction( TCPIP_MAC_EVENT event,
                                    const void * eventParam );
 
-    /* timer callback for link maintenance, etc; */
+/* timer callback for link maintenance, etc; */
     static void MacTmrCallback( TimerHandle_t xTimer );
 
-    /* MAC RX packets functions */
+/* MAC RX packets functions */
     static void MacRxPackets( void );
     static void MacProcessRxPacket( TCPIP_MAC_PACKET * pRxPkt );
 
 
-    /* memory allocation mapping to FreeRTOS */
+/* memory allocation mapping to FreeRTOS */
     static void * _malloc( size_t nBytes )
     {
         return pvPortMalloc( nBytes );
     }
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     static void * _calloc( size_t nElems,
                            size_t elemSize )
@@ -148,19 +148,19 @@
         return ptr;
     }
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     static void _free( void * pBuff )
     {
         vPortFree( pBuff );
     }
 
-    /* extern references */
-    /* */
-    /* use the configuration data from the system_init.c */
+/* extern references */
+/* */
+/* use the configuration data from the system_init.c */
     extern const TCPIP_NETWORK_CONFIG TCPIP_HOSTS_CONFIGURATION[];
 
-    /* BufferAllocation_2.c:: packet allocation function */
+/* BufferAllocation_2.c:: packet allocation function */
     extern TCPIP_MAC_PACKET * PIC32_MacPacketAllocate( uint16_t pktLen,
                                                        uint16_t segLoadLen,
                                                        TCPIP_MAC_PACKET_FLAGS flags );
@@ -170,10 +170,10 @@
                                     size_t pktLength );
     extern void PIC32_MacPacketOrphan( TCPIP_MAC_PACKET * pPkt );
 
-    /* cannot use the system_init.c::tcpipHeapConfig because FreeRTOS does not have a calloc function! */
-    /* we build it here! */
+/* cannot use the system_init.c::tcpipHeapConfig because FreeRTOS does not have a calloc function! */
+/* we build it here! */
 
-    /* make sure we're running with external heap! Redirect to FreeRTOS. */
+/* make sure we're running with external heap! Redirect to FreeRTOS. */
     #if !defined( TCPIP_STACK_USE_EXTERNAL_HEAP ) || defined( TCPIP_STACK_USE_INTERNAL_HEAP ) || defined( TCPIP_STACK_USE_INTERNAL_HEAP_POOL )
         #error "TCPIP_STACK_USE_EXTERNAL_HEAP should be defined for this project!"
     #endif
@@ -208,7 +208,7 @@
     #endif /* (PIC32_MAC_DEBUG_COMMANDS != 0) */
 
 
-    /* FreeRTOS implementation functions */
+/* FreeRTOS implementation functions */
     BaseType_t xNetworkInterfaceInitialise( void )
     {
         BaseType_t xResult;
@@ -242,7 +242,7 @@
     }
 
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
                                         BaseType_t xReleaseAfterSend )
@@ -287,8 +287,8 @@
     }
 
 
-    /************************************* Section: helper functions ************************************************** */
-    /* */
+/************************************* Section: helper functions ************************************************** */
+/* */
 
     void PIC32_GetMACAddress( uint8_t macAdd[ 6 ] )
     {
@@ -300,7 +300,7 @@
     }
 
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     const void * const PIC32_GetMacConfigData( void )
     {
@@ -313,8 +313,8 @@
         #endif
     }
 
-    /************************************* Section: worker code ************************************************** */
-    /* */
+/************************************* Section: worker code ************************************************** */
+/* */
 
 
     static bool StartInitMac( void )
@@ -456,7 +456,7 @@
         }
     }
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     static void StartInitCleanup( void )
     {
@@ -485,7 +485,7 @@
         }
     }
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     static void SetMacCtrl( TCPIP_MAC_MODULE_CTRL * pMacCtrl )
     {
@@ -531,7 +531,7 @@
         }
     }
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     static bool MacSyncFunction( void * synchHandle,
                                  TCPIP_MAC_SYNCH_REQUEST req )
@@ -574,7 +574,7 @@
     }
 
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     static void MacHandlerTask( void * params )
     {
@@ -648,16 +648,16 @@
         }
     }
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     static void MacTmrCallback( TimerHandle_t xTimer )
     {
         xTaskNotify( macTaskHandle, PIC32_MAC_EVENT_TIMEOUT, eSetBits );
     }
 
-    /* MAC interrupt event function */
-    /* MAC signals an event, probably from within ISR */
-    /* we care just for RX related events */
+/* MAC interrupt event function */
+/* MAC signals an event, probably from within ISR */
+/* we care just for RX related events */
     static void MAC_EventFunction( TCPIP_MAC_EVENT event,
                                    const void * eventParam )
     {
@@ -675,7 +675,7 @@
         }
     }
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     BaseType_t xGetPhyLinkStatus( void )
     {
@@ -683,7 +683,7 @@
     }
 
 
-    /* receive packets from the MAC driver */
+/* receive packets from the MAC driver */
     static void MacRxPackets( void )
     {
         TCPIP_MAC_PACKET * pRxPkt;
@@ -695,7 +695,7 @@
         }
     }
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     static void MacProcessRxPacket( TCPIP_MAC_PACKET * pRxPkt )
     {
@@ -852,7 +852,7 @@
             return true;
         }
 
-        /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
         static int _Command_NetInfo( SYS_CMD_DEVICE_NODE * pCmdIO,
                                      int argc,

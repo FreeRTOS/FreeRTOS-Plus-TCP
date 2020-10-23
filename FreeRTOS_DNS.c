@@ -95,8 +95,8 @@
         #define dnsNBNS_NAME_FLAGS              0x6000U
         #define dnsNBNS_ENCODED_NAME_LENGTH     32
 
-        /* If the queried NBNS name matches with the device's name,
-         * the query will be responded to with these flags: */
+/* If the queried NBNS name matches with the device's name,
+ * the query will be responded to with these flags: */
         #define dnsNBNS_QUERY_RESPONSE_FLAGS    ( 0x8500U )
     #endif /* ( ipconfigUSE_NBNS != 0 ) */
 
@@ -220,7 +220,7 @@
 
         static DNSCacheRow_t xDNSCache[ ipconfigDNS_CACHE_ENTRIES ];
 
-        /* Utility function: Clear DNS cache by calling this function. */
+/* Utility function: Clear DNS cache by calling this function. */
         void FreeRTOS_dnsclear( void )
         {
             ( void ) memset( xDNSCache, 0x0, sizeof( xDNSCache ) );
@@ -388,25 +388,25 @@
 
         static List_t xCallbackList;
 
-        /* Define FreeRTOS_gethostbyname() as a normal blocking call. */
+/* Define FreeRTOS_gethostbyname() as a normal blocking call. */
         uint32_t FreeRTOS_gethostbyname( const char * pcHostName )
         {
             return FreeRTOS_gethostbyname_a( pcHostName, NULL, ( void * ) NULL, 0U );
         }
         /*-----------------------------------------------------------*/
 
-        /* Initialise the list of call-back structures. */
+/* Initialise the list of call-back structures. */
         void vDNSInitialise( void )
         {
             vListInitialise( &xCallbackList );
         }
         /*-----------------------------------------------------------*/
 
-        /* Iterate through the list of call-back structures and remove
-         * old entries which have reached a timeout.
-         * As soon as the list has become empty, the DNS timer will be stopped
-         * In case pvSearchID is supplied, the user wants to cancel a DNS request
-         */
+/* Iterate through the list of call-back structures and remove
+ * old entries which have reached a timeout.
+ * As soon as the list has become empty, the DNS timer will be stopped
+ * In case pvSearchID is supplied, the user wants to cancel a DNS request
+ */
         void vDNSCheckCallBack( void * pvSearchID )
         {
             const ListItem_t * pxIterator;
@@ -455,8 +455,8 @@
         }
         /*-----------------------------------------------------------*/
 
-        /* FreeRTOS_gethostbyname_a() was called along with callback parameters.
-         * Store them in a list for later reference. */
+/* FreeRTOS_gethostbyname_a() was called along with callback parameters.
+ * Store them in a list for later reference. */
         static void vDNSSetCallBack( const char * pcHostName,
                                      void * pvSearchID,
                                      FOnDNSEvent pCallbackFunction,
@@ -493,8 +493,8 @@
         }
         /*-----------------------------------------------------------*/
 
-        /* A DNS reply was received, see if there is any matching entry and
-         * call the handler.  Returns pdTRUE if uxIdentifier was recognised. */
+/* A DNS reply was received, see if there is any matching entry and
+ * call the handler.  Returns pdTRUE if uxIdentifier was recognised. */
         static BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
                                           const char * pcName,
                                           uint32_t ulIPAddress )
@@ -786,6 +786,7 @@
 
                             /* The reply was received.  Process it. */
                             #if ( ipconfigDNS_USE_CALLBACKS == 0 )
+
                                 /* It is useless to analyze the unexpected reply
                                  * unless asynchronous look-ups are enabled. */
                                 if( xExpected != pdFALSE )

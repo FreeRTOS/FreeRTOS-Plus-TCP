@@ -159,8 +159,8 @@
 /* Endian related definitions. */
     #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
 
-        /* FreeRTOS_htons / FreeRTOS_htonl: some platforms might have built-in versions
-         * using a single instruction so allow these versions to be overridden. */
+/* FreeRTOS_htons / FreeRTOS_htonl: some platforms might have built-in versions
+ * using a single instruction so allow these versions to be overridden. */
         #ifndef FreeRTOS_htons
             #define FreeRTOS_htons( usIn )    ( ( uint16_t ) ( ( ( usIn ) << 8U ) | ( ( usIn ) >> 8U ) ) )
         #endif
@@ -250,7 +250,7 @@
         #define FreeRTOS_min_int32( a, b )       ( ( ( ( int32_t ) a ) <= ( ( int32_t ) b ) ) ? ( ( int32_t ) a ) : ( ( int32_t ) b ) )
         #define FreeRTOS_min_uint32( a, b )      ( ( ( ( uint32_t ) a ) <= ( ( uint32_t ) b ) ) ? ( ( uint32_t ) a ) : ( ( uint32_t ) b ) )
 
-        /*  Round-up: divide a by d and round=up the result. */
+/*  Round-up: divide a by d and round=up the result. */
         #define FreeRTOS_round_up( a, d )        ( ( ( uint32_t ) ( d ) ) * ( ( ( ( uint32_t ) ( a ) ) + ( ( uint32_t ) ( d ) ) - 1UL ) / ( ( uint32_t ) ( d ) ) ) )
         #define FreeRTOS_round_down( a, d )      ( ( ( uint32_t ) ( d ) ) * ( ( ( uint32_t ) ( a ) ) / ( ( uint32_t ) ( d ) ) ) )
 
@@ -360,11 +360,11 @@
 
     #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
 
-        /* DHCP has an option for clients to register their hostname.  It doesn't
-         * have much use, except that a device can be found in a router along with its
-         * name. If this option is used the callback below must be provided by the
-         * application	writer to return a const string, denoting the device's name. */
-        /* Typically this function is defined in a user module. */
+/* DHCP has an option for clients to register their hostname.  It doesn't
+ * have much use, except that a device can be found in a router along with its
+ * name. If this option is used the callback below must be provided by the
+ * application	writer to return a const string, denoting the device's name. */
+/* Typically this function is defined in a user module. */
         const char * pcApplicationHostnameHook( void );
 
     #endif /* ipconfigDHCP_REGISTER_HOSTNAME */
@@ -397,8 +397,8 @@
         #define xSocketSet_t                  SocketSet_t
         #define ipSIZE_OF_IP_HEADER           ipSIZE_OF_IPv4_HEADER
 
-        /* Since August 2016, the public types and fields below have changed name:
-         * abbreviations TCP/UDP are now written in capitals, and type names now end with "_t". */
+/* Since August 2016, the public types and fields below have changed name:
+ * abbreviations TCP/UDP are now written in capitals, and type names now end with "_t". */
         #define FOnConnected                  FOnConnected_t
         #define FOnTcpReceive                 FOnTCPReceive_t
         #define FOnTcpSent                    FOnTCPSent_t

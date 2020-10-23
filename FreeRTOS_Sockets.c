@@ -152,53 +152,53 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * Create a txStream or a rxStream, depending on the parameter 'xIsInputStream'
-     */
+/*
+ * Create a txStream or a rxStream, depending on the parameter 'xIsInputStream'
+ */
     static StreamBuffer_t * prvTCPCreateStream( FreeRTOS_Socket_t * pxSocket,
                                                 BaseType_t xIsInputStream );
 #endif /* ipconfigUSE_TCP == 1 */
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * Called from FreeRTOS_send(): some checks which will be done before
-     * sending a TCP packed.
-     */
+/*
+ * Called from FreeRTOS_send(): some checks which will be done before
+ * sending a TCP packed.
+ */
     static int32_t prvTCPSendCheck( FreeRTOS_Socket_t * pxSocket,
                                     size_t uxDataLength );
 #endif /* ipconfigUSE_TCP */
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * When a child socket gets closed, make sure to update the child-count of the parent
-     */
+/*
+ * When a child socket gets closed, make sure to update the child-count of the parent
+ */
     static void prvTCPSetSocketCount( FreeRTOS_Socket_t const * pxSocketToDelete );
 #endif /* ipconfigUSE_TCP == 1 */
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * Called from FreeRTOS_connect(): make some checks and if allowed, send a
-     * message to the IP-task to start connecting to a remote socket
-     */
+/*
+ * Called from FreeRTOS_connect(): make some checks and if allowed, send a
+ * message to the IP-task to start connecting to a remote socket
+ */
     static BaseType_t prvTCPConnectStart( FreeRTOS_Socket_t * pxSocket,
                                           struct freertos_sockaddr const * pxAddress );
 #endif /* ipconfigUSE_TCP */
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * Check if it makes any sense to wait for a connect event.
-     * It may return: -EINPROGRESS, -EAGAIN, or 0 for OK.
-     */
+/*
+ * Check if it makes any sense to wait for a connect event.
+ * It may return: -EINPROGRESS, -EAGAIN, or 0 for OK.
+ */
     static BaseType_t bMayConnect( FreeRTOS_Socket_t const * pxSocket );
 #endif /* ipconfigUSE_TCP */
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-    /* Executed by the IP-task, it will check all sockets belonging to a set */
+/* Executed by the IP-task, it will check all sockets belonging to a set */
     static void prvFindSelectedSocket( SocketSelect_t * pxSocketSet );
 
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
@@ -488,7 +488,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-    /* Add a socket to a set */
+/* Add a socket to a set */
     void FreeRTOS_FD_SET( Socket_t xSocket,
                           SocketSet_t xSocketSet,
                           EventBits_t xBitsToSet )
@@ -519,8 +519,8 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-    /* Clear select bits for a socket
-     * If the mask becomes 0, remove the socket from the set */
+/* Clear select bits for a socket
+ * If the mask becomes 0, remove the socket from the set */
     void FreeRTOS_FD_CLR( Socket_t xSocket,
                           SocketSet_t xSocketSet,
                           EventBits_t xBitsToClear )
@@ -549,7 +549,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-    /* Test if a socket belongs to a socket-set */
+/* Test if a socket belongs to a socket-set */
     EventBits_t FreeRTOS_FD_ISSET( Socket_t xSocket,
                                    SocketSet_t xSocketSet )
     {
@@ -578,8 +578,8 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-    /* The select() statement: wait for an event to occur on any of the sockets
-     * included in a socket set */
+/* The select() statement: wait for an event to occur on any of the sockets
+ * included in a socket set */
     BaseType_t FreeRTOS_select( SocketSet_t xSocketSet,
                                 TickType_t xBlockTimeTicks )
     {
@@ -638,8 +638,8 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-    /* Send a message to the IP-task to have it check all sockets belonging to
-     * 'pxSocketSet' */
+/* Send a message to the IP-task to have it check all sockets belonging to
+ * 'pxSocketSet' */
     static void prvFindSelectedSocket( SocketSelect_t * pxSocketSet )
     {
         IPStackEvent_t xSelectEvent;
@@ -1400,11 +1400,11 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
 #if ipconfigUSE_TCP == 1
 
-    /*
-     * When a child socket gets closed, make sure to update the child-count of the
-     * parent.  When a listening parent socket is closed, make sure no child-sockets
-     * keep a pointer to it.
-     */
+/*
+ * When a child socket gets closed, make sure to update the child-count of the
+ * parent.  When a listening parent socket is closed, make sure no child-sockets
+ * keep a pointer to it.
+ */
     static void prvTCPSetSocketCount( FreeRTOS_Socket_t const * pxSocketToDelete )
     {
         const ListItem_t * pxIterator;
@@ -1636,6 +1636,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
             #if ( ipconfigUSE_TCP != 0 )
                 #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE != 0 )
+
                     /* Each socket has a semaphore on which the using task normally
                      * sleeps. */
                     case FREERTOS_SO_SET_SEMAPHORE:
@@ -2284,12 +2285,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 1 )
 
-    /* This define makes it possible for network-card drivers to inspect
-     * UDP message and see if there is any UDP socket bound to a given port
-     * number.
-     * This is probably only useful in systems with a minimum of RAM and
-     * when lots of anonymous broadcast messages come in
-     */
+/* This define makes it possible for network-card drivers to inspect
+ * UDP message and see if there is any UDP socket bound to a given port
+ * number.
+ * This is probably only useful in systems with a minimum of RAM and
+ * when lots of anonymous broadcast messages come in
+ */
     BaseType_t xPortHasUDPSocket( uint16_t usPortNr )
     {
         BaseType_t xFound = pdFALSE;
@@ -2423,9 +2424,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * FreeRTOS_connect: socket wants to connect to a remote port
-     */
+/*
+ * FreeRTOS_connect: socket wants to connect to a remote port
+ */
     BaseType_t FreeRTOS_connect( Socket_t xClientSocket,
                                  struct freertos_sockaddr * pxAddress,
                                  socklen_t xAddressLength )
@@ -2500,12 +2501,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * FreeRTOS_accept: can return a new connected socket
-     * if the server socket is in listen mode and receives a connection request
-     * The new socket will be bound already to the same port number as the listing
-     * socket.
-     */
+/*
+ * FreeRTOS_accept: can return a new connected socket
+ * if the server socket is in listen mode and receives a connection request
+ * The new socket will be bound already to the same port number as the listing
+ * socket.
+ */
     Socket_t FreeRTOS_accept( Socket_t xServerSocket,
                               struct freertos_sockaddr * pxAddress,
                               socklen_t * pxAddressLength )
@@ -2633,10 +2634,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * Read incoming data from a TCP socket
-     * Only after the last byte has been read, a close error might be returned
-     */
+/*
+ * Read incoming data from a TCP socket
+ * Only after the last byte has been read, a close error might be returned
+ */
     BaseType_t FreeRTOS_recv( Socket_t xSocket,
                               void * pvBuffer,
                               size_t uxBufferLength,
@@ -2892,8 +2893,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /* Get a direct pointer to the circular transmit buffer.
-     * '*pxLength' will contain the number of bytes that may be written. */
+/* Get a direct pointer to the circular transmit buffer.
+ * '*pxLength' will contain the number of bytes that may be written. */
     uint8_t * FreeRTOS_get_tx_head( ConstSocket_t xSocket,
                                     BaseType_t * pxLength )
     {
@@ -2926,11 +2927,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * Send data using a TCP socket.  It is not necessary to have the socket
-     * connected already.  Outgoing data will be stored and delivered as soon as
-     * the socket gets connected.
-     */
+/*
+ * Send data using a TCP socket.  It is not necessary to have the socket
+ * connected already.  Outgoing data will be stored and delivered as soon as
+ * the socket gets connected.
+ */
     BaseType_t FreeRTOS_send( Socket_t xSocket,
                               const void * pvBuffer,
                               size_t uxDataLength,
@@ -3118,9 +3119,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * Request to put a socket in listen mode
-     */
+/*
+ * Request to put a socket in listen mode
+ */
     BaseType_t FreeRTOS_listen( Socket_t xSocket,
                                 BaseType_t xBacklog )
     {
@@ -3180,7 +3181,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /* shutdown - shut down part of a full-duplex connection */
+/* shutdown - shut down part of a full-duplex connection */
     BaseType_t FreeRTOS_shutdown( Socket_t xSocket,
                                   BaseType_t xHow )
     {
@@ -3219,14 +3220,14 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * A TCP timer has expired, now check all TCP sockets for:
-     * - Active connect
-     * - Send a delayed ACK
-     * - Send new data
-     * - Send a keep-alive packet
-     * - Check for timeout (in non-connected states only)
-     */
+/*
+ * A TCP timer has expired, now check all TCP sockets for:
+ * - Active connect
+ * - Send a delayed ACK
+ * - Send new data
+ * - Send a keep-alive packet
+ * - Check for timeout (in non-connected states only)
+ */
     TickType_t xTCPTimerCheck( BaseType_t xWillSleep )
     {
         FreeRTOS_Socket_t * pxSocket;
@@ -3308,12 +3309,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * TCP: as multiple sockets may be bound to the same local port number
-     * looking up a socket is a little more complex:
-     * Both a local port, and a remote port and IP address are being used
-     * For a socket in listening mode, the remote port and IP address are both 0
-     */
+/*
+ * TCP: as multiple sockets may be bound to the same local port number
+ * looking up a socket is a little more complex:
+ * Both a local port, and a remote port and IP address are being used
+ * For a socket in listening mode, the remote port and IP address are both 0
+ */
     FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                            UBaseType_t uxLocalPort,
                                            uint32_t ulRemoteIP,
@@ -3369,8 +3370,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /* For the web server: borrow the circular Rx buffer for inspection
-     * HTML driver wants to see if a sequence of 13/10/13/10 is available. */
+/* For the web server: borrow the circular Rx buffer for inspection
+ * HTML driver wants to see if a sequence of 13/10/13/10 is available. */
     const struct xSTREAM_BUFFER * FreeRTOS_get_rx_buf( ConstSocket_t xSocket )
     {
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
@@ -3466,10 +3467,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * Add data to the RxStream.  When uxOffset > 0, data has come in out-of-order
-     * and will be put in front of the head so it can not be popped by the user.
-     */
+/*
+ * Add data to the RxStream.  When uxOffset > 0, data has come in out-of-order
+ * and will be put in front of the head so it can not be popped by the user.
+ */
     int32_t lTCPAddRxdata( FreeRTOS_Socket_t * pxSocket,
                            size_t uxOffset,
                            const uint8_t * pcData,
@@ -3606,7 +3607,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /* Function to get the remote address and IP port */
+/* Function to get the remote address and IP port */
     BaseType_t FreeRTOS_GetRemoteAddress( ConstSocket_t xSocket,
                                           struct freertos_sockaddr * pxAddress )
     {
@@ -3639,7 +3640,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /* Returns the number of bytes that may be added to txStream */
+/* Returns the number of bytes that may be added to txStream */
     BaseType_t FreeRTOS_maywrite( ConstSocket_t xSocket )
     {
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
@@ -3735,7 +3736,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /* Returns pdTRUE if TCP socket is connected. */
+/* Returns pdTRUE if TCP socket is connected. */
     BaseType_t FreeRTOS_issocketconnected( ConstSocket_t xSocket )
     {
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
@@ -3764,7 +3765,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /* Returns the actual size of MSS being used. */
+/* Returns the actual size of MSS being used. */
     BaseType_t FreeRTOS_mss( ConstSocket_t xSocket )
     {
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
@@ -3790,7 +3791,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /* For internal use only: return the connection status. */
+/* For internal use only: return the connection status. */
     BaseType_t FreeRTOS_connstatus( ConstSocket_t xSocket )
     {
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
@@ -3814,9 +3815,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-    /*
-     * Returns the number of bytes which can be read.
-     */
+/*
+ * Returns the number of bytes which can be read.
+ */
     BaseType_t FreeRTOS_rx_size( ConstSocket_t xSocket )
     {
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
@@ -4135,7 +4136,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigSUPPORT_SIGNALS != 0 )
 
-    /* Send a signal to the task which reads from this socket. */
+/* Send a signal to the task which reads from this socket. */
     BaseType_t FreeRTOS_SignalSocket( Socket_t xSocket )
     {
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
@@ -4172,7 +4173,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigSUPPORT_SIGNALS != 0 )
 
-    /* Send a signal to the task which reads from this socket (FromISR version). */
+/* Send a signal to the task which reads from this socket (FromISR version). */
     BaseType_t FreeRTOS_SignalSocketFromISR( Socket_t xSocket,
                                              BaseType_t * pxHigherPriorityTaskWoken )
     {

@@ -67,28 +67,28 @@ static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPSegment_t )
 
     #define xTCPWindowTxNew( pxWindow, ulSequenceNumber, lCount )    xTCPWindowNew( pxWindow, ulSequenceNumber, lCount, pdFALSE )
 
-    /* The code to send a single Selective ACK (SACK):
-     * NOP (0x01), NOP (0x01), SACK (0x05), LEN (0x0a),
-     * followed by a lower and a higher sequence number,
-     * where LEN is 2 + 2*4 = 10 bytes. */
+/* The code to send a single Selective ACK (SACK):
+ * NOP (0x01), NOP (0x01), SACK (0x05), LEN (0x0a),
+ * followed by a lower and a higher sequence number,
+ * where LEN is 2 + 2*4 = 10 bytes. */
     #if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
         #define OPTION_CODE_SINGLE_SACK    ( 0x0101050aUL )
     #else
         #define OPTION_CODE_SINGLE_SACK    ( 0x0a050101UL )
     #endif
 
-    /* Normal retransmission:
-     * A packet will be retransmitted after a Retransmit Time-Out (RTO).
-     * Fast retransmission:
-     * When 3 packets with a higher sequence number have been acknowledged
-     * by the peer, it is very unlikely a current packet will ever arrive.
-     * It will be retransmitted far before the RTO.
-     */
+/* Normal retransmission:
+ * A packet will be retransmitted after a Retransmit Time-Out (RTO).
+ * Fast retransmission:
+ * When 3 packets with a higher sequence number have been acknowledged
+ * by the peer, it is very unlikely a current packet will ever arrive.
+ * It will be retransmitted far before the RTO.
+ */
     #define DUPLICATE_ACKS_BEFORE_FAST_RETRANSMIT    ( 3U )
 
-    /* If there have been several retransmissions (4), decrease the
-     * size of the transmission window to at most 2 times MSS.
-     */
+/* If there have been several retransmissions (4), decrease the
+ * size of the transmission window to at most 2 times MSS.
+ */
     #define MAX_TRANSMIT_COUNT_USING_LARGE_WINDOW    ( 4U )
 
 #endif /* configUSE_TCP_WIN */
@@ -2133,7 +2133,7 @@ void vTCPWindowInit( TCPWindow_t * pxWindow,
 
 #if ( ipconfigUSE_TCP_WIN == 0 )
 
-    /* Destroy a window (always returns NULL) */
+/* Destroy a window (always returns NULL) */
     void vTCPWindowDestroy( const TCPWindow_t * pxWindow )
     {
         /* As in tiny TCP there are no shared segments descriptors, there is

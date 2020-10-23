@@ -245,12 +245,14 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
     uint8_t ucMinAgeFound = 0U;
 
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
+
         /* Only process the IP address if it is on the local network.
          * Unless: when '*ipLOCAL_IP_ADDRESS_POINTER' equals zero, the IP-address
          * and netmask are still unknown. */
         if( ( ( ulIPAddress & xNetworkAddressing.ulNetMask ) == ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) ) ||
             ( *ipLOCAL_IP_ADDRESS_POINTER == 0UL ) )
     #else
+
         /* If ipconfigARP_STORES_REMOTE_ADDRESSES is non-zero, IP addresses with
          * a different netmask will also be stored.  After when replying to a UDP
          * message from a different netmask, the IP address can be looped up and a
@@ -323,6 +325,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                  * is different.  Continue looping to find a possible match with
                  * ulIPAddress. */
                 #if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 )
+
                     /* If ARP stores the MAC address of IP addresses outside the
                      * network, than the MAC address of the gateway should not be
                      * overwritten. */

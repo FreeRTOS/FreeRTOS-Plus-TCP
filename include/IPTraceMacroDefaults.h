@@ -196,7 +196,7 @@
 
 #if ( ipconfigUSE_TCP_MEM_STATS == 0 )
 
-    /* See tools/tcp_mem_stat.c */
+/* See tools/tcp_mem_stat.c */
 
     #ifndef iptraceMEM_STATS_CREATE
         #define iptraceMEM_STATS_CREATE( xMemType, pxObject, uxSize )
@@ -218,7 +218,7 @@
 
 #if ( ipconfigUSE_DUMP_PACKETS == 0 )
 
-    /* See tools/tcp_dump_packets.c */
+/* See tools/tcp_dump_packets.c */
 
     #ifndef iptraceDUMP_INIT
         #define iptraceDUMP_INIT( pcFileName, pxEntries )

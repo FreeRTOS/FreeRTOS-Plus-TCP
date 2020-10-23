@@ -57,10 +57,10 @@
 
     #if ipconfigTCP_IP_SANITY
 
-        /*
-         * Check if an address is a valid pointer to a network descriptor
-         * by looking it up in the array of network descriptors
-         */
+/*
+ * Check if an address is a valid pointer to a network descriptor
+ * by looking it up in the array of network descriptors
+ */
         UBaseType_t bIsValidNetworkDescriptor( const NetworkBufferDescriptor_t * pxDesc );
         BaseType_t prvIsFreeBuffer( const NetworkBufferDescriptor_t * pxDescr );
     #endif

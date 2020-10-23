@@ -33,8 +33,8 @@
 
 #ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
 
-    /* Check if the LinkStatus in the PHY is still high after 15 seconds of not
-     * receiving packets. */
+/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
+ * receiving packets. */
     #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000UL
 #endif
 

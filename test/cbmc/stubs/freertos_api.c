@@ -266,6 +266,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     NetworkBufferDescriptor_t * desc = safeMalloc( sizeof( *desc ) );
 
     #ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
+
         /*
          * This interprets the failure bound as being one greater than the
          * actual number of times GetNetworkBuffer should be allowed to

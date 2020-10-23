@@ -643,12 +643,12 @@
  * @{
  */
 
-        /**
-         * @brief  Enables Ethernet MAC and DMA reception/transmission
-         * @param  heth: pointer to a ETH_HandleTypeDef structure that contains
-         *         the configuration information for ETHERNET module
-         * @retval HAL status
-         */
+/**
+ * @brief  Enables Ethernet MAC and DMA reception/transmission
+ * @param  heth: pointer to a ETH_HandleTypeDef structure that contains
+ *         the configuration information for ETHERNET module
+ * @retval HAL status
+ */
         HAL_StatusTypeDef HAL_ETH_Start( ETH_HandleTypeDef * heth )
         {
             /* Process Locked */

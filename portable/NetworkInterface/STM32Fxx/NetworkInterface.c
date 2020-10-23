@@ -107,10 +107,10 @@
 
 #if ( ipconfigETHERNET_AN_ENABLE == 0 )
 
-    /*
-     * The following three defines are only used in case there
-     * is no auto-negotiation.
-     */
+/*
+ * The following three defines are only used in case there
+ * is no auto-negotiation.
+ */
     #if !defined( ipconfigETHERNET_CROSSED_LINK )
         #define ipconfigETHERNET_CROSSED_LINK    1
     #endif
@@ -175,10 +175,10 @@ static BaseType_t prvNetworkInterfaceInput( void );
 
 #if ( ipconfigUSE_LLMNR != 0 )
 
-    /*
-     * For LLMNR, an extra MAC-address must be configured to
-     * be able to receive the multicast messages.
-     */
+/*
+ * For LLMNR, an extra MAC-address must be configured to
+ * be able to receive the multicast messages.
+ */
     static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
                                      uint32_t ulIndex,
                                      uint8_t * Addr );

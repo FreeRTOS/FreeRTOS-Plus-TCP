@@ -92,7 +92,7 @@ static void prvShowWarnings( void );
     {
     #define ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR()               \
     portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus ); \
-}
+    }
 
     #define ipconfigBUFFER_ALLOC_LOCK()      taskENTER_CRITICAL()
     #define ipconfigBUFFER_ALLOC_UNLOCK()    taskEXIT_CRITICAL()
@@ -103,9 +103,9 @@ static void prvShowWarnings( void );
 
 #if ( ipconfigTCP_IP_SANITY != 0 )
 
-    /* HT: SANITY code will be removed as soon as the library is stable
-     * and and ready to become public
-     * Function below gives information about the use of buffers */
+/* HT: SANITY code will be removed as soon as the library is stable
+ * and and ready to become public
+ * Function below gives information about the use of buffers */
     #define WARN_LOW     ( 2 )
     #define WARN_HIGH    ( ( 5 * ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ) / 10 )
 
