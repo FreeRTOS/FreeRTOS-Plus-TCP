@@ -127,7 +127,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 #endif
 
 #ifdef ipconfigDHCP_USES_USER_HOOK
-	#error ipconfigDHCP_USES_USER_HOOK and its associated callback have been superceeded - see http: /*www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK */
+	#error ipconfigDHCP_USES_USER_HOOK and its associated callback have been superseded - see http: /*www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK */
 #endif
 
 #ifndef ipconfigUSE_TCP
@@ -154,7 +154,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 #endif /* if ipconfigUSE_TCP */
 
 /*
- * For debuging/logging: check if the port number is used for telnet
+ * For debugging/logging: check if the port number is used for telnet
  * Some events will not be logged for telnet connections
  * because it would produce logging about the transmission of the logging...
  * This macro will only be used if FreeRTOS_debug_printf() is defined for logging
@@ -328,7 +328,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 
 #ifndef ipconfigUDP_MAX_RX_PACKETS
 
-	/* Make postive to define the maximum number of packets which will be buffered
+	/* Make positive to define the maximum number of packets which will be buffered
 	* for each UDP socket.
 	* Can be overridden with the socket option FREERTOS_SO_UDP_MAX_RX_PACKETS
 	*/
