@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['networkaddressingparameters_5ft_216',['NetworkAddressingParameters_t',['../struct_network_addressing_parameters__t.html',1,'']]],
-  ['networkbufferdescriptor_5ft_217',['NetworkBufferDescriptor_t',['../struct_network_buffer_descriptor__t.html',1,'']]]
+  ['max_5ftransmit_5fcount_5fusing_5flarge_5fwindow_220',['MAX_TRANSMIT_COUNT_USING_LARGE_WINDOW',['../_free_r_t_o_s___t_c_p___w_i_n_8c.html#aa04acc1274bb1e10366880ee23dcfb82',1,'FreeRTOS_TCP_WIN.c']]]
 ];

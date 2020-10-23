@@ -154,8 +154,20 @@ Data Fields</h2></td></tr>
 <tr class="separator:acdf5efc1b38f7bc4fdd3cfbe874af180"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6bde9c3ebe7f805aa99cccc49e0527b5"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_window__t.html#a6bde9c3ebe7f805aa99cccc49e0527b5">ucOptionLength</a></td></tr>
 <tr class="separator:a6bde9c3ebe7f805aa99cccc49e0527b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6be255a8d90e388ea48cc395c76592c7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_t_c_p_segment__t.html">TCPSegment_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_window__t.html#a6be255a8d90e388ea48cc395c76592c7">xTxSegment</a></td></tr>
-<tr class="separator:a6be255a8d90e388ea48cc395c76592c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11a5714b6370953331491c9c5fa31355"><td class="memItemLeft" align="right" valign="top">List_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_window__t.html#a11a5714b6370953331491c9c5fa31355">xPriorityQueue</a></td></tr>
+<tr class="separator:a11a5714b6370953331491c9c5fa31355"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a28a2fa04e71e2cb8c9c84a918be55a"><td class="memItemLeft" align="right" valign="top">List_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_window__t.html#a8a28a2fa04e71e2cb8c9c84a918be55a">xTxQueue</a></td></tr>
+<tr class="separator:a8a28a2fa04e71e2cb8c9c84a918be55a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e14cd25378090ca2fa7119a7bfa6ca9"><td class="memItemLeft" align="right" valign="top">List_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_window__t.html#a2e14cd25378090ca2fa7119a7bfa6ca9">xWaitQueue</a></td></tr>
+<tr class="separator:a2e14cd25378090ca2fa7119a7bfa6ca9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a308519ac46924e91342c1432c8edcd75"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_t_c_p_segment__t.html">TCPSegment_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_window__t.html#a308519ac46924e91342c1432c8edcd75">pxHeadSegment</a></td></tr>
+<tr class="separator:a308519ac46924e91342c1432c8edcd75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeee5f06c6ecdcd5f093379c6e764af92"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_window__t.html#aeee5f06c6ecdcd5f093379c6e764af92">ulOptionsData</a> [ipSIZE_TCP_OPTIONS/sizeof(uint32_t)]</td></tr>
+<tr class="separator:aeee5f06c6ecdcd5f093379c6e764af92"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79746d8f377d703da7efeee43ea3ad91"><td class="memItemLeft" align="right" valign="top">List_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_window__t.html#a79746d8f377d703da7efeee43ea3ad91">xTxSegments</a></td></tr>
+<tr class="separator:a79746d8f377d703da7efeee43ea3ad91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67b0d188b8800f0984e2561661dca5b7"><td class="memItemLeft" align="right" valign="top">List_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_window__t.html#a67b0d188b8800f0984e2561661dca5b7">xRxSegments</a></td></tr>
+<tr class="separator:a67b0d188b8800f0984e2561661dca5b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af9d582e60dff97a5248009d5a5fa2a23"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_window__t.html#af9d582e60dff97a5248009d5a5fa2a23">usOurPortNumber</a></td></tr>
 <tr class="separator:af9d582e60dff97a5248009d5a5fa2a23"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1472b1532d03ab2057f67081e116457a"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_window__t.html#a1472b1532d03ab2057f67081e116457a">usPeerPortNumber</a></td></tr>
@@ -423,18 +435,108 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<a id="a6be255a8d90e388ea48cc395c76592c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6be255a8d90e388ea48cc395c76592c7">&#9670;&nbsp;</a></span>xTxSegment</h2>
+<a id="a11a5714b6370953331491c9c5fa31355"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11a5714b6370953331491c9c5fa31355">&#9670;&nbsp;</a></span>xPriorityQueue</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="struct_t_c_p_segment__t.html">TCPSegment_t</a> TCPWindow_t::xTxSegment</td>
+          <td class="memname">List_t TCPWindow_t::xPriorityQueue</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Priority queue </p>
+<p>Priority queue: segments which must be sent immediately </p>
+
+</div>
+</div>
+<a id="a8a28a2fa04e71e2cb8c9c84a918be55a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a28a2fa04e71e2cb8c9c84a918be55a">&#9670;&nbsp;</a></span>xTxQueue</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">List_t TCPWindow_t::xTxQueue</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Transmit queue: segments queued for transmission </p>
+
+</div>
+</div>
+<a id="a2e14cd25378090ca2fa7119a7bfa6ca9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e14cd25378090ca2fa7119a7bfa6ca9">&#9670;&nbsp;</a></span>xWaitQueue</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">List_t TCPWindow_t::xWaitQueue</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Waiting queue: outstanding segments </p>
+
+</div>
+</div>
+<a id="a308519ac46924e91342c1432c8edcd75"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a308519ac46924e91342c1432c8edcd75">&#9670;&nbsp;</a></span>pxHeadSegment</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_t_c_p_segment__t.html">TCPSegment_t</a>* TCPWindow_t::pxHeadSegment</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>points to a segment which has not been transmitted and it's size is still growing (user data being added) </p>
+
+</div>
+</div>
+<a id="aeee5f06c6ecdcd5f093379c6e764af92"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeee5f06c6ecdcd5f093379c6e764af92">&#9670;&nbsp;</a></span>ulOptionsData</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t TCPWindow_t::ulOptionsData[ipSIZE_TCP_OPTIONS/sizeof(uint32_t)]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Contains the options we send out </p>
+
+</div>
+</div>
+<a id="a79746d8f377d703da7efeee43ea3ad91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a79746d8f377d703da7efeee43ea3ad91">&#9670;&nbsp;</a></span>xTxSegments</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">List_t TCPWindow_t::xTxSegments</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A linked list of all transmission segments, sorted on sequence number </p>
+
+</div>
+</div>
+<a id="a67b0d188b8800f0984e2561661dca5b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67b0d188b8800f0984e2561661dca5b7">&#9670;&nbsp;</a></span>xRxSegments</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">List_t TCPWindow_t::xRxSegments</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A linked list of reception segments, order depends on sequence of arrival </p>
 
 </div>
 </div>

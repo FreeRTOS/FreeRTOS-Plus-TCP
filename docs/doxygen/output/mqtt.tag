@@ -2242,6 +2242,13 @@
       <anchor>a8f5ccd90ad6e056252cbde7d34c9bda0</anchor>
       <arglist>(const uint8_t *const pucPtr, size_t uxTotalLength, FreeRTOS_Socket_t *const pxSocket, BaseType_t xHasSYNFlag)</arglist>
     </member>
+    <member kind="function">
+      <type>_static void</type>
+      <name>prvReadSackOption</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>a5bd3ea49e8ee6f2c7a12bb2708575d88</anchor>
+      <arglist>(const uint8_t *const pucPtr, size_t uxIndex, FreeRTOS_Socket_t *const pxSocket)</arglist>
+    </member>
     <member kind="function" static="yes">
       <type>static UBaseType_t</type>
       <name>prvSetSynAckOptions</name>
@@ -2382,6 +2389,13 @@
       <anchor>ad42a8368c193b45516ebc2082c8c6ea3</anchor>
       <arglist>(const FreeRTOS_Socket_t *pxSocket, NetworkBufferDescriptor_t *pxNetworkBuffer, int32_t lDataLen, UBaseType_t uxOptionsLength)</arglist>
     </member>
+    <member kind="function" static="yes">
+      <type>static uint8_t</type>
+      <name>prvWinScaleFactor</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
+      <anchor>aed3d321465a45d65a96c7762cd5a8612</anchor>
+      <arglist>(const FreeRTOS_Socket_t *pxSocket)</arglist>
+    </member>
     <member kind="function">
       <type>BaseType_t</type>
       <name>xTCPSocketCheck</name>
@@ -2409,6 +2423,205 @@
       <anchorfile>_free_r_t_o_s___t_c_p___i_p_8c.html</anchorfile>
       <anchor>abd9d9857511e8c986d7eb52849cfe73d</anchor>
       <arglist>(FreeRTOS_Socket_t *pxSocket)</arglist>
+    </member>
+  </compound>
+  <compound kind="file">
+    <name>FreeRTOS_TCP_WIN.c</name>
+    <path>/root/Desktop/AddDoxygen/</path>
+    <filename>_free_r_t_o_s___t_c_p___w_i_n_8c.html</filename>
+    <member kind="define">
+      <type>#define</type>
+      <name>winSRTT_INCREMENT_NEW</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>ad55bd7a27c05e46e1f269973ed270c2a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>winSRTT_INCREMENT_CURRENT</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>acc3b8daf4436eb0a75561cd808256b35</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>winSRTT_DECREMENT_NEW</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>af1109c15055d77738365721c9181600e</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>winSRTT_DECREMENT_CURRENT</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>aeb55e5f7a5fbf975104e669323d115a8</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>winSRTT_CAP_mS</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>a88e05f703fda730dec8cde14f9a91ef4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>xTCPWindowRxNew</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>a6d6c19030ec6a51641664d45735a889d</anchor>
+      <arglist>(pxWindow, ulSequenceNumber, lCount)</arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>xTCPWindowTxNew</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>a6ebac9742c5a0d2013d77ef6084ea5ef</anchor>
+      <arglist>(pxWindow, ulSequenceNumber, lCount)</arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>OPTION_CODE_SINGLE_SACK</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>adec136da43a296db8af25299ca738963</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>DUPLICATE_ACKS_BEFORE_FAST_RETRANSMIT</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>a374732a2bcde8457d90a1e2ee2c665c3</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>MAX_TRANSMIT_COUNT_USING_LARGE_WINDOW</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>aa04acc1274bb1e10366880ee23dcfb82</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE</type>
+      <name>ipDECL_CAST_PTR_FUNC_FOR_TYPE</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>a43d5cbca96f53ed71a177b6e6d691d1a</anchor>
+      <arglist>(TCPSegment_t)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>vListInsertGeneric</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>a5674002cd6d72c9e1a6265b975546a87</anchor>
+      <arglist>(List_t *const pxList, ListItem_t *const pxNewListItem, MiniListItem_t *const pxWhere)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static uint32_t</type>
+      <name>prvTCPWindowTxCheckAck</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>ac97053985dc382025116f6a528ace15e</anchor>
+      <arglist>(TCPWindow_t *pxWindow, uint32_t ulFirst, uint32_t ulLast)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE BaseType_t</type>
+      <name>xSequenceGreaterThanOrEqual</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>aff8c4167d89211fb1574ca667803c74c</anchor>
+      <arglist>(uint32_t a, uint32_t b)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE void</type>
+      <name>vListInsertFifo</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>a868e38d1df123d9c14f49634cfe6a90a</anchor>
+      <arglist>(List_t *const pxList, ListItem_t *const pxNewListItem)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE void</type>
+      <name>vTCPTimerSet</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>a583207662849bc5f15a8c7953eb9352b</anchor>
+      <arglist>(TCPTimer_t *pxTimer)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static portINLINE uint32_t</type>
+      <name>ulTimerGetAge</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>a183f7f0caa41207e80e13fc41c4fdec3</anchor>
+      <arglist>(const TCPTimer_t *pxTimer)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vTCPWindowCreate</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>a5168ceefeecf8e442b072b14d1516875</anchor>
+      <arglist>(TCPWindow_t *pxWindow, uint32_t ulRxWindowLength, uint32_t ulTxWindowLength, uint32_t ulAckNumber, uint32_t ulSequenceNumber, uint32_t ulMSS)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vTCPWindowInit</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>acf48d309eda32d86dce923674e49b753</anchor>
+      <arglist>(TCPWindow_t *pxWindow, uint32_t ulAckNumber, uint32_t ulSequenceNumber, uint32_t ulMSS)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint32_t</type>
+      <name>ulTCPWindowTxAck</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>a4a87a9463c8daa90d88ebf25427f65af</anchor>
+      <arglist>(TCPWindow_t *pxWindow, uint32_t ulSequenceNumber)</arglist>
+    </member>
+    <member kind="function">
+      <type>uint32_t</type>
+      <name>ulTCPWindowTxSack</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>a6b8d5c58d868eb5cb47ac185897bc6ab</anchor>
+      <arglist>(TCPWindow_t *pxWindow, uint32_t ulFirst, uint32_t ulLast)</arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static TCPSegment_t *</type>
+      <name>xTCPSegments</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>acf6414e1dbb7e9b0124eb236d573fde8</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>_static List_t</type>
+      <name>xSegmentList</name>
+      <anchorfile>_free_r_t_o_s___t_c_p___w_i_n_8c.html</anchorfile>
+      <anchor>aa333a2014b23e19157a9a8ab2f6b7bc6</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="file">
+    <name>FreeRTOS_UDP_IP.c</name>
+    <path>/root/Desktop/AddDoxygen/</path>
+    <filename>_free_r_t_o_s___u_d_p___i_p_8c.html</filename>
+    <member kind="define">
+      <type>#define</type>
+      <name>ipIP_VERSION_AND_HEADER_LENGTH_BYTE</name>
+      <anchorfile>_free_r_t_o_s___u_d_p___i_p_8c.html</anchorfile>
+      <anchor>a8d163a6ae62224008f3c9fecf8fb7e8f</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>vProcessGeneratedUDPPacket</name>
+      <anchorfile>_free_r_t_o_s___u_d_p___i_p_8c.html</anchorfile>
+      <anchor>a033394b01fa7d80e6393ea272a31814b</anchor>
+      <arglist>(NetworkBufferDescriptor_t *const pxNetworkBuffer)</arglist>
+    </member>
+    <member kind="function">
+      <type>BaseType_t</type>
+      <name>xProcessReceivedUDPPacket</name>
+      <anchorfile>_free_r_t_o_s___u_d_p___i_p_8c.html</anchorfile>
+      <anchor>a49d02db9d4860930e55d072983162463</anchor>
+      <arglist>(NetworkBufferDescriptor_t *pxNetworkBuffer, uint16_t usPort)</arglist>
+    </member>
+    <member kind="variable">
+      <type>UDPPacketHeader_t</type>
+      <name>xDefaultPartUDPPacketHeader</name>
+      <anchorfile>_free_r_t_o_s___u_d_p___i_p_8c.html</anchorfile>
+      <anchor>af9083d86a4c7d83308fc4d642dc07683</anchor>
+      <arglist></arglist>
     </member>
   </compound>
   <compound kind="struct">
@@ -4038,6 +4251,20 @@
       <anchor>aef340f8dbb522ad2c08a73f25ab02ab0</anchor>
       <arglist></arglist>
     </member>
+    <member kind="variable">
+      <type>struct xLIST_ITEM</type>
+      <name>xQueueItem</name>
+      <anchorfile>struct_t_c_p_segment__t.html</anchorfile>
+      <anchor>a7bde38f7cc5b76a79c350141167992e1</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>struct xLIST_ITEM</type>
+      <name>xSegmentItem</name>
+      <anchorfile>struct_t_c_p_segment__t.html</anchorfile>
+      <anchor>a59a037cac9030851305587a913cab86b</anchor>
+      <arglist></arglist>
+    </member>
   </compound>
   <compound kind="struct">
     <name>TCPTimer_t</name>
@@ -4173,10 +4400,52 @@
       <arglist></arglist>
     </member>
     <member kind="variable">
-      <type>TCPSegment_t</type>
-      <name>xTxSegment</name>
+      <type>List_t</type>
+      <name>xPriorityQueue</name>
       <anchorfile>struct_t_c_p_window__t.html</anchorfile>
-      <anchor>a6be255a8d90e388ea48cc395c76592c7</anchor>
+      <anchor>a11a5714b6370953331491c9c5fa31355</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>List_t</type>
+      <name>xTxQueue</name>
+      <anchorfile>struct_t_c_p_window__t.html</anchorfile>
+      <anchor>a8a28a2fa04e71e2cb8c9c84a918be55a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>List_t</type>
+      <name>xWaitQueue</name>
+      <anchorfile>struct_t_c_p_window__t.html</anchorfile>
+      <anchor>a2e14cd25378090ca2fa7119a7bfa6ca9</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>TCPSegment_t *</type>
+      <name>pxHeadSegment</name>
+      <anchorfile>struct_t_c_p_window__t.html</anchorfile>
+      <anchor>a308519ac46924e91342c1432c8edcd75</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>uint32_t</type>
+      <name>ulOptionsData</name>
+      <anchorfile>struct_t_c_p_window__t.html</anchorfile>
+      <anchor>aeee5f06c6ecdcd5f093379c6e764af92</anchor>
+      <arglist>[ipSIZE_TCP_OPTIONS/sizeof(uint32_t)]</arglist>
+    </member>
+    <member kind="variable">
+      <type>List_t</type>
+      <name>xTxSegments</name>
+      <anchorfile>struct_t_c_p_window__t.html</anchorfile>
+      <anchor>a79746d8f377d703da7efeee43ea3ad91</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>List_t</type>
+      <name>xRxSegments</name>
+      <anchorfile>struct_t_c_p_window__t.html</anchorfile>
+      <anchor>a67b0d188b8800f0984e2561661dca5b7</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">

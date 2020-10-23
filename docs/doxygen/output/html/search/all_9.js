@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['rx_298',['rx',['../struct_t_c_p_window__t.html#a945d3c0c8c41e9ac4f6b985ac4109717',1,'TCPWindow_t']]],
-  ['rxstream_299',['rxStream',['../struct_i_p_t_c_p_socket__t.html#acc0e922869614b29dfacbaaca87a8fd7',1,'IPTCPSocket_t']]]
+  ['option_5fcode_5fsingle_5fsack_223',['OPTION_CODE_SINGLE_SACK',['../_free_r_t_o_s___t_c_p___w_i_n_8c.html#adec136da43a296db8af25299ca738963',1,'FreeRTOS_TCP_WIN.c']]]
 ];

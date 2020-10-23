@@ -102,7 +102,7 @@ $(document).ready(function(){initNavTree('_free_r_t_o_s___t_c_p___i_p_8c.html','
 </div><!--header-->
 <div class="contents">
 
-<p>Module which handles the TCP connections for FreeRTOS+TCP. It depends on FreeRTOS_TCP_WIN.c, which handles the TCP windowing schemes.  
+<p>Module which handles the TCP connections for FreeRTOS+TCP. It depends on <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html" title="Module which handles the TCP windowing schemes for FreeRTOS+TCP. Many functions have two versions - o...">FreeRTOS_TCP_WIN.c</a>, which handles the TCP windowing schemes.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;stdint.h&gt;</code><br />
 <code>#include &lt;stdio.h&gt;</code><br />
@@ -223,6 +223,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a8f5ccd90ad6e056252cbde7d34c9bda0"><td class="memItemLeft" align="right" valign="top">_static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___t_c_p___i_p_8c.html#a8f5ccd90ad6e056252cbde7d34c9bda0">prvSingleStepTCPHeaderOptions</a> (const uint8_t *const pucPtr, size_t uxTotalLength, <a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *const pxSocket, BaseType_t xHasSYNFlag)</td></tr>
 <tr class="memdesc:a8f5ccd90ad6e056252cbde7d34c9bda0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Identify and deal with a single TCP header option, advancing the pointer to the header.  <a href="_free_r_t_o_s___t_c_p___i_p_8c.html#a8f5ccd90ad6e056252cbde7d34c9bda0">More...</a><br /></td></tr>
 <tr class="separator:a8f5ccd90ad6e056252cbde7d34c9bda0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5bd3ea49e8ee6f2c7a12bb2708575d88"><td class="memItemLeft" align="right" valign="top">_static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___t_c_p___i_p_8c.html#a5bd3ea49e8ee6f2c7a12bb2708575d88">prvReadSackOption</a> (const uint8_t *const pucPtr, size_t uxIndex, <a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *const pxSocket)</td></tr>
+<tr class="memdesc:a5bd3ea49e8ee6f2c7a12bb2708575d88"><td class="mdescLeft">&#160;</td><td class="mdescRight">Skip past TCP header options when doing Selective ACK, until there are no more options left.  <a href="_free_r_t_o_s___t_c_p___i_p_8c.html#a5bd3ea49e8ee6f2c7a12bb2708575d88">More...</a><br /></td></tr>
+<tr class="separator:a5bd3ea49e8ee6f2c7a12bb2708575d88"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ffa471bf4c769535d3f7b9d5a968cdb"><td class="memItemLeft" align="right" valign="top">static UBaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___t_c_p___i_p_8c.html#a0ffa471bf4c769535d3f7b9d5a968cdb">prvSetSynAckOptions</a> (<a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *pxSocket, TCPHeader_t *pxTCPHeader)</td></tr>
 <tr class="memdesc:a0ffa471bf4c769535d3f7b9d5a968cdb"><td class="mdescLeft">&#160;</td><td class="mdescRight">When opening a TCP connection, while SYN's are being sent, the parties may communicate what MSS (Maximum Segment Size) they intend to use.  <a href="_free_r_t_o_s___t_c_p___i_p_8c.html#a0ffa471bf4c769535d3f7b9d5a968cdb">More...</a><br /></td></tr>
 <tr class="separator:a0ffa471bf4c769535d3f7b9d5a968cdb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -283,6 +286,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ad42a8368c193b45516ebc2082c8c6ea3"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="struct_network_buffer_descriptor__t.html">NetworkBufferDescriptor_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___t_c_p___i_p_8c.html#ad42a8368c193b45516ebc2082c8c6ea3">prvTCPBufferResize</a> (const <a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *pxSocket, <a class="el" href="struct_network_buffer_descriptor__t.html">NetworkBufferDescriptor_t</a> *pxNetworkBuffer, int32_t lDataLen, UBaseType_t uxOptionsLength)</td></tr>
 <tr class="memdesc:ad42a8368c193b45516ebc2082c8c6ea3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resize a given TCP buffer.  <a href="_free_r_t_o_s___t_c_p___i_p_8c.html#ad42a8368c193b45516ebc2082c8c6ea3">More...</a><br /></td></tr>
 <tr class="separator:ad42a8368c193b45516ebc2082c8c6ea3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed3d321465a45d65a96c7762cd5a8612"><td class="memItemLeft" align="right" valign="top">static uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___t_c_p___i_p_8c.html#aed3d321465a45d65a96c7762cd5a8612">prvWinScaleFactor</a> (const <a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *pxSocket)</td></tr>
+<tr class="memdesc:aed3d321465a45d65a96c7762cd5a8612"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the window scaling factor for the TCP connection.  <a href="_free_r_t_o_s___t_c_p___i_p_8c.html#aed3d321465a45d65a96c7762cd5a8612">More...</a><br /></td></tr>
+<tr class="separator:aed3d321465a45d65a96c7762cd5a8612"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6f0ad2de00346e1017a692e4da7c3f0c"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___t_c_p___i_p_8c.html#a6f0ad2de00346e1017a692e4da7c3f0c">xTCPSocketCheck</a> (<a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *pxSocket)</td></tr>
 <tr class="memdesc:a6f0ad2de00346e1017a692e4da7c3f0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">As soon as a TCP socket timer expires, this function will be called (from xTCPTimerCheck). It can send a delayed ACK or new data.  <a href="_free_r_t_o_s___t_c_p___i_p_8c.html#a6f0ad2de00346e1017a692e4da7c3f0c">More...</a><br /></td></tr>
 <tr class="separator:a6f0ad2de00346e1017a692e4da7c3f0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -297,7 +303,7 @@ Functions</h2></td></tr>
 <tr class="separator:abd9d9857511e8c986d7eb52849cfe73d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Module which handles the TCP connections for FreeRTOS+TCP. It depends on FreeRTOS_TCP_WIN.c, which handles the TCP windowing schemes. </p>
+<div class="textblock"><p>Module which handles the TCP connections for FreeRTOS+TCP. It depends on <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html" title="Module which handles the TCP windowing schemes for FreeRTOS+TCP. Many functions have two versions - o...">FreeRTOS_TCP_WIN.c</a>, which handles the TCP windowing schemes. </p>
 <p>Endianness: in this module all ports and IP addresses are stored in host byte-order, except fields in the IP-packets </p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="aa23ea9f1090719d5fe63b05b916f8475"></a>
@@ -891,7 +897,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>The SYN event is very important: the sequence numbers, which have a kind of random starting value, are being synchronized. The sliding window manager (in FreeRTOS_TCP_WIN.c) needs to know them, along with the Maximum Segment </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>The SYN event is very important: the sequence numbers, which have a kind of random starting value, are being synchronized. The sliding window manager (in <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html" title="Module which handles the TCP windowing schemes for FreeRTOS+TCP. Many functions have two versions - o...">FreeRTOS_TCP_WIN.c</a>) needs to know them, along with the Maximum Segment </dd></dl>
 
 </div>
 </div>
@@ -1018,6 +1024,50 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>This function returns pdTRUE or pdFALSE depending on whether the caller should continue to parse more header options or break the loop. </dd></dl>
+
+</div>
+</div>
+<a id="a5bd3ea49e8ee6f2c7a12bb2708575d88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5bd3ea49e8ee6f2c7a12bb2708575d88">&#9670;&nbsp;</a></span>prvReadSackOption()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">_static void prvReadSackOption </td>
+          <td>(</td>
+          <td class="paramtype">const uint8_t *const&#160;</td>
+          <td class="paramname"><em>pucPtr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>uxIndex</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *const&#160;</td>
+          <td class="paramname"><em>pxSocket</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Skip past TCP header options when doing Selective ACK, until there are no more options left. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pucPtr</td><td>Pointer to the TCP packet options. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">uxIndex</td><td>Index of options in the TCP packet options. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxSocket</td><td>Socket handling the TCP connection. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1957,6 +2007,41 @@ prvSendData()
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>If the resizing is successful: The new buffer with the size being asked for with old data copied in it. Else, NULL.</dd></dl>
 <dl class="section note"><dt>Note</dt><dd>The old network buffer will be released if the resizing is successful and cannot be used any longer. </dd></dl>
+
+</div>
+</div>
+<a id="aed3d321465a45d65a96c7762cd5a8612"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed3d321465a45d65a96c7762cd5a8612">&#9670;&nbsp;</a></span>prvWinScaleFactor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static uint8_t prvWinScaleFactor </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_free_r_t_o_s___socket__t.html">FreeRTOS_Socket_t</a> *&#160;</td>
+          <td class="paramname"><em>pxSocket</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the window scaling factor for the TCP connection. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxSocket</td><td>The socket owning the TCP connection.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The scaling factor. </dd></dl>
 
 </div>
 </div>

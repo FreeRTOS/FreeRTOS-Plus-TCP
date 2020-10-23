@@ -60,5 +60,6 @@ var searchData=
   ['dnsrx_5fflags_5fmask_93',['dnsRX_FLAGS_MASK',['../_free_r_t_o_s___d_n_s_8c.html#a2f2d9e5e60a455c209b38793a2a67914',1,'FreeRTOS_DNS.c']]],
   ['dnstype_5fa_5fhost_94',['dnsTYPE_A_HOST',['../_free_r_t_o_s___d_n_s_8c.html#a9d6929d8badbc074a31f8e7d82a6db08',1,'FreeRTOS_DNS.c']]],
   ['dumpentries_5ft_95',['DumpEntries_t',['../struct_dump_entries__t.html',1,'']]],
-  ['dumpentry_5ft_96',['DumpEntry_t',['../struct_dump_entry__t.html',1,'']]]
+  ['dumpentry_5ft_96',['DumpEntry_t',['../struct_dump_entry__t.html',1,'']]],
+  ['duplicate_5facks_5fbefore_5ffast_5fretransmit_97',['DUPLICATE_ACKS_BEFORE_FAST_RETRANSMIT',['../_free_r_t_o_s___t_c_p___w_i_n_8c.html#a374732a2bcde8457d90a1e2ee2c665c3',1,'FreeRTOS_TCP_WIN.c']]]
 ];

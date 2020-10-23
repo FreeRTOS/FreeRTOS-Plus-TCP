@@ -303,11 +303,11 @@ $(document).ready(function(){initNavTree('globals_func.html',''); initResizable(
 , <a class="el" href="_free_r_t_o_s___d_n_s_8c.html#a06c387b3a061ae83b2ba510fb414daa6">FreeRTOS_DNS.c</a>
 </li>
 <li>ipDECL_CAST_PTR_FUNC_FOR_TYPE()
-: <a class="el" href="_free_r_t_o_s___sockets_8c.html#a52fc9e0117c61a8d8e0895e01552250e">FreeRTOS_Sockets.c</a>
+: <a class="el" href="_free_r_t_o_s___sockets_8c.html#aa30c98bf08053c764516fab0d9e76673">FreeRTOS_Sockets.c</a>
 , <a class="el" href="_free_r_t_o_s___i_p_8c.html#a52fc9e0117c61a8d8e0895e01552250e">FreeRTOS_IP.c</a>
 , <a class="el" href="_free_r_t_o_s___d_n_s_8c.html#a437c735abe2d2bb1925fb5905706e3be">FreeRTOS_DNS.c</a>
 , <a class="el" href="_free_r_t_o_s___d_h_c_p_8c.html#a828bde991d7f730cc44a775b504d85f8">FreeRTOS_DHCP.c</a>
-, <a class="el" href="_free_r_t_o_s___sockets_8c.html#aa30c98bf08053c764516fab0d9e76673">FreeRTOS_Sockets.c</a>
+, <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html#a43d5cbca96f53ed71a177b6e6d691d1a">FreeRTOS_TCP_WIN.c</a>
 </li>
 </ul>
 
@@ -413,6 +413,9 @@ $(document).ready(function(){initNavTree('globals_func.html',''); initResizable(
 <li>prvReadNameField()
 : <a class="el" href="_free_r_t_o_s___d_n_s_8c.html#a9be17b9ef1b9acb444489556f65e15c4">FreeRTOS_DNS.c</a>
 </li>
+<li>prvReadSackOption()
+: <a class="el" href="_free_r_t_o_s___t_c_p___i_p_8c.html#a5bd3ea49e8ee6f2c7a12bb2708575d88">FreeRTOS_TCP_IP.c</a>
+</li>
 <li>prvReplyDNSMessage()
 : <a class="el" href="_free_r_t_o_s___d_n_s_8c.html#a5346e54c0e7d9500ff620d4093a92079">FreeRTOS_DNS.c</a>
 </li>
@@ -509,11 +512,17 @@ $(document).ready(function(){initNavTree('globals_func.html',''); initResizable(
 <li>prvTCPTouchSocket()
 : <a class="el" href="_free_r_t_o_s___t_c_p___i_p_8c.html#af1e47864a5591d814aa9baf281c20cd5">FreeRTOS_TCP_IP.c</a>
 </li>
+<li>prvTCPWindowTxCheckAck()
+: <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html#ac97053985dc382025116f6a528ace15e">FreeRTOS_TCP_WIN.c</a>
+</li>
 <li>prvTreatNBNS()
 : <a class="el" href="_free_r_t_o_s___d_n_s_8c.html#a2c0bc0834d9400fa4f163e87cf88a4e5">FreeRTOS_DNS.c</a>
 </li>
 <li>prvValidSocket()
 : <a class="el" href="_free_r_t_o_s___sockets_8c.html#a4328ec58511a541031cc6a60da027ab4">FreeRTOS_Sockets.c</a>
+</li>
+<li>prvWinScaleFactor()
+: <a class="el" href="_free_r_t_o_s___t_c_p___i_p_8c.html#aed3d321465a45d65a96c7762cd5a8612">FreeRTOS_TCP_IP.c</a>
 </li>
 <li>pxDuplicateNetworkBufferWithDescriptor()
 : <a class="el" href="_free_r_t_o_s___i_p_8c.html#ad104b025d007fc96fbc8d7192c019c2b">FreeRTOS_IP.c</a>
@@ -539,6 +548,15 @@ $(document).ready(function(){initNavTree('globals_func.html',''); initResizable(
 </li>
 <li>ulNBNSHandlePacket()
 : <a class="el" href="_free_r_t_o_s___d_n_s_8c.html#a9da21a35903e781448c9d2bc89075beb">FreeRTOS_DNS.c</a>
+</li>
+<li>ulTCPWindowTxAck()
+: <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html#a4a87a9463c8daa90d88ebf25427f65af">FreeRTOS_TCP_WIN.c</a>
+</li>
+<li>ulTCPWindowTxSack()
+: <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html#a6b8d5c58d868eb5cb47ac185897bc6ab">FreeRTOS_TCP_WIN.c</a>
+</li>
+<li>ulTimerGetAge()
+: <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html#a183f7f0caa41207e80e13fc41c4fdec3">FreeRTOS_TCP_WIN.c</a>
 </li>
 <li>usGenerateChecksum()
 : <a class="el" href="_free_r_t_o_s___i_p_8c.html#a97162cfd5b071ccee8fec503879a3e43">FreeRTOS_IP.c</a>
@@ -595,8 +613,17 @@ $(document).ready(function(){initNavTree('globals_func.html',''); initResizable(
 <li>vIPSetDnsTimerEnableState()
 : <a class="el" href="_free_r_t_o_s___i_p_8c.html#a575576b2fe366f64e201c7cef093f454">FreeRTOS_IP.c</a>
 </li>
+<li>vListInsertFifo()
+: <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html#a868e38d1df123d9c14f49634cfe6a90a">FreeRTOS_TCP_WIN.c</a>
+</li>
+<li>vListInsertGeneric()
+: <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html#a5674002cd6d72c9e1a6265b975546a87">FreeRTOS_TCP_WIN.c</a>
+</li>
 <li>vNetworkSocketsInit()
 : <a class="el" href="_free_r_t_o_s___sockets_8c.html#a4143378ec838cd340efd7f95b30444a5">FreeRTOS_Sockets.c</a>
+</li>
+<li>vProcessGeneratedUDPPacket()
+: <a class="el" href="_free_r_t_o_s___u_d_p___i_p_8c.html#a033394b01fa7d80e6393ea272a31814b">FreeRTOS_UDP_IP.c</a>
 </li>
 <li>vReturnEthernetFrame()
 : <a class="el" href="_free_r_t_o_s___i_p_8c.html#a5fb218e96c829c263a677428fe4d5d24">FreeRTOS_IP.c</a>
@@ -618,6 +645,15 @@ $(document).ready(function(){initNavTree('globals_func.html',''); initResizable(
 </li>
 <li>vTCPStateChange()
 : <a class="el" href="_free_r_t_o_s___t_c_p___i_p_8c.html#a97d34454b4f1d4b0a4f5e5b998fdf578">FreeRTOS_TCP_IP.c</a>
+</li>
+<li>vTCPTimerSet()
+: <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html#a583207662849bc5f15a8c7953eb9352b">FreeRTOS_TCP_WIN.c</a>
+</li>
+<li>vTCPWindowCreate()
+: <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html#a5168ceefeecf8e442b072b14d1516875">FreeRTOS_TCP_WIN.c</a>
+</li>
+<li>vTCPWindowInit()
+: <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html#acf48d309eda32d86dce923674e49b753">FreeRTOS_TCP_WIN.c</a>
 </li>
 </ul>
 
@@ -644,11 +680,17 @@ $(document).ready(function(){initNavTree('globals_func.html',''); initResizable(
 <li>xProcessReceivedTCPPacket()
 : <a class="el" href="_free_r_t_o_s___t_c_p___i_p_8c.html#a3afd3312f86e44f4b4d95ab1e7bd34be">FreeRTOS_TCP_IP.c</a>
 </li>
+<li>xProcessReceivedUDPPacket()
+: <a class="el" href="_free_r_t_o_s___u_d_p___i_p_8c.html#a49d02db9d4860930e55d072983162463">FreeRTOS_UDP_IP.c</a>
+</li>
 <li>xSendEventStructToIPTask()
 : <a class="el" href="_free_r_t_o_s___i_p_8c.html#a7190bc18fa344fe1fd79021a6db05f84">FreeRTOS_IP.c</a>
 </li>
 <li>xSendEventToIPTask()
 : <a class="el" href="_free_r_t_o_s___i_p_8c.html#a64324b01a1fc85efdb7129316e8f7737">FreeRTOS_IP.c</a>
+</li>
+<li>xSequenceGreaterThanOrEqual()
+: <a class="el" href="_free_r_t_o_s___t_c_p___w_i_n_8c.html#aff8c4167d89211fb1574ca667803c74c">FreeRTOS_TCP_WIN.c</a>
 </li>
 <li>xTCPCheckNewClient()
 : <a class="el" href="_free_r_t_o_s___t_c_p___i_p_8c.html#abd9d9857511e8c986d7eb52849cfe73d">FreeRTOS_TCP_IP.c</a>

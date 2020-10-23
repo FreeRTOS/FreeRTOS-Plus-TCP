@@ -135,6 +135,10 @@ Data Fields</h2></td></tr>
 <tr class="separator:a01aac3fdbf4e81f249aa4f330e489ab8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef340f8dbb522ad2c08a73f25ab02ab0"><td class="memItemLeft" valign="top">}&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_segment__t.html#aef340f8dbb522ad2c08a73f25ab02ab0">u</a></td></tr>
 <tr class="separator:aef340f8dbb522ad2c08a73f25ab02ab0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7bde38f7cc5b76a79c350141167992e1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structstruct.html">struct</a> xLIST_ITEM&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_segment__t.html#a7bde38f7cc5b76a79c350141167992e1">xQueueItem</a></td></tr>
+<tr class="separator:a7bde38f7cc5b76a79c350141167992e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59a037cac9030851305587a913cab86b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structstruct.html">struct</a> xLIST_ITEM&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_t_c_p_segment__t.html#a59a037cac9030851305587a913cab86b">xSegmentItem</a></td></tr>
+<tr class="separator:a59a037cac9030851305587a913cab86b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Structure to hold the information about a TCP segment. </p>
@@ -301,6 +305,36 @@ Data Fields</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Use a union to store the 32-bit flag field and the breakdown in the same location. </p>
+
+</div>
+</div>
+<a id="a7bde38f7cc5b76a79c350141167992e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7bde38f7cc5b76a79c350141167992e1">&#9670;&nbsp;</a></span>xQueueItem</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structstruct.html">struct</a> xLIST_ITEM TCPSegment_t::xQueueItem</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>TX only: segments can be linked in one of three queues: xPriorityQueue, xTxQueue, and xWaitQueue </p>
+
+</div>
+</div>
+<a id="a59a037cac9030851305587a913cab86b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59a037cac9030851305587a913cab86b">&#9670;&nbsp;</a></span>xSegmentItem</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structstruct.html">struct</a> xLIST_ITEM TCPSegment_t::xSegmentItem</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>With this item the segment can be connected to a list, depending on who is owning it </p>
 
 </div>
 </div>
