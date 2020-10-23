@@ -12,7 +12,7 @@
 
 /* Using prvCopyDataToQueue together with prvNotifyQueueSetContainer
    leads to a problem space explosion. Therefore, we use this stub
-   and a sepearted proof on prvCopyDataToQueue to deal with it.
+   and a separated proof on prvCopyDataToQueue to deal with it.
    As prvNotifyQueueSetContainer is disabled if configUSE_QUEUE_SETS != 1,
    in other cases the original implementation should be used. */
 #if ( configUSE_QUEUE_SETS == 1 )

@@ -87,6 +87,7 @@
 	#define tcpTCP_OPT_SACK_A					  5U /**< SACK option with first/last. */
 	#define tcpTCP_OPT_TIMESTAMP				  8U /**< Time-stamp option. */
 
+
 	#define tcpTCP_OPT_MSS_LEN					  4U /**< Length of TCP MSS option. */
 	#define tcpTCP_OPT_WSOPT_LEN				  3U /**< Length of TCP WSOPT option. */
 
