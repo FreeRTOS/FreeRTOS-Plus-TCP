@@ -154,7 +154,6 @@ status_t status;
 	{
 		ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
-		PRINTF( "RX Task Notify - " );
 		BaseType_t receiving = pdTRUE;
 
 		while( receiving == pdTRUE )
@@ -174,15 +173,6 @@ status_t status;
 							status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
 							pxBufferDescriptor->xDataLength = length;
 
-							PRINTF( "Receiving : " );
-
-							for( int x = 0; x < pxBufferDescriptor->xDataLength; x++ )
-							{
-								PRINTF( " %02x", pxBufferDescriptor->pucEthernetBuffer[ x ] );
-							}
-
-							PRINTF( " - " );
-
 							if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
 							{
 								xRxEvent.eEventType = eNetworkRxEvent;
@@ -196,7 +186,6 @@ status_t status;
 								}
 								else
 								{
-									PRINTF( "RX Event Sent\n" );
 									/* Message successfully transfered to the stack */
 								}
 							}
@@ -219,7 +208,6 @@ status_t status;
 					break;
 
 				case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
-					PRINTF( "RX Received an empty frame\n" );
 					receiving = pdFALSE;
 					break;
 
@@ -342,14 +330,6 @@ status_t status;
 
 	if( xGetPhyLinkStatus() )
 	{
-		PRINTF( "Sending : " );
-
-		for( int x = 0; x < pxNetworkBuffer->xDataLength; x++ )
-		{
-			PRINTF( " %02x", pxNetworkBuffer->pucEthernetBuffer[ x ] );
-		}
-
-		PRINTF( " - " );
 		status = ENET_SendFrame( ENET, &g_handle, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
 
 		switch( status )
@@ -360,7 +340,6 @@ status_t status;
 				break;
 
 			case kStatus_Success:
-				PRINTF( "TX Successful\n" );
 				iptraceNETWORK_INTERFACE_TRANSMIT();
 				response = pdTRUE;
 				break;
@@ -369,7 +348,6 @@ status_t status;
 
 	if( xReleaseAfterSend != pdFALSE )
 	{
-		PRINTF( "TX Release Buffer\n" );
 		vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
 	}
 
