@@ -154,7 +154,7 @@ status_t status;
 	{
 		ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
-		PRINTF("RX Task Notify - ");
+		PRINTF( "RX Task Notify - " );
 		BaseType_t receiving = pdTRUE;
 
 		while( receiving == pdTRUE )
@@ -174,12 +174,14 @@ status_t status;
 							status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
 							pxBufferDescriptor->xDataLength = length;
 
-							PRINTF("Receiving : ");
-							for(int x=0;x<pxBufferDescriptor->xDataLength;x++)
+							PRINTF( "Receiving : " );
+
+							for( int x = 0; x < pxBufferDescriptor->xDataLength; x++ )
 							{
-								PRINTF(" %02x",pxBufferDescriptor->pucEthernetBuffer[x]);
+								PRINTF( " %02x", pxBufferDescriptor->pucEthernetBuffer[ x ] );
 							}
-							PRINTF(" - ");
+
+							PRINTF( " - " );
 
 							if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
 							{
@@ -226,10 +228,10 @@ status_t status;
 					ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
 					/* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
 					break;
+
 				default:
 					PRINTF( "RX Receive default\n" );
 					break;
-
 			}
 		}
 	}
@@ -320,7 +322,7 @@ int bufferIndex;
 	/* Active TX/RX. */
 	ENET_StartRxTx( ENET, 1, 1 );
 
-	if( xTaskCreate( rx_task, "rx_task", 512, NULL, (configMAX_PRIORITIES - 1), &receiveTaskHandle ) != pdPASS )
+	if( xTaskCreate( rx_task, "rx_task", 512, NULL, ( configMAX_PRIORITIES - 1 ), &receiveTaskHandle ) != pdPASS )
 	{
 		PRINTF( "Network Receive Task creation failed!.\n" );
 
@@ -340,23 +342,25 @@ status_t status;
 
 	if( xGetPhyLinkStatus() )
 	{
-		PRINTF("Sending : ");
-		for(int x=0;x<pxNetworkBuffer->xDataLength;x++)
+		PRINTF( "Sending : " );
+
+		for( int x = 0; x < pxNetworkBuffer->xDataLength; x++ )
 		{
-			PRINTF(" %02x",pxNetworkBuffer->pucEthernetBuffer[x]);
+			PRINTF( " %02x", pxNetworkBuffer->pucEthernetBuffer[ x ] );
 		}
-		PRINTF(" - ");
+
+		PRINTF( " - " );
 		status = ENET_SendFrame( ENET, &g_handle, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
 
 		switch( status )
 		{
 			default: /* anything not Success will be a failure */
 			case kStatus_ENET_TxFrameBusy:
-				PRINTF("TX Frame Busy\n");
+				PRINTF( "TX Frame Busy\n" );
 				break;
 
 			case kStatus_Success:
-				PRINTF("TX Successful\n");
+				PRINTF( "TX Successful\n" );
 				iptraceNETWORK_INTERFACE_TRANSMIT();
 				response = pdTRUE;
 				break;
@@ -365,7 +369,7 @@ status_t status;
 
 	if( xReleaseAfterSend != pdFALSE )
 	{
-		PRINTF("TX Release Buffer\n");
+		PRINTF( "TX Release Buffer\n" );
 		vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
 	}
 
