@@ -1018,7 +1018,7 @@ NetworkBufferDescriptor_t * pxNewBuffer;
  * @param[in] pvBuffer: The pointer to packet buffer.
  * @param[in] uxOffset: Additional offset (such as the packet length of UDP packet etc.).
  *
- * @return The network buffer descriptor if the allignment is correct. Else a NULL is returned.
+ * @return The network buffer descriptor if the alignment is correct. Else a NULL is returned.
  */
 static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void *pvBuffer,
 																	 size_t uxOffset )
@@ -1065,7 +1065,7 @@ NetworkBufferDescriptor_t *pxResult;
 	 *
 	 * @param[in] pvBuffer: Pointer to the packet buffer.
 	 *
-	 * @return The network buffer if the allignment is correct. Else a NULL is returned.
+	 * @return The network buffer if the alignment is correct. Else a NULL is returned.
 	 */
 	NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void *pvBuffer )
 	{
@@ -1079,7 +1079,7 @@ NetworkBufferDescriptor_t *pxResult;
  *
  * @param[in] pvBuffer: Pointer to the UDP payload buffer.
  *
- * @return The network buffer if the allignment is correct. Else a NULL is returned.
+ * @return The network buffer if the alignment is correct. Else a NULL is returned.
  */
 NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer )
 {
@@ -1493,7 +1493,7 @@ TickType_t uxUseTimeout = uxTimeout;
  *
  * @param[in] pucEthernetBuffer: The ethernet packet under consideration.
  *
- * @return Enum saying whther to release or to process the packet.
+ * @return Enum saying whether to release or to process the packet.
  */
 eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucEthernetBuffer )
 {

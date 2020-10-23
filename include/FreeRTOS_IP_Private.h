@@ -315,7 +315,7 @@
 
 	/**
 	* Union for protocol headers to save space (RAM). Any packet cannot have more than one of
-	* the below protcols.
+	* the below protocols.
 	*/
 	typedef union xPROT_HEADERS
 	{
@@ -689,7 +689,7 @@ socket events. */
 			size_t uxEnoughSpace;                        /**< The value deemed as enough space. */
 			size_t uxRxStreamSize;                       /**< The Receive stream size */
 			size_t uxTxStreamSize;                       /**< The transmit stream size */
-			StreamBuffer_t *rxStream;                    /**< The pointer to the recevie stream buffer. */
+			StreamBuffer_t *rxStream;                    /**< The pointer to the receive stream buffer. */
 			StreamBuffer_t *txStream;                    /**< The pointer to the transmit stream buffer. */
 			#if ( ipconfigUSE_TCP_WIN == 1 )
 				NetworkBufferDescriptor_t *pxAckMessage; /**< The pointer to the ACK message */

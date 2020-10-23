@@ -153,7 +153,7 @@ ipconfigSUPPORT_OUTGOING_PINGS is not enabled. */
 	} ePingReplyStatus_t;
 
 	/**
-	* The sotfware timer struct for various IP functions
+	* The software timer struct for various IP functions
 	*/
 	typedef struct xIP_TIMER
 	{

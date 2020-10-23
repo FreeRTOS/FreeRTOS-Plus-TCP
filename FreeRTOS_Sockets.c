@@ -595,7 +595,7 @@ FreeRTOS_Socket_t *pxSocket;
 	 *        remove the socket from the set.
 	 *
 	 * @param[in] xSocket: The socket whose select bits are being cleared.
-         * @param[in] xSocketSet: The seocket set of the socket.
+         * @param[in] xSocketSet: The socket set of the socket.
          * @param[in] xBitsToClear: The bits to be cleared.
 	 */
 	void FreeRTOS_FD_CLR( Socket_t xSocket,
@@ -2495,7 +2495,7 @@ uint32_t ulReturn = 0UL;
  * @brief Function to get the local address and IP port of the given socket.
  *
  * @param[in] xSocket: Socket whose port is to be added to the pxAddress.
- * @param[out] pxAddress: Structre in which the IP address and the port number
+ * @param[out] pxAddress: Structure in which the IP address and the port number
  *                        is returned.
  *
  * @return Size of the freertos_sockaddr structure.

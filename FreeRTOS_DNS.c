@@ -785,7 +785,7 @@
 	 *
 	 * @param[in] pcHostName: The hostname for which an IP address is required.
          * @param[in] uxIdentifier: Identifier to send in the DNS message.
-         * @param[in] uxReadTimeOut_ticks: The timout in ticks for waiting. In case the user has supplied
+         * @param[in] uxReadTimeOut_ticks: The timeout in ticks for waiting. In case the user has supplied
 	 *                                 a call-back function, this value should be zero.
 	 *
 	 * @return The IPv4 IP address for the hostname being queried.

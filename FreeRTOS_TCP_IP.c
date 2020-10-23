@@ -2301,7 +2301,7 @@
 	 *        are complete.
 	 *
 	 * @param[in] pxSocket: Socket owning the the connection.
-         * @param[in] pxNetworkBuffer: The network buffer carrying teh TCP packet.
+         * @param[in] pxNetworkBuffer: The network buffer carrying the TCP packet.
 	 *
 	 * @return Length of the packet to be sent.
 	 */
@@ -3673,7 +3673,7 @@
 	/**
 	 * @brief Handle 'listen' event on the given socket.
 	 *
-	 * @param[in] pxSocket: The socket on which the listen occured.
+	 * @param[in] pxSocket: The socket on which the listen occurred.
          * @param[in] pxNetworkBuffer: The network buffer carrying the packet.
 	 *
 	 * @return If a new socket/duplicate socket is created, then the pointer to
