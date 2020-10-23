@@ -224,13 +224,22 @@ static void vListInsertGeneric( List_t * const pxList,
 	_static List_t xSegmentList;
 #endif
 
-/**< Logging verbosity level. */
+/** @brief Logging verbosity level. */
 BaseType_t xTCPWindowLoggingLevel = 0;
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 	/* Some 32-bit arithmetic: comparing sequence numbers */
 	static portINLINE BaseType_t xSequenceLessThanOrEqual( uint32_t a,
 														   uint32_t b );
+
+	/**
+	 * @brief Check if a <= b.
+	 *
+	 * @param[in] a: The value on the left-hand side.
+	 * @param[in] b: The value on the right-hand side.
+	 *
+	 * @return pdTRUE when "( b - a ) < 0x80000000". Else, pdFALSE.
+	 */
 	static portINLINE BaseType_t xSequenceLessThanOrEqual( uint32_t a,
 														   uint32_t b )
 	{
@@ -256,6 +265,15 @@ BaseType_t xTCPWindowLoggingLevel = 0;
 #if ( ipconfigUSE_TCP_WIN == 1 )
 	static portINLINE BaseType_t xSequenceLessThan( uint32_t a,
 													uint32_t b );
+
+	/**
+	 * @brief Check if a < b.
+	 *
+	 * @param[in] a: The value on the left-hand side.
+	 * @param[in] b: The value on the right-hand side.
+	 *
+	 * @return pdTRUE when "( b - ( a + 1 ) ) < 0x80000000", else pdFALSE.
+	 */
 	static portINLINE BaseType_t xSequenceLessThan( uint32_t a,
 													uint32_t b )
 	{
@@ -279,6 +297,15 @@ BaseType_t xTCPWindowLoggingLevel = 0;
 #if ( ipconfigUSE_TCP_WIN == 1 )
 	static portINLINE BaseType_t xSequenceGreaterThan( uint32_t a,
 													   uint32_t b );
+
+	/**
+	 * @brief Check if a > b.
+	 *
+	 * @param[in] a: The value on the left-hand side.
+	 * @param[in] b: The value on the right-hand side.
+	 *
+	 * @return pdTRUE when "( a - b ) < 0x80000000", else pdFALSE.
+	 */
 	static portINLINE BaseType_t xSequenceGreaterThan( uint32_t a,
 													   uint32_t b )
 	{
@@ -403,6 +430,11 @@ static void vListInsertGeneric( List_t * const pxList,
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Creates a pool of 'ipconfigTCP_WIN_SEG_COUNT' sector buffers. Should be called once only.
+	 *
+	 * @return When the allocation was successful: pdPASS, otherwise pdFAIL.
+	 */
 	static BaseType_t prvCreateSectors( void )
 	{
 	BaseType_t xIndex, xReturn;
@@ -446,6 +478,14 @@ static void vListInsertGeneric( List_t * const pxList,
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Find a segment with a given sequence number in the list of received segments.
+	 *
+	 * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+	 * @param[in] ulSequenceNumber: the sequence number to look-up
+	 *
+	 * @return The address of the segment descriptor found, or NULL when not found.
+	 */
 	static TCPSegment_t * xTCPWindowRxFind( const TCPWindow_t *pxWindow,
 											uint32_t ulSequenceNumber )
 	{
@@ -478,6 +518,16 @@ static void vListInsertGeneric( List_t * const pxList,
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Allocate a new segment object, either for transmission or reception.
+	 *
+	 * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+	 * @param[in] ulSequenceNumber: The sequence number.
+	 * @param[in] lCount: The number of bytes stored in this segment.
+	 * @param[in] xIsForRx: True when this is a reception segment.
+	 *
+	 * @return Allocate and initialise a segment descriptor, or NULL when none was available.
+	 */
 	static TCPSegment_t * xTCPWindowNew( TCPWindow_t *pxWindow,
 										 uint32_t ulSequenceNumber,
 										 int32_t lCount,
@@ -547,6 +597,13 @@ static void vListInsertGeneric( List_t * const pxList,
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief See if the peer has more packets for this node, before allowing to shut down the connection.
+	 *
+	 * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+	 *
+	 * @return pdTRUE if the connection can be closed. Else, pdFALSE.
+	 */
 	BaseType_t xTCPWindowRxEmpty( const TCPWindow_t *pxWindow )
 	{
 	BaseType_t xReturn;
@@ -583,6 +640,13 @@ static void vListInsertGeneric( List_t * const pxList,
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Remove the head item of a list (generic function).
+	 *
+	 * @param[in] pxList: The list of segment descriptors.
+	 *
+	 * @return The address of the segment descriptor, or NULL when not found.
+	 */
 	static TCPSegment_t * xTCPWindowGetHead( const List_t *pxList )
 	{
 	TCPSegment_t *pxSegment;
@@ -609,6 +673,13 @@ static void vListInsertGeneric( List_t * const pxList,
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Return the head item of a list (generic function).
+	 *
+	 * @param[in] pxList: The list of segment descriptors.
+	 *
+	 * @return The address of the segment descriptor, or NULL when the list is empty.
+	 */
 	static TCPSegment_t * xTCPWindowPeekHead( const List_t *pxList )
 	{
 	const ListItem_t *pxItem;
@@ -633,6 +704,11 @@ static void vListInsertGeneric( List_t * const pxList,
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Release a segment object, return it to the list of available segment holders.
+	 *
+	 * @param[in] pxSegment: The segment descriptor that must be freed.
+	 */
 	static void vTCPWindowFree( TCPSegment_t *pxSegment )
 	{
 		/*  Free entry pxSegment because it's not used any more.  The ownership
@@ -663,6 +739,11 @@ static void vListInsertGeneric( List_t * const pxList,
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Return all segment descriptor to the poll of descriptors, before deleting a socket.
+	 *
+	 * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+	 */
 	void vTCPWindowDestroy( TCPWindow_t const * pxWindow )
 	{
 	const List_t * pxSegments;
@@ -813,6 +894,9 @@ const int32_t l500ms = 500;
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Free the space occupied by the pool of segment descriptors, normally never used
+	 */
 	void vTCPSegmentCleanup( void )
 	{
 		/* Free and clear the TCP segments pointer. This function should only be called
@@ -845,6 +929,15 @@ const int32_t l500ms = 500;
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief A expected segment has been received, see if there is overlap with earlier segments.
+	 *
+	 * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+	 * @param[in] ulSequenceNumber: The sequence number of the segment that was received.
+	 * @param[in] ulLength: The number of bytes that were received.
+	 *
+	 * @return The first segment descriptor involved, or NULL when no matching descriptor was found.
+	 */
 	static TCPSegment_t * xTCPWindowRxConfirm( const TCPWindow_t *pxWindow,
 											   uint32_t ulSequenceNumber,
 											   uint32_t ulLength )
@@ -905,6 +998,17 @@ const int32_t l500ms = 500;
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Check what to do with a new incoming packet: store or ignore.
+	 *
+	 * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+	 * @param[in] ulSequenceNumber: The sequence number of the packet received.
+	 * @param[in] ulLength: The number of bytes received.
+	 * @param[in] ulSpace: The available space in the RX stream buffer.
+	 *
+	 * @return 0 or positive value indicating the offset at which the packet is to
+	 *         be stored, -1 if the packet is to be ignored.
+	 */
 	int32_t lTCPWindowRxCheck( TCPWindow_t *pxWindow,
 							   uint32_t ulSequenceNumber,
 							   uint32_t ulLength,
@@ -1150,6 +1254,15 @@ const int32_t l500ms = 500;
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Increment the position in a circular buffer of size 'lMax'.
+	 *
+	 * @param[in] lPosition: The current index in the buffer.
+	 * @param[in] lMax: The total number of items in this buffer.
+	 * @param[in] lCount: The number of bytes that must be advanced.
+	 *
+	 * @return The new incremented position, or "( lPosition + lCount ) % lMax".
+	 */
 	static int32_t lTCPIncrementTxPosition( int32_t lPosition,
 											int32_t lMax,
 											int32_t lCount )
@@ -1173,6 +1286,17 @@ const int32_t l500ms = 500;
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Will add data to be transmitted to the front of the segment fifo.
+	 *
+	 * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+	 * @param[in] ulLength: The number of bytes that will be sent.
+	 * @param[in] lPosition: The index in the TX stream buffer.
+	 * @param[in] lMax: The size of the ( circular ) TX stream buffer.
+	 *
+	 * @return The number of bytes added to the sliding window for transmission.
+
+	 */
 	int32_t lTCPWindowTxAdd( TCPWindow_t *pxWindow,
 							 uint32_t ulLength,
 							 int32_t lPosition,
@@ -1300,6 +1424,13 @@ const int32_t l500ms = 500;
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Returns true if there are no more outstanding TX segments.
+	 *
+	 * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+	 *
+	 * @return pdTRUE if there are no more outstanding Tx segments, else pdFALSE.
+	 */
 	BaseType_t xTCPWindowTxDone( const TCPWindow_t *pxWindow )
 	{
 		return listLIST_IS_EMPTY( ( &pxWindow->xTxSegments ) );
@@ -1310,6 +1441,14 @@ const int32_t l500ms = 500;
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Find out if the peer is able to receive more data.
+	 *
+	 * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+	 * @param[in] ulWindowSize: The number of bytes in this segment.
+	 *
+	 * @return True if the peer has space in it window to receive more data.
+	 */
 	static BaseType_t prvTCPWindowTxHasSpace( TCPWindow_t const * pxWindow,
 											  uint32_t ulWindowSize )
 	{
@@ -1371,6 +1510,15 @@ const int32_t l500ms = 500;
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Returns true if there is TX data that can be sent right now.
+	 *
+	 * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+	 * @param[in] ulWindowSize: The current size of the sliding RX window of the peer.
+	 * @param[out] pulDelay: The delay before the packet may be sent.
+	 *
+	 * @return pdTRUE if there is Tx data that can be sent, else pdFALSE.
+	 */
 	BaseType_t xTCPWindowTxHasData( TCPWindow_t const * pxWindow,
 									uint32_t ulWindowSize,
 									TickType_t *pulDelay )
@@ -1449,6 +1597,15 @@ const int32_t l500ms = 500;
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief Get data that can be transmitted right now.
+	 *
+	 * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+	 * @param[in] ulWindowSize: The current size of the sliding RX window of the peer.
+	 * @param[out] plPosition: The index within the TX stream buffer of the first byte to be sent.
+	 *
+	 * @return The amount of data in bytes that can be transmitted right now.
+	 */
 	uint32_t ulTCPWindowTxGet( TCPWindow_t *pxWindow,
 							   uint32_t ulWindowSize,
 							   int32_t *plPosition )
@@ -1789,6 +1946,14 @@ const int32_t l500ms = 500;
 
 #if ( ipconfigUSE_TCP_WIN == 1 )
 
+	/**
+	 * @brief See if there are segments that need a fast retransmission.
+	 *
+	 * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+	 * @param[in] ulFirst: The sequence number of the first segment that must be checked.
+	 *
+	 * @return The number of segments that need a fast retransmission.
+	 */
 	static uint32_t prvTCPWindowFastRetransmit( TCPWindow_t *pxWindow,
 												uint32_t ulFirst )
 	{
