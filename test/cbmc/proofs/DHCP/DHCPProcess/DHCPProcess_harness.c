@@ -1,30 +1,30 @@
 /*
-  * FreeRTOS memory safety proofs with CBMC.
-  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
-  *
-  * Permission is hereby granted, free of charge, to any person
-  * obtaining a copy of this software and associated documentation
-  * files (the "Software"), to deal in the Software without
-  * restriction, including without limitation the rights to use, copy,
-  * modify, merge, publish, distribute, sublicense, and/or sell copies
-  * of the Software, and to permit persons to whom the Software is
-  * furnished to do so, subject to the following conditions:
-  *
-  * The above copyright notice and this permission notice shall be
-  * included in all copies or substantial portions of the Software.
-  *
-  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-  * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-  * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  * SOFTWARE.
-  *
-  * http://aws.amazon.com/freertos
-  * http://www.FreeRTOS.org
-  */
+ * FreeRTOS memory safety proofs with CBMC.
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * http://aws.amazon.com/freertos
+ * http://www.FreeRTOS.org
+ */
 
 /* Standard includes. */
 #include <stdint.h>
@@ -49,54 +49,54 @@ void prvCreateDHCPSocket();
 
 /* Static member defined in freertos_api.c */
 #ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
-	extern uint32_t GetNetworkBuffer_failure_count;
+    extern uint32_t GetNetworkBuffer_failure_count;
 #endif
 
 /****************************************************************
- * The signature of the function under test.
- ****************************************************************/
+* The signature of the function under test.
+****************************************************************/
 
 void vDHCPProcess( BaseType_t xReset );
 
 /****************************************************************
- * Abstract prvProcessDHCPReplies proved memory safe in ProcessDHCPReplies.
- ****************************************************************/
+* Abstract prvProcessDHCPReplies proved memory safe in ProcessDHCPReplies.
+****************************************************************/
 
 BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType )
 {
-	return nondet_BaseType();
+    return nondet_BaseType();
 }
 
 /****************************************************************
- * The proof of vDHCPProcess
- ****************************************************************/
+* The proof of vDHCPProcess
+****************************************************************/
 
 void harness()
 {
-BaseType_t xReset;
+    BaseType_t xReset;
 
-	/****************************************************************
-	 * Initialize the counter used to bound the number of times
-	 * GetNetworkBufferWithDescriptor can fail.
-	 ****************************************************************/
+    /****************************************************************
+    * Initialize the counter used to bound the number of times
+    * GetNetworkBufferWithDescriptor can fail.
+    ****************************************************************/
 
-	#ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
-		GetNetworkBuffer_failure_count = 0;
-	#endif
+    #ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
+        GetNetworkBuffer_failure_count = 0;
+    #endif
 
-	/****************************************************************
-	 * Assume a valid socket in most states of the DHCP state machine.
-	 *
-	 * The socket is created in the eWaitingSendFirstDiscover state.
-	 * xReset==True resets the state to eWaitingSendFirstDiscover.
-	 ****************************************************************/
+    /****************************************************************
+    * Assume a valid socket in most states of the DHCP state machine.
+    *
+    * The socket is created in the eWaitingSendFirstDiscover state.
+    * xReset==True resets the state to eWaitingSendFirstDiscover.
+    ****************************************************************/
 
-	if( !( ( xDHCPData.eDHCPState == eWaitingSendFirstDiscover ) ||
-		   ( xReset != pdFALSE ) ) )
-	{
-		prvCreateDHCPSocket();
-		__CPROVER_assume( xDHCPSocket != NULL );
-	}
+    if( !( ( xDHCPData.eDHCPState == eWaitingSendFirstDiscover ) ||
+           ( xReset != pdFALSE ) ) )
+    {
+        prvCreateDHCPSocket();
+        __CPROVER_assume( xDHCPSocket != NULL );
+    }
 
-	vDHCPProcess( xReset );
+    vDHCPProcess( xReset );
 }
