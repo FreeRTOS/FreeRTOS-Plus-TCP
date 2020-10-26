@@ -109,13 +109,13 @@
 	type. */
 	#define dnsPARSE_ERROR    0UL
 
-	#ifndef _lint
-		#if ( ipconfigUSE_DNS_CACHE == 0 )
-			#if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY != 1 )
-				#error When DNS caching is disabled, please make ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY equal to 1.
-			#endif
-		#endif
-	#endif
+    #ifndef _lint
+        #if ( ipconfigUSE_DNS_CACHE == 0 )
+            #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY != 1 )
+                #error When DNS caching is disabled, please make ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY equal to 1.
+            #endif
+        #endif
+    #endif
 
 	/** @brief Define the ASCII value of '.' (Period/Full-stop). */
 	#define ASCII_BASELINE_DOT    46U
@@ -395,10 +395,10 @@
 
 	/*-----------------------------------------------------------*/
 
-	#if ( ipconfigUSE_DNS_CACHE == 1 )
-		uint32_t FreeRTOS_dnslookup( const char *pcHostName )
-		{
-		uint32_t ulIPAddress = 0UL;
+    #if ( ipconfigUSE_DNS_CACHE == 1 )
+        uint32_t FreeRTOS_dnslookup( const char * pcHostName )
+        {
+            uint32_t ulIPAddress = 0UL;
 
 			( void ) prvProcessDNSCache( pcHostName, &ulIPAddress, 0, pdTRUE );
 			return ulIPAddress;
@@ -1287,7 +1287,8 @@
 	}
 	/*-----------------------------------------------------------*/
 
-	#if ( ipconfigUSE_NBNS == 1 )
+
+    #if ( ipconfigUSE_NBNS == 1 )
 
 		/**
 		* @brief Handle an NBNS packet.
@@ -1300,14 +1301,14 @@
 		{
 		UDPPacket_t *pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
 		uint8_t *pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( *pxUDPPacket ) ] );
+  
+            prvTreatNBNS( pucUDPPayloadBuffer,
+                          pxNetworkBuffer->xDataLength,
+                          pxUDPPacket->xIPHeader.ulSourceIPAddress );
 
-			prvTreatNBNS( pucUDPPayloadBuffer,
-						  pxNetworkBuffer->xDataLength,
-						  pxUDPPacket->xIPHeader.ulSourceIPAddress );
-
-			/* The packet was not consumed. */
-			return pdFAIL;
-		}
+            /* The packet was not consumed. */
+            return pdFAIL;
+        }
 
 	#endif /* ipconfigUSE_NBNS */
 	/*-----------------------------------------------------------*/
@@ -1972,128 +1973,129 @@
 		}
 
 	#endif /* ipconfigUSE_NBNS == 1 || ipconfigUSE_LLMNR == 1 */
+
 /*-----------------------------------------------------------*/
 
-	#if ( ipconfigUSE_DNS_CACHE == 1 )
+    #if ( ipconfigUSE_DNS_CACHE == 1 )
 
-		static BaseType_t prvProcessDNSCache( const char *pcName,
-											  uint32_t *pulIP,
-											  uint32_t ulTTL,
-											  BaseType_t xLookUp )
-		{
-		BaseType_t x;
-		BaseType_t xFound = pdFALSE;
-		uint32_t ulCurrentTimeSeconds = ( xTaskGetTickCount() / portTICK_PERIOD_MS ) / 1000UL;
-		uint32_t ulIPAddressIndex = 0;
-		static BaseType_t xFreeEntry = 0;
+        static BaseType_t prvProcessDNSCache( const char * pcName,
+                                              uint32_t * pulIP,
+                                              uint32_t ulTTL,
+                                              BaseType_t xLookUp )
+        {
+            BaseType_t x;
+            BaseType_t xFound = pdFALSE;
+            uint32_t ulCurrentTimeSeconds = ( xTaskGetTickCount() / portTICK_PERIOD_MS ) / 1000UL;
+            uint32_t ulIPAddressIndex = 0;
+            static BaseType_t xFreeEntry = 0;
 
-			configASSERT( ( pcName != NULL ) );
+            configASSERT( ( pcName != NULL ) );
 
-			/* For each entry in the DNS cache table. */
-			for( x = 0; x < ipconfigDNS_CACHE_ENTRIES; x++ )
-			{
-				if( xDNSCache[ x ].pcName[ 0 ] == ( char ) 0 )
-				{
-					continue;
-				}
+            /* For each entry in the DNS cache table. */
+            for( x = 0; x < ipconfigDNS_CACHE_ENTRIES; x++ )
+            {
+                if( xDNSCache[ x ].pcName[ 0 ] == ( char ) 0 )
+                {
+                    continue;
+                }
 
-				if( strcmp( xDNSCache[ x ].pcName, pcName ) == 0 )
-				{
-					/* Is this function called for a lookup or to add/update an IP address? */
-					if( xLookUp != pdFALSE )
-					{
-						/* Confirm that the record is still fresh. */
-						if( ulCurrentTimeSeconds < ( xDNSCache[ x ].ulTimeWhenAddedInSeconds + FreeRTOS_ntohl( xDNSCache[ x ].ulTTL ) ) )
-						{
-							#if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-								uint8_t ucIndex;
-								/* The ucCurrentIPAddress value increments without bound and will rollover, */
-								/*  modulo it by the number of IP addresses to keep it in range.     */
-								/*  Also perform a final modulo by the max number of IP addresses    */
-								/*  per DNS cache entry to prevent out-of-bounds access in the event */
-								/*  that ucNumIPAddresses has been corrupted.                        */
-								ucIndex = xDNSCache[ x ].ucCurrentIPAddress % xDNSCache[ x ].ucNumIPAddresses;
-								ucIndex = ucIndex % ( uint8_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
-								ulIPAddressIndex = ucIndex;
+                if( strcmp( xDNSCache[ x ].pcName, pcName ) == 0 )
+                {
+                    /* Is this function called for a lookup or to add/update an IP address? */
+                    if( xLookUp != pdFALSE )
+                    {
+                        /* Confirm that the record is still fresh. */
+                        if( ulCurrentTimeSeconds < ( xDNSCache[ x ].ulTimeWhenAddedInSeconds + FreeRTOS_ntohl( xDNSCache[ x ].ulTTL ) ) )
+                        {
+                            #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
+                                uint8_t ucIndex;
+                                /* The ucCurrentIPAddress value increments without bound and will rollover, */
+                                /*  modulo it by the number of IP addresses to keep it in range.     */
+                                /*  Also perform a final modulo by the max number of IP addresses    */
+                                /*  per DNS cache entry to prevent out-of-bounds access in the event */
+                                /*  that ucNumIPAddresses has been corrupted.                        */
+                                ucIndex = xDNSCache[ x ].ucCurrentIPAddress % xDNSCache[ x ].ucNumIPAddresses;
+                                ucIndex = ucIndex % ( uint8_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
+                                ulIPAddressIndex = ucIndex;
 
-								xDNSCache[ x ].ucCurrentIPAddress++;
-							#endif /* if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 ) */
-							*pulIP = xDNSCache[ x ].ulIPAddresses[ ulIPAddressIndex ];
-						}
-						else
-						{
-							/* Age out the old cached record. */
-							xDNSCache[ x ].pcName[ 0 ] = ( char ) 0;
-						}
-					}
-					else
-					{
-						#if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-							if( xDNSCache[ x ].ucNumIPAddresses < ( uint8_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY )
-							{
-								/* If more answers exist than there are IP address storage slots */
-								/* they will overwrite entry 0 */
+                                xDNSCache[ x ].ucCurrentIPAddress++;
+                            #endif /* if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 ) */
+                            *pulIP = xDNSCache[ x ].ulIPAddresses[ ulIPAddressIndex ];
+                        }
+                        else
+                        {
+                            /* Age out the old cached record. */
+                            xDNSCache[ x ].pcName[ 0 ] = ( char ) 0;
+                        }
+                    }
+                    else
+                    {
+                        #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
+                            if( xDNSCache[ x ].ucNumIPAddresses < ( uint8_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY )
+                            {
+                                /* If more answers exist than there are IP address storage slots */
+                                /* they will overwrite entry 0 */
 
-								ulIPAddressIndex = xDNSCache[ x ].ucNumIPAddresses;
-								xDNSCache[ x ].ucNumIPAddresses++;
-							}
-						#endif
-						xDNSCache[ x ].ulIPAddresses[ ulIPAddressIndex ] = *pulIP;
-						xDNSCache[ x ].ulTTL = ulTTL;
-						xDNSCache[ x ].ulTimeWhenAddedInSeconds = ulCurrentTimeSeconds;
-					}
+                                ulIPAddressIndex = xDNSCache[ x ].ucNumIPAddresses;
+                                xDNSCache[ x ].ucNumIPAddresses++;
+                            }
+                        #endif
+                        xDNSCache[ x ].ulIPAddresses[ ulIPAddressIndex ] = *pulIP;
+                        xDNSCache[ x ].ulTTL = ulTTL;
+                        xDNSCache[ x ].ulTimeWhenAddedInSeconds = ulCurrentTimeSeconds;
+                    }
 
-					xFound = pdTRUE;
-					break;
-				}
-			}
+                    xFound = pdTRUE;
+                    break;
+                }
+            }
 
-			if( xFound == pdFALSE )
-			{
-				if( xLookUp != pdFALSE )
-				{
-					*pulIP = 0UL;
-				}
-				else
-				{
-					/* Add or update the item. */
-					if( strlen( pcName ) < ( size_t ) ipconfigDNS_CACHE_NAME_LENGTH )
-					{
-						( void ) strcpy( xDNSCache[ xFreeEntry ].pcName, pcName );
+            if( xFound == pdFALSE )
+            {
+                if( xLookUp != pdFALSE )
+                {
+                    *pulIP = 0UL;
+                }
+                else
+                {
+                    /* Add or update the item. */
+                    if( strlen( pcName ) < ( size_t ) ipconfigDNS_CACHE_NAME_LENGTH )
+                    {
+                        ( void ) strcpy( xDNSCache[ xFreeEntry ].pcName, pcName );
 
-						xDNSCache[ xFreeEntry ].ulIPAddresses[ 0 ] = *pulIP;
-						xDNSCache[ xFreeEntry ].ulTTL = ulTTL;
-						xDNSCache[ xFreeEntry ].ulTimeWhenAddedInSeconds = ulCurrentTimeSeconds;
-						#if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-							xDNSCache[ xFreeEntry ].ucNumIPAddresses = 1;
-							xDNSCache[ xFreeEntry ].ucCurrentIPAddress = 0;
+                        xDNSCache[ xFreeEntry ].ulIPAddresses[ 0 ] = *pulIP;
+                        xDNSCache[ xFreeEntry ].ulTTL = ulTTL;
+                        xDNSCache[ xFreeEntry ].ulTimeWhenAddedInSeconds = ulCurrentTimeSeconds;
+                        #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
+                            xDNSCache[ xFreeEntry ].ucNumIPAddresses = 1;
+                            xDNSCache[ xFreeEntry ].ucCurrentIPAddress = 0;
 
-							/* Initialize all remaining IP addresses in this entry to 0 */
-							( void ) memset( &xDNSCache[ xFreeEntry ].ulIPAddresses[ 1 ],
-											 0,
-											 sizeof( xDNSCache[ xFreeEntry ].ulIPAddresses[ 1 ] ) *
-											 ( ( uint32_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY - 1U ) );
-						#endif
+                            /* Initialize all remaining IP addresses in this entry to 0 */
+                            ( void ) memset( &xDNSCache[ xFreeEntry ].ulIPAddresses[ 1 ],
+                                             0,
+                                             sizeof( xDNSCache[ xFreeEntry ].ulIPAddresses[ 1 ] ) *
+                                             ( ( uint32_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY - 1U ) );
+                        #endif
 
-						xFreeEntry++;
+                        xFreeEntry++;
 
-						if( xFreeEntry == ipconfigDNS_CACHE_ENTRIES )
-						{
-							xFreeEntry = 0;
-						}
-					}
-				}
-			}
+                        if( xFreeEntry == ipconfigDNS_CACHE_ENTRIES )
+                        {
+                            xFreeEntry = 0;
+                        }
+                    }
+                }
+            }
 
-			if( ( xLookUp == 0 ) || ( *pulIP != 0UL ) )
-			{
-				FreeRTOS_debug_printf( ( "prvProcessDNSCache: %s: '%s' @ %lxip\n", ( xLookUp != 0 ) ? "look-up" : "add", pcName, FreeRTOS_ntohl( *pulIP ) ) );
-			}
+            if( ( xLookUp == 0 ) || ( *pulIP != 0UL ) )
+            {
+                FreeRTOS_debug_printf( ( "prvProcessDNSCache: %s: '%s' @ %lxip\n", ( xLookUp != 0 ) ? "look-up" : "add", pcName, FreeRTOS_ntohl( *pulIP ) ) );
+            }
 
-			return xFound;
-		}
+            return xFound;
+        }
 
-	#endif /* ipconfigUSE_DNS_CACHE */
+    #endif /* ipconfigUSE_DNS_CACHE */
 
 #endif /* ipconfigUSE_DNS != 0 */
 
@@ -2101,5 +2103,5 @@
 
 /* Provide access to private members for testing. */
 #ifdef FREERTOS_ENABLE_UNIT_TESTS
-	#include "freertos_tcp_test_access_dns_define.h"
+    #include "freertos_tcp_test_access_dns_define.h"
 #endif

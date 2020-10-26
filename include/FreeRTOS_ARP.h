@@ -24,11 +24,11 @@
  */
 
 #ifndef FREERTOS_ARP_H
-	#define FREERTOS_ARP_H
+    #define FREERTOS_ARP_H
 
-	#ifdef __cplusplus
-	extern "C" {
-	#endif
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
 	/* Application level configuration options. */
 	#include "FreeRTOSIPConfig.h"
@@ -66,22 +66,22 @@
 	void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 								const uint32_t ulIPAddress );
 
-	#if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
-		/* Becomes non-zero if another device responded to a gratuitous ARP message. */
-		extern BaseType_t xARPHadIPClash;
-		/* MAC-address of the other device containing the same IP-address. */
-		extern MACAddress_t xARPClashMacAddress;
-	#endif /* ipconfigARP_USE_CLASH_DETECTION */
+    #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
+        /* Becomes non-zero if another device responded to a gratuitous ARP message. */
+        extern BaseType_t xARPHadIPClash;
+        /* MAC-address of the other device containing the same IP-address. */
+        extern MACAddress_t xARPClashMacAddress;
+    #endif /* ipconfigARP_USE_CLASH_DETECTION */
 
-	#if ( ipconfigUSE_ARP_REMOVE_ENTRY != 0 )
+    #if ( ipconfigUSE_ARP_REMOVE_ENTRY != 0 )
 
-		/*
-		* In some rare cases, it might be useful to remove a ARP cache entry of a
-		* known MAC address to make sure it gets refreshed.
-		*/
-		uint32_t ulARPRemoveCacheEntryByMac( const MACAddress_t * pxMACAddress );
+/*
+ * In some rare cases, it might be useful to remove a ARP cache entry of a
+ * known MAC address to make sure it gets refreshed.
+ */
+        uint32_t ulARPRemoveCacheEntryByMac( const MACAddress_t * pxMACAddress );
 
-	#endif /* ipconfigUSE_ARP_REMOVE_ENTRY != 0 */
+    #endif /* ipconfigUSE_ARP_REMOVE_ENTRY != 0 */
 
 	/*
 	* Look for ulIPAddress in the ARP cache.  If the IP address exists, copy the
@@ -94,13 +94,13 @@
 	eARPLookupResult_t eARPGetCacheEntry( uint32_t *pulIPAddress,
 										  MACAddress_t * const pxMACAddress );
 
-	#if ( ipconfigUSE_ARP_REVERSED_LOOKUP != 0 )
+    #if ( ipconfigUSE_ARP_REVERSED_LOOKUP != 0 )
 
-		/* Lookup an IP-address if only the MAC-address is known */
-		eARPLookupResult_t eARPGetCacheEntryByMac( MACAddress_t * const pxMACAddress,
-												   uint32_t *pulIPAddress );
+/* Lookup an IP-address if only the MAC-address is known */
+        eARPLookupResult_t eARPGetCacheEntryByMac( MACAddress_t * const pxMACAddress,
+                                                   uint32_t * pulIPAddress );
 
-	#endif
+    #endif
 
 	/*
 	* Reduce the age count in each entry within the ARP cache.  An entry is no
@@ -142,5 +142,6 @@
 	#ifdef __cplusplus
 	} /* extern "C" */
 	#endif
+
 
 #endif /* FREERTOS_ARP_H */

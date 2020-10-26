@@ -6,6 +6,6 @@
 
 BaseType_t xState;
 void vInitTaskCheckForTimeOut( BaseType_t maxCounter,
-							   BaseType_t maxCounter_limit );
+                               BaseType_t maxCounter_limit );
 
 #endif /* INC_TASK_STUBS_H */

@@ -76,6 +76,7 @@
 
 	#define tcpTCP_FLAG_CTRL					  ( ( uint8_t ) 0x1FU ) /**< A mask to filter all protocol flags. */
 
+
 /*
  * A few values of the TCP options:
  */
@@ -97,6 +98,7 @@
 		#define ipconfigTCP_ACK_EARLIER_PACKET	  1   /**< Acknowledge an earlier packet. */
 	#endif
 
+
 /** @brief
  * The macro tcpNOW_CONNECTED() is use to determine if the connection makes a
  * transition from connected to non-connected and vice versa.
@@ -106,14 +108,14 @@
  * to prevent that the socket will be deleted before the last ACK has been
  * and thus causing a 'RST' packet on either side.
  */
-	#define tcpNOW_CONNECTED( status ) \
-	( ( ( ( status ) >= ( BaseType_t ) eESTABLISHED ) && ( ( status ) != ( BaseType_t ) eCLOSE_WAIT ) ) ? 1 : 0 )
+    #define tcpNOW_CONNECTED( status ) \
+    ( ( ( ( status ) >= ( BaseType_t ) eESTABLISHED ) && ( ( status ) != ( BaseType_t ) eCLOSE_WAIT ) ) ? 1 : 0 )
 
 /** @brief
  * The highest 4 bits in the TCP offset byte indicate the total length of the
  * TCP header, divided by 4.
  */
-	#define tcpVALID_BITS_IN_TCP_OFFSET_BYTE	( 0xF0U )
+    #define tcpVALID_BITS_IN_TCP_OFFSET_BYTE    ( 0xF0U )
 
 /*
  * Acknowledgements to TCP data packets may be delayed as long as more is being expected.
@@ -123,12 +125,13 @@
 	#define tcpDELAYED_ACK_SHORT_DELAY_MS		( 2 )   /**< Should not become smaller than 1. */
 	#define tcpDELAYED_ACK_LONGER_DELAY_MS		( 20 )  /**< Longer delay for ACK. */
 
+
 /** @brief
  * The MSS (Maximum Segment Size) will be taken as large as possible. However, packets with
  * an MSS of 1460 bytes won't be transported through the internet.  The MSS will be reduced
  * to 1400 bytes.
  */
-	#define tcpREDUCED_MSS_THROUGH_INTERNET		( 1400 )
+    #define tcpREDUCED_MSS_THROUGH_INTERNET     ( 1400 )
 
 /** @brief
  * When there are no TCP options, the TCP offset equals 20 bytes, which is stored as
@@ -137,97 +140,99 @@
 	#define tcpTCP_OFFSET_LENGTH_BITS			( 0xf0U )
 	#define tcpTCP_OFFSET_STANDARD_LENGTH		( 0x50U ) /**< Standard TCP packet offset. */
 
+
 /** @brief
  * Each TCP socket is checked regularly to see if it can send data packets.
  * By default, the maximum number of packets sent during one check is limited to 8.
  * This amount may be further limited by setting the socket's TX window size.
  */
-	#if ( !defined( SEND_REPEATED_COUNT ) )
-		#define SEND_REPEATED_COUNT    ( 8 )
-	#endif /* !defined( SEND_REPEATED_COUNT ) */
+    #if ( !defined( SEND_REPEATED_COUNT ) )
+        #define SEND_REPEATED_COUNT    ( 8 )
+    #endif /* !defined( SEND_REPEATED_COUNT ) */
 
 /** @brief
  * Define a maximum period of time (ms) to leave a TCP-socket unattended.
  * When a TCP timer expires, retries and keep-alive messages will be checked.
  */
-	#ifndef tcpMAXIMUM_TCP_WAKEUP_TIME_MS
-		#define tcpMAXIMUM_TCP_WAKEUP_TIME_MS    20000U
-	#endif
+    #ifndef tcpMAXIMUM_TCP_WAKEUP_TIME_MS
+        #define tcpMAXIMUM_TCP_WAKEUP_TIME_MS    20000U
+    #endif
 
 /* Two macro's that were introduced to work with both IPv4 and IPv6. */
 	#define xIPHeaderSize( pxNetworkBuffer )	( ipSIZE_OF_IPv4_HEADER )  /**< Size of IP Header. */
 	#define uxIPHeaderSizeSocket( pxSocket )	( ipSIZE_OF_IPv4_HEADER )  /**< Size of IP Header socket. */
 
+
 /*
  * Returns true if the socket must be checked.  Non-active sockets are waiting
  * for user action, either connect() or close().
  */
-	static BaseType_t prvTCPSocketIsActive( eIPTCPState_t xStatus );
+    static BaseType_t prvTCPSocketIsActive( eIPTCPState_t xStatus );
 
 /*
  * Either sends a SYN or calls prvTCPSendRepeated (for regular messages).
  */
-	static int32_t prvTCPSendPacket( FreeRTOS_Socket_t *pxSocket );
+    static int32_t prvTCPSendPacket( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Try to send a series of messages.
  */
-	static int32_t prvTCPSendRepeated( FreeRTOS_Socket_t *pxSocket,
-									   NetworkBufferDescriptor_t **ppxNetworkBuffer );
+    static int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
+                                       NetworkBufferDescriptor_t ** ppxNetworkBuffer );
 
 /*
  * Return or send a packet to the other party.
  */
-	static void prvTCPReturnPacket( FreeRTOS_Socket_t *pxSocket,
-									NetworkBufferDescriptor_t *pxDescriptor,
-									uint32_t ulLen,
-									BaseType_t xReleaseAfterSend );
+    static void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
+                                    NetworkBufferDescriptor_t * pxDescriptor,
+                                    uint32_t ulLen,
+                                    BaseType_t xReleaseAfterSend );
 
 /*
  * Initialise the data structures which keep track of the TCP windowing system.
  */
-	static void prvTCPCreateWindow( FreeRTOS_Socket_t *pxSocket );
+    static void prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Let ARP look-up the MAC-address of the peer and initialise the first SYN
  * packet.
  */
-	static BaseType_t prvTCPPrepareConnect( FreeRTOS_Socket_t *pxSocket );
+    static BaseType_t prvTCPPrepareConnect( FreeRTOS_Socket_t * pxSocket );
 
-	#if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
-		/*
-		* For logging and debugging: make a string showing the TCP flags.
-		*/
-		static const char * prvTCPFlagMeaning( UBaseType_t xFlags );
-	#endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+/*
+ * For logging and debugging: make a string showing the TCP flags.
+ */
+        static const char * prvTCPFlagMeaning( UBaseType_t xFlags );
+    #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
 
 /*
  * Parse the TCP option(s) received, if present.
  */
-	_static void prvCheckOptions( FreeRTOS_Socket_t *pxSocket,
-								  const NetworkBufferDescriptor_t *pxNetworkBuffer );
+    _static void prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+                                  const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Identify and deal with a single TCP header option, advancing the pointer to
  * the header. This function returns pdTRUE or pdFALSE depending on whether the
  * caller should continue to parse more header options or break the loop.
  */
-	_static size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-												  size_t uxTotalLength,
-												  FreeRTOS_Socket_t * const pxSocket,
-												  BaseType_t xHasSYNFlag );
+    _static size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                                  size_t uxTotalLength,
+                                                  FreeRTOS_Socket_t * const pxSocket,
+                                                  BaseType_t xHasSYNFlag );
 
-	#if ( ipconfigUSE_TCP_WIN == 1 )
+    #if ( ipconfigUSE_TCP_WIN == 1 )
 
-		/*
-		* Skip past TCP header options when doing Selective ACK, until there are no
-		* more options left.
-		*/
-		_static void prvReadSackOption( const uint8_t * const pucPtr,
-										size_t uxIndex,
-										FreeRTOS_Socket_t * const pxSocket );
-	#endif /* ( ipconfigUSE_TCP_WIN == 1 ) */
+/*
+ * Skip past TCP header options when doing Selective ACK, until there are no
+ * more options left.
+ */
+        _static void prvReadSackOption( const uint8_t * const pucPtr,
+                                        size_t uxIndex,
+                                        FreeRTOS_Socket_t * const pxSocket );
+    #endif /* ( ipconfigUSE_TCP_WIN == 1 ) */
 
 
 /*
@@ -235,151 +240,151 @@
  * value of MSS and whether SACK allowed.  Will be transmitted in the state
  * 'eCONNECT_SYN'.
  */
-	static UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t *pxSocket,
-											TCPHeader_t *pxTCPHeader );
+    static UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t * pxSocket,
+                                            TCPHeader_t * pxTCPHeader );
 
 /*
  * For anti-hang protection and TCP keep-alive messages.  Called in two places:
  * after receiving a packet and after a state change.  The socket's alive timer
  * may be reset.
  */
-	static void prvTCPTouchSocket( FreeRTOS_Socket_t *pxSocket );
+    static void prvTCPTouchSocket( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Prepare an outgoing message, if anything has to be sent.
  */
-	static int32_t prvTCPPrepareSend( FreeRTOS_Socket_t *pxSocket,
-									  NetworkBufferDescriptor_t **ppxNetworkBuffer,
-									  UBaseType_t uxOptionsLength );
+    static int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
+                                      NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                                      UBaseType_t uxOptionsLength );
 
 /*
  * Calculate when this socket needs to be checked to do (re-)transmissions.
  */
-	static TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t *pxSocket );
+    static TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * The API FreeRTOS_send() adds data to the TX stream.  Add
  * this data to the windowing system to it can be transmitted.
  */
-	static void prvTCPAddTxData( FreeRTOS_Socket_t *pxSocket );
+    static void prvTCPAddTxData( FreeRTOS_Socket_t * pxSocket );
 
 /*
  *  Called to handle the closure of a TCP connection.
  */
-	static BaseType_t prvTCPHandleFin( FreeRTOS_Socket_t *pxSocket,
-									   const NetworkBufferDescriptor_t *pxNetworkBuffer );
+    static BaseType_t prvTCPHandleFin( FreeRTOS_Socket_t * pxSocket,
+                                       const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Called from prvTCPHandleState().  Find the TCP payload data and check and
  * return its length.
  */
-	static BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t *pxNetworkBuffer,
-									  uint8_t **ppucRecvData );
+    static BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                      uint8_t ** ppucRecvData );
 
 /*
  * Called from prvTCPHandleState().  Check if the payload data may be accepted.
  * If so, it will be added to the socket's reception queue.
  */
-	static BaseType_t prvStoreRxData( FreeRTOS_Socket_t *pxSocket,
-									  const uint8_t *pucRecvData,
-									  NetworkBufferDescriptor_t *pxNetworkBuffer,
-									  uint32_t ulReceiveLength );
+    static BaseType_t prvStoreRxData( FreeRTOS_Socket_t * pxSocket,
+                                      const uint8_t * pucRecvData,
+                                      NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                      uint32_t ulReceiveLength );
 
 /*
  * Set the TCP options (if any) for the outgoing packet.
  */
-	static UBaseType_t prvSetOptions( FreeRTOS_Socket_t *pxSocket,
-									  const NetworkBufferDescriptor_t *pxNetworkBuffer );
+    static UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
+                                      const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Called from prvTCPHandleState() as long as the TCP status is eSYN_RECEIVED to
  * eCONNECT_SYN.
  */
-	static BaseType_t prvHandleSynReceived( FreeRTOS_Socket_t *pxSocket,
-											const NetworkBufferDescriptor_t *pxNetworkBuffer,
-											uint32_t ulReceiveLength,
-											UBaseType_t uxOptionsLength );
+    static BaseType_t prvHandleSynReceived( FreeRTOS_Socket_t * pxSocket,
+                                            const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                            uint32_t ulReceiveLength,
+                                            UBaseType_t uxOptionsLength );
 
 /*
  * Called from prvTCPHandleState() as long as the TCP status is eESTABLISHED.
  */
-	static BaseType_t prvHandleEstablished( FreeRTOS_Socket_t *pxSocket,
-											NetworkBufferDescriptor_t **ppxNetworkBuffer,
-											uint32_t ulReceiveLength,
-											UBaseType_t uxOptionsLength );
+    static BaseType_t prvHandleEstablished( FreeRTOS_Socket_t * pxSocket,
+                                            NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                                            uint32_t ulReceiveLength,
+                                            UBaseType_t uxOptionsLength );
 
 /*
  * Called from prvTCPHandleState().  There is data to be sent.
  * If ipconfigUSE_TCP_WIN is defined, and if only an ACK must be sent, it will
  * be checked if it would better be postponed for efficiency.
  */
-	static BaseType_t prvSendData( FreeRTOS_Socket_t *pxSocket,
-								   NetworkBufferDescriptor_t **ppxNetworkBuffer,
-								   uint32_t ulReceiveLength,
-								   BaseType_t xByteCount );
+    static BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
+                                   NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                                   uint32_t ulReceiveLength,
+                                   BaseType_t xByteCount );
 
 /*
  * The heart of all: check incoming packet for valid data and acks and do what
  * is necessary in each state.
  */
-	static BaseType_t prvTCPHandleState( FreeRTOS_Socket_t *pxSocket,
-										 NetworkBufferDescriptor_t **ppxNetworkBuffer );
+    static BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
+                                         NetworkBufferDescriptor_t ** ppxNetworkBuffer );
 
 /*
  * Common code for sending a TCP protocol control packet (i.e. no options, no
  * payload, just flags).
  */
-	static BaseType_t prvTCPSendSpecialPacketHelper( NetworkBufferDescriptor_t *pxNetworkBuffer,
-													 uint8_t ucTCPFlags );
+    static BaseType_t prvTCPSendSpecialPacketHelper( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                     uint8_t ucTCPFlags );
 
 /*
  * A "challenge ACK" is as per https://tools.ietf.org/html/rfc5961#section-3.2,
  * case #3. In summary, an RST was received with a sequence number that is
  * unexpected but still within the window.
  */
-	static BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t *pxNetworkBuffer );
+    static BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Reply to a peer with the RST flag on, in case a packet can not be handled.
  */
-	static BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t *pxNetworkBuffer );
+    static BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Set the initial value for MSS (Maximum Segment Size) to be used.
  */
-	static void prvSocketSetMSS( FreeRTOS_Socket_t *pxSocket );
+    static void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Return either a newly created socket, or the current socket in a connected
  * state (depends on the 'bReuseSocket' flag).
  */
-	static FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t *pxSocket,
-												NetworkBufferDescriptor_t *pxNetworkBuffer );
+    static FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
+                                                NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * After a listening socket receives a new connection, it may duplicate itself.
  * The copying takes place in prvTCPSocketCopy.
  */
-	static BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t *pxNewSocket,
-										FreeRTOS_Socket_t *pxSocket );
+    static BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
+                                        FreeRTOS_Socket_t * pxSocket );
 
 /*
  * prvTCPStatusAgeCheck() will see if the socket has been in a non-connected
  * state for too long.  If so, the socket will be closed, and -1 will be
  * returned.
  */
-	#if ( ipconfigTCP_HANG_PROTECTION == 1 )
-		static BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t *pxSocket );
-	#endif
+    #if ( ipconfigTCP_HANG_PROTECTION == 1 )
+        static BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket );
+    #endif
 
-	static NetworkBufferDescriptor_t * prvTCPBufferResize( const FreeRTOS_Socket_t *pxSocket,
-														   NetworkBufferDescriptor_t *pxNetworkBuffer,
-														   int32_t lDataLen,
-														   UBaseType_t uxOptionsLength );
+    static NetworkBufferDescriptor_t * prvTCPBufferResize( const FreeRTOS_Socket_t * pxSocket,
+                                                           NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                           int32_t lDataLen,
+                                                           UBaseType_t uxOptionsLength );
 
-	#if ( ipconfigUSE_TCP_WIN != 0 )
-		static uint8_t prvWinScaleFactor( const FreeRTOS_Socket_t *pxSocket );
-	#endif
+    #if ( ipconfigUSE_TCP_WIN != 0 )
+        static uint8_t prvWinScaleFactor( const FreeRTOS_Socket_t * pxSocket );
+    #endif
 
 	/*-----------------------------------------------------------*/
 
@@ -788,6 +793,7 @@
 		/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
 		const void *pvCopySource;
 		void *pvCopyDest;
+
 
 		/* For sending, a pseudo network buffer will be used, as explained above. */
 
@@ -1557,7 +1563,8 @@
 	#endif /* ( ipconfigUSE_TCP_WIN != 0 ) */
 	/*-----------------------------------------------------------*/
 
-	#if ( ipconfigUSE_TCP_WIN != 0 )
+
+    #if ( ipconfigUSE_TCP_WIN != 0 )
 
 		/**
 		* @brief Get the window scaling factor for the TCP connection.
@@ -1571,24 +1578,25 @@
 		size_t uxWinSize;
 		uint8_t ucFactor;
 
-			/* 'xTCP.uxRxWinSize' is the size of the reception window in units of MSS. */
-			uxWinSize = pxSocket->u.xTCP.uxRxWinSize * ( size_t ) pxSocket->u.xTCP.usInitMSS;
-			ucFactor = 0U;
 
-			while( uxWinSize > 0xffffUL )
-			{
-				/* Divide by two and increase the binary factor by 1. */
-				uxWinSize >>= 1;
-				ucFactor++;
-			}
+            /* 'xTCP.uxRxWinSize' is the size of the reception window in units of MSS. */
+            uxWinSize = pxSocket->u.xTCP.uxRxWinSize * ( size_t ) pxSocket->u.xTCP.usInitMSS;
+            ucFactor = 0U;
 
-			FreeRTOS_debug_printf( ( "prvWinScaleFactor: uxRxWinSize %u MSS %u Factor %u\n",
-									 ( unsigned ) pxSocket->u.xTCP.uxRxWinSize,
-									 ( unsigned ) pxSocket->u.xTCP.usInitMSS,
-									 ucFactor ) );
+            while( uxWinSize > 0xffffUL )
+            {
+                /* Divide by two and increase the binary factor by 1. */
+                uxWinSize >>= 1;
+                ucFactor++;
+            }
 
-			return ucFactor;
-		}
+            FreeRTOS_debug_printf( ( "prvWinScaleFactor: uxRxWinSize %u MSS %u Factor %u\n",
+                                     ( unsigned ) pxSocket->u.xTCP.uxRxWinSize,
+                                     ( unsigned ) pxSocket->u.xTCP.usInitMSS,
+                                     ucFactor ) );
+
+            return ucFactor;
+        }
 
 	#endif /* if ( ipconfigUSE_TCP_WIN != 0 ) */
 	/*-----------------------------------------------------------*/
@@ -3399,14 +3407,14 @@
 	{
 	uint32_t ulMSS = ipconfigTCP_MSS;
 
-		if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.ulRemoteIP ) ^ *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) != 0UL )
-		{
-			/* Data for this peer will pass through a router, and maybe through
-			the internet.  Limit the MSS to 1400 bytes or less. */
-			ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
-		}
+        if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.ulRemoteIP ) ^ *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) != 0UL )
+        {
+            /* Data for this peer will pass through a router, and maybe through
+             * the internet.  Limit the MSS to 1400 bytes or less. */
+            ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
+        }
 
-		FreeRTOS_debug_printf( ( "prvSocketSetMSS: %lu bytes for %lxip:%u\n", ulMSS, pxSocket->u.xTCP.ulRemoteIP, pxSocket->u.xTCP.usRemotePort ) );
+        FreeRTOS_debug_printf( ( "prvSocketSetMSS: %lu bytes for %lxip:%u\n", ulMSS, pxSocket->u.xTCP.ulRemoteIP, pxSocket->u.xTCP.usRemotePort ) );
 
 		pxSocket->u.xTCP.usInitMSS = ( uint16_t ) ulMSS;
 		pxSocket->u.xTCP.usCurMSS = ( uint16_t ) ulMSS;
@@ -3956,14 +3964,15 @@
 	}
 	/*-----------------------------------------------------------*/
 
+
 #endif /* ipconfigUSE_TCP == 1 */
 
 /* Provide access to private members for testing. */
 #ifdef FREERTOS_ENABLE_UNIT_TESTS
-	#include "freertos_tcp_test_access_tcp_define.h"
+    #include "freertos_tcp_test_access_tcp_define.h"
 #endif
 
 /* Provide access to private members for verification. */
 #ifdef FREERTOS_TCP_ENABLE_VERIFICATION
-	#include "aws_freertos_tcp_verification_access_tcp_define.h"
+    #include "aws_freertos_tcp_verification_access_tcp_define.h"
 #endif

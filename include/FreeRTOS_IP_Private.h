@@ -24,40 +24,40 @@
  */
 
 #ifndef FREERTOS_IP_PRIVATE_H
-	#define FREERTOS_IP_PRIVATE_H
+    #define FREERTOS_IP_PRIVATE_H
 
-	#ifdef __cplusplus
-	extern "C" {
-	#endif
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
 /* Application level configuration options. */
-	#include "FreeRTOSIPConfig.h"
-	#include "FreeRTOSIPConfigDefaults.h"
-	#include "FreeRTOS_Sockets.h"
-	#include "IPTraceMacroDefaults.h"
-	#include "FreeRTOS_Stream_Buffer.h"
-	#if ( ipconfigUSE_TCP == 1 )
-		#include "FreeRTOS_TCP_WIN.h"
-		#include "FreeRTOS_TCP_IP.h"
-	#endif
+    #include "FreeRTOSIPConfig.h"
+    #include "FreeRTOSIPConfigDefaults.h"
+    #include "FreeRTOS_Sockets.h"
+    #include "IPTraceMacroDefaults.h"
+    #include "FreeRTOS_Stream_Buffer.h"
+    #if ( ipconfigUSE_TCP == 1 )
+        #include "FreeRTOS_TCP_WIN.h"
+        #include "FreeRTOS_TCP_IP.h"
+    #endif
 
-	#include "semphr.h"
+    #include "semphr.h"
 
-	#include "event_groups.h"
+    #include "event_groups.h"
 
 /*-----------------------------------------------------------*/
 /* Utility macros for marking casts as recognized during     */
 /* static analysis.                                          */
 /*-----------------------------------------------------------*/
-	#define ipCAST_PTR_TO_TYPE_PTR( TYPE, pointer )				   ( vCastPointerTo_ ## TYPE( ( void * ) ( pointer ) ) )
-	#define ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TYPE, pointer )	   ( vCastConstPointerTo_ ## TYPE( ( const void * ) ( pointer ) ) )
+    #define ipCAST_PTR_TO_TYPE_PTR( TYPE, pointer )                ( vCastPointerTo_ ## TYPE( ( void * ) ( pointer ) ) )
+    #define ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TYPE, pointer )    ( vCastConstPointerTo_ ## TYPE( ( const void * ) ( pointer ) ) )
 
 /*-----------------------------------------------------------*/
 /* Utility macros for declaring cast utility functions in    */
 /* order to centralize typecasting for static analysis.      */
 /*-----------------------------------------------------------*/
-	#define ipDECL_CAST_PTR_FUNC_FOR_TYPE( TYPE )		   TYPE * vCastPointerTo_ ## TYPE( void * pvArgument )
-	#define ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TYPE )	   const TYPE * vCastConstPointerTo_ ## TYPE( const void * pvArgument )
+    #define ipDECL_CAST_PTR_FUNC_FOR_TYPE( TYPE )          TYPE * vCastPointerTo_ ## TYPE( void * pvArgument )
+    #define ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TYPE )    const TYPE * vCastConstPointerTo_ ## TYPE( const void * pvArgument )
 
 /**
 * Structure to hold the information about the Network parameters.
@@ -71,8 +71,8 @@
 	uint32_t ulBroadcastAddress; /**< The Broadcast address */
 	} NetworkAddressingParameters_t;
 
-	extern BaseType_t xTCPWindowLoggingLevel;
-	extern QueueHandle_t xNetworkEventQueue;
+    extern BaseType_t xTCPWindowLoggingLevel;
+    extern QueueHandle_t xNetworkEventQueue;
 
 /*-----------------------------------------------------------*/
 /* Protocol headers.                                         */
@@ -193,6 +193,7 @@
 	}
 	#include "pack_struct_end.h"
 	typedef struct xTCP_HEADER TCPHeader_t;
+
 
 /*-----------------------------------------------------------*/
 /* Nested protocol packets.                                  */
@@ -374,53 +375,54 @@
 
 	#define ipBROADCAST_IP_ADDRESS				 0xffffffffUL
 
+
 /* Offset into the Ethernet frame that is used to temporarily store information
-on the fragmentation status of the packet being sent.  The value is important,
-as it is past the location into which the destination address will get placed. */
-	#define ipFRAGMENTATION_PARAMETERS_OFFSET	 ( 6 )
-	#define ipSOCKET_OPTIONS_OFFSET				 ( 6 )
+ * on the fragmentation status of the packet being sent.  The value is important,
+ * as it is past the location into which the destination address will get placed. */
+    #define ipFRAGMENTATION_PARAMETERS_OFFSET    ( 6 )
+    #define ipSOCKET_OPTIONS_OFFSET              ( 6 )
 
 /* Only used when outgoing fragmentation is being used (FreeRTOSIPConfig.h
-setting. */
-	#define ipGET_UDP_PAYLOAD_OFFSET_FOR_FRAGMENT( usFragmentOffset )    ( ( ( usFragmentOffset ) == 0 ) ? ipUDP_PAYLOAD_OFFSET_IPv4 : ipIP_PAYLOAD_OFFSET )
+ * setting. */
+    #define ipGET_UDP_PAYLOAD_OFFSET_FOR_FRAGMENT( usFragmentOffset )    ( ( ( usFragmentOffset ) == 0 ) ? ipUDP_PAYLOAD_OFFSET_IPv4 : ipIP_PAYLOAD_OFFSET )
 
 /* The offset into a UDP packet at which the UDP data (payload) starts. */
-	#define ipUDP_PAYLOAD_OFFSET_IPv4	 ( sizeof( UDPPacket_t ) )
+    #define ipUDP_PAYLOAD_OFFSET_IPv4    ( sizeof( UDPPacket_t ) )
 
 /* The offset into an IP packet into which the IP data (payload) starts. */
-	#define ipIP_PAYLOAD_OFFSET			 ( sizeof( IPPacket_t ) )
+    #define ipIP_PAYLOAD_OFFSET          ( sizeof( IPPacket_t ) )
 
-	#if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
+    #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
 
-		/* Ethernet frame types. */
-		#define ipARP_FRAME_TYPE				( 0x0608U )
-		#define ipIPv4_FRAME_TYPE				( 0x0008U )
+/* Ethernet frame types. */
+        #define ipARP_FRAME_TYPE                ( 0x0608U )
+        #define ipIPv4_FRAME_TYPE               ( 0x0008U )
 
-		/* ARP related definitions. */
-		#define ipARP_PROTOCOL_TYPE				( 0x0008U )
-		#define ipARP_HARDWARE_TYPE_ETHERNET	( 0x0100U )
-		#define ipARP_REQUEST					( 0x0100U )
-		#define ipARP_REPLY						( 0x0200U )
+/* ARP related definitions. */
+        #define ipARP_PROTOCOL_TYPE             ( 0x0008U )
+        #define ipARP_HARDWARE_TYPE_ETHERNET    ( 0x0100U )
+        #define ipARP_REQUEST                   ( 0x0100U )
+        #define ipARP_REPLY                     ( 0x0200U )
 
-	#else /* if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
+    #else /* if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
 
-		/* Ethernet frame types. */
-		#define ipARP_FRAME_TYPE				( 0x0806U )
-		#define ipIPv4_FRAME_TYPE				( 0x0800U )
+/* Ethernet frame types. */
+        #define ipARP_FRAME_TYPE                ( 0x0806U )
+        #define ipIPv4_FRAME_TYPE               ( 0x0800U )
 
-		/* ARP related definitions. */
-		#define ipARP_PROTOCOL_TYPE				( 0x0800U )
-		#define ipARP_HARDWARE_TYPE_ETHERNET	( 0x0001U )
-		#define ipARP_REQUEST					( 0x0001 )
-		#define ipARP_REPLY						( 0x0002 )
+/* ARP related definitions. */
+        #define ipARP_PROTOCOL_TYPE             ( 0x0800U )
+        #define ipARP_HARDWARE_TYPE_ETHERNET    ( 0x0001U )
+        #define ipARP_REQUEST                   ( 0x0001 )
+        #define ipARP_REPLY                     ( 0x0002 )
 
-	#endif /* ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN */
+    #endif /* ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN */
 
 
 /* For convenience, a MAC address of all zeros and another of all 0xffs are
-defined const for quick reference. */
-	extern const MACAddress_t xBroadcastMACAddress; /* all 0xff's */
-	extern uint16_t usPacketIdentifier;
+ * defined const for quick reference. */
+    extern const MACAddress_t xBroadcastMACAddress; /* all 0xff's */
+    extern uint16_t usPacketIdentifier;
 
 /**
 * Define a default UDP packet header (declared in FreeRTOS_UDP_IP.c)
@@ -432,30 +434,31 @@ defined const for quick reference. */
 	} UDPPacketHeader_t;
 	extern UDPPacketHeader_t xDefaultPartUDPPacketHeader;
 
+
 /* Structure that stores the netmask, gateway address and DNS server addresses. */
-	extern NetworkAddressingParameters_t xNetworkAddressing;
+    extern NetworkAddressingParameters_t xNetworkAddressing;
 
 /* Structure that stores the defaults for netmask, gateway address and DNS.
-These values will be copied to 'xNetworkAddressing' in case DHCP is not used,
-and also in case DHCP does not lead to a confirmed request. */
+ * These values will be copied to 'xNetworkAddressing' in case DHCP is not used,
+ * and also in case DHCP does not lead to a confirmed request. */
 /*lint -e9003*/
-	extern NetworkAddressingParameters_t xDefaultAddressing; /*lint !e9003 could define variable 'xDefaultAddressing' at block scope [MISRA 2012 Rule 8.9, advisory]. */
+    extern NetworkAddressingParameters_t xDefaultAddressing; /*lint !e9003 could define variable 'xDefaultAddressing' at block scope [MISRA 2012 Rule 8.9, advisory]. */
 
 /* True when BufferAllocation_1.c was included, false for BufferAllocation_2.c */
-	extern const BaseType_t xBufferAllocFixedSize;
+    extern const BaseType_t xBufferAllocFixedSize;
 
 /* Defined in FreeRTOS_Sockets.c */
-	#if ( ipconfigUSE_TCP == 1 )
-		extern List_t xBoundTCPSocketsList;
-	#endif
+    #if ( ipconfigUSE_TCP == 1 )
+        extern List_t xBoundTCPSocketsList;
+    #endif
 
 /* The local IP address is accessed from within xDefaultPartUDPPacketHeader,
-rather than duplicated in its own variable. */
-	#define ipLOCAL_IP_ADDRESS_POINTER	  ( ( uint32_t * ) &( xDefaultPartUDPPacketHeader.ulWords[ 20U / sizeof( uint32_t ) ] ) )
+ * rather than duplicated in its own variable. */
+    #define ipLOCAL_IP_ADDRESS_POINTER    ( ( uint32_t * ) &( xDefaultPartUDPPacketHeader.ulWords[ 20U / sizeof( uint32_t ) ] ) )
 
 /* The local MAC address is accessed from within xDefaultPartUDPPacketHeader,
-rather than duplicated in its own variable. */
-	#define ipLOCAL_MAC_ADDRESS			  ( xDefaultPartUDPPacketHeader.ucBytes )
+ * rather than duplicated in its own variable. */
+    #define ipLOCAL_MAC_ADDRESS           ( xDefaultPartUDPPacketHeader.ucBytes )
 
 /* In this library, there is often a cast from a character pointer
  * to a pointer to a struct.
@@ -474,7 +477,7 @@ rather than duplicated in its own variable. */
  * The MISRA warnings can safely be suppressed because all casts are planned with care.
  */
 
-	#define ipPOINTER_CAST( TYPE, pointer )    ( ( TYPE ) ( pointer ) )
+    #define ipPOINTER_CAST( TYPE, pointer )    ( ( TYPE ) ( pointer ) )
 
 /* Sequence and ACK numbers are essentially unsigned (uint32_t). But when
  * a distance is calculated, it is useful to use signed numbers:
@@ -487,48 +490,48 @@ rather than duplicated in its own variable. */
  * -emacro(9030,ipNUMERIC_CAST) // 9030: Impermissible cast; cannot cast from 'essentially Boolean' to 'essentially signed' [MISRA 2012 Rule 10.5, advisory])
  */
 
-	#define ipNUMERIC_CAST( TYPE, expression )    ( ( TYPE ) ( expression ) )
+    #define ipNUMERIC_CAST( TYPE, expression )    ( ( TYPE ) ( expression ) )
 
 /* ICMP packets are sent using the same function as UDP packets.  The port
-number is used to distinguish between the two, as 0 is an invalid UDP port. */
-	#define ipPACKET_CONTAINS_ICMP_DATA	   ( 0 )
+ * number is used to distinguish between the two, as 0 is an invalid UDP port. */
+    #define ipPACKET_CONTAINS_ICMP_DATA    ( 0 )
 
 /* For now, the lower 8 bits in 'xEventBits' will be reserved for the above
-socket events. */
-	#define SOCKET_EVENT_BIT_COUNT		   8
+ * socket events. */
+    #define SOCKET_EVENT_BIT_COUNT         8
 
-	#define vSetField16( pxBase, xType, xField, usValue )													 \
-	{																										 \
-		( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 0 ] = ( uint8_t ) ( ( usValue ) >> 8 );	 \
-		( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 1 ] = ( uint8_t ) ( ( usValue ) & 0xffU ); \
-	}
+    #define vSetField16( pxBase, xType, xField, usValue )                                                    \
+    {                                                                                                        \
+        ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 0 ] = ( uint8_t ) ( ( usValue ) >> 8 );    \
+        ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 1 ] = ( uint8_t ) ( ( usValue ) & 0xffU ); \
+    }
 
-	#define vSetField32( pxBase, xType, xField, ulValue )															   \
-	{																												   \
-		( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 0 ] = ( uint8_t ) ( ( ulValue ) >> 24 );			   \
-		( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 1 ] = ( uint8_t ) ( ( ( ulValue ) >> 16 ) & 0xffU ); \
-		( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 2 ] = ( uint8_t ) ( ( ( ulValue ) >> 8 ) & 0xffU );  \
-		( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 3 ] = ( uint8_t ) ( ( ulValue ) & 0xffU );		   \
-	}
+    #define vSetField32( pxBase, xType, xField, ulValue )                                                              \
+    {                                                                                                                  \
+        ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 0 ] = ( uint8_t ) ( ( ulValue ) >> 24 );             \
+        ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 1 ] = ( uint8_t ) ( ( ( ulValue ) >> 16 ) & 0xffU ); \
+        ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 2 ] = ( uint8_t ) ( ( ( ulValue ) >> 8 ) & 0xffU );  \
+        ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 3 ] = ( uint8_t ) ( ( ulValue ) & 0xffU );           \
+    }
 
-	#define vFlip_16( left, right )	\
-	do {							\
-	uint16_t tmp = ( left );		\
-		( left ) = ( right );		\
-		( right ) = tmp;			\
-	} while( ipFALSE_BOOL )
+    #define vFlip_16( left, right ) \
+    do {                            \
+        uint16_t tmp = ( left );    \
+        ( left ) = ( right );       \
+        ( right ) = tmp;            \
+    } while( ipFALSE_BOOL )
 
-	#define vFlip_32( left, right )	\
-	do {							\
-	uint32_t tmp = ( left );		\
-		( left ) = ( right );		\
-		( right ) = tmp;			\
-	} while( ipFALSE_BOOL )
+    #define vFlip_32( left, right ) \
+    do {                            \
+        uint32_t tmp = ( left );    \
+        ( left ) = ( right );       \
+        ( right ) = tmp;            \
+    } while( ipFALSE_BOOL )
 
 /* WARNING: Do NOT use this macro when the array was received as a parameter. */
-	#ifndef ARRAY_SIZE
-		#define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
-	#endif
+    #ifndef ARRAY_SIZE
+        #define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
+    #endif
 
 /*
  * Create a message that contains a command to initialise the network interface.
@@ -542,27 +545,27 @@ socket events. */
  * returns a non-zero value then a context switch should be performed before
  * the interrupt is exited.
  */
-	void FreeRTOS_NetworkDown( void );
-	BaseType_t FreeRTOS_NetworkDownFromISR( void );
+    void FreeRTOS_NetworkDown( void );
+    BaseType_t FreeRTOS_NetworkDownFromISR( void );
 
 /*
  * Processes incoming ARP packets.
  */
-	eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame );
+    eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame );
 
 /*
  * Inspect an Ethernet frame to see if it contains data that the stack needs to
  * process.  eProcessBuffer is returned if the frame should be processed by the
  * stack.  eReleaseBuffer is returned if the frame should be discarded.
  */
-	eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucEthernetBuffer );
+    eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucEthernetBuffer );
 
 /*
  * Return the checksum generated over xDataLengthBytes from pucNextData.
  */
-	uint16_t usGenerateChecksum( uint16_t usSum,
-								 const uint8_t * pucNextData,
-								 size_t uxByteCount );
+    uint16_t usGenerateChecksum( uint16_t usSum,
+                                 const uint8_t * pucNextData,
+                                 size_t uxByteCount );
 
 /* Socket related private functions. */
 
@@ -571,13 +574,13 @@ socket events. */
  * payload size (excluding packet headers) and that the packet in pucEthernetBuffer
  * is at least the size of UDPPacket_t.
  */
-	BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t *pxNetworkBuffer,
-										  uint16_t usPort );
+    BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                          uint16_t usPort );
 
 /*
  * Initialize the socket list data structures for TCP and UDP.
  */
-	void vNetworkSocketsInit( void );
+    void vNetworkSocketsInit( void );
 
 /*
  * Returns pdTRUE if the IP task has been created and is initialised.  Otherwise
@@ -816,15 +819,16 @@ socket events. */
 
 	#endif /* ipconfigUSE_TCP */
 
+
 /*
  * Look up a local socket by finding a match with the local port.
  */
-	FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort );
+    FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort );
 
 /*
  * Called when the application has generated a UDP packet to send.
  */
-	void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+    void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 /*
  * Calculate the upper-layer checksum
@@ -833,16 +837,16 @@ socket events. */
  * bOut = false: checksum will be calculated for incoming packets
  *     returning 0xffff means: checksum was correct
  */
-	uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
-										 size_t uxBufferLength,
-										 BaseType_t xOutgoingPacket );
+    uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
+                                         size_t uxBufferLength,
+                                         BaseType_t xOutgoingPacket );
 
 /*
  * An Ethernet frame has been updated (maybe it was an ARP request or a PING
  * request?) and is to be sent back to its source.
  */
-	void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
-							   BaseType_t xReleaseAfterSend );
+    void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                               BaseType_t xReleaseAfterSend );
 
 /*
  * The internal version of bind()
@@ -850,10 +854,10 @@ socket events. */
  * The TCP driver needs to bind a socket at the moment a listening socket
  * creates a new connected socket
  */
-	BaseType_t vSocketBind( FreeRTOS_Socket_t *pxSocket,
-							struct freertos_sockaddr * pxBindAddress,
-							size_t uxAddressLength,
-							BaseType_t xInternal );
+    BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
+                            struct freertos_sockaddr * pxBindAddress,
+                            size_t uxAddressLength,
+                            BaseType_t xInternal );
 
 /*
  * Internal function to add streaming data to a TCP socket. If ulIn == true,
@@ -862,15 +866,15 @@ socket events. */
  * packet come in out-of-order, an offset will be used to put it in front and
  * the head will not change yet.
  */
-	int32_t lTCPAddRxdata( FreeRTOS_Socket_t *pxSocket,
-						   size_t uxOffset,
-						   const uint8_t *pcData,
-						   uint32_t ulByteCount );
+    int32_t lTCPAddRxdata( FreeRTOS_Socket_t * pxSocket,
+                           size_t uxOffset,
+                           const uint8_t * pcData,
+                           uint32_t ulByteCount );
 
 /*
  * Currently called for any important event.
  */
-	void vSocketWakeUpUser( FreeRTOS_Socket_t *pxSocket );
+    void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Some helping function, their meaning should be clear.
@@ -878,77 +882,77 @@ socket events. */
  * if they are not being used anywhere. But their use depends on the
  * application and hence these functions are defined unconditionally.
  */
-	static portINLINE uint32_t ulChar2u32( const uint8_t *apChr );
-	static portINLINE uint32_t ulChar2u32( const uint8_t *apChr )
-	{
-		return ( ( ( uint32_t ) apChr[ 0 ] ) << 24 ) |
-			   ( ( ( uint32_t ) apChr[ 1 ] ) << 16 ) |
-			   ( ( ( uint32_t ) apChr[ 2 ] ) << 8 ) |
-			   ( ( ( uint32_t ) apChr[ 3 ] ) );
-	}
+    static portINLINE uint32_t ulChar2u32( const uint8_t * apChr );
+    static portINLINE uint32_t ulChar2u32( const uint8_t * apChr )
+    {
+        return ( ( ( uint32_t ) apChr[ 0 ] ) << 24 ) |
+               ( ( ( uint32_t ) apChr[ 1 ] ) << 16 ) |
+               ( ( ( uint32_t ) apChr[ 2 ] ) << 8 ) |
+               ( ( ( uint32_t ) apChr[ 3 ] ) );
+    }
 
-	static portINLINE uint16_t usChar2u16( const uint8_t *apChr );
-	static portINLINE uint16_t usChar2u16( const uint8_t *apChr )
-	{
-		return ( uint16_t )
-			   ( ( ( ( uint32_t ) apChr[ 0 ] ) << 8 ) |
-				 ( ( ( uint32_t ) apChr[ 1 ] ) ) );
-	}
+    static portINLINE uint16_t usChar2u16( const uint8_t * apChr );
+    static portINLINE uint16_t usChar2u16( const uint8_t * apChr )
+    {
+        return ( uint16_t )
+               ( ( ( ( uint32_t ) apChr[ 0 ] ) << 8 ) |
+                 ( ( ( uint32_t ) apChr[ 1 ] ) ) );
+    }
 
 /* Check a single socket for retransmissions and timeouts */
-	BaseType_t xTCPSocketCheck( FreeRTOS_Socket_t *pxSocket );
+    BaseType_t xTCPSocketCheck( FreeRTOS_Socket_t * pxSocket );
 
-	BaseType_t xTCPCheckNewClient( FreeRTOS_Socket_t *pxSocket );
+    BaseType_t xTCPCheckNewClient( FreeRTOS_Socket_t * pxSocket );
 
 /* Defined in FreeRTOS_Sockets.c
  * Close a socket
  */
-	void * vSocketClose( FreeRTOS_Socket_t *pxSocket );
+    void * vSocketClose( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Send the event eEvent to the IP task event queue, using a block time of
  * zero.  Return pdPASS if the message was sent successfully, otherwise return
  * pdFALSE.
-*/
-	BaseType_t xSendEventToIPTask( eIPEvent_t eEvent );
+ */
+    BaseType_t xSendEventToIPTask( eIPEvent_t eEvent );
 
 /*
  * The same as above, but a struct as a parameter, containing:
  *      eIPEvent_t eEventType;
  *		void *pvData;
  */
-	BaseType_t xSendEventStructToIPTask( const IPStackEvent_t *pxEvent,
-										 TickType_t uxTimeout );
+    BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
+                                         TickType_t uxTimeout );
 
 /*
  * Returns a pointer to the original NetworkBuffer from a pointer to a UDP
  * payload buffer.
  */
-	NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer );
+    NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer );
 
-	#if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
+    #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
 
-		/*
-		* For the case where the network driver passes a buffer directly to a DMA
-		* descriptor, this function can be used to translate a 'network buffer' to
-		* a 'network buffer descriptor'.
-		*/
-		NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void *pvBuffer );
-	#endif
+/*
+ * For the case where the network driver passes a buffer directly to a DMA
+ * descriptor, this function can be used to translate a 'network buffer' to
+ * a 'network buffer descriptor'.
+ */
+        NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void * pvBuffer );
+    #endif
 
 /*
  * Internal: Sets a new state for a TCP socket and performs the necessary
  * actions like calling a OnConnected handler to notify the socket owner.
  */
-	#if ( ipconfigUSE_TCP == 1 )
-		void vTCPStateChange( FreeRTOS_Socket_t *pxSocket,
-							  enum eTCP_STATE eTCPState );
-	#endif /* ipconfigUSE_TCP */
+    #if ( ipconfigUSE_TCP == 1 )
+        void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
+                              enum eTCP_STATE eTCPState );
+    #endif /* ipconfigUSE_TCP */
 
 /* Returns pdTRUE is this function is called from the IP-task */
-	BaseType_t xIsCallingFromIPTask( void );
+    BaseType_t xIsCallingFromIPTask( void );
 
-	#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+    #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
 		/** @brief Structure for event groups of the Socket Select functions */
 		typedef struct xSOCKET_SET
@@ -958,16 +962,16 @@ socket events. */
 			EventGroupHandle_t xSelectGroup;
 		} SocketSelect_t;
 
-		static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
-		{
-			return ( SocketSelect_t * ) pvArgument;
-		}
-		static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
-		{
-			return ( const SocketSelect_t * ) pvArgument;
-		}
+        static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
+        {
+            return ( SocketSelect_t * ) pvArgument;
+        }
+        static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
+        {
+            return ( const SocketSelect_t * ) pvArgument;
+        }
 
-		extern void vSocketSelect( SocketSelect_t *pxSocketSet );
+        extern void vSocketSelect( SocketSelect_t * pxSocketSet );
 
 		/** @brief Define the data that must be passed for a 'eSocketSelectEvent'. */
 		typedef struct xSocketSelectMessage
@@ -994,11 +998,12 @@ socket events. */
 		void vIPSetDnsTimerEnableState( BaseType_t xEnableState );
 	#endif
 
-/* Send the network-up event and start the ARP timer. */
-	void vIPNetworkUpCalls( void );
 
-	#ifdef __cplusplus
-	} /* extern "C" */
-	#endif
+/* Send the network-up event and start the ARP timer. */
+    void vIPNetworkUpCalls( void );
+
+    #ifdef __cplusplus
+        } /* extern "C" */
+    #endif
 
 #endif /* FREERTOS_IP_PRIVATE_H */

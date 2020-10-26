@@ -50,7 +50,7 @@
 #include "NetworkBufferManagement.h"
 
 #if ( ipconfigUSE_DNS == 1 )
-	#include "FreeRTOS_DNS.h"
+    #include "FreeRTOS_DNS.h"
 #endif
 
 /** @brief The expected IP version and header length coded into the IP header itself. */
@@ -62,20 +62,20 @@ packet to be filled in using a simple memcpy() instead of individual writes. */
 /*lint -e708 (Info -- union initialization). */
 UDPPacketHeader_t xDefaultPartUDPPacketHeader =
 {
-	/* .ucBytes : */
-	{
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  /* Ethernet source MAC address. */
-		0x08, 0x00,                          /* Ethernet frame type. */
-		ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-		0x00,                                /* ucDifferentiatedServicesCode. */
-		0x00, 0x00,                          /* usLength. */
-		0x00, 0x00,                          /* usIdentification. */
-		0x00, 0x00,                          /* usFragmentOffset. */
-		ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-		ipPROTOCOL_UDP,                      /* ucProtocol. */
-		0x00, 0x00,                          /* usHeaderChecksum. */
-		0x00, 0x00, 0x00, 0x00               /* Source IP address. */
-	}
+    /* .ucBytes : */
+    {
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  /* Ethernet source MAC address. */
+        0x08, 0x00,                          /* Ethernet frame type. */
+        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
+        0x00,                                /* ucDifferentiatedServicesCode. */
+        0x00, 0x00,                          /* usLength. */
+        0x00, 0x00,                          /* usIdentification. */
+        0x00, 0x00,                          /* usFragmentOffset. */
+        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
+        ipPROTOCOL_UDP,                      /* ucProtocol. */
+        0x00, 0x00,                          /* usHeaderChecksum. */
+        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
+    }
 };
 /*-----------------------------------------------------------*/
 
@@ -286,11 +286,11 @@ size_t uxPayloadSize;
 BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t *pxNetworkBuffer,
 									  uint16_t usPort )
 {
-BaseType_t xReturn = pdPASS;
-FreeRTOS_Socket_t *pxSocket;
+    BaseType_t xReturn = pdPASS;
+    FreeRTOS_Socket_t * pxSocket;
 
-	configASSERT( pxNetworkBuffer != NULL );
-	configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
+    configASSERT( pxNetworkBuffer != NULL );
+    configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
 	/* Map the ethernet buffer to the UDPPacket_t struct for easy access to the fields. */
 	const UDPPacket_t *pxUDPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
@@ -444,5 +444,6 @@ FreeRTOS_Socket_t *pxSocket;
 	}
 
 	return xReturn;
+
 }
 /*-----------------------------------------------------------*/

@@ -9,7 +9,7 @@
 
 void harness()
 {
-ARPPacket_t xARPFrame;
+    ARPPacket_t xARPFrame;
 
-	eARPProcessPacket( &xARPFrame );
+    eARPProcessPacket( &xARPFrame );
 }

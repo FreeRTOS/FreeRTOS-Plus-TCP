@@ -29,11 +29,11 @@
  */
 
 #ifndef FREERTOS_TCP_WIN_H
-	#define FREERTOS_TCP_WIN_H
+    #define FREERTOS_TCP_WIN_H
 
-	#ifdef __cplusplus
-	extern "C" {
-	#endif
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
 	/**
 	* The name xTCPTimer was already use as the name of an IP-timer.
@@ -81,16 +81,17 @@
 	uint32_t ulTxWindowLength;  /**< The size of the send window. */
 	} TCPWinSize_t;
 
+
 /*
  * If TCP time-stamps are being used, they will occupy 12 bytes in
  * each packet, and thus the message space will become smaller
  */
 /* Keep this as a multiple of 4 */
-	#if ( ipconfigUSE_TCP_WIN == 1 )
-		#define ipSIZE_TCP_OPTIONS	  16U
-	#else
-		#define ipSIZE_TCP_OPTIONS	  12U
-	#endif
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+        #define ipSIZE_TCP_OPTIONS    16U
+    #else
+        #define ipSIZE_TCP_OPTIONS    12U
+    #endif
 
 /**
  *	Every TCP connection owns a TCP window for the administration of all packets
@@ -146,6 +147,7 @@
 	} TCPWindow_t;
 
 
+
 /*=============================================================================
  *
  * Creation and destruction
@@ -153,25 +155,25 @@
  *=============================================================================*/
 
 /* Create and initialize a window */
-	void vTCPWindowCreate( TCPWindow_t *pxWindow,
-						   uint32_t ulRxWindowLength,
-						   uint32_t ulTxWindowLength,
-						   uint32_t ulAckNumber,
-						   uint32_t ulSequenceNumber,
-						   uint32_t ulMSS );
+    void vTCPWindowCreate( TCPWindow_t * pxWindow,
+                           uint32_t ulRxWindowLength,
+                           uint32_t ulTxWindowLength,
+                           uint32_t ulAckNumber,
+                           uint32_t ulSequenceNumber,
+                           uint32_t ulMSS );
 
 /* Destroy a window (always returns NULL)
  * It will free some resources: a collection of segments */
-	void vTCPWindowDestroy( TCPWindow_t const * pxWindow );
+    void vTCPWindowDestroy( TCPWindow_t const * pxWindow );
 
 /* Initialize a window */
-	void vTCPWindowInit( TCPWindow_t *pxWindow,
-						 uint32_t ulAckNumber,
-						 uint32_t ulSequenceNumber,
-						 uint32_t ulMSS );
+    void vTCPWindowInit( TCPWindow_t * pxWindow,
+                         uint32_t ulAckNumber,
+                         uint32_t ulSequenceNumber,
+                         uint32_t ulMSS );
 
 /* Clean up allocated segments. Should only be called when FreeRTOS+TCP will no longer be used. */
-	void vTCPSegmentCleanup( void );
+    void vTCPSegmentCleanup( void );
 
 /*=============================================================================
  *
@@ -181,14 +183,14 @@
 
 /* if true may be passed directly to user (segment expected and window is empty)
  * But pxWindow->ackno should always be used to set "BUF->ackno" */
-	int32_t lTCPWindowRxCheck( TCPWindow_t *pxWindow,
-							   uint32_t ulSequenceNumber,
-							   uint32_t ulLength,
-							   uint32_t ulSpace );
+    int32_t lTCPWindowRxCheck( TCPWindow_t * pxWindow,
+                               uint32_t ulSequenceNumber,
+                               uint32_t ulLength,
+                               uint32_t ulSpace );
 
 /* This function will be called as soon as a FIN is received. It will return true
  * if there are no 'open' reception segments */
-	BaseType_t xTCPWindowRxEmpty( const TCPWindow_t *pxWindow );
+    BaseType_t xTCPWindowRxEmpty( const TCPWindow_t * pxWindow );
 
 /*=============================================================================
  *
@@ -197,39 +199,39 @@
  *=============================================================================*/
 
 /* Adds data to the Tx-window */
-	int32_t lTCPWindowTxAdd( TCPWindow_t *pxWindow,
-							 uint32_t ulLength,
-							 int32_t lPosition,
-							 int32_t lMax );
+    int32_t lTCPWindowTxAdd( TCPWindow_t * pxWindow,
+                             uint32_t ulLength,
+                             int32_t lPosition,
+                             int32_t lMax );
 
 /* Check data to be sent and calculate the time period we may sleep */
-	BaseType_t xTCPWindowTxHasData( TCPWindow_t const * pxWindow,
-									uint32_t ulWindowSize,
-									TickType_t *pulDelay );
+    BaseType_t xTCPWindowTxHasData( TCPWindow_t const * pxWindow,
+                                    uint32_t ulWindowSize,
+                                    TickType_t * pulDelay );
 
 /* See if anything is left to be sent
  * Function will be called when a FIN has been received. Only when the TX window is clean,
  * it will return pdTRUE */
-	BaseType_t xTCPWindowTxDone( const TCPWindow_t *pxWindow );
+    BaseType_t xTCPWindowTxDone( const TCPWindow_t * pxWindow );
 
 /* Fetches data to be sent.
  * plPosition will point to a location with the circular data buffer: txStream */
-	uint32_t ulTCPWindowTxGet( TCPWindow_t *pxWindow,
-							   uint32_t ulWindowSize,
-							   int32_t *plPosition );
+    uint32_t ulTCPWindowTxGet( TCPWindow_t * pxWindow,
+                               uint32_t ulWindowSize,
+                               int32_t * plPosition );
 
 /* Receive a normal ACK */
-	uint32_t ulTCPWindowTxAck( TCPWindow_t *pxWindow,
-							   uint32_t ulSequenceNumber );
+    uint32_t ulTCPWindowTxAck( TCPWindow_t * pxWindow,
+                               uint32_t ulSequenceNumber );
 
 /* Receive a SACK option */
-	uint32_t ulTCPWindowTxSack( TCPWindow_t *pxWindow,
-								uint32_t ulFirst,
-								uint32_t ulLast );
+    uint32_t ulTCPWindowTxSack( TCPWindow_t * pxWindow,
+                                uint32_t ulFirst,
+                                uint32_t ulLast );
 
 
-	#ifdef __cplusplus
-	} /* extern "C" */
-	#endif
+    #ifdef __cplusplus
+        } /* extern "C" */
+    #endif
 
 #endif /* FREERTOS_TCP_WIN_H */

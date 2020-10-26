@@ -8,5 +8,5 @@
 
 void harness()
 {
-	FreeRTOS_ClearARP();
+    FreeRTOS_ClearARP();
 }

@@ -10,8 +10,8 @@
 
 void harness()
 {
-	if( ipconfigUSE_DNS_CACHE != 0 )
-	{
-		FreeRTOS_dnsclear();
-	}
+    if( ipconfigUSE_DNS_CACHE != 0 )
+    {
+        FreeRTOS_dnsclear();
+    }
 }

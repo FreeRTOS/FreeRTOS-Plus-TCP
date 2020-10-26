@@ -49,15 +49,15 @@
 /* Exclude the entire file if DHCP is not enabled. */
 #if ( ipconfigUSE_DHCP != 0 )
 
-	#include "NetworkInterface.h"
-	#include "NetworkBufferManagement.h"
+    #include "NetworkInterface.h"
+    #include "NetworkBufferManagement.h"
 
-	#if ( ipconfigUSE_DHCP != 0 ) && ( ipconfigNETWORK_MTU < 586U )
+    #if ( ipconfigUSE_DHCP != 0 ) && ( ipconfigNETWORK_MTU < 586U )
 
-		/* DHCP must be able to receive an options field of 312 bytes, the fixed
-		part of the DHCP packet is 240 bytes, and the IP/UDP headers take 28 bytes. */
-		#error ipconfigNETWORK_MTU needs to be at least 586 to use DHCP
-	#endif
+/* DHCP must be able to receive an options field of 312 bytes, the fixed
+ * part of the DHCP packet is 240 bytes, and the IP/UDP headers take 28 bytes. */
+        #error ipconfigNETWORK_MTU needs to be at least 586 to use DHCP
+    #endif
 
 	/* Parameter widths in the DHCP packet. */
 	#define dhcpCLIENT_HARDWARE_ADDRESS_LENGTH	  16  /**< Client hardware address length.*/
@@ -183,67 +183,67 @@
 	/** @brief The UDP socket used for all incoming and outgoing DHCP traffic. */
 	_static Socket_t xDHCPSocket;
 
-	#if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-		/* Define the Link Layer IP address: 169.254.x.x */
-		#define LINK_LAYER_ADDRESS_0	169
-		#define LINK_LAYER_ADDRESS_1	254
+    #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
+        /* Define the Link Layer IP address: 169.254.x.x */
+        #define LINK_LAYER_ADDRESS_0    169
+        #define LINK_LAYER_ADDRESS_1    254
 
-		/* Define the netmask used: 255.255.0.0 */
-		#define LINK_LAYER_NETMASK_0	255
-		#define LINK_LAYER_NETMASK_1	255
-		#define LINK_LAYER_NETMASK_2	0
-		#define LINK_LAYER_NETMASK_3	0
-	#endif
+/* Define the netmask used: 255.255.0.0 */
+        #define LINK_LAYER_NETMASK_0    255
+        #define LINK_LAYER_NETMASK_1    255
+        #define LINK_LAYER_NETMASK_2    0
+        #define LINK_LAYER_NETMASK_3    0
+    #endif
 
 
 /*
  * Generate a DHCP discover message and send it on the DHCP socket.
  */
-	static void prvSendDHCPDiscover( void );
+    static void prvSendDHCPDiscover( void );
 
 /*
  * Interpret message received on the DHCP socket.
  */
-	_static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType );
+    _static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType );
 
 /*
  * Generate a DHCP request packet, and send it on the DHCP socket.
  */
-	static void prvSendDHCPRequest( void );
+    static void prvSendDHCPRequest( void );
 
 /*
  * Prepare to start a DHCP transaction.  This initialises some state variables
  * and creates the DHCP socket if necessary.
  */
-	static void prvInitialiseDHCP( void );
+    static void prvInitialiseDHCP( void );
 
 /*
  * Creates the part of outgoing DHCP messages that are common to all outgoing
  * DHCP messages.
  */
-	static uint8_t * prvCreatePartDHCPMessage( struct freertos_sockaddr *pxAddress,
-											   BaseType_t xOpcode,
-											   const uint8_t * const pucOptionsArray,
-											   size_t *pxOptionsArraySize );
+    static uint8_t * prvCreatePartDHCPMessage( struct freertos_sockaddr * pxAddress,
+                                               BaseType_t xOpcode,
+                                               const uint8_t * const pucOptionsArray,
+                                               size_t * pxOptionsArraySize );
 
 /*
  * Create the DHCP socket, if it has not been created already.
  */
-	_static void prvCreateDHCPSocket( void );
+    _static void prvCreateDHCPSocket( void );
 
 /*
  * Close the DHCP socket.
  */
-	static void prvCloseDHCPSocket( void );
+    static void prvCloseDHCPSocket( void );
 
 /*
  * After DHCP has failed to answer, prepare everything to start searching
  * for (trying-out) LinkLayer IP-addresses, using the random method: Send
  * a gratuitous ARP request and wait if another device responds to it.
  */
-	#if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-		static void prvPrepareLinkLayerIPLookUp( void );
-	#endif
+    #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
+        static void prvPrepareLinkLayerIPLookUp( void );
+    #endif
 
 /*-----------------------------------------------------------*/
 
@@ -1141,51 +1141,52 @@
 	}
 	/*-----------------------------------------------------------*/
 
-	#if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
 
-		static void prvPrepareLinkLayerIPLookUp( void )
-		{
-		uint8_t ucLinkLayerIPAddress[ 2 ];
-		uint32_t ulNumbers[ 2 ];
+    #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
 
-			/* After DHCP has failed to answer, prepare everything to start
-			trying-out LinkLayer IP-addresses, using the random method. */
-			EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
+        static void prvPrepareLinkLayerIPLookUp( void )
+        {
+            uint8_t ucLinkLayerIPAddress[ 2 ];
+            uint32_t ulNumbers[ 2 ];
 
-			xApplicationGetRandomNumber( &( ulNumbers[ 0 ] ) );
-			xApplicationGetRandomNumber( &( ulNumbers[ 1 ] ) );
-			ucLinkLayerIPAddress[ 0 ] = ( uint8_t ) 1 + ( uint8_t ) ( ulNumbers[ 0 ] % 0xFDU ); /* get value 1..254 for IP-address 3rd byte of IP address to try. */
-			ucLinkLayerIPAddress[ 1 ] = ( uint8_t ) 1 + ( uint8_t ) ( ulNumbers[ 1 ] % 0xFDU ); /* get value 1..254 for IP-address 4th byte of IP address to try. */
+            /* After DHCP has failed to answer, prepare everything to start
+             * trying-out LinkLayer IP-addresses, using the random method. */
+            EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
 
-			EP_IPv4_SETTINGS.ulGatewayAddress = 0UL;
+            xApplicationGetRandomNumber( &( ulNumbers[ 0 ] ) );
+            xApplicationGetRandomNumber( &( ulNumbers[ 1 ] ) );
+            ucLinkLayerIPAddress[ 0 ] = ( uint8_t ) 1 + ( uint8_t ) ( ulNumbers[ 0 ] % 0xFDU ); /* get value 1..254 for IP-address 3rd byte of IP address to try. */
+            ucLinkLayerIPAddress[ 1 ] = ( uint8_t ) 1 + ( uint8_t ) ( ulNumbers[ 1 ] % 0xFDU ); /* get value 1..254 for IP-address 4th byte of IP address to try. */
 
-			/* prepare xDHCPData with data to test. */
-			EP_DHCPData.ulOfferedIPAddress =
-				FreeRTOS_inet_addr_quick( LINK_LAYER_ADDRESS_0, LINK_LAYER_ADDRESS_1, ucLinkLayerIPAddress[ 0 ], ucLinkLayerIPAddress[ 1 ] );
+            EP_IPv4_SETTINGS.ulGatewayAddress = 0UL;
 
-			EP_DHCPData.ulLeaseTime = dhcpDEFAULT_LEASE_TIME; /*  don't care about lease time. just put anything. */
+            /* prepare xDHCPData with data to test. */
+            EP_DHCPData.ulOfferedIPAddress =
+                FreeRTOS_inet_addr_quick( LINK_LAYER_ADDRESS_0, LINK_LAYER_ADDRESS_1, ucLinkLayerIPAddress[ 0 ], ucLinkLayerIPAddress[ 1 ] );
 
-			EP_IPv4_SETTINGS.ulNetMask =
-				FreeRTOS_inet_addr_quick( LINK_LAYER_NETMASK_0, LINK_LAYER_NETMASK_1, LINK_LAYER_NETMASK_2, LINK_LAYER_NETMASK_3 );
+            EP_DHCPData.ulLeaseTime = dhcpDEFAULT_LEASE_TIME; /*  don't care about lease time. just put anything. */
 
-			/* DHCP completed.  The IP address can now be used, and the
-			timer set to the lease timeout time. */
-			*( ipLOCAL_IP_ADDRESS_POINTER ) = EP_DHCPData.ulOfferedIPAddress;
+            EP_IPv4_SETTINGS.ulNetMask =
+                FreeRTOS_inet_addr_quick( LINK_LAYER_NETMASK_0, LINK_LAYER_NETMASK_1, LINK_LAYER_NETMASK_2, LINK_LAYER_NETMASK_3 );
 
-			/* Setting the 'local' broadcast address, something like 192.168.1.255' */
-			EP_IPv4_SETTINGS.ulBroadcastAddress = ( EP_DHCPData.ulOfferedIPAddress & EP_IPv4_SETTINGS.ulNetMask ) | ~EP_IPv4_SETTINGS.ulNetMask;
+            /* DHCP completed.  The IP address can now be used, and the
+             * timer set to the lease timeout time. */
+            *( ipLOCAL_IP_ADDRESS_POINTER ) = EP_DHCPData.ulOfferedIPAddress;
 
-			/* Close socket to ensure packets don't queue on it. not needed anymore as DHCP failed. but still need timer for ARP testing. */
-			prvCloseDHCPSocket();
+            /* Setting the 'local' broadcast address, something like 192.168.1.255' */
+            EP_IPv4_SETTINGS.ulBroadcastAddress = ( EP_DHCPData.ulOfferedIPAddress & EP_IPv4_SETTINGS.ulNetMask ) | ~EP_IPv4_SETTINGS.ulNetMask;
 
-			xApplicationGetRandomNumber( &( ulNumbers[ 0 ] ) );
-			EP_DHCPData.xDHCPTxPeriod = pdMS_TO_TICKS( 3000UL + ( ulNumbers[ 0 ] & 0x3ffUL ) ); /*  do ARP test every (3 + 0-1024mS) seconds. */
+            /* Close socket to ensure packets don't queue on it. not needed anymore as DHCP failed. but still need timer for ARP testing. */
+            prvCloseDHCPSocket();
 
-			xARPHadIPClash = pdFALSE;                                                           /* reset flag that shows if have ARP clash. */
-			vARPSendGratuitous();
-		}
+            xApplicationGetRandomNumber( &( ulNumbers[ 0 ] ) );
+            EP_DHCPData.xDHCPTxPeriod = pdMS_TO_TICKS( 3000UL + ( ulNumbers[ 0 ] & 0x3ffUL ) ); /*  do ARP test every (3 + 0-1024mS) seconds. */
 
-	#endif /* ipconfigDHCP_FALL_BACK_AUTO_IP */
+            xARPHadIPClash = pdFALSE;                                                           /* reset flag that shows if have ARP clash. */
+            vARPSendGratuitous();
+        }
+
+    #endif /* ipconfigDHCP_FALL_BACK_AUTO_IP */
 /*-----------------------------------------------------------*/
 
 #endif /* ipconfigUSE_DHCP != 0 */
