@@ -1,27 +1,27 @@
 /*
-FreeRTOS+TCP V2.3.0
-Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
- http://aws.amazon.com/freertos
- http://www.FreeRTOS.org
-*/
+ * FreeRTOS+TCP V2.3.0
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://aws.amazon.com/freertos
+ * http://www.FreeRTOS.org
+ */
 
 /* FreeRTOS includes. */
 #include "LPC54018.h"
@@ -44,60 +44,60 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "fsl_debug_console.h"
 
 
-#define PHY_ADDRESS					   ( 0x00U )
+#define PHY_ADDRESS                    ( 0x00U )
 /* MDIO operations. */
-#define EXAMPLE_MDIO_OPS			   lpc_enet_ops
+#define EXAMPLE_MDIO_OPS               lpc_enet_ops
 /* PHY operations. */
-#define EXAMPLE_PHY_OPS				   phylan8720a_ops
-#define ENET_RXBD_NUM				   ( 4 )
-#define ENET_TXBD_NUM				   ( 4 )
-#define ENET_RXBUFF_SIZE			   ( ENET_FRAME_MAX_FRAMELEN )
-#define ENET_BuffSizeAlign( n )	   ENET_ALIGN( n, ENET_BUFF_ALIGNMENT )
-#define ENET_ALIGN( x, align )	   ( ( unsigned int ) ( ( x ) + ( ( align ) - 1 ) ) & ( unsigned int ) ( ~( unsigned int ) ( ( align ) - 1 ) ) )
-#define ENET_EXAMPLE_FRAME_HEADSIZE	   ( 14U )
-#define ENET_EXAMPLE_DATA_LENGTH	   ( 1000U )
-#define ENET_EXAMPLE_FRAME_SIZE		   ( ENET_EXAMPLE_DATA_LENGTH + ENET_EXAMPLE_FRAME_HEADSIZE )
-#define ENET_EXAMPLE_PACKAGETYPE	   ( 4U )
-#define ENET_EXAMPLE_LOOP_COUNT		   ( 20U )
+#define EXAMPLE_PHY_OPS                phylan8720a_ops
+#define ENET_RXBD_NUM                  ( 4 )
+#define ENET_TXBD_NUM                  ( 4 )
+#define ENET_RXBUFF_SIZE               ( ENET_FRAME_MAX_FRAMELEN )
+#define ENET_BuffSizeAlign( n )    ENET_ALIGN( n, ENET_BUFF_ALIGNMENT )
+#define ENET_ALIGN( x, align )     ( ( unsigned int ) ( ( x ) + ( ( align ) - 1 ) ) & ( unsigned int ) ( ~( unsigned int ) ( ( align ) - 1 ) ) )
+#define ENET_EXAMPLE_FRAME_HEADSIZE    ( 14U )
+#define ENET_EXAMPLE_DATA_LENGTH       ( 1000U )
+#define ENET_EXAMPLE_FRAME_SIZE        ( ENET_EXAMPLE_DATA_LENGTH + ENET_EXAMPLE_FRAME_HEADSIZE )
+#define ENET_EXAMPLE_PACKAGETYPE       ( 4U )
+#define ENET_EXAMPLE_LOOP_COUNT        ( 20U )
 
 #if defined( __GNUC__ )
-	#ifndef __ALIGN_END
-		#define __ALIGN_END    __attribute__( ( aligned( ENET_BUFF_ALIGNMENT ) ) )
-	#endif
-	#ifndef __ALIGN_BEGIN
-		#define __ALIGN_BEGIN
-	#endif
+    #ifndef __ALIGN_END
+        #define __ALIGN_END    __attribute__( ( aligned( ENET_BUFF_ALIGNMENT ) ) )
+    #endif
+    #ifndef __ALIGN_BEGIN
+        #define __ALIGN_BEGIN
+    #endif
 #else
-	#ifndef __ALIGN_END
-		#define __ALIGN_END
-	#endif
-	#ifndef __ALIGN_BEGIN
-		#if defined( __CC_ARM ) || defined( __ARMCC_VERSION )
-			#define __ALIGN_BEGIN    __attribute__( ( aligned( ENET_BUFF_ALIGNMENT ) ) )
-		#elif defined( __ICCARM__ )
-			#define __ALIGN_BEGIN
-		#endif
-	#endif
+    #ifndef __ALIGN_END
+        #define __ALIGN_END
+    #endif
+    #ifndef __ALIGN_BEGIN
+        #if defined( __CC_ARM ) || defined( __ARMCC_VERSION )
+            #define __ALIGN_BEGIN    __attribute__( ( aligned( ENET_BUFF_ALIGNMENT ) ) )
+        #elif defined( __ICCARM__ )
+            #define __ALIGN_BEGIN
+        #endif
+    #endif
 #endif /* if defined( __GNUC__ ) */
 
 /* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
-driver will filter incoming packets and only pass the stack those packets it
-considers need processing. */
+ * driver will filter incoming packets and only pass the stack those packets it
+ * considers need processing. */
 #if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
-	#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )	eProcessBuffer
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
 #else
-	#define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )	eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
 #endif
 
 /*******************************************************************************
  * Variables
  ******************************************************************************/
 #if defined( __ICCARM__ )
-	#pragma data_alignment = ENET_BUFF_ALIGNMENT
+    #pragma data_alignment = ENET_BUFF_ALIGNMENT
 #endif
 __ALIGN_BEGIN enet_rx_bd_struct_t g_rxBuffDescrip[ ENET_RXBD_NUM ] __ALIGN_END;
 #if defined( __ICCARM__ )
-	#pragma data_alignment = ENET_BUFF_ALIGNMENT
+    #pragma data_alignment = ENET_BUFF_ALIGNMENT
 #endif
 __ALIGN_BEGIN enet_tx_bd_struct_t g_txBuffDescrip[ ENET_TXBD_NUM ] __ALIGN_END;
 
@@ -106,7 +106,7 @@ enet_handle_t g_handle = { 0 };
 uint8_t g_macAddr[ 6 ] = { 0xde, 0xad, 0x00, 0xbe, 0xef, 0x01 };
 uint8_t multicastAddr[ 6 ] = { 0x01, 0x00, 0x5e, 0x00, 0x01, 0x81 };
 uint8_t g_frame[ ENET_EXAMPLE_PACKAGETYPE ][ ENET_EXAMPLE_FRAME_SIZE ];
-uint8_t *g_txbuff[ ENET_TXBD_NUM ];
+uint8_t * g_txbuff[ ENET_TXBD_NUM ];
 uint32_t g_txIdx = 0;
 uint8_t g_txbuffIdx = 0;
 uint8_t g_txCosumIdx = 0;
@@ -125,13 +125,12 @@ uint32_t rxbuffer[ ENET_RXBD_NUM ];
 
 TaskHandle_t receiveTaskHandle;
 
-void ENET_IntCallback( ENET_Type *base,
-					   enet_handle_t *handle,
-					   enet_event_t event,
-					   uint8_t channel,
-					   void *param )
+void ENET_IntCallback( ENET_Type * base,
+                       enet_handle_t * handle,
+                       enet_event_t event,
+                       uint8_t channel,
+                       void * param )
 {
-
 	BaseType_t needsToYield = pdFALSE;
 	switch( event )
 	{
@@ -148,7 +147,7 @@ void ENET_IntCallback( ENET_Type *base,
 	}
 }
 
-static void rx_task( void *parameter )
+static void rx_task( void * parameter )
 {
 uint32_t length;
 NetworkBufferDescriptor_t *pxBufferDescriptor;
@@ -336,7 +335,7 @@ static enum {initPhy, startReceiver, waitForLink, configurePhy }networkInitialis
 }
 
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-									BaseType_t xReleaseAfterSend )
+                                    BaseType_t xReleaseAfterSend )
 {
 BaseType_t response = pdFALSE;
 status_t status;
@@ -372,9 +371,9 @@ status_t status;
 __ALIGN_BEGIN static uint32_t buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ ( ipBUFFER_PADDING + ENET_RXBUFF_SIZE ) / sizeof( uint32_t ) + 1 ] __ALIGN_END;
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
-	for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
-	{
-		pxNetworkBuffers[ x ].pucEthernetBuffer = ( uint8_t * ) &buffers[ x ][ 0 ] + ipBUFFER_PADDING;
-		buffers[ x ][ 0 ] = ( uint32_t ) &pxNetworkBuffers[ x ];
-	}
+    for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
+    {
+        pxNetworkBuffers[ x ].pucEthernetBuffer = ( uint8_t * ) &buffers[ x ][ 0 ] + ipBUFFER_PADDING;
+        buffers[ x ][ 0 ] = ( uint32_t ) &pxNetworkBuffers[ x ];
+    }
 }

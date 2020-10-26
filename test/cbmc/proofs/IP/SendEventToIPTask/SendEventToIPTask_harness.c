@@ -39,7 +39,7 @@
 /* The harness test proceeds to call SendEventToIPTask with an unconstrained value */
 void harness()
 {
-eIPEvent_t eEvent;
+    eIPEvent_t eEvent;
 
-	xSendEventToIPTask( eEvent );
+    xSendEventToIPTask( eEvent );
 }
