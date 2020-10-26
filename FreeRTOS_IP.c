@@ -2647,9 +2647,14 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         if( xReleaseAfterSend == pdFALSE )
         {
             pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, pxNetworkBuffer->xDataLength );
-            xReleaseAfterSend = pdTRUE;
-            /* Want no rounding up. */
-            pxNewBuffer->xDataLength = pxNetworkBuffer->xDataLength;
+
+            if( pxNewBuffer != NULL )
+            {
+                xReleaseAfterSend = pdTRUE;
+                /* Want no rounding up. */
+                pxNewBuffer->xDataLength = pxNetworkBuffer->xDataLength;
+            }
+
             pxNetworkBuffer = pxNewBuffer;
         }
 
