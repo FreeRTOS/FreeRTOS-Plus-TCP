@@ -428,13 +428,17 @@
 
     #if ( ipconfigTCP_HANG_PROTECTION == 1 )
 
-/**
- * @brief
- *
- * @param[in]
- *
- * @return
- */
+        /**
+         * @brief Some of the TCP states may only last a certain amount of time.
+         *        This function checks if the socket is 'hanging', i.e. staying
+         *        too long in the same state.
+         *
+         * @param[in] The socket to be checked.
+         *
+         * @return pdFALSE if no checks are needed, pdTRUE if checks were done, or negative
+         *         in case the socket has reached a critical time-out. The socket will go to
+         *         the eCLOSE_WAIT state.
+         */
         static BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket )
         {
             BaseType_t xResult;
@@ -527,7 +531,8 @@
  *
  * @param[in] pxSocket: socket to be checked.
  *
- * @return 0 on success, a negative error code on failure.
+ * @return 0 on success, a negative error code on failure. A negative value will be
+ *         returned in case the hang-protection has put the socket in a wait-close state.
  *
  * @note Sequence of calling (normally) :
  *   IP-Task:
@@ -724,7 +729,7 @@
  *        window isn't full.
  *
  * @param[in] pxSocket: The socket owning the connection.
- * @param[in] ppxNetworkBuffer: Pointer to pointer to the network buffer.
+ * @param[in,out] ppxNetworkBuffer: Pointer to pointer to the network buffer.
  *
  * @return Total number of bytes sent.
  */
@@ -765,7 +770,7 @@
     /*-----------------------------------------------------------*/
 
 /**
- * @brief  Return (or send) a packet the the peer. The data is stored in pxBuffer,
+ * @brief  Return (or send) a packet to the peer. The data is stored in pxBuffer,
  *         which may either point to a real network buffer or to a TCP socket field
  *         called 'xTCP.xPacket'. A temporary xNetworkBuffer will be used to pass
  *         the data to the NIC.
@@ -773,9 +778,8 @@
  * @param[in] pxSocket: The socket owning the connection.
  * @param[in] pxDescriptor: The network buffer descriptor carrying the packet.
  * @param[in] ulLen: Length of the packet being sent.
- * @param[in] xReleaseAfterSend: ipconfigZERO_COPY_TX_DRIVER - in case no copying is
- *                               required.
- *                               Any non zero value if copying is desired.
+ * @param[in] xReleaseAfterSend: pdTRUE if the ownership of the descriptor is
+ *                               transferred to the network interface.
  */
     static void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
                                     NetworkBufferDescriptor_t * pxDescriptor,
@@ -1057,6 +1061,7 @@
  * @note The SYN event is very important: the sequence numbers, which have a kind of
  *       random starting value, are being synchronized. The sliding window manager
  *       (in FreeRTOS_TCP_WIN.c) needs to know them, along with the Maximum Segment
+ *       Size (MSS).
  */
     static void prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket )
     {
@@ -1086,7 +1091,8 @@
  * @param[in] pxSocket: The socket owning the TCP connection. The first packet shall
  *               be created in this socket.
  *
- * @return pdTRUE: if the packet was successfully created. Else pdFALSE.
+ * @return pdTRUE: if the packet was successfully created and the first SYN can be sent.
+ *         Else pdFALSE.
  *
  * @note Connecting sockets have a special state: eCONNECT_SYN. In this phase,
  *       the Ethernet address of the target will be found using ARP. In case the
@@ -1603,7 +1609,8 @@
 
 /**
  * @brief When opening a TCP connection, while SYN's are being sent, the  parties may
- *        communicate what MSS (Maximum Segment Size) they intend to use.
+ *        communicate what MSS (Maximum Segment Size) they intend to use, whether Selective
+ *        ACK's ( SACK ) are supported, and the size of the reception window ( WSOPT ).
  *
  * @param[in] pxSocket: The socket being used for communication. It is used to set
  *                      the MSS.
@@ -1687,7 +1694,7 @@
     /*-----------------------------------------------------------*/
 
 /**
- * @brief Changing to a new state. Centralized here to do specific actions such as
+ * @brief Changing to a new state. Centralised here to do specific actions such as
  *        resetting the alive timer, calling the user's OnConnect handler to notify
  *        that a socket has got (dis)connected, and setting bit to unblock a call to
  *        FreeRTOS_select().
@@ -1876,7 +1883,8 @@
     /*-----------------------------------------------------------*/
 
 /**
- * @brief Resize a given TCP buffer.
+ * @brief Check if the size of a network buffer is big enough to hold the outgoing message.
+ *        Allocate a new bigger network buffer when necessary.
  *
  * @param[in] pxSocket: Socket whose buffer is being resized.
  * @param[in] pxNetworkBuffer: The network buffer whose size is being increased.
@@ -1984,7 +1992,7 @@
  * @brief Prepare an outgoing message, in case anything has to be sent.
  *
  * @param[in] pxSocket: The socket owning the connection.
- * @param[in] ppxNetworkBuffer: Pointer to the pointer to the network buffer.
+ * @param[in,out] ppxNetworkBuffer: Pointer to the pointer to the network buffer.
  * @param[in] uxOptionsLength: The length of the TCP options.
  *
  * @return Length of the data to be sent if everything is correct. Else, -1
@@ -2302,7 +2310,7 @@
     /*-----------------------------------------------------------*/
 
 /**
- * @brief prvTCPHandleFin() will be called to handle socket closure. The
+ * @brief prvTCPHandleFin() will be called to handle connection closure. The
  *        closure starts when either a FIN has been received and accepted,
  *        or when the socket has sent a FIN flag to the peer. Before being
  *        called, it has been checked that both reception and transmission
@@ -2804,7 +2812,7 @@
  *        completely received.
  *
  * @param[in] pxSocket: The socket owning the connection.
- * @param[in] ppxNetworkBuffer: Pointer to pointer to the network buffer.
+ * @param[in,out] ppxNetworkBuffer: Pointer to pointer to the network buffer.
  * @param[in] ulReceiveLength: The length of the received packet.
  * @param[in] uxOptionsLength: Length of TCP options.
  *
@@ -3785,6 +3793,7 @@
 /**
  * @brief Duplicates a socket after a listening socket receives a connection and bind
  *        the new socket to the same port as the listening socket.
+ *        Also, let the new socket inherit all properties from the listening socket.
  *
  * @param[in] pxNewSocket: Pointer to the new socket.
  * @param[in] pxSocket: Pointer to the socket being duplicated.

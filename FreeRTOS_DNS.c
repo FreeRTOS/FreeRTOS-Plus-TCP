@@ -509,7 +509,8 @@
  * @brief Remove the entry defined by the search ID to cancel a DNS request.
  *
  * @param[in] pvSearchID: The search ID of the callback function associated with
- *                        the DNS request being cancelled.
+ *                        the DNS request being cancelled. Note that the value of
+ *                        the pointer matters, not the pointee.
  */
         void FreeRTOS_gethostbyname_cancel( void * pvSearchID )
         {
@@ -570,7 +571,7 @@
  *
  * @param[in] uxIdentifier: Identifier associated with the callback function.
  * @param[in] pcName: The name associated with the callback function.
- * @param[in] ulIPAddress: IP-address identified from the DNS record.
+ * @param[in] ulIPAddress: IP-address identified from the DNS server.
  *
  * @return Returns pdTRUE if uxIdentifier was recognized.
  */
@@ -792,7 +793,7 @@
  * @param[in] uxReadTimeOut_ticks: The timeout in ticks for waiting. In case the user has supplied
  *                                 a call-back function, this value should be zero.
  *
- * @return The IPv4 IP address for the hostname being queried.
+ * @return The IPv4 IP address for the hostname being queried. It will be zero if there is no reply.
  */
     static uint32_t prvGetHostByName( const char * pcHostName,
                                       TickType_t uxIdentifier,
@@ -963,8 +964,8 @@
 /**
  * @brief Create the DNS message in the zero copy buffer passed in the first parameter.
  *
- * @param[in] pucUDPPayloadBuffer: The zero copy buffer where the DNS message will be created.
- * @param[in] pcHostName: Hostname we want the IP address for.
+ * @param[in,out] pucUDPPayloadBuffer: The zero copy buffer where the DNS message will be created.
+ * @param[in] pcHostName: Hostname to be looked up.
  * @param[in] uxIdentifier: The identifier to be added to the DNS message.
  *
  * @return Total size of the generated message, which is the space from the last written byte
@@ -1071,8 +1072,7 @@
  * @param[out] pcName: The pointer in which the name in the DNS response will be returned.
  * @param[in] uxDestLen: Size of the pcName array.
  *
- * @return If a fully formed name was found, then return the index-offset of the end of the
- *         name into the pucByte string. Else, return 0.
+ * @return If a fully formed name was found, then return the number of bytes processed in pucByte.
  */
         _static size_t prvReadNameField( const uint8_t * pucByte,
                                          size_t uxRemainingBytes,
@@ -1180,7 +1180,7 @@
  * @param[in] pucByte: The pointer to the resource record.
  * @param[in] uxLength: Length of the resource record.
  *
- * @return It returns the number of bytes read.
+ * @return It returns the number of bytes read, or zero when an error has occured.
  */
     _static size_t prvSkipNameField( const uint8_t * pucByte,
                                      size_t uxLength )
@@ -1258,7 +1258,8 @@
  *
  * @param[in] pxNetworkBuffer: The network buffer to be parsed.
  *
- * @return Always pdFAIL to indicate that the packet was not consumed.
+ * @return Always pdFAIL to indicate that the packet was not consumed and must
+ *         be released by the caller.
  */
     uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
@@ -1314,7 +1315,7 @@
     /*-----------------------------------------------------------*/
 
 /**
- * @brief Process a response packet from a DNS server.
+ * @brief Process a response packet from a DNS server, or an LLMNR reply.
  *
  * @param[in] pucUDPPayloadBuffer: The DNS response received as a UDP
  *                                 payload.
@@ -1723,9 +1724,9 @@
     #if ( ipconfigUSE_NBNS == 1 )
 
 /**
- * @brief Respond to an NBNS message.
+ * @brief Respond to an NBNS query or an NBNS reply.
  *
- * @param[in] pucPayload: the UDP payload of the NBNS query.
+ * @param[in] pucPayload: the UDP payload of the NBNS message.
  * @param[in] uxBufferLength: Length of the Buffer.
  * @param[in] ulIPAddress: IP address of the sender.
  */
@@ -1977,7 +1978,18 @@
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_DNS_CACHE == 1 )
-
+        /**
+         * @brief Send a DNS message to be used in NBNS or LLMNR
+         *
+         * @param[in] pcName: the name of the host
+         * @param[in,out] pulIP: when doing a lookup, will be set, when doing an update,
+         *                       will be read.
+         * @param[in] ulTTL: Time To Live
+         * @param[in] xLookUp: pdTRUE if a look-up is expected, pdFALSE, when the DNS cache must
+         *                     be updated.
+         *
+         * @return
+         */
         static BaseType_t prvProcessDNSCache( const char * pcName,
                                               uint32_t * pulIP,
                                               uint32_t ulTTL,

@@ -97,7 +97,7 @@ static TickType_t xLastGratuitousARPTime = ( TickType_t ) 0;
  *
  * @param[in] pxARPFrame: The ARP Frame (the ARP packet).
  *
- * @return An enum which says whether to release the frame or not.
+ * @return An enum which says whether to return the frame or to release it.
  */
 eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 {
@@ -222,6 +222,13 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 
 #if ( ipconfigUSE_ARP_REMOVE_ENTRY != 0 )
 
+    /**
+     * @brief Remove an ARP cache entry that matches with .pxMACAddress.
+     *
+     * @param[in] pxMACAddress: Pointer to the MAC address whose entry shall
+     *                          be removed..
+     * @return When the entry was found and remove: the IP-addres, otherwise zero.
+    */
     uint32_t ulARPRemoveCacheEntryByMac( const MACAddress_t * pxMACAddress )
     {
         BaseType_t x;
@@ -426,6 +433,14 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_ARP_REVERSED_LOOKUP == 1 )
+    /**
+     * @brief Retrieve an entry from the cache table
+     *
+     * @param[in] pxMACAddress: The MAC-address of the entry of interest.
+     * @param[out] pulIPAddress: set to the IP-address found, or unchanged when not found.
+     *
+     * @return Either eARPCacheMiss or eARPCacheHit.
+     */
     eARPLookupResult_t eARPGetCacheEntryByMac( MACAddress_t * const pxMACAddress,
                                                uint32_t * pulIPAddress )
     {
@@ -457,8 +472,8 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 /**
  * @brief Look for ulIPAddress in the ARP cache.
  *
- * @param[in] pulIPAddress: Pointer to the IP-address to be queried to the ARP cache.
- * @param[in] pxMACAddress: Pointer to a MACAddress_t variable where the MAC address
+ * @param[in,out] pulIPAddress: Pointer to the IP-address to be queried to the ARP cache.
+ * @param[in,out] pxMACAddress: Pointer to a MACAddress_t variable where the MAC address
  *                          will be stored, if found.
  *
  * @return If the IP address exists, copy the associated MAC address into pxMACAddress,
@@ -579,12 +594,12 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
  *
  * @param[in] ulAddressToLookup: The 32-bit representation of an IP address to
  *                               lookup.
- * @param[in] pxMACAddress: A pointer to MACAddress_t variable where, if there
+ * @param[out] pxMACAddress: A pointer to MACAddress_t variable where, if there
  *                          is an ARP cache hit, the MAC address corresponding to
  *                          the IP address will be stored.
  *
- * @return The status of where the cache search was hit/miss/found an invalid
- *         entry.
+ * @return When the IP-address is found: eARPCacheHit, when not found: eARPCacheMiss,
+ *         and when waiting for a ARP reply: eCantSendPacket.
  */
 static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
                                           MACAddress_t * const pxMACAddress )
@@ -758,7 +773,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
  * @brief Generate an ARP request packet by copying various constant details to
  *        the buffer.
  *
- * @param[in] pxNetworkBuffer: Pointer to the buffer which has to be filled with
+ * @param[in,out] pxNetworkBuffer: Pointer to the buffer which has to be filled with
  *                             the ARP request packet details.
  */
 void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )

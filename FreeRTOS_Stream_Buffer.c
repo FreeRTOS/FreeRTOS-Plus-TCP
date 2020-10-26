@@ -46,7 +46,7 @@
 /**
  * @brief Adds data to a stream buffer.
  *
- * @param[in] pxBuffer: The buffer to which the bytes will be added.
+ * @param[in,out] pxBuffer: The buffer to which the bytes will be added.
  * @param[in] uxOffset: If uxOffset > 0, data will be written at an offset from uxHead
  *                      while uxHead will not be moved yet.
  * @param[in] pucData: A pointer to the data to be added.
@@ -142,7 +142,7 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
  *
  * @param[in] pxBuffer: The buffer from which the bytes will be read.
  * @param[in] uxOffset: can be used to read data located at a certain offset from 'lTail'.
- * @param[in] pucData: If 'pucData' equals NULL, the function is called to advance 'lTail' only.
+ * @param[in,out] pucData: If 'pucData' equals NULL, the function is called to advance 'lTail' only.
  * @param[in] uxMaxCount: The number of bytes to read.
  * @param[in] xPeek: if 'xPeek' is pdTRUE, or if 'uxOffset' is non-zero, the 'lTail' pointer will
  *                   not be advanced.

@@ -358,10 +358,10 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
  * function signature as is. */
 
 /**
- * @brief The IP task which deals with all the requests coming from the user
- *        application and the hardware. It acts as an interface between the
- *        hardware and the user-application. Almost all calls to the IP
- *        processing functions are placed from this single task.
+ * @brief The IP task handles all requests from the user application and the
+ *        network interface. It receives messages through a FreeRTOS queue called
+ *        'xNetworkEventQueue'. prvIPTask() is the only task which has access to
+ *        the data of the IP-stack, and so it has no need of using mutexes.
  *
  * @param[in] pvParameters: Not used.
  */
@@ -597,6 +597,9 @@ static void prvIPTask( void * pvParameters )
  *
  * @return If the current context belongs to the IP-task, then pdTRUE is
  *         returned. Else pdFALSE is returned.
+ *
+ * @note Very important: the IP-task is not allowed to call its own API's,
+ *        because it would easily get into a dead-lock.
  */
 BaseType_t xIsCallingFromIPTask( void )
 {
@@ -616,7 +619,7 @@ BaseType_t xIsCallingFromIPTask( void )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Handle the incoming ethernet packets.
+ * @brief Handle the incoming Ethernet packets.
  *
  * @param[in] pxBuffer: Linked/un-linked network buffer descriptor(s)
  *                      to be processed.
@@ -659,10 +662,12 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Calculate the maximum sleep time remaining.
+ * @brief Calculate the maximum sleep time remaining. It will go through all
+ *        timers to see which timer will expire first. That will be the amount
+ *        of time to block in the next call to xQueueReceive().
  *
  * @return The maximum sleep time or ipconfigMAX_IP_TASK_SLEEP_TIME,
- *         whichever is bigger.
+ *         whichever is smaller.
  */
 static TickType_t prvCalculateSleepTime( void )
 {
@@ -790,9 +795,11 @@ static void prvCheckNetworkTimers( void )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Start the IP timer.
+ * @brief Start an IP timer. The IP-task has its own implementation of a timer
+ *        called 'IPTimer_t', which is based on the FreeRTOS 'TimeOut_t'.
  *
- * @param[in] pxTimer: Pointer to the IP timer.
+ * @param[in] pxTimer: Pointer to the IP timer. When zero, the timer is marked
+ *                     as expired.
  * @param[in] xTime: Time to be loaded into the IP timer.
  */
 static void prvIPTimerStart( IPTimer_t * pxTimer,
@@ -815,7 +822,7 @@ static void prvIPTimerStart( IPTimer_t * pxTimer,
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Reload IP timer with given time and restart it.
+ * @brief Sets the reload time of an IP timer and restarts it.
  *
  * @param[in] pxTimer: Pointer to the IP timer.
  * @param[in] xTime: Time to be reloaded into the IP timer.
@@ -872,7 +879,9 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Send a network down event to the IP-task.
+ * @brief Send a network down event to the IP-task. If it fails to post a message,
+*         the failure will be noted in the variable 'xNetworkDownEventPending'
+*         and later on a 'network-down' event, it will be executed.
  */
 void FreeRTOS_NetworkDown( void )
 {
@@ -897,6 +906,8 @@ void FreeRTOS_NetworkDown( void )
 
 /**
  * @brief Utility function. Process Network Down event from ISR.
+ *        This function is supposed to be called form an ISR. It is recommended
+- *        use 'FreeRTOS_NetworkDown()', when calling from a normal task.
  *
  * @return If the event was processed successfully, then return pdTRUE.
  *         Else pdFALSE.
@@ -1218,7 +1229,8 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Get the current address configuration.
+ * @brief Get the current address configuration. Only non-NULL pointers will
+ *        be filled in.
  *
  * @param[out] pulIPAddress: The current IP-address assigned.
  * @param[out] pulNetMask: The netmask used for current subnet.
@@ -1255,7 +1267,8 @@ void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Set the current network address configuration.
+ * @brief Set the current network address configuration. Only non-NULL pointers will
+ *        be used.
  *
  * @param[in] pulIPAddress: The current IP-address assigned.
  * @param[in] pulNetMask: The netmask used for current subnet.
@@ -1294,7 +1307,8 @@ void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
 /**
- * @brief Send a ping request to the given IP address.
+ * @brief Send a ping request to the given IP address. After receiving a reply,
+ *        IP-task will call a user-supplied function 'vApplicationPingReplyHook()'.
  *
  * @param[in] ulIPAddress: The IP address to which the ping is to be sent.
  * @param[in] uxNumberOfBytesToSend: Number of bytes in the ping request.
@@ -1630,7 +1644,8 @@ void vIPNetworkUpCalls( void )
 /**
  * @brief Process the Ethernet packet.
  *
- * @param[in] pxNetworkBuffer: the network buffer containing the ethernet packet.
+ * @param[in,out] pxNetworkBuffer: the network buffer containing the ethernet packet. If the
+ *                                 buffer is large enough, it may be reused to send a reply.
  */
 static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
@@ -1753,7 +1768,7 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
  * @brief Set multicast MAC address.
  *
  * @param[in] ulIPAddress: IP address.
- * @param[in] pxMACAddress: Pointer to MAC address.
+ * @param[out] pxMACAddress: Pointer to MAC address.
  */
 void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
                                   MACAddress_t * pxMACAddress )
@@ -2165,7 +2180,11 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 )
-
+    /**
+     * @brief Process an ICMP echo request.
+     *
+     * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
+     */
     static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket )
     {
         ICMPHeader_t * pxICMPHeader;
@@ -2210,7 +2229,14 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-
+    /**
+     * @brief Process an ICMP packet. Only echo requests and echo replies are recognised and handled.
+     *
+     * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
+     *
+     * @return eReleaseBuffer when the message buffer should be released, or eReturnEthernetFrame
+     *                        when the packet should be returned.
+     */
     static eFrameProcessingResult_t prvProcessICMPPacket( ICMPPacket_t * const pxICMPPacket )
     {
         eFrameProcessingResult_t eReturn = eReleaseBuffer;
@@ -2244,8 +2270,16 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
 
-/* Although the driver will take care of checksum calculations,
- * the IP-task will still check if the length fields are OK. */
+    /**
+     * @brief Although the driver will take care of checksum calculations, the IP-task
+     *        will still check if the length fields are OK.
+     *
+     * @param[in] pucEthernetBuffer: The Ethernet packet received.
+     * @param[in] uxBufferLength: The total number of bytes received.
+     *
+     * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
+     *         should be dropped.
+     */
     static BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
                                         size_t uxBufferLength )
     {
@@ -2374,13 +2408,19 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Generate the checksum of the data sent in the first parameter.
+ * @brief Generate or check the protocol checksum of the data sent in the first parameter.
+ *        At the same time, the length of the packet and the length of the different layers
+ *        will be checked.
  *
- * @param[in] pucEthernetBuffer: The ethernet buffer for which the checksum is to be calculated.
- * @param[in] uxBufferLength: the length of the buffer.
+ * @param[in] pucEthernetBuffer: The Ethernet buffer for which the checksum is to be calculated
+ *                               or checked.
+ * @param[in] uxBufferLength: the total number of bytes received, or the number of bytes written
+ *                            in the packet buffer.
  * @param[in] xOutgoingPacket: Whether this is an outgoing packet or not.
  *
- * @return The checksum/error code.
+ * @return When xOutgoingPacket is false: the error code can be either: ipINVALID_LENGTH,
+ *         ipUNHANDLED_PROTOCOL, ipWRONG_CRC, or ipCORRECT_CRC.
+ *         When xOutgoingPacket is true: either ipINVALID_LENGTH or ipCORRECT_CRC.
  */
 uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                                      size_t uxBufferLength,
@@ -2687,13 +2727,24 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
  *   union.u32 = ( uint32_t ) union.u16[ 0 ] + union.u16[ 1 ];
  *
  * Arguments:
- *   ulSum: This argument provides a value to initialize the progressive summation
+ *   ulSum: This argument provides a value to initialise the progressive summation
  *	 of the header's values to. It is often 0, but protocols like TCP or UDP
  *	 can have pseudo-header fields which need to be included in the checksum.
  *   pucNextData: This argument contains the address of the first byte which this
- *	 method should process. The method's memory iterator is initialized to this value.
+ *	 method should process. The method's memory iterator is initialised to this value.
  *   uxDataLengthBytes: This argument contains the number of bytes that this method
  *	 should process.
+ */
+
+/**
+ * @brief Calculates the 16-bit checksum of an array of bytes
+ *
+ * @param[in] usSum: The initial sum, obtained from earlier data.
+ * @param[in] pucNextData: The actual data.
+ * @param[in] uxByteCount: The number of bytes.
+ *
+ * @return The 16-bit one's complement of the one's complement sum of all 16-bit
+ *         words in the header
  */
 uint16_t usGenerateChecksum( uint16_t usSum,
                              const uint8_t * pucNextData,
@@ -2844,9 +2895,9 @@ uint16_t usGenerateChecksum( uint16_t usSum,
  * FreeRTOS_DNS.c. Not to be made static. */
 
 /**
- * @brief Send the ethernet frame after checking for some conditions.
+ * @brief Send the Ethernet frame after checking for some conditions.
  *
- * @param[in] pxNetworkBuffer: The network buffer which is to be sent.
+ * @param[in,out] pxNetworkBuffer: The network buffer which is to be sent.
  * @param[in] xReleaseAfterSend: Whether this network buffer is to be released or not.
  */
 void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
@@ -2937,6 +2988,10 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
 
     #define ipMONITOR_PERCENTAGE_100       ( 100U )
 
+    /**
+     * @brief A function that monitors a three resources: the heap, the space in the message
+     *        queue of the IP-task, the number of available network buffer descriptors.
+     */
     void vPrintResourceStats( void )
     {
         static UBaseType_t uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
@@ -3028,7 +3083,8 @@ void FreeRTOS_SetIPAddress( uint32_t ulIPAddress )
 /**
  * @brief Get the gateway address of the subnet.
  *
- * @return The IP-address of the gateway.
+ * @return The IP-address of the gateway, zero if a gateway is
+ *         not used/defined.
  */
 uint32_t FreeRTOS_GetGatewayAddress( void )
 {

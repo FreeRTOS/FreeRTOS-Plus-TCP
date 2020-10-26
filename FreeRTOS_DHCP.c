@@ -255,7 +255,7 @@
 /**
  * @brief Check whether a given socket is the DHCP socket or not.
  *
- * @param[in] xSocket: The socket we want to check.
+ * @param[in] xSocket: The socket to be checked.
  *
  * @return If the socket given as parameter is the DHCP socket - return
  *         pdTRUE, else pdFALSE.
@@ -684,6 +684,7 @@
  * @brief Process the DHCP replies.
  *
  * @param[in] xExpectedMessageType: The type of the message the DHCP state machine is expecting.
+ *                                  Messages of different type will be dropped.
  *
  * @return pdPASS: if DHCP options are received correctly; pdFAIL: Otherwise.
  */
@@ -944,10 +945,10 @@
 /**
  * @brief Create a partial DHCP message by filling in all the 'constant' fields.
  *
- * @param[in] pxAddress: Address to be filled in.
- * @param[in] xOpcode: Opcode to be filled in the packet.
+ * @param[out] pxAddress: Address to be filled in.
+ * @param[out] xOpcode: Opcode to be filled in the packet. Will always be 'dhcpREQUEST_OPCODE'.
  * @param[in] pucOptionsArray: The options to be added to the packet.
- * @param[in] pxOptionsArraySize: Byte count of the options.
+ * @param[in,out] pxOptionsArraySize: Byte count of the options. Its value might change.
  *
  * @return Ethernet buffer of the partially created DHCP packet.
  */
@@ -1143,7 +1144,10 @@
 
 
     #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-
+        /**
+         * @brief When DHCP has failed, the code can assign a Link-Layer address, and check if
+         *        another device already uses the IP-address.
+         */
         static void prvPrepareLinkLayerIPLookUp( void )
         {
             uint8_t ucLinkLayerIPAddress[ 2 ];
