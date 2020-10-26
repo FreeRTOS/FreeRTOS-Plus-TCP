@@ -145,84 +145,84 @@ void ENET_IntCallback( ENET_Type * base,
 
 static void rx_task( void * parameter )
 {
-uint32_t length;
-NetworkBufferDescriptor_t *pxBufferDescriptor;
-IPStackEvent_t xRxEvent;
-status_t status;
+    uint32_t length;
+    NetworkBufferDescriptor_t * pxBufferDescriptor;
+    IPStackEvent_t xRxEvent;
+    status_t status;
 
-	while( pdTRUE )
-	{
-		ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+    while( pdTRUE )
+    {
+        ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
-		BaseType_t receiving = pdTRUE;
+        BaseType_t receiving = pdTRUE;
 
-		while( receiving == pdTRUE )
-		{
-			status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
+        while( receiving == pdTRUE )
+        {
+            status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
 
-			switch( status )
-			{
-				case kStatus_Success: /* there is a frame.  process it */
+            switch( status )
+            {
+                case kStatus_Success: /* there is a frame.  process it */
 
-					if( length )
-					{
-						pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
+                    if( length )
+                    {
+                        pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
 
-						if( pxBufferDescriptor != NULL )
-						{
-							status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
-							pxBufferDescriptor->xDataLength = length;
+                        if( pxBufferDescriptor != NULL )
+                        {
+                            status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
+                            pxBufferDescriptor->xDataLength = length;
 
-							if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
-							{
-								xRxEvent.eEventType = eNetworkRxEvent;
-								xRxEvent.pvData = ( void * ) pxBufferDescriptor;
+                            if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+                            {
+                                xRxEvent.eEventType = eNetworkRxEvent;
+                                xRxEvent.pvData = ( void * ) pxBufferDescriptor;
 
-								if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
-								{
-									vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-									iptraceETHERNET_RX_EVENT_LOST();
-									PRINTF( "RX Event Lost\n" );
-								}
-								else
-								{
-									/* Message successfully transfered to the stack */
-								}
-							}
-							else
-							{
-								PRINTF( "RX Event not to be considered\n" );
-								vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-								/* Not sure if a trace is required.  The stack did not want this message */
-							}
-						}
-						else
-						{
-							PRINTF( "RX No Buffer Available\n" );
-							ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
-							/* No buffer available to receive this message */
-							iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
-						}
-					}
+                                if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+                                {
+                                    vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+                                    iptraceETHERNET_RX_EVENT_LOST();
+                                    PRINTF( "RX Event Lost\n" );
+                                }
+                                else
+                                {
+                                    /* Message successfully transfered to the stack */
+                                }
+                            }
+                            else
+                            {
+                                PRINTF( "RX Event not to be considered\n" );
+                                vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+                                /* Not sure if a trace is required.  The stack did not want this message */
+                            }
+                        }
+                        else
+                        {
+                            PRINTF( "RX No Buffer Available\n" );
+                            ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
+                            /* No buffer available to receive this message */
+                            iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
+                        }
+                    }
 
-					break;
+                    break;
 
-				case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
-					receiving = pdFALSE;
-					break;
+                case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
+                    receiving = pdFALSE;
+                    break;
 
-				case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
-					PRINTF( "RX Receive Error\n" );
-					ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
-					/* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
-					break;
+                case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
+                    PRINTF( "RX Receive Error\n" );
+                    ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
+                    /* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
+                    break;
 
-				default:
-					PRINTF( "RX Receive default\n" );
-					break;
-			}
-		}
-	}
+                default:
+                    PRINTF( "RX Receive default\n" );
+                    break;
+            }
+        }
+    }
 }
 
 BaseType_t xGetPhyLinkStatus( void )
@@ -236,122 +236,122 @@ BaseType_t xGetPhyLinkStatus( void )
 
 BaseType_t xNetworkInterfaceInitialise( void )
 {
-enet_config_t config;
-uint32_t refClock = 50000000;     /* 50MHZ for rmii reference clock. */
-phy_speed_t speed;
-phy_duplex_t duplex;
-status_t status;
-bool link = false;
+    enet_config_t config;
+    uint32_t refClock = 50000000; /* 50MHZ for rmii reference clock. */
+    phy_speed_t speed;
+    phy_duplex_t duplex;
+    status_t status;
+    bool link = false;
 
-phy_config_t phyConfig;
+    phy_config_t phyConfig;
 
-int bufferIndex;
+    int bufferIndex;
 
-	for( bufferIndex = 0; bufferIndex < ENET_RXBD_NUM; bufferIndex++ )
-	{
-		rxbuffer[ bufferIndex ] = ( uint32_t ) &receiveBuffer[ bufferIndex ];
-	}
+    for( bufferIndex = 0; bufferIndex < ENET_RXBD_NUM; bufferIndex++ )
+    {
+        rxbuffer[ bufferIndex ] = ( uint32_t ) &receiveBuffer[ bufferIndex ];
+    }
 
-	phyConfig.phyAddr = PHY_ADDRESS;
-	phyConfig.autoNeg = true;
-	mdioHandle.resource.base = ENET;
+    phyConfig.phyAddr = PHY_ADDRESS;
+    phyConfig.autoNeg = true;
+    mdioHandle.resource.base = ENET;
 
-	/* prepare the buffer configuration. */
-	enet_buffer_config_t buffConfig[ 1 ] =
-	{
-		{
-			ENET_RXBD_NUM, ENET_TXBD_NUM,
-			&g_txBuffDescrip[ 0 ], &g_txBuffDescrip[ 0 ],
-			&g_rxBuffDescrip[ 0 ], &g_rxBuffDescrip[ ENET_RXBD_NUM ],
-			&rxbuffer[ 0 ], ENET_BuffSizeAlign( ENET_RXBUFF_SIZE ),
-		}
-	};
+    /* prepare the buffer configuration. */
+    enet_buffer_config_t buffConfig[ 1 ] =
+    {
+        {
+            ENET_RXBD_NUM, ENET_TXBD_NUM,
+            &g_txBuffDescrip[ 0 ], &g_txBuffDescrip[ 0 ],
+            &g_rxBuffDescrip[ 0 ], &g_rxBuffDescrip[ ENET_RXBD_NUM ],
+            &rxbuffer[ 0 ], ENET_BuffSizeAlign( ENET_RXBUFF_SIZE ),
+        }
+    };
 
-	while( !link )
-	{
-		status = PHY_Init( &phyHandle, &phyConfig );
+    while( !link )
+    {
+        status = PHY_Init( &phyHandle, &phyConfig );
 
-		if( kStatus_Success == status )
-		{
-			PHY_GetLinkStatus( &phyHandle, &link );
-		}
-		else if( kStatus_PHY_AutoNegotiateFail == status )
-		{
-			PRINTF( "\nPHY Auto-negotiation failed. Please check the cable connection and link partner setting.\n" );
-		}
-		else
-		{
-			PRINTF( "\nUnknown PHY failure %d\n", status );
-		}
-	}
+        if( kStatus_Success == status )
+        {
+            PHY_GetLinkStatus( &phyHandle, &link );
+        }
+        else if( kStatus_PHY_AutoNegotiateFail == status )
+        {
+            PRINTF( "\nPHY Auto-negotiation failed. Please check the cable connection and link partner setting.\n" );
+        }
+        else
+        {
+            PRINTF( "\nUnknown PHY failure %d\n", status );
+        }
+    }
 
-	PHY_GetLinkSpeedDuplex( &phyHandle, &speed, &duplex );
+    PHY_GetLinkSpeedDuplex( &phyHandle, &speed, &duplex );
 
-	/* Get default configuration 100M RMII. */
-	ENET_GetDefaultConfig( &config );
+    /* Get default configuration 100M RMII. */
+    ENET_GetDefaultConfig( &config );
 
-	/* Use the actual speed and duplex when phy success to finish the autonegotiation. */
-	config.miiSpeed = ( enet_mii_speed_t ) speed;
-	config.miiDuplex = ( enet_mii_duplex_t ) duplex;
+    /* Use the actual speed and duplex when phy success to finish the autonegotiation. */
+    config.miiSpeed = ( enet_mii_speed_t ) speed;
+    config.miiDuplex = ( enet_mii_duplex_t ) duplex;
 
-	/* Initialize ENET. */
-	ENET_Init( ENET, &config, g_macAddr, refClock );
+    /* Initialize ENET. */
+    ENET_Init( ENET, &config, g_macAddr, refClock );
 
-	/* Enable the rx interrupt. */
-	ENET_EnableInterrupts( ENET, ( kENET_DmaRx ) );
+    /* Enable the rx interrupt. */
+    ENET_EnableInterrupts( ENET, ( kENET_DmaRx ) );
 
-	/* Initialize Descriptor. */
-	ENET_DescriptorInit( ENET, &config, &buffConfig[ 0 ] );
+    /* Initialize Descriptor. */
+    ENET_DescriptorInit( ENET, &config, &buffConfig[ 0 ] );
 
-	/* Create the handler. */
-	ENET_CreateHandler( ENET, &g_handle, &config, &buffConfig[ 0 ], ENET_IntCallback, NULL );
-	NVIC_SetPriority( 65 - 16, 4 ); /* TODO this feels like a hack and I would expect a nice ENET API for priority. */
+    /* Create the handler. */
+    ENET_CreateHandler( ENET, &g_handle, &config, &buffConfig[ 0 ], ENET_IntCallback, NULL );
+    NVIC_SetPriority( 65 - 16, 4 ); /* TODO this feels like a hack and I would expect a nice ENET API for priority. */
 
-	/* Active TX/RX. */
-	ENET_StartRxTx( ENET, 1, 1 );
+    /* Active TX/RX. */
+    ENET_StartRxTx( ENET, 1, 1 );
 
-	if( xTaskCreate( rx_task, "rx_task", 512, NULL, ( configMAX_PRIORITIES - 1 ), &receiveTaskHandle ) != pdPASS )
-	{
-		PRINTF( "Network Receive Task creation failed!.\n" );
+    if( xTaskCreate( rx_task, "rx_task", 512, NULL, ( configMAX_PRIORITIES - 1 ), &receiveTaskHandle ) != pdPASS )
+    {
+        PRINTF( "Network Receive Task creation failed!.\n" );
 
-		while( 1 )
-		{
-		}
-	}
+        while( 1 )
+        {
+        }
+    }
 
-	return pdTRUE;
+    return pdTRUE;
 }
 
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     BaseType_t xReleaseAfterSend )
 {
-BaseType_t response = pdFALSE;
-status_t status;
+    BaseType_t response = pdFALSE;
+    status_t status;
 
-	if( xGetPhyLinkStatus() )
-	{
-		status = ENET_SendFrame( ENET, &g_handle, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
+    if( xGetPhyLinkStatus() )
+    {
+        status = ENET_SendFrame( ENET, &g_handle, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
 
-		switch( status )
-		{
-			default: /* anything not Success will be a failure */
-			case kStatus_ENET_TxFrameBusy:
-				PRINTF( "TX Frame Busy\n" );
-				break;
+        switch( status )
+        {
+            default: /* anything not Success will be a failure */
+            case kStatus_ENET_TxFrameBusy:
+                PRINTF( "TX Frame Busy\n" );
+                break;
 
-			case kStatus_Success:
-				iptraceNETWORK_INTERFACE_TRANSMIT();
-				response = pdTRUE;
-				break;
-		}
-	}
+            case kStatus_Success:
+                iptraceNETWORK_INTERFACE_TRANSMIT();
+                response = pdTRUE;
+                break;
+        }
+    }
 
-	if( xReleaseAfterSend != pdFALSE )
-	{
-		vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-	}
+    if( xReleaseAfterSend != pdFALSE )
+    {
+        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+    }
 
-	return response;
+    return response;
 }
 
 /* statically allocate the buffers */
