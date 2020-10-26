@@ -131,7 +131,6 @@ void ENET_IntCallback( ENET_Type * base,
                        uint8_t channel,
                        void * param )
 {
-
 	BaseType_t needsToYield = pdFALSE;
 	switch( event )
 	{
@@ -142,7 +141,6 @@ void ENET_IntCallback( ENET_Type * base,
 			vTaskNotifyGiveFromISR( receiveTaskHandle, &needsToYield );
 			portEND_SWITCHING_ISR(needsToYield)
 			break;
-
 		default:
 			break;
 	}
@@ -288,7 +286,6 @@ static enum {initPhy, startReceiver, waitForLink, configurePhy }networkInitialis
 			phy_speed_t speed;
 			phy_duplex_t duplex;
 			PHY_GetLinkSpeedDuplex( &phyHandle, &speed, &duplex );
-
 			/* Get default configuration 100M RMII. */
 			ENET_GetDefaultConfig( &config );
 
