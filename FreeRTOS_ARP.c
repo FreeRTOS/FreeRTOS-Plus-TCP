@@ -227,7 +227,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
      *
      * @param[in] pxMACAddress: Pointer to the MAC address whose entry shall
      *                          be removed..
-     * @return When the entry was found and remove: the IP-addres, otherwise zero.
+     * @return When the entry was found and remove: the IP-address, otherwise zero.
     */
     uint32_t ulARPRemoveCacheEntryByMac( const MACAddress_t * pxMACAddress )
     {

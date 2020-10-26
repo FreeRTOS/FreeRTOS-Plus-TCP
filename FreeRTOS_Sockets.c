@@ -650,7 +650,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  * @param[in] xSocket: The socket of interest.
  * @param[in] xSocketSet: The socket set to which the socket belongs.
  *
- * @return If the scoket belongs to the socket set: the event bits, otherwise zero.
+ * @return If the socket belongs to the socket set: the event bits, otherwise zero.
  */
     EventBits_t FreeRTOS_FD_ISSET( Socket_t xSocket,
                                    SocketSet_t xSocketSet )
@@ -3212,7 +3212,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  * @param[in] pxSocket: The socket owning the connection.
  * @param[in] uxDataLength: The length of the data to be sent.
  *
- * @return 0: representing OK, else a nngative error code will be returned.
+ * @return 0: representing OK, else a negative error code will be returned.
  */
     static int32_t prvTCPSendCheck( FreeRTOS_Socket_t * pxSocket,
                                     size_t uxDataLength )
@@ -3583,7 +3583,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 /**
  * @brief Shutdown - This function will shut down the connection in both
- *        directions. However, it will first delivere all data queued for
+ *        directions. However, it will first deliver all data queued for
  *        transmission, and also it will first wait to receive any missing
  *        packets from the peer.
  *
@@ -4100,7 +4100,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 #if ( ipconfigUSE_TCP == 1 )
 
 /**
- * @brief Chekc the number of bytes that may be added to txStream.
+ * @brief Check the number of bytes that may be added to txStream.
  *
  * @param[in] xSocket: The socket to be checked.
  *
@@ -4720,7 +4720,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
     /**
      * @brief The same as 'FreeRTOS_SignalSocket()', except that this function should
-     *        be called from an ISR contect.
+     *        be called from an ISR context.
      *
      * @param[in] xSocket: The socket that will be signalled.
      * @param[in,out] pxHigherPriorityTaskWoken: will be set to non-zero in case a higher-

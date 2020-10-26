@@ -1180,7 +1180,7 @@
  * @param[in] pucByte: The pointer to the resource record.
  * @param[in] uxLength: Length of the resource record.
  *
- * @return It returns the number of bytes read, or zero when an error has occured.
+ * @return It returns the number of bytes read, or zero when an error has occurred.
  */
     _static size_t prvSkipNameField( const uint8_t * pucByte,
                                      size_t uxLength )

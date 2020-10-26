@@ -94,6 +94,7 @@ cbmc
 ccfg
 cchannel
 ce
+centralised
 cerrorbuffer
 cgcr
 ch
@@ -608,6 +609,7 @@ pmc
 pme
 pmecr
 pmt
+pointee
 posix
 pparam
 ppkt
@@ -637,6 +639,7 @@ prvhandleestablished
 prvhandlelisten
 prvhandlesynreceived
 prvinitialisedhcp
+prviptask
 prvlinkstatuschange
 prvnotifyqueuesetcontainer
 prvparsednsreply
@@ -699,6 +702,7 @@ puldelay
 puldestination
 puldnsserveraddress
 pulgatewayaddress
+pulip
 pulipaddress
 pullups
 pulnetmask
@@ -735,6 +739,8 @@ pxhandlereceive
 pxhandlesent
 pxhead
 pxheadsegment
+pxhigherprioritytaskwoken
+pxicmppacket
 pxipheader
 pxippacket
 pxiterator
@@ -1160,6 +1166,7 @@ usoperation
 usourportnumber
 uspeerportnumber
 usport
+usportnr
 usprotocoltype
 usquestions
 usremoteport
@@ -1331,6 +1338,7 @@ xeventgroupwaitbits
 xexpected
 xexpectedmessagetype
 xflags
+xfound
 xfreebufferslist
 xgetphylinkstatus
 xgivingup
@@ -1366,6 +1374,7 @@ xlistend
 xlistitem
 xlistitemalreadyinfreelist
 xlocalport
+xlookup
 xlwipconfig
 xmacaddress
 xmaxtime
@@ -1375,6 +1384,7 @@ xnetworkaddressing
 xnetworkbuffer
 xnetworkbufferdescriptor
 xnetworkbuffersemaphore
+xnetworkdowneventpending
 xnetworkeventqueue
 xnetworkinterfaceinitialise
 xnetworkinterfaceoutput
