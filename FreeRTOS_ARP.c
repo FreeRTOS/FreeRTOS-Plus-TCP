@@ -52,8 +52,8 @@
 #include "NetworkInterface.h"
 
 /** @brief When the age of an entry in the ARP table reaches this value (it counts down
-to zero, so this is an old entry) an ARP request will be sent to see if the
-entry is still valid and can therefore be refreshed. */
+ * to zero, so this is an old entry) an ARP request will be sent to see if the
+ * entry is still valid and can therefore be refreshed. */
 #define arpMAX_ARP_AGE_BEFORE_NEW_ARP_REQUEST    ( 3 )
 
 /** @brief The time between gratuitous ARPs. */
@@ -75,7 +75,7 @@ static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
 _static ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
 
 /** @brief  The time at which the last gratuitous ARP was sent.  Gratuitous ARPs are used
-to ensure ARP tables are up to date and to detect IP address conflicts. */
+ * to ensure ARP tables are up to date and to detect IP address conflicts. */
 static TickType_t xLastGratuitousARPTime = ( TickType_t ) 0;
 
 /*
@@ -98,7 +98,7 @@ static TickType_t xLastGratuitousARPTime = ( TickType_t ) 0;
  * @param[in] pxARPFrame: The ARP Frame (the ARP packet).
  *
  * @return An enum which says whether to release the frame or not.
-*/
+ */
 eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 {
     eFrameProcessingResult_t eReturn = eReleaseBuffer;
@@ -253,7 +253,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
  *                          updated.
  * @param[in] ulIPAddress: 32-bit representation of the IP-address whose mapping
  *                         is being updated.
-*/
+ */
 void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                             const uint32_t ulIPAddress )
 {
@@ -467,9 +467,9 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
  *         cannot be sent for any reason (maybe DHCP is still in process, or the
  *         addressing needs a gateway but there isn't a gateway defined) then return
  *         eCantSendPacket.
-*/
-eARPLookupResult_t eARPGetCacheEntry( uint32_t *pulIPAddress,
-									  MACAddress_t * const pxMACAddress )
+ */
+eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+                                      MACAddress_t * const pxMACAddress )
 {
     eARPLookupResult_t eReturn;
     uint32_t ulAddressToLookup;
@@ -585,7 +585,7 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t *pulIPAddress,
  *
  * @return The status of where the cache search was hit/miss/found an invalid
  *         entry.
-*/
+ */
 static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
                                           MACAddress_t * const pxMACAddress )
 {
@@ -627,7 +627,7 @@ static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
  *        reply - if we are, then an ARP request will be re-sent.
  *        In case an ARP entry has 'Aged' to 0, it will be removed from the ARP
  *        cache.
-*/
+ */
 void vARPAgeCache( void )
 {
     BaseType_t x;
@@ -683,7 +683,7 @@ void vARPAgeCache( void )
 /**
  * @brief Send a Gratuitous ARP packet to allow this node to announce the IP-MAC
  *        mapping to the entire network.
-*/
+ */
 void vARPSendGratuitous( void )
 {
     /* Setting xLastGratuitousARPTime to 0 will force a gratuitous ARP the next
@@ -701,7 +701,7 @@ void vARPSendGratuitous( void )
  *
  * @param[in] ulIPAddress: A 32-bit representation of the IP-address whose
  *                         physical (MAC) address is required.
-*/
+ */
 void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -760,7 +760,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
  *
  * @param[in] pxNetworkBuffer: Pointer to the buffer which has to be filled with
  *                             the ARP request packet details.
-*/
+ */
 void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
 /* Part of the Ethernet and ARP headers are always constant when sending an IPv4
@@ -837,7 +837,7 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
 
 /**
  * @brief A call to this function will clear the ARP cache.
-*/
+ */
 void FreeRTOS_ClearARP( void )
 {
     ( void ) memset( xARPCache, 0, sizeof( xARPCache ) );
@@ -846,58 +846,58 @@ void FreeRTOS_ClearARP( void )
 
 #if 1
 
-	/**
-	* @brief  This function will check if the target IP-address belongs to this device.
-	*         If so, the packet will be passed to the IP-stack, who will answer it.
-	*         The function is to be called within the function xNetworkInterfaceOutput().
-	*
-	* @param[in] pxDescriptor: The network buffer which is to be checked for loop-back.
-	* @param[in] bReleaseAfterSend: pdTRUE: Driver is allowed to transfer ownership of descriptor.
-	*                              pdFALSE: Driver is not allowed to take ownership of descriptor,
-	*                                       make a copy of it.
-	*
-	* @return pdTRUE/pdFALSE: There is/isn't a loopback address in the packet.
-	*/
-	BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
-							   BaseType_t bReleaseAfterSend )
-	{
-	BaseType_t xResult = pdFALSE;
-	NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
-	const IPPacket_t *pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxUseDescriptor->pucEthernetBuffer );
+/**
+ * @brief  This function will check if the target IP-address belongs to this device.
+ *         If so, the packet will be passed to the IP-stack, who will answer it.
+ *         The function is to be called within the function xNetworkInterfaceOutput().
+ *
+ * @param[in] pxDescriptor: The network buffer which is to be checked for loop-back.
+ * @param[in] bReleaseAfterSend: pdTRUE: Driver is allowed to transfer ownership of descriptor.
+ *                              pdFALSE: Driver is not allowed to take ownership of descriptor,
+ *                                       make a copy of it.
+ *
+ * @return pdTRUE/pdFALSE: There is/isn't a loopback address in the packet.
+ */
+    BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
+                               BaseType_t bReleaseAfterSend )
+    {
+        BaseType_t xResult = pdFALSE;
+        NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
+        const IPPacket_t * pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxUseDescriptor->pucEthernetBuffer );
 
-		if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
-		{
-			if( memcmp( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipLOCAL_MAC_ADDRESS, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
-			{
-				xResult = pdTRUE;
+        if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
+        {
+            if( memcmp( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipLOCAL_MAC_ADDRESS, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
+            {
+                xResult = pdTRUE;
 
-				if( bReleaseAfterSend == pdFALSE )
-				{
-					/* Driver is not allowed to transfer the ownership
-					of descriptor,  so make a copy of it */
-					pxUseDescriptor =
-						pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, pxDescriptor->xDataLength );
-				}
+                if( bReleaseAfterSend == pdFALSE )
+                {
+                    /* Driver is not allowed to transfer the ownership
+                     * of descriptor,  so make a copy of it */
+                    pxUseDescriptor =
+                        pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, pxDescriptor->xDataLength );
+                }
 
-				if( pxUseDescriptor != NULL )
-				{
-				IPStackEvent_t xRxEvent;
+                if( pxUseDescriptor != NULL )
+                {
+                    IPStackEvent_t xRxEvent;
 
-					xRxEvent.eEventType = eNetworkRxEvent;
-					xRxEvent.pvData = pxUseDescriptor;
+                    xRxEvent.eEventType = eNetworkRxEvent;
+                    xRxEvent.pvData = pxUseDescriptor;
 
-					if( xSendEventStructToIPTask( &xRxEvent, 0U ) != pdTRUE )
-					{
-						vReleaseNetworkBufferAndDescriptor( pxUseDescriptor );
-						iptraceETHERNET_RX_EVENT_LOST();
-						FreeRTOS_printf( ( "prvEMACRxPoll: Can not queue return packet!\n" ) );
-					}
-				}
-			}
-		}
+                    if( xSendEventStructToIPTask( &xRxEvent, 0U ) != pdTRUE )
+                    {
+                        vReleaseNetworkBufferAndDescriptor( pxUseDescriptor );
+                        iptraceETHERNET_RX_EVENT_LOST();
+                        FreeRTOS_printf( ( "prvEMACRxPoll: Can not queue return packet!\n" ) );
+                    }
+                }
+            }
+        }
 
-		return xResult;
-	}
+        return xResult;
+    }
 
 #endif /* 0 */
 /*-----------------------------------------------------------*/

@@ -145,85 +145,84 @@ void ENET_IntCallback( ENET_Type * base,
 
 static void rx_task( void * parameter )
 {
-uint32_t length;
-NetworkBufferDescriptor_t *pxBufferDescriptor;
-IPStackEvent_t xRxEvent;
-status_t status;
+    uint32_t length;
+    NetworkBufferDescriptor_t * pxBufferDescriptor;
+    IPStackEvent_t xRxEvent;
+    status_t status;
 
-	while( pdTRUE )
-	{
-		ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+    while( pdTRUE )
+    {
+        ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
-		BaseType_t receiving = pdTRUE;
+        BaseType_t receiving = pdTRUE;
 
-		while( receiving == pdTRUE )
-		{
-			status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
+        while( receiving == pdTRUE )
+        {
+            status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
 
-			switch( status )
-			{
-				case kStatus_Success: /* there is a frame.  process it */
+            switch( status )
+            {
+                case kStatus_Success: /* there is a frame.  process it */
 
-					if( length )
-					{
-						pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
+                    if( length )
+                    {
+                        pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
 
-						if( pxBufferDescriptor != NULL )
-						{
-							status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
-							pxBufferDescriptor->xDataLength = length;
+                        if( pxBufferDescriptor != NULL )
+                        {
+                            status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
+                            pxBufferDescriptor->xDataLength = length;
 
-							if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
-							{
-								xRxEvent.eEventType = eNetworkRxEvent;
-								xRxEvent.pvData = ( void * ) pxBufferDescriptor;
+                            if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+                            {
+                                xRxEvent.eEventType = eNetworkRxEvent;
+                                xRxEvent.pvData = ( void * ) pxBufferDescriptor;
 
-								if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
-								{
-									vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-									iptraceETHERNET_RX_EVENT_LOST();
-									PRINTF( "RX Event Lost\n" );
-								}
-								else
-								{
-									/* Message successfully transfered to the stack */
-								}
-							}
-							else
-							{
-								PRINTF( "RX Event not to be considered\n" );
-								vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-								/* Not sure if a trace is required.  The stack did not want this message */
-							}
-						}
-						else
-						{
-							PRINTF( "RX No Buffer Available\n" );
-							ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
-							/* No buffer available to receive this message */
-							iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
-						}
-					}
+                                if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+                                {
+                                    vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+                                    iptraceETHERNET_RX_EVENT_LOST();
+                                    PRINTF( "RX Event Lost\n" );
+                                }
+                                else
+                                {
+                                    /* Message successfully transfered to the stack */
+                                }
+                            }
+                            else
+                            {
+                                PRINTF( "RX Event not to be considered\n" );
+                                vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+                                /* Not sure if a trace is required.  The stack did not want this message */
+                            }
+                        }
+                        else
+                        {
+                            PRINTF( "RX No Buffer Available\n" );
+                            ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
+                            /* No buffer available to receive this message */
+                            iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
+                        }
+                    }
 
-					break;
+                    break;
 
-				case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
-					receiving = pdFALSE;
-					break;
+                case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
+                    receiving = pdFALSE;
+                    break;
 
-				case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
-					PRINTF( "RX Receive Error\n" );
-					ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
-					/* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
-					break;
+                case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
+                    PRINTF( "RX Receive Error\n" );
+                    ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
+                    /* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
+                    break;
 
-				default:
-					PRINTF( "RX Receive default\n" );
-					break;
-			}
-		}
-	}
-
+                default:
+                    PRINTF( "RX Receive default\n" );
+                    break;
+            }
+        }
+    }
 }
 
 BaseType_t xGetPhyLinkStatus( void )
@@ -326,34 +325,33 @@ BaseType_t xNetworkInterfaceInitialise( void )
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     BaseType_t xReleaseAfterSend )
 {
-BaseType_t response = pdFALSE;
-status_t status;
+    BaseType_t response = pdFALSE;
+    status_t status;
 
-	if( xGetPhyLinkStatus() )
-	{
-		status = ENET_SendFrame( ENET, &g_handle, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
+    if( xGetPhyLinkStatus() )
+    {
+        status = ENET_SendFrame( ENET, &g_handle, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
 
-		switch( status )
-		{
-			default: /* anything not Success will be a failure */
-			case kStatus_ENET_TxFrameBusy:
-				PRINTF( "TX Frame Busy\n" );
-				break;
+        switch( status )
+        {
+            default: /* anything not Success will be a failure */
+            case kStatus_ENET_TxFrameBusy:
+                PRINTF( "TX Frame Busy\n" );
+                break;
 
-			case kStatus_Success:
-				iptraceNETWORK_INTERFACE_TRANSMIT();
-				response = pdTRUE;
-				break;
-		}
-	}
+            case kStatus_Success:
+                iptraceNETWORK_INTERFACE_TRANSMIT();
+                response = pdTRUE;
+                break;
+        }
+    }
 
-	if( xReleaseAfterSend != pdFALSE )
-	{
-		vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-	}
+    if( xReleaseAfterSend != pdFALSE )
+    {
+        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+    }
 
-	return response;
-
+    return response;
 }
 
 /* statically allocate the buffers */

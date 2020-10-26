@@ -34,34 +34,34 @@
 
 #ifndef FREERTOS_STREAM_BUFFER_H
 
-	#define FREERTOS_STREAM_BUFFER_H
+    #define FREERTOS_STREAM_BUFFER_H
 
-	#ifdef __cplusplus
-	extern "C" {
-	#endif
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
-	/**
-	* structure to store all the details of a stream buffer.
-	*/
-	typedef struct xSTREAM_BUFFER
-	{
-	volatile size_t uxTail;              /**< next item to read */
-	volatile size_t uxMid;               /**< iterator within the valid items */
-	volatile size_t uxHead;              /**< next position store a new item */
-	volatile size_t uxFront;             /**< iterator within the free space */
-	size_t LENGTH;                       /**< const value: number of reserved elements */
-	uint8_t ucArray[ sizeof( size_t ) ]; /**< array big enough to store any pointer address */
-	} StreamBuffer_t;
+/**
+ * structure to store all the details of a stream buffer.
+ */
+    typedef struct xSTREAM_BUFFER
+    {
+        volatile size_t uxTail;              /**< next item to read */
+        volatile size_t uxMid;               /**< iterator within the valid items */
+        volatile size_t uxHead;              /**< next position store a new item */
+        volatile size_t uxFront;             /**< iterator within the free space */
+        size_t LENGTH;                       /**< const value: number of reserved elements */
+        uint8_t ucArray[ sizeof( size_t ) ]; /**< array big enough to store any pointer address */
+    } StreamBuffer_t;
 
-	static portINLINE void vStreamBufferClear( StreamBuffer_t *pxBuffer );
-	static portINLINE void vStreamBufferClear( StreamBuffer_t *pxBuffer )
-	{
-		/* Make the circular buffer empty */
-		pxBuffer->uxHead = 0U;
-		pxBuffer->uxTail = 0U;
-		pxBuffer->uxFront = 0U;
-		pxBuffer->uxMid = 0U;
-	}
+    static portINLINE void vStreamBufferClear( StreamBuffer_t * pxBuffer );
+    static portINLINE void vStreamBufferClear( StreamBuffer_t * pxBuffer )
+    {
+        /* Make the circular buffer empty */
+        pxBuffer->uxHead = 0U;
+        pxBuffer->uxTail = 0U;
+        pxBuffer->uxFront = 0U;
+        pxBuffer->uxMid = 0U;
+    }
 
 /*-----------------------------------------------------------*/
 

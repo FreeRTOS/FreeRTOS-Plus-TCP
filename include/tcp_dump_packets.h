@@ -58,22 +58,22 @@
 #define flag_Unknown_FRAME          0x00040000UL
 
 /**
-* Structure to hold information about one dump entry.
-*/
+ * Structure to hold information about one dump entry.
+ */
 typedef struct xDumpEntry
 {
-uint32_t ulMask; /**< The mask of the entry */
-size_t uxMax;    /**< The max value of the entry */
-size_t uxCount;  /**< The count of the entry */
+    uint32_t ulMask; /**< The mask of the entry */
+    size_t uxMax;    /**< The max value of the entry */
+    size_t uxCount;  /**< The count of the entry */
 } DumpEntry_t;
 
 /**
-* Structure to hold information of all the entries in this data dump.
-*/
+ * Structure to hold information of all the entries in this data dump.
+ */
 typedef struct xDumpEntries
 {
-size_t uxEntryCount;                          /**< The number of entries*/
-DumpEntry_t xEntries[ dumpMAX_DUMP_ENTRIES ]; /**< Array of struct for all the entries */
+    size_t uxEntryCount;                          /**< The number of entries*/
+    DumpEntry_t xEntries[ dumpMAX_DUMP_ENTRIES ]; /**< Array of struct for all the entries */
 } DumpEntries_t;
 
 /*

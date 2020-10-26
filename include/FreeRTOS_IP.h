@@ -106,64 +106,64 @@
         #define ipBUFFER_PADDING    ( 8U + ipconfigPACKET_FILLER_SIZE )
     #endif
 
-	/**
-	* The structure used to store buffers and pass them around the network stack.
-	* Buffers can be in use by the stack, in use by the network interface hardware
-	* driver, or free (not in use).
-	*/
-	typedef struct xNETWORK_BUFFER
-	{
-	ListItem_t xBufferListItem;                   /**< Used to reference the buffer form the free buffer list or a socket. */
-	uint32_t ulIPAddress;                         /**< Source or destination IP address, depending on usage scenario. */
-	uint8_t *pucEthernetBuffer;                   /**< Pointer to the start of the Ethernet frame. */
-	size_t xDataLength;                           /**< Starts by holding the total Ethernet frame length, then the UDP/TCP payload length. */
-	uint16_t usPort;                              /**< Source or destination port, depending on usage scenario. */
-	uint16_t usBoundPort;                         /**< The port to which a transmitting socket is bound. */
-		#if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-			struct xNETWORK_BUFFER *pxNextBuffer; /**< Possible optimisation for expert users - requires network driver support. */
-		#endif
-	} NetworkBufferDescriptor_t;
+/**
+ * The structure used to store buffers and pass them around the network stack.
+ * Buffers can be in use by the stack, in use by the network interface hardware
+ * driver, or free (not in use).
+ */
+    typedef struct xNETWORK_BUFFER
+    {
+        ListItem_t xBufferListItem;                /**< Used to reference the buffer form the free buffer list or a socket. */
+        uint32_t ulIPAddress;                      /**< Source or destination IP address, depending on usage scenario. */
+        uint8_t * pucEthernetBuffer;               /**< Pointer to the start of the Ethernet frame. */
+        size_t xDataLength;                        /**< Starts by holding the total Ethernet frame length, then the UDP/TCP payload length. */
+        uint16_t usPort;                           /**< Source or destination port, depending on usage scenario. */
+        uint16_t usBoundPort;                      /**< The port to which a transmitting socket is bound. */
+        #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+            struct xNETWORK_BUFFER * pxNextBuffer; /**< Possible optimisation for expert users - requires network driver support. */
+        #endif
+    } NetworkBufferDescriptor_t;
 
-	#include "pack_struct_start.h"
+    #include "pack_struct_start.h"
 
-	/**
-	* MAC address structure.
-	*/
-	struct xMAC_ADDRESS
-	{
-	uint8_t ucBytes[ ipMAC_ADDRESS_LENGTH_BYTES ];  /**< Byte array of the MAC address */
-	}
-	#include "pack_struct_end.h"
+/**
+ * MAC address structure.
+ */
+    struct xMAC_ADDRESS
+    {
+        uint8_t ucBytes[ ipMAC_ADDRESS_LENGTH_BYTES ]; /**< Byte array of the MAC address */
+    }
+    #include "pack_struct_end.h"
 
-	typedef struct xMAC_ADDRESS MACAddress_t;
+    typedef struct xMAC_ADDRESS MACAddress_t;
 
-	typedef enum eNETWORK_EVENTS
-	{
-		eNetworkUp,  /* The network is configured. */
-		eNetworkDown /* The network connection has been lost. */
-	} eIPCallbackEvent_t;
+    typedef enum eNETWORK_EVENTS
+    {
+        eNetworkUp,  /* The network is configured. */
+        eNetworkDown /* The network connection has been lost. */
+    } eIPCallbackEvent_t;
 
 /* MISRA check: some modules refer to this typedef even though
-ipconfigSUPPORT_OUTGOING_PINGS is not enabled. */
-	typedef enum ePING_REPLY_STATUS
-	{
-		eSuccess = 0,     /**< A correct reply has been received for an outgoing ping. */
-		eInvalidChecksum, /**< A reply was received for an outgoing ping but the checksum of the reply was incorrect. */
-		eInvalidData      /**< A reply was received to an outgoing ping but the payload of the reply was not correct. */
-	} ePingReplyStatus_t;
+ * ipconfigSUPPORT_OUTGOING_PINGS is not enabled. */
+    typedef enum ePING_REPLY_STATUS
+    {
+        eSuccess = 0,     /**< A correct reply has been received for an outgoing ping. */
+        eInvalidChecksum, /**< A reply was received for an outgoing ping but the checksum of the reply was incorrect. */
+        eInvalidData      /**< A reply was received to an outgoing ping but the payload of the reply was not correct. */
+    } ePingReplyStatus_t;
 
-	/**
-	* The software timer struct for various IP functions
-	*/
-	typedef struct xIP_TIMER
-	{
-	uint32_t
-			bActive : 1,            /**< This timer is running and must be processed. */
-			bExpired : 1;           /**< Timer has expired and a task must be processed. */
-		TimeOut_t xTimeOut;         /**< The timeout value. */
-		TickType_t ulRemainingTime; /**< The amount of time remaining. */
-		TickType_t ulReloadTime;    /**< The value of reload time. */
-	} IPTimer_t;
+/**
+ * The software timer struct for various IP functions
+ */
+    typedef struct xIP_TIMER
+    {
+        uint32_t
+            bActive : 1,            /**< This timer is running and must be processed. */
+            bExpired : 1;           /**< Timer has expired and a task must be processed. */
+        TimeOut_t xTimeOut;         /**< The timeout value. */
+        TickType_t ulRemainingTime; /**< The amount of time remaining. */
+        TickType_t ulReloadTime;    /**< The value of reload time. */
+    } IPTimer_t;
 
 
 /* Endian related definitions. */
