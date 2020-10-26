@@ -2618,67 +2618,69 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
 {
     EthernetHeader_t * pxEthernetHeader;
 /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-	const void *pvCopySource;
-	void *pvCopyDest;
+    const void * pvCopySource;
+    void * pvCopyDest;
 
-	#if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-		NetworkBufferDescriptor_t *pxNewBuffer;
-	#endif
+    #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
+        NetworkBufferDescriptor_t * pxNewBuffer;
+    #endif
 
-	#if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
-	{
-		if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
-		{
-		BaseType_t xIndex;
+    #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
+        {
+            if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
+            {
+                BaseType_t xIndex;
 
-			FreeRTOS_printf( ( "vReturnEthernetFrame: length %u\n", ( unsigned ) pxNetworkBuffer->xDataLength ) );
+                FreeRTOS_printf( ( "vReturnEthernetFrame: length %u\n", ( unsigned ) pxNetworkBuffer->xDataLength ) );
 
-			for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
-			{
-				pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;
-			}
+                for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
+                {
+                    pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;
+                }
 
-			pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
-		}
-	}
-	#endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
+                pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+            }
+        }
+    #endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
 
-	#if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-		if( xReleaseAfterSend == pdFALSE )
-		{
-			pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, pxNetworkBuffer->xDataLength );
-			if( pxNewBuffer != NULL )
-			{
-				xReleaseAfterSend = pdTRUE;
-				/* Want no rounding up. */
-				pxNewBuffer->xDataLength = pxNetworkBuffer->xDataLength;
-			}
-			pxNetworkBuffer = pxNewBuffer;
-		}
+    #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
+        if( xReleaseAfterSend == pdFALSE )
+        {
+            pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, pxNetworkBuffer->xDataLength );
 
-		if( pxNetworkBuffer != NULL )
-	#endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
-	{
-		/* Map the Buffer to Ethernet Header struct for easy access to fields. */
-		pxEthernetHeader = ipCAST_PTR_TO_TYPE_PTR( EthernetHeader_t, pxNetworkBuffer->pucEthernetBuffer );
+            if( pxNewBuffer != NULL )
+            {
+                xReleaseAfterSend = pdTRUE;
+                /* Want no rounding up. */
+                pxNewBuffer->xDataLength = pxNetworkBuffer->xDataLength;
+            }
 
-		/*
-		 * Use helper variables for memcpy() to remain
-		 * compliant with MISRA Rule 21.15.  These should be
-		 * optimized away.
-		 */
-		/* Swap source and destination MAC addresses. */
-		pvCopySource = &pxEthernetHeader->xSourceAddress;
-		pvCopyDest = &pxEthernetHeader->xDestinationAddress;
-		( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxEthernetHeader->xDestinationAddress ) );
+            pxNetworkBuffer = pxNewBuffer;
+        }
 
-		pvCopySource = ipLOCAL_MAC_ADDRESS;
-		pvCopyDest = &pxEthernetHeader->xSourceAddress;
-		( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+        if( pxNetworkBuffer != NULL )
+    #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+    {
+        /* Map the Buffer to Ethernet Header struct for easy access to fields. */
+        pxEthernetHeader = ipCAST_PTR_TO_TYPE_PTR( EthernetHeader_t, pxNetworkBuffer->pucEthernetBuffer );
 
-		/* Send! */
-		( void ) xNetworkInterfaceOutput( pxNetworkBuffer, xReleaseAfterSend );
-	}
+        /*
+         * Use helper variables for memcpy() to remain
+         * compliant with MISRA Rule 21.15.  These should be
+         * optimized away.
+         */
+        /* Swap source and destination MAC addresses. */
+        pvCopySource = &pxEthernetHeader->xSourceAddress;
+        pvCopyDest = &pxEthernetHeader->xDestinationAddress;
+        ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxEthernetHeader->xDestinationAddress ) );
+
+        pvCopySource = ipLOCAL_MAC_ADDRESS;
+        pvCopyDest = &pxEthernetHeader->xSourceAddress;
+        ( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+
+        /* Send! */
+        ( void ) xNetworkInterfaceOutput( pxNetworkBuffer, xReleaseAfterSend );
+    }
 }
 /*-----------------------------------------------------------*/
 

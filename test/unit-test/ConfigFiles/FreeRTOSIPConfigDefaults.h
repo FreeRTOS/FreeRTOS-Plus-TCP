@@ -327,6 +327,7 @@
 #endif
 
 #ifndef ipconfigUDP_MAX_RX_PACKETS
+
 /* Make positive to define the maximum number of packets which will be buffered
  * for each UDP socket.
  * Can be overridden with the socket option FREERTOS_SO_UDP_MAX_RX_PACKETS
