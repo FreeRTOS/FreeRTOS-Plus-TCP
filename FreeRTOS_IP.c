@@ -880,8 +880,8 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
 
 /**
  * @brief Send a network down event to the IP-task. If it fails to post a message,
-*         the failure will be noted in the variable 'xNetworkDownEventPending'
-*         and later on a 'network-down' event, it will be executed.
+ *         the failure will be noted in the variable 'xNetworkDownEventPending'
+ *         and later on a 'network-down' event, it will be executed.
  */
 void FreeRTOS_NetworkDown( void )
 {
@@ -907,7 +907,7 @@ void FreeRTOS_NetworkDown( void )
 /**
  * @brief Utility function. Process Network Down event from ISR.
  *        This function is supposed to be called form an ISR. It is recommended
-- *        use 'FreeRTOS_NetworkDown()', when calling from a normal task.
+ * - *        use 'FreeRTOS_NetworkDown()', when calling from a normal task.
  *
  * @return If the event was processed successfully, then return pdTRUE.
  *         Else pdFALSE.
@@ -2180,11 +2180,12 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 )
-    /**
-     * @brief Process an ICMP echo request.
-     *
-     * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
-     */
+
+/**
+ * @brief Process an ICMP echo request.
+ *
+ * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
+ */
     static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket )
     {
         ICMPHeader_t * pxICMPHeader;
@@ -2229,14 +2230,15 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-    /**
-     * @brief Process an ICMP packet. Only echo requests and echo replies are recognised and handled.
-     *
-     * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
-     *
-     * @return eReleaseBuffer when the message buffer should be released, or eReturnEthernetFrame
-     *                        when the packet should be returned.
-     */
+
+/**
+ * @brief Process an ICMP packet. Only echo requests and echo replies are recognised and handled.
+ *
+ * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
+ *
+ * @return eReleaseBuffer when the message buffer should be released, or eReturnEthernetFrame
+ *                        when the packet should be returned.
+ */
     static eFrameProcessingResult_t prvProcessICMPPacket( ICMPPacket_t * const pxICMPPacket )
     {
         eFrameProcessingResult_t eReturn = eReleaseBuffer;
@@ -2270,16 +2272,16 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
 
-    /**
-     * @brief Although the driver will take care of checksum calculations, the IP-task
-     *        will still check if the length fields are OK.
-     *
-     * @param[in] pucEthernetBuffer: The Ethernet packet received.
-     * @param[in] uxBufferLength: The total number of bytes received.
-     *
-     * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
-     *         should be dropped.
-     */
+/**
+ * @brief Although the driver will take care of checksum calculations, the IP-task
+ *        will still check if the length fields are OK.
+ *
+ * @param[in] pucEthernetBuffer: The Ethernet packet received.
+ * @param[in] uxBufferLength: The total number of bytes received.
+ *
+ * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
+ *         should be dropped.
+ */
     static BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
                                         size_t uxBufferLength )
     {
@@ -2988,10 +2990,10 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
 
     #define ipMONITOR_PERCENTAGE_100       ( 100U )
 
-    /**
-     * @brief A function that monitors a three resources: the heap, the space in the message
-     *        queue of the IP-task, the number of available network buffer descriptors.
-     */
+/**
+ * @brief A function that monitors a three resources: the heap, the space in the message
+ *        queue of the IP-task, the number of available network buffer descriptors.
+ */
     void vPrintResourceStats( void )
     {
         static UBaseType_t uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;

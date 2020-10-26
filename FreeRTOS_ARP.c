@@ -222,13 +222,13 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 
 #if ( ipconfigUSE_ARP_REMOVE_ENTRY != 0 )
 
-    /**
-     * @brief Remove an ARP cache entry that matches with .pxMACAddress.
-     *
-     * @param[in] pxMACAddress: Pointer to the MAC address whose entry shall
-     *                          be removed..
-     * @return When the entry was found and remove: the IP-address, otherwise zero.
-    */
+/**
+ * @brief Remove an ARP cache entry that matches with .pxMACAddress.
+ *
+ * @param[in] pxMACAddress: Pointer to the MAC address whose entry shall
+ *                          be removed..
+ * @return When the entry was found and remove: the IP-address, otherwise zero.
+ */
     uint32_t ulARPRemoveCacheEntryByMac( const MACAddress_t * pxMACAddress )
     {
         BaseType_t x;
@@ -433,14 +433,15 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_ARP_REVERSED_LOOKUP == 1 )
-    /**
-     * @brief Retrieve an entry from the cache table
-     *
-     * @param[in] pxMACAddress: The MAC-address of the entry of interest.
-     * @param[out] pulIPAddress: set to the IP-address found, or unchanged when not found.
-     *
-     * @return Either eARPCacheMiss or eARPCacheHit.
-     */
+
+/**
+ * @brief Retrieve an entry from the cache table
+ *
+ * @param[in] pxMACAddress: The MAC-address of the entry of interest.
+ * @param[out] pulIPAddress: set to the IP-address found, or unchanged when not found.
+ *
+ * @return Either eARPCacheMiss or eARPCacheHit.
+ */
     eARPLookupResult_t eARPGetCacheEntryByMac( MACAddress_t * const pxMACAddress,
                                                uint32_t * pulIPAddress )
     {

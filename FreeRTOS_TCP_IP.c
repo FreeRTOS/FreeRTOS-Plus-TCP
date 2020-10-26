@@ -428,17 +428,17 @@
 
     #if ( ipconfigTCP_HANG_PROTECTION == 1 )
 
-        /**
-         * @brief Some of the TCP states may only last a certain amount of time.
-         *        This function checks if the socket is 'hanging', i.e. staying
-         *        too long in the same state.
-         *
-         * @param[in] The socket to be checked.
-         *
-         * @return pdFALSE if no checks are needed, pdTRUE if checks were done, or negative
-         *         in case the socket has reached a critical time-out. The socket will go to
-         *         the eCLOSE_WAIT state.
-         */
+/**
+ * @brief Some of the TCP states may only last a certain amount of time.
+ *        This function checks if the socket is 'hanging', i.e. staying
+ *        too long in the same state.
+ *
+ * @param[in] The socket to be checked.
+ *
+ * @return pdFALSE if no checks are needed, pdTRUE if checks were done, or negative
+ *         in case the socket has reached a critical time-out. The socket will go to
+ *         the eCLOSE_WAIT state.
+ */
         static BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket )
         {
             BaseType_t xResult;

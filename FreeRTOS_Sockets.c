@@ -2602,16 +2602,16 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 1 )
 
-    /**
-     * @brief This define makes it possible for network interfaces to inspect
-     *        UDP messages and see if there is any UDP socket bound to a given port
-     *        number.  This is probably only useful in systems with a minimum of
-     *        RAM and when lots of anonymous broadcast messages come in.
-     *
-     * @param[in] usPortNr: the port number to look for.
-     *
-     * @return xFound if a socket with the port number is found.
-     */
+/**
+ * @brief This define makes it possible for network interfaces to inspect
+ *        UDP messages and see if there is any UDP socket bound to a given port
+ *        number.  This is probably only useful in systems with a minimum of
+ *        RAM and when lots of anonymous broadcast messages come in.
+ *
+ * @param[in] usPortNr: the port number to look for.
+ *
+ * @return xFound if a socket with the port number is found.
+ */
     BaseType_t xPortHasUDPSocket( uint16_t usPortNr )
     {
         BaseType_t xFound = pdFALSE;
@@ -4358,14 +4358,15 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 /*-----------------------------------------------------------*/
 
 #if 0
-    /**
-     * @brief Returns the number of packets that are stored in a UDP socket.
-     *
-     * @param[in] xSocket: the socket to get the number of bytes from.
-     *
-     * @return Returns the number of packets that are stored.  Use FreeRTOS_recvfrom()
-     *         to retrieve those packets.
-     */
+
+/**
+ * @brief Returns the number of packets that are stored in a UDP socket.
+ *
+ * @param[in] xSocket: the socket to get the number of bytes from.
+ *
+ * @return Returns the number of packets that are stored.  Use FreeRTOS_recvfrom()
+ *         to retrieve those packets.
+ */
     BaseType_t FreeRTOS_udp_rx_size( Socket_t xSocket )
     {
         BaseType_t xReturn = 0;
@@ -4406,9 +4407,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 /*-----------------------------------------------------------*/
 
 #if ( ( ipconfigHAS_PRINTF != 0 ) && ( ipconfigUSE_TCP == 1 ) )
-    /**
-     * @brief Print a summary of all sockets and their connections.
-     */
+
+/**
+ * @brief Print a summary of all sockets and their connections.
+ */
     void vTCPNetStat( void )
     {
         /* Show a simple listing of all created sockets and their connections */
@@ -4674,14 +4676,14 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigSUPPORT_SIGNALS != 0 )
 
-    /**
-     * @brief Send a signal to the task which reads from this socket.
-     *        The socket will receive an event of the type 'eSOCKET_INTR'.
-     *        Any ongoing blocking API ( e.g. FreeRTOS_recv() ) will be terminated
-     *        and return the value -pdFREERTOS_ERRNO_EINTR ( -4 ).
-     *
-     * @param[in] xSocket: The socket that will be signalled.
-     */
+/**
+ * @brief Send a signal to the task which reads from this socket.
+ *        The socket will receive an event of the type 'eSOCKET_INTR'.
+ *        Any ongoing blocking API ( e.g. FreeRTOS_recv() ) will be terminated
+ *        and return the value -pdFREERTOS_ERRNO_EINTR ( -4 ).
+ *
+ * @param[in] xSocket: The socket that will be signalled.
+ */
     BaseType_t FreeRTOS_SignalSocket( Socket_t xSocket )
     {
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
@@ -4718,14 +4720,14 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigSUPPORT_SIGNALS != 0 )
 
-    /**
-     * @brief The same as 'FreeRTOS_SignalSocket()', except that this function should
-     *        be called from an ISR context.
-     *
-     * @param[in] xSocket: The socket that will be signalled.
-     * @param[in,out] pxHigherPriorityTaskWoken: will be set to non-zero in case a higher-
-     *                priority task has become runnable.
-     */
+/**
+ * @brief The same as 'FreeRTOS_SignalSocket()', except that this function should
+ *        be called from an ISR context.
+ *
+ * @param[in] xSocket: The socket that will be signalled.
+ * @param[in,out] pxHigherPriorityTaskWoken: will be set to non-zero in case a higher-
+ *                priority task has become runnable.
+ */
     BaseType_t FreeRTOS_SignalSocketFromISR( Socket_t xSocket,
                                              BaseType_t * pxHigherPriorityTaskWoken )
     {

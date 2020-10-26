@@ -1144,10 +1144,11 @@
 
 
     #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-        /**
-         * @brief When DHCP has failed, the code can assign a Link-Layer address, and check if
-         *        another device already uses the IP-address.
-         */
+
+/**
+ * @brief When DHCP has failed, the code can assign a Link-Layer address, and check if
+ *        another device already uses the IP-address.
+ */
         static void prvPrepareLinkLayerIPLookUp( void )
         {
             uint8_t ucLinkLayerIPAddress[ 2 ];

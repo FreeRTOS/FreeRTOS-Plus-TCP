@@ -1978,18 +1978,19 @@
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_DNS_CACHE == 1 )
-        /**
-         * @brief Send a DNS message to be used in NBNS or LLMNR
-         *
-         * @param[in] pcName: the name of the host
-         * @param[in,out] pulIP: when doing a lookup, will be set, when doing an update,
-         *                       will be read.
-         * @param[in] ulTTL: Time To Live
-         * @param[in] xLookUp: pdTRUE if a look-up is expected, pdFALSE, when the DNS cache must
-         *                     be updated.
-         *
-         * @return
-         */
+
+/**
+ * @brief Send a DNS message to be used in NBNS or LLMNR
+ *
+ * @param[in] pcName: the name of the host
+ * @param[in,out] pulIP: when doing a lookup, will be set, when doing an update,
+ *                       will be read.
+ * @param[in] ulTTL: Time To Live
+ * @param[in] xLookUp: pdTRUE if a look-up is expected, pdFALSE, when the DNS cache must
+ *                     be updated.
+ *
+ * @return
+ */
         static BaseType_t prvProcessDNSCache( const char * pcName,
                                               uint32_t * pulIP,
                                               uint32_t ulTTL,
