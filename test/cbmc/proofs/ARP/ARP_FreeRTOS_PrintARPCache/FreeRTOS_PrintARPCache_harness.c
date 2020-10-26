@@ -10,5 +10,5 @@
 
 void harness()
 {
-	FreeRTOS_PrintARPCache();
+    FreeRTOS_PrintARPCache();
 }

@@ -16,22 +16,22 @@
 
 
 /****************************************************************
- * Signature of function under test
- ****************************************************************/
+* Signature of function under test
+****************************************************************/
 
 BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType );
 
 /****************************************************************
- * The proof for FreeRTOS_gethostbyname.
- ****************************************************************/
+* The proof for FreeRTOS_gethostbyname.
+****************************************************************/
 
 void harness()
 {
-	/* Omitting model of an unconstrained xDHCPData because xDHCPData is */
-	/* the source of uninitialized data only on line 647 to set a */
-	/* transaction id is an outgoing message */
+    /* Omitting model of an unconstrained xDHCPData because xDHCPData is */
+    /* the source of uninitialized data only on line 647 to set a */
+    /* transaction id is an outgoing message */
 
-	BaseType_t xExpectedMessageType;
+    BaseType_t xExpectedMessageType;
 
-	prvProcessDHCPReplies( xExpectedMessageType );
+    prvProcessDHCPReplies( xExpectedMessageType );
 }
