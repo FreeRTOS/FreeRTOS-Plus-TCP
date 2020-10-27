@@ -131,7 +131,6 @@ void ENET_IntCallback( ENET_Type * base,
                        uint8_t channel,
                        void * param )
 {
-
 	BaseType_t needsToYield = pdFALSE;
 	switch( event )
 	{
@@ -148,7 +147,6 @@ void ENET_IntCallback( ENET_Type * base,
 	}
 }
 
-<<<<<<< HEAD
 static void prvProcessFrame( int length )
 {
     NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
@@ -232,95 +230,6 @@ static void rx_task( void * parameter )
             }
         }
     }
-=======
-static void prvProcessFrame(int length)
-{
-	NetworkBufferDescriptor_t *pxBufferDescriptor = NULL;
-	if( uxGetNumberOfFreeNetworkBuffers() > 1 ) // reserve buffers for TX
-	{
-		pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
-	}
-
-	if( pxBufferDescriptor != NULL )
-	{
-		status_t status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
-		pxBufferDescriptor->xDataLength = length;
-
-		if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
-		{
-			IPStackEvent_t xRxEvent;
-			xRxEvent.eEventType = eNetworkRxEvent;
-			xRxEvent.pvData = ( void * ) pxBufferDescriptor;
-
-			if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
-			{
-				vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-				iptraceETHERNET_RX_EVENT_LOST();
-				PRINTF( "RX Event Lost\n" );
-			}
-		}
-		else
-		{
-			PRINTF( "RX Event not to be considered\n" );
-			vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-			/* Not sure if a trace is required.  The stack did not want this message */
-		}
-	}
-	else
-	{
-		PRINTF( "RX No Buffer Available\n" );
-		ENET_ReadFrame( ENET, &g_handle, NULL, length, 0 );
-		/* No buffer available to receive this message */
-		iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
-	}
-}
-
-static void rx_task( void * parameter )
-{
-uint32_t length;
-status_t status;
-
-	while( pdTRUE )
-	{
-		BaseType_t notified = ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(500) );
-
-		if(notified == pdFALSE) // no RX packets for a bit so check for a link
-		{
-			PHY_GetLinkStatus( &phyHandle, &g_linkStatus );
-		}
-		else // got a packet notification so process it.
-		{
-			BaseType_t receiving = pdTRUE;
-
-			while( receiving == pdTRUE )
-			{
-				status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
-
-				switch( status )
-				{
-					case kStatus_Success: /* there is a frame.  process it */
-						if( length )
-						{
-							prvProcessFrame(length);
-						}
-						break;
-					case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
-						receiving = pdFALSE;
-						break;
-
-					case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
-						PRINTF( "RX Receive Error\n" );
-						ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
-						/* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
-						break;
-					default:
-						PRINTF( "RX Receive default\n" );
-						break;
-				}
-			}
-		}
-	}
->>>>>>> reduced the complexity of rx_task, corrected dead code related to notification
 }
 
 BaseType_t xGetPhyLinkStatus( void )
@@ -334,7 +243,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
     BaseType_t returnValue = pdFAIL;
     static enum
     {
-        initPhy, startReceiver, waitForLink, configurePhy
+        initPhy, waitForLink, configurePhy, startReceiver
     }
     networkInitialisePhase = initPhy;
 
