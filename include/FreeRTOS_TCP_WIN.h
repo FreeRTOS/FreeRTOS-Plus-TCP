@@ -35,43 +35,52 @@
         extern "C" {
     #endif
 
-/* The name xTCPTimer was already use as the name of an IP-timer. */
+/**
+ * The name xTCPTimer was already use as the name of an IP-timer.
+ */
     typedef struct xTCPTimerStruct
     {
-        uint32_t ulBorn;
+        uint32_t ulBorn; /**< The time when this timer is created. */
     } TCPTimer_t;
 
+/**
+ * Structure to hold the information about a TCP segment.
+ */
     typedef struct xTCP_SEGMENT
     {
-        uint32_t ulSequenceNumber; /* The sequence number of the first byte in this packet */
-        int32_t lMaxLength;        /* Maximum space, number of bytes which can be stored in this segment */
-        int32_t lDataLength;       /* Actual number of bytes */
-        int32_t lStreamPos;        /* reference to the [t|r]xStream of the socket */
-        TCPTimer_t xTransmitTimer; /* saves a timestamp at the moment this segment gets transmitted (TX only) */
+        uint32_t ulSequenceNumber; /**< The sequence number of the first byte in this packet */
+        int32_t lMaxLength;        /**< Maximum space, number of bytes which can be stored in this segment */
+        int32_t lDataLength;       /**< Actual number of bytes */
+        int32_t lStreamPos;        /**< reference to the [t|r]xStream of the socket */
+        TCPTimer_t xTransmitTimer; /**< saves a timestamp at the moment this segment gets transmitted (TX only) */
         union
         {
             struct
             {
                 uint32_t
-                    ucTransmitCount : 8, /* Number of times the segment has been transmitted, used to calculate the RTT */
-                    ucDupAckCount : 8,   /* Counts the number of times that a higher segment was ACK'd. After 3 times a Fast Retransmission takes place */
-                    bOutstanding : 1,    /* It the peer's turn, we're just waiting for an ACK */
-                    bAcked : 1,          /* This segment has been acknowledged */
-                    bIsForRx : 1;        /* pdTRUE if segment is used for reception */
+                    ucTransmitCount : 8, /**< Number of times the segment has been transmitted, used to calculate the RTT */
+                    ucDupAckCount : 8,   /**< Counts the number of times that a higher segment was ACK'd. After 3 times a Fast Retransmission takes place */
+                    bOutstanding : 1,    /**< It the peer's turn, we're just waiting for an ACK */
+                    bAcked : 1,          /**< This segment has been acknowledged */
+                    bIsForRx : 1;        /**< pdTRUE if segment is used for reception */
             } bits;
             uint32_t ulFlags;
-        } u;
+        } u;                                /**< Use a union to store the 32-bit flag field and the breakdown in the same location. */
         #if ( ipconfigUSE_TCP_WIN != 0 )
-            struct xLIST_ITEM xQueueItem;   /* TX only: segments can be linked in one of three queues: xPriorityQueue, xTxQueue, and xWaitQueue */
-            struct xLIST_ITEM xSegmentItem; /* With this item the segment can be connected to a list, depending on who is owning it */
+            struct xLIST_ITEM xQueueItem;   /**< TX only: segments can be linked in one of three queues: xPriorityQueue, xTxQueue, and xWaitQueue */
+            struct xLIST_ITEM xSegmentItem; /**< With this item the segment can be connected to a list, depending on who is owning it */
         #endif
     } TCPSegment_t;
 
+/**
+ * Structure to store the Rx/Tx window length.
+ */
     typedef struct xTCP_WINSIZE
     {
-        uint32_t ulRxWindowLength;
-        uint32_t ulTxWindowLength;
+        uint32_t ulRxWindowLength; /**< The size of the receive window. */
+        uint32_t ulTxWindowLength; /**< The size of the send window. */
     } TCPWinSize_t;
+
 
 /*
  * If TCP time-stamps are being used, they will occupy 12 bytes in
@@ -84,7 +93,7 @@
         #define ipSIZE_TCP_OPTIONS    12U
     #endif
 
-/*
+/**
  *	Every TCP connection owns a TCP window for the administration of all packets
  *	It owns two sets of segment descriptors, incoming and outgoing
  */
@@ -95,45 +104,48 @@
             struct
             {
                 uint32_t
-                    bHasInit : 1,      /* The window structure has been initialised */
-                    bSendFullSize : 1, /* May only send packets with a size equal to MSS (for optimisation) */
-                    bTimeStamps : 1;   /* Socket is supposed to use TCP time-stamps. This depends on the */
-            } bits;                    /* party which opens the connection */
+                    bHasInit : 1,      /**< The window structure has been initialised */
+                    bSendFullSize : 1, /**< May only send packets with a size equal to MSS (for optimisation) */
+                    bTimeStamps : 1;   /**< Socket is supposed to use TCP time-stamps. This depends on the */
+            } bits;                    /**< party which opens the connection */
             uint32_t ulFlags;
-        } u;
-        TCPWinSize_t xSize;
+        } u;                           /**< Use a union to store the 32-bit flag field and the breakdown at the same place. */
+        TCPWinSize_t xSize;            /**< Size of the TCP window. */
         struct
         {
-            uint32_t ulFirstSequenceNumber;                                    /* Logging & debug: the first segment received/sent in this connection
+            uint32_t ulFirstSequenceNumber;                                    /**< Logging & debug: the first segment received/sent in this connection
                                                                                 * for Tx: initial send sequence number (ISS)
                                                                                 * for Rx: initial receive sequence number (IRS) */
-            uint32_t ulCurrentSequenceNumber;                                  /* Tx/Rx: the oldest sequence number not yet confirmed, also SND.UNA / RCV.NXT
+            uint32_t ulCurrentSequenceNumber;                                  /**< Tx/Rx: the oldest sequence number not yet confirmed, also SND.UNA / RCV.NXT
                                                                                 * In other words: the sequence number of the left side of the sliding window */
-            uint32_t ulFINSequenceNumber;                                      /* The sequence number which carried the FIN flag */
-            uint32_t ulHighestSequenceNumber;                                  /* Sequence number of the right-most byte + 1 */
-        } rx, tx;
-        uint32_t ulOurSequenceNumber;                                          /* The SEQ number we're sending out */
-        uint32_t ulUserDataLength;                                             /* Number of bytes in Rx buffer which may be passed to the user, after having received a 'missing packet' */
-        uint32_t ulNextTxSequenceNumber;                                       /* The sequence number given to the next byte to be added for transmission */
-        int32_t lSRTT;                                                         /* Smoothed Round Trip Time, it may increment quickly and it decrements slower */
-        uint8_t ucOptionLength;                                                /* Number of valid bytes in ulOptionsData[] */
+            uint32_t ulFINSequenceNumber;                                      /**< The sequence number which carried the FIN flag */
+            uint32_t ulHighestSequenceNumber;                                  /**< Sequence number of the right-most byte + 1 */
+        } rx,                                                                  /**< Structure for the receiver for TCP. */
+          tx;                                                                  /**< Structure for the transmitter for TCP. */
+
+        uint32_t ulOurSequenceNumber;                                          /**< The SEQ number we're sending out */
+        uint32_t ulUserDataLength;                                             /**< Number of bytes in Rx buffer which may be passed to the user, after having received a 'missing packet' */
+        uint32_t ulNextTxSequenceNumber;                                       /**< The sequence number given to the next byte to be added for transmission */
+        int32_t lSRTT;                                                         /**< Smoothed Round Trip Time, it may increment quickly and it decrements slower */
+        uint8_t ucOptionLength;                                                /**< Number of valid bytes in ulOptionsData[] */
         #if ( ipconfigUSE_TCP_WIN == 1 )
-            List_t xPriorityQueue;                                             /* Priority queue: segments which must be sent immediately */
-            List_t xTxQueue;                                                   /* Transmit queue: segments queued for transmission */
-            List_t xWaitQueue;                                                 /* Waiting queue:  outstanding segments */
-            TCPSegment_t * pxHeadSegment;                                      /* points to a segment which has not been transmitted and it's size is still growing (user data being added) */
-            uint32_t ulOptionsData[ ipSIZE_TCP_OPTIONS / sizeof( uint32_t ) ]; /* Contains the options we send out */
-            List_t xTxSegments;                                                /* A linked list of all transmission segments, sorted on sequence number */
-            List_t xRxSegments;                                                /* A linked list of reception segments, order depends on sequence of arrival */
+            List_t xPriorityQueue;                                             /**< Priority queue: segments which must be sent immediately */
+            List_t xTxQueue;                                                   /**< Transmit queue: segments queued for transmission */
+            List_t xWaitQueue;                                                 /**< Waiting queue:  outstanding segments */
+            TCPSegment_t * pxHeadSegment;                                      /**< points to a segment which has not been transmitted and it's size is still growing (user data being added) */
+            uint32_t ulOptionsData[ ipSIZE_TCP_OPTIONS / sizeof( uint32_t ) ]; /**< Contains the options we send out */
+            List_t xTxSegments;                                                /**< A linked list of all transmission segments, sorted on sequence number */
+            List_t xRxSegments;                                                /**< A linked list of reception segments, order depends on sequence of arrival */
         #else
             /* For tiny TCP, there is only 1 outstanding TX segment */
-            TCPSegment_t xTxSegment; /* Priority queue */
+            TCPSegment_t xTxSegment; /**< Priority queue */
         #endif
-        uint16_t usOurPortNumber;    /* Mostly for debugging/logging: our TCP port number */
-        uint16_t usPeerPortNumber;   /* debugging/logging: the peer's TCP port number */
-        uint16_t usMSS;              /* Current accepted MSS */
-        uint16_t usMSSInit;          /* MSS as configured by the socket owner */
+        uint16_t usOurPortNumber;    /**< Mostly for debugging/logging: our TCP port number */
+        uint16_t usPeerPortNumber;   /**< debugging/logging: the peer's TCP port number */
+        uint16_t usMSS;              /**< Current accepted MSS */
+        uint16_t usMSSInit;          /**< MSS as configured by the socket owner */
     } TCPWindow_t;
+
 
 
 /*=============================================================================

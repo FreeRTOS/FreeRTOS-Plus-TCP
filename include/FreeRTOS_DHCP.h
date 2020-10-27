@@ -64,20 +64,19 @@
         eNotUsingLeasedAddress         /* DHCP failed, and a default IP address is being used. */
     } eDHCPState_t;
 
-/* Hold information in between steps in the DHCP state machine. */
+/**
+ * Hold information in between steps in the DHCP state machine.
+ */
     struct xDHCP_DATA
     {
-        uint32_t ulTransactionId;
-        uint32_t ulOfferedIPAddress;
-        uint32_t ulDHCPServerAddress;
-        uint32_t ulLeaseTime;
-        /* Hold information on the current timer state. */
-        TickType_t xDHCPTxTime;
-        TickType_t xDHCPTxPeriod;
-        /* Try both without and with the broadcast flag */
-        BaseType_t xUseBroadcast;
-        /* Maintains the DHCP state machine state. */
-        eDHCPState_t eDHCPState;
+        uint32_t ulTransactionId;     /**< The ID of the DHCP transaction */
+        uint32_t ulOfferedIPAddress;  /**< The IP address offered by the DHCP server */
+        uint32_t ulDHCPServerAddress; /**< The IP address of the DHCP server */
+        uint32_t ulLeaseTime;         /**< The time for which the current IP address is leased */
+        TickType_t xDHCPTxTime;       /**< Hold information on the current timer state. */
+        TickType_t xDHCPTxPeriod;     /**< Hold information on the current timer state. */
+        BaseType_t xUseBroadcast;     /**< Try both without and with the broadcast flag */
+        eDHCPState_t eDHCPState;      /**< Maintains the DHCP state machine state. */
     };
 
     typedef struct xDHCP_DATA DHCPData_t;
