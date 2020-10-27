@@ -157,6 +157,7 @@ static BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
                                   BaseType_t xProtocol,
                                   BaseType_t xIsBound );
 
+#if ( ipconfigUSE_TCP == 1 )
 /*
  * Internal function prvSockopt_so_buffer(): sets FREERTOS_SO_SNDBUF or
  * FREERTOS_SO_RCVBUF properties of a socket.
@@ -164,6 +165,7 @@ static BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
 static BaseType_t prvSockopt_so_buffer( FreeRTOS_Socket_t * pxSocket,
                                         int32_t lOptionName,
                                         const void * pvOptionValue );
+#endif /* ipconfigUSE_TCP == 1 */
 
 /*
  * Before creating a socket, check the validity of the parameters used
@@ -1622,6 +1624,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_TCP == 1 )
 /**
  * @brief Set the value of receive/send buffer after some preliminary checks.
  *
@@ -1673,6 +1676,7 @@ static BaseType_t prvSockopt_so_buffer( FreeRTOS_Socket_t * pxSocket,
 
     return xReturn;
 }
+#endif /* ipconfigUSE_TCP == 1 */
 /*-----------------------------------------------------------*/
 
 /* FreeRTOS_setsockopt calls itself, but in a very limited way,

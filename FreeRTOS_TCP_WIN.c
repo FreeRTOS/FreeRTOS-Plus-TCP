@@ -23,6 +23,7 @@
  * http://www.FreeRTOS.org
  */
 
+#if( ipconfigUSE_TCP == 1 )
 /**
  * @file FreeRTOS_TCP_WIN.c
  * @brief Module which handles the TCP windowing schemes for FreeRTOS+TCP.  Many
@@ -2505,3 +2506,5 @@ void vTCPWindowInit( TCPWindow_t * pxWindow,
 
 #endif /* ipconfigUSE_TCP_WIN == 0 */
 /*-----------------------------------------------------------*/
+
+#endif /* ipconfigUSE_TCP == 1 */
