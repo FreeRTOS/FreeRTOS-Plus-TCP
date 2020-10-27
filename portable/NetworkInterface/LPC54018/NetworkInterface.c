@@ -167,10 +167,6 @@ static void prvProcessFrame(int length)
                 iptraceETHERNET_RX_EVENT_LOST();
                 PRINTF( "RX Event Lost\n" );
             }
-            else
-            {
-                /* Message successfully transfered to the stack */
-            }
         }
         else
         {
@@ -242,7 +238,7 @@ BaseType_t xGetPhyLinkStatus( void )
 
 BaseType_t xNetworkInterfaceInitialise( void )
 {
-BaseType_t returnValue = pdFALSE;
+BaseType_t returnValue = pdFAIL;
 static enum {initPhy, startReceiver, waitForLink, configurePhy }networkInitialisePhase = initPhy;
 
 	switch(networkInitialisePhase)
@@ -333,7 +329,7 @@ static enum {initPhy, startReceiver, waitForLink, configurePhy }networkInitialis
 			ENET_StartRxTx( ENET, 1, 1 );
 
 			networkInitialisePhase = initPhy;
-			returnValue = pdTRUE;
+			returnValue = pdPASS;
 		}
 	}
 	return returnValue;
