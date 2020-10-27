@@ -23,7 +23,8 @@
  * http://www.FreeRTOS.org
  */
 
-#if( ipconfigUSE_TCP == 1 )
+#if ( ipconfigUSE_TCP == 1 )
+
 /**
  * @file FreeRTOS_TCP_WIN.c
  * @brief Module which handles the TCP windowing schemes for FreeRTOS+TCP.  Many
