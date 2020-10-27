@@ -229,10 +229,7 @@ static void rx_task( void * parameter )
 
 BaseType_t xGetPhyLinkStatus( void )
 {
-    bool link;
-
-    PHY_GetLinkStatus( &phyHandle, &link );
-    return link ? pdTRUE : pdFALSE;
+    return g_linkStatus ? pdTRUE : pdFALSE;
 }
 
 
@@ -267,6 +264,7 @@ static enum {initPhy, startReceiver, waitForLink, configurePhy }networkInitialis
 		{
 			bool link;
 			PHY_GetLinkStatus( &phyHandle, &link );
+
 			if(!link)
 			{
 				PRINTF("No Link\n");
