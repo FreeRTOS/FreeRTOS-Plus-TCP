@@ -274,14 +274,6 @@ static enum {initPhy, startReceiver, waitForLink, configurePhy }networkInitialis
 			}
 		}
 		/* fall through */
-	case startReceiver:
-		networkInitialisePhase = startReceiver;
-		if( xTaskCreate( rx_task, "rx_task", 512, NULL, ( configMAX_PRIORITIES - 1 ), &receiveTaskHandle ) != pdPASS )
-		{
-			PRINTF( "Network Receive Task creation failed!.\n" );
-			break;
-		}
-		/* fall through */
 	case configurePhy:
 		{
 			networkInitialisePhase = configurePhy;
@@ -327,10 +319,17 @@ static enum {initPhy, startReceiver, waitForLink, configurePhy }networkInitialis
 
 			/* Active TX/RX. */
 			ENET_StartRxTx( ENET, 1, 1 );
-
-			networkInitialisePhase = initPhy;
-			returnValue = pdPASS;
 		}
+	case startReceiver:
+		networkInitialisePhase = startReceiver;
+		if( xTaskCreate( rx_task, "rx_task", 512, NULL, ( configMAX_PRIORITIES - 1 ), &receiveTaskHandle ) != pdPASS )
+		{
+			PRINTF( "Network Receive Task creation failed!.\n" );
+			break;
+		}
+		returnValue = pdPASS;
+		networkInitialisePhase = initPhy;
+		/* fall through */
 	}
 	return returnValue;
 }
