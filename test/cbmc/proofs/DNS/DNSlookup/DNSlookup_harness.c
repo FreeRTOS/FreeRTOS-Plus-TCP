@@ -11,31 +11,32 @@
 /* This assumes that the length of the hostname is bounded by MAX_HOSTNAME_LEN. */
 void * safeMalloc( size_t xWantedSize )
 {
-	if( xWantedSize == 0 )
-	{
-		return NULL;
-	}
+    if( xWantedSize == 0 )
+    {
+        return NULL;
+    }
 
-	uint8_t byte;
-	return byte ? malloc( xWantedSize ) : NULL;
+    uint8_t byte;
+
+    return byte ? malloc( xWantedSize ) : NULL;
 }
 
 void harness()
 {
-	if( ipconfigUSE_DNS_CACHE != 0 )
-	{
-	size_t len;
-		__CPROVER_assume( len >= 0 && len <= MAX_HOSTNAME_LEN );
-		char *pcHostName = safeMalloc( len ); /* malloc is replaced by safeMalloc */
+    if( ipconfigUSE_DNS_CACHE != 0 )
+    {
+        size_t len;
+        __CPROVER_assume( len >= 0 && len <= MAX_HOSTNAME_LEN );
+        char * pcHostName = safeMalloc( len ); /* malloc is replaced by safeMalloc */
 
-		if( len && pcHostName )
-		{
-			pcHostName[ len - 1 ] = NULL;
-		}
+        if( len && pcHostName )
+        {
+            pcHostName[ len - 1 ] = NULL;
+        }
 
-		if( pcHostName ) /* guarding against NULL pointer */
-		{
-			FreeRTOS_dnslookup( pcHostName );
-		}
-	}
+        if( pcHostName ) /* guarding against NULL pointer */
+        {
+            FreeRTOS_dnslookup( pcHostName );
+        }
+    }
 }
