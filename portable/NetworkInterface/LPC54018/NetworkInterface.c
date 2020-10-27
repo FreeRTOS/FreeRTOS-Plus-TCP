@@ -297,7 +297,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
                config.miiDuplex = ( enet_mii_duplex_t ) duplex;
 
                /* Initialize ENET. */
-               uint32_t refClock = 50000000;  /* 50MHZ for rmii reference clock. */
+               uint32_t refClock = 50000000; /* 50MHZ for rmii reference clock. */
                ENET_Init( ENET, &config, g_macAddr, refClock );
 
                /* Enable the rx interrupt. */
