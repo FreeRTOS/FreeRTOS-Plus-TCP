@@ -131,20 +131,21 @@ void ENET_IntCallback( ENET_Type * base,
                        uint8_t channel,
                        void * param )
 {
-	BaseType_t needsToYield = pdFALSE;
-	switch( event )
-	{
-		case kENET_TxIntEvent:
-			break;
+    BaseType_t needsToYield = pdFALSE;
 
-		case kENET_RxIntEvent:
-			vTaskNotifyGiveFromISR( receiveTaskHandle, &needsToYield );
-			portEND_SWITCHING_ISR(needsToYield)
-			break;
+    switch( event )
+    {
+        case kENET_TxIntEvent:
+            break;
 
-		default:
-			break;
-	}
+        case kENET_RxIntEvent:
+            vTaskNotifyGiveFromISR( receiveTaskHandle, &needsToYield );
+            portEND_SWITCHING_ISR( needsToYield )
+            break;
+
+        default:
+            break;
+    }
 }
 
 static void prvProcessFrame( int length )
@@ -299,7 +300,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
                config.miiDuplex = ( enet_mii_duplex_t ) duplex;
 
                /* Initialize ENET. */
-               uint32_t refClock = 50000000;  /* 50MHZ for rmii reference clock. */
+               uint32_t refClock = 50000000; /* 50MHZ for rmii reference clock. */
                ENET_Init( ENET, &config, g_macAddr, refClock );
 
                /* Enable the rx interrupt. */
