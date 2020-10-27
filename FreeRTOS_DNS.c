@@ -571,7 +571,7 @@
  *
  * @param[in] uxIdentifier: Identifier associated with the callback function.
  * @param[in] pcName: The name associated with the callback function.
- * @param[in] ulIPAddress: IP-address identified from the DNS server.
+ * @param[in] ulIPAddress: IP-address obtained from the DNS server.
  *
  * @return Returns pdTRUE if uxIdentifier was recognized.
  */

@@ -2136,6 +2136,11 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
+/**
+ * @brief Process an ICMP echo reply.
+ *
+ * @param[in] pxICMPPacket: The IP packet that contains the ICMP message.
+ */
     static void prvProcessICMPEchoReply( ICMPPacket_t * const pxICMPPacket )
     {
         ePingReplyStatus_t eStatus = eSuccess;
