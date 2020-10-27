@@ -131,18 +131,21 @@ void ENET_IntCallback( ENET_Type * base,
                        uint8_t channel,
                        void * param )
 {
-    switch( event )
-    {
-        case kENET_TxIntEvent:
-            break;
 
-        case kENET_RxIntEvent:
-            vTaskNotifyGiveFromISR( receiveTaskHandle, NULL );
-            break;
+	BaseType_t needsToYield = pdFALSE;
+	switch( event )
+	{
+		case kENET_TxIntEvent:
+			break;
 
-        default:
-            break;
-    }
+		case kENET_RxIntEvent:
+			vTaskNotifyGiveFromISR( receiveTaskHandle, &needsToYield );
+			portEND_SWITCHING_ISR(needsToYield)
+			break;
+
+		default:
+			break;
+	}
 }
 
 static void prvProcessFrame( int length )
