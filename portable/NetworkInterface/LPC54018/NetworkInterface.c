@@ -341,8 +341,6 @@ BaseType_t xNetworkInterfaceInitialise( void )
             }
 
             returnValue = pdPASS;
-            networkInitialisePhase = initPhy;
-            /* fall through */
     }
 
     return returnValue;
