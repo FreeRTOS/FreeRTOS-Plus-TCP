@@ -143,12 +143,51 @@ void ENET_IntCallback( ENET_Type * base,
     }
 }
 
+static void prvProcessFrame(int length)
+{
+
+    NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
+
+    if( pxBufferDescriptor != NULL )
+    {
+        ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
+        pxBufferDescriptor->xDataLength = length;
+
+        if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+        {
+        	IPStackEvent_t xRxEvent;
+            xRxEvent.eEventType = eNetworkRxEvent;
+            xRxEvent.pvData = ( void * ) pxBufferDescriptor;
+
+            if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+            {
+                vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+                iptraceETHERNET_RX_EVENT_LOST();
+                PRINTF( "RX Event Lost\n" );
+            }
+            else
+            {
+                /* Message successfully transfered to the stack */
+            }
+        }
+        else
+        {
+            PRINTF( "RX Event not to be considered\n" );
+            vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+            /* Not sure if a trace is required.  The stack did not want this message */
+        }
+    }
+    else
+    {
+        PRINTF( "RX No Buffer Available\n" );
+        ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
+        /* No buffer available to receive this message */
+        iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
+    }
+}
+
 static void rx_task( void * parameter )
 {
-    uint32_t length;
-    NetworkBufferDescriptor_t * pxBufferDescriptor;
-    IPStackEvent_t xRxEvent;
-    status_t status;
 
     while( pdTRUE )
     {
@@ -158,7 +197,8 @@ static void rx_task( void * parameter )
 
         while( receiving == pdTRUE )
         {
-            status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
+            uint32_t length;
+            const status_t status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
 
             switch( status )
             {
@@ -166,43 +206,7 @@ static void rx_task( void * parameter )
 
                     if( length )
                     {
-                        pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
-
-                        if( pxBufferDescriptor != NULL )
-                        {
-                            status = ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
-                            pxBufferDescriptor->xDataLength = length;
-
-                            if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
-                            {
-                                xRxEvent.eEventType = eNetworkRxEvent;
-                                xRxEvent.pvData = ( void * ) pxBufferDescriptor;
-
-                                if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
-                                {
-                                    vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-                                    iptraceETHERNET_RX_EVENT_LOST();
-                                    PRINTF( "RX Event Lost\n" );
-                                }
-                                else
-                                {
-                                    /* Message successfully transfered to the stack */
-                                }
-                            }
-                            else
-                            {
-                                PRINTF( "RX Event not to be considered\n" );
-                                vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-                                /* Not sure if a trace is required.  The stack did not want this message */
-                            }
-                        }
-                        else
-                        {
-                            PRINTF( "RX No Buffer Available\n" );
-                            ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
-                            /* No buffer available to receive this message */
-                            iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
-                        }
+                    	prvProcessFrame(length);
                     }
 
                     break;
@@ -244,6 +248,7 @@ static enum {initPhy, startReceiver, waitForLink, configurePhy }networkInitialis
 	default:
 		networkInitialisePhase = initPhy;
 		/* fall through */
+
 	case initPhy:
 		{
 
