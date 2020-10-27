@@ -114,6 +114,8 @@ uint32_t g_testIdx = 0;
 uint32_t g_rxIndex = 0;
 uint32_t g_rxCheckIdx = 0;
 
+bool g_linkStatus = false;
+
 /*! @brief Enet PHY and MDIO interface handler. */
 static mdio_handle_t mdioHandle = { .ops = &EXAMPLE_MDIO_OPS };
 static phy_handle_t phyHandle = { .phyAddr = PHY_ADDRESS, .mdioHandle = &mdioHandle, .ops = &EXAMPLE_PHY_OPS };
@@ -188,44 +190,44 @@ static void prvProcessFrame(int length)
 
 static void rx_task( void * parameter )
 {
-
     while( pdTRUE )
     {
-        ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+		if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(500)) == pdFALSE ) // no RX packets for a bit so check for a link
+		{
+			PHY_GetLinkStatus( &phyHandle, &g_linkStatus );
+		}
+		else
+		{
+			BaseType_t receiving = pdTRUE;
 
-        BaseType_t receiving = pdTRUE;
+			while( receiving == pdTRUE )
+			{
+				uint32_t length;
+				const status_t status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
 
-        while( receiving == pdTRUE )
-        {
-            uint32_t length;
-            const status_t status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
+				switch( status )
+				{
+					case kStatus_Success: /* there is a frame.  process it */
 
-            switch( status )
-            {
-                case kStatus_Success: /* there is a frame.  process it */
-
-                    if( length )
-                    {
-                    	prvProcessFrame(length);
-                    }
-
-                    break;
-
-                case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
-                    receiving = pdFALSE;
-                    break;
-
-                case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
-                    PRINTF( "RX Receive Error\n" );
-                    ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
-                    /* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
-                    break;
-
-                default:
-                    PRINTF( "RX Receive default\n" );
-                    break;
-            }
-        }
+						if( length )
+						{
+							prvProcessFrame(length);
+						}
+						break;
+					case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
+						receiving = pdFALSE;
+						break;
+					case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
+						PRINTF( "RX Receive Error\n" );
+						ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
+						/* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
+						break;
+					default:
+						PRINTF( "RX Receive default\n" );
+						break;
+				}
+			}
+		}
     }
 }
 
@@ -248,7 +250,6 @@ static enum {initPhy, startReceiver, waitForLink, configurePhy }networkInitialis
 	default:
 		networkInitialisePhase = initPhy;
 		/* fall through */
-
 	case initPhy:
 		{
 
@@ -265,19 +266,23 @@ static enum {initPhy, startReceiver, waitForLink, configurePhy }networkInitialis
 			}
 		}
 		/* fall through */
+	case waitForLink:
+		networkInitialisePhase = waitForLink;
+		{
+			bool link;
+			PHY_GetLinkStatus( &phyHandle, &link );
+			if(!link)
+			{
+				PRINTF("No Link\n");
+				break;
+			}
+		}
+		/* fall through */
 	case startReceiver:
 		networkInitialisePhase = startReceiver;
 		if( xTaskCreate( rx_task, "rx_task", 512, NULL, ( configMAX_PRIORITIES - 1 ), &receiveTaskHandle ) != pdPASS )
 		{
 			PRINTF( "Network Receive Task creation failed!.\n" );
-			break;
-		}
-		/* fall through */
-	case waitForLink:
-		networkInitialisePhase = waitForLink;
-		if(!xGetPhyLinkStatus())
-		{
-			PRINTF("No Link\n");
 			break;
 		}
 		/* fall through */
