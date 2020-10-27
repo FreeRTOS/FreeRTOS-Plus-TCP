@@ -23,6 +23,11 @@
  * http://www.FreeRTOS.org
  */
 
+/**
+ * @file FreeRTOS_Stream_Buffer.c
+ * @brief Provides the API for managing/creating the stream buffers in the FreeRTOS+TCP network stack.
+ */
+
 /* Standard includes. */
 #include <stdint.h>
 
@@ -37,12 +42,17 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 
-/*
- * uxStreamBufferAdd( )
- * Adds data to a stream buffer.  If uxOffset > 0, data will be written at
- * an offset from uxHead while uxHead will not be moved yet.  This possibility
- * will be used when TCP data is received while earlier data is still missing.
- * If 'pucData' equals NULL, the function is called to advance 'uxHead' only.
+
+/**
+ * @brief Adds data to a stream buffer.
+ *
+ * @param[in,out] pxBuffer: The buffer to which the bytes will be added.
+ * @param[in] uxOffset: If uxOffset > 0, data will be written at an offset from uxHead
+ *                      while uxHead will not be moved yet.
+ * @param[in] pucData: A pointer to the data to be added.
+ * @param[in] uxByteCount: The number of bytes to add.
+ *
+ * @return The number of bytes added to the buffer.
  */
 size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
                           size_t uxOffset,
@@ -127,12 +137,17 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
 }
 /*-----------------------------------------------------------*/
 
-/*
- * uxStreamBufferGet( )
- * 'uxOffset' can be used to read data located at a certain offset from 'lTail'.
- * If 'pucData' equals NULL, the function is called to advance 'lTail' only.
- * if 'xPeek' is pdTRUE, or if 'uxOffset' is non-zero, the 'lTail' pointer will
- * not be advanced.
+/**
+ * @brief Read bytes from stream buffer.
+ *
+ * @param[in] pxBuffer: The buffer from which the bytes will be read.
+ * @param[in] uxOffset: can be used to read data located at a certain offset from 'lTail'.
+ * @param[in,out] pucData: If 'pucData' equals NULL, the function is called to advance 'lTail' only.
+ * @param[in] uxMaxCount: The number of bytes to read.
+ * @param[in] xPeek: if 'xPeek' is pdTRUE, or if 'uxOffset' is non-zero, the 'lTail' pointer will
+ *                   not be advanced.
+ *
+ * @return The count of the bytes read.
  */
 size_t uxStreamBufferGet( StreamBuffer_t * pxBuffer,
                           size_t uxOffset,

@@ -23,6 +23,11 @@
  * http://www.FreeRTOS.org
  */
 
+/**
+ * @file FreeRTOS_DHCP.c
+ * @brief Implements the Dynamic Host Configuration Protocol for the FreeRTOS+TCP network stack.
+ */
+
 /* Standard includes. */
 #include <stdint.h>
 
@@ -55,117 +60,127 @@
     #endif
 
 /* Parameter widths in the DHCP packet. */
-    #define dhcpCLIENT_HARDWARE_ADDRESS_LENGTH    16
-    #define dhcpSERVER_HOST_NAME_LENGTH           64
-    #define dhcpBOOT_FILE_NAME_LENGTH             128
+    #define dhcpCLIENT_HARDWARE_ADDRESS_LENGTH    16  /**< Client hardware address length.*/
+    #define dhcpSERVER_HOST_NAME_LENGTH           64  /**< Server host name length. */
+    #define dhcpBOOT_FILE_NAME_LENGTH             128 /**< Boot file name length. */
 
 /* Timer parameters */
     #ifndef dhcpINITIAL_DHCP_TX_PERIOD
-        #define dhcpINITIAL_TIMER_PERIOD      ( pdMS_TO_TICKS( 250U ) )
-        #define dhcpINITIAL_DHCP_TX_PERIOD    ( pdMS_TO_TICKS( 5000U ) )
+        #define dhcpINITIAL_TIMER_PERIOD      ( pdMS_TO_TICKS( 250U ) )  /**< Initial timer period. */
+        #define dhcpINITIAL_DHCP_TX_PERIOD    ( pdMS_TO_TICKS( 5000U ) ) /**< Initial DHCP transmit period. */
     #endif
 
 /* Codes of interest found in the DHCP options field. */
-    #define dhcpIPv4_ZERO_PAD_OPTION_CODE              ( 0U )
-    #define dhcpIPv4_SUBNET_MASK_OPTION_CODE           ( 1U )
-    #define dhcpIPv4_GATEWAY_OPTION_CODE               ( 3U )
-    #define dhcpIPv4_DNS_SERVER_OPTIONS_CODE           ( 6U )
-    #define dhcpIPv4_DNS_HOSTNAME_OPTIONS_CODE         ( 12U )
-    #define dhcpIPv4_REQUEST_IP_ADDRESS_OPTION_CODE    ( 50U )
-    #define dhcpIPv4_LEASE_TIME_OPTION_CODE            ( 51U )
-    #define dhcpIPv4_MESSAGE_TYPE_OPTION_CODE          ( 53U )
-    #define dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE     ( 54U )
-    #define dhcpIPv4_PARAMETER_REQUEST_OPTION_CODE     ( 55U )
-    #define dhcpIPv4_CLIENT_IDENTIFIER_OPTION_CODE     ( 61U )
+    #define dhcpIPv4_ZERO_PAD_OPTION_CODE              ( 0U )  /**< Used to pad other options to make them aligned. See RFC 2132. */
+    #define dhcpIPv4_SUBNET_MASK_OPTION_CODE           ( 1U )  /**< Subnet mask. See RFC 2132. */
+    #define dhcpIPv4_GATEWAY_OPTION_CODE               ( 3U )  /**< Available routers. See RFC 2132. */
+    #define dhcpIPv4_DNS_SERVER_OPTIONS_CODE           ( 6U )  /**< Domain name server. See RFC 2132. */
+    #define dhcpIPv4_DNS_HOSTNAME_OPTIONS_CODE         ( 12U ) /**< Host name. See RFC 2132. */
+    #define dhcpIPv4_REQUEST_IP_ADDRESS_OPTION_CODE    ( 50U ) /**< Requested IP-address. See RFC 2132. */
+    #define dhcpIPv4_LEASE_TIME_OPTION_CODE            ( 51U ) /**< IP-address lease time. See RFC 2132. */
+    #define dhcpIPv4_MESSAGE_TYPE_OPTION_CODE          ( 53U ) /**< DHCP message type. See RFC 2132. */
+    #define dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE     ( 54U ) /**< Server Identifier. See RFC 2132. */
+    #define dhcpIPv4_PARAMETER_REQUEST_OPTION_CODE     ( 55U ) /**< Parameter Request list. See RFC 2132. */
+    #define dhcpIPv4_CLIENT_IDENTIFIER_OPTION_CODE     ( 61U ) /**<  Client Identifier. See RFC 2132. */
 
 /* The four DHCP message types of interest. */
-    #define dhcpMESSAGE_TYPE_DISCOVER                  ( 1 )
-    #define dhcpMESSAGE_TYPE_OFFER                     ( 2 )
-    #define dhcpMESSAGE_TYPE_REQUEST                   ( 3 )
-    #define dhcpMESSAGE_TYPE_ACK                       ( 5 )
-    #define dhcpMESSAGE_TYPE_NACK                      ( 6 )
+    #define dhcpMESSAGE_TYPE_DISCOVER                  ( 1 ) /**< DHCP discover message. */
+    #define dhcpMESSAGE_TYPE_OFFER                     ( 2 ) /**< DHCP offer message. */
+    #define dhcpMESSAGE_TYPE_REQUEST                   ( 3 ) /**< DHCP request message. */
+    #define dhcpMESSAGE_TYPE_ACK                       ( 5 ) /**< DHCP acknowledgement. */
+    #define dhcpMESSAGE_TYPE_NACK                      ( 6 ) /**< DHCP NACK. (Negative acknowledgement) */
 
 /* Offsets into the transmitted DHCP options fields at which various parameters
  * are located. */
-    #define dhcpCLIENT_IDENTIFIER_OFFSET               ( 6U )
-    #define dhcpREQUESTED_IP_ADDRESS_OFFSET            ( 14U )
-    #define dhcpDHCP_SERVER_IP_ADDRESS_OFFSET          ( 20U )
+    #define dhcpCLIENT_IDENTIFIER_OFFSET               ( 6U )  /**< Offset for the client ID option. */
+    #define dhcpREQUESTED_IP_ADDRESS_OFFSET            ( 14U ) /**< Offset for the requested IP-address option. */
+    #define dhcpDHCP_SERVER_IP_ADDRESS_OFFSET          ( 20U ) /**< Offset for the server IP-address option. */
 
 /* Values used in the DHCP packets. */
-    #define dhcpREQUEST_OPCODE                         ( 1U )
-    #define dhcpREPLY_OPCODE                           ( 2U )
-    #define dhcpADDRESS_TYPE_ETHERNET                  ( 1U )
-    #define dhcpETHERNET_ADDRESS_LENGTH                ( 6U )
+    #define dhcpREQUEST_OPCODE                         ( 1U ) /**< DHCP request opcode. */
+    #define dhcpREPLY_OPCODE                           ( 2U ) /**< DHCP reply opcode. */
+    #define dhcpADDRESS_TYPE_ETHERNET                  ( 1U ) /**< Address type: ethernet opcode. */
+    #define dhcpETHERNET_ADDRESS_LENGTH                ( 6U ) /**< Ethernet address length opcode. */
 
 /* The following define is temporary and serves to make the /single source
  * code more similar to the /multi version. */
 
-    #define EP_DHCPData         xDHCPData
-    #define EP_IPv4_SETTINGS    xNetworkAddressing
+    #define EP_DHCPData                     xDHCPData          /**< Temporary define to make /single source similar to /multi version. */
+    #define EP_IPv4_SETTINGS                xNetworkAddressing /**< Temporary define to make /single source similar to /multi version. */
 
-/* If a lease time is not received, use the default of two days. */
-/* 48 hours in ticks.  Can not use pdMS_TO_TICKS() as integer overflow can occur. */
+/** @brief If a lease time is not received, use the default of two days (48 hours in ticks).
+ * Can not use pdMS_TO_TICKS() as integer overflow can occur. */
     #define dhcpDEFAULT_LEASE_TIME          ( ( 48UL * 60UL * 60UL ) * configTICK_RATE_HZ )
 
-/* Don't allow the lease time to be too short. */
+/** @brief Don't allow the lease time to be too short. */
     #define dhcpMINIMUM_LEASE_TIME          ( pdMS_TO_TICKS( 60000UL ) )        /* 60 seconds in ticks. */
 
-/* Marks the end of the variable length options field in the DHCP packet. */
+/** @brief Marks the end of the variable length options field in the DHCP packet. */
     #define dhcpOPTION_END_BYTE             0xffu
 
-/* Offset into a DHCP message at which the first byte of the options is
+/** @brief Offset into a DHCP message at which the first byte of the options is
  * located. */
     #define dhcpFIRST_OPTION_BYTE_OFFSET    ( 0xf0U )
 
 /* Standard DHCP port numbers and magic cookie value.
- * DHCPv4 uses UDP port number  68 for clients and port number  67 for servers.
+ * DHCPv4 uses UDP port number 68 for clients and port number 67 for servers.
  */
     #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
-        #define dhcpCLIENT_PORT_IPv4    0x4400U
-        #define dhcpSERVER_PORT_IPv4    0x4300U
-        #define dhcpCOOKIE              0x63538263UL
-        #define dhcpBROADCAST           0x0080U
+        #define dhcpCLIENT_PORT_IPv4    0x4400U      /**< Little endian representation of port 68. */
+        #define dhcpSERVER_PORT_IPv4    0x4300U      /**< Little endian representation of port 67. */
+        #define dhcpCOOKIE              0x63538263UL /**< Little endian representation of magic cookie. */
+        #define dhcpBROADCAST           0x0080U      /**< Little endian representation of broadcast flag. */
     #else
-        #define dhcpCLIENT_PORT_IPv4    0x0044U
-        #define dhcpSERVER_PORT_IPv4    0x0043U
-        #define dhcpCOOKIE              0x63825363UL
-        #define dhcpBROADCAST           0x8000U
+        #define dhcpCLIENT_PORT_IPv4    0x0044U      /**< Big endian representation of port 68. */
+        #define dhcpSERVER_PORT_IPv4    0x0043U      /**< Big endian representation of port 68. */
+        #define dhcpCOOKIE              0x63825363UL /**< Big endian representation of magic cookie. */
+        #define dhcpBROADCAST           0x8000U      /**< Big endian representation of broadcast flag. */
     #endif /* ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
 
     #include "pack_struct_start.h"
     struct xDHCPMessage_IPv4
     {
-        uint8_t ucOpcode;
-        uint8_t ucAddressType;
-        uint8_t ucAddressLength;
-        uint8_t ucHops;
-        uint32_t ulTransactionID;
-        uint16_t usElapsedTime;
-        uint16_t usFlags;
-        uint32_t ulClientIPAddress_ciaddr;
-        uint32_t ulYourIPAddress_yiaddr;
-        uint32_t ulServerIPAddress_siaddr;
-        uint32_t ulRelayAgentIPAddress_giaddr;
-        uint8_t ucClientHardwareAddress[ dhcpCLIENT_HARDWARE_ADDRESS_LENGTH ];
-        uint8_t ucServerHostName[ dhcpSERVER_HOST_NAME_LENGTH ];
-        uint8_t ucBootFileName[ dhcpBOOT_FILE_NAME_LENGTH ];
-        uint32_t ulDHCPCookie;
+        uint8_t ucOpcode;                                                      /**< Operation Code: Specifies the general type of message. */
+        uint8_t ucAddressType;                                                 /**< Hardware type used on the local network. */
+        uint8_t ucAddressLength;                                               /**< Hardware Address Length: Specifies how long hardware
+                                                                                * addresses are in this message. */
+        uint8_t ucHops;                                                        /**< Hops. */
+        uint32_t ulTransactionID;                                              /**< A 32-bit identification field generated by the client,
+                                                                                * to allow it to match up the request with replies received
+                                                                                * from DHCP servers. */
+        uint16_t usElapsedTime;                                                /**< Number of seconds elapsed since a client began an attempt to acquire or renew a lease. */
+        uint16_t usFlags;                                                      /**< Just one bit used to indicate broadcast. */
+        uint32_t ulClientIPAddress_ciaddr;                                     /**< Client's IP address if it has one or 0 is put in this field. */
+        uint32_t ulYourIPAddress_yiaddr;                                       /**< The IP address that the server is assigning to the client. */
+        uint32_t ulServerIPAddress_siaddr;                                     /**< The DHCP server address that the client should use. */
+        uint32_t ulRelayAgentIPAddress_giaddr;                                 /**< Gateway IP address in case the server client are on different subnets. */
+        uint8_t ucClientHardwareAddress[ dhcpCLIENT_HARDWARE_ADDRESS_LENGTH ]; /**< The client hardware address. */
+        uint8_t ucServerHostName[ dhcpSERVER_HOST_NAME_LENGTH ];               /**< Server's hostname. */
+        uint8_t ucBootFileName[ dhcpBOOT_FILE_NAME_LENGTH ];                   /**< Boot file full directory path. */
+        uint32_t ulDHCPCookie;                                                 /**< Magic cookie option. */
         /* Option bytes from here on. */
     }
     #include "pack_struct_end.h"
     typedef struct xDHCPMessage_IPv4 DHCPMessage_IPv4_t;
 
+/**
+ * @brief Function to cast pointers to DHCPMessage_IPv4_t.
+ */
     static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DHCPMessage_IPv4_t )
     {
         return ( DHCPMessage_IPv4_t * ) pvArgument;
     }
+
+/**
+ * @brief Function to cast const pointers to DHCPMessage_IPv4_t.
+ */
     static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( DHCPMessage_IPv4_t )
     {
         return ( const DHCPMessage_IPv4_t * ) pvArgument;
     }
 
 
-/* The UDP socket used for all incoming and outgoing DHCP traffic. */
+/** @brief The UDP socket used for all incoming and outgoing DHCP traffic. */
     _static Socket_t xDHCPSocket;
 
     #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
@@ -232,11 +247,19 @@
 
 /*-----------------------------------------------------------*/
 
-/* Hold information in between steps in the DHCP state machine. */
+/** @brief Hold information in between steps in the DHCP state machine. */
     _static DHCPData_t xDHCPData;
 
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Check whether a given socket is the DHCP socket or not.
+ *
+ * @param[in] xSocket: The socket to be checked.
+ *
+ * @return If the socket given as parameter is the DHCP socket - return
+ *         pdTRUE, else pdFALSE.
+ */
     BaseType_t xIsDHCPSocket( Socket_t xSocket )
     {
         BaseType_t xReturn;
@@ -252,8 +275,13 @@
 
         return xReturn;
     }
-/*-----------------------------------------------------------*/
+    /*-----------------------------------------------------------*/
 
+/**
+ * @brief Process the DHCP state machine based on current state.
+ *
+ * @param[in] xReset: Is the DHCP state machine starting over? pdTRUE/pdFALSE.
+ */
     void vDHCPProcess( BaseType_t xReset )
     {
         BaseType_t xGivingUp = pdFALSE;
@@ -565,8 +593,11 @@
             prvCloseDHCPSocket();
         }
     }
-/*-----------------------------------------------------------*/
+    /*-----------------------------------------------------------*/
 
+/**
+ * @brief Close the DHCP socket.
+ */
     static void prvCloseDHCPSocket( void )
     {
         if( xDHCPSocket != NULL )
@@ -577,8 +608,11 @@
             xDHCPSocket = NULL;
         }
     }
-/*-----------------------------------------------------------*/
+    /*-----------------------------------------------------------*/
 
+/**
+ * @brief Create a DHCP socket with the defined timeouts.
+ */
     _static void prvCreateDHCPSocket( void )
     {
         struct freertos_sockaddr xAddress;
@@ -614,8 +648,12 @@
             }
         }
     }
-/*-----------------------------------------------------------*/
+    /*-----------------------------------------------------------*/
 
+/**
+ * @brief Initialise the DHCP state machine by creating DHCP socket and
+ *        begin the transaction.
+ */
     static void prvInitialiseDHCP( void )
     {
         /* Initialise the parameters that will be set by the DHCP process. Per
@@ -640,8 +678,16 @@
             /* There was a problem with the randomizer. */
         }
     }
-/*-----------------------------------------------------------*/
+    /*-----------------------------------------------------------*/
 
+/**
+ * @brief Process the DHCP replies.
+ *
+ * @param[in] xExpectedMessageType: The type of the message the DHCP state machine is expecting.
+ *                                  Messages of different type will be dropped.
+ *
+ * @return pdPASS: if DHCP options are received correctly; pdFAIL: Otherwise.
+ */
     _static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType )
     {
         uint8_t * pucUDPPayload;
@@ -652,7 +698,7 @@
         uint32_t ulProcessed, ulParameter;
         BaseType_t xReturn = pdFALSE;
         const uint32_t ulMandatoryOptions = 2UL; /* DHCP server address, and the correct DHCP message type must be present in the options. */
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+        /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
         const void * pvCopySource;
         void * pvCopyDest;
 
@@ -894,8 +940,18 @@
 
         return xReturn;
     }
-/*-----------------------------------------------------------*/
+    /*-----------------------------------------------------------*/
 
+/**
+ * @brief Create a partial DHCP message by filling in all the 'constant' fields.
+ *
+ * @param[out] pxAddress: Address to be filled in.
+ * @param[out] xOpcode: Opcode to be filled in the packet. Will always be 'dhcpREQUEST_OPCODE'.
+ * @param[in] pucOptionsArray: The options to be added to the packet.
+ * @param[in,out] pxOptionsArraySize: Byte count of the options. Its value might change.
+ *
+ * @return Ethernet buffer of the partially created DHCP packet.
+ */
     static uint8_t * prvCreatePartDHCPMessage( struct freertos_sockaddr * pxAddress,
                                                BaseType_t xOpcode,
                                                const uint8_t * const pucOptionsArray,
@@ -905,7 +961,7 @@
         size_t uxRequiredBufferSize = sizeof( DHCPMessage_IPv4_t ) + *pxOptionsArraySize;
         const NetworkBufferDescriptor_t * pxNetworkBuffer;
         uint8_t * pucUDPPayloadBuffer;
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+        /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
         const void * pvCopySource;
         void * pvCopyDest;
 
@@ -989,8 +1045,11 @@
 
         return pucUDPPayloadBuffer;
     }
-/*-----------------------------------------------------------*/
+    /*-----------------------------------------------------------*/
 
+/**
+ * @brief Create and send a DHCP request message through the DHCP socket.
+ */
     static void prvSendDHCPRequest( void )
     {
         uint8_t * pucUDPPayloadBuffer;
@@ -1007,7 +1066,7 @@
             dhcpOPTION_END_BYTE
         };
         size_t uxOptionsLength = sizeof( ucDHCPRequestOptions );
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+        /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
         const void * pvCopySource;
         void * pvCopyDest;
 
@@ -1042,8 +1101,11 @@
             FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
         }
     }
-/*-----------------------------------------------------------*/
+    /*-----------------------------------------------------------*/
 
+/**
+ * @brief Create and send a DHCP discover packet through the DHCP socket.
+ */
     static void prvSendDHCPDiscover( void )
     {
         uint8_t const * pucUDPPayloadBuffer;
@@ -1078,10 +1140,15 @@
             FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
         }
     }
-/*-----------------------------------------------------------*/
+    /*-----------------------------------------------------------*/
+
 
     #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
 
+/**
+ * @brief When DHCP has failed, the code can assign a Link-Layer address, and check if
+ *        another device already uses the IP-address.
+ */
         static void prvPrepareLinkLayerIPLookUp( void )
         {
             uint8_t ucLinkLayerIPAddress[ 2 ];

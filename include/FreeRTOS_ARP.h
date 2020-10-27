@@ -39,12 +39,15 @@
 /* Miscellaneous structure and definitions. */
 /*-----------------------------------------------------------*/
 
+/**
+ * Structure for one row in the ARP cache table.
+ */
     typedef struct xARP_CACHE_TABLE_ROW
     {
-        uint32_t ulIPAddress;     /* The IP address of an ARP cache entry. */
-        MACAddress_t xMACAddress; /* The MAC address of an ARP cache entry. */
-        uint8_t ucAge;            /* A value that is periodically decremented but can also be refreshed by active communication.  The ARP cache entry is removed if the value reaches zero. */
-        uint8_t ucValid;          /* pdTRUE: xMACAddress is valid, pdFALSE: waiting for ARP reply */
+        uint32_t ulIPAddress;     /**< The IP address of an ARP cache entry. */
+        MACAddress_t xMACAddress; /**< The MAC address of an ARP cache entry. */
+        uint8_t ucAge;            /**< A value that is periodically decremented but can also be refreshed by active communication.  The ARP cache entry is removed if the value reaches zero. */
+        uint8_t ucValid;          /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ARP reply */
     } ARPCacheRow_t;
 
     typedef enum
@@ -123,15 +126,15 @@
  * The function is to be called within the function xNetworkInterfaceOutput()
  * in NetworkInterface.c as follows:
  *
- *  if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
- *  {
- *     / * The packet has been sent back to the IP-task.
- * The IP-task will further handle it.
- * Do not release the descriptor.
- * /
- *      return pdTRUE;
- *  }
- *  / * Send the packet as usual. * /
+ *   if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
+ *   {
+ *      / * The packet has been sent back to the IP-task.
+ *	 * The IP-task will further handle it.
+ *        * Do not release the descriptor.
+ *	 * /
+ *       return pdTRUE;
+ *   }
+ *   / * Send the packet as usual. * /
  */
     BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
                                BaseType_t bReleaseAfterSend );
@@ -139,5 +142,6 @@
     #ifdef __cplusplus
         } /* extern "C" */
     #endif
+
 
 #endif /* FREERTOS_ARP_H */

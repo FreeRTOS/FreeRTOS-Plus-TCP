@@ -23,6 +23,12 @@
  * http://www.FreeRTOS.org
  */
 
+/**
+ * @file FreeRTOS_UDP_IP.c
+ * @brief This file has the source code for the UDP-IP functionality of the FreeRTOS+TCP
+ *        network stack.
+ */
+
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
@@ -47,12 +53,12 @@
     #include "FreeRTOS_DNS.h"
 #endif
 
-/* The expected IP version and header length coded into the IP header itself. */
+/** @brief The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 
-/* Part of the Ethernet and IP headers are always constant when sending an IPv4
- *  UDP packet.  This array defines the constant parts, allowing this part of the
- *  packet to be filled in using a simple memcpy() instead of individual writes. */
+/** @brief Part of the Ethernet and IP headers are always constant when sending an IPv4
+ * UDP packet.  This array defines the constant parts, allowing this part of the
+ * packet to be filled in using a simple memcpy() instead of individual writes. */
 /*lint -e708 (Info -- union initialization). */
 UDPPacketHeader_t xDefaultPartUDPPacketHeader =
 {
@@ -73,6 +79,12 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
 };
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Process the generated UDP packet and do other checks before sending the
+ *        packet such as ARP cache check and address resolution.
+ *
+ * @param[in] pxNetworkBuffer: The network buffer carrying the packet.
+ */
 void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     UDPPacket_t * pxUDPPacket;
@@ -80,7 +92,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
     eARPLookupResult_t eReturned;
     uint32_t ulIPAddress = pxNetworkBuffer->ulIPAddress;
     size_t uxPayloadSize;
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+    /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
     const void * pvCopySource;
     void * pvCopyDest;
 
@@ -263,6 +275,14 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Process the received UDP packet.
+ *
+ * @param[in] pxNetworkBuffer: The network buffer carrying the UDP packet.
+ * @param[in] usPort: The port number on which this packet was received.
+ *
+ * @return pdPASS in case the UDP packet could be processed. Else pdFAIL is returned.
+ */
 BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                       uint16_t usPort )
 {
@@ -272,7 +292,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-/* Map the ethernet buffer to the UDPPacket_t struct for easy access to the fields. */
+    /* Map the ethernet buffer to the UDPPacket_t struct for easy access to the fields. */
     const UDPPacket_t * pxUDPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
 
     /* Caller must check for minimum packet size. */
