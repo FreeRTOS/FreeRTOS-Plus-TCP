@@ -39,50 +39,50 @@
 #include "../../utility/memory_assignments.c"
 
 /* This proof assumes that pxGetNetworkBufferWithDescriptor is implemented correctly. */
-int32_t publicTCPPrepareSend( FreeRTOS_Socket_t *pxSocket,
-							  NetworkBufferDescriptor_t **ppxNetworkBuffer,
-							  UBaseType_t uxOptionsLength );
+int32_t publicTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
+                              NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                              UBaseType_t uxOptionsLength );
 
 /* Abstraction of pxGetNetworkBufferWithDescriptor. It creates a buffer. */
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
-															  TickType_t xBlockTimeTicks )
+                                                              TickType_t xBlockTimeTicks )
 {
-NetworkBufferDescriptor_t *pxBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
-size_t bufferSize = sizeof( NetworkBufferDescriptor_t );
+    NetworkBufferDescriptor_t * pxBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
+    size_t bufferSize = sizeof( NetworkBufferDescriptor_t );
 
-	if( ensure_memory_is_valid( pxBuffer, bufferSize ) )
-	{
-		/* The code does not expect pucEthernetBuffer to be equal to NULL if
-		pxBuffer is not NULL. */
-		pxBuffer->pucEthernetBuffer = malloc( xRequestedSizeBytes );
-		__CPROVER_assume( pxBuffer->pucEthernetBuffer != NULL );
-		pxBuffer->xDataLength = xRequestedSizeBytes;
-	}
+    if( ensure_memory_is_valid( pxBuffer, bufferSize ) )
+    {
+        /* The code does not expect pucEthernetBuffer to be equal to NULL if
+         * pxBuffer is not NULL. */
+        pxBuffer->pucEthernetBuffer = malloc( xRequestedSizeBytes );
+        __CPROVER_assume( pxBuffer->pucEthernetBuffer != NULL );
+        pxBuffer->xDataLength = xRequestedSizeBytes;
+    }
 
-	return pxBuffer;
+    return pxBuffer;
 }
 
 void harness()
 {
-FreeRTOS_Socket_t *pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
-NetworkBufferDescriptor_t *pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
-size_t socketSize = sizeof( FreeRTOS_Socket_t );
-size_t bufferSize = sizeof( TCPPacket_t );
+    FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
+    size_t socketSize = sizeof( FreeRTOS_Socket_t );
+    size_t bufferSize = sizeof( TCPPacket_t );
 
-	if( ensure_memory_is_valid( pxNetworkBuffer, sizeof( *pxNetworkBuffer ) ) )
-	{
-		pxNetworkBuffer->xDataLength = bufferSize;
+    if( ensure_memory_is_valid( pxNetworkBuffer, sizeof( *pxNetworkBuffer ) ) )
+    {
+        pxNetworkBuffer->xDataLength = bufferSize;
 
-		/* The code does not expect pucEthernetBuffer to be equal to NULL if
-		pxNetworkBuffer is not NULL. */
-		pxNetworkBuffer->pucEthernetBuffer = malloc( bufferSize );
-		__CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
-	}
+        /* The code does not expect pucEthernetBuffer to be equal to NULL if
+         * pxNetworkBuffer is not NULL. */
+        pxNetworkBuffer->pucEthernetBuffer = malloc( bufferSize );
+        __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+    }
 
-	UBaseType_t uxOptionsLength;
+    UBaseType_t uxOptionsLength;
 
-	if( pxSocket )
-	{
-		publicTCPPrepareSend( pxSocket, &pxNetworkBuffer, uxOptionsLength );
-	}
+    if( pxSocket )
+    {
+        publicTCPPrepareSend( pxSocket, &pxNetworkBuffer, uxOptionsLength );
+    }
 }

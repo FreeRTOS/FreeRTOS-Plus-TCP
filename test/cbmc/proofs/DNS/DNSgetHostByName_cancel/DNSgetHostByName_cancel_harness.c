@@ -13,26 +13,27 @@
 
 void vDNSInitialise( void );
 
-void vDNSSetCallBack( const char *pcHostName,
-					  void *pvSearchID,
-					  FOnDNSEvent pCallbackFunction,
-					  TickType_t xTimeout,
-					  TickType_t xIdentifier );
+void vDNSSetCallBack( const char * pcHostName,
+                      void * pvSearchID,
+                      FOnDNSEvent pCallbackFunction,
+                      TickType_t xTimeout,
+                      TickType_t xIdentifier );
 
 void * safeMalloc( size_t xWantedSize ) /* Returns a NULL pointer if the wanted size is 0. */
 {
-	if( xWantedSize == 0 )
-	{
-		return NULL;
-	}
+    if( xWantedSize == 0 )
+    {
+        return NULL;
+    }
 
-	uint8_t byte;
-	return byte ? malloc( xWantedSize ) : NULL;
+    uint8_t byte;
+
+    return byte ? malloc( xWantedSize ) : NULL;
 }
 
 /* Abstraction of xTaskCheckForTimeOut from task pool. This also abstracts the concurrency. */
 BaseType_t xTaskCheckForTimeOut( TimeOut_t * const pxTimeOut,
-								 TickType_t * const pxTicksToWait )
+                                 TickType_t * const pxTicksToWait )
 {
 }
 
@@ -43,27 +44,28 @@ BaseType_t xTaskResumeAll( void )
 
 /* The function func mimics the callback function.*/
 void func( const char * pcHostName,
-		   void * pvSearchID,
-		   uint32_t ulIPAddress )
+           void * pvSearchID,
+           uint32_t ulIPAddress )
 {
 }
 
 void harness()
 {
-	vDNSInitialise(); /* We initialize the callbacklist in order to be able to check for functions that timed out. */
-	size_t pvSearchID;
-	FOnDNSEvent pCallback = func;
-	TickType_t xTimeout;
-	TickType_t xIdentifier;
-	size_t len;
-	__CPROVER_assume( len >= 0 && len <= MAX_HOSTNAME_LEN );
-	char *pcHostName = safeMalloc( len );
+    vDNSInitialise(); /* We initialize the callbacklist in order to be able to check for functions that timed out. */
+    size_t pvSearchID;
+    FOnDNSEvent pCallback = func;
+    TickType_t xTimeout;
+    TickType_t xIdentifier;
+    size_t len;
 
-	if( len && pcHostName )
-	{
-		pcHostName[ len - 1 ] = NULL;
-	}
+    __CPROVER_assume( len >= 0 && len <= MAX_HOSTNAME_LEN );
+    char * pcHostName = safeMalloc( len );
 
-	vDNSSetCallBack( pcHostName, &pvSearchID, pCallback, xTimeout, xIdentifier ); /* Add an item to be able to check the cancel function if the list is non-empty. */
-	FreeRTOS_gethostbyname_cancel( &pvSearchID );
+    if( len && pcHostName )
+    {
+        pcHostName[ len - 1 ] = NULL;
+    }
+
+    vDNSSetCallBack( pcHostName, &pvSearchID, pCallback, xTimeout, xIdentifier ); /* Add an item to be able to check the cancel function if the list is non-empty. */
+    FreeRTOS_gethostbyname_cancel( &pvSearchID );
 }
