@@ -961,18 +961,19 @@
         size_t uxRequiredBufferSize = sizeof( DHCPMessage_IPv4_t ) + *pxOptionsArraySize;
         const NetworkBufferDescriptor_t * pxNetworkBuffer;
         uint8_t * pucUDPPayloadBuffer;
-        /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-        const void * pvCopySource;
-        void * pvCopyDest;
 
         #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
             const char * pucHostName = pcApplicationHostnameHook();
             size_t uxNameLength = strlen( pucHostName );
             uint8_t * pucPtr;
 
+/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+            const void * pvCopySource;
+            void * pvCopyDest;
+
             /* Two extra bytes for option code and length. */
             uxRequiredBufferSize += ( 2U + uxNameLength );
-        #endif
+        #endif /* if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) */
 
         /* Get a buffer.  This uses a maximum delay, but the delay will be capped
          * to ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS so the return value still needs to
