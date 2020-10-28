@@ -114,6 +114,8 @@ uint32_t g_testIdx = 0;
 uint32_t g_rxIndex = 0;
 uint32_t g_rxCheckIdx = 0;
 
+bool g_linkStatus = false;
+
 /*! @brief Enet PHY and MDIO interface handler. */
 static mdio_handle_t mdioHandle = { .ops = &EXAMPLE_MDIO_OPS };
 static phy_handle_t phyHandle = { .phyAddr = PHY_ADDRESS, .mdioHandle = &mdioHandle, .ops = &EXAMPLE_PHY_OPS };
@@ -143,9 +145,8 @@ void ENET_IntCallback( ENET_Type * base,
     }
 }
 
-static void prvProcessFrame(int length)
+static void prvProcessFrame( int length )
 {
-
     NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
 
     if( pxBufferDescriptor != NULL )
@@ -155,7 +156,7 @@ static void prvProcessFrame(int length)
 
         if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
         {
-        	IPStackEvent_t xRxEvent;
+            IPStackEvent_t xRxEvent;
             xRxEvent.eEventType = eNetworkRxEvent;
             xRxEvent.pvData = ( void * ) pxBufferDescriptor;
 
@@ -164,10 +165,6 @@ static void prvProcessFrame(int length)
                 vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
                 iptraceETHERNET_RX_EVENT_LOST();
                 PRINTF( "RX Event Lost\n" );
-            }
-            else
-            {
-                /* Message successfully transfered to the stack */
             }
         }
         else
@@ -188,42 +185,46 @@ static void prvProcessFrame(int length)
 
 static void rx_task( void * parameter )
 {
-
     while( pdTRUE )
     {
-        ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
-
-        BaseType_t receiving = pdTRUE;
-
-        while( receiving == pdTRUE )
+        if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) ) == pdFALSE ) /* no RX packets for a bit so check for a link */
         {
-            uint32_t length;
-            const status_t status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
+            PHY_GetLinkStatus( &phyHandle, &g_linkStatus );
+        }
+        else
+        {
+            BaseType_t receiving = pdTRUE;
 
-            switch( status )
+            while( receiving == pdTRUE )
             {
-                case kStatus_Success: /* there is a frame.  process it */
+                uint32_t length;
+                const status_t status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
 
-                    if( length )
-                    {
-                    	prvProcessFrame(length);
-                    }
+                switch( status )
+                {
+                    case kStatus_Success: /* there is a frame.  process it */
 
-                    break;
+                        if( length )
+                        {
+                            prvProcessFrame( length );
+                        }
 
-                case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
-                    receiving = pdFALSE;
-                    break;
+                        break;
 
-                case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
-                    PRINTF( "RX Receive Error\n" );
-                    ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
-                    /* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
-                    break;
+                    case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
+                        receiving = pdFALSE;
+                        break;
 
-                default:
-                    PRINTF( "RX Receive default\n" );
-                    break;
+                    case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
+                        PRINTF( "RX Receive Error\n" );
+                        ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
+                        /* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
+                        break;
+
+                    default:
+                        PRINTF( "RX Receive default\n" );
+                        break;
+                }
             }
         }
     }
@@ -231,107 +232,118 @@ static void rx_task( void * parameter )
 
 BaseType_t xGetPhyLinkStatus( void )
 {
-    bool link;
-
-    PHY_GetLinkStatus( &phyHandle, &link );
-    return link ? pdTRUE : pdFALSE;
+    return g_linkStatus ? pdTRUE : pdFALSE;
 }
 
 
 BaseType_t xNetworkInterfaceInitialise( void )
 {
-BaseType_t returnValue = pdFALSE;
-static enum {initPhy, startReceiver, waitForLink, configurePhy }networkInitialisePhase = initPhy;
+    BaseType_t returnValue = pdFAIL;
+    static enum
+    {
+        initPhy, startReceiver, waitForLink, configurePhy
+    }
+    networkInitialisePhase = initPhy;
 
-	switch(networkInitialisePhase)
-	{
-	default:
-		networkInitialisePhase = initPhy;
-		/* fall through */
+    switch( networkInitialisePhase )
+    {
+        default:
+            networkInitialisePhase = initPhy;
 
-	case initPhy:
-		{
+        /* fall through */
+        case initPhy:
+           {
+               phy_config_t phyConfig;
+               phyConfig.phyAddr = PHY_ADDRESS;
+               phyConfig.autoNeg = true;
+               mdioHandle.resource.base = ENET;
 
-			phy_config_t phyConfig;
-			phyConfig.phyAddr = PHY_ADDRESS;
-			phyConfig.autoNeg = true;
-			mdioHandle.resource.base = ENET;
+               status_t status = PHY_Init( &phyHandle, &phyConfig );
 
-			status_t status = PHY_Init( &phyHandle, &phyConfig );
-			if(status == kStatus_PHY_AutoNegotiateFail)
-			{
-				PRINTF( "\nPHY Auto-negotiation failed. Please check the cable connection and link partner setting.\n" );
-				break;
-			}
-		}
-		/* fall through */
-	case startReceiver:
-		networkInitialisePhase = startReceiver;
-		if( xTaskCreate( rx_task, "rx_task", 512, NULL, ( configMAX_PRIORITIES - 1 ), &receiveTaskHandle ) != pdPASS )
-		{
-			PRINTF( "Network Receive Task creation failed!.\n" );
-			break;
-		}
-		/* fall through */
-	case waitForLink:
-		networkInitialisePhase = waitForLink;
-		if(!xGetPhyLinkStatus())
-		{
-			PRINTF("No Link\n");
-			break;
-		}
-		/* fall through */
-	case configurePhy:
-		{
-			networkInitialisePhase = configurePhy;
-			enet_config_t config;
-			phy_speed_t speed;
-			phy_duplex_t duplex;
-			PHY_GetLinkSpeedDuplex( &phyHandle, &speed, &duplex );
-			/* Get default configuration 100M RMII. */
-			ENET_GetDefaultConfig( &config );
+               if( status == kStatus_PHY_AutoNegotiateFail )
+               {
+                   PRINTF( "\nPHY Auto-negotiation failed. Please check the cable connection and link partner setting.\n" );
+                   break;
+               }
+           }
 
-			/* Use the actual speed and duplex when phy success to finish the autonegotiation. */
-			config.miiSpeed = ( enet_mii_speed_t ) speed;
-			config.miiDuplex = ( enet_mii_duplex_t ) duplex;
+        /* fall through */
+        case waitForLink:
+            networkInitialisePhase = waitForLink;
+            {
+                bool link;
+                PHY_GetLinkStatus( &phyHandle, &link );
 
-			/* Initialize ENET. */
-			uint32_t refClock = 50000000;     /* 50MHZ for rmii reference clock. */
-			ENET_Init( ENET, &config, g_macAddr, refClock );
+                if( !link )
+                {
+                    PRINTF( "No Link\n" );
+                    break;
+                }
+            }
 
-			/* Enable the rx interrupt. */
-			ENET_EnableInterrupts( ENET, ( kENET_DmaRx ) );
+        /* fall through */
+        case configurePhy:
+           {
+               networkInitialisePhase = configurePhy;
+               enet_config_t config;
+               phy_speed_t speed;
+               phy_duplex_t duplex;
+               PHY_GetLinkSpeedDuplex( &phyHandle, &speed, &duplex );
+               /* Get default configuration 100M RMII. */
+               ENET_GetDefaultConfig( &config );
 
-			/* Initialize Descriptor. */
-			int bufferIndex;
-			for( bufferIndex = 0; bufferIndex < ENET_RXBD_NUM; bufferIndex++ )
-			{
-				rxbuffer[ bufferIndex ] = ( uint32_t ) &receiveBuffer[ bufferIndex ];
-			}
-			/* prepare the buffer configuration. */
-			enet_buffer_config_t buffConfig[ 1 ] =
-			{
-				{
-					ENET_RXBD_NUM, ENET_TXBD_NUM,
-					&g_txBuffDescrip[ 0 ], &g_txBuffDescrip[ 0 ],
-					&g_rxBuffDescrip[ 0 ], &g_rxBuffDescrip[ ENET_RXBD_NUM ],
-					&rxbuffer[ 0 ], ENET_BuffSizeAlign( ENET_RXBUFF_SIZE ),
-				}
-			};
-			ENET_DescriptorInit( ENET, &config, &buffConfig[ 0 ] );
+               /* Use the actual speed and duplex when phy success to finish the autonegotiation. */
+               config.miiSpeed = ( enet_mii_speed_t ) speed;
+               config.miiDuplex = ( enet_mii_duplex_t ) duplex;
 
-			/* Create the handler. */
-			ENET_CreateHandler( ENET, &g_handle, &config, &buffConfig[ 0 ], ENET_IntCallback, NULL );
-			NVIC_SetPriority( 65 - 16, 4 ); /* TODO this is a hack and I would expect a nice ENET API for priority. */
+               /* Initialize ENET. */
+               uint32_t refClock = 50000000; /* 50MHZ for rmii reference clock. */
+               ENET_Init( ENET, &config, g_macAddr, refClock );
 
-			/* Active TX/RX. */
-			ENET_StartRxTx( ENET, 1, 1 );
+               /* Enable the rx interrupt. */
+               ENET_EnableInterrupts( ENET, ( kENET_DmaRx ) );
 
-			networkInitialisePhase = initPhy;
-			returnValue = pdTRUE;
-		}
-	}
-	return returnValue;
+               /* Initialize Descriptor. */
+               int bufferIndex;
+
+               for( bufferIndex = 0; bufferIndex < ENET_RXBD_NUM; bufferIndex++ )
+               {
+                   rxbuffer[ bufferIndex ] = ( uint32_t ) &receiveBuffer[ bufferIndex ];
+               }
+
+               /* prepare the buffer configuration. */
+               enet_buffer_config_t buffConfig[ 1 ] =
+               {
+                   {
+                       ENET_RXBD_NUM, ENET_TXBD_NUM,
+                       &g_txBuffDescrip[ 0 ], &g_txBuffDescrip[ 0 ],
+                       &g_rxBuffDescrip[ 0 ], &g_rxBuffDescrip[ ENET_RXBD_NUM ],
+                       &rxbuffer[ 0 ], ENET_BuffSizeAlign( ENET_RXBUFF_SIZE ),
+                   }
+               };
+               ENET_DescriptorInit( ENET, &config, &buffConfig[ 0 ] );
+
+               /* Create the handler. */
+               ENET_CreateHandler( ENET, &g_handle, &config, &buffConfig[ 0 ], ENET_IntCallback, NULL );
+               NVIC_SetPriority( 65 - 16, 4 ); /* TODO this is a hack and I would expect a nice ENET API for priority. */
+
+               /* Active TX/RX. */
+               ENET_StartRxTx( ENET, 1, 1 );
+           }
+
+        case startReceiver:
+            networkInitialisePhase = startReceiver;
+
+            if( xTaskCreate( rx_task, "rx_task", 512, NULL, ( configMAX_PRIORITIES - 1 ), &receiveTaskHandle ) != pdPASS )
+            {
+                PRINTF( "Network Receive Task creation failed!.\n" );
+                break;
+            }
+
+            returnValue = pdPASS;
+    }
+
+    return returnValue;
 }
 
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
