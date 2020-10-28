@@ -37,7 +37,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF    0
+#define ipconfigHAS_DEBUG_PRINTF    1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
 #define FreeRTOS_debug_printf( X )    configPRINTF( X )
 #endif
@@ -139,7 +139,7 @@ extern uint32_t ulRand();
    /* If ipconfigDHCP_USES_USER_HOOK is set to 1 then the application writer must
     * provide an implementation of the DHCP callback function,
     * xApplicationDHCPUserHook(). */
-#define ipconfigUSE_DHCP_HOOK                    0
+#define ipconfigUSE_DHCP_HOOK                    1
 
     /* When ipconfigUSE_DHCP is set to 1, DHCP requests will be sent out at
      * increasing time intervals until either a reply is received from a DHCP server
@@ -241,11 +241,11 @@ extern uint32_t ulRand();
 
    /* If ipconfigSUPPORT_OUTGOING_PINGS is set to 1 then the
     * FreeRTOS_SendPingRequest() API function is available. */
-#define ipconfigSUPPORT_OUTGOING_PINGS                 0
+#define ipconfigSUPPORT_OUTGOING_PINGS                 1
 
     /* If ipconfigSUPPORT_SELECT_FUNCTION is set to 1 then the FreeRTOS_select()
      * (and associated) API function is available. */
-#define ipconfigSUPPORT_SELECT_FUNCTION                0
+#define ipconfigSUPPORT_SELECT_FUNCTION                1
 
      /* If ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES is set to 1 then Ethernet frames
       * that are not in Ethernet II format will be dropped.  This option is included for
@@ -294,10 +294,10 @@ extern uint32_t ulRand();
 #define ipconfigTCP_KEEP_ALIVE_INTERVAL          ( 20 ) /* Seconds. */
 
 /* The socket semaphore is used to unblock the MQTT task. */
-#define ipconfigSOCKET_HAS_USER_SEMAPHORE        ( 0 )
+#define ipconfigSOCKET_HAS_USER_SEMAPHORE        ( 1 )
 
 #define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 1 )
-#define ipconfigUSE_CALLBACKS                    ( 0 )
+#define ipconfigUSE_CALLBACKS                    ( 1 )
 
 
 #define portINLINE                               __inline

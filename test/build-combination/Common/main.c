@@ -261,9 +261,7 @@ void vAssertCalled( const char * pcFile,
 
 void getUserCmd( char * pucUserCmd )
 {
-    char cTmp;
-
-    //scanf( "%c%c", pucUserCmd, &cTmp );
+	/* Provide a stub for this function. */
 }
 /*-----------------------------------------------------------*/
 
@@ -286,27 +284,33 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 
 void vPortEnterCritical(void)
 {
+	/* Provide a stub for this function. */
 }
 
 void vPortExitCritical(void)
 {
+	/* Provide a stub for this function. */
 }
 
 StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters )
 {
+	/* Provide a stub for this function. */
 }
 
 void vPortGenerateSimulatedInterrupt( uint32_t ulInterruptNumber )
 {
+	/* Provide a stub for this function. */
 }
 void vPortCloseRunningThread( void *pvTaskToDelete, volatile BaseType_t *pxPendYield )
 {
+	/* Provide a stub for this function. */
 }
 
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                                StackType_t ** ppxIdleTaskStackBuffer,
                                                uint32_t * pulIdleTaskStackSize )
 {
+	/* Provide a stub for this function. */
 }
 
 
@@ -332,35 +336,60 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 
 void vConfigureTimerForRunTimeStats( void )
 {
+	/* Provide a stub for this function. */
 }
+
 BaseType_t xPortStartScheduler( void )
 {
+	/* Provide a stub for this function. */
 }
+
 void vPortEndScheduler( void )
 {
+	/* Provide a stub for this function. */
 }
 
 unsigned long ulGetRunTimeCounterValue( void )
 {
+	/* Provide a stub for this function. */
 }
+
 void vPortDeleteThread( void *pvThreadToDelete )
 {
+	/* Provide a stub for this function. */
 }
+
 void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
                                           StackType_t ** ppxTimerTaskStackBuffer,
                                               uint32_t * pulTimerTaskStackSize )
 {
+	/* Provide a stub for this function. */
 }
 
 void vApplicationMallocFailedHook( void )
 {
+	/* Provide a stub for this function. */
 }
 
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
 									BaseType_t bReleaseAfterSend )
 {
+	/* Provide a stub for this function. */
 }
 
 BaseType_t xNetworkInterfaceInitialise( void )
 {
+	/* Provide a stub for this function. */
+}
+
+eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
+													uint32_t ulIPAddress )
+{
+	/* Provide a stub for this function. */
+}
+
+void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
+										uint16_t usIdentifier )
+{
+	/* Provide a stub for this function. */
 }

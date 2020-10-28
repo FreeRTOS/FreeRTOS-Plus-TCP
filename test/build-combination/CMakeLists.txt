@@ -51,6 +51,7 @@ include_directories( ${FREERTOS_KERNEL_DIR}/include )
 include_directories( ${FREERTOS_KERNEL_DIR}/portable/MSVC-MingW )
 include_directories( ${FREERTOS_KERNEL_DIR}/portable/MemMang )
 include_directories( ${TEST_DIR}/AllEnable )
+include_directories( ${TEST_DIR}/Common )
 
 file(GLOB KERNEL_SOURCES "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/*.c")
 file(GLOB TCP_SOURCES "${MODULE_ROOT_DIR}/*.c")
@@ -62,5 +63,5 @@ add_executable(project ${KERNEL_SOURCES}
 		       ${TCP_SOURCES}
 		       ${FREERTOS_KERNEL_DIR}/portable/MemMang/heap_4.c
 		       ${MODULE_ROOT_DIR}/portable/BufferManagement/BufferAllocation_2.c
-		       ${TEST_DIR}/AllEnable/main.c )
+		       ${TEST_DIR}/Common/main.c )
 
