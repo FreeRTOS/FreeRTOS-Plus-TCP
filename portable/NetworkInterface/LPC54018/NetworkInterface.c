@@ -344,6 +344,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
             }
 
             returnValue = pdPASS;
+            break;
     }
 
     return returnValue;
