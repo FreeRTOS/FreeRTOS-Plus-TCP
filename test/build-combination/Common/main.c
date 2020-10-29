@@ -39,7 +39,7 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_DHCP.h"
 
-#define mainHOST_NAME "Build Combination"
+#define mainHOST_NAME    "Build Combination"
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
@@ -132,10 +132,10 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
     if( ( eNetworkEvent == eNetworkUp ) && ( xTasksAlreadyCreated == pdFALSE ) )
     {
         /* xTaskCreate( TEST_RUNNER_RunTests_task,
-                     "TestRunner",
-                     TEST_RUNNER_TASK_STACK_SIZE,
-                     NULL,
-                     tskIDLE_PRIORITY, NULL );*/
+         *           "TestRunner",
+         *           TEST_RUNNER_TASK_STACK_SIZE,
+         *           NULL,
+         *           tskIDLE_PRIORITY, NULL );*/
 
         xTasksAlreadyCreated = pdTRUE;
     }
@@ -144,14 +144,14 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 /*-----------------------------------------------------------*/
 
 /*static LONG CALLBACK prvExceptionHandler( _In_ PEXCEPTION_POINTERS ExceptionInfo )
-{
-    /* Remove warning about unused parameter *
-    ( void ) ExceptionInfo;
-    /* If this function is called during a test, the test immediately fails. *
-    TEST_FAIL();
-
-    return EXCEPTION_CONTINUE_EXECUTION;
-}*/
+ * {
+ *  /* Remove warning about unused parameter *
+ *  ( void ) ExceptionInfo;
+ *  /* If this function is called during a test, the test immediately fails. *
+ *  TEST_FAIL();
+ *
+ *  return EXCEPTION_CONTINUE_EXECUTION;
+ * }*/
 
 /*-----------------------------------------------------------*/
 
@@ -231,7 +231,7 @@ void vApplicationIdleHook( void )
      * cycle of the idle task if configUSE_IDLE_HOOK is set to 1 in
      * FreeRTOSConfig.h.  It must *NOT* attempt to block.  In this case the
      * idle task just sleeps to lower the CPU usage. */
-    //Sleep( ulMSToSleep );
+    /*Sleep( ulMSToSleep ); */
 }
 /*-----------------------------------------------------------*/
 
@@ -252,7 +252,6 @@ void vAssertCalled( const char * pcFile,
     {
         while( 1 )
         {
-            ;
         }
     }
     taskENABLE_INTERRUPTS();
@@ -261,7 +260,7 @@ void vAssertCalled( const char * pcFile,
 
 void getUserCmd( char * pucUserCmd )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 /*-----------------------------------------------------------*/
 
@@ -282,35 +281,38 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
     return pdTRUE;
 }
 
-void vPortEnterCritical(void)
+void vPortEnterCritical( void )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
-void vPortExitCritical(void)
+void vPortExitCritical( void )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
-StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters )
+StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
+                                     TaskFunction_t pxCode,
+                                     void * pvParameters )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
 void vPortGenerateSimulatedInterrupt( uint32_t ulInterruptNumber )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
-void vPortCloseRunningThread( void *pvTaskToDelete, volatile BaseType_t *pxPendYield )
+void vPortCloseRunningThread( void * pvTaskToDelete,
+                              volatile BaseType_t * pxPendYield )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
-                                               StackType_t ** ppxIdleTaskStackBuffer,
-                                               uint32_t * pulIdleTaskStackSize )
+                                    StackType_t ** ppxIdleTaskStackBuffer,
+                                    uint32_t * pulIdleTaskStackSize )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
 
@@ -336,60 +338,60 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 
 void vConfigureTimerForRunTimeStats( void )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
 BaseType_t xPortStartScheduler( void )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
 void vPortEndScheduler( void )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
 unsigned long ulGetRunTimeCounterValue( void )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
-void vPortDeleteThread( void *pvThreadToDelete )
+void vPortDeleteThread( void * pvThreadToDelete )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
 void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
-                                          StackType_t ** ppxTimerTaskStackBuffer,
-                                              uint32_t * pulTimerTaskStackSize )
+                                     StackType_t ** ppxTimerTaskStackBuffer,
+                                     uint32_t * pulTimerTaskStackSize )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
 void vApplicationMallocFailedHook( void )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-									BaseType_t bReleaseAfterSend )
+                                    BaseType_t bReleaseAfterSend )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
 BaseType_t xNetworkInterfaceInitialise( void )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
 eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
-													uint32_t ulIPAddress )
+                                            uint32_t ulIPAddress )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }
 
 void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
-										uint16_t usIdentifier )
+                                uint16_t usIdentifier )
 {
-	/* Provide a stub for this function. */
+    /* Provide a stub for this function. */
 }

@@ -24,23 +24,16 @@ option( BUILD_CLONE_SUBMODULES
         "Set this to ON to automatically clone any required Git submodules. When OFF, submodules must be manually cloned."
         ON )
 
+
+option(TEST_CONFIGURATION "Configuration All Enable/Disable" ENABLE_ALL)
+
+message( STATUS "Argument: ${TEST_CONFIGURATION}")
+
 # Set output directories.
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 
-# ===================================== Coverity Analysis Configuration =================================================
-
-# Include filepaths for source and include.
-#include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
-
-#include( ${MODULE_ROOT_DIR}/test/build-combination/AllEnable/build_proj.cmake )
-
-#add_custom_target( enableAll
-#    COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/build-combinations/AllEnable/build_proj.cmake
-#    DEPENDS KernelSource FreeRTOSPlusTCPSources PortableFiles
-#    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-#)
 
 set( FREERTOS_KERNEL_DIR ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel )
 set( TEST_DIR ${MODULE_ROOT_DIR}/test/build-combination )
@@ -50,8 +43,15 @@ include_directories( ${MODULE_ROOT_DIR}/portable/Compiler/MSVC )
 include_directories( ${FREERTOS_KERNEL_DIR}/include )
 include_directories( ${FREERTOS_KERNEL_DIR}/portable/MSVC-MingW )
 include_directories( ${FREERTOS_KERNEL_DIR}/portable/MemMang )
-include_directories( ${TEST_DIR}/AllEnable )
 include_directories( ${TEST_DIR}/Common )
+
+if( ${TEST_CONFIGURATION} STREQUAL "ENABLE_ALL" )
+	include_directories( ${TEST_DIR}/AllEnable )
+else()
+	include_directories( ${TEST_DIR}/AllDisable )
+endif()
+
+
 
 file(GLOB KERNEL_SOURCES "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/*.c")
 file(GLOB TCP_SOURCES "${MODULE_ROOT_DIR}/*.c")
@@ -59,9 +59,9 @@ file(GLOB TCP_SOURCES "${MODULE_ROOT_DIR}/*.c")
 message(STATUS "${KERNEL_SOURCES}")
 message(STATUS "${TCP_SOURCES}")
 
+
 add_executable(project ${KERNEL_SOURCES}
 		       ${TCP_SOURCES}
 		       ${FREERTOS_KERNEL_DIR}/portable/MemMang/heap_4.c
 		       ${MODULE_ROOT_DIR}/portable/BufferManagement/BufferAllocation_2.c
 		       ${TEST_DIR}/Common/main.c )
-

@@ -37,7 +37,7 @@
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF    1
+#define ipconfigHAS_DEBUG_PRINTF    0
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
     #define FreeRTOS_debug_printf( X )    configPRINTF( X )
 #endif
@@ -46,7 +46,7 @@
  * FreeRTOS_netstat() command, and ping replies.  If ipconfigHAS_PRINTF is set to 1
  * then FreeRTOS_printf should be set to the function used to print out the
  * messages. */
-#define ipconfigHAS_PRINTF    1
+#define ipconfigHAS_PRINTF    0
 #if ( ipconfigHAS_PRINTF == 1 )
     #define FreeRTOS_printf( X )    configPRINTF( X )
 #endif
@@ -58,7 +58,7 @@
 /* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
  * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
  * stack repeating the checksum calculations. */
-#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     1
+#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     0
 
 /* Several API's will block until the result is known, or the action has been
  * performed, for example FreeRTOS_send() and FreeRTOS_recv().  The timeouts can be
@@ -74,7 +74,7 @@
  * call to FreeRTOS_gethostbyname() will return immediately, without even creating
  * a socket.
  */
-#define ipconfigUSE_DNS_CACHE                      ( 1 )
+#define ipconfigUSE_DNS_CACHE                      ( 0 )
 #define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 6 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
@@ -109,7 +109,7 @@ extern uint32_t ulRand();
  * is not set to 1 then the network event hook will never be called. See:
  * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_UDP/API/vApplicationIPNetworkEventHook.shtml.
  */
-#define ipconfigUSE_NETWORK_EVENT_HOOK           1
+#define ipconfigUSE_NETWORK_EVENT_HOOK           0
 
 /* Sockets have a send block time attribute.  If FreeRTOS_sendto() is called but
  * a network buffer cannot be obtained then the calling task is held in the Blocked
@@ -132,14 +132,14 @@ extern uint32_t ulRand();
  * set to 1 if a valid configuration cannot be obtained from a DHCP server for any
  * reason.  The static configuration used is that passed into the stack by the
  * FreeRTOS_IPInit() function call. */
-#define ipconfigUSE_DHCP                         1
-#define ipconfigDHCP_REGISTER_HOSTNAME           1
-#define ipconfigDHCP_USES_UNICAST                1
+#define ipconfigUSE_DHCP                         0
+#define ipconfigDHCP_REGISTER_HOSTNAME           0
+#define ipconfigDHCP_USES_UNICAST                0
 
 /* If ipconfigDHCP_USES_USER_HOOK is set to 1 then the application writer must
  * provide an implementation of the DHCP callback function,
  * xApplicationDHCPUserHook(). */
-#define ipconfigUSE_DHCP_HOOK                    1
+#define ipconfigUSE_DHCP_HOOK                    0
 
 /* When ipconfigUSE_DHCP is set to 1, DHCP requests will be sent out at
  * increasing time intervals until either a reply is received from a DHCP server
@@ -184,7 +184,7 @@ extern uint32_t ulRand();
  * ipconfigINCLUDE_FULL_INET_ADDR is set to 1 then both FreeRTOS_inet_addr() and
  * FreeRTOS_indet_addr_quick() are available.  If ipconfigINCLUDE_FULL_INET_ADDR is
  * not set to 1 then only FreeRTOS_indet_addr_quick() is available. */
-#define ipconfigINCLUDE_FULL_INET_ADDR            1
+#define ipconfigINCLUDE_FULL_INET_ADDR            0
 
 /* ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS defines the total number of network buffer that
  * are available to the IP stack.  The total number of network buffers is limited
@@ -211,7 +211,7 @@ extern uint32_t ulRand();
  * ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND is set to 0 then calling FreeRTOS_sendto()
  * on a socket that has not yet been bound will result in the send operation being
  * aborted. */
-#define ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND         1
+#define ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND         0
 
 /* Defines the Time To Live (TTL) values used in outgoing UDP packets. */
 #define ipconfigUDP_TIME_TO_LIVE                       128
@@ -219,10 +219,10 @@ extern uint32_t ulRand();
 #define ipconfigTCP_TIME_TO_LIVE                       128
 
 /* USE_TCP: Use TCP and all its features. */
-#define ipconfigUSE_TCP                                ( 1 )
+#define ipconfigUSE_TCP                                ( 0 )
 
 /* USE_WIN: Let TCP use windowing mechanism. */
-#define ipconfigUSE_TCP_WIN                            ( 1 )
+#define ipconfigUSE_TCP_WIN                            ( 0 )
 
 /* The MTU is the maximum number of bytes the payload of a network frame can
  * contain.  For normal Ethernet V2 frames the maximum MTU is 1500.  Setting a
@@ -233,24 +233,24 @@ extern uint32_t ulRand();
 
 /* Set ipconfigUSE_DNS to 1 to include a basic DNS client/resolver.  DNS is used
  * through the FreeRTOS_gethostbyname() API function. */
-#define ipconfigUSE_DNS                                1
+#define ipconfigUSE_DNS                                0
 
 /* If ipconfigREPLY_TO_INCOMING_PINGS is set to 1 then the IP stack will
  * generate replies to incoming ICMP echo (ping) requests. */
-#define ipconfigREPLY_TO_INCOMING_PINGS                1
+#define ipconfigREPLY_TO_INCOMING_PINGS                0
 
 /* If ipconfigSUPPORT_OUTGOING_PINGS is set to 1 then the
  * FreeRTOS_SendPingRequest() API function is available. */
-#define ipconfigSUPPORT_OUTGOING_PINGS                 1
+#define ipconfigSUPPORT_OUTGOING_PINGS                 0
 
 /* If ipconfigSUPPORT_SELECT_FUNCTION is set to 1 then the FreeRTOS_select()
  * (and associated) API function is available. */
-#define ipconfigSUPPORT_SELECT_FUNCTION                1
+#define ipconfigSUPPORT_SELECT_FUNCTION                0
 
 /* If ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES is set to 1 then Ethernet frames
  * that are not in Ethernet II format will be dropped.  This option is included for
  * potential future IP stack developments. */
-#define ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES      1
+#define ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES      0
 
 /* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1 then it is the
  * responsibility of the Ethernet interface to filter out packets that are of no
@@ -260,7 +260,7 @@ extern uint32_t ulRand();
  * because the packet will already have been passed into the stack).  If the
  * Ethernet driver does all the necessary filtering in hardware then software
  * filtering can be removed by using a value other than 1 or 0. */
-#define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    1
+#define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    0
 
 /* The windows simulator cannot really simulate MAC interrupts, and needs to
  * block occasionally to allow other tasks to run. */
@@ -290,14 +290,14 @@ extern uint32_t ulRand();
 #define ipconfigIS_VALID_PROG_ADDRESS( x )    ( ( x ) != NULL )
 
 /* Include support for TCP keep-alive messages. */
-#define ipconfigTCP_KEEP_ALIVE                   ( 1 )
+#define ipconfigTCP_KEEP_ALIVE                   ( 0 )
 #define ipconfigTCP_KEEP_ALIVE_INTERVAL          ( 20 ) /* Seconds. */
 
 /* The socket semaphore is used to unblock the MQTT task. */
-#define ipconfigSOCKET_HAS_USER_SEMAPHORE        ( 1 )
+#define ipconfigSOCKET_HAS_USER_SEMAPHORE        ( 0 )
 
-#define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 1 )
-#define ipconfigUSE_CALLBACKS                    ( 1 )
+#define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 0 )
+#define ipconfigUSE_CALLBACKS                    ( 0 )
 
 
 #define portINLINE                               __inline
