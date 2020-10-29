@@ -109,7 +109,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Update submodules
-        run: git submodule update --checkout
+        run: git submodule update --init --checkout
       - name: Build checks (Enable all functionalities)
         run: |
            cmake -S test/build-combination -B test/build-combination/build/ \
