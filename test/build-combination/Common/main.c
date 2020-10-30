@@ -63,11 +63,8 @@ const uint8_t ucMACAddress[ 6 ] =
     configMAC_ADDR5
 };
 
-/* The default IP and MAC address used by the demo.  The address configuration
- * defined here will be used if ipconfigUSE_DHCP is 0, or if ipconfigUSE_DHCP is
- * 1 but a DHCP server could not be contacted.  See the online documentation for
- * more information.  In both cases the node can be discovered using
- * "ping RTOSDemo". */
+/* The default IP and MAC address used by the code. It is used as a place holder.
+*/
 static const uint8_t ucIPAddress[ 4 ] =
 {
     configIP_ADDR0,
@@ -131,27 +128,11 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
     /* If the network has just come up...*/
     if( ( eNetworkEvent == eNetworkUp ) && ( xTasksAlreadyCreated == pdFALSE ) )
     {
-        /* xTaskCreate( TEST_RUNNER_RunTests_task,
-         *           "TestRunner",
-         *           TEST_RUNNER_TASK_STACK_SIZE,
-         *           NULL,
-         *           tskIDLE_PRIORITY, NULL );*/
+        /* Do nothing. Just a stub. */
 
         xTasksAlreadyCreated = pdTRUE;
     }
 }
-
-/*-----------------------------------------------------------*/
-
-/*static LONG CALLBACK prvExceptionHandler( _In_ PEXCEPTION_POINTERS ExceptionInfo )
- * {
- *  /* Remove warning about unused parameter *
- *  ( void ) ExceptionInfo;
- *  /* If this function is called during a test, the test immediately fails. *
- *  TEST_FAIL();
- *
- *  return EXCEPTION_CONTINUE_EXECUTION;
- * }*/
 
 /*-----------------------------------------------------------*/
 
@@ -203,35 +184,12 @@ void vApplicationIdleHook( void )
     const TickType_t xKitHitCheckPeriod = pdMS_TO_TICKS( 1000UL );
     static TickType_t xTimeNow, xLastTimeCheck = 0;
 
-    /* vApplicationIdleHook() will only be called if configUSE_IDLE_HOOK is set
-     * to 1 in FreeRTOSConfig.h.  It will be called on each iteration of the idle
-     * task.  It is essential that code added to this hook function never attempts
-     * to block in any way (for example, call xQueueReceive() with a block time
-     * specified, or call vTaskDelay()).  If application tasks make use of the
-     * vTaskDelete() API function to delete themselves then it is also important
-     * that vApplicationIdleHook() is permitted to return to its calling function,
-     * because it is the responsibility of the idle task to clean up memory
-     * allocated by the kernel to any task that has since deleted itself. */
-
-    /* _kbhit() is a Windows system function, and system functions can cause
-     * crashes if they somehow block the FreeRTOS thread.  The call to _kbhit()
-     * can be removed if it causes problems.  Limiting the frequency of calls to
-     * _kbhit() should minimize the potential for issues. */
-    xTimeNow = xTaskGetTickCount();
-
     if( ( xTimeNow - xLastTimeCheck ) > xKitHitCheckPeriod )
     {
-        /* Uncomment the print line to get confirmation that tests are still
-         * running if you suspect a previous run resulted in a crash. */
-        /* configPRINTF( ( "Running...\n" ) ); /**/
         xLastTimeCheck = xTimeNow;
     }
 
-    /* This is just a trivial example of an idle hook.  It is called on each
-     * cycle of the idle task if configUSE_IDLE_HOOK is set to 1 in
-     * FreeRTOSConfig.h.  It must *NOT* attempt to block.  In this case the
-     * idle task just sleeps to lower the CPU usage. */
-    /*Sleep( ulMSToSleep ); */
+    /* Exit. Just a stub. */
 }
 /*-----------------------------------------------------------*/
 
@@ -246,8 +204,6 @@ void vAssertCalled( const char * pcFile,
     ( void ) pcFileName;
     ( void ) ulLineNumber;
 
-    /* Setting ulBlockVariable to a non-zero value in the debugger will allow
-     * this function to be exited. */
     taskDISABLE_INTERRUPTS();
     {
         while( 1 )
