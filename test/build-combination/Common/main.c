@@ -64,7 +64,7 @@ const uint8_t ucMACAddress[ 6 ] =
 };
 
 /* The default IP and MAC address used by the code. It is used as a place holder.
-*/
+ */
 static const uint8_t ucIPAddress[ 4 ] =
 {
     configIP_ADDR0,
