@@ -120,7 +120,7 @@ jobs:
            cmake -S test/build-combination -B test/build-combination/build/ \
             -DTEST_CONFIGURATION=DISABLE_ALL
            make -C test/build-combination/build/
-           
+
   complexity:
     runs-on: ubuntu-latest
     steps:

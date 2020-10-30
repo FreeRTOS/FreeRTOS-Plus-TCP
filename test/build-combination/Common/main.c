@@ -384,11 +384,13 @@ BaseType_t xNetworkInterfaceInitialise( void )
     /* Provide a stub for this function. */
 }
 
-eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
-                                            uint32_t ulIPAddress )
-{
-    /* Provide a stub for this function. */
-}
+#if ( ipconfigUSE_TCP == 1 )
+    eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
+                                                uint32_t ulIPAddress )
+    {
+        /* Provide a stub for this function. */
+    }
+#endif
 
 void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
                                 uint16_t usIdentifier )
