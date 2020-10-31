@@ -46,8 +46,6 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 
-#include "FreeRTOSIPConfigDefaults.h"
-
 /* Constants used for Smoothed Round Trip Time (SRTT). */
 #define winSRTT_INCREMENT_NEW        2   /**< New increment for the smoothed RTT. */
 #define winSRTT_INCREMENT_CURRENT    6   /**< Current increment for the smoothed RTT. */
@@ -153,8 +151,8 @@ static void vListInsertGeneric( List_t * const pxList,
 #endif /* ipconfigUSE_TCP_WIN == 1 */
 
 /*
- *  Free entry pxSegment because it's not used anymore
- *	The ownership will be passed back to the segment pool
+ * Free entry pxSegment because it's not used anymore
+ * The ownership will be passed back to the segment pool
  */
 #if ( ipconfigUSE_TCP_WIN == 1 )
     static void vTCPWindowFree( TCPSegment_t * pxSegment );
@@ -2110,17 +2108,17 @@ void vTCPWindowInit( TCPWindow_t * pxWindow,
 /*-----------------------------------------------------------*/
 
 /*
- #####   #                      #####   ####  ######
- # # #   #                      # # #  #    #  #    #
- #                              #   #     #  #    #
- #   ###   #####  #    #        #   #        #    #
- #     #   #    # #    #        #   #        #####
- #     #   #    # #    # ####   #   #        #
- #     #   #    # #    #        #   #     #  #
- #     #   #    #  ####         #    #    #  #
+#####   #                      #####   ####  ######
+# # #   #                      # # #  #    #  #    #
+  #                              #   #     #  #    #
+  #   ###   #####  #    #        #   #        #    #
+  #     #   #    # #    #        #   #        #####
+  #     #   #    # #    # ####   #   #        #
+  #     #   #    # #    #        #   #     #  #
+  #     #   #    #  ####         #    #    #  #
  #### ##### #    #     #        ####   ####  ####
- #
- ###
+                      #
+                   ###
  */
 #if ( ipconfigUSE_TCP_WIN == 0 )
 

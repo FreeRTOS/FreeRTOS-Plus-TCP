@@ -118,7 +118,7 @@
     #endif /* ipconfigUSE_CALLBACKS */
 
     #define FREERTOS_SO_REUSE_LISTEN_SOCKET       ( 11 ) /* When a listening socket gets connected, do not create a new one but re-use it */
-    #define FREERTOS_SO_CLOSE_AFTER_SEND          ( 12 ) /* As soon as the last byte has been transmitted, finalize the connection */
+    #define FREERTOS_SO_CLOSE_AFTER_SEND          ( 12 ) /* As soon as the last byte has been transmitted, finalise the connection */
     #define FREERTOS_SO_WIN_PROPERTIES            ( 13 ) /* Set all buffer and window properties in one call, parameter is pointer to WinProperties_t */
     #define FREERTOS_SO_SET_FULL_SIZE             ( 14 ) /* Refuse to send packets smaller than MSS  */
 
@@ -219,10 +219,9 @@
     typedef struct xSOCKET         * Socket_t;
     typedef struct xSOCKET const   * ConstSocket_t;
 
-    static portINLINE unsigned int prvSocketValid( Socket_t xSocket )
+    static portINLINE BaseType_t xSocketValid( Socket_t xSocket )
     {
-        unsigned int lReturnValue = pdFALSE;
-
+        BaseType_t xReturnValue = pdFALSE;
         /*
          * There are two values which can indicate an invalid socket:
          * FREERTOS_INVALID_SOCKET and NULL.  In order to compare against
@@ -232,10 +231,9 @@
         /* coverity[misra_c_2012_rule_11_4_violation] */
         if( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) )
         {
-            lReturnValue = pdTRUE;
+            xReturnValue = pdTRUE;
         }
-
-        return lReturnValue;
+        return xReturnValue;
     }
 
     #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
@@ -322,7 +320,7 @@
 /* Returns the actual size of MSS being used. */
             BaseType_t FreeRTOS_mss( ConstSocket_t xSocket );
 
-        #endif
+    #endif /* ( ipconfigUSE_TCP == 1 ) */
 
 /* For internal use only: return the connection status. */
         BaseType_t FreeRTOS_connstatus( ConstSocket_t xSocket );
@@ -368,9 +366,9 @@
 /*
  * Connect / disconnect handler for a TCP socket
  * For example:
- *		static void vMyConnectHandler (Socket_t xSocket, BaseType_t ulConnected)
- *		{
- *		}
+ *       static void vMyConnectHandler (Socket_t xSocket, BaseType_t ulConnected)
+ *       {
+ *       }
  *       F_TCP_UDP_Handler_t xHnd = { vMyConnectHandler };
  *       FreeRTOS_setsockopt( sock, 0, FREERTOS_SO_TCP_CONN_HANDLER, ( void * ) &xHnd, sizeof( xHnd ) );
  */
@@ -388,13 +386,13 @@
  * A user-proved function will be called on reception of a message
  * If the handler returns a positive number, the messages will not be stored
  * For example:
- *		static BaseType_t xOnTCPReceive( Socket_t xSocket, void * pData, size_t uxLength )
- *		{
- *			// handle the message
- *			return 1;
- *		}
- *		F_TCP_UDP_Handler_t xHand = { xOnTCPReceive };
- *		FreeRTOS_setsockopt( sock, 0, FREERTOS_SO_TCP_RECV_HANDLER, ( void * ) &xHand, sizeof( xHand ) );
+ *    static BaseType_t xOnTCPReceive( Socket_t xSocket, void * pData, size_t uxLength )
+ *    {
+ *        // handle the message
+ *        return 1;
+ *    }
+ *    F_TCP_UDP_Handler_t xHand = { xOnTCPReceive };
+ *    FreeRTOS_setsockopt( sock, 0, FREERTOS_SO_TCP_RECV_HANDLER, ( void * ) &xHand, sizeof( xHand ) );
  */
         #ifdef __COVERITY__
             typedef BaseType_t (* FOnTCPReceive_t )( Socket_t xSocket,

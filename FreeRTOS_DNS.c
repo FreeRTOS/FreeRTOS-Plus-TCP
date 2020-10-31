@@ -1894,7 +1894,7 @@
          * the socket. */
         xSocket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
 
-        if( prvSocketValid( xSocket ) != pdTRUE_UNSIGNED )
+        if( xSocketValid( xSocket ) != pdTRUE )
         {
             /* There was an error, return NULL. */
             xSocket = NULL;

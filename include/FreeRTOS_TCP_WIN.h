@@ -24,7 +24,7 @@
  */
 
 /*
- *	FreeRTOS_TCP_WIN.c
+ *  FreeRTOS_TCP_WIN.c
  *  Module which handles the TCP windowing schemes for FreeRTOS-PLUS-TCP
  */
 
@@ -94,8 +94,8 @@
     #endif
 
 /**
- *	Every TCP connection owns a TCP window for the administration of all packets
- *	It owns two sets of segment descriptors, incoming and outgoing
+ *  Every TCP connection owns a TCP window for the administration of all packets
+ *  It owns two sets of segment descriptors, incoming and outgoing
  */
     typedef struct xTCP_WINDOW
     {
