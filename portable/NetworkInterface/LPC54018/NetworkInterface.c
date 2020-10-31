@@ -140,7 +140,7 @@ void ENET_IntCallback( ENET_Type * base,
 
         case kENET_RxIntEvent:
             vTaskNotifyGiveFromISR( receiveTaskHandle, &needsToYield );
-            portEND_SWITCHING_ISR( needsToYield )
+            portEND_SWITCHING_ISR( needsToYield );
             break;
 
         default:
@@ -337,7 +337,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
         case startReceiver:
             networkInitialisePhase = startReceiver;
 
-            if( xTaskCreate( rx_task, "rx_task", 512, NULL, ( configMAX_PRIORITIES - 1 ), &receiveTaskHandle ) != pdPASS )
+            if( xTaskCreate( rx_task, "rx_task", 512, NULL, portPRIVILEGE_BIT | ( configMAX_PRIORITIES - 1 ), &receiveTaskHandle ) != pdPASS )
             {
                 PRINTF( "Network Receive Task creation failed!.\n" );
                 break;
