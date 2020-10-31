@@ -46,6 +46,10 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 
+#ifndef FREERTOS_DEFAULT_IP_CONFIG_H
+    #error "FreeRTOSIPConfigDefaults.h not included."
+#endif
+
 /* Constants used for Smoothed Round Trip Time (SRTT). */
 #define winSRTT_INCREMENT_NEW        2   /**< New increment for the smoothed RTT. */
 #define winSRTT_INCREMENT_CURRENT    6   /**< Current increment for the smoothed RTT. */
