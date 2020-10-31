@@ -23,6 +23,7 @@
  * http://www.FreeRTOS.org
  */
 
+
 /**
  * @file FreeRTOS_TCP_WIN.c
  * @brief Module which handles the TCP windowing schemes for FreeRTOS+TCP.  Many
@@ -45,6 +46,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+
 
 #ifndef FREERTOS_DEFAULT_IP_CONFIG_H
     #error "FreeRTOSIPConfigDefaults.h not included."
@@ -157,8 +159,8 @@
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 
 /*
- * Free entry pxSegment because it's not used anymore
- * The ownership will be passed back to the segment pool
+ *  Free entry pxSegment because it's not used anymore
+ *	The ownership will be passed back to the segment pool
  */
     #if ( ipconfigUSE_TCP_WIN == 1 )
         static void vTCPWindowFree( TCPSegment_t * pxSegment );
