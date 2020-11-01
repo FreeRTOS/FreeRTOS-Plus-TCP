@@ -114,29 +114,29 @@ BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
             }
         #endif /* ( ipconfigUSE_TCP == 1 ) */
 
-            vTaskSuspendAll();
+        vTaskSuspendAll();
+        {
+            for( pxIterator = listGET_HEAD_ENTRY( &xBoundUDPSocketsList );
+                 pxIterator != pxEndUDP;
+                 pxIterator = listGET_NEXT( pxIterator ) )
             {
-                for( pxIterator = listGET_HEAD_ENTRY( &xBoundUDPSocketsList );
-                     pxIterator != pxEndUDP;
-                     pxIterator = listGET_NEXT( pxIterator ) )
+                const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator );
+
+                if( pxMetrics->xUDPPortList.uxCount < MAX_UDP_PORTS )
                 {
-                    const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator );
+                    pxMetrics->xUDPPortList.usUDPPortList[ pxMetrics->xUDPPortList.uxCount ] = pxSocket->usLocalPort;
+                    pxMetrics->xUDPPortList.uxCount++;
+                }
 
-                    if( pxMetrics->xUDPPortList.uxCount < MAX_UDP_PORTS )
-                    {
-                        pxMetrics->xUDPPortList.usUDPPortList[ pxMetrics->xUDPPortList.uxCount ] = pxSocket->usLocalPort;
-                        pxMetrics->xUDPPortList.uxCount++;
-                    }
-
-                    if( pxMetrics->xUDPSocketList.uxCount < MAX_UDP_PORTS )
-                    {
-                        size_t uxCount = pxMetrics->xUDPSocketList.uxCount;
-                        pxMetrics->xUDPSocketList.xUDPList[ uxCount ].usLocalPort = pxSocket->usLocalPort;
-                        pxMetrics->xUDPSocketList.uxCount++;
-                    }
+                if( pxMetrics->xUDPSocketList.uxCount < MAX_UDP_PORTS )
+                {
+                    size_t uxCount = pxMetrics->xUDPSocketList.uxCount;
+                    pxMetrics->xUDPSocketList.xUDPList[ uxCount ].usLocalPort = pxSocket->usLocalPort;
+                    pxMetrics->xUDPSocketList.uxCount++;
                 }
             }
-            ( void ) xTaskResumeAll();
+        }
+        ( void ) xTaskResumeAll();
     }
 
     return xResult;
