@@ -222,6 +222,7 @@
     static portINLINE BaseType_t xSocketValid( Socket_t xSocket )
     {
         BaseType_t xReturnValue = pdFALSE;
+
         /*
          * There are two values which can indicate an invalid socket:
          * FREERTOS_INVALID_SOCKET and NULL.  In order to compare against
@@ -233,6 +234,7 @@
         {
             xReturnValue = pdTRUE;
         }
+
         return xReturnValue;
     }
 
@@ -320,7 +322,7 @@
 /* Returns the actual size of MSS being used. */
             BaseType_t FreeRTOS_mss( ConstSocket_t xSocket );
 
-    #endif /* ( ipconfigUSE_TCP == 1 ) */
+        #endif /* ( ipconfigUSE_TCP == 1 ) */
 
 /* For internal use only: return the connection status. */
         BaseType_t FreeRTOS_connstatus( ConstSocket_t xSocket );

@@ -264,7 +264,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
             }
         #endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
         iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer )
-        ( void ) xNetworkInterfaceOutput( pxNetworkBuffer, pdTRUE );
+            ( void ) xNetworkInterfaceOutput( pxNetworkBuffer, pdTRUE );
     }
     else
     {
