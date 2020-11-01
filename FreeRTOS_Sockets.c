@@ -157,13 +157,16 @@ static BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
                                   BaseType_t xProtocol,
                                   BaseType_t xIsBound );
 
+#if ( ipconfigUSE_TCP == 1 )
+
 /*
  * Internal function prvSockopt_so_buffer(): sets FREERTOS_SO_SNDBUF or
  * FREERTOS_SO_RCVBUF properties of a socket.
  */
-static BaseType_t prvSockopt_so_buffer( FreeRTOS_Socket_t * pxSocket,
-                                        int32_t lOptionName,
-                                        const void * pvOptionValue );
+    static BaseType_t prvSockopt_so_buffer( FreeRTOS_Socket_t * pxSocket,
+                                            int32_t lOptionName,
+                                            const void * pvOptionValue );
+#endif /* ipconfigUSE_TCP == 1 */
 
 /*
  * Before creating a socket, check the validity of the parameters used
@@ -1622,6 +1625,8 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_TCP == 1 )
+
 /**
  * @brief Set the value of receive/send buffer after some preliminary checks.
  *
@@ -1633,46 +1638,47 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
  * @return If there is no error, then 0 is returned. Or a negative errno
  *         value is returned.
  */
-static BaseType_t prvSockopt_so_buffer( FreeRTOS_Socket_t * pxSocket,
-                                        int32_t lOptionName,
-                                        const void * pvOptionValue )
-{
-    uint32_t ulNewValue;
-    BaseType_t xReturn;
+    static BaseType_t prvSockopt_so_buffer( FreeRTOS_Socket_t * pxSocket,
+                                            int32_t lOptionName,
+                                            const void * pvOptionValue )
+    {
+        uint32_t ulNewValue;
+        BaseType_t xReturn;
 
-    if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
-    {
-        FreeRTOS_debug_printf( ( "Set SO_%sBUF: wrong socket type\n",
-                                 ( lOptionName == FREERTOS_SO_SNDBUF ) ? "SND" : "RCV" ) );
-        xReturn = -pdFREERTOS_ERRNO_EINVAL;
-    }
-    else if( ( ( lOptionName == FREERTOS_SO_SNDBUF ) && ( pxSocket->u.xTCP.txStream != NULL ) ) ||
-             ( ( lOptionName == FREERTOS_SO_RCVBUF ) && ( pxSocket->u.xTCP.rxStream != NULL ) ) )
-    {
-        FreeRTOS_debug_printf( ( "Set SO_%sBUF: buffer already created\n",
-                                 ( lOptionName == FREERTOS_SO_SNDBUF ) ? "SND" : "RCV" ) );
-        xReturn = -pdFREERTOS_ERRNO_EINVAL;
-    }
-    else
-    {
-        ulNewValue = *( ipPOINTER_CAST( const uint32_t *, pvOptionValue ) );
-
-        if( lOptionName == FREERTOS_SO_SNDBUF )
+        if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
         {
-            /* Round up to nearest MSS size */
-            ulNewValue = FreeRTOS_round_up( ulNewValue, ( uint32_t ) pxSocket->u.xTCP.usInitMSS );
-            pxSocket->u.xTCP.uxTxStreamSize = ulNewValue;
+            FreeRTOS_debug_printf( ( "Set SO_%sBUF: wrong socket type\n",
+                                     ( lOptionName == FREERTOS_SO_SNDBUF ) ? "SND" : "RCV" ) );
+            xReturn = -pdFREERTOS_ERRNO_EINVAL;
+        }
+        else if( ( ( lOptionName == FREERTOS_SO_SNDBUF ) && ( pxSocket->u.xTCP.txStream != NULL ) ) ||
+                 ( ( lOptionName == FREERTOS_SO_RCVBUF ) && ( pxSocket->u.xTCP.rxStream != NULL ) ) )
+        {
+            FreeRTOS_debug_printf( ( "Set SO_%sBUF: buffer already created\n",
+                                     ( lOptionName == FREERTOS_SO_SNDBUF ) ? "SND" : "RCV" ) );
+            xReturn = -pdFREERTOS_ERRNO_EINVAL;
         }
         else
         {
-            pxSocket->u.xTCP.uxRxStreamSize = ulNewValue;
+            ulNewValue = *( ipPOINTER_CAST( const uint32_t *, pvOptionValue ) );
+
+            if( lOptionName == FREERTOS_SO_SNDBUF )
+            {
+                /* Round up to nearest MSS size */
+                ulNewValue = FreeRTOS_round_up( ulNewValue, ( uint32_t ) pxSocket->u.xTCP.usInitMSS );
+                pxSocket->u.xTCP.uxTxStreamSize = ulNewValue;
+            }
+            else
+            {
+                pxSocket->u.xTCP.uxRxStreamSize = ulNewValue;
+            }
+
+            xReturn = 0;
         }
 
-        xReturn = 0;
+        return xReturn;
     }
-
-    return xReturn;
-}
+#endif /* ipconfigUSE_TCP == 1 */
 /*-----------------------------------------------------------*/
 
 /* FreeRTOS_setsockopt calls itself, but in a very limited way,
