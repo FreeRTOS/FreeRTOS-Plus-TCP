@@ -452,16 +452,16 @@ static void prvIPTask( void * pvParameters )
 
             case eNetworkTxEvent:
 
-                {
-                    NetworkBufferDescriptor_t * pxDescriptor = ipCAST_PTR_TO_TYPE_PTR( NetworkBufferDescriptor_t, xReceivedEvent.pvData );
+               {
+                   NetworkBufferDescriptor_t * pxDescriptor = ipCAST_PTR_TO_TYPE_PTR( NetworkBufferDescriptor_t, xReceivedEvent.pvData );
 
-                    /* Send a network packet. The ownership will  be transferred to
-                     * the driver, which will release it after delivery. */
-                    iptraceNETWORK_INTERFACE_OUTPUT( pxDescriptor->xDataLength, pxDescriptor->pucEthernetBuffer );
-                    ( void ) xNetworkInterfaceOutput( pxDescriptor, pdTRUE );
-                }
+                   /* Send a network packet. The ownership will  be transferred to
+                    * the driver, which will release it after delivery. */
+                   iptraceNETWORK_INTERFACE_OUTPUT( pxDescriptor->xDataLength, pxDescriptor->pucEthernetBuffer );
+                   ( void ) xNetworkInterfaceOutput( pxDescriptor, pdTRUE );
+               }
 
-                break;
+               break;
 
             case eARPTimerEvent:
                 /* The ARP timer has expired, process the ARP cache. */
