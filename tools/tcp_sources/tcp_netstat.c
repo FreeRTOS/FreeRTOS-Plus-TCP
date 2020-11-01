@@ -112,6 +112,8 @@ BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
                     taskYIELD();
                 }
             }
+        #endif /* ( ipconfigUSE_TCP == 1 ) */
+
             vTaskSuspendAll();
             {
                 for( pxIterator = listGET_HEAD_ENTRY( &xBoundUDPSocketsList );
