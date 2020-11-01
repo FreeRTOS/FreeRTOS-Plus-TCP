@@ -235,7 +235,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
  *         Accesses to this list must be protected by critical sections of
  *         some kind.
  */
-static List_t xBoundUDPSocketsList;
+List_t xBoundUDPSocketsList;
 
 #if ipconfigUSE_TCP == 1
 
@@ -1154,7 +1154,7 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
                 /* If errno was available, errno would be set to
                  * FREERTOS_ENOPKTS.  As it is, the function must return the
                  * number of transmitted bytes, so the calling function knows
-                 * how	much data was actually sent. */
+                 * how much data was actually sent. */
                 iptraceNO_BUFFER_FOR_SENDTO();
             }
         }
@@ -1452,7 +1452,7 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
             }
         #endif /* ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_CALLBACKS == 1 ) ) */
 
-        /* Let the IP task close the socket to keep it synchronized	with the
+        /* Let the IP task close the socket to keep it synchronised with the
          * packet handling. */
 
         /* Note when changing the time-out value below, it must be checked who is calling
@@ -1746,7 +1746,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
             else
             {
                 /* For TCP socket, it isn't necessary to limit the blocking time
-                 * because	the FreeRTOS_send() function does not wait for a network
+                 * because the FreeRTOS_send() function does not wait for a network
                  * buffer to become available. */
             }
 
@@ -3394,7 +3394,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                      * FTP). */
                     if( xCloseAfterSend != pdFALSE )
                     {
-                        /* Now suspend the scheduler: sending the last data	and
+                        /* Now suspend the scheduler: sending the last data and
                          * setting bCloseRequested must be done together */
                         vTaskSuspendAll();
                         pxSocket->u.xTCP.bits.bCloseRequested = pdTRUE;
@@ -3405,7 +3405,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     if( xCloseAfterSend != pdFALSE )
                     {
                         /* Now when the IP-task transmits the data, it will also
-                         * see	that bCloseRequested is true and include the FIN
+                         * see that bCloseRequested is true and include the FIN
                          * flag to start closure of the connection. */
                         ( void ) xTaskResumeAll();
                     }
@@ -3447,7 +3447,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                                 /* If this send function is called from within a
                                  * call-back handler it may not block, otherwise
                                  * chances would be big to get a deadlock: the IP-task
-                                 * waiting for	itself. */
+                                 * waiting for itself. */
                                 xRemainingTime = ( TickType_t ) 0;
                             }
                         }

@@ -129,9 +129,9 @@
  *   if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
  *   {
  *      / * The packet has been sent back to the IP-task.
- *	 * The IP-task will further handle it.
+ *        * The IP-task will further handle it.
  *        * Do not release the descriptor.
- *	 * /
+ *        * /
  *       return pdTRUE;
  *   }
  *   / * Send the packet as usual. * /

@@ -314,7 +314,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
             }
 
             /* Does this line in the cache table hold an entry for the IP
-             * address	being queried? */
+             * address being queried? */
             if( xARPCache[ x ].ulIPAddress == ulIPAddress )
             {
                 if( pxMACAddress == NULL )
@@ -749,6 +749,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 
         if( xIsCallingFromIPTask() != 0 )
         {
+            iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
             /* Only the IP-task is allowed to call this function directly. */
             ( void ) xNetworkInterfaceOutput( pxNetworkBuffer, pdTRUE );
         }

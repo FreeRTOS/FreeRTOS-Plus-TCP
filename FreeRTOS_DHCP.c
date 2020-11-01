@@ -44,8 +44,6 @@
 #include "FreeRTOS_DHCP.h"
 #include "FreeRTOS_ARP.h"
 
-#include "FreeRTOSIPConfigDefaults.h"
-
 /* Exclude the entire file if DHCP is not enabled. */
 #if ( ipconfigUSE_DHCP != 0 )
 
