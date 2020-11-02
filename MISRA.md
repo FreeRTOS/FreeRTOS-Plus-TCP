@@ -23,17 +23,17 @@ Deviations from the MISRA standard are listed below:
 | Rule 8.6 | Required | Some functions are declared but not defined since they are to be defined by the user application to provide 'hooks' for certain events. |
 | Rule 2.3 | Advisory |  |
 | Rule 20.10 | Advisory | `#` or `##` is used to create some utility functions for casting variables.  |
-| Rule 10.4 | Required | In 2 places, the signed and unsigned variables are used together. |
+| Rule 10.4 | Required | Signed and unsigned variables are used together due to the variables acquired from the portable code. |
 | Rule 13.5 | Required | Persistent side effects are required in some function calls (such as to maintain the state of a state-machine etc). |
 | Rule 15.5 | Advisory | `return` statement is restrictively used to optimise the response time of the stack. |
 | Rule 18.3 | Required | Relational operators are used with members of unions. |
 | Rule 21.6 | Required | `snprintf` is used restrictively to format strings before placing them into buffers. |
-| Rule 10.8 | Required | Unsigned expression is casted in one lacation to compare with a signed variable.  |
+| Rule 10.8 | Required | Unsigned expression is casted in one location to compare with a signed variable.  |
 | Rule 11.1 | Required | `void *` is used to pass variables of various types to a function as parameter. |
 | Rule 14.3 | Required | Controlling expression is not invariant in some cases due to dependence on a `#if`. |
-| Rule 2.2 | Required | There is no dead code, just use of unions which is confusing for Coverity. |
-| Rule 5.9 | Advisory | Utility functions are defined in various files to not break the code in other projects. |
-| Rule 8.9 | Advisory | Configuration parameters are defined at a global scope even when used once. |
+| Rule 2.2 | Required | There is no dead code, just use of unions which confuses Coverity compiler. |
+| Rule 5.9 | Advisory | Utility functions are defined in various files to not break various other projects. |
+| Rule 8.9 | Advisory | For ease, configuration parameters are defined at a global scope even when used only once. |
 
 
 ### Suppressed with Coverity Comments
