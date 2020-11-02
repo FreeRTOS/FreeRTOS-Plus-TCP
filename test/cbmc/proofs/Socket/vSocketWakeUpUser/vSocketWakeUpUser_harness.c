@@ -5,6 +5,7 @@
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 #include "list.h"
+#include "event_groups.h"
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
@@ -55,15 +56,8 @@ void harness()
     __CPROVER_assume( pxSocket != NULL );
     __CPROVER_assume( pxSocket != FREERTOS_INVALID_SOCKET );
 
-    struct freertos_sockaddr * pxBindAddress = safeMalloc( sizeof( struct freertos_sockaddr ) );
-
-    /* uxAddressLength is not used in this implementation. */
-    size_t uxAddressLength;
-
-    BaseType_t xInternal;
-
     /* Call to init the socket list. */
     vNetworkSocketsInit();
 
-    vSocketBind( pxSocket, pxBindAddress, uxAddressLength, xInternal );
+    vSocketWakeUpUser( pxSocket );
 }
