@@ -104,6 +104,23 @@ jobs:
           doxygen docs/doxygen/config.doxyfile 2>&1 | tee doxyoutput.txt
           if [[ "$(wc -c < doxyoutput.txt | bc)" = "0" ]]; then exit 0; else exit 1; fi
 
+  build-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Update submodules
+        run: git submodule update --init --checkout
+      - name: Build checks (Enable all functionalities)
+        run: |
+           cmake -S test/build-combination -B test/build-combination/build/ \
+            -DTEST_CONFIGURATION=ENABLE_ALL
+           make -C test/build-combination/build/
+      - name: Build checks (Disable all functionalities)
+        run: |
+           cmake -S test/build-combination -B test/build-combination/build/ \
+            -DTEST_CONFIGURATION=DISABLE_ALL
+           make -C test/build-combination/build/
+
   complexity:
     runs-on: ubuntu-latest
     steps:
