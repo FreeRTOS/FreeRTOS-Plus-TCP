@@ -53,7 +53,7 @@ typedef struct xIOCounters
     size_t uxPacketCount;
 } IOCounters_t;
 
-extern IOCounters_t xInputCounters, xOutputCOunters;
+extern IOCounters_t xInputCounters, xOutputCounters;
 
 typedef struct
 {
@@ -103,7 +103,7 @@ typedef struct
 } MetricsType_t;
 
 extern BaseType_t vGetMetrics( MetricsType_t * pxMetrics );
-extern void vShowMetrics( MetricsType_t * pxMetrics );
+extern void vShowMetrics( const MetricsType_t * pxMetrics );
 
 
 #define iptraceNETWORK_INTERFACE_INPUT( uxDataLength, pucEthernetBuffer ) \
@@ -111,8 +111,8 @@ extern void vShowMetrics( MetricsType_t * pxMetrics );
     xInputCounters.uxPacketCount++;
 
 #define iptraceNETWORK_INTERFACE_OUTPUT( uxDataLength, pucEthernetBuffer ) \
-    xOutputCOunters.uxByteCount += uxDataLength;                           \
-    xOutputCOunters.uxPacketCount++;
+    xOutputCounters.uxByteCount += uxDataLength;                           \
+    xOutputCounters.uxPacketCount++;
 
 
 #endif /* TCP_NETSTAT_H */

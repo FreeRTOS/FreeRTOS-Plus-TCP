@@ -46,7 +46,7 @@ extern List_t xBoundUDPSocketsList;
     extern List_t xBoundTCPSocketsList;
 #endif /* ipconfigUSE_TCP == 1 */
 
-IOCounters_t xInputCounters, xOutputCOunters;
+IOCounters_t xInputCounters, xOutputCounters;
 
 BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
 {
@@ -59,7 +59,7 @@ BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
     memset( pxMetrics, 0, sizeof *pxMetrics );
 
     pxMetrics->xInput = xInputCounters;
-    pxMetrics->XOutput = xOutputCOunters;
+    pxMetrics->XOutput = xOutputCounters;
 
     if( !listLIST_IS_INITIALISED( &xBoundUDPSocketsList ) )
     {
@@ -142,7 +142,7 @@ BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
     return xResult;
 }
 
-void vShowMetrics( MetricsType_t * pxMetrics )
+void vShowMetrics( const MetricsType_t * pxMetrics )
 {
     size_t uxIndex;
 

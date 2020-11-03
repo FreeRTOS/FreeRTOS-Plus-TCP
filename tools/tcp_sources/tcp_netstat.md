@@ -2,7 +2,7 @@ tcp_netstat.c : it introduces the following function:
 
     `BaseType_t vGetMetrics( MetricsType_t * pxMetrics )`
 
-It collect information: all port numbers in use, all UDP sockets, all TCP sockets and their connections.
+It collects information: all port numbers in use, all UDP sockets, all TCP sockets and their connections.
 
 Make sure that your FreeRTOSIPConfig.h includes tools/tcp_sources/include/tcp_netstat.h:
 

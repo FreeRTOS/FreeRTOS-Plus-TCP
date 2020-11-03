@@ -919,6 +919,8 @@ sw
 swr
 syn
 synchronicity
+synchronisation
+synchronised
 syscfg
 sysclock
 systemcoreclock

@@ -251,7 +251,7 @@
  * uxOffset -   Can be used to read data located at a certain offset from 'uxTail'.
  * pucData -    A pointer to the buffer into which data will be read.
  * uxMaxCount - The number of bytes to read.
- * xPeek        If set to pdTRUE the data will remain in the buffer.
+ * xPeek -      If set to pdTRUE the data will remain in the buffer.
  */
     size_t uxStreamBufferGet( StreamBuffer_t * pxBuffer,
                               size_t uxOffset,
