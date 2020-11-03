@@ -1,5 +1,5 @@
 Changes between V2.3.0 and V2.3.1 releases:
-	+ Fixed the UDP only compilation.
+	+ Fixed UDP only compilation.
 	+ Added description for functions and variables in Doxygen compatible format.
 	+ Fixed asynchronous DNS lookup which was broken due to changed function
 	  signature of prvParseDNSReply.
