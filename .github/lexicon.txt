@@ -787,6 +787,7 @@ pxwhere
 pxwindow
 qmu
 queuegenericcreate
+queuegenericsend
 quickstart
 ra
 ramfunc
@@ -1408,6 +1409,7 @@ xprocessreceivedtcppacket
 xprocessreceivedudppacket
 xprotocol
 xqueuecreateset
+xqueuegenericsend
 xqueueitem
 xqueuereceive
 xreceiveblocktime

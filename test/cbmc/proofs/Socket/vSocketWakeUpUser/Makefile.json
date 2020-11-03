@@ -1,6 +1,6 @@
 {
   "ENTRY": "vSocketWakeUpUser",
-  
+
   "CBMCFLAGS":
   [
     "--unwind 1"
