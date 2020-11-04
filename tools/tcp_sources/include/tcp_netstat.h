@@ -35,16 +35,16 @@
     #define nstatMAX_UDP_PORTS    12U
 #endif
 
-#ifndef MAX_TCP_PORTS
-    #define MAX_TCP_PORTS    12U
+#ifndef nstatMAX_TCP_PORTS
+    #define nstatMAX_TCP_PORTS    12U
 #endif
 
-#ifndef MAX_UDP_SOCKETS
-    #define MAX_UDP_SOCKETS    12U
+#ifndef nstatMAX_UDP_SOCKETS
+    #define nstatMAX_UDP_SOCKETS    12U
 #endif
 
-#ifndef MAX_TCP_SOCKETS
-    #define MAX_TCP_SOCKETS    12U
+#ifndef nstatMAX_TCP_SOCKETS
+    #define nstatMAX_TCP_SOCKETS    12U
 #endif
 
 typedef struct xIOCounters
@@ -57,13 +57,13 @@ extern IOCounters_t xInputCounters, xOutputCounters;
 
 typedef struct
 {
-    uint16_t usUDPPortList[ MAX_UDP_PORTS ];
+    uint16_t usUDPPortList[ nstatMAX_UDP_PORTS ];
     size_t uxCount;
 } UDPPortList_t;
 
 typedef struct
 {
-    uint16_t usTCPPortList[ MAX_TCP_PORTS ];
+    uint16_t usTCPPortList[ nstatMAX_TCP_PORTS ];
     size_t uxCount;
 } TCPPortList_t;
 
@@ -77,7 +77,7 @@ typedef struct
 
 typedef struct
 {
-    TCPEntry_t xTCPList[ MAX_TCP_SOCKETS ];
+    TCPEntry_t xTCPList[ nstatMAX_TCP_SOCKETS ];
     size_t uxCount;
 } TCPSocketList_t;
 
@@ -88,7 +88,7 @@ typedef struct
 
 typedef struct
 {
-    UDPEntry_t xUDPList[ MAX_UDP_SOCKETS ];
+    UDPEntry_t xUDPList[ nstatMAX_UDP_SOCKETS ];
     size_t uxCount;
 } UDPSocketList_t;
 

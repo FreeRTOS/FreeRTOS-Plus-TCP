@@ -85,7 +85,7 @@ BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
                     {
                         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator );
 
-                        if( pxMetrics->xTCPPortList.uxCount < MAX_TCP_PORTS )
+                        if( pxMetrics->xTCPPortList.uxCount < nstatMAX_TCP_PORTS )
                         {
                             if( usLastPort != pxSocket->usLocalPort )
                             {
@@ -95,7 +95,7 @@ BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
                             }
                         }
 
-                        if( pxMetrics->xTCPSocketList.uxCount < MAX_TCP_PORTS )
+                        if( pxMetrics->xTCPSocketList.uxCount < nstatMAX_TCP_PORTS )
                         {
                             size_t uxCount = pxMetrics->xTCPSocketList.uxCount;
 
@@ -122,13 +122,13 @@ BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
             {
                 const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator );
 
-                if( pxMetrics->xUDPPortList.uxCount < MAX_UDP_PORTS )
+                if( pxMetrics->xUDPPortList.uxCount < nstatMAX_UDP_PORTS )
                 {
                     pxMetrics->xUDPPortList.usUDPPortList[ pxMetrics->xUDPPortList.uxCount ] = pxSocket->usLocalPort;
                     pxMetrics->xUDPPortList.uxCount++;
                 }
 
-                if( pxMetrics->xUDPSocketList.uxCount < MAX_UDP_PORTS )
+                if( pxMetrics->xUDPSocketList.uxCount < nstatMAX_UDP_PORTS )
                 {
                     size_t uxCount = pxMetrics->xUDPSocketList.uxCount;
                     pxMetrics->xUDPSocketList.xUDPList[ uxCount ].usLocalPort = pxSocket->usLocalPort;
