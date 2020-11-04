@@ -154,7 +154,7 @@ void harness()
 
     if( pxSocket->pxUserSemaphore != NULL )
     {
-        /* The itemsize must be zero since this queue will act as a semaphore.  */
+        /* The item size must be zero since this queue will act as a semaphore.  */
         __CPROVER_assume( pxSocket->pxUserSemaphore->uxItemSize == 0 );
     }
 
