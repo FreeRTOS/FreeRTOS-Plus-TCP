@@ -1,3 +1,9 @@
+Changes between V2.3.0 and V2.3.1 releases:
+	+ Fixed UDP only compilation.
+	+ Added description for functions and variables in Doxygen compatible format.
+	+ Fixed asynchronous DNS lookup which was broken due to changed function
+	  signature of prvParseDNSReply.
+
 Changes between V2.2.2 and V2.3.0 releases:
 	+ Moved FreeRTOS+TCP source code to an independent repository
 	  FreeRTOS/FreeRTOS-Plus-TCP.
