@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.0
+ * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -129,9 +129,9 @@
  *   if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
  *   {
  *      / * The packet has been sent back to the IP-task.
- *	 * The IP-task will further handle it.
+ *        * The IP-task will further handle it.
  *        * Do not release the descriptor.
- *	 * /
+ *        * /
  *       return pdTRUE;
  *   }
  *   / * Send the packet as usual. * /
