@@ -46,6 +46,16 @@
     #define iptraceNETWORK_BUFFER_OBTAINED_FROM_ISR( pxBufferAddress )
 #endif
 
+#ifndef iptraceNETWORK_INTERFACE_INPUT
+    /* An Ethernet packet has been received. */
+    #define iptraceNETWORK_INTERFACE_INPUT( uxDataLength, pucEthernetBuffer )
+#endif
+
+#ifndef iptraceNETWORK_INTERFACE_OUTPUT
+    /* An Ethernet packet will be sent. */
+    #define iptraceNETWORK_INTERFACE_OUTPUT( uxDataLength, pucEthernetBuffer )
+#endif
+
 #ifndef iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER
     #define iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER()
 #endif

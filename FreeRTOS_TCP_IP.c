@@ -54,9 +54,6 @@
 #include "FreeRTOS_ARP.h"
 
 
-#include "FreeRTOSIPConfigDefaults.h"
-
-
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
@@ -536,12 +533,12 @@
  *
  * @note Sequence of calling (normally) :
  *   IP-Task:
- *		xTCPTimerCheck()				// Check all sockets ( declared in FreeRTOS_Sockets.c )
- *		xTCPSocketCheck()				// Either send a delayed ACK or call prvTCPSendPacket()
- *		prvTCPSendPacket()				// Either send a SYN or call prvTCPSendRepeated ( regular messages )
- *		prvTCPSendRepeated()			// Send at most 8 messages on a row
- *			prvTCPReturnPacket()		// Prepare for returning
- *			xNetworkInterfaceOutput()	// Sends data to the NIC ( declared in portable/NetworkInterface/xxx )
+ *      xTCPTimerCheck()                // Check all sockets ( declared in FreeRTOS_Sockets.c )
+ *      xTCPSocketCheck()               // Either send a delayed ACK or call prvTCPSendPacket()
+ *      prvTCPSendPacket()              // Either send a SYN or call prvTCPSendRepeated ( regular messages )
+ *      prvTCPSendRepeated()            // Send at most 8 messages on a row
+ *          prvTCPReturnPacket()        // Prepare for returning
+ *          xNetworkInterfaceOutput()   // Sends data to the NIC ( declared in portable/NetworkInterface/xxx )
  */
     BaseType_t xTCPSocketCheck( FreeRTOS_Socket_t * pxSocket )
     {
@@ -598,8 +595,8 @@
                     else
                     {
                         /* The user wants to perform an active shutdown(), skip sending
-                         * the	delayed	ACK.  The function prvTCPSendPacket() will send the
-                         * FIN	along with the ACK's. */
+                         * the delayed ACK.  The function prvTCPSendPacket() will send the
+                         * FIN along with the ACK's. */
                     }
 
                     if( pxSocket->u.xTCP.pxAckMessage != NULL )
@@ -910,7 +907,7 @@
                     if( pxSocket->u.xTCP.bits.bSendKeepAlive != pdFALSE_UNSIGNED )
                     {
                         /* Sending a keep-alive packet, send the current sequence number
-                         * minus 1, which will	be recognized as a keep-alive packet an
+                         * minus 1, which will be recognised as a keep-alive packet and
                          * responded to by acknowledging the last byte. */
                         pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
                         pxSocket->u.xTCP.bits.bWaitKeepAlive = pdTRUE_UNSIGNED;
@@ -1035,6 +1032,7 @@
             #endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
 
             /* Send! */
+            iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
             ( void ) xNetworkInterfaceOutput( pxNetworkBuffer, xDoRelease );
 
             if( xDoRelease == pdFALSE )
@@ -1472,18 +1470,16 @@
             /* All other options have a length field, so that we easily
              * can skip past them. */
             ucLen = pucPtr[ 1 ];
+            uxIndex = 0U;
 
             if( ( ucLen < ( uint8_t ) 2U ) || ( uxRemainingOptionsBytes < ( size_t ) ucLen ) )
             {
                 /* If the length field is too small or too big, the options are
                  * malformed, don't process them further.
                  */
-                uxIndex = 0U;
             }
             else
             {
-                uxIndex = 0U;
-
                 #if ( ipconfigUSE_TCP_WIN == 1 )
                     {
                         /* Selective ACK: the peer has received a packet but it is missing
@@ -2548,7 +2544,7 @@
             if( lOffset >= 0 )
             {
                 /* New data has arrived and may be made available to the user.  See
-                 * if the head marker in rxStream may be advanced,	only if lOffset == 0.
+                 * if the head marker in rxStream may be advanced, only if lOffset == 0.
                  * In case the low-water mark is reached, bLowWater will be set
                  * "low-water" here stands for "little space". */
                 lStored = lTCPAddRxdata( pxSocket, ( uint32_t ) lOffset, pucRecvData, ulReceiveLength );
@@ -2742,7 +2738,7 @@
                 pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK;
 
                 /* This socket was the one connecting actively so now perform the
-                 * synchronization. */
+                 * synchronisation. */
                 vTCPWindowInit( &pxSocket->u.xTCP.xTCPWindow,
                                 ulSequenceNumber, pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber, ( uint32_t ) pxSocket->u.xTCP.usCurMSS );
                 pxTCPWindow->rx.ulHighestSequenceNumber = ulSequenceNumber + 1U;
@@ -2795,7 +2791,7 @@
                 }
             #endif /* ipconfigUSE_TCP_WIN */
 
-            /* This was the third step of connecting: SYN, SYN+ACK, ACK	so now the
+            /* This was the third step of connecting: SYN, SYN+ACK, ACK so now the
              * connection is established. */
             vTCPStateChange( pxSocket, eESTABLISHED );
         }
@@ -2965,7 +2961,7 @@
             /* Now get data to be transmitted. */
 
             /* _HT_ patch: since the MTU has be fixed at 1500 in stead of 1526, TCP
-             * can not	send-out both TCP options and also a full packet. Sending
+             * can not send-out both TCP options and also a full packet. Sending
              * options (SACK) is always more urgent than sending data, which can be
              * sent later. */
             if( uxOptionsLength == 0U )
@@ -3149,12 +3145,12 @@
  * We've tried to keep it (relatively short) by putting a lot of code in
  * the static functions above:
  *
- *		prvCheckRxData()
- *		prvStoreRxData()
- *		prvSetOptions()
- *		prvHandleSynReceived()
- *		prvHandleEstablished()
- *		prvSendData()
+ *      prvCheckRxData()
+ *      prvStoreRxData()
+ *      prvSetOptions()
+ *      prvHandleSynReceived()
+ *      prvHandleEstablished()
+ *      prvSendData()
  *
  * As these functions are declared static, and they're called from one location
  * only, most compilers will inline them, thus avoiding a call and return.
@@ -3278,7 +3274,7 @@
                     break;
 
                 case eCONNECT_SYN:  /* (client) also called SYN_SENT: we've just send a
-                                     * SYN, expect	a SYN+ACK and send a ACK now. */
+                                     * SYN, expect a SYN+ACK and send a ACK now. */
                 /* Fall through */
                 case eSYN_RECEIVED: /* (server) we've had a SYN, replied with SYN+SCK
                                      * expect a ACK and do nothing. */
@@ -3286,7 +3282,7 @@
                     break;
 
                 case eESTABLISHED: /* (server + client) an open connection, data
-                                    * received can be	delivered to the user. The normal
+                                    * received can be delivered to the user. The normal
                                     * state for the data transfer phase of the connection
                                     * The closing states are also handled here with the
                                     * use of some flags. */
@@ -3438,14 +3434,14 @@
  *         or else pdFAIL.
  *
  * @note FreeRTOS_TCP_IP has only 2 public functions, this is the second one:
- *	xProcessReceivedTCPPacket()
- *		prvTCPHandleState()
- *			prvTCPPrepareSend()
- *				prvTCPReturnPacket()
- *				xNetworkInterfaceOutput()	// Sends data to the NIC
- *		prvTCPSendRepeated()
- *			prvTCPReturnPacket()		// Prepare for returning
- *			xNetworkInterfaceOutput()	// Sends data to the NIC
+ *  xProcessReceivedTCPPacket()
+ *      prvTCPHandleState()
+ *          prvTCPPrepareSend()
+ *              prvTCPReturnPacket()
+ *              xNetworkInterfaceOutput()  // Sends data to the NIC
+ *      prvTCPSendRepeated()
+ *          prvTCPReturnPacket()        // Prepare for returning
+ *          xNetworkInterfaceOutput()   // Sends data to the NIC
  */
     BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t * pxDescriptor )
     {
@@ -3619,7 +3615,7 @@
                 /* pxSocket is not NULL when xResult != pdFAIL. */
                 configASSERT( pxSocket != NULL );
 
-                /* Touch the alive timers because we received a message	for this
+                /* Touch the alive timers because we received a message for this
                  * socket. */
                 prvTCPTouchSocket( pxSocket );
 

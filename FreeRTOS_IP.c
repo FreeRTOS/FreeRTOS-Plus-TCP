@@ -452,10 +452,16 @@ static void prvIPTask( void * pvParameters )
 
             case eNetworkTxEvent:
 
-                /* Send a network packet. The ownership will  be transferred to
-                 * the driver, which will release it after delivery. */
-                ( void ) xNetworkInterfaceOutput( ipCAST_PTR_TO_TYPE_PTR( NetworkBufferDescriptor_t, xReceivedEvent.pvData ), pdTRUE );
-                break;
+               {
+                   NetworkBufferDescriptor_t * pxDescriptor = ipCAST_PTR_TO_TYPE_PTR( NetworkBufferDescriptor_t, xReceivedEvent.pvData );
+
+                   /* Send a network packet. The ownership will  be transferred to
+                    * the driver, which will release it after delivery. */
+                   iptraceNETWORK_INTERFACE_OUTPUT( pxDescriptor->xDataLength, pxDescriptor->pucEthernetBuffer );
+                   ( void ) xNetworkInterfaceOutput( pxDescriptor, pdTRUE );
+               }
+
+               break;
 
             case eARPTimerEvent:
                 /* The ARP timer has expired, process the ARP cache. */
@@ -1187,7 +1193,7 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
                     *ipLOCAL_IP_ADDRESS_POINTER = xNetworkAddressing.ulDefaultIPAddress;
 
                     /* Added to prevent ARP flood to gateway.  Ensure the
-                    * gateway is on the same subnet as the IP	address. */
+                    * gateway is on the same subnet as the IP address. */
                     if( xNetworkAddressing.ulGatewayAddress != 0UL )
                     {
                         configASSERT( ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) == ( xNetworkAddressing.ulGatewayAddress & xNetworkAddressing.ulNetMask ) );
@@ -1629,7 +1635,7 @@ void vIPNetworkUpCalls( void )
 
     #if ( ipconfigDNS_USE_CALLBACKS != 0 )
         {
-            /* The following function is declared in FreeRTOS_DNS.c	and 'private' to
+            /* The following function is declared in FreeRTOS_DNS.c and 'private' to
              * this library */
             extern void vDNSInitialise( void );
             vDNSInitialise();
@@ -1653,6 +1659,8 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
     eFrameProcessingResult_t eReturned = eReleaseBuffer;
 
     configASSERT( pxNetworkBuffer != NULL );
+
+    iptraceNETWORK_INTERFACE_INPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
 
     /* Interpret the Ethernet frame. */
     if( pxNetworkBuffer->xDataLength >= sizeof( EthernetHeader_t ) )
@@ -1732,7 +1740,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
             /* The frame is not being used anywhere, and the
              * NetworkBufferDescriptor_t structure containing the frame should
-             * just be	released back to the list of free buffers. */
+             * just be released back to the list of free buffers. */
             vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
             break;
     }
@@ -2735,12 +2743,12 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
  *
  * Arguments:
  *   ulSum: This argument provides a value to initialise the progressive summation
- *	 of the header's values to. It is often 0, but protocols like TCP or UDP
- *	 can have pseudo-header fields which need to be included in the checksum.
+ *   of the header's values to. It is often 0, but protocols like TCP or UDP
+ *   can have pseudo-header fields which need to be included in the checksum.
  *   pucNextData: This argument contains the address of the first byte which this
- *	 method should process. The method's memory iterator is initialised to this value.
+ *   method should process. The method's memory iterator is initialised to this value.
  *   uxDataLengthBytes: This argument contains the number of bytes that this method
- *	 should process.
+ *   should process.
  */
 
 /**
@@ -2973,6 +2981,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         ( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
         /* Send! */
+        iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
         ( void ) xNetworkInterfaceOutput( pxNetworkBuffer, xReleaseAfterSend );
     }
 }
