@@ -27,6 +27,20 @@
 /* Define the bits used by Kernel. */
 #define eventEVENT_BITS_CONTROL_BYTES    0xff000000UL
 
+typedef struct EventGroupDef_t
+{
+    EventBits_t uxEventBits;
+    List_t xTasksWaitingForBits;
+
+    #if ( configUSE_TRACE_FACILITY == 1 )
+        UBaseType_t uxEventGroupNumber;
+    #endif
+
+    #if ( ( configSUPPORT_STATIC_ALLOCATION == 1 ) && ( configSUPPORT_DYNAMIC_ALLOCATION == 1 ) )
+        uint8_t ucStaticallyAllocated;
+    #endif
+} EventGroup_t;
+
 typedef struct QueuePointers
 {
     int8_t * pcTail;
