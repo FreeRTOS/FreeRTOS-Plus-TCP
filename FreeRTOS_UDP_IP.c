@@ -144,7 +144,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
             }
 
             /* memcpy() the constant parts of the header information into
-             * the	correct location within the packet.  This fills in:
+             * the correct location within the packet.  This fills in:
              *  xEthernetHeader.xSourceAddress
              *  xEthernetHeader.usFrameType
              *  xIPHeader.ucVersionHeaderLength
@@ -263,7 +263,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
                 }
             }
         #endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
-
+        iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
         ( void ) xNetworkInterfaceOutput( pxNetworkBuffer, pdTRUE );
     }
     else

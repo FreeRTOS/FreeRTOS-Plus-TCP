@@ -919,7 +919,7 @@
 /*
  * The same as above, but a struct as a parameter, containing:
  *      eIPEvent_t eEventType;
- *		void *pvData;
+ *      void *pvData;
  */
     BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                                          TickType_t uxTimeout );

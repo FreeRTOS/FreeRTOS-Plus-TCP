@@ -159,8 +159,8 @@
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 
 /*
- *  Free entry pxSegment because it's not used anymore
- *	The ownership will be passed back to the segment pool
+ * Free entry pxSegment because it's not used anymore
+ * The ownership will be passed back to the segment pool
  */
     #if ( ipconfigUSE_TCP_WIN == 1 )
         static void vTCPWindowFree( TCPSegment_t * pxSegment );

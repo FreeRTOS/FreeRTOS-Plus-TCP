@@ -24,11 +24,11 @@ When the CSV-records are imported at another row or column than "A1", the formul
 
 How to include 'tcp_mem_stats' into a project:
 
-● Add tools/tcp_mem_stats.c to the sources
+● Add tools/tcp_sources/tcp_mem_stats.c to the sources
 ● Add the following lines to FreeRTOSIPConfig.h :
 	#define ipconfigUSE_TCP_MEM_STATS					( 1 )
 	#define ipconfigTCP_MEM_STATS_MAX_ALLOCATION		( 128 )
-	#include "../tools/tcp_mem_stats.h"
+	#include "tools/tcp_sources/include/tcp_mem_stats.h"
 
 Later on, the module can disabled by setting `#define ipconfigUSE_TCP_MEM_STATS 0`.
 
