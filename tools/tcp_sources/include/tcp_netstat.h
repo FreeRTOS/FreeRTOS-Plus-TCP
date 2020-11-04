@@ -31,8 +31,8 @@
 
 #define TCP_NETSTAT_H
 
-#ifndef MAX_UDP_PORTS
-    #define MAX_UDP_PORTS    12U
+#ifndef nstatMAX_UDP_PORTS
+    #define nstatMAX_UDP_PORTS    12U
 #endif
 
 #ifndef MAX_TCP_PORTS
