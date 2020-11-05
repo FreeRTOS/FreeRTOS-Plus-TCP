@@ -753,7 +753,7 @@
 
 
 /**
- * Structure tp hold information for a socket.
+ * Structure to hold information for a socket.
  */
     typedef struct xSOCKET
     {

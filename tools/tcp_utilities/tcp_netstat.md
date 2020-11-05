@@ -4,7 +4,7 @@ tcp_netstat.c : it introduces the following function:
 
 It collects information: all port numbers in use, all UDP sockets, all TCP sockets and their connections.
 
-Make sure that your FreeRTOSIPConfig.h includes tools/tcp_sources/include/tcp_netstat.h:
+Make sure that your FreeRTOSIPConfig.h includes tools/tcp_utilities/include/tcp_netstat.h:
 
     `@include "tcp_netstat.h"`
 

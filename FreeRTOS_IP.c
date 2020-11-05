@@ -508,8 +508,17 @@ static void prvIPTask( void * pvParameters )
             case eDHCPEvent:
                 /* The DHCP state machine needs processing. */
                 #if ( ipconfigUSE_DHCP == 1 )
-                    /* Process DHCP messages for a given end-point. */
-                    vDHCPProcess( pdFALSE );
+                    {
+                        uintptr_t uxState;
+                        eDHCPState_t eState;
+
+                        /* Cast in two steps to please MISRA. */
+                        uxState = ( uintptr_t ) xReceivedEvent.pvData;
+                        eState = ( eDHCPState_t ) uxState;
+
+                        /* Process DHCP messages for a given end-point. */
+                        vDHCPProcess( pdFALSE, eState );
+                    }
                 #endif /* ipconfigUSE_DHCP */
                 break;
 
@@ -745,7 +754,7 @@ static void prvCheckNetworkTimers( void )
             /* Is it time for DHCP processing? */
             if( prvIPTimerCheck( &xDHCPTimer ) != pdFALSE )
             {
-                ( void ) xSendEventToIPTask( eDHCPEvent );
+                ( void ) xSendDHCPEvent();
             }
         }
     #endif /* ipconfigUSE_DHCP */
@@ -1500,6 +1509,24 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Create a DHCP event.
+ *
+ * @return pdPASS or pdFAIL, depending on whether xSendEventStructToIPTask()
+ *         succeeded.
+ */
+BaseType_t xSendDHCPEvent( void )
+{
+    IPStackEvent_t xEventMessage;
+    const TickType_t uxDontBlock = 0U;
+    uintptr_t uxOption = eGetDHCPState();
+
+    xEventMessage.eEventType = eDHCPEvent;
+    xEventMessage.pvData = ( void * ) uxOption;
+
+    return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );
+}
+
+/**
  * @brief Decide whether this packet should be processed or not based on the IP address in the packet.
  *
  * @param[in] pucEthernetBuffer: The ethernet packet under consideration.
@@ -1607,8 +1634,7 @@ static void prvProcessNetworkDownEvent( void )
         #if ipconfigUSE_DHCP == 1
             {
                 /* The network is not up until DHCP has completed. */
-                vDHCPProcess( pdTRUE );
-                ( void ) xSendEventToIPTask( eDHCPEvent );
+                vDHCPProcess( pdTRUE, eInitialWait );
             }
         #else
             {
