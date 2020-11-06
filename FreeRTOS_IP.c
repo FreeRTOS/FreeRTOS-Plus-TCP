@@ -1508,23 +1508,27 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_DHCP != 0 )
+
 /**
  * @brief Create a DHCP event.
  *
  * @return pdPASS or pdFAIL, depending on whether xSendEventStructToIPTask()
  *         succeeded.
  */
-BaseType_t xSendDHCPEvent( void )
-{
-    IPStackEvent_t xEventMessage;
-    const TickType_t uxDontBlock = 0U;
-    uintptr_t uxOption = eGetDHCPState();
+    BaseType_t xSendDHCPEvent( void )
+    {
+        IPStackEvent_t xEventMessage;
+        const TickType_t uxDontBlock = 0U;
+        uintptr_t uxOption = eGetDHCPState();
 
-    xEventMessage.eEventType = eDHCPEvent;
-    xEventMessage.pvData = ( void * ) uxOption;
+        xEventMessage.eEventType = eDHCPEvent;
+        xEventMessage.pvData = ( void * ) uxOption;
 
-    return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );
-}
+        return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );
+    }
+/*-----------------------------------------------------------*/
+#endif /* ( ipconfigUSE_DHCP != 0 ) */
 
 /**
  * @brief Decide whether this packet should be processed or not based on the IP address in the packet.
