@@ -64,13 +64,14 @@
 
 /* Timer parameters */
     #ifndef dhcpINITIAL_TIMER_PERIOD
-        /** @brief The interval at wich the DHCP state handler is called. */	
+        /** @brief The interval at wich the DHCP state handler is called. */
         #define dhcpINITIAL_TIMER_PERIOD    ( pdMS_TO_TICKS( 250U ) )
     #endif
 
     #ifndef dhcpINITIAL_DHCP_TX_PERIOD
-		/** @brief The initial amount of time to wait for a DHCP reply.  When repeating an
-		unanswered request, this time-out shall be multiplied by 2. */
+
+/** @brief The initial amount of time to wait for a DHCP reply.  When repeating an
+ * unanswered request, this time-out shall be multiplied by 2. */
         #define dhcpINITIAL_DHCP_TX_PERIOD    ( pdMS_TO_TICKS( 5000U ) )
     #endif
 
@@ -315,7 +316,7 @@
         if( ( EP_DHCPData.eDHCPState != eExpectedState ) && ( xReset == pdFALSE ) )
         {
             /* When the DHCP event was generated, the DHCP client was
-             * in a different state.  Therefore, ignore this event. */
+            * in a different state.  Therefore, ignore this event. */
             FreeRTOS_debug_printf( ( "DHCP wrong state: expect: %d got: %d : ignore\n",
                                      eExpectedState, EP_DHCPData.eDHCPState ) );
         }
