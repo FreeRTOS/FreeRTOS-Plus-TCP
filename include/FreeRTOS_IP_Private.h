@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.0
+ * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -919,7 +919,7 @@
 /*
  * The same as above, but a struct as a parameter, containing:
  *      eIPEvent_t eEventType;
- *		void *pvData;
+ *      void *pvData;
  */
     BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                                          TickType_t uxTimeout );

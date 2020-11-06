@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.0
+ * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -89,13 +89,13 @@
  * In order to get a 32-bit alignment of network packets, an offset of 2 bytes
  * would be desirable, as defined by ipconfigPACKET_FILLER_SIZE.  So the malloc'd
  * buffer will have the following contents:
- *  uint32_t pointer;	// word-aligned
+ *  uint32_t pointer;   // word-aligned
  *  uchar_8 filler[6];
- *  << ETH-header >>	// half-word-aligned
+ *  << ETH-header >>    // half-word-aligned
  *  uchar_8 dest[6];    // start of pucEthernetBuffer
  *  uchar_8 dest[6];
  *  uchar16_t type;
- *  << IP-header >>		// word-aligned
+ *  << IP-header >>     // word-aligned
  *  uint8_t ucVersionHeaderLength;
  *  etc
  */
@@ -373,7 +373,7 @@
 /* DHCP has an option for clients to register their hostname.  It doesn't
  * have much use, except that a device can be found in a router along with its
  * name. If this option is used the callback below must be provided by the
- * application	writer to return a const string, denoting the device's name. */
+ * application writer to return a const string, denoting the device's name. */
 /* Typically this function is defined in a user module. */
         const char * pcApplicationHostnameHook( void );
 

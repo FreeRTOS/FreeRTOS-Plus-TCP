@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.0
+ * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -1894,7 +1894,7 @@
          * the socket. */
         xSocket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
 
-        if( prvSocketValid( xSocket ) != pdTRUE_UNSIGNED )
+        if( xSocketValid( xSocket ) == pdFALSE )
         {
             /* There was an error, return NULL. */
             xSocket = NULL;

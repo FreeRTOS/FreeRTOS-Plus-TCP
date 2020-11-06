@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.0
+ * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -44,6 +44,16 @@
 
 #ifndef iptraceNETWORK_BUFFER_OBTAINED_FROM_ISR
     #define iptraceNETWORK_BUFFER_OBTAINED_FROM_ISR( pxBufferAddress )
+#endif
+
+#ifndef iptraceNETWORK_INTERFACE_INPUT
+    /* An Ethernet packet has been received. */
+    #define iptraceNETWORK_INTERFACE_INPUT( uxDataLength, pucEthernetBuffer )
+#endif
+
+#ifndef iptraceNETWORK_INTERFACE_OUTPUT
+    /* An Ethernet packet will be sent. */
+    #define iptraceNETWORK_INTERFACE_OUTPUT( uxDataLength, pucEthernetBuffer )
 #endif
 
 #ifndef iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER

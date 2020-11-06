@@ -787,6 +787,7 @@ pxwhere
 pxwindow
 qmu
 queuegenericcreate
+queuegenericsend
 quickstart
 ra
 ramfunc
@@ -919,6 +920,8 @@ sw
 swr
 syn
 synchronicity
+synchronisation
+synchronised
 syscfg
 sysclock
 systemcoreclock
@@ -1408,6 +1411,7 @@ xprocessreceivedtcppacket
 xprocessreceivedudppacket
 xprotocol
 xqueuecreateset
+xqueuegenericsend
 xqueueitem
 xqueuereceive
 xreceiveblocktime

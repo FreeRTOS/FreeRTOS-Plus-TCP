@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.0
+ * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -189,7 +189,7 @@
  * The macro will be called in the printf() style. Users can define
  * their own logging routine as:
  *
- *     #define FreeRTOS_debug_printf( MSG )			my_printf MSG
+ *     #define FreeRTOS_debug_printf( MSG )         my_printf MSG
  *
  * The FreeRTOS_debug_printf() must be thread-safe but does not have to be
  * interrupt-safe.
@@ -211,7 +211,7 @@
  * FreeRTOS general logging routine (proposal)
  * Used in some utility functions such as FreeRTOS_netstat() and FreeRTOS_PrintARPCache()
  *
- *     #define FreeRTOS_printf( MSG )			my_printf MSG
+ *     #define FreeRTOS_printf( MSG )           my_printf MSG
  *
  * The FreeRTOS_printf() must be thread-safe but does not have to be interrupt-safe
  */

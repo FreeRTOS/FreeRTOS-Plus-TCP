@@ -166,6 +166,7 @@ clean:
 
 veryclean: clean
 	@RM_RECURSIVE@ html
+	@RM_RECURSIVE@ gotos
 
 distclean: veryclean
 	cd $(PROOFS)/../patches && ./unpatch.py
