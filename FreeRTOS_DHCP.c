@@ -64,7 +64,7 @@
 
 /* Timer parameters */
     #ifndef dhcpINITIAL_TIMER_PERIOD
-        /** @brief The interval at wich the DHCP state handler is called. */
+        /** @brief The interval at which the DHCP state handler is called. */
         #define dhcpINITIAL_TIMER_PERIOD    ( pdMS_TO_TICKS( 250U ) )
     #endif
 
