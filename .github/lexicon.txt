@@ -210,7 +210,7 @@ eestabl
 eestablished
 eevent
 eeventtype
-eexpectedState
+eexpectedstate
 eframeconsumed
 eg
 egetlinklayeraddress
