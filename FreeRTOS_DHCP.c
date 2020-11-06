@@ -64,10 +64,13 @@
 
 /* Timer parameters */
     #ifndef dhcpINITIAL_TIMER_PERIOD
+        /** @brief The interval at wich the DHCP state handler is called. */	
         #define dhcpINITIAL_TIMER_PERIOD    ( pdMS_TO_TICKS( 250U ) )
     #endif
 
     #ifndef dhcpINITIAL_DHCP_TX_PERIOD
+		/** @brief The initial amount of time to wait for a DHCP reply.  When repeating an
+		unanswered request, this time-out shall be multiplied by 2. */
         #define dhcpINITIAL_DHCP_TX_PERIOD    ( pdMS_TO_TICKS( 5000U ) )
     #endif
 
