@@ -43,7 +43,6 @@
 #include "fsl_phylan8720a.h"
 #include "fsl_debug_console.h"
 
-
 #define PHY_ADDRESS                    ( 0x00U )
 /* MDIO operations. */
 #define EXAMPLE_MDIO_OPS               lpc_enet_ops
@@ -54,11 +53,6 @@
 #define ENET_RXBUFF_SIZE               ( ENET_FRAME_MAX_FRAMELEN )
 #define ENET_BuffSizeAlign( n )    ENET_ALIGN( n, ENET_BUFF_ALIGNMENT )
 #define ENET_ALIGN( x, align )     ( ( unsigned int ) ( ( x ) + ( ( align ) - 1 ) ) & ( unsigned int ) ( ~( unsigned int ) ( ( align ) - 1 ) ) )
-#define ENET_EXAMPLE_FRAME_HEADSIZE    ( 14U )
-#define ENET_EXAMPLE_DATA_LENGTH       ( 1000U )
-#define ENET_EXAMPLE_FRAME_SIZE        ( ENET_EXAMPLE_DATA_LENGTH + ENET_EXAMPLE_FRAME_HEADSIZE )
-#define ENET_EXAMPLE_PACKAGETYPE       ( 4U )
-#define ENET_EXAMPLE_LOOP_COUNT        ( 20U )
 
 #if defined( __GNUC__ )
     #ifndef __ALIGN_END
@@ -89,6 +83,10 @@
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
 #endif
 
+#ifndef NETWORK_INTERFACE_RX_PRIORITY
+#define NETWORK_INTERFACE_RX_PRIORITY (configMAX_PRIORITIES-1)
+#endif
+
 /*******************************************************************************
  * Variables
  ******************************************************************************/
@@ -104,15 +102,6 @@ __ALIGN_BEGIN enet_tx_bd_struct_t g_txBuffDescrip[ ENET_TXBD_NUM ] __ALIGN_END;
 enet_handle_t g_handle = { 0 };
 /* The MAC address for ENET device. */
 uint8_t g_macAddr[ 6 ] = { 0xde, 0xad, 0x00, 0xbe, 0xef, 0x01 };
-uint8_t multicastAddr[ 6 ] = { 0x01, 0x00, 0x5e, 0x00, 0x01, 0x81 };
-uint8_t g_frame[ ENET_EXAMPLE_PACKAGETYPE ][ ENET_EXAMPLE_FRAME_SIZE ];
-uint8_t * g_txbuff[ ENET_TXBD_NUM ];
-uint32_t g_txIdx = 0;
-uint8_t g_txbuffIdx = 0;
-uint8_t g_txCosumIdx = 0;
-uint32_t g_testIdx = 0;
-uint32_t g_rxIndex = 0;
-uint32_t g_rxCheckIdx = 0;
 
 bool g_linkStatus = false;
 
@@ -157,7 +146,7 @@ static void prvProcessFrame( int length )
         ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
         pxBufferDescriptor->xDataLength = length;
 
-        if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+        if( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
         {
             IPStackEvent_t xRxEvent;
             xRxEvent.eEventType = eNetworkRxEvent;
@@ -244,7 +233,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
     BaseType_t returnValue = pdFAIL;
     static enum
     {
-        initPhy, waitForLink, configurePhy, startReceiver
+        initPhy, waitForLink,startReceiver, configurePhy
     }
     networkInitialisePhase = initPhy;
 
@@ -269,15 +258,20 @@ BaseType_t xNetworkInterfaceInitialise( void )
                    break;
                }
            }
+        case startReceiver:
+            networkInitialisePhase = startReceiver;
+
+            if( xTaskCreate( rx_task, "rx_task", 512, NULL, NETWORK_INTERFACE_RX_PRIORITY, &receiveTaskHandle ) != pdPASS )
+            {
+                PRINTF( "Network Receive Task creation failed!.\n" );
+                break;
+            }
 
         /* fall through */
         case waitForLink:
             networkInitialisePhase = waitForLink;
             {
-                bool link;
-                PHY_GetLinkStatus( &phyHandle, &link );
-
-                if( !link )
+                if( !xGetPhyLinkStatus() )
                 {
                     PRINTF( "No Link\n" );
                     break;
@@ -333,18 +327,8 @@ BaseType_t xNetworkInterfaceInitialise( void )
                /* Active TX/RX. */
                ENET_StartRxTx( ENET, 1, 1 );
            }
-
-        case startReceiver:
-            networkInitialisePhase = startReceiver;
-
-            if( xTaskCreate( rx_task, "rx_task", 512, NULL, portPRIVILEGE_BIT | ( configMAX_PRIORITIES - 1 ), &receiveTaskHandle ) != pdPASS )
-            {
-                PRINTF( "Network Receive Task creation failed!.\n" );
-                break;
-            }
-
-            returnValue = pdPASS;
-            break;
+           returnValue = pdPASS;
+           break;
     }
 
     return returnValue;
