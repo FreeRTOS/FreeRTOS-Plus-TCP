@@ -43,14 +43,14 @@
 #include "fsl_phylan8720a.h"
 #include "fsl_debug_console.h"
 
-#define PHY_ADDRESS                    ( 0x00U )
+#define PHY_ADDRESS         ( 0x00U )
 /* MDIO operations. */
-#define EXAMPLE_MDIO_OPS               lpc_enet_ops
+#define EXAMPLE_MDIO_OPS    lpc_enet_ops
 /* PHY operations. */
-#define EXAMPLE_PHY_OPS                phylan8720a_ops
-#define ENET_RXBD_NUM                  ( 4 )
-#define ENET_TXBD_NUM                  ( 4 )
-#define ENET_RXBUFF_SIZE               ( ENET_FRAME_MAX_FRAMELEN )
+#define EXAMPLE_PHY_OPS     phylan8720a_ops
+#define ENET_RXBD_NUM       ( 4 )
+#define ENET_TXBD_NUM       ( 4 )
+#define ENET_RXBUFF_SIZE    ( ENET_FRAME_MAX_FRAMELEN )
 #define ENET_BuffSizeAlign( n )    ENET_ALIGN( n, ENET_BUFF_ALIGNMENT )
 #define ENET_ALIGN( x, align )     ( ( unsigned int ) ( ( x ) + ( ( align ) - 1 ) ) & ( unsigned int ) ( ~( unsigned int ) ( ( align ) - 1 ) ) )
 
@@ -84,7 +84,7 @@
 #endif
 
 #ifndef NETWORK_INTERFACE_RX_PRIORITY
-#define NETWORK_INTERFACE_RX_PRIORITY (configMAX_PRIORITIES-1)
+    #define NETWORK_INTERFACE_RX_PRIORITY    ( configMAX_PRIORITIES - 1 )
 #endif
 
 /*******************************************************************************
@@ -233,7 +233,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
     BaseType_t returnValue = pdFAIL;
     static enum
     {
-        initPhy, waitForLink,startReceiver, configurePhy
+        initPhy, waitForLink, startReceiver, configurePhy
     }
     networkInitialisePhase = initPhy;
 
@@ -258,6 +258,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
                    break;
                }
            }
+
         case startReceiver:
             networkInitialisePhase = startReceiver;
 
@@ -327,8 +328,8 @@ BaseType_t xNetworkInterfaceInitialise( void )
                /* Active TX/RX. */
                ENET_StartRxTx( ENET, 1, 1 );
            }
-           returnValue = pdPASS;
-           break;
+            returnValue = pdPASS;
+            break;
     }
 
     return returnValue;
