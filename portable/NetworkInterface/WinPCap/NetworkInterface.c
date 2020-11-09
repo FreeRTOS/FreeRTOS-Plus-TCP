@@ -525,6 +525,8 @@ static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer )
 
     pxEtherHeader = ( EthernetHeader_t * ) pucBuffer;
 
+    /* Sometimes, packets are bounced back by the driver and we need not process them. Check
+     * whether this packet is one such packet. */
     if( memcmp( ucMACAddress, pxEtherHeader->xSourceAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
     {
         if( xHasPrinted == pdFALSE )
@@ -539,6 +541,8 @@ static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer )
 
             FreeRTOS_printf( ( "Some packets are bounced back by the driver. Sometimes, the packets are also sent twice by the driver." ) );
 
+            /* Print logging only once. If logging is required for all bounced back packets
+             * (such as while debugging), then comment out the following line. */
             xHasPrinted = pdTRUE;
         }
 
