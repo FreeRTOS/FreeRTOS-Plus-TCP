@@ -541,6 +541,7 @@ static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer )
 
             xHasPrinted = pdTRUE;
         }
+
         xResult = pdTRUE;
     }
     else
