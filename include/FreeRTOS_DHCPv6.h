@@ -24,86 +24,75 @@
  */
 
 #ifndef FREERTOS_DHCPv6_H
-#define FREERTOS_DHCPv6_H
+    #define FREERTOS_DHCPv6_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
 /* Application level configuration options. */
-#include "FreeRTOS_DHCP.h"
-#include "FreeRTOSIPConfig.h"
-#include "IPTraceMacroDefaults.h"
+    #include "FreeRTOS_DHCP.h"
+    #include "FreeRTOSIPConfig.h"
+    #include "IPTraceMacroDefaults.h"
 
-#define DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH	128
+    #define DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH    128
 
-typedef struct xClientServerID
-{
-	uint16_t usDUIDType;
-	uint16_t usHardwareType;
-	uint8_t pucID[ DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH ];
-	size_t uxLength;
-} ClientServerID_t;
+    typedef struct xClientServerID
+    {
+        uint16_t usDUIDType;
+        uint16_t usHardwareType;
+        uint8_t pucID[ DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH ];
+        size_t uxLength;
+    } ClientServerID_t;
 
-typedef struct xDHCPMessage_IPv6
-{
-	uint8_t uxMessageType;
-	uint8_t ucTransactionID[ 3 ];
-	uint32_t ulTransactionID;
-	IPv6_Address_t ucDNSServer;
-	uint32_t ulPreferredLifeTime;
-	uint32_t ulValidLifeTime;
-	uint32_t ulTimeStamp;
-	uint8_t ucprefixLength;
-	uint8_t ucHasUID;
-	IPv6_Address_t xPrefixAddress;
-	IPv6_Address_t xIPAddress;
-	ClientServerID_t xClientID, xServerID;
-} DHCPMessage_IPv6_t;
+    typedef struct xDHCPMessage_IPv6
+    {
+        uint8_t uxMessageType;
+        uint8_t ucTransactionID[ 3 ];
+        uint32_t ulTransactionID;
+        IPv6_Address_t ucDNSServer;
+        uint32_t ulPreferredLifeTime;
+        uint32_t ulValidLifeTime;
+        uint32_t ulTimeStamp;
+        uint8_t ucprefixLength;
+        uint8_t ucHasUID;
+        IPv6_Address_t xPrefixAddress;
+        IPv6_Address_t xIPAddress;
+        ClientServerID_t xClientID, xServerID;
+    } DHCPMessage_IPv6_t;
 
 /* Returns the current state of a DHCP process. */
-eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint *pxEndPoint );
+    eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint * pxEndPoint );
 
-struct xNetworkEndPoint;
+    struct xNetworkEndPoint;
 
 /*
  * Send a message to the IP-task, which will call vDHCPProcess().
  */
-BaseType_t xSendDHCPv6Event( struct xNetworkEndPoint *pxEndPoint );
+    BaseType_t xSendDHCPv6Event( struct xNetworkEndPoint * pxEndPoint );
 
 /*
  * NOT A PUBLIC API FUNCTION.
  * It will be called when the DHCP timer expires, or when
  * data has been received on the DHCP socket.
  */
-void vDHCPv6Process( BaseType_t xReset, struct xNetworkEndPoint *pxEndPoint );
+    void vDHCPv6Process( BaseType_t xReset,
+                         struct xNetworkEndPoint * pxEndPoint );
 
 
 /* Internal call: returns true if socket is the current DHCP socket */
-BaseType_t xIsDHCPv6Socket( Socket_t xSocket );
+    BaseType_t xIsDHCPv6Socket( Socket_t xSocket );
 
 /* Prototype of the hook (or callback) function that must be provided by the
-application if ipconfigUSE_DHCP_HOOK is set to 1.  See the following URL for
-usage information:
-http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
-*/
-eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase, uint32_t ulIPAddress );
+ * application if ipconfigUSE_DHCP_HOOK is set to 1.  See the following URL for
+ * usage information:
+ * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
+ */
+    eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
+                                                uint32_t ulIPAddress );
 
-#ifdef __cplusplus
-}	/* extern "C" */
-#endif
+    #ifdef __cplusplus
+        } /* extern "C" */
+    #endif
 
 #endif /* FREERTOS_DHCPv6_H */
-
-
-
-
-
-
-
-
-
-
-
-
-
