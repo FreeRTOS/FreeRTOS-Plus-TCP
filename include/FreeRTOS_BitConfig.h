@@ -33,38 +33,47 @@
  */
 
 #ifndef FREERTOS_BITCONFIG_H
-#define	FREERTOS_BITCONFIG_H
+    #define FREERTOS_BITCONFIG_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
-typedef struct xBitCOnfig
-{
-	uint8_t *ucContents;
-	size_t uxIndex;
-	size_t uxSize;
-	BaseType_t xHasError;
-} BitCOnfig_t;
+    typedef struct xBitCOnfig
+    {
+        uint8_t * ucContents;
+        size_t uxIndex;
+        size_t uxSize;
+        BaseType_t xHasError;
+    } BitCOnfig_t;
 
-BaseType_t xBitConfig_init( BitCOnfig_t *pxConfig, const uint8_t *pucData, size_t uxSize );
+    BaseType_t xBitConfig_init( BitCOnfig_t * pxConfig,
+                                const uint8_t * pucData,
+                                size_t uxSize );
 
-uint8_t ucBitConfig_read_8( BitCOnfig_t *pxConfig );
-uint16_t usBitConfig_read_16( BitCOnfig_t *pxConfig );
-uint32_t ulBitConfig_read_32( BitCOnfig_t *pxConfig );
-BaseType_t xBitConfig_read_uc( BitCOnfig_t *pxConfig, uint8_t *pucData, size_t uxSize );
+    uint8_t ucBitConfig_read_8( BitCOnfig_t * pxConfig );
+    uint16_t usBitConfig_read_16( BitCOnfig_t * pxConfig );
+    uint32_t ulBitConfig_read_32( BitCOnfig_t * pxConfig );
+    BaseType_t xBitConfig_read_uc( BitCOnfig_t * pxConfig,
+                                   uint8_t * pucData,
+                                   size_t uxSize );
 
-BaseType_t xBitConfig_write_8( BitCOnfig_t *pxConfig, uint8_t ucValue );
-BaseType_t xBitConfig_write_16( BitCOnfig_t *pxConfig, uint16_t usValue );
-BaseType_t xBitConfig_write_32( BitCOnfig_t *pxConfig, uint32_t ulValue );
-BaseType_t xBitConfig_write_uc( BitCOnfig_t *pxConfig, uint8_t *pucData, size_t uxSize );
+    BaseType_t xBitConfig_write_8( BitCOnfig_t * pxConfig,
+                                   uint8_t ucValue );
+    BaseType_t xBitConfig_write_16( BitCOnfig_t * pxConfig,
+                                    uint16_t usValue );
+    BaseType_t xBitConfig_write_32( BitCOnfig_t * pxConfig,
+                                    uint32_t ulValue );
+    BaseType_t xBitConfig_write_uc( BitCOnfig_t * pxConfig,
+                                    uint8_t * pucData,
+                                    size_t uxSize );
 
-void vBitConfig_release( BitCOnfig_t *pxConfig );
-void vBitConfig_show( BitCOnfig_t *pxConfig );
+    void vBitConfig_release( BitCOnfig_t * pxConfig );
+    void vBitConfig_show( BitCOnfig_t * pxConfig );
 
 
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
+    #ifdef __cplusplus
+        } /* extern "C" */
+    #endif
 
-#endif	/* !defined( FREERTOS_STREAM_BUFFER_H ) */
+#endif /* !defined( FREERTOS_STREAM_BUFFER_H ) */
