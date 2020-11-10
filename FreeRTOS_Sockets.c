@@ -85,17 +85,17 @@
 #endif
 
 /** @brief Maximum value of port number which can be auto assigned. */
-#define socketAUTO_PORT_ALLOCATION_MAX_NUMBER          ( ( uint16_t ) 0xffff )
+#define socketAUTO_PORT_ALLOCATION_MAX_NUMBER    ( ( uint16_t ) 0xffff )
 
 /** @brief The number of octets that make up an IP address. */
-#define socketMAX_IP_ADDRESS_OCTETS                    4U
+#define socketMAX_IP_ADDRESS_OCTETS              4U
 
 /** @brief A block time of 0 simply means "don't block". */
-#define socketDONT_BLOCK                               ( ( TickType_t ) 0 )
+#define socketDONT_BLOCK                         ( ( TickType_t ) 0 )
 
 /** @brief TCP timer period in milliseconds. */
 #if ( ( ipconfigUSE_TCP == 1 ) && !defined( ipTCP_TIMER_PERIOD_MS ) )
-    #define ipTCP_TIMER_PERIOD_MS                      ( 1000U )
+    #define ipTCP_TIMER_PERIOD_MS    ( 1000U )
 #endif
 
 /* Some helper macro's for defining the 20/80 % limits of uxLittleSpace / uxEnoughSpace. */
@@ -847,7 +847,7 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
     int32_t lReturn;
     EventBits_t xEventBits = ( EventBits_t ) 0;
     size_t uxPayloadOffset;
-	size_t uxPayloadLength;
+    size_t uxPayloadLength;
 
     if( prvValidSocket( pxSocket, FREERTOS_IPPROTO_UDP, pdTRUE ) == pdFALSE )
     {
@@ -1120,7 +1120,7 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
 
                 if( pxNetworkBuffer != NULL )
                 {
-					pvCopyDest = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxPayloadOffset ] );
+                    pvCopyDest = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxPayloadOffset ] );
                     ( void ) memcpy( pvCopyDest, pvBuffer, uxTotalDataLength );
                     pxNetworkBuffer->pxEndPoint = NULL;
 
@@ -2559,6 +2559,7 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_IPv6 != 0 )
+
 /**
  * @brief This function converts a binary IPv6 address to a human readable notation.
  *
