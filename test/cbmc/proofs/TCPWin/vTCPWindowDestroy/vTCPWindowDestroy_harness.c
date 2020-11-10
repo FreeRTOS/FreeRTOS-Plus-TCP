@@ -27,7 +27,7 @@ void harness()
     /* Create a TCP Window to be destroyed and fill it with random data. */
     TCPWindow_t xWindow;
 
-    /* Ititialise the segment list. */
+    /* Initialise the segment list. */
     vListInitialise( &xSegmentList );
 
     /* Initialise the Rx and Tx lists of the window. */
@@ -40,7 +40,7 @@ void harness()
         /********************** Fill in Rx segments ********************/
         xRxSegmentListItem[ i ].xSegmentItem.pvOwner = &( xRxSegmentListItem[ i ] );
 
-        /* Assume the container of the queueitem is NULL. */
+        /* Assume the container of the queue item is NULL. */
         __CPROVER_assume( xRxSegmentListItem[ i ].xQueueItem.pxContainer == NULL );
 
         vListInsertGeneric( &xWindow.xRxSegments, &( xRxSegmentListItem[ i ].xSegmentItem ), &xWindow.xRxSegments.xListEnd );
@@ -49,7 +49,7 @@ void harness()
         /********************** Fill in Tx segments ********************/
         xTxSegmentListItem[ i ].xSegmentItem.pvOwner = &( xTxSegmentListItem[ i ] );
 
-        /* Assume the container of the queueitem is NULL. */
+        /* Assume the container of the queue item is NULL. */
         __CPROVER_assume( xTxSegmentListItem[ i ].xQueueItem.pxContainer == NULL );
 
         vListInsertGeneric( &xWindow.xTxSegments, &( xTxSegmentListItem[ i ].xSegmentItem ), &xWindow.xTxSegments.xListEnd );
