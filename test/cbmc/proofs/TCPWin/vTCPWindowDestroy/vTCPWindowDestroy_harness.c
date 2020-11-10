@@ -7,10 +7,10 @@
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_TCP_WIN.h"
 
-#define NUM_OF_SEGMENTS 1
+#define NUM_OF_SEGMENTS 3
 
-const TCPSegment_t xRxSegmentListItem[ NUM_OF_SEGMENTS ];
-const TCPSegment_t xTxSegmentListItem[ NUM_OF_SEGMENTS ];
+TCPSegment_t xRxSegmentListItem[ NUM_OF_SEGMENTS ];
+TCPSegment_t xTxSegmentListItem[ NUM_OF_SEGMENTS ];
 
 static void vListInsertGeneric( List_t * const pxList,
                                     ListItem_t * const pxNewListItem,
@@ -30,11 +30,17 @@ static void vListInsertGeneric( List_t * const pxList,
         ( pxList->uxNumberOfItems )++;
     }
 
+extern List_t xSegmentList;
 
 void harness()
 {
     /* Create a TCP Window to be destroyed and fill it with random data. */
     TCPWindow_t xWindow;
+    uint32_t ulSequenceNumber;
+    int32_t lCount;
+    BaseType_t xIsForRx = nondet_bool();
+
+    vListInitialise( &xSegmentList );
 
     /* Initialise the Rx and Tx lists of the window. */
     vListInitialise( &xWindow.xRxSegments );
@@ -42,8 +48,19 @@ void harness()
 
     for( int i=0; i < NUM_OF_SEGMENTS; i++ )
     {
+        xRxSegmentListItem[ i ].xSegmentItem.pvOwner = &( xRxSegmentListItem[ i ] );
+
+        __CPROVER_assume( xRxSegmentListItem[ i ].xQueueItem.pxContainer == NULL );
+
         vListInsertGeneric( &xWindow.xRxSegments, &( xRxSegmentListItem[ i ].xSegmentItem ), &xWindow.xRxSegments.xListEnd );
-        //vListInsertFifo( &xWindow.xTxSegments, &( xTxSegmentListItem[ i ].xSegmentItem ) );
+
+
+
+        xTxSegmentListItem[ i ].xSegmentItem.pvOwner = &( xTxSegmentListItem[ i ] );
+
+        __CPROVER_assume( xTxSegmentListItem[ i ].xQueueItem.pxContainer == NULL );
+
+        vListInsertGeneric( &xWindow.xTxSegments, &( xTxSegmentListItem[ i ].xSegmentItem ), &xWindow.xTxSegments.xListEnd );
     }
 
     vTCPWindowDestroy( &xWindow );
