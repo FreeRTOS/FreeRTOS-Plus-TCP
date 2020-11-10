@@ -510,10 +510,11 @@ static void prvIPTask( void * pvParameters )
                 break;
 
             case eNetworkTxEvent:
-				/* Send a network packet. The ownership will  be transferred to
-				 * the driver, which will release it after delivery. */
-				prvForwardTxPacket( ipCAST_PTR_TO_TYPE_PTR( NetworkBufferDescriptor_t, xReceivedEvent.pvData ), pdTRUE );
-               break;
+
+                /* Send a network packet. The ownership will  be transferred to
+                 * the driver, which will release it after delivery. */
+                prvForwardTxPacket( ipCAST_PTR_TO_TYPE_PTR( NetworkBufferDescriptor_t, xReceivedEvent.pvData ), pdTRUE );
+                break;
 
             case eARPTimerEvent:
                 /* The ARP timer has expired, process the ARP cache. */
@@ -706,7 +707,7 @@ static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint )
             }
         }
     #endif /* ipconfigUSE_DHCP */
-    #if( ipconfigUSE_DHCPv6 == 1 )
+    #if ( ipconfigUSE_DHCPv6 == 1 )
         {
             if( ( xIsIPv6 == pdTRUE ) && ( pxEndPoint->bits.bWantDHCP != pdFALSE ) )
             {
@@ -724,8 +725,8 @@ static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint )
             }
         }
     #endif /* ipconfigUSE_RA */
-	/* Mention pxEndPoint in case it has not been used. */
-	( void ) pxEndPoint;
+    /* Mention pxEndPoint in case it has not been used. */
+    ( void ) pxEndPoint;
 }
 /*-----------------------------------------------------------*/
 
@@ -802,7 +803,8 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
 static void prvForwardTxPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                 BaseType_t xReleaseAfterSend )
 {
-	iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+    iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+
     if( pxNetworkBuffer->pxInterface != NULL )
     {
         ( void ) pxNetworkBuffer->pxInterface->pfOutput( pxNetworkBuffer->pxInterface, pxNetworkBuffer, xReleaseAfterSend );
@@ -1841,17 +1843,18 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
     {
         IPStackEvent_t xEventMessage;
         const TickType_t uxDontBlock = 0U;
-		#if( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
-        uintptr_t uxOption = eGetDHCPState( pxEndPoint );
-		#endif
+
+        #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+            uintptr_t uxOption = eGetDHCPState( pxEndPoint );
+        #endif
 
         xEventMessage.eEventType = eDHCP_RA_Event;
         xEventMessage.pvData = ( void * ) pxEndPoint;
-		#if( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
-		{
-			pxEndPoint->xDHCPData.eExpectedState = uxOption;
-		}
-		#endif
+        #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+            {
+                pxEndPoint->xDHCPData.eExpectedState = uxOption;
+            }
+        #endif
 
         return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );
     }
@@ -2500,7 +2503,8 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
         {
             if( eReturn == eProcessBuffer )
             {
-#warning Please create a xCheckSizeFields() in stead if calling usGenerateProtocolChecksum()
+                #warning Please create a xCheckSizeFields() in stead if calling usGenerateProtocolChecksum()
+
                 if( usGenerateProtocolChecksum( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdFALSE ) != ipCORRECT_CRC )
                 {
                     /* Some of the length checks were not successful. */
@@ -2633,8 +2637,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             #endif /* ipconfigUSE_IPv6 */
             ( uxHeaderLength > ipSIZE_OF_IPv4_HEADER ) )
         {
-				/* The size of the IP-header is larger than 20 bytes.
-				 * The extra space is used for IP-options. */
+            /* The size of the IP-header is larger than 20 bytes.
+             * The extra space is used for IP-options. */
             #if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 )
                 {
                     /* All structs of headers expect a IP header size of 20 bytes
@@ -2770,10 +2774,10 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                eReturn = eFrameConsumed;
                            }
                        }
-						else
-						{
-							eReturn = eReleaseBuffer;
-						}
+                       else
+                       {
+                           eReturn = eReleaseBuffer;
+                       }
                    }
                    break;
 
@@ -2973,6 +2977,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
     size_t uxIPHeaderLength;
     ProtocolHeaders_t * pxProtocolHeaders;
     uint8_t ucProtocol = 0U;
+
     DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
 
     #if ( ipconfigUSE_IPv6 != 0 )
@@ -3032,7 +3037,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
             else
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         {
-		/* Check for minimum packet size. */
+            /* Check for minimum packet size. */
             if( uxBufferLength < sizeof( IPPacket_t ) )
             {
                 usChecksum = ipINVALID_LENGTH;
@@ -3181,8 +3186,8 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
             break;
         }
 
-		/* The protocol and checksum field have been identified. Check the direction
-		 * of the packet. */
+        /* The protocol and checksum field have been identified. Check the direction
+         * of the packet. */
         if( xOutgoingPacket != pdFALSE )
         {
             /* This is an outgoing packet. Before calculating the checksum, set it
@@ -3376,7 +3381,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
     if( ( usChecksum == ipUNHANDLED_PROTOCOL ) ||
         ( usChecksum == ipINVALID_LENGTH ) )
     {
-		/* NOP if ipconfigHAS_PRINTF != 0 */
+        /* NOP if ipconfigHAS_PRINTF != 0 */
         FreeRTOS_printf( ( "CRC error: %04x location %ld\n", usChecksum, xLocation ) );
     }
 
@@ -3397,7 +3402,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
  */
 uint16_t usGenerateChecksum( uint16_t usSum,
                              const uint8_t * pucNextData,
-							 size_t uxByteCount )
+                             size_t uxByteCount )
 {
 /* MISRA/PC-lint doesn't like the use of unions. Here, they are a great
  * aid though to optimise the calculations. */
@@ -3407,7 +3412,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     uintptr_t uxAlignBits;
     uint32_t ulCarry = 0UL;
     uint16_t usTemp;
-	size_t uxDataLengthBytes = uxByteCount;
+    size_t uxDataLengthBytes = uxByteCount;
 
     /* Small MCUs often spend up to 30% of the time doing checksum calculations
     * This function is optimised for 32-bit CPUs; Each time it will try to fetch
@@ -3554,8 +3559,8 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
 {
     IPPacket_t * pxIPPacket;
 /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-	const void * pvCopySource;
-	void * pvCopyDest;
+    const void * pvCopySource;
+    void * pvCopyDest;
 
     #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
         NetworkBufferDescriptor_t * pxNewBuffer;
@@ -3586,9 +3591,9 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
 
             if( pxNewBuffer != NULL )
             {
-            	xReleaseAfterSend = pdTRUE;
-            	/* Want no rounding up. */
-            	pxNewBuffer->xDataLength = pxNetworkBuffer->xDataLength;
+                xReleaseAfterSend = pdTRUE;
+                /* Want no rounding up. */
+                pxNewBuffer->xDataLength = pxNetworkBuffer->xDataLength;
             }
 
             pxNetworkBuffer = pxNewBuffer;
@@ -3621,15 +3626,15 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
             NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface; /*_RB_ Why not use the pxNetworkBuffer->pxNetworkInterface directly? */
 
             /* Swap source and destination MAC addresses. */
-			pvCopySource = &( pxIPPacket->xEthernetHeader.xSourceAddress );
-			pvCopyDest = &( pxIPPacket->xEthernetHeader.xDestinationAddress );
+            pvCopySource = &( pxIPPacket->xEthernetHeader.xSourceAddress );
+            pvCopyDest = &( pxIPPacket->xEthernetHeader.xDestinationAddress );
             ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxIPPacket->xEthernetHeader.xDestinationAddress ) );
 
-			pvCopySource = pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes;
-			pvCopyDest = &( pxIPPacket->xEthernetHeader.xSourceAddress );
+            pvCopySource = pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes;
+            pvCopyDest = &( pxIPPacket->xEthernetHeader.xSourceAddress );
             ( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
-	        /* Send! */
-        	iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+            /* Send! */
+            iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
             ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xReleaseAfterSend );
         }
     }
