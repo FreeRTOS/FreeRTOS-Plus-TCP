@@ -572,7 +572,8 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
         else
     #endif
 
-	pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulAddressToLookup, 0 );
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulAddressToLookup, 0 );
+
     if( pxEndPoint != NULL ) /* ARP lookup loop-back? */
     {
         /* Targeted at this device? Make sure that xNetworkInterfaceOutput()
