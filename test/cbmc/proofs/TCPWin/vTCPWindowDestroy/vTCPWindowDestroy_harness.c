@@ -45,8 +45,8 @@ void harness()
         /********************** Fill in Rx segments ********************/
         xRxSegmentListItem[ i ].xSegmentItem.pvOwner = &( xRxSegmentListItem[ i ] );
 
-        /* Assume the container of the queue item is NULL. */
-        __CPROVER_assume( xRxSegmentListItem[ i ].xQueueItem.pxContainer == NULL );
+        /* Make the container of the queue item is NULL. */
+        xRxSegmentListItem[ i ].xQueueItem.pxContainer = NULL;
 
         vListInsertGeneric( &xWindow.xRxSegments, &( xRxSegmentListItem[ i ].xSegmentItem ), &xWindow.xRxSegments.xListEnd );
 
@@ -54,8 +54,8 @@ void harness()
         /********************** Fill in Tx segments ********************/
         xTxSegmentListItem[ i ].xSegmentItem.pvOwner = &( xTxSegmentListItem[ i ] );
 
-        /* Assume the container of the queue item is NULL. */
-        __CPROVER_assume( xTxSegmentListItem[ i ].xQueueItem.pxContainer == NULL );
+        /* Make the container of the queue item is NULL. */
+        xTxSegmentListItem[ i ].xQueueItem.pxContainer = NULL;
 
         vListInsertGeneric( &xWindow.xTxSegments, &( xTxSegmentListItem[ i ].xSegmentItem ), &xWindow.xTxSegments.xListEnd );
     }
