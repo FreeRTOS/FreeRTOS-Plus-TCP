@@ -24,6 +24,11 @@ extern List_t xSegmentList;
 
 void harness()
 {
+    uint32_t temp;
+
+    /* Choose any value between 0 and NUM_OF_SEGMENTS. */
+    __CPROVER_assume( temp <= NUM_OF_SEGMENTS );
+
     /* Create a TCP Window to be destroyed and fill it with random data. */
     TCPWindow_t xWindow;
 
@@ -35,7 +40,7 @@ void harness()
     vListInitialise( &xWindow.xTxSegments );
 
     /* Below loop fills in various segments in the Rx/Tx list of the window. */
-    for( int i = 0; i < NUM_OF_SEGMENTS; i++ )
+    for( int i = 0; i < temp; i++ )
     {
         /********************** Fill in Rx segments ********************/
         xRxSegmentListItem[ i ].xSegmentItem.pvOwner = &( xRxSegmentListItem[ i ] );
