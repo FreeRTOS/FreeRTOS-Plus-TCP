@@ -2589,7 +2589,7 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
         }
         else
         {
-            /* Look for the longest rtain of zero's 0:0:0... */
+            /* Look for the longest train of zero's 0:0:0... */
             for( ; xIndex < 8; xIndex++ )
             {
                 uint16_t usValue = pusAddress[ xIndex ];
