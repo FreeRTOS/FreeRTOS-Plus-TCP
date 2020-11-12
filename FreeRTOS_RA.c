@@ -66,7 +66,7 @@
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Sned an ICMPv6 message of the type: Router Solicitation.
+ * @brief Send an ICMPv6 message of the type: Router Solicitation.
  *
  * @param[in] pxNetworkBuffer: The network buffer which can be used for this.
  * @param[in] pxIPAddress: The target address, normally ff02::2
@@ -143,7 +143,7 @@
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Receive a NA ( Neighbourhood Advertisement ) message to see if a chosen IP-address is already in use.
+ * @brief Receive a NA ( Neighbour Advertisement ) message to see if a chosen IP-address is already in use.
  *
  * @param[in] pxNetworkBuffer: The buffer that contains the message.
  */
