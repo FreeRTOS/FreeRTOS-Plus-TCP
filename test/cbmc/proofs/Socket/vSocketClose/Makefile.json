@@ -3,7 +3,7 @@
 
   "CBMCFLAGS":
   [
-    "--unwind 1"
+    "--unwind 5"
   ],
   "OBJS":
   [
@@ -20,6 +20,7 @@
   "INC":
   [
     "$(FREERTOS_PLUS_TCP)/test/cbmc/include",
-    "$(FREERTOS_PLUS_TCP)/test/cbmc/proofs/utility"
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/proofs/utility",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs"
   ]
 }

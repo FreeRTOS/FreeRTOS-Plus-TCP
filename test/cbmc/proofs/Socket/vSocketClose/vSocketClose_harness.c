@@ -13,152 +13,55 @@
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_Sockets.h"
 
+#include "freertos_api.c"
 #include "memory_assignments.c"
 
-
-/*********************************************************************************
- *
- * The below structure definitions are just copy pasted from the FreeRTOS-Kernel.
- * To understand the proof, you need not understand the structures and they can
- * be ignored safely.
- *
- ********************************************************************************/
-
-/* Define the bits used by Kernel. */
-#define eventEVENT_BITS_CONTROL_BYTES    0xff000000UL
-
-typedef struct EventGroupDef_t
+void vEventGroupDelete( EventGroupHandle_t xEventGroup )
 {
-    EventBits_t uxEventBits;
-    List_t xTasksWaitingForBits;
+    __CPROVER_assert( xEventGroup );
 
-    #if ( configUSE_TRACE_FACILITY == 1 )
-        UBaseType_t uxEventGroupNumber;
-    #endif
-
-    #if ( ( configSUPPORT_STATIC_ALLOCATION == 1 ) && ( configSUPPORT_DYNAMIC_ALLOCATION == 1 ) )
-        uint8_t ucStaticallyAllocated;
-    #endif
-} EventGroup_t;
-
-typedef struct QueuePointers
-{
-    int8_t * pcTail;
-    int8_t * pcReadFrom;
-} QueuePointers_t;
-
-typedef struct SemaphoreData
-{
-    TaskHandle_t xMutexHolder;
-    UBaseType_t uxRecursiveCallCount;
-} SemaphoreData_t;
-
-typedef struct QueueDefinition
-{
-    int8_t * pcHead;
-    int8_t * pcWriteTo;
-
-    union
-    {
-        QueuePointers_t xQueue;
-        SemaphoreData_t xSemaphore;
-    } u;
-
-    List_t xTasksWaitingToSend;
-    List_t xTasksWaitingToReceive;
-
-    volatile UBaseType_t uxMessagesWaiting;
-    UBaseType_t uxLength;
-    UBaseType_t uxItemSize;
-
-    volatile int8_t cRxLock;
-    volatile int8_t cTxLock;
-
-    #if ( ( configSUPPORT_STATIC_ALLOCATION == 1 ) && ( configSUPPORT_DYNAMIC_ALLOCATION == 1 ) )
-        uint8_t ucStaticallyAllocated;
-    #endif
-
-    #if ( configUSE_QUEUE_SETS == 1 )
-        struct QueueDefinition * pxQueueSetContainer;
-    #endif
-
-    #if ( configUSE_TRACE_FACILITY == 1 )
-        UBaseType_t uxQueueNumber;
-        uint8_t ucQueueType;
-    #endif
-} xQUEUE;
-
-/********************************************************/
-/********* End Kernel cut-paste section *****************/
-/********************************************************/
-
-
-/* The memory safety of xQueueGenericSend has been proved before.
- * See github.com/FreeRTOS/FreeRTOS/FreeRTOS/Test/CBMC/proofs/Queue/QueueGenericSend.
- */
-BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
-                              const void * const pvItemToQueue,
-                              TickType_t xTicksToWait,
-                              const BaseType_t xCopyPosition )
-{
-    BaseType_t xResult;
-
-    /* These asserts are copied over from the original function itself. */
-    __CPROVER_assert( xQueue != NULL, "xQueue cannot be NULL" );
-    __CPROVER_assert( !( ( pvItemToQueue == NULL ) && ( xQueue->uxItemSize != ( UBaseType_t ) 0U ) ),
-                      "If itemsize is non-zero, then pvItemToQueue cannot be NULL." );
-    __CPROVER_assert( !( ( xCopyPosition == queueOVERWRITE ) && ( xQueue->uxLength != 1 ) ),
-                      "If length is one, then check the copy position" );
-
-    /* Return any random value. */
-    return xResult;
+    /**/
 }
 
-
-EventBits_t xEventGroupSetBits( EventGroupHandle_t xEventGroup,
-                                const EventBits_t uxBitsToSet )
+/* The memory safety of vTCPWindowDestroy has already been proved in
+ * proofs/TCPWin/vTCPWindowDestroy. */
+void vTCPWindowDestroy( TCPWindow_t const * xWindow )
 {
-    EventBits_t uxReturnBits;
-
-    /* The below asserts are copied over from the original function itself. */
-    __CPROVER_assert( xEventGroup != NULL,
-                      "The event group cannot be NULL" );
-    __CPROVER_assert( ( uxBitsToSet & eventEVENT_BITS_CONTROL_BYTES ) == 0,
-                      "Cannot set Kernel bits" );
-
-    /* Return any random value. */
-    return uxReturnBits;
+    /* Do nothing. */
 }
-
 
 void harness()
 {
-    FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
+    size_t xRequestedSizeBytes;
+    /* Request a random number of bytes keeping in mind the maximum bound of CBMC. */
+    __CPROVER_assume( ( xRequestedSizeBytes >=0 ) && ( xRequestedSizeBytes < ( CBMC_MAX_OBJECT_SIZE - ipBUFFER_PADDING ) ) );
 
+    FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
+    /* Assume socket to not be NULL or invalid. */
     __CPROVER_assume( pxSocket != NULL );
     __CPROVER_assume( pxSocket != FREERTOS_INVALID_SOCKET );
 
     pxSocket->pxUserWakeCallback = safeMalloc( sizeof( SocketWakeupCallback_t ) );
 
-    pxSocket->pxSocketSet = safeMalloc( sizeof( struct xSOCKET_SET ) );
+    /* Get a network buffer descriptor with requested bytes. See the constraints
+     * on the number of requested bytes above. */
+    pxSocket->u.xTCP.pxAckMessage = pxGetNetworkBufferWithDescriptor( xRequestedSizeBytes, 0 );
 
-    if( pxSocket->pxSocketSet != NULL )
-    {
-        pxSocket->pxSocketSet->xSelectGroup = safeMalloc( sizeof( struct EventGroupDef_t ) );
+    pxSocket->u.xUDP.xWaitingPacketsList.uxNumberOfItems = 0;
+/*    NetworkBufferDescriptor_t *temp = pxGetNetworkBufferWithDescriptor( 200, 0 );
 
-        /* The event group cannot be NULL. */
-        __CPROVER_assume( pxSocket->pxSocketSet->xSelectGroup != NULL );
-    }
+    struct xLIST_ITEM temp1;
 
-    pxSocket->pxUserSemaphore = safeMalloc( sizeof( xQUEUE ) );
+    List_t temp2;
+    vListInitialise( &temp2 );
 
-    if( pxSocket->pxUserSemaphore != NULL )
-    {
-        /* The item size must be zero since this queue will act as a semaphore.  */
-        __CPROVER_assume( pxSocket->pxUserSemaphore->uxItemSize == 0 );
-    }
+    pxSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &temp1;
+    pxSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext->pvOwner = temp;
+    ( ( NetworkBufferDescriptor_t * ) ( pxSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext->pvOwner ) )->xBufferListItem.pvContainer = NULL;
+*/
 
-    pxSocket->xEventGroup = safeMalloc( sizeof( struct EventGroupDef_t ) );
+    /* Initialise the item to be used later on in the proof.  */
+    vListInitialiseItem( &( pxSocket->xBoundSocketListItem ) );
 
     /* Call to init the socket list. */
     vNetworkSocketsInit();
