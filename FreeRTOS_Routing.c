@@ -468,7 +468,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
                                                         uint32_t ulWhere )
     {
-        /* The 'ulWhere' parameter is only for debugging puposes. */
+        /* The 'ulWhere' parameter is only for debugging purposes. */
         return FreeRTOS_InterfaceEndPointOnNetMask( NULL, ulIPAddress, ulWhere );
     }
 /*-----------------------------------------------------------*/
@@ -671,7 +671,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         #endif
 
         /* An Ethernet packet has been received. Inspect the contents to see which
-         * defined end-point has the best mathc.
+         * defined end-point has the best match.
          */
 
         /* Some stats while developing. */
@@ -899,7 +899,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  *
  * @param[in] pxInterface: Either NULL ( don't care ), or a specific interface.
  *
- * @return The end-point found, or NULL when there are nog end-points at all.
+ * @return The end-point found, or NULL when there are no end-points at all.
  */
         NetworkEndPoint_t * FreeRTOS_FirstEndPoint_IPv6( NetworkInterface_t * pxInterface )
         {
