@@ -71,7 +71,7 @@
         #define dhcpINITIAL_DHCP_TX_PERIOD    ( pdMS_TO_TICKS( 5000U ) )
     #endif
 
-/* IPv6 optoin numbers. */
+/* IPv6 option numbers. */
 
     #define DHCPv6_message_Type_Solicit                                 1U
     #define DHCPv6_message_Type_Advertise                               2U
@@ -167,7 +167,7 @@
 /**
  * @brief Check the DHCP socket and run one cycle of the DHCP state machine.
  *
- * @param[in] xReset: When pdTRUE, the state machine needs to be reset.  Tis may happen
+ * @param[in] xReset: When pdTRUE, the state machine needs to be reset.  This may happen
  *            when the end-point has just become up.
  * @param[in] pxEndPoint: The end-point that wants a DHCPv6 address.
  */
@@ -511,11 +511,11 @@
 
                         /* DHCP completed.  The IP address can now be used, and the
                          * timer set to the lease timeout time. */
-                        /*pxEndPoint->ipv6_settings.xIPAddress;		/ * The actual IPv4 address. Will be 0 as long as end-point is still down. * / */
+                        /* pxEndPoint->ipv6_settings.xIPAddress;		/ * The actual IPv4 address. Will be 0 as long as end-point is still down. * / */
                         pxEndPoint->ipv6_settings.uxPrefixLength = pxDHCPMessage->ucprefixLength;                                           /* Number of valid bytes in the network prefix. */
                         memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxDHCPMessage->xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                         memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxDHCPMessage->xPrefixAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); /* The network prefix, e.g. fe80::/10 */
-                        /*pxEndPoint->xGatewayAddress;	/ * Gateway to the web. * / */
+                        /* pxEndPoint->xGatewayAddress;	/ * Gateway to the web. * / */
                         memcpy( pxEndPoint->ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes, pxDHCPMessage->ucDNSServer.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
                         EP_DHCPData.eDHCPState = eLeasedAddress;

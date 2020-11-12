@@ -16,6 +16,9 @@ addtogroup
 afe
 ahb
 amba
+analyse
+analysed
+analysing
 ap
 api
 apis
@@ -174,6 +177,7 @@ drbs
 droptcpipchecksumerrorframe
 dsl
 dt
+duid
 duplexmode
 dw
 dword
@@ -181,6 +185,7 @@ dzpq
 eagain
 earpcachehit
 earpcachemiss
+earpgetcacheentry
 earptimerevent
 ec
 ecantsendpacket
@@ -209,10 +214,12 @@ eestabl
 eestablished
 eevent
 eeventtype
+eexpectedstate
 eframeconsumed
 eg
 egetlinklayeraddress
 ehertype
+einitialwait
 einprogress
 einvalidchecksum
 einvaliddata
@@ -284,6 +291,7 @@ fclwr
 fcowr
 fcs
 fd
+fe
 fef
 fes
 ff
@@ -315,6 +323,7 @@ gmacpins
 gmacsa
 gpio
 gpl
+gratuitous
 grr
 gswutr
 hal
@@ -395,6 +404,7 @@ keepalive
 knowns
 lan
 lastpacket
+laststate
 lbytes
 lc
 lca
@@ -415,6 +425,7 @@ linux
 ll
 llevel
 llmnr
+llt
 lm
 lmax
 lmaxlength
@@ -443,8 +454,10 @@ ltcpwindowtxadd
 ltd
 ltxbufsize
 ltxwinsize
+lu
 lwip
 lx
+lxip
 mac
 macaddr
 macb
@@ -549,6 +562,7 @@ ored
 org
 osf
 outfile
+outputarprequest
 pacap
 pace
 param
@@ -617,6 +631,7 @@ pparam
 ppkt
 ppointer
 ppucrecvdata
+ppxendpoint
 ppxnetworkbuffer
 pr
 pre
@@ -683,11 +698,13 @@ pthreads
 ptp
 ptxpkt
 ptz
+pucanswer
 pucbuffer
 pucbyte
 pucdata
 pucethernetbuffer
 pucgetuncachedmemory
+pucid
 pucinterfacename
 pucname
 pucnewbuffer
@@ -730,10 +747,13 @@ pxarpframe
 pxbindaddress
 pxbuffer
 pxbufferdescriptor
+pxconfig
 pxdescriptor
 pxdestinationaddress
+pxdhcpmessage
 pxdnsmessageheader
 pxduplicatenetworkbufferwithdescriptor
+pxendpoint
 pxevent
 pxgetnetworkbufferwithdescriptor
 pxhandleconnected
@@ -775,6 +795,7 @@ pxsocketsize
 pxsockettodelete
 pxsourceaddress
 pxsourceaddresslength
+pxsourceendpoint
 pxtcpheader
 pxtcppacket
 pxtcpsocketlookup
@@ -792,6 +813,7 @@ quickstart
 ra
 ramfunc
 randomised
+randomiser
 rbus
 rcomp
 rcv
@@ -999,6 +1021,7 @@ uclen
 uclength
 uclinklayeripaddress
 ucmacaddress
+ucmessagetype
 ucmywinscalefactor
 ucname
 ucnamecode
@@ -1013,6 +1036,8 @@ ucopcode
 ucoptdata
 ucoptionlength
 ucpeerwinscalefactor
+ucpreference
+ucprefixlength
 ucprotocol
 ucprotocoladdresslength
 ucrepcount
@@ -1028,6 +1053,7 @@ uctransmitcount
 uctypeofmessage
 uctypeofservice
 ucvalid
+ucvalue
 ucversionheaderlength
 udp
 ue
@@ -1064,6 +1090,7 @@ ulgatewayaddress
 ulgetruntimecountervalue
 ulhighestrxallowed
 ulhighestsequencenumber
+uliaid
 ulin
 ulindex
 ulinternal
@@ -1093,6 +1120,7 @@ uloffset
 uloptionsdata
 uloursequencenumber
 ulphymask
+ulpreferredlifetime
 ulprocessed
 ulprotocol
 ulreadmdio
@@ -1182,6 +1210,7 @@ ussum
 ustimeout
 ustype
 usurgent
+usvalue
 uswindow
 utf
 uuid
@@ -1200,6 +1229,7 @@ uxfront
 uxhead
 uxheaderlength
 uxidentifier
+uxidsize
 uxindex
 uxipheaderlength
 uxipheadersizesocket
@@ -1219,6 +1249,7 @@ uxnumberofbytestosend
 uxoffset
 uxoptionlength
 uxoptionslength
+uxprefixlength
 uxremainingbytes
 uxremainingtime
 uxremaningtime
@@ -1262,6 +1293,7 @@ vlantagidentifier
 vlistinitialise
 vlistinitialiseitem
 vmyconnecthandler
+vndrefreshcacheentry
 vnetworkinterfaceallocateramtobuffers
 vportfree
 vprocessgeneratedudppacket
@@ -1291,6 +1323,7 @@ wtxsize
 www
 xaddress
 xaddressfamily
+xaddressislocal
 xaddresslength
 xapplicationdhcphook
 xapplicationdhcpuserhook
@@ -1323,18 +1356,22 @@ xdescriptorwaittime
 xdestinationaddress
 xdestinationaddresslength
 xdhcpdata
+xdhcpsocket
 xdhcptxperiod
 xdhcptxtime
 xdmarxdescriptors
 xdnsmessage
 xdnssocket
+xdocheck
 xdomain
+xdorandom
 xdumpingready
 xemacps
 xemacpsif
 xemactaskhandle
 xenablestate
 xentries
+xentryfound
 xerrnum
 xethernetheader
 xeventbits
@@ -1345,12 +1382,14 @@ xexpectedmessagetype
 xflags
 xfound
 xfreebufferslist
+xgatewayaddress
 xgetphylinkstatus
 xgivingup
 xgmacswitchrequired
 xhadreception
 xhand
 xhandler
+xhaserror
 xhasspace
 xhassynflag
 xhigherprioritytaskwoken
@@ -1361,6 +1400,7 @@ xicmppacket
 xidentifier
 xilinx
 xinternal
+xipaddress
 xipheader
 xipheadersize
 xiptaskinitialised
@@ -1383,6 +1423,7 @@ xlookup
 xlwipconfig
 xmacaddress
 xmaxtime
+xmessage
 xmicreldevice
 xmitcount
 xnetworkaddressing
@@ -1391,11 +1432,13 @@ xnetworkbufferdescriptor
 xnetworkbuffersemaphore
 xnetworkdowneventpending
 xnetworkeventqueue
+xnetworkinterface
 xnetworkinterfaceinitialise
 xnetworkinterfaceoutput
 xnetworkparams
 xontcpreceive
 xopcode
+xotherislocal
 xoutgoingpacket
 xpacket
 xpacketlist
