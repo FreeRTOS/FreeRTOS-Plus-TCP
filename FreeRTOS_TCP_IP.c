@@ -1075,7 +1075,7 @@
                 else
             #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
             {
-                configASSERT( pxIPHeader ); /*_RB_ Potential unitialised local variable warning issued, but can say for certain if it is genuine, hence assert() added. */
+                configASSERT( pxIPHeader ); /*_RB_ Potential uninitialised local variable warning issued, but can say for certain if it is genuine, hence assert() added. */
 
                 pxIPHeader->ucTimeToLive = ipconfigTCP_TIME_TO_LIVE;
                 pxIPHeader->usLength = FreeRTOS_htons( ulLen );
@@ -1250,7 +1250,7 @@
             }
         #endif /* ipconfigHAS_PRINTF != 0 */
 
-        /* See if the ARP/ND cach still contains the IP-address. */
+        /* See if the ARP/ND cache still contains the IP-address. */
         #if ( ipconfigUSE_IPv6 != 0 )
             if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
             {
@@ -1297,7 +1297,7 @@
             case eARPCacheMiss:   /* An ARP table lookup did not find a valid entry. */
             case eCantSendPacket: /* There is no IP address, or an ARP is still in progress. */
             default:
-                /* Count the number of times it couldn't find the ARP address. */
+                /* Count the number of times it could not find the ARP address. */
                 pxSocket->u.xTCP.ucRepCount++;
 
                 #if ( ipconfigUSE_IPv6 != 0 )
