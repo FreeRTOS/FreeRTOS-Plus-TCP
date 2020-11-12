@@ -16,6 +16,8 @@ addtogroup
 afe
 ahb
 amba
+analysed
+analysing
 ap
 api
 apis
@@ -181,6 +183,7 @@ dzpq
 eagain
 earpcachehit
 earpcachemiss
+earpgetcacheentry
 earptimerevent
 ec
 ecantsendpacket
@@ -209,10 +212,12 @@ eestabl
 eestablished
 eevent
 eeventtype
+eexpectedstate
 eframeconsumed
 eg
 egetlinklayeraddress
 ehertype
+einitialwait
 einprogress
 einvalidchecksum
 einvaliddata
@@ -315,6 +320,7 @@ gmacpins
 gmacsa
 gpio
 gpl
+gratuitous
 grr
 gswutr
 hal
@@ -443,8 +449,10 @@ ltcpwindowtxadd
 ltd
 ltxbufsize
 ltxwinsize
+lu
 lwip
 lx
+lxip
 mac
 macaddr
 macb
@@ -549,6 +557,7 @@ ored
 org
 osf
 outfile
+outputarprequest
 pacap
 pace
 param
@@ -617,6 +626,7 @@ pparam
 ppkt
 ppointer
 ppucrecvdata
+ppxendpoint
 ppxnetworkbuffer
 pr
 pre
@@ -730,10 +740,12 @@ pxarpframe
 pxbindaddress
 pxbuffer
 pxbufferdescriptor
+pxconfig
 pxdescriptor
 pxdestinationaddress
 pxdnsmessageheader
 pxduplicatenetworkbufferwithdescriptor
+pxendpoint
 pxevent
 pxgetnetworkbufferwithdescriptor
 pxhandleconnected
@@ -775,6 +787,7 @@ pxsocketsize
 pxsockettodelete
 pxsourceaddress
 pxsourceaddresslength
+pxsourceendpoint
 pxtcpheader
 pxtcppacket
 pxtcpsocketlookup
@@ -792,6 +805,7 @@ quickstart
 ra
 ramfunc
 randomised
+randomiser
 rbus
 rcomp
 rcv
@@ -1028,6 +1042,7 @@ uctransmitcount
 uctypeofmessage
 uctypeofservice
 ucvalid
+ucvalue
 ucversionheaderlength
 udp
 ue
@@ -1182,6 +1197,7 @@ ussum
 ustimeout
 ustype
 usurgent
+usvalue
 uswindow
 utf
 uuid
@@ -1219,6 +1235,7 @@ uxnumberofbytestosend
 uxoffset
 uxoptionlength
 uxoptionslength
+uxprefixlength
 uxremainingbytes
 uxremainingtime
 uxremaningtime
@@ -1262,6 +1279,7 @@ vlantagidentifier
 vlistinitialise
 vlistinitialiseitem
 vmyconnecthandler
+vndrefreshcacheentry
 vnetworkinterfaceallocateramtobuffers
 vportfree
 vprocessgeneratedudppacket
@@ -1291,6 +1309,7 @@ wtxsize
 www
 xaddress
 xaddressfamily
+xaddressislocal
 xaddresslength
 xapplicationdhcphook
 xapplicationdhcpuserhook
@@ -1329,12 +1348,14 @@ xdmarxdescriptors
 xdnsmessage
 xdnssocket
 xdomain
+xdorandom
 xdumpingready
 xemacps
 xemacpsif
 xemactaskhandle
 xenablestate
 xentries
+xentryfound
 xerrnum
 xethernetheader
 xeventbits
@@ -1345,12 +1366,14 @@ xexpectedmessagetype
 xflags
 xfound
 xfreebufferslist
+xgatewayaddress
 xgetphylinkstatus
 xgivingup
 xgmacswitchrequired
 xhadreception
 xhand
 xhandler
+xhaserror
 xhasspace
 xhassynflag
 xhigherprioritytaskwoken
@@ -1361,6 +1384,7 @@ xicmppacket
 xidentifier
 xilinx
 xinternal
+xipaddress
 xipheader
 xipheadersize
 xiptaskinitialised
@@ -1391,11 +1415,13 @@ xnetworkbufferdescriptor
 xnetworkbuffersemaphore
 xnetworkdowneventpending
 xnetworkeventqueue
+xnetworkinterface
 xnetworkinterfaceinitialise
 xnetworkinterfaceoutput
 xnetworkparams
 xontcpreceive
 xopcode
+xotherislocal
 xoutgoingpacket
 xpacket
 xpacketlist

@@ -287,7 +287,7 @@
 /**
  * @brief Returns the current state of a DHCP process.
  *
- * @param[in] pxEndPoint: the end-point which is going trhough the DHCP process.
+ * @param[in] pxEndPoint: the end-point which is going through the DHCP process.
  */
     eDHCPState_t eGetDHCPState( struct xNetworkEndPoint * pxEndPoint )
     {
@@ -315,7 +315,7 @@
             EP_DHCPData.eDHCPState = eInitialWait;
         }
 
-        /* If there is a socket, check for incoming messasges first. */
+        /* If there is a socket, check for incoming messages first. */
         if( xDHCPSocket != NULL )
         {
             uint8_t * pucUDPPayload;
@@ -393,7 +393,7 @@
 
         if( ( pxEndPoint != NULL ) && ( xDoProcess != pdFALSE ) )
         {
-            /* Process the end-point, but do not expect pincoming packets. */
+            /* Process the end-point, but do not expect incoming packets. */
             vDHCPProcessEndPoint( xReset, pdFALSE, pxEndPoint );
         }
     }
