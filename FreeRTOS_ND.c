@@ -25,10 +25,10 @@
 
 /**
  * @file FreeRTOS_ND.c
- * @brief Implements a few functions that handle Neighbourhood Discovery and other ICMPv6 messages.
+ * @brief Implements a few functions that handle Neighbour Discovery and other ICMPv6 messages.
  */
 
-/* The eniire module FreeRTOS_ND.c is skipped when IPv6 is not used. */
+/* The entire module FreeRTOS_ND.c is skipped when IPv6 is not used. */
 #if ( ipconfigUSE_IPv6 != 0 )
 
 /* Standard includes. */
@@ -53,7 +53,7 @@
 #endif /* ipconfigUSE_LLMNR */
 #include "NetworkBufferManagement.h"
 
-/** @brief Type of neighbour advertisement packets. */
+/** @brief Type of Neighbour Advertisement packets. */
 #define ndICMPv6_FLAG_SOLICITED    0x40000000UL
 #define ndICMPv6_FLAG_UPDATE       0x20000000UL
 
@@ -206,7 +206,6 @@ eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
 
                 if( *ppxEndPoint )
                 {
-/*loging*/
                     FreeRTOS_printf( ( "prvCacheLookup: found end-point %pip", ( *ppxEndPoint )->ipv6_settings.xIPAddress.ucBytes ) );
                 }
 
@@ -287,7 +286,7 @@ void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Clear the Neighbourhood Discovery cache.
+ * @brief Clear the Neighbour Discovery cache.
  */
 void FreeRTOS_ClearND( void )
 {
@@ -428,7 +427,7 @@ static void prvReturnICMP_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffe
  *        so re-transmissions can be generated.
  *
  * @param[in] pxNetworkBuffer: The network buffer in which the message shall be stored.
- * @param[in] pxIPAddress: The IPv6 address that is asked to send a neighbour advertisement.
+ * @param[in] pxIPAddress: The IPv6 address that is asked to send a Neighbour Advertisement.
  */
 
 void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
@@ -654,7 +653,7 @@ void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBu
  *
  * @param[in] xType: The type of message.
  *
- * @return A nul-terminated string that represents the type the kind of message.
+ * @return A null-terminated string that represents the type the kind of message.
  */
 static const char * pcMessageType( BaseType_t xType )
 {
@@ -861,7 +860,7 @@ eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t *
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Send out a neighbourhood advertisement message.
+ * @brief Send out a Neighbour Advertisement message.
  *
  * @param[in] pxEndPoint: The end-point to use.
  */

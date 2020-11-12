@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.0
+ * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -113,7 +113,7 @@
         #if ( ipconfigUSE_RA != 0 )
 
 /*
- * Send out a ROuter Sollicitaion.
+ * Send out a Router Solicitation.
  */
             void vNDSendRouterSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                             IPv6_Address_t * pxIPAddress );
@@ -147,7 +147,7 @@
                                                    BaseType_t xDoRandom );
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-/* Receive a Neighbourhood Advertisement. */
+/* Receive a Neighbour Advertisement. */
         void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 /* Receive a Router Advertisement. */
