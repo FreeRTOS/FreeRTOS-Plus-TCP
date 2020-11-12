@@ -165,7 +165,7 @@
                                            TickType_t uxTimeout );
         void FreeRTOS_gethostbyname_cancel( void * pvSearchID );
 
-/* The asynchronous verions of FreeRTOS_getaddrinfo(). */
+/* The asynchronous versions of FreeRTOS_getaddrinfo(). */
         BaseType_t FreeRTOS_getaddrinfo_a( const char * pcName,                      /* The name of the node or device */
                                            const char * pcService,                   /* Ignored for now. */
                                            const struct freertos_addrinfo * pxHints, /* If not NULL: preferences. */
@@ -194,7 +194,7 @@
                                      const struct freertos_addrinfo * pxHints, /* If not NULL: preferences. */
                                      struct freertos_addrinfo ** ppxResult );  /* An allocated struct, containing the results. */
 
-/* When FreeRTOS_getaddrinfo() is succesfull, ppxResult will point to an
+/* When FreeRTOS_getaddrinfo() is successful, ppxResult will point to an
  * allocated structure.  This pointer must be released by the user by calling
  * FreeRTOS_freeaddrinfo().
  */

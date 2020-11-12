@@ -11,11 +11,15 @@ acount
 acs
 addr
 addressalignedbeats
+addrinfo
 addrstart
 addtogroup
 afe
 ahb
 amba
+analyse
+analysed
+analysing
 ap
 api
 apis
@@ -174,6 +178,7 @@ drbs
 droptcpipchecksumerrorframe
 dsl
 dt
+duid
 duplexmode
 dw
 dword
@@ -181,6 +186,7 @@ dzpq
 eagain
 earpcachehit
 earpcachemiss
+earpgetcacheentry
 earptimerevent
 ec
 ecantsendpacket
@@ -209,10 +215,12 @@ eestabl
 eestablished
 eevent
 eeventtype
+eexpectedstate
 eframeconsumed
 eg
 egetlinklayeraddress
 ehertype
+einitialwait
 einprogress
 einvalidchecksum
 einvaliddata
@@ -284,6 +292,7 @@ fclwr
 fcowr
 fcs
 fd
+fe
 fef
 fes
 ff
@@ -315,6 +324,7 @@ gmacpins
 gmacsa
 gpio
 gpl
+gratuitous
 grr
 gswutr
 hal
@@ -395,11 +405,13 @@ keepalive
 knowns
 lan
 lastpacket
+laststate
 lbytes
 lc
 lca
 lco
 lcount
+ld
 ldatalen
 ldatalength
 ldistance
@@ -415,6 +427,7 @@ linux
 ll
 llevel
 llmnr
+llt
 lm
 lmax
 lmaxlength
@@ -443,8 +456,10 @@ ltcpwindowtxadd
 ltd
 ltxbufsize
 ltxwinsize
+lu
 lwip
 lx
+lxip
 mac
 macaddr
 macb
@@ -497,6 +512,7 @@ misra
 mmc
 mo
 mqtt
+msc
 msec
 msecs
 msg
@@ -549,6 +565,7 @@ ored
 org
 osf
 outfile
+outputarprequest
 pacap
 pace
 param
@@ -576,6 +593,7 @@ pcmessage
 pcname
 pcnetworkbuffer
 pcs
+pcservice
 pcsource
 pcto
 pd
@@ -617,7 +635,10 @@ pparam
 ppkt
 ppointer
 ppucrecvdata
+ppxaddressinfo
+ppxendpoint
 ppxnetworkbuffer
+ppxresult
 pr
 pre
 printf
@@ -636,6 +657,7 @@ prvcreatednsmessage
 prvdeterminesocketsize
 prvemacdeferredinterrupthandlertask
 prvemachandlertask
+prvfindendpointonnetmask
 prvgethostbyname
 prvhandleestablished
 prvhandlelisten
@@ -645,6 +667,7 @@ prviptask
 prvlinkstatuschange
 prvnotifyqueuesetcontainer
 prvparsednsreply
+prvpreparelookup
 prvprocessdhcpreplies
 prvprocessdnscache
 prvprocessippacket
@@ -683,11 +706,13 @@ pthreads
 ptp
 ptxpkt
 ptz
+pucanswer
 pucbuffer
 pucbyte
 pucdata
 pucethernetbuffer
 pucgetuncachedmemory
+pucid
 pucinterfacename
 pucname
 pucnewbuffer
@@ -723,6 +748,7 @@ pvsource
 pxackmessage
 pxaddr
 pxaddress
+pxaddressinfo
 pxaddresslength
 pxallnetworkinterfaces
 pxanswer
@@ -730,10 +756,13 @@ pxarpframe
 pxbindaddress
 pxbuffer
 pxbufferdescriptor
+pxconfig
 pxdescriptor
 pxdestinationaddress
+pxdhcpmessage
 pxdnsmessageheader
 pxduplicatenetworkbufferwithdescriptor
+pxendpoint
 pxevent
 pxgetnetworkbufferwithdescriptor
 pxhandleconnected
@@ -742,7 +771,9 @@ pxhandlesent
 pxhead
 pxheadsegment
 pxhigherprioritytaskwoken
+pxhints
 pxicmppacket
+pxip
 pxipheader
 pxippacket
 pxiterator
@@ -768,6 +799,7 @@ pxphyobject
 pxprops
 pxprotocolheaders
 pxprotpack
+pxreplyendpoint
 pxsegment
 pxsocket
 pxsocketset
@@ -775,6 +807,7 @@ pxsocketsize
 pxsockettodelete
 pxsourceaddress
 pxsourceaddresslength
+pxsourceendpoint
 pxtcpheader
 pxtcppacket
 pxtcpsocketlookup
@@ -792,6 +825,7 @@ quickstart
 ra
 ramfunc
 randomised
+randomiser
 rbus
 rcomp
 rcv
@@ -815,6 +849,7 @@ reinit
 renesas
 reqlength
 resetpins
+resp
 retrytransmission
 retval
 revents
@@ -999,6 +1034,7 @@ uclen
 uclength
 uclinklayeripaddress
 ucmacaddress
+ucmessagetype
 ucmywinscalefactor
 ucname
 ucnamecode
@@ -1013,6 +1049,8 @@ ucopcode
 ucoptdata
 ucoptionlength
 ucpeerwinscalefactor
+ucpreference
+ucprefixlength
 ucprotocol
 ucprotocoladdresslength
 ucrepcount
@@ -1028,6 +1066,7 @@ uctransmitcount
 uctypeofmessage
 uctypeofservice
 ucvalid
+ucvalue
 ucversionheaderlength
 udp
 ue
@@ -1064,6 +1103,7 @@ ulgatewayaddress
 ulgetruntimecountervalue
 ulhighestrxallowed
 ulhighestsequencenumber
+uliaid
 ulin
 ulindex
 ulinternal
@@ -1093,6 +1133,7 @@ uloffset
 uloptionsdata
 uloursequencenumber
 ulphymask
+ulpreferredlifetime
 ulprocessed
 ulprotocol
 ulreadmdio
@@ -1182,6 +1223,7 @@ ussum
 ustimeout
 ustype
 usurgent
+usvalue
 uswindow
 utf
 uuid
@@ -1199,7 +1241,9 @@ uxflags
 uxfront
 uxhead
 uxheaderlength
+uxhosttype
 uxidentifier
+uxidsize
 uxindex
 uxipheaderlength
 uxipheadersizesocket
@@ -1219,11 +1263,13 @@ uxnumberofbytestosend
 uxoffset
 uxoptionlength
 uxoptionslength
+uxprefixlength
 uxremainingbytes
 uxremainingtime
 uxremaningtime
 uxremoteport
 uxrequestedsizebytes
+uxresult
 uxright
 uxrxstreamsize
 uxrxwinsize
@@ -1262,6 +1308,7 @@ vlantagidentifier
 vlistinitialise
 vlistinitialiseitem
 vmyconnecthandler
+vndrefreshcacheentry
 vnetworkinterfaceallocateramtobuffers
 vportfree
 vprocessgeneratedudppacket
@@ -1290,7 +1337,9 @@ wsopt
 wtxsize
 www
 xaddress
+xaddresses
 xaddressfamily
+xaddressislocal
 xaddresslength
 xapplicationdhcphook
 xapplicationdhcpuserhook
@@ -1323,18 +1372,22 @@ xdescriptorwaittime
 xdestinationaddress
 xdestinationaddresslength
 xdhcpdata
+xdhcpsocket
 xdhcptxperiod
 xdhcptxtime
 xdmarxdescriptors
 xdnsmessage
 xdnssocket
+xdocheck
 xdomain
+xdorandom
 xdumpingready
 xemacps
 xemacpsif
 xemactaskhandle
 xenablestate
 xentries
+xentryfound
 xerrnum
 xethernetheader
 xeventbits
@@ -1342,15 +1395,18 @@ xeventgroup
 xeventgroupwaitbits
 xexpected
 xexpectedmessagetype
+xfamily
 xflags
 xfound
 xfreebufferslist
+xgatewayaddress
 xgetphylinkstatus
 xgivingup
 xgmacswitchrequired
 xhadreception
 xhand
 xhandler
+xhaserror
 xhasspace
 xhassynflag
 xhigherprioritytaskwoken
@@ -1361,6 +1417,7 @@ xicmppacket
 xidentifier
 xilinx
 xinternal
+xipaddress
 xipheader
 xipheadersize
 xiptaskinitialised
@@ -1383,6 +1440,7 @@ xlookup
 xlwipconfig
 xmacaddress
 xmaxtime
+xmessage
 xmicreldevice
 xmitcount
 xnetworkaddressing
@@ -1391,11 +1449,13 @@ xnetworkbufferdescriptor
 xnetworkbuffersemaphore
 xnetworkdowneventpending
 xnetworkeventqueue
+xnetworkinterface
 xnetworkinterfaceinitialise
 xnetworkinterfaceoutput
 xnetworkparams
 xontcpreceive
 xopcode
+xotherislocal
 xoutgoingpacket
 xpacket
 xpacketlist

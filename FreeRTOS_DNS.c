@@ -47,7 +47,6 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_Routing.h"
 
-/*#include "eventLogging.h" */
 static void eventLogAdd( const char * pcFormat,
                          ... )
 {
@@ -296,7 +295,7 @@ static void eventLogAdd( const char * pcFormat,
         const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6 =
         {
             #ifndef _MSC_VER
-                /* MSC doesn't like this C-tyle initialisation. */
+                /* MSC doesn't like this C-style initialisation. */
                 ucBytes :
             #endif
             { /* ff02::1:3 */
@@ -607,7 +606,7 @@ static void eventLogAdd( const char * pcFormat,
                     else if( xTaskCheckForTimeOut( &pxCallback->uxTimeoutState, &( pxCallback->uxRemaningTime ) ) != pdFALSE )
                     {
                         /* A time-out occurred in the asynchronous search.
-                         * Cal the application hook with the proper information. */
+                         * Call the application hook with the proper information. */
                         #if ( ipconfigUSE_IPv6 != 0 )
                             {
                                 pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, NULL );
@@ -979,7 +978,7 @@ static void eventLogAdd( const char * pcFormat,
  * @brief Check if hostname is already known. If not, call prvGetHostByName() to send a DNS request.
  *
  * @param[in] pcHostName: The hostname whose IP address is being queried.
- * @param[in] ppxAddressInfo: A pointer to a pointer where the finc results will
+ * @param[in] ppxAddressInfo: A pointer to a pointer where the find results will
  *                            be stored.
  * @param[in] xFamily: Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
  * @param[in] pCallbackFunction: The callback function which will be called upon DNS response.
@@ -1001,7 +1000,7 @@ static void eventLogAdd( const char * pcFormat,
  *        This function will block to wait for a reply.
  *
  * @param[in] pcHostName: The hostname whose IP address is being queried.
- * @param[in] ppxAddressInfo: A pointer to a pointer where the finc results will
+ * @param[in] ppxAddressInfo: A pointer to a pointer where the find results will
  *                            be stored.
  * @param[in] xFamily: Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
  *
@@ -1053,7 +1052,7 @@ static void eventLogAdd( const char * pcFormat,
              * and return. */
             #if ( ipconfigINCLUDE_FULL_INET_ADDR == 1 )
                 {
-                    /* Check if the hostname given is actually an IP-addresss. */
+                    /* Check if the hostname given is actually an IP-address. */
                     #if ( ipconfigUSE_IPv6 != 0 )
                         if( xFamily == FREERTOS_AF_INET6 )
                         {
@@ -1212,7 +1211,7 @@ static void eventLogAdd( const char * pcFormat,
  * @param[in] uxReadTimeOut_ticks: The timeout in ticks for waiting. In case the user has supplied
  *                                 a call-back function, this value should be zero.
  * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
- *                will be sotred.
+ *                will be stored.
  * @param[in] xFamily: Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
  * @return The IPv4 IP address for the hostname being queried. It will be zero if there is no reply.
  */
@@ -1475,7 +1474,7 @@ static void eventLogAdd( const char * pcFormat,
         const void * pvCopySource;
         void * pvCopyDest;
 
-        /* Althought both pointers have been checked already, some extra
+        /* Although both pointers have been checked already, some extra
          * asserts are added to help the CBMC proofs.. */
         configASSERT( pucUDPPayloadBuffer != NULL );
         configASSERT( pcHostName != NULL );
@@ -2748,7 +2747,7 @@ static void eventLogAdd( const char * pcFormat,
                         ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     }
 
-/*logging*/ FreeRTOS_printf( ( "DNSreturn to %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
+/*logging*/ FreeRTOS_printf( ( "DNS return to %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
 
                     xUDPPacket_IPv6->xUDPHeader.usLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
                     vFlip_16( pxUDPHeader->usSourcePort, pxUDPHeader->usDestinationPort );
@@ -2776,7 +2775,7 @@ static void eventLogAdd( const char * pcFormat,
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
                 {
                     #if ( ipconfigUSE_IPv6 != 0 )
-                        /* IPv6 IP-headers have no checmsum field. */
+                        /* IPv6 IP-headers have no checksum field. */
                         if( ( pxIPHeader->ucVersionHeaderLength & 0xf0U ) != 0x60U )
                     #endif
                     {
@@ -2816,7 +2815,7 @@ static void eventLogAdd( const char * pcFormat,
 
                 if( ucNumIPAddresses > ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY )
                 {
-                    /* Make this a conigSEERT()? */
+                    /* Make this a configASSERT()? */
                     ucNumIPAddresses = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
                 }
             #endif /* ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 ) */
@@ -2869,7 +2868,7 @@ static void eventLogAdd( const char * pcFormat,
  * @param[in] ulTTL: Time To Live
  * @param[in] xLookUp: pdTRUE if a look-up is expected, pdFALSE, when the DNS cache must
  *                     be updated.
- * @param[in,out] ppxAddressInfo: A poniter to a pointer where the find results
+ * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
  *                                will be stored.
  *
  * @return
