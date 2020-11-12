@@ -49,7 +49,7 @@
  *
  * @param[in] pxConfig: The structure containing a copy of the bits.
  * @param[in] uxSize: The length of the binary data stream.
- * @param[in] pucData: Not NULL if a bitstream must be analysed, otherwise NULL.
+ * @param[in] pucData: Not NULL if a bit-stream must be analysed, otherwise NULL.
  *
  * @return pdTRUE if the malloc was OK, otherwise pdFALSE.
  */
@@ -91,7 +91,7 @@ BaseType_t xBitConfig_init( BitCOnfig_t * pxConfig,
  *
  * @param[in] pxConfig: The structure containing a copy of the bits.
  * @param[in] uxSize: The length of the binary data stream.
- * @param[in] pucData: Not NULL if a bitstream must be analysed, otherwise NULL.
+ * @param[in] pucData: Not NULL if a bit-stream must be analysed, otherwise NULL.
  *
  * @return pdTRUE if the malloc was OK, otherwise pdFALSE.
  */
