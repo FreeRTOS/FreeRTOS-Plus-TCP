@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.0
+ * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -36,7 +36,7 @@
     #include "IPTraceMacroDefaults.h"
 
 /* Some constants defining the sizes of several parts of a packet.
- * These defines come before inlucding the configuration header files. */
+ * These defines come before including the configuration header files. */
     #define ipSIZE_OF_ETH_HEADER       14U
     #define ipSIZE_OF_IPv4_HEADER      20U
     #define ipSIZE_OF_IPv6_HEADER      40U
@@ -353,7 +353,7 @@
                                     const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                                     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 
-/* The following 2 functions also assume that there is only 1 betwork interface.
+/* The following 2 functions also assume that there is only 1 network interface.
  * The new function are called: FreeRTOS_GetEndPointConfiguration() and
  * FreeRTOS_SetEndPointConfiguration(), see below. */
         void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,

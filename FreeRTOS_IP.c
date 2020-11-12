@@ -3373,7 +3373,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
             }
             else
             {
-                /* This is incoming packete and doesn't need denug logging. */
+                /* This is an incoming packet and it doesn't need debug logging. */
             }
         #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
     } while( ipFALSE_BOOL );
