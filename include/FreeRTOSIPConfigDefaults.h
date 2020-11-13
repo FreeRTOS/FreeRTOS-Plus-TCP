@@ -132,7 +132,7 @@
 #endif
 
 #ifdef ipconfigDHCP_USES_USER_HOOK
-    #error ipconfigDHCP_USES_USER_HOOK and its associated callback have been superceeded - see http: /*www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK */
+    #error ipconfigDHCP_USES_USER_HOOK and its associated callback have been superseded - see http: /*www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK */
 #endif
 
 #ifndef ipconfigUSE_TCP
@@ -332,7 +332,7 @@
 
 #ifndef ipconfigUDP_MAX_RX_PACKETS
 
-/* Make postive to define the maximum number of packets which will be buffered
+/* Make positive to define the maximum number of packets which will be buffered
  * for each UDP socket.
  * Can be overridden with the socket option FREERTOS_SO_UDP_MAX_RX_PACKETS
  */
@@ -369,7 +369,7 @@
 
 /* RA or Router Advertisement/SLAAC: see end-point flag 'bWantRA'.
  * An Router Solicitation will be sent. It will wait for ipconfigRA_SEARCH_TIME_OUT_MSEC ms.
- * When there is no reponse, it will be repeated ipconfigRA_SEARCH_COUNT times.
+ * When there is no response, it will be repeated ipconfigRA_SEARCH_COUNT times.
  * Then it will be checked if the chosen IP-address already exists, repeating this
  * ipconfigRA_IP_TEST_COUNT times, each time with a timeout of ipconfigRA_IP_TEST_TIME_OUT_MSEC ms.
  * Finally the end-point will go in the UP state.

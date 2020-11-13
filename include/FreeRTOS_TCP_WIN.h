@@ -35,7 +35,7 @@
         extern "C" {
     #endif
 
-/** @brief A very simple timer that registers the time that a packet was sent.  It is used to trigger resending. */
+/** @brief A very simple timer that registers the time that a packet was sent.  It is used to trigger re-sending. */
     typedef struct xTCPTimerStruct
     {
         uint32_t ulBorn; /**< The time at which a packet was send ( using xTaskGetTickCount() ). */

@@ -737,6 +737,7 @@ pucanswer
 pucbuffer
 pucbyte
 pucdata
+pucdescription
 pucethernetbuffer
 pucgetuncachedmemory
 pucid
@@ -1066,6 +1067,7 @@ ucdnsserver
 ucdnsserveraddress
 ucdupackcount
 ucduplex
+ucflags
 ucgatewayaddress
 uchardwareaddresslength
 uchasuid
