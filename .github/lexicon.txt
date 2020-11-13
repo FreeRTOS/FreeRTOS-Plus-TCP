@@ -1327,6 +1327,7 @@ uxstreambuffermidspace
 uxtail
 uxtargetindex
 uxtaskgetsystemstate
+uxtickstowait
 uxtimeout
 uxtimeoutstate
 uxtotaldatalength
