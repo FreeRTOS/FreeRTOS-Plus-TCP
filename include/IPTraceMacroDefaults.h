@@ -140,6 +140,10 @@
     #define iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( ulIPAddress )
 #endif
 
+#ifndef iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS
+    #define iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS( xIPAddress )
+#endif
+
 #ifndef iptraceSENDING_DHCP_DISCOVER
     #define iptraceSENDING_DHCP_DISCOVER()
 #endif
@@ -150,6 +154,14 @@
 
 #ifndef iptraceDHCP_SUCCEDEED
     #define iptraceDHCP_SUCCEDEED( address )
+#endif
+
+#ifndef iptraceRA_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS
+    #define iptraceRA_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( ipv6_address )
+#endif
+
+#ifndef iptraceRA_SUCCEDEED
+    #define iptraceRA_SUCCEDEED( ipv6_address )
 #endif
 
 #ifndef iptraceNETWORK_INTERFACE_TRANSMIT
@@ -200,10 +212,6 @@
     #define iptraceSENDTO_DATA_TOO_LONG()
 #endif
 
-#ifndef ipconfigUSE_TCP_MEM_STATS
-    #define ipconfigUSE_TCP_MEM_STATS    0
-#endif
-
 #if ( ipconfigUSE_TCP_MEM_STATS == 0 )
 
 /* See tools/tcp_mem_stat.c */
@@ -222,17 +230,9 @@
 
 #endif /* ( ipconfigUSE_TCP_MEM_STATS != 0 ) */
 
-#ifndef ipconfigUSE_DUMP_PACKETS
-    #define ipconfigUSE_DUMP_PACKETS    0
-#endif
-
 #if ( ipconfigUSE_DUMP_PACKETS == 0 )
 
 /* See tools/tcp_dump_packets.c */
-
-    #ifndef iptraceDUMP_INIT
-        #define iptraceDUMP_INIT( pcFileName, pxEntries )
-    #endif
 
     #ifndef iptraceDUMP_PACKET
         #define iptraceDUMP_PACKET( pucBuffer, uxLength, xIncoming )
