@@ -65,9 +65,9 @@
         struct
         {
             uint32_t
-                bInterfaceUp : 1,             /**< Non-zero as soonas the interface is up. */
+                bInterfaceUp : 1,             /**< Non-zero as soon as the interface is up. */
                 bCallDownEvent : 1;           /**< The down-event must be called. */
-        } bits;                               /**< A collection fo bollean flags. */
+        } bits;                               /**< A collection of boolean flags. */
 
         struct xNetworkEndPoint * pxEndPoint; /**< A list of end-points bound to this interface. */
         struct xNetworkInterface * pxNext;    /**< The next interface in a linked list. */
@@ -135,7 +135,7 @@
         typedef struct xRA_DATA RAData_t;
     #endif /* ( ipconfigUSE_RA != 0 ) */
 
-/** @brief The description of an dend-point. */
+/** @brief The description of an end-point. */
     typedef struct xNetworkEndPoint
     {
         union

@@ -499,7 +499,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
         /*_RB_ Presumably then a broadcast reply could go out on a different end point to that on
          * which the broadcast was received - although that should not be an issue if the nodes are
-         * on the same LAN it could be an issue if the nodes are on separate LANs. */
+         * on the same LAN it could be an issue if the nodes are on separate LAN's. */
 
         while( pxEndPoint != NULL )
         {
