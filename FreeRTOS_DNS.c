@@ -864,7 +864,7 @@
  * @param[out] ppxResult: An allocated struct, containing the results.
  * @param[in] pCallback: A user-defined function which will be called on completion, either when found or after a time-out.
  * @param[in] pvSearchID: A user provided void pointer that will be communicated on completion.
- * @param[in] uxTimeout: The maximum numer of tick that must be waited for a reply.
+ * @param[in] uxTimeout: The maximum number of clock ticks that must be waited for a reply.
  *
  * @return Zero when the operation was successful, otherwise a negative errno value.
  */

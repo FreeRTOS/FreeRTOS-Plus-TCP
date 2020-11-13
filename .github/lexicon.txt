@@ -325,6 +325,7 @@ fromisr
 fsrxdesc
 fuf
 func
+getaddrinfo
 gethostbyname
 getnetworkbuffer
 getnetworkbufferwithdescriptor
@@ -729,6 +730,7 @@ pthreads
 ptp
 ptxpkt
 ptz
+pucaddress
 pucanswer
 pucbuffer
 pucbyte
