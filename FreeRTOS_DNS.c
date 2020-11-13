@@ -47,12 +47,6 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_Routing.h"
 
-static void eventLogAdd( const char * pcFormat,
-                         ... )
-{
-    ( void ) pcFormat;
-}
-
 /* Exclude the entire file if DNS is not enabled. */
 #if ( ipconfigUSE_DNS != 0 )
 
@@ -383,7 +377,7 @@ static void eventLogAdd( const char * pcFormat,
     }
     #include "pack_struct_end.h"
     typedef struct xDNSAnswerRecord DNSAnswerRecord_t;
-/* this is for debugging only. */
+/** @brief this is for debugging only. */
     static struct freertos_addrinfo * pxLastInfo = NULL;
 
 
@@ -647,6 +641,8 @@ static void eventLogAdd( const char * pcFormat,
         }
         /*-----------------------------------------------------------*/
 
+        #if ( ipconfigUSE_IPv6 != 0 )
+
 /**
  * @brief FreeRTOS_gethostbyname_a() was called along with callback parameters.
  *        Store them in a list for later reference.
@@ -658,7 +654,6 @@ static void eventLogAdd( const char * pcFormat,
  * @param[in] uxIdentifier: Random number used as ID in the DNS message.
  * @param[in] xIsIPv6: pdTRUE if the address type should be IPv6.
  */
-        #if ( ipconfigUSE_IPv6 != 0 )
             static void vDNSSetCallBack( const char * pcHostName,
                                          void * pvSearchID,
                                          FOnDNSEvent pCallbackFunction,
@@ -666,6 +661,17 @@ static void eventLogAdd( const char * pcFormat,
                                          TickType_t uxIdentifier,
                                          BaseType_t xIsIPv6 )
         #else
+
+/**
+ * @brief FreeRTOS_gethostbyname_a() was called along with callback parameters.
+ *        Store them in a list for later reference.
+ *
+ * @param[in] pcHostName: The hostname whose IP address is being searched for.
+ * @param[in] pvSearchID: The search ID of the DNS callback function to set.
+ * @param[in] pCallbackFunction: The callback function pointer.
+ * @param[in] uxTimeout: Timeout of the callback function.
+ * @param[in] uxIdentifier: Random number used as ID in the DNS message.
+ */
             static void vDNSSetCallBack( const char * pcHostName,
                                          void * pvSearchID,
                                          FOnDNSEvent pCallbackFunction,
@@ -814,8 +820,6 @@ static void eventLogAdd( const char * pcFormat,
         /* 'xFamily' might not be used when IPv6 is disabled. */
         ( void ) xFamily;
         pxAddrInfo = ipPOINTER_CAST( struct freertos_addrinfo *, pvPortMalloc( sizeof( *pxAddrInfo ) ) );
-
-        eventLogAdd( "ADDR Create %p", pxAddrInfo );
 
         if( pxAddrInfo != NULL )
         {
@@ -967,7 +971,6 @@ static void eventLogAdd( const char * pcFormat,
         while( pxInfo != NULL )
         {
             pxNext = pxInfo->ai_next;
-            eventLogAdd( "ADDR Delete %p", pxInfo );
             vPortFree( pxInfo );
             pxInfo = pxNext;
         }
@@ -1785,10 +1788,10 @@ static void eventLogAdd( const char * pcFormat,
     }
 /*-----------------------------------------------------------*/
 
-/* The function below will only be called :
- * when ipconfigDNS_USE_CALLBACKS == 1
- * when ipconfigUSE_LLMNR == 1
- * for testing purposes, by the module test_freertos_tcp.c
+/**
+ * @brief For testing purposes: print a list of DNS replies.
+ *
+ * @param[in] pxAddress: The first reply received ( or NULL )
  */
     extern void show_addressinfo( struct freertos_addrinfo * pxAddress );
 
@@ -1903,6 +1906,14 @@ static void eventLogAdd( const char * pcFormat,
 /*-----------------------------------------------------------*/
 
     #if ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) )
+
+/**
+ * @brief Find the best matching end-point given a reply that was received.
+ *
+ * @param[in] pxNetworkBuffer: The Ethernet packet that was received.
+ *
+ * @return An end-point.
+ */
         static NetworkEndPoint_t * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer )
         {
             NetworkEndPoint_t * pxEndPoint;

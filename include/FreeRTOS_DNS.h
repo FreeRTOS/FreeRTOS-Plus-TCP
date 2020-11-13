@@ -82,7 +82,7 @@
             #endif
             char ucName[ ipconfigDNS_CACHE_NAME_LENGTH ];
         }
-        xPrivateStorage;
+        xPrivateStorage; /**< In order to avoid extra calls to malloc, the necessary space is reserve 'statically'. */
     };
 
 /*
