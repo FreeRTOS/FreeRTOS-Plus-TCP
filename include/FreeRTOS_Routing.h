@@ -54,24 +54,23 @@
 /* Return true as long as the LinkStatus on the PHY is present. */
     typedef BaseType_t ( * GetPhyLinkStatusFunction_t ) ( struct xNetworkInterface * /* pxDescriptor */ );
 
-/* These NetworkInterface access functions are collected in a struct: */
-
+/** @brief These NetworkInterface access functions are collected in a struct: */
     typedef struct xNetworkInterface
     {
-        const char * pcName; /* Just for logging, debugging. */
-        void * pvArgument;   /* Will be passed to the access functions. */
-        NetworkInterfaceInitialiseFunction_t pfInitialise;
-        NetworkInterfaceOutputFunction_t pfOutput;
-        GetPhyLinkStatusFunction_t pfGetPhyLinkStatus;
+        const char * pcName;                               /**< Just for logging, debugging. */
+        void * pvArgument;                                 /**< Will be passed to the access functions. */
+        NetworkInterfaceInitialiseFunction_t pfInitialise; /**< This function will be called upon initialisation and repeated until it returns pdPASS. */
+        NetworkInterfaceOutputFunction_t pfOutput;         /**< This function is supposed to send out a packet. */
+        GetPhyLinkStatusFunction_t pfGetPhyLinkStatus;     /**< This function will return pdTRUE as long as the PHY Link Status is high. */
         struct
         {
             uint32_t
-                bInterfaceUp : 1,
-                bCallDownEvent : 1;
+                bInterfaceUp : 1,    /**< Non-zero as soonas the interface is up. */
+                bCallDownEvent : 1;  /**< The down-event must be called. */
         } bits;
 
-        struct xNetworkEndPoint * pxEndPoint;
-        struct xNetworkInterface * pxNext;
+        struct xNetworkEndPoint * pxEndPoint;  /**< A list of end-points bound to this interface. */
+        struct xNetworkInterface * pxNext;     /**< The next interface in a linked list. */
     } NetworkInterface_t;
 
 /*
@@ -335,15 +334,15 @@
                                          const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
     #endif
 
+/** @brief Some simple network statistics. */
     typedef struct xRoutingStats
     {
-        UBaseType_t ulOnIp;
-        UBaseType_t ulOnMAC;
-        UBaseType_t ulOnNetMask;
-        UBaseType_t ulDefault;
-        UBaseType_t ulMatching;
-        UBaseType_t ulLocations[ 14 ];
-        UBaseType_t ulLocationsIP[ 8 ];
+        UBaseType_t ulOnIp;                /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called. */
+        UBaseType_t ulOnMAC;               /**< The number of times 'FreeRTOS_FindEndPointOnMAC()' has been called. */
+        UBaseType_t ulOnNetMask;           /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called. */
+        UBaseType_t ulMatching;            /**< The number of times 'FreeRTOS_MatchingEndpoint()' has been called. */
+        UBaseType_t ulLocations[ 14 ];     /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called from a particular location. */
+        UBaseType_t ulLocationsIP[ 8 ];    /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called from a particular location. */
     } RoutingStats_t;
 
     extern RoutingStats_t xRoutingStats;
