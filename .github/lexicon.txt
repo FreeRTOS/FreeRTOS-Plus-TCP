@@ -806,6 +806,7 @@ pxicmppacket
 pxinfo
 pxinterface
 pxip
+pxipaddress
 pxipheader
 pxippacket
 pxiterator
@@ -1256,6 +1257,7 @@ usmssinit
 usnbflags
 usnumarecordsstored
 usoperation
+usoption
 usourportnumber
 uspayloadlength
 uspeerportnumber
@@ -1268,6 +1270,7 @@ usrequestid
 ussequencenumber
 ussourceport
 ussum
+ustime
 ustimeout
 ustype
 usurgent
@@ -1307,6 +1310,7 @@ uxlower
 uxmax
 uxmaxcount
 uxmaxpackets
+uxmessagetype
 uxmid
 uxnamelen
 uxnewlength
@@ -1348,9 +1352,11 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
+varpsendgratuitous
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
+vdhcpprocessendpoint
 vdnsinitialise
 vdnssetcallback
 ve
@@ -1533,6 +1539,7 @@ xpqueue
 xprefix
 xprefixaddress
 xpriorityqueue
+xprivatestorage
 xprocessreceivedtcppacket
 xprocessreceivedudppacket
 xprotocol
