@@ -161,10 +161,10 @@
     #include "pack_struct_start.h"
     struct xIGMP_HEADER
     {
-        uint8_t ucVersionType;     /* 0 + 1 = 1 */
-        uint8_t ucMaxResponseTime; /* 1 + 1 = 2 */
-        uint16_t usChecksum;       /* 2 + 2 = 4 */
-        uint32_t usGroupAddress;   /* 4 + 4 = 8 */
+        uint8_t ucVersionType;     /**< The ICMP type           0 + 1 = 1 */
+        uint8_t ucMaxResponseTime; /**< Maximum response time   1 + 1 = 2 */
+        uint16_t usChecksum;       /**< Checksum                2 + 2 = 4 */
+        uint32_t usGroupAddress;   /**< The group address       4 + 4 = 8 */
     }
     #include "pack_struct_end.h"
     typedef struct xIGMP_HEADER IGMPHeader_t;
@@ -194,14 +194,14 @@
         #include "pack_struct_start.h"
         struct xICMPHeader_IPv6
         {
-            uint8_t ucTypeOfMessage;      /*  0 +  1 = 1 */
-            uint8_t ucTypeOfService;      /*  1 +  1 = 2 */
-            uint16_t usChecksum;          /*  2 +  2 = 4 */
-            uint32_t ulReserved;          /*  4 +  4 = 8 */
-            IPv6_Address_t xIPv6_Address; /*  8 + 16 = 24 */
-            uint8_t ucOptionType;         /* 24 +  1 = 25 */
-            uint8_t ucOptionLength;       /* 25 +  1 = 26 */
-            uint8_t ucOptionBytes[ 6 ];   /* 26 +  6 = 32 */
+            uint8_t ucTypeOfMessage;      /**< The message type.     0 +  1 = 1 */
+            uint8_t ucTypeOfService;      /**< Type of service.      1 +  1 = 2 */
+            uint16_t usChecksum;          /**< Checksum.             2 +  2 = 4 */
+            uint32_t ulReserved;          /**< Reserved.             4 +  4 = 8 */
+            IPv6_Address_t xIPv6_Address; /**< The IPv6 address.     8 + 16 = 24 */
+            uint8_t ucOptionType;         /**< The option type.     24 +  1 = 25 */
+            uint8_t ucOptionLength;       /**< The option length.   25 +  1 = 26 */
+            uint8_t ucOptionBytes[ 6 ];   /**< Option bytes.        26 +  6 = 32 */
         }
         #include "pack_struct_end.h"
         typedef struct xICMPHeader_IPv6 ICMPHeader_IPv6_t;
@@ -211,11 +211,11 @@
         #include "pack_struct_start.h"
         struct xICMPEcho_IPv6
         {
-            uint8_t ucTypeOfMessage;   /*  0 +  1 = 1 */
-            uint8_t ucTypeOfService;   /*  1 +  1 = 2 */
-            uint16_t usChecksum;       /*  2 +  2 = 4 */
-            uint16_t usIdentifier;     /*  4 +  2 = 6 */
-            uint16_t usSequenceNumber; /*  6 +  2 = 8 */
+            uint8_t ucTypeOfMessage;   /**< The message type.     0 +  1 = 1 */
+            uint8_t ucTypeOfService;   /**< Type of service.      1 +  1 = 2 */
+            uint16_t usChecksum;       /**< Checksum.             2 +  2 = 4 */
+            uint16_t usIdentifier;     /**< Identifier.           4 +  2 = 6 */
+            uint16_t usSequenceNumber; /**< Sequence number.      6 +  2 = 8 */
         }
         #include "pack_struct_end.h"
         typedef struct xICMPEcho_IPv6 ICMPEcho_IPv6_t;
@@ -300,11 +300,11 @@
     #include "pack_struct_start.h"
     struct xPSEUDO_HEADER
     {
-        uint32_t ulSourceAddress;
-        uint32_t ulDestinationAddress;
-        uint8_t ucZeros;
-        uint8_t ucProtocol;
-        uint16_t usUDPLength;
+        uint32_t ulSourceAddress;        /**< Source IP-address. */
+        uint32_t ulDestinationAddress;   /**< Destination IP-address. */
+        uint8_t ucZeros;                 /**< A byte with value zero ( filler ). */
+        uint8_t ucProtocol;              /**< The protocol. */
+        uint16_t usUDPLength;            /**< The UDP length. */
     }
     #include "pack_struct_end.h"
     typedef struct xPSEUDO_HEADER PseudoHeader_t;
@@ -583,18 +583,6 @@
 
 /* The offset into an IP packet into which the IP data (payload) starts. */
     #define ipIP_PAYLOAD_OFFSET                  ( sizeof( IPPacket_t ) )
-
-    #include "pack_struct_start.h"
-    struct xUDP_IP_FRAGMENT_PARAMETERS
-    {
-        uint8_t ucSocketOptions;
-        uint8_t ucPadFor16BitAlignment;
-        uint16_t usFragmentedPacketOffset;
-        uint16_t usFragmentLength;
-        uint16_t usPayloadChecksum;
-    }
-    #include "pack_struct_end.h"
-    typedef struct xUDP_IP_FRAGMENT_PARAMETERS IPFragmentParameters_t;
 
     #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
 
@@ -973,10 +961,10 @@
         {
             uint32_t
             #if ( ipconfigUSE_IPv6 != 0 )
-                bIsIPv6 : 1,
+                bIsIPv6 : 1,   /**< Non-zero in case the connection is using IPv6. */
             #endif /* ipconfigUSE_IPv6 */
             bSomeFlag : 1;
-        } bits;
+        } bits; /**< A collection of bollean properties. */
 
         ListItem_t xBoundSocketListItem; /**< Used to reference the socket from a bound sockets list. */
         TickType_t xReceiveBlockTime;    /**< if recv[to] is called while no data is available, wait this amount of time. Unit in clock-ticks */
@@ -1003,7 +991,7 @@
             EventBits_t xSocketBits;          /**< These bits indicate the events which have actually occurred.
                                                * They are maintained by the IP-task */
         #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
-        struct xNetworkEndPoint * pxEndPoint;
+        struct xNetworkEndPoint * pxEndPoint;  /**< The end-point to which the socket is bound. */
         /* TCP/UDP specific fields: */
         /* Before accessing any member of this structure, it should be confirmed */
         /* that the protocol corresponds with the type of structure */

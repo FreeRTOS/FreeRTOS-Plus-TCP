@@ -45,7 +45,7 @@
     typedef void ( * vTraceAction_t )( uint32_t *,
                                        uint32_t );
 
-/* Type that defines each statistic being gathered. */
+/** @brief Type that defines each statistic being gathered. */
     typedef struct ExampleDebugStatEntry
     {
         uint8_t ucIdentifier;                 /* Unique identifier for statistic. */
