@@ -65,12 +65,12 @@
         struct
         {
             uint32_t
-                bInterfaceUp : 1,    /**< Non-zero as soonas the interface is up. */
-                bCallDownEvent : 1;  /**< The down-event must be called. */
-        } bits;
+                bInterfaceUp : 1,             /**< Non-zero as soonas the interface is up. */
+                bCallDownEvent : 1;           /**< The down-event must be called. */
+        } bits;                               /**< A collection fo bollean flags. */
 
-        struct xNetworkEndPoint * pxEndPoint;  /**< A list of end-points bound to this interface. */
-        struct xNetworkInterface * pxNext;     /**< The next interface in a linked list. */
+        struct xNetworkEndPoint * pxEndPoint; /**< A list of end-points bound to this interface. */
+        struct xNetworkInterface * pxNext;    /**< The next interface in a linked list. */
     } NetworkInterface_t;
 
 /*
@@ -84,13 +84,14 @@
  *  };
  */
 
+/** @brief The network settings for IPv4. */
     typedef struct xIPV4Parameters
     {
-        uint32_t ulIPAddress; /* The actual IPv4 address. Will be 0 as long as end-point is still down. */
-        uint32_t ulNetMask;
-        uint32_t ulGatewayAddress;
-        uint32_t ulDNSServerAddresses[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ];
-        uint32_t ulBroadcastAddress;
+        uint32_t ulIPAddress;                                                /**< The actual IPv4 address. Will be 0 as long as end-point is still down. */
+        uint32_t ulNetMask;                                                  /**< The netmask. */
+        uint32_t ulGatewayAddress;                                           /**< The IP-address of the gateway. */
+        uint32_t ulDNSServerAddresses[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ]; /**< IP-addresses of DNS servers. */
+        uint32_t ulBroadcastAddress;                                         /**< The local broadcast address, e.g. '192.168.1.255'. */
     } IPV4Parameters_t;
 
     #if ( ipconfigUSE_IPv6 != 0 )
@@ -134,20 +135,21 @@
         typedef struct xRA_DATA RAData_t;
     #endif /* ( ipconfigUSE_RA != 0 ) */
 
+/** @brief The description of an dend-point. */
     typedef struct xNetworkEndPoint
     {
         union
         {
             struct
             {
-                IPV4Parameters_t ipv4_settings;
-                IPV4Parameters_t ipv4_defaults; /* Use values form "ipv4_default" in case DHCP has failed. */
+                IPV4Parameters_t ipv4_settings; /**< Actual IPv4 settings used by the end-point. */
+                IPV4Parameters_t ipv4_defaults; /**< Use values form "ipv4_defaults" in case DHCP has failed. */
             };
             #if ( ipconfigUSE_IPv6 != 0 )
                 struct
                 {
-                    IPV6Parameters_t ipv6_settings;
-                    IPV6Parameters_t ipv6_defaults; /* Use values form "ipv4_default" in case DHCP has failed. */
+                    IPV6Parameters_t ipv6_settings; /**< Actual IPv6 settings used by the end-point. */
+                    IPV6Parameters_t ipv6_defaults; /**< Use values form "ipv6_defaults" in case DHCP has failed. */
                 };
             #endif
         };
@@ -155,35 +157,35 @@
         struct
         {
             uint32_t
-                bIsDefault : 1,
+                bIsDefault : 1, /**< This bit will be removed. */
             #if ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 )
-                bWantDHCP : 1,
+                bWantDHCP : 1,  /**< This end-point wants to use DHCPv4 to obtain an IP-address. */
             #endif /* ipconfigUSE_DHCP */
             #if ( ipconfigUSE_RA != 0 )
-                bWantRA : 1,
+                bWantRA : 1, /**< This end-point wants to use RA/SLAAC to obtain an IP-address. */
             #endif /* ipconfigUSE_RA */
             #if ( ipconfigUSE_IPv6 != 0 )
-                bIPv6 : 1,
+                bIPv6 : 1, /**< This end-point has an IP-address of type IPv6. */
             #endif /* ipconfigUSE_IPv6 */
             #if ( ipconfigUSE_NETWORK_EVENT_HOOK != 0 )
-                bCallDownHook : 1,
+                bCallDownHook : 1, /**< The network down hook-must be called for this end-point. */
             #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
-            bEndPointUp : 1;
+            bEndPointUp : 1;       /**< The end-point is up. */
         } bits;
         #if ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_RA != 0 )
-            IPTimer_t xDHCP_RATimer;
+            IPTimer_t xDHCP_RATimer; /**<  The timer used to call the DHCP/DHCPv6/RA state machine. */
         #endif /* ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_RA != 0 ) */
         #if ( ipconfigUSE_DHCP != 0 )
-            DHCPData_t xDHCPData;
+            DHCPData_t xDHCPData; /**< A description of the DHCP client state machine. */
         #endif /* ( ipconfigUSE_DHCP != 0 ) */
         #if ( ipconfigUSE_IPv6 != 0 )
-            DHCPMessage_IPv6_t * pxDHCPMessage;
+            DHCPMessage_IPv6_t * pxDHCPMessage; /**< A description of the DHCPv6 client state machine. */
         #endif
         #if ( ipconfigUSE_RA != 0 )
-            RAData_t xRAData;
+            RAData_t xRAData;                    /**< A description of the Router Advertisement ( RA ) client state machine. */
         #endif /* ( ipconfigUSE_RA != 0 ) */
-        NetworkInterface_t * pxNetworkInterface;
-        struct xNetworkEndPoint * pxNext;
+        NetworkInterface_t * pxNetworkInterface; /**< The network interface that owns this end-point. */
+        struct xNetworkEndPoint * pxNext;        /**< The next end-point in the chain. */
     } NetworkEndPoint_t;
 
 
@@ -337,12 +339,12 @@
 /** @brief Some simple network statistics. */
     typedef struct xRoutingStats
     {
-        UBaseType_t ulOnIp;                /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called. */
-        UBaseType_t ulOnMAC;               /**< The number of times 'FreeRTOS_FindEndPointOnMAC()' has been called. */
-        UBaseType_t ulOnNetMask;           /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called. */
-        UBaseType_t ulMatching;            /**< The number of times 'FreeRTOS_MatchingEndpoint()' has been called. */
-        UBaseType_t ulLocations[ 14 ];     /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called from a particular location. */
-        UBaseType_t ulLocationsIP[ 8 ];    /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called from a particular location. */
+        UBaseType_t ulOnIp;             /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called. */
+        UBaseType_t ulOnMAC;            /**< The number of times 'FreeRTOS_FindEndPointOnMAC()' has been called. */
+        UBaseType_t ulOnNetMask;        /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called. */
+        UBaseType_t ulMatching;         /**< The number of times 'FreeRTOS_MatchingEndpoint()' has been called. */
+        UBaseType_t ulLocations[ 14 ];  /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called from a particular location. */
+        UBaseType_t ulLocationsIP[ 8 ]; /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called from a particular location. */
     } RoutingStats_t;
 
     extern RoutingStats_t xRoutingStats;
