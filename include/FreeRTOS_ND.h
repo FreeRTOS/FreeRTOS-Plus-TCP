@@ -69,7 +69,7 @@
 
         #endif /* ipconfigUSE_ARP_REMOVE_ENTRY != 0 */
 
-/* Options that can be send after the ICMPv6 header. */
+/* Options that can be sent after the ICMPv6 header. */
         #define ndICMP_SOURCE_LINK_LAYER_ADDRESS    1
         #define ndICMP_TARGET_LINK_LAYER_ADDRESS    2
         #define ndICMP_PREFIX_INFORMATION           3
