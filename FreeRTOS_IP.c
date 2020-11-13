@@ -1693,13 +1693,15 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
 /**
- * @brief Send a ICMP ping request.
+ * @brief Send a ping request to the given IP address. After receiving a reply,
+ *        IP-task will call a user-supplied function 'vApplicationPingReplyHook()'.
  *
- * @param[in] ulIPAddress: The IP-address of the host.
- * @param[in] uxNumberOfBytesToSend: The number of user bytes in the ping message.
- * @param[in] uxBlockTimeTicks: The maximum time ( clock-ticks ) to wait in case the message queue is full.
+ * @param[in] ulIPAddress: The IP address to which the ping is to be sent.
+ * @param[in] uxNumberOfBytesToSend: Number of bytes in the ping request.
+ * @param[in] uxBlockTimeTicks: Maximum number of ticks to wait.
  *
- * @return Either a sequence number, or pdFAIL in case the packet could not be created or sent.
+ * @return If successfully sent to IP task for processing then the sequence
+ *         number of the ping packet or else, pdFAIL.
  */
     BaseType_t FreeRTOS_SendPingRequest( uint32_t ulIPAddress,
                                          size_t uxNumberOfBytesToSend,
