@@ -1406,7 +1406,7 @@
                     pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( sizeof( TCPHeader_t ) );
                     pxIPHeader_IPv6->ucNextHeader = ( uint8_t ) ipPROTOCOL_TCP;
                     pxIPHeader_IPv6->ucHopLimit = 128;
-                    /* Source ande Destination address will be swapped later. */
+                    /* The Source and Destination addresses will be swapped later. */
                     ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxSocket->u.xTCP.xRemoteIP_IPv6.ucBytes, sizeof pxIPHeader_IPv6->xSourceAddress.ucBytes );
                     ( void ) memcpy( pxIPHeader_IPv6->xDestinationAddress.ucBytes, pxSocket->xLocalAddress_IPv6.ucBytes, sizeof pxIPHeader_IPv6->xDestinationAddress.ucBytes );
                     pxEndPoint = pxSocket->pxEndPoint;
