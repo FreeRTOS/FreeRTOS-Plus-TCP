@@ -462,7 +462,7 @@ static void prvIPTask( void * pvParameters )
 
     #if ( ipconfigDNS_USE_CALLBACKS != 0 )
         {
-            /* The following function is declared in FreeRTOS_DNS.c	and 'private' to
+            /* The following function is declared in FreeRTOS_DNS.c and 'private' to
              * this library */
             vDNSInitialise();
         }
@@ -1175,7 +1175,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPv6 == 1 )
 
 /**
  * @brief Obtain a buffer big enough for a UDP payload of given size.
@@ -1191,7 +1191,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
     void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                          TickType_t uxBlockTimeTicks,
                                          uint8_t ucIPType )
-#else
+#else /* #if ( ipconfigUSE_IPv6 == 1 ) */
 
 /**
  * @brief Obtain a buffer big enough for a UDP payload of given size.
@@ -1203,8 +1203,9 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
  * @return If a buffer was created then the pointer to that buffer is returned,
  *         else a NULL pointer is returned.
  */
-    void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes, TickType_t uxBlockTimeTicks )
-#endif /* #if ( ipconfigUSE_IPv6 != 0 ) */
+    void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
+                                         TickType_t uxBlockTimeTicks )
+#endif /* #if ( ipconfigUSE_IPv6 == 1 ) */
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     void * pvReturn;
@@ -2246,7 +2247,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
             /* The frame is not being used anywhere, and the
              * NetworkBufferDescriptor_t structure containing the frame should
-             * just be	released back to the list of free buffers. */
+             * just be released back to the list of free buffers. */
             vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
             break;
     }
