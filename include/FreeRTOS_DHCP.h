@@ -34,14 +34,14 @@
     #include "FreeRTOSIPConfig.h"
     #include "IPTraceMacroDefaults.h"
 
-/* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
+/** @brief Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
     typedef enum eDHCP_PHASE
     {
         eDHCPPhasePreDiscover, /**< Driver is about to send a DHCP discovery. */
         eDHCPPhasePreRequest   /**< Driver is about to request DHCP an IP address. */
     } eDHCPCallbackPhase_t;
 
-/* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
+/** @brief Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
     typedef enum eDHCP_ANSWERS
     {
         eDHCPContinue,      /**< Continue the DHCP process */
@@ -49,7 +49,7 @@
         eDHCPStopNoChanges, /**< Stop DHCP and continue with current settings. */
     } eDHCPCallbackAnswer_t;
 
-/* DHCP state machine states. */
+/** @brief DHCP state machine states. */
     typedef enum
     {
         eInitialWait = 0,          /**< Initial state: open a socket and wait a short time. */
@@ -63,7 +63,7 @@
         eNotUsingLeasedAddress     /**< DHCP failed, and a default IP address is being used. */
     } eDHCPState_t;
 
-/* Hold information in between steps in the DHCP state machine. */
+/** @brief Hold information in between steps in the DHCP state machine. */
     struct xDHCP_DATA
     {
         uint32_t ulTransactionId;     /**< The ID used in all transactions. */
