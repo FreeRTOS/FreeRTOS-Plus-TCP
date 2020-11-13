@@ -48,10 +48,10 @@
 /** @brief Type that defines each statistic being gathered. */
     typedef struct ExampleDebugStatEntry
     {
-        uint8_t ucIdentifier;                 /* Unique identifier for statistic. */
-        const uint8_t * const pucDescription; /* Text description for the statistic. */
-        vTraceAction_t vPerformAction;        /* Action to perform when the statistic is updated (increment counter, store minimum value, store maximum value, etc. */
-        uint32_t ulData;                      /* The meaning of this data is dependent on the trace macro ID. */
+        uint8_t ucIdentifier;                 /**< Unique identifier for statistic. */
+        const uint8_t * const pucDescription; /**< Text description for the statistic. */
+        vTraceAction_t vPerformAction;        /**< Action to perform when the statistic is updated (increment counter, store minimum value, store maximum value, etc. */
+        uint32_t ulData;                      /**< The meaning of this data is dependent on the trace macro ID. */
     } xExampleDebugStatEntry_t;
 
 /* Unique identifiers used to locate the entry for each trace macro in the

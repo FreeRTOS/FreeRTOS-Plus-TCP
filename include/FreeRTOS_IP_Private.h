@@ -224,10 +224,10 @@
     #include "pack_struct_start.h"
     struct xICMPRouterSolicitation_IPv6
     {
-        uint8_t ucTypeOfMessage; /*  0 +  1 =  1 */
-        uint8_t ucTypeOfService; /*  1 +  1 =  2 */
-        uint16_t usChecksum;     /*  2 +  2 =  4 */
-        uint32_t ulReserved;     /*  4 +  4 =  8 */
+        uint8_t ucTypeOfMessage; /**<  0 +  1 =  1 */
+        uint8_t ucTypeOfService; /**<  1 +  1 =  2 */
+        uint16_t usChecksum;     /**<  2 +  2 =  4 */
+        uint32_t ulReserved;     /**<  4 +  4 =  8 */
     }
     #include "pack_struct_end.h"
     typedef struct xICMPRouterSolicitation_IPv6 ICMPRouterSolicitation_IPv6_t;
@@ -300,11 +300,11 @@
     #include "pack_struct_start.h"
     struct xPSEUDO_HEADER
     {
-        uint32_t ulSourceAddress;        /**< Source IP-address. */
-        uint32_t ulDestinationAddress;   /**< Destination IP-address. */
-        uint8_t ucZeros;                 /**< A byte with value zero ( filler ). */
-        uint8_t ucProtocol;              /**< The protocol. */
-        uint16_t usUDPLength;            /**< The UDP length. */
+        uint32_t ulSourceAddress;      /**< Source IP-address. */
+        uint32_t ulDestinationAddress; /**< Destination IP-address. */
+        uint8_t ucZeros;               /**< A byte with value zero ( filler ). */
+        uint8_t ucProtocol;            /**< The protocol. */
+        uint16_t usUDPLength;          /**< The UDP length. */
     }
     #include "pack_struct_end.h"
     typedef struct xPSEUDO_HEADER PseudoHeader_t;
@@ -961,10 +961,10 @@
         {
             uint32_t
             #if ( ipconfigUSE_IPv6 != 0 )
-                bIsIPv6 : 1,   /**< Non-zero in case the connection is using IPv6. */
+                bIsIPv6 : 1, /**< Non-zero in case the connection is using IPv6. */
             #endif /* ipconfigUSE_IPv6 */
             bSomeFlag : 1;
-        } bits; /**< A collection of bollean properties. */
+        } bits;                          /**< A collection of bollean properties. */
 
         ListItem_t xBoundSocketListItem; /**< Used to reference the socket from a bound sockets list. */
         TickType_t xReceiveBlockTime;    /**< if recv[to] is called while no data is available, wait this amount of time. Unit in clock-ticks */
@@ -991,7 +991,7 @@
             EventBits_t xSocketBits;          /**< These bits indicate the events which have actually occurred.
                                                * They are maintained by the IP-task */
         #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
-        struct xNetworkEndPoint * pxEndPoint;  /**< The end-point to which the socket is bound. */
+        struct xNetworkEndPoint * pxEndPoint; /**< The end-point to which the socket is bound. */
         /* TCP/UDP specific fields: */
         /* Before accessing any member of this structure, it should be confirmed */
         /* that the protocol corresponds with the type of structure */

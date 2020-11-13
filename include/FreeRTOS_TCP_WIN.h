@@ -35,10 +35,10 @@
         extern "C" {
     #endif
 
-/* The name xTCPTimer was already use as the name of an IP-timer. */
+/* A very simple timer that registers the time that a packet was sent.  It is used to trigger resending. */
     typedef struct xTCPTimerStruct
     {
-        uint32_t ulBorn;
+        uint32_t ulBorn; /**< The time at which a packet ws send ( using xTaskGetTickCount() ). */
     } TCPTimer_t;
 
 /** @brief This struct collects the properties of a TCP segment.  A segment is a chunk of data which
@@ -62,7 +62,7 @@
                     bIsForRx : 1;        /**< pdTRUE if segment is used for reception */
             } bits;
             uint32_t ulFlags;
-        } u;
+        } u;                                /**< A collection of boolean flags. */
         #if ( ipconfigUSE_TCP_WIN != 0 )
             struct xLIST_ITEM xQueueItem;   /**< TX only: segments can be linked in one of three queues: xPriorityQueue, xTxQueue, and xWaitQueue */
             struct xLIST_ITEM xSegmentItem; /**< With this item the segment can be connected to a list, depending on who is owning it */
@@ -72,8 +72,8 @@
 /** @brief This struct describes the windows sizes, both for incoming and outgoing. */
     typedef struct xTCP_WINSIZE
     {
-        uint32_t ulRxWindowLength;		/**< The TCP window size of the incoming stream. */
-        uint32_t ulTxWindowLength;		/**< The TCP window size of the outgoing stream. */
+        uint32_t ulRxWindowLength; /**< The TCP window size of the incoming stream. */
+        uint32_t ulTxWindowLength; /**< The TCP window size of the outgoing stream. */
     } TCPWinSize_t;
 
 /** @brief If TCP time-stamps are being used, they will occupy 12 bytes in
@@ -100,8 +100,8 @@
                     bTimeStamps : 1;   /**< Socket is supposed to use TCP time-stamps. This depends on the */
             } bits;                    /**< party which opens the connection */
             uint32_t ulFlags;
-        } u;
-        TCPWinSize_t xSize;
+        } u;                           /**< A collection of boolean flags. */
+        TCPWinSize_t xSize;            /**< The TCP window sizes of the incoming and outgoing streams. */
         struct
         {
             uint32_t ulFirstSequenceNumber;                                    /**< Logging & debug: the first segment received/sent in this connection
@@ -111,7 +111,7 @@
                                                                                 * In other words: the sequence number of the left side of the sliding window */
             uint32_t ulFINSequenceNumber;                                      /**< The sequence number which carried the FIN flag */
             uint32_t ulHighestSequenceNumber;                                  /**< Sequence number of the right-most byte + 1 */
-        } rx, tx;
+        } rx, tx;                                                              /**< Sequence number of the incoming and outgoing data stream. */
         uint32_t ulOurSequenceNumber;                                          /**< The SEQ number we're sending out */
         uint32_t ulUserDataLength;                                             /**< Number of bytes in Rx buffer which may be passed to the user, after having received a 'missing packet' */
         uint32_t ulNextTxSequenceNumber;                                       /**< The sequence number given to the next byte to be added for transmission */
