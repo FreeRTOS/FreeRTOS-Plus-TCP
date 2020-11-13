@@ -3194,7 +3194,7 @@
 
         /* Keep track of the highest sequence number that might be expected within
          * this connection. */
-        if( ( ulSequenceNumber + ulReceiveLength ) > pxTCPWindow->rx.ulHighestSequenceNumber )
+        if( ( ( int32_t ) ( ulSequenceNumber + ulReceiveLength - pxTCPWindow->rx.ulHighestSequenceNumber ) ) > 0L )
         {
             pxTCPWindow->rx.ulHighestSequenceNumber = ulSequenceNumber + ulReceiveLength;
         }
@@ -3600,9 +3600,9 @@
                         /* Update the copy of the TCP header only (skipping eth and IP
                          * headers).  It might be used later on, whenever data must be sent
                          * to the peer. */
-                        const size_t lOffset = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket );
-                        ( void ) memcpy( ( void * ) ( &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ lOffset ] ) ),
-                                         ( const void * ) ( &( pxNetworkBuffer->pucEthernetBuffer[ lOffset ] ) ),
+                        const size_t uxOffset = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket );
+                        ( void ) memcpy( ( void * ) ( &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ uxOffset ] ) ),
+                                         ( const void * ) ( &( pxNetworkBuffer->pucEthernetBuffer[ uxOffset ] ) ),
                                          ipSIZE_OF_TCP_HEADER );
                     }
                 }
