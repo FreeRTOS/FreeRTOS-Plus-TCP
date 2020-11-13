@@ -46,6 +46,8 @@ barry
 baseaddress
 bbbbbbb
 bbefore
+bcalldownevent
+bcalldownhook
 bcloseaftersend
 bcloserequested
 bconnpassed
@@ -62,6 +64,7 @@ bfinrecv
 bfinsent
 bhasinit
 binterfaceup
+bisdefault
 bisforrx
 bist
 bitconfig_t
@@ -91,6 +94,7 @@ buffermanagement
 buffna
 busershutdown
 bwaitkeepalive
+bwantdhcp
 bwantra
 bwinchange
 bwinscaling
@@ -262,6 +266,9 @@ eof
 eprocessbuffer
 erastateapply
 erastateiptest
+erastateipwait
+erastatelease
+erastatewait
 ereleasebuffer
 ereturn
 ereturned
@@ -828,10 +835,12 @@ pxlist
 pxlistfindlistitemwithvalue
 pxmacaddress
 pxmessage
+pxnetprefix
 pxnetworkbuffer
 pxnetworkinterface
 pxnewlistitem
 pxnewsocket
+pxnext
 pxnextbuffer
 pxnextnetworkbufferdescriptor
 pxontcpconnected
@@ -841,6 +850,7 @@ pxonudpreceive
 pxonudpsent
 pxopenedinterfacehandle
 pxoptionsarraysize
+pxpacket
 pxpeersocket
 pxphyobject
 pxprefix
@@ -1192,9 +1202,12 @@ ullength
 ullinkstatusmask
 ullocaladdress
 ullocalip
+ullocations
+ullocationsip
 ulltcpalignment
 ulmandatoryoptions
 ulmask
+ulmatching
 ulmss
 ulmtu
 ulnetmask
@@ -1205,6 +1218,9 @@ ulnumbers
 ulofferedipaddress
 uloffset
 ulong
+ulonip
+ulonmac
+ulonnetmask
 uloptionsdata
 uloursequencenumber
 ulphymask
@@ -1487,6 +1503,7 @@ xdmarxdescriptors
 xdnsmessage
 xdnssocket
 xdocheck
+xdolog
 xdomain
 xdorandom
 xdoreset
@@ -1592,6 +1609,7 @@ xqueuecreateset
 xqueuegenericsend
 xqueueitem
 xqueuereceive
+xradata
 xrasolicitationrequest
 xready
 xreceiveblocktime
