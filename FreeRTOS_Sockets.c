@@ -4248,7 +4248,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  *        For a socket in listening mode, the remote port and IP address
  *        are both 0.
  *
- * @param[in] ulLocalIP: Local IP address. Ignored for now.
  * @param[in] uxLocalPort: Local port number.
  * @param[in] ulRemoteIP: Remote (peer) IP address.
  * @param[in] uxRemotePort: Remote (peer) port.

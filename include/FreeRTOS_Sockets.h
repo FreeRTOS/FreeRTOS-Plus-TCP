@@ -152,7 +152,7 @@
 
     #define FREERTOS_INADDR_ANY                       ( 0UL ) /* The 0.0.0.0 IPv4 address. */
 
-/**< A helper struct to adjust the TCP-window properties. */
+/** @brief A helper struct to adjust the TCP-window properties. */
     typedef struct xWIN_PROPS
     {
         /* Properties of the Tx buffer and Tx window */
@@ -164,7 +164,7 @@
         int32_t lRxWinSize; /**< The reception TCP window size ( units: MSS ). */
     } WinProperties_t;
 
-/**< A helper struct to adjust the TCP low- and high-water parameters. */
+/** @brief A helper struct to adjust the TCP low- and high-water parameters. */
     typedef struct xLOW_HIGH_WATER
     {
         /* Structure to pass for the 'FREERTOS_SO_SET_LOW_HIGH_WATER' option */
@@ -179,22 +179,22 @@
  * Berkeley style sockaddr structure. */
     struct freertos_sockaddr
     {
-        uint8_t sin_len;    /**< Ignored, still present for backward compatibility. */
-        uint8_t sin_family; /**< Set to FREERTOS_AF_INET. */
-        uint16_t sin_port;  /**< The port number in network-endian format. */
-        uint32_t sin_addr;  /**< The IP-address in network-endian format. */
+        uint8_t sin_len;                                  /**< Ignored, still present for backward compatibility. */
+        uint8_t sin_family;                               /**< Set to FREERTOS_AF_INET. */
+        uint16_t sin_port;                                /**< The port number in network-endian format. */
+        uint32_t sin_addr;                                /**< The IP-address in network-endian format. */
         #if ( ipconfigUSE_IPv6 != 0 )
-            uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ];  /**< Make sure that the IPv4 and IPv6 socket adresses have en equal size. */
+            uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ]; /**< Make sure that the IPv4 and IPv6 socket adresses have en equal size. */
         #endif
     };
 
     #if ( ipconfigUSE_IPv6 != 0 )
         struct freertos_sockaddr6
         {
-            uint8_t sin_len;       /**< Ignored, still present for backward compatibility. */
-            uint8_t sin_family;    /**< Set to FREERTOS_AF_INET6. */
-            uint16_t sin_port;     /**< The port number in network-endian format. */
-            uint32_t sin_flowinfo; /**< IPv6 flow information, not used in this library. */
+            uint8_t sin_len;           /**< Ignored, still present for backward compatibility. */
+            uint8_t sin_family;        /**< Set to FREERTOS_AF_INET6. */
+            uint16_t sin_port;         /**< The port number in network-endian format. */
+            uint32_t sin_flowinfo;     /**< IPv6 flow information, not used in this library. */
             IPv6_Address_t sin_addrv6; /**< The IPv6 address. */
         };
     #endif
