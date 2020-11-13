@@ -1539,7 +1539,7 @@ BaseType_t FreeRTOS_IPStart( void )
  * @param[out] pulNetMask: The netmask used for current subnet.
  * @param[out] pulGatewayAddress: The gateway address.
  * @param[out] pulDNSServerAddress: The DNS server address.
- * @param[in] pxEndPoint: The end-point qhich is being questioned.
+ * @param[in] pxEndPoint: The end-point which is being questioned.
  */
 void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
                                         uint32_t * pulNetMask,
@@ -1582,7 +1582,7 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
  * @param[in] pulNetMask: The netmask used for current subnet.
  * @param[in] pulGatewayAddress: The gateway address.
  * @param[in] pulDNSServerAddress: The DNS server address.
- * @param[in] pxEndPoint: The end-point qhich is being questioned.
+ * @param[in] pxEndPoint: The end-point which is being questioned.
  */
 void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
                                         const uint32_t * pulNetMask,
