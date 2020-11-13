@@ -64,6 +64,7 @@ bhasinit
 binterfaceup
 bisforrx
 bist
+bitconfig_t
 bitmask
 bitscanreverse
 bl
@@ -223,6 +224,7 @@ eframeconsumed
 eg
 egetlinklayeraddress
 ehertype
+eigrp
 einitialwait
 einprogress
 einvalidchecksum
@@ -240,6 +242,7 @@ en
 enablesolved
 endcode
 endcond
+endgetcacheentry
 endian
 endianness
 endif
@@ -254,6 +257,8 @@ enotusingleasedaddress
 enum
 eof
 eprocessbuffer
+erastateapply
+erastateiptest
 ereleasebuffer
 ereturn
 ereturned
@@ -311,6 +316,7 @@ forwardundersizedgoodframes
 fr
 framerx
 freertos
+freertos_sendto
 freertosconfig
 freertosip
 freertosipconfig
@@ -319,6 +325,7 @@ fromisr
 fsrxdesc
 fuf
 func
+getaddrinfo
 gethostbyname
 getnetworkbuffer
 getnetworkbufferwithdescriptor
@@ -331,6 +338,7 @@ gpl
 gratuitous
 grr
 gswutr
+gw
 hal
 hashtablehigh
 hashtablelow
@@ -500,6 +508,7 @@ mdi
 mdio
 mdix
 mediainterface
+memcmp
 memcopy
 memcpy
 memset
@@ -529,11 +538,13 @@ mtu
 multicastframesfilter
 mutex
 mutexes
+na
 nack
 nanosec
 nbns
 nc
 neg
+neighbour
 netbios
 netif
 netmask
@@ -619,7 +630,10 @@ pdtrue
 perfectfilter
 perfecthashtablefilter
 pfc
+pfgetphylinkstatus
+pfinitialise
 pfnz
+pfoutput
 phy
 phyaddress
 phyhandling
@@ -649,6 +663,7 @@ ppxendpoint
 ppxnetworkbuffer
 ppxresult
 pr
+pragma
 pre
 printf
 printfs
@@ -715,6 +730,7 @@ pthreads
 ptp
 ptxpkt
 ptz
+pucaddress
 pucanswer
 pucbuffer
 pucbyte
@@ -745,6 +761,7 @@ pullups
 pulnetmask
 pulnumber
 pulvalue
+pvargument
 pvbuffer
 pvdata
 pvdestination
@@ -760,6 +777,7 @@ pxaddr
 pxaddress
 pxaddressinfo
 pxaddresslength
+pxaddresstolookup
 pxallnetworkinterfaces
 pxanswer
 pxarpframe
@@ -771,9 +789,11 @@ pxdescriptor
 pxdestinationaddress
 pxdhcpmessage
 pxdnsmessageheader
+pxdnsserveraddress
 pxduplicatenetworkbufferwithdescriptor
 pxendpoint
 pxevent
+pxgatewayaddress
 pxgetnetworkbufferwithdescriptor
 pxhandleconnected
 pxhandlereceive
@@ -783,6 +803,7 @@ pxheadsegment
 pxhigherprioritytaskwoken
 pxhints
 pxicmppacket
+pxinfo
 pxinterface
 pxip
 pxipheader
@@ -808,6 +829,7 @@ pxopenedinterfacehandle
 pxoptionsarraysize
 pxpeersocket
 pxphyobject
+pxprefix
 pxprops
 pxprotocolheaders
 pxprotpack
@@ -942,6 +964,7 @@ si
 signalled
 sizeof
 skipnamefield
+slaac
 snd
 snprintf
 sockaddr
@@ -956,6 +979,7 @@ srdbl
 srtt
 ss
 starttx
+stdarg
 stmicroelectronics
 strcmp
 streambuffer
@@ -1030,7 +1054,9 @@ ucage
 ucarray
 ucbootfilename
 ucbytes
+ucchildtext
 ucclienthardwareaddress
+uccontents
 uccurrentipaddress
 ucdifferentiatedservicescode
 ucdnsserveraddress
@@ -1061,7 +1087,9 @@ ucnumipaddresses
 ucoctet
 ucopcode
 ucoptdata
+ucoptionbytes
 ucoptionlength
+ucoptiontype
 ucpeerwinscalefactor
 ucpreference
 ucprefixlength
@@ -1139,6 +1167,7 @@ ulltcpalignment
 ulmandatoryoptions
 ulmask
 ulmss
+ulmtu
 ulnetmask
 ulnextfreetxdescriptor
 ulnextsequencenumber
@@ -1146,6 +1175,7 @@ ulnexttxsequencenumber
 ulnumbers
 ulofferedipaddress
 uloffset
+ulong
 uloptionsdata
 uloursequencenumber
 ulphymask
@@ -1177,6 +1207,7 @@ ultxwindowlength
 ultype
 uluserdatalength
 ulvalue
+ulwhere
 ulwindowsize
 ulwords
 un
@@ -1226,6 +1257,7 @@ usnbflags
 usnumarecordsstored
 usoperation
 usourportnumber
+uspayloadlength
 uspeerportnumber
 usport
 usportnr
@@ -1247,6 +1279,7 @@ uxaddresslength
 uxblocktimeticks
 uxbufferlength
 uxbytecount
+uxcontents
 uxcount
 uxdatalength
 uxdatalengthbytes
@@ -1257,12 +1290,15 @@ uxflags
 uxfront
 uxhead
 uxheaderlength
+uxhostlen
 uxhosttype
+uxicmpsize
 uxidentifier
 uxidsize
 uxindex
 uxipheaderlength
 uxipheadersizesocket
+uxlast
 uxleft
 uxlength
 uxlittlespace
@@ -1295,7 +1331,9 @@ uxstreambufferadd
 uxstreambufferget
 uxstreambuffermidspace
 uxtail
+uxtargetindex
 uxtaskgetsystemstate
+uxtickstowait
 uxtimeout
 uxtimeoutstate
 uxtotaldatalength
@@ -1328,6 +1366,8 @@ vndrefreshcacheentry
 vnetworkinterfaceallocateramtobuffers
 vportfree
 vprocessgeneratedudppacket
+vraprocess
+vreceivera
 vreleasenetworkbufferanddescriptor
 vrxfaultinjection
 vsocketbind
@@ -1390,6 +1430,7 @@ xdestinationaddress
 xdestinationaddresslength
 xdhcpdata
 xdhcpsocket
+xdhcpsocketusercount
 xdhcptxperiod
 xdhcptxtime
 xdmarxdescriptors
@@ -1398,6 +1439,7 @@ xdnssocket
 xdocheck
 xdomain
 xdorandom
+xdoreset
 xdumpingready
 xemacps
 xemacpsif
@@ -1433,11 +1475,13 @@ xicmpheader
 xicmppacket
 xidentifier
 xilinx
+xindex
 xinternal
 xipaddress
 xipheader
 xipheadersize
 xiptaskinitialised
+xiptype
 xisbound
 xisforrx
 xisinputstream
@@ -1456,6 +1500,7 @@ xlocalport
 xlookup
 xlwipconfig
 xmacaddress
+xmacbroadcast
 xmaxtime
 xmessage
 xmicreldevice
@@ -1485,7 +1530,10 @@ xphypreferences
 xphystartautonegotiation
 xporthasudpsocket
 xpqueue
+xprefix
+xprefixaddress
 xpriorityqueue
+xprivatestorage
 xprocessreceivedtcppacket
 xprocessreceivedudppacket
 xprotocol
@@ -1493,6 +1541,8 @@ xqueuecreateset
 xqueuegenericsend
 xqueueitem
 xqueuereceive
+xrasolicitationrequest
+xready
 xreceiveblocktime
 xregister
 xreleaseaftersend
@@ -1513,6 +1563,7 @@ xsendblocktime
 xsenderhardwareaddress
 xsendeventstructtoiptask
 xsendlength
+xserverid
 xserversocket
 xsize
 xsocket
@@ -1525,6 +1576,7 @@ xstream
 xsum
 xtargethardwareaddress
 xtaskcheckfortimeout
+xtaskgettickcount
 xtaskhandle
 xtaskresumeall
 xtcp
@@ -1557,6 +1609,10 @@ xwanteditemvalue
 xwantedsize
 xwillsleep
 xxx
+xzynqdescriptor
+xzynqgemgetphylinkstatus
+xzynqgeminitialise
+xzynqgemoutput
 yyyy
 zeroquantapause
 zynq
