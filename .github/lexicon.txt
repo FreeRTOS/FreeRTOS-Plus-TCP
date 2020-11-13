@@ -1053,6 +1053,7 @@ ucbootfilename
 ucbytes
 ucchildtext
 ucclienthardwareaddress
+uccontents
 uccurrentipaddress
 ucdifferentiatedservicescode
 ucdnsserveraddress
@@ -1426,6 +1427,7 @@ xdestinationaddress
 xdestinationaddresslength
 xdhcpdata
 xdhcpsocket
+xdhcpsocketusercount
 xdhcptxperiod
 xdhcptxtime
 xdmarxdescriptors
@@ -1567,6 +1569,7 @@ xstream
 xsum
 xtargethardwareaddress
 xtaskcheckfortimeout
+xtaskgettickcount
 xtaskhandle
 xtaskresumeall
 xtcp
