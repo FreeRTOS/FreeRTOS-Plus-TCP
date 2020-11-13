@@ -1283,6 +1283,7 @@ uxaddresslength
 uxblocktimeticks
 uxbufferlength
 uxbytecount
+uxclockticks
 uxcontents
 uxcount
 uxdatalength

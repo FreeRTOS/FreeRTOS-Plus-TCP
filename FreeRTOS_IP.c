@@ -1204,7 +1204,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
  *         else a NULL pointer is returned.
  */
     void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes, TickType_t uxBlockTimeTicks )
-#endif
+#endif /* #if ( ipconfigUSE_IPv6 != 0 ) */
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     void * pvReturn;
@@ -1441,7 +1441,7 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
 
 /**
  * @brief Given a message buffer, find the first byte of the payload of a UDP packet.
- *        It works for both IPv4 and IPv6.  Note that the frametype must be valid.
+ *        It works for both IPv4 and IPv6.  Note that the frame-type must be valid.
  *
  * @param[in] pxNetworkBuffer: The network buffer.
  *
@@ -3872,7 +3872,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 /**
  * @brief Enable or disable the DHCP/DHCPv6/RA timer.
  *
- * @param[in] pxEndPoint: The end-point that needs to aquire an IP-address.
+ * @param[in] pxEndPoint: The end-point that needs to acquire an IP-address.
  * @param[in] xEnableState: pdTRUE if the timer must be enabled, pdFALSE otherwise.
  */
     void vIPSetDHCP_RATimerEnableState( struct xNetworkEndPoint * pxEndPoint,
@@ -3898,7 +3898,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 /**
  * @brief Set the reload time of the DHCP/DHCPv6/RA timer.
  *
- * @param[in] pxEndPoint: The end-point that needs to aquire an IP-address.
+ * @param[in] pxEndPoint: The end-point that needs to acquire an IP-address.
  * @param[in] uxClockTicks: The number of clock-ticks after which the timer should expire.
  */
     void vIPReloadDHCP_RATimer( struct xNetworkEndPoint * pxEndPoint,
