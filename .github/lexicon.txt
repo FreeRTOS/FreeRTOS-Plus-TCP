@@ -64,6 +64,7 @@ bhasinit
 binterfaceup
 bisforrx
 bist
+bitconfig_t
 bitmask
 bitscanreverse
 bl
@@ -1274,6 +1275,7 @@ uxaddresslength
 uxblocktimeticks
 uxbufferlength
 uxbytecount
+uxcontents
 uxcount
 uxdatalength
 uxdatalengthbytes

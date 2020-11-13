@@ -39,6 +39,7 @@
         extern "C" {
     #endif
 
+/**< @brief The struct BitConfig_t holds a character array, its length and an index. */
     typedef struct xBitConfig
     {
         uint8_t * ucContents;	/**< An allocated buffer to hold the binary data stream. */
