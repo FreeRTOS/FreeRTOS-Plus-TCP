@@ -172,22 +172,39 @@
     #define DEBUG_SET_TRACE_VARIABLE( var, value )                                 /**< Empty definition since ipconfigHAS_PRINTF != 1. */
 #endif
 
+/**
+ * @brief Helper function to do a cast to a NetworkInterface_t pointer.
+ *
+ * @param[in] NetworkInterface_t: the name of a type.
+ *
+ * @return the converted pointer.
+ */
 static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkInterface_t )
 {
     return ( NetworkInterface_t * ) pvArgument;
 }
 
-static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkEndPoint_t )
-{
-    return ( NetworkEndPoint_t * ) pvArgument;
-}
-
 #if ( ipconfigUSE_IPv6 != 0 )
+
+/**
+ * @brief Helper function to do a cast to a IPHeader_IPv6_t pointer.
+ *
+ * @param[in] IPHeader_IPv6_t: the name of a type.
+ *
+ * @return the converted pointer.
+ */
     static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPHeader_IPv6_t )
     {
         return ( IPHeader_IPv6_t * ) pvArgument;
     }
 
+/**
+ * @brief Helper function to do a cast to a const IPHeader_IPv6_t pointer.
+ *
+ * @param[in] IPHeader_IPv6_t: the name of a type.
+ *
+ * @return the converted pointer.
+ */
     static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_IPv6_t )
     {
         return ( IPHeader_IPv6_t * ) pvArgument;
@@ -683,6 +700,11 @@ static void prvIPTask( void * pvParameters )
 /*-----------------------------------------------------------*/
 
 
+/**
+ * @brief Call the state machine of either DHCP, DHCPv6, or RA, whichever is activated.
+ *
+ * @param[in] pxEndPoint: The end-point for which the state-machine will be called.
+ */
 static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint )
 {
     #if ( ipconfigUSE_IPv6 != 0 ) && ( ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 ) )
@@ -800,6 +822,12 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Send a network packet.
+ *
+ * @param[in] pxNetworkBuffer: The message buffer.
+ * @param[in] xReleaseAfterSend: When true, the network interface will own the buffer and is responsible for it's release.
+ */
 static void prvForwardTxPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                 BaseType_t xReleaseAfterSend )
 {
@@ -1147,6 +1175,8 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_IPv6 != 0 )
+
 /**
  * @brief Obtain a buffer big enough for a UDP payload of given size.
  *
@@ -1158,11 +1188,21 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
  * @return If a buffer was created then the pointer to that buffer is returned,
  *         else a NULL pointer is returned.
  */
-#if ( ipconfigUSE_IPv6 != 0 )
     void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                          TickType_t uxBlockTimeTicks,
                                          uint8_t ucIPType )
 #else
+
+/**
+ * @brief Obtain a buffer big enough for a UDP payload of given size.
+ *
+ * @param[in] uxRequestedSizeBytes: The size of the UDP payload.
+ * @param[in] uxBlockTimeTicks: Maximum amount of time for which this call
+ *            can block. This value is capped internally.
+ *
+ * @return If a buffer was created then the pointer to that buffer is returned,
+ *         else a NULL pointer is returned.
+ */
     void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes, TickType_t uxBlockTimeTicks )
 #endif
 {
@@ -1399,6 +1439,7 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
 }
 /*-----------------------------------------------------------*/
 
+XXX
 uint8_t * pcNetworkBuffer_to_UDPPayloadBuffer( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     uint8_t * pcResult;
@@ -1644,15 +1685,13 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
 /**
- * @brief Send a ping request to the given IP address. After receiving a reply,
- *        IP-task will call a user-supplied function 'vApplicationPingReplyHook()'.
+ * @brief Send a ICMP ping request.
  *
- * @param[in] ulIPAddress: The IP address to which the ping is to be sent.
- * @param[in] uxNumberOfBytesToSend: Number of bytes in the ping request.
- * @param[in] uxBlockTimeTicks: Maximum number of ticks to wait.
+ * @param[in] ulIPAddress: The IP-address of the host.
+ * @param[in] uxNumberOfBytesToSend: The number of user bytes in the ping message.
+ * @param[in] uxBlockTimeTicks: The maximum time ( clock-ticks ) to wait in case the message queue is full.
  *
- * @return If successfully sent to IP task for processing then the sequence
- *         number of the ping packet or else, pdFAIL.
+ * @return Either a sequence number, or pdFAIL in case the packet could not be created or sent.
  */
     BaseType_t FreeRTOS_SendPingRequest( uint32_t ulIPAddress,
                                          size_t uxNumberOfBytesToSend,
