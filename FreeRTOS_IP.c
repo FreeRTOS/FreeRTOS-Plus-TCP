@@ -175,7 +175,7 @@
 /**
  * @brief Helper function to do a cast to a NetworkInterface_t pointer.
  *
- * @param[in] NetworkInterface_t: the name of a type.
+ * @note NetworkInterface_t: the name of a type.
  *
  * @return the converted pointer.
  */
@@ -189,7 +189,7 @@ static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkInterface_t )
 /**
  * @brief Helper function to do a cast to a IPHeader_IPv6_t pointer.
  *
- * @param[in] IPHeader_IPv6_t: the name of a type.
+ * @note IPHeader_IPv6_t: the name of a type.
  *
  * @return the converted pointer.
  */
@@ -201,7 +201,7 @@ static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkInterface_t )
 /**
  * @brief Helper function to do a cast to a const IPHeader_IPv6_t pointer.
  *
- * @param[in] IPHeader_IPv6_t: the name of a type.
+ * @note IPHeader_IPv6_t: the name of a type.
  *
  * @return the converted pointer.
  */
@@ -380,7 +380,7 @@ static TaskHandle_t xIPTaskHandle = NULL;
  * been initialised. */
 static BaseType_t xAllNetworksUp = pdFALSE;
 
-/* As long as not all networks are up, repeat initialisation by calling the
+/** @brief As long as not all networks are up, repeat initialisation by calling the
  * xNetworkInterfaceInitialise() function of the interfaces that are not ready. */
 static IPTimer_t xNetworkTimer;
 
@@ -1439,7 +1439,14 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
 }
 /*-----------------------------------------------------------*/
 
-XXX
+/**
+ * @brief Given a message buffer, find the first byte of the payload of a UDP packet.
+ *        It works for both IPv4 and IPv6.  Note that the frametype must be valid.
+ *
+ * @param[in] pxNetworkBuffer: The network buffer. 
+ *
+ * @return A byte pointer pointing to the first byte of the UDP payload.
+ */
 uint8_t * pcNetworkBuffer_to_UDPPayloadBuffer( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     uint8_t * pcResult;
@@ -1899,6 +1906,13 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
     }
 #endif /* if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) */
 
+/**
+ * @brief Analyse an incoming packet and decide if the packet should be considered for processing.
+ *
+ * @param[in] pucEthernetBuffer: The buffer containing the full Ethernet packet.
+ *
+ * @return Either eProcessBuffer or eReleaseBuffer.
+ */
 eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucEthernetBuffer )
 {
     eFrameProcessingResult_t eReturn;
@@ -3854,6 +3868,12 @@ uint32_t FreeRTOS_GetIPAddress( void )
 #endif /* 0 */
 
 #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 )
+/**
+ * @brief Enable or disable the DHCP/DHCPv6/RA timer.
+ *
+ * @param[in] pxEndPoint: The end-point that needs to aquire an IP-address.
+ * @param[in] xEnableState: pdTRUE if the timer must be enabled, pdFALSE otherwise.
+ */
     void vIPSetDHCP_RATimerEnableState( struct xNetworkEndPoint * pxEndPoint,
                                         BaseType_t xEnableState )
     {
@@ -3873,6 +3893,12 @@ uint32_t FreeRTOS_GetIPAddress( void )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
+/**
+ * @brief Set the reload time of the DHCP/DHCPv6/RA timer.
+ *
+ * @param[in] pxEndPoint: The end-point that needs to aquire an IP-address.
+ * @param[in] uxClockTicks: The number of clock-ticks after which the timer should expire.
+ */
     void vIPReloadDHCP_RATimer( struct xNetworkEndPoint * pxEndPoint,
                                 TickType_t uxClockTicks )
     {
@@ -3965,8 +3991,14 @@ BaseType_t FreeRTOS_IsEndPointUp( const struct xNetworkEndPoint * pxEndPoint )
 }
 /*-----------------------------------------------------------*/
 
-/* Return pdTRUE if all end-points belonging to a given interface are up.
- * When pxInterface is null, all end-points will be checked. */
+/**
+ * @brief Return pdTRUE if all end-points belonging to a given interface are up.  When
+ *        pxInterface is null, all end-points will be checked.
+ *
+ * @param[in] pxInterface: The network interface of interest, or NULL to check all end-points.
+ *
+ * @return pdTRUE if all end-points are up, otherwise pdFALSE;
+ */
 BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface )
 {
     BaseType_t xResult = pdTRUE;
