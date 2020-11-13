@@ -44,21 +44,23 @@
     struct xNetworkInterface;
     struct xNetworkEndPoint;
 
+	/** @brief Description of an entry of the ARP cache. */
     typedef struct xARP_CACHE_TABLE_ROW
     {
-        uint32_t ulIPAddress;     /* The IP address of an ARP cache entry. */
-        MACAddress_t xMACAddress; /* The MAC address of an ARP cache entry. */
+        uint32_t ulIPAddress;     /**< The IP address of an ARP cache entry. */
+        MACAddress_t xMACAddress; /**< The MAC address of an ARP cache entry. */
         struct xNetworkEndPoint
-        * pxEndPoint;             /* The end-point on which the MAC address was last seen. */
-        uint8_t ucAge;            /* A value that is periodically decremented but can also be refreshed by active communication.  The ARP cache entry is removed if the value reaches zero. */
-        uint8_t ucValid;          /* pdTRUE: xMACAddress is valid, pdFALSE: waiting for ARP reply */
+        * pxEndPoint;             /**< The end-point on which the MAC address was last seen. */
+        uint8_t ucAge;            /**< A value that is periodically decremented but can also be refreshed by active communication.  The ARP cache entry is removed if the value reaches zero. */
+        uint8_t ucValid;          /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ARP reply */
     } ARPCacheRow_t;
 
+	/** @brief Possible return value for various look-up functions. */
     typedef enum
     {
-        eARPCacheMiss = 0, /* 0 An ARP table lookup did not find a valid entry. */
-        eARPCacheHit,      /* 1 An ARP table lookup found a valid entry. */
-        eCantSendPacket    /* 2 There is no IP address, or an ARP is still in progress, so the packet cannot be sent. */
+        eARPCacheMiss = 0, /**< 0 An ARP table lookup did not find a valid entry. */
+        eARPCacheHit,      /**< 1 An ARP table lookup found a valid entry. */
+        eCantSendPacket    /**< 2 There is no IP address, or an ARP is still in progress, so the packet cannot be sent. */
     } eARPLookupResult_t;
 
 /*
@@ -72,7 +74,7 @@
                                 struct xNetworkEndPoint * pxEndPoint );
 
     #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
-        /* Becomes non-zero if another device responded to a gratuitos ARP message. */
+        /* Becomes non-zero if another device responded to a gratuitous ARP message. */
         extern BaseType_t xARPHadIPClash;
         /* MAC-address of the other device containing the same IP-address. */
         extern MACAddress_t xARPClashMacAddress;
