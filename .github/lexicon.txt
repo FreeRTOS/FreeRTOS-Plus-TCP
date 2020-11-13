@@ -1060,11 +1060,13 @@ ucclienthardwareaddress
 uccontents
 uccurrentipaddress
 ucdifferentiatedservicescode
+ucdnsserver
 ucdnsserveraddress
 ucdupackcount
 ucduplex
 ucgatewayaddress
 uchardwareaddresslength
+uchasuid
 uchops
 ucipaddress
 uciptype
@@ -1136,6 +1138,7 @@ uldestinationipaddress
 uldhcpcookie
 uldhcpserveraddress
 uldnsserveraddress
+uldnsserveraddresses
 uldonemask
 ulfifolength
 ulfinsequencenumber
@@ -1282,6 +1285,7 @@ uxaddresslength
 uxblocktimeticks
 uxbufferlength
 uxbytecount
+uxclockticks
 uxcontents
 uxcount
 uxdatalength

@@ -824,7 +824,7 @@
                 xBitConfig_write_16( &( xMessage ), 14U );                                                         /* The length is 14 */
                 xBitConfig_write_16( &( xMessage ), pxDHCPMessage->xClientID.usDUIDType );                         /* 1 : Link Layer address + time */
                 xBitConfig_write_16( &( xMessage ), pxDHCPMessage->xClientID.usHardwareType );                     /* 1 : Ethernet */
-                xBitConfig_write_32( &( xMessage ), pxDHCPMessage->ulTimeStamp );                                  /* DUID Time: Jan  3, 2020. */
+                xBitConfig_write_32( &( xMessage ), pxDHCPMessage->ulTimeStamp );                                  /* DUID Time: seconds since 1-1-2000. */
                 xBitConfig_write_uc( &( xMessage ), pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ); /* Link Layer address, 6 bytes */
 
                 if( pxDHCPMessage->xServerID.uxLength != 0U )

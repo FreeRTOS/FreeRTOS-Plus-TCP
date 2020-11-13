@@ -55,8 +55,8 @@
         IPv6_Address_t ucDNSServer;    /**< The IP-address of the DHCP server. */
         uint32_t ulPreferredLifeTime;  /**< The preferred life time. */
         uint32_t ulValidLifeTime;      /**< The valid life time. */
-        uint32_t ulTimeStamp;          /**< DUID Time, seconds after 1-1-2000.. */
-        uint8_t ucprefixLength;        /**< The length of th eprefix offered. */
+        uint32_t ulTimeStamp;          /**< DUID Time: seconds since 1-1-2000. */
+        uint8_t ucprefixLength;        /**< The length of the prefix offered. */
         uint8_t ucHasUID;              /**< When pdFALSE: a transaction ID must be created. */
         IPv6_Address_t xPrefixAddress; /**< The prefix offered. */
         IPv6_Address_t xIPAddress;     /**< The IP-address offered. */
