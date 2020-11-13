@@ -315,6 +315,7 @@ forwardundersizedgoodframes
 fr
 framerx
 freertos
+freertos_sendto
 freertosconfig
 freertosip
 freertosipconfig

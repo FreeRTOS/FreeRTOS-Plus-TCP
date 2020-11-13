@@ -898,6 +898,16 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief  Wait for address resolution: look-up the IP-address in the ARP-cache, and if
+ *         needed send an ARP request, and wait for a reply.  This function is useful when
+ *         called before FreeRTOS_sendto().
+ *
+ * @param[in] ulIPAddress: The IP-address to look-up.
+ * @param[in] uxTicksToWait: The maximum number of clock ticks to wait for a reply.
+ *
+ * @return Zero when successful.
+ */
 BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
                                TickType_t uxTicksToWait )
 {
