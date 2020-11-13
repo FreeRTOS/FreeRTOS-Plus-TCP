@@ -152,49 +152,50 @@
 
     #define FREERTOS_INADDR_ANY                       ( 0UL ) /* The 0.0.0.0 IPv4 address. */
 
+/**< A helper struct to adjust the TCP-window properties. */
     typedef struct xWIN_PROPS
     {
         /* Properties of the Tx buffer and Tx window */
-        int32_t lTxBufSize; /* Unit: bytes */
-        int32_t lTxWinSize; /* Unit: MSS */
+        int32_t lTxBufSize; /**< The size of the transmit stream buffer ( Unit: bytes ). */
+        int32_t lTxWinSize; /**< The transmit TCP window size ( units: MSS ). */
 
         /* Properties of the Rx buffer and Rx window */
-        int32_t lRxBufSize; /* Unit: bytes */
-        int32_t lRxWinSize; /* Unit: MSS */
+        int32_t lRxBufSize; /**< The size of the reception stream buffer ( Unit: bytes ). */
+        int32_t lRxWinSize; /**< The reception TCP window size ( units: MSS ). */
     } WinProperties_t;
 
+/**< A helper struct to adjust the TCP low- and high-water parameters. */
     typedef struct xLOW_HIGH_WATER
     {
         /* Structure to pass for the 'FREERTOS_SO_SET_LOW_HIGH_WATER' option */
-        size_t uxLittleSpace; /* Send a STOP when buffer space drops below X bytes */
-        size_t uxEnoughSpace; /* Send a GO when buffer space grows above X bytes */
+        size_t uxLittleSpace; /**< Send a STOP when buffer space drops below X bytes */
+        size_t uxEnoughSpace; /**< Send a GO when buffer space grows above X bytes */
     } LowHighWater_t;
 
 /* For compatibility with the expected Berkeley sockets naming. */
     #define socklen_t    uint32_t
 
-/* For this limited implementation, only two members are required in the
+/** brief For this limited implementation, only two members are required in the
  * Berkeley style sockaddr structure. */
     struct freertos_sockaddr
     {
-        uint8_t sin_len;    /* Ignored, still present for backward compatibility. */
-        uint8_t sin_family; /* Set to FREERTOS_AF_INET. */
-        uint16_t sin_port;
-        uint32_t sin_addr;
+        uint8_t sin_len;    /**< Ignored, still present for backward compatibility. */
+        uint8_t sin_family; /**< Set to FREERTOS_AF_INET. */
+        uint16_t sin_port;  /**< The port number in network-endian format. */
+        uint32_t sin_addr;  /**< The IP-address in network-endian format. */
         #if ( ipconfigUSE_IPv6 != 0 )
-            /* Make sure that the IPv4 and IPv6 socket adresses have en equal size. */
-            uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ];
+            uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ];  /**< Make sure that the IPv4 and IPv6 socket adresses have en equal size. */
         #endif
     };
 
     #if ( ipconfigUSE_IPv6 != 0 )
         struct freertos_sockaddr6
         {
-            uint8_t sin_len;       /* Ignored, still present for backward compatibility. */
-            uint8_t sin_family;    /* Set to FREERTOS_AF_INET6. */
-            uint16_t sin_port;
-            uint32_t sin_flowinfo; /* IPv6 flow information. */
-            IPv6_Address_t sin_addrv6;
+            uint8_t sin_len;       /**< Ignored, still present for backward compatibility. */
+            uint8_t sin_family;    /**< Set to FREERTOS_AF_INET6. */
+            uint16_t sin_port;     /**< The port number in network-endian format. */
+            uint32_t sin_flowinfo; /**< IPv6 flow information, not used in this library. */
+            IPv6_Address_t sin_addrv6; /**< The IPv6 address. */
         };
     #endif
 
