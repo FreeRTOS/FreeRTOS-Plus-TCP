@@ -1,4 +1,4 @@
-/*
+BitConfig_t/*
  * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
@@ -26,6 +26,7 @@
 /**
  * @file FreeRTOS_BitConfig.c
  * @brief Some functions that help when analysing a binary stream of information.
+ * It offers an alternative to using packet structs with unaligned data members.
  */
 
 /* Standard includes. */
@@ -53,7 +54,7 @@
  *
  * @return pdTRUE if the malloc was OK, otherwise pdFALSE.
  */
-BaseType_t xBitConfig_init( BitCOnfig_t * pxConfig,
+BaseType_t xBitConfig_init( BitConfig_t * pxConfig,
                             const uint8_t * pucData,
                             size_t uxSize )
 {
@@ -95,7 +96,7 @@ BaseType_t xBitConfig_init( BitCOnfig_t * pxConfig,
  *
  * @return pdTRUE if the malloc was OK, otherwise pdFALSE.
  */
-BaseType_t xBitConfig_read_uc( BitCOnfig_t * pxConfig,
+BaseType_t xBitConfig_read_uc( BitConfig_t * pxConfig,
                                uint8_t * pucData,
                                size_t uxSize )
 {
@@ -135,7 +136,7 @@ BaseType_t xBitConfig_read_uc( BitCOnfig_t * pxConfig,
  *
  * @return A byte value.  When there was not enough data, xHasError will be set.
  */
-uint8_t ucBitConfig_read_8( BitCOnfig_t * pxConfig )
+uint8_t ucBitConfig_read_8( BitConfig_t * pxConfig )
 {
     uint8_t ucResult = 0xffU;
     const size_t uxNeeded = sizeof ucResult;
@@ -157,7 +158,7 @@ uint8_t ucBitConfig_read_8( BitCOnfig_t * pxConfig )
  *
  * @return A 16-bit value.  When there was not enough data, xHasError will be set.
  */
-uint16_t usBitConfig_read_16( BitCOnfig_t * pxConfig )
+uint16_t usBitConfig_read_16( BitConfig_t * pxConfig )
 {
     uint16_t usResult = 0xffffU;
     const size_t uxNeeded = sizeof usResult;
@@ -180,7 +181,7 @@ uint16_t usBitConfig_read_16( BitCOnfig_t * pxConfig )
  *
  * @return A 32-bit value.  When there was not enough data, xHasError will be set.
  */
-uint32_t ulBitConfig_read_32( BitCOnfig_t * pxConfig )
+uint32_t ulBitConfig_read_32( BitConfig_t * pxConfig )
 {
     uint32_t ulResult = 0xffffffffU;
     const size_t uxNeeded = sizeof ulResult;
@@ -207,7 +208,7 @@ uint32_t ulBitConfig_read_32( BitCOnfig_t * pxConfig )
  *
  * @return True if there was enough space in the buffer to store all bytes, otherwise pdFALSE.
  */
-BaseType_t xBitConfig_write_uc( BitCOnfig_t * pxConfig,
+BaseType_t xBitConfig_write_uc( BitConfig_t * pxConfig,
                                 uint8_t * pucData,
                                 size_t uxSize )
 {
@@ -240,7 +241,7 @@ BaseType_t xBitConfig_write_uc( BitCOnfig_t * pxConfig,
  *
  * @return True if there was enough space in the buffer to store the byte, otherwise pdFALSE.
  */
-BaseType_t xBitConfig_write_8( BitCOnfig_t * pxConfig,
+BaseType_t xBitConfig_write_8( BitConfig_t * pxConfig,
                                uint8_t ucValue )
 {
     BaseType_t xResult;
@@ -260,7 +261,7 @@ BaseType_t xBitConfig_write_8( BitCOnfig_t * pxConfig,
  *
  * @return @return True if there was enough space in the buffer to store the value, otherwise pdFALSE.
  */
-BaseType_t xBitConfig_write_16( BitCOnfig_t * pxConfig,
+BaseType_t xBitConfig_write_16( BitConfig_t * pxConfig,
                                 uint16_t usValue )
 {
     BaseType_t xResult;
@@ -283,7 +284,7 @@ BaseType_t xBitConfig_write_16( BitCOnfig_t * pxConfig,
  *
  * @return @return True if there was enough space in the buffer to store the word, otherwise pdFALSE.
  */
-BaseType_t xBitConfig_write_32( BitCOnfig_t * pxConfig,
+BaseType_t xBitConfig_write_32( BitConfig_t * pxConfig,
                                 uint32_t ulValue )
 {
     BaseType_t xResult;
@@ -308,7 +309,7 @@ BaseType_t xBitConfig_write_32( BitCOnfig_t * pxConfig,
  *
  * @return @return True if there was enough space in the buffer to store the word, otherwise pdFALSE.
  */
-void vBitConfig_release( BitCOnfig_t * pxConfig )
+void vBitConfig_release( BitConfig_t * pxConfig )
 {
     if( pxConfig->ucContents != NULL )
     {
