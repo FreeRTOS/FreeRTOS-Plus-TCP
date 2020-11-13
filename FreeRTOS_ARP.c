@@ -144,10 +144,10 @@ eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * const px
         {
             if( pxTargetEndPoint != NULL )
             {
-                FreeRTOS_printf( ( "ipARP_REQUEST from %lxip to %lxip end-point %lxip\n",
-                                   FreeRTOS_ntohl( ulSenderProtocolAddress ),
-                                   FreeRTOS_ntohl( ulTargetProtocolAddress ),
-                                   FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0UL ) ) );
+                FreeRTOS_debug_printf( ( "ipARP_REQUEST from %lxip to %lxip end-point %lxip\n",
+                                         FreeRTOS_ntohl( ulSenderProtocolAddress ),
+                                         FreeRTOS_ntohl( ulTargetProtocolAddress ),
+                                         FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0UL ) ) );
             }
         }
     }
@@ -311,11 +311,6 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 )
         BaseType_t xAddressIsLocal = ( BaseType_t ) -1;
     #endif
-
-    if( ulIPAddress != 0x0502a8c0 )
-    {
-        FreeRTOS_printf( ( "vARPRefreshCacheEntry %lxip\n", FreeRTOS_ntohl( ulIPAddress ) ) );
-    }
 
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
 
