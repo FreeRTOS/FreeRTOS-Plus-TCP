@@ -37,28 +37,31 @@
 
     #define DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH    128
 
+/** @brief The ID of a client or a server. */
     typedef struct xClientServerID
     {
-        uint16_t usDUIDType;
-        uint16_t usHardwareType;
-        uint8_t pucID[ DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH ];
-        size_t uxLength;
+        uint16_t usDUIDType;                                 /**< A DHCP Unique Identifier ( DUID ). */
+        uint16_t usHardwareType;                             /**< The hardware type: 1 = Ethernet. */
+        uint8_t pucID[ DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH ]; /**< Universally Unique IDentifier (UUID) format. */
+        size_t uxLength;                                     /**< The number of valid bytes within 'pucID'. */
     } ClientServerID_t;
 
+/** @brief DHCPMessage_IPv6_t holds all data of a DHCP client. */
     typedef struct xDHCPMessage_IPv6
     {
-        uint8_t uxMessageType;
-        uint8_t ucTransactionID[ 3 ];
-        uint32_t ulTransactionID;
-        IPv6_Address_t ucDNSServer;
-        uint32_t ulPreferredLifeTime;
-        uint32_t ulValidLifeTime;
-        uint32_t ulTimeStamp;
-        uint8_t ucprefixLength;
-        uint8_t ucHasUID;
-        IPv6_Address_t xPrefixAddress;
-        IPv6_Address_t xIPAddress;
-        ClientServerID_t xClientID, xServerID;
+        uint8_t uxMessageType;         /**< The type of the last message received: Advertise / Confirm / Reply / Decline */
+        uint8_t ucTransactionID[ 3 ];  /**< ID of a transaction, shall be renewed when the transaction is ready ( and a reply has been received ). */
+        uint32_t ulTransactionID;      /**< The same as above but now as a long integer. */
+        IPv6_Address_t ucDNSServer;    /**< The IP-address of the DHCP server. */
+        uint32_t ulPreferredLifeTime;  /**< The preferred life time. */
+        uint32_t ulValidLifeTime;      /**< The valid life time. */
+        uint32_t ulTimeStamp;          /**< DUID Time, seconds after 1-1-2000.. */
+        uint8_t ucprefixLength;        /**< The length of th eprefix offered. */
+        uint8_t ucHasUID;              /**< When pdFALSE: a transaction ID must be created. */
+        IPv6_Address_t xPrefixAddress; /**< The prefix offered. */
+        IPv6_Address_t xIPAddress;     /**< The IP-address offered. */
+        ClientServerID_t xClientID;    /**< The UUID of the client. */
+        ClientServerID_t xServerID;    /**< The UUID of the server. */
     } DHCPMessage_IPv6_t;
 
 /* Returns the current state of a DHCP process. */
