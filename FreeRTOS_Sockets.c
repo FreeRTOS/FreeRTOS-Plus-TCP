@@ -1682,7 +1682,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
     {
         static char pucReturn[ 92 ];
 
-        /* For debugging purposes only: show some propoerties of a socket:
+        /* For debugging purposes only: show some properties of a socket:
          * IP-addresses and port numbers. */
         #if ipconfigUSE_TCP == 1
             if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
@@ -2564,7 +2564,7 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
  * @brief This function converts a binary IPv6 address to a human readable notation.
  *
  * @param[in] pcSource: The binary address, 16 bytes long..
- * @param[out] pvDestination: The human-readbale ( hexadecimal ) notation of the
+ * @param[out] pvDestination: The human-readable ( hexadecimal ) notation of the
  *                            address.
  * @param[in] uxSize: The size of pvDestination.
  *
@@ -2679,7 +2679,7 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 
         if( xIndex < 8 )
         {
-            /* Didn't reach the last nnibble: clear the string. */
+            /* Didn't reach the last nibble: clear the string. */
             pcReturn = NULL;
         }
         else
@@ -5209,7 +5209,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                             else if( ( pxSocket->u.xTCP.bits.bReuseSocket != pdFALSE_UNSIGNED ) && ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
                             {
                                 /* This socket has the re-use flag. After connecting it turns into
-                                 * aconnected socket. Set the READ event, so that accept() will be called. */
+                                 * a connected socket. Set the READ event, so that accept() will be called. */
                                 xSocketBits |= ( EventBits_t ) eSELECT_READ;
                             }
                             else if( ( bAccepted != 0 ) && ( FreeRTOS_recvcount( pxSocket ) > 0 ) )

@@ -184,7 +184,7 @@
         uint16_t sin_port;                                /**< The port number in network-endian format. */
         uint32_t sin_addr;                                /**< The IP-address in network-endian format. */
         #if ( ipconfigUSE_IPv6 != 0 )
-            uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ]; /**< Make sure that the IPv4 and IPv6 socket adresses have en equal size. */
+            uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ]; /**< Make sure that the IPv4 and IPv6 socket addresses have en equal size. */
         #endif
     };
 
@@ -200,14 +200,14 @@
     #endif
 
 
-/* In earlier releaes, FreeRTOS_inet_ntoa was a macro that used snprintf(),
+/* In earlier release, FreeRTOS_inet_ntoa was a macro that used snprintf(),
  * which was not MISRA compliant. Now it has become a normal function that
  * doesn't use snprintf(). */
     extern const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
                                             char * pcBuffer );
 
 /* Testing: when using formatted printing, MISRA and some compilers complain
- * about an incompatibily between format and parameters.
+ * about an incompatibility between format and parameters.
  * Sometimes uint32_t is an unsigned (%u), sometimes it is a ulong (%lu). */
 
     typedef unsigned   printf_unsigned;
@@ -269,7 +269,7 @@
                               socklen_t xAddressLength );
 
 /* function to get the local address and IP port */
-/* Note that when 'ipconfigUSE_IPv6 != 0', freertos_sockaddr can be intepreted as a freertos_sockaddr6. */
+/* Note that when 'ipconfigUSE_IPv6 != 0', freertos_sockaddr can be interpreted as a freertos_sockaddr6. */
     #if ( ipconfigUSE_IPv6 != 0 )
         size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
                                          struct freertos_sockaddr6 * pxAddress6 );
@@ -318,7 +318,7 @@
 
         #if ( ipconfigUSE_TCP == 1 )
 
-/* Note that when 'ipconfigUSE_IPv6 != 0', freertos_sockaddr can be intepreted as a freertos_sockaddr6. */
+/* Note that when 'ipconfigUSE_IPv6 != 0', freertos_sockaddr can be interpreted as a freertos_sockaddr6. */
             #if ( ipconfigUSE_IPv6 != 0 )
                 BaseType_t FreeRTOS_GetRemoteAddress( ConstSocket_t xSocket,
                                                       struct freertos_sockaddr6 * pxAddress6 );

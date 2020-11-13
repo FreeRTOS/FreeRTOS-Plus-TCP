@@ -136,6 +136,7 @@ csn
 csr
 csv
 ctrl
+curtok
 cwd
 da
 daif
@@ -614,6 +615,7 @@ pcipaddress
 pcmessage
 pcname
 pcnetworkbuffer
+pcremoteip
 pcs
 pcservice
 pcsource
@@ -736,8 +738,11 @@ pucaddress
 pucanswer
 pucbuffer
 pucbyte
+pucbytes
+puccolon
 pucdata
 pucdescription
+pucend
 pucethernetbuffer
 pucgetuncachedmemory
 pucid
@@ -750,7 +755,9 @@ pucoptionsarray
 pucpayload
 pucptr
 pucrecvdata
+pucreturn
 pucstart
+puctarget
 pucudppayload
 pucudppayloadbuffer
 pucusebuffer
@@ -764,6 +771,7 @@ pullups
 pulnetmask
 pulnumber
 pulvalue
+pusaddress
 pvargument
 pvbuffer
 pvdata
@@ -789,6 +797,7 @@ pxbuffer
 pxbufferdescriptor
 pxconfig
 pxdescriptor
+pxdest
 pxdestinationaddress
 pxdhcpmessage
 pxdnsmessageheader
@@ -796,6 +805,7 @@ pxdnsserveraddress
 pxduplicatenetworkbufferwithdescriptor
 pxendpoint
 pxevent
+pxfrom
 pxgatewayaddress
 pxgetnetworkbufferwithdescriptor
 pxhandleconnected
@@ -1460,6 +1470,7 @@ xcheckloopback
 xclearonexit
 xclientid
 xclientsocket
+xcount
 xdatalength
 xdatalengthbytes
 xdefaultaddressing
