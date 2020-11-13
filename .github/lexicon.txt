@@ -1136,6 +1136,7 @@ uldestinationipaddress
 uldhcpcookie
 uldhcpserveraddress
 uldnsserveraddress
+uldnsserveraddresses
 uldonemask
 ulfifolength
 ulfinsequencenumber
@@ -1257,6 +1258,7 @@ usmssinit
 usnbflags
 usnumarecordsstored
 usoperation
+usoption
 usourportnumber
 uspayloadlength
 uspeerportnumber
@@ -1269,6 +1271,7 @@ usrequestid
 ussequencenumber
 ussourceport
 ussum
+ustime
 ustimeout
 ustype
 usurgent
@@ -1280,6 +1283,7 @@ uxaddresslength
 uxblocktimeticks
 uxbufferlength
 uxbytecount
+uxclockticks
 uxcontents
 uxcount
 uxdatalength
@@ -1308,6 +1312,7 @@ uxlower
 uxmax
 uxmaxcount
 uxmaxpackets
+uxmessagetype
 uxmid
 uxnamelen
 uxnewlength
@@ -1349,9 +1354,11 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
+varpsendgratuitous
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
+vdhcpprocessendpoint
 vdnsinitialise
 vdnssetcallback
 ve
