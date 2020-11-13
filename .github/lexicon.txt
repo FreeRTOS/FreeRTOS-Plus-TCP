@@ -91,6 +91,7 @@ buffermanagement
 buffna
 busershutdown
 bwaitkeepalive
+bwantra
 bwinchange
 bwinscaling
 bytecount
@@ -152,6 +153,7 @@ deglitchers
 deinitializes
 delayreq
 delayrespm
+demoiptrace
 desc
 desciptorskiplength
 dest
@@ -735,6 +737,7 @@ pucanswer
 pucbuffer
 pucbyte
 pucdata
+pucdescription
 pucethernetbuffer
 pucgetuncachedmemory
 pucid
@@ -1064,10 +1067,13 @@ ucdnsserver
 ucdnsserveraddress
 ucdupackcount
 ucduplex
+ucflags
 ucgatewayaddress
 uchardwareaddresslength
 uchasuid
+uchoplimit
 uchops
+ucidentifier
 ucipaddress
 uciptype
 uciscachedmemory
@@ -1077,6 +1083,7 @@ uclen
 uclength
 uclinklayeripaddress
 ucmacaddress
+ucmaxresponsetime
 ucmessagetype
 ucmywinscalefactor
 ucname
@@ -1086,6 +1093,7 @@ ucnamespace
 ucnamezero
 ucnbnsname
 ucnetmask
+ucnextheader
 ucnumipaddresses
 ucoctet
 ucopcode
@@ -1095,6 +1103,7 @@ ucoptionlength
 ucoptiontype
 ucpeerwinscalefactor
 ucpreference
+ucprefix
 ucprefixlength
 ucprotocol
 ucprotocoladdresslength
@@ -1107,14 +1116,18 @@ uctcpflags
 uctcpoffset
 uctcpstate
 uctimetolive
+uctrafficclassflow
 uctransactionid
 uctransmitcount
+uctype
 uctypeofmessage
 uctypeofservice
 ucvalid
 ucvalue
 ucversionheaderlength
 ucversiontrafficclass
+ucversiontype
+uczeros
 udp
 ue
 uip
@@ -1132,6 +1145,7 @@ ulconnected
 ulcount
 ulcurrentsequencenumber
 ulcurrentspistatus
+uldata
 uldefaultipaddress
 uldelayms
 uldestinationaddress
@@ -1194,11 +1208,13 @@ ulreloadtime
 ulremainingtime
 ulremoteip
 ulrequestcount
+ulreserved
 ulreturn
 ulrxwindowlength
 ulsenderprotocoladdress
 ulsequencenumber
 ulsize
+ulsourceaddress
 ulsourceipaddress
 ulspace
 ulstatus
@@ -1249,9 +1265,11 @@ usduidtype
 uselapsedtime
 userdaata
 usflags
+usflowlabel
 usfragmentoffset
 usframetype
 usgeneratechecksum
+usgroupaddress
 ushardwaretype
 usheaderchecks
 usheaderchecksum
@@ -1259,6 +1277,7 @@ usidentification
 usidentifier
 usinitmss
 uslength
+uslifetime
 uslocalport
 usmss
 usmssinit
@@ -1273,14 +1292,17 @@ usport
 usportnr
 usprotocoltype
 usquestions
+usreachabletime
 usremoteport
 usrequestid
+usretranstime
 ussequencenumber
 ussourceport
 ussum
 ustime
 ustimeout
 ustype
+usudplength
 usurgent
 usvalue
 uswindow
@@ -1379,6 +1401,7 @@ vlistinitialiseitem
 vmyconnecthandler
 vndrefreshcacheentry
 vnetworkinterfaceallocateramtobuffers
+vperformaction
 vportfree
 vprocessgeneratedudppacket
 vraprocess
@@ -1435,6 +1458,7 @@ xbytecount
 xbytesleft
 xcheckloopback
 xclearonexit
+xclientid
 xclientsocket
 xdatalength
 xdatalengthbytes
@@ -1496,6 +1520,7 @@ xipaddress
 xipheader
 xipheadersize
 xiptaskinitialised
+xiptracevalues
 xiptype
 xisbound
 xisforrx
