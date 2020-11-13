@@ -325,6 +325,7 @@ fromisr
 fsrxdesc
 fuf
 func
+getaddrinfo
 gethostbyname
 getnetworkbuffer
 getnetworkbufferwithdescriptor
@@ -729,6 +730,7 @@ pthreads
 ptp
 ptxpkt
 ptz
+pucaddress
 pucanswer
 pucbuffer
 pucbyte
@@ -801,6 +803,7 @@ pxheadsegment
 pxhigherprioritytaskwoken
 pxhints
 pxicmppacket
+pxinfo
 pxinterface
 pxip
 pxipheader
@@ -1053,6 +1056,7 @@ ucbootfilename
 ucbytes
 ucchildtext
 ucclienthardwareaddress
+uccontents
 uccurrentipaddress
 ucdifferentiatedservicescode
 ucdnsserveraddress
@@ -1527,6 +1531,7 @@ xphystartautonegotiation
 xporthasudpsocket
 xpqueue
 xprefix
+xprefixaddress
 xpriorityqueue
 xprocessreceivedtcppacket
 xprocessreceivedudppacket
@@ -1536,6 +1541,7 @@ xqueuegenericsend
 xqueueitem
 xqueuereceive
 xrasolicitationrequest
+xready
 xreceiveblocktime
 xregister
 xreleaseaftersend
@@ -1556,6 +1562,7 @@ xsendblocktime
 xsenderhardwareaddress
 xsendeventstructtoiptask
 xsendlength
+xserverid
 xserversocket
 xsize
 xsocket

@@ -821,7 +821,7 @@
 
                 /* DHCPv6_Option_Client_Identifier */
                 xBitConfig_write_16( &( xMessage ), DHCPv6_Option_Client_Identifier );                             /* Option is 1: Client Identifier */
-                xBitConfig_write_16( &( xMessage ), 14U );                                                         /* length is 14 */
+                xBitConfig_write_16( &( xMessage ), 14U );                                                         /* The length is 14 */
                 xBitConfig_write_16( &( xMessage ), pxDHCPMessage->xClientID.usDUIDType );                         /* 1 : Link Layer address + time */
                 xBitConfig_write_16( &( xMessage ), pxDHCPMessage->xClientID.usHardwareType );                     /* 1 : Ethernet */
                 xBitConfig_write_32( &( xMessage ), pxDHCPMessage->ulTimeStamp );                                  /* DUID Time: Jan  3, 2020. */
@@ -831,7 +831,7 @@
                 {
                     /* DHCPv6_Option_Server_Identifier */
                     xBitConfig_write_16( &( xMessage ), DHCPv6_Option_Server_Identifier );        /* Option is 1: Server Identifier */
-                    xBitConfig_write_16( &( xMessage ), pxDHCPMessage->xServerID.uxLength + 4U ); /* length is 14 */
+                    xBitConfig_write_16( &( xMessage ), pxDHCPMessage->xServerID.uxLength + 4U ); /* The length is 14 */
                     xBitConfig_write_16( &( xMessage ), pxDHCPMessage->xServerID.usDUIDType );    /* The type of DUID: 1, 2, or 3. */
                     xBitConfig_write_16( &( xMessage ), pxDHCPMessage->xServerID.usHardwareType );
                     xBitConfig_write_uc( &( xMessage ), pxDHCPMessage->xServerID.pucID, pxDHCPMessage->xServerID.uxLength );
