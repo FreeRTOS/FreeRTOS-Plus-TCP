@@ -37,48 +37,48 @@
 /* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
     typedef enum eDHCP_PHASE
     {
-        eDHCPPhasePreDiscover, /* Driver is about to send a DHCP discovery. */
-        eDHCPPhasePreRequest   /* Driver is about to request DHCP an IP address. */
+        eDHCPPhasePreDiscover, /**< Driver is about to send a DHCP discovery. */
+        eDHCPPhasePreRequest   /**< Driver is about to request DHCP an IP address. */
     } eDHCPCallbackPhase_t;
 
 /* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
     typedef enum eDHCP_ANSWERS
     {
-        eDHCPContinue,      /* Continue the DHCP process */
-        eDHCPUseDefaults,   /* Stop DHCP and use the static defaults. */
-        eDHCPStopNoChanges, /* Stop DHCP and continue with current settings. */
+        eDHCPContinue,      /**< Continue the DHCP process */
+        eDHCPUseDefaults,   /**< Stop DHCP and use the static defaults. */
+        eDHCPStopNoChanges, /**< Stop DHCP and continue with current settings. */
     } eDHCPCallbackAnswer_t;
 
 /* DHCP state machine states. */
     typedef enum
     {
-        eInitialWait = 0,          /* Initial state: open a socket and wait a short time. */
-        eWaitingSendFirstDiscover, /* Send a discover the first time it is called, and reset all timers. */
-        eWaitingOffer,             /* Either resend the discover, or, if the offer is forthcoming, send a request. */
-        eWaitingAcknowledge,       /* Either resend the request. */
+        eInitialWait = 0,          /**< Initial state: open a socket and wait a short time. */
+        eWaitingSendFirstDiscover, /**< Send a discover the first time it is called, and reset all timers. */
+        eWaitingOffer,             /**< Either resend the discover, or, if the offer is forthcoming, send a request. */
+        eWaitingAcknowledge,       /**< Either resend the request. */
         #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-            eGetLinkLayerAddress,  /* When DHCP didn't respond, try to obtain a LinkLayer address 168.254.x.x. */
+            eGetLinkLayerAddress,  /**< When DHCP didn't respond, try to obtain a LinkLayer address 168.254.x.x. */
         #endif
-        eLeasedAddress,            /* Resend the request at the appropriate time to renew the lease. */
-        eNotUsingLeasedAddress     /* DHCP failed, and a default IP address is being used. */
+        eLeasedAddress,            /**< Resend the request at the appropriate time to renew the lease. */
+        eNotUsingLeasedAddress     /**< DHCP failed, and a default IP address is being used. */
     } eDHCPState_t;
 
 /* Hold information in between steps in the DHCP state machine. */
     struct xDHCP_DATA
     {
-        uint32_t ulTransactionId;
-        uint32_t ulOfferedIPAddress;
-        uint32_t ulDHCPServerAddress;
-        uint32_t ulLeaseTime;
+        uint32_t ulTransactionId;     /**< The ID used in all transactions. */
+        uint32_t ulOfferedIPAddress;  /**< The IP-address offered by the DHCP server. */
+        uint32_t ulDHCPServerAddress; /**< The IP-address of the DHCP server. */
+        uint32_t ulLeaseTime;         /**< The maximum time that the IP-address can be leased. */
         /* Hold information on the current timer state. */
-        TickType_t xDHCPTxTime;
-        TickType_t xDHCPTxPeriod;
+        TickType_t xDHCPTxTime;       /**< The time at which a request was sent, initialised with xTaskGetTickCount(). */
+        TickType_t xDHCPTxPeriod;     /**< The maximum time to wait for a response. */
         /* Try both without and with the broadcast flag */
-        BaseType_t xUseBroadcast;
+        BaseType_t xUseBroadcast;     /**< pdTRUE if the broadcast bit 'dhcpBROADCAST' must be set. */
         /* Maintains the DHCP state machine state. */
-        eDHCPState_t eDHCPState;
-        eDHCPState_t eExpectedState;
-        Socket_t xDHCPSocket;
+        eDHCPState_t eDHCPState;      /**< The current state of the DHCP state machine. */
+        eDHCPState_t eExpectedState;  /**< If the state is not equal the the expected state, no cycle needs to be done. */
+        Socket_t xDHCPSocket;         /**< The UDP/DHCP socket, or NULL. */
     };
 
     typedef struct xDHCP_DATA DHCPData_t;

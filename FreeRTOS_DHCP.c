@@ -64,12 +64,15 @@
     #define dhcpSERVER_HOST_NAME_LENGTH           64  /**< Server host name length. */
     #define dhcpBOOT_FILE_NAME_LENGTH             128 /**< Boot file name length. */
 
-/* Timer parameters */
     #ifndef dhcpINITIAL_TIMER_PERIOD
+        /** @brief The time to wait before sending the first DHCP request. */
         #define dhcpINITIAL_TIMER_PERIOD    ( pdMS_TO_TICKS( 250U ) )
     #endif
 
     #ifndef dhcpINITIAL_DHCP_TX_PERIOD
+
+/** @brief The initial time to wait for a reply from the DHCP server.
+ * When repeating the request, the waiting time shall be doubled.*/
         #define dhcpINITIAL_DHCP_TX_PERIOD    ( pdMS_TO_TICKS( 5000U ) )
     #endif
 
