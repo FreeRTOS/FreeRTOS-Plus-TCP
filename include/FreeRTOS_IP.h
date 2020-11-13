@@ -186,7 +186,7 @@
     #include "pack_struct_start.h"
     struct xMAC_ADDRESS
     {
-        uint8_t ucBytes[ ipMAC_ADDRESS_LENGTH_BYTES ];	/**< Size byte that form the MAC-address. */
+        uint8_t ucBytes[ ipMAC_ADDRESS_LENGTH_BYTES ]; /**< Size byte that form the MAC-address. */
     }
     #include "pack_struct_end.h"
 

@@ -1443,7 +1443,7 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
  * @brief Given a message buffer, find the first byte of the payload of a UDP packet.
  *        It works for both IPv4 and IPv6.  Note that the frametype must be valid.
  *
- * @param[in] pxNetworkBuffer: The network buffer. 
+ * @param[in] pxNetworkBuffer: The network buffer.
  *
  * @return A byte pointer pointing to the first byte of the UDP payload.
  */
@@ -3868,6 +3868,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 #endif /* 0 */
 
 #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 )
+
 /**
  * @brief Enable or disable the DHCP/DHCPv6/RA timer.
  *
@@ -3893,6 +3894,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
+
 /**
  * @brief Set the reload time of the DHCP/DHCPv6/RA timer.
  *
