@@ -1060,11 +1060,13 @@ ucclienthardwareaddress
 uccontents
 uccurrentipaddress
 ucdifferentiatedservicescode
+ucdnsserver
 ucdnsserveraddress
 ucdupackcount
 ucduplex
 ucgatewayaddress
 uchardwareaddresslength
+uchasuid
 uchops
 ucipaddress
 uciptype
@@ -1105,6 +1107,7 @@ uctcpflags
 uctcpoffset
 uctcpstate
 uctimetolive
+uctransactionid
 uctransmitcount
 uctypeofmessage
 uctypeofservice
@@ -1184,6 +1187,7 @@ ulphymask
 ulpreferredlifetime
 ulprocessed
 ulprotocol
+ulpvalidlifetime
 ulreadmdio
 ulreceivelength
 ulreloadtime
@@ -1203,11 +1207,13 @@ ultargetprotocoladdress
 ultcpwindowtxack
 ultcpwindowtxget
 ultcpwindowtxsack
+ultimestamp
 ultransactionid
 ulttl
 ultxwindowlength
 ultype
 uluserdatalength
+ulvalidlifetime
 ulvalue
 ulwhere
 ulwindowsize
@@ -1239,6 +1245,7 @@ usclass
 uscurmss
 usdatalength
 usdestinationport
+usduidtype
 uselapsedtime
 userdaata
 usflags
@@ -1372,6 +1379,7 @@ vlistinitialiseitem
 vmyconnecthandler
 vndrefreshcacheentry
 vnetworkinterfaceallocateramtobuffers
+vperformaction
 vportfree
 vprocessgeneratedudppacket
 vraprocess
@@ -1489,6 +1497,7 @@ xipaddress
 xipheader
 xipheadersize
 xiptaskinitialised
+xiptracevalues
 xiptype
 xisbound
 xisforrx

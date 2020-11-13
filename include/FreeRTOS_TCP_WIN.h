@@ -35,10 +35,10 @@
         extern "C" {
     #endif
 
-/* A very simple timer that registers the time that a packet was sent.  It is used to trigger resending. */
+/** @brief A very simple timer that registers the time that a packet was sent.  It is used to trigger resending. */
     typedef struct xTCPTimerStruct
     {
-        uint32_t ulBorn; /**< The time at which a packet ws send ( using xTaskGetTickCount() ). */
+        uint32_t ulBorn; /**< The time at which a packet was send ( using xTaskGetTickCount() ). */
     } TCPTimer_t;
 
 /** @brief This struct collects the properties of a TCP segment.  A segment is a chunk of data which
@@ -111,7 +111,8 @@
                                                                                 * In other words: the sequence number of the left side of the sliding window */
             uint32_t ulFINSequenceNumber;                                      /**< The sequence number which carried the FIN flag */
             uint32_t ulHighestSequenceNumber;                                  /**< Sequence number of the right-most byte + 1 */
-        } rx, tx;                                                              /**< Sequence number of the incoming and outgoing data stream. */
+        } rx,                                                                  /**< Sequence number of the incoming data stream. */
+          tx;                                                                  /**< Sequence number of the outgoing data stream. */
         uint32_t ulOurSequenceNumber;                                          /**< The SEQ number we're sending out */
         uint32_t ulUserDataLength;                                             /**< Number of bytes in Rx buffer which may be passed to the user, after having received a 'missing packet' */
         uint32_t ulNextTxSequenceNumber;                                       /**< The sequence number given to the next byte to be added for transmission */

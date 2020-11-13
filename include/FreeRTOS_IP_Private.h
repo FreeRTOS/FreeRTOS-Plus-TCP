@@ -574,7 +574,7 @@
 /* The offset into a UDP packet at which the UDP data (payload) starts. */
     #define ipUDP_PAYLOAD_OFFSET_IPv6            ( sizeof( UDPPacket_IPv6_t ) )
 
-/* The offset from the UDP payload whre the IP type will be stored.
+/* The offset from the UDP payload where the IP type will be stored.
  * For IPv4 packets, this it located 6 bytes before pucEthernetBuffer.
  * For IPv6 packets, this it located in the usual 'ucVersionTrafficClass'. */
     #define ipIP_TYPE_OFFSET                     ( 6U )
