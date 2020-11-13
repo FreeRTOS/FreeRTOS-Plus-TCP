@@ -736,6 +736,7 @@ pucaddress
 pucanswer
 pucbuffer
 pucbyte
+pucbytes
 pucdata
 pucdescription
 pucethernetbuffer
