@@ -61,16 +61,17 @@
     #define dnsTYPE_A_HOST       0x0001U
     #define dnsTYPE_AAAA_HOST    0x001CU
 
+/** @brief freertos_addrinfo is the equivalent of 'struct addrinfo'. */
     struct freertos_addrinfo
     {
-        BaseType_t ai_flags;
-        BaseType_t ai_family;
-        BaseType_t ai_socktype;
-        BaseType_t ai_protocol;
-        socklen_t ai_addrlen;
-        struct freertos_sockaddr * ai_addr;
-        char * ai_canonname;
-        struct freertos_addrinfo * ai_next;
+        BaseType_t ai_flags;                /**< The field is included for completeness, but it is not used. */
+        BaseType_t ai_family;               /**< The type of IP-address, either FREERTOS_AF_INET4 or FREERTOS_AF_INET6. */
+        BaseType_t ai_socktype;             /**< n.a. */
+        BaseType_t ai_protocol;             /**< n.a. */
+        socklen_t ai_addrlen;               /**< The length of the address, either ipSIZE_OF_IPv4_ADDRESS or ipSIZE_OF_IPv6_ADDRESS. */
+        struct freertos_sockaddr * ai_addr; /**< The IP-address. Can be mapped onto 'freertos_sockaddr6' in case of IPv6. */
+        char * ai_canonname;                /**< The name of the host. */
+        struct freertos_addrinfo * ai_next; /**< A pointer to the next find result, or NULL. */
         struct
         {
             /* In order to avoid allocations, reserve space here for *ai_addr and *ai_canonname. */

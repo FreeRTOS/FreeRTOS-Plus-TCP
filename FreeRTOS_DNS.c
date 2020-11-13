@@ -245,14 +245,14 @@ static void eventLogAdd( const char * pcFormat,
                                      struct freertos_addrinfo ** ppxAddressInfo );
     #endif
 
+/** @brief A struct that can hold either an IPv4 or an IPv6 address. */
     typedef struct xIPv46_Address
     {
         /* A struct that can hold either an IPv4 or an IPv6 address. */
-        uint32_t ulIPAddress;
+        uint32_t ulIPAddress;             /**< The IPv4-address. */
         #if ( ipconfigUSE_IPv6 != 0 )
-            IPv6_Address_t xAddress_IPv6;
-            /* pdTRUE if the IPv6 member is used. */
-            BaseType_t xIs_IPv6;
+            IPv6_Address_t xAddress_IPv6; /**< The IPv6-address. */
+            BaseType_t xIs_IPv6;          /**< pdTRUE if the IPv6 member is used. */
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
     } IPv46_Address_t;
 
@@ -774,6 +774,17 @@ static void eventLogAdd( const char * pcFormat,
 
 
     #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+
+/**
+ * @brief Look-up the IP-address of a host.
+ *
+ * @param[in] pcName: The name of the node or device
+ * @param[in] pcService: Ignored for now.
+ * @param[in] pxHints: If not NULL: preferences. Can be used to indicate the preferred type if IP ( v4 or v6 ).
+ * @param[out] ppxResult: An allocated struct, containing the results.
+ *
+ * @return Zero when the operation was successful, otherwise a negative errno value.
+ */
         BaseType_t FreeRTOS_getaddrinfo( const char * pcName,                      /* The name of the node or device */
                                          const char * pcService,                   /* Ignored for now. */
                                          const struct freertos_addrinfo * pxHints, /* If not NULL: preferences. */
@@ -785,6 +796,15 @@ static void eventLogAdd( const char * pcFormat,
     #endif /* ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Internal function: allocate and initialise a new struct of type freertos_addrinfo.
+ *
+ * @param[in] pcName: the name of the host.
+ * @param[in] xFamily: the type of IP-address: FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
+ * @param[in] pucAddress: The IP-address of the host.
+ *
+ * @return A pointer to the newly allocated struct, or NULL in case malloc failed..
+ */
     static struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
                                                       BaseType_t xFamily,
                                                       const uint8_t * pucAddress )
@@ -830,6 +850,20 @@ static void eventLogAdd( const char * pcFormat,
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+
+/**
+ * @brief Asynchronous version of getaddrinfo().
+ *
+ * @param[in] pcName: The name of the node or device
+ * @param[in] pcService: Ignored for now.
+ * @param[in] pxHints: If not NULL: preferences. Can be used to indicate the preferred type if IP ( v4 or v6 ).
+ * @param[out] ppxResult: An allocated struct, containing the results.
+ * @param[in] pCallback: A user-defined function which will be called on completion, either when found or after a time-out.
+ * @param[in] pvSearchID: A user provided void pointer that will be communicated on completion.
+ * @param[in] uxTimeout: The maximum numer of tick that must be waited for a reply.
+ *
+ * @return Zero when the operation was successful, otherwise a negative errno value.
+ */
         BaseType_t FreeRTOS_getaddrinfo_a( const char * pcName,                      /* The name of the node or device */
                                            const char * pcService,                   /* Ignored for now. */
                                            const struct freertos_addrinfo * pxHints, /* If not NULL: preferences. */
@@ -838,6 +872,17 @@ static void eventLogAdd( const char * pcFormat,
                                            void * pvSearchID,
                                            TickType_t uxTimeout )
     #else
+
+/**
+ * @brief Look-up the IP-address of a host.
+ *
+ * @param[in] pcName: The name of the node or device
+ * @param[in] pcService: Ignored for now.
+ * @param[in] pxHints: If not NULL: preferences. Can be used to indicate the preferred type if IP ( v4 or v6 ).
+ * @param[out] ppxResult: An allocated struct, containing the results.
+ *
+ * @return Zero when the operation was successful, otherwise a negative errno value.
+ */
         BaseType_t FreeRTOS_getaddrinfo( const char * pcName,                      /* The name of the node or device */
                                          const char * pcService,                   /* Ignored for now. */
                                          const struct freertos_addrinfo * pxHints, /* If not NULL: preferences. */
@@ -907,6 +952,11 @@ static void eventLogAdd( const char * pcFormat,
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Free a chain of structs of type 'freertos_addrinfo'.
+ *
+ * @param[in] pxInfo: The first find result.
+ */
     void FreeRTOS_freeaddrinfo( struct freertos_addrinfo * pxInfo )
     {
         struct freertos_addrinfo * pxNext;
