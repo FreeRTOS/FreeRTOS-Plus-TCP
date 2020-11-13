@@ -64,6 +64,7 @@ bhasinit
 binterfaceup
 bisforrx
 bist
+bitconfig_t
 bitmask
 bitscanreverse
 bl
@@ -256,6 +257,8 @@ enotusingleasedaddress
 enum
 eof
 eprocessbuffer
+erastateapply
+erastateiptest
 ereleasebuffer
 ereturn
 ereturned
@@ -313,6 +316,7 @@ forwardundersizedgoodframes
 fr
 framerx
 freertos
+freertos_sendto
 freertosconfig
 freertosip
 freertosipconfig
@@ -321,6 +325,7 @@ fromisr
 fsrxdesc
 fuf
 func
+getaddrinfo
 gethostbyname
 getnetworkbuffer
 getnetworkbufferwithdescriptor
@@ -503,6 +508,7 @@ mdi
 mdio
 mdix
 mediainterface
+memcmp
 memcopy
 memcpy
 memset
@@ -532,6 +538,7 @@ mtu
 multicastframesfilter
 mutex
 mutexes
+na
 nack
 nanosec
 nbns
@@ -623,7 +630,10 @@ pdtrue
 perfectfilter
 perfecthashtablefilter
 pfc
+pfgetphylinkstatus
+pfinitialise
 pfnz
+pfoutput
 phy
 phyaddress
 phyhandling
@@ -653,6 +663,7 @@ ppxendpoint
 ppxnetworkbuffer
 ppxresult
 pr
+pragma
 pre
 printf
 printfs
@@ -719,6 +730,7 @@ pthreads
 ptp
 ptxpkt
 ptz
+pucaddress
 pucanswer
 pucbuffer
 pucbyte
@@ -749,6 +761,7 @@ pullups
 pulnetmask
 pulnumber
 pulvalue
+pvargument
 pvbuffer
 pvdata
 pvdestination
@@ -764,6 +777,7 @@ pxaddr
 pxaddress
 pxaddressinfo
 pxaddresslength
+pxaddresstolookup
 pxallnetworkinterfaces
 pxanswer
 pxarpframe
@@ -775,9 +789,11 @@ pxdescriptor
 pxdestinationaddress
 pxdhcpmessage
 pxdnsmessageheader
+pxdnsserveraddress
 pxduplicatenetworkbufferwithdescriptor
 pxendpoint
 pxevent
+pxgatewayaddress
 pxgetnetworkbufferwithdescriptor
 pxhandleconnected
 pxhandlereceive
@@ -787,9 +803,9 @@ pxheadsegment
 pxhigherprioritytaskwoken
 pxhints
 pxicmppacket
+pxinfo
 pxinterface
 pxip
-pxipaddress
 pxipheader
 pxippacket
 pxiterator
@@ -1038,7 +1054,9 @@ ucage
 ucarray
 ucbootfilename
 ucbytes
+ucchildtext
 ucclienthardwareaddress
+uccontents
 uccurrentipaddress
 ucdifferentiatedservicescode
 ucdnsserveraddress
@@ -1069,7 +1087,9 @@ ucnumipaddresses
 ucoctet
 ucopcode
 ucoptdata
+ucoptionbytes
 ucoptionlength
+ucoptiontype
 ucpeerwinscalefactor
 ucpreference
 ucprefixlength
@@ -1147,6 +1167,7 @@ ulltcpalignment
 ulmandatoryoptions
 ulmask
 ulmss
+ulmtu
 ulnetmask
 ulnextfreetxdescriptor
 ulnextsequencenumber
@@ -1154,6 +1175,7 @@ ulnexttxsequencenumber
 ulnumbers
 ulofferedipaddress
 uloffset
+ulong
 uloptionsdata
 uloursequencenumber
 ulphymask
@@ -1185,6 +1207,7 @@ ultxwindowlength
 ultype
 uluserdatalength
 ulvalue
+ulwhere
 ulwindowsize
 ulwords
 un
@@ -1256,6 +1279,7 @@ uxaddresslength
 uxblocktimeticks
 uxbufferlength
 uxbytecount
+uxcontents
 uxcount
 uxdatalength
 uxdatalengthbytes
@@ -1274,6 +1298,7 @@ uxidsize
 uxindex
 uxipheaderlength
 uxipheadersizesocket
+uxlast
 uxleft
 uxlength
 uxlittlespace
@@ -1306,7 +1331,9 @@ uxstreambufferadd
 uxstreambufferget
 uxstreambuffermidspace
 uxtail
+uxtargetindex
 uxtaskgetsystemstate
+uxtickstowait
 uxtimeout
 uxtimeoutstate
 uxtotaldatalength
@@ -1339,6 +1366,8 @@ vndrefreshcacheentry
 vnetworkinterfaceallocateramtobuffers
 vportfree
 vprocessgeneratedudppacket
+vraprocess
+vreceivera
 vreleasenetworkbufferanddescriptor
 vrxfaultinjection
 vsocketbind
@@ -1401,6 +1430,7 @@ xdestinationaddress
 xdestinationaddresslength
 xdhcpdata
 xdhcpsocket
+xdhcpsocketusercount
 xdhcptxperiod
 xdhcptxtime
 xdmarxdescriptors
@@ -1409,6 +1439,7 @@ xdnssocket
 xdocheck
 xdomain
 xdorandom
+xdoreset
 xdumpingready
 xemacps
 xemacpsif
@@ -1444,11 +1475,13 @@ xicmpheader
 xicmppacket
 xidentifier
 xilinx
+xindex
 xinternal
 xipaddress
 xipheader
 xipheadersize
 xiptaskinitialised
+xiptype
 xisbound
 xisforrx
 xisinputstream
@@ -1467,6 +1500,7 @@ xlocalport
 xlookup
 xlwipconfig
 xmacaddress
+xmacbroadcast
 xmaxtime
 xmessage
 xmicreldevice
@@ -1496,6 +1530,7 @@ xphypreferences
 xphystartautonegotiation
 xporthasudpsocket
 xpqueue
+xprefix
 xpriorityqueue
 xprocessreceivedtcppacket
 xprocessreceivedudppacket
@@ -1504,6 +1539,7 @@ xqueuecreateset
 xqueuegenericsend
 xqueueitem
 xqueuereceive
+xrasolicitationrequest
 xreceiveblocktime
 xregister
 xreleaseaftersend
@@ -1536,6 +1572,7 @@ xstream
 xsum
 xtargethardwareaddress
 xtaskcheckfortimeout
+xtaskgettickcount
 xtaskhandle
 xtaskresumeall
 xtcp
@@ -1568,6 +1605,10 @@ xwanteditemvalue
 xwantedsize
 xwillsleep
 xxx
+xzynqdescriptor
+xzynqgemgetphylinkstatus
+xzynqgeminitialise
+xzynqgemoutput
 yyyy
 zeroquantapause
 zynq
