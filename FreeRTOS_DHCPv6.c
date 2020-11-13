@@ -870,7 +870,7 @@
                 xBitConfig_write_16( &( xMessage ), DHCPv6_Option_IA_Prefix );                                 /* usOption   Option is 26 */
                 xBitConfig_write_16( &( xMessage ), 25 );                                                      /* usLength   length is 25 */
                 xBitConfig_write_32( &( xMessage ), ulPreferredLifeTime );                                     /* 4500 */
-                xBitConfig_write_32( &( xMessage ), ulPValidLifeTime );                                        /* 7200 */
+                xBitConfig_write_32( &( xMessage ), ulPValidLifeTime );                                        /* e.g. 7200 seconds. */
                 xBitConfig_write_8( &( xMessage ), ucPrefixLength );                                           /* 64 bits */
                 xBitConfig_write_uc( &( xMessage ), pxEndPoint->xMACAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); /* 2001:0:0:fe00:: */
 

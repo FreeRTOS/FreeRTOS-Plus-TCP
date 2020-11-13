@@ -1107,6 +1107,7 @@ uctcpflags
 uctcpoffset
 uctcpstate
 uctimetolive
+uctransactionid
 uctransmitcount
 uctypeofmessage
 uctypeofservice
@@ -1186,6 +1187,7 @@ ulphymask
 ulpreferredlifetime
 ulprocessed
 ulprotocol
+ulpvalidlifetime
 ulreadmdio
 ulreceivelength
 ulreloadtime
@@ -1205,11 +1207,13 @@ ultargetprotocoladdress
 ultcpwindowtxack
 ultcpwindowtxget
 ultcpwindowtxsack
+ultimestamp
 ultransactionid
 ulttl
 ultxwindowlength
 ultype
 uluserdatalength
+ulvalidlifetime
 ulvalue
 ulwhere
 ulwindowsize
@@ -1241,6 +1245,7 @@ usclass
 uscurmss
 usdatalength
 usdestinationport
+usduidtype
 uselapsedtime
 userdaata
 usflags
