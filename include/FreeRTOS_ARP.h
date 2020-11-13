@@ -44,7 +44,7 @@
     struct xNetworkInterface;
     struct xNetworkEndPoint;
 
-	/** @brief Description of an entry of the ARP cache. */
+/** @brief Description of an entry of the ARP cache. */
     typedef struct xARP_CACHE_TABLE_ROW
     {
         uint32_t ulIPAddress;     /**< The IP address of an ARP cache entry. */
@@ -55,7 +55,7 @@
         uint8_t ucValid;          /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ARP reply */
     } ARPCacheRow_t;
 
-	/** @brief Possible return value for various look-up functions. */
+/** @brief Possible return value for various look-up functions. */
     typedef enum
     {
         eARPCacheMiss = 0, /**< 0 An ARP table lookup did not find a valid entry. */
