@@ -198,7 +198,7 @@ eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
             if( pxEndPoint != NULL )
             {
                 ( void ) memcpy( pxIPAddress->ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                FreeRTOS_printf( ( "eNDGetCacheEntry: Using gw %pip", pxIPAddress->ucBytes ) ); /* access to 'ipv6_settings' is checked. */
+                FreeRTOS_printf( ( "eNDGetCacheEntry: Using gw %pip", pxIPAddress->ucBytes ) );
                 FreeRTOS_printf( ( "eNDGetCacheEntry: From addr %pip", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
 
                 /* See if the gateway has an entry in the cache. */
@@ -554,7 +554,7 @@ void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBu
             }
             else
             {
-                FreeRTOS_printf( ( "SendPingRequestIPv6: Using gw %pip", pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes ) ); /* access to 'ipv6_settings' is checked. */
+                FreeRTOS_printf( ( "SendPingRequestIPv6: Using gw %pip", pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes ) );
             }
         }
 

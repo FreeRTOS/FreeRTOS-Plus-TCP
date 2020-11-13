@@ -806,6 +806,7 @@ pxicmppacket
 pxinfo
 pxinterface
 pxip
+pxipaddress
 pxipheader
 pxippacket
 pxiterator
@@ -1531,7 +1532,9 @@ xphystartautonegotiation
 xporthasudpsocket
 xpqueue
 xprefix
+xprefixaddress
 xpriorityqueue
+xprivatestorage
 xprocessreceivedtcppacket
 xprocessreceivedudppacket
 xprotocol
@@ -1540,6 +1543,7 @@ xqueuegenericsend
 xqueueitem
 xqueuereceive
 xrasolicitationrequest
+xready
 xreceiveblocktime
 xregister
 xreleaseaftersend
@@ -1560,6 +1564,7 @@ xsendblocktime
 xsenderhardwareaddress
 xsendeventstructtoiptask
 xsendlength
+xserverid
 xserversocket
 xsize
 xsocket
