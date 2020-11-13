@@ -159,7 +159,7 @@
 #endif /* if ipconfigUSE_TCP */
 
 /*
- * For debuging/logging: check if the port number is used for telnet
+ * For debugging/logging: check if the port number is used for telnet
  * Some events will not be logged for telnet connections
  * because it would produce logging about the transmission of the logging...
  * This macro will only be used if FreeRTOS_debug_printf() is defined for logging

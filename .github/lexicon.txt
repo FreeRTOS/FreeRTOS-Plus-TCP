@@ -91,6 +91,7 @@ buffermanagement
 buffna
 busershutdown
 bwaitkeepalive
+bwantra
 bwinchange
 bwinscaling
 bytecount
@@ -152,6 +153,7 @@ deglitchers
 deinitializes
 delayreq
 delayrespm
+demoiptrace
 desc
 desciptorskiplength
 dest

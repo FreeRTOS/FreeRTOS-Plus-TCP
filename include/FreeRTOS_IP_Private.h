@@ -964,7 +964,7 @@
                 bIsIPv6 : 1, /**< Non-zero in case the connection is using IPv6. */
             #endif /* ipconfigUSE_IPv6 */
             bSomeFlag : 1;
-        } bits;                          /**< A collection of bollean properties. */
+        } bits;                          /**< A collection of boolean properties. */
 
         ListItem_t xBoundSocketListItem; /**< Used to reference the socket from a bound sockets list. */
         TickType_t xReceiveBlockTime;    /**< if recv[to] is called while no data is available, wait this amount of time. Unit in clock-ticks */
@@ -1307,7 +1307,7 @@
     void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint );
 
 /* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
- * It handles alle ICMP messages except the PING requests. */
+ * It handles all ICMP messages except the PING requests. */
     eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
     #ifdef __cplusplus
