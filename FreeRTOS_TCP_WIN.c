@@ -107,7 +107,7 @@
     #endif /* configUSE_TCP_WIN */
 /*-----------------------------------------------------------*/
 
-    _static void vListInsertGeneric( List_t * const pxList,
+    static void vListInsertGeneric( List_t * const pxList,
                                      ListItem_t * const pxNewListItem,
                                      MiniListItem_t * const pxWhere );
 
@@ -419,7 +419,7 @@
  * @param[in] pxNewListItem: The item to be inserted.
  * @param[in] pxWhere: Where should the item be inserted.
  */
-    _static void vListInsertGeneric( List_t * const pxList,
+    static void vListInsertGeneric( List_t * const pxList,
                                      ListItem_t * const pxNewListItem,
                                      MiniListItem_t * const pxWhere )
     {

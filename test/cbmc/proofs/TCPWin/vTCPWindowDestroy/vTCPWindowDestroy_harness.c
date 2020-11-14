@@ -15,7 +15,7 @@ TCPSegment_t xRxSegmentListItem[ NUM_OF_SEGMENTS ];
 TCPSegment_t xTxSegmentListItem[ NUM_OF_SEGMENTS ];
 
 /* Definition of this function in FreeRTOS_TCP_WIN.c. */
-extern void vListInsertGeneric( List_t * const pxList,
+void __CPROVER_file_local_FreeRTOS_TCP_WIN_c_vListInsertGeneric( List_t * const pxList,
                                 ListItem_t * const pxNewListItem,
                                 MiniListItem_t * const pxWhere );
 
@@ -48,7 +48,8 @@ void harness()
         /* Make the container of the queue item is NULL. */
         xRxSegmentListItem[ i ].xQueueItem.pxContainer = NULL;
 
-        vListInsertGeneric( &xWindow.xRxSegments, &( xRxSegmentListItem[ i ].xSegmentItem ), &xWindow.xRxSegments.xListEnd );
+        __CPROVER_file_local_FreeRTOS_TCP_WIN_c_vListInsertGeneric( &xWindow.xRxSegments,
+				 &( xRxSegmentListItem[ i ].xSegmentItem ), &xWindow.xRxSegments.xListEnd );
 
 
         /********************** Fill in Tx segments ********************/
