@@ -184,6 +184,18 @@ static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkInterface_t )
     return ( NetworkInterface_t * ) pvArgument;
 }
 
+/**
+ * @brief Helper function to do a cast to a NetworkEndPoint_t pointer.
+ *
+ * @note NetworkEndPoint_t: the name of a type.
+ *
+ * @return the converted pointer.
+ */
+static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkEndPoint_t )
+{
+    return ( NetworkEndPoint_t * ) pvArgument;
+}
+
 #if ( ipconfigUSE_IPv6 != 0 )
 
 /**
