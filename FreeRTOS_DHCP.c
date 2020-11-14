@@ -136,7 +136,6 @@
     #endif /* ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
 
     #include "pack_struct_start.h"
-    /** @brief A struct that describes the current DHCP status. */
     struct xDHCPMessage_IPv4
     {
         uint8_t ucOpcode;                                                      /**< Operation Code: Specifies the general type of message. */
