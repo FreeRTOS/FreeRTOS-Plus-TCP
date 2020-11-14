@@ -108,8 +108,8 @@
 /*-----------------------------------------------------------*/
 
     static void vListInsertGeneric( List_t * const pxList,
-                                     ListItem_t * const pxNewListItem,
-                                     MiniListItem_t * const pxWhere );
+                                    ListItem_t * const pxNewListItem,
+                                    MiniListItem_t * const pxWhere );
 
 /*
  * All TCP sockets share a pool of segment descriptors (TCPSegment_t)
@@ -420,8 +420,8 @@
  * @param[in] pxWhere: Where should the item be inserted.
  */
     static void vListInsertGeneric( List_t * const pxList,
-                                     ListItem_t * const pxNewListItem,
-                                     MiniListItem_t * const pxWhere )
+                                    ListItem_t * const pxNewListItem,
+                                    MiniListItem_t * const pxWhere )
     {
         /* Insert a new list item into pxList, it does not sort the list,
          * but it puts the item just before xListEnd, so it will be the last item
