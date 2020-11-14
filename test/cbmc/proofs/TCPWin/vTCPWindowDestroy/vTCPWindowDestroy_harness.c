@@ -58,7 +58,8 @@ void harness()
         /* Make the container of the queue item is NULL. */
         xTxSegmentListItem[ i ].xQueueItem.pxContainer = NULL;
 
-        vListInsertGeneric( &xWindow.xTxSegments, &( xTxSegmentListItem[ i ].xSegmentItem ), &xWindow.xTxSegments.xListEnd );
+        __CPROVER_file_local_FreeRTOS_TCP_WIN_c_vListInsertGeneric( &xWindow.xTxSegments,
+                                                                    &( xTxSegmentListItem[ i ].xSegmentItem ), &xWindow.xTxSegments.xListEnd );
     }
 
     /* Call the function. */
