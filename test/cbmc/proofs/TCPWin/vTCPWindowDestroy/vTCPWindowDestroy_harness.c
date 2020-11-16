@@ -62,6 +62,8 @@ void harness()
                                                                     &( xTxSegmentListItem[ i ].xSegmentItem ), &xWindow.xTxSegments.xListEnd );
     }
 
-    /* Call the function. */
+    /* Call the function. The function is internally called from just one location
+     * where it is made sure that the parameter passed to the function is non-NULL.
+     * Therefore, a non-NULL value is passed to the function. */
     vTCPWindowDestroy( &xWindow );
 }
