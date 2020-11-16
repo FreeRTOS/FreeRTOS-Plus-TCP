@@ -51,6 +51,8 @@ void harness()
     pxSocket->u.xTCP.pxAckMessage = pxGetNetworkBufferWithDescriptor( xRequestedSizeBytes, xBlockTimeTicks );
 
 
+    /* Create and fill the socket in the bound socket list. Which will be removed
+     * by a call to the vSocketClose. */
     List_t BoundSocketList;
     vListInitialise( &BoundSocketList );
 
@@ -66,11 +68,13 @@ void harness()
         pxSocket->xBoundSocketListItem.pxContainer = NULL;
     }
 
+    /* Initialise and place some random packets in the waiting packet list. */
+    ListItem_t xWaitingPacketListItem;
+    NetworkBufferDescriptor_t NetworkBuffer;
+
     if( pxSocket->ucProtocol == FREERTOS_IPPROTO_UDP )
     {
         vListInitialise( &( pxSocket->u.xUDP.xWaitingPacketsList ) );
-        ListItem_t xWaitingPacketListItem;
-        NetworkBufferDescriptor_t NetworkBuffer;
 
         if( nondet_bool() )
         {
@@ -83,17 +87,12 @@ void harness()
             /* Below 2 statements to be checked. */
             NetworkBuffer.xBufferListItem.pxContainer = &( pxSocket->u.xUDP.xWaitingPacketsList );
             vListInsertEnd( &( pxSocket->u.xUDP.xWaitingPacketsList ), &( NetworkBuffer.xBufferListItem ) );
-
-            pxSocket->u.xUDP.xWaitingPacketsList.uxNumberOfItems = 0;
         }
         else
         {
             pxSocket->u.xUDP.xWaitingPacketsList.uxNumberOfItems = 0;
         }
     }
-
-    /* Initialise the item to be used later on in the proof.  */
-    vListInitialiseItem( &( pxSocket->xBoundSocketListItem ) );
 
     /* Call to init the socket list. */
     vNetworkSocketsInit();
