@@ -7,6 +7,7 @@
 #include "queue.h"
 #include "semphr.h"
 #include "event_groups.h"
+#include "list.h"
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
@@ -18,23 +19,25 @@
 
 void vEventGroupDelete( EventGroupHandle_t xEventGroup )
 {
-    __CPROVER_assert( xEventGroup );
-
-    /**/
+    __CPROVER_assert( xEventGroup, "Event group cannot be NULL" );
 }
 
 /* The memory safety of vTCPWindowDestroy has already been proved in
  * proofs/TCPWin/vTCPWindowDestroy. */
 void vTCPWindowDestroy( TCPWindow_t const * xWindow )
 {
+    __CPROVER_assert( xWindow != NULL, "xWindow cannot be NULL" );
+
     /* Do nothing. */
 }
 
 void harness()
 {
     size_t xRequestedSizeBytes;
+    TickType_t xBlockTimeTicks;
+
     /* Request a random number of bytes keeping in mind the maximum bound of CBMC. */
-    __CPROVER_assume( ( xRequestedSizeBytes >=0 ) && ( xRequestedSizeBytes < ( CBMC_MAX_OBJECT_SIZE - ipBUFFER_PADDING ) ) );
+    __CPROVER_assume( ( xRequestedSizeBytes >= 0 ) && ( xRequestedSizeBytes < ( CBMC_MAX_OBJECT_SIZE - ipBUFFER_PADDING ) ) );
 
     FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
     /* Assume socket to not be NULL or invalid. */
@@ -44,21 +47,50 @@ void harness()
     pxSocket->pxUserWakeCallback = safeMalloc( sizeof( SocketWakeupCallback_t ) );
 
     /* Get a network buffer descriptor with requested bytes. See the constraints
-     * on the number of requested bytes above. */
-    pxSocket->u.xTCP.pxAckMessage = pxGetNetworkBufferWithDescriptor( xRequestedSizeBytes, 0 );
+     * on the number of requested bytes above. And block for random timer ticks. */
+    pxSocket->u.xTCP.pxAckMessage = pxGetNetworkBufferWithDescriptor( xRequestedSizeBytes, xBlockTimeTicks );
 
-    pxSocket->u.xUDP.xWaitingPacketsList.uxNumberOfItems = 0;
-/*    NetworkBufferDescriptor_t *temp = pxGetNetworkBufferWithDescriptor( 200, 0 );
 
-    struct xLIST_ITEM temp1;
+    List_t BoundSocketList;
+    vListInitialise( &BoundSocketList );
 
-    List_t temp2;
-    vListInitialise( &temp2 );
+    if( nondet_bool() )
+    {
+        vListInitialiseItem( &( pxSocket->xBoundSocketListItem ) );
+        pxSocket->xBoundSocketListItem.pxContainer = &( BoundSocketList );
 
-    pxSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &temp1;
-    pxSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext->pvOwner = temp;
-    ( ( NetworkBufferDescriptor_t * ) ( pxSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext->pvOwner ) )->xBufferListItem.pvContainer = NULL;
-*/
+        vListInsertEnd( &BoundSocketList, &( pxSocket->xBoundSocketListItem ) );
+    }
+    else
+    {
+        pxSocket->xBoundSocketListItem.pxContainer = NULL;
+    }
+
+    if( pxSocket->ucProtocol == FREERTOS_IPPROTO_UDP )
+    {
+        vListInitialise( &( pxSocket->u.xUDP.xWaitingPacketsList ) );
+        ListItem_t xWaitingPacketListItem;
+        NetworkBufferDescriptor_t NetworkBuffer;
+
+        if( nondet_bool() )
+        {
+            vListInitialiseItem( &xWaitingPacketListItem );
+            listSET_LIST_ITEM_OWNER( &xWaitingPacketListItem, ( void * ) &NetworkBuffer );
+            vListInsertEnd( &( pxSocket->u.xUDP.xWaitingPacketsList ), &xWaitingPacketListItem );
+
+            vListInitialiseItem( &( NetworkBuffer.xBufferListItem ) );
+
+            /* Below 2 statements to be checked. */
+            NetworkBuffer.xBufferListItem.pxContainer = &( pxSocket->u.xUDP.xWaitingPacketsList );
+            vListInsertEnd( &( pxSocket->u.xUDP.xWaitingPacketsList ), &( NetworkBuffer.xBufferListItem ) );
+
+            pxSocket->u.xUDP.xWaitingPacketsList.uxNumberOfItems = 0;
+        }
+        else
+        {
+            pxSocket->u.xUDP.xWaitingPacketsList.uxNumberOfItems = 0;
+        }
+    }
 
     /* Initialise the item to be used later on in the proof.  */
     vListInitialiseItem( &( pxSocket->xBoundSocketListItem ) );
