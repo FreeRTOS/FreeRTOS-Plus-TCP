@@ -9,6 +9,7 @@
   [
     "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/list.goto",
     "$(FREERTOS_PLUS_TCP)/FreeRTOS_Sockets.goto",
+    "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/event_groups.goto",
     "$(ENTRY)_harness.goto"
   ],
   "DEF":
