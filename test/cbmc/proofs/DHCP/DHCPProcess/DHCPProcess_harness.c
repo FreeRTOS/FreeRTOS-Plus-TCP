@@ -56,7 +56,7 @@ void prvCreateDHCPSocket();
 * The signature of the function under test.
 ****************************************************************/
 
-void vDHCPProcess( BaseType_t xReset );
+void vDHCPProcess( BaseType_t xReset, eDHCPState_t eExpectedState );
 
 /****************************************************************
 * Abstract prvProcessDHCPReplies proved memory safe in ProcessDHCPReplies.
@@ -74,6 +74,7 @@ BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType )
 void harness()
 {
     BaseType_t xReset;
+    eDHCPState_t eExpectedState;
 
     /****************************************************************
     * Initialize the counter used to bound the number of times
@@ -91,12 +92,12 @@ void harness()
     * xReset==True resets the state to eWaitingSendFirstDiscover.
     ****************************************************************/
 
-    if( !( ( xDHCPData.eDHCPState == eWaitingSendFirstDiscover ) ||
+    if( !( ( xDHCPData.eDHCPState == eInitialWait ) ||
            ( xReset != pdFALSE ) ) )
     {
         prvCreateDHCPSocket();
         __CPROVER_assume( xDHCPSocket != NULL );
     }
 
-    vDHCPProcess( xReset );
+    vDHCPProcess( xReset, eExpectedState );
 }
