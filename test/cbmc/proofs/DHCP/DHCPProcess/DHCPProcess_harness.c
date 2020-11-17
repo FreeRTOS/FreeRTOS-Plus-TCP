@@ -56,7 +56,8 @@ void prvCreateDHCPSocket();
 * The signature of the function under test.
 ****************************************************************/
 
-void vDHCPProcess( BaseType_t xReset, eDHCPState_t eExpectedState );
+void vDHCPProcess( BaseType_t xReset,
+                   eDHCPState_t eExpectedState );
 
 /****************************************************************
 * Abstract prvProcessDHCPReplies proved memory safe in ProcessDHCPReplies.
