@@ -1269,6 +1269,7 @@ unhandled
 unicast
 unicastframesfilter
 unicastpauseframedetect
+uninitialised
 unsetmacaddr
 urg
 url
