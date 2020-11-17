@@ -46,6 +46,8 @@ barry
 baseaddress
 bbbbbbb
 bbefore
+bcalldownevent
+bcalldownhook
 bcloseaftersend
 bcloserequested
 bconnpassed
@@ -62,6 +64,7 @@ bfinrecv
 bfinsent
 bhasinit
 binterfaceup
+bisdefault
 bisforrx
 bist
 bitconfig_t
@@ -91,6 +94,7 @@ buffermanagement
 buffna
 busershutdown
 bwaitkeepalive
+bwantdhcp
 bwantra
 bwinchange
 bwinscaling
@@ -136,6 +140,7 @@ csn
 csr
 csv
 ctrl
+curtok
 cwd
 da
 daif
@@ -261,6 +266,9 @@ eof
 eprocessbuffer
 erastateapply
 erastateiptest
+erastateipwait
+erastatelease
+erastatewait
 ereleasebuffer
 ereturn
 ereturned
@@ -614,6 +622,7 @@ pcipaddress
 pcmessage
 pcname
 pcnetworkbuffer
+pcremoteip
 pcs
 pcservice
 pcsource
@@ -737,8 +746,10 @@ pucanswer
 pucbuffer
 pucbyte
 pucbytes
+puccolon
 pucdata
 pucdescription
+pucend
 pucethernetbuffer
 pucgetuncachedmemory
 pucid
@@ -751,7 +762,9 @@ pucoptionsarray
 pucpayload
 pucptr
 pucrecvdata
+pucreturn
 pucstart
+puctarget
 pucudppayload
 pucudppayloadbuffer
 pucusebuffer
@@ -765,6 +778,7 @@ pullups
 pulnetmask
 pulnumber
 pulvalue
+pusaddress
 pvargument
 pvbuffer
 pvdata
@@ -790,6 +804,7 @@ pxbuffer
 pxbufferdescriptor
 pxconfig
 pxdescriptor
+pxdest
 pxdestinationaddress
 pxdhcpmessage
 pxdnsmessageheader
@@ -797,6 +812,7 @@ pxdnsserveraddress
 pxduplicatenetworkbufferwithdescriptor
 pxendpoint
 pxevent
+pxfrom
 pxgatewayaddress
 pxgetnetworkbufferwithdescriptor
 pxhandleconnected
@@ -819,10 +835,12 @@ pxlist
 pxlistfindlistitemwithvalue
 pxmacaddress
 pxmessage
+pxnetprefix
 pxnetworkbuffer
 pxnetworkinterface
 pxnewlistitem
 pxnewsocket
+pxnext
 pxnextbuffer
 pxnextnetworkbufferdescriptor
 pxontcpconnected
@@ -832,6 +850,7 @@ pxonudpreceive
 pxonudpsent
 pxopenedinterfacehandle
 pxoptionsarraysize
+pxpacket
 pxpeersocket
 pxphyobject
 pxprefix
@@ -1183,9 +1202,12 @@ ullength
 ullinkstatusmask
 ullocaladdress
 ullocalip
+ullocations
+ullocationsip
 ulltcpalignment
 ulmandatoryoptions
 ulmask
+ulmatching
 ulmss
 ulmtu
 ulnetmask
@@ -1196,6 +1218,9 @@ ulnumbers
 ulofferedipaddress
 uloffset
 ulong
+ulonip
+ulonmac
+ulonnetmask
 uloptionsdata
 uloursequencenumber
 ulphymask
@@ -1244,6 +1269,7 @@ unhandled
 unicast
 unicastframesfilter
 unicastpauseframedetect
+uninitialised
 unsetmacaddr
 urg
 url
@@ -1461,6 +1487,7 @@ xcheckloopback
 xclearonexit
 xclientid
 xclientsocket
+xcount
 xdatalength
 xdatalengthbytes
 xdefaultaddressing
@@ -1477,6 +1504,7 @@ xdmarxdescriptors
 xdnsmessage
 xdnssocket
 xdocheck
+xdolog
 xdomain
 xdorandom
 xdoreset
@@ -1582,6 +1610,7 @@ xqueuecreateset
 xqueuegenericsend
 xqueueitem
 xqueuereceive
+xradata
 xrasolicitationrequest
 xready
 xreceiveblocktime

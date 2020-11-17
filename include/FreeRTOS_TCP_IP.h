@@ -39,25 +39,25 @@
          * http://en.wikipedia.org/wiki/Transmission_Control_Protocol */
         eCLOSED = 0U,  /* 0 (server + client) no connection state at all. */
         eTCP_LISTEN,   /* 1 (server) waiting for a connection request
-                        * from any remote TCP and port. */
+                        *   from any remote TCP and port. */
         eCONNECT_SYN,  /* 2 (client) internal state: socket wants to send
-                        * a connect */
+                        *   a connect */
         eSYN_FIRST,    /* 3 (server) Just created, must ACK the SYN request. */
         eSYN_RECEIVED, /* 4 (server) waiting for a confirming connection request
-                        * acknowledgement after having both received and sent a connection request. */
+                        *   acknowledgement after having both received and sent a connection request. */
         eESTABLISHED,  /* 5 (server + client) an open connection, data received can be
-                        * delivered to the user. The normal state for the data transfer phase of the connection. */
+                        *   delivered to the user. The normal state for the data transfer phase of the connection. */
         eFIN_WAIT_1,   /* 6 (server + client) waiting for a connection termination request from the remote TCP,
-                        * or an acknowledgement of the connection termination request previously sent. */
+                        *   or an acknowledgement of the connection termination request previously sent. */
         eFIN_WAIT_2,   /* 7 (server + client) waiting for a connection termination request from the remote TCP. */
         eCLOSE_WAIT,   /* 8 (server + client) waiting for a connection termination request from the local user. */
         eCLOSING,      /* 9 (server + client) waiting for a connection termination request acknowledgement from the remote TCP. */
         eLAST_ACK,     /*10 (server + client) waiting for an acknowledgement of the connection termination request
-                        * previously sent to the remote TCP
-                        * (which includes an acknowledgement of its connection termination request). */
+                        *   previously sent to the remote TCP
+                        *   (which includes an acknowledgement of its connection termination request). */
         eTIME_WAIT,    /*11 (either server or client) waiting for enough time to pass to be sure the remote TCP received the
-                        * acknowledgement of its connection termination request. [According to RFC 793 a connection can
-                        * stay in TIME-WAIT for a maximum of four minutes known as a MSL (maximum segment lifetime).] */
+                        *   acknowledgement of its connection termination request. [According to RFC 793 a connection can
+                        *   stay in TIME-WAIT for a maximum of four minutes known as a MSL (maximum segment lifetime).] */
     } eIPTCPState_t;
 
 

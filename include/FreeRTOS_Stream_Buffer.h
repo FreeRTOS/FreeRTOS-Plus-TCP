@@ -24,25 +24,22 @@
  */
 
 /*
- *  FreeRTOS_Stream_Buffer.h
+ *	FreeRTOS_Stream_Buffer.h
  *
- *  A circular character buffer
- *  An implementation of a circular buffer without a length field
- *  If LENGTH defines the size of the buffer, a maximum of (LENGTH-1) bytes can be stored
- *  In order to add or read data from the buffer, memcpy() will be called at most 2 times
+ *	A circular character buffer
+ *	An implementation of a circular buffer without a length field
+ *	If LENGTH defines the size of the buffer, a maximum of (LENGTH-1) bytes can be stored
+ *	In order to add or read data from the buffer, memcpy() will be called at most 2 times
  */
 
 #ifndef FREERTOS_STREAM_BUFFER_H
-
     #define FREERTOS_STREAM_BUFFER_H
 
     #ifdef __cplusplus
         extern "C" {
     #endif
 
-/**
- * structure to store all the details of a stream buffer.
- */
+/** @brief This struct describes a circular buffer. */
     typedef struct xSTREAM_BUFFER
     {
         volatile size_t uxTail;              /**< next item to read */
@@ -50,7 +47,7 @@
         volatile size_t uxHead;              /**< next position store a new item */
         volatile size_t uxFront;             /**< iterator within the free space */
         size_t LENGTH;                       /**< const value: number of reserved elements */
-        uint8_t ucArray[ sizeof( size_t ) ]; /**< array big enough to store any pointer address */
+        uint8_t ucArray[ sizeof( size_t ) ]; /**< The buffer containing the data.  It may be allocated long than its default size. */
     } StreamBuffer_t;
 
     static portINLINE void vStreamBufferClear( StreamBuffer_t * pxBuffer );
@@ -62,7 +59,6 @@
         pxBuffer->uxFront = 0U;
         pxBuffer->uxMid = 0U;
     }
-
 /*-----------------------------------------------------------*/
 
     static portINLINE size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
@@ -163,14 +159,13 @@
     {
 /* Increment uxMid, but no further than uxHead */
         size_t uxSize = uxStreamBufferMidSpace( pxBuffer );
-        size_t uxMoveCount = uxCount;
 
-        if( uxMoveCount > uxSize )
+        if( uxCount > uxSize )
         {
-            uxMoveCount = uxSize;
+            uxCount = uxSize;
         }
 
-        pxBuffer->uxMid += uxMoveCount;
+        pxBuffer->uxMid += uxCount;
 
         if( pxBuffer->uxMid >= pxBuffer->LENGTH )
         {
@@ -190,7 +185,7 @@
         size_t uxTail = pxBuffer->uxTail;
 
         /* Returns true if ( uxLeft < uxRight ) */
-        if( ( ( ( uxLeft < uxTail ) ? 1U : 0U ) ^ ( ( uxRight < uxTail ) ? 1U : 0U ) ) != 0U )
+        if( ( uxLeft < uxTail ) ^ ( uxRight < uxTail ) )
         {
             if( uxRight < uxTail )
             {
@@ -233,11 +228,11 @@
 /*
  * Add bytes to a stream buffer.
  *
- * pxBuffer -   The buffer to which the bytes will be added.
- * uxOffset -   If uxOffset > 0, data will be written at an offset from uxHead
- *              while uxHead will not be moved yet.
- * pucData -    A pointer to the data to be added.
- * uxCount -    The number of bytes to add.
+ * pxBuffer -	The buffer to which the bytes will be added.
+ * uxOffset -	If uxOffset > 0, data will be written at an offset from uxHead
+ *				while uxHead will not be moved yet.
+ * pucData -	A pointer to the data to be added.
+ * uxCount -	The number of bytes to add.
  */
     size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
                               size_t uxOffset,
@@ -247,11 +242,11 @@
 /*
  * Read bytes from a stream buffer.
  *
- * pxBuffer -   The buffer from which the bytes will be read.
- * uxOffset -   Can be used to read data located at a certain offset from 'uxTail'.
- * pucData -    A pointer to the buffer into which data will be read.
- * uxMaxCount - The number of bytes to read.
- * xPeek -      If set to pdTRUE the data will remain in the buffer.
+ * pxBuffer -	The buffer from which the bytes will be read.
+ * uxOffset -	Can be used to read data located at a certain offset from 'uxTail'.
+ * pucData -	A pointer to the buffer into which data will be read.
+ * uxMaxCount -	The number of bytes to read.
+ * xPeek -		If set to pdTRUE the data will remain in the buffer.
  */
     size_t uxStreamBufferGet( StreamBuffer_t * pxBuffer,
                               size_t uxOffset,
