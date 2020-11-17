@@ -19,10 +19,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * http://www.FreeRTOS.org
  * http://aws.amazon.com/freertos
- *
- * 1 tab == 4 spaces!
+ * http://www.FreeRTOS.org
  */
 
 #ifndef FREERTOS_DEFAULT_IP_CONFIG_H
@@ -39,6 +37,10 @@
 /* These macros are used to define away static keyword for CBMC proofs */
 #ifndef _static
     #define _static    static
+#endif
+
+#ifndef configPRINTF
+    #define configPRINTF( X )    do {} while( 0 )
 #endif
 
 /* Ensure defined configuration constants are using the most up to date naming. */
@@ -177,7 +179,7 @@
 
 
 #ifndef ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS
-    #define ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS    pdMS_TO_TICKS( 5000U )
+    #define ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS    pdMS_TO_TICKS( 500U )
 #endif
 
 #ifndef ipconfigDNS_SEND_BLOCK_TIME_TICKS
@@ -189,7 +191,7 @@
  * The macro will be called in the printf() style. Users can define
  * their own logging routine as:
  *
- *     #define FreeRTOS_debug_printf( MSG )         my_printf MSG
+ *     #define FreeRTOS_debug_printf( MSG )			my_printf MSG
  *
  * The FreeRTOS_debug_printf() must be thread-safe but does not have to be
  * interrupt-safe.
@@ -211,7 +213,7 @@
  * FreeRTOS general logging routine (proposal)
  * Used in some utility functions such as FreeRTOS_netstat() and FreeRTOS_PrintARPCache()
  *
- *     #define FreeRTOS_printf( MSG )           my_printf MSG
+ *     #define FreeRTOS_printf( MSG )			my_printf MSG
  *
  * The FreeRTOS_printf() must be thread-safe but does not have to be interrupt-safe
  */
@@ -260,19 +262,6 @@
     #define vPortFreeSocket( ptr )    vPortFree( ptr )
 #endif
 
-/*
- * At several places within the library, random numbers are needed:
- * - DHCP:    For creating a DHCP transaction number
- * - TCP:     Set the Initial Sequence Number: this is the value of the first outgoing
- *            sequence number being used when connecting to a peer.
- *            Having a well randomized ISN is important to avoid spoofing
- * - UDP/TCP: for setting the first port number to be used, in case a socket
- *            uses a 'random' or anonymous port number
- */
-#ifndef ipconfigRAND32
-    #define ipconfigRAND32()    rand()
-#endif
-
 /* --------------------------------------------------------
  * End of: HT Added some macro defaults for the PLUS-UDP project
  * -------------------------------------------------------- */
@@ -287,6 +276,10 @@
 
 #ifndef ipconfigARP_CACHE_ENTRIES
     #define ipconfigARP_CACHE_ENTRIES    10
+#endif
+
+#ifndef ipconfigND_CACHE_ENTRIES
+    #define ipconfigND_CACHE_ENTRIES    24
 #endif
 
 #ifndef ipconfigMAX_ARP_RETRANSMISSIONS
@@ -309,10 +302,6 @@
     #define ipconfigINCLUDE_FULL_INET_ADDR    1
 #endif
 
-#ifndef ipconfigUSE_LINKED_RX_MESSAGES
-    #define ipconfigUSE_LINKED_RX_MESSAGES    0
-#endif
-
 #ifndef ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS
     #define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    45
 #endif
@@ -325,25 +314,10 @@
     #define ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND    1
 #endif
 
-/* Configuration to control whether packets with IP options,
- * received over the network, should be passed up to the
- * software stack OR should be dropped.
- * If set to 1, the stack accepts IP packets that contain IP options, but does
- * not process the options (IP options are not supported).
- * If set to 0, the stack will drop IP packets that contain IP options.
- */
 #ifndef ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS
     #define ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS    1
 #endif
 
-/* Configuration to control whether UDP packets with
- * checksum value of zero should be passed up the software
- * stack OR should be dropped.
- * If set to 1, the stack will accept UDP packets that have their checksum
- * value set to 0.
- * If set to 0, the stack will drop UDP packets that have their checksum value
- * set to 0.
- */
 #ifndef ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS
     #define ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS    0
 #endif
@@ -369,6 +343,8 @@
     #define ipconfigUSE_DHCP    1
 #endif
 
+/* In earlier releases 'ipconfigUSE_DHCP_HOOK' was called
+ * 'ipconfigDHCP_USES_USER_HOOK'. */
 #ifndef ipconfigUSE_DHCP_HOOK
     #define ipconfigUSE_DHCP_HOOK    0
 #endif
@@ -391,12 +367,42 @@
     #define ipconfigARP_USE_CLASH_DETECTION    0
 #endif
 
+/* RA or Router Advertisement/SLAAC: see end-point flag 'bWantRA'.
+ * An Router Solicitation will be sent. It will wait for ipconfigRA_SEARCH_TIME_OUT_MSEC ms.
+ * When there is no response, it will be repeated ipconfigRA_SEARCH_COUNT times.
+ * Then it will be checked if the chosen IP-address already exists, repeating this
+ * ipconfigRA_IP_TEST_COUNT times, each time with a timeout of ipconfigRA_IP_TEST_TIME_OUT_MSEC ms.
+ * Finally the end-point will go in the UP state.
+ */
+#ifndef ipconfigRA_SEARCH_COUNT
+    #define ipconfigRA_SEARCH_COUNT    ( 3U )
+#endif
+
+#ifndef ipconfigRA_SEARCH_TIME_OUT_MSEC
+    #define ipconfigRA_SEARCH_TIME_OUT_MSEC    ( 10000U )
+#endif
+
+#ifndef ipconfigRA_IP_TEST_COUNT
+    #define ipconfigRA_IP_TEST_COUNT    ( 3 )
+#endif
+
+#ifndef ipconfigRA_IP_TEST_TIME_OUT_MSEC
+    #define ipconfigRA_IP_TEST_TIME_OUT_MSEC    ( 1500U )
+#endif
+
 #ifndef ipconfigNETWORK_MTU
-    #define ipconfigNETWORK_MTU    1500
+    #define ipconfigNETWORK_MTU    1500U
 #endif
 
 #ifndef ipconfigTCP_MSS
-    #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) )
+
+/* _HT_ the default value of ipconfigTCP_MSS should somehow
+ * depend on the IP version in use. */
+    #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) )
+#endif
+
+#if ( ( ipconfigTCP_MSS + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) > ipconfigNETWORK_MTU )
+    #error The ipconfigTCP_MSS setting in FreeRTOSIPConfig.h is too large.
 #endif
 
 /* Each TCP socket has circular stream buffers for Rx and Tx, which
@@ -414,9 +420,9 @@
 
 #ifndef ipconfigMAXIMUM_DISCOVER_TX_PERIOD
     #ifdef _WINDOWS_
-        #define ipconfigMAXIMUM_DISCOVER_TX_PERIOD    ( pdMS_TO_TICKS( 999U ) )
+        #define ipconfigMAXIMUM_DISCOVER_TX_PERIOD    ( pdMS_TO_TICKS( 999 ) )
     #else
-        #define ipconfigMAXIMUM_DISCOVER_TX_PERIOD    ( pdMS_TO_TICKS( 30000U ) )
+        #define ipconfigMAXIMUM_DISCOVER_TX_PERIOD    ( pdMS_TO_TICKS( 30000 ) )
     #endif /* _WINDOWS_ */
 #endif /* ipconfigMAXIMUM_DISCOVER_TX_PERIOD */
 
@@ -445,13 +451,12 @@
 
 /* Per https://tools.ietf.org/html/rfc1035, 253 is the maximum string length
  * of a DNS name. The following default accounts for a null terminator. */
-        #define ipconfigDNS_CACHE_NAME_LENGTH    254U
+        #define ipconfigDNS_CACHE_NAME_LENGTH    254
     #endif
 
     #ifndef ipconfigDNS_CACHE_ENTRIES
         #define ipconfigDNS_CACHE_ENTRIES    1
     #endif
-
 #endif /* ipconfigUSE_DNS_CACHE != 0 */
 
 /* When accessing services which have multiple IP addresses, setting this
@@ -582,6 +587,22 @@
     #define ipconfigSUPPORT_SIGNALS    0
 #endif
 
+#ifndef ipconfigUSE_IPv6
+    #define ipconfigUSE_IPv6    0
+#endif
+
+#ifndef ipconfigUSE_RA
+    #define ipconfigUSE_RA    0
+#endif
+
+#if ( ipconfigUSE_IPv6 == 0 ) && ( ipconfigUSE_RA == 1 )
+
+/* ipconfigUSE_RA depends on ipconfigUSE_IPv6. When ipconfigUSE_IPv6 is disabled,
+ * disable ipconfigUSE_RA as well. */
+    #undef ipconfigUSE_RA
+    #define ipconfigUSE_RA    0
+#endif
+
 #ifndef ipconfigUSE_NBNS
     #define ipconfigUSE_NBNS    0
 #endif
@@ -594,7 +615,7 @@
 
 /* Non-activity timeout is expressed in seconds. */
 #ifndef ipconfigTCP_HANG_PROTECTION_TIME
-    #define ipconfigTCP_HANG_PROTECTION_TIME    30U
+    #define ipconfigTCP_HANG_PROTECTION_TIME    30
 #endif
 
 #ifndef ipconfigTCP_IP_SANITY
@@ -605,20 +626,36 @@
     #define ipconfigARP_STORES_REMOTE_ADDRESSES    0
 #endif
 
+#ifndef ipconfigUSE_LINKED_RX_MESSAGES
+    #define ipconfigUSE_LINKED_RX_MESSAGES    0
+#endif
+
 #ifndef ipconfigBUFFER_PADDING
 
 /* Expert option: define a value for 'ipBUFFER_PADDING'.
  * When 'ipconfigBUFFER_PADDING' equals 0,
  * 'ipBUFFER_PADDING' will get a default value of 8 + 2 bytes. */
-    #define ipconfigBUFFER_PADDING    0U
+    #define ipconfigBUFFER_PADDING    0
 #endif
 
 #ifndef ipconfigPACKET_FILLER_SIZE
     #define ipconfigPACKET_FILLER_SIZE    2U
 #endif
 
-#ifndef ipconfigSELECT_USES_NOTIFY
-    #define ipconfigSELECT_USES_NOTIFY    0
+#ifndef ipconfigMULTI_INTERFACE
+    #define ipconfigMULTI_INTERFACE    0
+#endif
+
+#ifndef ipconfigENDPOINT_DNS_ADDRESS_COUNT
+    #define ipconfigENDPOINT_DNS_ADDRESS_COUNT    2
+#endif
+
+#ifndef ipconfigUSE_LOOPBACK
+    #define ipconfigUSE_LOOPBACK    0
+#endif
+
+#ifndef ipconfigUSE_TCP_TIMESTAMPS
+    #define ipconfigUSE_TCP_TIMESTAMPS    0
 #endif
 
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */
