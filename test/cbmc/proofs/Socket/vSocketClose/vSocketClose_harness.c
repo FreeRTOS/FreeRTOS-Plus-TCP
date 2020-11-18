@@ -6,7 +6,7 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "semphr.h"
-#include "event_groups.h"
+//#include "event_groups.h"
 #include "list.h"
 
 /* FreeRTOS+TCP includes. */
@@ -43,8 +43,19 @@ void harness()
 
     /* Get a network buffer descriptor with requested bytes. See the constraints
      * on the number of requested bytes above. And block for random timer ticks. */
-    pxSocket->u.xTCP.pxAckMessage = pxGetNetworkBufferWithDescriptor( xRequestedSizeBytes, xBlockTimeTicks );
+    if( pxSocket->ucProtocol == FREERTOS_IPPROTO_TCP )
+    {
+        if( nondet_bool() )
+        {
+            pxSocket->u.xTCP.pxAckMessage = pxGetNetworkBufferWithDescriptor( xRequestedSizeBytes, xBlockTimeTicks );
+        }
+        else
+        {
+            pxSocket->u.xTCP.pxAckMessage = NULL;
+        }
+    }
 
+    /* Non deterministically add an event group. */
     if( nondet_bool() )
     {
         pxSocket->xEventGroup = xEventGroupCreate();
@@ -61,6 +72,7 @@ void harness()
     List_t BoundSocketList;
     vListInitialise( &BoundSocketList );
 
+    /* Non-deterministically add the socket to bound socket list. */
     if( nondet_bool() )
     {
         vListInitialiseItem( &( pxSocket->xBoundSocketListItem ) );
@@ -75,8 +87,14 @@ void harness()
 
 
     /* Initialise and place some random packets in the waiting packet list. */
-    ListItem_t xWaitingPacketListItem;
-    NetworkBufferDescriptor_t NetworkBuffer;
+    ListItem_t xWaitingPacketListItem, BufferList;
+    NetworkBufferDescriptor_t Buffer;
+    NetworkBufferDescriptor_t * NetworkBuffer = pxGetNetworkBufferWithDescriptor( 100, xBlockTimeTicks );
+
+//    NetworkBuffer->pucEthernetBuffer = malloc( 100 );
+//    NetworkBuffer->xDataLength = 100;
+
+    __CPROVER_assume( NetworkBuffer != NULL );
 
     if( pxSocket->ucProtocol == FREERTOS_IPPROTO_UDP )
     {
@@ -85,31 +103,30 @@ void harness()
         **************************************************************************/
 
         /* THE PROOF gets stuck if I uncomment the below line
-           Initialise the waiting packet list. */
-        //vListInitialise( &( pxSocket->u.xUDP.xWaitingPacketsList ) );
-
+          Initialise the waiting packet list. */
+        vListInitialise( &( pxSocket->u.xUDP.xWaitingPacketsList ) );
+        vListInitialise( &( BufferList ) );
 
         /* This section can be looked at later. */
-        /*if( nondet_bool() )
+        if( nondet_bool() )
         {
-            /* Initialise an item to be placed in the list and set its owner. *
-            vListInitialiseItem( &xWaitingPacketListItem );
-            listSET_LIST_ITEM_OWNER( &xWaitingPacketListItem, ( void * ) &NetworkBuffer );
+            /* Initialise an item to be placed in the list and set its owner. */
+ //           vListInitialiseItem( &xWaitingPacketListItem );
+//            listSET_LIST_ITEM_OWNER( &xWaitingPacketListItem, ( void * ) NetworkBuffer );
 
-            /* Insert the waiting packet into the list at the end. *
-            vListInsertEnd( &( pxSocket->u.xUDP.xWaitingPacketsList ), &xWaitingPacketListItem );
+            /* Insert the waiting packet into the list at the end. */
+//            vListInsertEnd( &( pxSocket->u.xUDP.xWaitingPacketsList ), &xWaitingPacketListItem );
 
-            /* Initialise the buffer list item. *
-            vListInitialiseItem( &( NetworkBuffer.xBufferListItem ) );
-
-            /* Set the container of the buffer list item as the waiting packet list. *
-            NetworkBuffer.xBufferListItem.pxContainer = &( pxSocket->u.xUDP.xWaitingPacketsList );
-            vListInsertEnd( &( pxSocket->u.xUDP.xWaitingPacketsList ), &( NetworkBuffer.xBufferListItem ) );
+            /* Initialise the buffer list item. */
+            vListInitialiseItem( &( NetworkBuffer->xBufferListItem ) );
+            listSET_LIST_ITEM_OWNER( &( NetworkBuffer->xBufferListItem ), ( void * ) NetworkBuffer );
+            /* Set the container of the buffer list item as the waiting packet list. */
+            NetworkBuffer->xBufferListItem.pxContainer = &( pxSocket->u.xUDP.xWaitingPacketsList );
+            vListInsertEnd( &( pxSocket->u.xUDP.xWaitingPacketsList ), &( NetworkBuffer->xBufferListItem ) );
         }
-        else*/
+        else
         {
-            /* Make the number of items in the list to be zero. */
-            pxSocket->u.xUDP.xWaitingPacketsList.uxNumberOfItems = 0;
+            /* Do nothing. */
         }
     }
 
