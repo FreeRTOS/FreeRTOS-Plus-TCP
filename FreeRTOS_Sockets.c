@@ -1976,7 +1976,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                     xReturn = 0;
                     break;
 
-                case FREERTOS_SO_CLOSE_AFTER_SEND: /* As soon as the last byte has been transmitted, finalize the connection */
+                case FREERTOS_SO_CLOSE_AFTER_SEND: /* As soon as the last byte has been transmitted, finalise the connection */
                    {
                        if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
                        {

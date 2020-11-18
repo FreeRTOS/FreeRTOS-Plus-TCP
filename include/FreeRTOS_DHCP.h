@@ -54,14 +54,15 @@
 /* DHCP state machine states. */
     typedef enum
     {
-        eWaitingSendFirstDiscover = 0, /* Initial state.  Send a discover the first time it is called, and reset all timers. */
-        eWaitingOffer,                 /* Either resend the discover, or, if the offer is forthcoming, send a request. */
-        eWaitingAcknowledge,           /* Either resend the request. */
+        eInitialWait = 0,          /* Initial state: open a socket and wait a short time. */
+        eWaitingSendFirstDiscover, /* Send a discover the first time it is called, and reset all timers. */
+        eWaitingOffer,             /* Either resend the discover, or, if the offer is forthcoming, send a request. */
+        eWaitingAcknowledge,       /* Either resend the request. */
         #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-            eGetLinkLayerAddress,      /* When DHCP didn't respond, try to obtain a LinkLayer address 168.254.x.x. */
+            eGetLinkLayerAddress,  /* When DHCP didn't respond, try to obtain a LinkLayer address 168.254.x.x. */
         #endif
-        eLeasedAddress,                /* Resend the request at the appropriate time to renew the lease. */
-        eNotUsingLeasedAddress         /* DHCP failed, and a default IP address is being used. */
+        eLeasedAddress,            /* Resend the request at the appropriate time to renew the lease. */
+        eNotUsingLeasedAddress     /* DHCP failed, and a default IP address is being used. */
     } eDHCPState_t;
 
 /**
@@ -73,18 +74,30 @@
         uint32_t ulOfferedIPAddress;  /**< The IP address offered by the DHCP server */
         uint32_t ulDHCPServerAddress; /**< The IP address of the DHCP server */
         uint32_t ulLeaseTime;         /**< The time for which the current IP address is leased */
-        TickType_t xDHCPTxTime;       /**< Hold information on the current timer state. */
-        TickType_t xDHCPTxPeriod;     /**< Hold information on the current timer state. */
+        TickType_t xDHCPTxTime;       /**< The time at which a DHCP request was sent. */
+        TickType_t xDHCPTxPeriod;     /**< The maximum time that the client will wait for a reply. */
         BaseType_t xUseBroadcast;     /**< Try both without and with the broadcast flag */
         eDHCPState_t eDHCPState;      /**< Maintains the DHCP state machine state. */
     };
 
     typedef struct xDHCP_DATA DHCPData_t;
 
+/* Returns the current state of a DHCP process. */
+    eDHCPState_t eGetDHCPState( void );
+
+/*
+ * Send a message to the IP-task, which will call vDHCPProcess().
+ *
+ */
+    BaseType_t xSendDHCPEvent( void );
+
 /*
  * NOT A PUBLIC API FUNCTION.
+ * It will be called when the DHCP timer expires, or when
+ * data has been received on the DHCP socket.
  */
-    void vDHCPProcess( BaseType_t xReset );
+    void vDHCPProcess( BaseType_t xReset,
+                       eDHCPState_t eExpectedState );
 
 /* Internal call: returns true if socket is the current DHCP socket */
     BaseType_t xIsDHCPSocket( Socket_t xSocket );

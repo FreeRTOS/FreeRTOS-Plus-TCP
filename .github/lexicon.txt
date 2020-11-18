@@ -16,6 +16,7 @@ addtogroup
 afe
 ahb
 amba
+analyse
 ap
 api
 apis
@@ -209,10 +210,12 @@ eestabl
 eestablished
 eevent
 eeventtype
+eexpectedstate
 eframeconsumed
 eg
 egetlinklayeraddress
 ehertype
+einitialwait
 einprogress
 einvalidchecksum
 einvaliddata
@@ -792,6 +795,7 @@ quickstart
 ra
 ramfunc
 randomised
+randomiser
 rbus
 rcomp
 rcv
