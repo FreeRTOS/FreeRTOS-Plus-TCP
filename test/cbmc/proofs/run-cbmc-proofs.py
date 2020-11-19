@@ -177,22 +177,11 @@ def add_proof_jobs(proof_directory, proof_root, litani):
     goto_binary = str(
         (proof_directory / ("%s.goto" % harnesses[0][:-2])).resolve())
 
-    run_cmd([
-        str(litani), "add-job",
-        "--command", "make veryclean",
-        "--outputs", str(proof_directory / "phony-clean"),
-        "--pipeline-name", proof_name,
-        "--ci-stage", "build",
-        "--cwd", str(proof_directory),
-        "--description", ("%s: building goto-binary" % proof_name),
-    ], check=True)
-
     # Build goto-binary
 
     run_cmd([
         str(litani), "add-job",
-        "--command", "make -B goto",
-        "--inputs", str(proof_directory / "phony-clean"),
+        "--command", "make -B veryclean goto",
         "--outputs", goto_binary,
         "--pipeline-name", proof_name,
         "--ci-stage", "build",
