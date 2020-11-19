@@ -119,7 +119,7 @@ goto:
 # report if the proof failed. If the proof failed, we separately fail
 # the entire job using the check-cbmc-result rule.
 cbmc.txt: $(ENTRY).goto
-	-cbmc $(CBMCFLAGS) --unwinding-assertions --trace @RULE_INPUT@ > $@ 2>&1
+	-cbmc $(CBMCFLAGS) $(SOLVER) --unwinding-assertions --trace @RULE_INPUT@ > $@ 2>&1
 
 property.xml: $(ENTRY).goto
 	cbmc $(CBMCFLAGS) --unwinding-assertions --show-properties --xml-ui @RULE_INPUT@ > $@ 2>&1
