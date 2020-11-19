@@ -67,9 +67,10 @@ void harness()
     }
 
 
+    /* See Configurations.json for details. Protocol can be UDP or TCP. */
+    pxSocket->ucProtocol = PROTOCOL;
 
     NetworkBufferDescriptor_t * NetworkBuffer;
-
     /* Get a network buffer descriptor with requested bytes. See the constraints
      * on the number of requested bytes above. And block for random timer ticks. */
     if( pxSocket->ucProtocol == FREERTOS_IPPROTO_TCP )

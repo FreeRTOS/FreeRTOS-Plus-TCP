@@ -13,9 +13,22 @@
   ],
   "DEF":
   [
-    "ipconfigUSE_TCP=1",
-    "ipconfigUSE_TCP_WIN=1",
-    "ipconfigHAS_DEBUG_PRINTF=0"
+    {
+      "UDP_Only":[
+        "PROTOCOL=FREERTOS_IPPROTO_UDP",
+        "ipconfigUSE_TCP=1",
+        "ipconfigUSE_TCP_WIN=1",
+        "ipconfigHAS_DEBUG_PRINTF=0"
+      ]
+    },
+    {
+      "TCP_Only":[
+        "PROTOCOL=FREERTOS_IPPROTO_TCP",
+        "ipconfigUSE_TCP=1",
+        "ipconfigUSE_TCP_WIN=1",
+        "ipconfigHAS_DEBUG_PRINTF=0"
+      ]
+    }
   ],
   "INC":
   [
