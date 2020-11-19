@@ -28,14 +28,16 @@ void harness()
 {
     size_t xRequestedSizeBytes;
     TickType_t xBlockTimeTicks;
-    FreeRTOS_Socket_t xSocket;
-    FreeRTOS_Socket_t * pxSocket = malloc( sizeof( FreeRTOS_Socket_t ) );
+    FreeRTOS_Socket_t * pxSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+
+    /* Socket cannot be NULL or invalid for this proof. This is allowed since vSocketClose is called by IP task only. */
     __CPROVER_assume( pxSocket != NULL );
     __CPROVER_assume( pxSocket != FREERTOS_INVALID_SOCKET );
 
     /* Request a random number of bytes keeping in mind the maximum bound of CBMC. */
     __CPROVER_assume( xRequestedSizeBytes < ( CBMC_MAX_OBJECT_SIZE - ipBUFFER_PADDING ) );
 
+    /* Non-deterministically malloc the callback function. */
     pxSocket->pxUserWakeCallback = safeMalloc( sizeof( SocketWakeupCallback_t ) );
 
     /* Non deterministically add an event group. */
@@ -97,6 +99,7 @@ void harness()
         if( nondet_bool() )
         {
             NetworkBuffer = pxGetNetworkBufferWithDescriptor( xRequestedSizeBytes, xBlockTimeTicks );
+            /* Assume non-NULL network buffer for this case. */
             __CPROVER_assume( NetworkBuffer != NULL );
 
             /* Initialise the buffer list item. */
@@ -116,5 +119,8 @@ void harness()
     /* Call to init the socket list. */
     vNetworkSocketsInit();
 
+    /* Call the function. */
     vSocketClose( pxSocket );
+
+    /* No post checking to be done. */
 }
