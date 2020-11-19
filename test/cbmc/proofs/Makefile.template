@@ -38,6 +38,7 @@ CFLAGS = \
   # empty
 
 CBMCFLAGS = \
+  --flush \
   $(CBMCFLAGS2) \
   $(C_CBMCFLAGS) $(O_CBMCFLAGS) $(H_CBMCFLAGS) \
   # empty
