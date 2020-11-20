@@ -1279,6 +1279,7 @@ vtasklist
 vtasknotifygivefromisr
 vtcpnetstat
 vtcpwindowinit
+vtcpwindowdestroy
 wasn
 wcast
 wdwfcr
