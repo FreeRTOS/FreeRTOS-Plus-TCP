@@ -53,7 +53,6 @@ void harness()
 
         __CPROVER_file_local_FreeRTOS_TCP_WIN_c_vListInsertGeneric( &xWindow.xTxSegments,
                                                                     &( xTxSegmentListItem.xSegmentItem ), &xWindow.xTxSegments.xListEnd );
-
     }
 
     /* Call the function. The function is internally called from just one location
