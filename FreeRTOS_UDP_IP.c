@@ -392,7 +392,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
                 {
                     if( xIsDHCPSocket( pxSocket ) != 0 )
                     {
-                        ( void ) xSendEventToIPTask( eDHCPEvent );
+                        ( void ) xSendDHCPEvent();
                     }
                 }
             #endif
