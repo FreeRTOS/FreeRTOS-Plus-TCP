@@ -47,7 +47,6 @@
 #include "NetworkInterface.h"
 
 /* =============================== Function Macros ========================== */
-
 /* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
  * driver will filter incoming packets and only pass the stack those packets it
  * considers need processing. */
@@ -72,7 +71,6 @@
 
 #define niMAX_TX_ATTEMPTS               ( 5 )
 
-
 /* =============================  Static Prototypes ========================= */
 static void rx_task( void * pvParameters );
 
@@ -96,18 +94,14 @@ static struct smsc9220_eth_dev_t SMSC9220_ETH_DEV =
 static void print_hex( unsigned const char * const bin_data,
                        size_t len );
 
-
 /* =============================  Extern Variables ========================== */
 /* defined in main_networking.c */
 extern uint8_t ucMACAddress[ SMSC9220_HWADDR_SIZE ]; /* 6 bytes */
 
-
 /* =============================  Static Variables ========================== */
 static TaskHandle_t xRxHanderTask = NULL;
 
-
 /* =============================  Static Functions ========================== */
-
 /*!
  * @brief print binary packet in hex
  * @param [in] bin_daa data to print
