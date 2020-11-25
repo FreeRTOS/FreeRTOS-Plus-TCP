@@ -47,6 +47,7 @@
 #include "NetworkInterface.h"
 
 /* =============================== Function Macros ========================== */
+
 /* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
  * driver will filter incoming packets and only pass the stack those packets it
  * considers need processing. */
@@ -102,6 +103,7 @@ extern uint8_t ucMACAddress[ SMSC9220_HWADDR_SIZE ]; /* 6 bytes */
 static TaskHandle_t xRxHanderTask = NULL;
 
 /* =============================  Static Functions ========================== */
+
 /*!
  * @brief print binary packet in hex
  * @param [in] bin_daa data to print
