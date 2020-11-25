@@ -46,9 +46,9 @@
 
 struct smsc9220_eth_reg_map_t
 {
-    __I uint32_t rx_data_port;   /**< Receive FIFO Ports (offset 0x0) */
+    __I uint32_t rx_data_port; /**< Receive FIFO Ports (offset 0x0) */
     uint32_t reserved1[ 0x7 ];
-    __O uint32_t tx_data_port;   /**< Transmit FIFO Ports (offset 0x20) */
+    __O uint32_t tx_data_port; /**< Transmit FIFO Ports (offset 0x20) */
     uint32_t reserved2[ 0x7 ];
 
     __I uint32_t rx_status_port;    /**< Receive FIFO status port (offset 0x40) */
@@ -1185,7 +1185,7 @@ uint32_t smsc9220_receive_by_chunks( const struct smsc9220_eth_dev_t * dev,
         rxfifo_stat = register_map->rx_status_port;
 
         if( rxfifo_stat != 0 ) /* Fetch status of this packet */
-        {       /* Ethernet controller is padding to 32bit aligned data */
+        {                      /* Ethernet controller is padding to 32bit aligned data */
             packet_length_byte = GET_BIT_FIELD( rxfifo_stat,
                                                 RX_FIFO_STATUS_PKT_LENGTH_MASK,
                                                 RX_FIFO_STATUS_PKT_LENGTH_POS );

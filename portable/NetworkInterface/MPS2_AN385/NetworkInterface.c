@@ -131,7 +131,7 @@ static TaskHandle_t xRxHanderTask = NULL;
 
         printf( "\n" );
     }
-#else  /* if ( ipconfigHAS_DEBUG_PRINTF == 1 ) */
+#else /* if ( ipconfigHAS_DEBUG_PRINTF == 1 ) */
     #define print_hex    ( void * ) 0;
 #endif /* if ( ipconfigHAS_DEBUG_PRINTF == 1 ) */
 

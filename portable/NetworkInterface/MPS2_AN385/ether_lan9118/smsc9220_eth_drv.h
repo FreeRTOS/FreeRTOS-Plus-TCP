@@ -33,7 +33,7 @@
 /** SMSC9220 device configuration structure */
     struct smsc9220_eth_dev_cfg_t
     {
-        const uint32_t base;          /*!< SMSC9220 base address */
+        const uint32_t base; /*!< SMSC9220 base address */
     };
 
 /** SMSC9220 device data structure */
@@ -48,7 +48,7 @@
         uint32_t ongoing_packet_length_sent; /*!< size in bytes of the packet
                                               *       has been sent */
         uint32_t current_rx_size_words;      /*!< Data length in words,
-                                             *        currently is being read */
+                                              *        currently is being read */
     };
 
 /** SMSC9220 device structure */
