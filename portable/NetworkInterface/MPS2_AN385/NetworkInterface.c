@@ -71,9 +71,6 @@
 
 #define niMAX_TX_ATTEMPTS           ( 5 )
 
-#define TX_BIT    0x01
-#define RX_BIT    0x02
-
 
 /* =============================  Static Prototypes ========================= */
 static void rx_task( void * pvParameters );
