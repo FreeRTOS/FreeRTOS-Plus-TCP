@@ -186,7 +186,7 @@ static void rx_task( void * pvParameters )
     {
         if( ( smsc9220_get_interrupt( dev,
                                       SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL ) ) )
-        { /* data received */
+        {   /* data received */
             smsc9220_clear_interrupt( dev,
                                       SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
             xResult = pdPASS;
@@ -327,7 +327,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
     for( x = 0; x < niMAX_TX_ATTEMPTS; x++ )
     {
         if( pxNetworkBuffer->xDataLength < SMSC9220_ETH_MAX_FRAME_SIZE )
-        { /*_RB_ The size needs to come from FreeRTOSIPConfig.h. */
+        {   /*_RB_ The size needs to come from FreeRTOSIPConfig.h. */
             FreeRTOS_debug_printf( ( "outgoing data > > > > > > > > > > > > length: %d\n",
                                      pxNetworkBuffer->xDataLength ) );
             print_hex( pxNetworkBuffer->pucEthernetBuffer,
