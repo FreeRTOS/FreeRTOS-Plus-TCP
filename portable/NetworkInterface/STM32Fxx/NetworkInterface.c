@@ -1244,12 +1244,12 @@ static void prvEMACHandlerTask( void * pvParameters )
         xResult = 0;
 
         #if ( ipconfigHAS_PRINTF != 0 )
-        {
+            {
                 /* Call a function that monitors resources: the amount of free network
                  * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
                  * for more detailed comments. */
                 vPrintResourceStats();
-        }
+            }
         #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
         if( xTXDescriptorSemaphore != NULL )
