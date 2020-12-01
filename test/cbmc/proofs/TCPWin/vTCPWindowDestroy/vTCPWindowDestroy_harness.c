@@ -7,12 +7,9 @@
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_TCP_WIN.h"
 
-/* Randomly chosen Number of segments */
-#define NUM_OF_SEGMENTS    3
-
 /* Rx/Tx list items to be used in the proof. */
-TCPSegment_t xRxSegmentListItem[ NUM_OF_SEGMENTS ];
-TCPSegment_t xTxSegmentListItem[ NUM_OF_SEGMENTS ];
+TCPSegment_t xRxSegmentListItem;
+TCPSegment_t xTxSegmentListItem;
 
 /* Definition of this function in FreeRTOS_TCP_WIN.c. */
 void __CPROVER_file_local_FreeRTOS_TCP_WIN_c_vListInsertGeneric( List_t * const pxList,
@@ -24,11 +21,6 @@ extern List_t xSegmentList;
 
 void harness()
 {
-    uint32_t temp;
-
-    /* Choose any value between 0 and NUM_OF_SEGMENTS. */
-    __CPROVER_assume( temp <= NUM_OF_SEGMENTS );
-
     /* Create a TCP Window to be destroyed and fill it with random data. */
     TCPWindow_t xWindow;
 
@@ -39,27 +31,28 @@ void harness()
     vListInitialise( &xWindow.xRxSegments );
     vListInitialise( &xWindow.xTxSegments );
 
-    /* Below loop fills in various segments in the Rx/Tx list of the window. */
-    for( int i = 0; i < temp; i++ )
+    if( nondet_bool() )
     {
         /********************** Fill in Rx segments ********************/
-        xRxSegmentListItem[ i ].xSegmentItem.pvOwner = &( xRxSegmentListItem[ i ] );
+        xRxSegmentListItem.xSegmentItem.pvOwner = &( xRxSegmentListItem );
 
         /* Make the container of the queue item is NULL. */
-        xRxSegmentListItem[ i ].xQueueItem.pxContainer = NULL;
+        xRxSegmentListItem.xQueueItem.pxContainer = NULL;
 
         __CPROVER_file_local_FreeRTOS_TCP_WIN_c_vListInsertGeneric( &xWindow.xRxSegments,
-                                                                    &( xRxSegmentListItem[ i ].xSegmentItem ), &xWindow.xRxSegments.xListEnd );
+                                                                    &( xRxSegmentListItem.xSegmentItem ), &xWindow.xRxSegments.xListEnd );
+    }
 
-
+    if( nondet_bool() )
+    {
         /********************** Fill in Tx segments ********************/
-        xTxSegmentListItem[ i ].xSegmentItem.pvOwner = &( xTxSegmentListItem[ i ] );
+        xTxSegmentListItem.xSegmentItem.pvOwner = &( xTxSegmentListItem );
 
         /* Make the container of the queue item is NULL. */
-        xTxSegmentListItem[ i ].xQueueItem.pxContainer = NULL;
+        xTxSegmentListItem.xQueueItem.pxContainer = NULL;
 
         __CPROVER_file_local_FreeRTOS_TCP_WIN_c_vListInsertGeneric( &xWindow.xTxSegments,
-                                                                    &( xTxSegmentListItem[ i ].xSegmentItem ), &xWindow.xTxSegments.xListEnd );
+                                                                    &( xTxSegmentListItem.xSegmentItem ), &xWindow.xTxSegments.xListEnd );
     }
 
     /* Call the function. The function is internally called from just one location
