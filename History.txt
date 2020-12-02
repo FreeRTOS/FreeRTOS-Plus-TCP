@@ -5,7 +5,7 @@ Changes between V2.3.1 and V2.3.2 releases:
 	  connect() to establish a connection, will receive the eCLOSE_WAIT status,
 	  just like before.
 	+ Fixed a race condition in DHCP state machine which occured when the macro
-	  dhcpINITIAL_TIMER_PERIOD was set to a very low value. 
+	  dhcpINITIAL_TIMER_PERIOD was set to a very low value.
 
 Changes between V2.3.0 and V2.3.1 releases:
 	+ Fixed UDP only compilation.
