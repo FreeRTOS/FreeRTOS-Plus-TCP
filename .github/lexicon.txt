@@ -1278,7 +1278,9 @@ vsocketwakeupuser
 vtasklist
 vtasknotifygivefromisr
 vtcpnetstat
+vtcpstatechange
 vtcpwindowinit
+vtcpwindowdestroy
 wasn
 wcast
 wdwfcr
