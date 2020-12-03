@@ -1232,11 +1232,6 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 
 static void prvEMACHandlerTask( void * pvParameters )
 {
-    UBaseType_t uxLastMinBufferCount = 0;
-
-    #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
-        UBaseType_t uxLastMinQueueSpace = 0;
-    #endif
     UBaseType_t uxCurrentCount;
     BaseType_t xResult;
     const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
@@ -1247,16 +1242,15 @@ static void prvEMACHandlerTask( void * pvParameters )
     for( ; ; )
     {
         xResult = 0;
-        uxCurrentCount = uxGetMinimumFreeNetworkBuffers();
 
-        if( uxLastMinBufferCount != uxCurrentCount )
-        {
-            /* The logging produced below may be helpful
-             * while tuning +TCP: see how many buffers are in use. */
-            uxLastMinBufferCount = uxCurrentCount;
-            FreeRTOS_printf( ( "Network buffers: %lu lowest %lu\n",
-                               uxGetNumberOfFreeNetworkBuffers(), uxCurrentCount ) );
-        }
+        #if ( ipconfigHAS_PRINTF != 0 )
+            {
+                /* Call a function that monitors resources: the amount of free network
+                 * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
+                 * for more detailed comments. */
+                vPrintResourceStats();
+            }
+        #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
         if( xTXDescriptorSemaphore != NULL )
         {
@@ -1270,20 +1264,6 @@ static void prvEMACHandlerTask( void * pvParameters )
                 FreeRTOS_printf( ( "TX DMA buffers: lowest %lu\n", uxLowestSemCount ) );
             }
         }
-
-        #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
-            {
-                uxCurrentCount = uxGetMinimumIPQueueSpace();
-
-                if( uxLastMinQueueSpace != uxCurrentCount )
-                {
-                    /* The logging produced below may be helpful
-                     * while tuning +TCP: see how many buffers are in use. */
-                    uxLastMinQueueSpace = uxCurrentCount;
-                    FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
-                }
-            }
-        #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
 
         if( ( ulISREvents & EMAC_IF_ALL_EVENT ) == 0 )
         {
