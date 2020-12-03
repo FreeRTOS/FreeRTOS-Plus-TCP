@@ -45,14 +45,6 @@ enum if_state_t
 static const char * TAG = "NetInterface";
 volatile static uint32_t xInterfaceState = INTERFACE_DOWN;
 
-/* protect the function declaration itself instead of using
- #if everywhere.                                        */
-#if ( ipconfigHAS_PRINTF != 0 )
-    static void prvPrintResourceStats();
-#else
-    #define prvPrintResourceStats()
-#endif
-
 BaseType_t xNetworkInterfaceInitialise( void )
 {
     static BaseType_t xMACAdrInitialized = pdFALSE;
@@ -99,7 +91,14 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
         }
     }
 
-    prvPrintResourceStats();
+    #if ( ipconfigHAS_PRINTF != 0 )
+        {
+            /* Call a function that monitors resources: the amount of free network
+             * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
+             * for more detailed comments. */
+            vPrintResourceStats();
+        }
+    #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
     if( xReleaseAfterSend == pdTRUE )
     {
@@ -134,7 +133,11 @@ esp_err_t wlanif_input( void * netif,
     IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
     const TickType_t xDescriptorWaitTime = pdMS_TO_TICKS( 250 );
 
-    prvPrintResourceStats();
+    #if ( ipconfigHAS_PRINTF != 0 )
+        {
+            vPrintResourceStats();
+        }
+    #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
     if( eConsiderFrameForProcessing( buffer ) != eProcessBuffer )
     {
@@ -170,50 +173,3 @@ esp_err_t wlanif_input( void * netif,
         return ESP_FAIL;
     }
 }
-
-#if ( ipconfigHAS_PRINTF != 0 )
-    static void prvPrintResourceStats()
-    {
-        static UBaseType_t uxLastMinBufferCount = 0u;
-        static UBaseType_t uxCurrentBufferCount = 0u;
-        static size_t uxMinLastSize = 0uL;
-        size_t uxMinSize;
-
-        uxCurrentBufferCount = uxGetMinimumFreeNetworkBuffers();
-
-        if( uxLastMinBufferCount != uxCurrentBufferCount )
-        {
-            /* The logging produced below may be helpful
-             * while tuning +TCP: see how many buffers are in use. */
-            uxLastMinBufferCount = uxCurrentBufferCount;
-            FreeRTOS_printf( ( "Network buffers: %lu lowest %lu\n",
-                               uxGetNumberOfFreeNetworkBuffers(), uxCurrentBufferCount ) );
-        }
-
-        uxMinSize = xPortGetMinimumEverFreeHeapSize();
-
-        if( uxMinLastSize != uxMinSize )
-        {
-            uxMinLastSize = uxMinSize;
-            FreeRTOS_printf( ( "Heap: current %lu lowest %lu\n", xPortGetFreeHeapSize(), uxMinSize ) );
-        }
-
-        #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
-            {
-                static UBaseType_t uxLastMinQueueSpace = 0;
-                UBaseType_t uxCurrentCount = 0u;
-
-                uxCurrentCount = uxGetMinimumIPQueueSpace();
-
-                if( uxLastMinQueueSpace != uxCurrentCount )
-                {
-                    /* The logging produced below may be helpful
-                     * while tuning +TCP: see how many buffers are in use. */
-                    uxLastMinQueueSpace = uxCurrentCount;
-                    FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
-                }
-            }
-        #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
-    }
-#endif /* ( ipconfigHAS_PRINTF != 0 ) */
-/*-----------------------------------------------------------*/

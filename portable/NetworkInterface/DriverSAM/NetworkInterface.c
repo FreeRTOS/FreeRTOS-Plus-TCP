@@ -46,7 +46,7 @@
 /* gmac_SAM.[ch] is a combination of the gmac.[ch] for both SAM4E and SAME70. */
 #include "gmac_SAM.h"
 #include <sysclk.h>
-#include "phyhandling.h"
+#include "phyHandling.h"
 
 /* This file is included to see if 'CONF_BOARD_ENABLE_CACHE' is defined. */
 #include "conf_board.h"
@@ -792,7 +792,7 @@ static uint32_t prvEMACRxPoll( void )
 
                 if( pxNextNetworkBufferDescriptor == NULL )
                 {
-                    /* STrange: can not translate from a DMA buffer to a Network Buffer. */
+                    /* Strange: can not translate from a DMA buffer to a Network Buffer. */
                     break;
                 }
             }
@@ -821,54 +821,6 @@ static uint32_t prvEMACRxPoll( void )
 }
 /*-----------------------------------------------------------*/
 
-volatile UBaseType_t uxLastMinBufferCount = 0;
-#if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
-    volatile UBaseType_t uxLastMinQueueSpace;
-#endif
-volatile UBaseType_t uxCurrentSemCount;
-volatile UBaseType_t uxLowestSemCount;
-
-void vCheckBuffersAndQueue( void )
-{
-    static UBaseType_t uxCurrentCount;
-
-    #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
-        {
-            uxCurrentCount = uxGetMinimumIPQueueSpace();
-
-            if( uxLastMinQueueSpace != uxCurrentCount )
-            {
-                /* The logging produced below may be helpful
-                 * while tuning +TCP: see how many buffers are in use. */
-                uxLastMinQueueSpace = uxCurrentCount;
-                FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
-            }
-        }
-    #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
-    uxCurrentCount = uxGetMinimumFreeNetworkBuffers();
-
-    if( uxLastMinBufferCount != uxCurrentCount )
-    {
-        /* The logging produced below may be helpful
-         * while tuning +TCP: see how many buffers are in use. */
-        uxLastMinBufferCount = uxCurrentCount;
-        FreeRTOS_printf( ( "Network buffers: %lu lowest %lu\n",
-                           uxGetNumberOfFreeNetworkBuffers(), uxCurrentCount ) );
-    }
-
-    if( xTXDescriptorSemaphore != NULL )
-    {
-        uxCurrentSemCount = uxSemaphoreGetCount( xTXDescriptorSemaphore );
-
-        if( uxLowestSemCount > uxCurrentSemCount )
-        {
-            uxLowestSemCount = uxCurrentSemCount;
-            FreeRTOS_printf( ( "TX DMA buffers: lowest %lu\n", uxLowestSemCount ) );
-        }
-    }
-}
-/*-----------------------------------------------------------*/
-
 extern uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * NETWORK_BUFFER_SIZE ];
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
@@ -889,6 +841,7 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 static void prvEMACHandlerTask( void * pvParameters )
 {
     UBaseType_t uxCount;
+    UBaseType_t uxLowestSemCount = 0;
 
     #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
         NetworkBufferDescriptor_t * pxBuffer;
@@ -906,7 +859,26 @@ static void prvEMACHandlerTask( void * pvParameters )
     for( ; ; )
     {
         xResult = 0;
-        vCheckBuffersAndQueue();
+
+        #if ( ipconfigHAS_PRINTF != 0 )
+            {
+                /* Call a function that monitors resources: the amount of free network
+                 * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
+                 * for more detailed comments. */
+                vPrintResourceStats();
+
+                if( xTXDescriptorSemaphore != NULL )
+                {
+                    uxCurrentSemCount = uxSemaphoreGetCount( xTXDescriptorSemaphore );
+
+                    if( uxLowestSemCount > uxCurrentSemCount )
+                    {
+                        uxLowestSemCount = uxCurrentSemCount;
+                        FreeRTOS_printf( ( "TX DMA buffers: lowest %lu\n", uxLowestSemCount ) );
+                    }
+                }
+            }
+        #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
         if( ( ulISREvents & EMAC_IF_ALL_EVENT ) == 0 )
         {
