@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.1
+ * FreeRTOS+TCP V2.3.2
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -499,18 +499,10 @@
                      * gets connected. */
                     if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
                     {
-                        if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
-                        {
-                            /* As it did not get connected, and the user can never
-                             * accept() it anymore, it will be deleted now.  Called from
-                             * the IP-task, so it's safe to call the internal Close
-                             * function: vSocketClose(). */
-                            ( void ) vSocketClose( pxSocket );
-                        }
-
-                        /* Return a negative value to tell to inform the caller
-                         * xTCPTimerCheck()
-                         * that the socket got closed and may not be accessed anymore. */
+                        /* vTCPStateChange() has called FreeRTOS_closesocket()
+                         * in case the socket is not yet owned by the application.
+                         * Return a negative value to inform the caller that
+                         * the socket will be closed in the next cycle. */
                         xResult = -1;
                     }
                 }
@@ -1824,7 +1816,8 @@
         }
         else
         {
-            if( ( ( BaseType_t ) eTCPState ) == ( ( BaseType_t ) eCLOSED ) )
+            if( ( eTCPState == eCLOSED ) ||
+                ( eTCPState == eCLOSE_WAIT ) )
             {
                 /* Socket goes to status eCLOSED because of a RST.
                  * When nobody owns the socket yet, delete it. */
@@ -2689,17 +2682,16 @@
         uint8_t ucTCPFlags = pxTCPHeader->ucTCPFlags;
         uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
         BaseType_t xSendLength = 0;
-        UBaseType_t uxIntermediateResult = 0;
+        UBaseType_t uxIntermediateResult = 0U;
 
         /* Either expect a ACK or a SYN+ACK. */
         uint8_t ucExpect = tcpTCP_FLAG_ACK;
+        const uint8_t ucFlagsMask = tcpTCP_FLAG_ACK | tcpTCP_FLAG_RST | tcpTCP_FLAG_SYN | tcpTCP_FLAG_FIN;
 
         if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCONNECT_SYN )
         {
             ucExpect |= tcpTCP_FLAG_SYN;
         }
-
-        const uint8_t ucFlagsMask = tcpTCP_FLAG_ACK | tcpTCP_FLAG_RST | tcpTCP_FLAG_SYN | tcpTCP_FLAG_FIN;
 
         if( ( ucTCPFlags & ucFlagsMask ) != ucExpect )
         {
@@ -2708,6 +2700,9 @@
             FreeRTOS_debug_printf( ( "%s: flags %04X expected, not %04X\n",
                                      ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eSYN_RECEIVED ) ? "eSYN_RECEIVED" : "eCONNECT_SYN",
                                      ucExpect, ucTCPFlags ) );
+
+            /* In case pxSocket is not yet owned by the application, a closure
+             * of the socket will be scheduled for the next cycle. */
             vTCPStateChange( pxSocket, eCLOSE_WAIT );
 
             /* Send RST with the expected sequence and ACK numbers,
@@ -3779,7 +3774,9 @@
 
             /* Make a copy of the header up to the TCP header.  It is needed later
              * on, whenever data must be sent to the peer. */
-            ( void ) memcpy( ( void * ) ( pxReturn->u.xTCP.xPacket.u.ucLastPacket ), ( const void * ) ( pxNetworkBuffer->pucEthernetBuffer ), sizeof( pxReturn->u.xTCP.xPacket.u.ucLastPacket ) );
+            ( void ) memcpy( ( void * ) pxReturn->u.xTCP.xPacket.u.ucLastPacket,
+                             ( const void * ) pxNetworkBuffer->pucEthernetBuffer,
+                             sizeof( pxReturn->u.xTCP.xPacket.u.ucLastPacket ) );
         }
 
         return pxReturn;
@@ -3882,7 +3879,7 @@
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )
         {
             FreeRTOS_debug_printf( ( "TCP: Listen: new socket bind error\n" ) );
-            ( void ) vSocketClose( pxNewSocket );
+            ( void ) FreeRTOS_closesocket( pxNewSocket );
             xResult = pdFALSE;
         }
         else
