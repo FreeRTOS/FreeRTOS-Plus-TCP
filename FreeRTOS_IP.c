@@ -1357,7 +1357,7 @@ void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
             xEnoughSpace = pdFALSE;
         }
 
-        if( ( uxGetNumberOfFreeNetworkBuffers() >= 3U ) && ( uxNumberOfBytesToSend >= 1U ) && ( xEnoughSpace != pdFALSE ) )
+        if( ( uxGetNumberOfFreeNetworkBuffers() >= 4U ) && ( uxNumberOfBytesToSend >= 1U ) && ( xEnoughSpace != pdFALSE ) )
         {
             pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxTotalLength, uxBlockTimeTicks );
 
