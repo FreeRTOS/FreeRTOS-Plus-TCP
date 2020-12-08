@@ -145,9 +145,10 @@
     #endif /* ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
 
     #include "pack_struct_start.h"
-	/**
-	 * @brief A detailed description of a DHCP/IPv4 packet. */
-	 */
+
+/**
+ * @brief A detailed description of a DHCP/IPv4 packet. */
+    * /
     struct xDHCPMessage_IPv4
     {
         uint8_t ucOpcode;                                                      /**< Operation Code: Specifies the general type of message. */
