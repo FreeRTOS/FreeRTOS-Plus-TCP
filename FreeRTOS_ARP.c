@@ -272,11 +272,8 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
 
-        /* Only process the IP address if it is on the local network.
-         * Unless: when '*ipLOCAL_IP_ADDRESS_POINTER' equals zero, the IP-address
-         * and netmask are still unknown. */
-        if( ( ( ulIPAddress & xNetworkAddressing.ulNetMask ) == ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) ) ||
-            ( *ipLOCAL_IP_ADDRESS_POINTER == 0UL ) )
+		/* Only process the IP address if it is on the local network. */
+		if( ( ulIPAddress & xNetworkAddressing.ulNetMask ) == ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) )
     #else
 
         /* If ipconfigARP_STORES_REMOTE_ADDRESSES is non-zero, IP addresses with
@@ -492,16 +489,6 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
 
     ulAddressToLookup = *pulIPAddress;
 
-    #if ( ipconfigUSE_LLMNR == 1 )
-        if( ulAddressToLookup == ipLLMNR_IP_ADDR ) /* Is in network byte order. */
-        {
-            /* The LLMNR IP-address has a fixed virtual MAC address. */
-            ( void ) memcpy( pxMACAddress->ucBytes, xLLMNR_MacAdress.ucBytes, sizeof( MACAddress_t ) );
-            eReturn = eARPCacheHit;
-        }
-        else
-    #endif
-
     if( xIsIPv4Multicast( ulAddressToLookup ) != 0 )
     {
         /* Get the lowest 23 bits of the IP-address. */
@@ -522,6 +509,12 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
          * can be done. */
         eReturn = eCantSendPacket;
     }
+	else if( *ipLOCAL_IP_ADDRESS_POINTER == *pulIPAddress )
+	{
+		/* The address of this device. May be useful for the loopback device. */
+		eReturn = eARPCacheHit;
+		memcpy( pxMACAddress->ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( pxMACAddress->ucBytes ) );
+	}
     else
     {
         eReturn = eARPCacheMiss;
