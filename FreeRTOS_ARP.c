@@ -762,7 +762,63 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
         }
     }
 }
-/*--------------------------------------*/
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief  Wait for address resolution: look-up the IP-address in the ARP-cache, and if
+ *         needed send an ARP request, and wait for a reply.  This function is useful when
+ *         called before FreeRTOS_sendto().
+ *
+ * @param[in] ulIPAddress: The IP-address to look-up.
+ * @param[in] uxTicksToWait: The maximum number of clock ticks to wait for a reply.
+ *
+ * @return Zero when successful.
+ */
+BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
+							   TickType_t uxTicksToWait )
+{
+	BaseType_t xResult = -pdFREERTOS_ERRNO_EADDRNOTAVAIL;
+	TimeOut_t xTimeOut;
+	MACAddress_t xMACAddress;
+	eARPLookupResult_t xLookupResult;
+	size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
+
+	/* The IP-task is not supposed to call this function. */
+	configASSERT( xIsCallingFromIPTask() == 0 );
+
+	xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ) );
+
+	if( xLookupResult == eARPCacheMiss )
+	{
+		const TickType_t uxSleepTime = pdMS_TO_TICKS( 250U );
+
+		/* We might use ipconfigMAX_ARP_RETRANSMISSIONS here. */
+		vTaskSetTimeOutState( &xTimeOut );
+
+		while( uxSendCount > 0 )
+		{
+			FreeRTOS_OutputARPRequest( ulIPAddress );
+
+			vTaskDelay( uxSleepTime );
+
+			xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ) );
+
+			if( ( xTaskCheckForTimeOut( &( xTimeOut ), &( uxTicksToWait ) ) == pdTRUE ) ||
+				( xLookupResult != eARPCacheMiss ) )
+			{
+				break;
+			}
+		}
+	}
+
+	if( xLookupResult == eARPCacheHit )
+	{
+		xResult = 0;
+	}
+
+	return xResult;
+}
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Generate an ARP request packet by copying various constant details to
