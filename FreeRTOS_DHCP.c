@@ -1082,7 +1082,7 @@
         #endif /* if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) */
 
         /* Obtain a network buffer with the required amount of storage.  It doesn't make much sense
-         * to use a time-out here, because that would cause the IP-task waiting for itself. */
+         * to use a time-out here, because that would cause the IP-task to wait for itself. */
         pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( UDPPacket_t ) + uxRequiredBufferSize, 0U );
 
         if( pxNetworkBuffer != NULL )
