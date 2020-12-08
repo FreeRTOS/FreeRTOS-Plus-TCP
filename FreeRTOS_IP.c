@@ -1346,22 +1346,22 @@ void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
         IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
 
         uxTotalLength = uxNumberOfBytesToSend + sizeof( ICMPPacket_t );
-        pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxTotalLength, uxBlockTimeTicks );
+        BaseType_t xEnoughSpace;
 
-        if( pxNetworkBuffer != NULL )
+        if( uxNumberOfBytesToSend < ( ipconfigNETWORK_MTU - ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) ) ) )
         {
-            BaseType_t xEnoughSpace;
+            xEnoughSpace = pdTRUE;
+        }
+        else
+        {
+            xEnoughSpace = pdFALSE;
+        }
 
-            if( uxNumberOfBytesToSend < ( ipconfigNETWORK_MTU - ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) ) ) )
-            {
-                xEnoughSpace = pdTRUE;
-            }
-            else
-            {
-                xEnoughSpace = pdFALSE;
-            }
+        if( ( uxGetNumberOfFreeNetworkBuffers() >= 4U ) && ( uxNumberOfBytesToSend >= 1U ) && ( xEnoughSpace != pdFALSE ) )
+        {
+            pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxTotalLength, uxBlockTimeTicks );
 
-            if( ( uxGetNumberOfFreeNetworkBuffers() >= 3U ) && ( uxNumberOfBytesToSend >= 1U ) && ( xEnoughSpace != pdFALSE ) )
+            if( pxNetworkBuffer != NULL )
             {
                 pxEthernetHeader = ipCAST_PTR_TO_TYPE_PTR( EthernetHeader_t, pxNetworkBuffer->pucEthernetBuffer );
                 pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
