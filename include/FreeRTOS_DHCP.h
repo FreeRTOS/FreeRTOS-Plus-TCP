@@ -54,15 +54,16 @@
 /* DHCP state machine states. */
     typedef enum
     {
-        eInitialWait = 0,          /* Initial state: open a socket and wait a short time. */
-        eWaitingSendFirstDiscover, /* Send a discover the first time it is called, and reset all timers. */
-        eWaitingOffer,             /* Either resend the discover, or, if the offer is forthcoming, send a request. */
-        eWaitingAcknowledge,       /* Either resend the request. */
+        eInitialWait = 0,          /**< Initial state: open a socket and wait a short time. */
+        eWaitingSendFirstDiscover, /**< Send a discover the first time it is called, and reset all timers. */
+        eWaitingOffer,             /**< Either resend the discover, or, if the offer is forthcoming, send a request. */
+        eWaitingAcknowledge,       /**< Either resend the request. */
+        eSendDHCPRequest,          /**< Sendto failed earlier, resend the request to lease the IP-address offered. */
         #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
             eGetLinkLayerAddress,  /* When DHCP didn't respond, try to obtain a LinkLayer address 168.254.x.x. */
         #endif
-        eLeasedAddress,            /* Resend the request at the appropriate time to renew the lease. */
-        eNotUsingLeasedAddress     /* DHCP failed, and a default IP address is being used. */
+        eLeasedAddress,            /**< Resend the request at the appropriate time to renew the lease. */
+        eNotUsingLeasedAddress     /**< DHCP failed, and a default IP address is being used. */
     } eDHCPState_t;
 
 /**
