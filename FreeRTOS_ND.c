@@ -132,12 +132,7 @@ static eARPLookupResult_t prvMACResolve( IPv6_Address_t * pxAddressToLookup,
     /* Mostly used multi-cast address is ff02::. */
     if( xIsIPv6Multicast( pxAddressToLookup ) != pdFALSE )
     {
-        pxMACAddress->ucBytes[ 0 ] = 0x33U;
-        pxMACAddress->ucBytes[ 1 ] = 0x33U;
-        pxMACAddress->ucBytes[ 2 ] = pxAddressToLookup->ucBytes[ 12 ];
-        pxMACAddress->ucBytes[ 3 ] = pxAddressToLookup->ucBytes[ 13 ];
-        pxMACAddress->ucBytes[ 4 ] = pxAddressToLookup->ucBytes[ 14 ];
-        pxMACAddress->ucBytes[ 5 ] = pxAddressToLookup->ucBytes[ 15 ];
+		vSetMultiCastIPv6MacAddress( pxAddressToLookup, pxMACAddress );
 
         if( ppxEndPoint != NULL )
         {
