@@ -390,7 +390,7 @@
                     }
                     else
                     {
-						/* Either the creation of a message buffer failed, or sendto().
+                        /* Either the creation of a message buffer failed, or sendto().
                          * Try again in the next cycle. */
                         FreeRTOS_debug_printf( ( "Send failed during eSendDHCPRequest.\n" ) );
                     }
@@ -421,7 +421,7 @@
                             }
                             else
                             {
-								/* Either the creation of a message buffer failed, or sendto().
+                                /* Either the creation of a message buffer failed, or sendto().
                                  * Try again in the next cycle. */
                                 FreeRTOS_debug_printf( ( "Send failed during eWaitingOffer/1.\n" ) );
                                 EP_DHCPData.eDHCPState = eSendDHCPRequest;
@@ -569,11 +569,11 @@
 
                                 if( prvSendDHCPRequest() == pdPASS )
                                 {
-                                    /* The meessage is sent. Stay in state 'eWaitingAcknowledge'. */
+                                    /* The message is sent. Stay in state 'eWaitingAcknowledge'. */
                                 }
                                 else
                                 {
-									/* Either the creation of a message buffer failed, or sendto().
+                                    /* Either the creation of a message buffer failed, or sendto().
                                      * Try again in the next cycle. */
                                     FreeRTOS_debug_printf( ( "Send failed during eWaitingAcknowledge.\n" ) );
                                     EP_DHCPData.eDHCPState = eSendDHCPRequest;
