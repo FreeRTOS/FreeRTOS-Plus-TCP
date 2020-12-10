@@ -2968,7 +2968,7 @@
             FreeRTOS_debug_printf( ( "%s: flags %04X expected, not %04X\n",
                                      ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eSYN_RECEIVED ) ? "eSYN_RECEIVED" : "eCONNECT_SYN",
                                      ucExpect, ucTCPFlags ) );
-			/* In case pxSocket is not yet onwed by the application, a closure
+			/* In case pxSocket is not yet owned by the application, a closure
 			 * of the socket will be scheduled for the next cycle. */
             vTCPStateChange( pxSocket, eCLOSE_WAIT );
 
