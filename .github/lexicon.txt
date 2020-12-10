@@ -275,6 +275,7 @@ ereturned
 ereturnethernetframe
 errbuf
 errno
+esenddhcprequest
 esocketbindevent
 esocketcloseevent
 esocketselectevent
