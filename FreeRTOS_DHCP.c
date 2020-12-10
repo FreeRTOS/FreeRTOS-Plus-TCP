@@ -779,6 +779,7 @@
 /**
  * @brief Close the DHCP socket, but only when there are no other end-points
  *        using it.
+ * @param[in] pxEndPoint: The end-point that stops using the socket.
  */
     static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
     {
