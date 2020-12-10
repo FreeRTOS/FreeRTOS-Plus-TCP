@@ -506,7 +506,7 @@
                     {
                         /* vTCPStateChange() has called FreeRTOS_closesocket()
                          * in case the socket is not yet owned by the application.
-						 * Return a negative value to inform the caller that
+                         * Return a negative value to inform the caller that
                          * the socket will be closed in the next cycle. */
                         xResult = -1;
                     }
@@ -2068,7 +2068,7 @@
         }
         else
         {
-			if( ( eTCPState == eCLOSED ) ||
+            if( ( eTCPState == eCLOSED ) ||
                 ( eTCPState == eCLOSE_WAIT ) )
             {
                 /* Socket goes to status eCLOSED because of a RST.
@@ -2080,7 +2080,7 @@
 
                     if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
                     {
-						FreeRTOS_debug_printf( ( "Closing a socket to avoid getting an orphan. \n" ) );
+                        FreeRTOS_debug_printf( ( "Closing a socket to avoid getting an orphan. \n" ) );
                         ( void ) FreeRTOS_closesocket( pxSocket );
                     }
                 }
@@ -2950,7 +2950,7 @@
         uint8_t ucTCPFlags = pxTCPHeader->ucTCPFlags;
         uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
         BaseType_t xSendLength = 0;
-		UBaseType_t uxIntermediateResult = 0U;
+        UBaseType_t uxIntermediateResult = 0U;
 
         /* Either expect a ACK or a SYN+ACK. */
         uint8_t ucExpect = tcpTCP_FLAG_ACK;
@@ -2968,8 +2968,9 @@
             FreeRTOS_debug_printf( ( "%s: flags %04X expected, not %04X\n",
                                      ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eSYN_RECEIVED ) ? "eSYN_RECEIVED" : "eCONNECT_SYN",
                                      ucExpect, ucTCPFlags ) );
-			/* In case pxSocket is not yet owned by the application, a closure
-			 * of the socket will be scheduled for the next cycle. */
+
+            /* In case pxSocket is not yet owned by the application, a closure
+             * of the socket will be scheduled for the next cycle. */
             vTCPStateChange( pxSocket, eCLOSE_WAIT );
 
             /* Send RST with the expected sequence and ACK numbers,
@@ -3453,7 +3454,7 @@
 
         /* Keep track of the highest sequence number that might be expected within
          * this connection. */
-		if( ( ( int32_t ) ( ulSequenceNumber + ulReceiveLength - pxTCPWindow->rx.ulHighestSequenceNumber ) ) > 0L )
+        if( ( ( int32_t ) ( ulSequenceNumber + ulReceiveLength - pxTCPWindow->rx.ulHighestSequenceNumber ) ) > 0L )
         {
             pxTCPWindow->rx.ulHighestSequenceNumber = ulSequenceNumber + ulReceiveLength;
         }
@@ -4225,7 +4226,7 @@
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )
         {
             FreeRTOS_debug_printf( ( "TCP: Listen: new socket bind error\n" ) );
-			( void ) FreeRTOS_closesocket( pxNewSocket );
+            ( void ) FreeRTOS_closesocket( pxNewSocket );
             xResult = pdFALSE;
         }
         else
