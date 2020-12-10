@@ -644,10 +644,10 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
             {
                 eReturn = prvCacheLookup( ulAddressToLookup, pxMACAddress, ppxEndPoint );
 
-				FreeRTOS_printf( ( "ARP %lxip %s using %lxip\n",
-					FreeRTOS_ntohl( ulOrginal ),
-					( eReturn == eARPCacheHit ) ? "hit" : "miss",
-					FreeRTOS_ntohl( ulAddressToLookup ) ) );
+                FreeRTOS_printf( ( "ARP %lxip %s using %lxip\n",
+                                   FreeRTOS_ntohl( ulOrginal ),
+                                   ( eReturn == eARPCacheHit ) ? "hit" : "miss",
+                                   FreeRTOS_ntohl( ulAddressToLookup ) ) );
                 /* It might be that the ARP has to go to the gateway. */
                 *pulIPAddress = ulAddressToLookup;
             }
@@ -841,7 +841,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
             {
                 pxNetworkBuffer->ulIPAddress = ulIPAddress;
                 pxNetworkBuffer->pxEndPoint = pxEndPoint;
-				pxNetworkBuffer->pxInterface = pxInterface;
+                pxNetworkBuffer->pxInterface = pxInterface;
 
                 vARPGenerateRequestPacket( pxNetworkBuffer );
 
@@ -908,25 +908,25 @@ BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
     MACAddress_t xMACAddress;
     eARPLookupResult_t xLookupResult;
     NetworkEndPoint_t * pxEndPoint;
-	size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
+    size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
 
-	configASSERT( xIsCallingFromIPTask() == 0 );
+    configASSERT( xIsCallingFromIPTask() == 0 );
 
     xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ), &( pxEndPoint ) );
 
     if( xLookupResult == eARPCacheMiss )
     {
-		const TickType_t uxSleepTime = pdMS_TO_TICKS( 250U );
+        const TickType_t uxSleepTime = pdMS_TO_TICKS( 250U );
 
         /* We might use ipconfigMAX_ARP_RETRANSMISSIONS here. */
         vTaskSetTimeOutState( &xTimeOut );
 
-		while( uxSendCount > 0 )
+        while( uxSendCount > 0 )
         {
-			FreeRTOS_printf( ( "OutputARPRequest %lxip", FreeRTOS_ntohl( ulIPAddress ) ) );
-			FreeRTOS_OutputARPRequest( ulIPAddress );
+            FreeRTOS_printf( ( "OutputARPRequest %lxip", FreeRTOS_ntohl( ulIPAddress ) ) );
+            FreeRTOS_OutputARPRequest( ulIPAddress );
 
-			vTaskDelay( uxSleepTime );
+            vTaskDelay( uxSleepTime );
 
             xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ), &( pxEndPoint ) );
 
@@ -1137,7 +1137,7 @@ BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
                 FreeRTOS_printf( ( "Arp %2ld: %3u - %16lxip : %02x:%02x:%02x : %02x:%02x:%02x\n",
                                    x,
                                    xARPCache[ x ].ucAge,
-								   FreeRTOS_ntohl( xARPCache[ x ].ulIPAddress ),
+                                   FreeRTOS_ntohl( xARPCache[ x ].ulIPAddress ),
                                    xARPCache[ x ].xMACAddress.ucBytes[ 0 ],
                                    xARPCache[ x ].xMACAddress.ucBytes[ 1 ],
                                    xARPCache[ x ].xMACAddress.ucBytes[ 2 ],
