@@ -45,15 +45,62 @@ enum if_state_t
 static const char * TAG = "NetInterface";
 volatile static uint32_t xInterfaceState = INTERFACE_DOWN;
 
-/* protect the function declaration itself instead of using
- #if everywhere.                                        */
-#if ( ipconfigHAS_PRINTF != 0 )
-    static void prvPrintResourceStats();
-#else
-    #define prvPrintResourceStats()
-#endif
+static NetworkInterface_t * pxMyInterface;
 
-BaseType_t xNetworkInterfaceInitialise( void )
+static BaseType_t xESP32_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+
+static BaseType_t xESP32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                     NetworkBufferDescriptor_t * const pxDescriptor,
+                                                     BaseType_t xReleaseAfterSend );
+
+static BaseType_t xESP32_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
+
+NetworkInterface_t * pxESP32_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                          NetworkInterface_t * pxInterface );
+
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                    NetworkInterface_t * pxInterface )
+    {
+        pxESP32_Eth_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+    }
+
+#endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+/*-----------------------------------------------------------*/
+
+
+NetworkInterface_t * pxESP32_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                          NetworkInterface_t * pxInterface )
+{
+    static char pcName[ 8 ];
+
+/* This function pxESP32_Eth_FillInterfaceDescriptor() adds a network-interface.
+ * Make sure that the object pointed to by 'pxInterface'
+ * is declared static or global, and that it will remain to exist. */
+
+    snprintf( pcName, sizeof( pcName ), "eth%ld", xEMACIndex );
+
+    memset( pxInterface, '\0', sizeof( *pxInterface ) );
+    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pfInitialise = xESP32_Eth_NetworkInterfaceInitialise;
+    pxInterface->pfOutput = xESP32_Eth_NetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xESP32_Eth_GetPhyLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+    pxMyInterface = pxInterface;
+
+    return pxInterface;
+}
+/*-----------------------------------------------------------*/
+
+static BaseType_t xESP32_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     static BaseType_t xMACAdrInitialized = pdFALSE;
     uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ];
@@ -73,8 +120,21 @@ BaseType_t xNetworkInterfaceInitialise( void )
     return pdFALSE;
 }
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t xReleaseAfterSend )
+static BaseType_t xESP32_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
+{
+    BaseType_t xResult = pdFALSE;
+
+    if( xInterfaceState == INTERFACE_UP )
+    {
+        xResult = pdTRUE;
+    }
+
+    return xResult;
+}
+
+static BaseType_t xESP32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                     NetworkBufferDescriptor_t * const pxDescriptor,
+                                                     BaseType_t xReleaseAfterSend )
 {
     if( ( pxNetworkBuffer == NULL ) || ( pxNetworkBuffer->pucEthernetBuffer == NULL ) || ( pxNetworkBuffer->xDataLength == 0 ) )
     {
@@ -99,7 +159,14 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
         }
     }
 
-    prvPrintResourceStats();
+    #if ( ipconfigHAS_PRINTF != 0 )
+        {
+            /* Call a function that monitors resources: the amount of free network
+             * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
+             * for more detailed comments. */
+            vPrintResourceStats();
+        }
+    #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
     if( xReleaseAfterSend == pdTRUE )
     {
@@ -134,7 +201,11 @@ esp_err_t wlanif_input( void * netif,
     IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
     const TickType_t xDescriptorWaitTime = pdMS_TO_TICKS( 250 );
 
-    prvPrintResourceStats();
+    #if ( ipconfigHAS_PRINTF != 0 )
+        {
+            vPrintResourceStats();
+        }
+    #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
     if( eConsiderFrameForProcessing( buffer ) != eProcessBuffer )
     {
@@ -149,6 +220,8 @@ esp_err_t wlanif_input( void * netif,
     {
         /* Set the packet size, in case a larger buffer was returned. */
         pxNetworkBuffer->xDataLength = len;
+        pxNetworkBuffer->pxInterface = pxMyInterface;
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxInterface, pcBuffer );
 
         /* Copy the packet data. */
         memcpy( pxNetworkBuffer->pucEthernetBuffer, buffer, len );
@@ -170,50 +243,3 @@ esp_err_t wlanif_input( void * netif,
         return ESP_FAIL;
     }
 }
-
-#if ( ipconfigHAS_PRINTF != 0 )
-    static void prvPrintResourceStats()
-    {
-        static UBaseType_t uxLastMinBufferCount = 0u;
-        static UBaseType_t uxCurrentBufferCount = 0u;
-        static size_t uxMinLastSize = 0uL;
-        size_t uxMinSize;
-
-        uxCurrentBufferCount = uxGetMinimumFreeNetworkBuffers();
-
-        if( uxLastMinBufferCount != uxCurrentBufferCount )
-        {
-            /* The logging produced below may be helpful
-             * while tuning +TCP: see how many buffers are in use. */
-            uxLastMinBufferCount = uxCurrentBufferCount;
-            FreeRTOS_printf( ( "Network buffers: %lu lowest %lu\n",
-                               uxGetNumberOfFreeNetworkBuffers(), uxCurrentBufferCount ) );
-        }
-
-        uxMinSize = xPortGetMinimumEverFreeHeapSize();
-
-        if( uxMinLastSize != uxMinSize )
-        {
-            uxMinLastSize = uxMinSize;
-            FreeRTOS_printf( ( "Heap: current %lu lowest %lu\n", xPortGetFreeHeapSize(), uxMinSize ) );
-        }
-
-        #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
-            {
-                static UBaseType_t uxLastMinQueueSpace = 0;
-                UBaseType_t uxCurrentCount = 0u;
-
-                uxCurrentCount = uxGetMinimumIPQueueSpace();
-
-                if( uxLastMinQueueSpace != uxCurrentCount )
-                {
-                    /* The logging produced below may be helpful
-                     * while tuning +TCP: see how many buffers are in use. */
-                    uxLastMinQueueSpace = uxCurrentCount;
-                    FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
-                }
-            }
-        #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
-    }
-#endif /* ( ipconfigHAS_PRINTF != 0 ) */
-/*-----------------------------------------------------------*/
