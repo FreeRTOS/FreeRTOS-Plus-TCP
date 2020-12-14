@@ -1500,8 +1500,8 @@
         }
 
         #if ( ipconfigUSE_TCP_WIN == 0 )
-        /* Avoid compiler warnings when TCP window is not used. */
-             ( void ) xHasSYNFlag;
+            /* Avoid compiler warnings when TCP window is not used. */
+            ( void ) xHasSYNFlag;
         #endif
 
         return uxIndex;
