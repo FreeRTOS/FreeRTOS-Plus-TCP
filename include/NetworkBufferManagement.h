@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.0
+ * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -32,14 +32,10 @@
 
 /* NOTE PUBLIC API FUNCTIONS. */
     BaseType_t xNetworkBuffersInitialise( void );
-    NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
+    NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xByteCount,
                                                                   TickType_t xBlockTimeTicks );
-
-/* The definition of the below function is only available if BufferAllocation_2.c has been linked into the source. */
     NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t xRequestedSizeBytes );
     void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer );
-
-/* The definition of the below function is only available if BufferAllocation_2.c has been linked into the source. */
     BaseType_t vNetworkBufferReleaseFromISR( NetworkBufferDescriptor_t * const pxNetworkBuffer );
     uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes );
     void vReleaseNetworkBuffer( uint8_t * pucEthernetBuffer );
@@ -56,8 +52,8 @@
 
 /* Increase the size of a Network Buffer.
  * In case BufferAllocation_2.c is used, the new space must be allocated. */
-    NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                                     size_t xNewSizeBytes );
+    NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxDescriptor,
+                                                                     size_t xByteCount );
 
     #if ipconfigTCP_IP_SANITY
 

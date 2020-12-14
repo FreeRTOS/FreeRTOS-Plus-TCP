@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.0
+ * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -35,17 +35,14 @@
         extern "C" {
     #endif
 
-/**
- * The name xTCPTimer was already use as the name of an IP-timer.
- */
+/** @brief A very simple timer that registers the time that a packet was sent.  It is used to trigger re-sending. */
     typedef struct xTCPTimerStruct
     {
-        uint32_t ulBorn; /**< The time when this timer is created. */
+        uint32_t ulBorn; /**< The time at which a packet was send ( using xTaskGetTickCount() ). */
     } TCPTimer_t;
 
-/**
- * Structure to hold the information about a TCP segment.
- */
+/** @brief This struct collects the properties of a TCP segment.  A segment is a chunk of data which
+ *         is sent in a single TCP packet, at most 1460 bytes. */
     typedef struct xTCP_SEGMENT
     {
         uint32_t ulSequenceNumber; /**< The sequence number of the first byte in this packet */
@@ -65,36 +62,30 @@
                     bIsForRx : 1;        /**< pdTRUE if segment is used for reception */
             } bits;
             uint32_t ulFlags;
-        } u;                                /**< Use a union to store the 32-bit flag field and the breakdown in the same location. */
+        } u;                                /**< A collection of boolean flags. */
         #if ( ipconfigUSE_TCP_WIN != 0 )
             struct xLIST_ITEM xQueueItem;   /**< TX only: segments can be linked in one of three queues: xPriorityQueue, xTxQueue, and xWaitQueue */
             struct xLIST_ITEM xSegmentItem; /**< With this item the segment can be connected to a list, depending on who is owning it */
         #endif
     } TCPSegment_t;
 
-/**
- * Structure to store the Rx/Tx window length.
- */
+/** @brief This struct describes the windows sizes, both for incoming and outgoing. */
     typedef struct xTCP_WINSIZE
     {
-        uint32_t ulRxWindowLength; /**< The size of the receive window. */
-        uint32_t ulTxWindowLength; /**< The size of the send window. */
+        uint32_t ulRxWindowLength; /**< The TCP window size of the incoming stream. */
+        uint32_t ulTxWindowLength; /**< The TCP window size of the outgoing stream. */
     } TCPWinSize_t;
 
-
-/*
- * If TCP time-stamps are being used, they will occupy 12 bytes in
- * each packet, and thus the message space will become smaller
- */
-/* Keep this as a multiple of 4 */
+/** @brief If TCP time-stamps are being used, they will occupy 12 bytes in
+ * each packet, and thus the message space will become smaller.
+ * Keep this as a multiple of 4 */
     #if ( ipconfigUSE_TCP_WIN == 1 )
         #define ipSIZE_TCP_OPTIONS    16U
     #else
         #define ipSIZE_TCP_OPTIONS    12U
     #endif
 
-/**
- *	Every TCP connection owns a TCP window for the administration of all packets
+/** @brief Every TCP connection owns a TCP window for the administration of all packets
  *	It owns two sets of segment descriptors, incoming and outgoing
  */
     typedef struct xTCP_WINDOW
@@ -109,8 +100,8 @@
                     bTimeStamps : 1;   /**< Socket is supposed to use TCP time-stamps. This depends on the */
             } bits;                    /**< party which opens the connection */
             uint32_t ulFlags;
-        } u;                           /**< Use a union to store the 32-bit flag field and the breakdown at the same place. */
-        TCPWinSize_t xSize;            /**< Size of the TCP window. */
+        } u;                           /**< A collection of boolean flags. */
+        TCPWinSize_t xSize;            /**< The TCP window sizes of the incoming and outgoing streams. */
         struct
         {
             uint32_t ulFirstSequenceNumber;                                    /**< Logging & debug: the first segment received/sent in this connection
@@ -120,9 +111,8 @@
                                                                                 * In other words: the sequence number of the left side of the sliding window */
             uint32_t ulFINSequenceNumber;                                      /**< The sequence number which carried the FIN flag */
             uint32_t ulHighestSequenceNumber;                                  /**< Sequence number of the right-most byte + 1 */
-        } rx,                                                                  /**< Structure for the receiver for TCP. */
-          tx;                                                                  /**< Structure for the transmitter for TCP. */
-
+        } rx,                                                                  /**< Sequence number of the incoming data stream. */
+          tx;                                                                  /**< Sequence number of the outgoing data stream. */
         uint32_t ulOurSequenceNumber;                                          /**< The SEQ number we're sending out */
         uint32_t ulUserDataLength;                                             /**< Number of bytes in Rx buffer which may be passed to the user, after having received a 'missing packet' */
         uint32_t ulNextTxSequenceNumber;                                       /**< The sequence number given to the next byte to be added for transmission */
@@ -145,7 +135,6 @@
         uint16_t usMSS;              /**< Current accepted MSS */
         uint16_t usMSSInit;          /**< MSS as configured by the socket owner */
     } TCPWindow_t;
-
 
 
 /*=============================================================================
@@ -215,7 +204,7 @@
     BaseType_t xTCPWindowTxDone( const TCPWindow_t * pxWindow );
 
 /* Fetches data to be sent.
- * plPosition will point to a location with the circular data buffer: txStream */
+ * 'plPosition' will point to a location with the circular data buffer: txStream */
     uint32_t ulTCPWindowTxGet( TCPWindow_t * pxWindow,
                                uint32_t ulWindowSize,
                                int32_t * plPosition );

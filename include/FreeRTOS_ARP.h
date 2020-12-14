@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.0
+ * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -39,22 +39,28 @@
 /* Miscellaneous structure and definitions. */
 /*-----------------------------------------------------------*/
 
-/**
- * Structure for one row in the ARP cache table.
- */
+/* A forward declaration of 'xNetworkInterface' which is
+ * declared in FreeRTOS_Routing.h */
+    struct xNetworkInterface;
+    struct xNetworkEndPoint;
+
+/** @brief Description of an entry of the ARP cache. */
     typedef struct xARP_CACHE_TABLE_ROW
     {
         uint32_t ulIPAddress;     /**< The IP address of an ARP cache entry. */
         MACAddress_t xMACAddress; /**< The MAC address of an ARP cache entry. */
+        struct xNetworkEndPoint
+        * pxEndPoint;             /**< The end-point on which the MAC address was last seen. */
         uint8_t ucAge;            /**< A value that is periodically decremented but can also be refreshed by active communication.  The ARP cache entry is removed if the value reaches zero. */
         uint8_t ucValid;          /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ARP reply */
     } ARPCacheRow_t;
 
+/** @brief Possible return value for various look-up functions. */
     typedef enum
     {
-        eARPCacheMiss = 0, /* 0 An ARP table lookup did not find a valid entry. */
-        eARPCacheHit,      /* 1 An ARP table lookup found a valid entry. */
-        eCantSendPacket    /* 2 There is no IP address, or an ARP is still in progress, so the packet cannot be sent. */
+        eARPCacheMiss = 0, /**< 0 An ARP table lookup did not find a valid entry. */
+        eARPCacheHit,      /**< 1 An ARP table lookup found a valid entry. */
+        eCantSendPacket    /**< 2 There is no IP address, or an ARP is still in progress, so the packet cannot be sent. */
     } eARPLookupResult_t;
 
 /*
@@ -64,7 +70,8 @@
  * a free space available.
  */
     void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
-                                const uint32_t ulIPAddress );
+                                const uint32_t ulIPAddress,
+                                struct xNetworkEndPoint * pxEndPoint );
 
     #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
         /* Becomes non-zero if another device responded to a gratuitous ARP message. */
@@ -92,13 +99,15 @@
  * isn't a gateway defined) then return eCantSendPacket.
  */
     eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                          MACAddress_t * const pxMACAddress );
+                                          MACAddress_t * const pxMACAddress,
+                                          struct xNetworkEndPoint ** ppxEndPoint );
 
     #if ( ipconfigUSE_ARP_REVERSED_LOOKUP != 0 )
 
 /* Lookup an IP-address if only the MAC-address is known */
         eARPLookupResult_t eARPGetCacheEntryByMac( MACAddress_t * const pxMACAddress,
-                                                   uint32_t * pulIPAddress );
+                                                   uint32_t * pulIPAddress,
+                                                   struct xNetworkInterface ** ppxInterface );
 
     #endif
 
@@ -126,22 +135,24 @@
  * The function is to be called within the function xNetworkInterfaceOutput()
  * in NetworkInterface.c as follows:
  *
- *   if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
- *   {
- *      / * The packet has been sent back to the IP-task.
- *	 * The IP-task will further handle it.
- *        * Do not release the descriptor.
- *	 * /
- *       return pdTRUE;
- *   }
- *   / * Send the packet as usual. * /
+ *  if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
+ *  {
+ *     / * The packet has been sent back to the IP-task.
+ * The IP-task will further handle it.
+ * Do not release the descriptor.
+ * /
+ *      return pdTRUE;
+ *  }
+ *  / * Send the packet as usual. * /
  */
     BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
                                BaseType_t bReleaseAfterSend );
 
+/* Clear all entries in the ARp cache. */
+    void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint );
+
     #ifdef __cplusplus
         } /* extern "C" */
     #endif
-
 
 #endif /* FREERTOS_ARP_H */

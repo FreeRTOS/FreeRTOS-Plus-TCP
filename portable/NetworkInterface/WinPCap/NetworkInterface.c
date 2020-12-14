@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.0
+ * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -524,15 +524,10 @@ static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer )
 
     pxEtherHeader = ( EthernetHeader_t * ) pucBuffer;
 
+    /* Sometimes, packets are bounced back by the driver and we need not process them. Check
+     * whether this packet is one such packet. */
     if( memcmp( ucMACAddress, pxEtherHeader->xSourceAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
     {
-        FreeRTOS_printf( ( "Bounced back: %02x:%02x:%02x:%02x:%02x:%02x\n",
-                           pxEtherHeader->xSourceAddress.ucBytes[ 0 ],
-                           pxEtherHeader->xSourceAddress.ucBytes[ 1 ],
-                           pxEtherHeader->xSourceAddress.ucBytes[ 2 ],
-                           pxEtherHeader->xSourceAddress.ucBytes[ 3 ],
-                           pxEtherHeader->xSourceAddress.ucBytes[ 4 ],
-                           pxEtherHeader->xSourceAddress.ucBytes[ 5 ] ) );
         xResult = pdTRUE;
     }
     else

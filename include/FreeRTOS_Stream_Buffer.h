@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.0
+ * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -33,16 +33,13 @@
  */
 
 #ifndef FREERTOS_STREAM_BUFFER_H
-
     #define FREERTOS_STREAM_BUFFER_H
 
     #ifdef __cplusplus
         extern "C" {
     #endif
 
-/**
- * structure to store all the details of a stream buffer.
- */
+/** @brief This struct describes a circular buffer. */
     typedef struct xSTREAM_BUFFER
     {
         volatile size_t uxTail;              /**< next item to read */
@@ -50,7 +47,7 @@
         volatile size_t uxHead;              /**< next position store a new item */
         volatile size_t uxFront;             /**< iterator within the free space */
         size_t LENGTH;                       /**< const value: number of reserved elements */
-        uint8_t ucArray[ sizeof( size_t ) ]; /**< array big enough to store any pointer address */
+        uint8_t ucArray[ sizeof( size_t ) ]; /**< The buffer containing the data.  It may be allocated long than its default size. */
     } StreamBuffer_t;
 
     static portINLINE void vStreamBufferClear( StreamBuffer_t * pxBuffer );
@@ -62,7 +59,6 @@
         pxBuffer->uxFront = 0U;
         pxBuffer->uxMid = 0U;
     }
-
 /*-----------------------------------------------------------*/
 
     static portINLINE size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
@@ -163,14 +159,13 @@
     {
 /* Increment uxMid, but no further than uxHead */
         size_t uxSize = uxStreamBufferMidSpace( pxBuffer );
-        size_t uxMoveCount = uxCount;
 
-        if( uxMoveCount > uxSize )
+        if( uxCount > uxSize )
         {
-            uxMoveCount = uxSize;
+            uxCount = uxSize;
         }
 
-        pxBuffer->uxMid += uxMoveCount;
+        pxBuffer->uxMid += uxCount;
 
         if( pxBuffer->uxMid >= pxBuffer->LENGTH )
         {
@@ -190,7 +185,7 @@
         size_t uxTail = pxBuffer->uxTail;
 
         /* Returns true if ( uxLeft < uxRight ) */
-        if( ( ( ( uxLeft < uxTail ) ? 1U : 0U ) ^ ( ( uxRight < uxTail ) ? 1U : 0U ) ) != 0U )
+        if( ( uxLeft < uxTail ) ^ ( uxRight < uxTail ) )
         {
             if( uxRight < uxTail )
             {
