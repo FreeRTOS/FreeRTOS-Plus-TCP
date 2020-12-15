@@ -252,6 +252,7 @@ ereturned
 ereturnethernetframe
 errbuf
 errno
+esenddhcprequest
 esocketbindevent
 esocketcloseevent
 esocketselectevent
@@ -1279,6 +1280,7 @@ vsocketwakeupuser
 vtasklist
 vtasknotifygivefromisr
 vtcpnetstat
+vtcpstatechange
 vtcpwindowinit
 vtcpwindowdestroy
 wasn
