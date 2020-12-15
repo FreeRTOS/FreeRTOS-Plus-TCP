@@ -375,8 +375,6 @@
       ETH_DMA_IT_FBE | ETH_DMA_IT_ET | ETH_DMA_IT_RWT | ETH_DMA_IT_RPS | ETH_DMA_IT_RBU | ETH_DMA_IT_R |   \
       ETH_DMA_IT_TU | ETH_DMA_IT_RO | ETH_DMA_IT_TJT | ETH_DMA_IT_TPS | ETH_DMA_IT_T )
 
-/*#define ETH_DMA_ALL_INTS		ETH_DMA_IT_RBU | ETH_DMA_FLAG_T | ETH_DMA_FLAG_AIS */
-
         #define INT_MASK    ( ( uint32_t ) ~( ETH_DMA_IT_TBU ) )
         void HAL_ETH_IRQHandler( ETH_HandleTypeDef * heth )
         {
@@ -1124,7 +1122,18 @@
             macinit.BroadcastFramesReception = ETH_BROADCASTFRAMESRECEPTION_ENABLE;
             macinit.DestinationAddrFilter = ETH_DESTINATIONADDRFILTER_NORMAL;
             macinit.PromiscuousMode = ETH_PROMISCUOUS_MODE_DISABLE;
-            macinit.MulticastFramesFilter = ETH_MULTICASTFRAMESFILTER_PERFECT;
+
+            #if ( ipconfigMULTI_INTERFACE != 0 ) && ( ipconfigUSE_IPv6 != 0 )
+
+                /* _HT_ to be sorted out:
+                 * IPv6 needs several multicast addresses.
+                 * Disable filtering multicast until a better method is implemented.
+                 */
+                macinit.MulticastFramesFilter = ETH_MULTICASTFRAMESFILTER_NONE; /* ETH_MULTICASTFRAMESFILTER_PERFECT; */
+            #else
+                macinit.MulticastFramesFilter = ETH_MULTICASTFRAMESFILTER_PERFECT;
+            #endif
+
             macinit.UnicastFramesFilter = ETH_UNICASTFRAMESFILTER_PERFECT;
             macinit.HashTableHigh = 0x0uL;
             macinit.HashTableLow = 0x0uL;
