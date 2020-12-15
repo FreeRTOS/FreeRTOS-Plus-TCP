@@ -5,7 +5,7 @@ description: |-
 
 dependencies:
   - name: "FreeRTOS-Kernel"
-    version: "v10.4.3"
+    version: "V10.4.3"
     repository:
       type: "git"
       url: "https://github.com/FreeRTOS/FreeRTOS-Kernel"
