@@ -30,6 +30,8 @@
         extern "C" {
     #endif
 
+    #include "FreeRTOS_Sockets.h"
+
 /* Application level configuration options. */
     #include "FreeRTOSIPConfig.h"
     #include "IPTraceMacroDefaults.h"
@@ -56,6 +58,7 @@
         eWaitingSendFirstDiscover, /**< Send a discover the first time it is called, and reset all timers. */
         eWaitingOffer,             /**< Either resend the discover, or, if the offer is forthcoming, send a request. */
         eWaitingAcknowledge,       /**< Either resend the request. */
+        eSendDHCPRequest,          /**< Sendto failed earlier, resend the request to lease the IP-address offered. */
         #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
             eGetLinkLayerAddress,  /**< When DHCP didn't respond, try to obtain a LinkLayer address 168.254.x.x. */
         #endif
@@ -84,14 +87,15 @@
     typedef struct xDHCP_DATA DHCPData_t;
 
 /* Returns the current state of a DHCP process. */
-    eDHCPState_t eGetDHCPState( struct xNetworkEndPoint * pxEndPoint );
-
     struct xNetworkEndPoint;
+
+    eDHCPState_t eGetDHCPState( struct xNetworkEndPoint * pxEndPoint );
 
     #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
 
 /*
  * Send a message to the IP-task, which will call vDHCPProcess().
+ *
  */
         BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint );
     #endif
@@ -107,13 +111,16 @@
 /* Internal call: returns true if socket is the current DHCP socket */
     BaseType_t xIsDHCPSocket( Socket_t xSocket );
 
+    #if ( ipconfigUSE_DHCP_HOOK != 0 )
+
 /* Prototype of the hook (or callback) function that must be provided by the
  * application if ipconfigUSE_DHCP_HOOK is set to 1.  See the following URL for
  * usage information:
  * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
  */
-    eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
-                                                uint32_t ulIPAddress );
+        eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
+                                                    uint32_t ulIPAddress );
+    #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */
 
     #ifdef __cplusplus
         } /* extern "C" */

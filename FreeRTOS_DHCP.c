@@ -145,6 +145,10 @@
     #endif /* ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
 
     #include "pack_struct_start.h"
+
+/**
+ * @brief A detailed description of a DHCP/IPv4 packet. */
+    * /
     struct xDHCPMessage_IPv4
     {
         uint8_t ucOpcode;                                                      /**< Operation Code: Specifies the general type of message. */
@@ -775,6 +779,7 @@
 /**
  * @brief Close the DHCP socket, but only when there are no other end-points
  *        using it.
+ * @param[in] pxEndPoint: The end-point that stops using the socket.
  */
     static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
     {
