@@ -148,7 +148,7 @@
 
 /**
  * @brief A detailed description of a DHCP/IPv4 packet. */
- */
+    * /
     struct xDHCPMessage_IPv4
     {
         uint8_t ucOpcode;                                                      /**< Operation Code: Specifies the general type of message. */
@@ -665,7 +665,7 @@
 
                                 if( prvSendDHCPRequest( pxEndPoint ) == pdPASS )
                                 {
-                                    /* The meesage is sent. Stay in state 'eWaitingAcknowledge'. */
+                                    /* The message is sent. Stay in state 'eWaitingAcknowledge'. */
                                 }
                                 else
                                 {
