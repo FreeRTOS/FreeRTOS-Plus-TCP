@@ -1473,6 +1473,7 @@ xarpcache
 xarphadipclash
 xarpheader
 xarppacket
+xarpwaitresolution
 xbacklog
 xbitstoclear
 xbitstoset

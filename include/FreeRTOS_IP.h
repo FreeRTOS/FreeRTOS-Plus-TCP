@@ -30,9 +30,9 @@
         extern "C" {
     #endif
 
-	#ifndef ipconfigMULTI_INTERFACE
-		#define ipconfigMULTI_INTERFACE   1
-	#endif
+    #ifndef ipconfigMULTI_INTERFACE
+        #define ipconfigMULTI_INTERFACE    1
+    #endif
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */
@@ -344,15 +344,15 @@
  * from FreeRTOS_Routing.h. */
     BaseType_t FreeRTOS_IPStart( void );
 
-	struct xNetworkInterface;
+    struct xNetworkInterface;
 
     #if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
 
-		/* Do not call the following function directly. It is there for downward compatibility.
-		 * The function FreeRTOS_IPInit() will call it to initialise the interface and end-point
-		 * objects.  See the description in FreeRTOS_Routing.h. */
-		struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-														struct xNetworkInterface * pxInterface );
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialise the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+        struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                              struct xNetworkInterface * pxInterface );
 
 /* The following function is only provided to allow backward compatibility
  * with the earlier version of FreeRTOS+TCP which had a single interface only. */
@@ -495,11 +495,11 @@
     void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
                                       MACAddress_t * pxMACAddress );
 
-	#if ( ipconfigUSE_IPv6 != 0 )
-		/* Set the MAC-address that belongs to a given IPv6 multi-cast address. */
-		void vSetMultiCastIPv6MacAddress( IPv6_Address_t * pxAddress,
-			                              MACAddress_t * pxMACAddress );
-	#endif
+    #if ( ipconfigUSE_IPv6 != 0 )
+        /* Set the MAC-address that belongs to a given IPv6 multi-cast address. */
+        void vSetMultiCastIPv6MacAddress( IPv6_Address_t * pxAddress,
+                                          MACAddress_t * pxMACAddress );
+    #endif
 
     #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
 

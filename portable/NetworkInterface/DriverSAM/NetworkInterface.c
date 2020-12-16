@@ -551,7 +551,7 @@ volatile IPPacket_t * pxSendPacket;
 
 static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                                  NetworkBufferDescriptor_t * const pxDescriptor,
-                                    BaseType_t bReleaseAfterSend )
+                                                 BaseType_t bReleaseAfterSend )
 {
 /* Do not wait too long for a free TX DMA buffer. */
     const TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 50u );

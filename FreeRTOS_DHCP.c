@@ -147,8 +147,8 @@
     #include "pack_struct_start.h"
 
 /**
- * @brief A detailed description of a DHCP/IPv4 packet. */
-    * /
+ * @brief A detailed description of a DHCP/IPv4 packet.
+ */
     struct xDHCPMessage_IPv4
     {
         uint8_t ucOpcode;                                                      /**< Operation Code: Specifies the general type of message. */
@@ -212,7 +212,7 @@
 /*
  * Generate a DHCP discover message and send it on the DHCP socket.
  */
-    static void prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Interpret message received on the DHCP socket.
@@ -223,7 +223,7 @@
 /*
  * Generate a DHCP request packet, and send it on the DHCP socket.
  */
-    static void prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Prepare to start a DHCP transaction.  This initialises some state variables
@@ -485,8 +485,17 @@
 
                             /* Send the first discover request. */
                             EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
-                            prvSendDHCPDiscover( pxEndPoint );
-                            EP_DHCPData.eDHCPState = eWaitingOffer;
+
+                            if( prvSendDHCPDiscover( pxEndPoint ) == pdPASS )
+                            {
+                                EP_DHCPData.eDHCPState = eWaitingOffer;
+                            }
+                            else
+                            {
+                                /* Either the creation of a message buffer failed, or sendto().
+                                 * Try again in the next cycle. */
+                                FreeRTOS_debug_printf( ( "Send failed during eWaitingSendFirstDiscover\n" ) );
+                            }
                         }
                     }
 
@@ -502,6 +511,24 @@
                             xGivingUp = pdTRUE;
                         }
                     #endif /* ipconfigUSE_DHCP_HOOK */
+                    break;
+
+                case eSendDHCPRequest:
+
+                    if( prvSendDHCPRequest( pxEndPoint ) == pdPASS )
+                    {
+                        /* Send succeeded, go to state 'eWaitingAcknowledge'. */
+                        EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
+                        EP_DHCPData.xDHCPTxPeriod = dhcpINITIAL_DHCP_TX_PERIOD;
+                        EP_DHCPData.eDHCPState = eWaitingAcknowledge;
+                    }
+                    else
+                    {
+                        /* Either the creation of a message buffer failed, or sendto().
+                         * Try again in the next cycle. */
+                        FreeRTOS_debug_printf( ( "Send failed during eSendDHCPRequest.\n" ) );
+                    }
+
                     break;
 
                 case eWaitingOffer:
@@ -522,10 +549,20 @@
                             {
                                 /* An offer has been made, the user wants to continue,
                                  * generate the request. */
-                                EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
-                                EP_DHCPData.xDHCPTxPeriod = dhcpINITIAL_DHCP_TX_PERIOD;
-                                prvSendDHCPRequest( pxEndPoint );
-                                EP_DHCPData.eDHCPState = eWaitingAcknowledge;
+                                if( prvSendDHCPRequest( pxEndPoint ) == pdPASS )
+                                {
+                                    EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
+                                    EP_DHCPData.xDHCPTxPeriod = dhcpINITIAL_DHCP_TX_PERIOD;
+                                    EP_DHCPData.eDHCPState = eWaitingAcknowledge;
+                                }
+                                else
+                                {
+                                    /* Either the creation of a message buffer failed, or sendto().
+                                     * Try again in the next cycle. */
+                                    FreeRTOS_debug_printf( ( "Send failed during eWaitingOffer/1.\n" ) );
+                                    EP_DHCPData.eDHCPState = eSendDHCPRequest;
+                                }
+
                                 break;
                             }
 
@@ -564,8 +601,17 @@
                                     EP_DHCPData.xUseBroadcast = pdTRUE;
                                 }
 
-                                prvSendDHCPDiscover( pxEndPoint );
-                                FreeRTOS_debug_printf( ( "vDHCPProcess: timeout %lu ticks\n", EP_DHCPData.xDHCPTxPeriod ) );
+                                if( prvSendDHCPDiscover( pxEndPoint ) == pdPASS )
+                                {
+                                    FreeRTOS_debug_printf( ( "vDHCPProcess: timeout %lu ticks\n", EP_DHCPData.xDHCPTxPeriod ) );
+                                }
+                                else
+                                {
+                                    /* Either the creation of a message buffer failed, or sendto().
+                                     * Try again in the next cycle. */
+                                    FreeRTOS_debug_printf( ( "Send failed during eWaitingOffer/2.\n" ) );
+                                    EP_DHCPData.eDHCPState = eInitialWait;
+                                }
                             }
                             else
                             {
@@ -616,7 +662,18 @@
                             if( EP_DHCPData.xDHCPTxPeriod <= ipconfigMAXIMUM_DISCOVER_TX_PERIOD )
                             {
                                 EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
-                                prvSendDHCPRequest( pxEndPoint );
+
+                                if( prvSendDHCPRequest( pxEndPoint ) == pdPASS )
+                                {
+                                    /* The message is sent. Stay in state 'eWaitingAcknowledge'. */
+                                }
+                                else
+                                {
+                                    /* Either the creation of a message buffer failed, or sendto().
+                                     * Try again in the next cycle. */
+                                    FreeRTOS_debug_printf( ( "Send failed during eWaitingAcknowledge.\n" ) );
+                                    EP_DHCPData.eDHCPState = eSendDHCPRequest;
+                                }
                             }
                             else
                             {
@@ -711,8 +768,18 @@
                         {
                             EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
                             EP_DHCPData.xDHCPTxPeriod = dhcpINITIAL_DHCP_TX_PERIOD;
-                            prvSendDHCPRequest( pxEndPoint );
-                            EP_DHCPData.eDHCPState = eWaitingAcknowledge;
+
+                            if( prvSendDHCPRequest( pxEndPoint ) == pdPASS )
+                            {
+                                /* The packet was sent successfully, wait for an acknowledgement. */
+                                EP_DHCPData.eDHCPState = eWaitingAcknowledge;
+                            }
+                            else
+                            {
+                                /* The packet was not sent, try sending it later. */
+                                EP_DHCPData.eDHCPState = eSendDHCPRequest;
+                                FreeRTOS_debug_printf( ( "Send failed eLeasedAddress.\n" ) );
+                            }
 
                             /* From now on, we should be called more often */
                             vIPReloadDHCP_RATimer( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
@@ -1175,7 +1242,7 @@
         DHCPMessage_IPv4_t * pxDHCPMessage;
         size_t uxRequiredBufferSize = sizeof( DHCPMessage_IPv4_t ) + *pxOptionsArraySize;
         NetworkBufferDescriptor_t * pxNetworkBuffer;
-        uint8_t * pucUDPPayloadBuffer;
+        uint8_t * pucUDPPayloadBuffer = NULL;
 
         #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
             const char * pucHostName = pcApplicationHostnameHook();
@@ -1190,84 +1257,82 @@
             uxRequiredBufferSize += ( 2U + uxNameLength );
         #endif /* if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) */
 
-        /* Get a buffer.  This uses a maximum delay, but the delay will be capped
-         * to ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS so the return value still needs to
-         * be test. */
-        do
+        /* Obtain a network buffer with the required amount of storage.  It doesn't make much sense
+         * to use a time-out here, because that would cause the IP-task waiting for itself. */
+        pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( UDPPacket_t ) + uxRequiredBufferSize, 0U );
+
+        if( pxNetworkBuffer != NULL )
         {
-            /* Obtain a network buffer with the required amount of storage. */
-            pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( UDPPacket_t ) + uxRequiredBufferSize, portMAX_DELAY );
-        } while( pxNetworkBuffer == NULL );
+            /* Leave space for the UDP header. */
+            pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+            pxDHCPMessage = ipCAST_PTR_TO_TYPE_PTR( DHCPMessage_IPv4_t, pucUDPPayloadBuffer );
 
-        /* Leave space for the UDP header. */
-        pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
-        pxDHCPMessage = ipCAST_PTR_TO_TYPE_PTR( DHCPMessage_IPv4_t, pucUDPPayloadBuffer );
+            #if ( ipconfigUSE_IPv6 != 0 )
+                {
+                    uint8_t * pucIPType;
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+                    pucIPType = pucUDPPayloadBuffer - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+                    *pucIPType = ipTYPE_IPv4;
+                }
+            #endif /* ipconfigUSE_IPv6 */
+
+            /* Most fields need to be zero. */
+            ( void ) memset( pxDHCPMessage, 0x00, sizeof( DHCPMessage_IPv4_t ) );
+
+            /* Create the message. */
+            pxDHCPMessage->ucOpcode = ( uint8_t ) xOpcode;
+            pxDHCPMessage->ucAddressType = ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET;
+            pxDHCPMessage->ucAddressLength = ( uint8_t ) dhcpETHERNET_ADDRESS_LENGTH;
+            pxDHCPMessage->ulTransactionID = FreeRTOS_htonl( EP_DHCPData.ulTransactionId );
+            pxDHCPMessage->ulDHCPCookie = ( uint32_t ) dhcpCOOKIE;
+
+            if( EP_DHCPData.xUseBroadcast != pdFALSE )
             {
-                uint8_t * pucIPType;
-
-                pucIPType = pucUDPPayloadBuffer - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-                *pucIPType = ipTYPE_IPv4;
+                pxDHCPMessage->usFlags = ( uint16_t ) dhcpBROADCAST;
             }
-        #endif /* ipconfigUSE_IPv6 */
-
-        /* Most fields need to be zero. */
-        ( void ) memset( pxDHCPMessage, 0x00, sizeof( DHCPMessage_IPv4_t ) );
-
-        /* Create the message. */
-        pxDHCPMessage->ucOpcode = ( uint8_t ) xOpcode;
-        pxDHCPMessage->ucAddressType = ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET;
-        pxDHCPMessage->ucAddressLength = ( uint8_t ) dhcpETHERNET_ADDRESS_LENGTH;
-        pxDHCPMessage->ulTransactionID = FreeRTOS_htonl( EP_DHCPData.ulTransactionId );
-        pxDHCPMessage->ulDHCPCookie = ( uint32_t ) dhcpCOOKIE;
-
-        if( EP_DHCPData.xUseBroadcast != pdFALSE )
-        {
-            pxDHCPMessage->usFlags = ( uint16_t ) dhcpBROADCAST;
-        }
-        else
-        {
-            pxDHCPMessage->usFlags = 0U;
-        }
-
-        ( void ) memcpy( &( pxDHCPMessage->ucClientHardwareAddress[ 0 ] ), pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
-
-        /* Copy in the const part of the options options. */
-        ( void ) memcpy( &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET ] ), pucOptionsArray, *pxOptionsArraySize );
-
-        #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
+            else
             {
-                /* With this option, the hostname can be registered as well which makes
-                 * it easier to lookup a device in a router's list of DHCP clients. */
-
-                /* Point to where the OPTION_END was stored to add data. */
-                pucPtr = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + ( *pxOptionsArraySize - 1U ) ] );
-                pucPtr[ 0U ] = dhcpIPv4_DNS_HOSTNAME_OPTIONS_CODE;
-                pucPtr[ 1U ] = ( uint8_t ) uxNameLength;
-
-                /*
-                 * Use helper variables for memcpy() to remain
-                 * compliant with MISRA Rule 21.15.  These should be
-                 * optimized away.
-                 */
-                pvCopySource = pucHostName;
-                pvCopyDest = &pucPtr[ 2U ];
-
-                ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
-                pucPtr[ 2U + uxNameLength ] = ( uint8_t ) dhcpOPTION_END_BYTE;
-                *pxOptionsArraySize += ( size_t ) ( 2U + uxNameLength );
+                pxDHCPMessage->usFlags = 0U;
             }
-        #endif /* if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) */
 
-        /* Map in the client identifier. */
-        ( void ) memcpy( &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpCLIENT_IDENTIFIER_OFFSET ] ),
-                         pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+            ( void ) memcpy( &( pxDHCPMessage->ucClientHardwareAddress[ 0 ] ), pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-        /* Set the addressing. */
-        pxAddress->sin_addr = ipBROADCAST_IP_ADDRESS;
-        pxAddress->sin_port = ( uint16_t ) dhcpSERVER_PORT_IPv4;
-        pxNetworkBuffer->pxEndPoint = pxEndPoint;
+            /* Copy in the const part of the options options. */
+            ( void ) memcpy( &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET ] ), pucOptionsArray, *pxOptionsArraySize );
+
+            #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
+                {
+                    /* With this option, the hostname can be registered as well which makes
+                     * it easier to lookup a device in a router's list of DHCP clients. */
+
+                    /* Point to where the OPTION_END was stored to add data. */
+                    pucPtr = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + ( *pxOptionsArraySize - 1U ) ] );
+                    pucPtr[ 0U ] = dhcpIPv4_DNS_HOSTNAME_OPTIONS_CODE;
+                    pucPtr[ 1U ] = ( uint8_t ) uxNameLength;
+
+                    /*
+                     * Use helper variables for memcpy() to remain
+                     * compliant with MISRA Rule 21.15.  These should be
+                     * optimized away.
+                     */
+                    pvCopySource = pucHostName;
+                    pvCopyDest = &pucPtr[ 2U ];
+
+                    ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
+                    pucPtr[ 2U + uxNameLength ] = ( uint8_t ) dhcpOPTION_END_BYTE;
+                    *pxOptionsArraySize += ( size_t ) ( 2U + uxNameLength );
+                }
+            #endif /* if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) */
+
+            /* Map in the client identifier. */
+            ( void ) memcpy( &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpCLIENT_IDENTIFIER_OFFSET ] ),
+                             pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+            /* Set the addressing. */
+            pxAddress->sin_addr = ipBROADCAST_IP_ADDRESS;
+            pxAddress->sin_port = ( uint16_t ) dhcpSERVER_PORT_IPv4;
+            pxNetworkBuffer->pxEndPoint = pxEndPoint;
+        }
 
         return pucUDPPayloadBuffer;
     }
@@ -1278,8 +1343,9 @@
  *
  * param[in] pxEndPoint: The end-point for which the request will be sent.
  */
-    static void prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint )
+    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint )
     {
+        BaseType_t xResult = pdFAIL;
         uint8_t * pucUDPPayloadBuffer;
         struct freertos_sockaddr xAddress;
         static const uint8_t ucDHCPRequestOptions[] =
@@ -1304,31 +1370,40 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        /* Copy in the IP address being requested. */
-
-        /*
-         * Use helper variables for memcpy() source & dest to remain
-         * compliant with MISRA Rule 21.15.  These should be
-         * optimized away.
-         */
-        pvCopySource = &EP_DHCPData.ulOfferedIPAddress;
-        pvCopyDest = &pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ];
-        ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulOfferedIPAddress ) );
-
-        /* Copy in the address of the DHCP server being used. */
-        pvCopySource = &EP_DHCPData.ulDHCPServerAddress;
-        pvCopyDest = &pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpDHCP_SERVER_IP_ADDRESS_OFFSET ];
-        ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulDHCPServerAddress ) );
-
-        FreeRTOS_debug_printf( ( "vDHCPProcess: reply %lxip\n", FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
-        iptraceSENDING_DHCP_REQUEST();
-
-        if( FreeRTOS_sendto( xDHCPSocket, pucUDPPayloadBuffer, sizeof( DHCPMessage_IPv4_t ) + uxOptionsLength, FREERTOS_ZERO_COPY, &xAddress, sizeof( xAddress ) ) == 0 )
+        if( pucUDPPayloadBuffer != NULL )
         {
-            /* The packet was not successfully queued for sending and must be
-             * returned to the stack. */
-            FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
+            /* Copy in the IP address being requested. */
+
+            /*
+             * Use helper variables for memcpy() source & dest to remain
+             * compliant with MISRA Rule 21.15.  These should be
+             * optimized away.
+             */
+            pvCopySource = &EP_DHCPData.ulOfferedIPAddress;
+            pvCopyDest = &pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ];
+            ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulOfferedIPAddress ) );
+
+            /* Copy in the address of the DHCP server being used. */
+            pvCopySource = &EP_DHCPData.ulDHCPServerAddress;
+            pvCopyDest = &pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpDHCP_SERVER_IP_ADDRESS_OFFSET ];
+            ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulDHCPServerAddress ) );
+
+            FreeRTOS_debug_printf( ( "vDHCPProcess: reply %lxip\n", FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
+            iptraceSENDING_DHCP_REQUEST();
+
+            if( FreeRTOS_sendto( xDHCPSocket, pucUDPPayloadBuffer, sizeof( DHCPMessage_IPv4_t ) + uxOptionsLength, FREERTOS_ZERO_COPY, &xAddress, sizeof( xAddress ) ) == 0 )
+            {
+                /* The packet was not successfully queued for sending and must be
+                 * returned to the stack. */
+                FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
+            }
+            else
+            {
+                xResult = pdPASS;
+            }
         }
+
+        return xResult;
     }
 /*-----------------------------------------------------------*/
 
@@ -1337,8 +1412,9 @@
  *
  * param[in] pxEndPoint: the end-point for which the discover message will be sent.
  */
-    static void prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint )
+    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint )
     {
+        BaseType_t xResult = pdFAIL;
         uint8_t const * pucUDPPayloadBuffer;
         struct freertos_sockaddr xAddress;
         static const uint8_t ucDHCPDiscoverOptions[] =
@@ -1357,20 +1433,27 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        FreeRTOS_debug_printf( ( "vDHCPProcess: discover\n" ) );
-        iptraceSENDING_DHCP_DISCOVER();
-
-        if( FreeRTOS_sendto( xDHCPSocket,
-                             pucUDPPayloadBuffer,
-                             sizeof( DHCPMessage_IPv4_t ) + uxOptionsLength,
-                             FREERTOS_ZERO_COPY,
-                             &( xAddress ),
-                             sizeof( xAddress ) ) == 0 )
+        if( pucUDPPayloadBuffer != NULL )
         {
-            /* The packet was not successfully queued for sending and must be
-             * returned to the stack. */
-            FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
+            FreeRTOS_debug_printf( ( "vDHCPProcess: discover\n" ) );
+            iptraceSENDING_DHCP_DISCOVER();
+
+            if( FreeRTOS_sendto( xDHCPSocket,
+                                 pucUDPPayloadBuffer,
+                                 sizeof( DHCPMessage_IPv4_t ) + uxOptionsLength,
+                                 FREERTOS_ZERO_COPY,
+                                 &( xAddress ),
+                                 sizeof( xAddress ) ) == 0 )
+            {
+                /* The packet was not successfully queued for sending and must be
+                 * returned to the stack. */
+                FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
+            }
+
+            xResult = pdTRUE;
         }
+
+        return xResult;
     }
 /*-----------------------------------------------------------*/
 

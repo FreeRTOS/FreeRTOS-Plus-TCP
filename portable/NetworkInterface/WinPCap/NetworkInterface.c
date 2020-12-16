@@ -218,7 +218,7 @@ static void prvCreateThreadSafeBuffers( void )
 
 static BaseType_t xWinPcap_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t bReleaseAfterSend )
+                                                   BaseType_t bReleaseAfterSend )
 {
     size_t xSpace;
 
@@ -462,7 +462,7 @@ static void prvConfigureCaptureBehaviour( void )
      * stack.  cErrorBuffer is used for convenience to create the string.  Don't
      * confuse this with an error message. */
     snprintf( cErrorBuffer, sizeof cErrorBuffer, "broadcast or multicast or ether host %x:%x:%x:%x:%x:%x",
-             ucMACAddress[ 0 ], ucMACAddress[ 1 ], ucMACAddress[ 2 ], ucMACAddress[ 3 ], ucMACAddress[ 4 ], ucMACAddress[ 5 ] );
+              ucMACAddress[ 0 ], ucMACAddress[ 1 ], ucMACAddress[ 2 ], ucMACAddress[ 3 ], ucMACAddress[ 4 ], ucMACAddress[ 5 ] );
 
     ulNetMask = ( configNET_MASK3 << 24UL ) | ( configNET_MASK2 << 16UL ) | ( configNET_MASK1 << 8L ) | configNET_MASK0;
 
