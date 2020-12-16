@@ -50,13 +50,6 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_Routing.h"
 
-/* A tool to measure RAM usage. By default, it is disabled
- * and it won't add any code.
- * See also tools/tcp_mem_stats.md */
-
-/*lint -e766 Header files is sometimes not used, depending on the configuration. */
-#include "tcp_mem_stats.h"
-
 /* The ItemValue of the sockets xBoundSocketListItem member holds the socket's
  * port number. */
 /** @brief Set the port number for the socket in the xBoundSocketListItem. */
