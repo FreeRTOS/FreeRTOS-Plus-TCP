@@ -30,10 +30,9 @@
         extern "C" {
     #endif
 
-/* Application level configuration options. */
-    #include "FreeRTOSIPConfig.h"
-    #include "FreeRTOSIPConfigDefaults.h"
-    #include "IPTraceMacroDefaults.h"
+    #ifndef ipconfigMULTI_INTERFACE
+        #define ipconfigMULTI_INTERFACE    1
+    #endif
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */
@@ -345,7 +344,15 @@
  * from FreeRTOS_Routing.h. */
     BaseType_t FreeRTOS_IPStart( void );
 
+    struct xNetworkInterface;
+
     #if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialise the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+        struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                              struct xNetworkInterface * pxInterface );
 
 /* The following function is only provided to allow backward compatibility
  * with the earlier version of FreeRTOS+TCP which had a single interface only. */
@@ -431,6 +438,12 @@
  *  uint32_t FreeRTOS_GetNetmask( void );
  */
 
+/* xARPWaitResolution checks if an IPv4 address is already known. If not
+ * it may send an ARP request and wait for a reply.  This function will
+ * only be called from an application. */
+    BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
+                                   TickType_t uxTicksToWait );
+
     void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
 
 /* Return true if a given end-point is up and running.
@@ -477,6 +490,16 @@
     #if ( ipconfigUSE_IPv6 != 0 )
         BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress );
     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+/* Set the MAC-address that belongs to a given IPv4 multi-cast address. */
+    void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
+                                      MACAddress_t * pxMACAddress );
+
+    #if ( ipconfigUSE_IPv6 != 0 )
+        /* Set the MAC-address that belongs to a given IPv6 multi-cast address. */
+        void vSetMultiCastIPv6MacAddress( IPv6_Address_t * pxAddress,
+                                          MACAddress_t * pxMACAddress );
+    #endif
 
     #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
 

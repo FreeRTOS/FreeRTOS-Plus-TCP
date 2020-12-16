@@ -791,7 +791,7 @@
 
         if( ( xRandomOk == pdPASS ) && ( EP_DHCPData.xDHCPSocket != NULL ) )
         {
-            BitCOnfig_t xMessage;
+            BitConfig_t xMessage;
             struct freertos_sockaddr6 xAddress;
             uint8_t ucMessageType = 0;
 
@@ -913,7 +913,7 @@
                                         size_t uxLength,
                                         DHCPMessage_IPv6_t * pxDHCPMessage )
     {
-        BitCOnfig_t xMessage;
+        BitConfig_t xMessage;
         BaseType_t xResult = pdPASS;
         uint32_t ulOptionsReceived = 0U;
 

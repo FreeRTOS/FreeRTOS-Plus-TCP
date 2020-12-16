@@ -568,7 +568,7 @@ static void prvIPTask( void * pvParameters )
                     else
                 #endif
                 {
-                    struct freertos_sockaddr * pxAddress = ipPOINTER_CAST( struct freertos_sockaddr *, & ( xAddress ) );
+                    struct freertos_sockaddr * pxAddress = ipPOINTER_CAST( struct freertos_sockaddr *, &( xAddress ) );
 
                     pxAddress->sin_family = FREERTOS_AF_INET;
                     pxAddress->sin_addr = FreeRTOS_htonl( pxSocket->ulLocalAddress );
@@ -578,7 +578,7 @@ static void prvIPTask( void * pvParameters )
                 /* 'ulLocalAddress' and 'usLocalPort' will be set again by vSocketBind(). */
                 pxSocket->ulLocalAddress = 0;
                 pxSocket->usLocalPort = 0;
-                ( void ) vSocketBind( pxSocket, ipPOINTER_CAST( struct freertos_sockaddr *, & ( xAddress ) ), sizeof( xAddress ), pdFALSE );
+                ( void ) vSocketBind( pxSocket, ipPOINTER_CAST( struct freertos_sockaddr *, &( xAddress ) ), sizeof( xAddress ), pdFALSE );
 
                 /* Before 'eSocketBindEvent' was sent it was tested that
                  * ( xEventGroup != NULL ) so it can be used now to wake up the
@@ -1592,6 +1592,34 @@ BaseType_t FreeRTOS_IPStart( void )
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+
+/* Provide backward-compatibility with the earlier FreeRTOS+TCP which only had
+ * single network interface. */
+    BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucMACAddressP[ ipMAC_ADDRESS_LENGTH_BYTES ] )
+    {
+        static NetworkInterface_t xInterfaces[ 1 ];
+        static NetworkEndPoint_t xEndPoints[ 1 ];
+
+        /* IF the following function should be declared in the NetworkInterface.c
+         * linked in the project. */
+        pxFillInterfaceDescriptor( 0, &( xInterfaces[ 0 ] ) );
+        FreeRTOS_FillEndPoint( &( xInterfaces[ 0 ] ), &( xEndPoints[ 0 ] ), ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddressP );
+        #if ( ipconfigUSE_DHCP != 0 )
+            {
+                xEndPoints[ 0 ].bits.bWantDHCP = pdTRUE;
+            }
+        #endif /* ipconfigUSE_DHCP */
+        FreeRTOS_IPStart();
+        return 1;
+    }
+#endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+/*-----------------------------------------------------------*/
+
 /**
  * @brief Get the current address configuration. Only non-NULL pointers will
  *        be filled in. pxEndPoint must be non-NULL.
@@ -1729,22 +1757,24 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
         IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
 
         uxTotalLength = uxNumberOfBytesToSend + sizeof( ICMPPacket_t );
-        pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxTotalLength, uxBlockTimeTicks );
+        BaseType_t xEnoughSpace;
 
-        if( pxNetworkBuffer != NULL )
+/*		xARPWaitResolution( ulIPAddress, uxBlockTimeTicks ); */
+
+        if( uxNumberOfBytesToSend < ( ipconfigNETWORK_MTU - ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) ) ) )
         {
-            BaseType_t xEnoughSpace;
+            xEnoughSpace = pdTRUE;
+        }
+        else
+        {
+            xEnoughSpace = pdFALSE;
+        }
 
-            if( uxNumberOfBytesToSend < ( ipconfigNETWORK_MTU - ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) ) ) )
-            {
-                xEnoughSpace = pdTRUE;
-            }
-            else
-            {
-                xEnoughSpace = pdFALSE;
-            }
+        if( ( uxGetNumberOfFreeNetworkBuffers() >= 4U ) && ( uxNumberOfBytesToSend >= 1U ) && ( xEnoughSpace != pdFALSE ) )
+        {
+            pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxTotalLength, uxBlockTimeTicks );
 
-            if( ( uxGetNumberOfFreeNetworkBuffers() >= 3U ) && ( uxNumberOfBytesToSend >= 1U ) && ( xEnoughSpace != pdFALSE ) )
+            if( pxNetworkBuffer != NULL )
             {
                 pxEthernetHeader = ipCAST_PTR_TO_TYPE_PTR( EthernetHeader_t, pxNetworkBuffer->pucEthernetBuffer );
                 pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
@@ -1993,21 +2023,6 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
             }
         }
     #endif /* ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES == 1  */
-
-    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-        {
-            if( eReturn != eProcessBuffer )
-            {
-                FreeRTOS_debug_printf( ( "eConsiderFrameForProcessing: Drop MAC %02x:%02x:%02x:%02x:%02x:%02x\n",
-                                         pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ],
-                                         pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ],
-                                         pxEthernetHeader->xDestinationAddress.ucBytes[ 2 ],
-                                         pxEthernetHeader->xDestinationAddress.ucBytes[ 3 ],
-                                         pxEthernetHeader->xDestinationAddress.ucBytes[ 4 ],
-                                         pxEthernetHeader->xDestinationAddress.ucBytes[ 5 ] ) );
-            }
-        }
-    #endif /* ipconfigHAS_DEBUG_PRINTF */
 
     return eReturn;
 }
@@ -2311,6 +2326,44 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
     }
 #endif /* ipconfigUSE_IPv6 */
 /*-----------------------------------------------------------*/
+
+/**
+ * @brief Set multicast MAC address.
+ *
+ * @param[in] ulIPAddress: IP address.
+ * @param[out] pxMACAddress: Pointer to MAC address.
+ */
+void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
+                                  MACAddress_t * pxMACAddress )
+{
+    uint32_t ulIP = FreeRTOS_ntohl( ulIPAddress );
+    uint32_t ulP2 = ( ulIP >> 16 ) & 0xEFU;  /* Use 7 bits. */
+    uint32_t ulP1 = ( ulIP >> 8 ) & 0xFFU;   /* Use 8 bits. */
+    uint32_t ulP0 = ( ulIP ) & 0xFFU;        /* Use 8 bits. */
+    uint8_t * ucBytes = pxMACAddress->ucBytes;
+
+    ucBytes[ 0 ] = 0x01;
+    ucBytes[ 1 ] = 0x00;
+    ucBytes[ 2 ] = 0x5E;
+    ucBytes[ 3 ] = ulP2;
+    ucBytes[ 4 ] = ulP1;
+    ucBytes[ 5 ] = ulP0;
+}
+/*-----------------------------------------------------------*/
+#if ( ipconfigUSE_IPv6 != 0 )
+
+    void vSetMultiCastIPv6MacAddress( IPv6_Address_t * pxAddress,
+                                      MACAddress_t * pxMACAddress )
+    {
+        pxMACAddress->ucBytes[ 0 ] = 0x33U;
+        pxMACAddress->ucBytes[ 1 ] = 0x33U;
+        pxMACAddress->ucBytes[ 2 ] = pxAddress->ucBytes[ 12 ];
+        pxMACAddress->ucBytes[ 3 ] = pxAddress->ucBytes[ 13 ];
+        pxMACAddress->ucBytes[ 4 ] = pxAddress->ucBytes[ 14 ];
+        pxMACAddress->ucBytes[ 5 ] = pxAddress->ucBytes[ 15 ];
+    }
+/*-----------------------------------------------------------*/
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
 #if ( ipconfigUSE_IPv6 != 0 )
     BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,

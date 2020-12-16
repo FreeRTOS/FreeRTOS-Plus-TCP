@@ -275,6 +275,7 @@ ereturned
 ereturnethernetframe
 errbuf
 errno
+esenddhcprequest
 esocketbindevent
 esocketcloseevent
 esocketselectevent
@@ -1442,6 +1443,7 @@ vsocketwakeupuser
 vtasklist
 vtasknotifygivefromisr
 vtcpnetstat
+vtcpstatechange
 vtcpwindowinit
 wasn
 wcast
@@ -1471,6 +1473,7 @@ xarpcache
 xarphadipclash
 xarpheader
 xarppacket
+xarpwaitresolution
 xbacklog
 xbitstoclear
 xbitstoset

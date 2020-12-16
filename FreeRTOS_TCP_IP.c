@@ -504,18 +504,10 @@
                      * gets connected. */
                     if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
                     {
-                        if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
-                        {
-                            /* As it did not get connected, and the user can never
-                             * accept() it anymore, it will be deleted now.  Called from
-                             * the IP-task, so it's safe to call the internal Close
-                             * function: vSocketClose(). */
-                            ( void ) vSocketClose( pxSocket );
-                        }
-
-                        /* Return a negative value to tell to inform the caller
-                         * xTCPTimerCheck()
-                         * that the socket got closed and may not be accessed anymore. */
+                        /* vTCPStateChange() has called FreeRTOS_closesocket()
+                         * in case the socket is not yet owned by the application.
+                         * Return a negative value to inform the caller that
+                         * the socket will be closed in the next cycle. */
                         xResult = -1;
                     }
                 }
@@ -2076,7 +2068,8 @@
         }
         else
         {
-            if( ( ( BaseType_t ) eTCPState ) == ( ( BaseType_t ) eCLOSED ) )
+            if( ( eTCPState == eCLOSED ) ||
+                ( eTCPState == eCLOSE_WAIT ) )
             {
                 /* Socket goes to status eCLOSED because of a RST.
                  * When nobody owns the socket yet, delete it. */
@@ -2087,6 +2080,7 @@
 
                     if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
                     {
+                        FreeRTOS_debug_printf( ( "Closing a socket to avoid getting an orphan. \n" ) );
                         ( void ) FreeRTOS_closesocket( pxSocket );
                     }
                 }
@@ -2956,10 +2950,10 @@
         uint8_t ucTCPFlags = pxTCPHeader->ucTCPFlags;
         uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
         BaseType_t xSendLength = 0;
+        UBaseType_t uxIntermediateResult = 0U;
 
         /* Either expect a ACK or a SYN+ACK. */
         uint8_t ucExpect = tcpTCP_FLAG_ACK;
-        size_t uxIntermediateResult;
         const uint8_t ucFlagsMask = tcpTCP_FLAG_ACK | tcpTCP_FLAG_RST | tcpTCP_FLAG_SYN | tcpTCP_FLAG_FIN;
 
         if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCONNECT_SYN )
@@ -2974,6 +2968,9 @@
             FreeRTOS_debug_printf( ( "%s: flags %04X expected, not %04X\n",
                                      ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eSYN_RECEIVED ) ? "eSYN_RECEIVED" : "eCONNECT_SYN",
                                      ucExpect, ucTCPFlags ) );
+
+            /* In case pxSocket is not yet owned by the application, a closure
+             * of the socket will be scheduled for the next cycle. */
             vTCPStateChange( pxSocket, eCLOSE_WAIT );
 
             /* Send RST with the expected sequence and ACK numbers,
@@ -3457,7 +3454,7 @@
 
         /* Keep track of the highest sequence number that might be expected within
          * this connection. */
-        if( ( ulSequenceNumber + ulReceiveLength ) > pxTCPWindow->rx.ulHighestSequenceNumber )
+        if( ( ( int32_t ) ( ulSequenceNumber + ulReceiveLength - pxTCPWindow->rx.ulHighestSequenceNumber ) ) > 0L )
         {
             pxTCPWindow->rx.ulHighestSequenceNumber = ulSequenceNumber + ulReceiveLength;
         }
@@ -4229,7 +4226,7 @@
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )
         {
             FreeRTOS_debug_printf( ( "TCP: Listen: new socket bind error\n" ) );
-            ( void ) vSocketClose( pxNewSocket );
+            ( void ) FreeRTOS_closesocket( pxNewSocket );
             xResult = pdFALSE;
         }
         else
