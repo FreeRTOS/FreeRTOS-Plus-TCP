@@ -235,10 +235,11 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
     if( xMacInitStatus == eMACInit )
     {
-		pxMyInterface = pxInterface;
+        pxMyInterface = pxInterface;
 
-		pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
-		configASSERT( pxEndPoint != NULL );
+        pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
+        configASSERT( pxEndPoint != NULL );
+
         /*
          * Initialize ETH Handler
          * It assumes that Ethernet GPIO and clock configuration
@@ -376,7 +377,7 @@ static BaseType_t xSTM32H_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
     NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                     NetworkInterface_t * pxInterface )
     {
-    	pxSTM32Hxx_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+        pxSTM32Hxx_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 
 #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
@@ -408,7 +409,7 @@ NetworkInterface_t * pxSTM32Hxx_FillInterfaceDescriptor( BaseType_t xEMACIndex,
 
 static BaseType_t xSTM32H_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                                   NetworkBufferDescriptor_t * const pxBuffer,
-                                    BaseType_t xReleaseAfterSend )
+                                                  BaseType_t xReleaseAfterSend )
 {
     BaseType_t xResult = pdFAIL;
     TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 100U );
