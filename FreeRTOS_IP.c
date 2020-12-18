@@ -354,6 +354,8 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
 
 /*-----------------------------------------------------------*/
 
+#include "random.h"
+
 /* Coverity wants to make pvParameters const, which would make it incompatible. Leave the
  * function signature as is. */
 
@@ -433,6 +435,8 @@ static void prvIPTask( void * pvParameters )
         #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
 
         iptraceNETWORK_EVENT_RECEIVED( xReceivedEvent.eEventType );
+
+        vAddBytesToPool( xReceivedEvent.eEventType );
 
         switch( xReceivedEvent.eEventType )
         {
