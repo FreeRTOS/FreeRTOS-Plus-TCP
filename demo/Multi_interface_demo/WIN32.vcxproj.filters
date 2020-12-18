@@ -26,21 +26,9 @@
     <Filter Include="FreeRTOS+\FreeRTOS+TCP\include">
       <UniqueIdentifier>{5d93ed51-023a-41ad-9243-8d230165d34b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="DemoTasks">
-      <UniqueIdentifier>{b71e974a-9f28-4815-972b-d930ba8a34d0}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DemoTasks\SimpleUDPClientAndServer.c">
-      <Filter>DemoTasks</Filter>
-    </ClCompile>
     <ClCompile Include="main.c" />
-    <ClCompile Include="DemoTasks\TCPEchoClient_SingleTasks.c">
-      <Filter>DemoTasks</Filter>
-    </ClCompile>
-    <ClCompile Include="DemoTasks\SimpleTCPEchoServer.c">
-      <Filter>DemoTasks</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\portable\NetworkInterface\WinPCap\NetworkInterface.c">
       <Filter>FreeRTOS+\FreeRTOS+TCP\portable</Filter>
     </ClCompile>

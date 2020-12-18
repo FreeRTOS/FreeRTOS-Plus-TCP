@@ -158,9 +158,6 @@
     <ClCompile Include="..\..\test\FreeRTOS-Kernel\queue.c" />
     <ClCompile Include="..\..\test\FreeRTOS-Kernel\tasks.c" />
     <ClCompile Include="..\..\test\FreeRTOS-Kernel\timers.c" />
-    <ClCompile Include="DemoTasks\SimpleTCPEchoServer.c" />
-    <ClCompile Include="DemoTasks\TCPEchoClient_SingleTasks.c" />
-    <ClCompile Include="DemoTasks\SimpleUDPClientAndServer.c" />
     <ClCompile Include="main.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>

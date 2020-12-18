@@ -77,7 +77,7 @@
 #define configIP2_ADDR3		6
 
 #define democonfigCLASS_A_IP_ADDRESS   "10.0.1.10"
-#define democonfigCLASS_C_IP_ADDRESS   "192.168.220.1"
+#define democonfigCLASS_C_IP_ADDRESS   "192.168.0.1"
 
 #define democonfigPING_COUNT   10
 
@@ -229,8 +229,11 @@ static BaseType_t xClassADemoTaskCreated = pdFALSE, xClassCDemoTaskCreated = pdF
     }
 }
 
+
 void vDemoStatusTask( void * pvParameters )
 {
+    /* Task to print demo status. */
+
     xSemaphoreTake( xDemoSemphr, portMAX_DELAY );
     xSemaphoreTake( xDemoSemphr, portMAX_DELAY );
 
@@ -264,10 +267,9 @@ int main( void )
      */
 
     /* Miscellaneous initialisation including seeding the random number
-     * generator. */
+     * generator, creating a semaphore for the demo and creating the demo
+     * status task. */
     prvMiscInitialisation();
-
-    xTaskCreate( vDemoStatusTask, "DemoStatusTask", 5000, NULL, tskIDLE_PRIORITY+1 , &xDemoTaskHandleC );
 
     /* Initialise the interface descriptor for WinPCap. 'xInterfaces[ 0 ]' will
      * now hold all the information for WinPCap driver. */
@@ -440,7 +442,11 @@ static void prvMiscInitialisation( void )
     prvSRand( ( uint32_t ) xTimeNow );
     FreeRTOS_debug_printf( ( "First four random numbers: %08X %08X %08X %08X\r\n", ipconfigRAND32(), ipconfigRAND32(), ipconfigRAND32(), ipconfigRAND32() ) );
 
+    /* Create a counting semaphore. Max count = 2. */
     xDemoSemphr = xSemaphoreCreateCounting(2, 0);
+
+    /* Create the demo status task. */
+    xTaskCreate( vDemoStatusTask, "DemoStatusTask", 5000, NULL, tskIDLE_PRIORITY+1 , &xDemoTaskHandleC );
 }
 /*-----------------------------------------------------------*/
 

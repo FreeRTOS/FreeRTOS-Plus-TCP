@@ -149,7 +149,7 @@ example, on my development laptop setting configNETWORK_INTERFACE_TO_USE to 4
 results in the wired network being used, while setting
 configNETWORK_INTERFACE_TO_USE to 2 results in the wireless network being
 used. */
-#define configNETWORK_INTERFACE_TO_USE 5L
+#define configNETWORK_INTERFACE_TO_USE 6L
 
 /* The address of an echo server that will be used by the two demo echo client
 tasks.
@@ -176,7 +176,7 @@ configure the real network connection to use. */
 ipconfigUSE_DNS is set to 1 but a DNS server cannot be contacted. */
 #define configIP1_ADDR0		192
 #define configIP1_ADDR1		168
-#define configIP1_ADDR2		220
+#define configIP1_ADDR2		0
 #define configIP1_ADDR3		200
 
 /* Default gateway IP address configuration.  Used in ipconfigUSE_DNS is set to
