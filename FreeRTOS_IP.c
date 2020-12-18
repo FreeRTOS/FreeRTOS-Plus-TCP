@@ -2624,7 +2624,7 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
         {
             if( eReturn == eProcessBuffer )
             {
-                #warning Please create a xCheckSizeFields() in stead if calling usGenerateProtocolChecksum()
+                //#warning Please create a xCheckSizeFields() in stead if calling usGenerateProtocolChecksum()
 
                 if( usGenerateProtocolChecksum( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdFALSE ) != ipCORRECT_CRC )
                 {
