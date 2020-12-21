@@ -1490,6 +1490,7 @@ xbufferlistitem
 xbytecount
 xbytesleft
 xcheckloopback
+xchecksizefields
 xclearonexit
 xclientid
 xclientsocket
