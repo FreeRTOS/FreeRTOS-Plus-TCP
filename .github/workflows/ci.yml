@@ -62,7 +62,7 @@ jobs:
         run: |
           PATH=$PATH:main/tools/spell
           # Make sure that the portable directory and winpcap folder is not included in the spellcheck.
-          sed -i 's/find $DIRNAME/find $DIRNAME -not -path '*portable*'  -not -path '*demos/common/WinPCap*'/g' main/tools/spell/find-unknown-comment-words
+          sed -i 's/find $DIRNAME/find $DIRNAME -not -path '*portable*'  -not -path '*WinPCap*'/g' main/tools/spell/find-unknown-comment-words
           find-unknown-comment-words --directory tcp/ --lexicon tcp/.github/lexicon.txt
           if [ "$?" = "0" ]; then
             exit 0
