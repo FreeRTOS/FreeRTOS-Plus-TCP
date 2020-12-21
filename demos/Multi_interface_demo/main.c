@@ -512,7 +512,7 @@ void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
 {
     if( eStatus == eSuccess )
     {
-        FreeRTOS_printf( ( "Ping response received. ID: %d\r\n", eStatus, usIdentifier ) );
+        FreeRTOS_printf( ( "Ping response received. ID: %d\r\n", usIdentifier ) );
 
         /* Increment successful ping replies. */
         xTotalSuccess++;
