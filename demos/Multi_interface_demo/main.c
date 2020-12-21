@@ -45,24 +45,24 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_Routing.h"
-#if( ipconfigMULTI_INTERFACE == 1 )
+#if ( ipconfigMULTI_INTERFACE == 1 )
     #include "FreeRTOS_ND.h"
 #endif
 
 /* Define a name that will be used for LLMNR and NBNS searches. */
-#define mainHOST_NAME                                 "TCPDemo"
-#define mainDEVICE_NICK_NAME                          "windows_multi_interface_demo"
+#define mainHOST_NAME                   "TCPDemo"
+#define mainDEVICE_NICK_NAME            "windows_multi_interface_demo"
 
 /* Second set of IP address to be used by this demo. */
-#define configIP2_ADDR0		10
-#define configIP2_ADDR1		0
-#define configIP2_ADDR2		1
-#define configIP2_ADDR3		6
+#define configIP2_ADDR0                 10
+#define configIP2_ADDR1                 0
+#define configIP2_ADDR2                 1
+#define configIP2_ADDR3                 6
 
-#define democonfigCLASS_A_IP_ADDRESS   "10.0.1.10"
-#define democonfigCLASS_C_IP_ADDRESS   "192.168.0.1"
+#define democonfigCLASS_A_IP_ADDRESS    "10.0.1.10"
+#define democonfigCLASS_C_IP_ADDRESS    "192.168.0.1"
 
-#define democonfigPING_COUNT   10
+#define democonfigPING_COUNT            10
 
 /*
  * Just seeds the simple pseudo random number generator.
@@ -89,9 +89,9 @@ static const uint8_t ucDNSServerAddress[ 4 ] = { configDNS_SERVER_ADDR0, configD
 static const uint8_t ucIPAddress2[ 4 ] = { configIP2_ADDR0, configIP2_ADDR1, configIP2_ADDR2, configIP2_ADDR3 };
 static const uint8_t ucNetMask2[ 4 ] = { configNET_MASK0, configNET_MASK1, configNET_MASK2, configNET_MASK3 };
 /* No gateway on this network. */
-static const uint8_t ucGatewayAddress2[ 4 ] = { 0,   0,   0,   0 };
+static const uint8_t ucGatewayAddress2[ 4 ] = { 0, 0, 0, 0 };
 /* No DNS server on this network. */
-static const uint8_t ucDNSServerAddress2[ 4 ] = { 0,   0,   0,   0 };
+static const uint8_t ucDNSServerAddress2[ 4 ] = { 0, 0, 0, 0 };
 
 /* Default MAC address configuration. The demo creates a virtual network
  * connection that uses this MAC address by accessing the raw Ethernet data
@@ -105,18 +105,19 @@ static UBaseType_t ulNextRand;
 
 /*-----------------------------------------------------------*/
 
-#if( ipconfigMULTI_INTERFACE == 1 ) && ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
-	/* In case multiple interfaces are used, define them statically as they must
-     * continue to exist throughout the code execution. */
+#if ( ipconfigMULTI_INTERFACE == 1 ) && ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 
-    /* With WinPCap there is only 1 physical interface. */
-	static NetworkInterface_t xInterfaces[ 1 ];
+/* In case multiple interfaces are used, define them statically as they must
+ * continue to exist throughout the code execution. */
 
-    /* The demo will have two end-points. */
-	static NetworkEndPoint_t xEndPoints[ 2 ];
+/* With WinPCap there is only 1 physical interface. */
+    static NetworkInterface_t xInterfaces[ 1 ];
 
-	/* A function from NetworkInterface.c to initialise the interface descriptor
-	 * of type 'NetworkInterface_t'. */
+/* The demo will have two end-points. */
+    static NetworkEndPoint_t xEndPoints[ 2 ];
+
+/* A function from NetworkInterface.c to initialise the interface descriptor
+ * of type 'NetworkInterface_t'. */
     NetworkInterface_t * xWinPcap_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                            NetworkInterface_t * pxInterface );
 #endif /* ipconfigMULTI_INTERFACE */
@@ -135,13 +136,13 @@ void vDemoTask_PingClassA( void * pvParameters )
     /* Just to avoid compiler warning about unused parameter. */
     ( void ) pvParameters;
 
-    FreeRTOS_inet_pton( FREERTOS_AF_INET, democonfigCLASS_A_IP_ADDRESS, &ulClassAIPAddr);
-    
-    for( ;; )
+    FreeRTOS_inet_pton( FREERTOS_AF_INET, democonfigCLASS_A_IP_ADDRESS, &ulClassAIPAddr );
+
+    for( ; ; )
     {
         /* Send a ping to Class-A IP address. */
         FreeRTOS_SendPingRequest( ulClassAIPAddr, 32, 5000 );
-                
+
         /* Sleep for half second. */
         vTaskDelay( pdMS_TO_TICKS( 500 ) );
 
@@ -166,17 +167,17 @@ void vDemoTask_PingClassC( void * pvParameters )
 {
     uint32_t ulClassCIPAddr;
     uint32_t xPingCounter = 0;
-    
+
     /* Just to avoid compiler warning about unused parameter. */
     ( void ) pvParameters;
 
-    FreeRTOS_inet_pton( FREERTOS_AF_INET, democonfigCLASS_C_IP_ADDRESS, &ulClassCIPAddr);
-    
-    for( ;; )
+    FreeRTOS_inet_pton( FREERTOS_AF_INET, democonfigCLASS_C_IP_ADDRESS, &ulClassCIPAddr );
+
+    for( ; ; )
     {
         /* Send a ping to Class-C IP address. */
         FreeRTOS_SendPingRequest( ulClassCIPAddr, 32, 5000 );
-        
+
         /* Sleep for half second. */
         vTaskDelay( pdMS_TO_TICKS( 500 ) );
 
@@ -198,8 +199,8 @@ void vDemoTask_PingClassC( void * pvParameters )
 /*-----------------------------------------------------------*/
 void vCreateDemoTasks( BaseType_t xIsClassA )
 {
-static BaseType_t xClassADemoTaskCreated = pdFALSE, xClassCDemoTaskCreated = pdFALSE;
-    
+    static BaseType_t xClassADemoTaskCreated = pdFALSE, xClassCDemoTaskCreated = pdFALSE;
+
     if( ( xIsClassA == pdTRUE ) && ( xClassADemoTaskCreated == pdFALSE ) )
     {
         xTaskCreate( vDemoTask_PingClassA, "DemoTaskA", configMINIMAL_STACK_SIZE * 2, NULL, configMAX_PRIORITIES - 3, &xDemoTaskHandleA );
@@ -223,7 +224,7 @@ void vDemoStatusTask( void * pvParameters )
     /* Wait for any pending ping reply. */
     vTaskDelay( pdMS_TO_TICKS( 2000 ) );
 
-    if( democonfigPING_COUNT * 2  <= xTotalSuccess )
+    if( democonfigPING_COUNT * 2 <= xTotalSuccess )
     {
         FreeRTOS_printf( ( "=================== Demo completed successfully ====================\r\n" ) );
         FreeRTOS_printf( ( "%d Pings sent ---> %d Received\r\n", democonfigPING_COUNT * 2, xTotalSuccess ) );
@@ -349,7 +350,8 @@ void vAssertCalled( const char * pcFile,
 
 /* Called by FreeRTOS+TCP when the network connects or disconnects. Disconnect
  * events are only received if implemented in the MAC driver. */
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent, NetworkEndPoint_t * pxEndPoint )
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                     NetworkEndPoint_t * pxEndPoint )
 {
     uint32_t ulIPAddress, ulNetMask, ulGatewayAddress, ulDNSServerAddress;
     char cBuffer[ 16 ];
@@ -358,7 +360,7 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent, NetworkEn
     /* If the network has just come up...*/
     if( eNetworkEvent == eNetworkUp )
     {
-        if( memcmp( &( pxEndPoint->ipv4_defaults.ulIPAddress ), ucIPAddress, sizeof( ucIPAddress ) ) == 0)
+        if( memcmp( &( pxEndPoint->ipv4_defaults.ulIPAddress ), ucIPAddress, sizeof( ucIPAddress ) ) == 0 )
         {
             xIsClassA = pdTRUE;
         }
@@ -366,6 +368,7 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent, NetworkEn
         {
             xIsClassA = pdFALSE;
         }
+
         vCreateDemoTasks( xIsClassA );
 
         /* Print out the network configuration, which may have come from a DHCP
@@ -426,10 +429,10 @@ static void prvMiscInitialisation( void )
     FreeRTOS_debug_printf( ( "First four random numbers: %08X %08X %08X %08X\r\n", ipconfigRAND32(), ipconfigRAND32(), ipconfigRAND32(), ipconfigRAND32() ) );
 
     /* Create a counting semaphore. Max count = 2. */
-    xDemoSemphr = xSemaphoreCreateCounting(2, 0);
+    xDemoSemphr = xSemaphoreCreateCounting( 2, 0 );
 
     /* Create the demo status task. */
-    xTaskCreate( vDemoStatusTask, "DemoStatusTask", 5000, NULL, tskIDLE_PRIORITY+1 , &xDemoTaskHandleC );
+    xTaskCreate( vDemoStatusTask, "DemoStatusTask", 5000, NULL, tskIDLE_PRIORITY + 1, &xDemoTaskHandleC );
 }
 /*-----------------------------------------------------------*/
 
@@ -504,13 +507,14 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 }
 
 
-void vApplicationPingReplyHook( ePingReplyStatus_t eStatus, uint16_t usIdentifier )
+void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
+                                uint16_t usIdentifier )
 {
     if( eStatus == eSuccess )
     {
-       FreeRTOS_printf( ("Ping response received. ID: %d\r\n", eStatus, usIdentifier ) );
-       
-       /* Increment successful ping replies. */
-       xTotalSuccess++;
+        FreeRTOS_printf( ( "Ping response received. ID: %d\r\n", eStatus, usIdentifier ) );
+
+        /* Increment successful ping replies. */
+        xTotalSuccess++;
     }
 }
