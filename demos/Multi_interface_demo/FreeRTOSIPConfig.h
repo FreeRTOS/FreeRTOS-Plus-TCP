@@ -47,7 +47,7 @@ extern void vLoggingPrintf( const char * pcFormatString,
  * out the debugging messages. */
 #define ipconfigHAS_DEBUG_PRINTF    1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-    #define FreeRTOS_debug_printf( X )    printf X /*vLoggingPrintf X*/
+    #define FreeRTOS_debug_printf( X )    printf X
 #endif
 
 /* Set to 1 to print out non debugging messages, for example the output of the
@@ -56,7 +56,7 @@ extern void vLoggingPrintf( const char * pcFormatString,
  * messages. */
 #define ipconfigHAS_PRINTF    1
 #if ( ipconfigHAS_PRINTF == 1 )
-    #define FreeRTOS_printf( X )    printf X     /*vLoggingPrintf X */
+    #define FreeRTOS_printf( X )    printf X
 #endif
 
 /* Define the byte order of the target MCU (the MCU FreeRTOS+TCP is executing

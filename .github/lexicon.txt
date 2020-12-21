@@ -1006,6 +1006,7 @@ ss
 starttx
 stdarg
 stmicroelectronics
+strcasecmp
 strcmp
 streambuffer
 streamsize
@@ -1158,6 +1159,7 @@ ulactuallength
 uladdresstolookup
 ulalignbits
 ularpremovecacheentrybymac
+ulblockvariable
 ulborn
 ulbroadcastaddress
 ulbytecount
@@ -1296,6 +1298,7 @@ usflags
 usflowlabel
 usfragmentoffset
 usframetype
+usgenerateprotocolchecksum
 usgeneratechecksum
 usgroupaddress
 ushardwaretype
@@ -1547,7 +1550,9 @@ xicmppacket
 xidentifier
 xilinx
 xindex
+xinterfaces
 xinternal
+xip
 xipaddress
 xipheader
 xipheadersize
