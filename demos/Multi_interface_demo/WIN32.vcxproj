@@ -58,7 +58,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\include;..\..\portable\BufferManagement;.\DemoTasks\include;..\..\portable\Compiler\MSVC;..\common\WinPCap;..\..\test\FreeRTOS-Kernel\include;..\..\test\FreeRTOS-Kernel\portable\MSVC-MingW;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\common\Logging\include;..\..\include;..\..\portable\BufferManagement;.\DemoTasks\include;..\..\portable\Compiler\MSVC;..\common\WinPCap;..\..\test\FreeRTOS-Kernel\include;..\..\test\FreeRTOS-Kernel\portable\MSVC-MingW;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_WIN32_WINNT=0x0500;WINVER=0x400;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -158,6 +158,7 @@
     <ClCompile Include="..\..\test\FreeRTOS-Kernel\queue.c" />
     <ClCompile Include="..\..\test\FreeRTOS-Kernel\tasks.c" />
     <ClCompile Include="..\..\test\FreeRTOS-Kernel\timers.c" />
+    <ClCompile Include="..\common\Logging\windows\Logging_WinSim.c" />
     <ClCompile Include="main.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -194,6 +195,7 @@
     <ClInclude Include="..\..\test\FreeRTOS-Kernel\include\task.h" />
     <ClInclude Include="..\..\test\FreeRTOS-Kernel\include\timers.h" />
     <ClInclude Include="..\..\test\FreeRTOS-Kernel\portable\MSVC-MingW\portmacro.h" />
+    <ClInclude Include="..\common\Logging\include\logging.h" />
     <ClInclude Include="FreeRTOSConfig.h" />
     <ClInclude Include="FreeRTOSIPConfig.h" />
   </ItemGroup>

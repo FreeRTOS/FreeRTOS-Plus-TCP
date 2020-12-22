@@ -36,12 +36,14 @@
 #ifndef FREERTOS_IP_CONFIG_H
 #define FREERTOS_IP_CONFIG_H
 
+extern void vLoggingPrintf(const char* pcFormat, ...);
+
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
 #define ipconfigHAS_DEBUG_PRINTF    1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-    #define FreeRTOS_debug_printf( X )    printf X
+    #define FreeRTOS_debug_printf( X )    vLoggingPrintf X
 #endif
 
 /* Set to 1 to print out non debugging messages, for example the output of the
@@ -50,7 +52,7 @@
  * messages. */
 #define ipconfigHAS_PRINTF    1
 #if ( ipconfigHAS_PRINTF == 1 )
-    #define FreeRTOS_printf( X )    printf X
+    #define FreeRTOS_printf( X )    vLoggingPrintf X
 #endif
 
 /* Define the byte order of the target MCU (the MCU FreeRTOS+TCP is executing

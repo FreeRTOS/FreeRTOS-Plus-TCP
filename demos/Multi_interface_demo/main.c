@@ -93,6 +93,16 @@ static const uint8_t ucGatewayAddress2[ 4 ] = { 0, 0, 0, 0 };
 /* No DNS server on this network. */
 static const uint8_t ucDNSServerAddress2[ 4 ] = { 0, 0, 0, 0 };
 
+/* Set the following constant to pdTRUE to log using the method indicated by the
+ * name of the constant, or pdFALSE to not log using the method indicated by the
+ * name of the constant.  Options include to standard out (xLogToStdout), to a disk
+ * file (xLogToFile), and to a UDP port (xLogToUDP).  If xLogToUDP is set to pdTRUE
+ * then UDP messages are sent to the IP address configured as the echo server
+ * address (see the configECHO_SERVER_ADDR0 definitions in FreeRTOSConfig.h) and
+ * the port number set by configPRINT_PORT in FreeRTOSConfig.h. */
+const BaseType_t xLogToStdout = pdTRUE, xLogToFile = pdFALSE, xLogToUDP = pdFALSE;
+
+
 /* Default MAC address configuration. The demo creates a virtual network
  * connection that uses this MAC address by accessing the raw Ethernet data
  * to and from a real network connection on the host PC. See the
@@ -421,6 +431,11 @@ static void prvSRand( UBaseType_t ulSeed )
 static void prvMiscInitialisation( void )
 {
     time_t xTimeNow;
+    uint32_t ulLoggingIPAddress;
+
+    ulLoggingIPAddress = FreeRTOS_inet_addr_quick( configECHO_SERVER_ADDR0, configECHO_SERVER_ADDR1, configECHO_SERVER_ADDR2, configECHO_SERVER_ADDR3 );
+    /* Initialise the logging. */
+    vLoggingInit( xLogToStdout, xLogToFile, xLogToUDP, ulLoggingIPAddress, configPRINT_PORT );
 
     /* Seed the random number generator. */
     time( &xTimeNow );
