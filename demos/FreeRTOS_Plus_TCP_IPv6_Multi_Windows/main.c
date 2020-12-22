@@ -46,7 +46,7 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_Routing.h"
 
-#if( ipconfigMULTI_INTERFACE == 1 )
+#if ( ipconfigMULTI_INTERFACE == 1 )
     #include "FreeRTOS_ND.h"
 #endif
 
@@ -55,7 +55,7 @@
 #include "plus_tcp_demo_cli.h"
 
 #ifndef ARRAY_SIZE
-    #define ARRAY_SIZE( x )     ( int ) ( sizeof( x ) / sizeof( x )[ 0 ] )
+    #define ARRAY_SIZE( x )    ( int ) ( sizeof( x ) / sizeof( x )[ 0 ] )
 #endif
 
 /* Simple UDP client and server task parameters. */
@@ -106,10 +106,10 @@
 static void prvServerWorkTask( void * pvArgument );
 
 /* Let this task run at a low priority. */
-#define mainTCP_SERVER_TASK_PRIORITY	( tskIDLE_PRIORITY + 1 )
+#define mainTCP_SERVER_TASK_PRIORITY    ( tskIDLE_PRIORITY + 1 )
 
 /* Give it a njappropriate stack size. */
-#define	mainTCP_SERVER_STACK_SIZE		2048
+#define mainTCP_SERVER_STACK_SIZE       2048
 
 /*
  * Just seeds the simple pseudo random number generator.
@@ -152,17 +152,17 @@ static UBaseType_t ulNextRand;
 
 /*-----------------------------------------------------------*/
 
-#if( ipconfigMULTI_INTERFACE == 1 ) && ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
-	/* In case multiple interfaces are used, define them statically. */
+#if ( ipconfigMULTI_INTERFACE == 1 ) && ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
+    /* In case multiple interfaces are used, define them statically. */
 
-	/* With WinPCap there is only 1 fysical interface. */
-	static NetworkInterface_t xInterfaces[ 1 ];
+/* With WinPCap there is only 1 fysical interface. */
+    static NetworkInterface_t xInterfaces[ 1 ];
 
-    /* It will have several end-points. */
-	static NetworkEndPoint_t xEndPoints[ 3 ];
+/* It will have several end-points. */
+    static NetworkEndPoint_t xEndPoints[ 3 ];
 
-	/* A function from NetInterface.c to initialise the interface descriptor
-	 * of type 'NetworkInterface_t'. */
+/* A function from NetInterface.c to initialise the interface descriptor
+ * of type 'NetworkInterface_t'. */
     NetworkInterface_t * xWinPcap_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                            NetworkInterface_t * pxInterface );
 #endif /* ipconfigMULTI_INTERFACE */
@@ -188,80 +188,81 @@ int main( void )
      * are used if ipconfigUSE_DHCP is set to 0, or if ipconfigUSE_DHCP is set to 1
      * but a DHCP server cannot be	contacted. */
 
-    #if( ipconfigMULTI_INTERFACE == 0 ) || ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 )
+    #if ( ipconfigMULTI_INTERFACE == 0 ) || ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 )
         /* Using the old /single /IPv4 library, or using backward compatible mode of hte new /multi brary. */
         FreeRTOS_debug_printf( ( "FreeRTOS_IPInit\r\n" ) );
         FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
     #else
-		/* Initialise the interface descriptor for WinPCap. */
-    	xWinPcap_FillInterfaceDescriptor( 0, &( xInterfaces[ 0 ] ) );
+        /* Initialise the interface descriptor for WinPCap. */
+        xWinPcap_FillInterfaceDescriptor( 0, &( xInterfaces[ 0 ] ) );
 
-    	FreeRTOS_FillEndPoint( &( xInterfaces[0] ), &( xEndPoints[ 0 ] ), ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
-        #if( ipconfigUSE_DHCP != 0 )
-		{
-			/* End-point 0 wants to use DHCPv4. */
-			xEndPoints[ 0 ].bits.bWantDHCP = pdTRUE;
-		}
-		#endif	/* ( ipconfigUSE_DHCP != 0 ) */
+        FreeRTOS_FillEndPoint( &( xInterfaces[ 0 ] ), &( xEndPoints[ 0 ] ), ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
+        #if ( ipconfigUSE_DHCP != 0 )
+            {
+                /* End-point 0 wants to use DHCPv4. */
+                xEndPoints[ 0 ].bits.bWantDHCP = pdTRUE;
+            }
+        #endif /* ( ipconfigUSE_DHCP != 0 ) */
 
-		{
+        {
             /* For testing Raspberry PI. */
-			const uint8_t ucIPAddress2[ 4 ]      = {  10,   0,   1,   6 };
-			const uint8_t ucNetMask2[ 4 ]        = { 255,   0,   0,   0 };
-			const uint8_t ucGatewayAddress2[ 4 ] = {   0,   0,   0,   0 };
-			const uint8_t ucDNSServerAddress2[ 4 ] = { 0,   0,   0,   0 };
-			FreeRTOS_FillEndPoint( &( xInterfaces[0] ), &( xEndPoints[ 1 ] ), ucIPAddress2, ucNetMask2, ucGatewayAddress2, ucDNSServerAddress2, ucMACAddress );
-		}
+            const uint8_t ucIPAddress2[ 4 ] = { 10, 0, 1, 6 };
+            const uint8_t ucNetMask2[ 4 ] = { 255, 0, 0, 0 };
+            const uint8_t ucGatewayAddress2[ 4 ] = { 0, 0, 0, 0 };
+            const uint8_t ucDNSServerAddress2[ 4 ] = { 0, 0, 0, 0 };
+            FreeRTOS_FillEndPoint( &( xInterfaces[ 0 ] ), &( xEndPoints[ 1 ] ), ucIPAddress2, ucNetMask2, ucGatewayAddress2, ucDNSServerAddress2, ucMACAddress );
+        }
 
-		#if( ipconfigUSE_DHCP != 0 )
-		{
-			/* End-point 1 does not want to use DHCPv4. */
-			xEndPoints[ 1 ].bits.bWantDHCP = pdFALSE;
-		}
-		#endif	/* ( ipconfigUSE_DHCP != 0 ) */
-		/*
-		 * End-point-1  // public
-		 *     Network: 2001:470:ec54::/64
-		 *     IPv6   : 2001:470:ec54::4514:89d5:4589:8b79/128
-		 *     Gateway: fe80::9355:69c7:585a:afe7  // obtained from Router Advertisement
-		*/
-        #if( ipconfigUSE_IPv6 != 0 )
-		{
-			IPv6_Address_t xIPAddress;
-			IPv6_Address_t xPrefix;
-			IPv6_Address_t xGateWay;
-			IPv6_Address_t xDNSServer;
+        #if ( ipconfigUSE_DHCP != 0 )
+            {
+                /* End-point 1 does not want to use DHCPv4. */
+                xEndPoints[ 1 ].bits.bWantDHCP = pdFALSE;
+            }
+        #endif /* ( ipconfigUSE_DHCP != 0 ) */
 
-			FreeRTOS_inet_pton6( "2001:470:ec54::",           xPrefix.ucBytes );
-			FreeRTOS_inet_pton6( "2001:4860:4860::8888",      xDNSServer.ucBytes );			
+        /*
+         * End-point-1  // public
+         *     Network: 2001:470:ec54::/64
+         *     IPv6   : 2001:470:ec54::4514:89d5:4589:8b79/128
+         *     Gateway: fe80::9355:69c7:585a:afe7  // obtained from Router Advertisement
+         */
+        #if ( ipconfigUSE_IPv6 != 0 )
+            {
+                IPv6_Address_t xIPAddress;
+                IPv6_Address_t xPrefix;
+                IPv6_Address_t xGateWay;
+                IPv6_Address_t xDNSServer;
 
-			FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, 64, pdTRUE );
-			FreeRTOS_inet_pton6( "fe80::9355:69c7:585a:afe7", xGateWay.ucBytes );
+                FreeRTOS_inet_pton6( "2001:470:ec54::", xPrefix.ucBytes );
+                FreeRTOS_inet_pton6( "2001:4860:4860::8888", xDNSServer.ucBytes );
 
-			FreeRTOS_FillEndPoint_IPv6( &( xInterfaces[0] ), 
-										&( xEndPoints[ 2 ] ),
-										&( xIPAddress ),
-										&( xPrefix ),
-										64uL,				/* Prefix length. */
-										&( xGateWay ),
-										&( xDNSServer ),	/* pxDNSServerAddress: Not used yet. */
-										ucMACAddress );
-			#if( ipconfigUSE_RA != 0 )
-			{
-				/* End-point 1 wants to use Router Advertisement / SLAAC. */
-				xEndPoints[ 2 ].bits.bWantRA = pdTRUE;
-			}
-			#endif /* #if( ipconfigUSE_RA != 0 ) */
-			#if( ipconfigUSE_DHCPv6 != 0 )
-			{
-				/* End-point 1 wants to use DHCPv6. */
-				xEndPoints[ 2 ].bits.bWantDHCP = pdTRUE;
-			}
-			#endif	/* ( ipconfigUSE_DHCPv6 != 0 ) */
-		}
+                FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, 64, pdTRUE );
+                FreeRTOS_inet_pton6( "fe80::9355:69c7:585a:afe7", xGateWay.ucBytes );
+
+                FreeRTOS_FillEndPoint_IPv6( &( xInterfaces[ 0 ] ),
+                                            &( xEndPoints[ 2 ] ),
+                                            &( xIPAddress ),
+                                            &( xPrefix ),
+                                            64uL,            /* Prefix length. */
+                                            &( xGateWay ),
+                                            &( xDNSServer ), /* pxDNSServerAddress: Not used yet. */
+                                            ucMACAddress );
+                #if ( ipconfigUSE_RA != 0 )
+                    {
+                        /* End-point 1 wants to use Router Advertisement / SLAAC. */
+                        xEndPoints[ 2 ].bits.bWantRA = pdTRUE;
+                    }
+                #endif /* #if( ipconfigUSE_RA != 0 ) */
+                #if ( ipconfigUSE_DHCPv6 != 0 )
+                    {
+                        /* End-point 1 wants to use DHCPv6. */
+                        xEndPoints[ 2 ].bits.bWantDHCP = pdTRUE;
+                    }
+                #endif /* ( ipconfigUSE_DHCPv6 != 0 ) */
+            }
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         FreeRTOS_IPStart();
-    #endif
+    #endif /* if ( ipconfigMULTI_INTERFACE == 0 ) || ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 ) */
     xTaskCreate( prvServerWorkTask, "SvrWork", mainTCP_SERVER_STACK_SIZE, NULL, mainTCP_SERVER_TASK_PRIORITY, NULL );
 
     /* Start the RTOS scheduler. */
@@ -321,12 +322,13 @@ void vAssertCalled( const char * pcFile,
 
 /* Called by FreeRTOS+TCP when the network connects or disconnects.  Disconnect
  * events are only received if implemented in the MAC driver. */
-#if( ipconfigMULTI_INTERFACE != 0 ) || ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
-	/* The multi version: each end-point comes up individually. */
-	void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent, NetworkEndPoint_t *pxEndPoint )
+#if ( ipconfigMULTI_INTERFACE != 0 ) || ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+    /* The multi version: each end-point comes up individually. */
+    void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                         NetworkEndPoint_t * pxEndPoint )
 #else
-	/* The single version, the interface comes up as a whole. */
-	void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+    /* The single version, the interface comes up as a whole. */
+    void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 #endif
 {
     char cBuffer[ 16 ];
@@ -363,32 +365,32 @@ void vAssertCalled( const char * pcFile,
             xTasksAlreadyCreated = pdTRUE;
         }
 
-		#if( ipconfigMULTI_INTERFACE == 0 )
-        {
-            uint32_t ulIPAddress, ulNetMask, ulGatewayAddress, ulDNSServerAddress;
+        #if ( ipconfigMULTI_INTERFACE == 0 )
+            {
+                uint32_t ulIPAddress, ulNetMask, ulGatewayAddress, ulDNSServerAddress;
 
-            /* Print out the network configuration, which may have come from a DHCP
-             * server. */
-            FreeRTOS_GetAddressConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress );
-            FreeRTOS_inet_ntoa( ulIPAddress, cBuffer );
-            FreeRTOS_printf( ( "\r\n\r\nIP Address: %s\r\n", cBuffer ) );
+                /* Print out the network configuration, which may have come from a DHCP
+                 * server. */
+                FreeRTOS_GetAddressConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress );
+                FreeRTOS_inet_ntoa( ulIPAddress, cBuffer );
+                FreeRTOS_printf( ( "\r\n\r\nIP Address: %s\r\n", cBuffer ) );
 
-            FreeRTOS_inet_ntoa( ulNetMask, cBuffer );
-            FreeRTOS_printf( ( "Subnet Mask: %s\r\n", cBuffer ) );
+                FreeRTOS_inet_ntoa( ulNetMask, cBuffer );
+                FreeRTOS_printf( ( "Subnet Mask: %s\r\n", cBuffer ) );
 
-            FreeRTOS_inet_ntoa( ulGatewayAddress, cBuffer );
-            FreeRTOS_printf( ( "Gateway Address: %s\r\n", cBuffer ) );
+                FreeRTOS_inet_ntoa( ulGatewayAddress, cBuffer );
+                FreeRTOS_printf( ( "Gateway Address: %s\r\n", cBuffer ) );
 
-            FreeRTOS_inet_ntoa( ulDNSServerAddress, cBuffer );
-            FreeRTOS_printf( ( "DNS Server Address: %s\r\n\r\n\r\n", cBuffer ) );
-        }
-   		#else
-		{
-			/* Print out the network configuration, which may have come from a DHCP
-			server. */
-			showEndPoint( pxEndPoint );
-		}
-		#endif /* ipconfigMULTI_INTERFACE */
+                FreeRTOS_inet_ntoa( ulDNSServerAddress, cBuffer );
+                FreeRTOS_printf( ( "DNS Server Address: %s\r\n\r\n\r\n", cBuffer ) );
+            }
+        #else /* if ( ipconfigMULTI_INTERFACE == 0 ) */
+            {
+                /* Print out the network configuration, which may have come from a DHCP
+                 * server. */
+                showEndPoint( pxEndPoint );
+            }
+        #endif /* ipconfigMULTI_INTERFACE */
     }
 }
 /*-----------------------------------------------------------*/
@@ -511,7 +513,7 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 }
 /*-----------------------------------------------------------*/
 
-const char *pcCommandList[] =
+const char * pcCommandList[] =
 {
     "http4 google.de /index.html",
     "http6 google.nl /index.html",
@@ -527,7 +529,7 @@ static void prvServerWorkTask( void * pvArgument )
     BaseType_t xCommandIndex = 0;
 
     ( void ) pvArgument;
-	FreeRTOS_printf( ( "prvServerWorkTask started\n" ) );
+    FreeRTOS_printf( ( "prvServerWorkTask started\n" ) );
 
     do
     {
@@ -535,7 +537,7 @@ static void prvServerWorkTask( void * pvArgument )
     }
     while( FreeRTOS_IsNetworkUp() == pdFALSE );
 
-    for( ;; )
+    for( ; ; )
     {
         char pcCommand[ 129 ];
         TickType_t uxTickCount = pdMS_TO_TICKS( 2000U );
@@ -546,12 +548,13 @@ static void prvServerWorkTask( void * pvArgument )
             vTaskDelay( 1U );
             uxTickCount--;
         }
-        if( xCommandIndex < ARRAY_SIZE( pcCommandList ) ) 
+
+        if( xCommandIndex < ARRAY_SIZE( pcCommandList ) )
         {
-            snprintf( pcCommand, sizeof( pcCommand ), "%s", pcCommandList[xCommandIndex ] );
+            snprintf( pcCommand, sizeof( pcCommand ), "%s", pcCommandList[ xCommandIndex ] );
             FreeRTOS_printf( ( "\n" ) );
             FreeRTOS_printf( ( "/*==================== %s (%d/%d) ====================*/\n",
-                pcCommand, xCommandIndex + 1, ARRAY_SIZE( pcCommandList ) ) );
+                               pcCommand, xCommandIndex + 1, ARRAY_SIZE( pcCommandList ) ) );
             FreeRTOS_printf( ( "\n" ) );
             xHandleTestingCommand( pcCommand, sizeof( pcCommand ) );
             xCommandIndex++;
@@ -559,52 +562,60 @@ static void prvServerWorkTask( void * pvArgument )
     }
 }
 
-#if( ipconfigUSE_NTP_DEMO != 0 )
+#if ( ipconfigUSE_NTP_DEMO != 0 )
 
 /* Some functions to get NTP demo working. */
 
-extern BaseType_t xNTPHasTime;
-extern uint32_t ulNTPTime;
+    extern BaseType_t xNTPHasTime;
+    extern uint32_t ulNTPTime;
 
-struct
-{
-	uint32_t ntpTime;
-} time_guard;
+    struct
+    {
+        uint32_t ntpTime;
+    }
+    time_guard;
 
-int set_time( time_t * pxTime )
-{
-	( void ) pxTime;
-	time_guard.ntpTime = ulNTPTime - xTaskGetTickCount() / configTICK_RATE_HZ;
-	return 0;
-}
+    int set_time( time_t * pxTime )
+    {
+        ( void ) pxTime;
+        time_guard.ntpTime = ulNTPTime - xTaskGetTickCount() / configTICK_RATE_HZ;
+        return 0;
+    }
 /*-----------------------------------------------------------*/
 
-time_t get_time ( time_t *puxTime )
-{
-    time_t xTime = 0U;
-	if( xNTPHasTime != pdFALSE )
-	{
-	TickType_t passed = xTaskGetTickCount() / configTICK_RATE_HZ;
-        xTime = time_guard.ntpTime + passed;
-	}
-    if( puxTime != NULL )
+    time_t get_time( time_t * puxTime )
     {
-		*( puxTime ) = xTime;
+        time_t xTime = 0U;
+
+        if( xNTPHasTime != pdFALSE )
+        {
+            TickType_t passed = xTaskGetTickCount() / configTICK_RATE_HZ;
+            xTime = time_guard.ntpTime + passed;
+        }
+
+        if( puxTime != NULL )
+        {
+            *( puxTime ) = xTime;
+        }
+
+        return xTime;
     }
-	return xTime;
-}
 /*-----------------------------------------------------------*/
 
-struct tm *gmtime_r( const time_t *pxTime, struct tm *tmStruct )
-{
-    struct tm tm;
-    memcpy( &( tm ), gmtime( pxTime ), sizeof( tm ) );
-    if( tmStruct != NULL )
+    struct tm * gmtime_r( const time_t * pxTime,
+                          struct tm * tmStruct )
     {
-        memcpy( tmStruct, &( tm ), sizeof tm );
+        struct tm tm;
+
+        memcpy( &( tm ), gmtime( pxTime ), sizeof( tm ) );
+
+        if( tmStruct != NULL )
+        {
+            memcpy( tmStruct, &( tm ), sizeof tm );
+        }
+
+        return &( tm );
     }
-    return &( tm );
-}
 /*-----------------------------------------------------------*/
 
 #endif /* ( ipconfigUSE_NTP_DEMO != 0 ) */
@@ -615,7 +626,8 @@ BaseType_t xApplicationMemoryPermissions( uint32_t aAddress )
 }
 /*-----------------------------------------------------------*/
 
-void vOutputChar( const char cChar, const TickType_t xTicksToWait  )
+void vOutputChar( const char cChar,
+                  const TickType_t xTicksToWait )
 {
 }
 /*-----------------------------------------------------------*/

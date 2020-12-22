@@ -32,14 +32,16 @@
 #define NTPDEMO_H
 
 void vStartNTPTask( uint16_t usTaskStackSize,
-					UBaseType_t uxTaskPriority );
+                    UBaseType_t uxTaskPriority );
 
 /*
  * xIPVersion = 4 or 6.
  * xAsynchronous = true for asynchronous DNS lookups.
  * xLogging = true to get more logging.
  */
-void vNTPSetNTPType( BaseType_t aIPType, BaseType_t xAsynchronous, BaseType_t xLogging );
+void vNTPSetNTPType( BaseType_t aIPType,
+                     BaseType_t xAsynchronous,
+                     BaseType_t xLogging );
 
 /* Delete the IP-addresses of the NTP server to force a DNS lookup. */
 void vNTPClearCache( void );
@@ -47,4 +49,4 @@ void vNTPClearCache( void );
 extern BaseType_t xNTPHasTime;
 extern uint32_t ulNTPTime;
 
-#endif
+#endif /* ifndef NTPDEMO_H */
