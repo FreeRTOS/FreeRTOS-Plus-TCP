@@ -1,7 +1,7 @@
 /*
  * plus_tcp_demo_cli.h
  *
- * This module will hande a set of commands that help with integration testing.
+ * This module will handle a set of commands that help with integration testing.
  */
 
 #ifndef PLUS_TCP_DEMO_CLI_H

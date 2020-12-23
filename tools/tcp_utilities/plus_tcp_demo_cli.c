@@ -25,7 +25,7 @@
 
 /**
  * @file plus_tcp_demo_cli.c
- * @brief This module will hande a set of commands that help with integration testing.
+ * @brief This module will handle a set of commands that help with integration testing.
  *        It is used for integration tests, both IPv4 and IPv6.
  */
 
@@ -130,7 +130,7 @@ static struct freertos_addrinfo *pxDNSLookup( char *pcHost, BaseType_t xIPVersio
 	/* In the old days, an IP-address was just a number. */
 	void onDNSEvent( const char * pcName, void *pvSearchID, uint32_t ulIPAddress );
 #else
-	/* freertos_addrinfo can contain eithe a IPv4 or a IPv6 address. */
+	/* freertos_addrinfo can contain either an IPv4 or an IPv6 address. */
 	void onDNSEvent( const char * pcName, void *pvSearchID, struct freertos_addrinfo *pxAddrInfo );
 #endif
 

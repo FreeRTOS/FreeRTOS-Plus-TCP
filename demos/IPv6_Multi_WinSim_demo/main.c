@@ -108,7 +108,7 @@ static void prvServerWorkTask( void * pvArgument );
 /* Let this task run at a low priority. */
 #define mainTCP_SERVER_TASK_PRIORITY    ( tskIDLE_PRIORITY + 1 )
 
-/* Give it a njappropriate stack size. */
+/* Give it an appropriate stack size. */
 #define mainTCP_SERVER_STACK_SIZE       2048
 
 /*
@@ -155,7 +155,7 @@ static UBaseType_t ulNextRand;
 #if ( ipconfigMULTI_INTERFACE == 1 ) && ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
     /* In case multiple interfaces are used, define them statically. */
 
-/* With WinPCap there is only 1 fysical interface. */
+/* With WinPCap there is only 1 physical interface. */
     static NetworkInterface_t xInterfaces[ 1 ];
 
 /* It will have several end-points. */
@@ -189,7 +189,7 @@ int main( void )
      * but a DHCP server cannot be	contacted. */
 
     #if ( ipconfigMULTI_INTERFACE == 0 ) || ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 )
-        /* Using the old /single /IPv4 library, or using backward compatible mode of hte new /multi brary. */
+        /* Using the old /single /IPv4 library, or using backward compatible mode of the new /multi library. */
         FreeRTOS_debug_printf( ( "FreeRTOS_IPInit\r\n" ) );
         FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
     #else

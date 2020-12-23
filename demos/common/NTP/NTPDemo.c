@@ -307,7 +307,7 @@ void vStartNTPTask( uint16_t usTaskStackSize,
             ulIPAddressFound = ulIPAddress;
         }
 
-        /* For testing: in case DNS doen't respond, still try some NTP server
+        /* For testing: in case DNS doesn't respond, still try some NTP server
          * with a known IP-address. */
 /*		if( ulIPAddressFound == 0U ) */
 /*		{ */

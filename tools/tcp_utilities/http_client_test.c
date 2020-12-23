@@ -560,7 +560,7 @@ void printBuffer(const char* apBuffer, int aLen, int aLineLen, const char *apPre
 	for (;;) {
 		const char *next = ptr;
 		const char *eot;
-		/* Find the first nul, newline of end of text. */
+		/* Find the first null, newline of end of text. */
 		for (;;) {
 			if (next >= end || *next == '\0') {
 				eot = next;
