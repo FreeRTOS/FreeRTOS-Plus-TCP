@@ -61,8 +61,8 @@ jobs:
       - name: Check spelling
         run: |
           PATH=$PATH:main/tools/spell
-          # Make sure that the portable directory is not included in the spellcheck.
-          sed -i 's/find $DIRNAME/find $DIRNAME -not -path '*portable*'/g' main/tools/spell/find-unknown-comment-words
+          # Make sure that the portable directory and winpcap folder is not included in the spellcheck.
+          sed -i 's/find $DIRNAME/find $DIRNAME -not -path '*portable*'  -not -path '*Logging*' -not -path '*WinPCap*'/g' main/tools/spell/find-unknown-comment-words
           find-unknown-comment-words --directory tcp/ --lexicon tcp/.github/lexicon.txt
           if [ "$?" = "0" ]; then
             exit 0
@@ -79,7 +79,7 @@ jobs:
       - name: Run Uncrustify
         run: |
           uncrustify --version
-          find . -iname "*.[hc]" -exec uncrustify --check -c tools/uncrustify.cfg {} +
+          find . -iname "*.[hc]"  -not -path '*WinPCap*' -exec uncrustify --check -c tools/uncrustify.cfg {} +
       - name: Check For Trailing Whitespace
         run: |
           set +e
