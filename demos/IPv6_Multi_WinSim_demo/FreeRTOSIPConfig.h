@@ -1,6 +1,6 @@
 /*
- * FreeRTOS V202012.00
- * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS Kernel V10.4.3
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -36,7 +36,10 @@
 #ifndef FREERTOS_IP_CONFIG_H
 #define FREERTOS_IP_CONFIG_H
 
-extern void vLoggingPrintf( const char * pcFormat,
+/* Prototype for the function used to print out.  In this case it prints to the
+ * console before the network is connected then a UDP port after the network has
+ * connected. */
+extern void vLoggingPrintf( const char * pcFormatString,
                             ... );
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
@@ -86,9 +89,12 @@ extern void vLoggingPrintf( const char * pcFormat,
  * call to FreeRTOS_gethostbyname() will return immediately, without even creating
  * a socket. */
 #define ipconfigUSE_DNS_CACHE                      ( 1 )
-#define ipconfigDNS_CACHE_NAME_LENGTH              ( 16 )
+#define ipconfigDNS_CACHE_NAME_LENGTH              ( 33 )
 #define ipconfigDNS_CACHE_ENTRIES                  ( 4 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
+
+/* Let DNS wait for 3 seconds for an answer. */
+#define ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS       pdMS_TO_TICKS( 3000U )
 
 /* The IP stack executes it its own task (although any application task can make
  * use of its services through the published sockets API). ipconfigUDP_TASK_PRIORITY
@@ -144,7 +150,7 @@ extern UBaseType_t uxRand();
  * set to 1 if a valid configuration cannot be obtained from a DHCP server for any
  * reason.  The static configuration used is that passed into the stack by the
  * FreeRTOS_IPInit() function call. */
-#define ipconfigUSE_DHCP                               0
+#define ipconfigUSE_DHCP                               1
 
 /* When ipconfigUSE_DHCP is set to 1, DHCP requests will be sent out at
  * increasing time intervals until either a reply is received from a DHCP server
@@ -304,6 +310,11 @@ extern UBaseType_t uxRand();
 
 #define ipconfigMULTI_INTERFACE             1
 #define ipconfigCOMPATIBLE_WITH_SINGLE      0
-#define ipconfigUSE_DHCPv6                  0
+#define ipconfigUSE_NTP_DEMO                1
+#define ipconfigDNS_USE_CALLBACKS           1
+#define ipconfigSUPPORT_SIGNALS             1
+#define ipconfigUSE_IPv6                    0 /* 1 */
+#define ipconfigUSE_RA                      0 /* 1 */
+#define ipconfigSUPPORT_OUTGOING_PINGS      1
 
 #endif /* FREERTOS_IP_CONFIG_H */
