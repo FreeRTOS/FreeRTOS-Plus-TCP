@@ -460,10 +460,10 @@
                     size_t uxLength;
                     /* Send the string to the socket. */
                     uxLength = snprintf( pcBuffer, sizeof( pcBuffer ), get_command, pcFileNames[ uxInstance ], pcHostname );
-                    lTransmitted = FreeRTOS_send( xSocket,              /* The socket being sent to. */
-                                                  ( void * ) pcBuffer,  /* The data being sent. */
-                                                  uxLength,             /* The length of the data being sent. */
-                                                  0 );                  /* No flags. */
+                    lTransmitted = FreeRTOS_send( xSocket,             /* The socket being sent to. */
+                                                  ( void * ) pcBuffer, /* The data being sent. */
+                                                  uxLength,            /* The length of the data being sent. */
+                                                  0 );                 /* No flags. */
                     FreeRTOS_printf( ( "httpTest: FreeRTOS_send : rc %ld\n", lTransmitted ) );
 
                     if( lTransmitted < 0 )

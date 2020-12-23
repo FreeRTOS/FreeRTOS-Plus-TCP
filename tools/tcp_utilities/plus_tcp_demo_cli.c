@@ -302,7 +302,7 @@ BaseType_t xHandleTestingCommand( char * pcBuffer,
     }
 /*-----------------------------------------------------------*/
 
-#else  /* if ( ipconfigMULTI_INTERFACE != 0 ) */
+#else /* if ( ipconfigMULTI_INTERFACE != 0 ) */
 
     #if ( ipconfigMULTI_INTERFACE == 0 )
         void dnsFound( const char * pcName,
@@ -1037,7 +1037,7 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
             xTaskNotifyGive( xServerWorkTaskHandle );
         }
     }
-#else  /* if ( ipconfigUSE_IPv6 != 0 ) */
+#else /* if ( ipconfigUSE_IPv6 != 0 ) */
     void onDNSEvent( const char * pcName,
                      void * pvSearchID,
                      uint32_t ulIPAddress )
