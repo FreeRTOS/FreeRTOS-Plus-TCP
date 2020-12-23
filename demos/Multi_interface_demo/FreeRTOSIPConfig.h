@@ -36,7 +36,8 @@
 #ifndef FREERTOS_IP_CONFIG_H
 #define FREERTOS_IP_CONFIG_H
 
-extern void vLoggingPrintf(const char* pcFormat, ...);
+extern void vLoggingPrintf( const char * pcFormat,
+                            ... );
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print

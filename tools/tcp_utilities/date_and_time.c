@@ -39,94 +39,98 @@ uint32_t ulSeconds, ulMsec;
 /*
  * You can add the following code to you FreeRTOSConfig file:
  *
-	extern TickType_t ulSeconds, ulMsec;
-
-	#define traceINCREASE_TICK_COUNT( xTicksToJump ) \
-	{ \
-		ulMsec += xTicksToJump; \
-		if( ulMsec >= 1000 ) \
-		{ \
-			ulSeconds += ( ulMsec / 1000ul ); \
-			ulMsec = ( ulMsec % 1000ul ); \
-		} \
-	}
-
-
-	#define traceTASK_INCREMENT_TICK( xTickCount ) \
-	if( uxSchedulerSuspended == ( UBaseType_t ) pdFALSE ) \
-	{ \
-		if( ++ulMsec >= 1000 ) \
-		{ \
-			ulMsec = 0; \
-			ulSeconds++; \
-		} \
-	}
- 
+ *  extern TickType_t ulSeconds, ulMsec;
+ *
+ #define traceINCREASE_TICK_COUNT( xTicksToJump ) \
+ *  { \
+ *      ulMsec += xTicksToJump; \
+ *      if( ulMsec >= 1000 ) \
+ *      { \
+ *          ulSeconds += ( ulMsec / 1000ul ); \
+ *          ulMsec = ( ulMsec % 1000ul ); \
+ *      } \
+ *  }
+ *
+ *
+ #define traceTASK_INCREMENT_TICK( xTickCount ) \
+ *  if( uxSchedulerSuspended == ( UBaseType_t ) pdFALSE ) \
+ *  { \
+ *      if( ++ulMsec >= 1000 ) \
+ *      { \
+ *          ulMsec = 0; \
+ *          ulSeconds++; \
+ *      } \
+ *  }
+ *
  */
 
 
-time_t FreeRTOS_time( time_t *pxTime )
+time_t FreeRTOS_time( time_t * pxTime )
 {
-time_t uxTime;
+    time_t uxTime;
 
- 	/* Critical section required if running on a 16 bit processor. */
-	portTICK_TYPE_ENTER_CRITICAL();
-	{
-		uxTime = ( time_t ) ulSeconds;
-	}
-	portTICK_TYPE_EXIT_CRITICAL();
-	if( pxTime != NULL )
-	{
-		*pxTime = uxTime;
-	}
-	return uxTime;
+    /* Critical section required if running on a 16 bit processor. */
+    portTICK_TYPE_ENTER_CRITICAL();
+    {
+        uxTime = ( time_t ) ulSeconds;
+    }
+    portTICK_TYPE_EXIT_CRITICAL();
+
+    if( pxTime != NULL )
+    {
+        *pxTime = uxTime;
+    }
+
+    return uxTime;
 }
 /*-----------------------------------------------------------*/
 
-void FreeRTOS_settime( time_t *pxTime )
+void FreeRTOS_settime( time_t * pxTime )
 {
- 	/* Critical section required if running on a 16 bit processor. */
-	portTICK_TYPE_ENTER_CRITICAL();
-	{
-		ulSeconds = ( uint32_t ) *pxTime;
-		ulMsec = ( uint32_t ) 0;
-	}
-	portTICK_TYPE_EXIT_CRITICAL();
+    /* Critical section required if running on a 16 bit processor. */
+    portTICK_TYPE_ENTER_CRITICAL();
+    {
+        ulSeconds = ( uint32_t ) *pxTime;
+        ulMsec = ( uint32_t ) 0;
+    }
+    portTICK_TYPE_EXIT_CRITICAL();
 }
 /*-----------------------------------------------------------*/
 
-time_t FreeRTOS_get_secs_msec( time_t *pulMsec )
+time_t FreeRTOS_get_secs_msec( time_t * pulMsec )
 {
-time_t uxReturn;
+    time_t uxReturn;
 
- 	/* Critical section required if running on a 16 bit processor. */
-	portTICK_TYPE_ENTER_CRITICAL();
-	{
-		uxReturn = ( time_t ) ulSeconds;
-		if( pulMsec != NULL )
-		{
-			*pulMsec = ulMsec;
-		}
-	}
-	portTICK_TYPE_EXIT_CRITICAL();
+    /* Critical section required if running on a 16 bit processor. */
+    portTICK_TYPE_ENTER_CRITICAL();
+    {
+        uxReturn = ( time_t ) ulSeconds;
 
-	return uxReturn;
+        if( pulMsec != NULL )
+        {
+            *pulMsec = ulMsec;
+        }
+    }
+    portTICK_TYPE_EXIT_CRITICAL();
+
+    return uxReturn;
 }
 /*-----------------------------------------------------------*/
 
 
-void FreeRTOS_set_secs_msec( time_t *pulSeconds, time_t *pulMsec )
+void FreeRTOS_set_secs_msec( time_t * pulSeconds,
+                             time_t * pulMsec )
 {
+    /* Critical section required if running on a 16 bit processor. */
+    portTICK_TYPE_ENTER_CRITICAL();
+    {
+        ulSeconds = *pulSeconds;
 
- 	/* Critical section required if running on a 16 bit processor. */
-	portTICK_TYPE_ENTER_CRITICAL();
-	{
-		ulSeconds= *pulSeconds;
-		if( pulMsec != NULL )
-		{
-			ulMsec = *pulMsec;
-		}
-	}
-	portTICK_TYPE_EXIT_CRITICAL();
+        if( pulMsec != NULL )
+        {
+            ulMsec = *pulMsec;
+        }
+    }
+    portTICK_TYPE_EXIT_CRITICAL();
 }
 /*-----------------------------------------------------------*/
