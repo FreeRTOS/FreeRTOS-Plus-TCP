@@ -6,11 +6,33 @@
  * reference. */
 const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
 
+
+static volatile BaseType_t xNumOfOverflows = ( BaseType_t ) 0;
+static volatile TickType_t xTickCount = ( TickType_t ) 0;
+
 /* Structure that stores the netmask, gateway address and DNS server addresses. */
 NetworkAddressingParameters_t xNetworkAddressing = { 0, 0, 0, 0, 0 };
 
 /* The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
+
+BaseType_t xTaskCheckForTimeOut( TimeOut_t * const pxTimeOut,
+                                 TickType_t * const pxTicksToWait )
+{
+   return pdTRUE;
+}
+
+void vTaskDelay( const TickType_t xTicksToDelay )
+{
+}
+
+void vPortEnterCritical( void )
+{
+}
+
+void vPortExitCritical( void )
+{
+}
 
 BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
 {
@@ -102,21 +124,15 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
 }
 /*-----------------------------------------------------------*/
 
-
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
+void vTaskSetTimeOutState( TimeOut_t * const pxTimeOut )
 {
-    /* .ucBytes : */
+    configASSERT( pxTimeOut );
+    taskENTER_CRITICAL();
     {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
+        pxTimeOut->xOverflowCount = xNumOfOverflows;
+        pxTimeOut->xTimeOnEntering = xTickCount;
     }
-};
+    taskEXIT_CRITICAL();
+}
+
+

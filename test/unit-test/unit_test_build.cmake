@@ -28,6 +28,7 @@ list(APPEND mock_define_list
 # list the files you would like to test here
 list(APPEND real_source_files
             ${TCP_SOURCES}
+#            ${KERNEL_SOURCES}
 	)
 # list the directories the module under test includes
 list(APPEND real_include_directories
@@ -35,6 +36,7 @@ list(APPEND real_include_directories
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
+            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${CMOCK_DIR}/vendor/unity/src
 	)
 

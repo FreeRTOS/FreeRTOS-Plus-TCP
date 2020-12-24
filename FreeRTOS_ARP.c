@@ -477,11 +477,13 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
  *
  * @param[in] pxMACAddress: The MAC-address of the entry of interest.
  * @param[out] pulIPAddress: set to the IP-address found, or unchanged when not found.
+ * @param[in] ppxInterface: The interface being used.
  *
  * @return Either eARPCacheMiss or eARPCacheHit.
  */
-    eARPLookupResult_t eARPGetCacheEntryByMac( MACAddress_t * const pxMACAddress,
-                                               uint32_t * pulIPAddress )
+    eARPLookupResult_t eARPGetCacheEntryByMac( MACAddress_t* const pxMACAddress,
+            uint32_t* pulIPAddress,
+            struct xNetworkInterface** ppxInterface )
     {
         BaseType_t x;
         eARPLookupResult_t eReturn = eARPCacheMiss;
