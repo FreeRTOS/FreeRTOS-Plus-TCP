@@ -187,9 +187,8 @@ void EthernetISR (void)
 }
 
 /**
- * @brief function to poll the netwrok card(qemu emulation) as we faced some
- *        problems with the network interrupt being fired for no reason at
- *        a very high rate which made the program not progress
+ * @brief function to wait on a semaphone from the interrupt handler of the
+ *        network card when data is available
  */
 static void rx_task( void * pvParameters )
 {
