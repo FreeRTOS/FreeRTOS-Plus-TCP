@@ -167,22 +167,15 @@ static void set_mac( const uint8_t * addr )
 
 void EthernetISR (void)
 {
-    printf("isr called\n");
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     configASSERT( xRxHanderTask );
 
-    if (smsc9220_get_interrupt(dev,
-                                 SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL)) {
-        printf("found some data.. notifying\n");
-
-        /*
-        vTaskNotifyGiveFromISR( xRxHanderTask,
-                                &xHigherPriorityTaskWoken );
-                                */
+    if( smsc9220_get_interrupt( dev,
+                                SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL ) )
+    {
         configASSERT(xSemaphore);
         xSemaphoreGiveFromISR( xSemaphore , &xHigherPriorityTaskWoken );
-        printf("notified the other task\n");
 
         smsc9220_disable_interrupt(dev,
                                    SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL);
@@ -190,7 +183,6 @@ void EthernetISR (void)
                                  SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL);
 
     }
-    printf("isr return\n");
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
@@ -229,7 +221,7 @@ static void packet_rx()
     uint32_t data_read;
 
     FreeRTOS_debug_printf( ( "Enter\n" ) );
-    while ((data_read = low_level_input( &pxNetworkBuffer )))
+    while( ( data_read = low_level_input( &pxNetworkBuffer ) ) )
     {
         xRxEvent.pvData = ( void * ) pxNetworkBuffer;
 
@@ -325,7 +317,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
         smsc9220_set_fifo_level_irq( dev, SMSC9220_FIFO_LEVEL_IRQ_TX_DATA_POS,
                                      SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MAX );
         set_mac( ucMACAddress );
-        NVIC_SetPriority( ETHERNET_IRQn, 2 );
+        NVIC_SetPriority( ETHERNET_IRQn, configMAC_INTERRUPT_PRIORITY );
         smsc9220_enable_interrupt( dev, SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
         NVIC_EnableIRQ( ETHERNET_IRQn );
     }
