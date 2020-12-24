@@ -219,7 +219,9 @@ enum rx_fifo_status_bits_t
  */
 enum irq_cfg_bits_t
 {
-    IRQ_CFG_IRQ_EN_INDEX = 8U
+    IRQ_CFG_IRQ_TYPE = 0U,
+    IRQ_CFG_IRQ_POL = 4U,
+    IRQ_CFG_IRQ_EN_INDEX = 8U,
 };
 
 #define IRQ_CFG_INT_DEAS_MASK    0xFFU
@@ -718,6 +720,8 @@ void smsc9220_init_irqs( const struct smsc9220_eth_dev_t * dev )
                    IRQ_CFG_INT_DEAS_POS, IRQ_CFG_INT_DEAS_10US );
 
     /* enable interrupts */
+    SET_BIT( register_map->irq_cfg, IRQ_CFG_IRQ_TYPE );
+    SET_BIT( register_map->irq_cfg, IRQ_CFG_IRQ_POL );
     SET_BIT( register_map->irq_cfg, IRQ_CFG_IRQ_EN_INDEX );
 }
 

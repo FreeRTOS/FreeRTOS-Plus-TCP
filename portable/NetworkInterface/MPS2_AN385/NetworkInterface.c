@@ -101,6 +101,7 @@ extern uint8_t ucMACAddress[ SMSC9220_HWADDR_SIZE ]; /* 6 bytes */
 
 /* =============================  Static Variables ========================== */
 static TaskHandle_t xRxHanderTask = NULL;
+static SemaphoreHandle_t xSemaphore;
 
 /* =============================  Static Functions ========================== */
 
@@ -164,6 +165,35 @@ static void set_mac( const uint8_t * addr )
     }
 }
 
+void EthernetISR (void)
+{
+    printf("isr called\n");
+    const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    configASSERT( xRxHanderTask );
+
+    if (smsc9220_get_interrupt(dev,
+                                 SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL)) {
+        printf("found some data.. notifying\n");
+
+        /*
+        vTaskNotifyGiveFromISR( xRxHanderTask,
+                                &xHigherPriorityTaskWoken );
+                                */
+        configASSERT(xSemaphore);
+        xSemaphoreGiveFromISR( xSemaphore , &xHigherPriorityTaskWoken );
+        printf("notified the other task\n");
+
+        smsc9220_disable_interrupt(dev,
+                                   SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL);
+        smsc9220_clear_interrupt(dev,
+                                 SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL);
+
+    }
+    printf("isr return\n");
+    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+}
+
 /**
  * @brief function to poll the netwrok card(qemu emulation) as we faced some
  *        problems with the network interrupt being fired for no reason at
@@ -180,20 +210,13 @@ static void rx_task( void * pvParameters )
 
     for( ; ; )
     {
-        if( ( smsc9220_get_interrupt( dev,
-                                      SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL ) ) )
-        {   /* data received */
-            smsc9220_clear_interrupt( dev,
-                                      SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
-            xResult = pdPASS;
-        }
-        else
-        {
-            vTaskDelay( xBlockTime );
-            continue;
-        }
+        configASSERT(xSemaphore);
+        xSemaphoreTake( xSemaphore,
+                        portMAX_DELAY );
 
         packet_rx();
+        smsc9220_clear_interrupt( dev,
+                                    SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
         smsc9220_enable_interrupt( dev, SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
     }
 }
@@ -206,9 +229,7 @@ static void packet_rx()
     uint32_t data_read;
 
     FreeRTOS_debug_printf( ( "Enter\n" ) );
-    data_read = low_level_input( &pxNetworkBuffer );
-
-    if( data_read > 0 )
+    while ((data_read = low_level_input( &pxNetworkBuffer )))
     {
         xRxEvent.pvData = ( void * ) pxNetworkBuffer;
 
@@ -269,6 +290,8 @@ BaseType_t xNetworkInterfaceInitialise( void )
     enum smsc9220_error_t err;
 
     FreeRTOS_debug_printf( ( "Enter\n" ) );
+    xSemaphore = xSemaphoreCreateBinary();
+    configASSERT(xSemaphore);
 
     if( xRxHanderTask == NULL )
     {
@@ -279,6 +302,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
                                configMAX_PRIORITIES - 4,
                                &xRxHanderTask );
         configASSERT( xReturn != 0 );
+        configASSERT( xRxHanderTask );
     }
 
     err = smsc9220_init( dev, wait_ms_function );
@@ -301,8 +325,9 @@ BaseType_t xNetworkInterfaceInitialise( void )
         smsc9220_set_fifo_level_irq( dev, SMSC9220_FIFO_LEVEL_IRQ_TX_DATA_POS,
                                      SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MAX );
         set_mac( ucMACAddress );
-        NVIC_SetPriority( ETHERNET_IRQn, configMAC_INTERRUPT_PRIORITY );
+        NVIC_SetPriority( ETHERNET_IRQn, 2 );
         smsc9220_enable_interrupt( dev, SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
+        NVIC_EnableIRQ( ETHERNET_IRQn );
     }
 
     FreeRTOS_debug_printf( ( "Exit\n" ) );
