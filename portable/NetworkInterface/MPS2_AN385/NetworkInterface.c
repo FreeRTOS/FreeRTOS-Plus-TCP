@@ -188,7 +188,7 @@ void EthernetISR( void )
 }
 
 /**
- * @brief function to wait on a semaphone from the interrupt handler of the
+ * @brief function to wait on a semaphore from the interrupt handler of the
  *        network card when data is available
  */
 static void rx_task( void * pvParameters )
