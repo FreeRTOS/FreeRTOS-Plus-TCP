@@ -101,7 +101,7 @@ extern uint8_t ucMACAddress[ SMSC9220_HWADDR_SIZE ]; /* 6 bytes */
 
 /* =============================  Static Variables ========================== */
 static TaskHandle_t xRxHanderTask = NULL;
-static SemaphoreHandle_t xSemaphore;
+static SemaphoreHandle_t xSemaphore = NULL;
 
 /* =============================  Static Functions ========================== */
 
@@ -165,7 +165,7 @@ static void set_mac( const uint8_t * addr )
     }
 }
 
-void EthernetISR (void)
+void EthernetISR( void )
 {
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -174,13 +174,13 @@ void EthernetISR (void)
     if( smsc9220_get_interrupt( dev,
                                 SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL ) )
     {
-        configASSERT(xSemaphore);
+        configASSERT( xSemaphore );
         xSemaphoreGiveFromISR( xSemaphore , &xHigherPriorityTaskWoken );
 
-        smsc9220_disable_interrupt(dev,
-                                   SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL);
-        smsc9220_clear_interrupt(dev,
-                                 SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL);
+        smsc9220_disable_interrupt( dev,
+                                   SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
+        smsc9220_clear_interrupt( dev,
+                                 SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVE L);
 
     }
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
@@ -201,7 +201,7 @@ static void rx_task( void * pvParameters )
 
     for( ; ; )
     {
-        configASSERT(xSemaphore);
+        configASSERT( xSemaphore );
         xSemaphoreTake( xSemaphore,
                         portMAX_DELAY );
 
@@ -282,7 +282,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
     FreeRTOS_debug_printf( ( "Enter\n" ) );
     xSemaphore = xSemaphoreCreateBinary();
-    configASSERT(xSemaphore);
+    configASSERT( xSemaphore );
 
     if( xRxHanderTask == NULL )
     {
