@@ -1202,6 +1202,61 @@ uint32_t smsc9220_receive_by_chunks( const struct smsc9220_eth_dev_t * dev,
     return packet_length_byte;
 }
 
+uint32_t smsc9220_receive_by_chunks2( const struct smsc9220_eth_dev_t * dev,
+                                      char * data,
+                                      uint32_t dlen )
+{
+    uint32_t rxfifo_inf = 0;
+    uint32_t rxfifo_stat = 0;
+    /*uint32_t packet_length_byte = 0; */
+    struct smsc9220_eth_reg_map_t * register_map =
+        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+
+    if( !data )
+    {
+        return 0; /* Invalid input parameter, cannot read */
+    }
+
+    /*   rxfifo_inf = register_map->rx_fifo_inf; */
+
+    /*   if( rxfifo_inf & 0xFFFF ) / * If there's data * / */
+    /*   { */
+    /*      rxfifo_stat = register_map->rx_status_port; */
+
+    /*      if( rxfifo_stat != 0 ) / * Fetch status of this packet * / */
+    /*     {                      / * Ethernet controller is padding to 32bit aligned data * / */
+
+    /*
+     * packet_length_byte = GET_BIT_FIELD( rxfifo_stat,
+     *                                  RX_FIFO_STATUS_PKT_LENGTH_MASK,
+     *                                  RX_FIFO_STATUS_PKT_LENGTH_POS );
+     */
+    dev->data->current_rx_size_words = dlen;
+    /*    } */
+    /*} */
+
+    empty_rx_fifo( dev, ( uint8_t * ) data, dlen );
+    dev->data->current_rx_size_words = 0;
+    return dlen;
+}
+
+uint32_t smsc9220_peek_next_packet_size2( const struct
+                                          smsc9220_eth_dev_t * dev )
+{
+    uint32_t packet_size = 0;
+    struct smsc9220_eth_reg_map_t * register_map =
+        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+
+    if( smsc9220_get_rxfifo_data_used_space( dev ) )
+    {
+        packet_size = GET_BIT_FIELD( register_map->rx_status_port,
+                                     RX_FIFO_STATUS_PKT_LENGTH_MASK,
+                                     RX_FIFO_STATUS_PKT_LENGTH_POS );
+    }
+
+    return packet_size;
+}
+
 uint32_t smsc9220_peek_next_packet_size( const struct
                                          smsc9220_eth_dev_t * dev )
 {
