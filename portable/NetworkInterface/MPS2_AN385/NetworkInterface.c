@@ -181,7 +181,7 @@ void EthernetISR( void )
         smsc9220_disable_interrupt( dev,
                                     SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
         smsc9220_clear_interrupt( dev,
-                                  SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVE L );
+                                  SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
     }
 
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
