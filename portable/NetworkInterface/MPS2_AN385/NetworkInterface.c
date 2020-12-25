@@ -341,7 +341,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
     for( x = 0; x < niMAX_TX_ATTEMPTS; x++ )
     {
         if( pxNetworkBuffer->xDataLength < SMSC9220_ETH_MAX_FRAME_SIZE )
-        { /*_RB_ The size needs to come from FreeRTOSIPConfig.h. */
+        {   /*_RB_ The size needs to come from FreeRTOSIPConfig.h. */
             FreeRTOS_debug_printf( ( "outgoing data > > > > > > > > > > > > length: %d\n",
                                      pxNetworkBuffer->xDataLength ) );
             print_hex( pxNetworkBuffer->pucEthernetBuffer,
