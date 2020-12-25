@@ -169,20 +169,21 @@ void EthernetISR( void )
 {
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
     configASSERT( xRxHanderTask );
 
     if( smsc9220_get_interrupt( dev,
                                 SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL ) )
     {
         configASSERT( xSemaphore );
-        xSemaphoreGiveFromISR( xSemaphore , &xHigherPriorityTaskWoken );
+        xSemaphoreGiveFromISR( xSemaphore, &xHigherPriorityTaskWoken );
 
         smsc9220_disable_interrupt( dev,
-                                   SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
+                                    SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
         smsc9220_clear_interrupt( dev,
-                                 SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVE L);
-
+                                  SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVE L );
     }
+
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
@@ -207,7 +208,7 @@ static void rx_task( void * pvParameters )
 
         packet_rx();
         smsc9220_clear_interrupt( dev,
-                                    SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
+                                  SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
         smsc9220_enable_interrupt( dev, SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
     }
 }
@@ -220,6 +221,7 @@ static void packet_rx()
     uint32_t data_read;
 
     FreeRTOS_debug_printf( ( "Enter\n" ) );
+
     while( ( data_read = low_level_input( &pxNetworkBuffer ) ) )
     {
         xRxEvent.pvData = ( void * ) pxNetworkBuffer;
@@ -339,7 +341,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
     for( x = 0; x < niMAX_TX_ATTEMPTS; x++ )
     {
         if( pxNetworkBuffer->xDataLength < SMSC9220_ETH_MAX_FRAME_SIZE )
-        {   /*_RB_ The size needs to come from FreeRTOSIPConfig.h. */
+        { /*_RB_ The size needs to come from FreeRTOSIPConfig.h. */
             FreeRTOS_debug_printf( ( "outgoing data > > > > > > > > > > > > length: %d\n",
                                      pxNetworkBuffer->xDataLength ) );
             print_hex( pxNetworkBuffer->pucEthernetBuffer,
