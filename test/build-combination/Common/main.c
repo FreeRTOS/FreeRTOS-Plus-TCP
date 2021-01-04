@@ -108,12 +108,8 @@ int main( void )
      * are used if ipconfigUSE_DHCP is set to 0, or if ipconfigUSE_DHCP is set to 1
      * but a DHCP server cannot be contacted. */
     FreeRTOS_printf( ( "FreeRTOS_IPInit\n" ) );
-    FreeRTOS_IPInit(
-        ucIPAddress,
-        ucNetMask,
-        ucGatewayAddress,
-        ucDNSServerAddress,
-        ucMACAddress );
+
+    FreeRTOS_IPStart();
 
     vTaskStartScheduler();
 
@@ -121,7 +117,8 @@ int main( void )
 }
 /*-----------------------------------------------------------*/
 
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                             struct xNetworkEndPoint * pxEndPoint )
 {
     static BaseType_t xTasksAlreadyCreated = pdFALSE;
 
