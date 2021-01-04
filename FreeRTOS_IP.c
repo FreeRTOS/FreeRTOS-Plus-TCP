@@ -1150,7 +1150,7 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
     {
         /* This is a 64-bit platform, make sure there is enough space in
          * pucEthernetBuffer to store a pointer. */
-        configASSERT( ipconfigBUFFER_PADDING == 14 );
+        configASSERT( ipBUFFER_PADDING >= 14 );
     }
 
     #ifndef _lint
