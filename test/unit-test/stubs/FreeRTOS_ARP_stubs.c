@@ -104,19 +104,17 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
 
 void vTaskSetTimeOutState( TimeOut_t * const pxTimeOut )
 {
-    return;
 }
 /*-----------------------------------------------------------*/
 
 BaseType_t xTaskCheckForTimeOut( TimeOut_t * const pxTimeOut,
                                  TickType_t * const pxTicksToWait )
 {
-   return pdTRUE;
+    return pdTRUE;
 }
 /*-----------------------------------------------------------*/
 
 void vTaskDelay( const TickType_t xTicksToDelay )
 {
-    return;
 }
 /*-----------------------------------------------------------*/
