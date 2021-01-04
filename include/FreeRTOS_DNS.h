@@ -81,7 +81,7 @@
                 struct freertos_sockaddr sockaddr4;
             #endif
 
-            #if ( ipconfigUSE_DNS_CACHE !=0 )
+            #if ( ipconfigUSE_DNS_CACHE != 0 )
                 char ucName[ ipconfigDNS_CACHE_NAME_LENGTH ];
             #endif
         }
