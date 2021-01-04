@@ -1498,6 +1498,12 @@
                 uxIndex += ( size_t ) ucLen;
             }
         }
+
+        #if ( ipconfigUSE_TCP_WIN == 0 )
+            /* Avoid compiler warnings when TCP window is not used. */
+            ( void ) xHasSYNFlag;
+        #endif
+
         return uxIndex;
     }
     /*-----------------------------------------------------------*/
@@ -2595,11 +2601,12 @@
         TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
         const TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
         UBaseType_t uxOptionsLength = pxTCPWindow->ucOptionLength;
-        /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-        const void * pvCopySource;
-        void * pvCopyDest;
 
         #if ( ipconfigUSE_TCP_WIN == 1 )
+            /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+            const void * pvCopySource;
+            void * pvCopyDest;
+
             if( uxOptionsLength != 0U )
             {
                 /* TCP options must be sent because a packet which is out-of-order
