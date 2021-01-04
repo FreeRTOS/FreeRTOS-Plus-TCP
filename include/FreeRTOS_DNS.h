@@ -80,7 +80,10 @@
             #else
                 struct freertos_sockaddr sockaddr4;
             #endif
-            char ucName[ ipconfigDNS_CACHE_NAME_LENGTH ];
+
+            #if ( ipconfigUSE_DNS_CACHE !=0 )
+                char ucName[ ipconfigDNS_CACHE_NAME_LENGTH ];
+            #endif
         }
         xPrivateStorage; /**< In order to avoid extra calls to malloc, the necessary space is reserved 'statically'. */
     };
