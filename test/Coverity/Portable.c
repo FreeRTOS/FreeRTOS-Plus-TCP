@@ -1,6 +1,3 @@
-/* Include Unity header */
-#include <unity.h>
-
 /* Include standard libraries */
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +9,12 @@
 #include "FreeRTOS_IP.h"
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
+
+/* Provide a main function for the build to succeed. */
+int main()
+{
+    return 0;
+}
 
 size_t xPortGetMinimumEverFreeHeapSize( void )
 {

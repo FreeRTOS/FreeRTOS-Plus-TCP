@@ -195,6 +195,15 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
             pxIPHeader->usLength = FreeRTOS_htons( pxIPHeader->usLength );
             pxIPHeader->ulDestinationIPAddress = pxNetworkBuffer->ulIPAddress;
 
+            /* The stack doesn't support fragments, so the fragment offset field must always be zero.
+             * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
+             */
+            #if ( ipconfigFORCE_IP_DONT_FRAGMENT != 0 )
+                pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
+            #else
+                pxIPHeader->usFragmentOffset = 0U;
+            #endif
+
             #if ( ipconfigUSE_LLMNR == 1 )
                 {
                     /* LLMNR messages are typically used on a LAN and they're

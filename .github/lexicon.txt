@@ -91,6 +91,7 @@ callbacklist
 calloc
 camen
 carriersense
+castingmacrofunctions
 cbmc
 ccfg
 cchannel
@@ -620,6 +621,7 @@ posix
 pparam
 ppkt
 ppointer
+ppucdata
 ppucrecvdata
 ppxnetworkbuffer
 pr
@@ -714,6 +716,7 @@ pullups
 pulnetmask
 pulnumber
 pulvalue
+pvargument
 pvbuffer
 pvdata
 pvdestination
@@ -1239,6 +1242,7 @@ uxstreambufferget
 uxstreambuffermidspace
 uxtail
 uxtaskgetsystemstate
+uxtickstowait
 uxtimeout
 uxtimeoutstate
 uxtotaldatalength
