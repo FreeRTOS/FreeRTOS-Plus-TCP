@@ -23,7 +23,10 @@
     - <stdint.h>
     - <fcntl.h>
     - "FreeRTOS.h"
+    - "list.h"
+    - "task.h"
     - "FreeRTOS_IP.h"
+    - "FreeRTOS_Routing.h"
     - "FreeRTOS_IP_Private.h"
     - "FreeRTOS_UDP_IP.h"
   :treat_externs: :exclude  # Now the extern-ed functions will be mocked.
