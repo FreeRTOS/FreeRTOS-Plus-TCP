@@ -945,7 +945,7 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
 
                 #if ( ipconfigUSE_IPv6 != 0 )
                     {
-                        pxResult->ai_addr = ipPOINTER_CAST( struct freertos_sockaddr *, &( pxResult->xPrivateStorage.sockaddr6 ) );
+                        pxResult->ai_addr = ipPOINTER_CAST( struct freertos_sockaddr *, & ( pxResult->xPrivateStorage.sockaddr6 ) );
                     }
                 #else
                     {
