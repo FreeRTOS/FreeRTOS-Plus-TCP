@@ -1,3 +1,13 @@
+Changes between V2.3.1 and V2.3.2 releases:
+	+ Moved IPv6/Multi to Labs
+	+ When a protocol error occurs during the SYN-phase of a TCP connection, a
+	  child socket will now be closed ( calling FreeRTOS_closesocket() ),
+	  instead of being given the eCLOSE_WAIT status. A client socket, which calls
+	  connect() to establish a connection, will receive the eCLOSE_WAIT status,
+	  just like before.
+	+ Fixed a race condition in DHCP state machine which occured when the macro
+	  dhcpINITIAL_TIMER_PERIOD was set to a very low value.
+
 Changes between V2.3.0 and V2.3.1 releases:
 	+ Fixed UDP only compilation.
 	+ Added description for functions and variables in Doxygen compatible format.

@@ -481,7 +481,8 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
  * @return Either eARPCacheMiss or eARPCacheHit.
  */
     eARPLookupResult_t eARPGetCacheEntryByMac( MACAddress_t * const pxMACAddress,
-                                               uint32_t * pulIPAddress )
+                                               uint32_t * pulIPAddress,
+                                               struct xNetworkInterface ** ppxInterface )
     {
         BaseType_t x;
         eARPLookupResult_t eReturn = eARPCacheMiss;
