@@ -102,21 +102,19 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
 }
 /*-----------------------------------------------------------*/
 
-
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
+void vTaskSetTimeOutState( TimeOut_t * const pxTimeOut )
 {
-    /* .ucBytes : */
-    {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
-    }
-};
+}
+/*-----------------------------------------------------------*/
+
+BaseType_t xTaskCheckForTimeOut( TimeOut_t * const pxTimeOut,
+                                 TickType_t * const pxTicksToWait )
+{
+    return pdTRUE;
+}
+/*-----------------------------------------------------------*/
+
+void vTaskDelay( const TickType_t xTicksToDelay )
+{
+}
+/*-----------------------------------------------------------*/

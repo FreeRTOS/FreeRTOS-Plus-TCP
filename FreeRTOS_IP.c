@@ -1187,6 +1187,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 }
 /*-----------------------------------------------------------*/
 
+/* *INDENT-OFF* */
 #if ( ipconfigUSE_IPv6 == 1 )
 
 /**
@@ -1218,6 +1219,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
     void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                          TickType_t uxBlockTimeTicks )
 #endif /* #if ( ipconfigUSE_IPv6 == 1 ) */
+/* *INDENT-ON* */
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     void * pvReturn;
@@ -2337,9 +2339,9 @@ void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
                                   MACAddress_t * pxMACAddress )
 {
     uint32_t ulIP = FreeRTOS_ntohl( ulIPAddress );
-    uint32_t ulP2 = ( ulIP >> 16 ) & 0xEFU;  /* Use 7 bits. */
-    uint32_t ulP1 = ( ulIP >> 8 ) & 0xFFU;   /* Use 8 bits. */
-    uint32_t ulP0 = ( ulIP ) & 0xFFU;        /* Use 8 bits. */
+    uint32_t ulP2 = ( ulIP >> 16 ) & 0xEFU; /* Use 7 bits. */
+    uint32_t ulP1 = ( ulIP >> 8 ) & 0xFFU;  /* Use 8 bits. */
+    uint32_t ulP0 = ( ulIP ) & 0xFFU;       /* Use 8 bits. */
     uint8_t * ucBytes = pxMACAddress->ucBytes;
 
     ucBytes[ 0 ] = 0x01;
@@ -3638,7 +3640,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         xSource.u16ptr++;
     }
 
-    if( ( uxDataLengthBytes & ( size_t ) 1 ) != 0U )    /* Maybe one more ? */
+    if( ( uxDataLengthBytes & ( size_t ) 1 ) != 0U ) /* Maybe one more ? */
     {
         xTerm.u8[ 0 ] = xSource.u8ptr[ 0 ];
     }
@@ -4174,7 +4176,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
 
         case pdFREERTOS_ERRNO_EWOULDBLOCK:
             pcName = "EWOULDBLOCK";
-            break;                                                           /* same as EAGAIN */
+            break; /* same as EAGAIN */
 
         case pdFREERTOS_ERRNO_EISCONN:
             pcName = "EISCONN";
