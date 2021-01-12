@@ -1150,7 +1150,10 @@
                 #if ( ipconfigUSE_IPv6 != 0 )
                     if( ( pxSocket != NULL ) && ( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED ) )
                     {
-                        memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxIPHeader_IPv6->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        if( pxIPHeader_IPv6 != NULL )
+                        {
+                            memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxIPHeader_IPv6->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        }
                     }
                     else
                 #endif
