@@ -2984,6 +2984,7 @@ uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
  *
  * @return Size of the freertos_sockaddr structure.
  */
+/* *INDENT-OFF* */
 #if ( ipconfigUSE_IPv6 != 0 )
     size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
                                      struct freertos_sockaddr6 * pxAddress6 )
@@ -2991,6 +2992,7 @@ uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
     size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
                                      struct freertos_sockaddr * pxAddress )
 #endif
+/* *INDENT-ON* */
 {
     FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
 
@@ -5060,7 +5062,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
                 if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN )
                 {
-                    ( void ) snprintf( ucChildText, sizeof( ucChildText ), " %d/%d",    /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
+                    ( void ) snprintf( ucChildText, sizeof( ucChildText ), " %d/%d", /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
                                        pxSocket->u.xTCP.usChildCount,
                                        pxSocket->u.xTCP.usBacklog );
                 }
@@ -5080,7 +5082,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     else
                 #endif
                 {
-                    ( void ) snprintf( pcRemoteIp,  /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
+                    ( void ) snprintf( pcRemoteIp, /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
                                        sizeof( pcRemoteIp ), "%lxip", pxSocket->u.xTCP.ulRemoteIP );
                 }
 
@@ -5268,7 +5270,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     }
 
                     /* The WRITE and EXCEPT bits are not used for UDP */
-                }   /* if( pxSocket->ucProtocol == FREERTOS_IPPROTO_TCP ) */
+                } /* if( pxSocket->ucProtocol == FREERTOS_IPPROTO_TCP ) */
 
                 /* Each socket keeps its own event flags, which are looked-up
                  * by FreeRTOS_FD_ISSSET() */
