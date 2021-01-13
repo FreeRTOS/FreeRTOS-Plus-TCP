@@ -12,10 +12,11 @@
 /* Provide a stub for the interface output function. This is the low
  * level output function which is plaform dependent. */
 BaseType_t xLocalNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                   NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                   BaseType_t bReleaseAfterSend )
+                                         NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                         BaseType_t bReleaseAfterSend )
 {
     BaseType_t xReturn;
+
     return xReturn;
 }
 
@@ -38,7 +39,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 void harness()
 {
     NetworkInterface_t xNetworkInterface1, xNetworkInterface2;
-    NetworkEndPoint_t  xEndPoint1, xEndPoint2;
+    NetworkEndPoint_t xEndPoint1, xEndPoint2;
 
     const uint8_t ucIPAddress2[ 4 ];
     const uint8_t ucNetMask2[ 4 ];
@@ -47,7 +48,7 @@ void harness()
     const uint8_t ucMACAddress[ 6 ];
 
     /* Assume that the list of interfaces/endpoints is not initialized. */
-    __CPROVER_assume( pxNetworkInterfaces == NULL);
+    __CPROVER_assume( pxNetworkInterfaces == NULL );
     __CPROVER_assume( pxNetworkEndPoints == NULL );
 
     /* Add the network interfaces to the list. */
