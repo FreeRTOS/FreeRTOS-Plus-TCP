@@ -83,9 +83,6 @@
 
     #define tcpTCP_FLAG_CTRL                      ( ( uint8_t ) 0x1FU ) /**< A mask to filter all protocol flags. */
 
-/* A mask to filter all protocol flags. */
-    #define tcpTCP_FLAG_CTRL                      ( ( uint8_t ) 0x1FU )
-
 /*
  * A few values of the TCP options:
  */
@@ -1153,9 +1150,15 @@
                 #if ( ipconfigUSE_IPv6 != 0 )
                     if( ( pxSocket != NULL ) && ( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED ) )
                     {
+                        if( pxIPHeader_IPv6 != NULL )
+                        {
+                            memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxIPHeader_IPv6->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        }
                     }
                     else
                 #endif
+
+                if( pxIPHeader != NULL )
                 {
                     pxIPHeader->ulSourceIPAddress = pxIPHeader->ulDestinationIPAddress;
                 }
@@ -2636,7 +2639,7 @@
         {
             uint8_t ucIntermediateResult;
 
-            ucIntermediateResult = uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + pxTCPWindow->ucOptionLength;
+            ucIntermediateResult = uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + ( size_t ) pxTCPWindow->ucOptionLength;
             xSendLength = ( BaseType_t ) ucIntermediateResult;
         }
 
