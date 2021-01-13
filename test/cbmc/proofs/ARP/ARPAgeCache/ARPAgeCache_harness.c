@@ -10,7 +10,7 @@
 #include "FreeRTOS_Routing.h"
 
 /* Provide a stub for the interface output function. This is the low
- * level output function which is plaform dependent. */
+ * level output function which is platform dependent. */
 BaseType_t xLocalNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                          NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                          BaseType_t bReleaseAfterSend )
