@@ -271,9 +271,8 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
     uint8_t ucMinAgeFound = 0U;
 
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
-
-		/* Only process the IP address if it is on the local network. */
-		if( ( ulIPAddress & xNetworkAddressing.ulNetMask ) == ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) )
+        /* Only process the IP address if it is on the local network. */
+        if( ( ulIPAddress & xNetworkAddressing.ulNetMask ) == ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) )
     #else
 
         /* If ipconfigARP_STORES_REMOTE_ADDRESSES is non-zero, IP addresses with
@@ -509,12 +508,12 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
          * can be done. */
         eReturn = eCantSendPacket;
     }
-	else if( *ipLOCAL_IP_ADDRESS_POINTER == *pulIPAddress )
-	{
-		/* The address of this device. May be useful for the loopback device. */
-		eReturn = eARPCacheHit;
-		memcpy( pxMACAddress->ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( pxMACAddress->ucBytes ) );
-	}
+    else if( *ipLOCAL_IP_ADDRESS_POINTER == *pulIPAddress )
+    {
+        /* The address of this device. May be useful for the loopback device. */
+        eReturn = eARPCacheHit;
+        memcpy( pxMACAddress->ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( pxMACAddress->ucBytes ) );
+    }
     else
     {
         eReturn = eARPCacheMiss;
@@ -775,48 +774,48 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
  * @return Zero when successful.
  */
 BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
-							   TickType_t uxTicksToWait )
+                               TickType_t uxTicksToWait )
 {
-	BaseType_t xResult = -pdFREERTOS_ERRNO_EADDRNOTAVAIL;
-	TimeOut_t xTimeOut;
-	MACAddress_t xMACAddress;
-	eARPLookupResult_t xLookupResult;
-	size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
+    BaseType_t xResult = -pdFREERTOS_ERRNO_EADDRNOTAVAIL;
+    TimeOut_t xTimeOut;
+    MACAddress_t xMACAddress;
+    eARPLookupResult_t xLookupResult;
+    size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
 
-	/* The IP-task is not supposed to call this function. */
-	configASSERT( xIsCallingFromIPTask() == 0 );
+    /* The IP-task is not supposed to call this function. */
+    configASSERT( xIsCallingFromIPTask() == 0 );
 
-	xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ) );
+    xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ) );
 
-	if( xLookupResult == eARPCacheMiss )
-	{
-		const TickType_t uxSleepTime = pdMS_TO_TICKS( 250U );
+    if( xLookupResult == eARPCacheMiss )
+    {
+        const TickType_t uxSleepTime = pdMS_TO_TICKS( 250U );
 
-		/* We might use ipconfigMAX_ARP_RETRANSMISSIONS here. */
-		vTaskSetTimeOutState( &xTimeOut );
+        /* We might use ipconfigMAX_ARP_RETRANSMISSIONS here. */
+        vTaskSetTimeOutState( &xTimeOut );
 
-		while( uxSendCount > 0 )
-		{
-			FreeRTOS_OutputARPRequest( ulIPAddress );
+        while( uxSendCount > 0 )
+        {
+            FreeRTOS_OutputARPRequest( ulIPAddress );
 
-			vTaskDelay( uxSleepTime );
+            vTaskDelay( uxSleepTime );
 
-			xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ) );
+            xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ) );
 
-			if( ( xTaskCheckForTimeOut( &( xTimeOut ), &( uxTicksToWait ) ) == pdTRUE ) ||
-				( xLookupResult != eARPCacheMiss ) )
-			{
-				break;
-			}
-		}
-	}
+            if( ( xTaskCheckForTimeOut( &( xTimeOut ), &( uxTicksToWait ) ) == pdTRUE ) ||
+                ( xLookupResult != eARPCacheMiss ) )
+            {
+                break;
+            }
+        }
+    }
 
-	if( xLookupResult == eARPCacheHit )
-	{
-		xResult = 0;
-	}
+    if( xLookupResult == eARPCacheHit )
+    {
+        xResult = 0;
+    }
 
-	return xResult;
+    return xResult;
 }
 /*-----------------------------------------------------------*/
 
