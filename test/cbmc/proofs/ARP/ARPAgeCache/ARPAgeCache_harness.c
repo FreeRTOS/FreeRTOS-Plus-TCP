@@ -21,7 +21,7 @@ BaseType_t xLocalNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
     __CPROVER_assert( pxInterface != NULL, "pxInterface cannot be NULL here" );
     __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer cannot be NULL" );
 
-    /* Return an undeterministic value. */
+    /* Return a random value. */
     return xReturn;
 }
 
