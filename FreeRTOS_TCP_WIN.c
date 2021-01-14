@@ -1631,7 +1631,7 @@
         {
             TCPSegment_t * pxSegment;
             uint32_t ulMaxTime;
-            uint32_t ulReturn = ~0UL;
+            uint32_t ulReturn = ( ( uint32_t ) ~0UL );
 
 
             /* Fetches data to be sent-out now.
