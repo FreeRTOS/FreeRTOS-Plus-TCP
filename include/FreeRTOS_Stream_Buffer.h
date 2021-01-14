@@ -163,6 +163,7 @@
     {
 /* Increment uxMid, but no further than uxHead */
         size_t uxSize = uxStreamBufferMidSpace( pxBuffer );
+        size_t uxMid = pxBuffer->uxMid;
         size_t uxMoveCount = uxCount;
 
         if( uxMoveCount > uxSize )
@@ -170,12 +171,14 @@
             uxMoveCount = uxSize;
         }
 
-        pxBuffer->uxMid += uxMoveCount;
+        uxMid += uxMoveCount;
 
-        if( pxBuffer->uxMid >= pxBuffer->LENGTH )
+        if( uxMid >= pxBuffer->LENGTH )
         {
-            pxBuffer->uxMid -= pxBuffer->LENGTH;
+            uxMid -= pxBuffer->LENGTH;
         }
+
+        pxBuffer->uxMid = uxMid;
     }
 /*-----------------------------------------------------------*/
 
