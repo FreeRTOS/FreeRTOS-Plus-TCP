@@ -739,7 +739,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
             }
         #endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
 
-        if( xIsCallingFromIPTask() != 0 )
+        if( xIsCallingFromIPTask() != pdFALSE )
         {
             iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
             /* Only the IP-task is allowed to call this function directly. */
@@ -783,7 +783,7 @@ BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
     size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
 
     /* The IP-task is not supposed to call this function. */
-    configASSERT( xIsCallingFromIPTask() == 0 );
+    configASSERT( xIsCallingFromIPTask() == pdFALSE );
 
     xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ) );
 
