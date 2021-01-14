@@ -58,5 +58,7 @@ void harness()
                                ucMACAddress );
     }
 
+    /* The pointers to IP address/MAC Address and the Endpoint cannot be NULL. These
+     * values are asserted by the eARPGetCacheEntry. */
     eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxLocalEndPointPointer );
 }
