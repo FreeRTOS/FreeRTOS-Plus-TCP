@@ -19,6 +19,7 @@ void harness()
      * This is not checked inside vARPGenerateRequestPacket.
      */
     uint8_t ucBUFFER_SIZE;
+
     __CPROVER_assume( ucBUFFER_SIZE >= sizeof( ARPPacket_t ) && ucBUFFER_SIZE < 2 * sizeof( ARPPacket_t ) );
 
     NetworkBufferDescriptor_t xNetworkBuffer2;
