@@ -13,7 +13,7 @@
 void harness()
 {
     /* Randomly assign a pointer to be sent to the function. */
-    struct xNetworkEndPoint *pxEndPoint = safeMalloc( sizeof( struct xNetworkEndPoint ) );
+    struct xNetworkEndPoint * pxEndPoint = safeMalloc( sizeof( struct xNetworkEndPoint ) );
 
     FreeRTOS_ClearARP( pxEndPoint );
 }
