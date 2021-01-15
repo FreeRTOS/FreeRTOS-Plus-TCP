@@ -12,6 +12,23 @@ NetworkAddressingParameters_t xNetworkAddressing = { 0, 0, 0, 0, 0 };
 /* The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 
+void vTaskSetTimeOutState( TimeOut_t * const pxTimeOut )
+{
+}
+/*-----------------------------------------------------------*/
+
+BaseType_t xTaskCheckForTimeOut( TimeOut_t * const pxTimeOut,
+                                 TickType_t * const pxTicksToWait )
+{
+    return pdTRUE;
+}
+/*-----------------------------------------------------------*/
+
+void vTaskDelay( const TickType_t xTicksToDelay )
+{
+}
+/*-----------------------------------------------------------*/
+
 BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
 {
     BaseType_t xReturn;
