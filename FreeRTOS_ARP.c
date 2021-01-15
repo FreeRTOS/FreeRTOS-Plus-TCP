@@ -535,6 +535,7 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
 
     configASSERT( ppxEndPoint != NULL );
     configASSERT( pulIPAddress != NULL );
+    configASSERT( pxMACAddress != NULL );
 
     *( ppxEndPoint ) = NULL;
     ulAddressToLookup = *pulIPAddress;

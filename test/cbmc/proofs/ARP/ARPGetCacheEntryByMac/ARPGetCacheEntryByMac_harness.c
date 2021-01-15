@@ -46,5 +46,7 @@ void harness()
                                ucMACAddress );
     }
 
+    /* The pointers to the MAC-Address, IP-Address and the End point cannot be NULL.
+     * Therefore, addresses to actual local variables are passed to the function. */
     eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &pxLocalEndPointPointer );
 }
