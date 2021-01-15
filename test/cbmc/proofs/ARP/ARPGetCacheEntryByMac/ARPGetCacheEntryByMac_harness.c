@@ -24,7 +24,7 @@ void harness()
     MACAddress_t xMACAddress;
     uint32_t ulIPAddress;
     struct xNetworkEndPoint xLocalEndPoint;
-    struct xNetworkEndPoint *pxLocalEndPointPointer = &xLocalEndPoint;
+    struct xNetworkEndPoint * pxLocalEndPointPointer = &xLocalEndPoint;
 
     /* Assume that the list of interfaces/endpoints is not initialized. */
     __CPROVER_assume( pxNetworkInterfaces == NULL );
