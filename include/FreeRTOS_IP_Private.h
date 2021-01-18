@@ -394,6 +394,9 @@
 
     #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
 
+/* The bits in the two byte IP header field that make up the fragment offset value. */
+        #define ipFRAGMENT_OFFSET_BIT_MASK      ( 0xff0fU )
+
 /* Ethernet frame types. */
         #define ipARP_FRAME_TYPE                ( 0x0608U )
         #define ipIPv4_FRAME_TYPE               ( 0x0008U )
@@ -406,6 +409,9 @@
 
     #else /* if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
 
+/* The bits in the two byte IP header field that make up the fragment offset value. */
+        #define ipFRAGMENT_OFFSET_BIT_MASK      ( 0x0fffU )
+
 /* Ethernet frame types. */
         #define ipARP_FRAME_TYPE                ( 0x0806U )
         #define ipIPv4_FRAME_TYPE               ( 0x0800U )
@@ -413,8 +419,8 @@
 /* ARP related definitions. */
         #define ipARP_PROTOCOL_TYPE             ( 0x0800U )
         #define ipARP_HARDWARE_TYPE_ETHERNET    ( 0x0001U )
-        #define ipARP_REQUEST                   ( 0x0001 )
-        #define ipARP_REPLY                     ( 0x0002 )
+        #define ipARP_REQUEST                   ( 0x0001U )
+        #define ipARP_REPLY                     ( 0x0002U )
 
     #endif /* ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN */
 
