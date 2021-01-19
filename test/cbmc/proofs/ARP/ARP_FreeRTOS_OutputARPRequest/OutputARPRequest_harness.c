@@ -34,7 +34,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
-
+#include "FreeRTOS_Routing.h"
 
 ARPPacket_t xARPPacket;
 NetworkBufferDescriptor_t xNetworkBuffer;
@@ -73,9 +73,61 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 }
 
 
+/* Provide a stub for the interface output function. This is the low
+ * level output function which is platform dependent. */
+BaseType_t xLocalNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                         NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                         BaseType_t bReleaseAfterSend )
+{
+    BaseType_t xReturn;
+
+    /* Assert that these parameters are non NULL. */
+    __CPROVER_assert( pxInterface != NULL, "pxInterface cannot be NULL here" );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer cannot be NULL" );
+
+    /* Return a random value. */
+    return xReturn;
+}
+
+
 void harness()
 {
     uint32_t ulIPAddress;
+
+    NetworkInterface_t xNetworkInterface1;
+    NetworkEndPoint_t xEndPoint1;
+
+    const uint8_t ucIPAddress2[ 4 ];
+    const uint8_t ucNetMask2[ 4 ];
+    const uint8_t ucGatewayAddress2[ 4 ];
+    const uint8_t ucDNSServerAddress2[ 4 ];
+    const uint8_t ucMACAddress[ 6 ];
+
+    /* Assume that the list of interfaces/endpoints is not initialized. */
+    __CPROVER_assume( pxNetworkInterfaces == NULL );
+    __CPROVER_assume( pxNetworkEndPoints == NULL );
+
+    /* Non-deterministically add a network-interface and its endpoint. */
+    if( nondet_bool() )
+    {
+        /* Add the network interfaces to the list. */
+        FreeRTOS_AddNetworkInterface( &xNetworkInterface1 );
+
+        if( nondet_bool() )
+        {
+            /* Fill the endpoints and put them in the network interface. */
+            FreeRTOS_FillEndPoint( &xNetworkInterface1,
+                                   &xEndPoint1,
+                                   ucIPAddress2,
+                                   ucNetMask2,
+                                   ucGatewayAddress2,
+                                   ucDNSServerAddress2,
+                                   ucMACAddress );
+        }
+
+        /* Add in the output function. */
+        xNetworkInterface1.pfOutput = xLocalNetworkInterfaceOutput;
+    }
 
     FreeRTOS_OutputARPRequest( ulIPAddress );
 }

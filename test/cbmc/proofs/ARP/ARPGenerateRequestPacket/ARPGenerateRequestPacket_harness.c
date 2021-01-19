@@ -1,3 +1,6 @@
+/* CBMC includes */
+#include "cbmc.h"
+
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 #include "queue.h"
@@ -6,6 +9,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_Routing.h"
 
 void harness()
 {
@@ -17,16 +21,16 @@ void harness()
     uint8_t ucBUFFER_SIZE;
 
     __CPROVER_assume( ucBUFFER_SIZE >= sizeof( ARPPacket_t ) && ucBUFFER_SIZE < 2 * sizeof( ARPPacket_t ) );
-    void * xBuffer = malloc( ucBUFFER_SIZE );
-
-    __CPROVER_assume( xBuffer != NULL );
 
     NetworkBufferDescriptor_t xNetworkBuffer2;
-
-    xNetworkBuffer2.pucEthernetBuffer = xBuffer;
     xNetworkBuffer2.xDataLength = ucBUFFER_SIZE;
+    xNetworkBuffer2.pucEthernetBuffer = safeMalloc( xNetworkBuffer2.xDataLength );
+    __CPROVER_assume( xNetworkBuffer2.pucEthernetBuffer != NULL );
 
-    /* vARPGenerateRequestPacket asserts buffer has room for a packet */
-    __CPROVER_assume( xNetworkBuffer2.xDataLength >= sizeof( ARPPacket_t ) );
+    /* Non-deterministically allocate some memory or return a NULL. */
+    xNetworkBuffer2.pxEndPoint = safeMalloc( sizeof( *xNetworkBuffer2.pxEndPoint ) );
+    /* vARPGenerateRequestPacket asserts that endpoint cannot be NULL. */
+    __CPROVER_assume( xNetworkBuffer2.pxEndPoint != NULL );
+
     vARPGenerateRequestPacket( &xNetworkBuffer2 );
 }
