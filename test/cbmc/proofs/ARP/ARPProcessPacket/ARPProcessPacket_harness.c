@@ -25,14 +25,17 @@ void harness()
     ARPPacket_t xARPFrame;
     NetworkEndPoint_t xLocalEndPoint;
 
+    /* The Ethernet buffer must contain the ARP packet. */
     xLocalNetworkBufferDescriptor.pucEthernetBuffer = &xARPFrame;
 
+    /* Non-deterministically add an end-point to the descriptor. */
     if( nondet_bool() )
     {
         xLocalNetworkBufferDescriptor.pxEndPoint = NULL;
     }
     else
     {
+        /* Add an arbitrary endpoint. */
         xLocalNetworkBufferDescriptor.pxEndPoint = &xLocalEndPoint;
     }
 
@@ -40,12 +43,13 @@ void harness()
     __CPROVER_assume( pxNetworkInterfaces == NULL );
     __CPROVER_assume( pxNetworkEndPoints == NULL );
 
-    /* Non-deterministically add a network-interface and its endpoint. */
+    /* Non-deterministically add a network-interface. */
     if( nondet_bool() )
     {
         /* Add the network interfaces to the list. */
         FreeRTOS_AddNetworkInterface( &xNetworkInterface1 );
 
+        /* Non-deterministically add an end-point to the network-interface. */
         if( nondet_bool() )
         {
             /* Fill the endpoints and put them in the network interface. */
@@ -59,5 +63,6 @@ void harness()
         }
     }
 
+    /* A valid network buffer must be passed to the function under test. */
     eARPProcessPacket( &xLocalNetworkBufferDescriptor );
 }
