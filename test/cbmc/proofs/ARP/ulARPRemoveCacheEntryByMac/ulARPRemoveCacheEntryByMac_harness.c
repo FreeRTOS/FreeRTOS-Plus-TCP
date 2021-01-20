@@ -4,10 +4,13 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
+#include "list.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_Routing.h"
 
 
 void harness()
