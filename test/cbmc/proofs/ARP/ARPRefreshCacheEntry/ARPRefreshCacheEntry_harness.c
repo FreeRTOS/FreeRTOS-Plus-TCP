@@ -29,7 +29,8 @@ void harness()
     MACAddress_t xMACAddress;
     uint32_t ulIPAddress;
     struct xNetworkEndPoint xLocalEndPoint;
-    struct xNetworkEndPoint * pxLocalEndPointPointer = &xLocalEndPoint;
+    struct xNetworkEndPoint * pxLocalEndPointPointer;
+    MACAddress_t * pxLocalMACPointer;
 
     /* Assume that the list of interfaces/endpoints is not initialized. */
     __CPROVER_assume( pxNetworkInterfaces == NULL );
@@ -51,6 +52,26 @@ void harness()
                                ucMACAddress );
     }
 
-    vARPRefreshCacheEntry( &xMACAddress, ulIPAddress, &xLocalEndPoint );
-    vARPRefreshCacheEntry( NULL, ulIPAddress, &xLocalEndPoint );
+    /* Arbitrarily assign a NULL/non-NULL value to the pointer. */
+    if( nondet_bool() )
+    {
+        pxLocalEndPointPointer = NULL;
+    }
+    else
+    {
+        pxLocalEndPointPointer = &xLocalEndPoint;
+    }
+
+    /* Arbitrarily assign a NULL/non-NULL value to the pointer. */
+    if( nondet_bool() )
+    {
+        pxLocalMACPointer = NULL;
+    }
+    else
+    {
+        pxLocalMACPointer = &xMACAddress;
+    }
+
+    /* Call the function under test. */
+    vARPRefreshCacheEntry( pxLocalMACPointer, ulIPAddress, pxLocalEndPointPointer );
 }
