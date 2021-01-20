@@ -29,15 +29,7 @@ void harness()
     xLocalNetworkBufferDescriptor.pucEthernetBuffer = &xARPFrame;
 
     /* Non-deterministically add an end-point to the descriptor. */
-    if( nondet_bool() )
-    {
-        xLocalNetworkBufferDescriptor.pxEndPoint = NULL;
-    }
-    else
-    {
-        /* Add an arbitrary endpoint. */
-        xLocalNetworkBufferDescriptor.pxEndPoint = &xLocalEndPoint;
-    }
+    xLocalNetworkBufferDescriptor.pxEndPoint = nondet_bool() ? NULL : &xLocalEndPoint;
 
     /* Assume that the list of interfaces/endpoints is not initialized. */
     __CPROVER_assume( pxNetworkInterfaces == NULL );
