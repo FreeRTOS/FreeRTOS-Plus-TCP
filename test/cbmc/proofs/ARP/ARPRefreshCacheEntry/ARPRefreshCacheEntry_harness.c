@@ -18,10 +18,10 @@ const uint8_t ucGatewayAddress2[ 4 ];
 const uint8_t ucDNSServerAddress2[ 4 ];
 const uint8_t ucMACAddress[ 6 ];
 
-/** @brief A list of all network end-points.  Each element has a next pointer. */
+/** A list of all network end-points.  Each element has a next pointer. */
 extern struct xNetworkEndPoint * pxNetworkEndPoints;
 
-/** @brief A list of all network interfaces: */
+/** A list of all network interfaces: */
 extern struct xNetworkInterface * pxNetworkInterfaces;
 
 void harness()
@@ -32,7 +32,10 @@ void harness()
     struct xNetworkEndPoint * pxLocalEndPointPointer;
     MACAddress_t * pxLocalMACPointer;
 
-    /* Assume that the list of interfaces/endpoints is not initialized. */
+    /* Assume that the list of interfaces/endpoints is not initialized.
+     * Note: These variables are defined in FreeRTOS_Routing.c in global scope.
+     *       They serve as a list to the network interfaces and the corresponding
+     *       endpoints respectively. And are defined as NULL initially. */
     __CPROVER_assume( pxNetworkInterfaces == NULL );
     __CPROVER_assume( pxNetworkEndPoints == NULL );
 
@@ -53,24 +56,10 @@ void harness()
     }
 
     /* Arbitrarily assign a NULL/non-NULL value to the pointer. */
-    if( nondet_bool() )
-    {
-        pxLocalEndPointPointer = NULL;
-    }
-    else
-    {
-        pxLocalEndPointPointer = &xLocalEndPoint;
-    }
+    pxLocalEndPointPointer = nondet_bool() ? NULL : &xLocalEndPoint;
 
     /* Arbitrarily assign a NULL/non-NULL value to the pointer. */
-    if( nondet_bool() )
-    {
-        pxLocalMACPointer = NULL;
-    }
-    else
-    {
-        pxLocalMACPointer = &xMACAddress;
-    }
+    pxLocalMACPointer = nondet_bool() ? NULL : &xMACAddress;
 
     /* Call the function under test. */
     vARPRefreshCacheEntry( pxLocalMACPointer, ulIPAddress, pxLocalEndPointPointer );
