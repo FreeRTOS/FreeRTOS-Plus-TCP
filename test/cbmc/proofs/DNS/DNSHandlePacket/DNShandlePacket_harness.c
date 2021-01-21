@@ -8,8 +8,9 @@
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_IP_Private.h"
 
-/* Function prvParseDNSReply is proven to be correct separately.
- * The proof can be found here: https://github.com/aws/amazon-freertos/tree/master/tools/cbmc/proofs/ParseDNSReply */
+/* Function Abstraction:
+ * Function prvParseDNSReply is proven to be correct separately.
+ * The proof can be found here: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/labs/ipv6_multi/test/cbmc/proofs/ParseDNSReply */
 uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                            size_t uxBufferLength,
                            struct freertos_addrinfo ** ppxAddressInfo,
