@@ -2,7 +2,6 @@
   [
     "vPortEnterCritical",
     "vPortExitCritical",
-    "vSocketBind",
     "vSocketClose",
     "vTaskSetTimeOutState",
     "xTaskGetTickCount",
@@ -11,6 +10,6 @@
     "xApplicationGetRandomNumber",
     "vLoggingPrintf"
   ],
-  "proof-name": "DHCPProcess",
+  "proof-name": "DHCPProcessEndPoint",
   "proof-root": "tools/cbmc/proofs"
 }
