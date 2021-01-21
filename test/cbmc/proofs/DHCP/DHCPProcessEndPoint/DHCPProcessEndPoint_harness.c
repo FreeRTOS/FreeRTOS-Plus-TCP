@@ -50,8 +50,9 @@ void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
 
 /* Signature of function under test (vDHCPProcessEndPoint).
  * This function is defined as static and thus needs to be
- * taken out of the file using a CBMC flag. Using that flag
- * results in mangling of the name.  */
+ * taken out of the file using a CBMC flag
+ * (--export-file-local-symbols). Using this flag results
+ * in mangling of the name.  */
 void __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( BaseType_t xReset,
                                                                 BaseType_t xDoCheck,
                                                                 NetworkEndPoint_t * pxEndPoint );
@@ -93,6 +94,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 }
 
 /****************************************************************
+* Function Abstraction:
 * Abstract prvProcessDHCPReplies proved memory safe in ProcessDHCPReplies.
 ****************************************************************/
 BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
