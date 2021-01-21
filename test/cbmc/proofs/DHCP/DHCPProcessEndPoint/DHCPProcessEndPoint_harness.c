@@ -41,11 +41,21 @@
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_Routing.h"
 
 /* Static members defined in FreeRTOS_DHCP.c */
 extern DHCPData_t xDHCPData;
 extern Socket_t xDHCPSocket;
-void prvCreateDHCPSocket();
+void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
+
+/* Signature of function under test (vDHCPProcessEndPoint).
+ * This function is defined as static and thus needs to be
+ * taken out of the file using a CBMC flag
+ * (--export-file-local-symbols). Using this flag results
+ * in mangling of the name.  */
+void __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( BaseType_t xReset,
+                                                                BaseType_t xDoCheck,
+                                                                NetworkEndPoint_t * pxEndPoint );
 
 /* Static member defined in freertos_api.c */
 #ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
@@ -53,33 +63,56 @@ void prvCreateDHCPSocket();
 #endif
 
 /****************************************************************
-* The signature of the function under test.
+* Abstract vSocketBind function to always return a 0 (meaning pass
+* in Berkeley sockets).
+* The function under test asserts the return to be 0 further down
+* the call graph.
 ****************************************************************/
+BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
+                        struct freertos_sockaddr * pxBindAddress,
+                        size_t uxAddressLength,
+                        BaseType_t xInternal )
+{
+    return ( BaseType_t ) 0;
+}
 
-void vDHCPProcess( BaseType_t xReset );
 
 /****************************************************************
-* Abstract prvProcessDHCPReplies proved memory safe in ProcessDHCPReplies.
+* Abstract FreeRTOS_socket call to allocate a socket sized chunk.
+* The socket cannot be NULL when DHCP is in process and is asserted
+* by the function under test.
 ****************************************************************/
+Socket_t FreeRTOS_socket( BaseType_t xDomain,
+                          BaseType_t xType,
+                          BaseType_t xProtocol )
+{
+    void * ptr = malloc( sizeof( Socket_t ) );
 
-BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType )
+    __CPROVER_assume( ptr != NULL );
+
+    return ptr;
+}
+
+/****************************************************************
+* Function Abstraction:
+* prvProcessDHCPReplies has been proved memory safe in ProcessDHCPReplies.
+****************************************************************/
+BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
+                                  NetworkEndPoint_t * pxEndPoint )
 {
     return nondet_BaseType();
 }
 
-/****************************************************************
-* The proof of vDHCPProcess
-****************************************************************/
-
 void harness()
 {
-    BaseType_t xReset;
+    BaseType_t xReset, xDoCheck;
+    NetworkEndPoint_t xLocalEndPoint;
+    NetworkEndPoint_t * pxLocalPointerEndPoint;
 
     /****************************************************************
     * Initialize the counter used to bound the number of times
     * GetNetworkBufferWithDescriptor can fail.
     ****************************************************************/
-
     #ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
         GetNetworkBuffer_failure_count = 0;
     #endif
@@ -87,16 +120,20 @@ void harness()
     /****************************************************************
     * Assume a valid socket in most states of the DHCP state machine.
     *
-    * The socket is created in the eWaitingSendFirstDiscover state.
-    * xReset==True resets the state to eWaitingSendFirstDiscover.
+    * The socket is created in the eInitialWait state.
+    * xReset==True resets the state to eInitialWait.
     ****************************************************************/
-
-    if( !( ( xDHCPData.eDHCPState == eWaitingSendFirstDiscover ) ||
-           ( xReset != pdFALSE ) ) )
+    if( ( xDHCPData.eDHCPState != eInitialWait ) ||
+        ( xReset == pdFALSE ) )
     {
-        prvCreateDHCPSocket();
+        prvCreateDHCPSocket( &xLocalEndPoint );
         __CPROVER_assume( xDHCPSocket != NULL );
     }
 
-    vDHCPProcess( xReset );
+    /* The pointer to the endpoint must be non-NULL. The function under
+     * test asserts that. */
+    pxLocalPointerEndPoint = &xLocalEndPoint;
+
+    /* Call the function under test. */
+    __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( xReset, xDoCheck, pxLocalPointerEndPoint );
 }
