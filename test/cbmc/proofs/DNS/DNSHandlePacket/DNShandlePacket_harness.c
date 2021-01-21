@@ -4,15 +4,21 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_IP_Private.h"
 
 /* Function prvParseDNSReply is proven to be correct separately.
  * The proof can be found here: https://github.com/aws/amazon-freertos/tree/master/tools/cbmc/proofs/ParseDNSReply */
 uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                           size_t xBufferLength,
-                           BaseType_t xExpected )
+                                       size_t uxBufferLength,
+                                       struct freertos_addrinfo ** ppxAddressInfo,
+                                       BaseType_t xExpected )
 {
+    uint32_t ulReturn;
+
+    /* Return an arbitrary value. */
+    return ulReturn;
 }
 
 struct xDNSMessage
@@ -32,5 +38,7 @@ void harness()
     NetworkBufferDescriptor_t xNetworkBuffer;
 
     xNetworkBuffer.pucEthernetBuffer = malloc( sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) );
+
+    /* The parameter to the function cannot be NULL. */
     ulDNSHandlePacket( &xNetworkBuffer );
 }
