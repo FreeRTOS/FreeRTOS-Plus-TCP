@@ -52,7 +52,9 @@ void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
  * This function is defined as static and thus needs to be
  * taken out of the file using a CBMC flag. Using that flag
  * results in mangling of the name.  */
-void __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint(BaseType_t xReset, BaseType_t xDoCheck, NetworkEndPoint_t *pxEndPoint);
+void __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( BaseType_t xReset,
+                                                                BaseType_t xDoCheck,
+                                                                NetworkEndPoint_t * pxEndPoint );
 
 /* Static member defined in freertos_api.c */
 #ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
@@ -70,7 +72,7 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
                         size_t uxAddressLength,
                         BaseType_t xInternal )
 {
-    return ( BaseType_t )0;
+    return ( BaseType_t ) 0;
 }
 
 
@@ -84,6 +86,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                           BaseType_t xProtocol )
 {
     void * ptr = malloc( sizeof( Socket_t ) );
+
     __CPROVER_assume( ptr != NULL );
 
     return ptr;
@@ -92,7 +95,8 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 /****************************************************************
 * Abstract prvProcessDHCPReplies proved memory safe in ProcessDHCPReplies.
 ****************************************************************/
-BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType, NetworkEndPoint_t * pxEndPoint )
+BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
+                                  NetworkEndPoint_t * pxEndPoint )
 {
     return nondet_BaseType();
 }
@@ -131,4 +135,3 @@ void harness()
     /* Call the function under test. */
     __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( xReset, xDoCheck, pxLocalPointerEndPoint );
 }
-
