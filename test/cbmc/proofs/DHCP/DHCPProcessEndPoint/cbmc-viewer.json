@@ -1,0 +1,15 @@
+{ "expected-missing-functions":
+  [
+    "vPortEnterCritical",
+    "vPortExitCritical",
+    "vSocketClose",
+    "vTaskSetTimeOutState",
+    "xTaskGetTickCount",
+    "xTaskGetCurrentTaskHandle",
+    "xQueueGenericSend",
+    "xApplicationGetRandomNumber",
+    "vLoggingPrintf"
+  ],
+  "proof-name": "DHCPProcessEndPoint",
+  "proof-root": "tools/cbmc/proofs"
+}
