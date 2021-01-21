@@ -8,5 +8,7 @@
   ],
   "DEF":
   [
+    "ipconfigUSE_DNS=1",
+    "ipconfigDNS_USE_CALLBACKS=1"
   ]
 }
