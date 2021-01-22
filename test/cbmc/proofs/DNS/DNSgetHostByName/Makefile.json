@@ -8,12 +8,14 @@
 
   "callback": 0,
   "MAX_HOSTNAME_LEN": 10,
+  "DNS_REQ_ATTEMPTS":2,
+  "DNS_REQUEST_ATTEMPTS": "__eval {DNS_REQ_ATTEMPTS} + 1",
   "HOSTNAME_UNWIND": "__eval {MAX_HOSTNAME_LEN} + 1",
 
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--unwindset prvProcessDNSCache.0:5,prvGetHostByName.0:{HOSTNAME_UNWIND},prvCreateDNSMessage.0:{HOSTNAME_UNWIND},prvCreateDNSMessage.1:{HOSTNAME_UNWIND},strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},strcmp.0:{HOSTNAME_UNWIND},strcpy.0:{HOSTNAME_UNWIND}",
+    "--unwindset prvProcessDNSCache.0:5,prvGetHostByName.0:{HOSTNAME_UNWIND},prvGetHostByName.1:{DNS_REQUEST_ATTEMPTS},prvCreateDNSMessage.0:{HOSTNAME_UNWIND},prvCreateDNSMessage.1:{HOSTNAME_UNWIND},strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},strcmp.0:{HOSTNAME_UNWIND},strcpy.0:{HOSTNAME_UNWIND}",
     "--nondet-static"
   ],
 
@@ -28,6 +30,12 @@
   "DEF":
   [
     "ipconfigDNS_USE_CALLBACKS={callback}",
-    "MAX_HOSTNAME_LEN={MAX_HOSTNAME_LEN}"
+    "MAX_HOSTNAME_LEN={MAX_HOSTNAME_LEN}",
+    "ipconfigDNS_REQUEST_ATTEMPTS={DNS_REQ_ATTEMPTS}"
+  ],
+
+  "OPT":
+  [
+    "--export-file-local-symbols"
   ]
 }

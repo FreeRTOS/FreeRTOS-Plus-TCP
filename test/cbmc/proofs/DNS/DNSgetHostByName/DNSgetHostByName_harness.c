@@ -46,9 +46,9 @@
 * The function under test uses only the return value of this
 * function.
 ****************************************************************/
-
-uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+uint32_t __CPROVER_file_local_FreeRTOS_DNS_c_prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                            size_t xBufferLength,
+                           struct freertos_addrinfo ** ppxAddressInfo,
                            BaseType_t xExpected )
 {
     uint32_t size;
@@ -67,19 +67,16 @@ uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
 * unconstrained data and returns and unconstrained length.
 ****************************************************************/
 
-size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
+size_t __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
                             const char * pcHostName,
-                            TickType_t uxIdentifier )
+                            TickType_t uxIdentifier,
+                            UBaseType_t uxHostType )
 {
     __CPROVER_havoc_object( pucUDPPayloadBuffer );
     size_t size;
 
     return size;
 }
-
-/****************************************************************
-* The proof for FreeRTOS_gethostbyname.
-****************************************************************/
 
 void harness()
 {
@@ -91,5 +88,6 @@ void harness()
     __CPROVER_assume( len > 0 ); /* prvProcessDNSCache strcmp */
     __CPROVER_assume( pcHostName != NULL );
     pcHostName[ len - 1 ] = NULL;
+
     FreeRTOS_gethostbyname( pcHostName );
 }
