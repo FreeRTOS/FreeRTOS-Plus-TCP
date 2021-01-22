@@ -89,8 +89,8 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
  * buffer and returns the network buffer to a list maintained by the +TCP stack. But
  * for the function under test, we do not need to initialise and maintain the list,
  * as it would make the proof unnecessarily complex.
- * Keeping this in mind, the stub below asserts on some basic condition(s) and frees
- * the memory aloocated by the pxGetNetworkBufferWithDescriptor stub above.
+ * Keeping this in mind, the stub below asserts some basic condition(s) and frees
+ * the memory allocated by the pxGetNetworkBufferWithDescriptor stub above.
  */
 void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
