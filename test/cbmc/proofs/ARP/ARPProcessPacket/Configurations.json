@@ -3,13 +3,14 @@
   "CBMCFLAGS":
   [
       "--unwind 1",
-      "--unwindset vARPRefreshCacheEntry.0:7,memcmp.0:17",
+      "--unwindset vARPRefreshCacheEntry.0:7,memcmp.0:17,FreeRTOS_FindEndPointOnIP_IPv4.0:2",
       "--nondet-static"
   ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS_PLUS_TCP)/FreeRTOS_ARP.goto"
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_ARP.goto",
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_Routing.goto"
   ],
   "DEF":
   [
