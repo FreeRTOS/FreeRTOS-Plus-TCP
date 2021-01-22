@@ -44,10 +44,7 @@ void harness()
     NetworkBufferDescriptor_t xNetworkBuffer;
     size_t xEthernetBufferSize;
 
-    /* Allocate arbitrary number of bytes. The packet should be processed
-     * only when:
-     * number of bytes >= ( sizeof( DNSMessage_t ) + sizeof( UDPPacket_t ) )
-     */
+    /* Allocate arbitrary number of bytes. */
     xNetworkBuffer.pucEthernetBuffer = malloc( xEthernetBufferSize );
     xNetworkBuffer.xDataLength = xEthernetBufferSize;
 
