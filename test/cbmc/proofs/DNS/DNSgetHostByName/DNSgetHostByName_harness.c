@@ -87,10 +87,10 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 /* Function Abstraction:
  * vReleaseNetworkBufferAndDescriptor frees the memory associated with the ethernet
  * buffer and returns the network buffer to a list maintained by the +TCP stack. But
- * for the function under test, we do not need to initialise and maintain the list
- * - as it would make the proof unnecessarily complex.
- * Keeping this in mind, the stub below assert on some basic condition(s) and frees
- * the allocated memory by the pxGetNetworkBufferWithDescriptor stub above.
+ * for the function under test, we do not need to initialise and maintain the list,
+ * as it would make the proof unnecessarily complex.
+ * Keeping this in mind, the stub below asserts on some basic condition(s) and frees
+ * the memory aloocated by the pxGetNetworkBufferWithDescriptor stub above.
  */
 void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
@@ -108,7 +108,7 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
 
 /****************************************************************
 * Function Abstraction
-* prvParseDNSReply has been proved memory save in ParseDNSReply.
+* prvParseDNSReply has been proved memory safe in ParseDNSReply.
 *
 * We stub out his function to fill the payload buffer with
 * unconstrained data and return an unconstrained size.
