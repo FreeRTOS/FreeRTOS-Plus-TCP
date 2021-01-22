@@ -38,6 +38,16 @@
 * bound the iterations of strcmp.
 ****************************************************************/
 
+
+/* Function Abstraction:
+ * pxGetNetworkBufferWithDescriptor allocates a Network buffer after taking it
+ * out of a list of network buffers maintained by the TCP stack. To prove the memory
+ * safety of the function under test, we do not need to initialise the list - it
+ * would make the proof more complex and deviate from its objective.
+ * Keeping this in mind, the below stub perform some basic checks required and
+ * allocates the required amount of memory without making any other assumptions
+ * whatsoever.
+ */
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
                                                               TickType_t xBlockTimeTicks )
 {
@@ -45,27 +55,43 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
         xRequestedSizeBytes + ipBUFFER_PADDING < CBMC_MAX_OBJECT_SIZE,
         "pxGetNetworkBufferWithDescriptor: request too big" );
 
-   NetworkBufferDescriptor_t * pxReturn = nondet_bool() ? NULL : malloc( sizeof( * pxReturn ) );
+    /* Arbitrarily return NULL or a valid pointer. */
+    NetworkBufferDescriptor_t * pxReturn = nondet_bool() ? NULL : malloc( sizeof( *pxReturn ) );
 
-   if( pxReturn != NULL )
-   {
-       pxReturn->pucEthernetBuffer = malloc( xRequestedSizeBytes + ipBUFFER_PADDING );
+    if( pxReturn != NULL )
+    {
+        /* Allocate the ethernet buffer. */
+        pxReturn->pucEthernetBuffer = malloc( xRequestedSizeBytes + ipBUFFER_PADDING );
 
-       if( pxReturn->pucEthernetBuffer != NULL )
-       {
-           pxReturn->xDataLength = xRequestedSizeBytes;
-           pxReturn->pucEthernetBuffer += ipBUFFER_PADDING;
-       }
-       else
-       {
-           free(pxReturn);
-           pxReturn = NULL;
-       }
-   }
+        if( pxReturn->pucEthernetBuffer != NULL )
+        {
+            pxReturn->xDataLength = xRequestedSizeBytes;
 
-   return pxReturn;
+            /* Move the pointer ipBUFFER_PADDING (defined in FreeRTOS_IP.h) bytes
+             * ahead. This space is used to store data by the TCP stack for its own
+             * use whilst processing the packet. */
+            pxReturn->pucEthernetBuffer += ipBUFFER_PADDING;
+        }
+        else
+        {
+            /* If the ethernet buffer is not allocated, then the network buffer
+             * descriptor is freed and a NULL is returned. */
+            free( pxReturn );
+            pxReturn = NULL;
+        }
+    }
+
+    return pxReturn;
 }
 
+/* Function Abstraction:
+ * vReleaseNetworkBufferAndDescriptor frees the memory associated with the ethernet
+ * buffer and returns the network buffer to a list maintained by the +TCP stack. But
+ * for the function under test, we do not need to initialise and maintain the list
+ * - as it would make the proof unnecessarily complex.
+ * Keeping this in mind, the stub below assert on some basic condition(s) and frees
+ * the allocated memory by the pxGetNetworkBufferWithDescriptor stub above.
+ */
 void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     __CPROVER_assert( pxNetworkBuffer != NULL,
@@ -81,7 +107,8 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
 }
 
 /****************************************************************
-* Abstract prvParseDNSReply proved memory save in ParseDNSReply.
+* Function Abstraction
+* prvParseDNSReply has been proved memory save in ParseDNSReply.
 *
 * We stub out his function to fill the payload buffer with
 * unconstrained data and return an unconstrained size.
@@ -102,11 +129,11 @@ uint32_t __CPROVER_file_local_FreeRTOS_DNS_c_prvParseDNSReply( uint8_t * pucUDPP
 
 
 /****************************************************************
-* Abstract prvCreateDNSMessage
+* Function Abstraction:
 *
 * This function writes a header, a hostname, and a constant amount of
 * data into the payload buffer, and returns the amount of data
-* written.  This abstraction just fills the entire buffer with
+* written. This abstraction just fills the entire buffer with
 * unconstrained data and returns and unconstrained length.
 ****************************************************************/
 
