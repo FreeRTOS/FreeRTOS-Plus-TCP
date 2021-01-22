@@ -130,10 +130,10 @@
  * uxIdentifier is a random identifier for this look-up, uxHostType is the type
  * of host wanted, dnsTYPE_A_HOST or dnsTYPE_AAA_HOST, i.e. IPv4 or IPv6 resp.
  */
-    _static size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
-                                        const char * pcHostName,
-                                        TickType_t uxIdentifier,
-                                        UBaseType_t uxHostType );
+    static size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
+                                       const char * pcHostName,
+                                       TickType_t uxIdentifier,
+                                       UBaseType_t uxHostType );
 
 /*
  * Simple routine that jumps over the NAME field of a resource record.
@@ -149,10 +149,10 @@
  * The IP address found will be stored in 'ppxAddressInfo' ( IPv4 or IPv6 ).
  * ppxAddressInfo may be NULL if the caller is not interested in the answers.
  */
-    _static uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                                       size_t uxBufferLength,
-                                       struct freertos_addrinfo ** ppxAddressInfo,
-                                       BaseType_t xExpected );
+    static uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+                                      size_t uxBufferLength,
+                                      struct freertos_addrinfo ** ppxAddressInfo,
+                                      BaseType_t xExpected );
 
 /*
  * Check if hostname is a literal IP-address, check if the host is found in
@@ -1505,10 +1505,10 @@
  * @return Total size of the generated message, which is the space from the last written byte
  *         to the beginning of the buffer.
  */
-    _static size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
-                                        const char * pcHostName,
-                                        TickType_t uxIdentifier,
-                                        UBaseType_t uxHostType )
+    static size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
+                                       const char * pcHostName,
+                                       TickType_t uxIdentifier,
+                                       UBaseType_t uxHostType )
     {
         DNSMessage_t * pxDNSMessageHeader;
         size_t uxStart, uxIndex;
@@ -1958,10 +1958,10 @@
  *         An error code (dnsPARSE_ERROR) if there was an error in the DNS response.
  *         0 if xExpected set to pdFALSE.
  */
-    _static uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                                       size_t uxBufferLength,
-                                       struct freertos_addrinfo ** ppxAddressInfo,
-                                       BaseType_t xExpected )
+    static uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+                                      size_t uxBufferLength,
+                                      struct freertos_addrinfo ** ppxAddressInfo,
+                                      BaseType_t xExpected )
     {
         DNSMessage_t * pxDNSMessageHeader;
 /* This pointer is not used to modify anything */
