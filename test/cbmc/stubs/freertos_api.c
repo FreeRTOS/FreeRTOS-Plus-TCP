@@ -361,6 +361,43 @@ void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
     }
 }
 
+
+/****************************************************************
+* Abstract FreeRTOS_GetEndPointConfiguration
+****************************************************************/
+
+void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
+                                        uint32_t * pulNetMask,
+                                        uint32_t * pulGatewayAddress,
+                                        uint32_t * pulDNSServerAddress,
+                                        struct xNetworkEndPoint * pxEndPoint )
+{
+    if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+    {
+        /* Return the address configuration to the caller. */
+
+        if( pulIPAddress != NULL )
+        {
+            *pulIPAddress = nondet_unint32();
+        }
+
+        if( pulNetMask != NULL )
+        {
+            *pulNetMask = nondet_unint32();
+        }
+
+        if( pulGatewayAddress != NULL )
+        {
+            *pulGatewayAddress = nondet_unint32();
+        }
+
+        if( pulDNSServerAddress != NULL )
+        {
+            *pulDNSServerAddress = nondet_unint32();
+        }
+    }
+}
+
 /****************************************************************/
 
 /****************************************************************

@@ -131,9 +131,9 @@
  * of host wanted, dnsTYPE_A_HOST or dnsTYPE_AAA_HOST, i.e. IPv4 or IPv6 resp.
  */
     static size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
-                                        const char * pcHostName,
-                                        TickType_t uxIdentifier,
-                                        UBaseType_t uxHostType );
+                                       const char * pcHostName,
+                                       TickType_t uxIdentifier,
+                                       UBaseType_t uxHostType );
 
 /*
  * Simple routine that jumps over the NAME field of a resource record.
@@ -150,9 +150,9 @@
  * ppxAddressInfo may be NULL if the caller is not interested in the answers.
  */
     static uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                                       size_t uxBufferLength,
-                                       struct freertos_addrinfo ** ppxAddressInfo,
-                                       BaseType_t xExpected );
+                                      size_t uxBufferLength,
+                                      struct freertos_addrinfo ** ppxAddressInfo,
+                                      BaseType_t xExpected );
 
 /*
  * Check if hostname is a literal IP-address, check if the host is found in
@@ -1506,9 +1506,9 @@
  *         to the beginning of the buffer.
  */
     static size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
-                                        const char * pcHostName,
-                                        TickType_t uxIdentifier,
-                                        UBaseType_t uxHostType )
+                                       const char * pcHostName,
+                                       TickType_t uxIdentifier,
+                                       UBaseType_t uxHostType )
     {
         DNSMessage_t * pxDNSMessageHeader;
         size_t uxStart, uxIndex;
@@ -1959,9 +1959,9 @@
  *         0 if xExpected set to pdFALSE.
  */
     static uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                                       size_t uxBufferLength,
-                                       struct freertos_addrinfo ** ppxAddressInfo,
-                                       BaseType_t xExpected )
+                                      size_t uxBufferLength,
+                                      struct freertos_addrinfo ** ppxAddressInfo,
+                                      BaseType_t xExpected )
     {
         DNSMessage_t * pxDNSMessageHeader;
 /* This pointer is not used to modify anything */
