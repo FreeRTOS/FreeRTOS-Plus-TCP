@@ -11,7 +11,7 @@
 /* Function Abstraction:
  * Function prvParseDNSReply is proven to be correct separately.
  * The proof can be found here: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/labs/ipv6_multi/test/cbmc/proofs/ParseDNSReply */
-uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+uint32_t __CPROVER_file_local_FreeRTOS_DNS_c_prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                            size_t uxBufferLength,
                            struct freertos_addrinfo ** ppxAddressInfo,
                            BaseType_t xExpected )
@@ -37,9 +37,16 @@ typedef struct xDNSMessage DNSMessage_t;
 void harness()
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
+    size_t xEthernetBufferSize;
 
-    xNetworkBuffer.pucEthernetBuffer = malloc( sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) );
+    /* Allocate arbitrary number of bytes. The packet should be processed
+     * only when:
+     * number of bytes >= ( sizeof( DNSMessage_t ) + sizeof( UDPPacket_t ) )
+     */
+    xNetworkBuffer.pucEthernetBuffer = malloc( xEthernetBufferSize );
+    xNetworkBuffer.xDataLength = xEthernetBufferSize;
 
-    /* The parameter to the function cannot be NULL. */
+    /* The parameter to the function cannot be NULL. This function is called
+     * by the +TCP stack internally and is not an API. */
     ulDNSHandlePacket( &xNetworkBuffer );
 }
