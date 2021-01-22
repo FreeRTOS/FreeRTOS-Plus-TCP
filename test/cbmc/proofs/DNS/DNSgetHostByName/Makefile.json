@@ -8,14 +8,16 @@
 
   "callback": 0,
   "MAX_HOSTNAME_LEN": 10,
+  "DNS_CACHE_ENTRIES":3,
   "DNS_REQ_ATTEMPTS":2,
   "DNS_REQUEST_ATTEMPTS": "__eval {DNS_REQ_ATTEMPTS} + 1",
   "HOSTNAME_UNWIND": "__eval {MAX_HOSTNAME_LEN} + 1",
+  "DNS_CACHE_ENTRIES_UNWIND": "__eval {DNS_CACHE_ENTRIES} + 1",
 
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--unwindset prvProcessDNSCache.0:5,prvGetHostByName.0:{HOSTNAME_UNWIND},prvGetHostByName.1:{DNS_REQUEST_ATTEMPTS},prvCreateDNSMessage.0:{HOSTNAME_UNWIND},prvCreateDNSMessage.1:{HOSTNAME_UNWIND},strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},strcmp.0:{HOSTNAME_UNWIND},strcpy.0:{HOSTNAME_UNWIND}",
+    "--unwindset prvProcessDNSCache.0:5,__CPROVER_file_local_FreeRTOS_DNS_c_prvGetHostByName.0:{HOSTNAME_UNWIND},__CPROVER_file_local_FreeRTOS_DNS_c_prvGetHostByName.1:{DNS_REQUEST_ATTEMPTS},prvCreateDNSMessage.0:{HOSTNAME_UNWIND},prvCreateDNSMessage.1:{HOSTNAME_UNWIND},strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},strcmp.0:{HOSTNAME_UNWIND},strcpy.0:{HOSTNAME_UNWIND},__CPROVER_file_local_FreeRTOS_DNS_c_prvProcessDNSCache.0:{DNS_CACHE_ENTRIES_UNWIND}",
     "--nondet-static"
   ],
 
@@ -24,14 +26,17 @@
     "$(ENTRY)_harness.goto",
     "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/cbmc.goto",
     "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/freertos_api.goto",
-    "$(FREERTOS_PLUS_TCP)/FreeRTOS_DNS.goto"
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_DNS.goto",
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_IP.goto",
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_Routing.goto"
   ],
 
   "DEF":
   [
     "ipconfigDNS_USE_CALLBACKS={callback}",
     "MAX_HOSTNAME_LEN={MAX_HOSTNAME_LEN}",
-    "ipconfigDNS_REQUEST_ATTEMPTS={DNS_REQ_ATTEMPTS}"
+    "ipconfigDNS_REQUEST_ATTEMPTS={DNS_REQ_ATTEMPTS}",
+    "ipconfigDNS_CACHE_ENTRIES={DNS_CACHE_ENTRIES}"
   ],
 
   "OPT":
