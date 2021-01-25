@@ -65,22 +65,14 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
         /* Allocate the ethernet buffer. */
         pxReturn->pucEthernetBuffer = malloc( xRequestedSizeBytes + ipBUFFER_PADDING );
 
-        if( pxReturn->pucEthernetBuffer != NULL )
-        {
-            pxReturn->xDataLength = xRequestedSizeBytes;
+        __CPROVER_assume( pxReturn->pucEthernetBuffer != NULL );
 
-            /* Move the pointer ipBUFFER_PADDING (defined in FreeRTOS_IP.h) bytes
-             * ahead. This space is used to store data by the TCP stack for its own
-             * use whilst processing the packet. */
-            pxReturn->pucEthernetBuffer += ipBUFFER_PADDING;
-        }
-        else
-        {
-            /* If the ethernet buffer is not allocated, then the network buffer
-             * descriptor is freed and a NULL is returned. */
-            free( pxReturn );
-            pxReturn = NULL;
-        }
+        pxReturn->xDataLength = xRequestedSizeBytes;
+
+        /* Move the pointer ipBUFFER_PADDING (defined in FreeRTOS_IP.h) bytes
+         * ahead. This space is used to store data by the TCP stack for its own
+         * use whilst processing the packet. */
+        pxReturn->pucEthernetBuffer += ipBUFFER_PADDING;
     }
 
     return pxReturn;
@@ -181,7 +173,7 @@ void harness()
     __CPROVER_assume( ( len <= MAX_HOSTNAME_LEN ) && ( len > 0 ) );
 
     /* Arbitrarily assign a proper memory or NULL to the hostname. */
-    char * pcHostName = nondet_bool() ? safeMalloc( len ) : NULL;
+    char * pcHostName = nondet_bool() ? malloc( len ) : NULL;
 
     /* NULL terminate the string if the pcHostName is allocated. */
     if( pcHostName != NULL )
