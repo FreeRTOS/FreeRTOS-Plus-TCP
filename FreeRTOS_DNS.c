@@ -378,7 +378,7 @@
     #include "pack_struct_end.h"
     typedef struct xDNSAnswerRecord DNSAnswerRecord_t;
 /** @brief this is for debugging only. */
-    static struct freertos_addrinfo * pxLastInfo = NULL;
+    _static struct freertos_addrinfo * pxLastInfo = NULL;
 
 
 /**
