@@ -119,8 +119,9 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
 ****************************************************************/
 
 uint32_t __CPROVER_file_local_FreeRTOS_DNS_c_prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                           size_t xBufferLength,struct freertos_addrinfo **ppxAddressInfo,
-                           BaseType_t xExpected )
+                                                               size_t xBufferLength,
+                                                               struct freertos_addrinfo ** ppxAddressInfo,
+                                                               BaseType_t xExpected )
 {
     __CPROVER_assert( pucUDPPayloadBuffer != NULL,
                       "Precondition: pucUDPPayloadBuffer != NULL" );
@@ -139,9 +140,9 @@ uint32_t __CPROVER_file_local_FreeRTOS_DNS_c_prvParseDNSReply( uint8_t * pucUDPP
 ****************************************************************/
 
 size_t __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
-                            const char * pcHostName,
-                            TickType_t uxIdentifier,
-                                        UBaseType_t uxHostType )
+                                                                const char * pcHostName,
+                                                                TickType_t uxIdentifier,
+                                                                UBaseType_t uxHostType )
 {
     __CPROVER_assert( pucUDPPayloadBuffer != NULL,
                       "Precondition: pucUDPPayloadBuffer != NULL" );
@@ -176,6 +177,7 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
 void harness()
 {
     size_t len;
+
     __CPROVER_assume( ( len <= MAX_HOSTNAME_LEN ) && ( len > 0 ) );
 
     /* Arbitrarily assign a proper memory or NULL to the hostname. */
@@ -200,7 +202,7 @@ void harness()
     __CPROVER_assume( pxNetworkInterfaces == NULL );
     __CPROVER_assume( pxNetworkEndPoints == NULL );
 
-    /* Assume that the last info pointer is NULL at the begining. This is defined
+    /* Assume that the last info pointer is NULL at the beginning. This is defined
      * in FreeRTOS_DNS.c and is used for debugging purpose. It is declared NULL
      * initially. */
     __CPROVER_assume( pxLastInfo == NULL );
