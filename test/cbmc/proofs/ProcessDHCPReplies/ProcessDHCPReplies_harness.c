@@ -13,13 +13,13 @@
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
 #include "FreeRTOS_ARP.h"
-
+#include "FreeRTOS_Routing.h"
 
 /****************************************************************
 * Signature of function under test
 ****************************************************************/
 
-BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType );
+BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( BaseType_t xExpectedMessageType, NetworkEndPoint_t * pxEndPoint );
 
 /****************************************************************
 * The proof for FreeRTOS_gethostbyname.
@@ -32,6 +32,8 @@ void harness()
     /* transaction id is an outgoing message */
 
     BaseType_t xExpectedMessageType;
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = &xEndPoint;
 
-    prvProcessDHCPReplies( xExpectedMessageType );
+    __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( xExpectedMessageType, pxEndPoint );
 }
