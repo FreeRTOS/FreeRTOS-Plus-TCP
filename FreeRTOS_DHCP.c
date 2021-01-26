@@ -218,7 +218,7 @@
  * Interpret message received on the DHCP socket.
  */
     static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
-                                              NetworkEndPoint_t * pxEndPoint );
+                                             NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Generate a DHCP request packet, and send it on the DHCP socket.
@@ -967,7 +967,7 @@
  * @return pdPASS: if DHCP options are received correctly; pdFAIL: Otherwise.
  */
     static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
-                                              NetworkEndPoint_t * pxEndPoint )
+                                             NetworkEndPoint_t * pxEndPoint )
     {
         uint8_t * pucUDPPayload;
         int32_t lBytes;
