@@ -19,7 +19,8 @@
 * Signature of function under test
 ****************************************************************/
 
-BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( BaseType_t xExpectedMessageType, NetworkEndPoint_t * pxEndPoint );
+BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
+                                                                       NetworkEndPoint_t * pxEndPoint );
 
 /****************************************************************
 * The proof for FreeRTOS_gethostbyname.
