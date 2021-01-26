@@ -15,6 +15,7 @@
 /* This proof assumes the length of pcHostName is bounded by MAX_HOSTNAME_LEN. This also abstracts the concurrency. */
 void vDNSInitialise( void );
 
+/* Signature of function under test. */
 void __CPROVER_file_local_FreeRTOS_DNS_c_vDNSSetCallBack( const char * pcHostName,
                                                           void * pvSearchID,
                                                           FOnDNSEvent pCallbackFunction,
@@ -27,6 +28,10 @@ BaseType_t xTaskCheckForTimeOut( TimeOut_t * const pxTimeOut,
                                  TickType_t * const pxTicksToWait )
 {
     BaseType_t xReturn;
+
+    /* This API asserts below conditions. */
+    __CPROVER_assert( pxTimeOut != NULL, "Timeout cannot be NULL" );
+    __CPROVER_assert( pxTicksToWait != NULL, "Ticks to wait cannot be NULL" );
 
     /* Return an arbitrary value. */
     return xReturn;
@@ -51,7 +56,7 @@ void func( const char * pcHostName,
            void * pvSearchID,
            uint32_t ulIPAddress )
 {
-    __CPROVER_assert( pcHostName != NULL );
+    __CPROVER_assert( pcHostName != NULL, "Host name cannot be NULL." );
 
     /* pvSearchID can be NULL/non-NULL and ulIPAddress can be any value.
      * Therefore, these values are not checked. */
