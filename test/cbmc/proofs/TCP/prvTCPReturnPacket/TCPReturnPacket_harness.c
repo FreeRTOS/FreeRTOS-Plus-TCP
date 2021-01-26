@@ -41,9 +41,9 @@
 /* This proof assumes that pxDuplicateNetworkBufferWithDescriptor is implemented correctly. */
 
 void __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
-                            NetworkBufferDescriptor_t * pxNetworkBuffer,
-                            uint32_t ulLen,
-                            BaseType_t xReleaseAfterSend );
+                                                                NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                                uint32_t ulLen,
+                                                                BaseType_t xReleaseAfterSend );
 
 /* Abstraction of pxDuplicateNetworkBufferWithDescriptor*/
 NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer,
@@ -63,9 +63,9 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( NetworkBuffe
 /* Network Interface Output function is a portable low level function
  * which actually sends the data. We have assumed a correct
  * implementation of this function in this proof. */
-BaseType_t NetworkInterfaceOutput ( struct xNetworkInterface * pxDescriptor,
-                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                                BaseType_t xReleaseAfterSend )
+BaseType_t NetworkInterfaceOutput( struct xNetworkInterface * pxDescriptor,
+                                   NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                   BaseType_t xReleaseAfterSend )
 {
     BaseType_t xReturn;
 
@@ -96,7 +96,8 @@ void harness()
 
     /* Define and allocate members of an endpoint to be used later. */
     struct xNetworkEndPoint xLocalEndPoint;
-    xLocalEndPoint.pxNetworkInterface = nondet_bool() ? NULL : malloc( sizeof( *(xLocalEndPoint.pxNetworkInterface) ) );
+
+    xLocalEndPoint.pxNetworkInterface = nondet_bool() ? NULL : malloc( sizeof( *( xLocalEndPoint.pxNetworkInterface ) ) );
 
     /* This cannot be NULL. */
     __CPROVER_assume( xLocalEndPoint.pxNetworkInterface != NULL );
@@ -111,7 +112,7 @@ void harness()
     if( ensure_memory_is_valid( pxNetworkBuffer, sizeof( *pxNetworkBuffer ) ) )
     {
         pxNetworkBuffer->pucEthernetBuffer = malloc( sizeof( TCPPacket_t ) );
-        __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL);
+        __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
         pxNetworkBuffer->pxEndPoint = &xLocalEndPoint;
     }
