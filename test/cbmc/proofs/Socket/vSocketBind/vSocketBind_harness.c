@@ -60,7 +60,7 @@ void harness()
     __CPROVER_assume( pxSocket != NULL );
     __CPROVER_assume( pxSocket != FREERTOS_INVALID_SOCKET );
 
-    pxSocket->pxEndPoint = malloc( sizeof( *( pxSocket->pxEndPoint ) ) );
+    pxSocket->pxEndPoint = nondet_bool() ? NULL : malloc( sizeof( *( pxSocket->pxEndPoint ) ) );
     __CPROVER_assume( pxSocket->pxEndPoint != NULL );
 
     struct freertos_sockaddr * pxBindAddress = nondet_bool() ? NULL : malloc( sizeof( struct freertos_sockaddr ) );
