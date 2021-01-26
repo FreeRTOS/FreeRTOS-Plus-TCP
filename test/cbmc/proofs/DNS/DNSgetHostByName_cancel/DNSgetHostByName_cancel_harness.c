@@ -51,11 +51,19 @@ void func( const char * pcHostName,
            void * pvSearchID,
            uint32_t ulIPAddress )
 {
+    __CPROVER_assert( pcHostName != NULL );
+
+    /* pvSearchID can be NULL/non-NULL and ulIPAddress can be any value.
+     * Therefore, these values are not checked. */
 }
 
 void harness()
 {
-    size_t pvSearchID;
+    size_t vSearchID, LocalSearchID;
+
+    /* Arbitrarily assign a NULL or a non-NULL value to the pointer. */
+    size_t * pvLocalPointerSearchID = nondet_bool() ? NULL : &vSearchID;
+
     FOnDNSEvent pCallback = func;
     TickType_t xTimeout;
     TickType_t xIdentifier;
@@ -64,13 +72,11 @@ void harness()
     /* len is a size_t variable and hence always positive. */
     __CPROVER_assume( ( len > 0 ) && ( len <= MAX_HOSTNAME_LEN ) );
 
-    char * pcHostName = nondet_bool ? malloc( len ) : NULL;
+    char * pcHostName = nondet_bool() ? malloc( len ) : NULL;
     __CPROVER_assume( pcHostName != NULL );
 
-    if( pcHostName != NULL )
-    {
-        pcHostName[ len - 1 ] = NULL;
-    }
+    /* NULL terminate the string. */
+    pcHostName[ len - 1 ] = NULL;
 
     /* We initialize the callbacklist in order to be able to check for functions that timed out. */
     vDNSInitialise();
@@ -78,8 +84,8 @@ void harness()
     if( nondet_bool() )
     {
         /* Add an item to be able to check the cancel function if the list is non-empty. */
-        __CPROVER_file_local_FreeRTOS_DNS_c_vDNSSetCallBack( pcHostName, &pvSearchID, pCallback, xTimeout, xIdentifier );
+        __CPROVER_file_local_FreeRTOS_DNS_c_vDNSSetCallBack( pcHostName, pvLocalPointerSearchID, pCallback, xTimeout, xIdentifier );
     }
 
-    FreeRTOS_gethostbyname_cancel( nondet_bool() ? &pvSearchID : NULL );
+    FreeRTOS_gethostbyname_cancel( nondet_bool() ? &LocalSearchID : NULL );
 }
