@@ -1,6 +1,6 @@
 {
   "ENTRY": "DNShandlePacket",
-  "CBMCFLAGS": "--unwind 1",
+  "CBMCFLAGS":"" ,
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
@@ -10,5 +10,10 @@
   [
     "ipconfigUSE_DNS=1",
     "ipconfigDNS_USE_CALLBACKS=1"
+  ],
+  "OPT":
+  [
+    # Flag to access the static function of a file
+    "--export-file-local-symbols"
   ]
 }
