@@ -115,16 +115,6 @@
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
 #endif
 
-#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
-    #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
-        /** @brief The bits in the two byte IP header field that make up the fragment offset value. */
-        #define ipFRAGMENT_OFFSET_BIT_MASK    ( ( uint16_t ) 0xff0f )
-    #else
-        /** @brief The bits in the two byte IP header field that make up the fragment offset value. */
-        #define ipFRAGMENT_OFFSET_BIT_MASK    ( ( uint16_t ) 0x0fff )
-    #endif /* ipconfigBYTE_ORDER */
-#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
-
 /** @brief The maximum time the IP task is allowed to remain in the Blocked state if no
  * events are posted to the network event queue. */
 #ifndef ipconfigMAX_IP_TASK_SLEEP_TIME
@@ -1853,10 +1843,11 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
              * This method may decrease the usage of sparse network buffers. */
             uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
 
-            /* Ensure that the incoming packet is not fragmented (only outgoing
-             * packets can be fragmented) as these are the only handled IP frames
-             * currently. */
-            if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U )
+			/* Ensure that the incoming packet is not fragmented. This stack
+			doesn't not support IP fragmentation and always sets the "don't fragment"
+			flag on outgoing IP frames. The first fragment coming in will have its
+			"more fragments" flag set and later fragments will have a non-zero offset. */
+			if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U || ( pxIPHeader->usFragmentOffset & ipFRAGMENT_FLAGS_MORE_FRAGMENTS ) != 0U )
             {
                 /* Can not handle, fragmented packet. */
                 eReturn = eReleaseBuffer;
@@ -2248,6 +2239,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         pxICMPHeader->ucTypeOfMessage = ( uint8_t ) ipICMP_ECHO_REPLY;
         pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
         pxIPHeader->ulSourceIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+		pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
 
         /* Update the checksum because the ucTypeOfMessage member in the header
          * has been changed to ipICMP_ECHO_REPLY.  This is faster than calling

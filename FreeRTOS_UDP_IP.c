@@ -194,6 +194,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 
             pxIPHeader->usLength = FreeRTOS_htons( pxIPHeader->usLength );
             pxIPHeader->ulDestinationIPAddress = pxNetworkBuffer->ulIPAddress;
+			pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
 
             #if ( ipconfigUSE_LLMNR == 1 )
                 {
