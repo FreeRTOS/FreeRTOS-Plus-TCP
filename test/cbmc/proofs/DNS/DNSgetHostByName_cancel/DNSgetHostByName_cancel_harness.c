@@ -44,7 +44,6 @@ BaseType_t xTaskResumeAll( void )
 /* Abstraction of vTaskSuspendAll from task pool. This also abstracts the concurrency. */
 void vTaskSuspendAll( void )
 {
-    return;
 }
 
 /* The function func mimics the callback function.*/
@@ -52,7 +51,6 @@ void func( const char * pcHostName,
            void * pvSearchID,
            uint32_t ulIPAddress )
 {
-    return;
 }
 
 void harness()
