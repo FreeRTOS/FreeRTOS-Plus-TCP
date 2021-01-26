@@ -57,12 +57,13 @@ void harness()
     __CPROVER_assume( pxSocket != NULL );
     __CPROVER_assume( pxSocket != FREERTOS_INVALID_SOCKET );
 
-    pxSocket->pxEndPoint = safeMalloc( sizeof( *(pxSocket->pxEndPoint) ) );
+    pxSocket->pxEndPoint = safeMalloc( sizeof( *( pxSocket->pxEndPoint ) ) );
     __CPROVER_assume( pxSocket->pxEndPoint != NULL );
 
     struct freertos_sockaddr * pxBindAddress = safeMalloc( sizeof( struct freertos_sockaddr ) );
 
-    #if( ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND == 0 )
+    #if ( ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND == 0 )
+
         /* The library asserts that pxBindAddress cannot be
          * NULL if the above configuration is set. */
         __CPROVER_assume( pxBindAddress != NULL );
