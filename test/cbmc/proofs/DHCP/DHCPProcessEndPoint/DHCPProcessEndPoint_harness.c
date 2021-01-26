@@ -97,8 +97,8 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 * Function Abstraction:
 * prvProcessDHCPReplies has been proved memory safe in ProcessDHCPReplies.
 ****************************************************************/
-BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
-                                  NetworkEndPoint_t * pxEndPoint )
+BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
+                                                                       NetworkEndPoint_t * pxEndPoint )
 {
     return nondet_BaseType();
 }
