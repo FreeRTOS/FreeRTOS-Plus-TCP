@@ -26,7 +26,7 @@
   "CBMCFLAGS": [
       # "--nondet-static",
       "--unwind 1",
-      "--unwindset memcmp.0:7,prvProcessDHCPReplies.0:{BUFFER_PAYLOAD}"
+      "--unwindset memcmp.0:7,__CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies.0:{BUFFER_PAYLOAD}"
   ],
 
   "OBJS":
@@ -44,5 +44,11 @@
   [
     "CBMC_DHCPMESSAGE_HEADER_SIZE={BUFFER_HEADER}",
     "CBMC_FREERTOS_RECVFROM_BUFFER_BOUND={BUFFER_SIZE}"
+  ],
+
+  "OPT":
+  [
+    # Flag to access the static function of a file
+    "--export-file-local-symbols"
   ]
 }
