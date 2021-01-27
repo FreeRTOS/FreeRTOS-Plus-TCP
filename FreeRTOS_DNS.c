@@ -377,8 +377,8 @@
     }
     #include "pack_struct_end.h"
     typedef struct xDNSAnswerRecord DNSAnswerRecord_t;
-/** @brief this is for debugging only. */
-    static struct freertos_addrinfo * pxLastInfo = NULL;
+/** @brief Used for additional error checking when asserts are enabled. */
+    _static struct freertos_addrinfo * pxLastInfo = NULL;
 
 
 /**
