@@ -915,7 +915,6 @@
 
                             /* The reply was received.  Process it. */
                             #if ( ipconfigDNS_USE_CALLBACKS == 0 )
-
                                 /* It is useless to analyse the unexpected reply
                                  * unless asynchronous look-ups are enabled. */
                                 if( xExpected != pdFALSE )
@@ -1947,7 +1946,7 @@
             pxIPHeader->ulSourceIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
             pxIPHeader->ucTimeToLive = ipconfigUDP_TIME_TO_LIVE;
             pxIPHeader->usIdentification = FreeRTOS_htons( usPacketIdentifier );
-			pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
+            pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
             usPacketIdentifier++;
             pxUDPHeader->usLength = FreeRTOS_htons( ( uint32_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
             vFlip_16( pxUDPHeader->usSourcePort, pxUDPHeader->usDestinationPort );

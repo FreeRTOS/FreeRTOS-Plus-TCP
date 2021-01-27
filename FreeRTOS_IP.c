@@ -498,17 +498,17 @@ static void prvIPTask( void * pvParameters )
             case eDHCPEvent:
                 /* The DHCP state machine needs processing. */
                 #if ( ipconfigUSE_DHCP == 1 )
-                    {
-                        uintptr_t uxState;
-                        eDHCPState_t eState;
+                   {
+                       uintptr_t uxState;
+                       eDHCPState_t eState;
 
-                        /* Cast in two steps to please MISRA. */
-                        uxState = ( uintptr_t ) xReceivedEvent.pvData;
-                        eState = ( eDHCPState_t ) uxState;
+                       /* Cast in two steps to please MISRA. */
+                       uxState = ( uintptr_t ) xReceivedEvent.pvData;
+                       eState = ( eDHCPState_t ) uxState;
 
-                        /* Process DHCP messages for a given end-point. */
-                        vDHCPProcess( pdFALSE, eState );
-                    }
+                       /* Process DHCP messages for a given end-point. */
+                       vDHCPProcess( pdFALSE, eState );
+                   }
                 #endif /* ipconfigUSE_DHCP */
                 break;
 
@@ -519,11 +519,11 @@ static void prvIPTask( void * pvParameters )
                  * and update the socket field xSocketBits. */
                 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
                     #if ( ipconfigSELECT_USES_NOTIFY != 0 )
-                        {
-                            SocketSelectMessage_t * pxMessage = ipCAST_PTR_TO_TYPE_PTR( SocketSelectMessage_t, xReceivedEvent.pvData );
-                            vSocketSelect( pxMessage->pxSocketSet );
-                            ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
-                        }
+                       {
+                           SocketSelectMessage_t * pxMessage = ipCAST_PTR_TO_TYPE_PTR( SocketSelectMessage_t, xReceivedEvent.pvData );
+                           vSocketSelect( pxMessage->pxSocketSet );
+                           ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
+                       }
                     #else
                         {
                             vSocketSelect( ipCAST_PTR_TO_TYPE_PTR( SocketSelect_t, xReceivedEvent.pvData ) );
@@ -534,7 +534,6 @@ static void prvIPTask( void * pvParameters )
 
             case eSocketSignalEvent:
                 #if ( ipconfigSUPPORT_SIGNALS != 0 )
-
                     /* Some task wants to signal the user of this socket in
                      * order to interrupt a call to recv() or a call to select(). */
                     ( void ) FreeRTOS_SignalSocket( ipPOINTER_CAST( Socket_t, xReceivedEvent.pvData ) );
@@ -543,7 +542,6 @@ static void prvIPTask( void * pvParameters )
 
             case eTCPTimerEvent:
                 #if ( ipconfigUSE_TCP == 1 )
-
                     /* Simply mark the TCP timer as expired so it gets processed
                      * the next time prvCheckNetworkTimers() is called. */
                     xTCPTimer.bExpired = pdTRUE_UNSIGNED;
@@ -1830,7 +1828,6 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
     #if ( ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 ) || ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) )
         const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
     #else
-
         /* or else, the parameter won't be used and the function will be optimised
          * away */
         ( void ) pxIPPacket;
@@ -1843,11 +1840,11 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
              * This method may decrease the usage of sparse network buffers. */
             uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
 
-			/* Ensure that the incoming packet is not fragmented. This stack
-			doesn't not support IP fragmentation and always sets the "don't fragment"
-			flag on outgoing IP frames. The first fragment coming in will have its
-			"more fragments" flag set and later fragments will have a non-zero offset. */
-			if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U || ( pxIPHeader->usFragmentOffset & ipFRAGMENT_FLAGS_MORE_FRAGMENTS ) != 0U )
+            /* Ensure that the incoming packet is not fragmented. This stack
+             * doesn't not support IP fragmentation and always sets the "don't fragment"
+             * flag on outgoing IP frames. The first fragment coming in will have its
+             * "more fragments" flag set and later fragments will have a non-zero offset. */
+            if( ( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U ) || ( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_FLAGS_MORE_FRAGMENTS ) != 0U ) )
             {
                 /* Can not handle, fragmented packet. */
                 eReturn = eReleaseBuffer;
@@ -2239,7 +2236,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         pxICMPHeader->ucTypeOfMessage = ( uint8_t ) ipICMP_ECHO_REPLY;
         pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
         pxIPHeader->ulSourceIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-		pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
+        pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
 
         /* Update the checksum because the ucTypeOfMessage member in the header
          * has been changed to ipICMP_ECHO_REPLY.  This is faster than calling

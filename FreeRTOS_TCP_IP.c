@@ -962,7 +962,7 @@
             /* Just an increasing number. */
             pxIPHeader->usIdentification = FreeRTOS_htons( usPacketIdentifier );
             usPacketIdentifier++;
-			pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
+            pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
 
             /* Important: tell NIC driver how many bytes must be sent. */
             pxNetworkBuffer->xDataLength = ulLen + ipSIZE_OF_ETH_HEADER;
