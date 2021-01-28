@@ -7,6 +7,7 @@
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_Stream_Buffer.h"
+#include "FreeRTOS_Routing.h"
 
 /* This proof assumes FreeRTOS_socket, pxTCPSocketLookup and
  * pxGetNetworkBufferWithDescriptor are implemented correctly.
@@ -15,39 +16,29 @@
  * prvTCPHandleState and prvTCPReturnPacket are correct. These functions are
  * proved to be correct separately. */
 
-/* Implementation of safe malloc */
-void * safeMalloc( size_t xWantedSize )
-{
-    if( xWantedSize == 0 )
-    {
-        return NULL;
-    }
-
-    uint8_t byte;
-
-    return byte ? malloc( xWantedSize ) : NULL;
-}
-
 /* Abstraction of FreeRTOS_socket */
 Socket_t FreeRTOS_socket( BaseType_t xDomain,
                           BaseType_t xType,
                           BaseType_t xProtocol )
 {
-    return safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+    return nondet_bool() ? NULL : malloc( sizeof( FreeRTOS_Socket_t ) );
 }
 
 /* Abstraction of pxTCPSocketLookup */
-FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
-                                       UBaseType_t uxLocalPort,
+FreeRTOS_Socket_t * pxTCPSocketLookup( UBaseType_t uxLocalPort,
                                        uint32_t ulRemoteIP,
                                        UBaseType_t uxRemotePort )
 {
-    FreeRTOS_Socket_t * xRetSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+    FreeRTOS_Socket_t * xRetSocket = nondet_bool() ? NULL : malloc( sizeof( FreeRTOS_Socket_t ) );
 
     if( xRetSocket )
     {
-        xRetSocket->u.xTCP.txStream = safeMalloc( sizeof( StreamBuffer_t ) );
-        xRetSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( StreamBuffer_t ) );
+        xRetSocket->u.xTCP.txStream = nondet_bool() ? NULL : malloc( sizeof( StreamBuffer_t ) );
+        xRetSocket->u.xTCP.pxPeerSocket = nondet_bool() ? NULL : malloc( sizeof( StreamBuffer_t ) );
+        xRetSocket->pxEndPoint = nondet_bool() ? NULL : malloc( sizeof( *( xRetSocket->pxEndPoint ) ) );
+
+        /* Since the socket is bound, it must have an endpoint. */
+        __CPROVER_assume( xRetSocket->pxEndPoint != NULL );
     }
 
     return xRetSocket;
@@ -57,28 +48,51 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
                                                               TickType_t xBlockTimeTicks )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = nondet_bool() ? NULL : malloc( sizeof( NetworkBufferDescriptor_t ) );
 
     if( pxNetworkBuffer )
     {
-        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( xRequestedSizeBytes );
+        pxNetworkBuffer->pucEthernetBuffer = nondet_bool() ? NULL : malloc( xRequestedSizeBytes );
         __CPROVER_assume( pxNetworkBuffer->xDataLength == ipSIZE_OF_ETH_HEADER + sizeof( int32_t ) );
     }
 
     return pxNetworkBuffer;
 }
 
+BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
+                        struct freertos_sockaddr * pxBindAddress,
+                        size_t uxAddressLength,
+                        BaseType_t xInternal )
+{
+    __CPROVER_assert( pxSocket != NULL, "The socket cannot be NULL" );
+    __CPROVER_assert( pxBindAddress != NULL, "The bind address cannot be NULL" );
+
+    /* Called from socket copying function. Since there is an existing socket
+     * which is receiving the TCP data, it must be bound to an endpoint. Thus,
+     * bind the copied socket to an endpoint to which the parent socket is
+     * bound. */
+    pxSocket->pxEndPoint = nondet_bool() ? NULL : malloc( sizeof( *( pxSocket->pxEndPoint ) ) );
+
+    __CPROVER_assume( pxSocket->pxEndPoint != NULL );
+
+}
+
 void harness()
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = nondet_bool() ? NULL : malloc( sizeof( NetworkBufferDescriptor_t ) );
+    __CPROVER_assume( pxNetworkBuffer != NULL );
 
-    if( pxNetworkBuffer )
-    {
-        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) );
-    }
+    size_t xLocalSize;
+    __CPROVER_assume( xLocalSize >= sizeof( TCPPacket_t ) &&
+                      xLocalSize <= ipTOTAL_ETHERNET_FRAME_SIZE );
 
-    if( pxNetworkBuffer && pxNetworkBuffer->pucEthernetBuffer )
-    {
-        xProcessReceivedTCPPacket( pxNetworkBuffer );
-    }
+    pxNetworkBuffer->pucEthernetBuffer = nondet_bool() ? NULL : malloc( xLocalSize );
+    /* Since this function is only called when there is a TCP packet (implying
+     * there is an ethernet buffer), assume that the buffer is non-NULL. */
+    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    /* Arbitrarily assign an endpoint or NULL. */
+    pxNetworkBuffer->pxEndPoint = nondet_bool() ? NULL : malloc( sizeof( *( pxNetworkBuffer->pxEndPoint ) ) );
+
+    xProcessReceivedTCPPacket( pxNetworkBuffer );
 }
