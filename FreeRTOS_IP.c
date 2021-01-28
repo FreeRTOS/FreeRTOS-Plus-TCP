@@ -498,17 +498,17 @@ static void prvIPTask( void * pvParameters )
             case eDHCPEvent:
                 /* The DHCP state machine needs processing. */
                 #if ( ipconfigUSE_DHCP == 1 )
-                   {
-                       uintptr_t uxState;
-                       eDHCPState_t eState;
+                    {
+                        uintptr_t uxState;
+                        eDHCPState_t eState;
 
-                       /* Cast in two steps to please MISRA. */
-                       uxState = ( uintptr_t ) xReceivedEvent.pvData;
-                       eState = ( eDHCPState_t ) uxState;
+                        /* Cast in two steps to please MISRA. */
+                        uxState = ( uintptr_t ) xReceivedEvent.pvData;
+                        eState = ( eDHCPState_t ) uxState;
 
-                       /* Process DHCP messages for a given end-point. */
-                       vDHCPProcess( pdFALSE, eState );
-                   }
+                        /* Process DHCP messages for a given end-point. */
+                        vDHCPProcess( pdFALSE, eState );
+                    }
                 #endif /* ipconfigUSE_DHCP */
                 break;
 
@@ -519,11 +519,11 @@ static void prvIPTask( void * pvParameters )
                  * and update the socket field xSocketBits. */
                 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
                     #if ( ipconfigSELECT_USES_NOTIFY != 0 )
-                       {
-                           SocketSelectMessage_t * pxMessage = ipCAST_PTR_TO_TYPE_PTR( SocketSelectMessage_t, xReceivedEvent.pvData );
-                           vSocketSelect( pxMessage->pxSocketSet );
-                           ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
-                       }
+                        {
+                            SocketSelectMessage_t * pxMessage = ipCAST_PTR_TO_TYPE_PTR( SocketSelectMessage_t, xReceivedEvent.pvData );
+                            vSocketSelect( pxMessage->pxSocketSet );
+                            ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
+                        }
                     #else
                         {
                             vSocketSelect( ipCAST_PTR_TO_TYPE_PTR( SocketSelect_t, xReceivedEvent.pvData ) );
@@ -534,6 +534,7 @@ static void prvIPTask( void * pvParameters )
 
             case eSocketSignalEvent:
                 #if ( ipconfigSUPPORT_SIGNALS != 0 )
+
                     /* Some task wants to signal the user of this socket in
                      * order to interrupt a call to recv() or a call to select(). */
                     ( void ) FreeRTOS_SignalSocket( ipPOINTER_CAST( Socket_t, xReceivedEvent.pvData ) );
@@ -542,6 +543,7 @@ static void prvIPTask( void * pvParameters )
 
             case eTCPTimerEvent:
                 #if ( ipconfigUSE_TCP == 1 )
+
                     /* Simply mark the TCP timer as expired so it gets processed
                      * the next time prvCheckNetworkTimers() is called. */
                     xTCPTimer.bExpired = pdTRUE_UNSIGNED;
@@ -1828,6 +1830,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
     #if ( ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 ) || ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) )
         const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
     #else
+
         /* or else, the parameter won't be used and the function will be optimised
          * away */
         ( void ) pxIPPacket;

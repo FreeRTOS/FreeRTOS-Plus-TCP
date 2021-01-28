@@ -915,6 +915,7 @@
 
                             /* The reply was received.  Process it. */
                             #if ( ipconfigDNS_USE_CALLBACKS == 0 )
+
                                 /* It is useless to analyse the unexpected reply
                                  * unless asynchronous look-ups are enabled. */
                                 if( xExpected != pdFALSE )
