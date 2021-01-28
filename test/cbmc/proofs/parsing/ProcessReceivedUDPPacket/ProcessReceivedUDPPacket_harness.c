@@ -33,12 +33,13 @@ uint32_t ulDNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
 /* Abstraction of pxUDPSocketLookup */
 FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
 {
-    return nondet_bool()? NULL : malloc( sizeof( FreeRTOS_Socket_t ) );
+    return nondet_bool() ? NULL : malloc( sizeof( FreeRTOS_Socket_t ) );
 }
 
 void harness()
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = nondet_bool()? NULL : malloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = nondet_bool() ? NULL : malloc( sizeof( NetworkBufferDescriptor_t ) );
+
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
     size_t xBufferLength;
@@ -50,16 +51,17 @@ void harness()
      * doesn't like that and will trigger an out of bound access
      * violation. To avoid that, the below assumption is made instead of
      * the commented one */
+
     /* This is how it should be:
-       xBufferLength >= ( sizeof( UDPPacket_t ) + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ) */
-    __CPROVER_assume( xBufferLength >= ( sizeof( ProtocolHeaders_t ) + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER )
-                      && xBufferLength <= ipTOTAL_ETHERNET_FRAME_SIZE );
+     * xBufferLength >= ( sizeof( UDPPacket_t ) + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ) */
+    __CPROVER_assume( xBufferLength >= ( sizeof( ProtocolHeaders_t ) + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ) &&
+                      xBufferLength <= ipTOTAL_ETHERNET_FRAME_SIZE );
 
     pxNetworkBuffer->xDataLength = xBufferLength;
-    pxNetworkBuffer->pucEthernetBuffer = nondet_bool()? NULL : malloc( xBufferLength );
+    pxNetworkBuffer->pucEthernetBuffer = nondet_bool() ? NULL : malloc( xBufferLength );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-    pxNetworkBuffer->pxEndPoint = nondet_bool()? NULL : malloc( sizeof( *( pxNetworkBuffer->pxEndPoint ) ) );
+    pxNetworkBuffer->pxEndPoint = nondet_bool() ? NULL : malloc( sizeof( *( pxNetworkBuffer->pxEndPoint ) ) );
 
     uint16_t usPort;
 
