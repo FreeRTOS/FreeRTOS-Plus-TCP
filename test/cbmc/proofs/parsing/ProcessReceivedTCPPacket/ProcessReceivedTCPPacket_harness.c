@@ -74,12 +74,12 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
     pxSocket->pxEndPoint = nondet_bool() ? NULL : malloc( sizeof( *( pxSocket->pxEndPoint ) ) );
 
     __CPROVER_assume( pxSocket->pxEndPoint != NULL );
-
 }
 
 void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = nondet_bool() ? NULL : malloc( sizeof( NetworkBufferDescriptor_t ) );
+
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
     size_t xLocalSize;
@@ -87,6 +87,7 @@ void harness()
                       xLocalSize <= ipTOTAL_ETHERNET_FRAME_SIZE );
 
     pxNetworkBuffer->pucEthernetBuffer = nondet_bool() ? NULL : malloc( xLocalSize );
+
     /* Since this function is only called when there is a TCP packet (implying
      * there is an ethernet buffer), assume that the buffer is non-NULL. */
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
