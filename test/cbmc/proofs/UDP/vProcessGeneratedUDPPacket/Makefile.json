@@ -15,7 +15,8 @@
   "DEF":
   [
     "ipconfigSUPPORT_OUTGOING_PINGS=1",
-    "ipconfigBYTE_ORDER=pdFREERTOS_BIG_ENDIAN"
+    "ipconfigBYTE_ORDER=pdFREERTOS_BIG_ENDIAN",
+    "ipconfigUSE_IPv6=1"
   ],
   "INC":
   [
