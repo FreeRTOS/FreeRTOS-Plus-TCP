@@ -1239,6 +1239,7 @@ uxstreambufferget
 uxstreambuffermidspace
 uxtail
 uxtaskgetsystemstate
+uxtickstowait
 uxtimeout
 uxtimeoutstate
 uxtotaldatalength
