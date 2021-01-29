@@ -35,6 +35,35 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                             const uint32_t ulIPAddress )
 {
+    /* The MAC address can be NULL or non-NULL. */
+}
+
+/* Function Abstraction:
+ * Function vARPRefreshCacheEntry is proven to be memory safe separately. */
+eFrameProcessingResult_t __CPROVER_file_local_FreeRTOS_IP_c_prvProcessICMPPacket( ICMPPacket_t * const pxICMPPacket )
+{
+    eFrameProcessingResult_t eReturn;
+    __CPROVER_assert( pxICMPPacket != NULL, "ICMP packet sent cannot be NULL" );
+
+    return eReturn;
+}
+
+uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
+                                     size_t uxBufferLength,
+                                     BaseType_t xOutgoingPacket )
+{
+    uint16_t usReturn;
+    return usReturn;
+}
+
+eFrameProcessingResult_t __CPROVER_file_local_FreeRTOS_IP_c_prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPacket,
+                                                      const NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                      UBaseType_t uxHeaderLength )
+{
+    eFrameProcessingResult_t eReturn;
+    __CPROVER_assert( pxIPPacket != NULL, "IP packet sent cannot be NULL" );
+
+    return eReturn;
 }
 
 /* Signature of function under test (prvProcessIPPacket). The function name is
@@ -60,7 +89,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 void harness()
 {
     NetworkBufferDescriptor_t * const pxNetworkBuffer = nondet_bool() ? NULL : malloc( sizeof( NetworkBufferDescriptor_t ) );
-
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
     size_t xLocalDatalength;
@@ -72,18 +100,12 @@ void harness()
     pxNetworkBuffer->xDataLength = xLocalDatalength;
 
     /* Pointer to the start of the Ethernet frame. It should be able to access the whole Ethernet frame.*/
-    pxNetworkBuffer->pucEthernetBuffer = nondet_bool() ? NULL : malloc( ipTOTAL_ETHERNET_FRAME_SIZE );
+    pxNetworkBuffer->pucEthernetBuffer = nondet_bool() ? NULL : malloc( xLocalDatalength );
+    //malloc( sizeof( IPPacket_t ) );//malloc(xLocalDatalength);//malloc( ipTOTAL_ETHERNET_FRAME_SIZE );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-    IPPacket_t * const pxIPPacket = nondet_bool() ? NULL : malloc( xLocalDatalength ); /*sizeof( IPPacket_t ) ); */
-    __CPROVER_assume( pxIPPacket != NULL );
-
-    /* IP packet length is the length field * 4 */
-    size_t ActualHeaderLength = ( pxIPPacket->xIPHeader.ucVersionHeaderLength & 0x0F ) << 2;
-
-/*    pxNetworkBuffer->pucEthernetBuffer = pxIPPacket; */
-    /* The total length must be at least equal to the sum of IP-header length and the enternet header.  */
-    __CPROVER_assume( ActualHeaderLength + ipSIZE_OF_ETH_HEADER <= xLocalDatalength );
+    /* Only IPv4 frames are supported. */
+    __CPROVER_assume( ( ( EthernetHeader_t *) ( pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType == ipIPv4_FRAME_TYPE );
 
     /* Assume that the list of interfaces/endpoints is not initialized.
      * These are defined in the FreeRTOS_Routing.c file and used as a
@@ -91,5 +113,5 @@ void harness()
     __CPROVER_assume( pxNetworkInterfaces == NULL );
     __CPROVER_assume( pxNetworkEndPoints == NULL );
 
-    __CPROVER_file_local_FreeRTOS_IP_c_prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    __CPROVER_file_local_FreeRTOS_IP_c_prvProcessIPPacket( ( ( IPPacket_t *) ( pxNetworkBuffer->pucEthernetBuffer ) ), pxNetworkBuffer );
 }
