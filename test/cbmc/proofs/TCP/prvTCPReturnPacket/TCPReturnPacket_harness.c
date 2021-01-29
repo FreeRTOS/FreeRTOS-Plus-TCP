@@ -103,6 +103,8 @@ void harness()
 
     /* This cannot be NULL. */
     __CPROVER_assume( xLocalEndPoint.pxNetworkInterface != NULL );
+
+    /* Assign the Network output function to the endpoint. This cannot be NULL. */
     xLocalEndPoint.pxNetworkInterface->pfOutput = NetworkInterfaceOutput;
 
     /* Assume that the list of interfaces/endpoints is not initialized.
