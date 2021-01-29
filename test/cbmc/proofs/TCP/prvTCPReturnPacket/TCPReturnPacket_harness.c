@@ -51,6 +51,8 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( NetworkBuffe
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
 
+    /* Ensure that the memory is non-NULL and writable. This Macro is
+     * defined in memory_assignments.c. */
     if( ensure_memory_is_valid( pxNetworkBuffer, sizeof( *pxNetworkBuffer ) ) )
     {
         pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) );
@@ -70,8 +72,8 @@ BaseType_t NetworkInterfaceOutput( struct xNetworkInterface * pxDescriptor,
     BaseType_t xReturn;
 
     /* Assert some basic conditions. */
-    __CPROVER_assert( pxDescriptor, "Descriptor cannot be NULL" );
-    __CPROVER_assert( pxNetworkBuffer, "NetworkBuffer cannot be NULL" );
+    __CPROVER_assert( pxDescriptor != NULL, "Descriptor cannot be NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "NetworkBuffer cannot be NULL" );
 
     /* Return an arbitrary value. */
     return xReturn;
@@ -109,6 +111,8 @@ void harness()
     __CPROVER_assume( pxNetworkInterfaces == NULL );
     __CPROVER_assume( pxNetworkEndPoints == NULL );
 
+    /* Ensure that the memory is non-NULL and writable. This Macro is
+     * defined in memory_assignments.c. */
     if( ensure_memory_is_valid( pxNetworkBuffer, sizeof( *pxNetworkBuffer ) ) )
     {
         pxNetworkBuffer->pucEthernetBuffer = malloc( sizeof( TCPPacket_t ) );
@@ -117,6 +121,8 @@ void harness()
         pxNetworkBuffer->pxEndPoint = &xLocalEndPoint;
     }
 
+    /* Ensure that the memory is non-NULL and writable. This Macro is
+     * defined in memory_assignments.c. */
     if( ensure_memory_is_valid( pxSocket, sizeof( *pxSocket ) ) )
     {
         pxSocket->pxEndPoint = &xLocalEndPoint;
