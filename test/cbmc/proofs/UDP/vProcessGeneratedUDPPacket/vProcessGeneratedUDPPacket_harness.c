@@ -86,8 +86,8 @@ BaseType_t NetworkInterfaceOutput( struct xNetworkInterface * pxDescriptor,
     BaseType_t xReturn;
 
     /* Assert some basic conditions. */
-    __CPROVER_assert( pxDescriptor, "Descriptor cannot be NULL" );
-    __CPROVER_assert( pxNetworkBuffer, "NetworkBuffer cannot be NULL" );
+    __CPROVER_assert( pxDescriptor != NULL, "Descriptor cannot be NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "NetworkBuffer cannot be NULL" );
 
     /* Return an arbitrary value. */
     return xReturn;
