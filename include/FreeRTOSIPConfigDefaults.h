@@ -337,23 +337,12 @@
 #endif
 
 /* Configuration to control whether all outgoing IP datagrams get their
- * "don't fragment" flag set. The fragmentation flags come into play when
- * packets cross into networks that have an MTU smaller than the packets size.
- * If set to 1, the stack sets the "don't fragment" flag on all outgoing IP
+ * "don't fragment" flag set.
+ * If set to 1, the stack will set the "don't fragment" flag on all outgoing IP
  * packets. If a packet needs to be fragmented somewhere along it's path, it will get
  * discarded instead of fragmented.
- * If set to 0, the stack clears the "don't fragment" flag an all outgoing IP
- * packets therefor allowing fragmentation if it is needed.
- * Notes: In very rare cases, some industrial network equipment has been observed to
- * ignore packets that have the "don't fragment" flag clear.
- * In today's networks ( where MTU is almost always set to 1500),
- * setting ipconfigADVERTISE_DONT_FRAGMENT_FLAG to 1 is fairly
- * safe, however, be advised that if a packet with the "don't fragment" flag set has
- * to be fragmented along it's route, it will get discarded.
- * Developer Note: In future versions of the stack that may support routing packets
- * between multiple interfaces, this option should not apply to those routed packets.
- * I believe that incoming fragments should still get discarded because the entire
- * frame cannot be validated and may be malicious or corrupt.
+ * If set to 0, the stack will clear the "don't fragment" flag an all outgoing IP
+ * packets therefore allowing fragmentation if it is needed.
  */
 #ifndef ipconfigADVERTISE_DONT_FRAGMENT_FLAG
     #define ipconfigADVERTISE_DONT_FRAGMENT_FLAG    0
