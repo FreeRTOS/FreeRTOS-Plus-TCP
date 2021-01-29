@@ -346,7 +346,7 @@
  * packets therefor allowing fragmentation if it is needed.
  * Notes: In very rare cases, some industrial network equipment has been observed to
  * ignore packets that have the "don't fragment" flag clear.
- * In today's networks ( where MTU is almost always seto to 1500),
+ * In today's networks ( where MTU is almost always set to 1500),
  * setting ipconfigADVERTISE_DONT_FRAGMENT_FLAG to 1 is fairly
  * safe, however, be advised that if a packet with the "don't fragment" flag set has
  * to be fragmented along it's route, it will get discarded.
