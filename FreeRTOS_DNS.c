@@ -1947,7 +1947,15 @@
             pxIPHeader->ulSourceIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
             pxIPHeader->ucTimeToLive = ipconfigUDP_TIME_TO_LIVE;
             pxIPHeader->usIdentification = FreeRTOS_htons( usPacketIdentifier );
-            pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
+
+            /* The stack doesn't support fragments, so the fragment offset field must always be zero.
+             * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
+             */
+            #if ( ipconfigADVERTISE_DONT_FRAGMENT_FLAG != 0 )
+                pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
+            #else
+                pxIPHeader->usFragmentOffset = 0U;
+            #endif
             usPacketIdentifier++;
             pxUDPHeader->usLength = FreeRTOS_htons( ( uint32_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
             vFlip_16( pxUDPHeader->usSourcePort, pxUDPHeader->usDestinationPort );

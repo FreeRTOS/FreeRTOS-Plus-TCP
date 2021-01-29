@@ -194,7 +194,15 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 
             pxIPHeader->usLength = FreeRTOS_htons( pxIPHeader->usLength );
             pxIPHeader->ulDestinationIPAddress = pxNetworkBuffer->ulIPAddress;
-            pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
+
+            /* The stack doesn't support fragments, so the fragment offset field must always be zero.
+             * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
+             */
+            #if ( ipconfigADVERTISE_DONT_FRAGMENT_FLAG != 0 )
+                pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
+            #else
+                pxIPHeader->usFragmentOffset = 0U;
+            #endif
 
             #if ( ipconfigUSE_LLMNR == 1 )
                 {

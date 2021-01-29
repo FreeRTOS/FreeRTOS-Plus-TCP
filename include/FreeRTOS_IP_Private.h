@@ -418,18 +418,18 @@
     #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
         #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
             /* The bits in the two byte IP header field that make up the fragment offset value. */
-            #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0xff0f )
+            #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0xff1f )
             /* The bits in the two byte IP header field that make up the flags value. */
-            #define ipFRAGMENT_FLAGS_BIT_MASK          ( ( uint16_t ) 0x00f0 )
+            #define ipFRAGMENT_FLAGS_BIT_MASK          ( ( uint16_t ) 0x00e0 )
             /* Don't Fragment Flag */
             #define ipFRAGMENT_FLAGS_DONT_FRAGMENT     ( ( uint16_t ) 0x0040 )
             /* More Fragments Flag */
             #define ipFRAGMENT_FLAGS_MORE_FRAGMENTS    ( ( uint16_t ) 0x0020 )
         #else
             /* The bits in the two byte IP header field that make up the fragment offset value. */
-            #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0x0fff )
+            #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0x1fff )
             /* The bits in the two byte IP header field that make up the flags value. */
-            #define ipFRAGMENT_FLAGS_BIT_MASK          ( ( uint16_t ) 0xf000 )
+            #define ipFRAGMENT_FLAGS_BIT_MASK          ( ( uint16_t ) 0xe000 )
             /* Don't Fragment Flag */
             #define ipFRAGMENT_FLAGS_DONT_FRAGMENT     ( ( uint16_t ) 0x4000 )
             /* More Fragments Flag */
