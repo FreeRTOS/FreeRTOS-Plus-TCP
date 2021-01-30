@@ -14,6 +14,7 @@
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Routing.h"
 
 /* Include the stubs for APIs. */
 #include "memory_assignments.c"
@@ -75,10 +76,48 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
     return eResult;
 }
 
+/* Network Interface Output function is a portable low level function
+ * which actually sends the data. We have assumed a correct
+ * implementation of this function in this proof. */
+BaseType_t NetworkInterfaceOutput( struct xNetworkInterface * pxDescriptor,
+                                   NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                   BaseType_t xReleaseAfterSend )
+{
+    BaseType_t xReturn;
+
+    /* Assert some basic conditions. */
+    __CPROVER_assert( pxDescriptor != NULL, "Descriptor cannot be NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "NetworkBuffer cannot be NULL" );
+
+    /* Return an arbitrary value. */
+    return xReturn;
+}
+
+/* Global variables accessible throughout the program. Used in adding
+ * Network interface/endpoint. */
+NetworkInterface_t xNetworkInterface1;
+NetworkEndPoint_t xEndPoint1;
+
+const uint8_t ucIPAddress2[ 4 ];
+const uint8_t ucNetMask2[ 4 ];
+const uint8_t ucGatewayAddress2[ 4 ];
+const uint8_t ucDNSServerAddress2[ 4 ];
+const uint8_t ucMACAddress[ 6 ];
 
 void harness()
 {
     size_t xRequestedSizeBytes;
+
+    /* Define and allocate members of an endpoint to be used later. */
+    struct xNetworkEndPoint xLocalEndPoint;
+
+    xLocalEndPoint.pxNetworkInterface = nondet_bool() ? NULL : malloc( sizeof( *( xLocalEndPoint.pxNetworkInterface ) ) );
+
+    /* Network Interface cannot be NULL. */
+    __CPROVER_assume( xLocalEndPoint.pxNetworkInterface != NULL );
+
+    /* Assign the Network output function to the endpoint. This cannot be NULL. */
+    xLocalEndPoint.pxNetworkInterface->pfOutput = NetworkInterfaceOutput;
 
     /* Assume that the size of packet must be greater than that of UDP-Packet and less than
      * that of the Ethernet Frame Size. */
@@ -91,5 +130,44 @@ void harness()
     __CPROVER_assume( pxNetworkBuffer != NULL );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
+    /* Arbitrarily add endpoint to the network buffer. This can be NULL or
+     * a proper end point. */
+    pxNetworkBuffer->pxEndPoint = nondet_bool() ? NULL : &xLocalEndPoint;
+
+    /* Assume that the list of interfaces/endpoints is not initialized.
+     * These are defined in the FreeRTOS_Routing.c file and used as a
+     * list by the TCP stack. */
+    __CPROVER_assume( pxNetworkInterfaces == NULL );
+    __CPROVER_assume( pxNetworkEndPoints == NULL );
+
+    /* Non-deterministically add a network-interface. */
+    if( nondet_bool() )
+    {
+        /* Add the network interfaces to the list. */
+        FreeRTOS_AddNetworkInterface( &xNetworkInterface1 );
+
+        /* Non-deterministically add an end-point to the network-interface. */
+        if( nondet_bool() )
+        {
+            /* Fill the endpoints and put them in the network interface. */
+            FreeRTOS_FillEndPoint( &xNetworkInterface1,
+                                   &xEndPoint1,
+                                   ucIPAddress2,
+                                   ucNetMask2,
+                                   ucGatewayAddress2,
+                                   ucDNSServerAddress2,
+                                   ucMACAddress );
+
+            /* Add the output function to the endpoint. */
+            xEndPoint1.pxNetworkInterface = nondet_bool() ? NULL : malloc( sizeof( *( xEndPoint1.pxNetworkInterface ) ) );
+
+            /* If a network interface has an endpoint, then it must have an output function. */
+            __CPROVER_assume( xEndPoint1.pxNetworkInterface != NULL );
+            xEndPoint1.pxNetworkInterface->pfOutput = NetworkInterfaceOutput;
+        }
+    }
+
+    /* The network buffer passed to the vProcessGeneratedUDPPacket
+     * cannot be NULL. */
     vProcessGeneratedUDPPacket( pxNetworkBuffer );
 }
