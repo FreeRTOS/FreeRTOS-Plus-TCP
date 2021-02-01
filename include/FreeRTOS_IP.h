@@ -88,6 +88,8 @@
  * Generate a randomized TCP Initial Sequence Number per RFC.
  * This function must be provided my the application builder.
  */
+    /* The function below is defined in main.c but not seen by Coverity. */
+    /* misra_c_2012_rule_8_6_violation */
     extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
                                                         uint16_t usSourcePort,
                                                         uint32_t ulDestinationAddress,
@@ -178,7 +180,7 @@
             struct xNETWORK_BUFFER * pxNextBuffer; /**< Possible optimisation for expert users - requires network driver support. */
         #endif
         #if ( ipconfigUSE_IPv6 != 0 )
-            IPv6_Address_t xIPv6_Address; /**< The IP-address of the unit which sent this packet. */
+            IPv6_Address_t xIPv6Address; /**< The IP-address of the unit which sent this packet. */
         #endif
     } NetworkBufferDescriptor_t;
 
@@ -310,7 +312,7 @@
         #define FreeRTOS_min_int32( a, b )       ( ( ( ( int32_t ) a ) <= ( ( int32_t ) b ) ) ? ( ( int32_t ) a ) : ( ( int32_t ) b ) )
         #define FreeRTOS_min_uint32( a, b )      ( ( ( ( uint32_t ) a ) <= ( ( uint32_t ) b ) ) ? ( ( uint32_t ) a ) : ( ( uint32_t ) b ) )
 
-/*  Round-up: a = d * ( ( a + d - 1 ) / d ) */
+/*  Round-up: the result is a multiple of d which is at least a */
         #define FreeRTOS_round_up( a, d )        ( ( ( uint32_t ) ( d ) ) * ( ( ( ( uint32_t ) ( a ) ) + ( ( uint32_t ) ( d ) ) - 1UL ) / ( ( uint32_t ) ( d ) ) ) )
         #define FreeRTOS_round_down( a, d )      ( ( ( uint32_t ) ( d ) ) * ( ( ( uint32_t ) ( a ) ) / ( ( uint32_t ) ( d ) ) ) )
 
@@ -408,23 +410,38 @@
                                             const uint32_t * pulGatewayAddress,
                                             const uint32_t * pulDNSServerAddress,
                                             struct xNetworkEndPoint * pxEndPoint );
-
-    BaseType_t FreeRTOS_SendPingRequest( uint32_t ulIPAddress,
-                                         size_t uxNumberOfBytesToSend,
-                                         TickType_t uxBlockTimeTicks );
+    #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+        BaseType_t FreeRTOS_SendPingRequest( uint32_t ulIPAddress,
+                                             size_t uxNumberOfBytesToSend,
+                                             TickType_t uxBlockTimeTicks );
+    #endif
     void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer );
-/* _HT_ FreeRTOS_GetMACAddress() can not continue to exist with multiple interfaces.*/
-/*const uint8_t * FreeRTOS_GetMACAddress( void ); */
 
-    #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
-        void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                             struct xNetworkEndPoint * pxEndPoint );
-    #else
-        void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
+    #if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+        /* FreeRTOS_GetMACAddress() can not continue to exist with multiple interfaces.*/
+        const uint8_t * FreeRTOS_GetMACAddress( void );
     #endif
 
-    void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
-                                    uint16_t usIdentifier );
+    #if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+        /* FreeRTOS_UpdateMACAddress() can not continue to exist with multiple interfaces.*/
+        void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
+    #endif
+
+    #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
+        #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
+            /* Not clear why Coverity doesn't see the declaration in main.c */
+            /* misra_c_2012_rule_8_6_violation */
+            void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                                 struct xNetworkEndPoint * pxEndPoint );
+        #else
+            void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
+        #endif
+    #endif
+
+    #if ( ipconfigSUPPORT_OUTGOING_PINGS != 0 )
+        void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
+                                        uint16_t usIdentifier );
+    #endif
     uint32_t FreeRTOS_GetIPAddress( void );
 
 /*
@@ -507,6 +524,8 @@
  * have much use, except that a device can be found in a router along with its
  * name. If this option is used the callback below must be provided by the
  * application	writer to return a const string, denoting the device's name. */
+        /* Not every application will call the function below. */
+        /* misra_c_2012_rule_8_6_violation */
         const char * pcApplicationHostnameHook( void );
 
     #endif /* ipconfigDHCP_REGISTER_HOSTNAME */
@@ -519,6 +538,8 @@
  * If that module is not included in the project, the application must provide an
  * implementation of it.
  * The macro's ipconfigRAND32() and configRAND32() are not in use anymore. */
+    /* Although defined in main.c, this rule seems to be violated. */
+    /* misra_c_2012_rule_8_6_violation */
     BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
 
 /* For backward compatibility define old structure names to the newer equivalent

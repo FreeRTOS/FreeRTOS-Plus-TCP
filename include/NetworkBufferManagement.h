@@ -32,9 +32,9 @@
 
 /* NOTE PUBLIC API FUNCTIONS. */
     BaseType_t xNetworkBuffersInitialise( void );
-    NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xByteCount,
-                                                                  TickType_t xBlockTimeTicks );
-    NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t xRequestedSizeBytes );
+    NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t uxRequestedSizeBytes,
+                                                                  TickType_t uxBlockTimeTicks );
+    NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t uxRequestedSizeBytes );
     void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer );
     BaseType_t vNetworkBufferReleaseFromISR( NetworkBufferDescriptor_t * const pxNetworkBuffer );
     uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes );

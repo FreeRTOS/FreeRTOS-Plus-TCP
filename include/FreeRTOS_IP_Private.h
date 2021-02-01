@@ -59,18 +59,6 @@
     #define ipDECL_CAST_PTR_FUNC_FOR_TYPE( TYPE )          TYPE * vCastPointerTo_ ## TYPE( void * pvArgument )
     #define ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TYPE )    const TYPE * vCastConstPointerTo_ ## TYPE( const void * pvArgument )
 
-/**
- * Structure to hold the information about the Network parameters.
- */
-    typedef struct xNetworkAddressingParameters
-    {
-        uint32_t ulDefaultIPAddress; /**< The default IP address */
-        uint32_t ulNetMask;          /**< The netmask */
-        uint32_t ulGatewayAddress;   /**< The gateway address */
-        uint32_t ulDNSServerAddress; /**< The DNS server address */
-        uint32_t ulBroadcastAddress; /**< The Broadcast address */
-    } NetworkAddressingParameters_t;
-
     extern BaseType_t xTCPWindowLoggingLevel;
     extern QueueHandle_t xNetworkEventQueue;
 
@@ -194,14 +182,14 @@
         #include "pack_struct_start.h"
         struct xICMPHeader_IPv6
         {
-            uint8_t ucTypeOfMessage;      /**< The message type.     0 +  1 = 1 */
-            uint8_t ucTypeOfService;      /**< Type of service.      1 +  1 = 2 */
-            uint16_t usChecksum;          /**< Checksum.             2 +  2 = 4 */
-            uint32_t ulReserved;          /**< Reserved.             4 +  4 = 8 */
-            IPv6_Address_t xIPv6_Address; /**< The IPv6 address.     8 + 16 = 24 */
-            uint8_t ucOptionType;         /**< The option type.     24 +  1 = 25 */
-            uint8_t ucOptionLength;       /**< The option length.   25 +  1 = 26 */
-            uint8_t ucOptionBytes[ 6 ];   /**< Option bytes.        26 +  6 = 32 */
+            uint8_t ucTypeOfMessage;     /**< The message type.     0 +  1 = 1 */
+            uint8_t ucTypeOfService;     /**< Type of service.      1 +  1 = 2 */
+            uint16_t usChecksum;         /**< Checksum.             2 +  2 = 4 */
+            uint32_t ulReserved;         /**< Reserved.             4 +  4 = 8 */
+            IPv6_Address_t xIPv6Address; /**< The IPv6 address.     8 + 16 = 24 */
+            uint8_t ucOptionType;        /**< The option type.     24 +  1 = 25 */
+            uint8_t ucOptionLength;      /**< The option length.   25 +  1 = 26 */
+            uint8_t ucOptionBytes[ 6 ];  /**< Option bytes.        26 +  6 = 32 */
         }
         #include "pack_struct_end.h"
         typedef struct xICMPHeader_IPv6 ICMPHeader_IPv6_t;
@@ -297,18 +285,6 @@
     #include "pack_struct_end.h"
     typedef struct xTCP_HEADER TCPHeader_t;
 
-    #include "pack_struct_start.h"
-    struct xPSEUDO_HEADER
-    {
-        uint32_t ulSourceAddress;      /**< Source IP-address. */
-        uint32_t ulDestinationAddress; /**< Destination IP-address. */
-        uint8_t ucZeros;               /**< A byte with value zero ( filler ). */
-        uint8_t ucProtocol;            /**< The protocol. */
-        uint16_t usUDPLength;          /**< The UDP length. */
-    }
-    #include "pack_struct_end.h"
-    typedef struct xPSEUDO_HEADER PseudoHeader_t;
-
 /*-----------------------------------------------------------*/
 /* Nested protocol packets.                                  */
 /*-----------------------------------------------------------*/
@@ -393,8 +369,7 @@
         {
             EthernetHeader_t xEthernetHeader;
             IPHeader_IPv6_t xIPHeader;
-/*		ICMPHeader_t xICMPHeader; */
-            ICMPHeader_IPv6_t xICMPHeader_IPv6;
+            ICMPHeader_IPv6_t xICMPHeaderIPv6;
         }
         #include "pack_struct_end.h"
         typedef struct xICMP_PACKET_IPv6 ICMPPacket_IPv6_t;
@@ -499,11 +474,11 @@
  */
     typedef union xPROT_HEADERS
     {
-        ICMPHeader_t xICMPHeader;               /**< Union member: ICMP header */
-        UDPHeader_t xUDPHeader;                 /**< Union member: UDP header */
-        TCPHeader_t xTCPHeader;                 /**< Union member: TCP header */
+        ICMPHeader_t xICMPHeader;              /**< Union member: ICMP header */
+        UDPHeader_t xUDPHeader;                /**< Union member: UDP header */
+        TCPHeader_t xTCPHeader;                /**< Union member: TCP header */
         #if ( ipconfigUSE_IPv6 != 0 )
-            ICMPHeader_IPv6_t xICMPHeader_IPv6; /**< Union member: ICMPv6 header */
+            ICMPHeader_IPv6_t xICMPHeaderIPv6; /**< Union member: ICMPv6 header */
         #endif
     } ProtocolHeaders_t;
 
@@ -720,6 +695,8 @@
  * interrupt.  If a non zero value is returned, then the calling ISR should
  * perform a context switch before exiting the ISR.
  */
+    /* Not every application will call the function below. */
+    /* misra_c_2012_rule_8_6_violation */
     BaseType_t FreeRTOS_ReleaseFreeNetworkBufferFromISR( void );
 
 /*
@@ -1091,6 +1068,9 @@
  */
     void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket );
 
+/* MISRA will complain that the following static functions are never called.
+ * misra_c_2012_rule_2_2_violation */
+
 /*
  * Some helping function, their meaning should be clear
  */
@@ -1147,18 +1127,21 @@
     #if ( ipconfigUSE_IPv6 != 0 )
         static portINLINE size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
         {
-            BaseType_t xResult;
+            size_t uxResult;
+            /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+            /* misra_c_2012_rule_11_3_violation */
+            const EthernetHeader_t * pxHeader = ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-            if( ( ( EthernetHeader_t * ) ( pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType == ipIPv6_FRAME_TYPE )
+            if( pxHeader->usFrameType == ( uint16_t ) ipIPv6_FRAME_TYPE )
             {
-                xResult = ipSIZE_OF_IPv6_HEADER;
+                uxResult = ipSIZE_OF_IPv6_HEADER;
             }
             else
             {
-                xResult = ipSIZE_OF_IPv4_HEADER;
+                uxResult = ipSIZE_OF_IPv4_HEADER;
             }
 
-            return xResult;
+            return uxResult;
         }
     #else /* if ( ipconfigUSE_IPv6 != 0 ) */
         /* IPv6 is not used, return a fixed value of 20. */
@@ -1171,18 +1154,18 @@
     #if ( ipconfigUSE_IPv6 != 0 )
         static portINLINE size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
         {
-            BaseType_t xResult;
+            size_t uxResult;
 
             if( ( pxSocket != NULL ) && ( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED ) )
             {
-                xResult = ipSIZE_OF_IPv6_HEADER;
+                uxResult = ipSIZE_OF_IPv6_HEADER;
             }
             else
             {
-                xResult = ipSIZE_OF_IPv4_HEADER;
+                uxResult = ipSIZE_OF_IPv4_HEADER;
             }
 
-            return xResult;
+            return uxResult;
         }
     #else /* if ( ipconfigUSE_IPv6 != 0 ) */
         /* IPv6 is not used, return a fixed value of 20. */
@@ -1193,34 +1176,41 @@
 /* Get the size of the IP-header.
  * The socket is checked for its type: IPv4 or IPv6. */
     #if ( ipconfigUSE_IPv6 != 0 )
-        static portINLINE BaseType_t xIPPayloadLength( NetworkBufferDescriptor_t * pxNetworkBuffer )
+        static portINLINE size_t uxIPPayloadLength( NetworkBufferDescriptor_t * pxNetworkBuffer )
         {
-            BaseType_t xResult;
+            size_t uxResult;
 
-            if( ( ( EthernetHeader_t * ) ( pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType == ipIPv6_FRAME_TYPE )
+            /* Map 'pucEthernetBuffer' onto an Ethernet Header or an IP-header struct for easy access to fields. */
+            /* misra_c_2012_rule_11_3_violation */
+            EthernetHeader_t * pxHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+            if( pxHeader->usFrameType == ipIPv6_FRAME_TYPE )
             {
-                xResult = ( ( IPHeader_IPv6_t * ) ( pxNetworkBuffer->pucEthernetBuffer + ipSIZE_OF_ETH_HEADER ) )->usPayloadLength;
+                IPHeader_IPv6_t * pxIPheader = ( IPHeader_IPv6_t * ) ( &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                uxResult = ( size_t ) pxIPheader->usPayloadLength;
             }
             else
             {
-                xResult = ( ( IPHeader_t * ) ( pxNetworkBuffer->pucEthernetBuffer + ipSIZE_OF_ETH_HEADER ) )->usLength;
+                IPHeader_t * pxIPHeader = ( IPHeader_t * ) ( &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                uxResult = ( size_t ) pxIPHeader->usLength;
             }
 
-            return xResult;
+            return uxResult;
         }
     #else /* if ( ipconfigUSE_IPv6 != 0 ) */
         /* IPv6 is not used, assume IPv4 */
-        static portINLINE BaseType_t xIPPayloadLength( NetworkBufferDescriptor_t * pxNetworkBuffer )
+        static portINLINE size_t xIPPayloadLength( NetworkBufferDescriptor_t * pxNetworkBuffer )
         {
-            BaseType_t xResult;
+            size_t uxResult;
 
-            xResult = ( ( IPHeader_t * ) ( pxNetworkBuffer->pucEthernetBuffer + ipSIZE_OF_ETH_HEADER ) )->usLength;
+            IPHeader_t * pxIPHeader = ( IPHeader_t * ) ( &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
-            return xResult;
+            uxResult = ( size_t ) pxIPHeader->usLength;
+
+            return uxResult;
         }
     #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
-
 
     #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
 

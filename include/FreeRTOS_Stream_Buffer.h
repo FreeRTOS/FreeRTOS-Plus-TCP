@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.1
+ * FreeRTOS+TCP V2.3.2
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -33,6 +33,7 @@
  */
 
 #ifndef FREERTOS_STREAM_BUFFER_H
+
     #define FREERTOS_STREAM_BUFFER_H
 
     #ifdef __cplusplus
@@ -47,10 +48,29 @@
         volatile size_t uxHead;              /**< next position store a new item */
         volatile size_t uxFront;             /**< iterator within the free space */
         size_t LENGTH;                       /**< const value: number of reserved elements */
-        uint8_t ucArray[ sizeof( size_t ) ]; /**< The buffer containing the data.  It may be allocated long than its default size. */
+        uint8_t ucArray[ sizeof( size_t ) ]; /**< array big enough to store any pointer address */
     } StreamBuffer_t;
 
+/* Function header of static inline functions: */
     static portINLINE void vStreamBufferClear( StreamBuffer_t * pxBuffer );
+    static portINLINE size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
+                                                  const size_t uxLower,
+                                                  const size_t uxUpper );
+    static portINLINE size_t uxStreamBufferDistance( const StreamBuffer_t * pxBuffer,
+                                                     const size_t uxLower,
+                                                     const size_t uxUpper );
+    static portINLINE size_t uxStreamBufferGetSpace( const StreamBuffer_t * pxBuffer );
+    static portINLINE size_t uxStreamBufferFrontSpace( const StreamBuffer_t * pxBuffer );
+    static portINLINE size_t uxStreamBufferGetSize( const StreamBuffer_t * pxBuffer );
+    static portINLINE size_t uxStreamBufferMidSpace( const StreamBuffer_t * pxBuffer );
+    static portINLINE void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
+                                                 size_t uxCount );
+    static portINLINE BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
+                                                             const size_t uxLeft,
+                                                             const size_t uxRight );
+    static portINLINE size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
+                                                   uint8_t ** ppucData );
+
     static portINLINE void vStreamBufferClear( StreamBuffer_t * pxBuffer )
     {
         /* Make the circular buffer empty */
@@ -59,11 +79,9 @@
         pxBuffer->uxFront = 0U;
         pxBuffer->uxMid = 0U;
     }
+
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
-                                                  const size_t uxLower,
-                                                  const size_t uxUpper );
     static portINLINE size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
                                                   const size_t uxLower,
                                                   const size_t uxUpper )
@@ -82,9 +100,9 @@
     }
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferDistance( const StreamBuffer_t * pxBuffer,
-                                                     const size_t uxLower,
-                                                     const size_t uxUpper );
+/* MISRA will complain that the statis function is never called,
+ * which is normal when included in some modules.
+ * misra_c_2012_rule_2_2_violation */
     static portINLINE size_t uxStreamBufferDistance( const StreamBuffer_t * pxBuffer,
                                                      const size_t uxLower,
                                                      const size_t uxUpper )
@@ -103,7 +121,6 @@
     }
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferGetSpace( const StreamBuffer_t * pxBuffer );
     static portINLINE size_t uxStreamBufferGetSpace( const StreamBuffer_t * pxBuffer )
     {
 /* Returns the number of items which can still be added to uxHead
@@ -115,7 +132,6 @@
     }
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferFrontSpace( const StreamBuffer_t * pxBuffer );
     static portINLINE size_t uxStreamBufferFrontSpace( const StreamBuffer_t * pxBuffer )
     {
 /* Distance between uxFront and uxTail
@@ -129,7 +145,6 @@
     }
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferGetSize( const StreamBuffer_t * pxBuffer );
     static portINLINE size_t uxStreamBufferGetSize( const StreamBuffer_t * pxBuffer )
     {
 /* Returns the number of items which can be read from uxTail
@@ -141,7 +156,6 @@
     }
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferMidSpace( const StreamBuffer_t * pxBuffer );
     static portINLINE size_t uxStreamBufferMidSpace( const StreamBuffer_t * pxBuffer )
     {
 /* Returns the distance between uxHead and uxMid */
@@ -153,19 +167,18 @@
 /*-----------------------------------------------------------*/
 
     static portINLINE void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
-                                                 size_t uxCount );
-    static portINLINE void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
                                                  size_t uxCount )
     {
 /* Increment uxMid, but no further than uxHead */
         size_t uxSize = uxStreamBufferMidSpace( pxBuffer );
+        size_t uxMoveCount = uxCount;
 
-        if( uxCount > uxSize )
+        if( uxMoveCount > uxSize )
         {
-            uxCount = uxSize;
+            uxMoveCount = uxSize;
         }
 
-        pxBuffer->uxMid += uxCount;
+        pxBuffer->uxMid += uxMoveCount;
 
         if( pxBuffer->uxMid >= pxBuffer->LENGTH )
         {
@@ -176,16 +189,14 @@
 
     static portINLINE BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
                                                              const size_t uxLeft,
-                                                             const size_t uxRight );
-    static portINLINE BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
-                                                             const size_t uxLeft,
                                                              const size_t uxRight )
     {
         BaseType_t xReturn;
         size_t uxTail = pxBuffer->uxTail;
 
-        /* Returns true if ( uxLeft < uxRight ) */
-        if( ( uxLeft < uxTail ) ^ ( uxRight < uxTail ) )
+        /* Returns true when either left or right finds
+         * itself before tail. */
+        if( ( ( ( uxLeft < uxTail ) ? 1U : 0U ) ^ ( ( uxRight < uxTail ) ? 1U : 0U ) ) != 0U )
         {
             if( uxRight < uxTail )
             {
@@ -212,8 +223,6 @@
     }
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
-                                                   uint8_t ** ppucData );
     static portINLINE size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
                                                    uint8_t ** ppucData )
     {

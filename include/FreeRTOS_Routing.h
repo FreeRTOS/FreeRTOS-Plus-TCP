@@ -44,15 +44,15 @@
     struct xNetworkInterface;
 
 /* Initialise the interface. */
-    typedef BaseType_t ( * NetworkInterfaceInitialiseFunction_t ) ( struct xNetworkInterface * /* pxDescriptor */ );
+    typedef BaseType_t ( * NetworkInterfaceInitialiseFunction_t ) ( struct xNetworkInterface * pxDescriptor );
 
 /* Send out an Ethernet packet. */
-    typedef BaseType_t ( * NetworkInterfaceOutputFunction_t ) ( struct xNetworkInterface * /* pxDescriptor */,
-                                                                NetworkBufferDescriptor_t * const /* pxNetworkBuffer */,
-                                                                BaseType_t /* xReleaseAfterSend */ );
+    typedef BaseType_t ( * NetworkInterfaceOutputFunction_t ) ( struct xNetworkInterface * pxDescriptor,
+                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                                BaseType_t xReleaseAfterSend );
 
 /* Return true as long as the LinkStatus on the PHY is present. */
-    typedef BaseType_t ( * GetPhyLinkStatusFunction_t ) ( struct xNetworkInterface * /* pxDescriptor */ );
+    typedef BaseType_t ( * GetPhyLinkStatusFunction_t ) ( struct xNetworkInterface * pxDescriptor );
 
 /** @brief These NetworkInterface access functions are collected in a struct: */
     typedef struct xNetworkInterface
@@ -196,13 +196,16 @@
         #define ENDPOINT_IS_IPv4( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 == 0U ) )
         #define ENDPOINT_IS_IPv6( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 != 0U ) )
 
-        static __inline void CONFIRM_EP_v4( const NetworkEndPoint_t * pxEndPoint )
+/* static functions in header files are not used in some modules, leading to
+ * misra_c_2012_rule_2_2_violation, complaining about dead code. */
+
+        static portINLINE void CONFIRM_EP_v4( const NetworkEndPoint_t * pxEndPoint )
         {
             ( void ) pxEndPoint;
             configASSERT( pxEndPoint != NULL );
             configASSERT( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED );
         }
-        static __inline void CONFIRM_EP_v6( const NetworkEndPoint_t * pxEndPoint )
+        static portINLINE void CONFIRM_EP_v6( const NetworkEndPoint_t * pxEndPoint )
         {
             ( void ) pxEndPoint;
             configASSERT( pxEndPoint != NULL );
@@ -215,12 +218,12 @@
         #define ENDPOINT_IS_IPv4( pxEndPoint )       ( 1 )
         #define ENDPOINT_IS_IPv6( pxEndPoint )       ( 0 )
 
-        static __inline void CONFIRM_EP_v4( const NetworkEndPoint_t * pxEndPoint )
+        static portINLINE void CONFIRM_EP_v4( const NetworkEndPoint_t * pxEndPoint )
         {
             ( void ) pxEndPoint;
             configASSERT( pxEndPoint != NULL );
         }
-        static __inline void CONFIRM_EP_v6( const NetworkEndPoint_t * pxEndPoint )
+        static portINLINE void CONFIRM_EP_v6( const NetworkEndPoint_t * pxEndPoint )
         {
             ( void ) pxEndPoint;
             configASSERT( 0 == 1 );
@@ -307,11 +310,7 @@
     NetworkEndPoint_t * FreeRTOS_MatchingEndpoint( NetworkInterface_t * pxNetworkInterface,
                                                    uint8_t * pucEthernetBuffer );
 
-/* Find an end-point that has a defined gateway.. */
-    NetworkEndPoint_t * FreeRTOS_MatchingEndpoint( NetworkInterface_t * pxNetworkInterface,
-                                                   uint8_t * pucEthernetBuffer );
-
-/* Return the default end-point.
+/* Find an end-point that has a defined gateway.
  * xIPType should equal ipTYPE_IPv4 or ipTYPE_IPv6. */
     NetworkEndPoint_t * FreeRTOS_FindGateWay( BaseType_t xIPType );
 
@@ -347,7 +346,7 @@
         UBaseType_t ulLocationsIP[ 8 ]; /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called from a particular location. */
     } RoutingStats_t;
 
-    extern RoutingStats_t xRoutingStats;
+    extern RoutingStats_t xRoutingStatistics;
 
     NetworkEndPoint_t * pxGetSocketEndpoint( Socket_t xSocket );
     void vSetSocketEndpoint( Socket_t xSocket,

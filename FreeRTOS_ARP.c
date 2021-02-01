@@ -140,7 +140,7 @@ eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * const px
     /* Some extra logging while still testing. */
     if( pxARPHeader->usOperation == ( uint16_t ) ipARP_REQUEST )
     {
-        /*if( ulSenderProtocolAddress != ulTargetProtocolAddress ) */
+        if( ulSenderProtocolAddress != ulTargetProtocolAddress )
         {
             if( pxTargetEndPoint != NULL )
             {
@@ -646,10 +646,14 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
             {
                 eReturn = prvCacheLookup( ulAddressToLookup, pxMACAddress, ppxEndPoint );
 
-                FreeRTOS_printf( ( "ARP %lxip %s using %lxip\n",
-                                   FreeRTOS_ntohl( ulOrginal ),
-                                   ( eReturn == eARPCacheHit ) ? "hit" : "miss",
-                                   FreeRTOS_ntohl( ulAddressToLookup ) ) );
+                if( ( eReturn != eARPCacheHit ) || ( ulOrginal != ulAddressToLookup ) )
+                {
+                    FreeRTOS_printf( ( "ARP %lxip %s using %lxip\n",
+                                       FreeRTOS_ntohl( ulOrginal ),
+                                       ( eReturn == eARPCacheHit ) ? "hit" : "miss",
+                                       FreeRTOS_ntohl( ulAddressToLookup ) ) );
+                }
+
                 /* It might be that the ARP has to go to the gateway. */
                 *pulIPAddress = ulAddressToLookup;
             }
@@ -912,6 +916,7 @@ BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
     NetworkEndPoint_t * pxEndPoint;
     size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
 
+    /* The IP-task is not supposed to call this function. */
     configASSERT( xIsCallingFromIPTask() == 0 );
 
     xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ), &( pxEndPoint ) );
@@ -925,7 +930,7 @@ BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
 
         while( uxSendCount > 0 )
         {
-            FreeRTOS_printf( ( "OutputARPRequest %lxip", FreeRTOS_ntohl( ulIPAddress ) ) );
+            FreeRTOS_printf( ( "OutputARPRequest %lxip\n", FreeRTOS_ntohl( ulIPAddress ) ) );
             FreeRTOS_OutputARPRequest( ulIPAddress );
 
             vTaskDelay( uxSleepTime );

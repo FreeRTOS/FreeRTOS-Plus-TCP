@@ -1141,7 +1141,7 @@
                                 /* ulProcessed is not incremented in this case
                                  * because the DNS server is not essential.  Only the
                                  * first DNS server address is taken. */
-                                FreeRTOS_printf( ( "DNS address: %lxip\n", ulParameter ) );
+                                FreeRTOS_printf( ( "DNS address: %lxip\n", FreeRTOS_ntohl( ulParameter ) ) );
                                 EP_IPv4_SETTINGS.ulDNSServerAddresses[ 0 ] = ulParameter;
                                 break;
 

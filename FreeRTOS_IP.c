@@ -548,6 +548,9 @@ static void prvIPTask( void * pvParameters )
             case eARPTimerEvent:
                 /* The ARP timer has expired, process the ARP cache. */
                 vARPAgeCache();
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    vNDAgeCache();
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
                 break;
 
             case eSocketBindEvent:
@@ -568,7 +571,7 @@ static void prvIPTask( void * pvParameters )
                     else
                 #endif
                 {
-                    struct freertos_sockaddr * pxAddress = ipPOINTER_CAST( struct freertos_sockaddr *, & ( xAddress ) );
+                    struct freertos_sockaddr * pxAddress = ipPOINTER_CAST( struct freertos_sockaddr *, &( xAddress ) );
 
                     pxAddress->sin_family = FREERTOS_AF_INET;
                     pxAddress->sin_addr = FreeRTOS_htonl( pxSocket->ulLocalAddress );
@@ -578,7 +581,7 @@ static void prvIPTask( void * pvParameters )
                 /* 'ulLocalAddress' and 'usLocalPort' will be set again by vSocketBind(). */
                 pxSocket->ulLocalAddress = 0;
                 pxSocket->usLocalPort = 0;
-                ( void ) vSocketBind( pxSocket, ipPOINTER_CAST( struct freertos_sockaddr *, & ( xAddress ) ), sizeof( xAddress ), pdFALSE );
+                ( void ) vSocketBind( pxSocket, ipPOINTER_CAST( struct freertos_sockaddr *, &( xAddress ) ), sizeof( xAddress ), pdFALSE );
 
                 /* Before 'eSocketBindEvent' was sent it was tested that
                  * ( xEventGroup != NULL ) so it can be used now to wake up the
@@ -1316,7 +1319,7 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
         #if ( ipconfigUSE_IPv6 != 0 )
             {
-                ( void ) memcpy( pxNewBuffer->xIPv6_Address.ucBytes, pxNetworkBuffer->xIPv6_Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                ( void ) memcpy( pxNewBuffer->xIPv6Address.ucBytes, pxNetworkBuffer->xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
             }
         #endif /* ipconfigUSE_IPv6 != 0 */
     }
@@ -1932,7 +1935,7 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
  *         succeeded.
  * @param pxEndPoint: The end-point that needs DHCP.
  */
-    BaseType_t xSendDHCPEvent( NetworkEndPoint_t * pxEndPoint )
+    BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
     {
         IPStackEvent_t xEventMessage;
         const TickType_t uxDontBlock = 0U;
@@ -3270,7 +3273,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
             {
                 size_t xICMPLength;
 
-                switch( pxProtocolHeaders->xICMPHeader_IPv6.ucTypeOfMessage )
+                switch( pxProtocolHeaders->xICMPHeaderIPv6.ucTypeOfMessage )
                 {
                     case ipICMP_PING_REQUEST_IPv6:
                     case ipICMP_PING_REPLY_IPv6:
@@ -3331,7 +3334,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                             if( xCount < 5 )
                             {
                                 FreeRTOS_printf( ( "usGenerateProtocolChecksum: UDP packet from %xip without CRC dropped\n",
-                                                   ( printf_unsigned ) FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
+                                                   FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
                                 xCount++;
                             }
                         }
@@ -3824,7 +3827,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         else if( ( uxMinLastSize * ipMONITOR_PERCENTAGE_90 ) > ( uxMinSize * ipMONITOR_PERCENTAGE_100 ) )
         {
             uxMinLastSize = uxMinSize;
-            FreeRTOS_printf( ( "Heap: current %d lowest %u\n", ( printf_signed ) xPortGetFreeHeapSize(), ( printf_unsigned ) uxMinSize ) );
+            FreeRTOS_printf( ( "Heap: current %d lowest %u\n", xPortGetFreeHeapSize(), uxMinSize ) );
         }
         else
         {
@@ -3889,53 +3892,157 @@ uint32_t FreeRTOS_GetIPAddress( void )
 }
 /*-----------------------------------------------------------*/
 
-#if 0
+#if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
 
 /*
- * The helper functions here below can not exist in a multi-interface environment.
+ * The helper functions here below assume that there is a single
+ * interface and a single end-point (ipconfigCOMPATIBLE_WITH_SINGLE)
+ */
+
+/**
+ * @brief Set the IP-address of device.
+ *
+ * @param ulIPAddress: The new IP-address.
  */
     void FreeRTOS_SetIPAddress( uint32_t ulIPAddress )
     {
         /* Sets the IP address of the NIC. */
-        *ipLOCAL_IP_ADDRESS_POINTER = ulIPAddress;
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            pxEndPoint->ipv4_settings.ulIPAddress = ulIPAddress;
+        }
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Get the gateway address of the subnet.
+ *
+ * @return The IP-address of the gateway, zero if a gateway is
+ *         not used/defined.
+ */
     uint32_t FreeRTOS_GetGatewayAddress( void )
     {
-        return xNetworkAddressing.ulGatewayAddress;
+        uint32_t ulIPAddress = 0U;
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            ulIPAddress = pxEndPoint->ipv4_settings.ulGatewayAddress;
+        }
+
+        return ulIPAddress;
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Get the DNS server address.
+ *
+ * @return The IP address of the DNS server.
+ */
     uint32_t FreeRTOS_GetDNSServerAddress( void )
     {
-        return xNetworkAddressing.ulDNSServerAddress;
+        uint32_t ulIPAddress = 0U;
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ];
+        }
+
+        return ulIPAddress;
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Get the netmask for the subnet.
+ *
+ * @return The 32 bit netmask for the subnet.
+ */
     uint32_t FreeRTOS_GetNetmask( void )
     {
-        return xNetworkAddressing.ulNetMask;
-    }
+        uint32_t ulIPAddress = 0U;
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
+        if( pxEndPoint != NULL )
+        {
+            ulIPAddress = pxEndPoint->ipv4_settings.ulNetMask;
+        }
+
+        return ulIPAddress;
+    }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Update the MAC address.
+ *
+ * @param[in] ucMACAddress: the MAC address to be set.
+ */
+    void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
+    {
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            /* Copy the MAC address at the start of the default packet header fragment. */
+            ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ( const void * ) ucMACAddress, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+        }
+    }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the MAC address.
+ *
+ * @return The pointer to MAC address.
+ */
     const uint8_t * FreeRTOS_GetMACAddress( void )
     {
-        return ipLOCAL_MAC_ADDRESS;
+        const uint8_t * pucReturn = NULL;
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            /* Copy the MAC address at the start of the default packet header fragment. */
+            pucReturn = pxEndPoint->xMACAddress.ucBytes;
+        }
+
+        return pucReturn;
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Set the netmask for the subnet.
+ *
+ * @param[in] ulNetmask: The 32 bit netmask of the subnet.
+ */
     void FreeRTOS_SetNetmask( uint32_t ulNetmask )
     {
-        xNetworkAddressing.ulNetMask = ulNetmask;
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            pxEndPoint->ipv4_settings.ulNetMask = ulNetmask;
+        }
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Set the gateway address.
+ *
+ * @param[in] ulGatewayAddress: The gateway address.
+ */
     void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress )
     {
-        xNetworkAddressing.ulGatewayAddress = ulGatewayAddress;
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            pxEndPoint->ipv4_settings.ulGatewayAddress = ulGatewayAddress;
+        }
     }
 /*-----------------------------------------------------------*/
-#endif /* 0 */
+#endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
 
 #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 )
 
@@ -4184,7 +4291,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
 
         default:
             /* Using function "snprintf". */
-            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( printf_signed ) xErrnum );
+            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", xErrnum );
             pcName = NULL;
             break;
     }

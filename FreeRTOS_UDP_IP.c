@@ -478,8 +478,8 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
                         }
                         else
                         {
-                            struct freertos_sockaddr * xSourceAddress4 = ipPOINTER_CAST( struct freertos_sockaddr *, & ( xSourceAddress ) );
-                            struct freertos_sockaddr * destinationAddress4 = ipPOINTER_CAST( struct freertos_sockaddr *, & ( destinationAddress ) );
+                            struct freertos_sockaddr * xSourceAddress4 = ipPOINTER_CAST( struct freertos_sockaddr *, &( xSourceAddress ) );
+                            struct freertos_sockaddr * destinationAddress4 = ipPOINTER_CAST( struct freertos_sockaddr *, &( destinationAddress ) );
                             xSourceAddress4->sin_addr = pxNetworkBuffer->ulIPAddress;
                             destinationAddress4->sin_addr = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
                             xSourceAddress4->sin_family = FREERTOS_AF_INET;
@@ -502,8 +502,8 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 
                     if( xHandler( pxSocket,
                                   pcData, ( size_t ) uxPayloadSize,
-                                  ipPOINTER_CAST( struct freertos_sockaddr *, & ( xSourceAddress ) ),
-                                  ipPOINTER_CAST( struct freertos_sockaddr *, & ( destinationAddress ) ) ) != pdFALSE )
+                                  ipPOINTER_CAST( struct freertos_sockaddr *, &( xSourceAddress ) ),
+                                  ipPOINTER_CAST( struct freertos_sockaddr *, &( destinationAddress ) ) ) != pdFALSE )
                     {
                         xReturn = pdFAIL; /* xHandler has consumed the data, do not add it to .xWaitingPacketsList'. */
                     }

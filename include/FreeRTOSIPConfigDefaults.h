@@ -139,7 +139,16 @@
     #define ipconfigUSE_TCP    ( 1 )
 #endif
 
+#ifndef ipconfigCOMPATIBLE_WITH_SINGLE
+    #define ipconfigCOMPATIBLE_WITH_SINGLE    ( 0 )
+#endif
+
 #if ipconfigUSE_TCP
+
+/* Disable IPv6 by default. */
+    #ifndef ipconfigUSE_DHCPv6
+        #define ipconfigUSE_DHCPv6    ( 0 )
+    #endif
 
 /* Include support for TCP scaling windows */
     #ifndef ipconfigUSE_TCP_WIN
@@ -398,11 +407,17 @@
 
 /* _HT_ the default value of ipconfigTCP_MSS should somehow
  * depend on the IP version in use. */
-    #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) )
+    #if ( ipconfigUSE_DHCPv6 != 0 )
+        #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) )
+    #else
+        #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) )
+    #endif
 #endif
 
-#if ( ( ipconfigTCP_MSS + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) > ipconfigNETWORK_MTU )
-    #error The ipconfigTCP_MSS setting in FreeRTOSIPConfig.h is too large.
+#if ( ipconfigUSE_DHCPv6 != 0 )
+    #if ( ( ipconfigTCP_MSS + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) > ipconfigNETWORK_MTU )
+        #error The ipconfigTCP_MSS setting in FreeRTOSIPConfig.h is too large.
+    #endif
 #endif
 
 /* Each TCP socket has circular stream buffers for Rx and Tx, which

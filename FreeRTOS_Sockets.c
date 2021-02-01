@@ -1150,7 +1150,7 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
                         /* lint When xIsIPV6 it true, pxDestinationAddress_IPv6 is initialised. */
                         configASSERT( pxDestinationAddress_IPv6 != NULL );
                         ( void ) memcpy( pxUDPPacket_IPv6->xIPHeader.xDestinationAddress.ucBytes, pxDestinationAddress_IPv6->sin_addrv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); /*lint !e644 Variable 'pxDestinationAddress_IPv6' (line 797) may not have been initialized [MISRA 2012 Rule 9.1, mandatory]). */
-                        ( void ) memcpy( pxNetworkBuffer->xIPv6_Address.ucBytes, pxDestinationAddress_IPv6->sin_addrv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        ( void ) memcpy( pxNetworkBuffer->xIPv6Address.ucBytes, pxDestinationAddress_IPv6->sin_addrv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                         pxUDPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
                     }
                     else
@@ -1692,7 +1692,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                     else
                 #endif /* ipconfigUSE_IPv6 */
                 {
-                    ( void ) snprintf( pucReturn, sizeof( pucReturn ), "%lxip port %u to %lxip port %u", /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
+                    ( void ) snprintf( pucReturn, sizeof( pucReturn ), "%xip port %u to %xip port %u", /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
                                        pxSocket->ulLocalAddress,
                                        pxSocket->usLocalPort,
                                        pxSocket->u.xTCP.ulRemoteIP,
@@ -1714,7 +1714,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                 else
             #endif /* ipconfigUSE_IPv6 */
             {
-                ( void ) snprintf( pucReturn, sizeof( pucReturn ), "%lxip port %u", /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
+                ( void ) snprintf( pucReturn, sizeof( pucReturn ), "%xip port %u", /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
                                    pxSocket->ulLocalAddress,
                                    pxSocket->usLocalPort );
             }
@@ -4518,13 +4518,13 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     if( xResult != ( int32_t ) ulByteCount )
                     {
                         FreeRTOS_debug_printf( ( "lTCPAddRxdata: at %u: %d/%u bytes (tail %u head %u space %u front %u)\n",
-                                                 ( printf_unsigned ) uxOffset,
-                                                 ( printf_signed ) xResult,
-                                                 ( printf_unsigned ) ulByteCount,
-                                                 ( printf_unsigned ) pxStream->uxTail,
-                                                 ( printf_unsigned ) pxStream->uxHead,
-                                                 ( printf_unsigned ) uxStreamBufferFrontSpace( pxStream ),
-                                                 ( printf_unsigned ) pxStream->uxFront ) );
+                                                 uxOffset,
+                                                 xResult,
+                                                 ulByteCount,
+                                                 pxStream->uxTail,
+                                                 pxStream->uxHead,
+                                                 uxStreamBufferFrontSpace( pxStream ),
+                                                 pxStream->uxFront ) );
                     }
                 }
             #endif /* ipconfigHAS_DEBUG_PRINTF */
@@ -5083,7 +5083,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 #endif
                 {
                     ( void ) snprintf( pcRemoteIp, /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
-                                       sizeof( pcRemoteIp ), "%lxip", pxSocket->u.xTCP.ulRemoteIP );
+                                       sizeof( pcRemoteIp ), "%xip", pxSocket->u.xTCP.ulRemoteIP );
                 }
 
                 FreeRTOS_printf( ( "TCP %5d %-*s:%5d %d/%d %-13.13s %6lu %6u%s\n",
@@ -5113,10 +5113,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             }
 
             FreeRTOS_printf( ( "FreeRTOS_netstat: %u sockets %u < %u < %d buffers free\n",
-                               ( printf_unsigned ) count,
-                               ( printf_unsigned ) uxMinimum,
-                               ( printf_unsigned ) uxCurrent,
-                               ( printf_signed ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ) );
+                               count,
+                               uxMinimum,
+                               uxCurrent,
+                               ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ) );
         }
     }
 
