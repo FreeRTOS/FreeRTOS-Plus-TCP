@@ -13,7 +13,7 @@ BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 {
     BaseType_t xReturn;
 
-//    __CPROVER_assert( pxNetworkBuffer != NULL, "The network Buffer cannot be NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "The network Buffer cannot be NULL" );
 
     return xReturn;
 }
@@ -25,7 +25,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 {
     BaseType_t xReturn;
 
-  //  __CPROVER_assert( pxNetworkBuffer != NULL, "The network Buffer cannot be NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "The network Buffer cannot be NULL" );
 
     return xReturn;
 }
@@ -36,35 +36,6 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                             const uint32_t ulIPAddress )
 {
     /* The MAC address can be NULL or non-NULL. */
-}
-
-/* Function Abstraction:
- * Function vARPRefreshCacheEntry is proven to be memory safe separately. */
-eFrameProcessingResult_t __CPROVER_file_local_FreeRTOS_IP_c_prvProcessICMPPacket( ICMPPacket_t * const pxICMPPacket )
-{
-    eFrameProcessingResult_t eReturn;
-//    __CPROVER_assert( pxICMPPacket != NULL, "ICMP packet sent cannot be NULL" );
-
-    return eReturn;
-}
-
-
-uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
-                                     size_t uxBufferLength,
-                                     BaseType_t xOutgoingPacket )
-{
-    uint16_t usReturn;
-    return usReturn;
-}
-
-eFrameProcessingResult_t __CPROVER_file_local_FreeRTOS_IP_c_prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPacket,
-                                                      const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                      UBaseType_t uxHeaderLength )
-{
-    eFrameProcessingResult_t eReturn;
-    //__CPROVER_assert( pxIPPacket != NULL, "IP packet sent cannot be NULL" );
-
-    return eReturn;
 }
 
 /* Signature of function under test (prvProcessIPPacket). The function name is
@@ -81,7 +52,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 {
     uint16_t usReturn;
 
-    //__CPROVER_assert( pucNextData != NULL, "pucNext data cannot be NULL" );
+    __CPROVER_assert( pucNextData != NULL, "pucNext data cannot be NULL" );
 
     /* Return an arbitrary value. */
     return usReturn;
@@ -93,10 +64,15 @@ void harness()
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
     size_t xLocalDatalength;
+    uint8_t ucVersionHeaderLength;
 
-    /* Minimum length of the pxNetworkBuffer->xDataLength is at least the size of the IPPacket_t. */
-    __CPROVER_assume( ( xLocalDatalength >= sizeof( IPPacket_t ) + sizeof(ProtocolHeaders_t) ) &&
+    /* Minimum length of the pxNetworkBuffer->xDataLength is at least the size of the IPPacket_t.
+     * But since we are casting the headers to ProtocolHeaders_t, we need to add the size of that
+     * data structure as well which is a union. Additionally, there will be space required for the
+     * IP header options. */
+    __CPROVER_assume( ( xLocalDatalength > sizeof( IPPacket_t ) + sizeof( ProtocolHeaders_t ) + ( ( ucVersionHeaderLength & 0x0F ) << 2 ) ) &&
                       ( xLocalDatalength <= ipTOTAL_ETHERNET_FRAME_SIZE ) );
+
 
     pxNetworkBuffer->xDataLength = xLocalDatalength;
 
@@ -104,11 +80,13 @@ void harness()
     //pxNetworkBuffer->pucEthernetBuffer = nondet_bool() ? NULL : malloc( xLocalDatalength );
     pxNetworkBuffer->pucEthernetBuffer = malloc( xLocalDatalength );
 
-    //malloc( sizeof( IPPacket_t ) );//malloc(xLocalDatalength);//malloc( ipTOTAL_ETHERNET_FRAME_SIZE );
-    //__CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     /* Only IPv4 frames are supported. */
     __CPROVER_assume( ( ( EthernetHeader_t *) ( pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType == ipIPv4_FRAME_TYPE );
+
+    /* Put the header length used to malloc the ethernet buffer. */
+    ( ( IPPacket_t *) ( pxNetworkBuffer->pucEthernetBuffer ) )->xIPHeader.ucVersionHeaderLength = ucVersionHeaderLength;
 
     /* Assume that the list of interfaces/endpoints is not initialized.
      * These are defined in the FreeRTOS_Routing.c file and used as a

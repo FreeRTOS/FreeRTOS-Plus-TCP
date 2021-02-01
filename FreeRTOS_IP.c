@@ -2774,7 +2774,10 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     /* How many: total length minus the options and the lower headers. */
                     const size_t xMoveLen = pxNetworkBuffer->xDataLength - ( optlen + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ETH_HEADER );
 
-//                    if( xMoveLen <= ( ( size_t ) ( pucSource - pucTarget ) ) )
+
+                    /* If the length to be moved is smaller than the remaining bytes, then move
+                     * the memory chunk skipping over the IP options. */
+                    if( xMoveLen <= ( ( size_t ) ( pxNetworkBuffer->xDataLength - ( sizeof( EthernetHeader_t ) + uxHeaderLength ) ) ) )
                     {
                         ( void ) memmove( pucTarget, pucSource, xMoveLen );
 
@@ -2784,11 +2787,11 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                         pxIPHeader->ucVersionHeaderLength = ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
                                                             ( ( ipSIZE_OF_IPv4_HEADER >> 2 ) & 0x0FU );
                     }
-/*                    else
+                    else
                     {
+                       /* Something is not right. Release the buffer. */
                         eReturn = eReleaseBuffer;
                     }
-*/
                 }
             #else /* if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 ) */
                 {
