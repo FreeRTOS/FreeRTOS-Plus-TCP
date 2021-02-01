@@ -900,9 +900,6 @@ static void prvPassEthMessages( NetworkBufferDescriptor_t * pxDescriptor )
 
 static BaseType_t prvNetworkInterfaceInput( void )
 {
-    NetworkBufferDescriptor_t * pxCurDescriptor;
-    NetworkBufferDescriptor_t * pxNewDescriptor = NULL;
-
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
         NetworkBufferDescriptor_t * pxFirstDescriptor = NULL;
         NetworkBufferDescriptor_t * pxLastDescriptor = NULL;
@@ -916,7 +913,10 @@ static BaseType_t prvNetworkInterfaceInput( void )
 
     while( ( pxDMARxDescriptor->Status & ETH_DMARXDESC_OWN ) == 0u )
     {
+        NetworkBufferDescriptor_t * pxCurDescriptor;
+        NetworkBufferDescriptor_t * pxNewDescriptor = NULL;
         BaseType_t xAccepted = pdTRUE;
+
         /* Get the Frame Length of the received packet: subtract 4 bytes of the CRC */
         xReceivedLength = ( ( pxDMARxDescriptor->Status & ETH_DMARXDESC_FL ) >> ETH_DMARXDESC_FRAMELENGTHSHIFT ) - 4;
 
