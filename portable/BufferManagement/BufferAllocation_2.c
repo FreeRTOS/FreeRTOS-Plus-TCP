@@ -65,14 +65,14 @@
  * expressions, but lint doesn't like it.
  * If the expression is not as expected, the compiler will
  * detect a division-by-zero in an enum expression. */
-	#ifndef _lint
+    #ifndef _lint
         #define ASSERT_CONCAT_( a, b )    a ## b
         #define ASSERT_CONCAT( a, b )     ASSERT_CONCAT_( a, b )
         #define STATIC_ASSERT( e ) \
-        ; enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( !!( e ) ) }
+    ; enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( !!( e ) ) }
 
-    STATIC_ASSERT( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE );
-#endif
+        STATIC_ASSERT( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE );
+    #endif
 #endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
 
 /* A list of free (available) NetworkBufferDescriptor_t structures. */
@@ -191,7 +191,7 @@ uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
         /* Enough space is left at the start of the buffer to place a pointer to
          * the network buffer structure that references this Ethernet buffer.
          * Return a pointer to the start of the Ethernet buffer itself. */
-		pucEthernetBuffer = &( pucEthernetBuffer[ ipBUFFER_PADDING ] );
+        pucEthernetBuffer = &( pucEthernetBuffer[ ipBUFFER_PADDING ] );
     }
 
     return pucEthernetBuffer;
@@ -212,7 +212,7 @@ void vReleaseNetworkBuffer( uint8_t * pucEthernetBuffer )
 /*-----------------------------------------------------------*/
 
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t uxRequestedSizeBytes,
-															  TickType_t uxBlockTimeTicks )
+                                                              TickType_t uxBlockTimeTicks )
 {
     NetworkBufferDescriptor_t * pxReturn = NULL;
     size_t uxCount;
@@ -237,7 +237,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t uxRequested
         }
 
         /* If there is a semaphore available, there is a network buffer available. */
-		if( xSemaphoreTake( xNetworkBufferSemaphore, uxBlockTimeTicks ) == pdPASS )
+        if( xSemaphoreTake( xNetworkBufferSemaphore, uxBlockTimeTicks ) == pdPASS )
         {
             /* Protect the structure as it is accessed from tasks and interrupts. */
             taskENTER_CRITICAL();
@@ -279,13 +279,13 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t uxRequested
                      * stored pointer so the pointer value is not overwritten by the
                      * application when the buffer is used. */
                     *( ( NetworkBufferDescriptor_t ** ) ( pxReturn->pucEthernetBuffer ) ) = pxReturn;
-					pxReturn->pucEthernetBuffer = &( pxReturn->pucEthernetBuffer[ ipBUFFER_PADDING ] );
+                    pxReturn->pucEthernetBuffer = &( pxReturn->pucEthernetBuffer[ ipBUFFER_PADDING ] );
 
                     /* Store the actual size of the allocated buffer, which may be
                      * greater than the original requested size. */
                     pxReturn->xDataLength = uxByteCount;
-					pxReturn->pxEndPoint = NULL;
-					pxReturn->pxInterface = NULL;
+                    pxReturn->pxEndPoint = NULL;
+                    pxReturn->pxInterface = NULL;
 
                     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
                         {
@@ -319,23 +319,23 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t uxRequested
 
 NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t uxRequestedSizeBytes )
 {
-	/* If you want to allocate or relase network buffers from an ISR contect, please
-	 * use BufferAllocation_2.c in stead of this version. .
-	 */
-	configASSERT( ipFALSE_BOOL );
+    /* If you want to allocate or relase network buffers from an ISR contect, please
+     * use BufferAllocation_2.c in stead of this version. .
+     */
+    configASSERT( ipFALSE_BOOL );
 
-	return NULL;
+    return NULL;
 }
 /*-----------------------------------------------------------*/
 
 BaseType_t vNetworkBufferReleaseFromISR( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
-	/* If you want to allocate or relase network buffers from an ISR contect, please
-	 * use BufferAllocation_2.c in stead of this version. .
-	 */
-	configASSERT( ipFALSE_BOOL );
+    /* If you want to allocate or relase network buffers from an ISR contect, please
+     * use BufferAllocation_2.c in stead of this version. .
+     */
+    configASSERT( ipFALSE_BOOL );
 
-	return NULL;
+    return NULL;
 }
 /*-----------------------------------------------------------*/
 
@@ -397,12 +397,12 @@ UBaseType_t uxGetMinimumFreeNetworkBuffers( void )
 /*-----------------------------------------------------------*/
 
 NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxDescriptor,
-																 size_t xByteCount )
+                                                                 size_t xByteCount )
 {
     size_t xOriginalLength;
     uint8_t * pucBuffer;
-	size_t xNewSizeBytes = xByteCount;                          /* To avoid lint complain: function parameter modified [MISRA 2012 Rule 17.8, advisory]. */
-	NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor; /* Same reason. */
+    size_t xNewSizeBytes = xByteCount;                          /* To avoid lint complain: function parameter modified [MISRA 2012 Rule 17.8, advisory]. */
+    NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor; /* Same reason. */
 
     xOriginalLength = pxNetworkBuffer->xDataLength + ipBUFFER_PADDING;
     xNewSizeBytes = xNewSizeBytes + ipBUFFER_PADDING;
