@@ -1951,7 +1951,7 @@
             /* The stack doesn't support fragments, so the fragment offset field must always be zero.
              * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
              */
-            #if ( ipconfigADVERTISE_DONT_FRAGMENT_FLAG != 0 )
+            #if ( ipconfigFORCE_IP_DONT_FRAGMENT != 0 )
                 pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
             #else
                 pxIPHeader->usFragmentOffset = 0U;
