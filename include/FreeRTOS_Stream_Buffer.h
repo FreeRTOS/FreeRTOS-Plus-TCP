@@ -100,7 +100,7 @@
     }
 /*-----------------------------------------------------------*/
 
-/* MISRA will complain that the statis function is never called,
+/* MISRA will complain that the static/inline function is never called,
  * which is normal when included in some modules.
  * misra_c_2012_rule_2_2_violation */
     static portINLINE size_t uxStreamBufferDistance( const StreamBuffer_t * pxBuffer,
