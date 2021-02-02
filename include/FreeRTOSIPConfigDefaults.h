@@ -344,8 +344,8 @@
  * If set to 0, the stack will clear the "don't fragment" flag an all outgoing IP
  * packets therefore allowing fragmentation if it is needed.
  */
-#ifndef ipconfigADVERTISE_DONT_FRAGMENT_FLAG
-    #define ipconfigADVERTISE_DONT_FRAGMENT_FLAG    0
+#ifndef ipconfigFORCE_IP_DONT_FRAGMENT
+    #define ipconfigFORCE_IP_DONT_FRAGMENT    0
 #endif
 
 /* Configuration to control whether UDP packets with
