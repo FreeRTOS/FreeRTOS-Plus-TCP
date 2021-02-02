@@ -830,7 +830,7 @@
             #if ( ipconfigUSE_IPv6 == 0 )
                 pxAddrInfo->ai_addr = &( pxAddrInfo->xPrivateStorage.sockaddr4 );
             #else
-                pxAddrInfo->ai_addr = ipPOINTER_CAST( struct freertos_sockaddr *, &( pxAddrInfo->xPrivateStorage.sockaddr6 ) );
+                pxAddrInfo->ai_addr = ipPOINTER_CAST( struct freertos_sockaddr *, & ( pxAddrInfo->xPrivateStorage.sockaddr6 ) );
 
                 if( xFamily == ( BaseType_t ) FREERTOS_AF_INET6 )
                 {
