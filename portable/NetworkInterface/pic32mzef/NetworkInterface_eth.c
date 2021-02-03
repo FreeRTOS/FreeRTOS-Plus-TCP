@@ -877,7 +877,7 @@
             return true;
         }
 
-        #include "aws_application_version.h"
+        #include "iot_application_version.h"
 
         static int _Command_Version( SYS_CMD_DEVICE_NODE * pCmdIO,
                                      int argc,
