@@ -382,9 +382,6 @@
     #define ipFRAGMENTATION_PARAMETERS_OFFSET    ( 6 )
     #define ipSOCKET_OPTIONS_OFFSET              ( 6 )
 
-/* Only used when outgoing fragmentation is being used (FreeRTOSIPConfig.h
- * setting. */
-    #define ipGET_UDP_PAYLOAD_OFFSET_FOR_FRAGMENT( usFragmentOffset )    ( ( ( usFragmentOffset ) == 0 ) ? ipUDP_PAYLOAD_OFFSET_IPv4 : ipIP_PAYLOAD_OFFSET )
 
 /* The offset into a UDP packet at which the UDP data (payload) starts. */
     #define ipUDP_PAYLOAD_OFFSET_IPv4    ( sizeof( UDPPacket_t ) )
@@ -418,6 +415,27 @@
 
     #endif /* ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN */
 
+    #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
+        #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
+            /* The bits in the two byte IP header field that make up the fragment offset value. */
+            #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0xff1fU )
+            /* The bits in the two byte IP header field that make up the flags value. */
+            #define ipFRAGMENT_FLAGS_BIT_MASK          ( ( uint16_t ) 0x00e0U )
+            /* Don't Fragment Flag */
+            #define ipFRAGMENT_FLAGS_DONT_FRAGMENT     ( ( uint16_t ) 0x0040U )
+            /* More Fragments Flag */
+            #define ipFRAGMENT_FLAGS_MORE_FRAGMENTS    ( ( uint16_t ) 0x0020U )
+        #else
+            /* The bits in the two byte IP header field that make up the fragment offset value. */
+            #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0x1fffU )
+            /* The bits in the two byte IP header field that make up the flags value. */
+            #define ipFRAGMENT_FLAGS_BIT_MASK          ( ( uint16_t ) 0xe000U )
+            /* Don't Fragment Flag */
+            #define ipFRAGMENT_FLAGS_DONT_FRAGMENT     ( ( uint16_t ) 0x4000U )
+            /* More Fragments Flag */
+            #define ipFRAGMENT_FLAGS_MORE_FRAGMENTS    ( ( uint16_t ) 0x2000U )
+        #endif /* ipconfigBYTE_ORDER */
+    #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
 
 /* For convenience, a MAC address of all zeros and another of all 0xffs are
  * defined const for quick reference. */
