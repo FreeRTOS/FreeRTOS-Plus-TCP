@@ -115,16 +115,6 @@
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
 #endif
 
-#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
-    #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
-        /** @brief The bits in the two byte IP header field that make up the fragment offset value. */
-        #define ipFRAGMENT_OFFSET_BIT_MASK    ( ( uint16_t ) 0xff0f )
-    #else
-        /** @brief The bits in the two byte IP header field that make up the fragment offset value. */
-        #define ipFRAGMENT_OFFSET_BIT_MASK    ( ( uint16_t ) 0x0fff )
-    #endif /* ipconfigBYTE_ORDER */
-#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
-
 /** @brief The maximum time the IP task is allowed to remain in the Blocked state if no
  * events are posted to the network event queue. */
 #ifndef ipconfigMAX_IP_TASK_SLEEP_TIME
@@ -1156,18 +1146,15 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
         configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
     }
 
-    #ifndef _lint
-        {
-            /* Check if MTU is big enough. */
-            configASSERT( ( ( size_t ) ipconfigNETWORK_MTU ) >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
-            /* Check structure packing is correct. */
-            configASSERT( sizeof( EthernetHeader_t ) == ipEXPECTED_EthernetHeader_t_SIZE );
-            configASSERT( sizeof( ARPHeader_t ) == ipEXPECTED_ARPHeader_t_SIZE );
-            configASSERT( sizeof( IPHeader_t ) == ipEXPECTED_IPHeader_t_SIZE );
-            configASSERT( sizeof( ICMPHeader_t ) == ipEXPECTED_ICMPHeader_t_SIZE );
-            configASSERT( sizeof( UDPHeader_t ) == ipEXPECTED_UDPHeader_t_SIZE );
-        }
-    #endif /* ifndef _lint */
+    /* Check if MTU is big enough. */
+    configASSERT( ( ( size_t ) ipconfigNETWORK_MTU ) >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
+    /* Check structure packing is correct. */
+    configASSERT( sizeof( EthernetHeader_t ) == ipEXPECTED_EthernetHeader_t_SIZE );
+    configASSERT( sizeof( ARPHeader_t ) == ipEXPECTED_ARPHeader_t_SIZE );
+    configASSERT( sizeof( IPHeader_t ) == ipEXPECTED_IPHeader_t_SIZE );
+    configASSERT( sizeof( ICMPHeader_t ) == ipEXPECTED_ICMPHeader_t_SIZE );
+    configASSERT( sizeof( UDPHeader_t ) == ipEXPECTED_UDPHeader_t_SIZE );
+
     /* Attempt to create the queue used to communicate with the IP task. */
     xNetworkEventQueue = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
     configASSERT( xNetworkEventQueue != NULL );
@@ -1856,10 +1843,11 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
              * This method may decrease the usage of sparse network buffers. */
             uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
 
-            /* Ensure that the incoming packet is not fragmented (only outgoing
-             * packets can be fragmented) as these are the only handled IP frames
-             * currently. */
-            if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U )
+            /* Ensure that the incoming packet is not fragmented because the stack
+             * doesn't not support IP fragmentation. All but the last fragment coming in will have their
+             * "more fragments" flag set and the last fragment will have a non-zero offset.
+             * We need to drop the packet in either of those cases. */
+            if( ( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U ) || ( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_FLAGS_MORE_FRAGMENTS ) != 0U ) )
             {
                 /* Can not handle, fragmented packet. */
                 eReturn = eReleaseBuffer;
@@ -2251,6 +2239,15 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         pxICMPHeader->ucTypeOfMessage = ( uint8_t ) ipICMP_ECHO_REPLY;
         pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
         pxIPHeader->ulSourceIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+
+        /* The stack doesn't support fragments, so the fragment offset field must always be zero.
+         * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
+         */
+        #if ( ipconfigFORCE_IP_DONT_FRAGMENT != 0 )
+            pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
+        #else
+            pxIPHeader->usFragmentOffset = 0U;
+        #endif
 
         /* Update the checksum because the ucTypeOfMessage member in the header
          * has been changed to ipICMP_ECHO_REPLY.  This is faster than calling
