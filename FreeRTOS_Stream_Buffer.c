@@ -166,6 +166,7 @@ portINLINE void vStreamBufferClear( StreamBuffer_t * pxBuffer )
 }
 
 /*-----------------------------------------------------------*/
+
 /**
  * @brief Move the mid pointer forward by given byte count
  * @param[in] pxBuffer: The circular stream buffer.
@@ -238,6 +239,18 @@ portINLINE BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffe
     return xReturn;
 }
 /*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the pointer to data and the amount of data which can be read in one go.
+ *
+ * @param[in] pxBuffer: The circular stream buffer.
+ * @param[out] ppucData: Pointer to the data pointer which will point to the
+ *                       data which can be read.
+ *
+ * @return The number of bytes which can be read in one go (which might be less than
+ *         actual number of available bytes since this is a circular buffer and tail
+ *         can loop back to the start of the buffer).
+ */
 portINLINE size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
                                         uint8_t ** ppucData )
 {
