@@ -88,15 +88,9 @@
     #include "pack_struct_end.h"
     typedef struct xETH_HEADER EthernetHeader_t;
 
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
-    {
-        return ( EthernetHeader_t * ) pvArgument;
-    }
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( EthernetHeader_t );
 
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
-    {
-        return ( const EthernetHeader_t * ) pvArgument;
-    }
+    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( EthernetHeader_t );
 
 
     #include "pack_struct_start.h"
@@ -132,14 +126,8 @@
     #include "pack_struct_end.h"
     typedef struct xIP_HEADER IPHeader_t;
 
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPHeader_t )
-    {
-        return ( IPHeader_t * ) pvArgument;
-    }
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_t )
-    {
-        return ( const IPHeader_t * ) pvArgument;
-    }
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPHeader_t );
+    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_t );
 
 
     #include "pack_struct_start.h"
@@ -154,14 +142,8 @@
     #include "pack_struct_end.h"
     typedef struct xICMP_HEADER ICMPHeader_t;
 
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
-    {
-        return ( ICMPHeader_t * ) pvArgument;
-    }
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
-    {
-        return ( const ICMPHeader_t * ) pvArgument;
-    }
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_t );
+    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t );
 
 
     #include "pack_struct_start.h"
@@ -208,14 +190,8 @@
     #include "pack_struct_end.h"
     typedef struct xARP_PACKET ARPPacket_t;
 
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
-    {
-        return ( ARPPacket_t * ) pvArgument;
-    }
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
-    {
-        return ( const ARPPacket_t * ) pvArgument;
-    }
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t );
+    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ARPPacket_t );
 
 
     #include "pack_struct_start.h"
@@ -227,14 +203,8 @@
     #include "pack_struct_end.h"
     typedef struct xIP_PACKET IPPacket_t;
 
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t )
-    {
-        return ( IPPacket_t * ) pvArgument;
-    }
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPPacket_t )
-    {
-        return ( const IPPacket_t * ) pvArgument;
-    }
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t );
+    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPPacket_t );
 
 
     #include "pack_struct_start.h"
@@ -247,11 +217,7 @@
     #include "pack_struct_end.h"
     typedef struct xICMP_PACKET ICMPPacket_t;
 
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_t )
-    {
-        return ( ICMPPacket_t * ) pvArgument;
-    }
-
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_t );
 
     #include "pack_struct_start.h"
     struct xUDP_PACKET
@@ -263,14 +229,8 @@
     #include "pack_struct_end.h"
     typedef struct xUDP_PACKET UDPPacket_t;
 
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-    {
-        return ( UDPPacket_t * ) pvArgument;
-    }
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-    {
-        return ( const UDPPacket_t * ) pvArgument;
-    }
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t );
+    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t );
 
     #include "pack_struct_start.h"
     struct xTCP_PACKET
@@ -282,15 +242,8 @@
     #include "pack_struct_end.h"
     typedef struct xTCP_PACKET TCPPacket_t;
 
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
-    {
-        return ( TCPPacket_t * ) pvArgument;
-    }
-
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
-    {
-        return ( const TCPPacket_t * ) pvArgument;
-    }
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPPacket_t );
+    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TCPPacket_t );
 
 
 /**
@@ -305,14 +258,8 @@
         ICMPPacket_t xICMPPacket; /**< Union member: ICMP packet struct */
     } ProtocolPacket_t;
 
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
-    {
-        return ( ProtocolPacket_t * ) pvArgument;
-    }
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
-    {
-        return ( const ProtocolPacket_t * ) pvArgument;
-    }
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t );
+    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t );
 
 /**
  * Union for protocol headers to save space (RAM). Any packet cannot have more than one of
@@ -325,15 +272,8 @@
         TCPHeader_t xTCPHeader;   /**< Union member: TCP header */
     } ProtocolHeaders_t;
 
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
-    {
-        return ( ProtocolHeaders_t * ) pvArgument;
-    }
-
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
-    {
-        return ( const ProtocolHeaders_t * ) pvArgument;
-    }
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t );
+    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t );
 
 /* The maximum UDP payload length. */
     #define ipMAX_UDP_PAYLOAD_LENGTH    ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
@@ -797,14 +737,8 @@
         } u;                              /**< Union of TCP/UDP socket */
     } FreeRTOS_Socket_t;
 
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
-    {
-        return ( FreeRTOS_Socket_t * ) pvArgument;
-    }
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
-    {
-        return ( const FreeRTOS_Socket_t * ) pvArgument;
-    }
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t );
+    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t );
 
     #if ( ipconfigUSE_TCP == 1 )
 
@@ -882,22 +816,9 @@
  * if they are not being used anywhere. But their use depends on the
  * application and hence these functions are defined unconditionally.
  */
-    static portINLINE uint32_t ulChar2u32( const uint8_t * apChr );
-    static portINLINE uint32_t ulChar2u32( const uint8_t * apChr )
-    {
-        return ( ( ( uint32_t ) apChr[ 0 ] ) << 24 ) |
-               ( ( ( uint32_t ) apChr[ 1 ] ) << 16 ) |
-               ( ( ( uint32_t ) apChr[ 2 ] ) << 8 ) |
-               ( ( ( uint32_t ) apChr[ 3 ] ) );
-    }
+    portINLINE uint32_t ulChar2u32( const uint8_t * apChr );
 
-    static portINLINE uint16_t usChar2u16( const uint8_t * apChr );
-    static portINLINE uint16_t usChar2u16( const uint8_t * apChr )
-    {
-        return ( uint16_t )
-               ( ( ( ( uint32_t ) apChr[ 0 ] ) << 8 ) |
-                 ( ( ( uint32_t ) apChr[ 1 ] ) ) );
-    }
+    portINLINE uint16_t usChar2u16( const uint8_t * apChr );
 
 /* Check a single socket for retransmissions and timeouts */
     BaseType_t xTCPSocketCheck( FreeRTOS_Socket_t * pxSocket );
@@ -962,14 +883,8 @@
             EventGroupHandle_t xSelectGroup;
         } SocketSelect_t;
 
-        static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
-        {
-            return ( SocketSelect_t * ) pvArgument;
-        }
-        static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
-        {
-            return ( const SocketSelect_t * ) pvArgument;
-        }
+        portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t );
+        portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelect_t );
 
         extern void vSocketSelect( SocketSelect_t * pxSocketSet );
 
@@ -980,14 +895,8 @@
             SocketSelect_t * pxSocketSet; /**< The event group for the socket select functionality. */
         } SocketSelectMessage_t;
 
-        static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
-        {
-            return ( SocketSelectMessage_t * ) pvArgument;
-        }
-        static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
-        {
-            return ( const SocketSelectMessage_t * ) pvArgument;
-        }
+        portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t );
+        portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t );
 
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 

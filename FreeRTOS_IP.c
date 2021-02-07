@@ -156,6 +156,188 @@
 
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigHAS_INLINE_FUNCTIONS == 1 )
+    portINLINE int32_t FreeRTOS_max_int32( int32_t a,
+                                           int32_t b )
+    {
+        return ( a >= b ) ? a : b;
+    }
+    portINLINE uint32_t FreeRTOS_max_uint32( uint32_t a,
+                                             uint32_t b )
+    {
+        return ( a >= b ) ? a : b;
+    }
+    portINLINE int32_t FreeRTOS_min_int32( int32_t a,
+                                           int32_t b )
+    {
+        return ( a <= b ) ? a : b;
+    }
+    portINLINE uint32_t FreeRTOS_min_uint32( uint32_t a,
+                                             uint32_t b )
+    {
+        return ( a <= b ) ? a : b;
+    }
+    static portINLINE uint32_t FreeRTOS_round_up( uint32_t a,
+                                                  uint32_t d )
+    {
+        return d * ( ( a + d - 1U ) / d );
+    }
+    static portINLINE uint32_t FreeRTOS_round_down( uint32_t a,
+                                                    uint32_t d )
+    {
+        return d * ( a / d );
+    }
+
+    static portINLINE BaseType_t FreeRTOS_min_BaseType( BaseType_t a,
+                                                        BaseType_t b )
+    {
+        return ( a <= b ) ? a : b;
+    }
+
+#endif /* if ( ipconfigHAS_INLINE_FUNCTIONS == 1 ) */
+
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
+{
+    return ( EthernetHeader_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
+{
+    return ( const EthernetHeader_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPHeader_t )
+{
+    return ( IPHeader_t * ) pvArgument;
+}
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_t )
+{
+    return ( const IPHeader_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
+{
+    return ( ICMPHeader_t * ) pvArgument;
+}
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
+{
+    return ( const ICMPHeader_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
+{
+    return ( ARPPacket_t * ) pvArgument;
+}
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
+{
+    return ( const ARPPacket_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t )
+{
+    return ( IPPacket_t * ) pvArgument;
+}
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPPacket_t )
+{
+    return ( const IPPacket_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_t )
+{
+    return ( ICMPPacket_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+    return ( UDPPacket_t * ) pvArgument;
+}
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+    return ( const UDPPacket_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
+{
+    return ( TCPPacket_t * ) pvArgument;
+}
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
+{
+    return ( const TCPPacket_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
+{
+    return ( ProtocolPacket_t * ) pvArgument;
+}
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
+{
+    return ( const ProtocolPacket_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
+{
+    return ( ProtocolHeaders_t * ) pvArgument;
+}
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
+{
+    return ( const ProtocolHeaders_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
+{
+    return ( FreeRTOS_Socket_t * ) pvArgument;
+}
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
+{
+    return ( const FreeRTOS_Socket_t * ) pvArgument;
+}
+
+#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
+    {
+        return ( SocketSelect_t * ) pvArgument;
+    }
+    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
+    {
+        return ( const SocketSelect_t * ) pvArgument;
+    }
+
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
+    {
+        return ( SocketSelectMessage_t * ) pvArgument;
+    }
+    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
+    {
+        return ( const SocketSelectMessage_t * ) pvArgument;
+    }
+#endif /* if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
+
+
+/*
+ * Some helping function, their meaning should be clear.
+ * Going by MISRA rules, these utility functions should not be defined
+ * if they are not being used anywhere. But their use depends on the
+ * application and hence these functions are defined unconditionally.
+ */
+portINLINE uint32_t ulChar2u32( const uint8_t * apChr )
+{
+    return ( ( ( uint32_t ) apChr[ 0 ] ) << 24 ) |
+           ( ( ( uint32_t ) apChr[ 1 ] ) << 16 ) |
+           ( ( ( uint32_t ) apChr[ 2 ] ) << 8 ) |
+           ( ( ( uint32_t ) apChr[ 3 ] ) );
+}
+
+portINLINE uint16_t usChar2u16( const uint8_t * apChr )
+{
+    return ( uint16_t )
+           ( ( ( ( uint32_t ) apChr[ 0 ] ) << 8 ) |
+             ( ( ( uint32_t ) apChr[ 1 ] ) ) );
+}
+
+
+
 /**
  * Used in checksum calculation.
  */
@@ -354,8 +536,6 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
 
 /*-----------------------------------------------------------*/
 
-#include "random.h"
-
 /* Coverity wants to make pvParameters const, which would make it incompatible. Leave the
  * function signature as is. */
 
@@ -435,8 +615,6 @@ static void prvIPTask( void * pvParameters )
         #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
 
         iptraceNETWORK_EVENT_RECEIVED( xReceivedEvent.eEventType );
-
-        vAddBytesToPool( xReceivedEvent.eEventType );
 
         switch( xReceivedEvent.eEventType )
         {

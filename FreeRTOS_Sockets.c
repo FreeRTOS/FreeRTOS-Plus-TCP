@@ -94,6 +94,25 @@
 #define sock80_PERCENT     80U  /**< 80% of the defined limit. */
 #define sock100_PERCENT    100U /**< 100% of the defined limit. */
 
+portINLINE BaseType_t xSocketValid( Socket_t xSocket )
+{
+    BaseType_t xReturnValue = pdFALSE;
+
+    /*
+     * There are two values which can indicate an invalid socket:
+     * FREERTOS_INVALID_SOCKET and NULL.  In order to compare against
+     * both values, the code cannot be compliant with rule 11.4,
+     * hence the Coverity suppression statement below.
+     */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
+    if( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) )
+    {
+        xReturnValue = pdTRUE;
+    }
+
+    return xReturnValue;
+}
+
 #if ( ipconfigUSE_CALLBACKS != 0 )
     static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( F_TCP_UDP_Handler_t )
     {
