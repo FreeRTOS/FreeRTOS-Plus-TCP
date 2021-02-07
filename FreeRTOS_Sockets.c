@@ -94,6 +94,13 @@
 #define sock80_PERCENT     80U  /**< 80% of the defined limit. */
 #define sock100_PERCENT    100U /**< 100% of the defined limit. */
 
+/**
+ * @brief Check whether a given socket is valid or not. Validity is defined
+ *        as the socket not being NULL and not being Invalid.
+ * @param[in] xSocket: The socket to be checked.
+ * @return pdTRUE if the socket is valid, else pdFALSE.
+ *
+ */
 portINLINE BaseType_t xSocketValid( Socket_t xSocket )
 {
     BaseType_t xReturnValue = pdFALSE;

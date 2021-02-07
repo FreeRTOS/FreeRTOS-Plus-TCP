@@ -157,36 +157,73 @@
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigHAS_INLINE_FUNCTIONS == 1 )
+
+/**
+ * @brief Get the highest value of two int32's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The highest of the two values.
+ */
     portINLINE int32_t FreeRTOS_max_int32( int32_t a,
                                            int32_t b )
     {
         return ( a >= b ) ? a : b;
     }
 
+/**
+ * @brief Get the highest value of two uint32_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The highest of the two values.
+ */
     portINLINE uint32_t FreeRTOS_max_uint32( uint32_t a,
                                              uint32_t b )
     {
         return ( a >= b ) ? a : b;
     }
 
+/**
+ * @brief Get the lowest value of two int32_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The lowest of the two values.
+ */
     portINLINE int32_t FreeRTOS_min_int32( int32_t a,
                                            int32_t b )
     {
         return ( a <= b ) ? a : b;
     }
 
+/**
+ * @brief Get the lowest value of two uint32_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The lowest of the two values.
+ */
     portINLINE uint32_t FreeRTOS_min_uint32( uint32_t a,
                                              uint32_t b )
     {
         return ( a <= b ) ? a : b;
     }
 
+/**
+ * @brief Round-up a number to a multiple of 'd'.
+ * @param[in] a: the first value.
+ * @param[in] d: the second value.
+ * @return A multiple of d.
+ */
     portINLINE uint32_t FreeRTOS_round_up( uint32_t a,
                                            uint32_t d )
     {
         return d * ( ( a + d - 1U ) / d );
     }
 
+/**
+ * @brief Round-down a number to a multiple of 'd'.
+ * @param[in] a: the first value.
+ * @param[in] d: the second value.
+ * @return A multiple of d.
+ */
     portINLINE uint32_t FreeRTOS_round_down( uint32_t a,
                                              uint32_t d )
     {
@@ -377,6 +414,7 @@ portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
 }
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+
 /**
  * @brief Cast a given pointer to SocketSelect_t type pointer.
  */
@@ -411,11 +449,14 @@ portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
 #endif /* if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
 /** @} */
 
-/*
- * Some helping function, their meaning should be clear.
- * Going by MISRA rules, these utility functions should not be defined
- * if they are not being used anywhere. But their use depends on the
- * application and hence these functions are defined unconditionally.
+/**
+ * @brief Convert character array (of size 4) to equivalent 32-bit value.
+ * @param[in] apChr: The character array.
+ * @return 32-bit equivalent value extracted from the character array.
+ *
+ * @note Going by MISRA rules, these utility functions should not be defined
+ *        if they are not being used anywhere. But their use depends on the
+ *        application and hence these functions are defined unconditionally.
  */
 portINLINE uint32_t ulChar2u32( const uint8_t * apChr )
 {
@@ -425,6 +466,15 @@ portINLINE uint32_t ulChar2u32( const uint8_t * apChr )
            ( ( ( uint32_t ) apChr[ 3 ] ) );
 }
 
+/**
+ * @brief Convert character array (of size 2) to equivalent 16-bit value.
+ * @param[in] apChr: The character array.
+ * @return 16-bit equivalent value extracted from the character array.
+ *
+ * @note Going by MISRA rules, these utility functions should not be defined
+ *        if they are not being used anywhere. But their use depends on the
+ *        application and hence these functions are defined unconditionally.
+ */
 portINLINE uint16_t usChar2u16( const uint8_t * apChr )
 {
     return ( uint16_t )
