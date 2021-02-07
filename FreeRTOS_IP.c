@@ -256,106 +256,160 @@ portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
     return ( const ICMPHeader_t * ) pvArgument;
 }
 
-/** @} */
-
+/**
+ * @brief Cast a given pointer to ARPPacket_t type pointer.
+ */
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
 {
     return ( ARPPacket_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given constant pointer to ARPPacket_t type pointer.
+ */
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
 {
     return ( const ARPPacket_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given pointer to IPPacket_t type pointer.
+ */
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t )
 {
     return ( IPPacket_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given constant pointer to IPPacket_t type pointer.
+ */
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPPacket_t )
 {
     return ( const IPPacket_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given pointer to ICMPPacket_t type pointer.
+ */
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_t )
 {
     return ( ICMPPacket_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given pointer to UDPPacket_t type pointer.
+ */
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
 {
     return ( UDPPacket_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given constant pointer to UDPPacket_t type pointer.
+ */
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
 {
     return ( const UDPPacket_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given pointer to TCPPacket_t type pointer.
+ */
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
 {
     return ( TCPPacket_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given constant pointer to TCPPacket_t type pointer.
+ */
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
 {
     return ( const TCPPacket_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given pointer to ProtocolPacket_t type pointer.
+ */
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
 {
     return ( ProtocolPacket_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given constant pointer to ProtocolPacket_t type pointer.
+ */
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
 {
     return ( const ProtocolPacket_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given pointer to ProtocolHeaders_t type pointer.
+ */
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
 {
     return ( ProtocolHeaders_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given constant pointer to ProtocolHeaders_t type pointer.
+ */
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
 {
     return ( const ProtocolHeaders_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given pointer to FreeRTOS_Socket_t type pointer.
+ */
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
 {
     return ( FreeRTOS_Socket_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given constant pointer to FreeRTOS_Socket_t type pointer.
+ */
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
 {
     return ( const FreeRTOS_Socket_t * ) pvArgument;
 }
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-
+/**
+ * @brief Cast a given pointer to SocketSelect_t type pointer.
+ */
     portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
     {
         return ( SocketSelect_t * ) pvArgument;
     }
 
+/**
+ * @brief Cast a given constant pointer to SocketSelect_t type pointer.
+ */
     portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
     {
         return ( const SocketSelect_t * ) pvArgument;
     }
 
+/**
+ * @brief Cast a given pointer to SocketSelectMessage_t type pointer.
+ */
     portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
     {
         return ( SocketSelectMessage_t * ) pvArgument;
     }
 
+/**
+ * @brief Cast a given constant pointer to SocketSelectMessage_t type pointer.
+ */
     portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
     {
         return ( const SocketSelectMessage_t * ) pvArgument;
     }
 #endif /* if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
-
+/** @} */
 
 /*
  * Some helping function, their meaning should be clear.
