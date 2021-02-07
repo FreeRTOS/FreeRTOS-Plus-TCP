@@ -28,6 +28,9 @@ list(APPEND mock_define_list
 # list the files you would like to test here
 list(APPEND real_source_files
             ${TCP_SOURCES}
+            ${KERNEL_SOURCES}
+            ${MODULE_ROOT_DIR}/test/unit-test/stubs/FreeRTOS_ARP_stubs.c
+            ${MODULE_ROOT_DIR}/portable/BufferManagement/BufferAllocation_2.c
 	)
 # list the directories the module under test includes
 list(APPEND real_include_directories
