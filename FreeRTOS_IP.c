@@ -193,11 +193,6 @@
         return d * ( a / d );
     }
 
-    portINLINE BaseType_t FreeRTOS_min_BaseType( BaseType_t a,
-                                                 BaseType_t b )
-    {
-        return ( a <= b ) ? a : b;
-    }
 #endif /* if ( ipconfigHAS_INLINE_FUNCTIONS == 1 ) */
 
 

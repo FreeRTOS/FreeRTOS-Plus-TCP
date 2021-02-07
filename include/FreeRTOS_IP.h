@@ -212,22 +212,18 @@
                                                uint32_t d );
         portINLINE uint32_t FreeRTOS_round_down( uint32_t a,
                                                  uint32_t d );
-        portINLINE BaseType_t FreeRTOS_min_BaseType( BaseType_t a,
-                                                     BaseType_t b );
 
     #else /* if ( ipconfigHAS_INLINE_FUNCTIONS == 1 ) */
 
-        #define FreeRTOS_max_int32( a, b )       ( ( ( ( int32_t ) ( a ) ) >= ( ( int32_t ) ( b ) ) ) ? ( ( int32_t ) ( a ) ) : ( ( int32_t ) ( b ) ) )
-        #define FreeRTOS_max_uint32( a, b )      ( ( ( ( uint32_t ) ( a ) ) >= ( ( uint32_t ) ( b ) ) ) ? ( ( uint32_t ) ( a ) ) : ( ( uint32_t ) ( b ) ) )
+        #define FreeRTOS_max_int32( a, b )     ( ( ( ( int32_t ) ( a ) ) >= ( ( int32_t ) ( b ) ) ) ? ( ( int32_t ) ( a ) ) : ( ( int32_t ) ( b ) ) )
+        #define FreeRTOS_max_uint32( a, b )    ( ( ( ( uint32_t ) ( a ) ) >= ( ( uint32_t ) ( b ) ) ) ? ( ( uint32_t ) ( a ) ) : ( ( uint32_t ) ( b ) ) )
 
-        #define FreeRTOS_min_int32( a, b )       ( ( ( ( int32_t ) a ) <= ( ( int32_t ) b ) ) ? ( ( int32_t ) a ) : ( ( int32_t ) b ) )
-        #define FreeRTOS_min_uint32( a, b )      ( ( ( ( uint32_t ) a ) <= ( ( uint32_t ) b ) ) ? ( ( uint32_t ) a ) : ( ( uint32_t ) b ) )
+        #define FreeRTOS_min_int32( a, b )     ( ( ( ( int32_t ) a ) <= ( ( int32_t ) b ) ) ? ( ( int32_t ) a ) : ( ( int32_t ) b ) )
+        #define FreeRTOS_min_uint32( a, b )    ( ( ( ( uint32_t ) a ) <= ( ( uint32_t ) b ) ) ? ( ( uint32_t ) a ) : ( ( uint32_t ) b ) )
 
 /*  Round-up: divide a by d and round=up the result. */
-        #define FreeRTOS_round_up( a, d )        ( ( ( uint32_t ) ( d ) ) * ( ( ( ( uint32_t ) ( a ) ) + ( ( uint32_t ) ( d ) ) - 1UL ) / ( ( uint32_t ) ( d ) ) ) )
-        #define FreeRTOS_round_down( a, d )      ( ( ( uint32_t ) ( d ) ) * ( ( ( uint32_t ) ( a ) ) / ( ( uint32_t ) ( d ) ) ) )
-
-        #define FreeRTOS_min_BaseType( a, b )    ( ( ( BaseType_t ) ( a ) ) <= ( ( BaseType_t ) ( b ) ) ? ( ( BaseType_t ) ( a ) ) : ( ( BaseType_t ) ( b ) ) )
+        #define FreeRTOS_round_up( a, d )      ( ( ( uint32_t ) ( d ) ) * ( ( ( ( uint32_t ) ( a ) ) + ( ( uint32_t ) ( d ) ) - 1UL ) / ( ( uint32_t ) ( d ) ) ) )
+        #define FreeRTOS_round_down( a, d )    ( ( ( uint32_t ) ( d ) ) * ( ( ( uint32_t ) ( a ) ) / ( ( uint32_t ) ( d ) ) ) )
 
     #endif /* ipconfigHAS_INLINE_FUNCTIONS */
 

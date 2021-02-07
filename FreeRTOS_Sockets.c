@@ -3313,17 +3313,24 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             if( pxBuffer != NULL )
             {
-                BaseType_t xSpace = ( BaseType_t ) uxStreamBufferGetSpace( pxBuffer );
-                BaseType_t xRemain = ( BaseType_t ) pxBuffer->LENGTH - ( BaseType_t ) pxBuffer->uxHead;
+                size_t uxSpace = uxStreamBufferGetSpace( pxBuffer );
+                size_t uxRemain = pxBuffer->LENGTH - pxBuffer->uxHead;
 
-                *pxLength = FreeRTOS_min_BaseType( xSpace, xRemain );
+                if( uxRemain <= uxSpace )
+                {
+                    *pxLength = uxRemain;
+                }
+                else
+                {
+                    *pxLength = uxSpace;
+                }
+
                 pucReturn = &( pxBuffer->ucArray[ pxBuffer->uxHead ] );
             }
         }
 
         return pucReturn;
     }
-
 #endif /* ipconfigUSE_TCP */
 /*-----------------------------------------------------------*/
 
