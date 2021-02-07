@@ -43,9 +43,9 @@
 #include "FreeRTOS_IP_Private.h"
 
 
-static portINLINE size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
-                                              const size_t uxLower,
-                                              const size_t uxUpper )
+portINLINE size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
+                                       const size_t uxLower,
+                                       const size_t uxUpper )
 {
 /* Returns the space between uxLower and uxUpper, which equals to the distance minus 1 */
     size_t uxCount;
@@ -153,9 +153,9 @@ portINLINE void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
     pxBuffer->uxMid = uxMid;
 }
 /*-----------------------------------------------------------*/
-static portINLINE BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
-                                                         const size_t uxLeft,
-                                                         const size_t uxRight )
+portINLINE BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
+                                                  const size_t uxLeft,
+                                                  const size_t uxRight )
 {
     BaseType_t xReturn;
     size_t uxTail = pxBuffer->uxTail;

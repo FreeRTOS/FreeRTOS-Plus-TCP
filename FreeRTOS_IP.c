@@ -182,19 +182,19 @@
     }
 
     portINLINE uint32_t FreeRTOS_round_up( uint32_t a,
-                                                  uint32_t d )
+                                           uint32_t d )
     {
         return d * ( ( a + d - 1U ) / d );
     }
 
     portINLINE uint32_t FreeRTOS_round_down( uint32_t a,
-                                                    uint32_t d )
+                                             uint32_t d )
     {
         return d * ( a / d );
     }
 
     portINLINE BaseType_t FreeRTOS_min_BaseType( BaseType_t a,
-                                                        BaseType_t b )
+                                                 BaseType_t b )
     {
         return ( a <= b ) ? a : b;
     }
