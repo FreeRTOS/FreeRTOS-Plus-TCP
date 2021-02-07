@@ -162,38 +162,42 @@
     {
         return ( a >= b ) ? a : b;
     }
+
     portINLINE uint32_t FreeRTOS_max_uint32( uint32_t a,
                                              uint32_t b )
     {
         return ( a >= b ) ? a : b;
     }
+
     portINLINE int32_t FreeRTOS_min_int32( int32_t a,
                                            int32_t b )
     {
         return ( a <= b ) ? a : b;
     }
+
     portINLINE uint32_t FreeRTOS_min_uint32( uint32_t a,
                                              uint32_t b )
     {
         return ( a <= b ) ? a : b;
     }
-    static portINLINE uint32_t FreeRTOS_round_up( uint32_t a,
+
+    portINLINE uint32_t FreeRTOS_round_up( uint32_t a,
                                                   uint32_t d )
     {
         return d * ( ( a + d - 1U ) / d );
     }
-    static portINLINE uint32_t FreeRTOS_round_down( uint32_t a,
+
+    portINLINE uint32_t FreeRTOS_round_down( uint32_t a,
                                                     uint32_t d )
     {
         return d * ( a / d );
     }
 
-    static portINLINE BaseType_t FreeRTOS_min_BaseType( BaseType_t a,
+    portINLINE BaseType_t FreeRTOS_min_BaseType( BaseType_t a,
                                                         BaseType_t b )
     {
         return ( a <= b ) ? a : b;
     }
-
 #endif /* if ( ipconfigHAS_INLINE_FUNCTIONS == 1 ) */
 
 
