@@ -195,39 +195,74 @@
 
 #endif /* if ( ipconfigHAS_INLINE_FUNCTIONS == 1 ) */
 
+/**
+ * @defgroup CastingMacroFunctions Utility casting functions
+ * @brief These functions are used to cast various types of pointers
+ *        to other types. A major use would be to map various
+ *        headers/packets on to the incoming byte stream.
+ *
+ * @param[in] pvArgument: Pointer to be casted to another type.
+ *
+ * @retval Casted pointer will be returned without violating MISRA
+ *         rules.
+ * @{
+ */
 
+/**
+ * @brief Cast a given pointer to EthernetHeader_t type pointer.
+ */
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
 {
     return ( EthernetHeader_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given constant pointer to EthernetHeader_t type pointer.
+ */
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
 {
     return ( const EthernetHeader_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given pointer to IPHeader_t type pointer.
+ */
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPHeader_t )
 {
     return ( IPHeader_t * ) pvArgument;
 }
+
+/**
+ * @brief Cast a given constant pointer to IPHeader_t type pointer.
+ */
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_t )
 {
     return ( const IPHeader_t * ) pvArgument;
 }
 
+/**
+ * @brief Cast a given pointer to ICMPHeader_t type pointer.
+ */
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
 {
     return ( ICMPHeader_t * ) pvArgument;
 }
+
+/**
+ * @brief Cast a given constant pointer to ICMPHeader_t type pointer.
+ */
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
 {
     return ( const ICMPHeader_t * ) pvArgument;
 }
 
+/** @} */
+
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
 {
     return ( ARPPacket_t * ) pvArgument;
 }
+
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
 {
     return ( const ARPPacket_t * ) pvArgument;
@@ -237,6 +272,7 @@ portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t )
 {
     return ( IPPacket_t * ) pvArgument;
 }
+
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPPacket_t )
 {
     return ( const IPPacket_t * ) pvArgument;
@@ -251,6 +287,7 @@ portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
 {
     return ( UDPPacket_t * ) pvArgument;
 }
+
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
 {
     return ( const UDPPacket_t * ) pvArgument;
@@ -260,6 +297,7 @@ portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
 {
     return ( TCPPacket_t * ) pvArgument;
 }
+
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
 {
     return ( const TCPPacket_t * ) pvArgument;
@@ -269,6 +307,7 @@ portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
 {
     return ( ProtocolPacket_t * ) pvArgument;
 }
+
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
 {
     return ( const ProtocolPacket_t * ) pvArgument;
@@ -278,6 +317,7 @@ portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
 {
     return ( ProtocolHeaders_t * ) pvArgument;
 }
+
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
 {
     return ( const ProtocolHeaders_t * ) pvArgument;
@@ -287,6 +327,7 @@ portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
 {
     return ( FreeRTOS_Socket_t * ) pvArgument;
 }
+
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
 {
     return ( const FreeRTOS_Socket_t * ) pvArgument;
@@ -298,6 +339,7 @@ portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
     {
         return ( SocketSelect_t * ) pvArgument;
     }
+
     portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
     {
         return ( const SocketSelect_t * ) pvArgument;
@@ -307,6 +349,7 @@ portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
     {
         return ( SocketSelectMessage_t * ) pvArgument;
     }
+
     portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
     {
         return ( const SocketSelectMessage_t * ) pvArgument;
