@@ -53,42 +53,42 @@
         uint8_t ucArray[ sizeof( size_t ) ]; /**< array big enough to store any pointer address */
     } StreamBuffer_t;
 
-    portINLINE void vStreamBufferClear( StreamBuffer_t * pxBuffer );
+    void vStreamBufferClear( StreamBuffer_t * pxBuffer );
 /*-----------------------------------------------------------*/
 
-    portINLINE size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
-                                           const size_t uxLower,
-                                           const size_t uxUpper );
+    size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
+                                const size_t uxLower,
+                                const size_t uxUpper );
 /*-----------------------------------------------------------*/
 
-    portINLINE size_t uxStreamBufferDistance( const StreamBuffer_t * pxBuffer,
-                                              const size_t uxLower,
-                                              const size_t uxUpper );
+    size_t uxStreamBufferDistance( const StreamBuffer_t * pxBuffer,
+                                   const size_t uxLower,
+                                   const size_t uxUpper );
 /*-----------------------------------------------------------*/
 
-    portINLINE size_t uxStreamBufferGetSpace( const StreamBuffer_t * pxBuffer );
+    size_t uxStreamBufferGetSpace( const StreamBuffer_t * pxBuffer );
 /*-----------------------------------------------------------*/
 
-    portINLINE size_t uxStreamBufferFrontSpace( const StreamBuffer_t * pxBuffer );
+    size_t uxStreamBufferFrontSpace( const StreamBuffer_t * pxBuffer );
 /*-----------------------------------------------------------*/
 
-    portINLINE size_t uxStreamBufferGetSize( const StreamBuffer_t * pxBuffer );
+    size_t uxStreamBufferGetSize( const StreamBuffer_t * pxBuffer );
 /*-----------------------------------------------------------*/
 
-    portINLINE size_t uxStreamBufferMidSpace( const StreamBuffer_t * pxBuffer );
+    size_t uxStreamBufferMidSpace( const StreamBuffer_t * pxBuffer );
 /*-----------------------------------------------------------*/
 
-    portINLINE void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
-                                          size_t uxCount );
+    void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
+                               size_t uxCount );
 /*-----------------------------------------------------------*/
 
-    portINLINE BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
-                                                      const size_t uxLeft,
-                                                      const size_t uxRight );
+    BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
+                                           const size_t uxLeft,
+                                           const size_t uxRight );
 /*-----------------------------------------------------------*/
 
-    portINLINE size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
-                                            uint8_t ** ppucData );
+    size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
+                                 uint8_t ** ppucData );
 
 /*
  * Add bytes to a stream buffer.

@@ -51,9 +51,9 @@
  * @return The space between uxLower and uxUpper, which equals to the distance
  *         minus 1.
  */
-portINLINE size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
-                                       const size_t uxLower,
-                                       const size_t uxUpper )
+size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
+                            const size_t uxLower,
+                            const size_t uxUpper )
 {
     size_t uxCount;
 
@@ -74,9 +74,9 @@ portINLINE size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
  * @param[in] uxUpper: The upper value.
  * @return The distance between uxLower and uxUpper.
  */
-portINLINE size_t uxStreamBufferDistance( const StreamBuffer_t * pxBuffer,
-                                          const size_t uxLower,
-                                          const size_t uxUpper )
+size_t uxStreamBufferDistance( const StreamBuffer_t * pxBuffer,
+                               const size_t uxLower,
+                               const size_t uxUpper )
 {
     size_t uxCount;
 
@@ -97,7 +97,7 @@ portINLINE size_t uxStreamBufferDistance( const StreamBuffer_t * pxBuffer,
  * @return The number of items which can still be added to uxHead
  *         before hitting on uxTail
  */
-portINLINE size_t uxStreamBufferGetSpace( const StreamBuffer_t * pxBuffer )
+size_t uxStreamBufferGetSpace( const StreamBuffer_t * pxBuffer )
 {
     size_t uxHead = pxBuffer->uxHead;
     size_t uxTail = pxBuffer->uxTail;
@@ -112,7 +112,7 @@ portINLINE size_t uxStreamBufferGetSpace( const StreamBuffer_t * pxBuffer )
  * @return Distance between uxFront and uxTail or the number of items
  *         which can still be added to uxFront, before hitting on uxTail.
  */
-portINLINE size_t uxStreamBufferFrontSpace( const StreamBuffer_t * pxBuffer )
+size_t uxStreamBufferFrontSpace( const StreamBuffer_t * pxBuffer )
 {
     size_t uxFront = pxBuffer->uxFront;
     size_t uxTail = pxBuffer->uxTail;
@@ -128,7 +128,7 @@ portINLINE size_t uxStreamBufferFrontSpace( const StreamBuffer_t * pxBuffer )
  * @return The number of items which can be read from the tail before
  *        reaching the head.
  */
-portINLINE size_t uxStreamBufferGetSize( const StreamBuffer_t * pxBuffer )
+size_t uxStreamBufferGetSize( const StreamBuffer_t * pxBuffer )
 {
     size_t uxHead = pxBuffer->uxHead;
     size_t uxTail = pxBuffer->uxTail;
@@ -143,7 +143,7 @@ portINLINE size_t uxStreamBufferGetSize( const StreamBuffer_t * pxBuffer )
  * @param[in] pxBuffer: The circular stream buffer.
  * @return The space between the mid pointer and the head.
  */
-portINLINE size_t uxStreamBufferMidSpace( const StreamBuffer_t * pxBuffer )
+size_t uxStreamBufferMidSpace( const StreamBuffer_t * pxBuffer )
 {
     size_t uxHead = pxBuffer->uxHead;
     size_t uxMid = pxBuffer->uxMid;
@@ -156,7 +156,7 @@ portINLINE size_t uxStreamBufferMidSpace( const StreamBuffer_t * pxBuffer )
  * @brief Move Clear the stream buffer.
  * @param[in] pxBuffer: The circular stream buffer.
  */
-portINLINE void vStreamBufferClear( StreamBuffer_t * pxBuffer )
+void vStreamBufferClear( StreamBuffer_t * pxBuffer )
 {
     /* Make the circular buffer empty */
     pxBuffer->uxHead = 0U;
@@ -172,8 +172,8 @@ portINLINE void vStreamBufferClear( StreamBuffer_t * pxBuffer )
  * @param[in] pxBuffer: The circular stream buffer.
  * @param[in] uxCount: The byte count by which the mid pointer is to be moved.
  */
-portINLINE void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
-                                      size_t uxCount )
+void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
+                           size_t uxCount )
 {
     /* Increment uxMid, but no further than uxHead */
     size_t uxSize = uxStreamBufferMidSpace( pxBuffer );
@@ -205,9 +205,9 @@ portINLINE void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
  * @param[in] uxRight: The right value pointer in the stream buffer.
  * @return pdTRUE if uxLeft <= uxRight, else pdFALSE.
  */
-portINLINE BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
-                                                  const size_t uxLeft,
-                                                  const size_t uxRight )
+BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
+                                       const size_t uxLeft,
+                                       const size_t uxRight )
 {
     BaseType_t xReturn;
     size_t uxTail = pxBuffer->uxTail;
@@ -251,8 +251,8 @@ portINLINE BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffe
  *         actual number of available bytes since this is a circular buffer and tail
  *         can loop back to the start of the buffer).
  */
-portINLINE size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
-                                        uint8_t ** ppucData )
+size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
+                             uint8_t ** ppucData )
 {
     size_t uxNextTail = pxBuffer->uxTail;
     size_t uxSize = uxStreamBufferGetSize( pxBuffer );

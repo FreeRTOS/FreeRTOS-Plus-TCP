@@ -198,34 +198,18 @@
     #define FreeRTOS_ntohs( x )    FreeRTOS_htons( x )
     #define FreeRTOS_ntohl( x )    FreeRTOS_htonl( x )
 
-    #if ( ipconfigHAS_INLINE_FUNCTIONS == 1 )
-
-        portINLINE int32_t FreeRTOS_max_int32( int32_t a,
-                                               int32_t b );
-        portINLINE uint32_t FreeRTOS_max_uint32( uint32_t a,
-                                                 uint32_t b );
-        portINLINE int32_t FreeRTOS_min_int32( int32_t a,
-                                               int32_t b );
-        portINLINE uint32_t FreeRTOS_min_uint32( uint32_t a,
-                                                 uint32_t b );
-        portINLINE uint32_t FreeRTOS_round_up( uint32_t a,
-                                               uint32_t d );
-        portINLINE uint32_t FreeRTOS_round_down( uint32_t a,
-                                                 uint32_t d );
-
-    #else /* if ( ipconfigHAS_INLINE_FUNCTIONS == 1 ) */
-
-        #define FreeRTOS_max_int32( a, b )     ( ( ( ( int32_t ) ( a ) ) >= ( ( int32_t ) ( b ) ) ) ? ( ( int32_t ) ( a ) ) : ( ( int32_t ) ( b ) ) )
-        #define FreeRTOS_max_uint32( a, b )    ( ( ( ( uint32_t ) ( a ) ) >= ( ( uint32_t ) ( b ) ) ) ? ( ( uint32_t ) ( a ) ) : ( ( uint32_t ) ( b ) ) )
-
-        #define FreeRTOS_min_int32( a, b )     ( ( ( ( int32_t ) a ) <= ( ( int32_t ) b ) ) ? ( ( int32_t ) a ) : ( ( int32_t ) b ) )
-        #define FreeRTOS_min_uint32( a, b )    ( ( ( ( uint32_t ) a ) <= ( ( uint32_t ) b ) ) ? ( ( uint32_t ) a ) : ( ( uint32_t ) b ) )
-
-/*  Round-up: divide a by d and round=up the result. */
-        #define FreeRTOS_round_up( a, d )      ( ( ( uint32_t ) ( d ) ) * ( ( ( ( uint32_t ) ( a ) ) + ( ( uint32_t ) ( d ) ) - 1UL ) / ( ( uint32_t ) ( d ) ) ) )
-        #define FreeRTOS_round_down( a, d )    ( ( ( uint32_t ) ( d ) ) * ( ( ( uint32_t ) ( a ) ) / ( ( uint32_t ) ( d ) ) ) )
-
-    #endif /* ipconfigHAS_INLINE_FUNCTIONS */
+    int32_t FreeRTOS_max_int32( int32_t a,
+                                int32_t b );
+    uint32_t FreeRTOS_max_uint32( uint32_t a,
+                                  uint32_t b );
+    int32_t FreeRTOS_min_int32( int32_t a,
+                                int32_t b );
+    uint32_t FreeRTOS_min_uint32( uint32_t a,
+                                  uint32_t b );
+    uint32_t FreeRTOS_round_up( uint32_t a,
+                                uint32_t d );
+    uint32_t FreeRTOS_round_down( uint32_t a,
+                                  uint32_t d );
 
     #define ipMS_TO_MIN_TICKS( xTimeInMs )    ( ( pdMS_TO_TICKS( ( xTimeInMs ) ) < ( ( TickType_t ) 1U ) ) ? ( ( TickType_t ) 1U ) : pdMS_TO_TICKS( ( xTimeInMs ) ) )
 

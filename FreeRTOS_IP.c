@@ -156,19 +156,17 @@
 
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigHAS_INLINE_FUNCTIONS == 1 )
-
 /**
  * @brief Get the highest value of two int32's.
  * @param[in] a: the first value.
  * @param[in] b: the second value.
  * @return The highest of the two values.
  */
-    portINLINE int32_t FreeRTOS_max_int32( int32_t a,
-                                           int32_t b )
-    {
-        return ( a >= b ) ? a : b;
-    }
+int32_t FreeRTOS_max_int32( int32_t a,
+                            int32_t b )
+{
+    return ( a >= b ) ? a : b;
+}
 
 /**
  * @brief Get the highest value of two uint32_t's.
@@ -176,11 +174,11 @@
  * @param[in] b: the second value.
  * @return The highest of the two values.
  */
-    portINLINE uint32_t FreeRTOS_max_uint32( uint32_t a,
-                                             uint32_t b )
-    {
-        return ( a >= b ) ? a : b;
-    }
+uint32_t FreeRTOS_max_uint32( uint32_t a,
+                              uint32_t b )
+{
+    return ( a >= b ) ? a : b;
+}
 
 /**
  * @brief Get the lowest value of two int32_t's.
@@ -188,11 +186,11 @@
  * @param[in] b: the second value.
  * @return The lowest of the two values.
  */
-    portINLINE int32_t FreeRTOS_min_int32( int32_t a,
-                                           int32_t b )
-    {
-        return ( a <= b ) ? a : b;
-    }
+int32_t FreeRTOS_min_int32( int32_t a,
+                            int32_t b )
+{
+    return ( a <= b ) ? a : b;
+}
 
 /**
  * @brief Get the lowest value of two uint32_t's.
@@ -200,11 +198,11 @@
  * @param[in] b: the second value.
  * @return The lowest of the two values.
  */
-    portINLINE uint32_t FreeRTOS_min_uint32( uint32_t a,
-                                             uint32_t b )
-    {
-        return ( a <= b ) ? a : b;
-    }
+uint32_t FreeRTOS_min_uint32( uint32_t a,
+                              uint32_t b )
+{
+    return ( a <= b ) ? a : b;
+}
 
 /**
  * @brief Round-up a number to a multiple of 'd'.
@@ -212,11 +210,11 @@
  * @param[in] d: the second value.
  * @return A multiple of d.
  */
-    portINLINE uint32_t FreeRTOS_round_up( uint32_t a,
-                                           uint32_t d )
-    {
-        return d * ( ( a + d - 1U ) / d );
-    }
+uint32_t FreeRTOS_round_up( uint32_t a,
+                            uint32_t d )
+{
+    return d * ( ( a + d - 1U ) / d );
+}
 
 /**
  * @brief Round-down a number to a multiple of 'd'.
@@ -224,13 +222,11 @@
  * @param[in] d: the second value.
  * @return A multiple of d.
  */
-    portINLINE uint32_t FreeRTOS_round_down( uint32_t a,
-                                             uint32_t d )
-    {
-        return d * ( a / d );
-    }
-
-#endif /* if ( ipconfigHAS_INLINE_FUNCTIONS == 1 ) */
+uint32_t FreeRTOS_round_down( uint32_t a,
+                              uint32_t d )
+{
+    return d * ( a / d );
+}
 
 /**
  * @defgroup CastingMacroFunctions Utility casting functions
@@ -458,7 +454,7 @@ portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
  *        if they are not being used anywhere. But their use depends on the
  *        application and hence these functions are defined unconditionally.
  */
-portINLINE uint32_t ulChar2u32( const uint8_t * apChr )
+uint32_t ulChar2u32( const uint8_t * apChr )
 {
     return ( ( ( uint32_t ) apChr[ 0 ] ) << 24 ) |
            ( ( ( uint32_t ) apChr[ 1 ] ) << 16 ) |
@@ -475,7 +471,7 @@ portINLINE uint32_t ulChar2u32( const uint8_t * apChr )
  *        if they are not being used anywhere. But their use depends on the
  *        application and hence these functions are defined unconditionally.
  */
-portINLINE uint16_t usChar2u16( const uint8_t * apChr )
+uint16_t usChar2u16( const uint8_t * apChr )
 {
     return ( uint16_t )
            ( ( ( ( uint32_t ) apChr[ 0 ] ) << 8 ) |
