@@ -4679,7 +4679,12 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
         return uxResult;
     }
 #else /* if ( ipconfigUSE_IPv6 != 0 ) */
-    /* IPv6 is not used, return a fixed value of 20. */
+
+/**
+ * @brief Get the size of an IPv4-header, independant of the network buffer.
+ * @param[in] pxNetworkBuffert: The network buffer ( ignored ).
+ * @return The size of the corresponding IP-header.
+ */
     #define uxIPHeaderSizePacket( pxNetworkBuffer )    ( ipSIZE_OF_IPv4_HEADER )
 #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
@@ -4706,7 +4711,12 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
         return uxResult;
     }
 #else /* if ( ipconfigUSE_IPv6 != 0 ) */
-    /* IPv6 is not used, return a fixed value of 20. */
+
+/**
+ * @brief Get the size of an IPv4-header, independant of the socket setting.
+ * @param[in] pxSocket: The socket ( ignored ).
+ * @return The size of an IPv4-header.
+ */
     #define uxIPHeaderSizeSocket( pxSocket )    ( ( size_t ) ( ipSIZE_OF_IPv4_HEADER ) )
 #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
