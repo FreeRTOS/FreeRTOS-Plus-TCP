@@ -3477,15 +3477,17 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
         #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
     } while( ipFALSE_BOOL );
 
-    if( ( usChecksum == ipUNHANDLED_PROTOCOL ) ||
-        ( usChecksum == ipINVALID_LENGTH ) )
-    {
-        /* NOP if ipconfigHAS_PRINTF != 0 */
-        if( xLocation != 0 )
+    #if ( ipconfigHAS_PRINTF == 1 )
+        if( ( usChecksum == ipUNHANDLED_PROTOCOL ) ||
+            ( usChecksum == ipINVALID_LENGTH ) )
         {
-            FreeRTOS_printf( ( "CRC error: %04x location %ld\n", usChecksum, xLocation ) );
+            /* NOP if ipconfigHAS_PRINTF != 0 */
+            if( xLocation != 0 )
+            {
+                FreeRTOS_printf( ( "CRC error: %04x location %ld\n", usChecksum, xLocation ) );
+            }
         }
-    }
+    #endif /* ( ipconfigHAS_PRINTF == 1 ) */
 
     return usChecksum;
 }
