@@ -106,7 +106,7 @@
         return ( const F_TCP_UDP_Handler_t * ) pvArgument;
     }
     /*-----------------------------------------------------------*/
-#endif
+#endif /* if ( ipconfigUSE_CALLBACKS != 0 ) */
 
 
 /**

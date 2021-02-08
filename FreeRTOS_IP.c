@@ -3691,36 +3691,36 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-    /**
-     * @brief Cast a given pointer to SocketSelect_t type pointer.
-     */
+/**
+ * @brief Cast a given pointer to SocketSelect_t type pointer.
+ */
     ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
     {
         return ( SocketSelect_t * ) pvArgument;
     }
     /*-----------------------------------------------------------*/
 
-    /**
-     * @brief Cast a given constant pointer to SocketSelect_t type pointer.
-     */
+/**
+ * @brief Cast a given constant pointer to SocketSelect_t type pointer.
+ */
     ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
     {
         return ( const SocketSelect_t * ) pvArgument;
     }
     /*-----------------------------------------------------------*/
 
-    /**
-     * @brief Cast a given pointer to SocketSelectMessage_t type pointer.
-     */
+/**
+ * @brief Cast a given pointer to SocketSelectMessage_t type pointer.
+ */
     ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
     {
         return ( SocketSelectMessage_t * ) pvArgument;
     }
     /*-----------------------------------------------------------*/
 
-    /**
-     * @brief Cast a given constant pointer to SocketSelectMessage_t type pointer.
-     */
+/**
+ * @brief Cast a given constant pointer to SocketSelectMessage_t type pointer.
+ */
     ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
     {
         return ( const SocketSelectMessage_t * ) pvArgument;
