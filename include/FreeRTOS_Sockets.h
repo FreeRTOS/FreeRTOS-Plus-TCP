@@ -219,7 +219,7 @@
     typedef struct xSOCKET         * Socket_t;
     typedef struct xSOCKET const   * ConstSocket_t;
 
-    portINLINE BaseType_t xSocketValid( Socket_t xSocket );
+    extern BaseType_t xSocketValid( Socket_t xSocket );
 
     #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 

@@ -147,330 +147,6 @@
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Get the highest value of two int32's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
- * @return The highest of the two values.
- */
-int32_t FreeRTOS_max_int32( int32_t a,
-                            int32_t b )
-{
-    return ( a >= b ) ? a : b;
-}
-
-/**
- * @brief Get the highest value of two uint32_t's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
- * @return The highest of the two values.
- */
-uint32_t FreeRTOS_max_uint32( uint32_t a,
-                              uint32_t b )
-{
-    return ( a >= b ) ? a : b;
-}
-
-/**
- * @brief Get the lowest value of two int32_t's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
- * @return The lowest of the two values.
- */
-int32_t FreeRTOS_min_int32( int32_t a,
-                            int32_t b )
-{
-    return ( a <= b ) ? a : b;
-}
-
-/**
- * @brief Get the lowest value of two uint32_t's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
- * @return The lowest of the two values.
- */
-uint32_t FreeRTOS_min_uint32( uint32_t a,
-                              uint32_t b )
-{
-    return ( a <= b ) ? a : b;
-}
-
-/**
- * @brief Round-up a number to a multiple of 'd'.
- * @param[in] a: the first value.
- * @param[in] d: the second value.
- * @return A multiple of d.
- */
-uint32_t FreeRTOS_round_up( uint32_t a,
-                            uint32_t d )
-{
-    return d * ( ( a + d - 1U ) / d );
-}
-
-/**
- * @brief Round-down a number to a multiple of 'd'.
- * @param[in] a: the first value.
- * @param[in] d: the second value.
- * @return A multiple of d.
- */
-uint32_t FreeRTOS_round_down( uint32_t a,
-                              uint32_t d )
-{
-    return d * ( a / d );
-}
-
-/**
- * @defgroup CastingMacroFunctions Utility casting functions
- * @brief These functions are used to cast various types of pointers
- *        to other types. A major use would be to map various
- *        headers/packets on to the incoming byte stream.
- *
- * @param[in] pvArgument: Pointer to be casted to another type.
- *
- * @retval Casted pointer will be returned without violating MISRA
- *         rules.
- * @{
- */
-
-/**
- * @brief Cast a given pointer to EthernetHeader_t type pointer.
- */
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
-{
-    return ( EthernetHeader_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given constant pointer to EthernetHeader_t type pointer.
- */
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
-{
-    return ( const EthernetHeader_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given pointer to IPHeader_t type pointer.
- */
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPHeader_t )
-{
-    return ( IPHeader_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given constant pointer to IPHeader_t type pointer.
- */
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_t )
-{
-    return ( const IPHeader_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given pointer to ICMPHeader_t type pointer.
- */
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
-{
-    return ( ICMPHeader_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given constant pointer to ICMPHeader_t type pointer.
- */
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
-{
-    return ( const ICMPHeader_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given pointer to ARPPacket_t type pointer.
- */
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
-{
-    return ( ARPPacket_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given constant pointer to ARPPacket_t type pointer.
- */
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
-{
-    return ( const ARPPacket_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given pointer to IPPacket_t type pointer.
- */
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t )
-{
-    return ( IPPacket_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given constant pointer to IPPacket_t type pointer.
- */
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPPacket_t )
-{
-    return ( const IPPacket_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given pointer to ICMPPacket_t type pointer.
- */
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_t )
-{
-    return ( ICMPPacket_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given pointer to UDPPacket_t type pointer.
- */
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-{
-    return ( UDPPacket_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given constant pointer to UDPPacket_t type pointer.
- */
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-{
-    return ( const UDPPacket_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given pointer to TCPPacket_t type pointer.
- */
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
-{
-    return ( TCPPacket_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given constant pointer to TCPPacket_t type pointer.
- */
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
-{
-    return ( const TCPPacket_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given pointer to ProtocolPacket_t type pointer.
- */
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
-{
-    return ( ProtocolPacket_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given constant pointer to ProtocolPacket_t type pointer.
- */
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
-{
-    return ( const ProtocolPacket_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given pointer to ProtocolHeaders_t type pointer.
- */
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
-{
-    return ( ProtocolHeaders_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given constant pointer to ProtocolHeaders_t type pointer.
- */
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
-{
-    return ( const ProtocolHeaders_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given pointer to FreeRTOS_Socket_t type pointer.
- */
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
-{
-    return ( FreeRTOS_Socket_t * ) pvArgument;
-}
-
-/**
- * @brief Cast a given constant pointer to FreeRTOS_Socket_t type pointer.
- */
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
-{
-    return ( const FreeRTOS_Socket_t * ) pvArgument;
-}
-
-#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-
-/**
- * @brief Cast a given pointer to SocketSelect_t type pointer.
- */
-    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
-    {
-        return ( SocketSelect_t * ) pvArgument;
-    }
-
-/**
- * @brief Cast a given constant pointer to SocketSelect_t type pointer.
- */
-    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
-    {
-        return ( const SocketSelect_t * ) pvArgument;
-    }
-
-/**
- * @brief Cast a given pointer to SocketSelectMessage_t type pointer.
- */
-    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
-    {
-        return ( SocketSelectMessage_t * ) pvArgument;
-    }
-
-/**
- * @brief Cast a given constant pointer to SocketSelectMessage_t type pointer.
- */
-    portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
-    {
-        return ( const SocketSelectMessage_t * ) pvArgument;
-    }
-#endif /* if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
-/** @} */
-
-/**
- * @brief Convert character array (of size 4) to equivalent 32-bit value.
- * @param[in] apChr: The character array.
- * @return 32-bit equivalent value extracted from the character array.
- *
- * @note Going by MISRA rules, these utility functions should not be defined
- *        if they are not being used anywhere. But their use depends on the
- *        application and hence these functions are defined unconditionally.
- */
-uint32_t ulChar2u32( const uint8_t * apChr )
-{
-    return ( ( ( uint32_t ) apChr[ 0 ] ) << 24 ) |
-           ( ( ( uint32_t ) apChr[ 1 ] ) << 16 ) |
-           ( ( ( uint32_t ) apChr[ 2 ] ) << 8 ) |
-           ( ( ( uint32_t ) apChr[ 3 ] ) );
-}
-
-/**
- * @brief Convert character array (of size 2) to equivalent 16-bit value.
- * @param[in] apChr: The character array.
- * @return 16-bit equivalent value extracted from the character array.
- *
- * @note Going by MISRA rules, these utility functions should not be defined
- *        if they are not being used anywhere. But their use depends on the
- *        application and hence these functions are defined unconditionally.
- */
-uint16_t usChar2u16( const uint8_t * apChr )
-{
-    return ( uint16_t )
-           ( ( ( ( uint32_t ) apChr[ 0 ] ) << 8 ) |
-             ( ( ( uint32_t ) apChr[ 1 ] ) ) );
-}
-
-
-
-/**
  * Used in checksum calculation.
  */
 typedef union _xUnion32
@@ -3730,6 +3406,361 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
     }
 
     return pcBuffer;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the highest value of two int32's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The highest of the two values.
+ */
+int32_t FreeRTOS_max_int32( int32_t a,
+                            int32_t b )
+{
+    return ( a >= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the highest value of two uint32_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The highest of the two values.
+ */
+uint32_t FreeRTOS_max_uint32( uint32_t a,
+                              uint32_t b )
+{
+    return ( a >= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the lowest value of two int32_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The lowest of the two values.
+ */
+int32_t FreeRTOS_min_int32( int32_t a,
+                            int32_t b )
+{
+    return ( a <= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the lowest value of two uint32_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The lowest of the two values.
+ */
+uint32_t FreeRTOS_min_uint32( uint32_t a,
+                              uint32_t b )
+{
+    return ( a <= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Round-up a number to a multiple of 'd'.
+ * @param[in] a: the first value.
+ * @param[in] d: the second value.
+ * @return A multiple of d.
+ */
+uint32_t FreeRTOS_round_up( uint32_t a,
+                            uint32_t d )
+{
+    return d * ( ( a + d - 1U ) / d );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Round-down a number to a multiple of 'd'.
+ * @param[in] a: the first value.
+ * @param[in] d: the second value.
+ * @return A multiple of d.
+ */
+uint32_t FreeRTOS_round_down( uint32_t a,
+                              uint32_t d )
+{
+    return d * ( a / d );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @defgroup CastingMacroFunctions Utility casting functions
+ * @brief These functions are used to cast various types of pointers
+ *        to other types. A major use would be to map various
+ *        headers/packets on to the incoming byte stream.
+ *
+ * @param[in] pvArgument: Pointer to be casted to another type.
+ *
+ * @retval Casted pointer will be returned without violating MISRA
+ *         rules.
+ * @{
+ */
+
+/**
+ * @brief Cast a given pointer to EthernetHeader_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
+{
+    return ( EthernetHeader_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to EthernetHeader_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
+{
+    return ( const EthernetHeader_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to IPHeader_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPHeader_t )
+{
+    return ( IPHeader_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to IPHeader_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_t )
+{
+    return ( const IPHeader_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to ICMPHeader_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
+{
+    return ( ICMPHeader_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to ICMPHeader_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
+{
+    return ( const ICMPHeader_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to ARPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
+{
+    return ( ARPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to ARPPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
+{
+    return ( const ARPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to IPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t )
+{
+    return ( IPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to IPPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPPacket_t )
+{
+    return ( const IPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to ICMPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_t )
+{
+    return ( ICMPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to UDPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+    return ( UDPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to UDPPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+    return ( const UDPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to TCPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
+{
+    return ( TCPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to TCPPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
+{
+    return ( const TCPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to ProtocolPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
+{
+    return ( ProtocolPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to ProtocolPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
+{
+    return ( const ProtocolPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to ProtocolHeaders_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
+{
+    return ( ProtocolHeaders_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to ProtocolHeaders_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
+{
+    return ( const ProtocolHeaders_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to FreeRTOS_Socket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
+{
+    return ( FreeRTOS_Socket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to FreeRTOS_Socket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
+{
+    return ( const FreeRTOS_Socket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+
+    /**
+     * @brief Cast a given pointer to SocketSelect_t type pointer.
+     */
+    ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
+    {
+        return ( SocketSelect_t * ) pvArgument;
+    }
+    /*-----------------------------------------------------------*/
+
+    /**
+     * @brief Cast a given constant pointer to SocketSelect_t type pointer.
+     */
+    ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
+    {
+        return ( const SocketSelect_t * ) pvArgument;
+    }
+    /*-----------------------------------------------------------*/
+
+    /**
+     * @brief Cast a given pointer to SocketSelectMessage_t type pointer.
+     */
+    ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
+    {
+        return ( SocketSelectMessage_t * ) pvArgument;
+    }
+    /*-----------------------------------------------------------*/
+
+    /**
+     * @brief Cast a given constant pointer to SocketSelectMessage_t type pointer.
+     */
+    ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
+    {
+        return ( const SocketSelectMessage_t * ) pvArgument;
+    }
+    /*-----------------------------------------------------------*/
+#endif /* if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
+/** @} */
+
+/**
+ * @brief Convert character array (of size 4) to equivalent 32-bit value.
+ * @param[in] apChr: The character array.
+ * @return 32-bit equivalent value extracted from the character array.
+ *
+ * @note Going by MISRA rules, these utility functions should not be defined
+ *        if they are not being used anywhere. But their use depends on the
+ *        application and hence these functions are defined unconditionally.
+ */
+uint32_t ulChar2u32( const uint8_t * apChr )
+{
+    return ( ( ( uint32_t ) apChr[ 0 ] ) << 24 ) |
+           ( ( ( uint32_t ) apChr[ 1 ] ) << 16 ) |
+           ( ( ( uint32_t ) apChr[ 2 ] ) << 8 ) |
+           ( ( ( uint32_t ) apChr[ 3 ] ) );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Convert character array (of size 2) to equivalent 16-bit value.
+ * @param[in] apChr: The character array.
+ * @return 16-bit equivalent value extracted from the character array.
+ *
+ * @note Going by MISRA rules, these utility functions should not be defined
+ *        if they are not being used anywhere. But their use depends on the
+ *        application and hence these functions are defined unconditionally.
+ */
+uint16_t usChar2u16( const uint8_t * apChr )
+{
+    return ( uint16_t )
+           ( ( ( ( uint32_t ) apChr[ 0 ] ) << 8 ) |
+             ( ( ( uint32_t ) apChr[ 1 ] ) ) );
 }
 /*-----------------------------------------------------------*/
 
