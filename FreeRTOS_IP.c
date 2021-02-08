@@ -4681,7 +4681,7 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
 #else /* if ( ipconfigUSE_IPv6 != 0 ) */
 
 /**
- * @brief Get the size of an IPv4-header, independant of the network buffer.
+ * @brief Get the size of an IPv4-header, independent of the network buffer.
  * @param[in] pxNetworkBuffer: The network buffer ( ignored ).
  * @return The size of the corresponding IP-header.
  */
@@ -4713,7 +4713,7 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
 #else /* if ( ipconfigUSE_IPv6 != 0 ) */
 
 /**
- * @brief Get the size of an IPv4-header, independant of the socket setting.
+ * @brief Get the size of an IPv4-header, independent of the socket setting.
  * @param[in] pxSocket: The socket ( ignored ).
  * @return The size of an IPv4-header.
  */
