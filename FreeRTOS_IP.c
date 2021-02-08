@@ -1908,7 +1908,7 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
  *         succeeded.
  * @param pxEndPoint: The end-point that needs DHCP.
  */
-    BaseType_t xSendDHCPEvent( const struct xNetworkEndPoint * pxEndPoint )
+    BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
     {
         IPStackEvent_t xEventMessage;
         const TickType_t uxDontBlock = 0U;

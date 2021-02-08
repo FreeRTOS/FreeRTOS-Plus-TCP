@@ -96,7 +96,7 @@
 /*
  * Send a message to the IP-task, which will call vDHCPProcess().
  */
-        BaseType_t xSendDHCPEvent( const struct xNetworkEndPoint * pxEndPoint );
+        BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint );
     #endif
 
 /*
