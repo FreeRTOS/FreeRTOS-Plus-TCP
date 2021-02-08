@@ -47,11 +47,6 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 
-
-#ifndef FREERTOS_DEFAULT_IP_CONFIG_H
-    #error "FreeRTOSIPConfigDefaults.h not included."
-#endif
-
 #if ( ipconfigUSE_TCP == 1 )
 
 /* Constants used for Smoothed Round Trip Time (SRTT). */
@@ -1183,8 +1178,8 @@
                         FreeRTOS_debug_printf( ( "lTCPWindowRxCheck[%d,%d]: seqnr %u exp %u (dist %d) SACK to %u\n",
                                                  ( int ) pxWindow->usPeerPortNumber,
                                                  ( int ) pxWindow->usOurPortNumber,
-                                                 ( unsigned ) ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber,
-                                                 ( unsigned ) ulCurrentSequenceNumber - pxWindow->rx.ulFirstSequenceNumber,
+                                                 ( unsigned ) ( ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
+                                                 ( unsigned ) ( ulCurrentSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
                                                  ( unsigned ) ( ulSequenceNumber - ulCurrentSequenceNumber ), /* want this signed */
                                                  ( unsigned ) ( ulLast - pxWindow->rx.ulFirstSequenceNumber ) ) );
                     }

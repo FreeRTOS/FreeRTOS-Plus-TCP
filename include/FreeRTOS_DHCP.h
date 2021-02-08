@@ -91,12 +91,12 @@
 
     eDHCPState_t eGetDHCPState( struct xNetworkEndPoint * pxEndPoint );
 
-    #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
+	#if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
 
 /*
  * Send a message to the IP-task, which will call vDHCPProcess().
  */
-        BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint );
+		BaseType_t xSendDHCPEvent( const struct xNetworkEndPoint * pxEndPoint );
     #endif
 
 /*

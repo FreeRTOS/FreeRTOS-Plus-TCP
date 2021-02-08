@@ -196,33 +196,6 @@ static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkEndPoint_t )
     return ( NetworkEndPoint_t * ) pvArgument;
 }
 
-#if ( ipconfigUSE_IPv6 != 0 )
-
-/**
- * @brief Helper function to do a cast to a IPHeader_IPv6_t pointer.
- *
- * @note IPHeader_IPv6_t: the name of a type.
- *
- * @return the converted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPHeader_IPv6_t )
-    {
-        return ( IPHeader_IPv6_t * ) pvArgument;
-    }
-
-/**
- * @brief Helper function to do a cast to a const IPHeader_IPv6_t pointer.
- *
- * @note IPHeader_IPv6_t: the name of a type.
- *
- * @return the converted pointer.
- */
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_IPv6_t )
-    {
-        return ( IPHeader_IPv6_t * ) pvArgument;
-    }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
 static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint );
 
 /*-----------------------------------------------------------*/
@@ -548,9 +521,9 @@ static void prvIPTask( void * pvParameters )
             case eARPTimerEvent:
                 /* The ARP timer has expired, process the ARP cache. */
                 vARPAgeCache();
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    vNDAgeCache();
-                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+				#if ( ipconfigUSE_IPv6 != 0 )
+					vNDAgeCache();
+				#endif /* ( ipconfigUSE_IPv6 != 0 ) */
                 break;
 
             case eSocketBindEvent:
@@ -1319,7 +1292,7 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
         #if ( ipconfigUSE_IPv6 != 0 )
             {
-                ( void ) memcpy( pxNewBuffer->xIPv6Address.ucBytes, pxNetworkBuffer->xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+				( void ) memcpy( pxNewBuffer->xIPv6Address.ucBytes, pxNetworkBuffer->xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
             }
         #endif /* ipconfigUSE_IPv6 != 0 */
     }
@@ -1935,7 +1908,7 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
  *         succeeded.
  * @param pxEndPoint: The end-point that needs DHCP.
  */
-    BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
+	BaseType_t xSendDHCPEvent( const struct xNetworkEndPoint * pxEndPoint )
     {
         IPStackEvent_t xEventMessage;
         const TickType_t uxDontBlock = 0U;
@@ -3273,7 +3246,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
             {
                 size_t xICMPLength;
 
-                switch( pxProtocolHeaders->xICMPHeaderIPv6.ucTypeOfMessage )
+				switch( pxProtocolHeaders->xICMPHeaderIPv6.ucTypeOfMessage )
                 {
                     case ipICMP_PING_REQUEST_IPv6:
                     case ipICMP_PING_REPLY_IPv6:
@@ -3334,7 +3307,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                             if( xCount < 5 )
                             {
                                 FreeRTOS_printf( ( "usGenerateProtocolChecksum: UDP packet from %xip without CRC dropped\n",
-                                                   FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
+												   FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
                                 xCount++;
                             }
                         }
@@ -3508,7 +3481,10 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
         ( usChecksum == ipINVALID_LENGTH ) )
     {
         /* NOP if ipconfigHAS_PRINTF != 0 */
-        FreeRTOS_printf( ( "CRC error: %04x location %ld\n", usChecksum, xLocation ) );
+        if( xLocation != 0 )
+        {
+            FreeRTOS_printf( ( "CRC error: %04x location %ld\n", usChecksum, xLocation ) );
+        }
     }
 
     return usChecksum;
@@ -3827,7 +3803,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         else if( ( uxMinLastSize * ipMONITOR_PERCENTAGE_90 ) > ( uxMinSize * ipMONITOR_PERCENTAGE_100 ) )
         {
             uxMinLastSize = uxMinSize;
-            FreeRTOS_printf( ( "Heap: current %d lowest %u\n", xPortGetFreeHeapSize(), uxMinSize ) );
+			FreeRTOS_printf( ( "Heap: current %d lowest %u\n", xPortGetFreeHeapSize(), uxMinSize ) );
         }
         else
         {
@@ -3907,12 +3883,12 @@ uint32_t FreeRTOS_GetIPAddress( void )
     void FreeRTOS_SetIPAddress( uint32_t ulIPAddress )
     {
         /* Sets the IP address of the NIC. */
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+		NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
-        if( pxEndPoint != NULL )
-        {
-            pxEndPoint->ipv4_settings.ulIPAddress = ulIPAddress;
-        }
+		if( pxEndPoint != NULL )
+		{
+			pxEndPoint->ipv4_settings.ulIPAddress = ulIPAddress;
+		}
     }
 /*-----------------------------------------------------------*/
 
@@ -3924,15 +3900,15 @@ uint32_t FreeRTOS_GetIPAddress( void )
  */
     uint32_t FreeRTOS_GetGatewayAddress( void )
     {
-        uint32_t ulIPAddress = 0U;
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+		uint32_t ulIPAddress = 0U;
+		NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
-        if( pxEndPoint != NULL )
-        {
-            ulIPAddress = pxEndPoint->ipv4_settings.ulGatewayAddress;
-        }
+		if( pxEndPoint != NULL )
+		{
+			ulIPAddress = pxEndPoint->ipv4_settings.ulGatewayAddress;
+		}
 
-        return ulIPAddress;
+		return ulIPAddress;
     }
 /*-----------------------------------------------------------*/
 
@@ -3943,15 +3919,15 @@ uint32_t FreeRTOS_GetIPAddress( void )
  */
     uint32_t FreeRTOS_GetDNSServerAddress( void )
     {
-        uint32_t ulIPAddress = 0U;
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+		uint32_t ulIPAddress = 0U;
+		NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
-        if( pxEndPoint != NULL )
-        {
-            ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ];
-        }
+		if( pxEndPoint != NULL )
+		{
+			ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ];
+		}
 
-        return ulIPAddress;
+		return ulIPAddress;
     }
 /*-----------------------------------------------------------*/
 
@@ -3962,16 +3938,16 @@ uint32_t FreeRTOS_GetIPAddress( void )
  */
     uint32_t FreeRTOS_GetNetmask( void )
     {
-        uint32_t ulIPAddress = 0U;
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+		uint32_t ulIPAddress = 0U;
+		NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
-        if( pxEndPoint != NULL )
-        {
-            ulIPAddress = pxEndPoint->ipv4_settings.ulNetMask;
-        }
+		if( pxEndPoint != NULL )
+		{
+			ulIPAddress = pxEndPoint->ipv4_settings.ulNetMask;
+		}
 
-        return ulIPAddress;
-    }
+		return ulIPAddress;
+	}
 /*-----------------------------------------------------------*/
 
 /**
@@ -3979,15 +3955,15 @@ uint32_t FreeRTOS_GetIPAddress( void )
  *
  * @param[in] ucMACAddress: the MAC address to be set.
  */
-    void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
-    {
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+	void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
+	{
+		NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
-        if( pxEndPoint != NULL )
-        {
-            /* Copy the MAC address at the start of the default packet header fragment. */
-            ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ( const void * ) ucMACAddress, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
-        }
+		if( pxEndPoint != NULL )
+		{
+			/* Copy the MAC address at the start of the default packet header fragment. */
+			( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ( const void * ) ucMACAddress, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+		}
     }
 /*-----------------------------------------------------------*/
 
@@ -3998,16 +3974,16 @@ uint32_t FreeRTOS_GetIPAddress( void )
  */
     const uint8_t * FreeRTOS_GetMACAddress( void )
     {
-        const uint8_t * pucReturn = NULL;
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+		const uint8_t * pucReturn = NULL;
+		NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
-        if( pxEndPoint != NULL )
-        {
-            /* Copy the MAC address at the start of the default packet header fragment. */
-            pucReturn = pxEndPoint->xMACAddress.ucBytes;
-        }
+		if( pxEndPoint != NULL )
+		{
+			/* Copy the MAC address at the start of the default packet header fragment. */
+			pucReturn = pxEndPoint->xMACAddress.ucBytes;
+		}
 
-        return pucReturn;
+		return pucReturn;
     }
 /*-----------------------------------------------------------*/
 
@@ -4018,12 +3994,12 @@ uint32_t FreeRTOS_GetIPAddress( void )
  */
     void FreeRTOS_SetNetmask( uint32_t ulNetmask )
     {
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+		NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
-        if( pxEndPoint != NULL )
-        {
-            pxEndPoint->ipv4_settings.ulNetMask = ulNetmask;
-        }
+		if( pxEndPoint != NULL )
+		{
+			pxEndPoint->ipv4_settings.ulNetMask = ulNetmask;
+		}
     }
 /*-----------------------------------------------------------*/
 
@@ -4034,12 +4010,12 @@ uint32_t FreeRTOS_GetIPAddress( void )
  */
     void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress )
     {
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+		NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
-        if( pxEndPoint != NULL )
-        {
-            pxEndPoint->ipv4_settings.ulGatewayAddress = ulGatewayAddress;
-        }
+		if( pxEndPoint != NULL )
+		{
+			pxEndPoint->ipv4_settings.ulGatewayAddress = ulGatewayAddress;
+		}
     }
 /*-----------------------------------------------------------*/
 #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
@@ -4291,7 +4267,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
 
         default:
             /* Using function "snprintf". */
-            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", xErrnum );
+			( void ) snprintf( pcBuffer, uxLength, "Errno %d", xErrnum );
             pcName = NULL;
             break;
     }
@@ -4310,6 +4286,420 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
     return pcBuffer;
 }
 /*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the highest value of two int32's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The highest of the two values.
+ */
+int32_t FreeRTOS_max_int32( int32_t a,
+							int32_t b )
+{
+	return ( a >= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the highest value of two uint32_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The highest of the two values.
+ */
+uint32_t FreeRTOS_max_uint32( uint32_t a,
+							  uint32_t b )
+{
+	return ( a >= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the lowest value of two int32_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The lowest of the two values.
+ */
+int32_t FreeRTOS_min_int32( int32_t a,
+							int32_t b )
+{
+	return ( a <= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the lowest value of two uint32_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The lowest of the two values.
+ */
+uint32_t FreeRTOS_min_uint32( uint32_t a,
+							  uint32_t b )
+{
+	return ( a <= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Round-up a number to a multiple of 'd'.
+ * @param[in] a: the first value.
+ * @param[in] d: the second value.
+ * @return A multiple of d.
+ */
+uint32_t FreeRTOS_round_up( uint32_t a,
+							uint32_t d )
+{
+	return d * ( ( a + d - 1U ) / d );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @defgroup CastingMacroFunctions Utility casting functions
+ * @brief These functions are used to cast various types of pointers
+ *        to other types. A major use would be to map various
+ *        headers/packets on to the incoming byte stream.
+ *
+ * @param[in] pvArgument: Pointer to be casted to another type.
+ *
+ * @retval Casted pointer will be returned without violating MISRA
+ *         rules.
+ * @{
+ */
+
+/**
+ * @brief Cast a given pointer to EthernetHeader_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
+{
+	return ( EthernetHeader_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given constant pointer to EthernetHeader_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
+{
+	return ( const EthernetHeader_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given pointer to IPHeader_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPHeader_t )
+{
+	return ( IPHeader_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given constant pointer to IPHeader_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_t )
+{
+	return ( const IPHeader_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given pointer to ICMPHeader_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
+{
+	return ( ICMPHeader_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given constant pointer to ICMPHeader_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
+{
+	return ( const ICMPHeader_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given pointer to ARPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
+{
+	return ( ARPPacket_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given constant pointer to ARPPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
+{
+	return ( const ARPPacket_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given pointer to IPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t )
+{
+	return ( IPPacket_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given constant pointer to IPPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPPacket_t )
+{
+	return ( const IPPacket_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given pointer to ICMPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_t )
+{
+	return ( ICMPPacket_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given pointer to UDPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+	return ( UDPPacket_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given constant pointer to UDPPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+	return ( const UDPPacket_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given pointer to TCPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
+{
+	return ( TCPPacket_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given constant pointer to TCPPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
+{
+	return ( const TCPPacket_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given pointer to ProtocolPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
+{
+	return ( ProtocolPacket_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given constant pointer to ProtocolPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
+{
+	return ( const ProtocolPacket_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given pointer to ProtocolHeaders_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
+{
+	return ( ProtocolHeaders_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given constant pointer to ProtocolHeaders_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
+{
+	return ( const ProtocolHeaders_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given pointer to FreeRTOS_Socket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
+{
+	return ( FreeRTOS_Socket_t * ) pvArgument;
+}
+
+/**
+ * @brief Cast a given constant pointer to FreeRTOS_Socket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
+{
+	return ( const FreeRTOS_Socket_t * ) pvArgument;
+}
+
+#if ( ipconfigUSE_IPv6 != 0 )
+
+	/**
+	 * @brief Cast a given constant pointer to IPHeader_IPv6_t type pointer.
+	 */
+	ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPHeader_IPv6_t )
+	{
+		return ( IPHeader_IPv6_t * ) pvArgument;
+	}
+
+	/**
+	 * @brief Cast a given pointer to IPHeader_IPv6_t type pointer.
+	 */
+	ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_IPv6_t )
+	{
+		return ( const IPHeader_IPv6_t * ) pvArgument;
+	}
+
+	/**
+	 * @brief Cast a given pointer to IPPacket_IPv6_t type pointer.
+	 */
+	ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_IPv6_t )
+	{
+		return ( IPPacket_IPv6_t * ) pvArgument;
+	}
+
+	/**
+	 * @brief Cast a given constant pointer to IPPacket_IPv6_t type pointer.
+	 */
+	ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPPacket_IPv6_t )
+	{
+		return ( const IPPacket_IPv6_t * ) pvArgument;
+	}
+
+	/**
+	 * @brief Cast a given pointer to UDPPacket_IPv6_t type pointer.
+	 */
+	ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_IPv6_t )
+	{
+		return ( UDPPacket_IPv6_t * ) pvArgument;
+	}
+
+	/**
+	 * @brief Cast a given constant pointer to UDPPacket_IPv6_t type pointer.
+	 */
+	ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_IPv6_t )
+	{
+		return ( const UDPPacket_IPv6_t * ) pvArgument;
+	}
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+
+	/**
+	 * @brief Cast a given pointer to SocketSelect_t type pointer.
+	 */
+	ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
+	{
+		return ( SocketSelect_t * ) pvArgument;
+	}
+
+	/**
+	 * @brief Cast a given constant pointer to SocketSelect_t type pointer.
+	 */
+	ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
+	{
+		return ( const SocketSelect_t * ) pvArgument;
+	}
+
+	/**
+	 * @brief Cast a given pointer to SocketSelectMessage_t type pointer.
+	 */
+	ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
+	{
+		return ( SocketSelectMessage_t * ) pvArgument;
+	}
+
+	/**
+	 * @brief Cast a given constant pointer to SocketSelectMessage_t type pointer.
+	 */
+	ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
+	{
+		return ( const SocketSelectMessage_t * ) pvArgument;
+	}
+#endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
+/** @} */
+
+/**
+ * @brief Convert character array (of size 4) to equivalent 32-bit value.
+ * @param[in] pucPtr: The character array.
+ * @return 32-bit equivalent value extracted from the character array.
+ *
+ * @note Going by MISRA rules, these utility functions should not be defined
+ *        if they are not being used anywhere. But their use depends on the
+ *        application and hence these functions are defined unconditionally.
+ */
+uint32_t ulChar2u32( const uint8_t * pucPtr )
+{
+	return ( ( ( uint32_t ) pucPtr[ 0 ] ) << 24 ) |
+		   ( ( ( uint32_t ) pucPtr[ 1 ] ) << 16 ) |
+		   ( ( ( uint32_t ) pucPtr[ 2 ] ) << 8 ) |
+		   ( ( ( uint32_t ) pucPtr[ 3 ] ) );
+}
+
+/**
+ * @brief Convert character array (of size 2) to equivalent 16-bit value.
+ * @param[in] pucPtr: The character array.
+ * @return 16-bit equivalent value extracted from the character array.
+ *
+ * @note Going by MISRA rules, these utility functions should not be defined
+ *        if they are not being used anywhere. But their use depends on the
+ *        application and hence these functions are defined unconditionally.
+ */
+uint16_t usChar2u16( const uint8_t * pucPtr )
+{
+	return ( uint16_t )
+		   ( ( ( ( uint32_t ) pucPtr[ 0 ] ) << 8 ) |
+			 ( ( ( uint32_t ) pucPtr[ 1 ] ) ) );
+}
+
+#if ( ipconfigUSE_IPv6 != 0 )
+	size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+	{
+		size_t uxResult;
+		/* Map the buffer onto Ethernet Header struct for easy access to fields. */
+		/* misra_c_2012_rule_11_3_violation */
+		const EthernetHeader_t * pxHeader = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( EthernetHeader_t, pxNetworkBuffer->pucEthernetBuffer );
+
+		if( pxHeader->usFrameType == ( uint16_t ) ipIPv6_FRAME_TYPE )
+		{
+			uxResult = ipSIZE_OF_IPv6_HEADER;
+		}
+		else
+		{
+			uxResult = ipSIZE_OF_IPv4_HEADER;
+		}
+
+		return uxResult;
+	}
+#else /* if ( ipconfigUSE_IPv6 != 0 ) */
+	/* IPv6 is not used, return a fixed value of 20. */
+	#define uxIPHeaderSizePacket( pxNetworkBuffer )    ( ipSIZE_OF_IPv4_HEADER )
+#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+
+#if ( ipconfigUSE_IPv6 != 0 )
+
+/* Get the size of the IP-header.
+ * The socket is checked for its type: IPv4 or IPv6. */
+	size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
+	{
+		size_t uxResult;
+
+		if( ( pxSocket != NULL ) && ( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED ) )
+		{
+			uxResult = ipSIZE_OF_IPv6_HEADER;
+		}
+		else
+		{
+			uxResult = ipSIZE_OF_IPv4_HEADER;
+		}
+
+		return uxResult;
+	}
+#else /* if ( ipconfigUSE_IPv6 != 0 ) */
+	/* IPv6 is not used, return a fixed value of 20. */
+	#define uxIPHeaderSizeSocket( pxSocket )    ( ( size_t ) ( ipSIZE_OF_IPv4_HEADER ) )
+#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
 /* Provide access to private members for verification. */
 #ifdef FREERTOS_TCP_ENABLE_VERIFICATION

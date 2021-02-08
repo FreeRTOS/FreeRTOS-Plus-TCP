@@ -1976,9 +1976,6 @@
         uint16_t x, usDataLength, usQuestions;
         uint16_t usType = 0U;
         BaseType_t xReturn = pdTRUE;
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-        const void * pvCopySource;
-        void * pvCopyDest;
         struct freertos_addrinfo ** ppxLastAddress = NULL;
 
         #if ( ipconfigUSE_LLMNR == 1 )

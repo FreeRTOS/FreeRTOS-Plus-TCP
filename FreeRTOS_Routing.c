@@ -829,13 +829,6 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
         ( void ) name;
 
-/*
- *  if( ( xDoLog != pdFALSE ) && ( pxEndPoint != NULL ) )
- *  {
- *      configPRINTF( ( "Compare[%s] returning %lxip\n", name, ( pxEndPoint != NULL ) ? FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulIPAddress ) : 0UL ) );
- *  }
- */
-
         return pxEndPoint;
     }
 /*-----------------------------------------------------------*/

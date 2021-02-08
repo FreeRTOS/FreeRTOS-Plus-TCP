@@ -673,4 +673,8 @@
     #define ipconfigUSE_TCP_TIMESTAMPS    0
 #endif
 
+#ifndef ipconfigNETWORK_BUFFER_DEBUGGING
+    #define ipconfigNETWORK_BUFFER_DEBUGGING    0
+#endif
+
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */

@@ -84,16 +84,18 @@
 
     #endif /* ipconfigUSE_IPv6 */
 
+    #if ( ipconfigUSE_TCP == 1 )
 /*
  * Generate a randomized TCP Initial Sequence Number per RFC.
  * This function must be provided my the application builder.
  */
-    /* The function below is defined in main.c but not seen by Coverity. */
-    /* misra_c_2012_rule_8_6_violation */
-    extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
-                                                        uint16_t usSourcePort,
-                                                        uint32_t ulDestinationAddress,
-                                                        uint16_t usDestinationPort );
+        /* The function below is defined in main.c but not seen by Coverity. */
+        /* misra_c_2012_rule_8_6_violation */
+        extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
+                                                            uint16_t usSourcePort,
+                                                            uint32_t ulDestinationAddress,
+                                                            uint16_t usDestinationPort );
+    #endif /* ( ipconfigUSE_TCP == 1 ) */
 
 /* The number of octets in the MAC and IP addresses respectively. */
     #define ipMAC_ADDRESS_LENGTH_BYTES                 ( 6U )
@@ -199,13 +201,15 @@
         eNetworkDown /**< The network connection has been lost. */
     } eIPCallbackEvent_t;
 
+    #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 /** @brief Ping status: used as a parameter for the call-back function vApplicationPingReplyHook(). */
-    typedef enum ePING_REPLY_STATUS
-    {
-        eSuccess = 0,     /**< A correct reply has been received for an outgoing ping. */
-        eInvalidChecksum, /**< A reply was received for an outgoing ping but the checksum of the reply was incorrect. */
-        eInvalidData      /**< A reply was received to an outgoing ping but the payload of the reply was not correct. */
-    } ePingReplyStatus_t;
+        typedef enum ePING_REPLY_STATUS
+        {
+            eSuccess = 0,     /**< A correct reply has been received for an outgoing ping. */
+            eInvalidChecksum, /**< A reply was received for an outgoing ping but the checksum of the reply was incorrect. */
+            eInvalidData      /**< A reply was received to an outgoing ping but the payload of the reply was not correct. */
+        } ePingReplyStatus_t;
+    #endif /* ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
 
 /** @brief A light-weight timer used for various tasks of the IP-task. */
     typedef struct xIP_TIMER
@@ -250,75 +254,21 @@
     #define FreeRTOS_ntohs( x )    FreeRTOS_htons( x )
     #define FreeRTOS_ntohl( x )    FreeRTOS_htonl( x )
 
-    #if ( ipconfigHAS_INLINE_FUNCTIONS == 1 )
+/* Some simple helper functions. */
+    int32_t FreeRTOS_max_int32( int32_t a,
+                                int32_t b );
 
-        static portINLINE int32_t FreeRTOS_max_int32( int32_t a,
-                                                      int32_t b );
-        static portINLINE uint32_t FreeRTOS_max_uint32( uint32_t a,
-                                                        uint32_t b );
-        static portINLINE int32_t FreeRTOS_min_int32( int32_t a,
-                                                      int32_t b );
-        static portINLINE uint32_t FreeRTOS_min_uint32( uint32_t a,
-                                                        uint32_t b );
-        static portINLINE uint32_t FreeRTOS_round_up( uint32_t a,
-                                                      uint32_t d );
-        static portINLINE uint32_t FreeRTOS_round_down( uint32_t a,
-                                                        uint32_t d );
-        static portINLINE BaseType_t FreeRTOS_min_BaseType( BaseType_t a,
-                                                            BaseType_t b );
+    uint32_t FreeRTOS_max_uint32( uint32_t a,
+                                  uint32_t b );
 
-        static portINLINE int32_t FreeRTOS_max_int32( int32_t a,
-                                                      int32_t b )
-        {
-            return ( a >= b ) ? a : b;
-        }
-        static portINLINE uint32_t FreeRTOS_max_uint32( uint32_t a,
-                                                        uint32_t b )
-        {
-            return ( a >= b ) ? a : b;
-        }
-        static portINLINE int32_t FreeRTOS_min_int32( int32_t a,
-                                                      int32_t b )
-        {
-            return ( a <= b ) ? a : b;
-        }
-        static portINLINE uint32_t FreeRTOS_min_uint32( uint32_t a,
-                                                        uint32_t b )
-        {
-            return ( a <= b ) ? a : b;
-        }
-        static portINLINE uint32_t FreeRTOS_round_up( uint32_t a,
-                                                      uint32_t d )
-        {
-            return d * ( ( a + d - 1U ) / d );
-        }
-        static portINLINE uint32_t FreeRTOS_round_down( uint32_t a,
-                                                        uint32_t d )
-        {
-            return d * ( a / d );
-        }
+    int32_t FreeRTOS_min_int32( int32_t a,
+                                int32_t b );
 
-        static portINLINE BaseType_t FreeRTOS_min_BaseType( BaseType_t a,
-                                                            BaseType_t b )
-        {
-            return ( a <= b ) ? a : b;
-        }
+    uint32_t FreeRTOS_min_uint32( uint32_t a,
+                                  uint32_t b );
 
-    #else /* if ( ipconfigHAS_INLINE_FUNCTIONS == 1 ) */
-
-        #define FreeRTOS_max_int32( a, b )       ( ( ( ( int32_t ) ( a ) ) >= ( ( int32_t ) ( b ) ) ) ? ( ( int32_t ) ( a ) ) : ( ( int32_t ) ( b ) ) )
-        #define FreeRTOS_max_uint32( a, b )      ( ( ( ( uint32_t ) ( a ) ) >= ( ( uint32_t ) ( b ) ) ) ? ( ( uint32_t ) ( a ) ) : ( ( uint32_t ) ( b ) ) )
-
-        #define FreeRTOS_min_int32( a, b )       ( ( ( ( int32_t ) a ) <= ( ( int32_t ) b ) ) ? ( ( int32_t ) a ) : ( ( int32_t ) b ) )
-        #define FreeRTOS_min_uint32( a, b )      ( ( ( ( uint32_t ) a ) <= ( ( uint32_t ) b ) ) ? ( ( uint32_t ) a ) : ( ( uint32_t ) b ) )
-
-/*  Round-up: the result is a multiple of d which is at least a */
-        #define FreeRTOS_round_up( a, d )        ( ( ( uint32_t ) ( d ) ) * ( ( ( ( uint32_t ) ( a ) ) + ( ( uint32_t ) ( d ) ) - 1UL ) / ( ( uint32_t ) ( d ) ) ) )
-        #define FreeRTOS_round_down( a, d )      ( ( ( uint32_t ) ( d ) ) * ( ( ( uint32_t ) ( a ) ) / ( ( uint32_t ) ( d ) ) ) )
-
-        #define FreeRTOS_min_BaseType( a, b )    ( ( ( BaseType_t ) ( a ) ) <= ( ( BaseType_t ) ( b ) ) ? ( ( BaseType_t ) ( a ) ) : ( ( BaseType_t ) ( b ) ) )
-
-    #endif /* ipconfigHAS_INLINE_FUNCTIONS */
+    uint32_t FreeRTOS_round_up( uint32_t a,
+                                uint32_t d );
 
     #define ipMS_TO_MIN_TICKS( xTimeInMs )    ( ( pdMS_TO_TICKS( ( xTimeInMs ) ) < ( ( TickType_t ) 1U ) ) ? ( ( TickType_t ) 1U ) : pdMS_TO_TICKS( ( xTimeInMs ) ) )
 
@@ -434,6 +384,7 @@
             void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
                                                  struct xNetworkEndPoint * pxEndPoint );
         #else
+            /* misra_c_2012_rule_8_6_violation */
             void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
         #endif
     #endif

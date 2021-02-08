@@ -196,21 +196,6 @@
         #define ENDPOINT_IS_IPv4( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 == 0U ) )
         #define ENDPOINT_IS_IPv6( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 != 0U ) )
 
-/* static functions in header files are not used in some modules, leading to
- * misra_c_2012_rule_2_2_violation, complaining about dead code. */
-
-        static portINLINE void CONFIRM_EP_v4( const NetworkEndPoint_t * pxEndPoint )
-        {
-            ( void ) pxEndPoint;
-            configASSERT( pxEndPoint != NULL );
-            configASSERT( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED );
-        }
-        static portINLINE void CONFIRM_EP_v6( const NetworkEndPoint_t * pxEndPoint )
-        {
-            ( void ) pxEndPoint;
-            configASSERT( pxEndPoint != NULL );
-            configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
-        }
     #else /* if ( ipconfigUSE_IPv6 != 0 ) */
         #define END_POINT_USES_DHCP( pxEndPoint )    ( ( pxEndPoint )->bits.bWantDHCP != pdFALSE_UNSIGNED )
         #define END_POINT_USES_RA( pxEndPoint )      ( 0 )
@@ -218,16 +203,6 @@
         #define ENDPOINT_IS_IPv4( pxEndPoint )       ( 1 )
         #define ENDPOINT_IS_IPv6( pxEndPoint )       ( 0 )
 
-        static portINLINE void CONFIRM_EP_v4( const NetworkEndPoint_t * pxEndPoint )
-        {
-            ( void ) pxEndPoint;
-            configASSERT( pxEndPoint != NULL );
-        }
-        static portINLINE void CONFIRM_EP_v6( const NetworkEndPoint_t * pxEndPoint )
-        {
-            ( void ) pxEndPoint;
-            configASSERT( 0 == 1 );
-        }
     #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
 /*
