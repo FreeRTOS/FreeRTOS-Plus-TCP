@@ -4657,7 +4657,7 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
 
 /**
  * @brief Get the size of the IP-header, by checking the type of the network buffer.
- * @param[in] pxNetworkBuffert: The network buffer.
+ * @param[in] pxNetworkBuffer: The network buffer.
  * @return The size of the corresponding IP-header.
  */
     size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
@@ -4682,7 +4682,7 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
 
 /**
  * @brief Get the size of an IPv4-header, independant of the network buffer.
- * @param[in] pxNetworkBuffert: The network buffer ( ignored ).
+ * @param[in] pxNetworkBuffer: The network buffer ( ignored ).
  * @return The size of the corresponding IP-header.
  */
     #define uxIPHeaderSizePacket( pxNetworkBuffer )    ( ipSIZE_OF_IPv4_HEADER )
