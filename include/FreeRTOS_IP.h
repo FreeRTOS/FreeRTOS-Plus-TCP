@@ -202,15 +202,15 @@
         eNetworkDown /**< The network connection has been lost. */
     } eIPCallbackEvent_t;
 
-    #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+/* Temporarily not checking for 'ipconfigSUPPORT_OUTGOING_PINGS' in
+ * order to see the results of the build test. */
 /** @brief Ping status: used as a parameter for the call-back function vApplicationPingReplyHook(). */
-        typedef enum ePING_REPLY_STATUS
-        {
-            eSuccess = 0,     /**< A correct reply has been received for an outgoing ping. */
-            eInvalidChecksum, /**< A reply was received for an outgoing ping but the checksum of the reply was incorrect. */
-            eInvalidData      /**< A reply was received to an outgoing ping but the payload of the reply was not correct. */
-        } ePingReplyStatus_t;
-    #endif /* ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
+    typedef enum ePING_REPLY_STATUS
+    {
+        eSuccess = 0,     /**< A correct reply has been received for an outgoing ping. */
+        eInvalidChecksum, /**< A reply was received for an outgoing ping but the checksum of the reply was incorrect. */
+        eInvalidData      /**< A reply was received to an outgoing ping but the payload of the reply was not correct. */
+    } ePingReplyStatus_t;
 
 /** @brief A light-weight timer used for various tasks of the IP-task. */
     typedef struct xIP_TIMER
