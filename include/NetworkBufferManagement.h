@@ -30,19 +30,19 @@
         extern "C" {
     #endif
 
-	#if ( ipconfigNETWORK_BUFFER_DEBUGGING != 0 )
-		#define BUFFER_FROM_WHERE_DECL    const char * apWhere,
-		#define BUFFER_FROM_WHERE_CALL( apWhere )    apWhere,
-	#else
-		#define BUFFER_FROM_WHERE_DECL
-		#define BUFFER_FROM_WHERE_CALL( apWhere )
-	#endif
+    #if ( ipconfigNETWORK_BUFFER_DEBUGGING != 0 )
+        #define BUFFER_FROM_WHERE_DECL    const char * apWhere,
+        #define BUFFER_FROM_WHERE_CALL( apWhere )    apWhere,
+    #else
+        #define BUFFER_FROM_WHERE_DECL
+        #define BUFFER_FROM_WHERE_CALL( apWhere )
+    #endif
 
 /* NOTE PUBLIC API FUNCTIONS. */
     BaseType_t xNetworkBuffersInitialise( void );
-	NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t uxRequestedSizeBytes,
-																  TickType_t uxBlockTimeTicks );
-	NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t uxRequestedSizeBytes );
+    NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t uxRequestedSizeBytes,
+                                                                  TickType_t uxBlockTimeTicks );
+    NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t uxRequestedSizeBytes );
     void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer );
     BaseType_t vNetworkBufferReleaseFromISR( NetworkBufferDescriptor_t * const pxNetworkBuffer );
     uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes );

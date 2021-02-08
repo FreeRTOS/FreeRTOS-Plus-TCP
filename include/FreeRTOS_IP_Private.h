@@ -614,8 +614,8 @@
  * interrupt.  If a non zero value is returned, then the calling ISR should
  * perform a context switch before exiting the ISR.
  */
-	/* Not every application will call the function below. */
-	/* misra_c_2012_rule_8_6_violation */
+    /* Not every application will call the function below. */
+    /* misra_c_2012_rule_8_6_violation */
     BaseType_t FreeRTOS_ReleaseFreeNetworkBufferFromISR( void );
 
 /*

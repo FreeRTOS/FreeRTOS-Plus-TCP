@@ -85,6 +85,7 @@
     #endif /* ipconfigUSE_IPv6 */
 
     #if ( ipconfigUSE_TCP == 1 )
+
 /*
  * Generate a randomized TCP Initial Sequence Number per RFC.
  * This function must be provided my the application builder.

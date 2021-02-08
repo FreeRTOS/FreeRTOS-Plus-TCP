@@ -40,7 +40,7 @@
         #error FreeRTOSIPConfig.h has not been included yet
     #endif
 
-	#include "FreeRTOS_IP.h"
+    #include "FreeRTOS_IP.h"
 
 /* Event bit definitions are required by the select functions. */
     #include "event_groups.h"
@@ -230,7 +230,7 @@
     typedef struct xSOCKET         * Socket_t;
     typedef struct xSOCKET const   * ConstSocket_t;
 
-	BaseType_t xSocketValid( Socket_t xSocket );
+    BaseType_t xSocketValid( Socket_t xSocket );
 
     #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
