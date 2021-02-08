@@ -1140,7 +1140,10 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
     {
         /* This is a 64-bit platform, make sure there is enough space in
          * pucEthernetBuffer to store a pointer. */
-        configASSERT( ipconfigBUFFER_PADDING == 14 );
+        configASSERT( ipconfigBUFFER_PADDING >= 14 );
+
+        /* But it must have this strange alignment: */
+        configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
     }
 
     /* Check if MTU is big enough. */
