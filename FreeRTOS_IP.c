@@ -4685,7 +4685,10 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
  * @param[in] pxNetworkBuffer: The network buffer ( ignored ).
  * @return The size of the corresponding IP-header.
  */
-    #define uxIPHeaderSizePacket( pxNetworkBuffer )    ( ipSIZE_OF_IPv4_HEADER )
+    size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+    {
+        return ipSIZE_OF_IPv4_HEADER;
+    }
 #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
 #if ( ipconfigUSE_IPv6 != 0 )
@@ -4717,7 +4720,10 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
  * @param[in] pxSocket: The socket ( ignored ).
  * @return The size of an IPv4-header.
  */
-    #define uxIPHeaderSizeSocket( pxSocket )    ( ( size_t ) ( ipSIZE_OF_IPv4_HEADER ) )
+    size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
+    {
+        return ipSIZE_OF_IPv4_HEADER;
+    }
 #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
 /* Provide access to private members for verification. */
