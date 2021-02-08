@@ -4654,6 +4654,12 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
 }
 
 #if ( ipconfigUSE_IPv6 != 0 )
+
+/**
+ * @brief Get the size of the IP-header, by checking the type of the network buffer.
+ * @param[in] pxNetworkBuffert: The network buffer.
+ * @return The size of the corresponding IP-header.
+ */
     size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         size_t uxResult;
@@ -4679,8 +4685,11 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
 
 #if ( ipconfigUSE_IPv6 != 0 )
 
-/* Get the size of the IP-header.
- * The socket is checked for its type: IPv4 or IPv6. */
+/**
+ * @brief Get the size of the IP-header, by checking if the socket bIsIPv6 set.
+ * @param[in] pxSocket: The socket.
+ * @return The size of the corresponding IP-header.
+ */
     size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
     {
         size_t uxResult;
