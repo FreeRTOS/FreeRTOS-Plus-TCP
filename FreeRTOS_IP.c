@@ -3726,41 +3726,41 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
         return ( const SocketSelectMessage_t * ) pvArgument;
     }
     /*-----------------------------------------------------------*/
-#endif /* if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
+#endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
 /** @} */
 
 /**
  * @brief Convert character array (of size 4) to equivalent 32-bit value.
- * @param[in] apChr: The character array.
+ * @param[in] pucPtr: The character array.
  * @return 32-bit equivalent value extracted from the character array.
  *
  * @note Going by MISRA rules, these utility functions should not be defined
  *        if they are not being used anywhere. But their use depends on the
  *        application and hence these functions are defined unconditionally.
  */
-uint32_t ulChar2u32( const uint8_t * apChr )
+uint32_t ulChar2u32( const uint8_t * pucPtr )
 {
-    return ( ( ( uint32_t ) apChr[ 0 ] ) << 24 ) |
-           ( ( ( uint32_t ) apChr[ 1 ] ) << 16 ) |
-           ( ( ( uint32_t ) apChr[ 2 ] ) << 8 ) |
-           ( ( ( uint32_t ) apChr[ 3 ] ) );
+    return ( ( ( uint32_t ) pucPtr[ 0 ] ) << 24 ) |
+           ( ( ( uint32_t ) pucPtr[ 1 ] ) << 16 ) |
+           ( ( ( uint32_t ) pucPtr[ 2 ] ) << 8 ) |
+           ( ( ( uint32_t ) pucPtr[ 3 ] ) );
 }
 /*-----------------------------------------------------------*/
 
 /**
  * @brief Convert character array (of size 2) to equivalent 16-bit value.
- * @param[in] apChr: The character array.
+ * @param[in] pucPtr: The character array.
  * @return 16-bit equivalent value extracted from the character array.
  *
  * @note Going by MISRA rules, these utility functions should not be defined
  *        if they are not being used anywhere. But their use depends on the
  *        application and hence these functions are defined unconditionally.
  */
-uint16_t usChar2u16( const uint8_t * apChr )
+uint16_t usChar2u16( const uint8_t * pucPtr )
 {
     return ( uint16_t )
-           ( ( ( ( uint32_t ) apChr[ 0 ] ) << 8 ) |
-             ( ( ( uint32_t ) apChr[ 1 ] ) ) );
+           ( ( ( ( uint32_t ) pucPtr[ 0 ] ) << 8 ) |
+             ( ( ( uint32_t ) pucPtr[ 1 ] ) ) );
 }
 /*-----------------------------------------------------------*/
 

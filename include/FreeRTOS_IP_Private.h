@@ -833,9 +833,9 @@
  * if they are not being used anywhere. But their use depends on the
  * application and hence these functions are defined unconditionally.
  */
-    extern uint32_t ulChar2u32( const uint8_t * apChr );
+    extern uint32_t ulChar2u32( const uint8_t * pucPtr );
 
-    extern uint16_t usChar2u16( const uint8_t * apChr );
+    extern uint16_t usChar2u16( const uint8_t * pucPtr );
 
 /* Check a single socket for retransmissions and timeouts */
     BaseType_t xTCPSocketCheck( FreeRTOS_Socket_t * pxSocket );
