@@ -54,18 +54,16 @@ Here is an example of the changes to the linker file:
 	} >AXI_RAM
 
 Here is a table of 3 types of STH32H7 :
-/**
- * RAM area	H747	H743	H742	Location
- * ------------------------------------------------
- * DTCM		128k	128k	128k	0x20000000
- * AXI-SRAM	511k	511k	384k	0x24000000
- *
- * SRAM1	128k	128k	32k		0x30000000
- * SRAM2	128k	128k	16k		0x30020000
- * SRAM3	32k		32k	 	-		0x30040000
- * SRAM4	64k		64k		64k		0x38000000
- * Backup   SRAM	4k		4k	4k	0x38800000
- */
+
+|RAM area   |H747|H743|H742|Location  |
+|-----------|----|----|----|----------|
+|DTCM       |128k|128k|128k|0x20000000|
+|AXI-SRAM   |511k|511k|384k|0x24000000|
+|SRAM1      |128k|128k|32k |0x30000000|
+|SRAM2      |128k|128k|16k |0x30020000|
+|SRAM3      |32k | 32k| -  |0x30040000|
+|SRAM4      |64k |64k |64k |0x38000000|
+|Backup SRAM|4k  |4k  |4k  |0x38800000|
 
 
 Please make sure that the addresses and lengths are correct for your model of STM32H7xx.
