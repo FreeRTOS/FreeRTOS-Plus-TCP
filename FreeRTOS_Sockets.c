@@ -4366,6 +4366,33 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 #endif /* ipconfigUSE_TCP */
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Check whether a given socket is valid or not. Validity is defined
+ *        as the socket not being NULL and not being Invalid.
+ * @param[in] xSocket: The socket to be checked.
+ * @return pdTRUE if the socket is valid, else pdFALSE.
+ *
+ */
+BaseType_t xSocketValid( Socket_t xSocket )
+{
+    BaseType_t xReturnValue = pdFALSE;
+
+    /*
+     * There are two values which can indicate an invalid socket:
+     * FREERTOS_INVALID_SOCKET and NULL.  In order to compare against
+     * both values, the code cannot be compliant with rule 11.4,
+     * hence the Coverity suppression statement below.
+     */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
+    if( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) )
+    {
+        xReturnValue = pdTRUE;
+    }
+
+    return xReturnValue;
+}
+/*-----------------------------------------------------------*/
+
 #if 0
 
 /**
@@ -4758,33 +4785,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     }
 
 #endif /* ipconfigSUPPORT_SIGNALS */
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Check whether a given socket is valid or not. Validity is defined
- *        as the socket not being NULL and not being Invalid.
- * @param[in] xSocket: The socket to be checked.
- * @return pdTRUE if the socket is valid, else pdFALSE.
- *
- */
-BaseType_t xSocketValid( Socket_t xSocket )
-{
-    BaseType_t xReturnValue = pdFALSE;
-
-    /*
-     * There are two values which can indicate an invalid socket:
-     * FREERTOS_INVALID_SOCKET and NULL.  In order to compare against
-     * both values, the code cannot be compliant with rule 11.4,
-     * hence the Coverity suppression statement below.
-     */
-    /* coverity[misra_c_2012_rule_11_4_violation] */
-    if( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) )
-    {
-        xReturnValue = pdTRUE;
-    }
-
-    return xReturnValue;
-}
 /*-----------------------------------------------------------*/
 
 #if 0
