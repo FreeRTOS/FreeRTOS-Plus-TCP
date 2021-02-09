@@ -1,117 +1,104 @@
-/* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
-#define ipFIRST_MULTI_CAST_IPv4    0xE0000000UL
-#define ipLAST_MULTI_CAST_IPv4     0xF0000000UL
+/* Include standard libraries */
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
 
-/* For convenience, a MAC address of all 0xffs is defined const for quick
- * reference. */
-const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
+#include "FreeRTOS.h"
+#include "task.h"
+#include "list.h"
 
-/* The expected IP version and header length coded into the IP header itself. */
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
+#include "FreeRTOS_IP.h"
 
-BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
-{
-    BaseType_t xReturn;
-    uint32_t ulIP = FreeRTOS_ntohl( ulIPAddress );
+volatile BaseType_t xInsideInterrupt = pdFALSE;
 
-    if( ( ulIP >= ipFIRST_MULTI_CAST_IPv4 ) && ( ulIP < ipLAST_MULTI_CAST_IPv4 ) )
-    {
-        xReturn = pdTRUE;
-    }
-    else
-    {
-        xReturn = pdFALSE;
-    }
-
-    return xReturn;
-}
-/*-----------------------------------------------------------*/
-
-void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
-                                  MACAddress_t * pxMACAddress )
-{
-    uint32_t ulIP = FreeRTOS_ntohl( ulIPAddress );
-
-    pxMACAddress->ucBytes[ 0 ] = ( uint8_t ) 0x01U;
-    pxMACAddress->ucBytes[ 1 ] = ( uint8_t ) 0x00U;
-    pxMACAddress->ucBytes[ 2 ] = ( uint8_t ) 0x5EU;
-    pxMACAddress->ucBytes[ 3 ] = ( uint8_t ) ( ( ulIP >> 16 ) & 0x7fU ); /* Use 7 bits. */
-    pxMACAddress->ucBytes[ 4 ] = ( uint8_t ) ( ( ulIP >> 8 ) & 0xffU );  /* Use 8 bits. */
-    pxMACAddress->ucBytes[ 5 ] = ( uint8_t ) ( ( ulIP ) & 0xffU );       /* Use 8 bits. */
-}
-/*-----------------------------------------------------------*/
-
-TickType_t xTaskGetTickCount( void )
-{
-    TickType_t xTicks;
-
-    return xTicks;
-}
-
-BaseType_t xSendEventToIPTask( eIPEvent_t eEvent )
+size_t xPortGetMinimumEverFreeHeapSize( void )
 {
     return 0;
 }
-/*-----------------------------------------------------------*/
+const char * pcApplicationHostnameHook( void )
+{
+}
+uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
+                                             uint16_t usSourcePort,
+                                             uint32_t ulDestinationAddress,
+                                             uint16_t usDestinationPort )
+{
+}
+BaseType_t xNetworkInterfaceInitialise( void )
+{
+}
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                                 struct xNetworkEndPoint * pxEndPoint )
+{
+}
+BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
+{
+}
+void vApplicationDaemonTaskStartupHook( void )
+{
+}
+void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
+                                     StackType_t ** ppxTimerTaskStackBuffer,
+                                     uint32_t * pulTimerTaskStackSize )
+{
+}
+void vPortDeleteThread( void *pvTaskToDelete )
+{
+}
+void vApplicationIdleHook( void )
+{
+}
+void vApplicationTickHook( void )
+{
+}
+unsigned long ulGetRunTimeCounterValue( void )
+{
+}
+void vPortEndScheduler( void )
+{
+}
+BaseType_t xPortStartScheduler( void )
+{
+}
+void vPortEnterCritical( void )
+{
+}
+void vPortExitCritical( void )
+{
+}
+
+void * pvPortMalloc( size_t xWantedSize )
+{
+    return malloc( xWantedSize );
+}
+
+void vPortFree( void * pv )
+{
+    free( pv );
+}
+
+StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters )
+{
+}
+void vPortGenerateSimulatedInterrupt( uint32_t ulInterruptNumber )
+{
+}
+void vPortCloseRunningThread( void *pvTaskToDelete, volatile BaseType_t *pxPendYield )
+{
+}
+void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
+                                    StackType_t ** ppxIdleTaskStackBuffer,
+                                    uint32_t * pulIdleTaskStackSize )
+{
+}
+void vConfigureTimerForRunTimeStats( void )
+{
+}
+
 
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     BaseType_t bReleaseAfterSend )
 {
     return pdPASS;
-}
-/*-----------------------------------------------------------*/
-
-NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
-                                                              TickType_t xBlockTimeTicks )
-{
-    return NULL;
-}
-/*-----------------------------------------------------------*/
-
-BaseType_t xIsCallingFromIPTask( void )
-{
-    BaseType_t xReturn = 0;
-
-    return xReturn;
-}
-/*-----------------------------------------------------------*/
-
-void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer )
-{
-}
-/*-----------------------------------------------------------*/
-
-BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
-                                     TickType_t uxTimeout )
-{
-    BaseType_t xReturn;
-
-    return xReturn;
-}
-/*-----------------------------------------------------------*/
-
-NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                                    size_t uxNewLength )
-{
-    NetworkBufferDescriptor_t * pxNewBuffer;
-
-    return pxNewBuffer;
-}
-/*-----------------------------------------------------------*/
-
-void vTaskSetTimeOutState( TimeOut_t * const pxTimeOut )
-{
-}
-/*-----------------------------------------------------------*/
-
-BaseType_t xTaskCheckForTimeOut( TimeOut_t * const pxTimeOut,
-                                 TickType_t * const pxTicksToWait )
-{
-    return pdTRUE;
-}
-/*-----------------------------------------------------------*/
-
-void vTaskDelay( const TickType_t xTicksToDelay )
-{
 }
 /*-----------------------------------------------------------*/
