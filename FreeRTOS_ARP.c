@@ -492,7 +492,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 
         if( ppxInterface != NULL )
         {
-            *( ppxInterface ) + NULL;
+            *( ppxInterface ) = NULL;
         }
 
         /* Loop through each entry in the ARP cache. */
