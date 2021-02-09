@@ -495,8 +495,8 @@
             eSELECT_INTR = 0x0008,
             eSELECT_ALL = 0x000F,
             /* Reserved for internal use: */
-            eSELECT_CALL_IP = 0x0010,
-            /* end */
+            eSELECT_CALL_IP = 0x0010
+                              /* end */
         } eSelectEvent_t;
 
         SocketSet_t FreeRTOS_CreateSocketSet( void );

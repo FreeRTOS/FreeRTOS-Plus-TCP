@@ -498,6 +498,12 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
             if( memcmp( pxMACAddress->ucBytes, xARPCache[ x ].xMACAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
             {
                 *pulIPAddress = xARPCache[ x ].ulIPAddress;
+
+                if( ppxInterface != NULL )
+                {
+                    *( ppxInterface ) + pxEndPoint->pxNetworkInterface;
+                }
+
                 eReturn = eARPCacheHit;
                 break;
             }

@@ -441,7 +441,7 @@
         eSocketBindEvent,   /* 9: Send a message to the IP-task to bind a socket to a port. */
         eSocketCloseEvent,  /*10: Send a message to the IP-task to close a socket. */
         eSocketSelectEvent, /*11: Send a message to the IP-task for select(). */
-        eSocketSignalEvent, /*12: A socket must be signalled. */
+        eSocketSignalEvent  /*12: A socket must be signalled. */
     } eIPEvent_t;
 
 /**
@@ -840,7 +840,7 @@
         eSOCKET_BOUND = 0x0010,
         eSOCKET_CLOSED = 0x0020,
         eSOCKET_INTR = 0x0040,
-        eSOCKET_ALL = 0x007F,
+        eSOCKET_ALL = 0x007F
     };
 
 
