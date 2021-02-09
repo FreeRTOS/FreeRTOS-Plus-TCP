@@ -35,6 +35,7 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_IP.goto",
     "$(FREERTOS_PLUS_TCP)/FreeRTOS_ARP.goto"
   ],
   #That is the minimal required size for an ARPPacket_t plus offset in the buffer.
