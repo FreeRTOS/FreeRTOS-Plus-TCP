@@ -490,6 +490,11 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
         configASSERT( pxMACAddress != NULL );
         configASSERT( pulIPAddress != NULL );
 
+        if( ppxInterface != NULL )
+        {
+            *( ppxInterface ) + NULL;
+        }
+
         /* Loop through each entry in the ARP cache. */
         for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
         {
@@ -501,7 +506,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 
                 if( ppxInterface != NULL )
                 {
-                    *( ppxInterface ) + pxEndPoint->pxNetworkInterface;
+                    *( ppxInterface ) + xARPCache[ x ].pxEndPoint->pxNetworkInterface;
                 }
 
                 eReturn = eARPCacheHit;
