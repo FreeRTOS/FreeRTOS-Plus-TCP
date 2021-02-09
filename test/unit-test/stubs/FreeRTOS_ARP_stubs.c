@@ -28,7 +28,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 {
 }
 void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                                 struct xNetworkEndPoint * pxEndPoint )
+                                     struct xNetworkEndPoint * pxEndPoint )
 {
 }
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
@@ -42,7 +42,7 @@ void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
                                      uint32_t * pulTimerTaskStackSize )
 {
 }
-void vPortDeleteThread( void *pvTaskToDelete )
+void vPortDeleteThread( void * pvTaskToDelete )
 {
 }
 void vApplicationIdleHook( void )
@@ -77,13 +77,16 @@ void vPortFree( void * pv )
     free( pv );
 }
 
-StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters )
+StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
+                                     TaskFunction_t pxCode,
+                                     void * pvParameters )
 {
 }
 void vPortGenerateSimulatedInterrupt( uint32_t ulInterruptNumber )
 {
 }
-void vPortCloseRunningThread( void *pvTaskToDelete, volatile BaseType_t *pxPendYield )
+void vPortCloseRunningThread( void * pvTaskToDelete,
+                              volatile BaseType_t * pxPendYield )
 {
 }
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
