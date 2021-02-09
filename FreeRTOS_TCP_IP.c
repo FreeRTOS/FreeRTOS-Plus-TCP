@@ -962,7 +962,15 @@
             /* Just an increasing number. */
             pxIPHeader->usIdentification = FreeRTOS_htons( usPacketIdentifier );
             usPacketIdentifier++;
-            pxIPHeader->usFragmentOffset = 0U;
+
+            /* The stack doesn't support fragments, so the fragment offset field must always be zero.
+             * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
+             */
+            #if ( ipconfigFORCE_IP_DONT_FRAGMENT != 0 )
+                pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
+            #else
+                pxIPHeader->usFragmentOffset = 0U;
+            #endif
 
             /* Important: tell NIC driver how many bytes must be sent. */
             pxNetworkBuffer->xDataLength = ulLen + ipSIZE_OF_ETH_HEADER;

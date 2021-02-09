@@ -4,7 +4,7 @@
 /* Include standard libraries */
 #include <stdlib.h>
 #include <string.h>
-
+#include <stdint.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "list.h"
