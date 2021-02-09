@@ -506,7 +506,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 
                 if( ppxInterface != NULL )
                 {
-                    *( ppxInterface ) + xARPCache[ x ].pxEndPoint->pxNetworkInterface;
+                    *( ppxInterface ) = xARPCache[ x ].pxEndPoint->pxNetworkInterface;
                 }
 
                 eReturn = eARPCacheHit;
