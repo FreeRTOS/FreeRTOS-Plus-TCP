@@ -58,6 +58,12 @@
 /* A block time of 0 simply means "don't block". */
     #define raDONT_BLOCK    ( ( TickType_t ) 0 )
 
+/* The default value for the IPv6-field 'ucVersionTrafficClass'. */
+	#define raDEFAULT_VERSION_TRAFFIC_CLASS    0x60U
+
+/* The default value for the IPv6-field 'ucHopLimit'. */
+	#define raDEFAULT_HOP_LIMIT                255U
+
 /*-----------------------------------------------------------*/
 
 /* Initialise the Router Advertisement process for a given end-point. */
@@ -109,12 +115,12 @@
         pxICMPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
         /* Set IP-header. */
-        pxICMPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
+		pxICMPPacket->xIPHeader.ucVersionTrafficClass = raDEFAULT_VERSION_TRAFFIC_CLASS;
         pxICMPPacket->xIPHeader.ucTrafficClassFlow = 0U;
         pxICMPPacket->xIPHeader.usFlowLabel = 0U;
         pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( ICMPRouterSolicitation_IPv6_t ) ); /*lint !e845: (Info -- The right argument to operator '|' is certain to be 0. */
         pxICMPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
-        pxICMPPacket->xIPHeader.ucHopLimit = 255U;
+		pxICMPPacket->xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
 
         configASSERT( pxEndPoint != NULL );
         configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );

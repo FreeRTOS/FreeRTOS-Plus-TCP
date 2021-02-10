@@ -477,6 +477,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
  *
  * @param[in] pxMACAddress: The MAC-address of the entry of interest.
  * @param[out] pulIPAddress: set to the IP-address found, or unchanged when not found.
+ * @param[out] ppxInterface: Will get a pointer to the interface that holds the MAC-address.
  *
  * @return Either eARPCacheMiss or eARPCacheHit.
  */
