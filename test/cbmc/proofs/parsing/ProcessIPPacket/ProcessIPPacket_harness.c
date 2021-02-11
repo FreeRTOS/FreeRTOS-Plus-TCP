@@ -10,7 +10,9 @@
 /* Function Abstraction:
  * memmove standard library function is abstracted away to speed up proof
  * execution. */
-void *memmove(void *str1, const void *str2, size_t len)
+void * memmove( void * str1,
+                const void * str2,
+                size_t len )
 {
     __CPROVER_assert( str1 != NULL, "First string cannot be NULL" );
     __CPROVER_assert( str2 != NULL, "Second string cannot be NULL" );
@@ -76,6 +78,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 void harness()
 {
     NetworkBufferDescriptor_t * const pxNetworkBuffer = nondet_bool() ? NULL : malloc( sizeof( NetworkBufferDescriptor_t ) );
+
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
     size_t xLocalDatalength;
@@ -92,16 +95,14 @@ void harness()
     pxNetworkBuffer->xDataLength = xLocalDatalength;
 
     /* Pointer to the start of the Ethernet frame. It should be able to access the whole Ethernet frame.*/
-    //pxNetworkBuffer->pucEthernetBuffer = nondet_bool() ? NULL : malloc( xLocalDatalength );
-    pxNetworkBuffer->pucEthernetBuffer = malloc( xLocalDatalength );
-
+    pxNetworkBuffer->pucEthernetBuffer = nondet_bool() ? NULL : malloc( xLocalDatalength );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     /* Only IPv4 frames are supported. */
-    __CPROVER_assume( ( ( EthernetHeader_t *) ( pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType == ipIPv4_FRAME_TYPE );
+    __CPROVER_assume( ( ( EthernetHeader_t * ) ( pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType == ipIPv4_FRAME_TYPE );
 
     /* Put the header length used to malloc the ethernet buffer. */
-    ( ( IPPacket_t *) ( pxNetworkBuffer->pucEthernetBuffer ) )->xIPHeader.ucVersionHeaderLength = ucVersionHeaderLength;
+    ( ( IPPacket_t * ) ( pxNetworkBuffer->pucEthernetBuffer ) )->xIPHeader.ucVersionHeaderLength = ucVersionHeaderLength;
 
     /* Assume that the list of interfaces/endpoints is not initialized.
      * These are defined in the FreeRTOS_Routing.c file and used as a
@@ -109,5 +110,5 @@ void harness()
     __CPROVER_assume( pxNetworkInterfaces == NULL );
     __CPROVER_assume( pxNetworkEndPoints == NULL );
 
-    __CPROVER_file_local_FreeRTOS_IP_c_prvProcessIPPacket( ( ( IPPacket_t *) ( pxNetworkBuffer->pucEthernetBuffer ) ), pxNetworkBuffer );
+    __CPROVER_file_local_FreeRTOS_IP_c_prvProcessIPPacket( ( ( IPPacket_t * ) ( pxNetworkBuffer->pucEthernetBuffer ) ), pxNetworkBuffer );
 }

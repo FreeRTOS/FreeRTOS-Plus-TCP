@@ -537,6 +537,7 @@ mediainterface
 memcmp
 memcopy
 memcpy
+memmove
 memset
 menie
 mh
@@ -1464,6 +1465,7 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
+varprefreshcacheentry
 varpsendgratuitous
 vcleartxbuffers
 vconfiguretimerforruntimestats
