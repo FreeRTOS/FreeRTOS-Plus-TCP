@@ -2772,7 +2772,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     /* To: the usual start of UDP/ICMP/TCP data at offset 20 (decimal ) from IP header. */
                     uint8_t * pucTarget = ( uint8_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( EthernetHeader_t ) + ipSIZE_OF_IPv4_HEADER ] );
                     /* How many: total length minus the options and the lower headers. */
-
                     const size_t xMoveLen = pxNetworkBuffer->xDataLength - ( optlen + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ETH_HEADER );
 
                     ( void ) memmove( pucTarget, pucSource, xMoveLen );
