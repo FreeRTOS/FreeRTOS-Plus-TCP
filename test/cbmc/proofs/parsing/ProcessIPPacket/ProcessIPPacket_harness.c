@@ -8,6 +8,21 @@
 #include "FreeRTOS_Routing.h"
 
 /* Function Abstraction:
+ * memmove standard library function is abstracted away to speed up proof
+ * execution. */
+void *memmove(void *str1, const void *str2, size_t len)
+{
+    __CPROVER_assert( str1 != NULL, "First string cannot be NULL" );
+    __CPROVER_assert( str2 != NULL, "Second string cannot be NULL" );
+
+    __CPROVER_w_ok( str1, len );
+    __CPROVER_r_ok( str2, len );
+
+    __CPROVER_havoc_object( str1 );
+    return str1;
+}
+
+/* Function Abstraction:
  * Function xProcessReceivedTCPPacket is proven to be memory safe separately. */
 BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
