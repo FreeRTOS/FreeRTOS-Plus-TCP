@@ -53,182 +53,42 @@
         uint8_t ucArray[ sizeof( size_t ) ]; /**< array big enough to store any pointer address */
     } StreamBuffer_t;
 
-    static portINLINE void vStreamBufferClear( StreamBuffer_t * pxBuffer );
-    static portINLINE void vStreamBufferClear( StreamBuffer_t * pxBuffer )
-    {
-        /* Make the circular buffer empty */
-        pxBuffer->uxHead = 0U;
-        pxBuffer->uxTail = 0U;
-        pxBuffer->uxFront = 0U;
-        pxBuffer->uxMid = 0U;
-    }
-
+    void vStreamBufferClear( StreamBuffer_t * pxBuffer );
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
-                                                  const size_t uxLower,
-                                                  const size_t uxUpper );
-    static portINLINE size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
-                                                  const size_t uxLower,
-                                                  const size_t uxUpper )
-    {
-/* Returns the space between uxLower and uxUpper, which equals to the distance minus 1 */
-        size_t uxCount;
-
-        uxCount = pxBuffer->LENGTH + uxUpper - uxLower - 1U;
-
-        if( uxCount >= pxBuffer->LENGTH )
-        {
-            uxCount -= pxBuffer->LENGTH;
-        }
-
-        return uxCount;
-    }
+    size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
+                                const size_t uxLower,
+                                const size_t uxUpper );
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferDistance( const StreamBuffer_t * pxBuffer,
-                                                     const size_t uxLower,
-                                                     const size_t uxUpper );
-    static portINLINE size_t uxStreamBufferDistance( const StreamBuffer_t * pxBuffer,
-                                                     const size_t uxLower,
-                                                     const size_t uxUpper )
-    {
-/* Returns the distance between uxLower and uxUpper */
-        size_t uxCount;
-
-        uxCount = pxBuffer->LENGTH + uxUpper - uxLower;
-
-        if( uxCount >= pxBuffer->LENGTH )
-        {
-            uxCount -= pxBuffer->LENGTH;
-        }
-
-        return uxCount;
-    }
+    size_t uxStreamBufferDistance( const StreamBuffer_t * pxBuffer,
+                                   const size_t uxLower,
+                                   const size_t uxUpper );
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferGetSpace( const StreamBuffer_t * pxBuffer );
-    static portINLINE size_t uxStreamBufferGetSpace( const StreamBuffer_t * pxBuffer )
-    {
-/* Returns the number of items which can still be added to uxHead
- * before hitting on uxTail */
-        size_t uxHead = pxBuffer->uxHead;
-        size_t uxTail = pxBuffer->uxTail;
-
-        return uxStreamBufferSpace( pxBuffer, uxHead, uxTail );
-    }
+    size_t uxStreamBufferGetSpace( const StreamBuffer_t * pxBuffer );
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferFrontSpace( const StreamBuffer_t * pxBuffer );
-    static portINLINE size_t uxStreamBufferFrontSpace( const StreamBuffer_t * pxBuffer )
-    {
-/* Distance between uxFront and uxTail
- * or the number of items which can still be added to uxFront,
- * before hitting on uxTail */
-
-        size_t uxFront = pxBuffer->uxFront;
-        size_t uxTail = pxBuffer->uxTail;
-
-        return uxStreamBufferSpace( pxBuffer, uxFront, uxTail );
-    }
+    size_t uxStreamBufferFrontSpace( const StreamBuffer_t * pxBuffer );
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferGetSize( const StreamBuffer_t * pxBuffer );
-    static portINLINE size_t uxStreamBufferGetSize( const StreamBuffer_t * pxBuffer )
-    {
-/* Returns the number of items which can be read from uxTail
- * before reaching uxHead */
-        size_t uxHead = pxBuffer->uxHead;
-        size_t uxTail = pxBuffer->uxTail;
-
-        return uxStreamBufferDistance( pxBuffer, uxTail, uxHead );
-    }
+    size_t uxStreamBufferGetSize( const StreamBuffer_t * pxBuffer );
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferMidSpace( const StreamBuffer_t * pxBuffer );
-    static portINLINE size_t uxStreamBufferMidSpace( const StreamBuffer_t * pxBuffer )
-    {
-/* Returns the distance between uxHead and uxMid */
-        size_t uxHead = pxBuffer->uxHead;
-        size_t uxMid = pxBuffer->uxMid;
-
-        return uxStreamBufferDistance( pxBuffer, uxMid, uxHead );
-    }
+    size_t uxStreamBufferMidSpace( const StreamBuffer_t * pxBuffer );
 /*-----------------------------------------------------------*/
 
-    static portINLINE void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
-                                                 size_t uxCount );
-    static portINLINE void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
-                                                 size_t uxCount )
-    {
-/* Increment uxMid, but no further than uxHead */
-        size_t uxSize = uxStreamBufferMidSpace( pxBuffer );
-        size_t uxMoveCount = uxCount;
-
-        if( uxMoveCount > uxSize )
-        {
-            uxMoveCount = uxSize;
-        }
-
-        pxBuffer->uxMid += uxMoveCount;
-
-        if( pxBuffer->uxMid >= pxBuffer->LENGTH )
-        {
-            pxBuffer->uxMid -= pxBuffer->LENGTH;
-        }
-    }
+    void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
+                               size_t uxCount );
 /*-----------------------------------------------------------*/
 
-    static portINLINE BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
-                                                             const size_t uxLeft,
-                                                             const size_t uxRight );
-    static portINLINE BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
-                                                             const size_t uxLeft,
-                                                             const size_t uxRight )
-    {
-        BaseType_t xReturn;
-        size_t uxTail = pxBuffer->uxTail;
-
-        /* Returns true if ( uxLeft < uxRight ) */
-        if( ( ( ( uxLeft < uxTail ) ? 1U : 0U ) ^ ( ( uxRight < uxTail ) ? 1U : 0U ) ) != 0U )
-        {
-            if( uxRight < uxTail )
-            {
-                xReturn = pdTRUE;
-            }
-            else
-            {
-                xReturn = pdFALSE;
-            }
-        }
-        else
-        {
-            if( uxLeft <= uxRight )
-            {
-                xReturn = pdTRUE;
-            }
-            else
-            {
-                xReturn = pdFALSE;
-            }
-        }
-
-        return xReturn;
-    }
+    BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
+                                           const size_t uxLeft,
+                                           const size_t uxRight );
 /*-----------------------------------------------------------*/
 
-    static portINLINE size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
-                                                   uint8_t ** ppucData );
-    static portINLINE size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
-                                                   uint8_t ** ppucData )
-    {
-        size_t uxNextTail = pxBuffer->uxTail;
-        size_t uxSize = uxStreamBufferGetSize( pxBuffer );
-
-        *ppucData = pxBuffer->ucArray + uxNextTail;
-
-        return FreeRTOS_min_uint32( uxSize, pxBuffer->LENGTH - uxNextTail );
-    }
+    size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
+                                 uint8_t ** ppucData );
 
 /*
  * Add bytes to a stream buffer.

@@ -336,6 +336,18 @@
     #define ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS    1
 #endif
 
+/* Configuration to control whether all outgoing IP datagrams get their
+ * "don't fragment" flag set.
+ * If set to 1, the stack will set the "don't fragment" flag on all outgoing IP
+ * packets. If a packet needs to be fragmented somewhere along it's path, it will get
+ * discarded instead of fragmented.
+ * If set to 0, the stack will clear the "don't fragment" flag an all outgoing IP
+ * packets therefore allowing fragmentation if it is needed.
+ */
+#ifndef ipconfigFORCE_IP_DONT_FRAGMENT
+    #define ipconfigFORCE_IP_DONT_FRAGMENT    0
+#endif
+
 /* Configuration to control whether UDP packets with
  * checksum value of zero should be passed up the software
  * stack OR should be dropped.

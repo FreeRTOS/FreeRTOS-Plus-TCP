@@ -964,7 +964,15 @@
             /* Just an increasing number. */
             pxIPHeader->usIdentification = FreeRTOS_htons( usPacketIdentifier );
             usPacketIdentifier++;
-            pxIPHeader->usFragmentOffset = 0U;
+
+            /* The stack doesn't support fragments, so the fragment offset field must always be zero.
+             * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
+             */
+            #if ( ipconfigFORCE_IP_DONT_FRAGMENT != 0 )
+                pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
+            #else
+                pxIPHeader->usFragmentOffset = 0U;
+            #endif
 
             /* Important: tell NIC driver how many bytes must be sent. */
             pxNetworkBuffer->xDataLength = ulLen + ipSIZE_OF_ETH_HEADER;
@@ -1500,6 +1508,12 @@
                 uxIndex += ( size_t ) ucLen;
             }
         }
+
+        #if ( ipconfigUSE_TCP_WIN == 0 )
+            /* Avoid compiler warnings when TCP window is not used. */
+            ( void ) xHasSYNFlag;
+        #endif
+
         return uxIndex;
     }
     /*-----------------------------------------------------------*/
@@ -2597,11 +2611,12 @@
         TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
         const TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
         UBaseType_t uxOptionsLength = pxTCPWindow->ucOptionLength;
-        /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-        const void * pvCopySource;
-        void * pvCopyDest;
 
         #if ( ipconfigUSE_TCP_WIN == 1 )
+            /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+            const void * pvCopySource;
+            void * pvCopyDest;
+
             if( uxOptionsLength != 0U )
             {
                 /* TCP options must be sent because a packet which is out-of-order
