@@ -2773,23 +2773,14 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     uint8_t * pucTarget = ( uint8_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( EthernetHeader_t ) + ipSIZE_OF_IPv4_HEADER ] );
                     /* How many: total length minus the options and the lower headers. */
 
-                    if( pxNetworkBuffer->xDataLength > ( optlen + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ETH_HEADER ) )
-                    {
-                       const size_t xMoveLen = pxNetworkBuffer->xDataLength - ( optlen + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ETH_HEADER );
+                    const size_t xMoveLen = pxNetworkBuffer->xDataLength - ( optlen + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ETH_HEADER );
 
-                        ( void ) memmove( pucTarget, pucSource, xMoveLen );
+                    ( void ) memmove( pucTarget, pucSource, xMoveLen );
+                    pxNetworkBuffer->xDataLength -= optlen;
 
-                        pxNetworkBuffer->xDataLength -= optlen;
-
-                        /* Rewrite the Version/IHL byte to indicate that this packet has no IP options. */
-                        pxIPHeader->ucVersionHeaderLength = ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
-                                                            ( ( ipSIZE_OF_IPv4_HEADER >> 2 ) & 0x0FU );
-                    }
-                    else
-                    {
-                       /* Something is not right. Release the buffer. */
-                        eReturn = eReleaseBuffer;
-                    }
+                    /* Rewrite the Version/IHL byte to indicate that this packet has no IP options. */
+                    pxIPHeader->ucVersionHeaderLength = ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
+                                                        ( ( ipSIZE_OF_IPv4_HEADER >> 2 ) & 0x0FU );
                 }
             #else /* if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 ) */
                 {
