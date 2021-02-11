@@ -6,6 +6,7 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_Routing.goto",
     "$(FREERTOS_PLUS_TCP)/FreeRTOS_UDP_IP.goto"
   ],
   "INSTFLAGS":
