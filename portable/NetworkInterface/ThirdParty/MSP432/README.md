@@ -31,14 +31,14 @@ void setup_wired_ethernet()
     config.MACAddr[5] = 0xD0;
     vPublicSetupEMACNetwork(config);
 
-    // setup the network stack middleware
+    /* setup the network stack middleware */
     const char *devname = "device";
     struct InternalNetworkMiddlewareData setupData;
     strncpy(setupData.deviceName, devname, strlen(devname));
     setupData.resetNetworkTaskEveryXSeconds = 86400;           /* Restart the network every 24 hours (86400 seconds) only when  setupData.resetNetworkTaskRunning == true */
     setupData.resetNetworkTaskRunning = false;                /* Run the network task to reset the network every so often (i.e. to periodically obtain a new IP address) */
 
-    // set the static IP address
+    /* set the static IP address */
     convertOctetsToAddr(setupData.ucIPAddress, 192, 168, 1, 9);
     convertOctetsToAddr(setupData.ucNetMask, 255, 255, 255, 0);
     convertOctetsToAddr(setupData.ucGatewayAddress, 192, 168, 1, 1);
