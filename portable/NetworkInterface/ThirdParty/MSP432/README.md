@@ -20,11 +20,10 @@ of resetting only the MAC hardware.
 
 void setup_wired_ethernet()
 {
-    //setup the driver
     struct InternalNetworkInterfaceMSP432EConfig config;
     vGetInternalNetworkInterfaceMSP432EConfigDefaults(&config);
-    config.setMACAddrInternal = false;  // true if the MAC address is to be read from microcontroller flash
-    config.MACAddr[0] = 0x70;           // replace with a custom MAC address
+    config.setMACAddrInternal = false;  /* true if the MAC address is to be read from microcontroller flash */
+    config.MACAddr[0] = 0x70;           /* replace with a custom MAC address */
     config.MACAddr[1] = 0xFF;
     config.MACAddr[2] = 0x76;
     config.MACAddr[3] = 0x1C;
@@ -36,8 +35,8 @@ void setup_wired_ethernet()
     const char *devname = "device";
     struct InternalNetworkMiddlewareData setupData;
     strncpy(setupData.deviceName, devname, strlen(devname));
-    setupData.resetNetworkTaskEveryXSeconds = 86400;           // Restart the network every 24 hours (86400 seconds) only when  setupData.resetNetworkTaskRunning == true
-    setupData.resetNetworkTaskRunning = false;                // Run the network task to reset the network every so often (i.e. to periodically obtain a new IP address)
+    setupData.resetNetworkTaskEveryXSeconds = 86400;           /* Restart the network every 24 hours (86400 seconds) only when  setupData.resetNetworkTaskRunning == true */
+    setupData.resetNetworkTaskRunning = false;                /* Run the network task to reset the network every so often (i.e. to periodically obtain a new IP address) */
 
     // set the static IP address
     convertOctetsToAddr(setupData.ucIPAddress, 192, 168, 1, 9);
@@ -46,10 +45,11 @@ void setup_wired_ethernet()
     convertOctetsToAddr(setupData.ucDNSServerAddress, 192, 168, 1, 1);
 
     vPublicSetupFreeRTOSTasks(setupData);
-    // Start the RTOS scheduler by calling vTaskStartScheduler()
-    // Use vPublicPreventNetworkReset() to block the network reset during a critical section of the code
-    // Set the device name using vPublicSetupDeviceName()
-} // end
+    /*
+       Start the RTOS scheduler by calling vTaskStartScheduler()
+       Use publicPreventNetworkReset() to block the network reset during a critical section of the code
+       Set the device name using vPublicSetupDeviceName() */
+}
 
 ```
 # Contact

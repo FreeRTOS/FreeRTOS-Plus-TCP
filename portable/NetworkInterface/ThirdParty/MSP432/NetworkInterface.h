@@ -36,9 +36,9 @@
 
 struct InternalNetworkInterfaceMSP432EConfig
 {
-    bool turnOnEMAC;                                    // true to turn on the EMAC initially on startup
-    uint8_t MACAddr[ ipMAC_ADDRESS_LENGTH_BYTES];       // MAC address
-    bool setMACAddrInternal;                            // true to set the MAC address from internal registers
+    bool turnOnEMAC;                                    /* true to turn on the EMAC initially on startup */
+    uint8_t ucMACAddr[ ipMAC_ADDRESS_LENGTH_BYTES];     /* MAC address */
+    bool setMACAddrInternal;                            /* true to set the MAC address from internal registers */
 }; // end
 
 bool vPublicTurnOffEMAC();
