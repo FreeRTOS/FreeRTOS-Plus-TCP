@@ -52,9 +52,10 @@ static char DEV_NAME[MAX_NAME_LLMNR];
 extern uint32_t obtain_rand32();
 
 static SemaphoreHandle_t xSemaphore = NULL;
-static void prvNetworkResetTask( void *pvParameters );
 static TaskHandle_t xTaskToNotifyReset = NULL;
 static uint32_t xDelay;
+
+static void prvNetworkResetTask( void *pvParameters );
 
 
 /*  Call this function before starting the scheduler and after the MAC address and device name has been loaded.
