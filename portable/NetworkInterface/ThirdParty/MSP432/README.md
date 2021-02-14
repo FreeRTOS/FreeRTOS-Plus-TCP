@@ -39,10 +39,10 @@ void setup_wired_ethernet()
     setupData.resetNetworkTaskRunning = false;                /* Run the network task to reset the network every so often (i.e. to periodically obtain a new IP address) */
 
     /* set the static IP address */
-    convertOctetsToAddr(setupData.ucIPAddress, 192, 168, 1, 9);
-    convertOctetsToAddr(setupData.ucNetMask, 255, 255, 255, 0);
-    convertOctetsToAddr(setupData.ucGatewayAddress, 192, 168, 1, 1);
-    convertOctetsToAddr(setupData.ucDNSServerAddress, 192, 168, 1, 1);
+    vConvertOctetsToAddr(setupData.ucIPAddress, 192, 168, 1, 9);
+    vConvertOctetsToAddr(setupData.ucNetMask, 255, 255, 255, 0);
+    vConvertOctetsToAddr(setupData.ucGatewayAddress, 192, 168, 1, 1);
+    vConvertOctetsToAddr(setupData.ucDNSServerAddress, 192, 168, 1, 1);
 
     vPublicSetupFreeRTOSTasks(setupData);
     /*
