@@ -415,7 +415,7 @@ void ethernetIntHandler(void)
 
     /* clear the interrupt */
     EMACIntClear(EMAC0_BASE, ui32Temp);
-    /* as per Application Note SLAA739–June 2017 */
+    /* as per Application Note SLAA739 - June 2017 */
 #if configUSE_TICKLESS_IDLE   == 1
     SCB->SCR &= ~SCB_SCR_SLEEPONEXIT_Msk;
     __DSB();
