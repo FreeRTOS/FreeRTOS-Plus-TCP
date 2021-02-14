@@ -91,7 +91,7 @@ void vPublicSetupFreeRTOSTasks(const struct InternalNetworkMiddlewareData data)
 
 
 /* Helper function to assign bytes to an array used to indicate the IP address */
-void convertOctetsToAddr(uint8_t arr[ipIP_ADDRESS_LENGTH_BYTES], uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3)
+void vConvertOctetsToAddr(uint8_t arr[ipIP_ADDRESS_LENGTH_BYTES], uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3)
 {
     arr[0] = b0;
     arr[1] = b1;

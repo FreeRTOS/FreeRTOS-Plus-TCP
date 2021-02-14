@@ -51,5 +51,5 @@ struct InternalNetworkMiddlewareData
 void vPublicSetupFreeRTOSTasks(const struct InternalNetworkMiddlewareData data);
 void vPublicSetupDeviceName(const char *deviceName);
 bool vPublicPreventNetworkReset(const bool preventReset, const uint32_t waitTime);
-void convertOctetsToAddr(uint8_t arr[ipIP_ADDRESS_LENGTH_BYTES], uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3);
+void vConvertOctetsToAddr(uint8_t arr[ipIP_ADDRESS_LENGTH_BYTES], uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3);
 
