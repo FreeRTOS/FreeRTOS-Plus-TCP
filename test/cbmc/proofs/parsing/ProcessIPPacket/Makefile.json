@@ -3,13 +3,14 @@
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--nondet-static"
+    "--nondet-static",
+    "--flush"
   ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS_PLUS_TCP)/FreeRTOS_Routing.goto",
-    "$(FREERTOS_PLUS_TCP)/FreeRTOS_IP.goto"
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_IP.goto",
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_Routing.goto"
   ],
   "DEF":
   [
@@ -18,5 +19,9 @@
   "INC":
   [
     "$(FREERTOS_PLUS_TCP)/test/cbmc/include"
+  ],
+  "OPT":
+  [
+    "--export-file-local-symbols"
   ]
 }
