@@ -927,7 +927,7 @@ bool vPublicTurnOffEMAC()
 {
     if( hasBeenSetup == false )
     {
-        return false;                        /* make sure that the MAC has been setup */
+        return false; /* make sure that the MAC has been setup */
     }
 
     if( xTaskGetSchedulerState() == taskSCHEDULER_RUNNING )
@@ -946,7 +946,7 @@ bool vPublicTurnOffEMAC()
         vTaskDelay( pdMS_TO_TICKS( ETH_DOWN_DELAY_MS ) ); /* Wait until FreeRTOS has finished processing */
     }
 
-    offEMAC();   /* Turn off the physical hardware */
+    offEMAC(); /* Turn off the physical hardware */
     return true;
 }
 
