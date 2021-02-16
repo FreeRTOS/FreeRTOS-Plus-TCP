@@ -35,21 +35,25 @@
 #include "FreeRTOS_IP.h"
 #include "semphr.h"
 
-#define MAX_NAME_LLMNR  32  // maximum length of the LLMNR name used in this project
+#define MAX_NAME_LLMNR    32 /* maximum length of the LLMNR name used in this project */
 
 struct InternalNetworkMiddlewareData
 {
-    uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES];
-    uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES];
-    uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES];
-    uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES];
+    uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
+    uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ];
+    uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
+    uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
     bool resetNetworkTaskRunning;
     uint32_t resetNetworkTaskEveryXSeconds;
-    char deviceName[MAX_NAME_LLMNR];
-}; // end
+    char deviceName[ MAX_NAME_LLMNR ];
+}; /* end */
 
-void vPublicSetupFreeRTOSTasks(const struct InternalNetworkMiddlewareData data);
-void vPublicSetupDeviceName(const char *deviceName);
-bool vPublicPreventNetworkReset(const bool preventReset, const uint32_t waitTime);
-void vConvertOctetsToAddr(uint8_t arr[ipIP_ADDRESS_LENGTH_BYTES], uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3);
-
+void vPublicSetupFreeRTOSTasks( const struct InternalNetworkMiddlewareData data );
+void vPublicSetupDeviceName( const char * deviceName );
+bool vPublicPreventNetworkReset( const bool preventReset,
+                                 const uint32_t waitTime );
+void vConvertOctetsToAddr( uint8_t arr[ ipIP_ADDRESS_LENGTH_BYTES ],
+                           uint8_t b0,
+                           uint8_t b1,
+                           uint8_t b2,
+                           uint8_t b3 );

@@ -36,19 +36,13 @@
 
 struct InternalNetworkInterfaceMSP432EConfig
 {
-    bool turnOnEMAC;                                    /* true to turn on the EMAC initially on startup */
-    uint8_t ucMACAddr[ ipMAC_ADDRESS_LENGTH_BYTES];     /* MAC address */
-    bool setMACAddrInternal;                            /* true to set the MAC address from internal registers */
-}; // end
+    bool turnOnEMAC;                                 /* true to turn on the EMAC initially on startup */
+    uint8_t ucMACAddr[ ipMAC_ADDRESS_LENGTH_BYTES ]; /* MAC address */
+    bool setMACAddrInternal;                         /* true to set the MAC address from internal registers */
+};                                                   /* end */
 
 bool vPublicTurnOffEMAC();
 bool vPublicTurnOnEMAC();
-void vPublicGetMACAddr(uint8_t pui8MACAddrGet[ ipMAC_ADDRESS_LENGTH_BYTES]);
-bool vPublicSetupEMACNetwork(const struct InternalNetworkInterfaceMSP432EConfig config);
-void vGetInternalNetworkInterfaceMSP432EConfigDefaults(struct InternalNetworkInterfaceMSP432EConfig *config);
-
-
-
-
-
-
+void vPublicGetMACAddr( uint8_t pui8MACAddrGet[ ipMAC_ADDRESS_LENGTH_BYTES ] );
+bool vPublicSetupEMACNetwork( const struct InternalNetworkInterfaceMSP432EConfig config );
+void vGetInternalNetworkInterfaceMSP432EConfigDefaults( struct InternalNetworkInterfaceMSP432EConfig * config );
