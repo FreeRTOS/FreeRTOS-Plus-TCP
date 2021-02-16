@@ -44,6 +44,226 @@
 
 
 /**
+ * @brief Get the space between lower and upper value provided to the function.
+ * @param[in] pxBuffer: The circular stream buffer.
+ * @param[in] uxLower: The lower value.
+ * @param[in] uxUpper: The upper value.
+ * @return The space between uxLower and uxUpper, which equals to the distance
+ *         minus 1.
+ */
+size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
+                            const size_t uxLower,
+                            const size_t uxUpper )
+{
+    size_t uxCount;
+
+    uxCount = pxBuffer->LENGTH + uxUpper - uxLower - 1U;
+
+    if( uxCount >= pxBuffer->LENGTH )
+    {
+        uxCount -= pxBuffer->LENGTH;
+    }
+
+    return uxCount;
+}
+
+/**
+ * @brief Get the distance between lower and upper value provided to the function.
+ * @param[in] pxBuffer: The circular stream buffer.
+ * @param[in] uxLower: The lower value.
+ * @param[in] uxUpper: The upper value.
+ * @return The distance between uxLower and uxUpper.
+ */
+size_t uxStreamBufferDistance( const StreamBuffer_t * pxBuffer,
+                               const size_t uxLower,
+                               const size_t uxUpper )
+{
+    size_t uxCount;
+
+    uxCount = pxBuffer->LENGTH + uxUpper - uxLower;
+
+    if( uxCount >= pxBuffer->LENGTH )
+    {
+        uxCount -= pxBuffer->LENGTH;
+    }
+
+    return uxCount;
+}
+
+/**
+ * @brief Get the number of items which can be added to the buffer at
+ *        the head before reaching the tail.
+ * @param[in] pxBuffer: The circular stream buffer.
+ * @return The number of items which can still be added to uxHead
+ *         before hitting on uxTail
+ */
+size_t uxStreamBufferGetSpace( const StreamBuffer_t * pxBuffer )
+{
+    size_t uxHead = pxBuffer->uxHead;
+    size_t uxTail = pxBuffer->uxTail;
+
+    return uxStreamBufferSpace( pxBuffer, uxHead, uxTail );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the distance between the pointer in free space and the tail.
+ * @param[in] pxBuffer: The circular stream buffer.
+ * @return Distance between uxFront and uxTail or the number of items
+ *         which can still be added to uxFront, before hitting on uxTail.
+ */
+size_t uxStreamBufferFrontSpace( const StreamBuffer_t * pxBuffer )
+{
+    size_t uxFront = pxBuffer->uxFront;
+    size_t uxTail = pxBuffer->uxTail;
+
+    return uxStreamBufferSpace( pxBuffer, uxFront, uxTail );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the number of items which can be read from the tail before
+ *        reaching the head.
+ * @param[in] pxBuffer: The circular stream buffer.
+ * @return The number of items which can be read from the tail before
+ *        reaching the head.
+ */
+size_t uxStreamBufferGetSize( const StreamBuffer_t * pxBuffer )
+{
+    size_t uxHead = pxBuffer->uxHead;
+    size_t uxTail = pxBuffer->uxTail;
+
+    return uxStreamBufferDistance( pxBuffer, uxTail, uxHead );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the space between the mid pointer and the head in the stream
+ *        buffer.
+ * @param[in] pxBuffer: The circular stream buffer.
+ * @return The space between the mid pointer and the head.
+ */
+size_t uxStreamBufferMidSpace( const StreamBuffer_t * pxBuffer )
+{
+    size_t uxHead = pxBuffer->uxHead;
+    size_t uxMid = pxBuffer->uxMid;
+
+    return uxStreamBufferDistance( pxBuffer, uxMid, uxHead );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Move Clear the stream buffer.
+ * @param[in] pxBuffer: The circular stream buffer.
+ */
+void vStreamBufferClear( StreamBuffer_t * pxBuffer )
+{
+    /* Make the circular buffer empty */
+    pxBuffer->uxHead = 0U;
+    pxBuffer->uxTail = 0U;
+    pxBuffer->uxFront = 0U;
+    pxBuffer->uxMid = 0U;
+}
+
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Move the mid pointer forward by given byte count
+ * @param[in] pxBuffer: The circular stream buffer.
+ * @param[in] uxCount: The byte count by which the mid pointer is to be moved.
+ */
+void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
+                           size_t uxCount )
+{
+    /* Increment uxMid, but no further than uxHead */
+    size_t uxSize = uxStreamBufferMidSpace( pxBuffer );
+    size_t uxMid = pxBuffer->uxMid;
+    size_t uxMoveCount = uxCount;
+
+    if( uxMoveCount > uxSize )
+    {
+        uxMoveCount = uxSize;
+    }
+
+    uxMid += uxMoveCount;
+
+    if( uxMid >= pxBuffer->LENGTH )
+    {
+        uxMid -= pxBuffer->LENGTH;
+    }
+
+    pxBuffer->uxMid = uxMid;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Check whether the value in left is less than or equal to the
+ *        value in right from the perspective of the circular stream
+ *        buffer.
+ * @param[in] pxBuffer: The circular stream buffer.
+ * @param[in] uxLeft: The left pointer in the stream buffer.
+ * @param[in] uxRight: The right value pointer in the stream buffer.
+ * @return pdTRUE if uxLeft <= uxRight, else pdFALSE.
+ */
+BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
+                                       const size_t uxLeft,
+                                       const size_t uxRight )
+{
+    BaseType_t xReturn;
+    size_t uxTail = pxBuffer->uxTail;
+
+    /* Returns true if ( uxLeft < uxRight ) */
+    if( ( ( ( uxLeft < uxTail ) ? 1U : 0U ) ^ ( ( uxRight < uxTail ) ? 1U : 0U ) ) != 0U )
+    {
+        if( uxRight < uxTail )
+        {
+            xReturn = pdTRUE;
+        }
+        else
+        {
+            xReturn = pdFALSE;
+        }
+    }
+    else
+    {
+        if( uxLeft <= uxRight )
+        {
+            xReturn = pdTRUE;
+        }
+        else
+        {
+            xReturn = pdFALSE;
+        }
+    }
+
+    return xReturn;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the pointer to data and the amount of data which can be read in one go.
+ *
+ * @param[in] pxBuffer: The circular stream buffer.
+ * @param[out] ppucData: Pointer to the data pointer which will point to the
+ *                       data which can be read.
+ *
+ * @return The number of bytes which can be read in one go (which might be less than
+ *         actual number of available bytes since this is a circular buffer and tail
+ *         can loop back to the start of the buffer).
+ */
+size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
+                             uint8_t ** ppucData )
+{
+    size_t uxNextTail = pxBuffer->uxTail;
+    size_t uxSize = uxStreamBufferGetSize( pxBuffer );
+
+    *ppucData = pxBuffer->ucArray + uxNextTail;
+
+    return FreeRTOS_min_uint32( uxSize, pxBuffer->LENGTH - uxNextTail );
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Adds data to a stream buffer.
  *
  * @param[in,out] pxBuffer: The buffer to which the bytes will be added.

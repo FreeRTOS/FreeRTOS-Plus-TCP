@@ -115,16 +115,6 @@
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
 #endif
 
-#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
-    #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
-        /** @brief The bits in the two byte IP header field that make up the fragment offset value. */
-        #define ipFRAGMENT_OFFSET_BIT_MASK    ( ( uint16_t ) 0xff0f )
-    #else
-        /** @brief The bits in the two byte IP header field that make up the fragment offset value. */
-        #define ipFRAGMENT_OFFSET_BIT_MASK    ( ( uint16_t ) 0x0fff )
-    #endif /* ipconfigBYTE_ORDER */
-#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
-
 /** @brief The maximum time the IP task is allowed to remain in the Blocked state if no
  * events are posted to the network event queue. */
 #ifndef ipconfigMAX_IP_TASK_SLEEP_TIME
@@ -1150,21 +1140,21 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
     {
         /* This is a 64-bit platform, make sure there is enough space in
          * pucEthernetBuffer to store a pointer. */
-        configASSERT( ipconfigBUFFER_PADDING == 14 );
+        configASSERT( ipconfigBUFFER_PADDING >= 14 );
+
+        /* But it must have this strange alignment: */
+        configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
     }
 
-    #ifndef _lint
-        {
-            /* Check if MTU is big enough. */
-            configASSERT( ( ( size_t ) ipconfigNETWORK_MTU ) >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
-            /* Check structure packing is correct. */
-            configASSERT( sizeof( EthernetHeader_t ) == ipEXPECTED_EthernetHeader_t_SIZE );
-            configASSERT( sizeof( ARPHeader_t ) == ipEXPECTED_ARPHeader_t_SIZE );
-            configASSERT( sizeof( IPHeader_t ) == ipEXPECTED_IPHeader_t_SIZE );
-            configASSERT( sizeof( ICMPHeader_t ) == ipEXPECTED_ICMPHeader_t_SIZE );
-            configASSERT( sizeof( UDPHeader_t ) == ipEXPECTED_UDPHeader_t_SIZE );
-        }
-    #endif /* ifndef _lint */
+    /* Check if MTU is big enough. */
+    configASSERT( ( ( size_t ) ipconfigNETWORK_MTU ) >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
+    /* Check structure packing is correct. */
+    configASSERT( sizeof( EthernetHeader_t ) == ipEXPECTED_EthernetHeader_t_SIZE );
+    configASSERT( sizeof( ARPHeader_t ) == ipEXPECTED_ARPHeader_t_SIZE );
+    configASSERT( sizeof( IPHeader_t ) == ipEXPECTED_IPHeader_t_SIZE );
+    configASSERT( sizeof( ICMPHeader_t ) == ipEXPECTED_ICMPHeader_t_SIZE );
+    configASSERT( sizeof( UDPHeader_t ) == ipEXPECTED_UDPHeader_t_SIZE );
+
     /* Attempt to create the queue used to communicate with the IP task. */
     xNetworkEventQueue = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
     configASSERT( xNetworkEventQueue != NULL );
@@ -1853,10 +1843,11 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
              * This method may decrease the usage of sparse network buffers. */
             uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
 
-            /* Ensure that the incoming packet is not fragmented (only outgoing
-             * packets can be fragmented) as these are the only handled IP frames
-             * currently. */
-            if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U )
+            /* Ensure that the incoming packet is not fragmented because the stack
+             * doesn't not support IP fragmentation. All but the last fragment coming in will have their
+             * "more fragments" flag set and the last fragment will have a non-zero offset.
+             * We need to drop the packet in either of those cases. */
+            if( ( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U ) || ( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_FLAGS_MORE_FRAGMENTS ) != 0U ) )
             {
                 /* Can not handle, fragmented packet. */
                 eReturn = eReleaseBuffer;
@@ -2248,6 +2239,15 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         pxICMPHeader->ucTypeOfMessage = ( uint8_t ) ipICMP_ECHO_REPLY;
         pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
         pxIPHeader->ulSourceIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+
+        /* The stack doesn't support fragments, so the fragment offset field must always be zero.
+         * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
+         */
+        #if ( ipconfigFORCE_IP_DONT_FRAGMENT != 0 )
+            pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
+        #else
+            pxIPHeader->usFragmentOffset = 0U;
+        #endif
 
         /* Update the checksum because the ucTypeOfMessage member in the header
          * has been changed to ipICMP_ECHO_REPLY.  This is faster than calling
@@ -3409,6 +3409,361 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
     }
 
     return pcBuffer;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the highest value of two int32's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The highest of the two values.
+ */
+int32_t FreeRTOS_max_int32( int32_t a,
+                            int32_t b )
+{
+    return ( a >= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the highest value of two uint32_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The highest of the two values.
+ */
+uint32_t FreeRTOS_max_uint32( uint32_t a,
+                              uint32_t b )
+{
+    return ( a >= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the lowest value of two int32_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The lowest of the two values.
+ */
+int32_t FreeRTOS_min_int32( int32_t a,
+                            int32_t b )
+{
+    return ( a <= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the lowest value of two uint32_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The lowest of the two values.
+ */
+uint32_t FreeRTOS_min_uint32( uint32_t a,
+                              uint32_t b )
+{
+    return ( a <= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Round-up a number to a multiple of 'd'.
+ * @param[in] a: the first value.
+ * @param[in] d: the second value.
+ * @return A multiple of d.
+ */
+uint32_t FreeRTOS_round_up( uint32_t a,
+                            uint32_t d )
+{
+    return d * ( ( a + d - 1U ) / d );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Round-down a number to a multiple of 'd'.
+ * @param[in] a: the first value.
+ * @param[in] d: the second value.
+ * @return A multiple of d.
+ */
+uint32_t FreeRTOS_round_down( uint32_t a,
+                              uint32_t d )
+{
+    return d * ( a / d );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @defgroup CastingMacroFunctions Utility casting functions
+ * @brief These functions are used to cast various types of pointers
+ *        to other types. A major use would be to map various
+ *        headers/packets on to the incoming byte stream.
+ *
+ * @param[in] pvArgument: Pointer to be casted to another type.
+ *
+ * @retval Casted pointer will be returned without violating MISRA
+ *         rules.
+ * @{
+ */
+
+/**
+ * @brief Cast a given pointer to EthernetHeader_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
+{
+    return ( EthernetHeader_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to EthernetHeader_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
+{
+    return ( const EthernetHeader_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to IPHeader_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPHeader_t )
+{
+    return ( IPHeader_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to IPHeader_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_t )
+{
+    return ( const IPHeader_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to ICMPHeader_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
+{
+    return ( ICMPHeader_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to ICMPHeader_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
+{
+    return ( const ICMPHeader_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to ARPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
+{
+    return ( ARPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to ARPPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
+{
+    return ( const ARPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to IPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t )
+{
+    return ( IPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to IPPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPPacket_t )
+{
+    return ( const IPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to ICMPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_t )
+{
+    return ( ICMPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to UDPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+    return ( UDPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to UDPPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+    return ( const UDPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to TCPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
+{
+    return ( TCPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to TCPPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
+{
+    return ( const TCPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to ProtocolPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
+{
+    return ( ProtocolPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to ProtocolPacket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t )
+{
+    return ( const ProtocolPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to ProtocolHeaders_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
+{
+    return ( ProtocolHeaders_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to ProtocolHeaders_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
+{
+    return ( const ProtocolHeaders_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to FreeRTOS_Socket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
+{
+    return ( FreeRTOS_Socket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to FreeRTOS_Socket_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
+{
+    return ( const FreeRTOS_Socket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+
+/**
+ * @brief Cast a given pointer to SocketSelect_t type pointer.
+ */
+    ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
+    {
+        return ( SocketSelect_t * ) pvArgument;
+    }
+    /*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to SocketSelect_t type pointer.
+ */
+    ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
+    {
+        return ( const SocketSelect_t * ) pvArgument;
+    }
+    /*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to SocketSelectMessage_t type pointer.
+ */
+    ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
+    {
+        return ( SocketSelectMessage_t * ) pvArgument;
+    }
+    /*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given constant pointer to SocketSelectMessage_t type pointer.
+ */
+    ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t )
+    {
+        return ( const SocketSelectMessage_t * ) pvArgument;
+    }
+    /*-----------------------------------------------------------*/
+#endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
+/** @} */
+
+/**
+ * @brief Convert character array (of size 4) to equivalent 32-bit value.
+ * @param[in] pucPtr: The character array.
+ * @return 32-bit equivalent value extracted from the character array.
+ *
+ * @note Going by MISRA rules, these utility functions should not be defined
+ *        if they are not being used anywhere. But their use depends on the
+ *        application and hence these functions are defined unconditionally.
+ */
+uint32_t ulChar2u32( const uint8_t * pucPtr )
+{
+    return ( ( ( uint32_t ) pucPtr[ 0 ] ) << 24 ) |
+           ( ( ( uint32_t ) pucPtr[ 1 ] ) << 16 ) |
+           ( ( ( uint32_t ) pucPtr[ 2 ] ) << 8 ) |
+           ( ( ( uint32_t ) pucPtr[ 3 ] ) );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Convert character array (of size 2) to equivalent 16-bit value.
+ * @param[in] pucPtr: The character array.
+ * @return 16-bit equivalent value extracted from the character array.
+ *
+ * @note Going by MISRA rules, these utility functions should not be defined
+ *        if they are not being used anywhere. But their use depends on the
+ *        application and hence these functions are defined unconditionally.
+ */
+uint16_t usChar2u16( const uint8_t * pucPtr )
+{
+    return ( uint16_t )
+           ( ( ( ( uint32_t ) pucPtr[ 0 ] ) << 8 ) |
+             ( ( ( uint32_t ) pucPtr[ 1 ] ) ) );
 }
 /*-----------------------------------------------------------*/
 

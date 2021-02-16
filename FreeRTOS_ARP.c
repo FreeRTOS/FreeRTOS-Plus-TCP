@@ -271,12 +271,8 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
     uint8_t ucMinAgeFound = 0U;
 
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
-
-        /* Only process the IP address if it is on the local network.
-         * Unless: when '*ipLOCAL_IP_ADDRESS_POINTER' equals zero, the IP-address
-         * and netmask are still unknown. */
-        if( ( ( ulIPAddress & xNetworkAddressing.ulNetMask ) == ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) ) ||
-            ( *ipLOCAL_IP_ADDRESS_POINTER == 0UL ) )
+        /* Only process the IP address if it is on the local network. */
+        if( ( ulIPAddress & xNetworkAddressing.ulNetMask ) == ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) )
     #else
 
         /* If ipconfigARP_STORES_REMOTE_ADDRESSES is non-zero, IP addresses with
@@ -492,16 +488,6 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
 
     ulAddressToLookup = *pulIPAddress;
 
-    #if ( ipconfigUSE_LLMNR == 1 )
-        if( ulAddressToLookup == ipLLMNR_IP_ADDR ) /* Is in network byte order. */
-        {
-            /* The LLMNR IP-address has a fixed virtual MAC address. */
-            ( void ) memcpy( pxMACAddress->ucBytes, xLLMNR_MacAdress.ucBytes, sizeof( MACAddress_t ) );
-            eReturn = eARPCacheHit;
-        }
-        else
-    #endif
-
     if( xIsIPv4Multicast( ulAddressToLookup ) != 0 )
     {
         /* Get the lowest 23 bits of the IP-address. */
@@ -521,6 +507,12 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
         /* The IP address has not yet been assigned, so there is nothing that
          * can be done. */
         eReturn = eCantSendPacket;
+    }
+    else if( *ipLOCAL_IP_ADDRESS_POINTER == *pulIPAddress )
+    {
+        /* The address of this device. May be useful for the loopback device. */
+        eReturn = eARPCacheHit;
+        memcpy( pxMACAddress->ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( pxMACAddress->ucBytes ) );
     }
     else
     {
@@ -747,7 +739,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
             }
         #endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
 
-        if( xIsCallingFromIPTask() != 0 )
+        if( xIsCallingFromIPTask() != pdFALSE )
         {
             iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
             /* Only the IP-task is allowed to call this function directly. */
@@ -769,7 +761,63 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
         }
     }
 }
-/*--------------------------------------*/
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief  Wait for address resolution: look-up the IP-address in the ARP-cache, and if
+ *         needed send an ARP request, and wait for a reply.  This function is useful when
+ *         called before FreeRTOS_sendto().
+ *
+ * @param[in] ulIPAddress: The IP-address to look-up.
+ * @param[in] uxTicksToWait: The maximum number of clock ticks to wait for a reply.
+ *
+ * @return Zero when successful.
+ */
+BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
+                               TickType_t uxTicksToWait )
+{
+    BaseType_t xResult = -pdFREERTOS_ERRNO_EADDRNOTAVAIL;
+    TimeOut_t xTimeOut;
+    MACAddress_t xMACAddress;
+    eARPLookupResult_t xLookupResult;
+    size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
+
+    /* The IP-task is not supposed to call this function. */
+    configASSERT( xIsCallingFromIPTask() == pdFALSE );
+
+    xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ) );
+
+    if( xLookupResult == eARPCacheMiss )
+    {
+        const TickType_t uxSleepTime = pdMS_TO_TICKS( 250U );
+
+        /* We might use ipconfigMAX_ARP_RETRANSMISSIONS here. */
+        vTaskSetTimeOutState( &xTimeOut );
+
+        while( uxSendCount > 0 )
+        {
+            FreeRTOS_OutputARPRequest( ulIPAddress );
+
+            vTaskDelay( uxSleepTime );
+
+            xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ) );
+
+            if( ( xTaskCheckForTimeOut( &( xTimeOut ), &( uxTicksToWait ) ) == pdTRUE ) ||
+                ( xLookupResult != eARPCacheMiss ) )
+            {
+                break;
+            }
+        }
+    }
+
+    if( xLookupResult == eARPCacheHit )
+    {
+        xResult = 0;
+    }
+
+    return xResult;
+}
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Generate an ARP request packet by copying various constant details to
