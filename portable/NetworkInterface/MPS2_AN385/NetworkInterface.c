@@ -72,7 +72,6 @@
 
 #define niMAX_TX_ATTEMPTS               ( 5 )
 
-
 /* =============================  Static Prototypes ========================= */
 static void rx_task( void * pvParameters );
 
@@ -96,15 +95,13 @@ static struct smsc9220_eth_dev_t SMSC9220_ETH_DEV =
 static void print_hex( unsigned const char * const bin_data,
                        size_t len );
 
-
 /* =============================  Extern Variables ========================== */
 /* defined in main_networking.c */
 extern uint8_t ucMACAddress[ SMSC9220_HWADDR_SIZE ]; /* 6 bytes */
 
-
 /* =============================  Static Variables ========================== */
 static TaskHandle_t xRxHanderTask = NULL;
-
+static SemaphoreHandle_t xSemaphore = NULL;
 
 /* =============================  Static Functions ========================== */
 
@@ -168,10 +165,31 @@ static void set_mac( const uint8_t * addr )
     }
 }
 
+void EthernetISR( void )
+{
+    const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    configASSERT( xRxHanderTask );
+
+    if( smsc9220_get_interrupt( dev,
+                                SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL ) )
+    {
+        configASSERT( xSemaphore );
+        xSemaphoreGiveFromISR( xSemaphore, &xHigherPriorityTaskWoken );
+
+        smsc9220_disable_interrupt( dev,
+                                    SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
+        smsc9220_clear_interrupt( dev,
+                                  SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
+    }
+
+    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+}
+
 /**
- * @brief function to poll the netwrok card(qemu emulation) as we faced some
- *        problems with the network interrupt being fired for no reason at
- *        a very high rate which made the program not progress
+ * @brief function to wait on a semaphore from the interrupt handler of the
+ *        network card when data is available
  */
 static void rx_task( void * pvParameters )
 {
@@ -184,20 +202,13 @@ static void rx_task( void * pvParameters )
 
     for( ; ; )
     {
-        if( ( smsc9220_get_interrupt( dev,
-                                      SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL ) ) )
-        {   /* data received */
-            smsc9220_clear_interrupt( dev,
-                                      SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
-            xResult = pdPASS;
-        }
-        else
-        {
-            vTaskDelay( xBlockTime );
-            continue;
-        }
+        configASSERT( xSemaphore );
+        xSemaphoreTake( xSemaphore,
+                        portMAX_DELAY );
 
         packet_rx();
+        smsc9220_clear_interrupt( dev,
+                                  SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
         smsc9220_enable_interrupt( dev, SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
     }
 }
@@ -210,9 +221,8 @@ static void packet_rx()
     uint32_t data_read;
 
     FreeRTOS_debug_printf( ( "Enter\n" ) );
-    data_read = low_level_input( &pxNetworkBuffer );
 
-    if( data_read > 0 )
+    while( ( data_read = low_level_input( &pxNetworkBuffer ) ) )
     {
         xRxEvent.pvData = ( void * ) pxNetworkBuffer;
 
@@ -234,7 +244,7 @@ static uint32_t low_level_input( NetworkBufferDescriptor_t ** pxNetworkBuffer )
 
     FreeRTOS_debug_printf( ( "Enter\n" ) );
 
-    message_length = smsc9220_peek_next_packet_size( dev );
+    message_length = smsc9220_peek_next_packet_size2( dev );
 
     if( message_length != 0 )
     {
@@ -245,11 +255,11 @@ static uint32_t low_level_input( NetworkBufferDescriptor_t ** pxNetworkBuffer )
         {
             ( *pxNetworkBuffer )->xDataLength = message_length;
 
-            received_bytes = smsc9220_receive_by_chunks( dev,
-                                                         ( *pxNetworkBuffer )->pucEthernetBuffer,
-                                                         message_length ); /* not used */
+            received_bytes = smsc9220_receive_by_chunks2( dev,
+                                                          ( *pxNetworkBuffer )->pucEthernetBuffer,
+                                                          message_length ); /* not used */
             ( *pxNetworkBuffer )->xDataLength = received_bytes;
-            FreeRTOS_debug_printf( ( "incoming data < < < < < < < < < < read: %d length: %d\n",
+            FreeRTOS_debug_printf( ( "Incoming data < < < < < < < < < < read: %d length: %d\n",
                                      received_bytes,
                                      message_length ) );
             print_hex( ( *pxNetworkBuffer )->pucEthernetBuffer,
@@ -273,6 +283,8 @@ BaseType_t xNetworkInterfaceInitialise( void )
     enum smsc9220_error_t err;
 
     FreeRTOS_debug_printf( ( "Enter\n" ) );
+    xSemaphore = xSemaphoreCreateBinary();
+    configASSERT( xSemaphore );
 
     if( xRxHanderTask == NULL )
     {
@@ -283,6 +295,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
                                configMAX_PRIORITIES - 4,
                                &xRxHanderTask );
         configASSERT( xReturn != 0 );
+        configASSERT( xRxHanderTask );
     }
 
     err = smsc9220_init( dev, wait_ms_function );
@@ -307,6 +320,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
         set_mac( ucMACAddress );
         NVIC_SetPriority( ETHERNET_IRQn, configMAC_INTERRUPT_PRIORITY );
         smsc9220_enable_interrupt( dev, SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
+        NVIC_EnableIRQ( ETHERNET_IRQn );
     }
 
     FreeRTOS_debug_printf( ( "Exit\n" ) );
