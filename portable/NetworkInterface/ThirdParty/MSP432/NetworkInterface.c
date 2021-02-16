@@ -332,15 +332,6 @@ bool setupEMAC()
     IntEnable(INT_EMAC0);
     EMACIntEnable(EMAC0_BASE, EMAC_INTERRUPTS);
 
-    /* inject a delay here to ensure that the EMAC is functional by the time that the other code is run */
-    SysCtlDelay(ETH_STARTUP_TIMEOUT);
-
-    /* check to see if the link is up and indicate if the link is up */
-    if(isEMACLinkUp())
-    {
-        networkUP = true;
-    }
-
     if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING)
     {
         taskEXIT_CRITICAL();
@@ -815,6 +806,7 @@ void prvCheckLinkUpOrDownTask( void *pvParameters )
        if(check==true && networkUP==false)
        {
            networkUP = true;
+           vTaskDelay(pdMS_TO_TICKS(10));
        }
        else if (networkUP==true && check==false)
        {
@@ -822,6 +814,7 @@ void prvCheckLinkUpOrDownTask( void *pvParameters )
                After FreeRTOS_NetworkDown() is called, so there is no corresponding FreeRTOS_NetworkUp() function... */
            networkUP = false;
            FreeRTOS_NetworkDown();
+           vTaskDelay(pdMS_TO_TICKS(10));
        }
    }
 }
