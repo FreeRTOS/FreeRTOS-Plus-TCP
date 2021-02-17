@@ -10,9 +10,10 @@
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
+/* Provide a main function for the build to succeed. */
 int main()
 {
-//   xApplicationIPEventhook();
+    return 0;
 }
 
 size_t xPortGetMinimumEverFreeHeapSize( void )

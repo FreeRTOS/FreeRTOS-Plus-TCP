@@ -111,20 +111,10 @@ void vConfigureTimerForRunTimeStats( void );    /* Prototype of function that in
 #define INCLUDE_xTimerPendFunctionCall            1
 #define INCLUDE_xTaskAbortDelay                   1
 
-/* It is a good idea to define configASSERT() while developing.  configASSERT()
- * uses the same semantics as the standard C assert() macro. */
-extern void vAssertCalled( unsigned long ulLine,
-                           const char * const pcFileName );
+/* Config assert should be defined while developing. For the static analysis
+ * though this should be left undefined. */
 #define configASSERT( x )
-//if( x == 0 ) TEST_ABORT()
 
 #define configINCLUDE_MESSAGE_BUFFER_AMP_DEMO    0
-#if ( configINCLUDE_MESSAGE_BUFFER_AMP_DEMO == 1 )
-    extern void vGenerateCoreBInterrupt( void * xUpdatedMessageBuffer );
-    #define sbSEND_COMPLETED( pxStreamBuffer )    vGenerateCoreBInterrupt( pxStreamBuffer )
-#endif /* configINCLUDE_MESSAGE_BUFFER_AMP_DEMO */
-
-/* Include the FreeRTOS+Trace FreeRTOS trace macro definitions. */
-/* #include "trcRecorder.h" */
 
 #endif /* FREERTOS_CONFIG_H */
