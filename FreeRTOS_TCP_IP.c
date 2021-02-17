@@ -810,12 +810,14 @@
                 {
                     pxNetworkBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, ( size_t ) pxNetworkBuffer->xDataLength );
 
-                    if( pxNetworkBuffer == NULL )
+                    if( pxNetworkBuffer != NULL )
+                    {
+                        xDoRelease = pdTRUE;
+                    }
+                    else
                     {
                         FreeRTOS_debug_printf( ( "prvTCPReturnPacket: duplicate failed\n" ) );
                     }
-
-                    xDoRelease = pdTRUE;
                 }
             }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
