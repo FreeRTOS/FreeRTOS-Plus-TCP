@@ -18,18 +18,24 @@ if( ${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR} )
     message( FATAL_ERROR "In-source build is not allowed. Please build in a separate directory, such as ${PROJECT_SOURCE_DIR}/build." )
 endif()
 
-# =============  Define source path and related variables (edit)  ==============
 # Set global path variables.
 get_filename_component(__MODULE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
 set( MODULE_ROOT_DIR ${__MODULE_ROOT_DIR} CACHE INTERNAL "FreeRTOS-Plus-TCP repository root." )
 
-if( NOT EXISTS ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include )
-    execute_process( COMMAND git submodule update --init --checkout )
+# Set the kernel directory
+set( KERNEL_DIRECTORY ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel )
+
+# If the kernel is not submoduled, download it.
+if( NOT EXISTS ${KERNEL_DIRECTORY}/include )
+    # Inform the user of the actions
+    message( STATUS "FreeRTOS-Kernel is required for this build. Submoduling it..." )
+    execute_process( COMMAND git submodule update --init --checkout ${KERNEL_DIRECTORY}
+                     WORKING_DIRECTORY ${MODULE_ROOT_DIR} )
 endif()
 
 # Add kernel sources to a list
 file( GLOB KERNEL_SOURCES
-           ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/*.c )
+           ${KERNEL_DIRECTORY}/*.c )
 
 # Add TCP sources to a list
 file( GLOB TCP_SOURCES
@@ -47,6 +53,6 @@ add_executable( StaticAnalysis ${TCP_SOURCES}
 
 # Link the include directories with the target
 target_include_directories( StaticAnalysis
-                            PUBLIC "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include"
+                            PUBLIC "${KERNEL_DIRECTORY}/include"
                             PUBLIC "${MODULE_ROOT_DIR}/test/Coverity/ConfigFiles"
                             PUBLIC "${MODULE_ROOT_DIR}/include" )
