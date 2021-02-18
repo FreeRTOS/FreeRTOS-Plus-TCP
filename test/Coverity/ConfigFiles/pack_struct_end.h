@@ -29,4 +29,7 @@
 * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Compiler_Porting.html
 *
 *****************************************************************************/
+
+/* Keyword required to appear after any structure which has packed
+ * placement in memory. */
 __attribute__( ( packed ) );
