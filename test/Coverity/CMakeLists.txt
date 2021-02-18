@@ -56,3 +56,6 @@ target_include_directories( StaticAnalysis
                             PUBLIC "${KERNEL_DIRECTORY}/include"
                             PUBLIC "${MODULE_ROOT_DIR}/test/Coverity/ConfigFiles"
                             PUBLIC "${MODULE_ROOT_DIR}/include" )
+
+# Uncomment the below line if the desired platform is 32-bit
+# set_target_properties( StaticAnalysis PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32" )
