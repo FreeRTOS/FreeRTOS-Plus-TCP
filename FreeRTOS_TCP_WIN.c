@@ -1183,9 +1183,9 @@
                         FreeRTOS_debug_printf( ( "lTCPWindowRxCheck[%d,%d]: seqnr %u exp %u (dist %d) SACK to %u\n",
                                                  ( int ) pxWindow->usPeerPortNumber,
                                                  ( int ) pxWindow->usOurPortNumber,
-                                                 ( unsigned ) ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber,
-                                                 ( unsigned ) ulCurrentSequenceNumber - pxWindow->rx.ulFirstSequenceNumber,
-                                                 ( unsigned ) ( ulSequenceNumber - ulCurrentSequenceNumber ), /* want this signed */
+                                                 ( unsigned ) (ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber),
+                                                 ( unsigned ) (ulCurrentSequenceNumber - pxWindow->rx.ulFirstSequenceNumber),
+                                                 ( int ) ( ulSequenceNumber - ulCurrentSequenceNumber ),
                                                  ( unsigned ) ( ulLast - pxWindow->rx.ulFirstSequenceNumber ) ) );
                     }
 

@@ -3977,13 +3977,13 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     if( xResult != ( int32_t ) ulByteCount )
                     {
                         FreeRTOS_debug_printf( ( "lTCPAddRxdata: at %u: %d/%u bytes (tail %u head %u space %u front %u)\n",
-                                                 ( UBaseType_t ) uxOffset,
-                                                 ( BaseType_t ) xResult,
-                                                 ( UBaseType_t ) ulByteCount,
-                                                 ( UBaseType_t ) pxStream->uxTail,
-                                                 ( UBaseType_t ) pxStream->uxHead,
-                                                 ( UBaseType_t ) uxStreamBufferFrontSpace( pxStream ),
-                                                 ( UBaseType_t ) pxStream->uxFront ) );
+                                                 uxOffset,
+                                                 (int) xResult,
+                                                 (unsigned int) ulByteCount,
+                                                 pxStream->uxTail,
+                                                 pxStream->uxHead,
+                                                 uxStreamBufferFrontSpace( pxStream ),
+                                                 pxStream->uxFront ) );
                     }
                 }
             #endif /* ipconfigHAS_DEBUG_PRINTF */
