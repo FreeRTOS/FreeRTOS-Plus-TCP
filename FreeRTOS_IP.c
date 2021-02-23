@@ -4713,8 +4713,8 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
  */
     size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
-		/* As this is IPv4-only code, the parameter 'pxNetworkBuffer' is not used. */
-		( void ) pxNetworkBuffer;
+        /* As this is IPv4-only code, the parameter 'pxNetworkBuffer' is not used. */
+        ( void ) pxNetworkBuffer;
 
         return ipSIZE_OF_IPv4_HEADER;
     }
@@ -4751,8 +4751,8 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
  */
     size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
     {
-		/* As this is IPv4-only code, the parameter 'pxSocket' is not used. */
-		( void ) pxSocket;
+        /* As this is IPv4-only code, the parameter 'pxSocket' is not used. */
+        ( void ) pxSocket;
 
         return ipSIZE_OF_IPv4_HEADER;
     }
