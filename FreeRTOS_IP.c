@@ -1890,9 +1890,15 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
              * define, so that the checksum won't be checked again here */
             if( eReturn == eProcessBuffer )
             {
-                /* Is the IP header checksum correct? */
-                if( ( pxIPHeader->ucProtocol != ( uint8_t ) ipPROTOCOL_ICMP ) &&
-                    ( usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength ) != ipCORRECT_CRC ) )
+                /* Is the IP header checksum correct?
+                 * 
+                 * NOTE: When the checksum of IP header is calculated while not ommiting
+                 * the checksum field, the resulting value of the checksum always is 0xffff
+                 * which is denoted by ipCORRECT_CRC. See this wiki for more information:
+                 * https://en.wikipedia.org/wiki/IPv4_header_checksum#Verifying_the_IPv4_header_checksum
+                 * and this RFC: https://tools.ietf.org/html/rfc1624#page-4
+                 */
+                if( usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength ) != ipCORRECT_CRC )
                 {
                     /* Check sum in IP-header not correct. */
                     eReturn = eReleaseBuffer;
