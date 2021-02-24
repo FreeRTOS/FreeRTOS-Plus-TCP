@@ -1892,7 +1892,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
             {
                 /* Is the IP header checksum correct?
                  *
-                 * NOTE: When the checksum of IP header is calculated while not ommiting
+                 * NOTE: When the checksum of IP header is calculated while not omitting
                  * the checksum field, the resulting value of the checksum always is 0xffff
                  * which is denoted by ipCORRECT_CRC. See this wiki for more information:
                  * https://en.wikipedia.org/wiki/IPv4_header_checksum#Verifying_the_IPv4_header_checksum
