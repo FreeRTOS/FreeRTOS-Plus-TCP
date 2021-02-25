@@ -71,6 +71,8 @@ jobs:
           fi
 
   formatting:
+    # Use only 18.04 since we want the uncrustify version to
+    # be 0.66.1_f to ensure proper formatting.
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
