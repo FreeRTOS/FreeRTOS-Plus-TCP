@@ -3,9 +3,9 @@ name: Uncrustify the source code
 on:
   workflow_dispatch:
     workflows: ["CI Checks"]
-      branches: [main]
-      types:
-        - completed
+    branches: [main]
+    types:
+      - completed
 
 jobs:
   Uncrustify:
