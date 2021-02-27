@@ -1,20 +1,19 @@
 name: Uncrustify the source code
 
 on:
-  workflow_run:
-    workflows: ["CI Checks"]
-    branches: [main]
-    types:
-      - completed
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
 
 jobs:
   Uncrustify:
+    if: contains(github.event.comment.html\_url, '/pull/') && contains(github.event.comment.body, 'confirm Uncrustify')
     runs-on: ubuntu-18.04
-      steps:
-        - uses: actions/checkout@v2
-        - name: Install Uncrustify
-          run: sudo apt-get install uncrustify
-        - name: Run Uncrustify
-          run: |
-            uncrustify --version
-            find . -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Uncrustify
+        run: sudo apt-get install uncrustify
+      - name: Run Uncrustify
+        run: |
+          uncrustify --version
+          find . -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
