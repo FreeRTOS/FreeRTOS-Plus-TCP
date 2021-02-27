@@ -1,0 +1,20 @@
+name: Uncrustify the source code
+
+on:
+  workflow_dispatch:
+    workflows: ["CI Checks"]
+      branches: [main]
+      types:
+        - completed
+
+jobs:
+  Uncrustify:
+    runs-on: ubuntu-18.04
+      steps:
+        - uses: actions/checkout@v2
+        - name: Install Uncrustify
+          run: sudo apt-get install uncrustify
+        - name: Run Uncrustify
+          run: |
+            uncrustify --version
+            find . -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
