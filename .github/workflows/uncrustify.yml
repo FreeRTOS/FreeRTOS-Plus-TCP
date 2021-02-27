@@ -3,11 +3,12 @@ name: Uncrustify the source code
 on:
   issue_comment:
     types: [created]
-  workflow_dispatch:
 
 jobs:
   Uncrustify:
-    if: contains(github.event.comment.html\_url, '/pull/') && contains(github.event.comment.body, 'confirm Uncrustify')
+    name: Run_Uncrustify
+    if: ${{ github.event.issue.pull_request }}
+    # && contains(github.event.comment.body, 'confirm Uncrustify')
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
