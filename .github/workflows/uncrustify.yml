@@ -23,7 +23,9 @@ jobs:
           find . -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
           find . -type f -name "*" -print0 | xargs -0 sed -i "s/Aniruddha/Kanhere/g"
       - name: GitHub Action for committing changes to a repository
-        uses: devops-infra/action-commit-push@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          commit_message: Uncrustify
+        run: |
+          git config --global user.name 'Aniruddha Kanhere'
+          git config --global user.email '60444055+AniruddhaKanhere@users.noreply.github.com'
+          git add -A
+          git commit -m "test"
+          git push
