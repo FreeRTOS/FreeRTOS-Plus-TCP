@@ -11,10 +11,24 @@ jobs:
     # && contains(github.event.comment.body, 'confirm Uncrustify')
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v2
-        #with:
-        #  persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
-        #  fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - name: get pullrequest url
+        run: |
+          echo ${{ github.event.issue.pull_request.url }}
+      - name: get upstream branch
+        id: upstreambranch
+        run: |
+          echo "::set-output name=branchname::$(curl -v -H "Accept: application/vnd.github.sailor-v-preview+json" -u ${{ secrets.PAT }} ${{ github.event.issue.pull_request.url }} | jq '.head.ref' | sed 's/\"//g')"
+      - name: echo upstream branch
+        run: |
+          echo ${{ steps.upstreambranch.outputs }}
+      - name: Checkout upstream repo
+        uses: actions/checkout@v2
+        with:
+           ref: ${{ steps.upstreambranch.outputs.branchname }}
       - name: Install Uncrustify
         run: sudo apt-get install uncrustify
       - name: Run Uncrustify
