@@ -21,6 +21,7 @@ jobs:
         run: |
           uncrustify --version
           find . -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
+          echo "hello there" > hello.txt
       - name: GitHub Action for committing changes to a repository
         run: |
           git config --global user.name 'Aniruddha Kanhere'
