@@ -21,8 +21,9 @@ jobs:
         run: |
           uncrustify --version
           find . -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
+          find . -type f -name "*" -print0 | xargs -0 sed -i "s/Aniruddha/Kanhere/g"
       - name: GitHub Action for committing changes to a repository
-        uses: devops-infra/action-commit-push@0.1
+        uses: devops-infra/action-commit-push@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           commit_message: Uncrustify
