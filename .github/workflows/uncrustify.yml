@@ -1,0 +1,20 @@
+name: Uncrustify the source code
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  Uncrustify:
+    name: Run_Uncrustify
+    if: ${{ github.event.issue.pull_request }}
+    # && contains(github.event.comment.body, 'confirm Uncrustify')
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Uncrustify
+        run: sudo apt-get install uncrustify
+      - name: Run Uncrustify
+        run: |
+          uncrustify --version
+          find . -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
