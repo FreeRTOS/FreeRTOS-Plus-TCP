@@ -26,3 +26,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           commit_message: Uncrustify
+
+target_branch:
