@@ -543,7 +543,7 @@ static void prvIPTask( void * pvParameters )
                     else
                 #endif
                 {
-                    struct freertos_sockaddr * pxAddress = ipPOINTER_CAST( struct freertos_sockaddr *, & ( xAddress ) );
+                    struct freertos_sockaddr * pxAddress = ipPOINTER_CAST( struct freertos_sockaddr *, &( xAddress ) );
 
                     pxAddress->sin_family = FREERTOS_AF_INET;
                     pxAddress->sin_addr = FreeRTOS_htonl( pxSocket->ulLocalAddress );
@@ -553,7 +553,7 @@ static void prvIPTask( void * pvParameters )
                 /* 'ulLocalAddress' and 'usLocalPort' will be set again by vSocketBind(). */
                 pxSocket->ulLocalAddress = 0;
                 pxSocket->usLocalPort = 0;
-                ( void ) vSocketBind( pxSocket, ipPOINTER_CAST( struct freertos_sockaddr *, & ( xAddress ) ), sizeof( xAddress ), pdFALSE );
+                ( void ) vSocketBind( pxSocket, ipPOINTER_CAST( struct freertos_sockaddr *, &( xAddress ) ), sizeof( xAddress ), pdFALSE );
 
                 /* Before 'eSocketBindEvent' was sent it was tested that
                  * ( xEventGroup != NULL ) so it can be used now to wake up the
