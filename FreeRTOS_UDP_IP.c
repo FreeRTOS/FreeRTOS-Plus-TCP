@@ -322,7 +322,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 
     if( eReturned != eCantSendPacket )
     {
-        /* eReturned equals	eARPCacheHit or eARPCacheMiss. */
+        /* eReturned equals eARPCacheHit or eARPCacheMiss. */
 
         /* The network driver is responsible for freeing the network buffer
          * after the packet has been sent. */

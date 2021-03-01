@@ -265,13 +265,6 @@
             xNDCache[ xEntryFound ].pxEndPoint = pxEndPoint;
             xNDCache[ xEntryFound ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
             xNDCache[ xEntryFound ].ucValid = ( uint8_t ) pdTRUE;
-            /* The format %pip will print a IPv6 address ( if printf-stdarg.c is included ). */
-/*		FreeRTOS_printf( ( "vNDRefreshCacheEntry[ %d ] %pip with %02x:%02x:%02x\n", */
-/*			( int ) xEntryFound, */
-/*			pxIPAddress->ucBytes, */
-/*			pxMACAddress->ucBytes[ 3 ], */
-/*			pxMACAddress->ucBytes[ 4 ], */
-/*			pxMACAddress->ucBytes[ 5 ] ) ); */
         }
         else
         {

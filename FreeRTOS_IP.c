@@ -86,8 +86,8 @@
 #endif
 
 /* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
-#define ipFIRST_MULTI_CAST_IPv4             0xE0000000UL /**< Lower bound of the IPv4 multicast address. */
-#define ipLAST_MULTI_CAST_IPv4              0xF0000000UL /**< Higher bound of the IPv4 multicast address. */
+#define ipFIRST_MULTI_CAST_IPv4             0xE0000000U /**< Lower bound of the IPv4 multicast address. */
+#define ipLAST_MULTI_CAST_IPv4              0xF0000000U /**< Higher bound of the IPv4 multicast address. */
 
 /* The first byte in the IPv4 header combines the IP version (4) with
  * with the length of the IP header. */
@@ -145,7 +145,7 @@
 /** @brief The maximum time the IP task is allowed to remain in the Blocked state if no
  * events are posted to the network event queue. */
 #ifndef ipconfigMAX_IP_TASK_SLEEP_TIME
-    #define ipconfigMAX_IP_TASK_SLEEP_TIME    ( pdMS_TO_TICKS( 10000UL ) )
+    #define ipconfigMAX_IP_TASK_SLEEP_TIME    ( pdMS_TO_TICKS( 10000U ) )
 #endif
 
 /** @brief Returned as the (invalid) checksum when the protocol being checked is not
@@ -221,9 +221,9 @@ typedef union _xUnion32
  */
 typedef union _xUnionPtr
 {
-    uint32_t * u32ptr; /**< The pointer member to a 32-bit variable. */
-    uint16_t * u16ptr; /**< The pointer member to a 16-bit variable. */
-    uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
+    const uint32_t * u32ptr; /**< The pointer member to a 32-bit variable. */
+    const uint16_t * u16ptr; /**< The pointer member to a 16-bit variable. */
+    const uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
 } xUnionPtr;
 
 
@@ -1735,7 +1735,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
         uxTotalLength = uxNumberOfBytesToSend + sizeof( ICMPPacket_t );
         BaseType_t xEnoughSpace;
 
-/*		xARPWaitResolution( ulIPAddress, uxBlockTimeTicks ); */
+/*      xARPWaitResolution( ulIPAddress, uxBlockTimeTicks ); */
 
         if( uxNumberOfBytesToSend < ( ipconfigNETWORK_MTU - ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) ) ) )
         {
@@ -3479,7 +3479,6 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
         if( ( usChecksum == ipUNHANDLED_PROTOCOL ) ||
             ( usChecksum == ipINVALID_LENGTH ) )
         {
-            /* NOP if ipconfigHAS_PRINTF != 0 */
             if( xLocation != 0 )
             {
                 FreeRTOS_printf( ( "CRC error: %04x location %ld\n", usChecksum, xLocation ) );

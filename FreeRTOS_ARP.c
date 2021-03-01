@@ -349,7 +349,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
             }
 
             /* Does this line in the cache table hold an entry for the IP
-             * address	being queried? */
+             * address being queried? */
             if( xARPCache[ x ].ulIPAddress == ulIPAddress )
             {
                 if( pxMACAddress == NULL )
@@ -870,8 +870,6 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
                         {
                             BaseType_t xIndex;
 
-                            /*					FreeRTOS_printf( ( "OutputARPRequest: length %lu -> %lu\n", */
-                            /*						pxNetworkBuffer->xDataLength, ipconfigETHERNET_MINIMUM_PACKET_BYTES ) ); */
                             for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
                             {
                                 pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;

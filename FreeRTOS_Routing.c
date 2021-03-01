@@ -808,7 +808,6 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                        xDoLog--;
                        FreeRTOS_printf( ( "Compare[%s] %d mine %-16lxip (%02x-%02x) from %-16lxip to %-16lxip (%02x-%02x)\n",
                                           name,
-                                          /*	( unsigned ) xMACBroadcast, */
                                           ( unsigned ) xIPBroadcast,
                                           ( pxEndPoint != NULL ) ? FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulIPAddress ) : 0UL,
                                           ( pxEndPoint != NULL ) ? pxEndPoint->xMACAddress.ucBytes[ 0 ] : 0U,
