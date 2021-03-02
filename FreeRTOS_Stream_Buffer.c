@@ -209,7 +209,7 @@ BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
                                        const size_t uxLeft,
                                        const size_t uxRight )
 {
-    BaseType_t xReturn = pdFalse;
+    BaseType_t xReturn = pdFALSE;
     size_t uxTail = pxBuffer->uxTail;
 
     /* Returns true if ( uxLeft <= uxRight ) */
