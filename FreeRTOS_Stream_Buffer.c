@@ -37,8 +37,8 @@
 #include "semphr.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 
@@ -212,7 +212,7 @@ BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
     BaseType_t xReturn = pdFalse;
     size_t uxTail = pxBuffer->uxTail;
 
-    /* Returns true if ( uxLeft < uxRight ) */
+    /* Returns true if ( uxLeft <= uxRight ) */
     if( ( uxLeft - uxTail ) <= ( uxRight - uxTail ) )
     {
         xReturn = pdTRUE;
