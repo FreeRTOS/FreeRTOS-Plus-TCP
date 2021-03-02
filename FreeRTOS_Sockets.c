@@ -3978,7 +3978,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     {
                         FreeRTOS_debug_printf( ( "lTCPAddRxdata: at %u: %d/%u bytes (tail %u head %u space %u front %u)\n",
                                                  ( unsigned int ) uxOffset,
-                                                 ( int) xResult,
+                                                 ( int ) xResult,
                                                  ( unsigned int ) ulByteCount,
                                                  ( unsigned int ) pxStream->uxTail,
                                                  ( unsigned int ) pxStream->uxHead,
