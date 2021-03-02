@@ -4265,20 +4265,17 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
             break;
 
         default:
-            /* Using function "snprintf". */
-            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", xErrnum );
-            pcName = NULL;
-            break;
-    }
 
-    if( pcName != NULL )
-    {
-        /* Using function "snprintf". */
-        ( void ) snprintf( pcBuffer, uxLength, "%s", pcName );
+            /* As all defined values are enumerated,
+             * default should not be reached. */
+            pcName = "UNKNOWN ERRNO";
+            break;
     }
 
     if( uxLength > 0U )
     {
+        ( void ) strncpy( pcBuffer, pcName, uxLength - 1U );
+        /* Make sure the result is nul-terminated. */
         pcBuffer[ uxLength - 1U ] = '\0';
     }
 
