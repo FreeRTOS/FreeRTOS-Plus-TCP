@@ -33,6 +33,9 @@
 /* Standard includes. */
     #include <string.h>
 
+/* FreeRTOS includes. */
+    #include "FreeRTOS.h"
+
 /* Application level configuration options. */
     #include "FreeRTOSIPConfig.h"
 
