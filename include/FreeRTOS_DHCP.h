@@ -46,9 +46,9 @@
 /** @brief Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
     typedef enum eDHCP_ANSWERS
     {
-        eDHCPContinue,      /**< Continue the DHCP process */
-        eDHCPUseDefaults,   /**< Stop DHCP and use the static defaults. */
-        eDHCPStopNoChanges, /**< Stop DHCP and continue with current settings. */
+        eDHCPContinue,     /**< Continue the DHCP process */
+        eDHCPUseDefaults,  /**< Stop DHCP and use the static defaults. */
+        eDHCPStopNoChanges /**< Stop DHCP and continue with current settings. */
     } eDHCPCallbackAnswer_t;
 
 /** @brief DHCP state machine states. */
@@ -91,11 +91,10 @@
 
     eDHCPState_t eGetDHCPState( struct xNetworkEndPoint * pxEndPoint );
 
-    #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+    #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
 
 /*
  * Send a message to the IP-task, which will call vDHCPProcess().
- *
  */
         BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint );
     #endif

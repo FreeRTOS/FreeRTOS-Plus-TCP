@@ -26,3 +26,12 @@ set( TCP_INCLUDE_DIRS
      "${CMAKE_CURRENT_LIST_DIR}/../../portable/Compiler/GCC"
      "${CMAKE_CURRENT_LIST_DIR}/stubs" )
 
+set( KERNEL_SOURCES
+     "${CMAKE_CURRENT_LIST_DIR}/../FreeRTOS-Kernel/croutine.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../FreeRTOS-Kernel/event_groups.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../FreeRTOS-Kernel/list.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../FreeRTOS-Kernel/queue.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../FreeRTOS-Kernel/stream_buffer.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../FreeRTOS-Kernel/tasks.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../FreeRTOS-Kernel/timers.c" )
+

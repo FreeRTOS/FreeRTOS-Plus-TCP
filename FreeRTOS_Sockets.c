@@ -1150,7 +1150,7 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
                         /* lint When xIsIPV6 it true, pxDestinationAddress_IPv6 is initialised. */
                         configASSERT( pxDestinationAddress_IPv6 != NULL );
                         ( void ) memcpy( pxUDPPacket_IPv6->xIPHeader.xDestinationAddress.ucBytes, pxDestinationAddress_IPv6->sin_addrv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); /*lint !e644 Variable 'pxDestinationAddress_IPv6' (line 797) may not have been initialized [MISRA 2012 Rule 9.1, mandatory]). */
-                        ( void ) memcpy( pxNetworkBuffer->xIPv6_Address.ucBytes, pxDestinationAddress_IPv6->sin_addrv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        ( void ) memcpy( pxNetworkBuffer->xIPv6Address.ucBytes, pxDestinationAddress_IPv6->sin_addrv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                         pxUDPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
                     }
                     else
@@ -1199,7 +1199,7 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
                 /* If errno was available, errno would be set to
                  * FREERTOS_ENOPKTS.  As it is, the function must return the
                  * number of transmitted bytes, so the calling function knows
-                 * how	much data was actually sent. */
+                 * how much data was actually sent. */
                 iptraceNO_BUFFER_FOR_SENDTO();
             }
         }
@@ -1541,7 +1541,7 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
             }
         #endif /* ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_CALLBACKS == 1 ) ) */
 
-        /* Let the IP task close the socket to keep it synchronised	with the
+        /* Let the IP task close the socket to keep it synchronised with the
          * packet handling. */
 
         /* Note when changing the time-out value below, it must be checked who is calling
@@ -1692,7 +1692,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                     else
                 #endif /* ipconfigUSE_IPv6 */
                 {
-                    ( void ) snprintf( pucReturn, sizeof( pucReturn ), "%lxip port %u to %lxip port %u", /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
+                    ( void ) snprintf( pucReturn, sizeof( pucReturn ), "%xip port %u to %xip port %u", /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
                                        pxSocket->ulLocalAddress,
                                        pxSocket->usLocalPort,
                                        pxSocket->u.xTCP.ulRemoteIP,
@@ -1714,7 +1714,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                 else
             #endif /* ipconfigUSE_IPv6 */
             {
-                ( void ) snprintf( pucReturn, sizeof( pucReturn ), "%lxip port %u", /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
+                ( void ) snprintf( pucReturn, sizeof( pucReturn ), "%xip port %u", /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
                                    pxSocket->ulLocalAddress,
                                    pxSocket->usLocalPort );
             }
@@ -1892,7 +1892,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
             else
             {
                 /* For TCP socket, it isn't necessary to limit the blocking time
-                 * because	the FreeRTOS_send() function does not wait for a network
+                 * because the FreeRTOS_send() function does not wait for a network
                  * buffer to become available. */
             }
 
@@ -3809,10 +3809,18 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             if( pxBuffer != NULL )
             {
-                BaseType_t xSpace = ( BaseType_t ) uxStreamBufferGetSpace( pxBuffer );
-                BaseType_t xRemain = ( BaseType_t ) pxBuffer->LENGTH - ( BaseType_t ) pxBuffer->uxHead;
+                size_t uxSpace = uxStreamBufferGetSpace( pxBuffer );
+                size_t uxRemain = pxBuffer->LENGTH - pxBuffer->uxHead;
 
-                *pxLength = FreeRTOS_min_BaseType( xSpace, xRemain );
+                if( uxRemain <= uxSpace )
+                {
+                    *pxLength = uxRemain;
+                }
+                else
+                {
+                    *pxLength = uxSpace;
+                }
+
                 pucReturn = &( pxBuffer->ucArray[ pxBuffer->uxHead ] );
             }
         }
@@ -3902,7 +3910,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                      * FTP). */
                     if( xCloseAfterSend != pdFALSE )
                     {
-                        /* Now suspend the scheduler: sending the last data	and
+                        /* Now suspend the scheduler: sending the last data and
                          * setting bCloseRequested must be done together */
                         vTaskSuspendAll();
                         pxSocket->u.xTCP.bits.bCloseRequested = pdTRUE_UNSIGNED;
@@ -3913,7 +3921,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     if( xCloseAfterSend != pdFALSE )
                     {
                         /* Now when the IP-task transmits the data, it will also
-                         * see	that bCloseRequested is true and include the FIN
+                         * see that bCloseRequested is true and include the FIN
                          * flag to start closure of the connection. */
                         ( void ) xTaskResumeAll();
                     }
@@ -3955,7 +3963,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                                 /* If this send function is called from within a
                                  * call-back handler it may not block, otherwise
                                  * chances would be big to get a deadlock: the IP-task
-                                 * waiting for	itself. */
+                                 * waiting for itself. */
                                 xRemainingTime = ( TickType_t ) 0;
                             }
                         }
@@ -4518,13 +4526,13 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     if( xResult != ( int32_t ) ulByteCount )
                     {
                         FreeRTOS_debug_printf( ( "lTCPAddRxdata: at %u: %d/%u bytes (tail %u head %u space %u front %u)\n",
-                                                 ( printf_unsigned ) uxOffset,
-                                                 ( printf_signed ) xResult,
-                                                 ( printf_unsigned ) ulByteCount,
-                                                 ( printf_unsigned ) pxStream->uxTail,
-                                                 ( printf_unsigned ) pxStream->uxHead,
-                                                 ( printf_unsigned ) uxStreamBufferFrontSpace( pxStream ),
-                                                 ( printf_unsigned ) pxStream->uxFront ) );
+                                                 uxOffset,
+                                                 xResult,
+                                                 ulByteCount,
+                                                 pxStream->uxTail,
+                                                 pxStream->uxHead,
+                                                 uxStreamBufferFrontSpace( pxStream ),
+                                                 pxStream->uxFront ) );
                     }
                 }
             #endif /* ipconfigHAS_DEBUG_PRINTF */
@@ -4956,6 +4964,33 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 #endif /* ipconfigUSE_TCP */
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Check whether a given socket is valid or not. Validity is defined
+ *        as the socket not being NULL and not being Invalid.
+ * @param[in] xSocket: The socket to be checked.
+ * @return pdTRUE if the socket is valid, else pdFALSE.
+ *
+ */
+portINLINE BaseType_t xSocketValid( Socket_t xSocket )
+{
+    BaseType_t xReturnValue = pdFALSE;
+
+    /*
+     * There are two values which can indicate an invalid socket:
+     * FREERTOS_INVALID_SOCKET and NULL.  In order to compare against
+     * both values, the code cannot be compliant with rule 11.4,
+     * hence the Coverity suppression statement below.
+     */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
+    if( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) )
+    {
+        xReturnValue = pdTRUE;
+    }
+
+    return xReturnValue;
+}
+/*-----------------------------------------------------------*/
+
 #if 0
 
 /**
@@ -5083,7 +5118,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 #endif
                 {
                     ( void ) snprintf( pcRemoteIp, /*lint !e586 function 'snprintf' is deprecated. [MISRA 2012 Rule 21.6, required]. */
-                                       sizeof( pcRemoteIp ), "%lxip", pxSocket->u.xTCP.ulRemoteIP );
+                                       sizeof( pcRemoteIp ), "%xip", pxSocket->u.xTCP.ulRemoteIP );
                 }
 
                 FreeRTOS_printf( ( "TCP %5d %-*s:%5d %d/%d %-13.13s %6lu %6u%s\n",
@@ -5113,10 +5148,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             }
 
             FreeRTOS_printf( ( "FreeRTOS_netstat: %u sockets %u < %u < %d buffers free\n",
-                               ( printf_unsigned ) count,
-                               ( printf_unsigned ) uxMinimum,
-                               ( printf_unsigned ) uxCurrent,
-                               ( printf_signed ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ) );
+                               count,
+                               uxMinimum,
+                               uxCurrent,
+                               ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ) );
         }
     }
 

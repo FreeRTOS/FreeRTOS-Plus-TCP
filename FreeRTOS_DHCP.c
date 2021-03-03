@@ -1141,7 +1141,7 @@
                                 /* ulProcessed is not incremented in this case
                                  * because the DNS server is not essential.  Only the
                                  * first DNS server address is taken. */
-                                FreeRTOS_printf( ( "DNS address: %lxip\n", ulParameter ) );
+                                FreeRTOS_printf( ( "DNS address: %lxip\n", FreeRTOS_ntohl( ulParameter ) ) );
                                 EP_IPv4_SETTINGS.ulDNSServerAddresses[ 0 ] = ulParameter;
                                 break;
 
@@ -1410,7 +1410,9 @@
 /**
  * @brief Create and send a DHCP discover packet through the DHCP socket.
  *
- * param[in] pxEndPoint: the end-point for which the discover message will be sent.
+ * @param[in] pxEndPoint: the end-point for which the discover message will be sent.
+ *
+ * @return: pdPASS if the DHCP discover message was sent successfully, pdFAIL otherwise.
  */
     static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint )
     {
@@ -1449,8 +1451,10 @@
                  * returned to the stack. */
                 FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
             }
-
-            xResult = pdTRUE;
+            else
+            {
+                xResult = pdPASS;
+            }
         }
 
         return xResult;
