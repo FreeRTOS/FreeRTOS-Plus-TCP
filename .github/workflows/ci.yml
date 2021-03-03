@@ -61,8 +61,8 @@ jobs:
       - name: Check spelling
         run: |
           PATH=$PATH:main/tools/spell
-          # Make sure that the portable directory and winpcap folder is not included in the spellcheck.
-          sed -i 's/find $DIRNAME/find $DIRNAME -not -path '*portable*'  -not -path '*Logging*' -not -path '*WinPCap*'/g' main/tools/spell/find-unknown-comment-words
+          # Make sure that the portable directory is not included in the spellcheck.
+          sed -i 's/find $DIRNAME/find $DIRNAME -not -path '*portable*'/g' main/tools/spell/find-unknown-comment-words
           find-unknown-comment-words --directory tcp/ --lexicon tcp/.github/lexicon.txt
           if [ "$?" = "0" ]; then
             exit 0
@@ -71,7 +71,9 @@ jobs:
           fi
 
   formatting:
-    runs-on: ubuntu-latest
+    # Use only 18.04 since we want the uncrustify version to
+    # be 0.66.1_f to ensure proper formatting.
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
       - name: Install Uncrustify
@@ -79,11 +81,11 @@ jobs:
       - name: Run Uncrustify
         run: |
           uncrustify --version
-          find . -iname "*.[hc]"  -not -path '*WinPCap*' -exec uncrustify --check -c tools/uncrustify.cfg {} +
+          find . -iname "*.[hc]" -exec uncrustify --check -c tools/uncrustify.cfg {} +
       - name: Check For Trailing Whitespace
         run: |
           set +e
-          grep --exclude="README.md" --exclude-dir=*WinPCap* -rnI -e "[[:blank:]]$" .
+          grep --exclude="README.md" -rnI -e "[[:blank:]]$" .
           if [ "$?" = "0" ]; then
             echo "Files have trailing whitespace."
             exit 1
@@ -131,3 +133,22 @@ jobs:
         run: |
           find . -iname '*.c' |\
           xargs complexity --scores --threshold=0 --horrid-threshold=55
+
+  git-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Checkout awslabs/git-secrets
+        uses: actions/checkout@v2
+        with:
+          repository: awslabs/git-secrets
+          ref: master
+          path: git-secrets
+      - name: Install git-secrets
+        run: cd git-secrets && sudo make install && cd ..
+      - name: Run git-secrets
+        run: |
+          git-secrets --register-aws
+          git-secrets --scan
