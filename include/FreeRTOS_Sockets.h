@@ -40,6 +40,8 @@
         #error FreeRTOSIPConfig.h has not been included yet
     #endif
 
+    #include "FreeRTOS_IP.h"
+
 /* Event bit definitions are required by the select functions. */
     #include "event_groups.h"
 
@@ -199,19 +201,11 @@
         };
     #endif
 
-
 /* In earlier release, FreeRTOS_inet_ntoa was a macro that used snprintf(),
  * which was not MISRA compliant. Now it has become a normal function that
  * doesn't use snprintf(). */
     extern const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
                                             char * pcBuffer );
-
-/* Testing: when using formatted printing, MISRA and some compilers complain
- * about an incompatibility between format and parameters.
- * Sometimes uint32_t is an unsigned (%u), sometimes it is a ulong (%lu). */
-
-    typedef unsigned   printf_unsigned;
-    typedef int        printf_signed;
 
     #if ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN
 
@@ -235,6 +229,8 @@
     struct xSOCKET;
     typedef struct xSOCKET         * Socket_t;
     typedef struct xSOCKET const   * ConstSocket_t;
+
+    BaseType_t xSocketValid( Socket_t xSocket );
 
     #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
@@ -499,8 +495,8 @@
             eSELECT_INTR = 0x0008,
             eSELECT_ALL = 0x000F,
             /* Reserved for internal use: */
-            eSELECT_CALL_IP = 0x0010,
-            /* end */
+            eSELECT_CALL_IP = 0x0010
+                              /* end */
         } eSelectEvent_t;
 
         SocketSet_t FreeRTOS_CreateSocketSet( void );

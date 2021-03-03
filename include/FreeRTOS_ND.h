@@ -35,6 +35,8 @@
     #include "FreeRTOSIPConfigDefaults.h"
     #include "IPTraceMacroDefaults.h"
 
+    #include "FreeRTOS_ARP.h"
+
     #if ( ipconfigUSE_IPv6 != 0 )
 /*-----------------------------------------------------------*/
 /* Miscellaneous structure and definitions. */
@@ -128,19 +130,13 @@
                              NetworkEndPoint_t * pxEndPoint );
         #endif /* ( ipconfigUSE_RA != 0 ) */
 
-/*
- * After DHCP is ready and when changing IP address, force a quick send of our new IP
- * address
- */
-        void vNDSendGratuitous( void );
-
-        void FreeRTOS_PrintNDCache( void );
-
         #if ( ipconfigUSE_IPv6 != 0 )
             void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint );
-            BaseType_t FreeRTOS_SendPingRequestIPv6( IPv6_Address_t * pxIPAddress,
-                                                     size_t uxNumberOfBytesToSend,
-                                                     TickType_t uxBlockTimeTicks );
+            #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+                BaseType_t FreeRTOS_SendPingRequestIPv6( IPv6_Address_t * pxIPAddress,
+                                                         size_t uxNumberOfBytesToSend,
+                                                         TickType_t uxBlockTimeTicks );
+            #endif
             BaseType_t FreeRTOS_CreateIPv6Address( IPv6_Address_t * pxIPAddress,
                                                    const IPv6_Address_t * pxPrefix,
                                                    size_t uxPrefixLength,
@@ -148,10 +144,14 @@
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
 /* Receive a Neighbour Advertisement. */
-        void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+        #if ( ipconfigUSE_RA != 0 )
+            void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+        #endif
 
 /* Receive a Router Advertisement. */
-        void vReceiveRA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+        #if ( ipconfigUSE_RA != 0 )
+            void vReceiveRA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+        #endif
 
     #endif /* ipconfigUSE_IPv6 != 0 */
 

@@ -1355,7 +1355,7 @@
                 /* Get a buffer.  This uses a maximum delay, but the delay will be
                  * capped to ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS so the return value
                  * still needs to be tested. */
-                FreeRTOS_printf( ( "DNS lookup: \"%s\"\n", pcHostName ) );
+                FreeRTOS_printf( ( "DNS-%c lookup: \"%s\"\n", ( xFamily == FREERTOS_AF_INET4 ) ? '4' : '6', pcHostName ) );
 
                 uxHeaderBytes = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER;
 
@@ -1976,9 +1976,6 @@
         uint16_t x, usDataLength, usQuestions;
         uint16_t usType = 0U;
         BaseType_t xReturn = pdTRUE;
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-        const void * pvCopySource;
-        void * pvCopyDest;
         struct freertos_addrinfo ** ppxLastAddress = NULL;
 
         #if ( ipconfigUSE_LLMNR == 1 )
@@ -2495,7 +2492,6 @@
                             FreeRTOS_printf( ( "LLMNR return IPv4 %lxip\n", FreeRTOS_ntohl( xEndPoint.ipv4_settings.ulIPAddress ) ) );
                             #ifndef _lint
                                 vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, sizeof( pxAnswer->ulIPAddress ) );
-                                /*vSetField32( pxAnswer, LLMNRAnswer_t, ulIPAddress, FreeRTOS_ntohl( pxEndPoint->ulIPAddress ) ); */
                                 vSetField32( pxAnswer, LLMNRAnswer_t, ulIPAddress, FreeRTOS_ntohl( xEndPoint.ipv4_settings.ulIPAddress ) );
                             #endif /* lint */
 

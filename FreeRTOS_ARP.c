@@ -140,7 +140,7 @@ eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * const px
     /* Some extra logging while still testing. */
     if( pxARPHeader->usOperation == ( uint16_t ) ipARP_REQUEST )
     {
-        /*if( ulSenderProtocolAddress != ulTargetProtocolAddress ) */
+        if( ulSenderProtocolAddress != ulTargetProtocolAddress )
         {
             if( pxTargetEndPoint != NULL )
             {
@@ -349,7 +349,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
             }
 
             /* Does this line in the cache table hold an entry for the IP
-             * address	being queried? */
+             * address being queried? */
             if( xARPCache[ x ].ulIPAddress == ulIPAddress )
             {
                 if( pxMACAddress == NULL )
@@ -477,6 +477,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
  *
  * @param[in] pxMACAddress: The MAC-address of the entry of interest.
  * @param[out] pulIPAddress: set to the IP-address found, or unchanged when not found.
+ * @param[out] ppxInterface: Will get a pointer to the interface that holds the MAC-address.
  *
  * @return Either eARPCacheMiss or eARPCacheHit.
  */
@@ -490,6 +491,11 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
         configASSERT( pxMACAddress != NULL );
         configASSERT( pulIPAddress != NULL );
 
+        if( ppxInterface != NULL )
+        {
+            *( ppxInterface ) = NULL;
+        }
+
         /* Loop through each entry in the ARP cache. */
         for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
         {
@@ -498,6 +504,13 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
             if( memcmp( pxMACAddress->ucBytes, xARPCache[ x ].xMACAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
             {
                 *pulIPAddress = xARPCache[ x ].ulIPAddress;
+
+                if( ( ppxInterface != NULL ) &&
+                    ( xARPCache[ x ].pxEndPoint != NULL ) )
+                {
+                    *( ppxInterface ) = xARPCache[ x ].pxEndPoint->pxNetworkInterface;
+                }
+
                 eReturn = eARPCacheHit;
                 break;
             }
@@ -646,10 +659,14 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
             {
                 eReturn = prvCacheLookup( ulAddressToLookup, pxMACAddress, ppxEndPoint );
 
-                FreeRTOS_printf( ( "ARP %lxip %s using %lxip\n",
-                                   FreeRTOS_ntohl( ulOrginal ),
-                                   ( eReturn == eARPCacheHit ) ? "hit" : "miss",
-                                   FreeRTOS_ntohl( ulAddressToLookup ) ) );
+                if( ( eReturn != eARPCacheHit ) || ( ulOrginal != ulAddressToLookup ) )
+                {
+                    FreeRTOS_printf( ( "ARP %lxip %s using %lxip\n",
+                                       FreeRTOS_ntohl( ulOrginal ),
+                                       ( eReturn == eARPCacheHit ) ? "hit" : "miss",
+                                       FreeRTOS_ntohl( ulAddressToLookup ) ) );
+                }
+
                 /* It might be that the ARP has to go to the gateway. */
                 *pulIPAddress = ulAddressToLookup;
             }
@@ -853,8 +870,6 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
                         {
                             BaseType_t xIndex;
 
-                            /*					FreeRTOS_printf( ( "OutputARPRequest: length %lu -> %lu\n", */
-                            /*						pxNetworkBuffer->xDataLength, ipconfigETHERNET_MINIMUM_PACKET_BYTES ) ); */
                             for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
                             {
                                 pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;
@@ -912,6 +927,7 @@ BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
     NetworkEndPoint_t * pxEndPoint;
     size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
 
+    /* The IP-task is not supposed to call this function. */
     configASSERT( xIsCallingFromIPTask() == 0 );
 
     xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ), &( pxEndPoint ) );
@@ -925,7 +941,7 @@ BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
 
         while( uxSendCount > 0 )
         {
-            FreeRTOS_printf( ( "OutputARPRequest %lxip", FreeRTOS_ntohl( ulIPAddress ) ) );
+            FreeRTOS_printf( ( "OutputARPRequest %lxip\n", FreeRTOS_ntohl( ulIPAddress ) ) );
             FreeRTOS_OutputARPRequest( ulIPAddress );
 
             vTaskDelay( uxSleepTime );

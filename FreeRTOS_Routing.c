@@ -113,7 +113,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
 #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 
-    RoutingStats_t xRoutingStats;
+    RoutingStats_t xRoutingStatistics;
 
     #if ( ipconfigUSE_IPv6 != 0 )
         static NetworkEndPoint_t * prvFindFirstAddress_IPv6( void );
@@ -365,11 +365,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
-        xRoutingStats.ulOnIp++;
+        xRoutingStatistics.ulOnIp++;
 
-        if( ulWhere < ARRAY_SIZE( xRoutingStats.ulLocationsIP ) )
+        if( ulWhere < ARRAY_SIZE( xRoutingStatistics.ulLocationsIP ) )
         {
-            xRoutingStats.ulLocationsIP[ ulWhere ]++;
+            xRoutingStatistics.ulLocationsIP[ ulWhere ]++;
         }
 
         while( pxEndPoint != NULL )
@@ -433,7 +433,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
-        xRoutingStats.ulOnMAC++;
+        xRoutingStatistics.ulOnMAC++;
 
         /*_RB_ Question - would it be more efficient to store the mac addresses in
          * uin64_t variables for direct comparison instead of using memcmp()?  [don't
@@ -488,11 +488,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
-        xRoutingStats.ulOnNetMask++;
+        xRoutingStatistics.ulOnNetMask++;
 
-        if( ulWhere < ARRAY_SIZE( xRoutingStats.ulLocations ) )
+        if( ulWhere < ARRAY_SIZE( xRoutingStatistics.ulLocations ) )
         {
-            xRoutingStats.ulLocations[ ulWhere ]++;
+            xRoutingStatistics.ulLocations[ ulWhere ]++;
         }
 
         /* Find the best fitting end-point to reach a given IP-address. */
@@ -675,7 +675,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
          */
 
         /* Some stats while developing. */
-        xRoutingStats.ulMatching++;
+        xRoutingStatistics.ulMatching++;
 
         /* Probably an ARP packet or a broadcast. */
         switch( pxPacket->xUDPPacket.xEthernetHeader.usFrameType )
@@ -808,7 +808,6 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                        xDoLog--;
                        FreeRTOS_printf( ( "Compare[%s] %d mine %-16lxip (%02x-%02x) from %-16lxip to %-16lxip (%02x-%02x)\n",
                                           name,
-                                          /*	( unsigned ) xMACBroadcast, */
                                           ( unsigned ) xIPBroadcast,
                                           ( pxEndPoint != NULL ) ? FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulIPAddress ) : 0UL,
                                           ( pxEndPoint != NULL ) ? pxEndPoint->xMACAddress.ucBytes[ 0 ] : 0U,
@@ -828,13 +827,6 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         } /* switch usFrameType */
 
         ( void ) name;
-
-/*
- *  if( ( xDoLog != pdFALSE ) && ( pxEndPoint != NULL ) )
- *  {
- *      configPRINTF( ( "Compare[%s] returning %lxip\n", name, ( pxEndPoint != NULL ) ? FreeRTOS_ntohl( pxEndPoint->ulIPAddress ) : 0UL ) );
- *  }
- */
 
         return pxEndPoint;
     }

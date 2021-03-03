@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.1
+ * FreeRTOS+TCP V2.3.2
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -215,8 +215,8 @@ BaseType_t xNetworkBuffersInitialise( void )
 }
 /*-----------------------------------------------------------*/
 
-NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
-                                                              TickType_t xBlockTimeTicks )
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t uxRequestedSizeBytes,
+                                                              TickType_t uxBlockTimeTicks )
 {
     NetworkBufferDescriptor_t * pxReturn = NULL;
     BaseType_t xInvalid = pdFALSE;
@@ -224,13 +224,13 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
     /* The current implementation only has a single size memory block, so
      * the requested size parameter is not used (yet). */
-    ( void ) xRequestedSizeBytes;
+    ( void ) uxRequestedSizeBytes;
 
     if( xNetworkBufferSemaphore != NULL )
     {
         /* If there is a semaphore available, there is a network buffer
          * available. */
-        if( xSemaphoreTake( xNetworkBufferSemaphore, xBlockTimeTicks ) == pdPASS )
+        if( xSemaphoreTake( xNetworkBufferSemaphore, uxBlockTimeTicks ) == pdPASS )
         {
             /* Protect the structure as it is accessed from tasks and
              * interrupts. */
@@ -274,7 +274,9 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                     uxMinimumFreeNetworkBuffers = uxCount;
                 }
 
-                pxReturn->xDataLength = xRequestedSizeBytes;
+                pxReturn->xDataLength = uxRequestedSizeBytes;
+                pxReturn->pxEndPoint = NULL;
+                pxReturn->pxInterface = NULL;
 
                 #if ( ipconfigTCP_IP_SANITY != 0 )
                     {
@@ -303,13 +305,13 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 }
 /*-----------------------------------------------------------*/
 
-NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t xRequestedSizeBytes )
+NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t uxRequestedSizeBytes )
 {
     NetworkBufferDescriptor_t * pxReturn = NULL;
 
     /* The current implementation only has a single size memory block, so
      * the requested size parameter is not used (yet). */
-    ( void ) xRequestedSizeBytes;
+    ( void ) uxRequestedSizeBytes;
 
     /* If there is a semaphore available then there is a buffer available, but,
      * as this is called from an interrupt, only take a buffer if there are at
@@ -323,8 +325,8 @@ NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t xRequestedSizeByte
             /* Protect the structure as it is accessed from tasks and interrupts. */
             ipconfigBUFFER_ALLOC_LOCK_FROM_ISR();
             {
-                pxReturn = ( NetworkBufferDescriptor_t * ) listGET_OWNER_OF_HEAD_ENTRY( &xFreeBuffersList );
-                uxListRemove( &( pxReturn->xBufferListItem ) );
+                pxReturn = ipPOINTER_CAST( NetworkBufferDescriptor_t *, listGET_OWNER_OF_HEAD_ENTRY( &xFreeBuffersList ) );
+                ( void ) uxListRemove( &( pxReturn->xBufferListItem ) );
             }
             ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR();
 
@@ -421,5 +423,3 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
     pxNetworkBuffer->xDataLength = xNewSizeBytes;
     return pxNetworkBuffer;
 }
-
-/*#endif */ /* ipconfigINCLUDE_TEST_CODE */

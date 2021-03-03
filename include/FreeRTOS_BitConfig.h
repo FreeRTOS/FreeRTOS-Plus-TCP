@@ -70,7 +70,6 @@
                                     size_t uxSize );
 
     void vBitConfig_release( BitConfig_t * pxConfig );
-    void vBitConfig_show( BitConfig_t * pxConfig );
 
 
     #ifdef __cplusplus

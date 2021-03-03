@@ -511,11 +511,10 @@
 
                         /* DHCP completed.  The IP address can now be used, and the
                          * timer set to the lease timeout time. */
-                        /* pxEndPoint->ipv6_settings.xIPAddress;		/ * The actual IPv4 address. Will be 0 as long as end-point is still down. * / */
                         pxEndPoint->ipv6_settings.uxPrefixLength = pxDHCPMessage->ucprefixLength;                                           /* Number of valid bytes in the network prefix. */
                         memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxDHCPMessage->xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                         memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxDHCPMessage->xPrefixAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); /* The network prefix, e.g. fe80::/10 */
-                        /* pxEndPoint->xGatewayAddress;	/ * Gateway to the web. * / */
+                        /* pxEndPoint->xGatewayAddress; / * Gateway to the web. * / */
                         memcpy( pxEndPoint->ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes, pxDHCPMessage->ucDNSServer.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
                         EP_DHCPData.eDHCPState = eLeasedAddress;
@@ -539,7 +538,7 @@
                         }
 
                         /* Check for clashes. */
-/*					vARPSendGratuitous(); */
+
                         vIPReloadDHCP_RATimer( ( struct xNetworkEndPoint * ) pxEndPoint, EP_DHCPData.ulLeaseTime );
 
                         /* DHCP failed, the default configured IP-address will be used
@@ -611,15 +610,6 @@
                     /* Lint: all options are included. */
                     break;
             }
-
-/*{ */
-/*	static eDHCPState_t lastState = eNotUsingLeasedAddress; */
-/*	if( lastState != EP_DHCPData.eDHCPState ) */
-/*	{ */
-/*		lastState = EP_DHCPData.eDHCPState; */
-/*		FreeRTOS_debug_printf( ( "vDHCPProcessEndPoint: exit %d\n", EP_DHCPData.eDHCPState ) ); */
-/*	} */
-/*} */
 
             if( xGivingUp != pdFALSE )
             {
@@ -840,24 +830,24 @@
                 if( EP_DHCPData.eDHCPState == eWaitingSendFirstDiscover )
                 {
                     /* DHCPv6_Option_Option_List */
-                    xBitConfig_write_16( &( xMessage ), DHCPv6_Option_Option_List );               /* usOption;	Option is 6 */
-                    xBitConfig_write_16( &( xMessage ), 4U );                                      /* usLength;	length is 4 */
-                    xBitConfig_write_16( &( xMessage ), DHCP6_OPTION_REQUEST_DNS );                /* usOption_1;	00 17 : DNS Recursive name server. */
-                    xBitConfig_write_16( &( xMessage ), DHCP6_OPTION_REQUEST_DOMAIN_SEARCH_LIST ); /* usOption_2;	00 18 : Domain search list. */
+                    xBitConfig_write_16( &( xMessage ), DHCPv6_Option_Option_List );               /* usOption; Option is 6 */
+                    xBitConfig_write_16( &( xMessage ), 4U );                                      /* usLength; length is 4 */
+                    xBitConfig_write_16( &( xMessage ), DHCP6_OPTION_REQUEST_DNS );                /* usOption_1;   00 17 : DNS Recursive name server. */
+                    xBitConfig_write_16( &( xMessage ), DHCP6_OPTION_REQUEST_DOMAIN_SEARCH_LIST ); /* usOption_2;   00 18 : Domain search list. */
                 }
 
                 /* DHCPv6_Option_Elapsed_Time */
-                xBitConfig_write_16( &( xMessage ), DHCPv6_Option_Elapsed_Time ); /* usOption;	Option is 8 * / */
-                xBitConfig_write_16( &( xMessage ), 2U );                         /* usLength;	length is 2 * / */
-                xBitConfig_write_16( &( xMessage ), 0x0000 );                     /* usTime;		00 00 : 0 ms. * / */
+                xBitConfig_write_16( &( xMessage ), DHCPv6_Option_Elapsed_Time ); /* usOption;  Option is 8   */
+                xBitConfig_write_16( &( xMessage ), 2U );                         /* usLength;  length is 2   */
+                xBitConfig_write_16( &( xMessage ), 0x0000 );                     /* usTime;    00 00 : 0 ms. */
 
                 /* DHCPv6_Option_Identity_Association_for_Prefix_Delegation */
                 uint32_t ulIAID = 0x27fe8f95;
                 uint32_t ulTime_1 = 3600U;
                 uint32_t ulTime_2 = 5400U;
 
-                xBitConfig_write_16( &( xMessage ), DHCPv6_Option_Identity_Association_for_Prefix_Delegation ); /* usOption;	Option is 25 */
-                xBitConfig_write_16( &( xMessage ), 41 );                                                       /* usLength;	length is 12 + 29 = 41 */
+                xBitConfig_write_16( &( xMessage ), DHCPv6_Option_Identity_Association_for_Prefix_Delegation ); /* usOption;    Option is 25 */
+                xBitConfig_write_16( &( xMessage ), 41 );                                                       /* usLength;    length is 12 + 29 = 41 */
                 xBitConfig_write_32( &( xMessage ), ulIAID );                                                   /* 27 fe 8f 95. */
                 xBitConfig_write_32( &( xMessage ), ulTime_1 );                                                 /* 00 00 0e 10: 3600 sec */
                 xBitConfig_write_32( &( xMessage ), ulTime_2 );                                                 /* 00 00 15 18: 5400 sec */
@@ -1035,7 +1025,6 @@
                            {
                                uint8_t ucPreference = ucBitConfig_read_8( &xMessage );
                                ( void ) ucPreference;
-/*							FreeRTOS_printf( ( "Option preference: %02x\n", ucPreference ) ); */
                            }
                            break;
 
