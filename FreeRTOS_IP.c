@@ -191,6 +191,21 @@ static void prvIPTask( void * pvParameters );
  */
 static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
+#if ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0 )
+
+/*
+ * The stack will call this user hook for all Ethernet frames that it
+ * does not support, i.e. other than IPv4, IPv6 and ARP ( for the moment )
+ * If this hook returns eReleaseBuffer or eProcessBuffer, the stack will
+ * release and reuse the network buffer.  If this hook returns
+ * eReturnEthernetFrame, that means user code has reused the network buffer
+ * to generate a response and the stack will send that response out.
+ * If this hook returns eFrameConsumed, the user code has ownership of the
+ * network buffer and has to release it when it’s done.
+ */
+    extern eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+#endif /* ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0 ) */
+
 /*
  * Process incoming IP packets.
  */
@@ -1727,8 +1742,13 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     break;
 
                 default:
-                    /* No other packet types are handled.  Nothing to do. */
-                    eReturned = eReleaseBuffer;
+                    #if ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0 )
+                        /* Custom frame handler. */
+                        eReturned = eApplicationProcessCustomFrameHook( pxNetworkBuffer );
+                    #else
+                        /* No other packet types are handled.  Nothing to do. */
+                        eReturned = eReleaseBuffer;
+                    #endif
                     break;
             }
         }
