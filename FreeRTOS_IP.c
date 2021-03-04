@@ -3418,7 +3418,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
 
         default:
             /* Using function "snprintf". */
-            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int32_t ) xErrnum );
+            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int ) xErrnum );
             pcName = NULL;
             break;
     }
