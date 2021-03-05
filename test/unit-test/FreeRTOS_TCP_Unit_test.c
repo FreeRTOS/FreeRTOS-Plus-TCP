@@ -4,6 +4,10 @@
 /* Include standard libraries */
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include "FreeRTOS.h"
+#include "task.h"
+#include "list.h"
 
 /* Include header file(s) which have declaration
  * of functions under test */

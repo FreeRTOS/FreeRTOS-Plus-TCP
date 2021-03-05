@@ -1202,6 +1202,55 @@ uint32_t smsc9220_receive_by_chunks( const struct smsc9220_eth_dev_t * dev,
     return packet_length_byte;
 }
 
+/*!
+ * @brief second version to circumvent a  <a href="https://bugs.launchpad.net/qemu/+bug/1904954">bug</a>
+ *        in quemu where the peeked message
+ *        size is different than the actual message size
+ */
+uint32_t smsc9220_receive_by_chunks2( const struct smsc9220_eth_dev_t * dev,
+                                      char * data,
+                                      uint32_t dlen )
+{
+    uint32_t rxfifo_inf = 0;
+    uint32_t rxfifo_stat = 0;
+    /*uint32_t packet_length_byte = 0; */
+    struct smsc9220_eth_reg_map_t * register_map =
+        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+
+    if( !data )
+    {
+        return 0; /* Invalid input parameter, cannot read */
+    }
+
+    dev->data->current_rx_size_words = dlen;
+
+    empty_rx_fifo( dev, ( uint8_t * ) data, dlen );
+    dev->data->current_rx_size_words = 0;
+    return dlen;
+}
+
+/*!
+ * @brief second version to circumvent a  <a href="https://bugs.launchpad.net/qemu/+bug/1904954">bug</a>
+ *        in quemu where the peeked message
+ *        size is different than the actual message size
+ */
+uint32_t smsc9220_peek_next_packet_size2( const struct
+                                          smsc9220_eth_dev_t * dev )
+{
+    uint32_t packet_size = 0;
+    struct smsc9220_eth_reg_map_t * register_map =
+        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+
+    if( smsc9220_get_rxfifo_data_used_space( dev ) )
+    {
+        packet_size = GET_BIT_FIELD( register_map->rx_status_port,
+                                     RX_FIFO_STATUS_PKT_LENGTH_MASK,
+                                     RX_FIFO_STATUS_PKT_LENGTH_POS );
+    }
+
+    return packet_size;
+}
+
 uint32_t smsc9220_peek_next_packet_size( const struct
                                          smsc9220_eth_dev_t * dev )
 {

@@ -45,8 +45,8 @@ void publicTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
                             BaseType_t xReleaseAfterSend );
 
 /* Abstraction of pxDuplicateNetworkBufferWithDescriptor*/
-NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                                    BaseType_t xNewLength )
+NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                                    size_t xNewLength )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
 
@@ -57,6 +57,28 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( NetworkBuffe
     }
 
     return pxNetworkBuffer;
+}
+
+uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
+                                     size_t uxBufferLength,
+                                     BaseType_t xOutgoingPacket )
+{
+    __CPROVER_assert( pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL" );
+    __CPROVER_r_ok( pucEthernetBuffer, uxBufferLength );
+
+    uint16_t usReturn;
+    return usReturn;
+}
+
+uint16_t usGenerateChecksum( uint16_t usSum,
+                             const uint8_t * pucNextData,
+                             size_t uxByteCount )
+{
+    __CPROVER_assert( pucNextData != NULL, "The next data pointer cannot be NULL" );
+    __CPROVER_r_ok( pucNextData, uxByteCount );
+
+    uint16_t usReturn;
+    return usReturn;
 }
 
 void harness()

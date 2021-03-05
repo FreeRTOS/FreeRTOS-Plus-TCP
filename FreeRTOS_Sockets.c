@@ -99,11 +99,14 @@
     {
         return ( F_TCP_UDP_Handler_t * ) pvArgument;
     }
+    /*-----------------------------------------------------------*/
+
     static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( F_TCP_UDP_Handler_t )
     {
         return ( const F_TCP_UDP_Handler_t * ) pvArgument;
     }
-#endif
+    /*-----------------------------------------------------------*/
+#endif /* if ( ipconfigUSE_CALLBACKS != 0 ) */
 
 
 /**
@@ -115,7 +118,7 @@ static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
 {
     return ( NetworkBufferDescriptor_t * ) pvArgument;
 }
-
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Utility function to cast pointer of a type to pointer of type StreamBuffer_t.
@@ -3294,17 +3297,24 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             if( pxBuffer != NULL )
             {
-                BaseType_t xSpace = ( BaseType_t ) uxStreamBufferGetSpace( pxBuffer );
-                BaseType_t xRemain = ( BaseType_t ) pxBuffer->LENGTH - ( BaseType_t ) pxBuffer->uxHead;
+                size_t uxSpace = uxStreamBufferGetSpace( pxBuffer );
+                size_t uxRemain = pxBuffer->LENGTH - pxBuffer->uxHead;
 
-                *pxLength = FreeRTOS_min_BaseType( xSpace, xRemain );
+                if( uxRemain <= uxSpace )
+                {
+                    *pxLength = uxRemain;
+                }
+                else
+                {
+                    *pxLength = uxSpace;
+                }
+
                 pucReturn = &( pxBuffer->ucArray[ pxBuffer->uxHead ] );
             }
         }
 
         return pucReturn;
     }
-
 #endif /* ipconfigUSE_TCP */
 /*-----------------------------------------------------------*/
 
@@ -3967,13 +3977,13 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     if( xResult != ( int32_t ) ulByteCount )
                     {
                         FreeRTOS_debug_printf( ( "lTCPAddRxdata: at %u: %d/%u bytes (tail %u head %u space %u front %u)\n",
-                                                 ( UBaseType_t ) uxOffset,
-                                                 ( BaseType_t ) xResult,
-                                                 ( UBaseType_t ) ulByteCount,
-                                                 ( UBaseType_t ) pxStream->uxTail,
-                                                 ( UBaseType_t ) pxStream->uxHead,
-                                                 ( UBaseType_t ) uxStreamBufferFrontSpace( pxStream ),
-                                                 ( UBaseType_t ) pxStream->uxFront ) );
+                                                 ( unsigned int ) uxOffset,
+                                                 ( int ) xResult,
+                                                 ( unsigned int ) ulByteCount,
+                                                 ( unsigned int ) pxStream->uxTail,
+                                                 ( unsigned int ) pxStream->uxHead,
+                                                 ( unsigned int ) uxStreamBufferFrontSpace( pxStream ),
+                                                 ( unsigned int ) pxStream->uxFront ) );
                     }
                 }
             #endif /* ipconfigHAS_DEBUG_PRINTF */
@@ -4354,6 +4364,33 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 
 #endif /* ipconfigUSE_TCP */
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Check whether a given socket is valid or not. Validity is defined
+ *        as the socket not being NULL and not being Invalid.
+ * @param[in] xSocket: The socket to be checked.
+ * @return pdTRUE if the socket is valid, else pdFALSE.
+ *
+ */
+BaseType_t xSocketValid( Socket_t xSocket )
+{
+    BaseType_t xReturnValue = pdFALSE;
+
+    /*
+     * There are two values which can indicate an invalid socket:
+     * FREERTOS_INVALID_SOCKET and NULL.  In order to compare against
+     * both values, the code cannot be compliant with rule 11.4,
+     * hence the Coverity suppression statement below.
+     */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
+    if( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) )
+    {
+        xReturnValue = pdTRUE;
+    }
+
+    return xReturnValue;
+}
 /*-----------------------------------------------------------*/
 
 #if 0

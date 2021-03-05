@@ -244,7 +244,7 @@ static uint32_t low_level_input( NetworkBufferDescriptor_t ** pxNetworkBuffer )
 
     FreeRTOS_debug_printf( ( "Enter\n" ) );
 
-    message_length = smsc9220_peek_next_packet_size( dev );
+    message_length = smsc9220_peek_next_packet_size2( dev );
 
     if( message_length != 0 )
     {
@@ -255,11 +255,11 @@ static uint32_t low_level_input( NetworkBufferDescriptor_t ** pxNetworkBuffer )
         {
             ( *pxNetworkBuffer )->xDataLength = message_length;
 
-            received_bytes = smsc9220_receive_by_chunks( dev,
-                                                         ( *pxNetworkBuffer )->pucEthernetBuffer,
-                                                         message_length ); /* not used */
+            received_bytes = smsc9220_receive_by_chunks2( dev,
+                                                          ( *pxNetworkBuffer )->pucEthernetBuffer,
+                                                          message_length ); /* not used */
             ( *pxNetworkBuffer )->xDataLength = received_bytes;
-            FreeRTOS_debug_printf( ( "incoming data < < < < < < < < < < read: %d length: %d\n",
+            FreeRTOS_debug_printf( ( "Incoming data < < < < < < < < < < read: %d length: %d\n",
                                      received_bytes,
                                      message_length ) );
             print_hex( ( *pxNetworkBuffer )->pucEthernetBuffer,

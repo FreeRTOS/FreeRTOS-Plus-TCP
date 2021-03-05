@@ -336,6 +336,18 @@
     #define ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS    1
 #endif
 
+/* Configuration to control whether all outgoing IP datagrams get their
+ * "don't fragment" flag set.
+ * If set to 1, the stack will set the "don't fragment" flag on all outgoing IP
+ * packets. If a packet needs to be fragmented somewhere along it's path, it will get
+ * discarded instead of fragmented.
+ * If set to 0, the stack will clear the "don't fragment" flag an all outgoing IP
+ * packets therefore allowing fragmentation if it is needed.
+ */
+#ifndef ipconfigFORCE_IP_DONT_FRAGMENT
+    #define ipconfigFORCE_IP_DONT_FRAGMENT    0
+#endif
+
 /* Configuration to control whether UDP packets with
  * checksum value of zero should be passed up the software
  * stack OR should be dropped.
@@ -619,6 +631,14 @@
 
 #ifndef ipconfigSELECT_USES_NOTIFY
     #define ipconfigSELECT_USES_NOTIFY    0
+#endif
+
+/* Set to 1 if you plan on processing custom Ethernet protocols or protocols
+ * that are not yet supported by the FreeRTOS+TCP stack. If set to 1,
+ * the user must define eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+ * which will be called by the stack for any frame with an unsupported EtherType. */
+#ifndef ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES
+    #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES    0
 #endif
 
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */
