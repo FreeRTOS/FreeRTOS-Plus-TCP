@@ -14,6 +14,7 @@
 /* Include header file(s) which have declaration
  * of functions under test */
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_DNS.h"
 
 #include "mock_FreeRTOS_ARP.h"
 #include "mock_FreeRTOS_IP.h"
@@ -130,6 +131,85 @@ void test_eARPGetCacheEntry( void )
     MACAddress_t xMACAddress;
     eARPLookupResult_t eResult;
 
-    xIsIPv4Multicast_IgnoreAndReturn( 1UL );
+    {
+        ulIPAddress = 0x1234;
+        /* Not worried about what these functions do. */
+        xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 1UL );
+        vSetMultiCastIPv4MacAddress_Ignore();
+        eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
+        TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
+    }
+
+    {
+        ulIPAddress = ipBROADCAST_IP_ADDRESS;
+        /* Not worried about what these functions do. */
+        xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+        eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
+        TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
+        TEST_ASSERT_EQUAL_MEMORY( &xBroadcastMACAddress, &xMACAddress, sizeof( xMACAddress ) );
+    }
+
+    ulIPAddress = xNetworkAddressing.ulBroadcastAddress;
+    /* Not worried about what these functions do. */
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
+    TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
+    TEST_ASSERT_EQUAL_MEMORY( &xBroadcastMACAddress, &xMACAddress, sizeof( xMACAddress ) );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    ulIPAddress = 0x1234;
+    /* Not worried about what these functions do. */
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
+    TEST_ASSERT_EQUAL( eCantSendPacket, eResult );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0x1234;
+    ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    /* Not worried about what these functions do. */
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
+    TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
+
+    ulIPAddress = 0x4321;
+    /* Add the IP address in the cache so that we'll have a cache hit. */
+    xARPCache[ 1 ].ulIPAddress = xNetworkAddressing.ulGatewayAddress;
+    /* But reset the valid bit. */
+    xARPCache[ 1 ].ucValid = pdFALSE;
+    /* Not worried about what these functions do. */
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
+    TEST_ASSERT_EQUAL( eCantSendPacket, eResult );
+
+    /* Now try with a set valid bit. */
+    xARPCache[ 1 ].ucValid = pdTRUE;
+    /* Not worried about what these functions do. */
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
+    TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
+    TEST_ASSERT_EQUAL_MEMORY( &xARPCache[ 1 ].xMACAddress, &xMACAddress, sizeof( xMACAddress ) );
+
+    uint32_t ulSavedGatewayAddress = xNetworkAddressing.ulGatewayAddress;
+    xNetworkAddressing.ulGatewayAddress = 0;
+    ulIPAddress = 0;
+    /* Not worried about what these functions do. */
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
+    xNetworkAddressing.ulGatewayAddress = ulSavedGatewayAddress;
+    TEST_ASSERT_EQUAL( eCantSendPacket, eResult );
+
+    ulSavedGatewayAddress = xNetworkAddressing.ulGatewayAddress;
+    xNetworkAddressing.ulGatewayAddress = 0;
+    ulIPAddress = 0x4321;
+    /* Not worried about what these functions do. */
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
+    xNetworkAddressing.ulGatewayAddress = ulSavedGatewayAddress;
+    TEST_ASSERT_EQUAL( eARPCacheMiss, eResult );
+
+    /* Get any address on the same netmask. */
+    ulIPAddress = ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) + 10;
+    /* Not worried about what these functions do. */
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
+    TEST_ASSERT_EQUAL( eARPCacheMiss, eResult );
 }

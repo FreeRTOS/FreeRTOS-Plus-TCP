@@ -100,6 +100,8 @@ foreach( file ${TCP_INCLUDES} )
     execute_process( COMMAND sed -i "1 i\#ifndef ${Guard}" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h )
     execute_process( COMMAND sed -i -e "$ a\#endif" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h )
 
+    execute_process( COMMAND sed -i -E "s,[ ]*extern ipDECL_CAST_.*,,g" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h )
+
 endforeach()
 # ===========================================================================
 

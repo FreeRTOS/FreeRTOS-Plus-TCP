@@ -10,8 +10,57 @@
 #include "list.h"
 
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
+
+/** @brief The expected IP version and header length coded into the IP header itself. */
+#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
+
+UDPPacketHeader_t xDefaultPartUDPPacketHeader =
+{
+    /* .ucBytes : */
+    {
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  /* Ethernet source MAC address. */
+        0x08, 0x00,                          /* Ethernet frame type. */
+        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
+        0x00,                                /* ucDifferentiatedServicesCode. */
+        0x00, 0x00,                          /* usLength. */
+        0x00, 0x00,                          /* usIdentification. */
+        0x00, 0x00,                          /* usFragmentOffset. */
+        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
+        ipPROTOCOL_UDP,                      /* ucProtocol. */
+        0x00, 0x00,                          /* usHeaderChecksum. */
+        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
+    }
+};
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
+{
+    return ( ARPPacket_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t )
+{
+    return ( IPPacket_t * ) pvArgument;
+}
+
+/** @brief For convenience, a MAC address of all 0xffs is defined const for quick
+ * reference. */
+const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
+
+/** @brief Structure that stores the netmask, gateway address and DNS server addresses. */
+NetworkAddressingParameters_t xNetworkAddressing = { 0xC0C0C0C0,        /* 192.192.192.192 - Default IP address. */
+                                                     0xFFFFFF00,        /* 255.255.255.0 - Netmask. */
+                                                     0xC0C0C001,        /* 192.192.192.1 - Gateway Address. */
+                                                     0x01020304,        /* 1.2.3.4 - DNS server address. */
+                                                     0xC0C0C0FF};       /* 192.192.192.255 - Broadcast address. */
+
+/* Copy a network buffer into a bigger buffer. */
+NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                                    size_t uxNewLength )
+{
+}
 
 size_t xPortGetMinimumEverFreeHeapSize( void )
 {

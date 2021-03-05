@@ -299,7 +299,7 @@ extern uint32_t ulRand();
 
 #define ipconfigUSE_NBNS                         ( 1 )
 
-#define ipconfigUSE_LLMNR 0
+#define ipconfigUSE_LLMNR                        ( 1 )
 
 #define ipconfigDNS_USE_CALLBACKS          1
 #define ipconfigUSE_ARP_REMOVE_ENTRY       1
