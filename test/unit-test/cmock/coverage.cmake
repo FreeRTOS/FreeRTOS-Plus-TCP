@@ -21,6 +21,7 @@ execute_process( COMMAND lcov --directory ${CMAKE_BINARY_DIR}
                          --rc genhtml_branch_coverage=1
                          --output-file=${CMAKE_BINARY_DIR}/base_coverage.info
         )
+
 file(GLOB files "${CMAKE_BINARY_DIR}/bin/tests/*")
 
 set(REPORT_FILE ${CMAKE_BINARY_DIR}/utest_report.txt)
@@ -66,6 +67,31 @@ execute_process(
                          --no-external
                          --rc lcov_branch_coverage=1
         )
+
+# Remove kernel coverage
+execute_process(
+           COMMAND lcov --rc lcov_branch_coverage=1
+                        --remove ${CMAKE_BINARY_DIR}/coverage.info
+                        *FreeRTOS-Kernel*
+                        --output-file ${CMAKE_BINARY_DIR}/coverage.info
+       )
+
+# Remove portable coverage
+execute_process(
+           COMMAND lcov --rc lcov_branch_coverage=1
+                        --remove ${CMAKE_BINARY_DIR}/coverage.info
+                        *portable*
+                        --output-file ${CMAKE_BINARY_DIR}/coverage.info
+       )
+
+# Remove stubs coverage
+execute_process(
+           COMMAND lcov --rc lcov_branch_coverage=1
+                        --remove ${CMAKE_BINARY_DIR}/coverage.info
+                        *stubs*
+                        --output-file ${CMAKE_BINARY_DIR}/coverage.info
+       )
+
 execute_process(
             COMMAND genhtml --rc lcov_branch_coverage=1
                             --branch-coverage

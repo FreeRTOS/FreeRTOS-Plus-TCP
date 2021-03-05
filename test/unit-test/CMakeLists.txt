@@ -52,6 +52,59 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 
+
+# Set TCP includes.
+set( TCP_INCLUDES "${MODULE_ROOT_DIR}/include/FreeRTOS_IP.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_ARP.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_Sockets.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_IP_Private.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_UDP_IP.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_DHCP.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_IP.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_WIN.h"
+                  "${MODULE_ROOT_DIR}/include/NetworkBufferManagement.h"
+                  "${MODULE_ROOT_DIR}/include/NetworkInterface.h" )
+
+# Create a directory for the modified files
+file( MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/Annexed_TCP )
+# ===========================================================================
+
+# ===========================================================================
+# Preprocess the TCP include files as they will be mocked later.
+foreach( file ${TCP_INCLUDES} )
+    get_filename_component( MODIFIED_FILE ${file} NAME_WLE )
+
+    string(TOUPPER ${MODIFIED_FILE} Guard)
+    set( Guard ${Guard}_H )
+
+    # Remove IPConfigDefaults from the file
+    execute_process( COMMAND sed "s,#include \"FreeRTOSIPConfigDefaults.h\",,g" ${file}
+                     OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp1.h )
+
+    # Add the FreeRTOSIPConfig file to each directory
+    execute_process( COMMAND sed "1 i\#include \"FreeRTOSIPConfig.h\"" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp1.h
+                     OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h )
+
+    # Use this tool to process all conditional declarations.
+    execute_process( COMMAND unifdefall -U${Guard} -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
+                                                    -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
+                                                    -I ${UNIT_TEST_DIR}/ConfigFiles
+                                                    -I ${MODULE_ROOT_DIR}/include
+                                                    ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                     OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h
+                     OUTPUT_QUIET )
+
+    # Add the guards back to the files
+    execute_process( COMMAND sed -i "1 i\#ifndef ${Guard}" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h )
+    execute_process( COMMAND sed -i -e "$ a\#endif" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h )
+
+endforeach()
+# ===========================================================================
+
+
+
 # ===================================== Include the cmake configurations =================================================
 
 # Include filepaths for source and include.
