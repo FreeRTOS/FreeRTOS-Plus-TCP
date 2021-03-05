@@ -32,13 +32,6 @@
 
 #define _static
 
-#define ipconfigUSE_LLMNR 0
-#define ipconfigUSE_NBNS  0
-
-#define ipconfigDNS_USE_CALLBACKS          1
-#define ipconfigUSE_ARP_REMOVE_ENTRY       1
-#define ipconfigUSE_ARP_REVERSED_LOOKUP    1
-
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
@@ -304,12 +297,14 @@ extern uint32_t ulRand();
 #define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 1 )
 #define ipconfigUSE_CALLBACKS                    ( 0 )
 
-//#define ipconfigUSE_NBNS                         ( 1 )
+#define ipconfigUSE_NBNS                         ( 1 )
+
+#define ipconfigUSE_LLMNR 0
+
+#define ipconfigDNS_USE_CALLBACKS          1
+#define ipconfigUSE_ARP_REMOVE_ENTRY       1
+#define ipconfigUSE_ARP_REVERSED_LOOKUP    1
 
 #define portINLINE
-
-void vApplicationMQTTGetKeys( const char ** ppcRootCA,
-                              const char ** ppcClientCert,
-                              const char ** ppcClientPrivateKey );
 
 #endif /* FREERTOS_IP_CONFIG_H */

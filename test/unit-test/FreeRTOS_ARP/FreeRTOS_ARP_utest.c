@@ -110,15 +110,12 @@ void test_eARPGetCacheEntryByMac_GetAbsentEntry( void )
     TEST_ASSERT_EQUAL( ulIPPointer, 12345 );
 }
 
-/*
-#if 0
 void test_eARPGetCacheEntryByMac_UseNULLPointer( void )
 {
     uint32_t * ulIPPointer = NULL;
     MACAddress_t * const pxMACAddress = NULL;
 
-    /* Expect this test to his an ASSERT. *
+    /* Expect this test to his an ASSERT. */
     eARPGetCacheEntryByMac( pxMACAddress, ulIPPointer );
 }
-#endif
-*/
+

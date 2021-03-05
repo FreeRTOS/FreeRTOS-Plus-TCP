@@ -30,7 +30,6 @@
 #define FREERTOS_CONFIG_H
 
 #include "unity.h"
-//#include <assert.h>
 /*-----------------------------------------------------------
 * Application specific definitions.
 *

@@ -11,8 +11,6 @@
 
 #include "FreeRTOS_IP.h"
 
-#define portRECORD_READY_PRIORITY 1
-
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 size_t xPortGetMinimumEverFreeHeapSize( void )

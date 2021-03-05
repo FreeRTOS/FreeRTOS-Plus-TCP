@@ -114,10 +114,8 @@ typedef unsigned long TickType_t;
  */
 #define portMEMORY_BARRIER() __asm volatile( "" ::: "memory" )
 
-#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() /* no-op */
-#define portGET_RUN_TIME_COUNTER_VALUE()         0
-
 #define portGET_HIGHEST_PRIORITY(a,b)    10
+
 #ifdef __cplusplus
 }
 #endif

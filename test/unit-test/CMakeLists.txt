@@ -12,7 +12,7 @@ project( "FreeRTOS-Plus-TCP test"
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 
 # Use C90.
-set( CMAKE_C_STANDARD 90 )
+set( CMAKE_C_STANDARD 99 )
 set( CMAKE_C_STANDARD_REQUIRED ON )
 
 # Do not allow in-source build.
