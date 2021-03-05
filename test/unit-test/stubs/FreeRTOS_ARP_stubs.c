@@ -11,11 +11,25 @@
 
 #include "FreeRTOS_IP.h"
 
+#define portRECORD_READY_PRIORITY 1
+
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 size_t xPortGetMinimumEverFreeHeapSize( void )
 {
     return 0;
+}
+
+
+BaseType_t xApplicationDNSQueryHook( const char * pcName )
+{
+}
+
+StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
+                                             StackType_t * pxEndOfStack,
+                                             TaskFunction_t pxCode,
+                                             void * pvParameters )
+{
 }
 
 const char * pcApplicationHostnameHook( void )
@@ -79,11 +93,6 @@ void vPortFree( void * pv )
     free( pv );
 }
 
-StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
-                                     TaskFunction_t pxCode,
-                                     void * pvParameters )
-{
-}
 void vPortGenerateSimulatedInterrupt( uint32_t ulInterruptNumber )
 {
 }

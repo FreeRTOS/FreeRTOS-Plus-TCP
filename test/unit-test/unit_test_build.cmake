@@ -2,13 +2,18 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set(project_name "FreeRTOS_TCP_Unit")
+message( STATUS "${FILE_UNDER_TEST}" )
+
+set( project_name ${FILE_UNDER_TEST} )
 
 # =====================  Create your mock here  (edit)  ========================
 
 # list the files to mock here
 list(APPEND mock_list
-            "${MODULE_ROOT_DIR}/include/FreeRTOS_ARP.h"
+#            "${MODULE_ROOT_DIR}/include/FreeRTOS_ARP.h"
+#            "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
+#            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
         )
 # list the directories your mocks need
 list(APPEND mock_include_list
@@ -46,6 +51,7 @@ list(APPEND real_include_directories
 # list the directories your test needs to include
 list(APPEND test_include_directories
             .
+            ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
         )
 
@@ -76,8 +82,9 @@ list(APPEND utest_dep_list
             ${real_name}
         )
 
-set(utest_name "${project_name}_test")
-set(utest_source "${project_name}_test.c")
+set(utest_name "${project_name}_utest")
+set(utest_source "${project_name}/${project_name}_utest.c")
+
 create_test(${utest_name}
             ${utest_source}
             "${utest_link_list}"

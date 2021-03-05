@@ -1,10 +1,12 @@
 /* Include Unity header */
-#include <unity.h>
+#include "unity.h"
 
 /* Include standard libraries */
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+
+/* FreeRTOS includes */
 #include "FreeRTOS.h"
 #include "task.h"
 #include "list.h"
@@ -68,11 +70,13 @@ void test_ulARPRemoveCacheEntryByMac_RemoveAbsentEntry( void )
     TEST_ASSERT_EQUAL( lResult, 0 );
 }
 
+
 void test_ulARPRemoveCacheEntryByMac_UseNULLPointer( void )
 {
     /* We expect this test to call ASSERT. */
     ulARPRemoveCacheEntryByMac( NULL );
 }
+
 
 void test_eARPGetCacheEntryByMac_GetNormalEntry( void )
 {
@@ -106,11 +110,15 @@ void test_eARPGetCacheEntryByMac_GetAbsentEntry( void )
     TEST_ASSERT_EQUAL( ulIPPointer, 12345 );
 }
 
+/*
+#if 0
 void test_eARPGetCacheEntryByMac_UseNULLPointer( void )
 {
     uint32_t * ulIPPointer = NULL;
     MACAddress_t * const pxMACAddress = NULL;
 
-    /* Expect this test to his an ASSERT. */
+    /* Expect this test to his an ASSERT. *
     eARPGetCacheEntryByMac( pxMACAddress, ulIPPointer );
 }
+#endif
+*/

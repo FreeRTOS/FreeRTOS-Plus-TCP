@@ -1,7 +1,12 @@
-cmake_minimum_required ( VERSION 3.13.0 )
-project ( "FreeRTOS-Plus-TCP test"
-          VERSION 1.0.0
-          LANGUAGES C )
+# gcc -E -fpreprocessed -I include/ -I test/FreeRTOS-Kernel/include/ -I test/unit-test/ConfigFiles/ -fdirectives-only include/FreeRTOS_IP.h -o tmp.c
+
+# Set the required version.
+cmake_minimum_required( VERSION 3.13.0 )
+
+# Set the unit-test project.
+project( "FreeRTOS-Plus-TCP test"
+         VERSION 1.0.0
+         LANGUAGES C )
 
 # Allow the project to be organized into folders.
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
@@ -16,8 +21,26 @@ if( ${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR} )
 endif()
 
 # Set global path variables.
-get_filename_component(__MODULE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
-set(MODULE_ROOT_DIR ${__MODULE_ROOT_DIR} CACHE INTERNAL "FreeRTOS-Plus-TCP repository root.")
+get_filename_component( __MODULE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE )
+set( MODULE_ROOT_DIR ${__MODULE_ROOT_DIR} CACHE INTERNAL "FreeRTOS-Plus-TCP repository root." )
+
+# Set the unit-test directory.
+set( UNIT_TEST_DIR ${MODULE_ROOT_DIR}/test/unit-test CACHE INTERNAL "Unit-test directory." )
+
+set( KERNEL_DIRECTORY ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel )
+
+# See if FreRTOS-Kernel is submoduled
+if( NOT EXISTS ${KERNEL_DIRECTORY}/include )
+    # Inform the user of the actions
+    message( STATUS "FreeRTOS-Kernel is required for this build. Submoduling it..." )
+    execute_process( COMMAND git submodule update --init --checkout ${KERNEL_DIRECTORY}
+                     WORKING_DIRECTORY ${MODULE_ROOT_DIR} )
+endif()
+
+# Set the include directories
+string( APPEND GLOBAL_INCLUDES "-I ${MODULE_ROOT_DIR}/include ")
+string( APPEND GLOBAL_INCLUDES "-I ${UNIT_TEST_DIR}/ConfigFiles " )
+string( APPEND GLOBAL_INCLUDES "-I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include " )
 
 # Configure options to always show in CMake GUI.
 option( BUILD_CLONE_SUBMODULES
@@ -29,17 +52,15 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 
-# ===================================== Coverity Analysis Configuration =================================================
+# ===================================== Include the cmake configurations =================================================
 
 # Include filepaths for source and include.
-include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
+include( ${UNIT_TEST_DIR}/TCPFilePaths.cmake )
 
-# Target for Coverity analysis that builds the library.
-#add_library( coverity_analysis
-#             ${MQTT_SOURCES}
-#             ${MQTT_SERIALIZER_SOURCES} )
+# Include respective cmake files.
+include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
 
-#  ====================================  Test Configuration ========================================
+#  ==================================== Test Configuration ========================================
 
 # Define a CMock resource path.
 set( CMOCK_DIR ${MODULE_ROOT_DIR}/tools/CMock CACHE INTERNAL "CMock library source directory." )
@@ -71,6 +92,8 @@ add_cmock_targets()
 # Add function to enable CMock based tests and coverage.
 include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 
+set(FILE_UNDER_TEST FreeRTOS_ARP)
+
 # Include unit-test build configuration
 include( unit_test_build.cmake )
 
@@ -79,7 +102,6 @@ include( unit_test_build.cmake )
 # Add a target for running coverage on tests.
 add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
-    DEPENDS cmock unity FreeRTOS_TCP_Unit_test
+    DEPENDS cmock unity FreeRTOS_ARP_utest
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
-

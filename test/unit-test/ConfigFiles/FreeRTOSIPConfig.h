@@ -32,6 +32,10 @@
 
 #define _static
 
+#define ipconfigUSE_LLMNR 0
+#define ipconfigUSE_NBNS  0
+
+#define ipconfigDNS_USE_CALLBACKS          1
 #define ipconfigUSE_ARP_REMOVE_ENTRY       1
 #define ipconfigUSE_ARP_REVERSED_LOOKUP    1
 
@@ -300,6 +304,7 @@ extern uint32_t ulRand();
 #define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 1 )
 #define ipconfigUSE_CALLBACKS                    ( 0 )
 
+//#define ipconfigUSE_NBNS                         ( 1 )
 
 #define portINLINE
 
