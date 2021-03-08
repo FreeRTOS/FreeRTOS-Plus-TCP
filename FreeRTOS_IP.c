@@ -3495,6 +3495,37 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * This method generates a checksum for a given IPv4 header, per RFC791 (page 14).
+ * The checksum algorithm is described as:
+ *   "[T]he 16 bit one's complement of the one's complement sum of all 16 bit words in the
+ *   header.  For purposes of computing the checksum, the value of the checksum field is zero."
+ *
+ * In a nutshell, that means that each 16-bit 'word' must be summed, after which
+ * the number of 'carries' (overflows) is added to the result. If that addition
+ * produces an overflow, that 'carry' must also be added to the final result. The final checksum
+ * should be the bitwise 'not' (ones-complement) of the result if the packet is
+ * meant to be transmitted, but this method simply returns the raw value, probably
+ * because when a packet is received, the checksum is verified by checking that
+ * ((received & calculated) == 0) without applying a bitwise 'not' to the 'calculated' checksum.
+ *
+ * This logic is optimized for microcontrollers which have limited resources, so the logic looks odd.
+ * It iterates over the full range of 16-bit words, summing 8 short words in each loop with a
+ * 32-bit accumulator.
+ * Finally there might be some 16-bit words left, and possibly a single byte in the end.
+ * It finishes up by adding up all of the 'carries'.
+ *
+ * Arguments:
+ *   ulSum: This argument provides a value to initialise the progressive summation
+ *   of the header's values to. It is often 0, but protocols like TCP or UDP
+ *   can have pseudo-header fields which need to be included in the checksum.
+ *
+ *   pucNextData: This argument contains the address of the first byte which this
+ *   method should process. The method's memory iterator is initialised to this value.
+ *
+ *   uxDataLengthBytes: This argument contains the number of bytes that this method
+ *   should process.
+ */
 
 /**
  * @brief Calculates the 16-bit checksum of an array of bytes
@@ -3510,144 +3541,94 @@ uint16_t usGenerateChecksum( uint16_t usSum,
                              const uint8_t * pucNextData,
                              size_t uxByteCount )
 {
-/* MISRA/PC-lint doesn't like the use of unions. Here, they are a great
- * aid though to optimise the calculations. */
-    xUnion32 xSum2, xSum, xTerm;
-    xUnionPtr xSource;
-    xUnionPtr xLastSource;
-    uintptr_t uxAlignBits;
-    uint32_t ulCarry = 0UL;
-    uint16_t usTemp;
-    size_t uxDataLengthBytes = uxByteCount;
+    uint32_t ulAccum = FreeRTOS_htons( usSum );
+    const uint16_t * usPointer;
+    const size_t uxUnrollCount = 16U;
+    const uint8_t * pucData = pucNextData;
+    uintptr_t uxBufferAddress;
+    BaseType_t xUnaligned = pdFALSE;
+    uint16_t usTerm = 0U;
+    size_t uxBytesLeft = uxByteCount;
 
-    /* Small MCUs often spend up to 30% of the time doing checksum calculations
-    * This function is optimised for 32-bit CPUs; Each time it will try to fetch
-    * 32-bits, sums it with an accumulator and counts the number of carries. */
-
-    /* Swap the input (little endian platform only). */
-    usTemp = FreeRTOS_ntohs( usSum );
-    xSum.u32 = ( uint32_t ) usTemp;
-    xTerm.u32 = 0UL;
-
-    xSource.u8ptr = ipPOINTER_CAST( uint8_t *, pucNextData );
-    uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
-
-    /*
-     * If pucNextData is non-aligned then the checksum is starting at an
-     * odd position and we need to make sure the usSum value now in xSum is
-     * as if it had been "aligned" in the same way.
-     */
-    if( ( uxAlignBits & 1UL ) != 0U )
+    if( uxBytesLeft >= 1U )
     {
-        xSum.u32 = ( ( xSum.u32 & 0xffU ) << 8 ) | ( ( xSum.u32 & 0xff00U ) >> 8 );
-    }
+        /* Transform a pointer to a numeric value, in order to determine
+         * the alignment. */
+        uxBufferAddress = ( uintptr_t ) pucData;
 
-    /* If byte (8-bit) aligned... */
-    if( ( ( uxAlignBits & 1UL ) != 0UL ) && ( uxDataLengthBytes >= ( size_t ) 1 ) )
-    {
-        xTerm.u8[ 1 ] = *( xSource.u8ptr );
-        xSource.u8ptr++;
-        uxDataLengthBytes--;
-        /* Now xSource is word (16-bit) aligned. */
-    }
-
-    /* If half-word (16-bit) aligned... */
-    if( ( ( uxAlignBits == 1U ) || ( uxAlignBits == 2U ) ) && ( uxDataLengthBytes >= 2U ) )
-    {
-        xSum.u32 += *( xSource.u16ptr );
-        xSource.u16ptr++;
-        uxDataLengthBytes -= 2U;
-        /* Now xSource is word (32-bit) aligned. */
-    }
-
-    /* Word (32-bit) aligned, do the most part. */
-    xLastSource.u32ptr = ( xSource.u32ptr + ( uxDataLengthBytes / 4U ) ) - 3U;
-
-    /* In this loop, four 32-bit additions will be done, in total 16 bytes.
-     * Indexing with constants (0,1,2,3) gives faster code than using
-     * post-increments. */
-    while( xSource.u32ptr < xLastSource.u32ptr )
-    {
-        /* Use a secondary Sum2, just to see if the addition produced an
-         * overflow. */
-        xSum2.u32 = xSum.u32 + xSource.u32ptr[ 0 ];
-
-        if( xSum2.u32 < xSum.u32 )
+        if( ( uxBufferAddress & 1U ) != 0U )
         {
-            ulCarry++;
+            ulAccum = ( ( ulAccum & 0xffU ) << 8 ) | ( ( ulAccum & 0xff00U ) >> 8 );
+            usTerm = pucData[ 0 ];
+            usTerm = FreeRTOS_htons( usTerm );
+            /* Now make pucData 16-bit aligned. */
+            uxBufferAddress++;
+            /* One byte has been summed. */
+            uxBytesLeft--;
+            xUnaligned = pdTRUE;
         }
 
-        /* Now add the secondary sum to the major sum, and remember if there was
-         * a carry. */
-        xSum.u32 = xSum2.u32 + xSource.u32ptr[ 1 ];
+        /* The alignment of 'pucData' has just been tested and corrected
+         * when necessary.
+         */
+        usPointer = ( const uint16_t * ) uxBufferAddress;
 
-        if( xSum2.u32 > xSum.u32 )
+        /* Sum 8 shorts in each loop. */
+        while( uxBytesLeft >= ( sizeof( *usPointer ) * uxUnrollCount ) )
         {
-            ulCarry++;
+            ulAccum += usPointer[ 0 ];
+            ulAccum += usPointer[ 1 ];
+            ulAccum += usPointer[ 2 ];
+            ulAccum += usPointer[ 3 ];
+            ulAccum += usPointer[ 4 ];
+            ulAccum += usPointer[ 5 ];
+            ulAccum += usPointer[ 6 ];
+            ulAccum += usPointer[ 7 ];
+            ulAccum += usPointer[ 8 ];
+            ulAccum += usPointer[ 9 ];
+            ulAccum += usPointer[ 10 ];
+            ulAccum += usPointer[ 11 ];
+            ulAccum += usPointer[ 12 ];
+            ulAccum += usPointer[ 13 ];
+            ulAccum += usPointer[ 14 ];
+            ulAccum += usPointer[ 15 ];
+
+            uxBytesLeft -= sizeof( *usPointer ) * uxUnrollCount;
+            usPointer = &( usPointer[ uxUnrollCount ] );
         }
 
-        /* And do the same trick once again for indexes 2 and 3 */
-        xSum2.u32 = xSum.u32 + xSource.u32ptr[ 2 ];
-
-        if( xSum2.u32 < xSum.u32 )
+        /* Between 0 and 7 shorts might be left. */
+        while( uxBytesLeft >= sizeof( *usPointer ) )
         {
-            ulCarry++;
+            ulAccum += *usPointer;
+            uxBytesLeft -= sizeof( *usPointer );
+            usPointer = &( usPointer[ 1 ] );
         }
 
-        xSum.u32 = xSum2.u32 + xSource.u32ptr[ 3 ];
-
-        if( xSum2.u32 > xSum.u32 )
+        /* A single byte may be left. */
+        if( uxBytesLeft == 1U )
         {
-            ulCarry++;
+            usTerm |= ( usPointer[ 0 ] ) & FreeRTOS_htons( ( ( uint16_t ) 0xFF00U ) );
         }
 
-        /* And finally advance the pointer 4 * 4 = 16 bytes. */
-        xSource.u32ptr = &( xSource.u32ptr[ 4 ] );
+        ulAccum += usTerm;
+
+        /* Add the carry bits. */
+        while( ( ulAccum >> 16 ) != 0U )
+        {
+            ulAccum = ( ulAccum & 0xffffU ) + ( ulAccum >> 16 );
+        }
+
+        if( xUnaligned == pdTRUE )
+        {
+            /* Quite unlikely, but pucNextData might be non-aligned, which would
+            * mean that a checksum is calculated starting at an odd position. */
+            ulAccum = ( ( ulAccum & 0xffU ) << 8 ) | ( ( ulAccum & 0xff00U ) >> 8 );
+        }
     }
 
-    /* Now add all carries. */
-    xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ] + ulCarry;
-
-    uxDataLengthBytes %= 16U;
-    xLastSource.u8ptr = ( uint8_t * ) ( xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1 ) ) );
-
-    /* Half-word aligned. */
-
-    /* Coverity does not like Unions. Warning issued here: "The operator "<"
-     * is being applied to the pointers "xSource.u16ptr" and "xLastSource.u16ptr",
-     * which do not point into the same object." */
-    while( xSource.u16ptr < xLastSource.u16ptr )
-    {
-        /* At least one more short. */
-        xSum.u32 += xSource.u16ptr[ 0 ];
-        xSource.u16ptr++;
-    }
-
-    if( ( uxDataLengthBytes & ( size_t ) 1 ) != 0U ) /* Maybe one more ? */
-    {
-        xTerm.u8[ 0 ] = xSource.u8ptr[ 0 ];
-    }
-
-    xSum.u32 += xTerm.u32;
-
-    /* Now add all carries again. */
-
-    /* Assigning value from "xTerm.u32" to "xSum.u32" here, but that stored value is overwritten before it can be used.
-     * Coverity doesn't understand about union variables. */
-    xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
-
-    /* coverity[value_overwrite] */
-    xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
-
-    if( ( uxAlignBits & 1U ) != 0U )
-    {
-        /* Quite unlikely, but pucNextData might be non-aligned, which would
-        * mean that a checksum is calculated starting at an odd position. */
-        xSum.u32 = ( ( xSum.u32 & 0xffU ) << 8 ) | ( ( xSum.u32 & 0xff00U ) >> 8 );
-    }
-
-    /* swap the output (little endian platform only). */
-    return FreeRTOS_htons( ( ( uint16_t ) xSum.u32 ) );
+    /* The high bits are all zero now. */
+    return FreeRTOS_ntohs( ( uint16_t ) ulAccum );
 }
 /*-----------------------------------------------------------*/
 
