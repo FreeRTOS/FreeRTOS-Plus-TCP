@@ -21,7 +21,7 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
 {
     /* .ucBytes : */
     {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  /* Ethernet source MAC address. */
+        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
         0x08, 0x00,                          /* Ethernet frame type. */
         ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
         0x00,                                /* ucDifferentiatedServicesCode. */
