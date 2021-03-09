@@ -27,7 +27,7 @@
 #define FREERTOS_DEFAULT_IP_CONFIG_H
 
 #ifndef FREERTOS_IP_H
-	#error Please FreeRTOS_IP.h include this header file.
+    #error Please FreeRTOS_IP.h include this header file.
 #endif
 
 /* The error numbers defined in this file will be moved to the core FreeRTOS
@@ -101,7 +101,7 @@
 #endif
 
 #if ( ipconfigEVENT_QUEUE_LENGTH < ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U ) )
-	#error The ipconfigEVENT_QUEUE_LENGTH parameter must be at least ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U
+    #error The ipconfigEVENT_QUEUE_LENGTH parameter must be at least ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U
 #endif
 
 #if ( ipconfigNETWORK_MTU < 46 )
@@ -316,11 +316,11 @@
 #endif
 
 #ifndef ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS
-	#define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    45U
+    #define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    45U
 #endif
 
 #ifndef ipconfigEVENT_QUEUE_LENGTH
-	#define ipconfigEVENT_QUEUE_LENGTH    ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U )
+    #define ipconfigEVENT_QUEUE_LENGTH    ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U )
 #endif
 
 #ifndef ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND
@@ -439,9 +439,9 @@
 
 #ifndef ipconfigMAXIMUM_DISCOVER_TX_PERIOD
     #ifdef _WINDOWS_
-		#define ipconfigMAXIMUM_DISCOVER_TX_PERIOD	  ( pdMS_TO_TICKS( 999U ) )
+        #define ipconfigMAXIMUM_DISCOVER_TX_PERIOD    ( pdMS_TO_TICKS( 999U ) )
     #else
-		#define ipconfigMAXIMUM_DISCOVER_TX_PERIOD	  ( pdMS_TO_TICKS( 30000U ) )
+        #define ipconfigMAXIMUM_DISCOVER_TX_PERIOD    ( pdMS_TO_TICKS( 30000U ) )
     #endif /* _WINDOWS_ */
 #endif /* ipconfigMAXIMUM_DISCOVER_TX_PERIOD */
 
@@ -602,7 +602,7 @@
 #endif
 
 #ifndef ipconfigSELECT_USES_NOTIFY
-	#define ipconfigSELECT_USES_NOTIFY    0
+    #define ipconfigSELECT_USES_NOTIFY    0
 #endif
 
 #ifndef ipconfigTCP_KEEP_ALIVE
@@ -693,7 +693,7 @@
 #endif
 
 #ifndef ipconfigHAS_ROUTING_STATISTICS
-	#define ipconfigHAS_ROUTING_STATISTICS    0
+    #define ipconfigHAS_ROUTING_STATISTICS    0
 #endif
 
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */

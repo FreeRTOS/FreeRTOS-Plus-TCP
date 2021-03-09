@@ -50,12 +50,12 @@
  */
         typedef struct xND_CACHE_TABLE_ROW
         {
-			IPv6_Address_t xIPAddress;            /**< The IP address of an ND cache entry. */
-			MACAddress_t xMACAddress;             /**< The MAC address of an ND cache entry. */
-			struct xNetworkEndPoint * pxEndPoint; /**< The end-point on which the
-	                                               * remote device had responded. */
-			uint8_t ucAge;                        /**< See here above. */
-			uint8_t ucValid;                      /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ND reply */
+            IPv6_Address_t xIPAddress;            /**< The IP address of an ND cache entry. */
+            MACAddress_t xMACAddress;             /**< The MAC address of an ND cache entry. */
+            struct xNetworkEndPoint * pxEndPoint; /**< The end-point on which the
+                                                   * remote device had responded. */
+            uint8_t ucAge;                        /**< See here above. */
+            uint8_t ucValid;                      /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ND reply */
         } NDCacheRow_t;
 
 /*
@@ -115,10 +115,10 @@
 
         #if ( ipconfigUSE_RA != 0 )
 
-			/**
-			 * @brief Send a router solicitation.
-			 * @param[in] pxNetworkBuffer: A network buffer big enough to hold the ICMP packet.
-			 * @param[in] pxIPAddress: The multi-cast address of the routers ( normally ff02::2 ).
+/**
+ * @brief Send a router solicitation.
+ * @param[in] pxNetworkBuffer: A network buffer big enough to hold the ICMP packet.
+ * @param[in] pxIPAddress: The multi-cast address of the routers ( normally ff02::2 ).
  */
             void vNDSendRouterSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                             IPv6_Address_t * pxIPAddress );
@@ -126,10 +126,10 @@
 
         #if ( ipconfigUSE_RA != 0 )
 
-			/**
-			 * @brief Work on the RA/SLAAC processing.
-			 * @param[in] xDoReset: WHen true, the state-machine will be reset and initialised.
-			 * @param[in] pxEndPoint: The end-point for which the RA/SLAAC process should be done..
+/**
+ * @brief Work on the RA/SLAAC processing.
+ * @param[in] xDoReset: WHen true, the state-machine will be reset and initialised.
+ * @param[in] pxEndPoint: The end-point for which the RA/SLAAC process should be done..
  */
             void vRAProcess( BaseType_t xDoReset,
                              NetworkEndPoint_t * pxEndPoint );
@@ -137,41 +137,41 @@
 
         #if ( ipconfigUSE_IPv6 != 0 )
 
-			/**
-			 * @brief Send an ND advertisement.
-			 * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
-			 */
+/**
+ * @brief Send an ND advertisement.
+ * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
+ */
             void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint );
             #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
-				/**
-				 * @brief Send an IPv6 ping message to a remote device.
-				 * @param[in] pxIPAddress: The IPv6 address of the other device.
-				 * @param[in] uxNumberOfBytesToSend: The number of bytes to be echoed.
-				 * @param[in] uxBlockTimeTicks: The number of clock-tick to wait
-				 *            for space in the IP-task queue.
-				 * @return pdRTUE when a packets was successfully created
-				 *         and passed to the IP-task.
-				 */
+/**
+ * @brief Send an IPv6 ping message to a remote device.
+ * @param[in] pxIPAddress: The IPv6 address of the other device.
+ * @param[in] uxNumberOfBytesToSend: The number of bytes to be echoed.
+ * @param[in] uxBlockTimeTicks: The number of clock-tick to wait
+ *            for space in the IP-task queue.
+ * @return pdRTUE when a packets was successfully created
+ *         and passed to the IP-task.
+ */
                 BaseType_t FreeRTOS_SendPingRequestIPv6( IPv6_Address_t * pxIPAddress,
                                                          size_t uxNumberOfBytesToSend,
                                                          TickType_t uxBlockTimeTicks );
             #endif
 
-			/**
-			 * @brief Create an IPv16 address, based on a prefix.
-			 *
-			 * @param[out] pxIPAddress: The location where the new IPv6 address
-			 *                          will be stored.
-			 * @param[in] pxPrefix: The prefix to be used.
-			 * @param[in] uxPrefixLength: The length of the prefix.
-			 * @param[in] xDoRandom: A non-zero value if the bits after the
-			 *                       prefix should have a random value.
-			 *
-			 * @return pdPASS if the operation was successful. Or pdFAIL in
-			 *         case xApplicationGetRandomNumber()
-			 *         returned an error.
-			 */
+/**
+ * @brief Create an IPv16 address, based on a prefix.
+ *
+ * @param[out] pxIPAddress: The location where the new IPv6 address
+ *                          will be stored.
+ * @param[in] pxPrefix: The prefix to be used.
+ * @param[in] uxPrefixLength: The length of the prefix.
+ * @param[in] xDoRandom: A non-zero value if the bits after the
+ *                       prefix should have a random value.
+ *
+ * @return pdPASS if the operation was successful. Or pdFAIL in
+ *         case xApplicationGetRandomNumber()
+ *         returned an error.
+ */
             BaseType_t FreeRTOS_CreateIPv6Address( IPv6_Address_t * pxIPAddress,
                                                    const IPv6_Address_t * pxPrefix,
                                                    size_t uxPrefixLength,
@@ -179,26 +179,27 @@
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
 /* Receive a Neighbour Advertisement. */
-		/** @brief A neighbour advertisement has been received. Store its
-		 *         address in the ND address cache.
-		 *  @param[in] pxNetworkBuffer The buffer containing the packet.
-		 */
-            void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
+/** @brief A neighbour advertisement has been received. Store its
+ *         address in the ND address cache.
+ *  @param[in] pxNetworkBuffer The buffer containing the packet.
+ */
+        void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 /* Receive a Router Advertisement. */
         #if ( ipconfigUSE_RA != 0 )
 
-			/** @brief A router advertisement has been received.  See if it is
-			 *         applicable for this device.
-			 *  @param[in] pxNetworkBuffer The buffer containing the packet.
-			 */
+/** @brief A router advertisement has been received.  See if it is
+ *         applicable for this device.
+ *  @param[in] pxNetworkBuffer The buffer containing the packet.
+ */
             void vReceiveRA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
         #endif
 
-		#if ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) )
+        #if ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) )
 /** @brief Print the contents of the ND cache, for debugging only. */
-			void FreeRTOS_PrintNDCache( void );
-		#endif
+            void FreeRTOS_PrintNDCache( void );
+        #endif
 
 /**
  * @defgroup CastingMacroFunctions Utility casting functions
@@ -206,23 +207,23 @@
  *        to other types. A major use would be to map various
  *        headers/packets on to the incoming byte stream.
  */
-		extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_IPv6_t );
-		extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPPacket_IPv6_t );
+        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_IPv6_t );
+        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPPacket_IPv6_t );
 
-		extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_IPv6_t );
-		extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_IPv6_t );
+        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_IPv6_t );
+        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_IPv6_t );
 
-		extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPRouterAdvertisement_IPv6_t );
-		extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPRouterAdvertisement_IPv6_t );
+        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPRouterAdvertisement_IPv6_t );
+        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPRouterAdvertisement_IPv6_t );
 
-		extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPRouterSolicitation_IPv6_t );
-		extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPRouterSolicitation_IPv6_t );
+        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPRouterSolicitation_IPv6_t );
+        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPRouterSolicitation_IPv6_t );
 
-		extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPrefixOption_IPv6_t );
-		extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPPrefixOption_IPv6_t );
+        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPrefixOption_IPv6_t );
+        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPPrefixOption_IPv6_t );
 
-		extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPEcho_IPv6_t );
-		extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPEcho_IPv6_t );
+        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPEcho_IPv6_t );
+        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPEcho_IPv6_t );
 
     #endif /* ipconfigUSE_IPv6 != 0 */
 

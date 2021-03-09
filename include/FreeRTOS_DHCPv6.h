@@ -89,9 +89,9 @@
         } /* extern "C" */
     #endif
 
-	/* The application should supply the following time-function.
-	 * It must return the number of seconds that have passed since
-	 * 1/1/1970. */
-	extern uint32_t ulApplicationTimeHook( void );
+/* The application should supply the following time-function.
+ * It must return the number of seconds that have passed since
+ * 1/1/1970. */
+    extern uint32_t ulApplicationTimeHook( void );
 
 #endif /* FREERTOS_DHCPv6_H */

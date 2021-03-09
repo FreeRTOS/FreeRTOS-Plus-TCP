@@ -209,8 +209,8 @@ uint32_t ulBitConfig_read_32( BitConfig_t * pxConfig )
  * @return True if there was enough space in the buffer to store all bytes, otherwise pdFALSE.
  */
 void vBitConfig_write_uc( BitConfig_t * pxConfig,
-                                uint8_t * pucData,
-                                size_t uxSize )
+                          uint8_t * pucData,
+                          size_t uxSize )
 {
     const size_t uxNeeded = uxSize;
 
@@ -218,8 +218,8 @@ void vBitConfig_write_uc( BitConfig_t * pxConfig,
     {
         if( pxConfig->uxIndex <= pxConfig->uxSize - uxNeeded )
         {
-			uint8_t * pucDestination = &( pxConfig->ucContents[ pxConfig->uxIndex ] );
-			( void ) memcpy( pucDestination, pucData, uxNeeded );
+            uint8_t * pucDestination = &( pxConfig->ucContents[ pxConfig->uxIndex ] );
+            ( void ) memcpy( pucDestination, pucData, uxNeeded );
             pxConfig->uxIndex += uxNeeded;
         }
         else
@@ -239,11 +239,11 @@ void vBitConfig_write_uc( BitConfig_t * pxConfig,
  * @return True if there was enough space in the buffer to store the byte, otherwise pdFALSE.
  */
 void vBitConfig_write_8( BitConfig_t * pxConfig,
-                               uint8_t ucValue )
+                         uint8_t ucValue )
 {
     const size_t uxNeeded = sizeof ucValue;
 
-	vBitConfig_write_uc( pxConfig, &( ucValue ), uxNeeded );
+    vBitConfig_write_uc( pxConfig, &( ucValue ), uxNeeded );
 }
 /*-----------------------------------------------------------*/
 
@@ -256,14 +256,14 @@ void vBitConfig_write_8( BitConfig_t * pxConfig,
  * @return @return True if there was enough space in the buffer to store the value, otherwise pdFALSE.
  */
 void vBitConfig_write_16( BitConfig_t * pxConfig,
-                                uint16_t usValue )
+                          uint16_t usValue )
 {
     const size_t uxNeeded = sizeof usValue;
     uint8_t pucData[ uxNeeded ];
 
     pucData[ 0 ] = ( uint8_t ) ( ( usValue >> 8 ) & 0xFFU );
     pucData[ 1 ] = ( uint8_t ) ( usValue & 0xFFU );
-	vBitConfig_write_uc( pxConfig, pucData, uxNeeded );
+    vBitConfig_write_uc( pxConfig, pucData, uxNeeded );
 }
 /*-----------------------------------------------------------*/
 
@@ -276,7 +276,7 @@ void vBitConfig_write_16( BitConfig_t * pxConfig,
  * @return @return True if there was enough space in the buffer to store the word, otherwise pdFALSE.
  */
 void vBitConfig_write_32( BitConfig_t * pxConfig,
-                                uint32_t ulValue )
+                          uint32_t ulValue )
 {
     const size_t uxNeeded = sizeof ulValue;
     uint8_t pucData[ uxNeeded ];
@@ -285,7 +285,7 @@ void vBitConfig_write_32( BitConfig_t * pxConfig,
     pucData[ 1 ] = ( uint8_t ) ( ( ulValue >> 16 ) & 0xFFU );
     pucData[ 2 ] = ( uint8_t ) ( ( ulValue >> 8 ) & 0xFFU );
     pucData[ 3 ] = ( uint8_t ) ( ulValue & 0xFFU );
-	( void ) vBitConfig_write_uc( pxConfig, pucData, uxNeeded );
+    ( void ) vBitConfig_write_uc( pxConfig, pucData, uxNeeded );
 }
 /*-----------------------------------------------------------*/
 
@@ -304,6 +304,6 @@ void vBitConfig_release( BitConfig_t * pxConfig )
         vPortFree( pxConfig->ucContents );
     }
 
-	( void ) memset( pxConfig, 0, sizeof *pxConfig );
+    ( void ) memset( pxConfig, 0, sizeof *pxConfig );
 }
 /*-----------------------------------------------------------*/

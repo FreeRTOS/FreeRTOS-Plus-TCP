@@ -73,7 +73,7 @@
 #endif
 
 #ifndef iptraceND_TABLE_ENTRY_WILL_EXPIRE
-	#define iptraceND_TABLE_ENTRY_WILL_EXPIRE( pxIPAddress )
+    #define iptraceND_TABLE_ENTRY_WILL_EXPIRE( pxIPAddress )
 #endif
 
 #ifndef iptraceARP_TABLE_ENTRY_EXPIRED
@@ -81,11 +81,11 @@
 #endif
 
 #ifndef iptraceND_TABLE_ENTRY_EXPIRED
-	#define iptraceND_TABLE_ENTRY_EXPIRED( pxIPAddress )
+    #define iptraceND_TABLE_ENTRY_EXPIRED( pxIPAddress )
 #endif
 
 #ifndef iptraceND_TABLE_ENTRY_EXPIRED
-	#define iptraceND_TABLE_ENTRY_EXPIRED( pxIPAddress )
+    #define iptraceND_TABLE_ENTRY_EXPIRED( pxIPAddress )
 #endif
 
 #ifndef iptraceARP_TABLE_ENTRY_CREATED
