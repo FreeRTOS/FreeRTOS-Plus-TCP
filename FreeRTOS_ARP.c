@@ -807,6 +807,8 @@ BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
             {
                 break;
             }
+
+            uxSendCount--;
         }
     }
 
