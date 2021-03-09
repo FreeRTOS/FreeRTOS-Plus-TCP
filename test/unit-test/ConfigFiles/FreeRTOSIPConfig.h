@@ -305,6 +305,10 @@ extern uint32_t ulRand();
 #define ipconfigUSE_ARP_REMOVE_ENTRY       1
 #define ipconfigUSE_ARP_REVERSED_LOOKUP    1
 
+#define ipconfigETHERNET_MINIMUM_PACKET_BYTES    ( 200 )
+
+#define ipconfigARP_STORES_REMOTE_ADDRESSES      ( 1 )
+
 #define portINLINE
 
 #endif /* FREERTOS_IP_CONFIG_H */

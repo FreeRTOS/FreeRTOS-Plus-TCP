@@ -76,7 +76,12 @@ foreach( file ${TCP_INCLUDES} )
     get_filename_component( MODIFIED_FILE ${file} NAME_WLE )
 
     string(TOUPPER ${MODIFIED_FILE} Guard)
-    set( Guard ${Guard}_H )
+
+    if(${MODIFIED_FILE} STREQUAL "NetworkBufferManagement" )
+        set( Guard "NETWORK_BUFFER_MANAGEMENT_H" )
+    else()
+        set( Guard ${Guard}_H )
+    endif()
 
     # Remove IPConfigDefaults from the file
     execute_process( COMMAND sed "s,#include \"FreeRTOSIPConfigDefaults.h\",,g" ${file}
