@@ -30,14 +30,6 @@
         extern "C" {
     #endif
 
-    #if ( ipconfigNETWORK_BUFFER_DEBUGGING != 0 )
-        #define BUFFER_FROM_WHERE_DECL    const char * apWhere,
-        #define BUFFER_FROM_WHERE_CALL( apWhere )    apWhere,
-    #else
-        #define BUFFER_FROM_WHERE_DECL
-        #define BUFFER_FROM_WHERE_CALL( apWhere )
-    #endif
-
 /* NOTE PUBLIC API FUNCTIONS. */
     BaseType_t xNetworkBuffersInitialise( void );
     NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t uxRequestedSizeBytes,

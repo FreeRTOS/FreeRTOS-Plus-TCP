@@ -175,9 +175,9 @@
         #if ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_RA != 0 )
             IPTimer_t xDHCP_RATimer; /**<  The timer used to call the DHCP/DHCPv6/RA state machine. */
         #endif /* ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_RA != 0 ) */
-        #if ( ipconfigUSE_DHCP != 0 )
+		#if ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 )
             DHCPData_t xDHCPData; /**< A description of the DHCP client state machine. */
-        #endif /* ( ipconfigUSE_DHCP != 0 ) */
+		#endif /* ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 ) */
         #if ( ipconfigUSE_IPv6 != 0 )
             DHCPMessage_IPv6_t * pxDHCPMessage; /**< A description of the DHCPv6 client state machine. */
         #endif
@@ -198,10 +198,10 @@
 
     #else /* if ( ipconfigUSE_IPv6 != 0 ) */
         #define END_POINT_USES_DHCP( pxEndPoint )    ( ( pxEndPoint )->bits.bWantDHCP != pdFALSE_UNSIGNED )
-        #define END_POINT_USES_RA( pxEndPoint )      ( 0 )
+		#define END_POINT_USES_RA( pxEndPoint )		 ( ipFALSE_BOOL )
 
-        #define ENDPOINT_IS_IPv4( pxEndPoint )       ( 1 )
-        #define ENDPOINT_IS_IPv6( pxEndPoint )       ( 0 )
+		#define ENDPOINT_IS_IPv4( pxEndPoint )		 ( ipTRUE_BOOL )
+		#define ENDPOINT_IS_IPv6( pxEndPoint )		 ( ipFALSE_BOOL )
 
     #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
@@ -310,6 +310,7 @@
                                          const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
     #endif
 
+	#if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
 /** @brief Some simple network statistics. */
     typedef struct xRoutingStats
     {
@@ -322,6 +323,7 @@
     } RoutingStats_t;
 
     extern RoutingStats_t xRoutingStatistics;
+	#endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
     NetworkEndPoint_t * pxGetSocketEndpoint( Socket_t xSocket );
     void vSetSocketEndpoint( Socket_t xSocket,

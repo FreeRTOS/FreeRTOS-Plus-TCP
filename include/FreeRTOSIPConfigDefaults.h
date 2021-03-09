@@ -26,6 +26,10 @@
 #ifndef FREERTOS_DEFAULT_IP_CONFIG_H
 #define FREERTOS_DEFAULT_IP_CONFIG_H
 
+#ifndef FREERTOS_IP_H
+	#error Please FreeRTOS_IP.h include this header file.
+#endif
+
 /* The error numbers defined in this file will be moved to the core FreeRTOS
  * code in future versions of FreeRTOS - at which time the following header file
  * will be removed. */
@@ -96,8 +100,8 @@
     #error now called: FreeRTOS_debug_printf
 #endif
 
-#if ( ipconfigEVENT_QUEUE_LENGTH < ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5 ) )
-    #error The ipconfigEVENT_QUEUE_LENGTH parameter must be at least ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5
+#if ( ipconfigEVENT_QUEUE_LENGTH < ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U ) )
+	#error The ipconfigEVENT_QUEUE_LENGTH parameter must be at least ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U
 #endif
 
 #if ( ipconfigNETWORK_MTU < 46 )
@@ -312,11 +316,11 @@
 #endif
 
 #ifndef ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS
-    #define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    45
+	#define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    45U
 #endif
 
 #ifndef ipconfigEVENT_QUEUE_LENGTH
-    #define ipconfigEVENT_QUEUE_LENGTH    ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5 )
+	#define ipconfigEVENT_QUEUE_LENGTH    ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U )
 #endif
 
 #ifndef ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND
@@ -435,9 +439,9 @@
 
 #ifndef ipconfigMAXIMUM_DISCOVER_TX_PERIOD
     #ifdef _WINDOWS_
-        #define ipconfigMAXIMUM_DISCOVER_TX_PERIOD    ( pdMS_TO_TICKS( 999 ) )
+		#define ipconfigMAXIMUM_DISCOVER_TX_PERIOD	  ( pdMS_TO_TICKS( 999U ) )
     #else
-        #define ipconfigMAXIMUM_DISCOVER_TX_PERIOD    ( pdMS_TO_TICKS( 30000 ) )
+		#define ipconfigMAXIMUM_DISCOVER_TX_PERIOD	  ( pdMS_TO_TICKS( 30000U ) )
     #endif /* _WINDOWS_ */
 #endif /* ipconfigMAXIMUM_DISCOVER_TX_PERIOD */
 
@@ -517,6 +521,13 @@
 #endif
 
 #ifndef ipconfigETHERNET_DRIVER_FILTERS_PACKETS
+
+/*
+ * MISRA: the macro 'ipconfigETHERNET_DRIVER_FILTERS_PACKETS'
+ * may not be unique, as it is longer than 32 characters.
+ * The first 31 characters are the same as in
+ * 'ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES'.
+ */
     #define ipconfigETHERNET_DRIVER_FILTERS_PACKETS    ( 0 )
 #endif
 
@@ -588,6 +599,10 @@
 
 #ifndef ipconfigSUPPORT_SELECT_FUNCTION
     #define ipconfigSUPPORT_SELECT_FUNCTION    0
+#endif
+
+#ifndef ipconfigSELECT_USES_NOTIFY
+	#define ipconfigSELECT_USES_NOTIFY    0
 #endif
 
 #ifndef ipconfigTCP_KEEP_ALIVE
@@ -675,6 +690,10 @@
 
 #ifndef ipconfigNETWORK_BUFFER_DEBUGGING
     #define ipconfigNETWORK_BUFFER_DEBUGGING    0
+#endif
+
+#ifndef ipconfigHAS_ROUTING_STATISTICS
+	#define ipconfigHAS_ROUTING_STATISTICS    0
 #endif
 
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */

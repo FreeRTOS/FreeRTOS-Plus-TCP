@@ -131,8 +131,8 @@
     #define ipECHO_DATA_FILL_BYTE                      'x'
 
 /* Dimensions the buffers that are filled by received Ethernet frames. */
-    #define ipSIZE_OF_ETH_CRC_BYTES                    ( 4UL )
-    #define ipSIZE_OF_ETH_OPTIONAL_802_1Q_TAG_BYTES    ( 4UL )
+	#define ipSIZE_OF_ETH_CRC_BYTES					   ( 4U )
+	#define ipSIZE_OF_ETH_OPTIONAL_802_1Q_TAG_BYTES	   ( 4U )
     #define ipTOTAL_ETHERNET_FRAME_SIZE                ( ( ( uint32_t ) ipconfigNETWORK_MTU ) + ( ( uint32_t ) ipSIZE_OF_ETH_HEADER ) + ipSIZE_OF_ETH_CRC_BYTES + ipSIZE_OF_ETH_OPTIONAL_802_1Q_TAG_BYTES )
 
 
@@ -238,8 +238,8 @@
         ( uint32_t )                                                \
         (                                                           \
             ( ( ( ( uint32_t ) ( ulIn ) ) ) << 24 ) |               \
-            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x0000ff00UL ) << 8 ) | \
-            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x00ff0000UL ) >> 8 ) | \
+            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x0000ff00U ) << 8 ) |  \
+            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x00ff0000U ) >> 8 ) |  \
             ( ( ( ( uint32_t ) ( ulIn ) ) ) >> 24 )                 \
         )                                                           \
     )
@@ -262,11 +262,17 @@
     uint32_t FreeRTOS_max_uint32( uint32_t a,
                                   uint32_t b );
 
+	size_t FreeRTOS_max_size_t( size_t a,
+								size_t b );
+
     int32_t FreeRTOS_min_int32( int32_t a,
                                 int32_t b );
 
     uint32_t FreeRTOS_min_uint32( uint32_t a,
                                   uint32_t b );
+
+	size_t FreeRTOS_min_size_t( size_t a,
+								size_t b );
 
     uint32_t FreeRTOS_round_up( uint32_t a,
                                 uint32_t d );
@@ -444,13 +450,18 @@
  * Socket has had activity, reset the timer so it will not be closed
  * because of inactivity
  */
+	#if ( ipconfigHAS_DEBUG_PRINTF == 1 )
     const char * FreeRTOS_GetTCPStateName( UBaseType_t ulState );
+	#endif
 
 /* _HT_ Temporary: show all valid ARP entries
  */
-    void FreeRTOS_PrintARPCache( void );
+	#if ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 )
+		extern void FreeRTOS_PrintARPCache( void );
+	#endif
+
     #if ( ipconfigUSE_IPv6 != 0 )
-        void FreeRTOS_ClearND( void );
+		extern void FreeRTOS_ClearND( void );
     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
 /* Return pdTRUE if the IPv4 address is a multicast address. */
