@@ -555,6 +555,7 @@ misra
 mmc
 mo
 mqtt
+msb
 msc
 msec
 msecs
@@ -703,6 +704,7 @@ ppucrecvdata
 ppxaddressinfo
 ppxendpoint
 ppxinterface
+ppxinterfacelcurmss
 ppxnetworkbuffer
 ppxresult
 pr
@@ -1216,6 +1218,7 @@ ulbytecount
 ulchecktime
 ulconnected
 ulcount
+ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
 uldata
@@ -1396,6 +1399,7 @@ utf
 uuid
 uxaddresslength
 uxblocktimeticks
+uxborn
 uxbuffer
 uxbufferlength
 uxbytecount
@@ -1732,10 +1736,12 @@ xserverid
 xserversemaphore
 xserversocket
 xsize
+xsizewithoutdata
 xsocket
 xsocketbits
 xsocketset
 xsockettaskhandles
+xsocketvalid
 xsource
 xsourceaddress
 xstatus
