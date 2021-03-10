@@ -3496,53 +3496,30 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
 /*-----------------------------------------------------------*/
 
 /**
- * This method generates a checksum for a given IPv4 header, per RFC791 (page 14).
- * The checksum algorithm is described as:
- *   "[T]he 16 bit one's complement of the one's complement sum of all 16 bit words in the
- *   header.  For purposes of computing the checksum, the value of the checksum field is zero."
- *
- * In a nutshell, that means that each 16-bit 'word' must be summed, after which
- * the number of 'carries' (overflows) is added to the result. If that addition
- * produces an overflow, that 'carry' must also be added to the final result. The final checksum
- * should be the bitwise 'not' (ones-complement) of the result if the packet is
- * meant to be transmitted, but this method simply returns the raw value, probably
- * because when a packet is received, the checksum is verified by checking that
- * ((received & calculated) == 0) without applying a bitwise 'not' to the 'calculated' checksum.
- *
- * This logic is optimized for microcontrollers which have limited resources, so the logic looks odd.
- * It iterates over the full range of 16-bit words, summing 8 short words in each loop with a
- * 32-bit accumulator.
- * Finally there might be some 16-bit words left, and possibly a single byte in the end.
- * It finishes up by adding up all of the 'carries'.
- *
- * Arguments:
- *   ulSum: This argument provides a value to initialise the progressive summation
- *   of the header's values to. It is often 0, but protocols like TCP or UDP
- *   can have pseudo-header fields which need to be included in the checksum.
- *
- *   pucNextData: This argument contains the address of the first byte which this
- *   method should process. The method's memory iterator is initialised to this value.
- *
- *   uxDataLengthBytes: This argument contains the number of bytes that this method
- *   should process.
- */
-
-/**
- * @brief Calculates the 16-bit checksum of an array of bytes
- *
+ * @brief Calculates the 16-bit checksum of an array of bytes.
+ *        About the arguments:
+ *          ulSum: This argument provides a value to initialise the progressive summation
+ *          of the header's values to. It is often 0, but protocols like TCP or UDP
+ *          can have pseudo-header fields which need to be included in the checksum.
+ *       
+ *          pucNextData: This argument contains the address of the first byte which this
+ *          method should process. The method's memory iterator is initialised to this value.
+ *       
+ *          uxDataLengthBytes: This argument contains the number of bytes that this method
+ *          should process.
  * @param[in] usSum: The initial sum, obtained from earlier data.
  * @param[in] pucNextData: The actual data.
  * @param[in] uxByteCount: The number of bytes.
  *
  * @return The 16-bit one's complement of the one's complement sum of all 16-bit
- *         words in the header
+ *         words in the buffer.
  */
 uint16_t usGenerateChecksum( uint16_t usSum,
                              const uint8_t * pucNextData,
                              size_t uxByteCount )
 {
     uint32_t ulAccum = FreeRTOS_htons( usSum );
-    const uint16_t * usPointer;
+    const uint16_t * pusPointer;
     const size_t uxUnrollCount = 16U;
     const uint8_t * pucData = pucNextData;
     uintptr_t uxBufferAddress;
@@ -3571,44 +3548,44 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         /* The alignment of 'pucData' has just been tested and corrected
          * when necessary.
          */
-        usPointer = ( const uint16_t * ) uxBufferAddress;
+        pusPointer = ( const uint16_t * ) uxBufferAddress;
 
-        /* Sum 8 shorts in each loop. */
-        while( uxBytesLeft >= ( sizeof( *usPointer ) * uxUnrollCount ) )
+        /* Sum 'uxUnrollCount' shorts in each loop. */
+        while( uxBytesLeft >= ( sizeof( *pusPointer ) * uxUnrollCount ) )
         {
-            ulAccum += usPointer[ 0 ];
-            ulAccum += usPointer[ 1 ];
-            ulAccum += usPointer[ 2 ];
-            ulAccum += usPointer[ 3 ];
-            ulAccum += usPointer[ 4 ];
-            ulAccum += usPointer[ 5 ];
-            ulAccum += usPointer[ 6 ];
-            ulAccum += usPointer[ 7 ];
-            ulAccum += usPointer[ 8 ];
-            ulAccum += usPointer[ 9 ];
-            ulAccum += usPointer[ 10 ];
-            ulAccum += usPointer[ 11 ];
-            ulAccum += usPointer[ 12 ];
-            ulAccum += usPointer[ 13 ];
-            ulAccum += usPointer[ 14 ];
-            ulAccum += usPointer[ 15 ];
+            ulAccum += pusPointer[ 0 ];
+            ulAccum += pusPointer[ 1 ];
+            ulAccum += pusPointer[ 2 ];
+            ulAccum += pusPointer[ 3 ];
+            ulAccum += pusPointer[ 4 ];
+            ulAccum += pusPointer[ 5 ];
+            ulAccum += pusPointer[ 6 ];
+            ulAccum += pusPointer[ 7 ];
+            ulAccum += pusPointer[ 8 ];
+            ulAccum += pusPointer[ 9 ];
+            ulAccum += pusPointer[ 10 ];
+            ulAccum += pusPointer[ 11 ];
+            ulAccum += pusPointer[ 12 ];
+            ulAccum += pusPointer[ 13 ];
+            ulAccum += pusPointer[ 14 ];
+            ulAccum += pusPointer[ 15 ];
 
-            uxBytesLeft -= sizeof( *usPointer ) * uxUnrollCount;
-            usPointer = &( usPointer[ uxUnrollCount ] );
+            uxBytesLeft -= sizeof( *pusPointer ) * uxUnrollCount;
+            pusPointer = &( pusPointer[ uxUnrollCount ] );
         }
 
         /* Between 0 and 7 shorts might be left. */
-        while( uxBytesLeft >= sizeof( *usPointer ) )
+        while( uxBytesLeft >= sizeof( *pusPointer ) )
         {
-            ulAccum += *usPointer;
-            uxBytesLeft -= sizeof( *usPointer );
-            usPointer = &( usPointer[ 1 ] );
+            ulAccum += *pusPointer;
+            uxBytesLeft -= sizeof( *pusPointer );
+            pusPointer = &( pusPointer[ 1 ] );
         }
 
         /* A single byte may be left. */
         if( uxBytesLeft == 1U )
         {
-            usTerm |= ( usPointer[ 0 ] ) & FreeRTOS_htons( ( ( uint16_t ) 0xFF00U ) );
+            usTerm |= ( pusPointer[ 0 ] ) & FreeRTOS_htons( ( ( uint16_t ) 0xFF00U ) );
         }
 
         ulAccum += usTerm;
