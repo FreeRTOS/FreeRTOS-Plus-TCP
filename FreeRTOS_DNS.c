@@ -253,7 +253,7 @@
  *         a 43-bit number in a buffer in big-endian format.
  * @param[in] pucBase: A pointer to a buffer where to store a uint32_t.
  * @param[in] uxOffset: The offset within pucBase.
- * @param[in] usValue: The word to be stored.
+ * @param[in] ulValue: The word to be stored.
  */
     void vSetField32helper( uint8_t * pucBase,
                             size_t uxOffset,

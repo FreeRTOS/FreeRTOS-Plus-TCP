@@ -1297,13 +1297,22 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief uintptr_t is an unsigned integer type that is capable of storing a data pointer.
+ *        Therefore it is safe to convert from a void pointer to a uintptr_t, using a union.
+ */
 union uIntPtr
 {
-    uintptr_t uxPtr;
-    const void * pvPtr;
+    uintptr_t uxPtr;     /**< THe numeric value. */
+    const void * pvPtr;  /**< THe void pointer. */
 };
 
-/* Helper function: cast a pointer to a numeric value 'uintptr_t'. */
+/**
+ * @brief Helper function: cast a pointer to a numeric value 'uintptr_t',
+ *        using a union as defined here above.
+ * @param[in] pvPointer A void pointer to be converted.
+ * @return The value of the void pointer as an unsigned number.
+ */
 static uintptr_t void_ptr_to_uintptr( const void * pvPointer )
 {
     /* The type 'uintptr_t' has the same size as a pointer.
@@ -4727,6 +4736,8 @@ ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
     return ( NetworkBufferDescriptor_t * ) pvArgument;
 }
 /*-----------------------------------------------------------*/
+/* Mark the end of this group of functions. */
+/** @}*/
 
 /**
  * @brief Convert character array (of size 4) to equivalent 32-bit value.
