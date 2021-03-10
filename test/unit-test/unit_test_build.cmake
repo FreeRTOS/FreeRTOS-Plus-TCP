@@ -11,7 +11,6 @@ set( project_name ${FILE_UNDER_TEST} )
 # list the files to mock here
 list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
@@ -34,9 +33,6 @@ list(APPEND mock_define_list
 # list the files you would like to test here
 list(APPEND real_source_files
             ${MODULE_ROOT_DIR}/FreeRTOS_ARP.c
-#            ${KERNEL_SOURCES}
-#            ${MODULE_ROOT_DIR}/test/unit-test/stubs/FreeRTOS_ARP_stubs.c
-#            ${MODULE_ROOT_DIR}/portable/BufferManagement/BufferAllocation_2.c
 	)
 # list the directories the module under test includes
 list(APPEND real_include_directories

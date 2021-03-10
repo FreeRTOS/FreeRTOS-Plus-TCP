@@ -56,12 +56,6 @@ NetworkAddressingParameters_t xNetworkAddressing = { 0xC0C0C0C0,        /* 192.1
                                                      0x01020304,        /* 1.2.3.4 - DNS server address. */
                                                      0xC0C0C0FF};       /* 192.192.192.255 - Broadcast address. */
 
-/* Copy a network buffer into a bigger buffer. */
-NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                                    size_t uxNewLength )
-{
-}
-
 size_t xPortGetMinimumEverFreeHeapSize( void )
 {
     return 0;

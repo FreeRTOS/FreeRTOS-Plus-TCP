@@ -6,11 +6,12 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "mock_FreeRTOS_ARP.h"
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_task.h"
 #include "mock_NetworkBufferManagement.h"
+
+#include "FreeRTOS_ARP.h"
 
 #include "FreeRTOS_ARP_stubs.c"
 #include "catch_assert.h"
@@ -101,14 +102,11 @@ void test_xCheckLoopback( void )
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     /* Make the MAC address same. */
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipLOCAL_MAC_ADDRESS, ipMAC_ADDRESS_LENGTH_BYTES );
-
     pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( pxNetworkBuffer, pxNetworkBuffer->xDataLength, NULL );
-    xSendEventStructToIPTask_IgnoreAndReturn( pdTRUE );
     xResult = xCheckLoopback( pxNetworkBuffer, pdFALSE );
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
     /* =================================================== */
 }
-
 
 void test_eARPProcessPacket( void )
 {

@@ -960,10 +960,6 @@ void FreeRTOS_ClearARP( void )
                         FreeRTOS_printf( ( "prvEMACRxPoll: Can not queue return packet!\n" ) );
                     }
                 }
-                else
-                {
-                   xResult++;
-                }
             }
         }
 
