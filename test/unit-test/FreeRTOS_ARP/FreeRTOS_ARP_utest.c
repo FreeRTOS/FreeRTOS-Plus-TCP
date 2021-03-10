@@ -654,7 +654,7 @@ void test_vARPAgeCache( void )
     uint8_t ucEntryToCheck = 1;
 
     /* =================================================== */
-    /* Make second entry invlid but with age > 1. */
+    /* Make second entry invalid but with age > 1. */
     xARPCache[ ucEntryToCheck ].ucAge = 1;
     xARPCache[ ucEntryToCheck ].ucValid = pdFALSE;
     /* Set an IP address */
@@ -671,7 +671,7 @@ void test_vARPAgeCache( void )
     /* =================================================== */
 
     /* =================================================== */
-    /* Make second entry invlid but with age > 1. */
+    /* Make second entry invalid but with age > 1. */
     xARPCache[ ucEntryToCheck ].ucAge = 1;
     xARPCache[ ucEntryToCheck ].ucValid = pdTRUE;
     /* Set an IP address */
@@ -687,7 +687,7 @@ void test_vARPAgeCache( void )
     /* =================================================== */
 
     /* =================================================== */
-    /* Make second entry invlid but with age > 1. */
+    /* Make second entry invalid but with age > 1. */
     xARPCache[ ucEntryToCheck ].ucAge = 100;
     xARPCache[ ucEntryToCheck ].ucValid = pdTRUE;
     /* Set an IP address */
@@ -793,7 +793,7 @@ void test_xARPWaitResolution( void )
 
     vTaskSetTimeOutState_Stub( vStoreTimeValue );
 
-    /* Make sure that there are enough stubs for all the repititive calls. */
+    /* Make sure that there are enough stubs for all the repetitive calls. */
     for( i = 0; i < ipconfigMAX_ARP_RETRANSMISSIONS; i++ )
     {
         pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
@@ -826,7 +826,7 @@ void test_xARPWaitResolution( void )
 
     vTaskSetTimeOutState_Stub( vStoreTimeValue );
 
-    /* Make sure that there are enough stubs for all the repititive calls. */
+    /* Make sure that there are enough stubs for all the repetitive calls. */
     for( i = 0; i < ( ipconfigMAX_ARP_RETRANSMISSIONS - 1 ); i++ )
     {
         pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
@@ -864,7 +864,7 @@ void test_xARPWaitResolution( void )
 
     vTaskSetTimeOutState_Stub( vStoreTimeValue );
 
-    /* Make sure that there are enough stubs for all the repititive calls. */
+    /* Make sure that there are enough stubs for all the repetitive calls. */
     for( i = 0; i < ( ipconfigMAX_ARP_RETRANSMISSIONS - 2 ); i++ )
     {
         pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );

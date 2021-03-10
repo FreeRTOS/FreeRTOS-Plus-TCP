@@ -89,6 +89,7 @@ bwinscaling
 bytecount
 callbacklist
 calloc
+cambridge
 camen
 carriersense
 castingmacrofunctions
@@ -183,6 +184,7 @@ dzpq
 eagain
 earpcachehit
 earpcachemiss
+earpgetcacheentry
 earptimerevent
 ec
 ecantsendpacket
@@ -386,6 +388,7 @@ isdhcpsocket
 isn
 isp
 isr
+isrs
 iss
 itemvalue
 jd
@@ -426,6 +429,7 @@ lmaxlength
 lminlength
 lnetlength
 loffset
+longjmp
 loopback
 loopbackmode
 loptionname
@@ -742,6 +746,7 @@ pxdestinationaddress
 pxdnsmessageheader
 pxduplicatenetworkbufferwithdescriptor
 pxevent
+pxgetnetworkbuffer
 pxgetnetworkbufferwithdescriptor
 pxhandleconnected
 pxhandlereceive
@@ -916,6 +921,7 @@ srdbl
 srtt
 ss
 starttx
+stderr
 stmicroelectronics
 strcmp
 streambuffer
