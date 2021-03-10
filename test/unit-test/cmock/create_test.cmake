@@ -132,6 +132,7 @@ function(create_mock_list mock_name
     set_target_properties(${mock_name} PROPERTIES
                         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
                         POSITION_INDEPENDENT_CODE ON
+                        COMPILE_FLAG "-O0 -ggdb"
             )
     target_compile_definitions(${mock_name} PUBLIC
             ${mock_define_list}
@@ -151,9 +152,9 @@ function(create_real_library target
             ${real_include_list}
         )
     set_target_properties(${target} PROPERTIES
-                COMPILE_FLAGS "-Wextra -Wpedantic \
+                COMPILE_FLAGS "-O0 -Wextra -Wpedantic \
                     -fprofile-arcs -ftest-coverage -fprofile-generate \
-                    -Wno-unused-but-set-variable"
+                    -Wno-unused-but-set-variable -ggdb"
                 LINK_FLAGS "-fprofile-arcs -ftest-coverage \
                     -fprofile-generate "
                 ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib

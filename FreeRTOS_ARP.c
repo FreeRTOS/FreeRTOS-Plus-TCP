@@ -725,17 +725,16 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 
         #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
             {
-                if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
+                /* At this stage, the xDataLength is would be equal to sizeof( ARPPacket_t )
+                 * due to the call to vARPGenerateRequestPacket above. */
+                BaseType_t xIndex;
+
+                for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
                 {
-                    BaseType_t xIndex;
-
-                    for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
-                    {
-                        pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;
-                    }
-
-                    pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+                    pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;
                 }
+
+                pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
             }
         #endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
 
