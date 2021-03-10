@@ -9,7 +9,7 @@ on:
 
 jobs:
   unittest:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Clone This Repo
         uses: actions/checkout@v2
@@ -22,6 +22,7 @@ jobs:
           git submodule update --init vendor/unity
           cd ../..
           sudo apt-get install -y lcov
+          sudo apt-get install -y unifdef
           cmake -S test/unit-test -B test/unit-test/build/
           make -C test/unit-test/build/ all
       - name: Test
