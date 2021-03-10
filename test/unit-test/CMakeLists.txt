@@ -117,9 +117,6 @@ endforeach()
 # Include filepaths for source and include.
 include( ${UNIT_TEST_DIR}/TCPFilePaths.cmake )
 
-# Include respective cmake files.
-include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
-
 #  ==================================== Test Configuration ========================================
 
 # Define a CMock resource path.
@@ -155,7 +152,7 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 set(FILE_UNDER_TEST FreeRTOS_ARP)
 
 # Include unit-test build configuration
-include( unit_test_build.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 
