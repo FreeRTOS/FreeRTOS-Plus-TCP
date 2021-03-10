@@ -824,8 +824,10 @@ pvdestination
 pvoptionvalue
 pvparam
 pvparameters
+pvpointer
 pvportmalloc
 pvportmallocsocket
+pvptr
 pvsearchid
 pvsource
 pxackmessage
@@ -1443,6 +1445,7 @@ uxoffset
 uxoptionlength
 uxoptionslength
 uxprefixlength
+uxptr
 uxremainingbytes
 uxremainingtime
 uxremaningtime

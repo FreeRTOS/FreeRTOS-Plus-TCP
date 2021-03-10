@@ -1115,10 +1115,8 @@
 
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
-    #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) || ( ipconfigUSE_TCP == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
-        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t );
-        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t );
-    #endif
+    extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t );
+    extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t );
 
     #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
         void vIPSetDHCP_RATimerEnableState( struct xNetworkEndPoint * pxEndPoint,
