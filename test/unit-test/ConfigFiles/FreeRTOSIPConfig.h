@@ -309,6 +309,8 @@ extern uint32_t ulRand();
 
 #define ipconfigARP_STORES_REMOTE_ADDRESSES      ( 1 )
 
+#define ipconfigARP_USE_CLASH_DETECTION          ( 1 )
+
 #define portINLINE
 
 #endif /* FREERTOS_IP_CONFIG_H */

@@ -944,7 +944,7 @@ void FreeRTOS_ClearARP( void )
                     /* Driver is not allowed to transfer the ownership
                      * of descriptor,  so make a copy of it */
                     pxUseDescriptor =
-                        pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, pxDescriptor->xDataLength );
+                         pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, pxDescriptor->xDataLength );
                 }
 
                 if( pxUseDescriptor != NULL )
@@ -960,6 +960,10 @@ void FreeRTOS_ClearARP( void )
                         iptraceETHERNET_RX_EVENT_LOST();
                         FreeRTOS_printf( ( "prvEMACRxPoll: Can not queue return packet!\n" ) );
                     }
+                }
+                else
+                {
+                   xResult++;
                 }
             }
         }

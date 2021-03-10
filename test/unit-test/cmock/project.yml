@@ -26,7 +26,7 @@
     - FreeRTOS.h
     - FreeRTOS_IP.h
   :treat_externs: :exclude  # Now the extern-ed functions will be mocked.
-  :weak: __attribute__((weak))
+#  :weak: __attribute__((weak))
   :treat_externs: :include
   :strippables:
     - PRIVILEGED_FUNCTION
