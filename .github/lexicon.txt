@@ -182,6 +182,7 @@ dw
 dword
 dzpq
 eagain
+eapplicationprocesscustomframehook
 earpcachehit
 earpcachemiss
 earpgetcacheentry
