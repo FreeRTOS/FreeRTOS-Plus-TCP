@@ -50,11 +50,14 @@ portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t )
 const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
 
 /** @brief Structure that stores the netmask, gateway address and DNS server addresses. */
-NetworkAddressingParameters_t xNetworkAddressing = { 0xC0C0C0C0,        /* 192.192.192.192 - Default IP address. */
-                                                     0xFFFFFF00,        /* 255.255.255.0 - Netmask. */
-                                                     0xC0C0C001,        /* 192.192.192.1 - Gateway Address. */
-                                                     0x01020304,        /* 1.2.3.4 - DNS server address. */
-                                                     0xC0C0C0FF};       /* 192.192.192.255 - Broadcast address. */
+NetworkAddressingParameters_t xNetworkAddressing =
+{
+    0xC0C0C0C0, /* 192.192.192.192 - Default IP address. */
+    0xFFFFFF00, /* 255.255.255.0 - Netmask. */
+    0xC0C0C001, /* 192.192.192.1 - Gateway Address. */
+    0x01020304, /* 1.2.3.4 - DNS server address. */
+    0xC0C0C0FF
+};              /* 192.192.192.255 - Broadcast address. */
 
 size_t xPortGetMinimumEverFreeHeapSize( void )
 {
@@ -67,9 +70,9 @@ BaseType_t xApplicationDNSQueryHook( const char * pcName )
 }
 
 StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
-                                             StackType_t * pxEndOfStack,
-                                             TaskFunction_t pxCode,
-                                             void * pvParameters )
+                                     StackType_t * pxEndOfStack,
+                                     TaskFunction_t pxCode,
+                                     void * pvParameters )
 {
 }
 

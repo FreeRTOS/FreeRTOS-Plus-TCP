@@ -943,7 +943,7 @@ void FreeRTOS_ClearARP( void )
                     /* Driver is not allowed to transfer the ownership
                      * of descriptor,  so make a copy of it */
                     pxUseDescriptor =
-                         pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, pxDescriptor->xDataLength );
+                        pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, pxDescriptor->xDataLength );
                 }
 
                 if( pxUseDescriptor != NULL )

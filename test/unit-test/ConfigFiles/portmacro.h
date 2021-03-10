@@ -27,13 +27,13 @@
 
 
 #ifndef PORTMACRO_H
-#define PORTMACRO_H
+    #define PORTMACRO_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
-#include <limits.h>
+    #include <limits.h>
 
 /*-----------------------------------------------------------
  * Port specific definitions.
@@ -46,62 +46,62 @@ extern "C" {
  */
 
 /* Type definitions. */
-#define portCHAR		char
-#define portFLOAT		float
-#define portDOUBLE		double
-#define portLONG		long
-#define portSHORT		short
-#define portSTACK_TYPE	unsigned long
-#define portBASE_TYPE	long
-#define portPOINTER_SIZE_TYPE intptr_t
+    #define portCHAR                 char
+    #define portFLOAT                float
+    #define portDOUBLE               double
+    #define portLONG                 long
+    #define portSHORT                short
+    #define portSTACK_TYPE           unsigned long
+    #define portBASE_TYPE            long
+    #define portPOINTER_SIZE_TYPE    intptr_t
 
-typedef portSTACK_TYPE StackType_t;
-typedef long BaseType_t;
-typedef unsigned long UBaseType_t;
+    typedef portSTACK_TYPE   StackType_t;
+    typedef long             BaseType_t;
+    typedef unsigned long    UBaseType_t;
 
-typedef unsigned long TickType_t;
-#define portMAX_DELAY ( TickType_t ) ULONG_MAX
+    typedef unsigned long    TickType_t;
+    #define portMAX_DELAY              ( TickType_t ) ULONG_MAX
 
-#define portTICK_TYPE_IS_ATOMIC 1
+    #define portTICK_TYPE_IS_ATOMIC    1
 
 /*-----------------------------------------------------------*/
 
 /* Architecture specifics. */
-#define portSTACK_GROWTH			( -1 )
-#define portHAS_STACK_OVERFLOW_CHECKING	( 1 )
-#define portTICK_PERIOD_MS			( ( TickType_t ) 1000 / configTICK_RATE_HZ )
-#define portTICK_RATE_MICROSECONDS	( ( portTickType ) 1000000 / configTICK_RATE_HZ )
-#define portBYTE_ALIGNMENT			8
+    #define portSTACK_GROWTH                   ( -1 )
+    #define portHAS_STACK_OVERFLOW_CHECKING    ( 1 )
+    #define portTICK_PERIOD_MS                 ( ( TickType_t ) 1000 / configTICK_RATE_HZ )
+    #define portTICK_RATE_MICROSECONDS         ( ( portTickType ) 1000000 / configTICK_RATE_HZ )
+    #define portBYTE_ALIGNMENT                 8
 /*-----------------------------------------------------------*/
 
 /* Scheduler utilities. */
-#define portYIELD()
+    #define portYIELD()
 
-#define portEND_SWITCHING_ISR( xSwitchRequired )
-#define portYIELD_FROM_ISR( x )
+    #define portEND_SWITCHING_ISR( xSwitchRequired )
+    #define portYIELD_FROM_ISR( x )
 /*-----------------------------------------------------------*/
 
 /* Critical section management. */
-#define portSET_INTERRUPT_MASK()
-#define portCLEAR_INTERRUPT_MASK()
+    #define portSET_INTERRUPT_MASK()
+    #define portCLEAR_INTERRUPT_MASK()
 
-#define portSET_INTERRUPT_MASK_FROM_ISR()  0
-#define portCLEAR_INTERRUPT_MASK_FROM_ISR(x)
-#define portDISABLE_INTERRUPTS()
-#define portENABLE_INTERRUPTS()
-#define portENTER_CRITICAL()
-#define portEXIT_CRITICAL()
+    #define portSET_INTERRUPT_MASK_FROM_ISR()    0
+    #define portCLEAR_INTERRUPT_MASK_FROM_ISR( x )
+    #define portDISABLE_INTERRUPTS()
+    #define portENABLE_INTERRUPTS()
+    #define portENTER_CRITICAL()
+    #define portEXIT_CRITICAL()
 
-#define portRECORD_READY_PRIORITY(a,b) (b) |= (1UL<<a)
-#define portRESET_READY_PRIORITY(a,b) (b) &= ~(1UL<<a)
+    #define portRECORD_READY_PRIORITY( a, b )    ( b ) |= ( 1UL << a )
+    #define portRESET_READY_PRIORITY( a, b )     ( b ) &= ~( 1UL << a )
 /*-----------------------------------------------------------*/
 
-#define portPRE_TASK_DELETE_HOOK( pvTaskToDelete, pxPendYield )
-#define portCLEAN_UP_TCB( pxTCB )
+    #define portPRE_TASK_DELETE_HOOK( pvTaskToDelete, pxPendYield )
+    #define portCLEAN_UP_TCB( pxTCB )
 /*-----------------------------------------------------------*/
 
-#define portTASK_FUNCTION_PROTO( vFunction, pvParameters ) void vFunction( void *pvParameters )
-#define portTASK_FUNCTION( vFunction, pvParameters ) void vFunction( void *pvParameters )
+    #define portTASK_FUNCTION_PROTO( vFunction, pvParameters )    void vFunction( void * pvParameters )
+    #define portTASK_FUNCTION( vFunction, pvParameters )          void vFunction( void * pvParameters )
 /*-----------------------------------------------------------*/
 
 /*
@@ -112,12 +112,12 @@ typedef unsigned long TickType_t;
  * Thus, only a compiler barrier is needed to prevent the compiler
  * reordering.
  */
-#define portMEMORY_BARRIER() __asm volatile( "" ::: "memory" )
+    #define portMEMORY_BARRIER()                __asm volatile ( "" ::: "memory" )
 
-#define portGET_HIGHEST_PRIORITY(a,b)    10
+    #define portGET_HIGHEST_PRIORITY( a, b )    10
 
-#ifdef __cplusplus
-}
-#endif
+    #ifdef __cplusplus
+        }
+    #endif
 
 #endif /* PORTMACRO_H */

@@ -74,7 +74,7 @@ jobs:
       - name: Run Uncrustify
         run: |
           uncrustify --version
-          find . -iname "*.[hc]" -exec uncrustify --check -c tools/uncrustify.cfg {} +
+          find . -not -path '.*catch_assert.h' -iname "*.[hc]" -exec uncrustify --check -c tools/uncrustify.cfg {} +
       - name: Check For Trailing Whitespace
         run: |
           set +e
