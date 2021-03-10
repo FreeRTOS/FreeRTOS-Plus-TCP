@@ -449,6 +449,7 @@ lc
 lca
 lco
 lcount
+lcurmss
 ld
 ldatalen
 ldatalength
@@ -704,7 +705,6 @@ ppucrecvdata
 ppxaddressinfo
 ppxendpoint
 ppxinterface
-ppxinterfacelcurmss
 ppxnetworkbuffer
 ppxresult
 pr
