@@ -9,7 +9,7 @@ on:
 
 jobs:
   unittest:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - name: Clone This Repo
         uses: actions/checkout@v2
