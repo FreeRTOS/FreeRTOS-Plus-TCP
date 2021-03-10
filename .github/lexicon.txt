@@ -778,6 +778,7 @@ ptxpkt
 ptz
 pucaddress
 pucanswer
+pucbase
 pucbuffer
 pucbyte
 pucbytes
@@ -834,6 +835,7 @@ pxaddresstolookup
 pxallnetworkinterfaces
 pxanswer
 pxarpframe
+pxbase
 pxbindaddress
 pxbuffer
 pxbufferdescriptor
@@ -904,6 +906,7 @@ pxsockettodelete
 pxsourceaddress
 pxsourceaddresslength
 pxsourceendpoint
+pxtargetendpoint
 pxtcpheader
 pxtcppacket
 pxtcpsocketlookup
@@ -1161,6 +1164,7 @@ ucnamespace
 ucnamezero
 ucnbnsname
 ucnetmask
+ucnew
 ucnextheader
 ucnumipaddresses
 ucoctet
@@ -1295,6 +1299,7 @@ ulsize
 ulsourceaddress
 ulsourceipaddress
 ulspace
+ulsrtt
 ulstatus
 ulsum
 ultargetprotocoladdress
@@ -1391,6 +1396,7 @@ utf
 uuid
 uxaddresslength
 uxblocktimeticks
+uxbuffer
 uxbufferlength
 uxbytecount
 uxclockticks
@@ -1470,6 +1476,8 @@ varpagecache
 varpgeneraterequestpacket
 varprefreshcacheentry
 varpsendgratuitous
+vcastconstpointerto
+vcastconstptrto
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
@@ -1544,6 +1552,7 @@ xboundsocketlistitem
 xboundtcpsocketslist
 xboundudpsocketslist
 xbroadcastmacaddress
+xbufferallocfixedsize
 xbufferlength
 xbufferlistitem
 xbytecount
@@ -1592,6 +1601,7 @@ xeventgroupwaitbits
 xexpected
 xexpectedmessagetype
 xfamily
+xfield
 xflags
 xfound
 xfreebufferslist

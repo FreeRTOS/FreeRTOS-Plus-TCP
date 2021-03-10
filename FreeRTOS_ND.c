@@ -66,7 +66,7 @@
     #define ndECHO_DATA_FILL_BYTE                         'x'
 
 /** @brief When ucAge becomes 3 or less, it is time for a new
- * neighbour sollicitation.
+ * neighbour solicitation.
  */
     #define ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION    ( 3U )
 

@@ -171,7 +171,7 @@ eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * pxNetwor
 
                 /* The packet contained an ARP request.  Was it for the IP
                  * address of one of the end-points? */
-                /* It has been confrirmed that pxTargetEndPoint is not NULL. */
+                /* It has been confirmed that pxTargetEndPoint is not NULL. */
                 iptraceSENDING_ARP_REPLY( ulSenderProtocolAddress );
 
                 /* The request is for the address of this node.  Add the

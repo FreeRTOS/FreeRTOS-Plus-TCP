@@ -591,7 +591,7 @@
 
 /** @brief The macros vSetField16() and vSetField32() will write either a short or a 32-bit
  * value into an array of bytes. They will be stored big-endian.
- * The helper functions do the ectual work..
+ * The helper functions do the actual work..
  */
     extern void vSetField16helper( uint8_t * pucBase,
                                    size_t uxOffset,
@@ -604,16 +604,6 @@
                                    uint32_t ulValue );
     #define vSetField32( pucBase, xType, xField, ulValue ) \
     vSetField32helper( pucBase, offsetof( xType, xField ), ulValue )
-
-/*
- #define vSetField32( pxBase, xType, xField, ulValue )                                                              \
- *  {																												   \
- *      ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 0 ] = ( uint8_t ) ( ( ulValue ) >> 24 );			   \
- *      ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 1 ] = ( uint8_t ) ( ( ( ulValue ) >> 16 ) & 0xffU ); \
- *      ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 2 ] = ( uint8_t ) ( ( ( ulValue ) >> 8 ) & 0xffU );  \
- *      ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 3 ] = ( uint8_t ) ( ( ulValue ) & 0xffU );		   \
- *  }
- */
 
     #define vFlip_16( left, right ) \
     do {                            \

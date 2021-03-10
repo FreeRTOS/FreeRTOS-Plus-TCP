@@ -843,7 +843,7 @@
         /* This function needs at least a network buffer or a socket. */
         configASSERT( ( pxNetworkBuffer != NULL ) || ( pxSocket != NULL ) );
 
-        /* The test for pxSocket not being NULL is only addedto convince MISRA checkers. */
+        /* The test for pxSocket not being NULL is only added here to convince MISRA checkers. */
         if( ( pxNetworkBuffer == NULL ) && ( pxSocket != NULL ) )
         {
             ( void ) memset( &xTempBuffer, 0, sizeof( xTempBuffer ) );

@@ -3020,7 +3020,7 @@ uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
                 }
                 else
                 {
-                    /* ucNew is only valie between 0 and 15. */
+                    /* ucNew is only valid between 0 and 15. */
                     ucNew = ( uint8_t ) 255;
                 }
 
@@ -5191,7 +5191,7 @@ portINLINE BaseType_t xSocketValid( Socket_t xSocket )
         else
         {
             /* Casting a "MiniListItem_t" to a "ListItem_t".
-             * This is safe because only the address is boing used. */
+             * This is safe because only its address is being accessed, not its fields. */
             const ListItem_t * pxEndTCP = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( xBoundTCPSocketsList.xListEnd ) );
             const ListItem_t * pxEndUDP = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( xBoundUDPSocketsList.xListEnd ) );
 

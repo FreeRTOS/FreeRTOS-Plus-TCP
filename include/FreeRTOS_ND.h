@@ -150,7 +150,7 @@
  * @param[in] uxNumberOfBytesToSend: The number of bytes to be echoed.
  * @param[in] uxBlockTimeTicks: The number of clock-tick to wait
  *            for space in the IP-task queue.
- * @return pdRTUE when a packets was successfully created
+ * @return pdTRUE when a packets was successfully created
  *         and passed to the IP-task.
  */
                 BaseType_t FreeRTOS_SendPingRequestIPv6( IPv6_Address_t * pxIPAddress,

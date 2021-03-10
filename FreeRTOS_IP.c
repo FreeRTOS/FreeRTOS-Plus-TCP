@@ -3084,7 +3084,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  * @param[in] pucEthernetBuffer: The Ethernet buffer for which the checksum is to be calculated
  *                               or checked.  'pucEthernetBuffer' is now non-const because the
  *                               function will set the checksum fields, in case 'xOutgoingPacket'
- *                               is pdRTUE.
+ *                               is pdTRUE.
  * @param[in] uxBufferLength: the total number of bytes received, or the number of bytes written
  *                            in the packet buffer.
  * @param[in] xOutgoingPacket: Whether this is an outgoing packet or not.
