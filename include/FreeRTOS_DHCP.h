@@ -34,6 +34,8 @@
     #include "FreeRTOSIPConfig.h"
     #include "IPTraceMacroDefaults.h"
 
+    #include "FreeRTOS_Sockets.h"
+
     #if ( ipconfigUSE_DHCP_HOOK != 0 )
         /* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
         typedef enum eDHCP_PHASE
