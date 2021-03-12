@@ -3501,10 +3501,10 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
  *          ulSum: This argument provides a value to initialise the progressive summation
  *          of the header's values to. It is often 0, but protocols like TCP or UDP
  *          can have pseudo-header fields which need to be included in the checksum.
- *       
+ *
  *          pucNextData: This argument contains the address of the first byte which this
  *          method should process. The method's memory iterator is initialised to this value.
- *       
+ *
  *          uxDataLengthBytes: This argument contains the number of bytes that this method
  *          should process.
  * @param[in] usSum: The initial sum, obtained from earlier data.

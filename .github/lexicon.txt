@@ -1460,6 +1460,7 @@ uxtotaldatalength
 uxtotallength
 uxtxstreamsize
 uxtxwinsize
+uxunrollcount
 uxupper
 uxwinsize
 val
