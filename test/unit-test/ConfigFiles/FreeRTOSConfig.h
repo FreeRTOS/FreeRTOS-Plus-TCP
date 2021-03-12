@@ -29,7 +29,6 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
-/*#include "unity.h" */
 #include <assert.h>
 
 /*-----------------------------------------------------------
@@ -119,8 +118,6 @@ void vConfigureTimerForRunTimeStats( void );    /* Prototype of function that in
 extern void vAssertCalled( unsigned long ulLine,
                            const char * const pcFileName );
 #define configASSERT( x )    assert( x )
-/*TEST_ASSERT( x ) */
-/*if( x == 0 ) { TEST_FAIL() } */
 
 #define configINCLUDE_MESSAGE_BUFFER_AMP_DEMO    0
 #if ( configINCLUDE_MESSAGE_BUFFER_AMP_DEMO == 1 )

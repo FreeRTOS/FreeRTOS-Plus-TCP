@@ -1,5 +1,3 @@
-# gcc -E -fpreprocessed -I include/ -I test/FreeRTOS-Kernel/include/ -I test/unit-test/ConfigFiles/ -fdirectives-only include/FreeRTOS_IP.h -o tmp.c
-
 # Set the required version.
 cmake_minimum_required( VERSION 3.13.0 )
 
