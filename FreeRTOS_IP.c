@@ -3519,25 +3519,25 @@ uint16_t usGenerateChecksum( uint16_t usSum,
          */
         pusPointer = ( const uint16_t * ) uxBufferAddress;
 
-		/* Sum 'uxUnrollCount' shorts in each loop. */
+        /* Sum 'uxUnrollCount' shorts in each loop. */
         while( uxBytesLeft >= ( sizeof( *pusPointer ) * uxUnrollCount ) )
         {
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
-			ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
 
             uxBytesLeft -= sizeof( *pusPointer ) * uxUnrollCount;
         }
@@ -3545,14 +3545,14 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         /* Between 0 and 7 shorts might be left. */
         while( uxBytesLeft >= sizeof( *pusPointer ) )
         {
-			ulAccum += *( pusPointer++ );
+            ulAccum += *( pusPointer++ );
             uxBytesLeft -= sizeof( *pusPointer );
         }
 
         /* A single byte may be left. */
         if( uxBytesLeft == 1U )
         {
-			usTerm |= ( *pusPointer ) & FreeRTOS_htons( ( ( uint16_t ) 0xFF00U ) );
+            usTerm |= ( *pusPointer ) & FreeRTOS_htons( ( ( uint16_t ) 0xFF00U ) );
         }
 
         ulAccum += usTerm;
