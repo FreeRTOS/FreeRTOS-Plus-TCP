@@ -206,37 +206,6 @@ static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint );
 
 /*-----------------------------------------------------------*/
 
-/**
- * Used in checksum calculation.
- */
-typedef union _xUnion32
-{
-    uint32_t u32;      /**< The 32-bit member of the union. */
-    uint16_t u16[ 2 ]; /**< The array of 2 16-bit members of the union. */
-    uint8_t u8[ 4 ];   /**< The array of 4 8-bit members of the union. */
-} xUnion32;
-
-/**
- * Used in checksum calculation.
- */
-typedef union _xUnionPtr
-{
-    const uint32_t * u32ptr; /**< The pointer member to a 32-bit variable. */
-    const uint16_t * u16ptr; /**< The pointer member to a 16-bit variable. */
-    const uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
-} xUnionPtr;
-
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type NetworkBufferDescriptor_t.
- *
- * @return The casted pointer.
- */
-static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
-{
-    return ( NetworkBufferDescriptor_t * ) pvArgument;
-}
-
 /*-----------------------------------------------------------*/
 
 /*
@@ -3550,42 +3519,40 @@ uint16_t usGenerateChecksum( uint16_t usSum,
          */
         pusPointer = ( const uint16_t * ) uxBufferAddress;
 
-        /* Sum 'uxUnrollCount' shorts in each loop. */
+		/* Sum 'uxUnrollCount' shorts in each loop. */
         while( uxBytesLeft >= ( sizeof( *pusPointer ) * uxUnrollCount ) )
         {
-            ulAccum += pusPointer[ 0 ];
-            ulAccum += pusPointer[ 1 ];
-            ulAccum += pusPointer[ 2 ];
-            ulAccum += pusPointer[ 3 ];
-            ulAccum += pusPointer[ 4 ];
-            ulAccum += pusPointer[ 5 ];
-            ulAccum += pusPointer[ 6 ];
-            ulAccum += pusPointer[ 7 ];
-            ulAccum += pusPointer[ 8 ];
-            ulAccum += pusPointer[ 9 ];
-            ulAccum += pusPointer[ 10 ];
-            ulAccum += pusPointer[ 11 ];
-            ulAccum += pusPointer[ 12 ];
-            ulAccum += pusPointer[ 13 ];
-            ulAccum += pusPointer[ 14 ];
-            ulAccum += pusPointer[ 15 ];
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
+			ulAccum += *( pusPointer++ );
 
             uxBytesLeft -= sizeof( *pusPointer ) * uxUnrollCount;
-            pusPointer = &( pusPointer[ uxUnrollCount ] );
         }
 
         /* Between 0 and 7 shorts might be left. */
         while( uxBytesLeft >= sizeof( *pusPointer ) )
         {
-            ulAccum += *pusPointer;
+			ulAccum += *( pusPointer++ );
             uxBytesLeft -= sizeof( *pusPointer );
-            pusPointer = &( pusPointer[ 1 ] );
         }
 
         /* A single byte may be left. */
         if( uxBytesLeft == 1U )
         {
-            usTerm |= ( pusPointer[ 0 ] ) & FreeRTOS_htons( ( ( uint16_t ) 0xFF00U ) );
+			usTerm |= ( *pusPointer ) & FreeRTOS_htons( ( ( uint16_t ) 0xFF00U ) );
         }
 
         ulAccum += usTerm;
