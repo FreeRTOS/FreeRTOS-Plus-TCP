@@ -17,6 +17,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
+            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/FreeRTOS_DHCP_mock.h"
         )
 # list the directories your mocks need
 list(APPEND mock_include_list
@@ -53,6 +54,7 @@ list(APPEND test_include_directories
             .
             ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
         )
 
 # =============================  (end edit)  ===================================

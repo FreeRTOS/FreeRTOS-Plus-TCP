@@ -59,6 +59,16 @@ NetworkAddressingParameters_t xNetworkAddressing =
     0xC0C0C0FF
 };              /* 192.192.192.255 - Broadcast address. */
 
+/** @brief Structure that stores the netmask, gateway address and DNS server addresses. */
+NetworkAddressingParameters_t xDefaultAddressing =
+{
+    0xC0C0C0C0, /* 192.192.192.192 - Default IP address. */
+    0xFFFFFF00, /* 255.255.255.0 - Netmask. */
+    0xC0C0C001, /* 192.192.192.1 - Gateway Address. */
+    0x01020304, /* 1.2.3.4 - DNS server address. */
+    0xC0C0C0FF
+};
+
 size_t xPortGetMinimumEverFreeHeapSize( void )
 {
     return 0;
@@ -76,9 +86,6 @@ StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
 {
 }
 
-const char * pcApplicationHostnameHook( void )
-{
-}
 uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
                                              uint16_t usSourcePort,
                                              uint32_t ulDestinationAddress,
