@@ -154,7 +154,7 @@ function(create_real_library target
     set_target_properties(${target} PROPERTIES
                 COMPILE_FLAGS "-O0 -Wextra -Wpedantic \
                     -fprofile-arcs -ftest-coverage -fprofile-generate \
-                    -Wno-unused-but-set-variable -ggdb"
+                    -Wno-unused-but-set-variable"
                 LINK_FLAGS "-fprofile-arcs -ftest-coverage \
                     -fprofile-generate "
                 ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
