@@ -91,10 +91,11 @@ foreach( file ${TCP_INCLUDES} )
 
     # Use this tool to process all conditional declarations.
     execute_process( COMMAND unifdefall -U${Guard} -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
-                                                    -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
-                                                    -I ${UNIT_TEST_DIR}/ConfigFiles
-                                                    -I ${MODULE_ROOT_DIR}/include
-                                                    ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
+                                                   -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
+                                                   -I ${UNIT_TEST_DIR}/ConfigFiles
+                                                   -I ${MODULE_ROOT_DIR}/include
+                                                   -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
+                                                   ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                      OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h
                      OUTPUT_QUIET )

@@ -57,6 +57,11 @@ execute_process(
                          --output-file ${CMAKE_BINARY_DIR}/second_coverage.info
         )
 
+# Remove existing coverage file.
+execute_process(
+            COMMAND rm -f ${CMAKE_BINARY_DIR}/coverage.info
+        )
+
 # combile baseline results (zeros) with the one after running the tests
 execute_process(
             COMMAND lcov --base-directory ${CMAKE_BINARY_DIR}

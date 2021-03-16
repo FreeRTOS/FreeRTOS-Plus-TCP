@@ -18,29 +18,7 @@
 
 #include "FreeRTOSIPConfig.h"
 
-#define ARPCacheEntryToCheck    2
-
-#if ARPCacheEntryToCheck >= ipconfigARP_CACHE_ENTRIES
-    #error "ARPCacheEntryToCheck cannot be greater than ipconfigARP_CACHE_ENTRIES"
-#endif
-
 extern ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
-
-void FillARPCache( void )
-{
-    int i, j;
-
-    for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
-    {
-        for( j = 0; j < ipMAC_ADDRESS_LENGTH_BYTES; j++ )
-        {
-            xARPCache[ i ].xMACAddress.ucBytes[ j ] = i * 10 + j;
-        }
-
-        xARPCache[ i ].ulIPAddress = i;
-    }
-}
-
 
 void test_xCheckLoopback( void )
 {
