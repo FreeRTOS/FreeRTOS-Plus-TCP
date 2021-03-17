@@ -311,6 +311,8 @@ extern uint32_t ulRand();
 
 #define ipconfigARP_USE_CLASH_DETECTION          ( 1 )
 
+#define ipconfigDHCP_FALL_BACK_AUTO_IP           ( 1 )
+
 #define portINLINE
 
 #endif /* FREERTOS_IP_CONFIG_H */

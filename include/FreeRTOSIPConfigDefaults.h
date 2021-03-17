@@ -396,6 +396,7 @@
 #endif
 
 #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
+    #undef ipconfigARP_USE_CLASH_DETECTION
     #define ipconfigARP_USE_CLASH_DETECTION    1
 #endif
 

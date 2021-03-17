@@ -35,6 +35,20 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
     }
 };
 
+
+/*
+ * IP-clash detection is currently only used internally. When DHCP doesn't respond, the
+ * driver can try out a random LinkLayer IP address (169.254.x.x).  It will send out a
+ * gratuitous ARP message and, after a period of time, check the variables here below:
+ */
+#if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
+    /* Becomes non-zero if another device responded to a gratuitous ARP message. */
+    BaseType_t xARPHadIPClash;
+    /* MAC-address of the other device containing the same IP-address. */
+    MACAddress_t xARPClashMacAddress;
+#endif /* ipconfigARP_USE_CLASH_DETECTION */
+
+
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
 {
     return ( ARPPacket_t * ) pvArgument;
