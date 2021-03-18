@@ -33,7 +33,7 @@
 
 #include "esp_log.h"
 #include "esp_wifi.h"
-#include "esp_wifi_internal.h"
+#include "esp_private/wifi.h"
 #include "tcpip_adapter.h"
 
 enum if_state_t
