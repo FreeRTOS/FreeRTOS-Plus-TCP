@@ -191,6 +191,21 @@ static void prvIPTask( void * pvParameters );
  */
 static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
+#if ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0 )
+
+/*
+ * The stack will call this user hook for all Ethernet frames that it
+ * does not support, i.e. other than IPv4, IPv6 and ARP ( for the moment )
+ * If this hook returns eReleaseBuffer or eProcessBuffer, the stack will
+ * release and reuse the network buffer.  If this hook returns
+ * eReturnEthernetFrame, that means user code has reused the network buffer
+ * to generate a response and the stack will send that response out.
+ * If this hook returns eFrameConsumed, the user code has ownership of the
+ * network buffer and has to release it when it’s done.
+ */
+    extern eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+#endif /* ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0 ) */
+
 /*
  * Process incoming IP packets.
  */
@@ -1727,8 +1742,13 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     break;
 
                 default:
-                    /* No other packet types are handled.  Nothing to do. */
-                    eReturned = eReleaseBuffer;
+                    #if ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0 )
+                        /* Custom frame handler. */
+                        eReturned = eApplicationProcessCustomFrameHook( pxNetworkBuffer );
+                    #else
+                        /* No other packet types are handled.  Nothing to do. */
+                        eReturned = eReleaseBuffer;
+                    #endif
                     break;
             }
         }
@@ -1890,9 +1910,15 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
              * define, so that the checksum won't be checked again here */
             if( eReturn == eProcessBuffer )
             {
-                /* Is the IP header checksum correct? */
-                if( ( pxIPHeader->ucProtocol != ( uint8_t ) ipPROTOCOL_ICMP ) &&
-                    ( usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength ) != ipCORRECT_CRC ) )
+                /* Is the IP header checksum correct?
+                 *
+                 * NOTE: When the checksum of IP header is calculated while not omitting
+                 * the checksum field, the resulting value of the checksum always is 0xffff
+                 * which is denoted by ipCORRECT_CRC. See this wiki for more information:
+                 * https://en.wikipedia.org/wiki/IPv4_header_checksum#Verifying_the_IPv4_header_checksum
+                 * and this RFC: https://tools.ietf.org/html/rfc1624#page-4
+                 */
+                if( usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength ) != ipCORRECT_CRC )
                 {
                     /* Check sum in IP-header not correct. */
                     eReturn = eReleaseBuffer;
@@ -3392,7 +3418,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
 
         default:
             /* Using function "snprintf". */
-            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int32_t ) xErrnum );
+            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int ) xErrnum );
             pcName = NULL;
             break;
     }

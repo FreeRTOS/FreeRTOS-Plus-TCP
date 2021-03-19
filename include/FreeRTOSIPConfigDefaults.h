@@ -633,4 +633,12 @@
     #define ipconfigSELECT_USES_NOTIFY    0
 #endif
 
+/* Set to 1 if you plan on processing custom Ethernet protocols or protocols
+ * that are not yet supported by the FreeRTOS+TCP stack. If set to 1,
+ * the user must define eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+ * which will be called by the stack for any frame with an unsupported EtherType. */
+#ifndef ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES
+    #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES    0
+#endif
+
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */
