@@ -848,10 +848,14 @@
 
                             case dhcpIPv4_DNS_SERVER_OPTIONS_CODE:
 
+                                /* The DHCP server may send more than 1 DNS server addresses. */
+                                if( uxLength >= sizeof( uint32_t ) )
+                                {
                                 /* ulProcessed is not incremented in this case
                                  * because the DNS server is not essential.  Only the
                                  * first DNS server address is taken. */
                                 EP_IPv4_SETTINGS.ulDNSServerAddress = ulParameter;
+                                }
                                 break;
 
                             case dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE:
