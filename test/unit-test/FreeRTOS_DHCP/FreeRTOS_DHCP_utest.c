@@ -3486,3 +3486,196 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectLengthofpacket(void)
     /* Should still be stuck in waiting for ack state. */
     TEST_ASSERT_EQUAL( eWaitingAcknowledge,xDHCPData.eDHCPState);
 }
+
+void test_vDHCPProcess_eGetLinkLayerAddress_Timeout_NoARPIPClash(void)
+{
+    struct xSOCKET xTestSocket;
+    TickType_t xTimeValue = 1234;
+    
+    EP_DHCPData.xDHCPTxTime = 100;
+    EP_DHCPData.xDHCPTxPeriod = 100;
+    /* Put the required state. */
+    xDHCPData.eDHCPState = eGetLinkLayerAddress;
+    
+    xARPHadIPClash = pdFALSE;
+    
+    xTaskGetTickCount_ExpectAndReturn(EP_DHCPData.xDHCPTxPeriod+EP_DHCPData.xDHCPTxTime + 100);
+    
+    vIPNetworkUpCalls_Expect();
+
+    vDHCPProcess( pdFALSE, eGetLinkLayerAddress );
+    
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress,EP_DHCPData.eDHCPState );
+} 
+
+void test_vDHCPProcess_eGetLinkLayerAddress_Timeout_ARPIPClash(void)
+{
+    struct xSOCKET xTestSocket;
+    TickType_t xTimeValue = 1234;
+    
+    EP_DHCPData.xDHCPTxTime = 100;
+    EP_DHCPData.xDHCPTxPeriod = 100;
+    /* Put the required state. */
+    xDHCPData.eDHCPState = eGetLinkLayerAddress;
+    /* This should be nullified. */
+    xDHCPSocket = &xTestSocket;
+    
+    xARPHadIPClash = pdTRUE;
+    
+    xTaskGetTickCount_ExpectAndReturn(EP_DHCPData.xDHCPTxPeriod+EP_DHCPData.xDHCPTxTime + 100);
+    xTaskGetTickCount_ExpectAndReturn( xTimeValue );
+    xApplicationGetRandomNumber_IgnoreAndReturn(pdTRUE);
+    /* Then expect the socket to be closed. */
+    vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+    vARPSendGratuitous_Expect();
+
+    vDHCPProcess( pdFALSE, eGetLinkLayerAddress );
+    
+    TEST_ASSERT_EQUAL( eGetLinkLayerAddress,EP_DHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( NULL,xDHCPSocket);
+}
+
+void test_vDHCPProcess_eGetLinkLayerAddress_NoTimeout(void)
+{
+    EP_DHCPData.xDHCPTxTime = 100;
+    EP_DHCPData.xDHCPTxPeriod = 100;
+    /* Put the required state. */
+    xDHCPData.eDHCPState = eGetLinkLayerAddress;
+    
+    xARPHadIPClash = pdTRUE;
+    
+    /* Make it so that there is no timeout. */
+    xTaskGetTickCount_ExpectAndReturn(EP_DHCPData.xDHCPTxPeriod+EP_DHCPData.xDHCPTxTime);
+
+    vDHCPProcess( pdFALSE, eGetLinkLayerAddress );
+    
+    TEST_ASSERT_EQUAL( eGetLinkLayerAddress,EP_DHCPData.eDHCPState );
+}
+
+
+void test_vDHCPProcess_eLeasedAddress_NetworkDown(void)
+{
+    /* Put the required state. */
+    xDHCPData.eDHCPState = eLeasedAddress;
+    
+    /* The netwrok is not up. */
+    FreeRTOS_IsNetworkUp_ExpectAndReturn(0);
+    /* Expect the DHCP timer to be reloaded. */
+    vIPReloadDHCPTimer_Expect(pdMS_TO_TICKS( 5000U ));
+
+    vDHCPProcess( pdFALSE, eLeasedAddress );
+
+    /* Still in this phase. */    
+    TEST_ASSERT_EQUAL( eLeasedAddress,EP_DHCPData.eDHCPState );
+}
+
+void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGPass_GNBfail(void)
+{
+    struct xSOCKET xTestSocket;
+    
+    /* Socket is already created. */
+    xDHCPSocket = &xTestSocket;
+    
+    /* Put the required state. */
+    xDHCPData.eDHCPState = eLeasedAddress;
+    
+    /* The network is up. */
+    FreeRTOS_IsNetworkUp_ExpectAndReturn(1);
+
+    xApplicationGetRandomNumber_IgnoreAndReturn(pdTRUE);
+    xTaskGetTickCount_ExpectAndReturn( 300 );
+    /* Return the hostname. */
+    pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
+    /* Returning NULL will mean the prvSendDHCPDiscover fail. */
+    pxGetNetworkBufferWithDescriptor_IgnoreAndReturn(NULL);
+    
+    /* Expect the timer to be set. */
+    vIPReloadDHCPTimer_Expect( dhcpINITIAL_TIMER_PERIOD );
+
+    vDHCPProcess( pdFALSE, eLeasedAddress );
+
+    /* Need to send DHCP request. */    
+    TEST_ASSERT_EQUAL( eSendDHCPRequest,EP_DHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( 300,EP_DHCPData.xDHCPTxTime  );
+    TEST_ASSERT_EQUAL( dhcpINITIAL_DHCP_TX_PERIOD,EP_DHCPData.xDHCPTxPeriod);
+}
+
+void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGFail(void)
+{
+    struct xSOCKET xTestSocket;
+    
+    /* Socket is already created. */
+    xDHCPSocket = &xTestSocket;
+    
+    /* Put the required state. */
+    xDHCPData.eDHCPState = eLeasedAddress;
+    
+    /* The network is up. */
+    FreeRTOS_IsNetworkUp_ExpectAndReturn(1);
+
+    /* Make RNG fail. */
+    xApplicationGetRandomNumber_IgnoreAndReturn(pdFALSE);
+    xTaskGetTickCount_ExpectAndReturn( 300 );
+    /* Return the hostname. */
+    pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
+    /* Returning a proper network buffer. */
+    pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
+    /* Make the call to FreeRTOS_send succeed. */
+    FreeRTOS_sendto_IgnoreAndReturn( 1 );
+    
+    /* Expect the timer to be set. */
+    vIPReloadDHCPTimer_Expect( dhcpINITIAL_TIMER_PERIOD );
+
+    vDHCPProcess( pdFALSE, eLeasedAddress );
+
+    /* Sent DHCP request - waiting ACK. */    
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge,EP_DHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( 300,EP_DHCPData.xDHCPTxTime  );
+    TEST_ASSERT_EQUAL( dhcpINITIAL_DHCP_TX_PERIOD,EP_DHCPData.xDHCPTxPeriod);
+}
+
+void test_vDHCPProcess_eLeasedAddress_NetworkUp_SocketNotCreated_RNGPass_GNBfail(void)
+{
+    /* Socket not created. */
+    xDHCPSocket = NULL;
+    
+    /* Put the required state. */
+    xDHCPData.eDHCPState = eLeasedAddress;
+    
+    /* The network is up. */
+    FreeRTOS_IsNetworkUp_ExpectAndReturn(1);
+
+    /* Return invalid socket. */
+    FreeRTOS_socket_IgnoreAndReturn(FREERTOS_INVALID_SOCKET);
+    
+    vDHCPProcess( pdFALSE, eLeasedAddress );
+
+    /* Still here. */    
+    TEST_ASSERT_EQUAL( eLeasedAddress,EP_DHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+}
+
+void test_vDHCPProcess_eNotUsingLeasedAddress(void)
+{
+    /* Put the required state. */
+    xDHCPData.eDHCPState = eNotUsingLeasedAddress;
+    
+    /* Expect the timer to be disabled. */
+    vIPSetDHCPTimerEnableState_Expect( pdFALSE );
+    
+    vDHCPProcess( pdFALSE, eNotUsingLeasedAddress );
+    
+    /* Continue not using DHCP. */
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress,EP_DHCPData.eDHCPState );
+}
+
+void test_vDHCPProcess_IncorrectState(void)
+{
+   /* Put a non-existent state. */
+    xDHCPData.eDHCPState = (eNotUsingLeasedAddress<<1);
+    
+    vDHCPProcess( pdFALSE, (eNotUsingLeasedAddress<<1 ));
+    
+    /* Continue not using DHCP. */
+    TEST_ASSERT_EQUAL( (eNotUsingLeasedAddress<<1),EP_DHCPData.eDHCPState );
+}
