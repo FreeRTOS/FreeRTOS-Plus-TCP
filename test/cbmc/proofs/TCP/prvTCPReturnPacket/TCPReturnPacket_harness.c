@@ -65,8 +65,8 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * pxDescriptor,
 {
     BaseType_t xReturn;
 
-    __CPROVER_assert( pxDescriptor, "The descriptor cannot be NULL" );
-    __CPROVER_assert( pxDescriptor->pucEthernetBuffer, "The ethernet buffer cannot be NULL" );
+    __CPROVER_assert( pxDescriptor != NULL , "The descriptor cannot be NULL" );
+    __CPROVER_assert( pxDescriptor->pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL" );
 
     return xReturn;
 }
