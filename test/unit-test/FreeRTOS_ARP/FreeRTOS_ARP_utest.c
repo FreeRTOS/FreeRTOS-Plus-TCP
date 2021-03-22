@@ -87,7 +87,6 @@ void test_xCheckLoopback_HappyCase( void )
     xResult = xCheckLoopback( pxNetworkBuffer, pdFALSE );
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
     /* =================================================== */
-
 }
 
 void test_xCheckLoopback_DuplicationFails( void )
@@ -189,7 +188,7 @@ void test_eARPProcessPacket_Request_SenderAndTargetDifferent( void )
 {
     ARPPacket_t xARPFrame;
     eFrameProcessingResult_t eResult;
-    
+
     /* =================================================== */
     /* Process an ARP request - meant for this node with target and source different. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
@@ -208,7 +207,7 @@ void test_eARPProcessPacket_Request_SenderAndTargetSame( void )
 {
     ARPPacket_t xARPFrame;
     eFrameProcessingResult_t eResult;
-    
+
     /* =================================================== */
     /* Process an ARP request - meant for this node with target and source same. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
@@ -248,7 +247,7 @@ void test_eARPProcessPacket_Reply_DifferentIP( void )
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
     /* Fill in the request option. */
     xARPFrame.xARPHeader.usOperation = ipARP_REPLY;
-    xARPFrame.xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER+0x11;
+    xARPFrame.xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 0x11;
     memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress, &( xARPFrame.xARPHeader.ulTargetProtocolAddress ), sizeof( xARPFrame.xARPHeader.ulTargetProtocolAddress ) );
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -494,7 +493,6 @@ void test_vARPRefreshCacheEntry_IPAndMACInDifferentLocations( void )
     memset( MemoryCompare, 0, sizeof( ARPCacheRow_t ) );
     TEST_ASSERT_EQUAL_MEMORY( MemoryCompare, &xARPCache[ xUseEntry ], sizeof( ARPCacheRow_t ) );
     /* =================================================== */
-
 }
 
 void test_eARPGetCacheEntryByMac_NoMatchingEntries( void )
@@ -620,7 +618,7 @@ void test_eARPGetCacheEntry_MatchingInvalidEntry( void )
     MACAddress_t xMACAddress;
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
- 
+
     /* =================================================== */
     ulIPAddress = 0x4321;
     /* Make both values (IP address and local IP pointer) different. */
@@ -671,6 +669,7 @@ void test_eARPGetCacheEntry_GatewayAddressZero( void )
     {
         xARPCache[ i ].ucValid = ( uint8_t ) pdFALSE;
     }
+
     ulSavedGatewayAddress = xNetworkAddressing.ulGatewayAddress;
     xNetworkAddressing.ulGatewayAddress = 0;
     ulIPAddress = 0x4321;
