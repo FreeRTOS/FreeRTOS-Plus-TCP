@@ -1871,10 +1871,11 @@
                         usLength = ( uint16_t ) ( sizeof( NBNSAnswer_t ) + ( size_t ) offsetof( NBNSRequest_t, usType ) );
 
                         prvReplyDNSMessage( pxNetworkBuffer, ( BaseType_t ) usLength );
-						if( pxNewBuffer != NULL )
-						{
-							vReleaseNetworkBufferAndDescriptor( pxNewBuffer );
-						}
+
+                        if( pxNewBuffer != NULL )
+                        {
+                            vReleaseNetworkBufferAndDescriptor( pxNewBuffer );
+                        }
                     }
                 }
             }
