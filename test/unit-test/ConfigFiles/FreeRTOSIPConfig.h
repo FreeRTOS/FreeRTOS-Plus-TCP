@@ -313,6 +313,4 @@ extern uint32_t ulRand();
 
 #define ipconfigDHCP_FALL_BACK_AUTO_IP           ( 1 )
 
-#define portINLINE
-
 #endif /* FREERTOS_IP_CONFIG_H */
