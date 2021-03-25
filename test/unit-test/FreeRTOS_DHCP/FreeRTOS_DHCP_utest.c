@@ -320,12 +320,12 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketCreationFail( v
         /* Expected state is incorrect, but we are trying to reset
          * the DHCP the state machine. */
         TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xDHCPData.eDHCPState );
-        TEST_ASSERT_EQUAL( xDHCPSocket, NULL );
-        TEST_ASSERT_EQUAL( xDHCPData.xUseBroadcast, 0 );
+        TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+        TEST_ASSERT_EQUAL( 0, xDHCPData.xUseBroadcast );
         /* This should be reset as well */
-        TEST_ASSERT_EQUAL( xDHCPData.ulOfferedIPAddress, 0 );
+        TEST_ASSERT_EQUAL( 0, xDHCPData.ulOfferedIPAddress );
         /* And this too. */
-        TEST_ASSERT_EQUAL( xDHCPData.ulDHCPServerAddress, 0 );
+        TEST_ASSERT_EQUAL( 0, xDHCPData.ulDHCPServerAddress );
     }
 }
 
@@ -367,12 +367,12 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void 
         /* Expected state is incorrect, but we are trying to reset
          * the DHCP the state machine. */
         TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xDHCPData.eDHCPState );
-        TEST_ASSERT_EQUAL( xDHCPSocket, NULL );
-        TEST_ASSERT_EQUAL( xDHCPData.xUseBroadcast, 0 );
+        TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+        TEST_ASSERT_EQUAL( 0, xDHCPData.xUseBroadcast );
         /* This should be reset as well */
-        TEST_ASSERT_EQUAL( xDHCPData.ulOfferedIPAddress, 0 );
+        TEST_ASSERT_EQUAL( 0, xDHCPData.ulOfferedIPAddress );
         /* And this too. */
-        TEST_ASSERT_EQUAL( xDHCPData.ulDHCPServerAddress, 0 );
+        TEST_ASSERT_EQUAL( 0, xDHCPData.ulDHCPServerAddress );
     }
 }
 
@@ -986,7 +986,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassNoBroad
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eInitialWait, xDHCPData.eDHCPState );
@@ -1021,7 +1021,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsFalseCookieNoTimeout( void )
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
@@ -1054,7 +1054,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsFalseOpcodeNoTimeout( void )
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
@@ -1091,7 +1091,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsCorrectCookieAndOpcodeNoTime
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
@@ -1124,7 +1124,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromLessBytesNoTimeout( void )
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
@@ -1159,7 +1159,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSuccessCorrectTxID( void )
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
@@ -1205,7 +1205,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageWithoutOptionsNoTimeout( v
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
@@ -1263,7 +1263,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageIncorrectOptionsNoTimeout(
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
@@ -1322,7 +1322,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageMissingLengthByteNoTimeout
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
@@ -1383,7 +1383,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageIncorrectLengthByteNoTimeo
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
@@ -1446,7 +1446,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetNACKNoTimeout( void )
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
@@ -1509,7 +1509,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetACKNoTimeout( void )
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
@@ -1572,7 +1572,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageOneOptionNoTimeout( void )
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
@@ -1653,7 +1653,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendFails( void 
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that sending failed. */
     TEST_ASSERT_EQUAL( eSendDHCPRequest, xDHCPData.eDHCPState );
@@ -1738,7 +1738,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendSucceeds( vo
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that sending failed. */
     TEST_ASSERT_EQUAL( eWaitingAcknowledge, xDHCPData.eDHCPState );
@@ -2000,7 +2000,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerNoTimeout( vo
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* Still waiting on acknowledge. */
     TEST_ASSERT_EQUAL( eWaitingAcknowledge, xDHCPData.eDHCPState );
@@ -2092,10 +2092,11 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfai
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* Still waiting on acknowledge. */
     TEST_ASSERT_EQUAL( eSendDHCPRequest, xDHCPData.eDHCPState );
+    /* The time value should be stored in the state machine. */
     TEST_ASSERT_EQUAL( xTimeValue, xDHCPData.xDHCPTxTime );
     TEST_ASSERT_EQUAL_MEMORY( &( xNetworkAddressing ), &( testMemory ), sizeof( xNetworkAddressing ) );
 }
@@ -2183,7 +2184,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBsuc
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* Still waiting on acknowledge. */
     TEST_ASSERT_EQUAL( eWaitingAcknowledge, xDHCPData.eDHCPState );
@@ -2264,7 +2265,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutPeriod
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* Period exceeded. We should now be in initial state. */
     TEST_ASSERT_EQUAL( eInitialWait, xDHCPData.eDHCPState );
@@ -2631,7 +2632,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_NACK( void )
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* Should now be reset after NACK. */
     TEST_ASSERT_EQUAL( eInitialWait, xDHCPData.eDHCPState );
@@ -3467,7 +3468,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectLengthofpacket( void )
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
-    /* DHCP socket should be unallocated */
+    /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* Should still be stuck in waiting for ack state. */
     TEST_ASSERT_EQUAL( eWaitingAcknowledge, xDHCPData.eDHCPState );
@@ -3560,6 +3561,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkDown( void )
 void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGPass_GNBfail( void )
 {
     struct xSOCKET xTestSocket;
+    BaseType_t xTimeValue = 300;
 
     /* Socket is already created. */
     xDHCPSocket = &xTestSocket;
@@ -3571,7 +3573,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGPass_GNBfail( v
     FreeRTOS_IsNetworkUp_ExpectAndReturn( 1 );
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
-    xTaskGetTickCount_ExpectAndReturn( 300 );
+    xTaskGetTickCount_ExpectAndReturn( xTimeValue );
     /* Return the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning NULL will mean the prvSendDHCPDiscover fail. */
@@ -3584,13 +3586,14 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGPass_GNBfail( v
 
     /* Need to send DHCP request. */
     TEST_ASSERT_EQUAL( eSendDHCPRequest, EP_DHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL( 300, EP_DHCPData.xDHCPTxTime );
+    TEST_ASSERT_EQUAL( xTimeValue, EP_DHCPData.xDHCPTxTime );
     TEST_ASSERT_EQUAL( dhcpINITIAL_DHCP_TX_PERIOD, EP_DHCPData.xDHCPTxPeriod );
 }
 
 void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGFail( void )
 {
     struct xSOCKET xTestSocket;
+    BaseType_t xTimeValue = 300;
 
     /* Socket is already created. */
     xDHCPSocket = &xTestSocket;
@@ -3603,7 +3606,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGFail( void )
 
     /* Make RNG fail. */
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
-    xTaskGetTickCount_ExpectAndReturn( 300 );
+    xTaskGetTickCount_ExpectAndReturn( xTimeValue );
     /* Return the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
@@ -3618,7 +3621,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGFail( void )
 
     /* Sent DHCP request - waiting ACK. */
     TEST_ASSERT_EQUAL( eWaitingAcknowledge, EP_DHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL( 300, EP_DHCPData.xDHCPTxTime );
+    TEST_ASSERT_EQUAL( xTimeValue, EP_DHCPData.xDHCPTxTime );
     TEST_ASSERT_EQUAL( dhcpINITIAL_DHCP_TX_PERIOD, EP_DHCPData.xDHCPTxPeriod );
 }
 
