@@ -25,43 +25,10 @@
 extern Socket_t xDHCPSocket;
 extern DHCPData_t xDHCPData;
 
-const char * pcHostName = "Unit-Test";
+static const char * pcHostName = "Unit-Test";
 
-void test_xIsDHCPSocket( void )
-{
-    BaseType_t xReturn;
-    struct xSOCKET xTestSocket;
-
-    xDHCPSocket = &xTestSocket;
-
-    /************************************/
-    /* Test by NOT giving DHCP socket. */
-    xReturn = xIsDHCPSocket( NULL );
-    TEST_ASSERT_EQUAL( pdFALSE, xReturn );
-
-    /************************************/
-    /* Test by giving DHCP socket. */
-    xReturn = xIsDHCPSocket( xDHCPSocket );
-    TEST_ASSERT_EQUAL( pdTRUE, xReturn );
-}
-
-void test_eGetDHCPState( void )
-{
-    DHCPData_t xTestData;
-    eDHCPState_t eReturn;
-    int i;
-
-    for( i = 0; i < sizeof( xTestData.eDHCPState ); i++ )
-    {
-        /* Modify the global state. */
-        xDHCPData.eDHCPState = i;
-        eReturn = eGetDHCPState();
-        TEST_ASSERT_EQUAL( i, eReturn );
-    }
-}
-
-NetworkBufferDescriptor_t * pxGlobalNetworkBuffer[ 10 ];
-uint8_t GlobalBufferCounter = 0;
+static NetworkBufferDescriptor_t * pxGlobalNetworkBuffer[ 10 ];
+static uint8_t GlobalBufferCounter = 0;
 static NetworkBufferDescriptor_t * GetNetworkBuffer( size_t SizeOfEthBuf,
                                                      long unsigned int xTimeToBlock,
                                                      int callbacks )
@@ -97,7 +64,7 @@ static void ReleaseUDPBuffer( const void * temp,
 }
 
 #define xSizeofUDPBuffer    300
-uint8_t pucUDPBuffer[ xSizeofUDPBuffer ];
+static uint8_t pucUDPBuffer[ xSizeofUDPBuffer ];
 
 static int32_t RecvFromStub( Socket_t xSocket,
                              void * pvBuffer,
@@ -129,7 +96,7 @@ static int32_t RecvFromStub( Socket_t xSocket,
     return xSizeofUDPBuffer;
 }
 
-uint8_t DHCP_header[] =
+static uint8_t DHCP_header[] =
 {
     dhcpREPLY_OPCODE,       /**< Operation Code: Specifies the general type of message. */
     0x01,                   /**< Hardware type used on the local network. */
@@ -147,8 +114,8 @@ uint8_t DHCP_header[] =
     0x00, 0xAA, 0xAA, 0xAA  /**< Gateway IP address in case the server client are on different subnets. */
 };
 
-uint8_t * ucGenericPtr;
-int32_t ulGenericLength;
+static uint8_t * ucGenericPtr;
+static int32_t ulGenericLength;
 static int32_t FreeRTOS_recvfrom_Generic( Socket_t xSocket,
                                           void * pvBuffer,
                                           size_t uxBufferLength,
@@ -166,6 +133,38 @@ static int32_t FreeRTOS_recvfrom_Generic( Socket_t xSocket,
 }
 
 
+void test_xIsDHCPSocket( void )
+{
+    BaseType_t xReturn;
+    struct xSOCKET xTestSocket;
+
+    xDHCPSocket = &xTestSocket;
+
+    /************************************/
+    /* Test by NOT giving DHCP socket. */
+    xReturn = xIsDHCPSocket( NULL );
+    TEST_ASSERT_EQUAL( pdFALSE, xReturn );
+
+    /************************************/
+    /* Test by giving DHCP socket. */
+    xReturn = xIsDHCPSocket( xDHCPSocket );
+    TEST_ASSERT_EQUAL( pdTRUE, xReturn );
+}
+
+void test_eGetDHCPState( void )
+{
+    DHCPData_t xTestData;
+    eDHCPState_t eReturn;
+    int i;
+
+    for( i = 0; i < sizeof( xTestData.eDHCPState ); i++ )
+    {
+        /* Modify the global state. */
+        xDHCPData.eDHCPState = i;
+        eReturn = eGetDHCPState();
+        TEST_ASSERT_EQUAL( i, eReturn );
+    }
+}
 
 void test_vDHCPProcess_NotResetAndIncorrectState( void )
 {
@@ -252,9 +251,10 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void 
         /* Return a valid socket. */
         FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xTestSocket );
         /* Ignore the inputs to setting the socket options. */
-        FreeRTOS_setsockopt_IgnoreAndReturn( pdPASS );
+        FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
+        FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
         /* Make sure that binding fails. Return anything except zero. */
-        vSocketBind_IgnoreAndReturn( pdTRUE );
+        vSocketBind_ExpectAnyArgsAndReturn( pdTRUE );
         /* Then expect the socket to be closed. */
         vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
         /* See if the timer is reloaded. */
@@ -298,9 +298,10 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketSuccess( void )
         /* Return a valid socket. */
         FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xTestSocket );
         /* Ignore the inputs to setting the socket options. */
-        FreeRTOS_setsockopt_IgnoreAndReturn( pdPASS );
+        FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
+        FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
         /* Make sure that binding fails. Return anything except zero. */
-        vSocketBind_IgnoreAndReturn( 0 );
+        vSocketBind_ExpectAnyArgsAndReturn( 0 );
         /* See if the timer is reloaded. */
         vIPReloadDHCPTimer_Expect( dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
@@ -466,10 +467,10 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButGNW
 
     /* Make sure that the user indicates anything else than the desired options. */
     xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, eDHCPContinue );
-    xTaskGetTickCount_IgnoreAndReturn( 100 );
+    xTaskGetTickCount_ExpectAndReturn( 100 );
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning NULL will mean the prvSendDHCPDiscover fail. */
-    pxGetNetworkBufferWithDescriptor_IgnoreAndReturn( NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
 
@@ -522,7 +523,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast( v
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
     /* Make the call to FreeRTOS_send fail. */
-    FreeRTOS_sendto_IgnoreAndReturn( 0 );
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( 0 );
     /* Since the send failed, a call to release the buffer should be there. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Stub( ReleaseUDPBuffer );
 
@@ -557,7 +558,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsUseBroadCast( 
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
     /* Make the call to FreeRTOS_send fail. */
-    FreeRTOS_sendto_IgnoreAndReturn( 0 );
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( 0 );
     /* Since the send failed, a call to release the buffer should be there. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Stub( ReleaseUDPBuffer );
 
@@ -592,7 +593,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
     /* Make the call to FreeRTOS_send succeed. */
-    FreeRTOS_sendto_IgnoreAndReturn( 1 );
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
     vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
 
@@ -619,7 +620,7 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWFails( void )
     /* Get the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Return NULL network buffer. */
-    pxGetNetworkBufferWithDescriptor_IgnoreAndReturn( NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     vDHCPProcess( pdFALSE, eSendDHCPRequest );
 
@@ -643,7 +644,7 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendFails( void )
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
     /* Send fails. */
-    FreeRTOS_sendto_IgnoreAndReturn( 0 );
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( 0 );
     /* ReleaseUDPPayloadBuffer will be called. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Stub( ReleaseUDPBuffer );
 
@@ -671,7 +672,7 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendSucceeds( void
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
     /* Send succeeds. */
-    FreeRTOS_sendto_IgnoreAndReturn( 1 );
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
     /* Return the time value. */
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
 
@@ -705,7 +706,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsNoTimeout( void )
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
@@ -737,13 +738,20 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutGiveUp( void )
 
     /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference greater than the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
+
+    /* Time will be stored in DHCP state machine. */
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
 
     /* Make all calls to the RNG succeed. */
-    xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+
 
     /* Closing the DHCP socket. */
     vSocketClose_ExpectAndReturn( xDHCPSocket, 0 );
+
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
 
     /* Ignore the call to this function. */
     vARPSendGratuitous_Ignore();
@@ -780,7 +788,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGFail( void 
     xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
 
     /* Make all calls to the RNG fail. */
-    xApplicationGetRandomNumber_IgnoreAndReturn( pdFALSE );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -818,7 +826,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassUseBroa
     xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
 
     /* Make all calls to the RNG succeed. */
-    xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
 
@@ -827,7 +835,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassUseBroa
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
     /* Send succeeds. */
-    FreeRTOS_sendto_IgnoreAndReturn( 1 );
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -865,14 +873,14 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassNoBroad
     xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
 
     /* Make all calls to the RNG succeed. */
-    xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
 
     /* Get the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a NULL network buffer. */
-    pxGetNetworkBufferWithDescriptor_IgnoreAndReturn( NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -925,7 +933,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsFalseCookieNoTimeout( void )
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -978,7 +986,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsFalseOpcodeNoTimeout( void )
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -1035,7 +1043,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsCorrectCookieAndOpcodeNoTime
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -1086,7 +1094,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromLessBytesNoTimeout( void )
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -1145,7 +1153,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSuccessCorrectTxID( void )
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -1191,7 +1199,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageWithoutOptionsNoTimeout( v
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -1249,7 +1257,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageIncorrectOptionsNoTimeout(
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -1308,7 +1316,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageMissingLengthByteNoTimeout
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -1369,7 +1377,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageIncorrectLengthByteNoTimeo
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -1432,7 +1440,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetNACKNoTimeout( void )
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -1495,7 +1503,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetACKNoTimeout( void )
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -1558,7 +1566,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageOneOptionNoTimeout( void )
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -1639,7 +1647,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendFails( void 
     /* Make the hook return correct value. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning NULL will mean the prvSendDHCPRequest fails. */
-    pxGetNetworkBufferWithDescriptor_IgnoreAndReturn( NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -1723,7 +1731,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendSucceeds( vo
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
     /* Make the call to FreeRTOS_send succeed. */
-    FreeRTOS_sendto_IgnoreAndReturn( 1 );
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
@@ -1986,7 +1994,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerNoTimeout( vo
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -2078,7 +2086,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfai
     /* Get the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a NULL so that prvSendDHCPRequest fails. */
-    pxGetNetworkBufferWithDescriptor_IgnoreAndReturn( NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -2169,7 +2177,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBsuc
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
     /* Send succeeds. */
-    FreeRTOS_sendto_IgnoreAndReturn( 1 );
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -2617,7 +2625,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_NACK( void )
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_IgnoreAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -3453,7 +3461,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectLengthofpacket( void )
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
     /* Send succeeds. */
-    FreeRTOS_sendto_IgnoreAndReturn( 1 );
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -3500,9 +3508,11 @@ void test_vDHCPProcess_eGetLinkLayerAddress_Timeout_ARPIPClash( void )
 
     xTaskGetTickCount_ExpectAndReturn( EP_DHCPData.xDHCPTxPeriod + EP_DHCPData.xDHCPTxTime + 100 );
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
-    xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     vARPSendGratuitous_Expect();
 
     vDHCPProcess( pdFALSE, eGetLinkLayerAddress );
@@ -3558,12 +3568,12 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGPass_GNBfail( v
     /* The network is up. */
     FreeRTOS_IsNetworkUp_ExpectAndReturn( 1 );
 
-    xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xTaskGetTickCount_ExpectAndReturn( 300 );
     /* Return the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning NULL will mean the prvSendDHCPDiscover fail. */
-    pxGetNetworkBufferWithDescriptor_IgnoreAndReturn( NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     /* Expect the timer to be set. */
     vIPReloadDHCPTimer_Expect( dhcpINITIAL_TIMER_PERIOD );
@@ -3590,14 +3600,14 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGFail( void )
     FreeRTOS_IsNetworkUp_ExpectAndReturn( 1 );
 
     /* Make RNG fail. */
-    xApplicationGetRandomNumber_IgnoreAndReturn( pdFALSE );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
     xTaskGetTickCount_ExpectAndReturn( 300 );
     /* Return the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
     /* Make the call to FreeRTOS_send succeed. */
-    FreeRTOS_sendto_IgnoreAndReturn( 1 );
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
     /* Expect the timer to be set. */
     vIPReloadDHCPTimer_Expect( dhcpINITIAL_TIMER_PERIOD );
@@ -3622,7 +3632,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SocketNotCreated_RNGPass_GNBfail
     FreeRTOS_IsNetworkUp_ExpectAndReturn( 1 );
 
     /* Return invalid socket. */
-    FreeRTOS_socket_IgnoreAndReturn( FREERTOS_INVALID_SOCKET );
+    FreeRTOS_socket_ExpectAnyArgsAndReturn( FREERTOS_INVALID_SOCKET );
 
     vDHCPProcess( pdFALSE, eLeasedAddress );
 
