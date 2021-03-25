@@ -132,6 +132,108 @@ static int32_t FreeRTOS_recvfrom_Generic( Socket_t xSocket,
     return ulGenericLength;
 }
 
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromLessBytesNoTimeout( Socket_t xSocket,
+                                                                          void * pvBuffer,
+                                                                          size_t uxBufferLength,
+                                                                          BaseType_t xFlags,
+                                                                          struct freertos_sockaddr * pxSourceAddress,
+                                                                          socklen_t * pxSourceAddressLength,
+                                                                          int callbacks )
+{
+    if( xFlags == FREERTOS_ZERO_COPY )
+    {
+        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
+    }
+
+    memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
+
+    return sizeof( DHCPMessage_IPv4_t ) - 1;
+}
+
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsFalseCookieNoTimeout( Socket_t xSocket,
+                                                                                    void * pvBuffer,
+                                                                                    size_t uxBufferLength,
+                                                                                    BaseType_t xFlags,
+                                                                                    struct freertos_sockaddr * pxSourceAddress,
+                                                                                    socklen_t * pxSourceAddressLength,
+                                                                                    int callbacks )
+{
+    if( xFlags == FREERTOS_ZERO_COPY )
+    {
+        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
+    }
+
+    memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
+
+    return xSizeofUDPBuffer;
+}
+
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsFalseOpcodeNoTimeout( Socket_t xSocket,
+                                                                                    void * pvBuffer,
+                                                                                    size_t uxBufferLength,
+                                                                                    BaseType_t xFlags,
+                                                                                    struct freertos_sockaddr * pxSourceAddress,
+                                                                                    socklen_t * pxSourceAddressLength,
+                                                                                    int callbacks )
+{
+    if( xFlags == FREERTOS_ZERO_COPY )
+    {
+        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
+    }
+
+    memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
+    /* Put in correct DHCP cookie. */
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulDHCPCookie = dhcpCOOKIE;
+
+    return xSizeofUDPBuffer;
+}
+
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsCorrectCookieAndOpcodeNoTimeout( Socket_t xSocket,
+                                                                                               void * pvBuffer,
+                                                                                               size_t uxBufferLength,
+                                                                                               BaseType_t xFlags,
+                                                                                               struct freertos_sockaddr * pxSourceAddress,
+                                                                                               socklen_t * pxSourceAddressLength,
+                                                                                               int callbacks )
+{
+    if( xFlags == FREERTOS_ZERO_COPY )
+    {
+        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
+    }
+
+    memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
+    /* Put in correct DHCP cookie. */
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulDHCPCookie = dhcpCOOKIE;
+    /* Put incorrect DHCP opcode. */
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
+
+    return xSizeofUDPBuffer;
+}
+
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccessCorrectTxID( Socket_t xSocket,
+                                                                          void * pvBuffer,
+                                                                          size_t uxBufferLength,
+                                                                          BaseType_t xFlags,
+                                                                          struct freertos_sockaddr * pxSourceAddress,
+                                                                          socklen_t * pxSourceAddressLength,
+                                                                          int callbacks )
+{
+    if( xFlags == FREERTOS_ZERO_COPY )
+    {
+        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
+    }
+
+    memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
+    /* Put in correct DHCP cookie. */
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulDHCPCookie = dhcpCOOKIE;
+    /* Put in correct DHCP opcode. */
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
+    /* Put in correct DHCP Tx ID. */
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( EP_DHCPData.ulTransactionId );
+
+    return xSizeofUDPBuffer;
+}
+
 
 void test_xIsDHCPSocket( void )
 {
@@ -310,12 +412,12 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketSuccess( void )
         /* Expected state is incorrect, but we are trying to reset
          * the DHCP the state machine. */
         TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xDHCPData.eDHCPState );
-        TEST_ASSERT_EQUAL( xDHCPSocket, &xTestSocket );
-        TEST_ASSERT_EQUAL( xDHCPData.xUseBroadcast, 0 );
+        TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+        TEST_ASSERT_EQUAL( 0, xDHCPData.xUseBroadcast );
         /* This should be reset as well */
-        TEST_ASSERT_EQUAL( xDHCPData.ulOfferedIPAddress, 0 );
+        TEST_ASSERT_EQUAL( 0, xDHCPData.ulOfferedIPAddress );
         /* And this too. */
-        TEST_ASSERT_EQUAL( xDHCPData.ulDHCPServerAddress, 0 );
+        TEST_ASSERT_EQUAL( 0, xDHCPData.ulDHCPServerAddress );
     }
 }
 
@@ -892,24 +994,6 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassNoBroad
     TEST_ASSERT_EQUAL( ( ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) - 1 ) << 1, xDHCPData.xDHCPTxPeriod );
 }
 
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsFalseCookieNoTimeout( Socket_t xSocket,
-                                                                                    void * pvBuffer,
-                                                                                    size_t uxBufferLength,
-                                                                                    BaseType_t xFlags,
-                                                                                    struct freertos_sockaddr * pxSourceAddress,
-                                                                                    socklen_t * pxSourceAddressLength,
-                                                                                    int callbacks )
-{
-    if( xFlags == FREERTOS_ZERO_COPY )
-    {
-        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
-    }
-
-    memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
-
-    return xSizeofUDPBuffer;
-}
-
 void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsFalseCookieNoTimeout( void )
 {
     struct xSOCKET xTestSocket;
@@ -941,26 +1025,6 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsFalseCookieNoTimeout( void )
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
-}
-
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsFalseOpcodeNoTimeout( Socket_t xSocket,
-                                                                                    void * pvBuffer,
-                                                                                    size_t uxBufferLength,
-                                                                                    BaseType_t xFlags,
-                                                                                    struct freertos_sockaddr * pxSourceAddress,
-                                                                                    socklen_t * pxSourceAddressLength,
-                                                                                    int callbacks )
-{
-    if( xFlags == FREERTOS_ZERO_COPY )
-    {
-        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
-    }
-
-    memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
-    /* Put in correct DHCP cookie. */
-    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulDHCPCookie = dhcpCOOKIE;
-
-    return xSizeofUDPBuffer;
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsFalseOpcodeNoTimeout( void )
@@ -996,27 +1060,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsFalseOpcodeNoTimeout( void )
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
 }
 
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsCorrectCookieAndOpcodeNoTimeout( Socket_t xSocket,
-                                                                                               void * pvBuffer,
-                                                                                               size_t uxBufferLength,
-                                                                                               BaseType_t xFlags,
-                                                                                               struct freertos_sockaddr * pxSourceAddress,
-                                                                                               socklen_t * pxSourceAddressLength,
-                                                                                               int callbacks )
-{
-    if( xFlags == FREERTOS_ZERO_COPY )
-    {
-        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
-    }
 
-    memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
-    /* Put in correct DHCP cookie. */
-    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulDHCPCookie = dhcpCOOKIE;
-    /* Put incorrect DHCP opcode. */
-    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
-
-    return xSizeofUDPBuffer;
-}
 
 void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsCorrectCookieAndOpcodeNoTimeout( void )
 {
@@ -1053,24 +1097,6 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsCorrectCookieAndOpcodeNoTime
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
 }
 
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromLessBytesNoTimeout( Socket_t xSocket,
-                                                                          void * pvBuffer,
-                                                                          size_t uxBufferLength,
-                                                                          BaseType_t xFlags,
-                                                                          struct freertos_sockaddr * pxSourceAddress,
-                                                                          socklen_t * pxSourceAddressLength,
-                                                                          int callbacks )
-{
-    if( xFlags == FREERTOS_ZERO_COPY )
-    {
-        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
-    }
-
-    memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
-
-    return sizeof( DHCPMessage_IPv4_t ) - 1;
-}
-
 void test_vDHCPProcess_eWaitingOfferRecvfromLessBytesNoTimeout( void )
 {
     struct xSOCKET xTestSocket;
@@ -1102,30 +1128,6 @@ void test_vDHCPProcess_eWaitingOfferRecvfromLessBytesNoTimeout( void )
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
-}
-
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccessCorrectTxID( Socket_t xSocket,
-                                                                          void * pvBuffer,
-                                                                          size_t uxBufferLength,
-                                                                          BaseType_t xFlags,
-                                                                          struct freertos_sockaddr * pxSourceAddress,
-                                                                          socklen_t * pxSourceAddressLength,
-                                                                          int callbacks )
-{
-    if( xFlags == FREERTOS_ZERO_COPY )
-    {
-        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
-    }
-
-    memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
-    /* Put in correct DHCP cookie. */
-    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulDHCPCookie = dhcpCOOKIE;
-    /* Put in correct DHCP opcode. */
-    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
-    /* Put in correct DHCP Tx ID. */
-    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( EP_DHCPData.ulTransactionId );
-
-    return xSizeofUDPBuffer;
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromSuccessCorrectTxID( void )

@@ -2,10 +2,8 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-message( STATUS "${FILE_UNDER_TEST}" )
-
 set( project_name "FreeRTOS_DHCP" )
-
+message( STATUS "${project_name}" )
 # =====================  Create your mock here  (edit)  ========================
 
 # list the files to mock here
