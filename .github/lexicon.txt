@@ -156,6 +156,7 @@ dff
 dhcp
 dhcpbroadcast
 dhcpcookie
+dhcpserveraddress
 didn
 dm
 dma
@@ -321,6 +322,7 @@ github
 gmac
 gmacpins
 gmacsa
+gnw
 gpio
 gpl
 grr
@@ -664,6 +666,8 @@ prvreadnamefield
 prvreadsackoption
 prvrxcallback
 prvsenddata
+prvsenddhcpdiscover
+prvsenddhcprequest
 prvsetoptions
 prvsetsynackoptions
 prvsinglesteptcpheaderoptions
@@ -827,6 +831,7 @@ regist
 regvalue
 reinit
 renesas
+releaseudppayloadbuffer
 reqlength
 resetpins
 retrytransmission
@@ -840,6 +845,7 @@ richard
 rle
 rlex
 rmii
+rng
 ro
 rollover
 roreg
@@ -1014,6 +1020,7 @@ uclen
 uclength
 uclinklayeripaddress
 ucmacaddress
+ucmessagetype
 ucmywinscalefactor
 ucname
 ucnamecode
@@ -1040,6 +1047,7 @@ uctcpoffset
 uctcpstate
 uctimetolive
 uctransmitcount
+ucserveridentifier
 uctypeofmessage
 uctypeofservice
 ucvalid
@@ -1059,6 +1067,7 @@ ulbytecount
 ulchecktime
 ulconnected
 ulcount
+ulclientipaddress
 ulcurrentsequencenumber
 ulcurrentspistatus
 uldefaultipaddress
@@ -1067,6 +1076,7 @@ uldestinationaddress
 uldestinationipaddress
 uldhcpcookie
 uldhcpserveraddress
+uldnsserver
 uldnsserveraddress
 uldonemask
 ulfifolength
@@ -1075,6 +1085,7 @@ ulfirst
 ulfirstsequencenumber
 ulflag
 ulflags
+ulgateway
 ulgatewayaddress
 ulgetruntimecountervalue
 ulhighestrxallowed
@@ -1124,6 +1135,7 @@ ulsize
 ulsourceipaddress
 ulspace
 ulstatus
+ulsubnetmask
 ulsum
 ultargetprotocoladdress
 ultcpwindowtxack
@@ -1146,6 +1158,7 @@ unhandled
 unicast
 unicastframesfilter
 unicastpauseframedetect
+uninitialised
 unsetmacaddr
 urg
 url
@@ -1464,6 +1477,7 @@ xstream
 xsum
 xtargethardwareaddress
 xtaskcheckfortimeout
+xtaskgettickcount
 xtaskhandle
 xtaskresumeall
 xtcp
@@ -1478,6 +1492,7 @@ xtcpwindowrxconfirm
 xtcpwindowtxdone
 xtime
 xtimeout
+xtotallength
 xtransmittimer
 xtxcallback
 xtxdescriptorsemaphore
