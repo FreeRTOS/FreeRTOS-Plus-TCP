@@ -1,5 +1,3 @@
-# gcc -E -fpreprocessed -I include/ -I test/FreeRTOS-Kernel/include/ -I test/unit-test/ConfigFiles/ -fdirectives-only include/FreeRTOS_IP.h -o tmp.c
-
 # Set the required version.
 cmake_minimum_required( VERSION 3.13.0 )
 
@@ -93,10 +91,11 @@ foreach( file ${TCP_INCLUDES} )
 
     # Use this tool to process all conditional declarations.
     execute_process( COMMAND unifdefall -U${Guard} -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
-                                                    -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
-                                                    -I ${UNIT_TEST_DIR}/ConfigFiles
-                                                    -I ${MODULE_ROOT_DIR}/include
-                                                    ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
+                                                   -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
+                                                   -I ${UNIT_TEST_DIR}/ConfigFiles
+                                                   -I ${MODULE_ROOT_DIR}/include
+                                                   -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
+                                                   ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                      OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h
                      OUTPUT_QUIET )
@@ -152,7 +151,7 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 set(FILE_UNDER_TEST FreeRTOS_ARP)
 
 # Include unit-test build configuration
-#include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
@@ -160,8 +159,6 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
 # Add a target for running coverage on tests.
 add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
-    DEPENDS cmock unity FreeRTOS_DHCP_utest #FreeRTOS_ARP_utest
+    DEPENDS cmock unity FreeRTOS_ARP_utest FreeRTOS_DHCP_utest
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
-
-#FreeRTOS_DHCP_utest

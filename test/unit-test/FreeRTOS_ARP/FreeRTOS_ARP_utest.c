@@ -18,31 +18,9 @@
 
 #include "FreeRTOSIPConfig.h"
 
-#define ARPCacheEntryToCheck    2
-
-#if ARPCacheEntryToCheck >= ipconfigARP_CACHE_ENTRIES
-    #error "ARPCacheEntryToCheck cannot be greater than ipconfigARP_CACHE_ENTRIES"
-#endif
-
 extern ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
 
-void FillARPCache( void )
-{
-    int i, j;
-
-    for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
-    {
-        for( j = 0; j < ipMAC_ADDRESS_LENGTH_BYTES; j++ )
-        {
-            xARPCache[ i ].xMACAddress.ucBytes[ j ] = i * 10 + j;
-        }
-
-        xARPCache[ i ].ulIPAddress = i;
-    }
-}
-
-
-void test_xCheckLoopback( void )
+void test_xCheckLoopback_IncorrectFrameType( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkBufferDescriptor_t * const pxNetworkBuffer = &xNetworkBuffer;
@@ -61,6 +39,19 @@ void test_xCheckLoopback( void )
     xResult = xCheckLoopback( pxNetworkBuffer, pdFALSE );
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
     /* =================================================== */
+}
+
+void test_xCheckLoopback_IncorrectMACAddress( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * const pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucBuffer[ sizeof( IPPacket_t ) + ipBUFFER_PADDING ];
+    BaseType_t xResult;
+
+    pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
+    pxNetworkBuffer->xDataLength = sizeof( IPPacket_t );
+
+    IPPacket_t * pxIPPacket = ( IPPacket_t * ) ( pxNetworkBuffer->pucEthernetBuffer );
 
     /* =================================================== */
     /* Let the frame-type be IPv4. */
@@ -71,6 +62,70 @@ void test_xCheckLoopback( void )
     xResult = xCheckLoopback( pxNetworkBuffer, pdFALSE );
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
     /* =================================================== */
+}
+
+void test_xCheckLoopback_HappyCase( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * const pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucBuffer[ sizeof( IPPacket_t ) + ipBUFFER_PADDING ];
+    BaseType_t xResult;
+
+    pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
+    pxNetworkBuffer->xDataLength = sizeof( IPPacket_t );
+
+    IPPacket_t * pxIPPacket = ( IPPacket_t * ) ( pxNetworkBuffer->pucEthernetBuffer );
+
+    /* =================================================== */
+    /* Let the frame-type be IPv4. */
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    /* Make the MAC address same. */
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipLOCAL_MAC_ADDRESS, ipMAC_ADDRESS_LENGTH_BYTES );
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( pxNetworkBuffer, pxNetworkBuffer->xDataLength, pxNetworkBuffer );
+    xSendEventStructToIPTask_IgnoreAndReturn( pdTRUE );
+
+    xResult = xCheckLoopback( pxNetworkBuffer, pdFALSE );
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+    /* =================================================== */
+}
+
+void test_xCheckLoopback_DuplicationFails( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * const pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucBuffer[ sizeof( IPPacket_t ) + ipBUFFER_PADDING ];
+    BaseType_t xResult;
+
+    pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
+    pxNetworkBuffer->xDataLength = sizeof( IPPacket_t );
+
+    IPPacket_t * pxIPPacket = ( IPPacket_t * ) ( pxNetworkBuffer->pucEthernetBuffer );
+
+    /* =================================================== */
+    /* Let the frame-type be IPv4. */
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    /* Make the MAC address same. */
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipLOCAL_MAC_ADDRESS, ipMAC_ADDRESS_LENGTH_BYTES );
+    /* Make buffer duplication fail. */
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( pxNetworkBuffer, pxNetworkBuffer->xDataLength, NULL );
+    xResult = xCheckLoopback( pxNetworkBuffer, pdFALSE );
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+    /* =================================================== */
+}
+
+
+void test_xCheckLoopback_SendEventToIPTaskFails( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * const pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucBuffer[ sizeof( IPPacket_t ) + ipBUFFER_PADDING ];
+    BaseType_t xResult;
+
+    pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
+    pxNetworkBuffer->xDataLength = sizeof( IPPacket_t );
+
+    IPPacket_t * pxIPPacket = ( IPPacket_t * ) ( pxNetworkBuffer->pucEthernetBuffer );
+
 
     /* =================================================== */
     /* Let the frame-type be IPv4. */
@@ -84,31 +139,10 @@ void test_xCheckLoopback( void )
     xResult = xCheckLoopback( pxNetworkBuffer, pdTRUE );
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
     /* =================================================== */
-
-    /* =================================================== */
-    /* Let the frame-type be IPv4. */
-    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    /* Make the MAC address same. */
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipLOCAL_MAC_ADDRESS, ipMAC_ADDRESS_LENGTH_BYTES );
-    pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( pxNetworkBuffer, pxNetworkBuffer->xDataLength, pxNetworkBuffer );
-    xSendEventStructToIPTask_IgnoreAndReturn( pdTRUE );
-
-    xResult = xCheckLoopback( pxNetworkBuffer, pdFALSE );
-    TEST_ASSERT_EQUAL( pdTRUE, xResult );
-    /* =================================================== */
-
-    /* =================================================== */
-    /* Let the frame-type be IPv4. */
-    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    /* Make the MAC address same. */
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipLOCAL_MAC_ADDRESS, ipMAC_ADDRESS_LENGTH_BYTES );
-    pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( pxNetworkBuffer, pxNetworkBuffer->xDataLength, NULL );
-    xResult = xCheckLoopback( pxNetworkBuffer, pdFALSE );
-    TEST_ASSERT_EQUAL( pdTRUE, xResult );
-    /* =================================================== */
 }
 
-void test_eARPProcessPacket( void )
+
+void test_eARPProcessPacket_LocalIPisZero( void )
 {
     ARPPacket_t xARPFrame;
     eFrameProcessingResult_t eResult;
@@ -119,47 +153,77 @@ void test_eARPProcessPacket( void )
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
+}
+
+void test_eARPProcessPacket_InvalidOperation( void )
+{
+    ARPPacket_t xARPFrame;
+    eFrameProcessingResult_t eResult;
 
     /* =================================================== */
     /* What is some invalid option is sent in the ARP Packet? */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
+    /* Add invalid operation */
     xARPFrame.xARPHeader.usOperation = ipARP_REQUEST | ipARP_REPLY;
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
 
-    /* =================================================== */
+void test_eARPProcessPacket_Request_DifferentIP( void )
+{
+    ARPPacket_t xARPFrame;
+    eFrameProcessingResult_t eResult;
+
     /* Process an ARP request, but not meant for this node. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
     /* Fill in the request option. */
     xARPFrame.xARPHeader.usOperation = ipARP_REQUEST;
-    xARPFrame.xARPHeader.ulTargetProtocolAddress = 0xAABBCCEE;
+    xARPFrame.xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 0x11;
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
+}
+
+void test_eARPProcessPacket_Request_SenderAndTargetDifferent( void )
+{
+    ARPPacket_t xARPFrame;
+    eFrameProcessingResult_t eResult;
 
     /* =================================================== */
     /* Process an ARP request - meant for this node with target and source different. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
     /* Fill in the request option. */
     xARPFrame.xARPHeader.usOperation = ipARP_REQUEST;
-    xARPFrame.xARPHeader.ulTargetProtocolAddress = 0xAABBCCDD;
+    xARPFrame.xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER;
     memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress, &( xARPFrame.xARPHeader.ulTargetProtocolAddress ), sizeof( xARPFrame.xARPHeader.ulTargetProtocolAddress ) );
     /* Make sure the the destination and source IP addresses are different. */
     xARPFrame.xARPHeader.ucSenderProtocolAddress[ 0 ]++;
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReturnEthernetFrame, eResult );
     /* =================================================== */
+}
+
+void test_eARPProcessPacket_Request_SenderAndTargetSame( void )
+{
+    ARPPacket_t xARPFrame;
+    eFrameProcessingResult_t eResult;
 
     /* =================================================== */
     /* Process an ARP request - meant for this node with target and source same. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
     /* Fill in the request option. */
     xARPFrame.xARPHeader.usOperation = ipARP_REQUEST;
-    xARPFrame.xARPHeader.ulTargetProtocolAddress = 0xAABBCCDD;
+    xARPFrame.xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER;
     memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress, &( xARPFrame.xARPHeader.ulTargetProtocolAddress ), sizeof( xARPFrame.xARPHeader.ulTargetProtocolAddress ) );
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReturnEthernetFrame, eResult );
     /* =================================================== */
+}
+
+void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
+{
+    ARPPacket_t xARPFrame;
+    eFrameProcessingResult_t eResult;
 
     /* =================================================== */
     /* Process an ARP reply - meant for this node with target and source same. */
@@ -171,20 +235,26 @@ void test_eARPProcessPacket( void )
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
+}
+
+void test_eARPProcessPacket_Reply_DifferentIP( void )
+{
+    ARPPacket_t xARPFrame;
+    eFrameProcessingResult_t eResult;
 
     /* =================================================== */
     /* Process an ARP reply - not meant for this node. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
     /* Fill in the request option. */
     xARPFrame.xARPHeader.usOperation = ipARP_REPLY;
-    xARPFrame.xARPHeader.ulTargetProtocolAddress = 0xAABBCCEE;
+    xARPFrame.xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 0x11;
     memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress, &( xARPFrame.xARPHeader.ulTargetProtocolAddress ), sizeof( xARPFrame.xARPHeader.ulTargetProtocolAddress ) );
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
 }
 
-void test_ulARPRemoveCacheEntryByMac( void )
+void test_ulARPRemoveCacheEntryByMac_NoMatch( void )
 {
     uint32_t ulResult;
     const MACAddress_t xMACAddress = { 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA };
@@ -206,6 +276,15 @@ void test_ulARPRemoveCacheEntryByMac( void )
     ulResult = ulARPRemoveCacheEntryByMac( &xMACAddress );
     TEST_ASSERT_EQUAL( 0, ulResult );
     /* =================================================== */
+}
+
+void test_ulARPRemoveCacheEntryByMac_OneMatchingEntry( void )
+{
+    uint32_t ulResult;
+    const MACAddress_t xMACAddress = { 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA };
+    int i;
+    BaseType_t xEntryToCheck;
+    uint8_t ucBuffer[ sizeof( xARPCache[ 0 ] ) ];
 
     /* =================================================== */
     /* Make sure only one entry matches. */
@@ -224,8 +303,7 @@ void test_ulARPRemoveCacheEntryByMac( void )
     TEST_ASSERT_EQUAL( 0, memcmp( ucBuffer, &xARPCache[ xEntryToCheck ], sizeof( xARPCache[ 0 ] ) ) );
 }
 
-
-void test_vARPRefreshCacheEntry( void )
+void test_vARPRefreshCacheEntry_NULLMAC_NoMatchingEntry( void )
 {
     MACAddress_t xMACAddress;
     uint32_t ulIPAddress;
@@ -247,6 +325,14 @@ void test_vARPRefreshCacheEntry( void )
     TEST_ASSERT_EQUAL( xARPCache[ 0 ].ucAge, ( uint8_t ) ipconfigMAX_ARP_RETRANSMISSIONS );
     TEST_ASSERT_EQUAL( xARPCache[ 0 ].ucValid, ( uint8_t ) pdFALSE );
     /* =================================================== */
+}
+
+void test_vARPRefreshCacheEntry_NULLMAC_MatchingEntry( void )
+{
+    MACAddress_t xMACAddress;
+    uint32_t ulIPAddress;
+    int i;
+    BaseType_t xUseEntry;
 
     /* =================================================== */
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -266,6 +352,14 @@ void test_vARPRefreshCacheEntry( void )
     TEST_ASSERT_EQUAL( xARPCache[ 1 ].ucAge, 255 );
     TEST_ASSERT_EQUAL( xARPCache[ 1 ].ucValid, ( uint8_t ) pdTRUE );
     /* =================================================== */
+}
+
+void test_vARPRefreshCacheEntry_MACWontMatch_IPWillMatch( void )
+{
+    MACAddress_t xMACAddress;
+    uint32_t ulIPAddress;
+    int i;
+    BaseType_t xUseEntry;
 
     /* =================================================== */
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -289,6 +383,14 @@ void test_vARPRefreshCacheEntry( void )
     TEST_ASSERT_EQUAL( ( uint8_t ) pdTRUE, xARPCache[ xUseEntry ].ucValid );
     TEST_ASSERT_EQUAL_MEMORY( xMACAddress.ucBytes, xARPCache[ xUseEntry ].xMACAddress.ucBytes, sizeof( xMACAddress.ucBytes ) );
     /* =================================================== */
+}
+
+void test_vARPRefreshCacheEntry_MACAndIPWillMatch( void )
+{
+    MACAddress_t xMACAddress;
+    uint32_t ulIPAddress;
+    int i;
+    BaseType_t xUseEntry;
 
     /* =================================================== */
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -314,6 +416,15 @@ void test_vARPRefreshCacheEntry( void )
     TEST_ASSERT_EQUAL( ( uint8_t ) pdTRUE, xARPCache[ xUseEntry ].ucValid );
     TEST_ASSERT_EQUAL_MEMORY( xMACAddress.ucBytes, xARPCache[ xUseEntry ].xMACAddress.ucBytes, sizeof( xMACAddress.ucBytes ) );
     /* =================================================== */
+}
+
+
+void test_vARPRefreshCacheEntry_IPOnADifferentSubnet( void )
+{
+    MACAddress_t xMACAddress;
+    uint32_t ulIPAddress;
+    int i;
+    BaseType_t xUseEntry;
 
     /* =================================================== */
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -342,75 +453,14 @@ void test_vARPRefreshCacheEntry( void )
     TEST_ASSERT_EQUAL( ( uint8_t ) pdTRUE, xARPCache[ 0 ].ucValid );
     TEST_ASSERT_EQUAL_MEMORY( xMACAddress.ucBytes, xARPCache[ 0 ].xMACAddress.ucBytes, sizeof( xMACAddress.ucBytes ) );
     /* =================================================== */
+}
 
-    /* =================================================== */
-    for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
-    {
-        xARPCache[ i ].ulIPAddress = 0xAABBCCDD;
-        xARPCache[ i ].ucAge = 255;
-        xARPCache[ i ].ucValid = pdFALSE;
-        memset( xARPCache[ i ].xMACAddress.ucBytes, 0x34, sizeof( xMACAddress.ucBytes ) );
-    }
-
-    xUseEntry = 0;
-
-    ulIPAddress = 0xAABBCCEE;
-    memset( xMACAddress.ucBytes, 0x22, ipMAC_ADDRESS_LENGTH_BYTES );
-    /* Pass a MAC and IP Address which won't match. */
-    vARPRefreshCacheEntry( &xMACAddress, ulIPAddress );
-
-    /* Since no matching entry will be found with smallest age (i.e. oldest), 0th entry will be updated to have the below details. */
-    TEST_ASSERT_EQUAL_MESSAGE( ipconfigMAX_ARP_AGE, xARPCache[ xUseEntry ].ucAge, "Test 6" );
-    TEST_ASSERT_EQUAL( ( uint8_t ) pdTRUE, xARPCache[ xUseEntry ].ucValid );
-    TEST_ASSERT_EQUAL_MEMORY( xMACAddress.ucBytes, xARPCache[ xUseEntry ].xMACAddress.ucBytes, sizeof( xMACAddress.ucBytes ) );
-    /* =================================================== */
-
-    /* =================================================== */
-    for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
-    {
-        xARPCache[ i ].ulIPAddress = 0xAABBCCDD;
-        xARPCache[ i ].ucAge = 255;
-        xARPCache[ i ].ucValid = pdFALSE;
-        memset( xARPCache[ i ].xMACAddress.ucBytes, 0x34, sizeof( xMACAddress.ucBytes ) );
-    }
-
-    xUseEntry = 1;
-
-    /* Set a MAC address which will match */
-    memset( xARPCache[ xUseEntry ].xMACAddress.ucBytes, 0x11, sizeof( xMACAddress.ucBytes ) );
-
-    ulIPAddress = 0xAABBCCEE;
-    memset( xMACAddress.ucBytes, 0x11, ipMAC_ADDRESS_LENGTH_BYTES );
-    /* Pass a MAC Address which will match and an IP address which won't match. */
-    vARPRefreshCacheEntry( &xMACAddress, ulIPAddress );
-
-    /* Since no matching entry will be found with smallest age (i.e. oldest), 0th entry will be updated to have the below details. */
-    TEST_ASSERT_EQUAL_MESSAGE( ipconfigMAX_ARP_AGE, xARPCache[ xUseEntry ].ucAge, "Test 7" );
-    TEST_ASSERT_EQUAL( ( uint8_t ) pdTRUE, xARPCache[ xUseEntry ].ucValid );
-    TEST_ASSERT_EQUAL_MEMORY( xMACAddress.ucBytes, xARPCache[ xUseEntry ].xMACAddress.ucBytes, sizeof( xMACAddress.ucBytes ) );
-    /* =================================================== */
-
-    /* =================================================== */
-    for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
-    {
-        xARPCache[ i ].ulIPAddress = 0xAABBCCDD;
-        xARPCache[ i ].ucAge = i + 1;
-        xARPCache[ i ].ucValid = pdFALSE;
-        memset( xARPCache[ i ].xMACAddress.ucBytes, 0x34, sizeof( xMACAddress.ucBytes ) );
-    }
-
-    xUseEntry = 0;
-
-    ulIPAddress = 0xAABBCCEE;
-    memset( xMACAddress.ucBytes, 0x22, ipMAC_ADDRESS_LENGTH_BYTES );
-    /* Pass a MAC and IP Address which won't match, but age is now a factor. */
-    vARPRefreshCacheEntry( &xMACAddress, ulIPAddress );
-
-    /* Since no matching entry will be found with smallest age (i.e. oldest), 0th entry will be updated to have the below details. */
-    TEST_ASSERT_EQUAL_MESSAGE( ipconfigMAX_ARP_AGE, xARPCache[ xUseEntry ].ucAge, "Test 8" );
-    TEST_ASSERT_EQUAL( ( uint8_t ) pdTRUE, xARPCache[ xUseEntry ].ucValid );
-    TEST_ASSERT_EQUAL_MEMORY( xMACAddress.ucBytes, xARPCache[ xUseEntry ].xMACAddress.ucBytes, sizeof( xMACAddress.ucBytes ) );
-    /* =================================================== */
+void test_vARPRefreshCacheEntry_IPAndMACInDifferentLocations( void )
+{
+    MACAddress_t xMACAddress;
+    uint32_t ulIPAddress;
+    int i;
+    BaseType_t xUseEntry;
 
     /* =================================================== */
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -445,7 +495,7 @@ void test_vARPRefreshCacheEntry( void )
     /* =================================================== */
 }
 
-void test_eARPGetCacheEntryByMac( void )
+void test_eARPGetCacheEntryByMac_NoMatchingEntries( void )
 {
     uint32_t ulIPAddress = 0x12345678, ulEntryToTest;
     eARPLookupResult_t eResult;
@@ -468,6 +518,14 @@ void test_eARPGetCacheEntryByMac( void )
     TEST_ASSERT_EQUAL( eARPCacheMiss, eResult );
     TEST_ASSERT_EQUAL( 0x12345678, ulIPAddress );
     /* =================================================== */
+}
+
+void test_eARPGetCacheEntryByMac_OneMatchingEntry( void )
+{
+    uint32_t ulIPAddress = 0x12345678, ulEntryToTest;
+    eARPLookupResult_t eResult;
+    MACAddress_t xMACAddress = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
+    int i;
 
     /* =================================================== */
     /* Make sure one entry matches. */
@@ -486,30 +544,12 @@ void test_eARPGetCacheEntryByMac( void )
     /* =================================================== */
 }
 
-void test_eARPGetCacheEntry( void )
+void test_eARPGetCacheEntry_IPMatchesBroadcastAddr( void )
 {
     uint32_t ulIPAddress;
     MACAddress_t xMACAddress;
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
-
-    /* =================================================== */
-    ulIPAddress = 0x1234;
-    /* Not worried about what these functions do. */
-    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 1UL );
-    vSetMultiCastIPv4MacAddress_Ignore();
-    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
-    TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 1" );
-    /* =================================================== */
-
-    /* =================================================== */
-    ulIPAddress = ipBROADCAST_IP_ADDRESS;
-    /* Not worried about what these functions do. */
-    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
-    TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 2" );
-    TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &xBroadcastMACAddress, &xMACAddress, sizeof( xMACAddress ), "Test 2" );
-    /* =================================================== */
 
     /* =================================================== */
     ulIPAddress = xNetworkAddressing.ulBroadcastAddress;
@@ -519,6 +559,31 @@ void test_eARPGetCacheEntry( void )
     TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 3" );
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &xBroadcastMACAddress, &xMACAddress, sizeof( xMACAddress ), "Test 3" );
     /* =================================================== */
+}
+
+void test_eARPGetCacheEntry_IPMatchesOtherBroadcastAddr( void )
+{
+    uint32_t ulIPAddress;
+    MACAddress_t xMACAddress;
+    eARPLookupResult_t eResult;
+    uint32_t ulSavedGatewayAddress;
+
+    /* =================================================== */
+    ulIPAddress = ipBROADCAST_IP_ADDRESS;
+    /* Not worried about what these functions do. */
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
+    TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 3" );
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &xBroadcastMACAddress, &xMACAddress, sizeof( xMACAddress ), "Test 3" );
+    /* =================================================== */
+}
+
+void test_eARPGetCacheEntry_LocalIPIsZero( void )
+{
+    uint32_t ulIPAddress;
+    MACAddress_t xMACAddress;
+    eARPLookupResult_t eResult;
+    uint32_t ulSavedGatewayAddress;
 
     /* =================================================== */
     *ipLOCAL_IP_ADDRESS_POINTER = 0;
@@ -528,6 +593,14 @@ void test_eARPGetCacheEntry( void )
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
     TEST_ASSERT_EQUAL_MESSAGE( eCantSendPacket, eResult, "Test 4" );
     /* =================================================== */
+}
+
+void test_eARPGetCacheEntry_LocalIPMatchesReceivedIP( void )
+{
+    uint32_t ulIPAddress;
+    MACAddress_t xMACAddress;
+    eARPLookupResult_t eResult;
+    uint32_t ulSavedGatewayAddress;
 
     /* =================================================== */
     *ipLOCAL_IP_ADDRESS_POINTER = 0x1234;
@@ -537,6 +610,14 @@ void test_eARPGetCacheEntry( void )
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
     TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 5" );
     /* =================================================== */
+}
+
+void test_eARPGetCacheEntry_MatchingInvalidEntry( void )
+{
+    uint32_t ulIPAddress;
+    MACAddress_t xMACAddress;
+    eARPLookupResult_t eResult;
+    uint32_t ulSavedGatewayAddress;
 
     /* =================================================== */
     ulIPAddress = 0x4321;
@@ -551,6 +632,14 @@ void test_eARPGetCacheEntry( void )
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
     TEST_ASSERT_EQUAL_MESSAGE( eCantSendPacket, eResult, "Test 6" );
     /* =================================================== */
+}
+
+void test_eARPGetCacheEntry_MatchingValidEntry( void )
+{
+    uint32_t ulIPAddress;
+    MACAddress_t xMACAddress;
+    eARPLookupResult_t eResult;
+    uint32_t ulSavedGatewayAddress;
 
     /* =================================================== */
     ulIPAddress = 0x4321;
@@ -566,6 +655,14 @@ void test_eARPGetCacheEntry( void )
     TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 7" );
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &xARPCache[ 1 ].xMACAddress, &xMACAddress, sizeof( xMACAddress ), "Test 7" );
     /* =================================================== */
+}
+
+void test_eARPGetCacheEntry_GatewayAddressZero( void )
+{
+    uint32_t ulIPAddress;
+    MACAddress_t xMACAddress;
+    eARPLookupResult_t eResult;
+    uint32_t ulSavedGatewayAddress;
 
     /* =================================================== */
     for( int i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -575,20 +672,6 @@ void test_eARPGetCacheEntry( void )
 
     ulSavedGatewayAddress = xNetworkAddressing.ulGatewayAddress;
     xNetworkAddressing.ulGatewayAddress = 0;
-    /* Make IP address param == 0 */
-    ulIPAddress = 0;
-    /* Make both values (IP address and local IP pointer) different. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0x1234;
-    /* Not worried about what these functions do. */
-    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
-    xNetworkAddressing.ulGatewayAddress = ulSavedGatewayAddress;
-    TEST_ASSERT_EQUAL_MESSAGE( eCantSendPacket, eResult, "Test 8" );
-    /* =================================================== */
-
-    /* =================================================== */
-    ulSavedGatewayAddress = xNetworkAddressing.ulGatewayAddress;
-    xNetworkAddressing.ulGatewayAddress = 0;
     ulIPAddress = 0x4321;
     /* Not worried about what these functions do. */
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
@@ -596,17 +679,14 @@ void test_eARPGetCacheEntry( void )
     xNetworkAddressing.ulGatewayAddress = ulSavedGatewayAddress;
     TEST_ASSERT_EQUAL_MESSAGE( eARPCacheMiss, eResult, "Test 9" );
     /* =================================================== */
+}
 
-    /* =================================================== */
-    /* Make both values (IP address and local IP pointer) different. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0x1234;
-    /* Get any address on the same netmask. */
-    ulIPAddress = ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) + 10;
-    /* Not worried about what these functions do. */
-    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
-    TEST_ASSERT_EQUAL_MESSAGE( eARPCacheMiss, eResult, "Test 10" );
-    /* =================================================== */
+void test_eARPGetCacheEntry_AddressNotOnLocalAddress( void )
+{
+    uint32_t ulIPAddress;
+    MACAddress_t xMACAddress;
+    eARPLookupResult_t eResult;
+    uint32_t ulSavedGatewayAddress;
 
     /* =================================================== */
     ulIPAddress = 0;
@@ -619,6 +699,14 @@ void test_eARPGetCacheEntry( void )
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
     TEST_ASSERT_EQUAL_MESSAGE( eCantSendPacket, eResult, "Test 11" );
     /* =================================================== */
+}
+
+void test_eARPGetCacheEntry_NoCacheHit( void )
+{
+    uint32_t ulIPAddress;
+    MACAddress_t xMACAddress;
+    eARPLookupResult_t eResult;
+    uint32_t ulSavedGatewayAddress;
 
     /* =================================================== */
     for( int i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -639,7 +727,7 @@ void test_eARPGetCacheEntry( void )
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
     xNetworkAddressing.ulGatewayAddress = ulSavedGatewayAddress;
-    TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 8" );
+    TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
     /* =================================================== */
 }
 
@@ -747,7 +835,7 @@ void vStoreTimeValue( TimeOut_t * const timeout,
     timeout->xTimeOnEntering = 100;
 }
 
-void test_xARPWaitResolution( void )
+void test_xARPWaitResolution_PrivateFunctionReturnsHit( void )
 {
     uint32_t ulIPAddress = 0xAAAAAAAA;
     BaseType_t xResult;
@@ -772,6 +860,13 @@ void test_xARPWaitResolution( void )
     xResult = xARPWaitResolution( ulIPAddress, 0 );
     TEST_ASSERT_EQUAL( xResult, 0 );
     /* =================================================== */
+}
+
+void test_xARPWaitResolution_GNWFailsNoTimeout( void )
+{
+    uint32_t ulIPAddress = 0xAAAAAAAA;
+    BaseType_t xResult;
+    int i;
 
     /* Make the resolution fail with maximum tryouts. */
     /* =================================================== */
@@ -805,6 +900,13 @@ void test_xARPWaitResolution( void )
     xResult = xARPWaitResolution( ulIPAddress, 0 );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EADDRNOTAVAIL, xResult );
     /* =================================================== */
+}
+
+void test_xARPWaitResolution( void )
+{
+    uint32_t ulIPAddress = 0xAAAAAAAA;
+    BaseType_t xResult;
+    int i;
 
     /* Make the resolution fail after some attempts due to timeout. */
     /* =================================================== */

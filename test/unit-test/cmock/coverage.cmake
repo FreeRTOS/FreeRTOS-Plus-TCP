@@ -57,6 +57,7 @@ execute_process(
                          --output-file ${CMAKE_BINARY_DIR}/second_coverage.info
         )
 
+# Remove existing coverage file.
 execute_process(
             COMMAND rm -f ${CMAKE_BINARY_DIR}/coverage.info
         )
