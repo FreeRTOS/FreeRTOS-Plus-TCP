@@ -350,11 +350,7 @@
  * If no DHCP server responds, use "Auto-IP" : the
  * device will allocate a random LinkLayer IP address.
  */
-    #define ipconfigDHCP_FALL_BACK_AUTO_IP    ( 0 )
-#endif
-
-#if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-    #define ipconfigARP_USE_CLASH_DETECTION    1
+    #define ipconfigDHCP_FALL_BACK_AUTO_IP    ( 1 )
 #endif
 
 #ifndef ipconfigARP_USE_CLASH_DETECTION
