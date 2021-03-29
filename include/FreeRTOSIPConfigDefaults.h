@@ -396,7 +396,13 @@
 #endif
 
 #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-    #define ipconfigARP_USE_CLASH_DETECTION    1
+    #ifndef ipconfigARP_USE_CLASH_DETECTION
+        #define ipconfigARP_USE_CLASH_DETECTION    1
+    #else
+        #if ( ipconfigARP_USE_CLASH_DETECTION != 1 )
+            #error ipconfigARP_USE_CLASH_DETECTION should be defined as 1 when AUTO_IP is used.
+        #endif
+    #endif
 #endif
 
 #ifndef ipconfigARP_USE_CLASH_DETECTION
