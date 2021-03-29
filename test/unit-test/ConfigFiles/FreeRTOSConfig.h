@@ -77,7 +77,6 @@
 #define configMAX_PRIORITIES                             ( 7 )
 
 /* Run time stats gathering configuration options. */
-
 #define configGENERATE_RUN_TIME_STATS             1
 
 /* Co-routine related configuration options. */

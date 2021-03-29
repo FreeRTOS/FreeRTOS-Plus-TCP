@@ -36,7 +36,6 @@
 
     #include "FreeRTOS_Sockets.h"
 
-
     #if ( ipconfigUSE_DHCP != 0 ) && ( ipconfigNETWORK_MTU < 586U )
 
 /* DHCP must be able to receive an options field of 312 bytes, the fixed
@@ -154,7 +153,6 @@
     }
     #include "pack_struct_end.h"
     typedef struct xDHCPMessage_IPv4 DHCPMessage_IPv4_t;
-
 
     #if ( ipconfigUSE_DHCP_HOOK != 0 )
         /* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */

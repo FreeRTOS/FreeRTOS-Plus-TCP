@@ -56,8 +56,21 @@
     #define ipNBNS_PORT            137 /* NetBIOS Name Service. */
     #define ipNBDGM_PORT           138 /* Datagram Service, not included. */
 
-    #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
+    #if ( ipconfigUSE_DNS_CACHE == 1 )
+        typedef struct xDNS_CACHE_TABLE_ROW
+        {
+            uint32_t ulIPAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ]; /* The IP address(es) of an ARP cache entry. */
+            char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                    /* The name of the host */
+            uint32_t ulTTL;                                                  /* Time-to-Live (in seconds) from the DNS server. */
+            uint32_t ulTimeWhenAddedInSeconds;
+            #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
+                uint8_t ucNumIPAddresses;
+                uint8_t ucCurrentIPAddress;
+            #endif
+        } DNSCacheRow_t;
+    #endif
 
+    #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
 /*
  * The following function should be provided by the user and return true if it
  * matches the domain name.
@@ -117,6 +130,17 @@
                                            void * pvSearchID,
                                            TickType_t uxTimeout );
         void FreeRTOS_gethostbyname_cancel( void * pvSearchID );
+
+        /** @brief The structure to hold information for a DNS callback. */
+        typedef struct xDNS_Callback
+        {
+            TickType_t uxRemaningTime;     /**< Timeout in ms */
+            FOnDNSEvent pCallbackFunction; /**< Function to be called when the address has been found or when a timeout has been reached */
+            TimeOut_t uxTimeoutState;      /**< Timeout state. */
+            void * pvSearchID;             /**< Search ID of the callback function. */
+            struct xLIST_ITEM xListItem;   /**< List struct. */
+            char pcName[ 1 ];              /**< 1 character name. */
+        } DNSCallback_t;
 
     #endif /* if ( ipconfigDNS_USE_CALLBACKS != 0 ) */
 

@@ -144,7 +144,8 @@ endfunction()
 function(create_real_library target
                              src_file
                              real_include_list
-                             mock_name)
+                             mock_name
+                             additional_compile_flags)
     add_library(${target} STATIC
             ${src_file}
         )
@@ -154,7 +155,7 @@ function(create_real_library target
     set_target_properties(${target} PROPERTIES
                 COMPILE_FLAGS "-O0 -Wextra -Wpedantic \
                     -fprofile-arcs -ftest-coverage -fprofile-generate \
-                    -Wno-unused-but-set-variable"
+                    -Wno-unused-but-set-variable -ggdb ${additional_compile_flags}"
                 LINK_FLAGS "-fprofile-arcs -ftest-coverage \
                     -fprofile-generate "
                 ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
