@@ -36,6 +36,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
+#include "list.h"
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
@@ -211,19 +212,7 @@
                                               uint32_t ulTTL,
                                               BaseType_t xLookUp );
 
-        typedef struct xDNS_CACHE_TABLE_ROW
-        {
-            uint32_t ulIPAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ]; /* The IP address(es) of an ARP cache entry. */
-            char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                    /* The name of the host */
-            uint32_t ulTTL;                                                  /* Time-to-Live (in seconds) from the DNS server. */
-            uint32_t ulTimeWhenAddedInSeconds;
-            #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-                uint8_t ucNumIPAddresses;
-                uint8_t ucCurrentIPAddress;
-            #endif
-        } DNSCacheRow_t;
-
-        static DNSCacheRow_t xDNSCache[ ipconfigDNS_CACHE_ENTRIES ];
+        _static DNSCacheRow_t xDNSCache[ ipconfigDNS_CACHE_ENTRIES ];
 
 /* Utility function: Clear DNS cache by calling this function. */
         void FreeRTOS_dnsclear( void )
@@ -408,18 +397,6 @@
 
     #if ( ipconfigDNS_USE_CALLBACKS == 1 )
 
-/** @brief The structure to hold information for a DNS callback. */
-        typedef struct xDNS_Callback
-        {
-            TickType_t uxRemaningTime;     /**< Timeout in ms */
-            FOnDNSEvent pCallbackFunction; /**< Function to be called when the address has been found or when a timeout has been reached */
-            TimeOut_t uxTimeoutState;      /**< Timeout state. */
-            void * pvSearchID;             /**< Search ID of the callback function. */
-            struct xLIST_ITEM xListItem;   /**< List struct. */
-            char pcName[ 1 ];              /**< 1 character name. */
-        } DNSCallback_t;
-
-
 /**
  * @brief Utility function to cast pointer of a type to pointer of type DNSCallback_t.
  *
@@ -431,7 +408,7 @@
         }
 
 /** @brief The list of all callback structures. */
-        static List_t xCallbackList;
+        _static List_t xCallbackList;
 
 /**
  * @brief Define FreeRTOS_gethostbyname() as a normal blocking call.
@@ -2036,12 +2013,20 @@
                                 /*  Also perform a final modulo by the max number of IP addresses    */
                                 /*  per DNS cache entry to prevent out-of-bounds access in the event */
                                 /*  that ucNumIPAddresses has been corrupted.                        */
+                                if( xDNSCache[x ].ucNumIPAddresses == 0 )
+                                {
+                                    /* Trying lookup before cache is updated with the number of IP
+                                     * addressed? Maybe an accident. Break out of the loop. */
+                                    break;
+                                }
+
                                 ucIndex = xDNSCache[ x ].ucCurrentIPAddress % xDNSCache[ x ].ucNumIPAddresses;
                                 ucIndex = ucIndex % ( uint8_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
                                 ulIPAddressIndex = ucIndex;
 
                                 xDNSCache[ x ].ucCurrentIPAddress++;
                             #endif /* if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 ) */
+
                             *pulIP = xDNSCache[ x ].ulIPAddresses[ ulIPAddressIndex ];
                         }
                         else

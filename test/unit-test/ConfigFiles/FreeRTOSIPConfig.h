@@ -301,14 +301,16 @@ extern uint32_t ulRand();
 
 #define ipconfigUSE_LLMNR                        ( 1 )
 
-#define ipconfigDNS_USE_CALLBACKS                1
-#define ipconfigUSE_ARP_REMOVE_ENTRY             1
-#define ipconfigUSE_ARP_REVERSED_LOOKUP          1
+#define ipconfigDNS_USE_CALLBACKS                ( 1 )
+#define ipconfigUSE_ARP_REMOVE_ENTRY             ( 1 )
+#define ipconfigUSE_ARP_REVERSED_LOOKUP          ( 1 )
 
 #define ipconfigETHERNET_MINIMUM_PACKET_BYTES    ( 200 )
 
 #define ipconfigARP_STORES_REMOTE_ADDRESSES      ( 1 )
 
 #define ipconfigARP_USE_CLASH_DETECTION          ( 1 )
+
+#define ipconfigDNS_CACHE_ENTRIES                ( 6 )
 
 #endif /* FREERTOS_IP_CONFIG_H */

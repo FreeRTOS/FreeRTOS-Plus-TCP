@@ -419,7 +419,7 @@
     #endif
 
     #ifndef ipconfigDNS_CACHE_ENTRIES
-        #define ipconfigDNS_CACHE_ENTRIES    1
+        #define ipconfigDNS_CACHE_ENTRIES    6
     #endif
 #endif /* ipconfigUSE_DNS_CACHE != 0 */
 
