@@ -1813,6 +1813,7 @@
                     uint16_t usLength;
                     DNSMessage_t * pxMessage;
                     NBNSAnswer_t * pxAnswer;
+                    NetworkBufferDescriptor_t * pxNewBuffer = NULL;
 
                     /* Someone is looking for a device with ucNBNSName,
                      * prepare a positive reply. */
@@ -1820,8 +1821,6 @@
 
                     if( ( xBufferAllocFixedSize == pdFALSE ) && ( pxNetworkBuffer != NULL ) )
                     {
-                        NetworkBufferDescriptor_t * pxNewBuffer;
-
                         /* The field xDataLength was set to the total length of the UDP packet,
                          * i.e. the payload size plus sizeof( UDPPacket_t ). */
                         pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, pxNetworkBuffer->xDataLength + sizeof( NBNSAnswer_t ) );
