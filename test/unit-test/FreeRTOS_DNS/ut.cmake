@@ -9,6 +9,9 @@ message( STATUS "${project_name}" )
 
 # =====================  Create your mock here  (edit)  ========================
 
+# clearing the list
+set( mock_list "" )
+
 # list the files to mock here
 list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
@@ -23,6 +26,7 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/unit-test/FreeRTOS_DNS/list_macros.h"
             "${MODULE_ROOT_DIR}/test/unit-test/FreeRTOS_DNS/portable_functions.h"
         )
+
 # list the directories your mocks need
 list(APPEND mock_include_list
             .
@@ -40,6 +44,9 @@ list(APPEND mock_define_list
 
 # ================= Create the library under test here (edit) ==================
 
+# clearing the list
+set( real_source_files "" )
+
 # list the files you would like to test here
 list(APPEND real_source_files
             ${MODULE_ROOT_DIR}/FreeRTOS_DNS.c
@@ -54,6 +61,9 @@ list(APPEND real_include_directories
             ${CMOCK_DIR}/vendor/unity/src
             ${MODULE_ROOT_DIR}/test/unit-test/FreeRTOS_DNS
 	)
+
+#clearing the list
+set( test_compile_options "" )
 
 # Add any additional compile flags you might need for the test.
 list(APPEND test_compile_options
