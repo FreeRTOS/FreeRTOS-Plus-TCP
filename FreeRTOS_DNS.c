@@ -228,21 +228,6 @@
 
 /*-----------------------------------------------------------*/
 
-/* Below #include just tells the compiler to pack the structure.
- * It is included in to make the code more readable */
-    #include "pack_struct_start.h"
-    struct xDNSMessage
-    {
-        uint16_t usIdentifier;    /**< Query identifier. Used to match up replies to outstanding queries. */
-        uint16_t usFlags;         /**< Flags. */
-        uint16_t usQuestions;     /**< Number of questions asked in this query. */
-        uint16_t usAnswers;       /**< Number of answers being provided in this query. */
-        uint16_t usAuthorityRRs;  /**< Authoritative name server resource records. */
-        uint16_t usAdditionalRRs; /**< Additional resource records.*/
-    }
-    #include "pack_struct_end.h"
-    typedef struct xDNSMessage DNSMessage_t;
-
 /**
  * @brief Utility function to cast pointer of a type to pointer of type DNSMessage_t.
  *

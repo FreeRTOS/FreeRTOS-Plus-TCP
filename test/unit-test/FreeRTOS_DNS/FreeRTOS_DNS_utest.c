@@ -97,6 +97,35 @@ static void vListInsertEnd_stub( List_t * const pxList,
     ( pxList->uxNumberOfItems )++;
 }
 
+static uint8_t * ucGenericPtr;
+static int32_t ulGenericLength;
+static int32_t FreeRTOS_recvfrom_Generic( Socket_t xSocket,
+                                          void * pvBuffer,
+                                          size_t uxBufferLength,
+                                          BaseType_t xFlags,
+                                          struct freertos_sockaddr * pxSourceAddress,
+                                          socklen_t * pxSourceAddressLength,
+                                          int callbacks )
+{
+    if( xFlags == FREERTOS_ZERO_COPY )
+    {
+        *( ( uint8_t ** ) pvBuffer ) = ucGenericPtr;
+    }
+
+    return ulGenericLength;
+}
+
+static uint32_t RNGtoReturn;
+static BaseType_t RNGstatus;
+static BaseType_t xApplicationGetRandomNumber_Generic( uint32_t * pulPointer, int callbacks )
+{
+    *pulPointer = RNGtoReturn;
+    
+    return RNGstatus;
+}
+
+
+
 
 
 
@@ -587,22 +616,6 @@ void test_FreeRTOS_gethostbyname_VeryLongName(void)
     TEST_ASSERT_EQUAL( ulReturn,0 );
 }
 
-void test_FreeRTOS_gethostbyname_a_(void)
-{
-    const char * pcHostName = "TestHostName";
-    FOnDNSEvent pCallback = CallBackFunction_CalledXTimes;
-    void * pvSearchID;
-    TickType_t uxTimeout;
-
-    /* Hostname is expected. */
-    FreeRTOS_inet_addr_ExpectAndReturn( pcHostName, 0 );
-
-    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn(pdTRUE);
-
-    FreeRTOS_gethostbyname_a( pcHostName, pCallback, pvSearchID, uxTimeout );
-}
-
-
 void test_FreeRTOS_gethostbyname_cancel(void)
 {
     ListItem_t xLocalList;
@@ -616,3 +629,472 @@ void test_FreeRTOS_gethostbyname_cancel(void)
     listLIST_IS_EMPTY_ExpectAndReturn(&xCallbackList,pdFALSE);
     FreeRTOS_gethostbyname_cancel(NULL);
 }
+
+void test_FreeRTOS_gethostbyname_a_inetaddrsuccess(void)
+{
+    const char * pcHostName = "TestHostName";
+    FOnDNSEvent pCallback = CallBackFunction_CalledXTimes;
+    void * pvSearchID;
+    TickType_t uxTimeout;
+    uint32_t ulIPAddr = 0x12345678;
+    uint32_t ulResult;
+
+    /* Ex[ect the function to be called once. */
+    CallBackFunction_CallCount = 1;
+    
+    /* Hostname is expected. */
+    FreeRTOS_inet_addr_ExpectAndReturn( pcHostName, ulIPAddr );
+
+    ulResult = FreeRTOS_gethostbyname_a( pcHostName, pCallback, pvSearchID, uxTimeout );
+    
+    TEST_ASSERT_EQUAL( ulIPAddr, ulResult);
+}
+
+void test_FreeRTOS_gethostbyname_a_inetaddrfails_mallocfails_socketfails(void)
+{
+    const char * pcHostName = "TestHostName";
+    FOnDNSEvent pCallback = CallBackFunction_CalledXTimes;
+    void * pvSearchID;
+    TickType_t uxTimeout = 1231;
+    uint32_t ulIPAddr = 0x12345678;
+    uint32_t ulResult;
+
+    /* Ex[ect the function to be called once. */
+    CallBackFunction_CallCount = 1;
+    
+    /* Hostname is expected. */
+    FreeRTOS_inet_addr_ExpectAndReturn( pcHostName, 0 );
+    
+    /* Clear the DNS cache so that nothing matches. */
+    memset(xDNSCache, 0, sizeof(xDNSCache));
+    
+    /* Since the above failed, DNS lookup should be called which will note the current time. */
+    xTaskGetTickCount_ExpectAndReturn( uxTimeout );
+    
+    /* since inet address call failed, RNG should be called. */
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn(pdTRUE);
+    
+    /* Make malloc fail. */
+    pvPortMalloc_ExpectAnyArgsAndReturn(NULL);
+    
+    /* Make the call to socket fail. */
+    FreeRTOS_socket_ExpectAnyArgsAndReturn(NULL);
+    xSocketValid_ExpectAndReturn( NULL, pdFALSE );
+
+    ulResult = FreeRTOS_gethostbyname_a( pcHostName, pCallback, pvSearchID, uxTimeout );
+    
+    /* Since everything failed, 0 should have been returned. */
+    TEST_ASSERT_EQUAL( 0, ulResult);
+}
+
+void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_socketfails(void)
+{
+    const char * pcHostName = "someThing.com";
+    FOnDNSEvent pCallback = CallBackFunction_CalledXTimes;
+    void * pvSearchID;
+    TickType_t uxTimeout = 1231;
+    uint32_t ulIPAddr = 0x12345678;
+    uint32_t ulResult;
+
+    /* Ex[ect the function to be called once. */
+    CallBackFunction_CallCount = 1;
+    
+    /* Hostname is expected. */
+    FreeRTOS_inet_addr_ExpectAndReturn( pcHostName, 0 );
+    
+    /* Clear the DNS cache so that nothing matches. */
+    memset(xDNSCache, 0, sizeof(xDNSCache));
+    
+    /* Since the above failed, DNS lookup should be called which will note the current time. */
+    xTaskGetTickCount_ExpectAndReturn( uxTimeout );
+    
+    /* since inet address call failed, RNG should be called. */
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn(pdTRUE);
+    
+    /* Make malloc fail. */
+    pvPortMalloc_ExpectAnyArgsAndReturn(NULL);
+    
+    /* Make the call to socket fail. */
+    FreeRTOS_socket_ExpectAnyArgsAndReturn(NULL);
+    xSocketValid_ExpectAndReturn( NULL, pdFALSE );
+
+    ulResult = FreeRTOS_gethostbyname_a( pcHostName, pCallback, pvSearchID, uxTimeout );
+    
+    /* Since everything failed, 0 should have been returned. */
+    TEST_ASSERT_EQUAL( 0, ulResult);
+}
+
+void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_socketBindfails(void)
+{
+    const char * pcHostName = "someThing.com";
+    FOnDNSEvent pCallback = CallBackFunction_CalledXTimes;
+    void * pvSearchID;
+    TickType_t uxTimeout = 1231;
+    uint32_t ulIPAddr = 0x12345678;
+    uint32_t ulResult;
+    Socket_t xLocalSocket;
+
+    /* Ex[ect the function to be called once. */
+    CallBackFunction_CallCount = 1;
+    
+    /* Hostname is expected. */
+    FreeRTOS_inet_addr_ExpectAndReturn( pcHostName, 0 );
+    
+    /* Clear the DNS cache so that nothing matches. */
+    memset(xDNSCache, 0, sizeof(xDNSCache));
+    
+    /* Since the above failed, DNS lookup should be called which will note the current time. */
+    xTaskGetTickCount_ExpectAndReturn( uxTimeout );
+    
+    /* since inet address call failed, RNG should be called. */
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn(pdTRUE);
+    
+    /* Make malloc fail. */
+    pvPortMalloc_ExpectAnyArgsAndReturn(NULL);
+    
+    /* Make the call to socket fail. */
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, xLocalSocket );
+    xSocketValid_ExpectAndReturn( xLocalSocket, pdTRUE );
+    /* Make socket bind fail. */
+    FreeRTOS_bind_ExpectAnyArgsAndReturn( 100 );
+    /* Expect the socket to be closed. Return any value. */
+    FreeRTOS_closesocket_ExpectAndReturn(xLocalSocket, 0);
+
+    ulResult = FreeRTOS_gethostbyname_a( pcHostName, pCallback, pvSearchID, uxTimeout );
+    
+    /* Since everything failed, 0 should have been returned. */
+    TEST_ASSERT_EQUAL( 0, ulResult);
+}
+
+void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_GNWFails(void)
+{
+    const char * pcHostName = "someThing.com";
+    FOnDNSEvent pCallback = CallBackFunction_CalledXTimes;
+    void * pvSearchID;
+    TickType_t uxTimeout = 1231;
+    uint32_t ulIPAddr = 0x12345678;
+    uint32_t ulResult;
+    Socket_t xLocalSocket;
+
+    /* Ex[ect the function to be called once. */
+    CallBackFunction_CallCount = 1;
+    
+    /* Hostname is expected. */
+    FreeRTOS_inet_addr_ExpectAndReturn( pcHostName, 0 );
+    
+    /* Clear the DNS cache so that nothing matches. */
+    memset(xDNSCache, 0, sizeof(xDNSCache));
+    
+    /* Since the above failed, DNS lookup should be called which will note the current time. */
+    xTaskGetTickCount_ExpectAndReturn( uxTimeout );
+    
+    /* since inet address call failed, RNG should be called. */
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn(pdTRUE);
+    
+    /* Make malloc fail. */
+    pvPortMalloc_ExpectAnyArgsAndReturn(NULL);
+    
+    /* Make the call to socket fail. */
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, xLocalSocket );
+    xSocketValid_ExpectAndReturn( xLocalSocket, pdTRUE );
+    /* Make socket bind succeed. */
+    FreeRTOS_bind_ExpectAnyArgsAndReturn( 0 );
+
+    /* Expect the arguments. */
+    FreeRTOS_setsockopt_ExpectAndReturn( xLocalSocket, 0, FREERTOS_SO_SNDTIMEO, NULL, sizeof( TickType_t ), 0 );
+    /* Ignore this option since this is local argument. */
+    FreeRTOS_setsockopt_IgnoreArg_pvOptionValue();
+    
+    /* Expect the arguments. */
+    FreeRTOS_setsockopt_ExpectAndReturn( xLocalSocket, 0, FREERTOS_SO_RCVTIMEO, NULL, sizeof( TickType_t ), 0 );
+    /* Ignore this option since this is local argument. */
+    FreeRTOS_setsockopt_IgnoreArg_pvOptionValue();
+    
+    /* Make the network buffer descriptor fail. */
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    
+    FreeRTOS_closesocket_ExpectAndReturn( xLocalSocket,0);
+    
+    ulResult = FreeRTOS_gethostbyname_a( pcHostName, pCallback, pvSearchID, uxTimeout );
+    
+    /* Since everything failed, 0 should have been returned. */
+    TEST_ASSERT_EQUAL( 0, ulResult);
+}
+
+void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_GNWSucceeds_sendfails(void)
+{
+    const char * pcHostName = "someThing.com";
+    FOnDNSEvent pCallback = CallBackFunction_CalledXTimes;
+    void * pvSearchID;
+    TickType_t uxTimeout = 1231;
+    uint32_t ulIPAddr = 0x12345678;
+    uint32_t ulResult;
+    Socket_t xLocalSocket;
+    NetworkBufferDescriptor_t xLocalNetworkBuffer;
+    uint8_t xLocalEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER +
+                                  ipSIZE_OF_UDP_HEADER + 20 /* sizeof( DNSMessage_t ) */ +
+                                  strlen( pcHostName ) + sizeof( uint16_t ) +
+                                  sizeof( uint16_t ) + 2U];
+
+    /* Set the ethernet buffer. */
+    xLocalNetworkBuffer.pucEthernetBuffer = xLocalEthernetBuffer;
+
+    /* Ex[ect the function to be called once. */
+    CallBackFunction_CallCount = 1;
+    
+    /* Hostname is expected. */
+    FreeRTOS_inet_addr_ExpectAndReturn( pcHostName, 0 );
+    
+    /* Clear the DNS cache so that nothing matches. */
+    memset(xDNSCache, 0, sizeof(xDNSCache));
+    
+    /* Since the above failed, DNS lookup should be called which will note the current time. */
+    xTaskGetTickCount_ExpectAndReturn( uxTimeout );
+    
+    /* since inet address call failed, RNG should be called. */
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn(pdTRUE);
+    
+    /* Make malloc fail. */
+    pvPortMalloc_ExpectAnyArgsAndReturn(NULL);
+    
+    /* Make the call to socket fail. */
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, xLocalSocket );
+    xSocketValid_ExpectAndReturn( xLocalSocket, pdTRUE );
+    /* Make socket bind succeed. */
+    FreeRTOS_bind_ExpectAnyArgsAndReturn( 0 );
+
+    /* Expect the arguments. */
+    FreeRTOS_setsockopt_ExpectAndReturn( xLocalSocket, 0, FREERTOS_SO_SNDTIMEO, NULL, sizeof( TickType_t ), 0 );
+    /* Ignore this option since this is local argument. */
+    FreeRTOS_setsockopt_IgnoreArg_pvOptionValue();
+    
+    /* Expect the arguments. */
+    FreeRTOS_setsockopt_ExpectAndReturn( xLocalSocket, 0, FREERTOS_SO_RCVTIMEO, NULL, sizeof( TickType_t ), 0 );
+    /* Ignore this option since this is local argument. */
+    FreeRTOS_setsockopt_IgnoreArg_pvOptionValue();
+    
+    /* Make the network buffer descriptor succeed. */
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xLocalNetworkBuffer );
+    
+    /* Get the address configuration. Ignore the 4th argument. */
+    FreeRTOS_GetAddressConfiguration_Expect( NULL, NULL, NULL, NULL );
+    FreeRTOS_GetAddressConfiguration_IgnoreArg_pulDNSServerAddress();
+    
+    /* Make send fail. */
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn(0);
+    
+    vReleaseNetworkBufferAndDescriptor_Expect(&xLocalNetworkBuffer);
+    
+    FreeRTOS_closesocket_ExpectAndReturn( xLocalSocket,0);
+    
+    ulResult = FreeRTOS_gethostbyname_a( pcHostName, pCallback, pvSearchID, uxTimeout );
+    
+    /* Since everything failed, 0 should have been returned. */
+    TEST_ASSERT_EQUAL( 0, ulResult);
+}
+
+void test_FreeRTOS_gethostbyname_a_inetaddrfails_RNGfails(void)
+{
+    const char * pcHostName = "TestHostName";
+    FOnDNSEvent pCallback = CallBackFunction_CalledXTimes;
+    void * pvSearchID;
+    TickType_t uxTimeout = 1231;
+    uint32_t ulIPAddr = 0x12345678;
+    uint32_t ulResult;
+
+    /* Ex[ect the function to be called once. */
+    CallBackFunction_CallCount = 1;
+    
+    /* Hostname is expected. */
+    FreeRTOS_inet_addr_ExpectAndReturn( pcHostName, 0 );
+    
+    /* Clear the DNS cache so that nothing matches. */
+    memset(xDNSCache, 0, sizeof(xDNSCache));
+    
+    /* Since the above failed, DNS lookup should be called which will note the current time. */
+    xTaskGetTickCount_ExpectAndReturn( uxTimeout );
+    
+    /* since inet address call failed, RNG should be called. */
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn(pdFALSE);
+
+    ulResult = FreeRTOS_gethostbyname_a( pcHostName, pCallback, pvSearchID, uxTimeout );
+    
+    /* Since everything failed, 0 should have been returned. */
+    TEST_ASSERT_EQUAL( 0, ulResult);
+}
+
+
+
+void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_differentID(void)
+{
+    const char * pcHostName = "someThing.com";
+    FOnDNSEvent pCallback = CallBackFunction_CalledXTimes;
+    void * pvSearchID;
+    TickType_t uxTimeout = 1231;
+    uint32_t ulIPAddr = 0x12345678;
+    uint32_t ulResult;
+    struct xSOCKET xLocalSocket;
+    Socket_t xLocalSocketPtr = &xLocalSocket;
+    NetworkBufferDescriptor_t xLocalNetworkBuffer;
+    uint8_t xLocalEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER +
+                                  ipSIZE_OF_UDP_HEADER + 20 /* sizeof( DNSMessage_t ) */ +
+                                  strlen( pcHostName ) + sizeof( uint16_t ) +
+                                  sizeof( uint16_t ) + 2U];
+    uint8_t xLocalReceivedBuffer[200];
+
+    /* Set the ethernet buffer. */
+    xLocalNetworkBuffer.pucEthernetBuffer = xLocalEthernetBuffer;
+
+    /* Ex[ect the function to be called once. */
+    CallBackFunction_CallCount = 1;
+    
+    /* Hostname is expected. */
+    FreeRTOS_inet_addr_ExpectAndReturn( pcHostName, 0 );
+    
+    /* Clear the DNS cache so that nothing matches. */
+    memset(xDNSCache, 0, sizeof(xDNSCache));
+    
+    /* Since the above failed, DNS lookup should be called which will note the current time. */
+    xTaskGetTickCount_ExpectAndReturn( uxTimeout );
+    
+    /* since inet address call failed, RNG should be called. */
+    RNGtoReturn = 0x1234;
+    RNGstatus = pdTRUE;
+    xApplicationGetRandomNumber_Stub(xApplicationGetRandomNumber_Generic);
+    
+    /* Make malloc fail. */
+    pvPortMalloc_ExpectAnyArgsAndReturn(NULL);
+    
+    /* Make the call to socket succeed. */
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, xLocalSocketPtr );
+    xSocketValid_ExpectAndReturn( xLocalSocketPtr, pdTRUE );
+    /* Make socket bind succeed. */
+    FreeRTOS_bind_ExpectAnyArgsAndReturn( 0 );
+
+    /* Expect the arguments. */
+    FreeRTOS_setsockopt_ExpectAndReturn( xLocalSocketPtr, 0, FREERTOS_SO_SNDTIMEO, NULL, sizeof( TickType_t ), 0 );
+    /* Ignore this option since this is local argument. */
+    FreeRTOS_setsockopt_IgnoreArg_pvOptionValue();
+    
+    /* Expect the arguments. */
+    FreeRTOS_setsockopt_ExpectAndReturn( xLocalSocketPtr, 0, FREERTOS_SO_RCVTIMEO, NULL, sizeof( TickType_t ), 0 );
+    /* Ignore this option since this is local argument. */
+    FreeRTOS_setsockopt_IgnoreArg_pvOptionValue();
+    
+    /* Make the network buffer descriptor succeed. */
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xLocalNetworkBuffer );
+    
+    /* Get the address configuration. Ignore the 4th argument. */
+    FreeRTOS_GetAddressConfiguration_Expect( NULL, NULL, NULL, NULL );
+    FreeRTOS_GetAddressConfiguration_IgnoreArg_pulDNSServerAddress();
+    
+    /* Make send succeeds. */
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn(1);
+    
+    ucGenericPtr = xLocalReceivedBuffer;
+    ulGenericLength = 200;
+    
+    /* Make sure that identifiers don't match. */
+    DNSMessage_t * pxDNSMessageHeader = xLocalReceivedBuffer;
+    pxDNSMessageHeader->usIdentifier = RNGtoReturn + 1;
+    
+    /* Return non zero value. */
+    FreeRTOS_recvfrom_Stub(FreeRTOS_recvfrom_Generic);
+    
+    FreeRTOS_ReleaseUDPPayloadBuffer_Expect( xLocalReceivedBuffer );
+    
+    FreeRTOS_closesocket_ExpectAndReturn( xLocalSocketPtr,0);
+
+    ulResult = FreeRTOS_gethostbyname_a( pcHostName, pCallback, pvSearchID, uxTimeout );
+    
+    /* Since everything failed, 0 should have been returned. */
+    TEST_ASSERT_EQUAL( 0, ulResult);
+}
+
+void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_sameID(void)
+{
+    const char * pcHostName = "someThing.com";
+    FOnDNSEvent pCallback = CallBackFunction_CalledXTimes;
+    void * pvSearchID;
+    TickType_t uxTimeout = 1231;
+    uint32_t ulIPAddr = 0x12345678;
+    uint32_t ulResult;
+    struct xSOCKET xLocalSocket;
+    Socket_t xLocalSocketPtr = &xLocalSocket;
+    NetworkBufferDescriptor_t xLocalNetworkBuffer;
+    uint8_t xLocalEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER +
+                                  ipSIZE_OF_UDP_HEADER + 20 /* sizeof( DNSMessage_t ) */ +
+                                  strlen( pcHostName ) + sizeof( uint16_t ) +
+                                  sizeof( uint16_t ) + 2U];
+    uint8_t xLocalReceivedBuffer[200];
+
+    /* Set the ethernet buffer. */
+    xLocalNetworkBuffer.pucEthernetBuffer = xLocalEthernetBuffer;
+
+    /* Ex[ect the function to be called once. */
+    CallBackFunction_CallCount = 1;
+    
+    /* Hostname is expected. */
+    FreeRTOS_inet_addr_ExpectAndReturn( pcHostName, 0 );
+    
+    /* Clear the DNS cache so that nothing matches. */
+    memset(xDNSCache, 0, sizeof(xDNSCache));
+    
+    /* Since the above failed, DNS lookup should be called which will note the current time. */
+    xTaskGetTickCount_ExpectAndReturn( uxTimeout );
+    
+    /* since inet address call failed, RNG should be called. */
+    RNGtoReturn = 0x1234;
+    RNGstatus = pdTRUE;
+    xApplicationGetRandomNumber_Stub(xApplicationGetRandomNumber_Generic);
+    
+    /* Make malloc fail. */
+    pvPortMalloc_ExpectAnyArgsAndReturn(NULL);
+    
+    /* Make the call to socket succeed. */
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, xLocalSocketPtr );
+    xSocketValid_ExpectAndReturn( xLocalSocketPtr, pdTRUE );
+    /* Make socket bind succeed. */
+    FreeRTOS_bind_ExpectAnyArgsAndReturn( 0 );
+
+    /* Expect the arguments. */
+    FreeRTOS_setsockopt_ExpectAndReturn( xLocalSocketPtr, 0, FREERTOS_SO_SNDTIMEO, NULL, sizeof( TickType_t ), 0 );
+    /* Ignore this option since this is local argument. */
+    FreeRTOS_setsockopt_IgnoreArg_pvOptionValue();
+    
+    /* Expect the arguments. */
+    FreeRTOS_setsockopt_ExpectAndReturn( xLocalSocketPtr, 0, FREERTOS_SO_RCVTIMEO, NULL, sizeof( TickType_t ), 0 );
+    /* Ignore this option since this is local argument. */
+    FreeRTOS_setsockopt_IgnoreArg_pvOptionValue();
+    
+    /* Make the network buffer descriptor succeed. */
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xLocalNetworkBuffer );
+    
+    /* Get the address configuration. Ignore the 4th argument. */
+    FreeRTOS_GetAddressConfiguration_Expect( NULL, NULL, NULL, NULL );
+    FreeRTOS_GetAddressConfiguration_IgnoreArg_pulDNSServerAddress();
+    
+    /* Make send succeeds. */
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn(1);
+    
+    ucGenericPtr = xLocalReceivedBuffer;
+    ulGenericLength = 200;
+    
+    /* Make sure that identifiers match. */
+    DNSMessage_t * pxDNSMessageHeader = xLocalReceivedBuffer;
+    pxDNSMessageHeader->usIdentifier = RNGtoReturn;
+    
+    /* Return non zero value. */
+    FreeRTOS_recvfrom_Stub(FreeRTOS_recvfrom_Generic);
+    
+    FreeRTOS_ReleaseUDPPayloadBuffer_Expect( xLocalReceivedBuffer );
+    
+    FreeRTOS_closesocket_ExpectAndReturn( xLocalSocketPtr,0);
+
+    ulResult = FreeRTOS_gethostbyname_a( pcHostName, pCallback, pvSearchID, uxTimeout );
+    
+    /* Since everything failed, 0 should have been returned. */
+    TEST_ASSERT_EQUAL( 0, ulResult);
+}
+
+
