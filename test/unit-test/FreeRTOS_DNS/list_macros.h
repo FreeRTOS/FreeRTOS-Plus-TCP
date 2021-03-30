@@ -31,6 +31,9 @@
 #include <portmacro.h>
 #include <list.h>
 
+#undef listSET_LIST_ITEM_OWNER
+void listSET_LIST_ITEM_OWNER( ListItem_t * pxListItem, void * owner );
+
 #undef listGET_END_MARKER
 ListItem_t * listGET_END_MARKER( List_t * pxList );
 

@@ -36,6 +36,76 @@
     #include "IPTraceMacroDefaults.h"
 
 
+    #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
+        #define dnsDNS_PORT             0x3500U  /**< Little endian: Port used for DNS. */
+        #define dnsONE_QUESTION         0x0100U  /**< Little endian representation of a DNS question.*/
+        #define dnsOUTGOING_FLAGS       0x0001U  /**< Little endian representation of standard query. */
+        #define dnsRX_FLAGS_MASK        0x0f80U  /**< Little endian:  The bits of interest in the flags field of incoming DNS messages. */
+        #define dnsEXPECTED_RX_FLAGS    0x0080U  /**< Little Endian: Should be a response, without any errors. */
+    #else
+        #define dnsDNS_PORT             0x0035U  /**< Big endian: Port used for DNS. */
+        #define dnsONE_QUESTION         0x0001U  /**< Big endian representation of a DNS question.*/
+        #define dnsOUTGOING_FLAGS       0x0100U  /**< Big endian representation of standard query. */
+        #define dnsRX_FLAGS_MASK        0x800fU  /**< Big endian: The bits of interest in the flags field of incoming DNS messages. */
+        #define dnsEXPECTED_RX_FLAGS    0x8000U  /**< Big endian: Should be a response, without any errors. */
+
+    #endif /* ipconfigBYTE_ORDER */
+
+/** @brief The maximum number of times a DNS request should be sent out if a response
+ * is not received, before giving up. */
+    #ifndef ipconfigDNS_REQUEST_ATTEMPTS
+        #define ipconfigDNS_REQUEST_ATTEMPTS    5
+    #endif
+
+/** @brief If the top two bits in the first character of a name field are set then the
+ * name field is an offset to the string, rather than the string itself. */
+    #define dnsNAME_IS_OFFSET    ( ( uint8_t ) 0xc0 )
+
+/* NBNS flags. */
+    #if ( ipconfigUSE_NBNS == 1 )
+        #define dnsNBNS_FLAGS_RESPONSE        0x8000U /**< NBNS response flag. */
+        #define dnsNBNS_FLAGS_OPCODE_MASK     0x7800U /**< NBNS opcode bitmask. */
+        #define dnsNBNS_FLAGS_OPCODE_QUERY    0x0000U /**< NBNS opcode query. */
+    #endif /* ( ipconfigUSE_NBNS == 1 ) */
+
+/* Host types. */
+    #define dnsTYPE_A_HOST    0x01U /**< DNS type A host. */
+    #define dnsCLASS_IN       0x01U /**< DNS class IN (Internet). */
+
+    #ifndef _lint
+        /* LLMNR constants. */
+        #define dnsLLMNR_TTL_VALUE           300000UL /**< LLMNR time to live value. */
+        #define dnsLLMNR_FLAGS_IS_REPONSE    0x8000U  /**< LLMNR flag value for response. */
+    #endif /* _lint */
+
+/* NBNS constants. */
+    #if ( ipconfigUSE_NBNS != 0 )
+        #define dnsNBNS_TTL_VALUE               3600UL  /**< NBNS TTL: 1 hour valid. */
+        #define dnsNBNS_TYPE_NET_BIOS           0x0020U /**< NBNS Type: NetBIOS. */
+        #define dnsNBNS_CLASS_IN                0x01U   /**< NBNS Class: IN (Internet). */
+        #define dnsNBNS_NAME_FLAGS              0x6000U /**< NBNS name flags. */
+        #define dnsNBNS_ENCODED_NAME_LENGTH     32      /**< NBNS encoded name length. */
+
+/** @brief If the queried NBNS name matches with the device's name,
+ * the query will be responded to with these flags: */
+        #define dnsNBNS_QUERY_RESPONSE_FLAGS    ( 0x8500U )
+    #endif /* ( ipconfigUSE_NBNS != 0 ) */
+
+/** @brief Flag DNS parsing errors in situations where an IPv4 address is the return
+ * type. */
+    #define dnsPARSE_ERROR    0UL
+
+    #ifndef _lint
+        #if ( ipconfigUSE_DNS_CACHE == 0 )
+            #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY != 1 )
+                #error When DNS caching is disabled, please make ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY equal to 1.
+            #endif
+        #endif
+    #endif
+
+/** @brief Define the ASCII value of '.' (Period/Full-stop). */
+    #define ASCII_BASELINE_DOT    46U
+
 /* The Link-local Multicast Name Resolution (LLMNR)
  * is included.
  * Note that a special MAC address is required in addition to the NIC's actual
@@ -55,6 +125,19 @@
     #define ipDHCP_SERVER          68
     #define ipNBNS_PORT            137 /* NetBIOS Name Service. */
     #define ipNBDGM_PORT           138 /* Datagram Service, not included. */
+
+    /* DNS answer record header. */
+    #include "pack_struct_start.h"
+    struct xDNSAnswerRecord
+    {
+        uint16_t usType;       /**< Type of DNS answer record. */
+        uint16_t usClass;      /**< Class of DNS answer record. */
+        uint32_t ulTTL;        /**< Number of seconds the result can be cached. */
+        uint16_t usDataLength; /**< Length of the data field. */
+    }
+    #include "pack_struct_end.h"
+    typedef struct xDNSAnswerRecord DNSAnswerRecord_t;
+
 
     #if ( ipconfigUSE_DNS_CACHE == 1 )
         typedef struct xDNS_CACHE_TABLE_ROW
