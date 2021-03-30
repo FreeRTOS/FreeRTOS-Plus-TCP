@@ -176,7 +176,20 @@ BaseType_t xNetworkBuffersInitialise( void )
          * here */
         ipconfigBUFFER_ALLOC_INIT();
 
-        xNetworkBufferSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
+         #if( configSUPPORT_STATIC_ALLOCATION == 1 )
+	    {
+		    static StaticSemaphore_t xNetworkBufferSemaphoreBuffer;
+		    xNetworkBufferSemaphore = xSemaphoreCreateCountingStatic(
+			    (UBaseType_t) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, 
+			    (UBaseType_t) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, 
+			    &xNetworkBufferSemaphoreBuffer);
+	    }
+        #else
+	    {
+		    xNetworkBufferSemaphore = xSemaphoreCreateCounting((UBaseType_t) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, (UBaseType_t) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS);
+	    }
+        #endif /* configSUPPORT_STATIC_ALLOCATION */
+        
         configASSERT( xNetworkBufferSemaphore != NULL );
 
         if( xNetworkBufferSemaphore != NULL )

@@ -1171,8 +1171,17 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
     configASSERT( sizeof( UDPHeader_t ) == ipEXPECTED_UDPHeader_t_SIZE );
 
     /* Attempt to create the queue used to communicate with the IP task. */
-    xNetworkEventQueue = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
-    configASSERT( xNetworkEventQueue != NULL );
+    #if( configSUPPORT_STATIC_ALLOCATION == 1 )
+    {
+        static StaticQueue_t xNetworkEventStaticQueue;
+        uint8_t ucNetworkEventQueueStorageArea[ipconfigEVENT_QUEUE_LENGTH * sizeof(IPStackEvent_t)];
+        xNetworkEventQueue = xQueueCreateStatic(ipconfigEVENT_QUEUE_LENGTH, sizeof(IPStackEvent_t), ucNetworkEventQueueStorageArea, &xNetworkEventStaticQueue);
+    }
+    #else
+    {
+        xNetworkEventQueue = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
+        configASSERT( xNetworkEventQueue != NULL );
+    } /* configSUPPORT_STATIC_ALLOCATION */ 
 
     if( xNetworkEventQueue != NULL )
     {
@@ -1221,14 +1230,30 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
 
             /* Prepare the sockets interface. */
             vNetworkSocketsInit();
-
+            
             /* Create the task that processes Ethernet and stack events. */
-            xReturn = xTaskCreate( prvIPTask,
-                                   "IP-task",
-                                   ipconfigIP_TASK_STACK_SIZE_WORDS,
-                                   NULL,
-                                   ipconfigIP_TASK_PRIORITY,
-                                   &( xIPTaskHandle ) );
+            #if( configSUPPORT_STATIC_ALLOCATION == 1 )
+	        {
+		        static StaticTask_t xIPTaskBuffer;
+		        static StackType_t xIPTaskStack[ipconfigIP_TASK_STACK_SIZE_WORDS];
+		        xIPTaskHandle = xTaskCreateStatic(prvIPTask,
+			        "IP-Task",
+			        ipconfigIP_TASK_STACK_SIZE_WORDS, 
+			        NULL,
+			        ipconfigIP_TASK_PRIORITY,
+			        xIPTaskStack,
+			        &xIPTaskBuffer);
+	        }
+            #else
+	        {
+                xReturn = xTaskCreate( prvIPTask,
+                                       "IP-task",
+                                       ipconfigIP_TASK_STACK_SIZE_WORDS,
+                                       NULL,
+                                       ipconfigIP_TASK_PRIORITY,
+                                       &( xIPTaskHandle ) );
+            }
+            #endif /* configSUPPORT_STATIC_ALLOCATION */
         }
         else
         {
