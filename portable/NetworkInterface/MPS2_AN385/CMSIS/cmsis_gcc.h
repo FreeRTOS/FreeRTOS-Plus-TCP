@@ -898,7 +898,7 @@ __STATIC_FORCEINLINE uint32_t __get_FPSCR( void )
             __ASM volatile ( "VMRS %0, fpscr" : "=r" ( result ) );
             return( result );
         #endif
-    #else  /* if ( ( defined( __FPU_PRESENT ) && ( __FPU_PRESENT == 1U ) ) && ( defined( __FPU_USED ) && ( __FPU_USED == 1U ) ) ) */
+    #else /* if ( ( defined( __FPU_PRESENT ) && ( __FPU_PRESENT == 1U ) ) && ( defined( __FPU_USED ) && ( __FPU_USED == 1U ) ) ) */
         return( 0U );
     #endif /* if ( ( defined( __FPU_PRESENT ) && ( __FPU_PRESENT == 1U ) ) && ( defined( __FPU_USED ) && ( __FPU_USED == 1U ) ) ) */
 }
@@ -1121,7 +1121,7 @@ __STATIC_FORCEINLINE uint32_t __RBIT( uint32_t value )
             result |= value & 1U;
             s--;
         }
-        result <<= s;                  /* shift when v's highest bits are zero */
+        result <<= s; /* shift when v's highest bits are zero */
     #endif /* if ( ( defined( __ARM_ARCH_7M__ ) && ( __ARM_ARCH_7M__ == 1 ) ) || ( defined( __ARM_ARCH_7EM__ ) && ( __ARM_ARCH_7EM__ == 1 ) ) || ( defined( __ARM_ARCH_8M_MAIN__ ) && ( __ARM_ARCH_8M_MAIN__ == 1 ) ) ) */
     return result;
 }

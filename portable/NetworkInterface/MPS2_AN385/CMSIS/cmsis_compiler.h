@@ -98,7 +98,7 @@
     #ifndef   __PACKED_UNION
         #define __PACKED_UNION          union __attribute__( ( packed ) )
     #endif
-    #ifndef   __UNALIGNED_UINT32      /* deprecated */
+    #ifndef   __UNALIGNED_UINT32 /* deprecated */
         struct __attribute__( ( packed ) ) T_UINT32
         {
             uint32_t v;
@@ -182,7 +182,7 @@
     #ifndef   __PACKED_UNION
         #define __PACKED_UNION          union __packed__
     #endif
-    #ifndef   __UNALIGNED_UINT32      /* deprecated */
+    #ifndef   __UNALIGNED_UINT32 /* deprecated */
         struct __packed__ T_UINT32
         {
             uint32_t v;
@@ -264,7 +264,7 @@
     #ifndef   __PACKED_UNION
         #define __PACKED_UNION     @packed union
     #endif
-    #ifndef   __UNALIGNED_UINT32      /* deprecated */
+    #ifndef   __UNALIGNED_UINT32 /* deprecated */
         @packed struct T_UINT32
         {
             uint32_t v;
@@ -309,7 +309,7 @@
     #endif
 
 
-#else  /* if   defined( __CC_ARM ) */
+#else /* if   defined( __CC_ARM ) */
     #error Unknown compiler.
 #endif /* if   defined( __CC_ARM ) */
 
