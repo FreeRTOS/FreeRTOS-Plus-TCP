@@ -130,6 +130,11 @@ static BaseType_t xApplicationGetRandomNumber_Generic( uint32_t * pulPointer, in
 
 
 
+
+
+
+
+
 void test_FreeRTOS_dnsclear( void )
 {
     /* Fill in some data. */
@@ -1728,11 +1733,738 @@ void test_ulDNSHandlePacket_AptDataLength_EmptyPacket(void)
     TEST_ASSERT_EQUAL( pdFAIL, ulResult );
 }
 
+void test_ulDNSHandlePacket_AptDataLength_OneValidQuery_OffsetName(void)
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulResult;
+    uint8_t ucEthBuffer[sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 10];
+    uint16_t usQuestions = 2;
+    uint8_t * pucByte;
+    
+    DNSMessage_t * pxDNSMessageHeader;
+    /* This pointer is not used to modify anything */
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    
+    /* Add a data length for UDP packet but smaller than DNS packet. */
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 10;
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+    
+    /* Clear the buffer. */
+    memset(ucEthBuffer,0,sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 10);
+    
+    pxDNSMessageHeader = (DNSMessage_t *) &ucEthBuffer[sizeof( UDPPacket_t )];
+    
+    /* Add questions in proper format. */
+    pxDNSMessageHeader->usQuestions = FreeRTOS_htons( usQuestions ) ;
+    
+    /* Get the DNS packet */
+    pucByte = &( ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) ] );
+    /* Set the DNS name as offset. */
+    pucByte[ 0 ] = dnsNAME_IS_OFFSET;
+    
+    /* Return type A host. */
+    usChar2u16_ExpectAndReturn( &pucByte[2], dnsTYPE_A_HOST );
+    /* Return IN class. */
+    usChar2u16_ExpectAndReturn( &pucByte[4], dnsCLASS_IN );
+    
+    ulResult = ulDNSHandlePacket( &xNetworkBuffer );
+    
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+void test_ulDNSHandlePacket_SmallDataLengthToJustHoldTheName(void)
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulResult;
+    uint8_t ucEthBuffer[sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100];
+    uint16_t usQuestions = 2;
+    char DNSQueryName[] = "freertos";
+    char DNSQueryExtention[] = "com";
+    uint8_t * pucByte;
+    
+    DNSMessage_t * pxDNSMessageHeader;
+    /* This pointer is not used to modify anything */
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    
+    /* Add a data length for UDP packet but smaller than DNS packet. */
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100;
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+    
+    /* Clear the buffer. */
+    memset(ucEthBuffer,0,sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100);
+    
+    pxDNSMessageHeader = (DNSMessage_t *) &ucEthBuffer[sizeof( UDPPacket_t )];
+
+    /* Put in expected flags. */
+    pxDNSMessageHeader->usFlags = dnsEXPECTED_RX_FLAGS;
+    
+    /* Add questions in proper format. */
+    pxDNSMessageHeader->usQuestions = FreeRTOS_htons( usQuestions ) ;
+    
+    /* No answers. */
+    pxDNSMessageHeader->usAnswers = 0;
+    
+    /* Get the DNS packet */
+    pucByte = &( ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) ] );
+    /* Add length of label "freertos" */
+    *pucByte = sizeof(DNSQueryName) - 1;
+    pucByte++;
+    /* Set the DNS name. */
+    memcpy( pucByte, DNSQueryName, sizeof(DNSQueryName) - 1 );
+    pucByte += sizeof(DNSQueryName) - 1;
+    
+    /* Add length of label "com". */
+    *pucByte = sizeof(DNSQueryExtention) - 1;
+    pucByte++;
+    /* Set the DNS extention. */
+    memcpy( pucByte, DNSQueryExtention, sizeof(DNSQueryExtention) - 1 );
+    pucByte += sizeof(DNSQueryExtention) - 1;
+    
+    /* Add a 0 length octet */
+    *pucByte = 0;
+    pucByte++;
+    
+    /* Override the data length so that only the name is added. */
+    xNetworkBuffer.xDataLength = (uint32_t)pucByte - (uint32_t)ucEthBuffer;
+    
+    ulResult = ulDNSHandlePacket( &xNetworkBuffer );
+    
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+void test_ulDNSHandlePacket_AptDataLength_MultipleValidQueries_OffsetName_NoLLMNR(void)
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulResult;
+    uint8_t ucEthBuffer[sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100];
+    uint16_t usQuestions = 2;
+    char DNSQueryName[] = "freertos";
+    char DNSQueryExtention[] = "com";
+    uint8_t * pucByte;
+    
+    DNSMessage_t * pxDNSMessageHeader;
+    /* This pointer is not used to modify anything */
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    
+    /* Add a data length for UDP packet but smaller than DNS packet. */
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100;
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+    
+    /* Clear the buffer. */
+    memset(ucEthBuffer,0,sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100);
+    
+    pxDNSMessageHeader = (DNSMessage_t *) &ucEthBuffer[sizeof( UDPPacket_t )];
+
+    /* Put in expected flags. */
+    pxDNSMessageHeader->usFlags = dnsEXPECTED_RX_FLAGS;
+    
+    /* Add questions in proper format. */
+    pxDNSMessageHeader->usQuestions = FreeRTOS_htons( usQuestions ) ;
+    
+    /* No answers. */
+    pxDNSMessageHeader->usAnswers = 0;
+    
+    /* Get the DNS packet */
+    pucByte = &( ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) ] );
+    /* Add length of label "freertos" */
+    *pucByte = sizeof(DNSQueryName) - 1;
+    pucByte++;
+    /* Set the DNS name. */
+    memcpy( pucByte, DNSQueryName, sizeof(DNSQueryName) - 1 );
+    pucByte += sizeof(DNSQueryName) - 1;
+    
+    /* Add length of label "com". */
+    *pucByte = sizeof(DNSQueryExtention) - 1;
+    pucByte++;
+    /* Set the DNS extention. */
+    memcpy( pucByte, DNSQueryExtention, sizeof(DNSQueryExtention) - 1 );
+    pucByte += sizeof(DNSQueryExtention) - 1;
+    
+    /* Add a 0 length octet */
+    *pucByte = 0;
+    pucByte++;
+    
+    /* Skip the Type and class fields */
+    pucByte += 4;
+    /* Return type A host. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
+    /* Return IN class. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );
+    
+    pucByte[ 0 ] = dnsNAME_IS_OFFSET;
+    
+    
+    /* Return type A host. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
+    /* Return IN class. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );
+    
+    ulResult = ulDNSHandlePacket( &xNetworkBuffer );
+    
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+void test_ulDNSHandlePacket_AptDataLength_MultipleValidQueries_MultipleBlankAnswers(void)
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulResult;
+    uint8_t ucEthBuffer[sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100];
+    uint16_t usQuestions = 2, usAnswers = 2;
+    char DNSQueryName[] = "freertos";
+    char DNSQueryExtention[] = "com";
+    uint8_t * pucByte;
+    
+    DNSMessage_t * pxDNSMessageHeader;
+    /* This pointer is not used to modify anything */
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    
+    /* Add a data length for UDP packet but smaller than DNS packet. */
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100;
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+    
+    /* Clear the buffer. */
+    memset(ucEthBuffer,0,sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100);
+    
+    pxDNSMessageHeader = (DNSMessage_t *) &ucEthBuffer[sizeof( UDPPacket_t )];
+
+    /* Put in expected flags. */
+    pxDNSMessageHeader->usFlags = dnsEXPECTED_RX_FLAGS;
+    
+    /* Add questions in proper format. */
+    pxDNSMessageHeader->usQuestions = FreeRTOS_htons( usQuestions );
+    
+    /* No answers. */
+    pxDNSMessageHeader->usAnswers = FreeRTOS_htons( usAnswers );
+    
+    /* Get the DNS packet */
+    pucByte = &( ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) ] );
+    
+    /******************* Queries ********************/
+    /* Add length of label "freertos" */
+    *pucByte = sizeof(DNSQueryName) - 1;
+    pucByte++;
+    /* Set the DNS name. */
+    memcpy( pucByte, DNSQueryName, sizeof(DNSQueryName) - 1 );
+    pucByte += sizeof(DNSQueryName) - 1;
+    
+    /* Add length of label "com". */
+    *pucByte = sizeof(DNSQueryExtention) - 1;
+    pucByte++;
+    /* Set the DNS extention. */
+    memcpy( pucByte, DNSQueryExtention, sizeof(DNSQueryExtention) - 1 );
+    pucByte += sizeof(DNSQueryExtention) - 1;
+    
+    /* Add a 0 length octet */
+    *pucByte = 0;
+    pucByte++;
+    
+    /* Skip the Type and class fields */
+    pucByte += 4;
+    /* Return type A host. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
+    /* Return IN class. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );
+    
+    pucByte[ 0 ] = dnsNAME_IS_OFFSET;    
+    
+    /* Return type A host. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
+    /* Return IN class. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );
+    
+    /****************** Answers **********************/
+    /* Nothing to do here. */
+    
+    ulResult = ulDNSHandlePacket( &xNetworkBuffer );
+    
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+void test_ulDNSHandlePacket_DataLengthOnlyHasQuestions(void)
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulResult;
+    uint8_t ucEthBuffer[sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100];
+    uint16_t usQuestions = 2, usAnswers = 2;
+    char DNSQueryName[] = "freertos";
+    char DNSQueryExtention[] = "com";
+    uint8_t * pucByte;
+    
+    DNSMessage_t * pxDNSMessageHeader;
+    /* This pointer is not used to modify anything */
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    
+    /* Add a data length for UDP packet but smaller than DNS packet. */
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100;
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+    
+    /* Clear the buffer. */
+    memset(ucEthBuffer,0,sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100);
+    
+    pxDNSMessageHeader = (DNSMessage_t *) &ucEthBuffer[sizeof( UDPPacket_t )];
+
+    /* Put in expected flags. */
+    pxDNSMessageHeader->usFlags = dnsEXPECTED_RX_FLAGS;
+    
+    /* Add questions in proper format. */
+    pxDNSMessageHeader->usQuestions = FreeRTOS_htons( usQuestions );
+    
+    /* No answers. */
+    pxDNSMessageHeader->usAnswers = FreeRTOS_htons( usAnswers );
+    
+    /* Get the DNS packet */
+    pucByte = &( ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) ] );
+    
+    /******************* Queries ********************/
+    /* Add length of label "freertos" */
+    *pucByte = sizeof(DNSQueryName) - 1;
+    pucByte++;
+    /* Set the DNS name. */
+    memcpy( pucByte, DNSQueryName, sizeof(DNSQueryName) - 1 );
+    pucByte += sizeof(DNSQueryName) - 1;
+    
+    /* Add length of label "com". */
+    *pucByte = sizeof(DNSQueryExtention) - 1;
+    pucByte++;
+    /* Set the DNS extention. */
+    memcpy( pucByte, DNSQueryExtention, sizeof(DNSQueryExtention) - 1 );
+    pucByte += sizeof(DNSQueryExtention) - 1;
+    
+    /* Add a 0 length octet */
+    *pucByte = 0;
+    pucByte++;
+    
+    /* Skip the Type and class fields */
+    pucByte += 4;
+    /* Return type A host. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
+    /* Return IN class. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );
+    
+    /* Add the offset to the name. */
+    pucByte[ 0 ] = dnsNAME_IS_OFFSET;
+    pucByte+=2;
+    
+    /* Skip the Type and class fields */
+    pucByte += 4;
+    /* Return type A host. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
+    /* Return IN class. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );
+    
+    
+    /****************** Answers **********************/
+    /* Nothing to do here. */
+    
+    /* Mangle the data length to just hold the questions. */
+    xNetworkBuffer.xDataLength = (uint32_t)pucByte - (uint32_t)ucEthBuffer;
+    
+    ulResult = ulDNSHandlePacket( &xNetworkBuffer );
+    
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+void test_ulDNSHandlePacket_DataLengthOnlyHasQuestionsAndAnswerFlag(void)
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulResult;
+    uint8_t ucEthBuffer[sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100];
+    uint16_t usQuestions = 2, usAnswers = 2;
+    char DNSQueryName[] = "freertos";
+    char DNSQueryExtention[] = "com";
+    uint8_t * pucByte;
+    
+    DNSMessage_t * pxDNSMessageHeader;
+    /* This pointer is not used to modify anything */
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    
+    /* Add a data length for UDP packet but smaller than DNS packet. */
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100;
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+    
+    /* Clear the buffer. */
+    memset(ucEthBuffer,0,sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100);
+    
+    pxDNSMessageHeader = (DNSMessage_t *) &ucEthBuffer[sizeof( UDPPacket_t )];
+
+    /* Put in expected flags. */
+    pxDNSMessageHeader->usFlags = dnsEXPECTED_RX_FLAGS;
+    
+    /* Add questions in proper format. */
+    pxDNSMessageHeader->usQuestions = FreeRTOS_htons( usQuestions );
+    
+    /* No answers. */
+    pxDNSMessageHeader->usAnswers = FreeRTOS_htons( usAnswers );
+    
+    /* Get the DNS packet */
+    pucByte = &( ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) ] );
+    
+    /******************* Queries ********************/
+    /* Add length of label "freertos" */
+    *pucByte = sizeof(DNSQueryName) - 1;
+    pucByte++;
+    /* Set the DNS name. */
+    memcpy( pucByte, DNSQueryName, sizeof(DNSQueryName) - 1 );
+    pucByte += sizeof(DNSQueryName) - 1;
+    
+    /* Add length of label "com". */
+    *pucByte = sizeof(DNSQueryExtention) - 1;
+    pucByte++;
+    /* Set the DNS extention. */
+    memcpy( pucByte, DNSQueryExtention, sizeof(DNSQueryExtention) - 1 );
+    pucByte += sizeof(DNSQueryExtention) - 1;
+    
+    /* Add a 0 length octet */
+    *pucByte = 0;
+    pucByte++;
+    
+    /* Skip the Type and class fields */
+    pucByte += 4;
+    /* Return type A host. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
+    /* Return IN class. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );
+    
+    /* Add the offset to the name. */
+    pucByte[ 0 ] = dnsNAME_IS_OFFSET;
+    pucByte+=2;
+    
+    /* Skip the Type and class fields */
+    pucByte += 4;
+    /* Return type A host. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
+    /* Return IN class. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );
+    
+    
+    /****************** Answers **********************/
+    /* Add the offset to the name. */
+    pucByte[ 0 ] = dnsNAME_IS_OFFSET;
+    pucByte++;
+    
+    /* Mangle the data length to just hold the questions and the flag. */
+    xNetworkBuffer.xDataLength = (uint32_t)pucByte - (uint32_t)ucEthBuffer;
+    
+    ulResult = ulDNSHandlePacket( &xNetworkBuffer );
+    
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+void test_ulDNSHandlePacket_DataLengthOnlyHasZeroQuestionsAndAnswerLabel(void)
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulResult;
+    uint8_t ucEthBuffer[sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100];
+    uint16_t usQuestions = 0, usAnswers = 2;
+    char DNSQueryName[] = "freertos";
+    char DNSQueryExtention[] = "com";
+    uint8_t * pucByte;
+    
+    DNSMessage_t * pxDNSMessageHeader;
+    /* This pointer is not used to modify anything */
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    
+    /* Add a data length for UDP packet but smaller than DNS packet. */
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100;
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+    
+    /* Clear the buffer. */
+    memset(ucEthBuffer,0,sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100);
+    
+    pxDNSMessageHeader = (DNSMessage_t *) &ucEthBuffer[sizeof( UDPPacket_t )];
+
+    /* Put in expected flags. */
+    pxDNSMessageHeader->usFlags = dnsEXPECTED_RX_FLAGS;
+    
+    /* Add questions in proper format. */
+    pxDNSMessageHeader->usQuestions = FreeRTOS_htons( usQuestions );
+    
+    /* No answers. */
+    pxDNSMessageHeader->usAnswers = FreeRTOS_htons( usAnswers );
+    
+    /* Get the DNS packet */
+    pucByte = &( ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) ] );
+    
+    /******************* Queries ********************/
+    /* Nothing to do here. */
+    
+    /****************** Answers **********************/
+    /* Add length of label. */
+    *pucByte = sizeof(DNSQueryName) - 1;
+    pucByte++;
+    
+    /* Mangle the data length to just hold the questions and the flag. */
+    xNetworkBuffer.xDataLength = (uint32_t)pucByte - (uint32_t)ucEthBuffer;
+    
+    ulResult = ulDNSHandlePacket( &xNetworkBuffer );
+    
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+void test_ulDNSHandlePacket_DataLengthOnlyHasZeroQuestionsAndAnswerLabel_OneExtraByte(void)
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulResult;
+    uint8_t ucEthBuffer[sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100];
+    uint16_t usQuestions = 0, usAnswers = 2;
+    char DNSQueryName[] = "freertos";
+    char DNSQueryExtention[] = "com";
+    uint8_t * pucByte;
+    
+    DNSMessage_t * pxDNSMessageHeader;
+    /* This pointer is not used to modify anything */
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    
+    /* Add a data length for UDP packet but smaller than DNS packet. */
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100;
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+    
+    /* Clear the buffer. */
+    memset(ucEthBuffer,0,sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100);
+    
+    pxDNSMessageHeader = (DNSMessage_t *) &ucEthBuffer[sizeof( UDPPacket_t )];
+
+    /* Put in expected flags. */
+    pxDNSMessageHeader->usFlags = dnsEXPECTED_RX_FLAGS;
+    
+    /* Add questions in proper format. */
+    pxDNSMessageHeader->usQuestions = FreeRTOS_htons( usQuestions );
+    
+    /* No answers. */
+    pxDNSMessageHeader->usAnswers = FreeRTOS_htons( usAnswers );
+    
+    /* Get the DNS packet */
+    pucByte = &( ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) ] );
+    
+    /******************* Queries ********************/
+    /* Nothing to do here. */
+    
+    /****************** Answers **********************/
+    /* Add length of label. */
+    *pucByte = sizeof(DNSQueryName) - 1;
+    pucByte++;
+    
+    /* Mangle the data length to just hold the questions and the flag. */
+    xNetworkBuffer.xDataLength = 1 + (uint32_t)pucByte - (uint32_t)ucEthBuffer;
+    
+    ulResult = ulDNSHandlePacket( &xNetworkBuffer );
+    
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+
+void test_ulDNSHandlePacket_MalformedQuestions(void)
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulResult;
+    uint8_t ucEthBuffer[sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100];
+    uint16_t usQuestions = 2, usAnswers = 0;
+    char DNSQueryName[] = "freertos";
+    char DNSQueryExtention[] = "com";
+    uint8_t * pucByte;
+    
+    DNSMessage_t * pxDNSMessageHeader;
+    /* This pointer is not used to modify anything */
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    
+    /* Add a data length for UDP packet but smaller than DNS packet. */
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100;
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+    
+    /* Clear the buffer. */
+    memset(ucEthBuffer,0,sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100);
+    
+    pxDNSMessageHeader = (DNSMessage_t *) &ucEthBuffer[sizeof( UDPPacket_t )];
+
+    /* Put in expected flags. */
+    pxDNSMessageHeader->usFlags = dnsEXPECTED_RX_FLAGS;
+    
+    /* Add questions in proper format. */
+    pxDNSMessageHeader->usQuestions = FreeRTOS_htons( usQuestions );
+    
+    /* No answers. */
+    pxDNSMessageHeader->usAnswers = FreeRTOS_htons( usAnswers );
+    
+    /* Get the DNS packet */
+    pucByte = &( ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) ] );
+    
+    /******************* Queries ********************/
+    pucByte[ 0 ] = dnsNAME_IS_OFFSET;
+    pucByte+=2;
+    
+    /* Skip the Type and class fields */
+    pucByte += 4;
+    /* Return type A host. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
+    /* Return IN class. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );
+    
+    /* Add length of label. */
+    *pucByte = sizeof(DNSQueryName) - 1;
+    pucByte++;
+    
+    memcpy( pucByte, DNSQueryName, sizeof(DNSQueryName)-1 );
+    pucByte+=sizeof(DNSQueryName)-1;
+    
+    *pucByte = sizeof(DNSQueryExtention) - 1;
+    pucByte++;    
+    
+    /****************** Answers **********************/
+    /* Nothing to do here. */
+    
+    /* Mangle the data length to just hold the questions and the flag. */
+    xNetworkBuffer.xDataLength = (uint32_t)pucByte - (uint32_t)ucEthBuffer ;
+    
+    ulResult = ulDNSHandlePacket( &xNetworkBuffer );
+    
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+void test_ulDNSHandlePacket_MalformedQuestions_1(void)
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulResult;
+    uint8_t ucEthBuffer[sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100];
+    uint16_t usQuestions = 2, usAnswers = 0;
+    char DNSQueryName[] = "freertos";
+    char DNSQueryExtention[] = "com";
+    uint8_t * pucByte;
+    
+    DNSMessage_t * pxDNSMessageHeader;
+    /* This pointer is not used to modify anything */
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    
+    /* Add a data length for UDP packet but smaller than DNS packet. */
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100;
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+    
+    /* Clear the buffer. */
+    memset(ucEthBuffer,0,sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100);
+    
+    pxDNSMessageHeader = (DNSMessage_t *) &ucEthBuffer[sizeof( UDPPacket_t )];
+
+    /* Put in expected flags. */
+    pxDNSMessageHeader->usFlags = dnsEXPECTED_RX_FLAGS;
+    
+    /* Add questions in proper format. */
+    pxDNSMessageHeader->usQuestions = FreeRTOS_htons( usQuestions );
+    
+    /* No answers. */
+    pxDNSMessageHeader->usAnswers = FreeRTOS_htons( usAnswers );
+    
+    /* Get the DNS packet */
+    pucByte = &( ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) ] );
+    
+    /******************* Queries ********************/
+    pucByte[ 0 ] = dnsNAME_IS_OFFSET;
+    pucByte+=2;
+    
+    /* Skip the Type and class fields */
+    pucByte += 4;
+    /* Return type A host. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
+    /* Return IN class. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );
+    
+    /* Add length of label. */
+    *pucByte = sizeof(DNSQueryName) - 1;
+    pucByte++;
+    
+    memcpy( pucByte, DNSQueryName, sizeof(DNSQueryName)-1 );
+    pucByte+=sizeof(DNSQueryName)-1;
+    
+    *pucByte = 0;//sizeof(DNSQueryExtention) - 1;
+    pucByte++;
+    
+    /****************** Answers **********************/
+    /* Nothing to do here. */
+    
+    /* Mangle the data length to just hold the questions and the flag. */
+    xNetworkBuffer.xDataLength = (uint32_t)pucByte - (uint32_t)ucEthBuffer ;
+    
+    ulResult = ulDNSHandlePacket( &xNetworkBuffer );
+    
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
 
 
 
+void test_ulDNSHandlePacket_DataLengthOnlyHasZeroQuestionsAndAnswer(void)
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulResult;
+    uint8_t ucEthBuffer[sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100];
+    uint16_t usQuestions = 0, usAnswers = 2;
+    char DNSQueryName[] = "freertos";
+    char DNSQueryExtention[] = "com";
+    uint8_t * pucByte;
+    
+    DNSMessage_t * pxDNSMessageHeader;
+    /* This pointer is not used to modify anything */
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    
+    /* Add a data length for UDP packet but smaller than DNS packet. */
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100;
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+    
+    /* Clear the buffer. */
+    memset(ucEthBuffer,0,sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100);
+    
+    pxDNSMessageHeader = (DNSMessage_t *) &ucEthBuffer[sizeof( UDPPacket_t )];
 
-
+    /* Put in expected flags. */
+    pxDNSMessageHeader->usFlags = dnsEXPECTED_RX_FLAGS;
+    
+    /* Add questions in proper format. */
+    pxDNSMessageHeader->usQuestions = FreeRTOS_htons( usQuestions );
+    
+    /* No answers. */
+    pxDNSMessageHeader->usAnswers = FreeRTOS_htons( usAnswers );
+    
+    /* Get the DNS packet */
+    pucByte = &( ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) ] );
+    
+    /******************* Queries ********************/
+    /* Nothing to do here. */
+    
+    /****************** Answers **********************/
+    /* Add length of label "freertos" */
+    *pucByte = sizeof(DNSQueryName) - 1;
+    pucByte++;
+    /* Set the DNS name. */
+    memcpy( pucByte, DNSQueryName, sizeof(DNSQueryName) - 1 );
+    pucByte += sizeof(DNSQueryName) - 1;
+    
+    /* Add length of label "com". */
+    *pucByte = sizeof(DNSQueryExtention) - 1;
+    pucByte++;
+    /* Set the DNS extention. */
+    memcpy( pucByte, DNSQueryExtention, sizeof(DNSQueryExtention) - 1 );
+    pucByte += sizeof(DNSQueryExtention) - 1;
+    
+    /* Add a 0 length octet */
+    *pucByte = 0;
+    pucByte++;
+    
+    /* Skip the Type and class fields */
+    pucByte += 4;
+    /* Return type A host. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
+    
+    /* Add the offset to the name. */
+    pucByte[ 0 ] = dnsNAME_IS_OFFSET;
+    pucByte+=2;
+    
+    /* Skip the Type and class fields */
+    pucByte += 4;
+    
+    /* Mangle the data length to just hold the questions and the flag. */
+    xNetworkBuffer.xDataLength = (uint32_t)pucByte - (uint32_t)ucEthBuffer;
+    
+    ulResult = ulDNSHandlePacket( &xNetworkBuffer );
+    
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
 
 
 

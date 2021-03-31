@@ -50,7 +50,7 @@ void * listGET_OWNER_OF_HEAD_ENTRY(const  List_t * pxList );
 BaseType_t listIS_CONTAINED_WITHIN( List_t * list, const ListItem_t * listItem);
 
 #undef listGET_LIST_ITEM_VALUE
-TickType_t listGET_LIST_ITEM_VALUE( ListItem_t * listItem  );
+TickType_t listGET_LIST_ITEM_VALUE( const ListItem_t * listItem  );
 
 #undef listSET_LIST_ITEM_VALUE
 void listSET_LIST_ITEM_VALUE( ListItem_t * listItem, TickType_t itemValue);
@@ -66,6 +66,6 @@ UBaseType_t listCURRENT_LIST_LENGTH(List_t * list);
 TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY(List_t * list);
 
 #undef listGET_LIST_ITEM_OWNER
-void * listGET_LIST_ITEM_OWNER(ListItem_t * listItem);
+void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem);
 
 #endif
