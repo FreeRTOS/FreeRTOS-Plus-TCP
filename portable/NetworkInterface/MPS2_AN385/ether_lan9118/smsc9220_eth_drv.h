@@ -513,9 +513,17 @@
  *
  * \return Number of bytes read from the Rx FIFO into the given buffer.
  */
+
     uint32_t smsc9220_receive_by_chunks( const struct smsc9220_eth_dev_t * dev,
                                          char * data,
                                          uint32_t dlen );
+/**
+ * \brief Similar to the original function without the (2), created to
+ *        circumvent a quemu bug, with a fix merged into the mainline.
+ */
+    uint32_t smsc9220_receive_by_chunks2( const struct smsc9220_eth_dev_t * dev,
+                                          char * data,
+                                          uint32_t dlen );
 
 /**
  * \brief Get the used space of Rx fifo in bytes.
@@ -539,6 +547,12 @@
  */
     uint32_t smsc9220_peek_next_packet_size( const struct
                                              smsc9220_eth_dev_t * dev );
+/**
+ * \brief Similar to the original function without the (2), created to
+ *        circumvent a quemu bug, with a fix merged into the mainline.
+ */
+    uint32_t smsc9220_peek_next_packet_size2( const struct
+                                          smsc9220_eth_dev_t * dev );
 
     #ifdef __cplusplus
         }

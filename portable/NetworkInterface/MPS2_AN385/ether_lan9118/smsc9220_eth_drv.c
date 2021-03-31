@@ -17,7 +17,6 @@
 
 #include "cmsis.h"
 #include "smsc9220_eth_drv.h"
-/*#include "CMSIS/SMM_MPS2.h" */
 
 /** Setter bit manipulation macro */
 #define SET_BIT( WORD, BIT_INDEX )    ( ( WORD ) |= ( 1U << ( BIT_INDEX ) ) )

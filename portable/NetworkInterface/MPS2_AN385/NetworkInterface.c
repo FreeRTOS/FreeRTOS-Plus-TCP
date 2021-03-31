@@ -25,7 +25,6 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "list.h"
 #include "task.h"
 #include "semphr.h"
 
