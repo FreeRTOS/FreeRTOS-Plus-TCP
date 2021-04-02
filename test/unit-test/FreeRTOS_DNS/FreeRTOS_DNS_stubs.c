@@ -58,10 +58,6 @@ NetworkAddressingParameters_t xNetworkAddressing =
 };              /* 192.192.192.255 - Broadcast address. */
 
 
-BaseType_t xApplicationDNSQueryHook( const char * pcName )
-{
-}
-
 const char * pcApplicationHostnameHook( void )
 {
 }

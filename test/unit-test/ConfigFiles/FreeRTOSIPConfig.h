@@ -76,6 +76,8 @@
 #define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 6 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
+#define ipconfigDNS_CACHE_NAME_LENGTH              (100)
+
 /* The IP stack executes it its own task (although any application task can make
  * use of its services through the published sockets API). ipconfigUDP_TASK_PRIORITY
  * sets the priority of the task that executes the IP stack.  The priority is a

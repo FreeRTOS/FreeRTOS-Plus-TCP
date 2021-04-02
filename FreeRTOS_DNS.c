@@ -211,22 +211,8 @@
         return ( DNSAnswerRecord_t * ) pvArgument;
     }
 
+
     #if ( ipconfigUSE_LLMNR == 1 )
-
-        #include "pack_struct_start.h"
-        struct xLLMNRAnswer
-        {
-            uint8_t ucNameCode;    /**< Name type. */
-            uint8_t ucNameOffset;  /**< The name is not repeated in the answer, only the offset is given with "0xc0 <offs>" */
-            uint16_t usType;       /**< Type of the Resource record. */
-            uint16_t usClass;      /**< Class of the Resource record. */
-            uint32_t ulTTL;        /**< Seconds till this entry can be cached. */
-            uint16_t usDataLength; /**< Length of the address in this record. */
-            uint32_t ulIPAddress;  /**< The IP-address. */
-        }
-        #include "pack_struct_end.h"
-        typedef struct xLLMNRAnswer LLMNRAnswer_t;
-
 /**
  * @brief Utility function to cast pointer of a type to pointer of type LLMNRAnswer_t.
  *
@@ -241,38 +227,6 @@
     #endif /* ipconfigUSE_LLMNR == 1 */
 
     #if ( ipconfigUSE_NBNS == 1 )
-
-        #include "pack_struct_start.h"
-        struct xNBNSRequest
-        {
-            uint16_t usRequestId;                          /**< NBNS request ID. */
-            uint16_t usFlags;                              /**< Flags of the DNS message. */
-            uint16_t ulRequestCount;                       /**< The number of requests/questions in this query. */
-            uint16_t usAnswerRSS;                          /**< The number of answers in this query. */
-            uint16_t usAuthRSS;                            /**< Number of authoritative resource records. */
-            uint16_t usAdditionalRSS;                      /**< Number of additional resource records. */
-            uint8_t ucNameSpace;                           /**< Length of name. */
-            uint8_t ucName[ dnsNBNS_ENCODED_NAME_LENGTH ]; /**< The domain name. */
-            uint8_t ucNameZero;                            /**< Terminator of the name. */
-            uint16_t usType;                               /**< Type of NBNS record. */
-            uint16_t usClass;                              /**< Class of NBNS request. */
-        }
-        #include "pack_struct_end.h"
-        typedef struct xNBNSRequest NBNSRequest_t;
-
-        #include "pack_struct_start.h"
-        struct xNBNSAnswer
-        {
-            uint16_t usType;       /**< Type of NBNS answer. */
-            uint16_t usClass;      /**< Class of NBNS answer. */
-            uint32_t ulTTL;        /**< Time in seconds for which the answer can be cached. */
-            uint16_t usDataLength; /**< Data length. */
-            uint16_t usNbFlags;    /**< NetBIOS flags 0x6000 : IP-address, big-endian. */
-            uint32_t ulIPAddress;  /**< The IPv4 address. */
-        }
-        #include "pack_struct_end.h"
-        typedef struct xNBNSAnswer NBNSAnswer_t;
-
 /**
  * @brief Utility function to cast pointer of a type to pointer of type NBNSAnswer_t.
  *
@@ -1017,7 +971,7 @@
                         break;
                     }
 
-                    while( ( uxCount-- != 0U ) && ( uxIndex < uxSourceLen ) )
+                    while( ( uxCount-- != 0U ) )
                     {
                         if( uxNameLen >= uxDestLen )
                         {
@@ -1887,11 +1841,21 @@
         {
             BaseType_t x;
             BaseType_t xFound = pdFALSE;
-            uint32_t ulCurrentTimeSeconds = ( xTaskGetTickCount() / portTICK_PERIOD_MS ) / 1000UL;
+            TickType_t xCurrentTickCount = xTaskGetTickCount();
+            uint32_t ulCurrentTimeSeconds;
             uint32_t ulIPAddressIndex = 0;
             static BaseType_t xFreeEntry = 0;
 
             configASSERT( ( pcName != NULL ) );
+
+            if( xCurrentTickCount != 0 )
+            {
+                ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000UL;
+            }
+            else
+            {
+                ulCurrentTimeSeconds = 0;
+            }
 
             /* For each entry in the DNS cache table. */
             for( x = 0; x < ipconfigDNS_CACHE_ENTRIES; x++ )
