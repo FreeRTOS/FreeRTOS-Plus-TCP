@@ -169,6 +169,8 @@ dmatxdesctoclear
 dmix
 dns
 dnsanswerrecord
+dnsdocallback
+dnsqueryextention
 doesn
 don
 dont
@@ -363,6 +365,7 @@ ifndef
 igmp
 ihl
 inc
+inet
 infos
 init
 initialisation
@@ -700,6 +703,7 @@ ptxpkt
 ptz
 pucbuffer
 pucbyte
+puccallback
 pucdata
 pucethernetbuffer
 pucgetuncachedmemory

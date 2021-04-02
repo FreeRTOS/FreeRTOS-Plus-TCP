@@ -341,10 +341,10 @@ void test_vDNSCheckCallBack_EmptyCallBackList( void )
     /* The list should be empty. */
     listLIST_IS_EMPTY_ExpectAndReturn( &xCallbackList, pdTRUE );
 
-    /* Expect the DNS timer to be stopeed.  */
+    /* Expect the DNS timer to be stopped.  */
     vIPSetDnsTimerEnableState_Expect( pdFALSE );
 
-    /* The search ID soesn't matter since the list is empty. */
+    /* The search ID doesn't matter since the list is empty. */
     vDNSCheckCallBack( NULL );
 }
 
@@ -428,7 +428,7 @@ void test_vDNSCheckCallBack_OneEntryCallBackList_NULLSearch_TimeOut( void )
     /* The list should be empty. */
     listLIST_IS_EMPTY_ExpectAndReturn( &xCallbackList, pdTRUE );
 
-    /* Expect the DNS timer to be stopeed.  */
+    /* Expect the DNS timer to be stopped.  */
     vIPSetDnsTimerEnableState_Expect( pdFALSE );
 
     /* Call with a NULL search ID. */
@@ -475,7 +475,7 @@ void test_vDNSCheckCallBack_OneEntryCallBackList_NonNULLMatchingSearch( void )
     /* The list should be empty. */
     listLIST_IS_EMPTY_ExpectAndReturn( &xCallbackList, pdTRUE );
 
-    /* Expect the DNS timer to be stopeed.  */
+    /* Expect the DNS timer to be stopped.  */
     vIPSetDnsTimerEnableState_Expect( pdFALSE );
 
     /* Call with a same search ID. */
@@ -549,7 +549,7 @@ void test_FreeRTOS_gethostbyname_RecvFromFails( void )
     /* Return any value. */
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
-    /* RNG succeds. */
+    /* RNG succeeds. */
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
 
     FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, xSocket );
@@ -644,7 +644,7 @@ void test_FreeRTOS_gethostbyname_a_inetaddrsuccess( void )
     uint32_t ulIPAddr = 0x12345678;
     uint32_t ulResult;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -664,7 +664,7 @@ void test_FreeRTOS_gethostbyname_a_inetaddrfails_mallocfails_socketfails( void )
     uint32_t ulIPAddr = 0x12345678;
     uint32_t ulResult;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -701,7 +701,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_soc
     uint32_t ulIPAddr = 0x12345678;
     uint32_t ulResult;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -739,7 +739,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_soc
     uint32_t ulResult;
     Socket_t xLocalSocket;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -781,7 +781,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_GNW
     uint32_t ulResult;
     Socket_t xLocalSocket;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -844,7 +844,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_GNW
     /* Set the ethernet buffer. */
     xLocalNetworkBuffer.pucEthernetBuffer = xLocalEthernetBuffer;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -907,7 +907,7 @@ void test_FreeRTOS_gethostbyname_a_inetaddrfails_RNGfails( void )
     uint32_t ulIPAddr = 0x12345678;
     uint32_t ulResult;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -950,7 +950,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_dif
     /* Set the ethernet buffer. */
     xLocalNetworkBuffer.pucEthernetBuffer = xLocalEthernetBuffer;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -1036,7 +1036,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_sam
     /* Set the ethernet buffer. */
     xLocalNetworkBuffer.pucEthernetBuffer = xLocalEthernetBuffer;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -1124,7 +1124,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocSucceeds_
     /* Set the ethernet buffer. */
     xLocalNetworkBuffer.pucEthernetBuffer = xLocalEthernetBuffer;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -1234,7 +1234,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocSucceeds_
     /* Set the ethernet buffer. */
     xLocalNetworkBuffer.pucEthernetBuffer = xLocalEthernetBuffer;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -1341,7 +1341,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocSucceeds_
     /* Set the ethernet buffer. */
     xLocalNetworkBuffer.pucEthernetBuffer = xLocalEthernetBuffer;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -1451,7 +1451,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_ZeroQuestions_IDsNotMatching(
     /* Set the ethernet buffer. */
     xLocalNetworkBuffer.pucEthernetBuffer = xLocalEthernetBuffer;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -1566,7 +1566,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_ZeroQuestions_IDsMatching_Non
     /* Set the ethernet buffer. */
     xLocalNetworkBuffer.pucEthernetBuffer = xLocalEthernetBuffer;
 
-    /* Ex[ect the function to be called once. */
+    /* Expect the function to be called once. */
     CallBackFunction_CallCount = 1;
 
     /* Hostname is expected. */
@@ -1814,7 +1814,7 @@ void test_ulDNSHandlePacket_SmallDataLengthToJustHoldTheName( void )
     /* Add length of label "com". */
     *pucByte = sizeof( DNSQueryExtention ) - 1;
     pucByte++;
-    /* Set the DNS extention. */
+    /* Set the DNS extension. */
     memcpy( pucByte, DNSQueryExtention, sizeof( DNSQueryExtention ) - 1 );
     pucByte += sizeof( DNSQueryExtention ) - 1;
 
@@ -1874,7 +1874,7 @@ void test_ulDNSHandlePacket_AptDataLength_MultipleValidQueries_OffsetName_NoLLMN
     /* Add length of label "com". */
     *pucByte = sizeof( DNSQueryExtention ) - 1;
     pucByte++;
-    /* Set the DNS extention. */
+    /* Set the DNS extension. */
     memcpy( pucByte, DNSQueryExtention, sizeof( DNSQueryExtention ) - 1 );
     pucByte += sizeof( DNSQueryExtention ) - 1;
 
@@ -1948,7 +1948,7 @@ void test_ulDNSHandlePacket_AptDataLength_MultipleValidQueries_MultipleBlankAnsw
     /* Add length of label "com". */
     *pucByte = sizeof( DNSQueryExtention ) - 1;
     pucByte++;
-    /* Set the DNS extention. */
+    /* Set the DNS extension. */
     memcpy( pucByte, DNSQueryExtention, sizeof( DNSQueryExtention ) - 1 );
     pucByte += sizeof( DNSQueryExtention ) - 1;
 
@@ -2024,7 +2024,7 @@ void test_ulDNSHandlePacket_DataLengthOnlyHasQuestions( void )
     /* Add length of label "com". */
     *pucByte = sizeof( DNSQueryExtention ) - 1;
     pucByte++;
-    /* Set the DNS extention. */
+    /* Set the DNS extension. */
     memcpy( pucByte, DNSQueryExtention, sizeof( DNSQueryExtention ) - 1 );
     pucByte += sizeof( DNSQueryExtention ) - 1;
 
@@ -2108,7 +2108,7 @@ void test_ulDNSHandlePacket_DataLengthOnlyHasQuestionsAndAnswerFlag( void )
     /* Add length of label "com". */
     *pucByte = sizeof( DNSQueryExtention ) - 1;
     pucByte++;
-    /* Set the DNS extention. */
+    /* Set the DNS extension. */
     memcpy( pucByte, DNSQueryExtention, sizeof( DNSQueryExtention ) - 1 );
     pucByte += sizeof( DNSQueryExtention ) - 1;
 
@@ -2299,7 +2299,7 @@ void test_ulDNSHandlePacket_DataLengthOnlyHasZeroQuestionsAndAnswer( void )
     /* Add length of label "com". */
     *pucByte = sizeof( DNSQueryExtention ) - 1;
     pucByte++;
-    /* Set the DNS extention. */
+    /* Set the DNS extension. */
     memcpy( pucByte, DNSQueryExtention, sizeof( DNSQueryExtention ) - 1 );
     pucByte += sizeof( DNSQueryExtention ) - 1;
 
@@ -2804,7 +2804,7 @@ void test_ulDNSHandlePacket_Answers_JustName( void )
     /* Set the ethernet buffer. */                                                                                   \
     xLocalNetworkBuffer.pucEthernetBuffer = xLocalEthernetBuffer;                                                    \
                                                                                                                      \
-    /* Ex[ect the function to be called once. */                                                                     \
+    /* Expect the function to be called once. */                                                                     \
     CallBackFunction_CallCount = 1;                                                                                  \
                                                                                                                      \
     /* Hostname is expected. */                                                                                      \
@@ -3776,7 +3776,7 @@ void test_ulNBNSHandlePacket_NotMatchingFlag( void )
 
     NBNSRequest_t * NBNSRequest = ( NBNSRequest_t * ) pucUDPPayloadBuffer;
 
-    /* Return an erraneous flag. */
+    /* Return an erroneous flag. */
     usChar2u16_ExpectAndReturn( ( uint8_t * ) ( &( NBNSRequest->usFlags ) ), 0x7800 );
 
     ulResult = ulNBNSHandlePacket( pxNetworkBuffer );
@@ -4147,7 +4147,7 @@ void test_ulNBNSHandlePacket_AllSuccess( void )
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( pdTRUE );
 
     vReturnEthernetFrame_Expect( pxNetworkBuffer, pdFALSE );
-    
+
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
     ulResult = ulNBNSHandlePacket( pxNetworkBuffer );
