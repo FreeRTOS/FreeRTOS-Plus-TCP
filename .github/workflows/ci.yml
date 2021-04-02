@@ -37,7 +37,7 @@ jobs:
       - name: Check Coverage
         uses: FreeRTOS/CI-CD-Github-Actions/coverage-cop@main
         with:
-          path: .test/unit-test/build/coverage.info
+          path: test/unit-test/build/coverage.info
           line-coverage-min: 100
           branch-coverage-min: 98
 
