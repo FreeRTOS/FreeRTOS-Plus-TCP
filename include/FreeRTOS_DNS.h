@@ -126,7 +126,7 @@
     #define ipNBNS_PORT            137 /* NetBIOS Name Service. */
     #define ipNBDGM_PORT           138 /* Datagram Service, not included. */
 
-    /* DNS answer record header. */
+/* DNS answer record header. */
     #include "pack_struct_start.h"
     struct xDNSAnswerRecord
     {
@@ -151,7 +151,7 @@
                 uint8_t ucCurrentIPAddress;
             #endif
         } DNSCacheRow_t;
-    #endif
+    #endif /* if ( ipconfigUSE_DNS_CACHE == 1 ) */
 
 /* Below #include just tells the compiler to pack the structure.
  * It is included in to make the code more readable */
@@ -183,7 +183,7 @@
         }
         #include "pack_struct_end.h"
         typedef struct xLLMNRAnswer LLMNRAnswer_t;
-    #endif
+    #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
 
     #if ( ipconfigUSE_NBNS == 1 )
 
@@ -217,9 +217,10 @@
         }
         #include "pack_struct_end.h"
         typedef struct xNBNSAnswer NBNSAnswer_t;
-    #endif
+    #endif /* if ( ipconfigUSE_NBNS == 1 ) */
 
     #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
+
 /*
  * The following function should be provided by the user and return true if it
  * matches the domain name.
@@ -280,7 +281,7 @@
                                            TickType_t uxTimeout );
         void FreeRTOS_gethostbyname_cancel( void * pvSearchID );
 
-        /** @brief The structure to hold information for a DNS callback. */
+/** @brief The structure to hold information for a DNS callback. */
         typedef struct xDNS_Callback
         {
             TickType_t uxRemaningTime;     /**< Timeout in ms */

@@ -4147,6 +4147,8 @@ void test_ulNBNSHandlePacket_AllSuccess( void )
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( pdTRUE );
 
     vReturnEthernetFrame_Expect( pxNetworkBuffer, pdFALSE );
+    
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
     ulResult = ulNBNSHandlePacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdFAIL, ulResult );

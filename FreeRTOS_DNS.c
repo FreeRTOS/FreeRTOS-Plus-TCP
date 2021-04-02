@@ -213,6 +213,7 @@
 
 
     #if ( ipconfigUSE_LLMNR == 1 )
+
 /**
  * @brief Utility function to cast pointer of a type to pointer of type LLMNRAnswer_t.
  *
@@ -227,6 +228,7 @@
     #endif /* ipconfigUSE_LLMNR == 1 */
 
     #if ( ipconfigUSE_NBNS == 1 )
+
 /**
  * @brief Utility function to cast pointer of a type to pointer of type NBNSAnswer_t.
  *
@@ -1879,12 +1881,13 @@
                         {
                             #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
                                 uint8_t ucIndex;
+
                                 /* The ucCurrentIPAddress value increments without bound and will rollover, */
                                 /*  modulo it by the number of IP addresses to keep it in range.     */
                                 /*  Also perform a final modulo by the max number of IP addresses    */
                                 /*  per DNS cache entry to prevent out-of-bounds access in the event */
                                 /*  that ucNumIPAddresses has been corrupted.                        */
-                                if( xDNSCache[x ].ucNumIPAddresses == 0 )
+                                if( xDNSCache[ x ].ucNumIPAddresses == 0 )
                                 {
                                     /* Trying lookup before cache is updated with the number of IP
                                      * addressed? Maybe an accident. Break out of the loop. */

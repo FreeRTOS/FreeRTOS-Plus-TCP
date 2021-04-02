@@ -32,40 +32,43 @@
 #include <list.h>
 
 #undef listSET_LIST_ITEM_OWNER
-void listSET_LIST_ITEM_OWNER( ListItem_t * pxListItem, void * owner );
+void listSET_LIST_ITEM_OWNER( ListItem_t * pxListItem,
+                              void * owner );
 
 #undef listGET_END_MARKER
 ListItem_t * listGET_END_MARKER( List_t * pxList );
 
 #undef listGET_NEXT
-ListItem_t * listGET_NEXT( const ListItem_t *pxListItem );
+ListItem_t * listGET_NEXT( const ListItem_t * pxListItem );
 
 #undef  listLIST_IS_EMPTY
-BaseType_t listLIST_IS_EMPTY( const List_t *pxList );
+BaseType_t listLIST_IS_EMPTY( const List_t * pxList );
 
 #undef  listGET_OWNER_OF_HEAD_ENTRY
-void * listGET_OWNER_OF_HEAD_ENTRY(const  List_t * pxList );
+void * listGET_OWNER_OF_HEAD_ENTRY( const List_t * pxList );
 
 #undef listIS_CONTAINED_WITHIN
-BaseType_t listIS_CONTAINED_WITHIN( List_t * list, const ListItem_t * listItem);
+BaseType_t listIS_CONTAINED_WITHIN( List_t * list,
+                                    const ListItem_t * listItem );
 
 #undef listGET_LIST_ITEM_VALUE
-TickType_t listGET_LIST_ITEM_VALUE( const ListItem_t * listItem  );
+TickType_t listGET_LIST_ITEM_VALUE( const ListItem_t * listItem );
 
 #undef listSET_LIST_ITEM_VALUE
-void listSET_LIST_ITEM_VALUE( ListItem_t * listItem, TickType_t itemValue);
+void listSET_LIST_ITEM_VALUE( ListItem_t * listItem,
+                              TickType_t itemValue );
 
 
 #undef listLIST_ITEM_CONTAINER
-List_t * listLIST_ITEM_CONTAINER(const ListItem_t * listItem);
+List_t * listLIST_ITEM_CONTAINER( const ListItem_t * listItem );
 
 #undef listCURRENT_LIST_LENGTH
-UBaseType_t listCURRENT_LIST_LENGTH(List_t * list);
+UBaseType_t listCURRENT_LIST_LENGTH( List_t * list );
 
 #undef listGET_ITEM_VALUE_OF_HEAD_ENTRY
-TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY(List_t * list);
+TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 
 #undef listGET_LIST_ITEM_OWNER
-void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem);
+void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
-#endif
+#endif /* ifndef LIST_MACRO_H */

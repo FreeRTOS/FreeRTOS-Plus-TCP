@@ -1,1 +1,1 @@
-BaseType_t xApplicationDNSQueryHook(const char * pcName);
+BaseType_t xApplicationDNSQueryHook( const char * pcName );
