@@ -1000,7 +1000,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_dif
     ulGenericLength = 200;
 
     /* Make sure that identifiers don't match. */
-    DNSMessage_t * pxDNSMessageHeader = xLocalReceivedBuffer;
+    DNSMessage_t * pxDNSMessageHeader = ( DNSMessage_t * ) xLocalReceivedBuffer;
     pxDNSMessageHeader->usIdentifier = RNGtoReturn + 1;
 
     /* Return non zero value. */
@@ -1086,7 +1086,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocfails_sam
     ulGenericLength = 200;
 
     /* Make sure that identifiers match. */
-    DNSMessage_t * pxDNSMessageHeader = xLocalReceivedBuffer;
+    DNSMessage_t * pxDNSMessageHeader = ( DNSMessage_t * ) xLocalReceivedBuffer;
     pxDNSMessageHeader->usIdentifier = RNGtoReturn;
 
     /* Return non zero value. */
@@ -1196,7 +1196,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocSucceeds_
     ulGenericLength = 200;
 
     /* Make sure that identifiers match. */
-    DNSMessage_t * pxDNSMessageHeader = xLocalReceivedBuffer;
+    DNSMessage_t * pxDNSMessageHeader = ( DNSMessage_t * ) xLocalReceivedBuffer;
     pxDNSMessageHeader->usIdentifier = RNGtoReturn;
 
     /* Return non zero value. */
@@ -1303,7 +1303,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocSucceeds_
     ulGenericLength = 200;
 
     /* Make sure that identifiers match. */
-    DNSMessage_t * pxDNSMessageHeader = xLocalReceivedBuffer;
+    DNSMessage_t * pxDNSMessageHeader = ( DNSMessage_t * ) xLocalReceivedBuffer;
     pxDNSMessageHeader->usIdentifier = RNGtoReturn;
 
     /* Return non zero value. */
@@ -1412,7 +1412,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_inetaddrfails_mallocSucceeds_
     ulGenericLength = 1;
 
     /* Make sure that identifiers match. */
-    DNSMessage_t * pxDNSMessageHeader = xLocalReceivedBuffer;
+    DNSMessage_t * pxDNSMessageHeader = ( DNSMessage_t * ) xLocalReceivedBuffer;
     pxDNSMessageHeader->usIdentifier = RNGtoReturn;
 
     /* Return non zero value. */
@@ -1657,7 +1657,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_ZeroQuestions_IDsMatching_Non
     pucByte[ 0 ] = dnsNAME_IS_OFFSET;
 
     /* Add the answer record. */
-    pxDNSAnswerRecord = &pucByte[ 2 ];
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) &pucByte[ 2 ];
 
     /* Add the proper data length. */
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
@@ -1677,7 +1677,7 @@ void test_FreeRTOS_gethostbyname_a_HostNameWithDot_ZeroQuestions_IDsMatching_Non
 
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
-    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( xLocalReceivedBuffer );
 
@@ -1823,7 +1823,7 @@ void test_ulDNSHandlePacket_SmallDataLengthToJustHoldTheName( void )
     pucByte++;
 
     /* Override the data length so that only the name is added. */
-    xNetworkBuffer.xDataLength = ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer;
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -2055,7 +2055,7 @@ void test_ulDNSHandlePacket_DataLengthOnlyHasQuestions( void )
     /* Nothing to do here. */
 
     /* Mangle the data length to just hold the questions. */
-    xNetworkBuffer.xDataLength = ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer;
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -2141,7 +2141,7 @@ void test_ulDNSHandlePacket_DataLengthOnlyHasQuestionsAndAnswerFlag( void )
     pucByte++;
 
     /* Mangle the data length to just hold the questions and the flag. */
-    xNetworkBuffer.xDataLength = ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer;
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -2192,7 +2192,7 @@ void test_ulDNSHandlePacket_DataLengthOnlyHasZeroQuestionsAndAnswerLabel( void )
     pucByte++;
 
     /* Mangle the data length to just hold the questions and the flag. */
-    xNetworkBuffer.xDataLength = ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer;
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -2243,7 +2243,7 @@ void test_ulDNSHandlePacket_DataLengthOnlyHasZeroQuestionsAndAnswerLabel_OneExtr
     pucByte++;
 
     /* Mangle the data length to just hold the questions and the flag. */
-    xNetworkBuffer.xDataLength = 1 + ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer;
+    xNetworkBuffer.xDataLength = 1 + ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -2320,7 +2320,7 @@ void test_ulDNSHandlePacket_DataLengthOnlyHasZeroQuestionsAndAnswer( void )
     pucByte += 4;
 
     /* Mangle the data length to just hold the questions and the flag. */
-    xNetworkBuffer.xDataLength = ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer;
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -2388,7 +2388,7 @@ void test_ulDNSHandlePacket_MalformedQuestions( void )
     /* Nothing to do here. */
 
     /* Mangle the data length to just hold the questions and the flag. */
-    xNetworkBuffer.xDataLength = ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer;
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -2455,7 +2455,7 @@ void test_ulDNSHandlePacket_MalformedQuestions_1( void )
     /* Nothing to do here. */
 
     /* Mangle the data length to just hold the questions and the flag. */
-    xNetworkBuffer.xDataLength = ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer;
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -2504,7 +2504,7 @@ void test_ulDNSHandlePacket_MalformedQuestions_2_OnlyDNSHeader( void )
     /* Nothing to do here. */
 
     /* Mangle the data length to just hold the questions and the flag. */
-    xNetworkBuffer.xDataLength = ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer;
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -2554,7 +2554,7 @@ void test_ulDNSHandlePacket_MalformedQuestions_3_JustOffset( void )
     /* Nothing to do here. */
 
     /* Mangle the data length to just hold the questions and the flag. */
-    xNetworkBuffer.xDataLength = ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer;
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -2610,7 +2610,7 @@ void test_ulDNSHandlePacket_MalformedQuestions_4_MoreLengthThanAllowedValue( voi
     /* Nothing to do here. */
 
     /* Mangle the data length to just hold the questions and the flag. */
-    xNetworkBuffer.xDataLength = ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer;
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -2663,7 +2663,7 @@ void test_ulDNSHandlePacket_MalformedQuestions_5_BigLengthWithoutName( void )
     /* Nothing to do here. */
 
     /* Mangle the data length to just hold the questions and the flag. */
-    xNetworkBuffer.xDataLength = ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer;
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -2722,7 +2722,7 @@ void test_ulDNSHandlePacket_MalformedQuestions_6_BigLengthWithoutName( void )
     /* Nothing to do here. */
 
     /* Mangle the data length to just hold the questions and the flag. */
-    xNetworkBuffer.xDataLength = ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer - 2;
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer - 2;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -2779,7 +2779,7 @@ void test_ulDNSHandlePacket_Answers_JustName( void )
     pucByte++;
 
     /* Mangle the data length to just hold the questions and the flag. */
-    xNetworkBuffer.xDataLength = ( uint32_t ) pucByte - ( uint32_t ) ucEthBuffer;
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
 
     ulResult = ulDNSHandlePacket( &xNetworkBuffer );
 
@@ -3754,7 +3754,7 @@ void test_ulNBNSHandlePacket_JustUDPPacket( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->xDataLength = sizeof( ucEthernetBuffer );
 
-    UDPPacket_t * pxUDPPacket = &( pxNetworkBuffer->pucEthernetBuffer );
+    UDPPacket_t * pxUDPPacket = ( UDPPacket_t * ) &( pxNetworkBuffer->pucEthernetBuffer );
     uint8_t * pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( *pxUDPPacket ) ] );
 
     ulResult = ulNBNSHandlePacket( pxNetworkBuffer );
@@ -3771,7 +3771,7 @@ void test_ulNBNSHandlePacket_NotMatchingFlag( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->xDataLength = sizeof( ucEthernetBuffer );
 
-    UDPPacket_t * pxUDPPacket = &( pxNetworkBuffer->pucEthernetBuffer );
+    UDPPacket_t * pxUDPPacket = ( UDPPacket_t * ) &( pxNetworkBuffer->pucEthernetBuffer );
     uint8_t * pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( *pxUDPPacket ) ] );
 
     NBNSRequest_t * NBNSRequest = ( NBNSRequest_t * ) pucUDPPayloadBuffer;
@@ -3795,7 +3795,7 @@ void test_ulNBNSHandlePacket_BlankNameEnding( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->xDataLength = sizeof( ucEthernetBuffer );
 
-    UDPPacket_t * pxUDPPacket = &( pxNetworkBuffer->pucEthernetBuffer );
+    UDPPacket_t * pxUDPPacket = ( UDPPacket_t * ) &( pxNetworkBuffer->pucEthernetBuffer );
     uint8_t * pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( *pxUDPPacket ) ] );
 
     NBNSRequest_t * NBNSRequest = ( NBNSRequest_t * ) pucUDPPayloadBuffer;
@@ -3831,7 +3831,7 @@ void test_ulNBNSHandlePacket_NonEmptyEnding( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->xDataLength = sizeof( ucEthernetBuffer );
 
-    UDPPacket_t * pxUDPPacket = &( pxNetworkBuffer->pucEthernetBuffer );
+    UDPPacket_t * pxUDPPacket = ( UDPPacket_t * ) &( pxNetworkBuffer->pucEthernetBuffer );
     uint8_t * pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( *pxUDPPacket ) ] );
 
     NBNSRequest_t * NBNSRequest = ( NBNSRequest_t * ) pucUDPPayloadBuffer;
@@ -4010,56 +4010,56 @@ void test_ulNBNSHandlePacket_BlankNameEnding_MatchingName_MaxAddressesStored( vo
     TEST_ASSERT_EQUAL( ulIPAddress, xDNSCache[ 1 ].ulIPAddresses[ 0 ] );
 }
 
-#define ulNBNSHandlePacket_SETUP                                                                       \
-    uint32_t ulResult;                                                                                 \
-    NetworkBufferDescriptor_t xNetworkBuffer;                                                          \
-    NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;                                     \
-    uint8_t ucEthernetBuffer[ sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t ) ];                       \
-    uint32_t ulIPAddress = 0x43218765;                                                                 \
-                                                                                                       \
-    memset( ucEthernetBuffer, 0, sizeof( ucEthernetBuffer ) );                                         \
-                                                                                                       \
-    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;                                             \
-    pxNetworkBuffer->xDataLength = sizeof( ucEthernetBuffer );                                         \
-                                                                                                       \
-    UDPPacket_t * pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;                  \
-    uint8_t * pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( *pxUDPPacket ) ] ); \
-                                                                                                       \
-    NBNSRequest_t * NBNSRequest = ( NBNSRequest_t * ) pucUDPPayloadBuffer;                             \
-                                                                                                       \
-    uint8_t * pucSource = &( pucUDPPayloadBuffer[ offsetof( NBNSRequest_t, ucName ) ] );               \
-                                                                                                       \
-    uint8_t Mychar = ' ';                                                                              \
-                                                                                                       \
-    /* Add the IP address to be tested. */                                                             \
-    memcpy( &( pxUDPPacket->xIPHeader.ulSourceIPAddress ), &ulIPAddress, sizeof( ulIPAddress ) );      \
-                                                                                                       \
-    /* Clear the cache. */                                                                             \
-    memset( xDNSCache, 0, sizeof( xDNSCache ) );                                                       \
-                                                                                                       \
-    /* Add 'test' to the NBNS name. */                                                                 \
-    pucSource[ 0 ] = ( 't' >> 4 ) + 'A';                                                               \
-    pucSource[ 1 ] = ( 't' & 0x0F ) + 'A';                                                             \
-    pucSource += 2;                                                                                    \
-                                                                                                       \
-    pucSource[ 0 ] = ( 'e' >> 4 ) + 'A';                                                               \
-    pucSource[ 1 ] = ( 'e' & 0x0F ) + 'A';                                                             \
-    pucSource += 2;                                                                                    \
-                                                                                                       \
-    pucSource[ 0 ] = ( 's' >> 4 ) + 'A';                                                               \
-    pucSource[ 1 ] = ( 's' & 0x0F ) + 'A';                                                             \
-    pucSource += 2;                                                                                    \
-                                                                                                       \
-    pucSource[ 0 ] = ( 't' >> 4 ) + 'A';                                                               \
-    pucSource[ 1 ] = ( 't' & 0x0F ) + 'A';                                                             \
-    pucSource += 2;                                                                                    \
-                                                                                                       \
-    /* Fill with null terminator. */                                                                   \
-    for( int i = 0; i < 12; i++ )                                                                      \
-    {                                                                                                  \
-        pucSource[ 0 ] = ( 0 >> 4 ) + 'A';                                                             \
-        pucSource[ 1 ] = ( 0 & 0x0F ) + 'A';                                                           \
-        pucSource += 2;                                                                                \
+#define ulNBNSHandlePacket_SETUP                                                                          \
+    uint32_t ulResult;                                                                                    \
+    NetworkBufferDescriptor_t xNetworkBuffer;                                                             \
+    NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;                                        \
+    uint8_t ucEthernetBuffer[ sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t ) + sizeof( NBNSAnswer_t ) ]; \
+    uint32_t ulIPAddress = 0x43218765;                                                                    \
+                                                                                                          \
+    memset( ucEthernetBuffer, 0, sizeof( ucEthernetBuffer ) );                                            \
+                                                                                                          \
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;                                                \
+    pxNetworkBuffer->xDataLength = sizeof( ucEthernetBuffer );                                            \
+                                                                                                          \
+    UDPPacket_t * pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;                     \
+    uint8_t * pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( *pxUDPPacket ) ] );    \
+                                                                                                          \
+    NBNSRequest_t * NBNSRequest = ( NBNSRequest_t * ) pucUDPPayloadBuffer;                                \
+                                                                                                          \
+    uint8_t * pucSource = &( pucUDPPayloadBuffer[ offsetof( NBNSRequest_t, ucName ) ] );                  \
+                                                                                                          \
+    uint8_t Mychar = ' ';                                                                                 \
+                                                                                                          \
+    /* Add the IP address to be tested. */                                                                \
+    memcpy( &( pxUDPPacket->xIPHeader.ulSourceIPAddress ), &ulIPAddress, sizeof( ulIPAddress ) );         \
+                                                                                                          \
+    /* Clear the cache. */                                                                                \
+    memset( xDNSCache, 0, sizeof( xDNSCache ) );                                                          \
+                                                                                                          \
+    /* Add 'test' to the NBNS name. */                                                                    \
+    pucSource[ 0 ] = ( 't' >> 4 ) + 'A';                                                                  \
+    pucSource[ 1 ] = ( 't' & 0x0F ) + 'A';                                                                \
+    pucSource += 2;                                                                                       \
+                                                                                                          \
+    pucSource[ 0 ] = ( 'e' >> 4 ) + 'A';                                                                  \
+    pucSource[ 1 ] = ( 'e' & 0x0F ) + 'A';                                                                \
+    pucSource += 2;                                                                                       \
+                                                                                                          \
+    pucSource[ 0 ] = ( 's' >> 4 ) + 'A';                                                                  \
+    pucSource[ 1 ] = ( 's' & 0x0F ) + 'A';                                                                \
+    pucSource += 2;                                                                                       \
+                                                                                                          \
+    pucSource[ 0 ] = ( 't' >> 4 ) + 'A';                                                                  \
+    pucSource[ 1 ] = ( 't' & 0x0F ) + 'A';                                                                \
+    pucSource += 2;                                                                                       \
+                                                                                                          \
+    /* Fill with null terminator. */                                                                      \
+    for( int i = 0; i < 12; i++ )                                                                         \
+    {                                                                                                     \
+        pucSource[ 0 ] = ( 0 >> 4 ) + 'A';                                                                \
+        pucSource[ 1 ] = ( 0 & 0x0F ) + 'A';                                                              \
+        pucSource += 2;                                                                                   \
     }
 
 
@@ -4078,5 +4078,183 @@ void test_ulNBNSHandlePacket_DNSQueryHookFails( void )
     xApplicationDNSQueryHook_ExpectAnyArgsAndReturn( pdFALSE );
 
     ulResult = ulNBNSHandlePacket( pxNetworkBuffer );
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+void test_ulNBNSHandlePacket_UDP2NetworkBufferFails( void )
+{
+    ulNBNSHandlePacket_SETUP;
+
+    /* Return a correct flag. */
+    usChar2u16_ExpectAndReturn( ( uint8_t * ) ( &( NBNSRequest->usFlags ) ), 0 );
+    /* Return any class and type. */
+    usChar2u16_ExpectAndReturn( ( uint8_t * ) ( &( NBNSRequest->usType ) ), dnsNBNS_TYPE_NET_BIOS );
+    usChar2u16_ExpectAndReturn( ( uint8_t * ) ( &( NBNSRequest->usClass ) ), 0x01 );
+
+    /* Make sure that the xApplicationDNSQueryHook doesn't fail */
+    xApplicationDNSQueryHook_ExpectAnyArgsAndReturn( pdTRUE );
+
+    /* Make sure that we cannot get the network buffer from the UDP payload buffer. */
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAndReturn( pucUDPPayloadBuffer, NULL );
+
+    ulResult = ulNBNSHandlePacket( pxNetworkBuffer );
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+void test_ulNBNSHandlePacket_DuplicationFails( void )
+{
+    ulNBNSHandlePacket_SETUP;
+
+    /* Return a correct flag. */
+    usChar2u16_ExpectAndReturn( ( uint8_t * ) ( &( NBNSRequest->usFlags ) ), 0 );
+    /* Return any class and type. */
+    usChar2u16_ExpectAndReturn( ( uint8_t * ) ( &( NBNSRequest->usType ) ), dnsNBNS_TYPE_NET_BIOS );
+    usChar2u16_ExpectAndReturn( ( uint8_t * ) ( &( NBNSRequest->usClass ) ), 0x01 );
+
+    /* Make sure that the xApplicationDNSQueryHook doesn't fail */
+    xApplicationDNSQueryHook_ExpectAnyArgsAndReturn( pdTRUE );
+
+    /* Make sure that we cannot get the network buffer from the UDP payload buffer. */
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAndReturn( pucUDPPayloadBuffer, pxNetworkBuffer );
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( pxNetworkBuffer, pxNetworkBuffer->xDataLength + sizeof( NBNSAnswer_t ), NULL );
+
+    ulResult = ulNBNSHandlePacket( pxNetworkBuffer );
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+void test_ulNBNSHandlePacket_AllSuccess( void )
+{
+    ulNBNSHandlePacket_SETUP;
+
+    /* Return a correct flag. */
+    usChar2u16_ExpectAndReturn( ( uint8_t * ) ( &( NBNSRequest->usFlags ) ), 0 );
+    /* Return any class and type. */
+    usChar2u16_ExpectAndReturn( ( uint8_t * ) ( &( NBNSRequest->usType ) ), dnsNBNS_TYPE_NET_BIOS );
+    usChar2u16_ExpectAndReturn( ( uint8_t * ) ( &( NBNSRequest->usClass ) ), 0x01 );
+
+    /* Make sure that the xApplicationDNSQueryHook doesn't fail */
+    xApplicationDNSQueryHook_ExpectAnyArgsAndReturn( pdTRUE );
+
+    /* Make sure that we cannot get the network buffer from the UDP payload buffer. */
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAndReturn( pucUDPPayloadBuffer, pxNetworkBuffer );
+    /* Duplication succeeds. */
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( pxNetworkBuffer, pxNetworkBuffer->xDataLength + sizeof( NBNSAnswer_t ), pxNetworkBuffer );
+
+    /* Expect these argument except the Next data which is a variable address. Return 0 - this value doesn't matter. */
+    usGenerateChecksum_ExpectAndReturn( 0U, 0, ipSIZE_OF_IPv4_HEADER, 0 );
+    usGenerateChecksum_IgnoreArg_pucNextData();
+
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( pdTRUE );
+
+    vReturnEthernetFrame_Expect( pxNetworkBuffer, pdFALSE );
+
+    ulResult = ulNBNSHandlePacket( pxNetworkBuffer );
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+void test_ulDNSHandlePacket_JustNameInThePacket( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulResult;
+    uint8_t ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100 ];
+    uint16_t usQuestions = 2, usAnswers = 0;
+    char DNSQueryName[] = "freertos";
+    char DNSQueryExtention[] = "com";
+    uint8_t * pucByte;
+
+    DNSMessage_t * pxDNSMessageHeader;
+    /* This pointer is not used to modify anything */
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+
+    /* Add a data length for UDP packet but smaller than DNS packet. */
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100;
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+
+    /* Clear the buffer. */
+    memset( ucEthBuffer, 0, sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100 );
+
+    pxDNSMessageHeader = ( DNSMessage_t * ) &ucEthBuffer[ sizeof( UDPPacket_t ) ];
+
+    /* Put in expected flags. */
+    pxDNSMessageHeader->usFlags = dnsEXPECTED_RX_FLAGS;
+
+    /* Add questions in proper format. */
+    pxDNSMessageHeader->usQuestions = FreeRTOS_htons( usQuestions );
+
+    /* No answers. */
+    pxDNSMessageHeader->usAnswers = FreeRTOS_htons( usAnswers );
+
+    /* Get the DNS packet */
+    pucByte = &( ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) ] );
+
+    /******************* Queries ********************/
+    /* Add length of label "freertos" */
+    *pucByte = sizeof( DNSQueryName ) - 1;
+    pucByte++;
+    /* Set the DNS name. */
+    memcpy( pucByte, DNSQueryName, sizeof( DNSQueryName ) - 1 );
+    pucByte += sizeof( DNSQueryName ) - 1;
+
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
+
+    /****************** Answers **********************/
+    /* Nothing to do here. */
+
+    ulResult = ulDNSHandlePacket( &xNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pdFAIL, ulResult );
+}
+
+void test_ulDNSHandlePacket_NameBiggerThanCacheLine( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulResult;
+    uint8_t ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100 ];
+    uint16_t usQuestions = 2, usAnswers = 0;
+    char DNSQueryName[] = "freertos";
+    char DNSQueryExtention[] = "com";
+    uint8_t * pucByte;
+
+    /*ipconfigDNS_CACHE_NAME_LENGTH */
+    DNSMessage_t * pxDNSMessageHeader;
+    /* This pointer is not used to modify anything */
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+
+    /* Add a data length for UDP packet but smaller than DNS packet. */
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100;
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+
+    /* Clear the buffer. */
+    memset( ucEthBuffer, 0, sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) + 100 );
+
+    pxDNSMessageHeader = ( DNSMessage_t * ) &ucEthBuffer[ sizeof( UDPPacket_t ) ];
+
+    /* Put in expected flags. */
+    pxDNSMessageHeader->usFlags = dnsEXPECTED_RX_FLAGS;
+
+    /* Add questions in proper format. */
+    pxDNSMessageHeader->usQuestions = FreeRTOS_htons( usQuestions );
+
+    /* No answers. */
+    pxDNSMessageHeader->usAnswers = FreeRTOS_htons( usAnswers );
+
+    /* Get the DNS packet */
+    pucByte = &( ucEthBuffer[ sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) ] );
+
+    /******************* Queries ********************/
+    /* Add length of label "freertos" */
+    *pucByte = ipconfigDNS_CACHE_NAME_LENGTH;
+    pucByte++;
+    /* Set the DNS name. */
+    memset( pucByte, 'A', ipconfigDNS_CACHE_NAME_LENGTH );
+    pucByte += ipconfigDNS_CACHE_NAME_LENGTH;
+
+    xNetworkBuffer.xDataLength = ( uintptr_t ) pucByte - ( uintptr_t ) ucEthBuffer;
+
+    /****************** Answers **********************/
+    /* Nothing to do here. */
+
+    ulResult = ulDNSHandlePacket( &xNetworkBuffer );
+
     TEST_ASSERT_EQUAL( pdFAIL, ulResult );
 }
