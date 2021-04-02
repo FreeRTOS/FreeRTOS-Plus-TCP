@@ -824,6 +824,7 @@ pvdestination
 pvoptionvalue
 pvparam
 pvparameters
+pvpointer
 pvportmalloc
 pvportmallocsocket
 pvptr
