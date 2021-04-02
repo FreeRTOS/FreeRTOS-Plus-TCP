@@ -449,6 +449,7 @@ lc
 lca
 lco
 lcount
+lcurmss
 ld
 ldatalen
 ldatalength
@@ -555,6 +556,7 @@ misra
 mmc
 mo
 mqtt
+msb
 msc
 msec
 msecs
@@ -778,6 +780,7 @@ ptxpkt
 ptz
 pucaddress
 pucanswer
+pucbase
 pucbuffer
 pucbyte
 pucbytes
@@ -823,6 +826,7 @@ pvparam
 pvparameters
 pvportmalloc
 pvportmallocsocket
+pvptr
 pvsearchid
 pvsource
 pxackmessage
@@ -904,6 +908,7 @@ pxsockettodelete
 pxsourceaddress
 pxsourceaddresslength
 pxsourceendpoint
+pxtargetendpoint
 pxtcpheader
 pxtcppacket
 pxtcpsocketlookup
@@ -1131,6 +1136,7 @@ ucclienthardwareaddress
 uccontents
 uccurrentipaddress
 ucdifferentiatedservicescode
+ucdnsindex
 ucdnsserver
 ucdnsserveraddress
 ucdupackcount
@@ -1161,6 +1167,7 @@ ucnamespace
 ucnamezero
 ucnbnsname
 ucnetmask
+ucnew
 ucnextheader
 ucnumipaddresses
 ucoctet
@@ -1212,6 +1219,7 @@ ulbytecount
 ulchecktime
 ulconnected
 ulcount
+ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
 uldata
@@ -1295,6 +1303,7 @@ ulsize
 ulsourceaddress
 ulsourceipaddress
 ulspace
+ulsrtt
 ulstatus
 ulsum
 ultargetprotocoladdress
@@ -1391,6 +1400,8 @@ utf
 uuid
 uxaddresslength
 uxblocktimeticks
+uxborn
+uxbuffer
 uxbufferlength
 uxbytecount
 uxclockticks
@@ -1433,6 +1444,7 @@ uxoffset
 uxoptionlength
 uxoptionslength
 uxprefixlength
+uxptr
 uxremainingbytes
 uxremainingtime
 uxremaningtime
@@ -1471,6 +1483,8 @@ varpagecache
 varpgeneraterequestpacket
 varprefreshcacheentry
 varpsendgratuitous
+vcastconstpointerto
+vcastconstptrto
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
@@ -1545,6 +1559,7 @@ xboundsocketlistitem
 xboundtcpsocketslist
 xboundudpsocketslist
 xbroadcastmacaddress
+xbufferallocfixedsize
 xbufferlength
 xbufferlistitem
 xbytecount
@@ -1723,10 +1738,12 @@ xserverid
 xserversemaphore
 xserversocket
 xsize
+xsizewithoutdata
 xsocket
 xsocketbits
 xsocketset
 xsockettaskhandles
+xsocketvalid
 xsource
 xsourceaddress
 xstatus

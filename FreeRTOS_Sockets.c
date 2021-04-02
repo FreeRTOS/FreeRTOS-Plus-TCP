@@ -4650,7 +4650,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     {
                         /* Data can be passed directly to the user because there is
                          * no data in the RX-stream, it the new data must be stored
-                         * at offset zero, and a bufffer 'pcData' is provided.
+                         * at offset zero, and a buffer 'pcData' is provided.
                          */
                         pucBuffer = pcData;
 

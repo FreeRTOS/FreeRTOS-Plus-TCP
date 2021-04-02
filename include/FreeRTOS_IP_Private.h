@@ -626,12 +626,12 @@
 
 /* WARNING: Do NOT use this macro when the array was received as a parameter. */
     #ifndef ARRAY_SIZE
-        /** @brief Macro calculates the number of alements in an array as a BaseType_t. */
+        /** @brief Macro calculates the number of elements in an array as a BaseType_t. */
         #define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
     #endif
 
     #ifndef _WINDOWS_
-        /** @brief Macro calculates the number of alements in an array as a size_t. */
+        /** @brief Macro calculates the number of elements in an array as a size_t. */
         #ifndef ARRAY_SIZE_X
             #define ARRAY_SIZE_X( x )                        \
     ( { size_t uxCount = ( sizeof( x ) / sizeof( x )[ 0 ] ); \
