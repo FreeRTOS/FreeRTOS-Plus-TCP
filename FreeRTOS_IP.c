@@ -4654,10 +4654,10 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
 /**
  * @brief Cast a given constant pointer to ListItem_t type pointer.
  */
-    ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t )
-    {
-        return ( const ListItem_t * ) pvArgument;
-    }
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t )
+{
+    return ( const ListItem_t * ) pvArgument;
+}
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
