@@ -852,7 +852,7 @@
                 else
             #endif /* ( ipconfigUSE_IPv6 == 0 ) */
             {
-                /* ulChar2u32 reads from big-endian to host-edian. */
+                /* ulChar2u32 reads from big-endian to host-endian. */
                 uint32_t ulIPAddress = ulChar2u32( pucAddress );
                 /* Translate to network-endian. */
                 pxAddrInfo->ai_addr->sin_addr = FreeRTOS_htonl( ulIPAddress );
