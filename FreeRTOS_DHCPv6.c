@@ -173,7 +173,7 @@
     {
         BaseType_t xDoProcess = pdTRUE;
 
-        configASSERT( pxEndPoint != null );
+        configASSERT( pxEndPoint != NULL );
 
         /* Is DHCP starting over? */
         if( xReset != pdFALSE )

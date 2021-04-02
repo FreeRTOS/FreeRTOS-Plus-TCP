@@ -852,7 +852,10 @@
                 else
             #endif /* ( ipconfigUSE_IPv6 == 0 ) */
             {
-                memcpy( &( pxAddrInfo->ai_addr->sin_addr ), pucAddress, ipSIZE_OF_IPv4_ADDRESS );
+                /* ulChar2u32 reads from big-endian to host-edian. */
+                uint32_t ulIPAddress = ulChar2u32( pucAddress );
+                /* Translate to network-endian. */
+                pxAddrInfo->ai_addr->sin_addr = FreeRTOS_htonl( ulIPAddress );
                 pxAddrInfo->ai_family = FREERTOS_AF_INET4;
                 pxAddrInfo->ai_addrlen = ipSIZE_OF_IPv4_ADDRESS;
             }
@@ -1447,8 +1450,8 @@
                                 if( ENDPOINT_IS_IPv4( pxEndPoint ) )
                             #endif
                             {
-                                BaseType_t xIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
-                                ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ xIndex ];
+                                uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
+                                ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ];
 
                                 if( ( ulIPAddress != 0U ) && ( ulIPAddress != ipBROADCAST_IP_ADDRESS ) )
                                 {
