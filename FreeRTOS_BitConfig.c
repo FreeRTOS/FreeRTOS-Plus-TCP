@@ -38,8 +38,8 @@
 #include "semphr.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_BitConfig.h"
 
@@ -206,30 +206,28 @@ uint32_t ulBitConfig_read_32( BitConfig_t * pxConfig )
  * @param[in] pucData: The binary data to be written.
  * @param[in] uxSize: The number of bytes to be written.
  *
- * @return True if there was enough space in the buffer to store all bytes, otherwise pdFALSE.
+ * @return There is not return value. If the operation has failed,
+ *         the field xHasError will be set.
  */
-BaseType_t xBitConfig_write_uc( BitConfig_t * pxConfig,
-                                uint8_t * pucData,
-                                size_t uxSize )
+void vBitConfig_write_uc( BitConfig_t * pxConfig,
+                          uint8_t * pucData,
+                          size_t uxSize )
 {
-    BaseType_t xResult = pdFALSE;
     const size_t uxNeeded = uxSize;
 
     if( pxConfig->xHasError == pdFALSE )
     {
         if( pxConfig->uxIndex <= pxConfig->uxSize - uxNeeded )
         {
-            ( void ) memcpy( &( pxConfig->ucContents[ pxConfig->uxIndex ] ), pucData, uxNeeded );
+            uint8_t * pucDestination = &( pxConfig->ucContents[ pxConfig->uxIndex ] );
+            ( void ) memcpy( pucDestination, pucData, uxNeeded );
             pxConfig->uxIndex += uxNeeded;
-            xResult = pdTRUE;
         }
         else
         {
             pxConfig->xHasError = pdTRUE;
         }
     }
-
-    return xResult;
 }
 /*-----------------------------------------------------------*/
 
@@ -239,17 +237,15 @@ BaseType_t xBitConfig_write_uc( BitConfig_t * pxConfig,
  * @param[in] pxConfig: The structure containing a copy of the bits.
  * @param[in] ucValue: The byte to be written.
  *
- * @return True if there was enough space in the buffer to store the byte, otherwise pdFALSE.
+ * @return There is not return value. If the operation has failed,
+ *         the field xHasError will be set.
  */
-BaseType_t xBitConfig_write_8( BitConfig_t * pxConfig,
-                               uint8_t ucValue )
+void vBitConfig_write_8( BitConfig_t * pxConfig,
+                         uint8_t ucValue )
 {
-    BaseType_t xResult;
     const size_t uxNeeded = sizeof ucValue;
 
-    xResult = xBitConfig_write_uc( pxConfig, &( ucValue ), uxNeeded );
-
-    return xResult;
+    vBitConfig_write_uc( pxConfig, &( ucValue ), uxNeeded );
 }
 /*-----------------------------------------------------------*/
 
@@ -259,20 +255,18 @@ BaseType_t xBitConfig_write_8( BitConfig_t * pxConfig,
  * @param[in] pxConfig: The structure containing a copy of the bits.
  * @param[in] usValue: The 16-bit value to be written.
  *
- * @return @return True if there was enough space in the buffer to store the value, otherwise pdFALSE.
+ * @return There is not return value. If the operation has failed,
+ *         the field xHasError will be set.
  */
-BaseType_t xBitConfig_write_16( BitConfig_t * pxConfig,
-                                uint16_t usValue )
+void vBitConfig_write_16( BitConfig_t * pxConfig,
+                          uint16_t usValue )
 {
-    BaseType_t xResult;
     const size_t uxNeeded = sizeof usValue;
     uint8_t pucData[ uxNeeded ];
 
     pucData[ 0 ] = ( uint8_t ) ( ( usValue >> 8 ) & 0xFFU );
     pucData[ 1 ] = ( uint8_t ) ( usValue & 0xFFU );
-    xResult = xBitConfig_write_uc( pxConfig, pucData, uxNeeded );
-
-    return xResult;
+    vBitConfig_write_uc( pxConfig, pucData, uxNeeded );
 }
 /*-----------------------------------------------------------*/
 
@@ -282,12 +276,12 @@ BaseType_t xBitConfig_write_16( BitConfig_t * pxConfig,
  * @param[in] pxConfig: The structure containing a copy of the bits.
  * @param[in] ulValue: The 32-bit value to be written.
  *
- * @return @return True if there was enough space in the buffer to store the word, otherwise pdFALSE.
+ * @return There is not return value. If the operation has failed,
+ *         the field xHasError will be set.
  */
-BaseType_t xBitConfig_write_32( BitConfig_t * pxConfig,
-                                uint32_t ulValue )
+void vBitConfig_write_32( BitConfig_t * pxConfig,
+                          uint32_t ulValue )
 {
-    BaseType_t xResult;
     const size_t uxNeeded = sizeof ulValue;
     uint8_t pucData[ uxNeeded ];
 
@@ -295,9 +289,7 @@ BaseType_t xBitConfig_write_32( BitConfig_t * pxConfig,
     pucData[ 1 ] = ( uint8_t ) ( ( ulValue >> 16 ) & 0xFFU );
     pucData[ 2 ] = ( uint8_t ) ( ( ulValue >> 8 ) & 0xFFU );
     pucData[ 3 ] = ( uint8_t ) ( ulValue & 0xFFU );
-    xResult = xBitConfig_write_uc( pxConfig, pucData, uxNeeded );
-
-    return xResult;
+    ( void ) vBitConfig_write_uc( pxConfig, pucData, uxNeeded );
 }
 /*-----------------------------------------------------------*/
 
@@ -316,6 +308,6 @@ void vBitConfig_release( BitConfig_t * pxConfig )
         vPortFree( pxConfig->ucContents );
     }
 
-    memset( pxConfig, 0, sizeof *pxConfig );
+    ( void ) memset( pxConfig, 0, sizeof *pxConfig );
 }
 /*-----------------------------------------------------------*/

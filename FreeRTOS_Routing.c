@@ -113,7 +113,9 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
 #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 
+    #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
     RoutingStats_t xRoutingStatistics;
+    #endif
 
     #if ( ipconfigUSE_IPv6 != 0 )
         static NetworkEndPoint_t * prvFindFirstAddress_IPv6( void );
@@ -167,7 +169,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 if( pxIterator->pxNext == NULL )
                 {
                     pxIterator->pxNext = pxInterface;
-                    break; /*lint !e9011: (Note -- more than one 'break' terminates loop [MISRA 2012 Rule 15.4, advisory]. */
+                    break;
                 }
 
                 pxIterator = pxIterator->pxNext;
@@ -263,7 +265,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 if( pxIterator->pxNext == NULL )
                 {
                     pxIterator->pxNext = pxEndPoint;
-                    break; /*lint !e9011: (Note -- more than one 'break' terminates loop [MISRA 2012 Rule 15.4, advisory]. */
+                    break;
                 }
 
                 pxIterator = pxIterator->pxNext;
@@ -365,18 +367,24 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
+        #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
+            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocationsIP ) / sizeof( xRoutingStatistics.ulLocationsIP )[ 0 ] );
+
         xRoutingStatistics.ulOnIp++;
 
-        if( ulWhere < ARRAY_SIZE( xRoutingStatistics.ulLocationsIP ) )
+            if( ulWhere < ulLocationCount )
         {
             xRoutingStatistics.ulLocationsIP[ ulWhere ]++;
         }
+        #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
         while( pxEndPoint != NULL )
         {
+            #if ( ipconfigUSE_IPv6 != 0 )
             if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+            #endif
             {
-                if( ( ulIPAddress == 0UL ) || ( pxEndPoint->ipv4_settings.ulIPAddress == ulIPAddress ) )
+                if( ( ulIPAddress == 0U ) || ( pxEndPoint->ipv4_settings.ulIPAddress == ulIPAddress ) )
                 {
                     break;
                 }
@@ -433,7 +441,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
+        #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
+            {
         xRoutingStatistics.ulOnMAC++;
+            }
+        #endif
 
         /*_RB_ Question - would it be more efficient to store the mac addresses in
          * uin64_t variables for direct comparison instead of using memcmp()?  [don't
@@ -488,12 +500,16 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
+        #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
+            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocations ) / sizeof( xRoutingStatistics.ulLocations )[ 0 ] );
+
         xRoutingStatistics.ulOnNetMask++;
 
-        if( ulWhere < ARRAY_SIZE( xRoutingStatistics.ulLocations ) )
+            if( ulWhere < ulLocationCount )
         {
             xRoutingStatistics.ulLocations[ ulWhere ]++;
         }
+        #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
         /* Find the best fitting end-point to reach a given IP-address. */
 
@@ -521,7 +537,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         }
 
         /* This was only for debugging. */
-        if( ( pxEndPoint == NULL ) && ( ulWhere != 1UL ) && ( ulWhere != 2UL ) )
+        if( ( pxEndPoint == NULL ) && ( ulWhere != 1U ) && ( ulWhere != 2U ) )
         {
             FreeRTOS_printf( ( "FreeRTOS_FindEndPointOnNetMask[%ld]: No match for %lxip\n",
                                ulWhere, FreeRTOS_ntohl( ulIPAddress ) ) );
@@ -638,10 +654,6 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     #endif /* ipconfigUSE_IPv6 */
 /*-----------------------------------------------------------*/
 
-/* _HT_ Shall be cleaned up later after more testing/debugging. */
-/*lint -e9003*/
-    uint32_t xDoLog = 0UL; /*lint !e9075 (Note -- external symbol 'xDoLog' defined without a prior declaration [MISRA 2012 Rule 8.4, required]. */
-
 /**
  * @brief Find out the best matching end-point given an incoming Ethernet packet.
  *
@@ -654,7 +666,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                                    uint8_t * pucEthernetBuffer )
     {
         NetworkEndPoint_t * pxEndPoint = NULL;
-        ProtocolPacket_t * pxPacket = ipPOINTER_CAST( ProtocolPacket_t *, pucEthernetBuffer ); /*lint !e9018 declaration of symbol with union based type [MISRA 2012 Rule 19.2, advisory]. */
+        ProtocolPacket_t * pxPacket = ipCAST_PTR_TO_TYPE_PTR( ProtocolPacket_t, pucEthernetBuffer );
         /*#pragma warning 'name' for logging only, take this away */
         const char * name = "";
 
@@ -667,6 +679,8 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 uintptr_t uxAddress = ( uintptr_t ) pucEthernetBuffer;
                 uxAddress += 2U;
                 configASSERT( ( uxAddress % 4U ) == 0U );
+                /* And in case configASSERT is not defined. */
+                ( void ) uxAddress;
             }
         #endif
 
@@ -674,8 +688,12 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
          * defined end-point has the best match.
          */
 
+        #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
+            {
         /* Some stats while developing. */
         xRoutingStatistics.ulMatching++;
+            }
+        #endif
 
         /* Probably an ARP packet or a broadcast. */
         switch( pxPacket->xUDPPacket.xEthernetHeader.usFrameType )
@@ -683,7 +701,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             #if ( ipconfigUSE_IPv6 != 0 )
                 case ipIPv6_FRAME_TYPE:
                    {
-                       IPPacket_IPv6_t * pxIPPacket_IPv6 = ipPOINTER_CAST( IPPacket_IPv6_t *, pucEthernetBuffer );
+                       IPPacket_IPv6_t * pxIPPacket_IPv6 = ipCAST_PTR_TO_TYPE_PTR( IPPacket_IPv6_t, pucEthernetBuffer );
 
                        pxEndPoint = pxNetworkEndPoints;
 
@@ -707,7 +725,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                            {
                                if( pxEndPoint == NULL )
                                {
-                                   if( xCompareIPv6_Address( &( ipLLMNR_IP_ADDR_IPv6 ), &( pxIPPacket_IPv6->xIPHeader.xDestinationAddress ), ( size_t ) 8U * ipSIZE_OF_IPv6_ADDRESS ) == 0 ) /*lint !e9029: (Note -- Mismatched essential type categories for binary operator [MISRA 2012 Rule 10.4, required] */
+                                   if( xCompareIPv6_Address( &( ipLLMNR_IP_ADDR_IPv6 ), &( pxIPPacket_IPv6->xIPHeader.xDestinationAddress ), ( size_t ) 8U * ipSIZE_OF_IPv6_ADDRESS ) == 0 )
                                    {
                                        pxEndPoint = FreeRTOS_FirstEndPoint_IPv6( pxNetworkInterface );
                                    }
@@ -718,7 +736,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                    break;
             #endif /* ipconfigUSE_IPv6 */
             case ipARP_FRAME_TYPE:
-                pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress, 3UL );
+                pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress, 3U );
                 name = "ARP";
                 break;
 
@@ -749,7 +767,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                        name = "TCP";
                    }
 
-                   if( ulIPTargetAddress == ~0UL )
+                   if( ulIPTargetAddress == ~0U )
                    {
                        ulMatchAddress = ulIPSourceAddress;
                    }
@@ -777,7 +795,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                        }
                        else
                        if( ( xIPBroadcast != pdFALSE ) &&
-                           ( ( ( pxEndPoint->ipv4_settings.ulIPAddress ^ ulMatchAddress ) & pxEndPoint->ipv4_settings.ulNetMask ) == 0UL ) )
+                           ( ( ( pxEndPoint->ipv4_settings.ulIPAddress ^ ulMatchAddress ) & pxEndPoint->ipv4_settings.ulNetMask ) == 0U ) )
                        {
                            xDone = pdTRUE;
                        }
@@ -801,21 +819,6 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                    if( ( xIPBroadcast != 0 ) && ( pxEndPoint == NULL ) )
                    {
                        pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface );
-                   }
-
-                   if( ( xIsIPv4Multicast( ulIPTargetAddress ) == pdFALSE ) && ( xDoLog != 0UL ) )
-                   {
-                       xDoLog--;
-                       FreeRTOS_printf( ( "Compare[%s] %d mine %-16lxip (%02x-%02x) from %-16lxip to %-16lxip (%02x-%02x)\n",
-                                          name,
-                                          ( unsigned ) xIPBroadcast,
-                                          ( pxEndPoint != NULL ) ? FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulIPAddress ) : 0UL,
-                                          ( pxEndPoint != NULL ) ? pxEndPoint->xMACAddress.ucBytes[ 0 ] : 0U,
-                                          ( pxEndPoint != NULL ) ? pxEndPoint->xMACAddress.ucBytes[ 1 ] : 0U,
-                                          FreeRTOS_ntohl( ulIPSourceAddress ),
-                                          FreeRTOS_ntohl( ulIPTargetAddress ),
-                                          pxPacket->xUDPPacket.xEthernetHeader.xDestinationAddress.ucBytes[ 0 ],
-                                          pxPacket->xUDPPacket.xEthernetHeader.xDestinationAddress.ucBytes[ 1 ] ) );
                    }
                }
                break;
@@ -848,7 +851,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             #if ( ipconfigUSE_IPv6 == 0 )
                 ( void ) xIPType;
 
-                if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0UL ) /* access to ipv4_settings is checked. */
+                if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) /* access to ipv4_settings is checked. */
                 {
                     break;
                 }
@@ -864,9 +867,9 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 else
                 if( ( xIPType == ( BaseType_t ) ipTYPE_IPv4 ) && ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) )
                 {
-                    if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0UL ) /* access to ipv4_settings is checked. */
+                    if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) /* access to ipv4_settings is checked. */
                     {
-                        break;                                              /*lint !e9011 more than one 'break' terminates loop [MISRA 2012 Rule 15.4, advisory] */
+                        break;
                     }
                 }
                 else
@@ -1025,7 +1028,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         ( void ) ulIPAddress;
         ( void ) ulWhere;
 
-        if( ( ulIPAddress == 0UL ) || ( pxNetworkEndPoints->ipv4_settings.ulIPAddress == ulIPAddress ) )
+        if( ( ulIPAddress == 0U ) || ( pxNetworkEndPoints->ipv4_settings.ulIPAddress == ulIPAddress ) )
         {
             pxResult = pxNetworkEndPoints;
         }
@@ -1088,7 +1091,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
         if( pxNetworkEndPoints != NULL )
         {
-            if( pxNetworkEndPoints->ipv4_settings.ulGatewayAddress != 0UL )
+            if( pxNetworkEndPoints->ipv4_settings.ulGatewayAddress != 0U )
             {
                 pxReturn = pxNetworkEndPoints;
             }

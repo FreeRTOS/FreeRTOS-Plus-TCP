@@ -70,21 +70,12 @@
     struct xNetworkEndPoint;
 
 /*
- * Send a message to the IP-task, which will call vDHCPProcess().
- */
-    BaseType_t xSendDHCPv6Event( struct xNetworkEndPoint * pxEndPoint );
-
-/*
  * NOT A PUBLIC API FUNCTION.
  * It will be called when the DHCP timer expires, or when
  * data has been received on the DHCP socket.
  */
     void vDHCPv6Process( BaseType_t xReset,
                          struct xNetworkEndPoint * pxEndPoint );
-
-
-/* Internal call: returns true if socket is the current DHCP socket */
-    BaseType_t xIsDHCPv6Socket( Socket_t xSocket );
 
 /* Prototype of the hook (or callback) function that must be provided by the
  * application if ipconfigUSE_DHCP_HOOK is set to 1.  See the following URL for
@@ -97,5 +88,10 @@
     #ifdef __cplusplus
         } /* extern "C" */
     #endif
+
+/* The application should supply the following time-function.
+ * It must return the number of seconds that have passed since
+ * 1/1/1970. */
+    extern uint32_t ulApplicationTimeHook( void );
 
 #endif /* FREERTOS_DHCPv6_H */
