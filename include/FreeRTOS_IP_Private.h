@@ -381,10 +381,10 @@
         typedef struct xTCP_PACKET_IPv6 TCPPacket_IPv6_t;
     #endif /* ipconfigUSE_IPv6 */
 
-	#if ( ipconfigUSE_IPv6 != 0 )
-		extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPPacket_IPv6_t );
-		extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TCPPacket_IPv6_t );
-	#endif
+    #if ( ipconfigUSE_IPv6 != 0 )
+        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPPacket_IPv6_t );
+        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TCPPacket_IPv6_t );
+    #endif
 
 /**
  * Union for the protocol packet to save space. Any packet cannot have more than one
@@ -626,23 +626,24 @@
 
 /* WARNING: Do NOT use this macro when the array was received as a parameter. */
     #ifndef ARRAY_SIZE
-		/** @brief Macro calculates the number of alements in an array as a BaseType_t. */
+        /** @brief Macro calculates the number of alements in an array as a BaseType_t. */
         #define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
     #endif
 
-	#ifndef _WINDOWS_
-		/** @brief Macro calculates the number of alements in an array as a size_t. */
-		#ifndef ARRAY_SIZE_X
-			#define ARRAY_SIZE_X( x )							 \
-		( { size_t uxCount = ( sizeof( x ) / sizeof( x )[ 0 ] ); \
-			BaseType_t xCount = ( BaseType_t ) uxCount;			 \
-			xCount; } )
-		#endif
-	#else
-		#ifndef ARRAY_SIZE_X
-			#define ARRAY_SIZE_X ARRAY_SIZE
-		#endif
-	#endif
+    #ifndef _WINDOWS_
+        /** @brief Macro calculates the number of alements in an array as a size_t. */
+        #ifndef ARRAY_SIZE_X
+            #define ARRAY_SIZE_X( x )                        \
+    ( { size_t uxCount = ( sizeof( x ) / sizeof( x )[ 0 ] ); \
+        BaseType_t xCount = ( BaseType_t ) uxCount;          \
+        xCount; }                                            \
+    )
+        #endif
+    #else
+        #ifndef ARRAY_SIZE_X
+            #define ARRAY_SIZE_X    ARRAY_SIZE
+        #endif
+    #endif /* ifndef _WINDOWS_ */
 
 /*
  * Create a message that contains a command to initialise the network interface.
@@ -1121,10 +1122,10 @@
 
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
-	#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) || ( ipconfigUSE_TCP == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
-    	extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t );
-    	extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t );
-	#endif
+    #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) || ( ipconfigUSE_TCP == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t );
+        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t );
+    #endif
 
     #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
         void vIPSetDHCP_RATimerEnableState( struct xNetworkEndPoint * pxEndPoint,

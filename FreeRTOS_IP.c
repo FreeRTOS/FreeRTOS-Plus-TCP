@@ -1494,14 +1494,14 @@ BaseType_t FreeRTOS_IPStart( void )
 
     #if ( ipconfigUSE_IPv6 != 0 )
         for( ;
-         pxFirstEndPoint != NULL;
-         pxFirstEndPoint = FreeRTOS_NextEndPoint( NULL, pxFirstEndPoint ) )
-    {
-        if( ENDPOINT_IS_IPv4( pxFirstEndPoint ) )
+             pxFirstEndPoint != NULL;
+             pxFirstEndPoint = FreeRTOS_NextEndPoint( NULL, pxFirstEndPoint ) )
         {
-            break;
+            if( ENDPOINT_IS_IPv4( pxFirstEndPoint ) )
+            {
+                break;
+            }
         }
-    }
     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
     /* At least one IPv4 end-point must be defined. */
@@ -3830,14 +3830,14 @@ uint32_t FreeRTOS_GetIPAddress( void )
 
     #if ( ipconfigUSE_IPv6 != 0 )
         for( ;
-         pxEndPoint != NULL;
-         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
-    {
-        if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+             pxEndPoint != NULL;
+             pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
         {
-            break;
+            if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+            {
+                break;
+            }
         }
-    }
     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
     /* Returns the IP address of the NIC. */

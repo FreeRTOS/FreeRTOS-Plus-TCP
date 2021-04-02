@@ -58,12 +58,12 @@
     #define ndICMPv6_FLAG_UPDATE                          0x20000000U
 
 /** @brief A block time of 0 simply means "don't block". */
-    #define ndDONT_BLOCK               ( ( TickType_t ) 0 )
+    #define ndDONT_BLOCK                                  ( ( TickType_t ) 0 )
 
 /** @brief The character used to fill ICMP echo requests, and therefore also the
  *         character expected to fill ICMP echo replies.
  */
-    #define ndECHO_DATA_FILL_BYTE      'x'
+    #define ndECHO_DATA_FILL_BYTE                         'x'
 
 /** @brief When ucAge becomes 3 or less, it is time for a new
  * neighbour solicitation.
@@ -81,11 +81,11 @@
 
 /** @brief Lookup an MAC address in the ND cache from the IP address. */
     static eARPLookupResult_t prvNDCacheLookup( IPv6_Address_t * pxAddressToLookup,
-                                              MACAddress_t * const pxMACAddress,
-                                              NetworkEndPoint_t ** ppxEndPoint );
+                                                MACAddress_t * const pxMACAddress,
+                                                NetworkEndPoint_t ** ppxEndPoint );
 
     #if ( ipconfigHAS_PRINTF == 1 )
-    static const char * pcMessageType( BaseType_t xType );
+        static const char * pcMessageType( BaseType_t xType );
     #endif
 
 /** @brief Find the first end-point of type IPv6. */
@@ -374,8 +374,8 @@
  * @return An enum: either eARPCacheHit or eARPCacheMiss.
  */
     static eARPLookupResult_t prvNDCacheLookup( IPv6_Address_t * pxAddressToLookup,
-                                              MACAddress_t * const pxMACAddress,
-                                              NetworkEndPoint_t ** ppxEndPoint )
+                                                MACAddress_t * const pxMACAddress,
+                                                NetworkEndPoint_t ** ppxEndPoint )
     {
         BaseType_t x;
         eARPLookupResult_t eReturn = eARPCacheMiss;
@@ -727,59 +727,59 @@
  * @return A null-terminated string that represents the type the kind of message.
  */
     #if ( ipconfigHAS_PRINTF == 1 )
-    static const char * pcMessageType( BaseType_t xType )
-    {
-        const char * pcReturn;
-
-        switch( ( uint8_t ) xType )
+        static const char * pcMessageType( BaseType_t xType )
         {
-            case ipICMP_DEST_UNREACHABLE_IPv6:
-                pcReturn = "DEST_UNREACHABLE";
-                break;
+            const char * pcReturn;
 
-            case ipICMP_PACKET_TOO_BIG_IPv6:
-                pcReturn = "PACKET_TOO_BIG";
-                break;
+            switch( ( uint8_t ) xType )
+            {
+                case ipICMP_DEST_UNREACHABLE_IPv6:
+                    pcReturn = "DEST_UNREACHABLE";
+                    break;
 
-            case ipICMP_TIME_EXEEDED_IPv6:
-                pcReturn = "TIME_EXEEDED";
-                break;
+                case ipICMP_PACKET_TOO_BIG_IPv6:
+                    pcReturn = "PACKET_TOO_BIG";
+                    break;
 
-            case ipICMP_PARAMETER_PROBLEM_IPv6:
-                pcReturn = "PARAMETER_PROBLEM";
-                break;
+                case ipICMP_TIME_EXEEDED_IPv6:
+                    pcReturn = "TIME_EXEEDED";
+                    break;
 
-            case ipICMP_PING_REQUEST_IPv6:
-                pcReturn = "PING_REQUEST";
-                break;
+                case ipICMP_PARAMETER_PROBLEM_IPv6:
+                    pcReturn = "PARAMETER_PROBLEM";
+                    break;
 
-            case ipICMP_PING_REPLY_IPv6:
-                pcReturn = "PING_REPLY";
-                break;
+                case ipICMP_PING_REQUEST_IPv6:
+                    pcReturn = "PING_REQUEST";
+                    break;
 
-            case ipICMP_ROUTER_SOLICITATION_IPv6:
-                pcReturn = "ROUTER_SOL";
-                break;
+                case ipICMP_PING_REPLY_IPv6:
+                    pcReturn = "PING_REPLY";
+                    break;
 
-            case ipICMP_ROUTER_ADVERTISEMENT_IPv6:
-                pcReturn = "ROUTER_ADV";
-                break;
+                case ipICMP_ROUTER_SOLICITATION_IPv6:
+                    pcReturn = "ROUTER_SOL";
+                    break;
 
-            case ipICMP_NEIGHBOR_SOLICITATION_IPv6:
-                pcReturn = "NEIGHBOR_SOL";
-                break;
+                case ipICMP_ROUTER_ADVERTISEMENT_IPv6:
+                    pcReturn = "ROUTER_ADV";
+                    break;
 
-            case ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6:
-                pcReturn = "NEIGHBOR_ADV";
-                break;
+                case ipICMP_NEIGHBOR_SOLICITATION_IPv6:
+                    pcReturn = "NEIGHBOR_SOL";
+                    break;
 
-            default:
-                pcReturn = "UNKNOWN ICMP";
-                break;
+                case ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6:
+                    pcReturn = "NEIGHBOR_ADV";
+                    break;
+
+                default:
+                    pcReturn = "UNKNOWN ICMP";
+                    break;
+            }
+
+            return pcReturn;
         }
-
-        return pcReturn;
-    }
     #endif /* ( ipconfigHAS_PRINTF == 1 ) */
 /*-----------------------------------------------------------*/
 
@@ -799,15 +799,15 @@
 
         #if ( ipconfigHAS_PRINTF == 1 )
             {
-        if( pxICMPHeader_IPv6->ucTypeOfMessage != ipICMP_PING_REQUEST_IPv6 )
-        {
-            FreeRTOS_printf( ( "ICMPv6 %d (%s) from %pip to %pip end-point = %d\n",
-                               pxICMPHeader_IPv6->ucTypeOfMessage,
-                               pcMessageType( ( BaseType_t ) pxICMPHeader_IPv6->ucTypeOfMessage ),
-                               pxICMPPacket->xIPHeader.xSourceAddress.ucBytes,
-                               pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes,
-                               ( ( pxEndPoint != NULL ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) ) ? 1 : 0 ) );
-        }
+                if( pxICMPHeader_IPv6->ucTypeOfMessage != ipICMP_PING_REQUEST_IPv6 )
+                {
+                    FreeRTOS_printf( ( "ICMPv6 %d (%s) from %pip to %pip end-point = %d\n",
+                                       pxICMPHeader_IPv6->ucTypeOfMessage,
+                                       pcMessageType( ( BaseType_t ) pxICMPHeader_IPv6->ucTypeOfMessage ),
+                                       pxICMPPacket->xIPHeader.xSourceAddress.ucBytes,
+                                       pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes,
+                                       ( ( pxEndPoint != NULL ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) ) ? 1 : 0 ) );
+                }
             }
         #endif /* ( ipconfigHAS_PRINTF == 1 ) */
 
@@ -917,7 +917,7 @@
 
                         /* Receive a NA ( Neighbour Advertisement ) message to see if a chosen IP-address is already in use.
                          * This is important during SLAAC. */
-                            vReceiveNA( pxNetworkBuffer );
+                        vReceiveNA( pxNetworkBuffer );
                     #endif
 
                     break;

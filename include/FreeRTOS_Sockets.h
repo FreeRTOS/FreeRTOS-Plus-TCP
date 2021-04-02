@@ -147,10 +147,10 @@
     #define FREERTOS_SHUT_RDWR                        ( 2 )
 
 /* Values for flag for FreeRTOS_recv(). */
-    #define FREERTOS_MSG_OOB                          ( 2 )   /* process out-of-band data */
-    #define FREERTOS_MSG_PEEK                         ( 4 )   /* peek at incoming message */
-    #define FREERTOS_MSG_DONTROUTE                    ( 8 )   /* send without using routing tables */
-    #define FREERTOS_MSG_DONTWAIT                     ( 16 )  /* Can be used with recvfrom(), sendto(), recv(), and send(). */
+    #define FREERTOS_MSG_OOB                          ( 2 )  /* process out-of-band data */
+    #define FREERTOS_MSG_PEEK                         ( 4 )  /* peek at incoming message */
+    #define FREERTOS_MSG_DONTROUTE                    ( 8 )  /* send without using routing tables */
+    #define FREERTOS_MSG_DONTWAIT                     ( 16 ) /* Can be used with recvfrom(), sendto(), recv(), and send(). */
 
     #define FREERTOS_INADDR_ANY                       ( 0U ) /* The 0.0.0.0 IPv4 address. */
 
@@ -232,10 +232,10 @@
 
 /* The socket type itself. */
     struct xSOCKET;
-    typedef struct xSOCKET         * Socket_t;
-    typedef struct xSOCKET const   * ConstSocket_t;
+    typedef struct xSOCKET       * Socket_t;
+    typedef struct xSOCKET const * ConstSocket_t;
 
-	BaseType_t xSocketValid( ConstSocket_t xSocket );
+    BaseType_t xSocketValid( ConstSocket_t xSocket );
 
     #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 

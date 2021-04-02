@@ -60,14 +60,14 @@
                                    size_t uxSize );
 
     void vBitConfig_write_8( BitConfig_t * pxConfig,
-                                   uint8_t ucValue );
+                             uint8_t ucValue );
     void vBitConfig_write_16( BitConfig_t * pxConfig,
-                                    uint16_t usValue );
+                              uint16_t usValue );
     void vBitConfig_write_32( BitConfig_t * pxConfig,
-                                    uint32_t ulValue );
+                              uint32_t ulValue );
     void vBitConfig_write_uc( BitConfig_t * pxConfig,
-                                    uint8_t * pucData,
-                                    size_t uxSize );
+                              uint8_t * pucData,
+                              size_t uxSize );
 
     void vBitConfig_release( BitConfig_t * pxConfig );
 

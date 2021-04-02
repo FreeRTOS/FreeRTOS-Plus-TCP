@@ -829,7 +829,7 @@
                 else if( pxSocket != NULL )
                 {
                     if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
-        {
+                    {
                         xIsIPv6 = pdTRUE;
                     }
                 }
@@ -840,7 +840,7 @@
             }
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-            /* This function needs at least a network buffer or a socket. */
+        /* This function needs at least a network buffer or a socket. */
         configASSERT( ( pxNetworkBuffer != NULL ) || ( pxSocket != NULL ) );
 
         /* The test for pxSocket not being NULL is only added here to convince MISRA checkers. */
@@ -882,7 +882,7 @@
             }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
-            if( pxNetworkBuffer != NULL )
+        if( pxNetworkBuffer != NULL )
         {
             size_t uxIPHeaderSize;
             #if ( ipconfigUSE_IPv6 != 0 )
@@ -902,7 +902,7 @@
             }
 
             pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
-                                                &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] ) );
+                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] ) );
 
             if( pxNetworkBuffer->pxEndPoint == NULL )
             {
@@ -1099,10 +1099,10 @@
                     /* An extra test to convey the MISRA checker. */
                     if( pxIPHeader_IPv6 != NULL )
                     {
-                    pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( ulLen - sizeof( IPHeader_IPv6_t ) );
+                        pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( ulLen - sizeof( IPHeader_IPv6_t ) );
 
-                    ( void ) memcpy( &( pxIPHeader_IPv6->xDestinationAddress ), &( pxIPHeader_IPv6->xSourceAddress ), ipSIZE_OF_IPv6_ADDRESS );
-                    ( void ) memcpy( &( pxIPHeader_IPv6->xSourceAddress ), &( pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress ), ipSIZE_OF_IPv6_ADDRESS );
+                        ( void ) memcpy( &( pxIPHeader_IPv6->xDestinationAddress ), &( pxIPHeader_IPv6->xSourceAddress ), ipSIZE_OF_IPv6_ADDRESS );
+                        ( void ) memcpy( &( pxIPHeader_IPv6->xSourceAddress ), &( pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress ), ipSIZE_OF_IPv6_ADDRESS );
                     }
 
                     #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
@@ -1437,7 +1437,7 @@
             }
 
             pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
-                                                &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] ) );
+                                                        &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] ) );
             pxTCPPacket = ipCAST_PTR_TO_TYPE_PTR( TCPPacket_t, pxSocket->u.xTCP.xPacket.u.ucLastPacket );
 
             /* Reset the retry counter to zero. */
@@ -1593,7 +1593,7 @@
     {
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer );
         const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
-                                                                      &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset ] ) );
+                                                                              &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset ] ) );
         const TCPHeader_t * pxTCPHeader;
         const uint8_t * pucPtr;
         BaseType_t xHasSYNFlag;
@@ -3353,12 +3353,12 @@
                 /* In case we're receiving data continuously, we might postpone sending
                  * an ACK to gain performance. */
                 /* lint e9007 is OK because 'uxIPHeaderSizeSocket()' has no side-effects. */
-                if( ( ulReceiveLength > 0U ) &&                                                   /* Data was sent to this socket. */
-                    ( lRxSpace >= lMinLength ) &&                                                 /* There is Rx space for more data. */
-                    ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) &&                     /* Not in a closure phase. */
+                if( ( ulReceiveLength > 0U ) &&                                    /* Data was sent to this socket. */
+                    ( lRxSpace >= lMinLength ) &&                                  /* There is Rx space for more data. */
+                    ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) &&      /* Not in a closure phase. */
                     ( xSendLength == xSizeWithoutData ) &&                         /* No Tx data or options to be sent. */
-                    ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eESTABLISHED ) &&                /* Connection established. */
-                    ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )                              /* There are no other flags than an ACK. */
+                    ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eESTABLISHED ) && /* Connection established. */
+                    ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )               /* There are no other flags than an ACK. */
                 {
                     uint32_t ulCurMSS = ( uint32_t ) pxSocket->u.xTCP.usCurMSS;
                     int32_t lCurMSS = ( int32_t ) ulCurMSS;
@@ -3691,7 +3691,7 @@
                 uint32_t ulSendLength;
 
                 #if ( ipconfigUSE_IPv6 != 0 )
-                /* Map the ethernet buffer onto the TCPPacket_t struct for easy access to the fields. */
+                    /* Map the ethernet buffer onto the TCPPacket_t struct for easy access to the fields. */
                     TCPPacket_IPv6_t * pxTCPPacket_IPv6 = ipCAST_PTR_TO_TYPE_PTR( TCPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
 
                     if( pxTCPPacket_IPv6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
@@ -3704,12 +3704,12 @@
                     else
                 #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
                 {
-                TCPPacket_t * pxTCPPacket = ipCAST_PTR_TO_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+                    TCPPacket_t * pxTCPPacket = ipCAST_PTR_TO_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
                     ulSendLength =
-                    ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */
+                        ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */
 
-                pxTCPPacket->xTCPHeader.ucTCPFlags = ucTCPFlags;
-                pxTCPPacket->xTCPHeader.ucTCPOffset = ( ipSIZE_OF_TCP_HEADER ) << 2;
+                    pxTCPPacket->xTCPHeader.ucTCPFlags = ucTCPFlags;
+                    pxTCPPacket->xTCPHeader.ucTCPOffset = ( ipSIZE_OF_TCP_HEADER ) << 2;
                 }
 
                 prvTCPReturnPacket( NULL, pxNetworkBuffer, ulSendLength, pdFALSE );
@@ -3825,7 +3825,7 @@
         const size_t uxIPHeaderLength = uxIPHeaderSizePacket( pxNetworkBuffer );
 /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
         const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t,
-                                                                      &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderLength ] ) );
+                                                                                          &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderLength ] ) );
         FreeRTOS_Socket_t * pxSocket;
         uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
 
@@ -4162,7 +4162,7 @@
             const ProtocolHeaders_t * pxProtocolHeaders;
 
             pxProtocolHeaders = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t,
-                                                                          &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
 
             if( pxNetworkBuffer->pxEndPoint != NULL )
             {

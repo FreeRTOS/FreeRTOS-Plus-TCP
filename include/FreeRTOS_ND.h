@@ -184,7 +184,7 @@
  *         address in the ND address cache.
  *  @param[in] pxNetworkBuffer The buffer containing the packet.
  */
-            void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+        void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 /* Receive a Router Advertisement. */
         #if ( ipconfigUSE_RA != 0 )
@@ -213,16 +213,16 @@
         extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_IPv6_t );
         extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_IPv6_t );
 
-		#if( ipconfigUSE_RA != 0 )
-        	extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPRouterAdvertisement_IPv6_t );
-        	extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPRouterAdvertisement_IPv6_t );
+        #if ( ipconfigUSE_RA != 0 )
+            extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPRouterAdvertisement_IPv6_t );
+            extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPRouterAdvertisement_IPv6_t );
 
-        	extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPRouterSolicitation_IPv6_t );
-        	extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPRouterSolicitation_IPv6_t );
+            extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPRouterSolicitation_IPv6_t );
+            extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPRouterSolicitation_IPv6_t );
 
-        	extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPrefixOption_IPv6_t );
-        	extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPPrefixOption_IPv6_t );
-		#endif /* ( ipconfigUSE_RA != 0 ) */
+            extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPrefixOption_IPv6_t );
+            extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPPrefixOption_IPv6_t );
+        #endif /* ( ipconfigUSE_RA != 0 ) */
 
         extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPEcho_IPv6_t );
         extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPEcho_IPv6_t );

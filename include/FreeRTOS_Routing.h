@@ -92,7 +92,7 @@
         uint32_t ulGatewayAddress;                                           /**< The IP-address of the gateway. */
         uint32_t ulDNSServerAddresses[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ]; /**< IP-addresses of DNS servers. */
         uint32_t ulBroadcastAddress;                                         /**< The local broadcast address, e.g. '192.168.1.255'. */
-		uint8_t ucDNSIndex;
+        uint8_t ucDNSIndex;
     } IPV4Parameters_t;
 
     #if ( ipconfigUSE_IPv6 != 0 )
@@ -102,8 +102,8 @@
             size_t uxPrefixLength;          /* Number of valid bytes in the network prefix. */
             IPv6_Address_t xPrefix;         /* The network prefix, e.g. fe80::/10 */
             IPv6_Address_t xGatewayAddress; /* Gateway to the web. */
-			IPv6_Address_t xDNSServerAddresses[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ];
-			uint8_t ucDNSIndex;
+            IPv6_Address_t xDNSServerAddresses[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ];
+            uint8_t ucDNSIndex;
         } IPV6Parameters_t;
     #endif
 
@@ -314,17 +314,17 @@
 
     #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
 /** @brief Some simple network statistics. */
-    typedef struct xRoutingStats
-    {
-        UBaseType_t ulOnIp;             /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called. */
-        UBaseType_t ulOnMAC;            /**< The number of times 'FreeRTOS_FindEndPointOnMAC()' has been called. */
-        UBaseType_t ulOnNetMask;        /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called. */
-        UBaseType_t ulMatching;         /**< The number of times 'FreeRTOS_MatchingEndpoint()' has been called. */
-        UBaseType_t ulLocations[ 14 ];  /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called from a particular location. */
-        UBaseType_t ulLocationsIP[ 8 ]; /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called from a particular location. */
-    } RoutingStats_t;
+        typedef struct xRoutingStats
+        {
+            UBaseType_t ulOnIp;             /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called. */
+            UBaseType_t ulOnMAC;            /**< The number of times 'FreeRTOS_FindEndPointOnMAC()' has been called. */
+            UBaseType_t ulOnNetMask;        /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called. */
+            UBaseType_t ulMatching;         /**< The number of times 'FreeRTOS_MatchingEndpoint()' has been called. */
+            UBaseType_t ulLocations[ 14 ];  /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called from a particular location. */
+            UBaseType_t ulLocationsIP[ 8 ]; /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called from a particular location. */
+        } RoutingStats_t;
 
-    extern RoutingStats_t xRoutingStatistics;
+        extern RoutingStats_t xRoutingStatistics;
     #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
     NetworkEndPoint_t * pxGetSocketEndpoint( Socket_t xSocket );

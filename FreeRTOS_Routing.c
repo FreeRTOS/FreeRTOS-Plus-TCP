@@ -114,7 +114,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 
     #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-    RoutingStats_t xRoutingStatistics;
+        RoutingStats_t xRoutingStatistics;
     #endif
 
     #if ( ipconfigUSE_IPv6 != 0 )
@@ -370,18 +370,18 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
             uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocationsIP ) / sizeof( xRoutingStatistics.ulLocationsIP )[ 0 ] );
 
-        xRoutingStatistics.ulOnIp++;
+            xRoutingStatistics.ulOnIp++;
 
             if( ulWhere < ulLocationCount )
-        {
-            xRoutingStatistics.ulLocationsIP[ ulWhere ]++;
-        }
+            {
+                xRoutingStatistics.ulLocationsIP[ ulWhere ]++;
+            }
         #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
         while( pxEndPoint != NULL )
         {
             #if ( ipconfigUSE_IPv6 != 0 )
-            if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                if( ENDPOINT_IS_IPv4( pxEndPoint ) )
             #endif
             {
                 if( ( ulIPAddress == 0U ) || ( pxEndPoint->ipv4_settings.ulIPAddress == ulIPAddress ) )
@@ -443,7 +443,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
             {
-        xRoutingStatistics.ulOnMAC++;
+                xRoutingStatistics.ulOnMAC++;
             }
         #endif
 
@@ -503,12 +503,12 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
             uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocations ) / sizeof( xRoutingStatistics.ulLocations )[ 0 ] );
 
-        xRoutingStatistics.ulOnNetMask++;
+            xRoutingStatistics.ulOnNetMask++;
 
             if( ulWhere < ulLocationCount )
-        {
-            xRoutingStatistics.ulLocations[ ulWhere ]++;
-        }
+            {
+                xRoutingStatistics.ulLocations[ ulWhere ]++;
+            }
         #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
         /* Find the best fitting end-point to reach a given IP-address. */
@@ -690,8 +690,8 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
             {
-        /* Some stats while developing. */
-        xRoutingStatistics.ulMatching++;
+                /* Some stats while developing. */
+                xRoutingStatistics.ulMatching++;
             }
         #endif
 

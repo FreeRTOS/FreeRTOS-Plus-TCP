@@ -193,17 +193,17 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
             if( xIsIPV6 == pdFALSE )
         #endif
         {
-        if( pxNetworkBuffer->pxEndPoint == NULL )
-        {
-            pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->ulIPAddress, 10 );
-
             if( pxNetworkBuffer->pxEndPoint == NULL )
             {
-                pxNetworkBuffer->pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+                pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->ulIPAddress, 10 );
 
                 if( pxNetworkBuffer->pxEndPoint == NULL )
                 {
-                    FreeRTOS_printf( ( "vProcessGeneratedUDPPacket: No pxEndPoint found? Using %lxip\n",
+                    pxNetworkBuffer->pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+                    if( pxNetworkBuffer->pxEndPoint == NULL )
+                    {
+                        FreeRTOS_printf( ( "vProcessGeneratedUDPPacket: No pxEndPoint found? Using %lxip\n",
                                            ( pxNetworkBuffer->pxEndPoint != NULL ) ? FreeRTOS_ntohl( pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress ) : 0U ) );
                     }
                 }
