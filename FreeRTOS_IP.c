@@ -4649,6 +4649,7 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
         return ( ListItem_t * ) pvArgument;
     }
 /*-----------------------------------------------------------*/
+#endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) || ( ipconfigUSE_TCP == 1 ) */
 
 /**
  * @brief Cast a given constant pointer to ListItem_t type pointer.
@@ -4658,7 +4659,6 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
         return ( const ListItem_t * ) pvArgument;
     }
 /*-----------------------------------------------------------*/
-#endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) || ( ipconfigUSE_TCP == 1 ) */
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
