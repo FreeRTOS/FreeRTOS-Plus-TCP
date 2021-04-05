@@ -972,7 +972,7 @@
                         break;
                     }
 
-                    while( ( uxCount-- != 0U ) )
+                    while( uxCount-- != 0U )
                     {
                         if( uxNameLen >= uxDestLen )
                         {
@@ -992,7 +992,14 @@
                 /* Confirm that a fully formed name was found. */
                 if( uxIndex > 0U )
                 {
-                    if( ( uxNameLen < uxDestLen ) && ( uxIndex < uxSourceLen ) && ( pucByte[ uxIndex ] == 0U ) )
+                    /* Here, there is no need to check for pucByte[ uxindex ] == 0 because:
+                     * When we break out of the above while loop, uxIndex is made 0 thereby
+                     * failing above check. Whenever we exit the loop otherwise, either
+                     * pucByte[ uxIndex ] == 0 (which makes the check here unnecessary) or
+                     * uxIndex >= uxSourceLen (which makes sure that we do not go in the 'if'
+                     * case).
+                     */
+                    if( ( uxNameLen < uxDestLen ) && ( uxIndex < uxSourceLen ) )
                     {
                         pcName[ uxNameLen ] = '\0';
                         uxIndex++;
@@ -1449,7 +1456,11 @@
                 }
 
                 #if ( ipconfigUSE_LLMNR == 1 )
-                    else if( ( usQuestions != ( uint16_t ) 0U ) && ( usType == dnsTYPE_A_HOST ) && ( usClass == dnsCLASS_IN ) && ( pcRequestedName != NULL ) )
+
+                    /* No need to check that pcRequestedName != NULL since is usQuestions != 0, then
+                     * pcRequestedName is assigned with this statement
+                     * "pcRequestedName = ( char * ) pucByte;" */
+                    else if( ( usQuestions != ( uint16_t ) 0U ) && ( usType == dnsTYPE_A_HOST ) && ( usClass == dnsCLASS_IN ) )
                     {
                         /* If this is not a reply to our DNS request, it might an LLMNR
                          * request. */
@@ -1853,14 +1864,7 @@
 
             configASSERT( ( pcName != NULL ) );
 
-            if( xCurrentTickCount != 0 )
-            {
-                ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000UL;
-            }
-            else
-            {
-                ulCurrentTimeSeconds = 0;
-            }
+            ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000UL;
 
             /* For each entry in the DNS cache table. */
             for( x = 0; x < ipconfigDNS_CACHE_ENTRIES; x++ )
