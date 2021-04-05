@@ -1245,7 +1245,7 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
                                                        xIPTaskStack,
                                                        &xIPTaskBuffer );
                 }
-            #else  /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
+            #else /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
                 {
                     xReturn = xTaskCreate( prvIPTask,
                                            "IP-task",
