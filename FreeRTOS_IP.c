@@ -639,6 +639,18 @@ BaseType_t xIsCallingFromIPTask( void )
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief The variable 'xIPTaskHandle' is declared static.  This function
+ *        gives read-only access to it.
+ *
+ * @return The handle of the IP-task.
+ */
+TaskHandle_t FreeRTOS_GetIPTaskHandle( void )
+{
+    return xIPTaskHandle;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Handle the incoming Ethernet packets.
  *
  * @param[in] pxBuffer: Linked/un-linked network buffer descriptor(s)
