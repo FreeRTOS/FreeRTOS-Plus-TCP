@@ -29,7 +29,7 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
-#include <unity.h>
+#include <assert.h>
 
 /*-----------------------------------------------------------
 * Application specific definitions.
@@ -77,11 +77,8 @@
 #define configMAX_PRIORITIES                             ( 7 )
 
 /* Run time stats gathering configuration options. */
-unsigned long ulGetRunTimeCounterValue( void ); /* Prototype of function that returns run time counter. */
-void vConfigureTimerForRunTimeStats( void );    /* Prototype of function that initialises the run time counter. */
-#define configGENERATE_RUN_TIME_STATS    1
-#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()    vConfigureTimerForRunTimeStats()
-#define portGET_RUN_TIME_COUNTER_VALUE()            ulGetRunTimeCounterValue()
+
+#define configGENERATE_RUN_TIME_STATS             1
 
 /* Co-routine related configuration options. */
 #define configUSE_CO_ROUTINES                     1
@@ -117,7 +114,7 @@ void vConfigureTimerForRunTimeStats( void );    /* Prototype of function that in
  * uses the same semantics as the standard C assert() macro. */
 extern void vAssertCalled( unsigned long ulLine,
                            const char * const pcFileName );
-#define configASSERT( x )    if( x == 0 ) TEST_ABORT()
+#define configASSERT( x )    assert( x )
 
 #define configINCLUDE_MESSAGE_BUFFER_AMP_DEMO    0
 #if ( configINCLUDE_MESSAGE_BUFFER_AMP_DEMO == 1 )
