@@ -1400,6 +1400,7 @@ xilinx
 xinternal
 xipheader
 xipheadersize
+xiptaskhandle
 xiptaskinitialised
 xisbound
 xisforrx
