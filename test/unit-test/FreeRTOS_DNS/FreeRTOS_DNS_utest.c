@@ -19,7 +19,6 @@
 #include "mock_NetworkBufferManagement.h"
 
 #include "mock_portable_functions.h"
-
 #include "mock_FreeRTOS_DNS_mock.h"
 
 #include "FreeRTOS_DNS.h"
