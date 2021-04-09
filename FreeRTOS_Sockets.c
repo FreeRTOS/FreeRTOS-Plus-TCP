@@ -5289,6 +5289,14 @@ portINLINE BaseType_t xSocketValid( ConstSocket_t xSocket )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+
+/**
+ * @brief This internal function will check if a given TCP
+ *        socket has had any select event, either READ, WRITE,
+ *        or EXCEPT.
+ *
+ * @param[in] pxSocket: The socket which needs to be checked.
+ */
     static EventBits_t vSocketSelectTCP( FreeRTOS_Socket_t * pxSocket )
     {
         /* Check if the TCP socket has already been accepted by
