@@ -15,18 +15,6 @@ uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
 {
 }
 
-struct xDNSMessage
-{
-    uint16_t usIdentifier;
-    uint16_t usFlags;
-    uint16_t usQuestions;
-    uint16_t usAnswers;
-    uint16_t usAuthorityRRs;
-    uint16_t usAdditionalRRs;
-};
-
-typedef struct xDNSMessage DNSMessage_t;
-
 void harness()
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
