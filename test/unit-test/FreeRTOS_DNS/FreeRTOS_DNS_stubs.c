@@ -91,55 +91,6 @@ unsigned long ulGetRunTimeCounterValue( void )
 {
 }
 
-#if 0
-    size_t xPortGetMinimumEverFreeHeapSize( void )
-    {
-        return 0;
-    }
-
-
-    StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
-                                         StackType_t * pxEndOfStack,
-                                         TaskFunction_t pxCode,
-                                         void * pvParameters )
-    {
-    }
-
-    void vPortDeleteThread( void * pvTaskToDelete )
-    {
-    }
-    void vPortEndScheduler( void )
-    {
-    }
-    BaseType_t xPortStartScheduler( void )
-    {
-    }
-    void vPortEnterCritical( void )
-    {
-    }
-    void vPortExitCritical( void )
-    {
-    }
-
-    void * pvPortMalloc( size_t xWantedSize )
-    {
-        return malloc( xWantedSize );
-    }
-
-    void vPortFree( void * pv )
-    {
-        free( pv );
-    }
-
-    void vPortGenerateSimulatedInterrupt( uint32_t ulInterruptNumber )
-    {
-    }
-    void vPortCloseRunningThread( void * pvTaskToDelete,
-                                  volatile BaseType_t * pxPendYield )
-    {
-    }
-#endif /* if 0 */
-
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                     StackType_t ** ppxIdleTaskStackBuffer,
                                     uint32_t * pulIdleTaskStackSize )
