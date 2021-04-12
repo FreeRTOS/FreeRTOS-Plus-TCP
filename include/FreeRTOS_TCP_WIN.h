@@ -229,6 +229,27 @@
                                 uint32_t ulFirst,
                                 uint32_t ulLast );
 
+/**
+ * @brief Check if a > b.
+ *
+ * @param[in] a: The value on the left-hand side.
+ * @param[in] b: The value on the right-hand side.
+ *
+ * @return pdTRUE or pdFALSE.
+ */
+    BaseType_t xSequenceGreaterThan( uint32_t a,
+                                     uint32_t b );
+
+/**
+ * @brief Check if a < b.
+ *
+ * @param[in] a: The value on the left-hand side.
+ * @param[in] b: The value on the right-hand side.
+ *
+ * @return pdTRUE or pdFALSE.
+ */
+    BaseType_t xSequenceLessThan( uint32_t a,
+                                  uint32_t b );
 
     #ifdef __cplusplus
         } /* extern "C" */
