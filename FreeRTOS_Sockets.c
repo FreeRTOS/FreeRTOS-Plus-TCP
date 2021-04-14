@@ -1451,10 +1451,11 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
         /* Let the IP task close the socket to keep it synchronised with the
          * packet handling. */
 
-        /* Note when changing the time-out value below, it must be checked who is calling
-         * this function. If it is called by the IP-task, a deadlock could occur.
-         * The IP-task would only call it in case of a user call-back */
-        if( xSendEventStructToIPTask( &xCloseEvent, ( TickType_t ) 0 ) == pdFAIL )
+        /* The timeout value below is only used if this function is called from
+         * a user task. If this function is called by the IP-task, it may fail
+         * to close the socket when the event queue is full.
+         * This should only happen in case of a user call-back. */
+        if( xSendEventStructToIPTask( &xCloseEvent, ( TickType_t ) portMAX_DELAY ) == pdFAIL )
         {
             FreeRTOS_debug_printf( ( "FreeRTOS_closesocket: failed\n" ) );
             xResult = -1;
