@@ -499,10 +499,19 @@
                      * gets connected. */
                     if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
                     {
-                        /* vTCPStateChange() has called FreeRTOS_closesocket()
+                        if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                        {
+                            /* As it did not get connected, and the user can never
+                             * accept() it anymore, it will be deleted now.  Called from
+                             * the IP-task, so it's safe to call the internal Close
+                             * function: vSocketClose(). */
+                            vSocketClose( pxSocket );
+                        }
+
+                        /* prvTCPStatusAgeCheck() has called vSocketClose()
                          * in case the socket is not yet owned by the application.
                          * Return a negative value to inform the caller that
-                         * the socket will be closed in the next cycle. */
+                         * the socket got closed and may not be accessed anymore. */
                         xResult = -1;
                     }
                 }
@@ -1720,6 +1729,17 @@
             FreeRTOS_Socket_t * xConnected = NULL;
         #endif
 
+        /* If a socket is orphaned and does a state change to eCLOSE_WAIT,
+         * we cannot simply call vSocketClose here, as the caller is not yet done
+         * with the socket in this state. This makes sure select/accept gets
+         * signalled, so the user can accept and close the socket normally. */
+        if( ( eTCPState == eCLOSE_WAIT ) && ( bBefore == pdFALSE ) &&
+            ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) &&
+            ( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED ) )
+        {
+            bAfter = pdTRUE;
+        }
+
         /* Has the connected status changed? */
         if( bBefore != bAfter )
         {
@@ -1828,25 +1848,6 @@
                  * Setting time-out to zero means that the socket won't get checked during
                  * timer events. */
                 pxSocket->u.xTCP.usTimeout = 0U;
-            }
-        }
-        else
-        {
-            if( ( eTCPState == eCLOSED ) ||
-                ( eTCPState == eCLOSE_WAIT ) )
-            {
-                /* Socket goes to status eCLOSED because of a RST.
-                 * When nobody owns the socket yet, delete it. */
-                if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
-                    ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
-                {
-                    FreeRTOS_debug_printf( ( "vTCPStateChange: Closing socket\n" ) );
-
-                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
-                    {
-                        ( void ) FreeRTOS_closesocket( pxSocket );
-                    }
-                }
             }
         }
 
@@ -2718,8 +2719,6 @@
                                      ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eSYN_RECEIVED ) ? "eSYN_RECEIVED" : "eCONNECT_SYN",
                                      ucExpect, ucTCPFlags ) );
 
-            /* In case pxSocket is not yet owned by the application, a closure
-             * of the socket will be scheduled for the next cycle. */
             vTCPStateChange( pxSocket, eCLOSE_WAIT );
 
             /* Send RST with the expected sequence and ACK numbers,
@@ -3581,6 +3580,20 @@
                             if( ulSequenceNumber == pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber )
                             {
                                 vTCPStateChange( pxSocket, eCLOSED );
+
+                                /* When 'bPassQueued' true, this socket is an orphan until it
+                                 * gets connected. */
+                                if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
+                                {
+                                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                                    {
+                                        /* As it did not get connected, and the user can never
+                                         * accept() it anymore, it will be deleted now.  Called from
+                                         * the IP-task, so it's safe to call the internal Close
+                                         * function: vSocketClose(). */
+                                        vSocketClose( pxSocket );
+                                    }
+                                }
                             }
                             /* Otherwise, check whether the packet is within the receive window. */
                             else if( ( xSequenceGreaterThan( ulSequenceNumber, pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber ) ) &&
@@ -3841,48 +3854,14 @@
             }
         #endif /* ipconfigUSE_CALLBACKS */
 
-        #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-            {
-                /* Child socket of listening sockets will inherit the Socket Set
-                 * Otherwise the owner has no chance of including it into the set. */
-                if( pxSocket->pxSocketSet != NULL )
-                {
-                    pxNewSocket->pxSocketSet = pxSocket->pxSocketSet;
-                    pxNewSocket->xSelectBits = pxSocket->xSelectBits | ( ( EventBits_t ) eSELECT_READ ) | ( ( EventBits_t ) eSELECT_EXCEPT );
-                }
-            }
-        #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
-
         /* And bind it to the same local port as its parent. */
         xAddress.sin_addr = *ipLOCAL_IP_ADDRESS_POINTER;
         xAddress.sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
 
-        #if ( ipconfigTCP_HANG_PROTECTION == 1 )
-            {
-                /* Only when there is anti-hanging protection, a socket may become an
-                 * orphan temporarily.  Once this socket is really connected, the owner of
-                 * the server socket will be notified. */
-
-                /* When bPassQueued is true, the socket is an orphan until it gets
-                 * connected. */
-                pxNewSocket->u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
-                pxNewSocket->u.xTCP.pxPeerSocket = pxSocket;
-            }
-        #else
-            {
-                /* A reference to the new socket may be stored and the socket is marked
-                 * as 'passable'. */
-
-                /* When bPassAccept is true, this socket may be returned in a call to
-                 * accept(). */
-                pxNewSocket->u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
-
-                if( pxSocket->u.xTCP.pxPeerSocket == NULL )
-                {
-                    pxSocket->u.xTCP.pxPeerSocket = pxNewSocket;
-                }
-            }
-        #endif /* if ( ipconfigTCP_HANG_PROTECTION == 1 ) */
+        /* When bPassQueued is true, the socket is an orphan until it gets
+         * connected. */
+        pxNewSocket->u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+        pxNewSocket->u.xTCP.pxPeerSocket = pxSocket;
 
         pxSocket->u.xTCP.usChildCount++;
 
