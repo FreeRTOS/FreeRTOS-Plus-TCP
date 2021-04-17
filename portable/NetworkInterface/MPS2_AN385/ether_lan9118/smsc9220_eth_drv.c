@@ -1207,7 +1207,7 @@ uint32_t smsc9220_peek_next_packet_size( const struct
     {
 
         rx_status_from_peek = register_map->rx_status_peek;
-#warning try reading from port as peek is often zero.
+        /* Warning: try reading from port as peek is often zero. */
         rx_status_from_peek = register_map->rx_status_port;
 
         packet_size = GET_BIT_FIELD( rx_status_from_peek,
