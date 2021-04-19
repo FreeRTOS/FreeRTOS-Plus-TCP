@@ -138,21 +138,6 @@
     #include "pack_struct_end.h"
     typedef struct xDNSAnswerRecord DNSAnswerRecord_t;
 
-
-    #if ( ipconfigUSE_DNS_CACHE == 1 )
-        typedef struct xDNS_CACHE_TABLE_ROW
-        {
-            uint32_t ulIPAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ]; /* The IP address(es) of an ARP cache entry. */
-            char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                    /* The name of the host */
-            uint32_t ulTTL;                                                  /* Time-to-Live (in seconds) from the DNS server. */
-            uint32_t ulTimeWhenAddedInSeconds;
-            #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-                uint8_t ucNumIPAddresses;
-                uint8_t ucCurrentIPAddress;
-            #endif
-        } DNSCacheRow_t;
-    #endif /* if ( ipconfigUSE_DNS_CACHE == 1 ) */
-
 /* Below #include just tells the compiler to pack the structure.
  * It is included in to make the code more readable */
     #include "pack_struct_start.h"
