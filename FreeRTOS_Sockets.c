@@ -3615,9 +3615,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         }
         else if( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eESTABLISHED )
         {
-            /*_RB_ Is this comment correct?  The socket is not of a type that
-             * supports the listen() operation. */
-            xResult = -pdFREERTOS_ERRNO_EOPNOTSUPP;
+            /* The socket is not connected. */
+            xResult = -pdFREERTOS_ERRNO_ENOMEDIUM;
         }
         else
         {
@@ -3626,7 +3625,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* Let the IP-task perform the shutdown of the connection. */
             pxSocket->u.xTCP.usTimeout = 1U;
             ( void ) xSendEventToIPTask( eTCPTimerEvent );
-            xResult = 0;
+            xResult = pdFREERTOS_ERRNO_NONE;
         }
 
         ( void ) xHow;
