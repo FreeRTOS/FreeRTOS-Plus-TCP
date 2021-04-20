@@ -45,22 +45,22 @@
 #include "ether_lan9118/smsc9220_emac_config.h"
 
 /* Sets the size of the stack (in words, not bytes) of the task that reads bytes
-from the network. */
+ * from the network. */
 #ifndef nwRX_TASK_STACK_SIZE
     #define nwRX_TASK_STACK_SIZE    ( configMINIMAL_STACK_SIZE * 2 )
 #endif
 
 #ifndef nwETHERNET_RX_HANDLER_TASK_PRIORITY
-    #define nwETHERNET_RX_HANDLER_TASK_PRIORITY ( configMAX_PRIORITIES - 3 )
+    #define nwETHERNET_RX_HANDLER_TASK_PRIORITY    ( configMAX_PRIORITIES - 3 )
 #endif
 
 /* The number of attempts to get a successful call to smsc9220_send_by_chunks()
-when transmitting a packet before giving up. */
-#define niMAX_TX_ATTEMPTS           ( 5 )
+ * when transmitting a packet before giving up. */
+#define niMAX_TX_ATTEMPTS    ( 5 )
 
 /* Address of ISER and ICER registers in the Cortex-M NVIC. */
-#define nwNVIC_ISER               ( *( ( volatile uint32_t * ) 0xE000E100UL ) )
-#define nwNVIC_ICER               ( *( ( volatile uint32_t * ) 0xE000E180UL ) )
+#define nwNVIC_ISER          ( *( ( volatile uint32_t * ) 0xE000E100UL ) )
+#define nwNVIC_ICER          ( *( ( volatile uint32_t * ) 0xE000E180UL ) )
 
 /*-----------------------------------------------------------*/
 
@@ -114,7 +114,7 @@ static void prvSetMACAddress( void )
     uint32_t ucMACHigh = 0;
 
     /* Using local variables to make sure the right alignment is used.  The MAC
-    address is 6 bytes, hence the copy of 4 bytes followed by 2 bytes. */
+     * address is 6 bytes, hence the copy of 4 bytes followed by 2 bytes. */
     memcpy( ( void * ) &ucMACLow, ( void * ) ucMACAddress, 4 );
     memcpy( ( void * ) &ucMACHigh, ( void * ) ( ucMACAddress + 4 ), 2 );
 
@@ -173,8 +173,8 @@ static uint32_t prvLowLevelInput( NetworkBufferDescriptor_t ** pxNetworkBuffer )
             ( *pxNetworkBuffer )->xDataLength = ulMessageLength;
 
             ulReceivedBytes = smsc9220_receive_by_chunks( dev,
-                                                         ( char * ) ( ( *pxNetworkBuffer )->pucEthernetBuffer ),
-                                                         ulMessageLength ); /* not used */
+                                                          ( char * ) ( ( *pxNetworkBuffer )->pucEthernetBuffer ),
+                                                          ulMessageLength ); /* not used */
             ( *pxNetworkBuffer )->xDataLength = ulReceivedBytes;
         }
         else
@@ -196,7 +196,7 @@ void EthernetISR( void )
     extern uint32_t get_irq_status( const struct smsc9220_eth_dev_t * dev );
 
     /* Should not enable this interrupt until after the handler task has been
-    created. */
+     * created. */
     configASSERT( xRxTaskHandle );
 
     ulIRQStatus = get_irq_status( dev );
@@ -205,10 +205,10 @@ void EthernetISR( void )
     {
         /* Unblock the task that will process this interrupt. */
         vTaskNotifyGiveFromISR( xRxTaskHandle, &xHigherPriorityTaskWoken );
-        smsc9220_clear_interrupt( dev, SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL);
+        smsc9220_clear_interrupt( dev, SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
 
-        /* Re-enabled by the task that handles the incoming packet. *///_RB_ Is this necessary?
-        smsc9220_disable_interrupt( dev, SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL);
+        /* Re-enabled by the task that handles the incoming packet. */ /*_RB_ Is this necessary? */
+        smsc9220_disable_interrupt( dev, SMSC9220_INTERRUPT_RX_STATUS_FIFO_LEVEL );
     }
 
     smsc9220_clear_all_interrupts( dev );
@@ -248,7 +248,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
         else
         {
             /* Disable the Ethernet interrupt in the NVIC. */
-            nwNVIC_ICER = ( uint32_t )( 1UL << ( ulEthernetIRQ & 0x1FUL ) );
+            nwNVIC_ICER = ( uint32_t ) ( 1UL << ( ulEthernetIRQ & 0x1FUL ) );
 
             smsc9220_disable_all_interrupts( dev );
             smsc9220_clear_all_interrupts( dev );
@@ -285,7 +285,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
             smsc9220_enable_interrupt( dev, SMSC9220_INTERRUPT_TX_STOPPED );
 
             /* Enable the Ethernet interrupt in the NVIC. */
-            nwNVIC_ISER = ( uint32_t )( 1UL << ( ulEthernetIRQ & 0x1FUL ) );
+            nwNVIC_ISER = ( uint32_t ) ( 1UL << ( ulEthernetIRQ & 0x1FUL ) );
 
             xReturn = pdPASS;
         }
@@ -348,7 +348,7 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
      * allocated network buffers. */
 
     /* Hard force an assert as this driver cannot be used with BufferAllocation_1.c
-    without implementing this function. */
+     * without implementing this function. */
     configASSERT( xRxTaskHandle == ( TaskHandle_t ) 1 );
     ( void ) pxNetworkBuffers;
 }
@@ -364,7 +364,6 @@ BaseType_t xGetPhyLinkStatus( void )
     smsc9220_phy_regread( dev, SMSC9220_PHY_REG_OFFSET_BSTATUS,
                           &ulPHYBasicStatusValue );
     xLinkStatusUp = ( bool ) ( ulPHYBasicStatusValue &
-                             ( 1ul << ( PHY_REG_BSTATUS_LINK_STATUS_INDEX ) ) );
+                               ( 1ul << ( PHY_REG_BSTATUS_LINK_STATUS_INDEX ) ) );
     return xLinkStatusUp;
 }
-
