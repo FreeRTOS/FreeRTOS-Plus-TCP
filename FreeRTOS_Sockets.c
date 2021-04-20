@@ -1451,10 +1451,11 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
         /* Let the IP task close the socket to keep it synchronised with the
          * packet handling. */
 
-        /* Note when changing the time-out value below, it must be checked who is calling
-         * this function. If it is called by the IP-task, a deadlock could occur.
-         * The IP-task would only call it in case of a user call-back */
-        if( xSendEventStructToIPTask( &xCloseEvent, ( TickType_t ) 0 ) == pdFAIL )
+        /* The timeout value below is only used if this function is called from
+         * a user task. If this function is called by the IP-task, it may fail
+         * to close the socket when the event queue is full.
+         * This should only happen in case of a user call-back. */
+        if( xSendEventStructToIPTask( &xCloseEvent, ( TickType_t ) portMAX_DELAY ) == pdFAIL )
         {
             FreeRTOS_debug_printf( ( "FreeRTOS_closesocket: failed\n" ) );
             xResult = -1;
@@ -3976,13 +3977,13 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     if( xResult != ( int32_t ) ulByteCount )
                     {
                         FreeRTOS_debug_printf( ( "lTCPAddRxdata: at %u: %d/%u bytes (tail %u head %u space %u front %u)\n",
-                                                 ( UBaseType_t ) uxOffset,
-                                                 ( BaseType_t ) xResult,
-                                                 ( UBaseType_t ) ulByteCount,
-                                                 ( UBaseType_t ) pxStream->uxTail,
-                                                 ( UBaseType_t ) pxStream->uxHead,
-                                                 ( UBaseType_t ) uxStreamBufferFrontSpace( pxStream ),
-                                                 ( UBaseType_t ) pxStream->uxFront ) );
+                                                 ( unsigned int ) uxOffset,
+                                                 ( int ) xResult,
+                                                 ( unsigned int ) ulByteCount,
+                                                 ( unsigned int ) pxStream->uxTail,
+                                                 ( unsigned int ) pxStream->uxHead,
+                                                 ( unsigned int ) uxStreamBufferFrontSpace( pxStream ),
+                                                 ( unsigned int ) pxStream->uxFront ) );
                     }
                 }
             #endif /* ipconfigHAS_DEBUG_PRINTF */
