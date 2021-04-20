@@ -22,10 +22,13 @@
     - <stdbool.h>
     - <stdint.h>
     - <fcntl.h>
-    - "FreeRTOS.h"
-    - "FreeRTOS_IP.h"
-    - "FreeRTOS_IP_Private.h"
-    - "FreeRTOS_UDP_IP.h"
+    - <unity.h>
+    - FreeRTOS.h
+    - FreeRTOS_IP.h
   :treat_externs: :exclude  # Now the extern-ed functions will be mocked.
   :weak: __attribute__((weak))
   :treat_externs: :include
+  :strippables:
+    - PRIVILEGED_FUNCTION
+    - portDONT_DISCARD
+    - portINLINE

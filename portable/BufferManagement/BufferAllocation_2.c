@@ -102,7 +102,20 @@ BaseType_t xNetworkBuffersInitialise( void )
      * have not been initialised before. */
     if( xNetworkBufferSemaphore == NULL )
     {
-        xNetworkBufferSemaphore = xSemaphoreCreateCounting( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
+        #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
+            {
+                static StaticSemaphore_t xNetworkBufferSemaphoreBuffer;
+                xNetworkBufferSemaphore = xSemaphoreCreateCountingStatic(
+                    ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
+                    ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
+                    &xNetworkBufferSemaphoreBuffer );
+            }
+        #else
+            {
+                xNetworkBufferSemaphore = xSemaphoreCreateCounting( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
+            }
+        #endif /* configSUPPORT_STATIC_ALLOCATION */
+
         configASSERT( xNetworkBufferSemaphore != NULL );
 
         if( xNetworkBufferSemaphore != NULL )
