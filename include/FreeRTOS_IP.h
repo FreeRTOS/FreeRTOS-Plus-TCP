@@ -237,6 +237,8 @@
                                 const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                                 const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 
+    TaskHandle_t FreeRTOS_GetIPTaskHandle( void );
+
     void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                          TickType_t uxBlockTimeTicks );
     void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
