@@ -48,38 +48,38 @@
 
 typedef struct
 {
-    volatile uint32_t LED;       /* Offset: 0x000 (R/W)  LED connections */
-                                 /*                         [31:2] : Reserved */
-                                 /*                          [1:0] : LEDs */
+    volatile uint32_t LED;      /* Offset: 0x000 (R/W)  LED connections */
+                                /*                         [31:2] : Reserved */
+                                /*                          [1:0] : LEDs */
     uint32_t RESERVED1[ 1 ];
-    volatile uint32_t BUTTON;    /* Offset: 0x008 (R/W)  Buttons */
-                                 /*                         [31:2] : Reserved */
-                                 /*                          [1:0] : Buttons */
+    volatile uint32_t BUTTON;   /* Offset: 0x008 (R/W)  Buttons */
+                                /*                         [31:2] : Reserved */
+                                /*                          [1:0] : Buttons */
     uint32_t RESERVED2[ 1 ];
-    volatile uint32_t CLK1HZ;    /* Offset: 0x010 (R/W)  1Hz up counter */
-    volatile uint32_t CLK100HZ;  /* Offset: 0x014 (R/W)  100Hz up counter */
-    volatile uint32_t COUNTER;   /* Offset: 0x018 (R/W)  Cycle Up Counter */
-                                 /*                         Increments when 32-bit prescale counter reach zero */
+    volatile uint32_t CLK1HZ;   /* Offset: 0x010 (R/W)  1Hz up counter */
+    volatile uint32_t CLK100HZ; /* Offset: 0x014 (R/W)  100Hz up counter */
+    volatile uint32_t COUNTER;  /* Offset: 0x018 (R/W)  Cycle Up Counter */
+                                /*                         Increments when 32-bit prescale counter reach zero */
     uint32_t RESERVED3[ 1 ];
-    volatile uint32_t PRESCALE;  /* Offset: 0x020 (R/W)  Prescaler */
-                                 /*                         Bit[31:0] : reload value for prescale counter */
-    volatile uint32_t PSCNTR;    /* Offset: 0x024 (R/W)  32-bit Prescale counter */
-                                 /*                         current value of the pre-scaler counter */
-                                 /*                         The Cycle Up Counter increment when the prescale down counter reach 0 */
-                                 /*                         The pre-scaler counter is reloaded with PRESCALE after reaching 0. */
+    volatile uint32_t PRESCALE; /* Offset: 0x020 (R/W)  Prescaler */
+                                /*                         Bit[31:0] : reload value for prescale counter */
+    volatile uint32_t PSCNTR;   /* Offset: 0x024 (R/W)  32-bit Prescale counter */
+                                /*                         current value of the pre-scaler counter */
+                                /*                         The Cycle Up Counter increment when the prescale down counter reach 0 */
+                                /*                         The pre-scaler counter is reloaded with PRESCALE after reaching 0. */
     uint32_t RESERVED4[ 9 ];
-    volatile uint32_t MISC;      /* Offset: 0x04C (R/W)  Misc control * / */
-                                 /*                         [31:10] : Reserved */
-                                 /*                            [9] : SHIELD_1_SPI_nCS */
-                                 /*                            [8] : SHIELD_0_SPI_nCS */
-                                 /*                            [7] : ADC_SPI_nCS */
-                                 /*                            [6] : CLCD_BL_CTRL */
-                                 /*                            [5] : CLCD_RD */
-                                 /*                            [4] : CLCD_RS */
-                                 /*                            [3] : CLCD_RESET */
-                                 /*                            [2] : RESERVED */
-                                 /*                            [1] : SPI_nSS */
-                                 /*                            [0] : CLCD_CS */
+    volatile uint32_t MISC;     /* Offset: 0x04C (R/W)  Misc control * / */
+                                /*                         [31:10] : Reserved */
+                                /*                            [9] : SHIELD_1_SPI_nCS */
+                                /*                            [8] : SHIELD_0_SPI_nCS */
+                                /*                            [7] : ADC_SPI_nCS */
+                                /*                            [6] : CLCD_BL_CTRL */
+                                /*                            [5] : CLCD_RD */
+                                /*                            [4] : CLCD_RS */
+                                /*                            [3] : CLCD_RESET */
+                                /*                            [2] : RESERVED */
+                                /*                            [1] : SPI_nSS */
+                                /*                            [0] : CLCD_CS */
 } MPS2_FPGAIO_TypeDef;
 
 /* MISC register bit definitions */
@@ -134,31 +134,31 @@ typedef struct                         /* */
     /*                        [25:20] : Function value */
     /*                        [19:12] : Reserved */
     /*                         [11:0] : Device (value of 0/1/2 for supported clocks) */
-    volatile uint32_t SYS_CFGSTAT;   /* Offset: 0x0AC (R/W)  Contains status information */
+    volatile uint32_t SYS_CFGSTAT; /* Offset: 0x0AC (R/W)  Contains status information */
     /*                         [31:2] : Reserved */
     /*                            [1] : Error */
     /*                            [0] : Complete */
     volatile uint32_t RESERVED2[ 20 ];
-    volatile uint32_t SCC_DLL;   /* Offset: 0x100 (R/W)  DLL Lock Register */
-                                 /*                        [31:24] : DLL LOCK MASK[7:0] - Indicate if the DLL locked is masked */
-                                 /*                        [23:16] : DLL LOCK MASK[7:0] - Indicate if the DLLs are locked or unlocked */
-                                 /*                         [15:1] : Reserved */
-                                 /*                            [0] : This bit indicates if all enabled DLLs are locked */
+    volatile uint32_t SCC_DLL; /* Offset: 0x100 (R/W)  DLL Lock Register */
+                               /*                        [31:24] : DLL LOCK MASK[7:0] - Indicate if the DLL locked is masked */
+                               /*                        [23:16] : DLL LOCK MASK[7:0] - Indicate if the DLLs are locked or unlocked */
+                               /*                         [15:1] : Reserved */
+                               /*                            [0] : This bit indicates if all enabled DLLs are locked */
     uint32_t RESERVED3[ 957 ];
-    volatile uint32_t SCC_AID;   /* Offset: 0xFF8 (R/ )  SCC AID Register */
-                                 /*                        [31:24] : FPGA build number */
-                                 /*                        [23:20] : V2M-MPS2 target board revision (A = 0, B = 1) */
-                                 /*                        [19:11] : Reserved */
-                                 /*                           [10] : if “1” SCC_SW register has been implemented */
-                                 /*                            [9] : if “1” SCC_LED register has been implemented */
-                                 /*                            [8] : if “1” DLL lock register has been implemented */
-                                 /*                          [7:0] : number of SCC configuration register */
-    volatile uint32_t SCC_ID;    /* Offset: 0xFFC (R/ )  Contains information about the FPGA image */
-                                 /*                        [31:24] : Implementer ID: 0x41 = ARM */
-                                 /*                        [23:20] : Application note IP variant number */
-                                 /*                        [19:16] : IP Architecture: 0x4 =AHB */
-                                 /*                         [15:4] : Primary part number: 386 = AN386 */
-                                 /*                          [3:0] : Application note IP revision number */
+    volatile uint32_t SCC_AID; /* Offset: 0xFF8 (R/ )  SCC AID Register */
+                               /*                        [31:24] : FPGA build number */
+                               /*                        [23:20] : V2M-MPS2 target board revision (A = 0, B = 1) */
+                               /*                        [19:11] : Reserved */
+                               /*                           [10] : if “1” SCC_SW register has been implemented */
+                               /*                            [9] : if “1” SCC_LED register has been implemented */
+                               /*                            [8] : if “1” DLL lock register has been implemented */
+                               /*                          [7:0] : number of SCC configuration register */
+    volatile uint32_t SCC_ID;  /* Offset: 0xFFC (R/ )  Contains information about the FPGA image */
+                               /*                        [31:24] : Implementer ID: 0x41 = ARM */
+                               /*                        [23:20] : Application note IP variant number */
+                               /*                        [19:16] : IP Architecture: 0x4 =AHB */
+                               /*                         [15:4] : Primary part number: 386 = AN386 */
+                               /*                          [3:0] : Application note IP revision number */
 } MPS2_SCC_TypeDef;
 
 
@@ -175,51 +175,51 @@ typedef struct             /* Document DDI0194G_ssp_pl022_r1p3_trm.pdf */
     /*                            [6] : SSPCLKOUT polarity, applicable to Motorola SPI frame format only */
     /*                          [5:4] : Frame format */
     /*                          [3:0] : Data Size Select */
-    volatile uint32_t CR1;   /* Offset: 0x004 (R/W)  Control register 1 */
+    volatile uint32_t CR1; /* Offset: 0x004 (R/W)  Control register 1 */
     /*                         [31:4] : Reserved */
     /*                            [3] : Slave-mode output disable */
     /*                            [2] : Master or slave mode select */
     /*                            [1] : Synchronous serial port enable */
     /*                            [0] : Loop back mode */
-    volatile uint32_t DR;        /* Offset: 0x008 (R/W)  Data register */
-                                 /*                        [31:16] : Reserved */
-                                 /*                         [15:0] : Transmit/Receive FIFO */
-    volatile uint32_t SR;        /* Offset: 0x00C (R/ )  Status register */
-                                 /*                         [31:5] : Reserved */
-                                 /*                            [4] : PrimeCell SSP busy flag */
-                                 /*                            [3] : Receive FIFO full */
-                                 /*                            [2] : Receive FIFO not empty */
-                                 /*                            [1] : Transmit FIFO not full */
-                                 /*                            [0] : Transmit FIFO empty */
-    volatile uint32_t CPSR;      /* Offset: 0x010 (R/W)  Clock prescale register */
-                                 /*                         [31:8] : Reserved */
-                                 /*                          [8:0] : Clock prescale divisor */
-    volatile uint32_t IMSC;      /* Offset: 0x014 (R/W)  Interrupt mask set or clear register */
-                                 /*                         [31:4] : Reserved */
-                                 /*                            [3] : Transmit FIFO interrupt mask */
-                                 /*                            [2] : Receive FIFO interrupt mask */
-                                 /*                            [1] : Receive timeout interrupt mask */
-                                 /*                            [0] : Receive overrun interrupt mask */
-    volatile uint32_t RIS;       /* Offset: 0x018 (R/ )  Raw interrupt status register */
-                                 /*                         [31:4] : Reserved */
-                                 /*                            [3] : raw interrupt state, prior to masking, of the SSPTXINTR interrupt */
-                                 /*                            [2] : raw interrupt state, prior to masking, of the SSPRXINTR interrupt */
-                                 /*                            [1] : raw interrupt state, prior to masking, of the SSPRTINTR interrupt */
-                                 /*                            [0] : raw interrupt state, prior to masking, of the SSPRORINTR interrupt */
-    volatile uint32_t MIS;       /* Offset: 0x01C (R/ )  Masked interrupt status register */
-                                 /*                         [31:4] : Reserved */
-                                 /*                            [3] : transmit FIFO masked interrupt state, after masking, of the SSPTXINTR interrupt */
-                                 /*                            [2] : receive FIFO masked interrupt state, after masking, of the SSPRXINTR interrupt */
-                                 /*                            [1] : receive timeout masked interrupt state, after masking, of the SSPRTINTR interrupt */
-                                 /*                            [0] : receive over run masked interrupt status, after masking, of the SSPRORINTR interrupt */
-    volatile uint32_t ICR;       /* Offset: 0x020 ( /W)  Interrupt clear register */
-                                 /*                         [31:2] : Reserved */
-                                 /*                            [1] : Clears the SSPRTINTR interrupt */
-                                 /*                            [0] : Clears the SSPRORINTR interrupt */
-    volatile uint32_t DMACR;     /* Offset: 0x024 (R/W)  DMA control register */
-                                 /*                         [31:2] : Reserved */
-                                 /*                            [1] : Transmit DMA Enable */
-                                 /*                            [0] : Receive DMA Enable */
+    volatile uint32_t DR;    /* Offset: 0x008 (R/W)  Data register */
+                             /*                        [31:16] : Reserved */
+                             /*                         [15:0] : Transmit/Receive FIFO */
+    volatile uint32_t SR;    /* Offset: 0x00C (R/ )  Status register */
+                             /*                         [31:5] : Reserved */
+                             /*                            [4] : PrimeCell SSP busy flag */
+                             /*                            [3] : Receive FIFO full */
+                             /*                            [2] : Receive FIFO not empty */
+                             /*                            [1] : Transmit FIFO not full */
+                             /*                            [0] : Transmit FIFO empty */
+    volatile uint32_t CPSR;  /* Offset: 0x010 (R/W)  Clock prescale register */
+                             /*                         [31:8] : Reserved */
+                             /*                          [8:0] : Clock prescale divisor */
+    volatile uint32_t IMSC;  /* Offset: 0x014 (R/W)  Interrupt mask set or clear register */
+                             /*                         [31:4] : Reserved */
+                             /*                            [3] : Transmit FIFO interrupt mask */
+                             /*                            [2] : Receive FIFO interrupt mask */
+                             /*                            [1] : Receive timeout interrupt mask */
+                             /*                            [0] : Receive overrun interrupt mask */
+    volatile uint32_t RIS;   /* Offset: 0x018 (R/ )  Raw interrupt status register */
+                             /*                         [31:4] : Reserved */
+                             /*                            [3] : raw interrupt state, prior to masking, of the SSPTXINTR interrupt */
+                             /*                            [2] : raw interrupt state, prior to masking, of the SSPRXINTR interrupt */
+                             /*                            [1] : raw interrupt state, prior to masking, of the SSPRTINTR interrupt */
+                             /*                            [0] : raw interrupt state, prior to masking, of the SSPRORINTR interrupt */
+    volatile uint32_t MIS;   /* Offset: 0x01C (R/ )  Masked interrupt status register */
+                             /*                         [31:4] : Reserved */
+                             /*                            [3] : transmit FIFO masked interrupt state, after masking, of the SSPTXINTR interrupt */
+                             /*                            [2] : receive FIFO masked interrupt state, after masking, of the SSPRXINTR interrupt */
+                             /*                            [1] : receive timeout masked interrupt state, after masking, of the SSPRTINTR interrupt */
+                             /*                            [0] : receive over run masked interrupt status, after masking, of the SSPRORINTR interrupt */
+    volatile uint32_t ICR;   /* Offset: 0x020 ( /W)  Interrupt clear register */
+                             /*                         [31:2] : Reserved */
+                             /*                            [1] : Clears the SSPRTINTR interrupt */
+                             /*                            [0] : Clears the SSPRORINTR interrupt */
+    volatile uint32_t DMACR; /* Offset: 0x024 (R/W)  DMA control register */
+                             /*                         [31:2] : Reserved */
+                             /*                            [1] : Transmit DMA Enable */
+                             /*                            [0] : Receive DMA Enable */
 } MPS2_SSP_TypeDef;
 
 
@@ -335,67 +335,67 @@ typedef struct
 typedef struct
 {
     /*!< Offset: 0x000 CONTROL Register    (R/W) */
-    volatile uint32_t CONTROL;  /* <h> CONTROL </h> */
-                                /*   <o.0> TX Enable */
-                                /*     <0=> TX disabled */
-                                /*     <1=> TX enabled */
-                                /*   <o.1> TX IRQ Enable */
-                                /*     <0=> TX IRQ disabled */
-                                /*     <1=> TX IRQ enabled */
-                                /*   <o.2> RX Enable */
-                                /*     <0=> RX disabled */
-                                /*     <1=> RX enabled */
-                                /*   <o.3> RX IRQ Enable */
-                                /*     <0=> RX IRQ disabled */
-                                /*     <1=> RX IRQ enabled */
-                                /*   <o.10..8> TX Buffer Water Level */
-                                /*     <0=> / IRQ triggers when any space available */
-                                /*     <1=> / IRQ triggers when more than 1 space available */
-                                /*     <2=> / IRQ triggers when more than 2 space available */
-                                /*     <3=> / IRQ triggers when more than 3 space available */
-                                /*     <4=> Undefined! */
-                                /*     <5=> Undefined! */
-                                /*     <6=> Undefined! */
-                                /*     <7=> Undefined! */
-                                /*   <o.14..12> RX Buffer Water Level */
-                                /*     <0=> Undefined! */
-                                /*     <1=> / IRQ triggers when less than 1 space available */
-                                /*     <2=> / IRQ triggers when less than 2 space available */
-                                /*     <3=> / IRQ triggers when less than 3 space available */
-                                /*     <4=> / IRQ triggers when less than 4 space available */
-                                /*     <5=> Undefined! */
-                                /*     <6=> Undefined! */
-                                /*     <7=> Undefined! */
-                                /*   <o.16> FIFO reset */
-                                /*     <0=> Normal operation */
-                                /*     <1=> FIFO reset */
-                                /*   <o.17> Audio Codec reset */
-                                /*     <0=> Normal operation */
-                                /*     <1=> Assert audio Codec reset */
+    volatile uint32_t CONTROL; /* <h> CONTROL </h> */
+                               /*   <o.0> TX Enable */
+                               /*     <0=> TX disabled */
+                               /*     <1=> TX enabled */
+                               /*   <o.1> TX IRQ Enable */
+                               /*     <0=> TX IRQ disabled */
+                               /*     <1=> TX IRQ enabled */
+                               /*   <o.2> RX Enable */
+                               /*     <0=> RX disabled */
+                               /*     <1=> RX enabled */
+                               /*   <o.3> RX IRQ Enable */
+                               /*     <0=> RX IRQ disabled */
+                               /*     <1=> RX IRQ enabled */
+                               /*   <o.10..8> TX Buffer Water Level */
+                               /*     <0=> / IRQ triggers when any space available */
+                               /*     <1=> / IRQ triggers when more than 1 space available */
+                               /*     <2=> / IRQ triggers when more than 2 space available */
+                               /*     <3=> / IRQ triggers when more than 3 space available */
+                               /*     <4=> Undefined! */
+                               /*     <5=> Undefined! */
+                               /*     <6=> Undefined! */
+                               /*     <7=> Undefined! */
+                               /*   <o.14..12> RX Buffer Water Level */
+                               /*     <0=> Undefined! */
+                               /*     <1=> / IRQ triggers when less than 1 space available */
+                               /*     <2=> / IRQ triggers when less than 2 space available */
+                               /*     <3=> / IRQ triggers when less than 3 space available */
+                               /*     <4=> / IRQ triggers when less than 4 space available */
+                               /*     <5=> Undefined! */
+                               /*     <6=> Undefined! */
+                               /*     <7=> Undefined! */
+                               /*   <o.16> FIFO reset */
+                               /*     <0=> Normal operation */
+                               /*     <1=> FIFO reset */
+                               /*   <o.17> Audio Codec reset */
+                               /*     <0=> Normal operation */
+                               /*     <1=> Assert audio Codec reset */
     /*!< Offset: 0x004 STATUS Register     (R/ ) */
-    volatile uint32_t STATUS;   /* <h> STATUS </h> */
-                                /*   <o.0> TX Buffer alert */
-                                /*     <0=> TX buffer don't need service yet */
-                                /*     <1=> TX buffer need service */
-                                /*   <o.1> RX Buffer alert */
-                                /*     <0=> RX buffer don't need service yet */
-                                /*     <1=> RX buffer need service */
-                                /*   <o.2> TX Buffer Empty */
-                                /*     <0=> TX buffer have data */
-                                /*     <1=> TX buffer empty */
-                                /*   <o.3> TX Buffer Full */
-                                /*     <0=> TX buffer not full */
-                                /*     <1=> TX buffer full */
-                                /*   <o.4> RX Buffer Empty */
-                                /*     <0=> RX buffer have data */
-                                /*     <1=> RX buffer empty */
-                                /*   <o.5> RX Buffer Full */
-                                /*     <0=> RX buffer not full */
-                                /*     <1=> RX buffer full */
+    volatile uint32_t STATUS;  /* <h> STATUS </h> */
+                               /*   <o.0> TX Buffer alert */
+                               /*     <0=> TX buffer don't need service yet */
+                               /*     <1=> TX buffer need service */
+                               /*   <o.1> RX Buffer alert */
+                               /*     <0=> RX buffer don't need service yet */
+                               /*     <1=> RX buffer need service */
+                               /*   <o.2> TX Buffer Empty */
+                               /*     <0=> TX buffer have data */
+                               /*     <1=> TX buffer empty */
+                               /*   <o.3> TX Buffer Full */
+                               /*     <0=> TX buffer not full */
+                               /*     <1=> TX buffer full */
+                               /*   <o.4> RX Buffer Empty */
+                               /*     <0=> RX buffer have data */
+                               /*     <1=> RX buffer empty */
+                               /*   <o.5> RX Buffer Full */
+                               /*     <0=> RX buffer not full */
+                               /*     <1=> RX buffer full */
     union
     {
         /*!< Offset: 0x008 Error Status Register (R/ ) */
-        volatile uint32_t ERROR;  /* <h> ERROR </h> */
+        volatile uint32_t ERROR; /* <h> ERROR </h> */
         /*   <o.0> TX error */
         /*     <0=> Okay */
         /*     <1=> TX overrun/underrun */
@@ -403,7 +403,7 @@ typedef struct
         /*     <0=> Okay */
         /*     <1=> RX overrun/underrun */
         /*!< Offset: 0x008 Error Clear Register  ( /W) */
-        volatile uint32_t ERRORCLR;  /* <h> ERRORCLR </h> */
+        volatile uint32_t ERRORCLR; /* <h> ERRORCLR </h> */
         /*   <o.0> TX error */
         /*     <0=> Okay */
         /*     <1=> Clear TX error */
