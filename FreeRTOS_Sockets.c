@@ -3616,7 +3616,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         else if( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eESTABLISHED )
         {
             /* The socket is not connected. */
-            xResult = -pdFREERTOS_ERRNO_ENOMEDIUM;
+            xResult = -pdFREERTOS_ERRNO_ENOTCONN;
         }
         else
         {
