@@ -325,6 +325,7 @@ gmacsa
 gnw
 gpio
 gpl
+greaterthan
 grr
 gswutr
 hal
@@ -417,6 +418,7 @@ ldistance
 leds
 len
 lendofframe
+lessthan
 linkcurr
 linklayer
 linkmd
