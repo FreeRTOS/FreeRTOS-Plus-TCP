@@ -269,10 +269,6 @@
     #endif /* ipconfigUSE_TCP_WIN */
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_TCP_WIN == 1 )
-        static portINLINE BaseType_t xSequenceLessThan( uint32_t a,
-                                                        uint32_t b );
-
 /**
  * @brief Check if a < b.
  *
@@ -281,30 +277,25 @@
  *
  * @return pdTRUE when "( b - ( a + 1 ) ) < 0x80000000", else pdFALSE.
  */
-        static portINLINE BaseType_t xSequenceLessThan( uint32_t a,
-                                                        uint32_t b )
+    BaseType_t xSequenceLessThan( uint32_t a,
+                                  uint32_t b )
+    {
+        BaseType_t xResult;
+
+        /* Test if a < b */
+        if( ( ( b - ( a + 1UL ) ) & 0x80000000UL ) == 0UL )
         {
-            BaseType_t xResult;
-
-            /* Test if a < b */
-            if( ( ( b - ( a + 1UL ) ) & 0x80000000UL ) == 0UL )
-            {
-                xResult = pdTRUE;
-            }
-            else
-            {
-                xResult = pdFALSE;
-            }
-
-            return xResult;
+            xResult = pdTRUE;
+        }
+        else
+        {
+            xResult = pdFALSE;
         }
 
-    #endif /* ipconfigUSE_TCP_WIN */
-/*-----------------------------------------------------------*/
+        return xResult;
+    }
 
-    #if ( ipconfigUSE_TCP_WIN == 1 )
-        static portINLINE BaseType_t xSequenceGreaterThan( uint32_t a,
-                                                           uint32_t b );
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Check if a > b.
@@ -314,25 +305,24 @@
  *
  * @return pdTRUE when "( a - b ) < 0x80000000", else pdFALSE.
  */
-        static portINLINE BaseType_t xSequenceGreaterThan( uint32_t a,
-                                                           uint32_t b )
+    BaseType_t xSequenceGreaterThan( uint32_t a,
+                                     uint32_t b )
+    {
+        BaseType_t xResult;
+
+        /* Test if a > b */
+        if( ( ( a - ( b + 1UL ) ) & 0x80000000UL ) == 0UL )
         {
-            BaseType_t xResult;
-
-            /* Test if a > b */
-            if( ( ( a - ( b + 1UL ) ) & 0x80000000UL ) == 0UL )
-            {
-                xResult = pdTRUE;
-            }
-            else
-            {
-                xResult = pdFALSE;
-            }
-
-            return xResult;
+            xResult = pdTRUE;
+        }
+        else
+        {
+            xResult = pdFALSE;
         }
 
-    #endif /* ipconfigUSE_TCP_WIN */
+        return xResult;
+    }
+
 
 /*-----------------------------------------------------------*/
     static portINLINE BaseType_t xSequenceGreaterThanOrEqual( uint32_t a,
