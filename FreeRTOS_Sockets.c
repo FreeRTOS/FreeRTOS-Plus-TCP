@@ -3626,7 +3626,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* Let the IP-task perform the shutdown of the connection. */
             pxSocket->u.xTCP.usTimeout = 1U;
             ( void ) xSendEventToIPTask( eTCPTimerEvent );
-            xResult = pdFREERTOS_ERRNO_NONE;
+            xResult = 0;
         }
 
         ( void ) xHow;
