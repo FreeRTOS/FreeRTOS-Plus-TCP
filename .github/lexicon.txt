@@ -89,6 +89,7 @@ bwinscaling
 bytecount
 callbacklist
 calloc
+cambridge
 camen
 carriersense
 castingmacrofunctions
@@ -155,6 +156,7 @@ dff
 dhcp
 dhcpbroadcast
 dhcpcookie
+dhcpserveraddress
 didn
 dm
 dma
@@ -181,8 +183,10 @@ dw
 dword
 dzpq
 eagain
+eapplicationprocesscustomframehook
 earpcachehit
 earpcachemiss
+earpgetcacheentry
 earptimerevent
 ec
 ecantsendpacket
@@ -318,8 +322,10 @@ github
 gmac
 gmacpins
 gmacsa
+gnw
 gpio
 gpl
+greaterthan
 grr
 gswutr
 hal
@@ -386,6 +392,7 @@ isdhcpsocket
 isn
 isp
 isr
+isrs
 iss
 itemvalue
 jd
@@ -411,6 +418,7 @@ ldistance
 leds
 len
 lendofframe
+lessthan
 linkcurr
 linklayer
 linkmd
@@ -426,6 +434,7 @@ lmaxlength
 lminlength
 lnetlength
 loffset
+longjmp
 loopback
 loopbackmode
 loptionname
@@ -580,6 +589,7 @@ pcipaddress
 pcmessage
 pcname
 pcnetworkbuffer
+pcrequestedname
 pcs
 pcsource
 pcto
@@ -659,6 +669,8 @@ prvreadnamefield
 prvreadsackoption
 prvrxcallback
 prvsenddata
+prvsenddhcpdiscover
+prvsenddhcprequest
 prvsetoptions
 prvsetsynackoptions
 prvsinglesteptcpheaderoptions
@@ -742,6 +754,7 @@ pxdestinationaddress
 pxdnsmessageheader
 pxduplicatenetworkbufferwithdescriptor
 pxevent
+pxgetnetworkbuffer
 pxgetnetworkbufferwithdescriptor
 pxhandleconnected
 pxhandlereceive
@@ -821,6 +834,7 @@ regist
 regvalue
 reinit
 renesas
+releaseudppayloadbuffer
 reqlength
 resetpins
 retrytransmission
@@ -834,6 +848,7 @@ richard
 rle
 rlex
 rmii
+rng
 ro
 rollover
 roreg
@@ -916,6 +931,7 @@ srdbl
 srtt
 ss
 starttx
+stderr
 stmicroelectronics
 strcmp
 streambuffer
@@ -1007,6 +1023,7 @@ uclen
 uclength
 uclinklayeripaddress
 ucmacaddress
+ucmessagetype
 ucmywinscalefactor
 ucname
 ucnamecode
@@ -1033,6 +1050,7 @@ uctcpoffset
 uctcpstate
 uctimetolive
 uctransmitcount
+ucserveridentifier
 uctypeofmessage
 uctypeofservice
 ucvalid
@@ -1052,6 +1070,7 @@ ulbytecount
 ulchecktime
 ulconnected
 ulcount
+ulclientipaddress
 ulcurrentsequencenumber
 ulcurrentspistatus
 uldefaultipaddress
@@ -1060,6 +1079,7 @@ uldestinationaddress
 uldestinationipaddress
 uldhcpcookie
 uldhcpserveraddress
+uldnsserver
 uldnsserveraddress
 uldonemask
 ulfifolength
@@ -1068,6 +1088,7 @@ ulfirst
 ulfirstsequencenumber
 ulflag
 ulflags
+ulgateway
 ulgatewayaddress
 ulgetruntimecountervalue
 ulhighestrxallowed
@@ -1117,6 +1138,7 @@ ulsize
 ulsourceipaddress
 ulspace
 ulstatus
+ulsubnetmask
 ulsum
 ultargetprotocoladdress
 ultcpwindowtxack
@@ -1139,6 +1161,7 @@ unhandled
 unicast
 unicastframesfilter
 unicastpauseframedetect
+uninitialised
 unsetmacaddr
 urg
 url
@@ -1374,6 +1397,7 @@ xilinx
 xinternal
 xipheader
 xipheadersize
+xiptaskhandle
 xiptaskinitialised
 xisbound
 xisforrx
@@ -1457,6 +1481,7 @@ xstream
 xsum
 xtargethardwareaddress
 xtaskcheckfortimeout
+xtaskgettickcount
 xtaskhandle
 xtaskresumeall
 xtcp
@@ -1471,6 +1496,7 @@ xtcpwindowrxconfirm
 xtcpwindowtxdone
 xtime
 xtimeout
+xtotallength
 xtransmittimer
 xtxcallback
 xtxdescriptorsemaphore

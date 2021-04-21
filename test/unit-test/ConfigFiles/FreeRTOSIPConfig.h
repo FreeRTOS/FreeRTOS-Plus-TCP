@@ -32,13 +32,10 @@
 
 #define _static
 
-#define ipconfigUSE_ARP_REMOVE_ENTRY       1
-#define ipconfigUSE_ARP_REVERSED_LOOKUP    1
-
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF           0
+#define ipconfigHAS_DEBUG_PRINTF    0
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
     #define FreeRTOS_debug_printf( X )    configPRINTF( X )
 #endif
@@ -140,7 +137,7 @@ extern uint32_t ulRand();
 /* If ipconfigDHCP_USES_USER_HOOK is set to 1 then the application writer must
  * provide an implementation of the DHCP callback function,
  * xApplicationDHCPUserHook(). */
-#define ipconfigUSE_DHCP_HOOK                    0
+#define ipconfigUSE_DHCP_HOOK                    1
 
 /* When ipconfigUSE_DHCP is set to 1, DHCP requests will be sent out at
  * increasing time intervals until either a reply is received from a DHCP server
@@ -300,11 +297,20 @@ extern uint32_t ulRand();
 #define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 1 )
 #define ipconfigUSE_CALLBACKS                    ( 0 )
 
+#define ipconfigUSE_NBNS                         ( 1 )
 
-#define portINLINE
+#define ipconfigUSE_LLMNR                        ( 1 )
 
-void vApplicationMQTTGetKeys( const char ** ppcRootCA,
-                              const char ** ppcClientCert,
-                              const char ** ppcClientPrivateKey );
+#define ipconfigDNS_USE_CALLBACKS                1
+#define ipconfigUSE_ARP_REMOVE_ENTRY             1
+#define ipconfigUSE_ARP_REVERSED_LOOKUP          1
+
+#define ipconfigETHERNET_MINIMUM_PACKET_BYTES    ( 200 )
+
+#define ipconfigARP_STORES_REMOTE_ADDRESSES      ( 1 )
+
+#define ipconfigARP_USE_CLASH_DETECTION          ( 1 )
+
+#define ipconfigDHCP_FALL_BACK_AUTO_IP           ( 1 )
 
 #endif /* FREERTOS_IP_CONFIG_H */
