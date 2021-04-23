@@ -756,6 +756,7 @@ static uint32_t prvDNSReply( Socket_t xDNSSocket,
         //     break;
         // }
     }
+    return ulIPAddress;
 }
 
 static uint32_t prvDNSRequest_WithRetry( const char * pcHostName,
