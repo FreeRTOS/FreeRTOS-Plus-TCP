@@ -596,7 +596,7 @@
 
 /** @brief The macros vSetField16() and vSetField32() will write either a short or a 32-bit
  * value into an array of bytes. They will be stored big-endian.
- * The helper functions do the actual work..
+ * The helper functions do the actual work.
  */
     extern void vSetField16helper( uint8_t * pucBase,
                                    size_t uxOffset,

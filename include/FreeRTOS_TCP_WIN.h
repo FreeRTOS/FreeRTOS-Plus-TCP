@@ -38,7 +38,7 @@
 /** @brief A very simple timer that registers the time that a packet was sent.  It is used to trigger re-sending. */
     typedef struct xTCPTimerStruct
     {
-        TickType_t uxBorn; /**< The time at which a packet was send ( using xTaskGetTickCount() ). */
+        TickType_t uxBorn; /**< The time at which a packet was sent ( using xTaskGetTickCount() ). */
     } TCPTimer_t;
 
 /** @brief This struct collects the properties of a TCP segment.  A segment is a chunk of data which

@@ -206,7 +206,7 @@ uint32_t ulBitConfig_read_32( BitConfig_t * pxConfig )
  * @param[in] pucData: The binary data to be written.
  * @param[in] uxSize: The number of bytes to be written.
  *
- * @return There is not return value. If the operation has failed,
+ * @return There is no return value. If the operation has failed,
  *         the field xHasError will be set.
  */
 void vBitConfig_write_uc( BitConfig_t * pxConfig,
@@ -237,7 +237,7 @@ void vBitConfig_write_uc( BitConfig_t * pxConfig,
  * @param[in] pxConfig: The structure containing a copy of the bits.
  * @param[in] ucValue: The byte to be written.
  *
- * @return There is not return value. If the operation has failed,
+ * @return There is no return value. If the operation has failed,
  *         the field xHasError will be set.
  */
 void vBitConfig_write_8( BitConfig_t * pxConfig,
@@ -255,7 +255,7 @@ void vBitConfig_write_8( BitConfig_t * pxConfig,
  * @param[in] pxConfig: The structure containing a copy of the bits.
  * @param[in] usValue: The 16-bit value to be written.
  *
- * @return There is not return value. If the operation has failed,
+ * @return There is no return value. If the operation has failed,
  *         the field xHasError will be set.
  */
 void vBitConfig_write_16( BitConfig_t * pxConfig,
@@ -276,7 +276,7 @@ void vBitConfig_write_16( BitConfig_t * pxConfig,
  * @param[in] pxConfig: The structure containing a copy of the bits.
  * @param[in] ulValue: The 32-bit value to be written.
  *
- * @return There is not return value. If the operation has failed,
+ * @return There is no return value. If the operation has failed,
  *         the field xHasError will be set.
  */
 void vBitConfig_write_32( BitConfig_t * pxConfig,
@@ -289,7 +289,8 @@ void vBitConfig_write_32( BitConfig_t * pxConfig,
     pucData[ 1 ] = ( uint8_t ) ( ( ulValue >> 16 ) & 0xFFU );
     pucData[ 2 ] = ( uint8_t ) ( ( ulValue >> 8 ) & 0xFFU );
     pucData[ 3 ] = ( uint8_t ) ( ulValue & 0xFFU );
-    ( void ) vBitConfig_write_uc( pxConfig, pucData, uxNeeded );
+
+    vBitConfig_write_uc( pxConfig, pucData, uxNeeded );
 }
 /*-----------------------------------------------------------*/
 
