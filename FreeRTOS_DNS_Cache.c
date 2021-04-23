@@ -194,106 +194,106 @@ BaseType_t FreeRTOS_ProcessDNSCache( const char * pcName,
  * @return If a fully formed name was found, then return the number of bytes processed in pucByte.
  */
 size_t prvReadNameField( const uint8_t * pucByte,
-                                         size_t uxRemainingBytes,
-                                         char * pcName,
-                                         size_t uxDestLen )
+                         size_t uxRemainingBytes,
+                         char * pcName,
+                         size_t uxDestLen )
+{
+    size_t uxNameLen = 0U;
+    size_t uxIndex = 0U;
+    size_t uxSourceLen = uxRemainingBytes;
+
+    /* uxCount gets the values from pucByte and counts down to 0.
+        * No need to have a different type than that of pucByte */
+    size_t uxCount;
+
+    if( uxSourceLen == ( size_t ) 0U )
+    {
+        /* Return 0 value in case of error. */
+        uxIndex = 0U;
+    }
+
+    /* Determine if the name is the fully coded name, or an offset to the name
+        * elsewhere in the message. */
+    else if( ( pucByte[ uxIndex ] & dnsNAME_IS_OFFSET ) == dnsNAME_IS_OFFSET )
+    {
+        /* Jump over the two byte offset. */
+        if( uxSourceLen > sizeof( uint16_t ) )
         {
-            size_t uxNameLen = 0U;
-            size_t uxIndex = 0U;
-            size_t uxSourceLen = uxRemainingBytes;
-
-            /* uxCount gets the values from pucByte and counts down to 0.
-             * No need to have a different type than that of pucByte */
-            size_t uxCount;
-
-            if( uxSourceLen == ( size_t ) 0U )
+            uxIndex += sizeof( uint16_t );
+        }
+        else
+        {
+            uxIndex = 0U;
+        }
+    }
+    else
+    {
+        /* 'uxIndex' points to the full name. Walk over the string. */
+        while( ( uxIndex < uxSourceLen ) && ( pucByte[ uxIndex ] != ( uint8_t ) 0x00U ) )
+        {
+            /* If this is not the first time through the loop, then add a
+                * separator in the output. */
+            if( ( uxNameLen > 0U ) )
             {
-                /* Return 0 value in case of error. */
-                uxIndex = 0U;
-            }
-
-            /* Determine if the name is the fully coded name, or an offset to the name
-             * elsewhere in the message. */
-            else if( ( pucByte[ uxIndex ] & dnsNAME_IS_OFFSET ) == dnsNAME_IS_OFFSET )
-            {
-                /* Jump over the two byte offset. */
-                if( uxSourceLen > sizeof( uint16_t ) )
-                {
-                    uxIndex += sizeof( uint16_t );
-                }
-                else
+                if( uxNameLen >= uxDestLen )
                 {
                     uxIndex = 0U;
+                    /* coverity[break_stmt] : Break statement terminating the loop */
+                    break;
                 }
+
+                pcName[ uxNameLen ] = '.';
+                uxNameLen++;
+            }
+
+            /* Process the first/next sub-string. */
+            uxCount = ( size_t ) pucByte[ uxIndex ];
+            uxIndex++;
+
+            if( ( uxIndex + uxCount ) > uxSourceLen )
+            {
+                uxIndex = 0U;
+                break;
+            }
+
+            while( uxCount-- != 0U )
+            {
+                if( uxNameLen >= uxDestLen )
+                {
+                    uxIndex = 0U;
+                    break;
+
+                    /* break out of inner loop here
+                        * break out of outer loop at the test uxNameLen >= uxDestLen. */
+                }
+
+                pcName[ uxNameLen ] = ( char ) pucByte[ uxIndex ];
+                uxNameLen++;
+                uxIndex++;
+            }
+        }
+
+        /* Confirm that a fully formed name was found. */
+        if( uxIndex > 0U )
+        {
+            /* Here, there is no need to check for pucByte[ uxindex ] == 0 because:
+                * When we break out of the above while loop, uxIndex is made 0 thereby
+                * failing above check. Whenever we exit the loop otherwise, either
+                * pucByte[ uxIndex ] == 0 (which makes the check here unnecessary) or
+                * uxIndex >= uxSourceLen (which makes sure that we do not go in the 'if'
+                * case).
+                */
+            if( ( uxNameLen < uxDestLen ) && ( uxIndex < uxSourceLen ) )
+            {
+                pcName[ uxNameLen ] = '\0';
+                uxIndex++;
             }
             else
             {
-                /* 'uxIndex' points to the full name. Walk over the string. */
-                while( ( uxIndex < uxSourceLen ) && ( pucByte[ uxIndex ] != ( uint8_t ) 0x00U ) )
-                {
-                    /* If this is not the first time through the loop, then add a
-                     * separator in the output. */
-                    if( ( uxNameLen > 0U ) )
-                    {
-                        if( uxNameLen >= uxDestLen )
-                        {
-                            uxIndex = 0U;
-                            /* coverity[break_stmt] : Break statement terminating the loop */
-                            break;
-                        }
-
-                        pcName[ uxNameLen ] = '.';
-                        uxNameLen++;
-                    }
-
-                    /* Process the first/next sub-string. */
-                    uxCount = ( size_t ) pucByte[ uxIndex ];
-                    uxIndex++;
-
-                    if( ( uxIndex + uxCount ) > uxSourceLen )
-                    {
-                        uxIndex = 0U;
-                        break;
-                    }
-
-                    while( uxCount-- != 0U )
-                    {
-                        if( uxNameLen >= uxDestLen )
-                        {
-                            uxIndex = 0U;
-                            break;
-
-                            /* break out of inner loop here
-                             * break out of outer loop at the test uxNameLen >= uxDestLen. */
-                        }
-
-                        pcName[ uxNameLen ] = ( char ) pucByte[ uxIndex ];
-                        uxNameLen++;
-                        uxIndex++;
-                    }
-                }
-
-                /* Confirm that a fully formed name was found. */
-                if( uxIndex > 0U )
-                {
-                    /* Here, there is no need to check for pucByte[ uxindex ] == 0 because:
-                     * When we break out of the above while loop, uxIndex is made 0 thereby
-                     * failing above check. Whenever we exit the loop otherwise, either
-                     * pucByte[ uxIndex ] == 0 (which makes the check here unnecessary) or
-                     * uxIndex >= uxSourceLen (which makes sure that we do not go in the 'if'
-                     * case).
-                     */
-                    if( ( uxNameLen < uxDestLen ) && ( uxIndex < uxSourceLen ) )
-                    {
-                        pcName[ uxNameLen ] = '\0';
-                        uxIndex++;
-                    }
-                    else
-                    {
-                        uxIndex = 0U;
-                    }
-                }
+                uxIndex = 0U;
             }
-
-            return uxIndex;
         }
+    }
+
+    return uxIndex;
+}
