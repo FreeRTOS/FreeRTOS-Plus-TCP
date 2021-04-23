@@ -751,7 +751,9 @@ static uint32_t prvDNSReply( Socket_t xDNSSocket,
             if( xExpected != pdFALSE )
         #endif /* ipconfigDNS_USE_CALLBACKS == 0 */
         {
-            ulIPAddress = prvParseDNSReply( pucReceiveBuffer, ( size_t ) lBytes, xExpected );
+            ulIPAddress = prvParseDNSReply( pucReceiveBuffer,
+                                            ( size_t ) lBytes,
+                                            xExpected );
         }
 
         /* Finished with the buffer.  The zero copy interface
@@ -769,33 +771,43 @@ static uint32_t prvDNSReply( Socket_t xDNSSocket,
     return ulIPAddress;
 }
 
-static uint32_t prvDNSRequest_WithRetry( const char * pcHostName,
+static uint32_t prvGetHostByNameOp( const char * pcHostName,
+                                    TickType_t uxIdentifier,
+                                    Socket_t xDNSSocket )
+{
+    uint32_t ulIPAddress = 0UL;
+    BaseType_t xReturn;
+    struct freertos_sockaddr xAddress;
+
+    //form dns message buffer
+
+    xReturn = prvDNSRequest( pcHostName,
+                             uxIdentifier,
+                             xDNSSocket,
+                             &xAddress );
+    if( xReturn == pdPASS )
+    {
+        ulIPAddress = prvDNSReply( xDNSSocket, uxIdentifier, &xAddress );
+        //parseDNSReply();
+    }
+    return ulIPAddress;
+}
+
+static uint32_t prvGetHostByNameOp_WithRetry( const char * pcHostName,
                                          TickType_t uxIdentifier,
-                                         TickType_t uxReadTimeOut_ticks,
                                          Socket_t xDNSSocket )
 {
     BaseType_t xAttempt;
-    BaseType_t xReturn;
     uint32_t ulIPAddress = 0UL;
-    BaseType_t xMaxAttempts = ipconfigDNS_REQUEST_ATTEMPTS;
-    struct freertos_sockaddr xAddress;
-    if( uxReadTimeOut_ticks == 0U )
+
+    for( xAttempt = 0; xAttempt <  ipconfigDNS_REQUEST_ATTEMPTS; xAttempt++ )
     {
-         xMaxAttempts = 1;
-    }
-    for( xAttempt = 0; xAttempt < xMaxAttempts; xAttempt++ )
-    {
-        xReturn = prvDNSRequest( pcHostName,
-                                 uxIdentifier,
-                                 xDNSSocket,
-                                 &xAddress);
-        if( xReturn == pdPASS )
-        {
-            ulIPAddress = prvDNSReply( xDNSSocket, uxIdentifier, &xAddress );
-            if( ulIPAddress !=  0 )
-            {   /* ip found, no need to retry */
-                break;
-            }
+        ulIPAddress =  prvGetHostByNameOp( pcHostName,
+                                           uxIdentifier,
+                                           xDNSSocket );
+        if( ulIPAddress !=  0 )
+        {   /* ip found, no need to retry */
+            break;
         }
     }
     return ulIPAddress;
@@ -820,16 +832,21 @@ static uint32_t prvDNSRequest_WithRetry( const char * pcHostName,
         Socket_t xDNSSocket;
         uint32_t ulIPAddress = 0UL;
 
-
-
         xDNSSocket = prvCreateDNSSocket( uxReadTimeOut_ticks );
-
         if( xDNSSocket != NULL )
         {
-            ulIPAddress = prvDNSRequest_WithRetry( pcHostName,
-                                                   uxIdentifier,
-                                                   uxReadTimeOut_ticks,
-                                                   xDNSSocket );
+            if (uxReadTimeOut_ticks == 0 )
+            {
+                ulIPAddress = prvGetHostByNameOp( pcHostName,
+                                                  uxIdentifier,
+                                                  xDNSSocket );
+            }
+            else
+            {
+                ulIPAddress =  prvGetHostByNameOp_WithRetry( pcHostName,
+                                                             uxIdentifier,
+                                                             xDNSSocket );
+            }
             /* Finished with the socket. */
             ( void ) FreeRTOS_closesocket( xDNSSocket );
         }
