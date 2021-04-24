@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.2
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -3616,9 +3616,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         }
         else if( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eESTABLISHED )
         {
-            /*_RB_ Is this comment correct?  The socket is not of a type that
-             * supports the listen() operation. */
-            xResult = -pdFREERTOS_ERRNO_EOPNOTSUPP;
+            /* The socket is not connected. */
+            xResult = -pdFREERTOS_ERRNO_ENOTCONN;
         }
         else
         {

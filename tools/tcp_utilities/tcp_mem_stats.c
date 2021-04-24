@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.2
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -49,7 +49,7 @@
 
 #ifndef ipconfigTCP_MEM_STATS_MAX_ALLOCATION
     #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    128u
-    #pragma warning "ipconfigTCP_MEM_STATS_MAX_ALLOCATION undefined?"
+    #pragma message ("ipconfigTCP_MEM_STATS_MAX_ALLOCATION undefined?")
 #endif
 
 #if ( ipconfigUSE_TCP_MEM_STATS != 0 )

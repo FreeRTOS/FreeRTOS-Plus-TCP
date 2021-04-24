@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.2
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -1997,13 +1997,11 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                         if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
                         {
                             ProtocolPacket_t * pxProtPack;
-                            const uint16_t * pusChecksum;
 
                             /* pxProtPack will point to the offset were the protocols begin. */
                             pxProtPack = ipCAST_PTR_TO_TYPE_PTR( ProtocolPacket_t, &( pxNetworkBuffer->pucEthernetBuffer[ uxHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
-                            pusChecksum = ( const uint16_t * ) ( &( pxProtPack->xUDPPacket.xUDPHeader.usChecksum ) );
 
-                            if( *pusChecksum == ( uint16_t ) 0U )
+                            if( pxProtPack->xUDPPacket.xUDPHeader.usChecksum == ( uint16_t ) 0U )
                             {
                                 #if ( ipconfigHAS_PRINTF != 0 )
                                     {
