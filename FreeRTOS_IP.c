@@ -590,6 +590,18 @@ static void prvIPTask( void * pvParameters )
                 #endif /* ipconfigUSE_TCP */
                 break;
 
+            case eSocketSetDeleteEvent:
+                #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+                    {
+                        SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
+
+                        iptraceMEM_STATS_DELETE( pxSocketSet );
+                        vEventGroupDelete( pxSocketSet->xSelectGroup );
+                        vPortFree( ( void * ) pxSocketSet );
+                    }
+                #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
+                break;
+
             case eNoEvent:
                 /* xQueueReceive() returned because of a normal time-out. */
                 break;

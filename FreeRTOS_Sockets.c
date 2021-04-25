@@ -550,13 +550,16 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  */
     void FreeRTOS_DeleteSocketSet( SocketSet_t xSocketSet )
     {
-        SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) xSocketSet;
+        IPStackEvent_t xCloseEvent;
 
 
-        iptraceMEM_STATS_DELETE( pxSocketSet );
+        xCloseEvent.eEventType = eSocketSetDeleteEvent;
+        xCloseEvent.pvData = ( void * ) xSocketSet;
 
-        vEventGroupDelete( pxSocketSet->xSelectGroup );
-        vPortFree( pxSocketSet );
+        if( xSendEventStructToIPTask( &xCloseEvent, ( TickType_t ) portMAX_DELAY ) == pdFAIL )
+        {
+            FreeRTOS_printf( ( "FreeRTOS_DeleteSocketSet: xSendEventStructToIPTask failed\n" ) );
+        }
     }
 
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */

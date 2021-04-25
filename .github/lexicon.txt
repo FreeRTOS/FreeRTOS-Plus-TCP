@@ -261,6 +261,7 @@ esenddhcprequest
 esocketbindevent
 esocketcloseevent
 esocketselectevent
+esocketsetdeleteevent
 esocketsignalevent
 espressif
 estacktxevent
