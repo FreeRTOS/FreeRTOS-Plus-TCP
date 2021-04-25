@@ -1597,8 +1597,8 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
 /**
  * @brief When a child socket gets closed, make sure to update the child-count of the
- *        parent. When a listening parent socket is closed, make sure no child-sockets
- *        keep a pointer to it.
+ *        parent. When a listening parent socket is closed, make sure to close also
+ *        all orphaned child-sockets.
  *
  * @param[in] pxSocketToDelete: The socket being closed.
  */
@@ -1609,23 +1609,45 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
         FreeRTOS_Socket_t * pxOtherSocket;
         uint16_t usLocalPort = pxSocketToDelete->usLocalPort;
 
-        for( pxIterator = listGET_NEXT( pxEnd );
-             pxIterator != pxEnd;
-             pxIterator = listGET_NEXT( pxIterator ) )
+        if( pxSocketToDelete->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN )
         {
-            pxOtherSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
-
-            if( ( pxOtherSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN ) &&
-                ( pxOtherSocket->usLocalPort == usLocalPort ) &&
-                ( pxOtherSocket->u.xTCP.usChildCount != 0U ) )
+            for( pxIterator = listGET_NEXT( pxEnd );
+                 pxIterator != pxEnd; )
             {
-                pxOtherSocket->u.xTCP.usChildCount--;
-                FreeRTOS_debug_printf( ( "Lost: Socket %u now has %u / %u child%s\n",
-                                         pxOtherSocket->usLocalPort,
-                                         pxOtherSocket->u.xTCP.usChildCount,
-                                         pxOtherSocket->u.xTCP.usBacklog,
-                                         ( pxOtherSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren" ) );
-                break;
+                pxOtherSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+
+                /* This needs to be done here, before calling vSocketClose. */
+                pxIterator = listGET_NEXT( pxIterator );
+
+                if( ( pxOtherSocket->u.xTCP.ucTCPState != ( uint8_t ) eTCP_LISTEN ) &&
+                    ( pxOtherSocket->usLocalPort == usLocalPort ) &&
+                    ( ( pxOtherSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
+                      ( pxOtherSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) ) )
+                {
+                    vSocketClose( pxOtherSocket );
+                }
+            }
+        }
+        else
+        {
+            for( pxIterator = listGET_NEXT( pxEnd );
+                 pxIterator != pxEnd;
+                 pxIterator = listGET_NEXT( pxIterator ) )
+            {
+                pxOtherSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+
+                if( ( pxOtherSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN ) &&
+                    ( pxOtherSocket->usLocalPort == usLocalPort ) &&
+                    ( pxOtherSocket->u.xTCP.usChildCount != 0U ) )
+                {
+                    pxOtherSocket->u.xTCP.usChildCount--;
+                    FreeRTOS_debug_printf( ( "Lost: Socket %u now has %u / %u child%s\n",
+                                             pxOtherSocket->usLocalPort,
+                                             pxOtherSocket->u.xTCP.usChildCount,
+                                             pxOtherSocket->u.xTCP.usBacklog,
+                                             ( pxOtherSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren" ) );
+                    break;
+                }
             }
         }
     }
