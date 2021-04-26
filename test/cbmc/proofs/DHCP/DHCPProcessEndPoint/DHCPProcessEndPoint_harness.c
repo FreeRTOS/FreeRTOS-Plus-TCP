@@ -103,6 +103,19 @@ BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( BaseType_
     return nondet_BaseType();
 }
 
+/* Abstraction of xSocketValid. Used to determine whether a socket is valid or not. */
+BaseType_t xSocketValid( ConstSocket_t xSocket )
+{
+    BaseType_t xReturn = pdFALSE;
+
+    if( ( xSocket != NULL ) && ( xSocket != FREERTOS_INVALID_SOCKET ) )
+    {
+        xReturn = pdTRUE;
+    }
+
+    return xReturn;
+}
+
 void harness()
 {
     BaseType_t xReset, xDoCheck;
