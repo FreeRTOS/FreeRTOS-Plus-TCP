@@ -2841,7 +2841,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     }
     else
     {
-        /* Length checks failed, the buffer will be relesed. */
+        /* Length checks failed, the buffer will be released. */
     }
 
     return eReturn;
@@ -3554,7 +3554,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
 /*-----------------------------------------------------------*/
 
 /** @brief For outgoing packets, set the checksum in the packet,
- *        for incoming packes: show logging in case an error occurred.
+ *        for incoming packets: show logging in case an error occurred.
  * @param[in] xOutgoingPacket: Non-zero if this is an outgoing packet.
  * @param[in] pucEthernetBuffer: The buffer containing the packet.
  * @param[in] uxBufferLength: the total number of bytes received, or the number of bytes written
@@ -3716,7 +3716,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         prvChecksumProtocolCalculate( xOutgoingPacket, pucEthernetBuffer, &( xSet ) );
 
         /* For outgoing packets, set the checksum in the packet,
-         * for incoming packes: show logging in case an error occurred. */
+         * for incoming packets: show logging in case an error occurred. */
         prvChecksumProtocolSetChecksum( xOutgoingPacket, pucEthernetBuffer, uxBufferLength, &( xSet ) );
     } while( ipFALSE_BOOL );
 
