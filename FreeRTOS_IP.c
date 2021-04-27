@@ -2940,16 +2940,18 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
             switch( ucProtocol )
             {
-                case ipPROTOCOL_ICMP:
-                    /* As for now, only ICMP/ping messages are recognised. */
-                    eReturn = prvProcessICMPPacket( pxNetworkBuffer );
-                    break;
+                #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+                    case ipPROTOCOL_ICMP:
+                        /* As for now, only ICMP/ping messages are recognised. */
+                        eReturn = prvProcessICMPPacket( pxNetworkBuffer );
+                        break;
+                #endif
 
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        case ipPROTOCOL_ICMP_IPv6:
-                            eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
-                            break;
-                    #endif
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    case ipPROTOCOL_ICMP_IPv6:
+                        eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+                        break;
+                #endif
 
                 case ipPROTOCOL_UDP:
                     eReturn = prvProcessUDPPacket( pxNetworkBuffer );
