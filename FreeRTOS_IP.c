@@ -217,6 +217,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                                           struct xPacketSummary * pxSet );
 
 static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
+                                            size_t uxBufferLength,
                                             struct xPacketSummary * pxSet );
 
 /*-----------------------------------------------------------*/
@@ -3552,9 +3553,11 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
 /** @brief For outgoing packets, set the checksum in the packet,
  *        for incoming packes: show logging in case an error occurred.
  * @param[in] xOutgoingPacket: Non-zero if this is an outgoing packet.
+ * @param[in] uxBufferLength: the total number of bytes received, or the number of bytes written
  * @param[in] pxSet: A struct describing this packet.
  */
 static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
+                                            size_t uxBufferLength,
                                             struct xPacketSummary * pxSet )
 {
     if( xOutgoingPacket != pdFALSE )
@@ -3581,6 +3584,8 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
         {
             /* This is an incoming packet and it doesn't need debug logging. */
         }
+    #else /* if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
+        ( void ) uxBufferLength;
     #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
 }
 /*-----------------------------------------------------------*/
@@ -3705,7 +3710,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 
         /* For outgoing packets, set the checksum in the packet,
          * for incoming packes: show logging in case an error occurred. */
-        prvChecksumProtocolSetChecksum( xOutgoingPacket, &( xSet ) );
+        prvChecksumProtocolSetChecksum( xOutgoingPacket, uxBufferLength, &( xSet ) );
     } while( ipFALSE_BOOL );
 
     #if ( ipconfigHAS_PRINTF == 1 )
