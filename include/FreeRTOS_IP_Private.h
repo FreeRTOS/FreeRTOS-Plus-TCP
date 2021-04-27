@@ -418,27 +418,27 @@
     extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t );
     extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t );
 
-	/** @brief This struct describes a packet, it is used by the function
-	 * usGenerateProtocolChecksum(). */
-	struct xPacketSummary
-	{
-		#if ( ipconfigUSE_IPv6 != 0 )
-			BaseType_t xIsIPv6;                  /**< pdTRUE for IPv6 packets. */
-			const IPHeader_IPv6_t * pxIPPacket_IPv6; /**< A pointer to the IPv6 header. */
-		#endif
-		#if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-			const char * pcType;                 /**< Just for logging purposes: the name of the protocol. */
-		#endif
-		size_t uxIPHeaderLength;                 /**< Either 40 or 20, depending on the IP-type */
-		size_t uxProtocolHeaderLength;           /**< Either 8, 20, or more or 20, depending on the protocol-type */
-		uint16_t usChecksum;                     /**< Checksum accumulator. */
-		uint8_t ucProtocol;                      /**< ipPROTOCOL_TCP, ipPROTOCOL_UDP, ipPROTOCOL_ICMP */
-		const IPPacket_t * pxIPPacket;           /**< A pointer to the IPv4 header. */
-		ProtocolHeaders_t * pxProtocolHeaders;   /**< Points to first byte after IP-header */
-		uint16_t usPayloadLength;                /**< Property of IP-header (for IPv4: length of IP-header included) */
-		uint16_t usProtocolBytes;                /**< The total length of the protocol data. */
-		uint16_t * pusChecksum;                  /**< A pointer to the location whre the protcol checksum is stored. */
-	};
+/** @brief This struct describes a packet, it is used by the function
+ * usGenerateProtocolChecksum(). */
+    struct xPacketSummary
+    {
+        #if ( ipconfigUSE_IPv6 != 0 )
+            BaseType_t xIsIPv6;                      /**< pdTRUE for IPv6 packets. */
+            const IPHeader_IPv6_t * pxIPPacket_IPv6; /**< A pointer to the IPv6 header. */
+        #endif
+        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+            const char * pcType;               /**< Just for logging purposes: the name of the protocol. */
+        #endif
+        size_t uxIPHeaderLength;               /**< Either 40 or 20, depending on the IP-type */
+        size_t uxProtocolHeaderLength;         /**< Either 8, 20, or more or 20, depending on the protocol-type */
+        uint16_t usChecksum;                   /**< Checksum accumulator. */
+        uint8_t ucProtocol;                    /**< ipPROTOCOL_TCP, ipPROTOCOL_UDP, ipPROTOCOL_ICMP */
+        const IPPacket_t * pxIPPacket;         /**< A pointer to the IPv4 header. */
+        ProtocolHeaders_t * pxProtocolHeaders; /**< Points to first byte after IP-header */
+        uint16_t usPayloadLength;              /**< Property of IP-header (for IPv4: length of IP-header included) */
+        uint16_t usProtocolBytes;              /**< The total length of the protocol data. */
+        uint16_t * pusChecksum;                /**< A pointer to the location whre the protcol checksum is stored. */
+    };
 
 /* The maximum UDP payload length. */
     #if ( ipconfigUSE_IPv6 != 0 )
