@@ -437,7 +437,7 @@
         ProtocolHeaders_t * pxProtocolHeaders; /**< Points to first byte after IP-header */
         uint16_t usPayloadLength;              /**< Property of IP-header (for IPv4: length of IP-header included) */
         uint16_t usProtocolBytes;              /**< The total length of the protocol data. */
-        uint16_t * pusChecksum;                /**< A pointer to the location whre the protocol checksum is stored. */
+        uint16_t * pusChecksum;                /**< A pointer to the location where the protocol checksum is stored. */
     };
 
 /* The maximum UDP payload length. */

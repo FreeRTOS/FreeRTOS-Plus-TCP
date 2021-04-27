@@ -1450,6 +1450,7 @@ uxoffset
 uxoptionlength
 uxoptionslength
 uxprefixlength
+uxprotocolheaderlength
 uxptr
 uxremainingbytes
 uxremainingtime
