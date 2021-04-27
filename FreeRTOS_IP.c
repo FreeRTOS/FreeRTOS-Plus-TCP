@@ -319,6 +319,8 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
 
 static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
+static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
 /*-----------------------------------------------------------*/
 
 /** @brief The queue used to pass events into the IP-task for processing. */
@@ -2703,6 +2705,11 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
 }
 /*-----------------------------------------------------------*/
 
+/** @brief Check if the IP-header is carrying options.
+ * @param[in] pxNetworkBuffer: the network buffer that contains the packet.
+ *
+ * @return Either 'eProcessBuffer' or 'eReleaseBuffer'
+ */
 static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t eReturn = eReleaseBuffer;
@@ -2757,6 +2764,14 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
     return eReturn;
 }
 /*-----------------------------------------------------------*/
+
+/**
+ * @brief Check the sizes of the UDP packet and forward it to the UDP module 
+ *        ( xProcessReceivedUDPPacket() )
+ * @param[in] pxNetworkBuffer: The network buffer containing the UDP packet.
+ * @return eReleaseBuffer ( please release the buffer ).
+ *         eFrameConsumed ( the buffer has now been released ).
+ */
 
 static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
@@ -3231,6 +3246,12 @@ static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Check the buffer lengths of an ICMPv6 packet.
+ * @param[in] uxBufferLength: The total length of the packet.
+ * @param[in] pxSet A struct describing this packet.
+ * @return Non-zero in case of an error.
+ */
 static BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
                                            struct xPacketSummary * pxSet )
 {
@@ -3416,8 +3437,8 @@ static BaseType_t prvChecksumProtocolMTUCheck( struct xPacketSummary * pxSet )
 /*-----------------------------------------------------------*/
 
 /** @brief Do the actual checksum calculations, both the pseudo header, and the payload.
+  * @param[in] xOutgoingPacket: pdTRUE when the packet is to be sent.
  * @param[in] pucEthernetBuffer: The buffer containing the packet.
- * @param[in] uxBufferLength: The number of bytes to be sent or received.
  * @param[in] pxSet: A struct describing this packet.
  */
 static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
