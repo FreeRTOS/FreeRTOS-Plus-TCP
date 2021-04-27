@@ -2766,7 +2766,7 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Check the sizes of the UDP packet and forward it to the UDP module 
+ * @brief Check the sizes of the UDP packet and forward it to the UDP module
  *        ( xProcessReceivedUDPPacket() )
  * @param[in] pxNetworkBuffer: The network buffer containing the UDP packet.
  * @return eReleaseBuffer ( please release the buffer ).
@@ -3437,7 +3437,7 @@ static BaseType_t prvChecksumProtocolMTUCheck( struct xPacketSummary * pxSet )
 /*-----------------------------------------------------------*/
 
 /** @brief Do the actual checksum calculations, both the pseudo header, and the payload.
-  * @param[in] xOutgoingPacket: pdTRUE when the packet is to be sent.
+ * @param[in] xOutgoingPacket: pdTRUE when the packet is to be sent.
  * @param[in] pucEthernetBuffer: The buffer containing the packet.
  * @param[in] pxSet: A struct describing this packet.
  */
