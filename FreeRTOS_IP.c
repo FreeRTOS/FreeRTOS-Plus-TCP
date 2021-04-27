@@ -198,12 +198,12 @@ static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkEndPoint_t )
 static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint );
 
 #if ( ipconfigUSE_IPv6 != 0 )
-    static BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
+    static BaseType_t prvChecksumIPv6Checks( const uint8_t * pucEthernetBuffer,
                                              size_t uxBufferLength,
                                              struct xPacketSummary * pxSet );
 #endif
 
-static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
+static BaseType_t prvChecksumIPv4Checks( const uint8_t * pucEthernetBuffer,
                                          size_t uxBufferLength,
                                          struct xPacketSummary * pxSet );
 
@@ -213,10 +213,11 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
 static BaseType_t prvChecksumProtocolMTUCheck( struct xPacketSummary * pxSet );
 
 static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
-                                          uint8_t * pucEthernetBuffer,
+                                          const uint8_t * pucEthernetBuffer,
                                           struct xPacketSummary * pxSet );
 
 static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
+                                            const uint8_t * pucEthernetBuffer,
                                             size_t uxBufferLength,
                                             struct xPacketSummary * pxSet );
 
@@ -3142,7 +3143,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  *
  * @return Non-zero in case of an error.
  */
-    static BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
+    static BaseType_t prvChecksumIPv6Checks( const uint8_t * pucEthernetBuffer,
                                              size_t uxBufferLength,
                                              struct xPacketSummary * pxSet )
     {
@@ -3189,7 +3190,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  *
  * @return Non-zero in case of an error.
  */
-static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
+static BaseType_t prvChecksumIPv4Checks( const uint8_t * pucEthernetBuffer,
                                          size_t uxBufferLength,
                                          struct xPacketSummary * pxSet )
 {
@@ -3449,7 +3450,7 @@ static BaseType_t prvChecksumProtocolMTUCheck( struct xPacketSummary * pxSet )
  * @param[in] pxSet: A struct describing this packet.
  */
 static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
-                                          uint8_t * pucEthernetBuffer,
+                                          const uint8_t * pucEthernetBuffer,
                                           struct xPacketSummary * pxSet )
 {
     #if ( ipconfigUSE_IPv6 != 0 )
@@ -3553,10 +3554,12 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
 /** @brief For outgoing packets, set the checksum in the packet,
  *        for incoming packes: show logging in case an error occurred.
  * @param[in] xOutgoingPacket: Non-zero if this is an outgoing packet.
+ * @param[in] pucEthernetBuffer: The buffer containing the packet.
  * @param[in] uxBufferLength: the total number of bytes received, or the number of bytes written
  * @param[in] pxSet: A struct describing this packet.
  */
 static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
+                                            const uint8_t * pucEthernetBuffer,
                                             size_t uxBufferLength,
                                             struct xPacketSummary * pxSet )
 {
@@ -3585,7 +3588,9 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
             /* This is an incoming packet and it doesn't need debug logging. */
         }
     #else /* if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
+        /* Mention parameters that are not used by the function. */
         ( void ) uxBufferLength;
+        ( void ) pucEthernetBuffer;
     #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
 }
 /*-----------------------------------------------------------*/
@@ -3710,7 +3715,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 
         /* For outgoing packets, set the checksum in the packet,
          * for incoming packes: show logging in case an error occurred. */
-        prvChecksumProtocolSetChecksum( xOutgoingPacket, uxBufferLength, &( xSet ) );
+        prvChecksumProtocolSetChecksum( xOutgoingPacket, pucEthernetBuffer, uxBufferLength, &( xSet ) );
     } while( ipFALSE_BOOL );
 
     #if ( ipconfigHAS_PRINTF == 1 )
