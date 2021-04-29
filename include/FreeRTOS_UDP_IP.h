@@ -40,4 +40,9 @@
         } /* extern "C" */
     #endif
 
+    /*
+     * Called when the application has generated a UDP packet to send.
+     */
+    void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
 #endif /* FREERTOS_UDP_IP_H */
