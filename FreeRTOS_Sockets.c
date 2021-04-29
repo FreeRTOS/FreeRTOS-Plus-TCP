@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.2
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -550,13 +550,16 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  */
     void FreeRTOS_DeleteSocketSet( SocketSet_t xSocketSet )
     {
-        SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) xSocketSet;
+        IPStackEvent_t xCloseEvent;
 
 
-        iptraceMEM_STATS_DELETE( pxSocketSet );
+        xCloseEvent.eEventType = eSocketSetDeleteEvent;
+        xCloseEvent.pvData = ( void * ) xSocketSet;
 
-        vEventGroupDelete( pxSocketSet->xSelectGroup );
-        vPortFree( pxSocketSet );
+        if( xSendEventStructToIPTask( &xCloseEvent, ( TickType_t ) portMAX_DELAY ) == pdFAIL )
+        {
+            FreeRTOS_printf( ( "FreeRTOS_DeleteSocketSet: xSendEventStructToIPTask failed\n" ) );
+        }
     }
 
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
