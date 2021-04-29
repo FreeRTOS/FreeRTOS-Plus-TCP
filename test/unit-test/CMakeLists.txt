@@ -150,8 +150,6 @@ add_cmock_targets()
 # Add function to enable CMock based tests and coverage.
 include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 
-set(FILE_UNDER_TEST FreeRTOS_ARP)
-
 # Include unit-test build configuration
 include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )

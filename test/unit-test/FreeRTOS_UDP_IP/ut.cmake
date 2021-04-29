@@ -4,9 +4,10 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 # ====================  Define your project name (edit) ========================
 set( project_name "FreeRTOS_UDP_IP" )
 message( STATUS "${project_name}" )
-# =====================  Create your mock here  (edit)  ========================
 
+# =====================  Create your mock here  (edit)  ========================
 set(mock_list "")
+
 # list the files to mock here
 list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
@@ -22,10 +23,10 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
             "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/list_macros.h"
-            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/${project_name}_mock.h"
         )
 
-set(mock_include_list "")
+#set(mock_include_list "")
+
 # list the directories your mocks need
 list(APPEND mock_include_list
             .
@@ -36,7 +37,8 @@ list(APPEND mock_include_list
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
         )
 
-set(mock_define_list "")
+#set(mock_define_list "")
+
 #list the definitions of your mocks to control what to be included
 list(APPEND mock_define_list
             ""
@@ -45,12 +47,13 @@ list(APPEND mock_define_list
 # ================= Create the library under test here (edit) ==================
 
 set(real_source_files "")
+
 # list the files you would like to test here
 list(APPEND real_source_files
             ${MODULE_ROOT_DIR}/${project_name}.c
 	)
-	
-set(real_include_directories "")
+
+#set(real_include_directories "")
 # list the directories the module under test includes
 list(APPEND real_include_directories
             .
@@ -63,7 +66,7 @@ list(APPEND real_include_directories
 	)
 
 # =====================  Create UnitTest Code here (edit)  =====================
-set(test_include_directories "")
+#set(test_include_directories "")
 # list the directories your test needs to include
 list(APPEND test_include_directories
             .
@@ -90,6 +93,7 @@ create_real_library(${real_name}
                     "${mock_name}"
         )
 
+set( utest_link_list "" )
 list(APPEND utest_link_list
             -l${mock_name}
             lib${real_name}.a

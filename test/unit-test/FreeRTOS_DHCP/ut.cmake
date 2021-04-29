@@ -6,6 +6,7 @@ set( project_name "FreeRTOS_DHCP" )
 message( STATUS "${project_name}" )
 # =====================  Create your mock here  (edit)  ========================
 
+set(mock_list "")
 # list the files to mock here
 list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
