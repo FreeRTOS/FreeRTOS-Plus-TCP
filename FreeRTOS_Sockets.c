@@ -3193,7 +3193,7 @@ uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
  * @brief Convert an ASCII character to its corresponding hexadecimal value.
  *        Accepted characters are 0-9, a-f, and A-F.
  *
- * @param[in] c: The character to be converted.
+ * @param[in] cChar: The character to be converted.
  *
  * @return The hexadecimal value, between 0 and 15.
  *         When the character is not valid, socketINVALID_HEX_CHAR will be returned.
@@ -3981,6 +3981,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 #endif /* ipconfigUSE_TCP */
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_TCP == 1 )
+
 /**
  * @brief After FreeRTOS_recv() has checked the validity of the parameters,
  *        this routine will wait for data to arrive in the stream buffer.
@@ -3988,105 +3990,107 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  * @param[in] pxSocket: The socket owning the connection.
  * @param[out] pxEventBits: A bit-mask of socket events will be set:
  *             eSOCKET_RECEIVE, eSOCKET_CLOSED, and or eSOCKET_INTR.
+ * @param[in] xFlags: the flags that were passed to FreeRTOS_recv().
  */
-static BaseType_t prvRecvWait( FreeRTOS_Socket_t * pxSocket,
-                               EventBits_t * pxEventBits,
-                               BaseType_t xFlags )
-{
-    BaseType_t xByteCount = 0;
-    TickType_t xRemainingTime;
-    BaseType_t xTimed = pdFALSE;
-    TimeOut_t xTimeOut;
-    EventBits_t xEventBits = ( EventBits_t ) 0U;
-
-    if( pxSocket->u.xTCP.rxStream != NULL )
+    static BaseType_t prvRecvWait( FreeRTOS_Socket_t * pxSocket,
+                                   EventBits_t * pxEventBits,
+                                   BaseType_t xFlags )
     {
-        xByteCount = ( BaseType_t ) uxStreamBufferGetSize( pxSocket->u.xTCP.rxStream );
-    }
-
-    while( xByteCount == 0 )
-    {
-        eIPTCPState_t eType = ( eIPTCPState_t ) pxSocket->u.xTCP.ucTCPState;
-
-        if( ( eType == eCLOSED ) ||
-            ( eType == eCLOSE_WAIT ) || /* (server + client) waiting for a connection termination request from the local user. */
-            ( eType == eCLOSING ) )     /* (server + client) waiting for a connection termination request acknowledgement from the remote TCP. */
-        {
-            /* Return -ENOTCONN, unles there was a malloc failure. */
-            xByteCount = -pdFREERTOS_ERRNO_ENOTCONN;
-
-            if( pxSocket->u.xTCP.bits.bMallocError != pdFALSE_UNSIGNED )
-            {
-                /* The no-memory error has priority above the non-connected error.
-                 * Both are fatal and will lead to closing the socket. */
-                xByteCount = -pdFREERTOS_ERRNO_ENOMEM;
-            }
-
-            break;
-        }
-
-        if( xTimed == pdFALSE )
-        {
-            /* Only in the first round, check for non-blocking. */
-            xRemainingTime = pxSocket->xReceiveBlockTime;
-
-            if( xRemainingTime == ( TickType_t ) 0 )
-            {
-                #if ( ipconfigSUPPORT_SIGNALS != 0 )
-                    {
-                        /* Just check for the interrupt flag. */
-                        xEventBits = xEventGroupWaitBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_INTR,
-                                                          pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, socketDONT_BLOCK );
-                    }
-                #endif /* ipconfigSUPPORT_SIGNALS */
-                break;
-            }
-
-            if( ( ( uint32_t ) xFlags & ( uint32_t ) FREERTOS_MSG_DONTWAIT ) != 0U )
-            {
-                break;
-            }
-
-            /* Don't get here a second time. */
-            xTimed = pdTRUE;
-
-            /* Fetch the current time. */
-            vTaskSetTimeOutState( &xTimeOut );
-        }
-
-        /* Has the timeout been reached? */
-        if( xTaskCheckForTimeOut( &xTimeOut, &xRemainingTime ) != pdFALSE )
-        {
-            break;
-        }
-
-        /* Block until there is a down-stream event. */
-        xEventBits = xEventGroupWaitBits( pxSocket->xEventGroup,
-                                          ( EventBits_t ) eSOCKET_RECEIVE | ( EventBits_t ) eSOCKET_CLOSED | ( EventBits_t ) eSOCKET_INTR,
-                                          pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, xRemainingTime );
-        #if ( ipconfigSUPPORT_SIGNALS != 0 )
-            {
-                if( ( xEventBits & ( EventBits_t ) eSOCKET_INTR ) != 0U )
-                {
-                    break;
-                }
-            }
-        #else
-            {
-                ( void ) xEventBits;
-            }
-        #endif /* ipconfigSUPPORT_SIGNALS */
+        BaseType_t xByteCount = 0;
+        TickType_t xRemainingTime;
+        BaseType_t xTimed = pdFALSE;
+        TimeOut_t xTimeOut;
+        EventBits_t xEventBits = ( EventBits_t ) 0U;
 
         if( pxSocket->u.xTCP.rxStream != NULL )
         {
             xByteCount = ( BaseType_t ) uxStreamBufferGetSize( pxSocket->u.xTCP.rxStream );
         }
-    } /* while( xByteCount == 0 ) */
 
-    *( pxEventBits ) = xEventBits;
+        while( xByteCount == 0 )
+        {
+            eIPTCPState_t eType = ( eIPTCPState_t ) pxSocket->u.xTCP.ucTCPState;
 
-    return xByteCount;
-}
+            if( ( eType == eCLOSED ) ||
+                ( eType == eCLOSE_WAIT ) || /* (server + client) waiting for a connection termination request from the local user. */
+                ( eType == eCLOSING ) )     /* (server + client) waiting for a connection termination request acknowledgement from the remote TCP. */
+            {
+                /* Return -ENOTCONN, unles there was a malloc failure. */
+                xByteCount = -pdFREERTOS_ERRNO_ENOTCONN;
+
+                if( pxSocket->u.xTCP.bits.bMallocError != pdFALSE_UNSIGNED )
+                {
+                    /* The no-memory error has priority above the non-connected error.
+                     * Both are fatal and will lead to closing the socket. */
+                    xByteCount = -pdFREERTOS_ERRNO_ENOMEM;
+                }
+
+                break;
+            }
+
+            if( xTimed == pdFALSE )
+            {
+                /* Only in the first round, check for non-blocking. */
+                xRemainingTime = pxSocket->xReceiveBlockTime;
+
+                if( xRemainingTime == ( TickType_t ) 0 )
+                {
+                    #if ( ipconfigSUPPORT_SIGNALS != 0 )
+                        {
+                            /* Just check for the interrupt flag. */
+                            xEventBits = xEventGroupWaitBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_INTR,
+                                                              pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, socketDONT_BLOCK );
+                        }
+                    #endif /* ipconfigSUPPORT_SIGNALS */
+                    break;
+                }
+
+                if( ( ( uint32_t ) xFlags & ( uint32_t ) FREERTOS_MSG_DONTWAIT ) != 0U )
+                {
+                    break;
+                }
+
+                /* Don't get here a second time. */
+                xTimed = pdTRUE;
+
+                /* Fetch the current time. */
+                vTaskSetTimeOutState( &xTimeOut );
+            }
+
+            /* Has the timeout been reached? */
+            if( xTaskCheckForTimeOut( &xTimeOut, &xRemainingTime ) != pdFALSE )
+            {
+                break;
+            }
+
+            /* Block until there is a down-stream event. */
+            xEventBits = xEventGroupWaitBits( pxSocket->xEventGroup,
+                                              ( EventBits_t ) eSOCKET_RECEIVE | ( EventBits_t ) eSOCKET_CLOSED | ( EventBits_t ) eSOCKET_INTR,
+                                              pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, xRemainingTime );
+            #if ( ipconfigSUPPORT_SIGNALS != 0 )
+                {
+                    if( ( xEventBits & ( EventBits_t ) eSOCKET_INTR ) != 0U )
+                    {
+                        break;
+                    }
+                }
+            #else
+                {
+                    ( void ) xEventBits;
+                }
+            #endif /* ipconfigSUPPORT_SIGNALS */
+
+            if( pxSocket->u.xTCP.rxStream != NULL )
+            {
+                xByteCount = ( BaseType_t ) uxStreamBufferGetSize( pxSocket->u.xTCP.rxStream );
+            }
+        } /* while( xByteCount == 0 ) */
+
+        *( pxEventBits ) = xEventBits;
+
+        return xByteCount;
+    }
+#endif /* ( ipconfigUSE_TCP == 1 ) */
 
 #if ( ipconfigUSE_TCP == 1 )
 
