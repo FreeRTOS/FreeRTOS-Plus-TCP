@@ -36,14 +36,13 @@
     #include "IPTraceMacroDefaults.h"
     #include "FreeRTOS_IP.h"
 
-
-    #ifdef __cplusplus
-        } /* extern "C" */
-    #endif
-
 /*
  * Called when the application has generated a UDP packet to send.
  */
     void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
+    #ifdef __cplusplus
+        } /* extern "C" */
+    #endif
 
 #endif /* FREERTOS_UDP_IP_H */

@@ -2,9 +2,9 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-message( STATUS "${FILE_UNDER_TEST}" )
-
 set( project_name "FreeRTOS_ARP" )
+
+message( STATUS "${project_name}" )
 
 # =====================  Create your mock here  (edit)  ========================
 

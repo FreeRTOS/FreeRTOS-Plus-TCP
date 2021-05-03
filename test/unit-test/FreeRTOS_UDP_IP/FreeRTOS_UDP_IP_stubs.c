@@ -1,3 +1,29 @@
+/*
+ * FreeRTOS+TCP V2.3.3
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://aws.amazon.com/freertos
+ * http://www.FreeRTOS.org
+ */
+
+
 /* Include Unity header */
 #include <unity.h>
 
@@ -12,24 +38,6 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-volatile BaseType_t xInsideInterrupt = pdFALSE;
-
-/** @brief The expected IP version and header length coded into the IP header itself. */
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
-
-/*
- * IP-clash detection is currently only used internally. When DHCP doesn't respond, the
- * driver can try out a random LinkLayer IP address (169.254.x.x).  It will send out a
- * gratuitous ARP message and, after a period of time, check the variables here below:
- */
-#if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
-    /* Becomes non-zero if another device responded to a gratuitous ARP message. */
-    BaseType_t xARPHadIPClash;
-    /* MAC-address of the other device containing the same IP-address. */
-    MACAddress_t xARPClashMacAddress;
-#endif /* ipconfigARP_USE_CLASH_DETECTION */
-
-
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
 {
     return ( UDPPacket_t * ) pvArgument;
@@ -40,115 +48,9 @@ portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
     return ( const UDPPacket_t * ) pvArgument;
 }
 
-/** @brief For convenience, a MAC address of all 0xffs is defined const for quick
- * reference. */
-const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
-
-/** @brief Structure that stores the netmask, gateway address and DNS server addresses. */
-NetworkAddressingParameters_t xNetworkAddressing =
-{
-    0xC0C0C0C0, /* 192.192.192.192 - Default IP address. */
-    0xFFFFFF00, /* 255.255.255.0 - Netmask. */
-    0xC0C0C001, /* 192.192.192.1 - Gateway Address. */
-    0x01020304, /* 1.2.3.4 - DNS server address. */
-    0xC0C0C0FF
-};              /* 192.192.192.255 - Broadcast address. */
-
-/** @brief Structure that stores the netmask, gateway address and DNS server addresses. */
-NetworkAddressingParameters_t xDefaultAddressing =
-{
-    0xC0C0C0C0, /* 192.192.192.192 - Default IP address. */
-    0xFFFFFF00, /* 255.255.255.0 - Netmask. */
-    0xC0C0C001, /* 192.192.192.1 - Gateway Address. */
-    0x01020304, /* 1.2.3.4 - DNS server address. */
-    0xC0C0C0FF
-};
-
-size_t xPortGetMinimumEverFreeHeapSize( void )
-{
-    return 0;
-}
-
-
-BaseType_t xApplicationDNSQueryHook( const char * pcName )
-{
-}
-
-StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
-                                     StackType_t * pxEndOfStack,
-                                     TaskFunction_t pxCode,
-                                     void * pvParameters )
-{
-}
-
-uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
-                                             uint16_t usSourcePort,
-                                             uint32_t ulDestinationAddress,
-                                             uint16_t usDestinationPort )
-{
-}
-BaseType_t xNetworkInterfaceInitialise( void )
-{
-}
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
-{
-}
-void vApplicationDaemonTaskStartupHook( void )
-{
-}
-void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
-                                     StackType_t ** ppxTimerTaskStackBuffer,
-                                     uint32_t * pulTimerTaskStackSize )
-{
-}
-void vPortDeleteThread( void * pvTaskToDelete )
-{
-}
-void vApplicationIdleHook( void )
-{
-}
-void vApplicationTickHook( void )
-{
-}
-unsigned long ulGetRunTimeCounterValue( void )
-{
-}
-void vPortEndScheduler( void )
-{
-}
-BaseType_t xPortStartScheduler( void )
-{
-}
 void vPortEnterCritical( void )
 {
 }
 void vPortExitCritical( void )
 {
 }
-
-void * pvPortMalloc( size_t xWantedSize )
-{
-    return malloc( xWantedSize );
-}
-
-void vPortFree( void * pv )
-{
-    free( pv );
-}
-
-void vPortGenerateSimulatedInterrupt( uint32_t ulInterruptNumber )
-{
-}
-void vPortCloseRunningThread( void * pvTaskToDelete,
-                              volatile BaseType_t * pxPendYield )
-{
-}
-void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
-                                    StackType_t ** ppxIdleTaskStackBuffer,
-                                    uint32_t * pulIdleTaskStackSize )
-{
-}
-void vConfigureTimerForRunTimeStats( void )
-{
-}
-/*-----------------------------------------------------------*/
