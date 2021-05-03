@@ -4364,7 +4364,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 }
 
                 xBytesLeft -= xByteCount;
-                xBytesSent -= xByteCount;
+                xBytesSent += xByteCount;
 
                 if( xBytesLeft == 0 )
                 {
