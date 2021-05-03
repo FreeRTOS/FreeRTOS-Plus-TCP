@@ -34,6 +34,7 @@
 
 #include "mock_task.h"
 #include "mock_list.h"
+
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
 #include "mock_list_macros.h"
@@ -277,7 +278,7 @@ void test_xProcessReceivedUDPPacket_catchAsserts( void )
 
 /*
  * @brief Test when there is no listening socket and the packet is not
-          for this node.
+ *        for this node.
  */
 void test_xProcessReceivedUDPPacket_NoListeningSocket_NotForThisNode( void )
 {
@@ -300,7 +301,7 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_NotForThisNode( void )
 
 /*
  * @brief Test when there is no listening socket but the packet seems like
-          a late DNS response.
+ *        a late DNS response.
  */
 void test_xProcessReceivedUDPPacket_NoListeningSocket_DelayedDNSResponse( void )
 {
@@ -331,7 +332,7 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_DelayedDNSResponse( void )
 
 /*
  * @brief Test when there is no listening socket but the packet seems like an
-          LLMNR reponse.
+ *        LLMNR response.
  */
 void test_xProcessReceivedUDPPacket_NoListeningSocket_LLMNRResponse( void )
 {
@@ -350,7 +351,7 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_LLMNRResponse( void )
     /* LLMNR port. */
     pxUDPPacket->xUDPHeader.usSourcePort = FreeRTOS_ntohs( ipLLMNR_PORT );
 
-    /* No scoket found. */
+    /* No socket found. */
     pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
 
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
