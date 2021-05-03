@@ -74,6 +74,10 @@ static BaseType_t xLocalHandler( Socket_t pxSocket,
     return xFunctionReturn;
 }
 
+/*
+ * @brief Test what happens if the packet cannot be sent due to
+ *        the address not being resolved.
+ */
 void test_vProcessGeneratedUDPPacket_CantSendPacket( void )
 {
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
@@ -84,12 +88,17 @@ void test_vProcessGeneratedUDPPacket_CantSendPacket( void )
     /* Cleanup the ethernet buffer. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
 
+    /* Address not resolved. */
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eCantSendPacket );
     vReleaseNetworkBufferAndDescriptor_Expect( &xLocalNetworkBuffer );
 
     vProcessGeneratedUDPPacket( &xLocalNetworkBuffer );
 }
 
+/*
+ * @brief Test what if there is a cache miss and the packet is smaller
+ *        than the minimum number of bytes required in the packet.
+ */
 void test_vProcessGeneratedUDPPacket_CacheMiss_PacketSmaller( void )
 {
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
@@ -120,6 +129,10 @@ void test_vProcessGeneratedUDPPacket_CacheMiss_PacketSmaller( void )
     vProcessGeneratedUDPPacket( &xLocalNetworkBuffer );
 }
 
+/*
+ * @brief Test when there is a cache miss, but the packet is of
+ *        appropriate size.
+ */
 void test_vProcessGeneratedUDPPacket_CacheMiss_PacketNotSmaller( void )
 {
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
@@ -149,6 +162,9 @@ void test_vProcessGeneratedUDPPacket_CacheMiss_PacketNotSmaller( void )
     vProcessGeneratedUDPPacket( &xLocalNetworkBuffer );
 }
 
+/*
+ * @brief Test when ARP cache returned an unknown value.
+ */
 void test_vProcessGeneratedUDPPacket_UnknownARPReturn( void )
 {
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
@@ -167,6 +183,7 @@ void test_vProcessGeneratedUDPPacket_UnknownARPReturn( void )
     /* Map the UDP packet onto the start of the frame. */
     pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
 
+    /* Return an unknown value. */
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eCantSendPacket + 1 );
 
     vReleaseNetworkBufferAndDescriptor_Expect( &xLocalNetworkBuffer );
@@ -174,6 +191,10 @@ void test_vProcessGeneratedUDPPacket_UnknownARPReturn( void )
     vProcessGeneratedUDPPacket( &xLocalNetworkBuffer );
 }
 
+/*
+ * @brief Test when there is a cache hit but the packet does not have
+ *        ICMP data.
+ */
 void test_vProcessGeneratedUDPPacket_CacheHit_NoICMP( void )
 {
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
@@ -184,6 +205,7 @@ void test_vProcessGeneratedUDPPacket_CacheHit_NoICMP( void )
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
 
     xLocalNetworkBuffer.ulIPAddress = ulIPAddr;
+    /* Not ICMP data. */
     xLocalNetworkBuffer.usPort = ipPACKET_CONTAINS_ICMP_DATA + 1;
     xLocalNetworkBuffer.xDataLength = sizeof( UDPPacket_t );
 
@@ -203,6 +225,10 @@ void test_vProcessGeneratedUDPPacket_CacheHit_NoICMP( void )
     vProcessGeneratedUDPPacket( &xLocalNetworkBuffer );
 }
 
+/*
+ * @brief Test cache hit when the packet is ICMP packet and has an LLMNR
+ *        IP address with a UDP socket option.
+ */
 void test_vProcessGeneratedUDPPacket_CacheHit_ICMPPacket_LLMNR_UDPChkSumOption( void )
 {
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
@@ -236,6 +262,9 @@ void test_vProcessGeneratedUDPPacket_CacheHit_ICMPPacket_LLMNR_UDPChkSumOption( 
     vProcessGeneratedUDPPacket( &xLocalNetworkBuffer );
 }
 
+/*
+ * @brief Test the asserts in the function.
+ */
 void test_xProcessReceivedUDPPacket_catchAsserts( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -246,6 +275,10 @@ void test_xProcessReceivedUDPPacket_catchAsserts( void )
     catch_assert( xProcessReceivedUDPPacket( &xLocalNetworkBuffer, 0 ) );
 }
 
+/*
+ * @brief Test when there is no listening socket and the packet is not
+          for this node.
+ */
 void test_xProcessReceivedUDPPacket_NoListeningSocket_NotForThisNode( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -258,12 +291,17 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_NotForThisNode( void )
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
 
+    /* No socket found. */
     pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
 
     xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
 }
 
+/*
+ * @brief Test when there is no listening socket but the packet seems like
+          a late DNS response.
+ */
 void test_xProcessReceivedUDPPacket_NoListeningSocket_DelayedDNSResponse( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -278,8 +316,10 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_DelayedDNSResponse( void )
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
 
     pxUDPPacket = ( UDPPacket_t * ) xLocalNetworkBuffer.pucEthernetBuffer;
+    /* Packet coming from a DNS port. */
     pxUDPPacket->xUDPHeader.usSourcePort = FreeRTOS_htons( ipDNS_PORT );
 
+    /* No socket found. */
     pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
 
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
@@ -289,6 +329,10 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_DelayedDNSResponse( void )
     TEST_ASSERT_EQUAL( pdPASS, xResult );
 }
 
+/*
+ * @brief Test when there is no listening socket but the packet seems like an
+          LLMNR reponse.
+ */
 void test_xProcessReceivedUDPPacket_NoListeningSocket_LLMNRResponse( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -303,8 +347,10 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_LLMNRResponse( void )
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
 
     pxUDPPacket = ( UDPPacket_t * ) xLocalNetworkBuffer.pucEthernetBuffer;
+    /* LLMNR port. */
     pxUDPPacket->xUDPHeader.usSourcePort = FreeRTOS_ntohs( ipLLMNR_PORT );
 
+    /* No scoket found. */
     pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
 
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
@@ -314,6 +360,10 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_LLMNRResponse( void )
     TEST_ASSERT_EQUAL( pdPASS, xResult );
 }
 
+/*
+ * @brief Test when there is no listening socket but the packet is for LLMNR and the
+ *        source and destination sockets are mismatching.
+ */
 void test_xProcessReceivedUDPPacket_NoListeningSocket_LLMNRResponse_MismatchingPorts( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -339,6 +389,9 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_LLMNRResponse_MismatchingP
     TEST_ASSERT_EQUAL( pdPASS, xResult );
 }
 
+/*
+ * @brief Test when there is no listening socket and this is an NBNS response.
+ */
 void test_xProcessReceivedUDPPacket_NoListeningSocket_NBNSResponse( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -364,6 +417,10 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_NBNSResponse( void )
     TEST_ASSERT_EQUAL( pdPASS, xResult );
 }
 
+/*
+ * @brief Test when there is no listening socket and this is an NBNS packet but the source
+ *        and destination ports mismatch.
+ */
 void test_xProcessReceivedUDPPacket_NoListeningSocket_NBNSResponse_MismatchingPorts( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -389,6 +446,9 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_NBNSResponse_MismatchingPo
     TEST_ASSERT_EQUAL( pdPASS, xResult );
 }
 
+/*
+ * @brief Test when a matching socket is found but there is no handler listed.
+ */
 void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_BufferFull( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -406,6 +466,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_BufferFull( void )
 
     pxUDPPacket = ( UDPPacket_t * ) xLocalNetworkBuffer.pucEthernetBuffer;
 
+    /* No socket handler listed for UDP packets. */
     xLocalSocket.u.xUDP.pxHandleReceive = NULL;
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
@@ -416,6 +477,10 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_BufferFull( void )
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
 }
 
+/*
+ * @brief Test when a matching socket is found but there is no handler, event groups,
+ *        socket set and user semaphore added to the socket.
+ */
 void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_NoEventGroupSocketSetUSemaphore( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -454,6 +519,10 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_NoEventGroupSocketSetU
     TEST_ASSERT_EQUAL( pdPASS, xResult );
 }
 
+/*
+ * @brief Test when a matching socket is found but there is no handler listed but there
+ *        is a user semaphore, event group.
+ */
 void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaphore( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -496,6 +565,10 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     TEST_ASSERT_EQUAL( pdPASS, xResult );
 }
 
+/*
+ * @brief Test when a matching socket is found but there is no handler listed but there
+ *        is a user semaphore and event group but the select bits are invalid.
+ */
 void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaphoreSocketSet_InvalidSelectBits( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -538,6 +611,10 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     TEST_ASSERT_EQUAL( pdPASS, xResult );
 }
 
+/*
+ * @brief Test when a matching socket is found but there is no handler listed but there
+ *        is a user semaphore and event group and the select bits are valid.
+ */
 void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaphoreSocketSet_ValidSelectBits( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -562,6 +639,8 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     xLocalSocket.xEventGroup = ( void * ) 1;
     xLocalSocket.pxSocketSet = &xLocalSocketSet;
     xLocalSocket.pxUserSemaphore = ( void * ) 1;
+
+    /* Put in valid bits. */
     xLocalSocket.xSelectBits = eSELECT_READ;
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
@@ -583,6 +662,10 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     TEST_ASSERT_EQUAL( pdPASS, xResult );
 }
 
+/*
+ * @brief Test when a matching socket is found and there is a handler listed but it returns a 0.
+ *        Also, there is a user semaphore, socket set and event group and the select bits are valid.
+ */
 void test_xProcessReceivedUDPPacket_SocketFound_HandlerFoundReturnZero_ValidEventGroupUSemaphoreSocketSet_ValidSelectBits( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -632,6 +715,10 @@ void test_xProcessReceivedUDPPacket_SocketFound_HandlerFoundReturnZero_ValidEven
     TEST_ASSERT_EQUAL( 1, ulFunctionCalled );
 }
 
+/*
+ * @brief Test when a matching socket is found and there is a handler listed
+ *        which returns a non zero value.
+ */
 void test_xProcessReceivedUDPPacket_SocketFound_HandlerFoundReturnNonZero( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
@@ -659,6 +746,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_HandlerFoundReturnNonZero( void 
     xLocalSocket.pxUserSemaphore = ( void * ) 1;
     xLocalSocket.xSelectBits = eSELECT_READ;
 
+    /* Return a non-zero value. */
     xFunctionReturn = 1;
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
