@@ -110,6 +110,7 @@ castingmacrofunctions
 cbmc
 ccfg
 cchannel
+cchar
 ce
 centralised
 ceo
@@ -267,6 +268,7 @@ enetworkrxevent
 enetworktxevent
 enetworkup
 enhanceddescriptorformat
+enotconn
 enotusingleasedaddress
 enum
 eof
@@ -301,6 +303,7 @@ ethernetif
 ethertype
 ettinger
 etv
+etype
 eunknown
 eventbits
 ewaitingacknowledge
@@ -852,6 +855,7 @@ pxdnsserveraddress
 pxduplicatenetworkbufferwithdescriptor
 pxendpoint
 pxevent
+pxeventbits
 pxfrom
 pxgatewayaddress
 pxgetnetworkbufferwithdescriptor
@@ -1130,6 +1134,7 @@ ucaddresslength
 ucaddresstype
 ucage
 ucarray
+ucasciitohex
 ucbootfilename
 ucbytes
 ucchildtext
@@ -1610,6 +1615,7 @@ xexpected
 xexpectedmessagetype
 xfamily
 xflags
+xforsend
 xfound
 xfreebufferslist
 xgatewayaddress

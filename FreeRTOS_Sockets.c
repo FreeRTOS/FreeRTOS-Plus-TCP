@@ -2194,7 +2194,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                 if( ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) &&
                     ( FreeRTOS_outstanding( pxSocket ) != 0 ) )
                 {
-                    /* There might be some data in the TX-sream, less than full-size,
+                    /* There might be some data in the TX-stream, less than full-size,
                      * which equals a MSS.  Wake-up the IP-task to check this. */
                     pxSocket->u.xTCP.usTimeout = 1U;
                     ( void ) xSendEventToIPTask( eTCPTimerEvent );
@@ -4015,7 +4015,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 ( eType == eCLOSE_WAIT ) || /* (server + client) waiting for a connection termination request from the local user. */
                 ( eType == eCLOSING ) )     /* (server + client) waiting for a connection termination request acknowledgement from the remote TCP. */
             {
-                /* Return -ENOTCONN, unles there was a malloc failure. */
+                /* Return -ENOTCONN, unless there was a malloc failure. */
                 xByteCount = -pdFREERTOS_ERRNO_ENOTCONN;
 
                 if( pxSocket->u.xTCP.bits.bMallocError != pdFALSE_UNSIGNED )
