@@ -661,6 +661,7 @@ pcservername
 pcservice
 pcsource
 pcto
+pctype
 pd
 pdata
 pdc
@@ -720,6 +721,7 @@ processdhcpreplies
 processippacket
 projdefs
 promiscuousmode
+protcol
 prvallowippacket
 prvcachelookup
 prvchecknetworktimers
@@ -820,6 +822,7 @@ pulnetmask
 pulnumber
 pulvalue
 pusaddress
+puschecksum
 pvargument
 pvbuffer
 pvdata
@@ -906,6 +909,7 @@ pxresult
 pxresults
 pxright
 pxsegment
+pxset
 pxsocket
 pxsocketset
 pxsocketsize
@@ -1385,6 +1389,7 @@ uspayloadlength
 uspeerportnumber
 usport
 usportnr
+usprotocolbytes
 usprotocoltype
 usquestions
 usreachabletime
@@ -1450,6 +1455,7 @@ uxoffset
 uxoptionlength
 uxoptionslength
 uxprefixlength
+uxprotocolheaderlength
 uxptr
 uxremainingbytes
 uxremainingtime
