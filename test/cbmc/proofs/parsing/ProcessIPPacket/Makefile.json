@@ -12,6 +12,7 @@
   ],
   "DEF":
   [
+    "ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM=1",
     "FREERTOS_TCP_ENABLE_VERIFICATION"
   ],
   "INC":

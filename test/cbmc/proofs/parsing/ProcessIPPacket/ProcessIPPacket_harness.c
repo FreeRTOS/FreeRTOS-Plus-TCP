@@ -39,9 +39,7 @@ void harness()
     /* Minimum length of the pxNetworkBuffer->xDataLength is at least the size of the IPPacket_t. */
     __CPROVER_assume( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) && pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE );
 
-    IPPacket_t * const pxIPPacket = malloc( sizeof( IPPacket_t ) );
-
-    __CPROVER_assume( pxIPPacket != NULL );
+    IPPacket_t * const pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
     publicProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 }

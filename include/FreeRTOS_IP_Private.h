@@ -341,6 +341,15 @@
         #define ipARP_REQUEST                   ( 0x0100U )
         #define ipARP_REPLY                     ( 0x0200U )
 
+        /* The bits in the two byte IP header field that make up the fragment offset value. */
+        #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0xff1fU )
+        /* The bits in the two byte IP header field that make up the flags value. */
+        #define ipFRAGMENT_FLAGS_BIT_MASK          ( ( uint16_t ) 0x00e0U )
+        /* Don't Fragment Flag */
+        #define ipFRAGMENT_FLAGS_DONT_FRAGMENT     ( ( uint16_t ) 0x0040U )
+        /* More Fragments Flag */
+        #define ipFRAGMENT_FLAGS_MORE_FRAGMENTS    ( ( uint16_t ) 0x0020U )
+
     #else /* if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
 
 /* Ethernet frame types. */
@@ -353,29 +362,16 @@
         #define ipARP_REQUEST                   ( 0x0001 )
         #define ipARP_REPLY                     ( 0x0002 )
 
-    #endif /* ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN */
+        /* The bits in the two byte IP header field that make up the fragment offset value. */
+        #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0x1fffU )
+        /* The bits in the two byte IP header field that make up the flags value. */
+        #define ipFRAGMENT_FLAGS_BIT_MASK          ( ( uint16_t ) 0xe000U )
+        /* Don't Fragment Flag */
+        #define ipFRAGMENT_FLAGS_DONT_FRAGMENT     ( ( uint16_t ) 0x4000U )
+        /* More Fragments Flag */
+        #define ipFRAGMENT_FLAGS_MORE_FRAGMENTS    ( ( uint16_t ) 0x2000U )
 
-    #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
-        #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
-            /* The bits in the two byte IP header field that make up the fragment offset value. */
-            #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0xff1fU )
-            /* The bits in the two byte IP header field that make up the flags value. */
-            #define ipFRAGMENT_FLAGS_BIT_MASK          ( ( uint16_t ) 0x00e0U )
-            /* Don't Fragment Flag */
-            #define ipFRAGMENT_FLAGS_DONT_FRAGMENT     ( ( uint16_t ) 0x0040U )
-            /* More Fragments Flag */
-            #define ipFRAGMENT_FLAGS_MORE_FRAGMENTS    ( ( uint16_t ) 0x0020U )
-        #else
-            /* The bits in the two byte IP header field that make up the fragment offset value. */
-            #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0x1fffU )
-            /* The bits in the two byte IP header field that make up the flags value. */
-            #define ipFRAGMENT_FLAGS_BIT_MASK          ( ( uint16_t ) 0xe000U )
-            /* Don't Fragment Flag */
-            #define ipFRAGMENT_FLAGS_DONT_FRAGMENT     ( ( uint16_t ) 0x4000U )
-            /* More Fragments Flag */
-            #define ipFRAGMENT_FLAGS_MORE_FRAGMENTS    ( ( uint16_t ) 0x2000U )
-        #endif /* ipconfigBYTE_ORDER */
-    #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
+    #endif /* ipconfigBYTE_ORDER */
 
 /* For convenience, a MAC address of all zeros and another of all 0xffs are
  * defined const for quick reference. */
