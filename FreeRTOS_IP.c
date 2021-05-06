@@ -834,6 +834,8 @@ static void prvCheckNetworkTimers( void )
                 xProcessedTCPMessage = 0;
             }
         }
+
+        vSocketCloseNextTime( NULL );
     #endif /* ipconfigUSE_TCP == 1 */
 }
 /*-----------------------------------------------------------*/
