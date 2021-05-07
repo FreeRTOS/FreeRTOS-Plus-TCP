@@ -1837,8 +1837,7 @@
             {
                 /* Socket goes to status eCLOSED because of a RST.
                  * When nobody owns the socket yet, delete it. */
-                if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
-                    ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
+                if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
                 {
                     FreeRTOS_debug_printf( ( "vTCPStateChange: Closing socket\n" ) );
 
@@ -3841,48 +3840,15 @@
             }
         #endif /* ipconfigUSE_CALLBACKS */
 
-        #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-            {
-                /* Child socket of listening sockets will inherit the Socket Set
-                 * Otherwise the owner has no chance of including it into the set. */
-                if( pxSocket->pxSocketSet != NULL )
-                {
-                    pxNewSocket->pxSocketSet = pxSocket->pxSocketSet;
-                    pxNewSocket->xSelectBits = pxSocket->xSelectBits | ( ( EventBits_t ) eSELECT_READ ) | ( ( EventBits_t ) eSELECT_EXCEPT );
-                }
-            }
-        #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
-
         /* And bind it to the same local port as its parent. */
         xAddress.sin_addr = *ipLOCAL_IP_ADDRESS_POINTER;
         xAddress.sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
 
-        #if ( ipconfigTCP_HANG_PROTECTION == 1 )
-            {
-                /* Only when there is anti-hanging protection, a socket may become an
-                 * orphan temporarily.  Once this socket is really connected, the owner of
-                 * the server socket will be notified. */
 
-                /* When bPassQueued is true, the socket is an orphan until it gets
-                 * connected. */
-                pxNewSocket->u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
-                pxNewSocket->u.xTCP.pxPeerSocket = pxSocket;
-            }
-        #else
-            {
-                /* A reference to the new socket may be stored and the socket is marked
-                 * as 'passable'. */
-
-                /* When bPassAccept is true, this socket may be returned in a call to
-                 * accept(). */
-                pxNewSocket->u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
-
-                if( pxSocket->u.xTCP.pxPeerSocket == NULL )
-                {
-                    pxSocket->u.xTCP.pxPeerSocket = pxNewSocket;
-                }
-            }
-        #endif /* if ( ipconfigTCP_HANG_PROTECTION == 1 ) */
+        /* When bPassQueued is true, the socket is an orphan until it gets
+         * connected. */
+        pxNewSocket->u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+        pxNewSocket->u.xTCP.pxPeerSocket = pxSocket;
 
         pxSocket->u.xTCP.usChildCount++;
 
