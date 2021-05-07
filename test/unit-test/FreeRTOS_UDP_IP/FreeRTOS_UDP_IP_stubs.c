@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,26 +23,34 @@
  * http://www.FreeRTOS.org
  */
 
-#ifndef FREERTOS_UDP_IP_H
-    #define FREERTOS_UDP_IP_H
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
+/* Include Unity header */
+#include <unity.h>
 
-/* Application level configuration options. */
-    #include "FreeRTOSIPConfig.h"
-    #include "FreeRTOSIPConfigDefaults.h"
-    #include "IPTraceMacroDefaults.h"
-    #include "FreeRTOS_IP.h"
+/* Include standard libraries */
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include "FreeRTOS.h"
+#include "task.h"
+#include "list.h"
 
-/*
- * Called when the application has generated a UDP packet to send.
- */
-    void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
 
-    #ifdef __cplusplus
-        } /* extern "C" */
-    #endif
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+    return ( UDPPacket_t * ) pvArgument;
+}
 
-#endif /* FREERTOS_UDP_IP_H */
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+    return ( const UDPPacket_t * ) pvArgument;
+}
+
+void vPortEnterCritical( void )
+{
+}
+void vPortExitCritical( void )
+{
+}
