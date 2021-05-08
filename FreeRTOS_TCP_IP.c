@@ -3967,9 +3967,9 @@
                                 vTCPStateChange( pxSocket, eCLOSED );
                             }
                             /* Otherwise, check whether the packet is within the receive window. */
-                            else if( ( ulSequenceNumber > pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber ) &&
-                                     ( ulSequenceNumber < ( pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber +
-                                                            pxSocket->u.xTCP.xTCPWindow.xSize.ulRxWindowLength ) ) )
+                            else if( ( xSequenceGreaterThan( ulSequenceNumber, pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber ) != pdFALSE ) &&
+                                     ( xSequenceLessThan( ulSequenceNumber, pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber +
+                                                          pxSocket->u.xTCP.xTCPWindow.xSize.ulRxWindowLength ) != pdFALSE ) )
                             {
                                 /* Send a challenge ACK. */
                                 ( void ) prvTCPSendChallengeAck( pxNetworkBuffer );
