@@ -1448,6 +1448,12 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
                     pxSocket->u.xTCP.pxHandleReceive = NULL;
                     pxSocket->u.xTCP.pxHandleSent = NULL;
                 }
+                else if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_UDP )
+                {
+                    /* Clear the two UDP handlers. */
+                    pxSocket->u.xUDP.pxHandleReceive = NULL;
+                    pxSocket->u.xUDP.pxHandleSent = NULL;
+                }
             }
         #endif /* ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_CALLBACKS == 1 ) ) */
 
