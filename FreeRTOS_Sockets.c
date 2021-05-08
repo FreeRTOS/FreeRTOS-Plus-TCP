@@ -1439,23 +1439,27 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
     }
     else
     {
-        #if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_CALLBACKS == 1 ) )
+        #if ( ipconfigUSE_CALLBACKS == 1 )
             {
-                if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
-                {
-                    /* Make sure that IP-task won't call the user callback's anymore */
-                    pxSocket->u.xTCP.pxHandleConnected = NULL;
-                    pxSocket->u.xTCP.pxHandleReceive = NULL;
-                    pxSocket->u.xTCP.pxHandleSent = NULL;
-                }
-                else if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_UDP )
+                #if ( ipconfigUSE_TCP == 1 )
+                    if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                    {
+                        /* Make sure that IP-task won't call the user callback's anymore */
+                        pxSocket->u.xTCP.pxHandleConnected = NULL;
+                        pxSocket->u.xTCP.pxHandleReceive = NULL;
+                        pxSocket->u.xTCP.pxHandleSent = NULL;
+                    }
+                    else
+                #endif
+
+                if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_UDP )
                 {
                     /* Clear the two UDP handlers. */
                     pxSocket->u.xUDP.pxHandleReceive = NULL;
                     pxSocket->u.xUDP.pxHandleSent = NULL;
                 }
             }
-        #endif /* ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_CALLBACKS == 1 ) ) */
+        #endif /* ( ipconfigUSE_CALLBACKS == 1 ) */
 
         /* Let the IP task close the socket to keep it synchronised with the
          * packet handling. */
