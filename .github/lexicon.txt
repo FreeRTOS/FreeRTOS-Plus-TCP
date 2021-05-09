@@ -1645,6 +1645,7 @@ xipaddress
 xipaddressfound
 xipheader
 xipheadersize
+xiptaskhandle
 xiptaskinitialised
 xiptracevalues
 xiptype
