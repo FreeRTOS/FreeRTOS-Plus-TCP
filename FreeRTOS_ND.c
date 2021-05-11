@@ -477,9 +477,18 @@
         /* Important: tell NIC driver how many bytes must be sent */
         pxNetworkBuffer->xDataLength = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
 
-        pxICMPHeader_IPv6->usChecksum = 0;
-        /* calculate the UDP checksum for outgoing package */
-        ( void ) usGenerateProtocolChecksum( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE );
+        #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
+            {
+                /* calculate the UDP checksum for outgoing package */
+                ( void ) usGenerateProtocolChecksum( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE );
+            }
+        #else
+            {
+                /* Many EMAC peripherals will only calculate the ICMP checksum
+                 * correctly if the field is nulled beforehand. */
+                pxICMPHeader_IPv6->usChecksum = 0;
+            }
+        #endif
 
         /* This function will fill in the Ethernet addresses and send the packet */
         vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );
