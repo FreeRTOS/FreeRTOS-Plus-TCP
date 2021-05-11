@@ -260,7 +260,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  * Turns around an incoming ping request to convert it into a ping reply.
  */
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 )
-    static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket );
+    static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
+                                                               NetworkBufferDescriptor_t * const pxNetworkBuffer );
 #endif /* ipconfigREPLY_TO_INCOMING_PINGS */
 
 /*
@@ -3065,11 +3066,11 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  *
  * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
  */
-    static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket )
+    static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
+                                                               NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
         ICMPHeader_t * pxICMPHeader;
         IPHeader_t * pxIPHeader;
-        uint16_t usRequest;
         uint32_t ulIPAddress;
 
         pxICMPHeader = &( pxICMPPacket->xICMPHeader );
@@ -3087,22 +3088,32 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
         pxIPHeader->ulSourceIPAddress = ulIPAddress;
 
-        /* Update the checksum because the ucTypeOfMessage member in the header
-         * has been changed to ipICMP_ECHO_REPLY.  This is faster than calling
-         * usGenerateChecksum(). */
+        /* The stack doesn't support fragments, so the fragment offset field must always be zero.
+         * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
+         */
+        #if ( ipconfigFORCE_IP_DONT_FRAGMENT != 0 )
+            pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
+        #else
+            pxIPHeader->usFragmentOffset = 0U;
+        #endif
 
-        /* due to compiler warning "integer operation result is out of range" */
+        #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
+            {
+                /* calculate the IP header checksum, in case the driver won't do that. */
+                pxIPHeader->usHeaderChecksum = 0x00U;
+                pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ipSIZE_OF_IPv4_HEADER );
+                pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
-        usRequest = ( uint16_t ) ( ( uint16_t ) ipICMP_ECHO_REQUEST << 8 );
-
-        if( pxICMPHeader->usChecksum >= FreeRTOS_htons( 0xFFFFU - usRequest ) )
-        {
-            pxICMPHeader->usChecksum = pxICMPHeader->usChecksum + FreeRTOS_htons( usRequest + 1U );
-        }
-        else
-        {
-            pxICMPHeader->usChecksum = pxICMPHeader->usChecksum + FreeRTOS_htons( usRequest );
-        }
+                /* calculate the ICMP checksum for an outgoing packet. */
+                ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxICMPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
+            }
+        #else
+            {
+                /* Many EMAC peripherals will only calculate the ICMP checksum
+                 * correctly if the field is nulled beforehand. */
+                pxICMPHeader->usChecksum = 0U;
+            }
+        #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
         return eReturnEthernetFrame;
     }
@@ -3138,7 +3149,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 case ipICMP_ECHO_REQUEST:
                     #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 )
                         {
-                            eReturn = prvProcessICMPEchoRequest( pxICMPPacket );
+                            eReturn = prvProcessICMPEchoRequest( pxICMPPacket, pxNetworkBuffer );
                         }
                     #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) */
                     break;
@@ -3421,7 +3432,7 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
     #if ( ipconfigUSE_IPv6 != 0 )
         else if( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 )
         {
-            prvChecksumICMPv6Checks( uxBufferLength, pxSet );
+            xReturn = prvChecksumICMPv6Checks( uxBufferLength, pxSet );
         }
     #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
     else
@@ -3496,7 +3507,8 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
              * 36..38 three zero's
              * 39 Next Header, i.e. the protocol type. */
 
-            pulHeader[ 0 ] = FreeRTOS_htonl( pxSet->usProtocolBytes );
+            pulHeader[ 0 ] = ( uint32_t ) pxSet->usProtocolBytes;
+            pulHeader[ 0 ] = FreeRTOS_htonl( pulHeader[ 0 ] );
             pulHeader[ 1 ] = ( uint32_t ) pxSet->pxIPPacket_IPv6->ucNextHeader;
             pulHeader[ 1 ] = FreeRTOS_htonl( pulHeader[ 1 ] );
 
