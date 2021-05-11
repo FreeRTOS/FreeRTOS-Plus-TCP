@@ -590,6 +590,14 @@
             const ListItem_t * pxIterator;
             const ListItem_t * xEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( xCallbackList.xListEnd ) );
 
+            /* When a DNS-search times out, the call-back function shall
+             * be called. Store theses item in a temporary list.
+             * Only when the scheduler is running, user functions
+             * shall be called. */
+            List_t xTempList;
+
+            vListInitialise( &xTempList );
+
             vTaskSuspendAll();
             {
                 for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
@@ -608,18 +616,12 @@
                     else if( xTaskCheckForTimeOut( &pxCallback->uxTimeoutState, &( pxCallback->uxRemaningTime ) ) != pdFALSE )
                     {
                         /* A time-out occurred in the asynchronous search.
-                         * Call the application hook with the proper information. */
-                        #if ( ipconfigUSE_IPv6 != 0 )
-                            {
-                                pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, NULL );
-                            }
-                        #else
-                            {
-                                pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, 0U );
-                            }
-                        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                         * Remove it from xCallbackList. */
                         ( void ) uxListRemove( &( pxCallback->xListItem ) );
-                        vPortFree( pxCallback );
+
+                        /* Insert it in a temporary list. The function will be called
+                         * once the scheduler is resumed. */
+                        vListInsertEnd( &( xTempList ), &pxCallback->xListItem );
                     }
                     else
                     {
@@ -628,6 +630,36 @@
                 }
             }
             ( void ) xTaskResumeAll();
+
+            if( listLIST_IS_EMPTY( &xTempList ) != pdFALSE )
+            {
+                /* There is at least one item in xTempList which must be removed and deleted. */
+                xEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( xTempList.xListEnd ) );
+
+                for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
+                     pxIterator != xEnd;
+                     )
+                {
+                    DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                    /* Move to the next item because we might remove this item */
+                    pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator );
+
+                    /* A time-out occurred in the asynchronous search.
+                     * Call the application hook with the proper information. */
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                        {
+                            pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, NULL );
+                        }
+                    #else
+                        {
+                            pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, 0U );
+                        }
+                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                    /* Remove it from 'xTempList' and free the memory. */
+                    ( void ) uxListRemove( &( pxCallback->xListItem ) );
+                    vPortFree( pxCallback );
+                }
+            }
 
             if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
             {
@@ -746,6 +778,12 @@
             const ListItem_t * pxIterator;
             const ListItem_t * xEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( xCallbackList.xListEnd ) );
 
+            /* While iterating through the list, the scheduler is suspended.
+             * Remember which function shall be called once the scheduler is
+             * running again. */
+            FOnDNSEvent pCallbackFunction = NULL;
+            void * pvSearchID = NULL;
+
             vTaskSuspendAll();
             {
                 for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
@@ -755,16 +793,8 @@
                     if( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier )
                     {
                         DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
-
-                        #if ( ipconfigUSE_IPv6 != 0 )
-                            {
-                                pxCallback->pCallbackFunction( pcName, pxCallback->pvSearchID, pxAddress );
-                            }
-                        #else
-                            {
-                                pxCallback->pCallbackFunction( pcName, pxCallback->pvSearchID, ulIPAddress );
-                            }
-                        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                        pvSearchID = pxCallback->pvSearchID;
+                        pCallbackFunction = pxCallback->pCallbackFunction;
                         ( void ) uxListRemove( &pxCallback->xListItem );
                         vPortFree( pxCallback );
 
@@ -780,6 +810,20 @@
                 }
             }
             ( void ) xTaskResumeAll();
+
+            if( pCallbackFunction != NULL )
+            {
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    {
+                        pCallbackFunction( pcName, pvSearchID, pxAddress );
+                    }
+                #else
+                    {
+                        pCallbackFunction( pcName, pvSearchID, ulIPAddress );
+                    }
+                #endif
+            }
+
             return xResult;
         }
 
