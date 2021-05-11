@@ -1571,6 +1571,7 @@ xbufferlength
 xbufferlistitem
 xbytecount
 xbytesleft
+xcallbacklist
 xcheckloopback
 xchecksizefields
 xclearonexit
@@ -1772,6 +1773,7 @@ xtcptimercheck
 xtcpwindow
 xtcpwindowrxconfirm
 xtcpwindowtxdone
+xtemplist
 xtickcount
 xtickstojump
 xtime
