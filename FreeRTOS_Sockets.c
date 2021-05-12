@@ -1561,25 +1561,36 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
         xCloseEvent.eEventType = eSocketCloseEvent;
         xCloseEvent.pvData = xSocket;
 
-        #if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_CALLBACKS == 1 ) )
+        #if ( ipconfigUSE_CALLBACKS == 1 )
             {
-                if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                #if ( ipconfigUSE_TCP == 1 )
+                    if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                    {
+                        /* Make sure that IP-task won't call the user callback's anymore */
+                        pxSocket->u.xTCP.pxHandleConnected = NULL;
+                        pxSocket->u.xTCP.pxHandleReceive = NULL;
+                        pxSocket->u.xTCP.pxHandleSent = NULL;
+                    }
+                    else
+                #endif
+
+                if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_UDP )
                 {
-                    /* Make sure that IP-task won't call the user callback's anymore */
-                    pxSocket->u.xTCP.pxHandleConnected = NULL;
-                    pxSocket->u.xTCP.pxHandleReceive = NULL;
-                    pxSocket->u.xTCP.pxHandleSent = NULL;
+                    /* Clear the two UDP handlers. */
+                    pxSocket->u.xUDP.pxHandleReceive = NULL;
+                    pxSocket->u.xUDP.pxHandleSent = NULL;
                 }
             }
-        #endif /* ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_CALLBACKS == 1 ) ) */
+        #endif /* ( ipconfigUSE_CALLBACKS == 1 ) */
 
         /* Let the IP task close the socket to keep it synchronised with the
          * packet handling. */
 
-        /* Note when changing the time-out value below, it must be checked who is calling
-         * this function. If it is called by the IP-task, a deadlock could occur.
-         * The IP-task would only call it in case of a user call-back */
-        if( xSendEventStructToIPTask( &xCloseEvent, ( TickType_t ) 0 ) == pdFAIL )
+        /* The timeout value below is only used if this function is called from
+         * a user task. If this function is called by the IP-task, it may fail
+         * to close the socket when the event queue is full.
+         * This should only happen in case of a user call-back. */
+        if( xSendEventStructToIPTask( &xCloseEvent, ( TickType_t ) portMAX_DELAY ) == pdFAIL )
         {
             FreeRTOS_debug_printf( ( "FreeRTOS_closesocket: failed\n" ) );
             xResult = -1;
@@ -4261,15 +4272,14 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         if( prvValidSocket( pxSocket, FREERTOS_IPPROTO_TCP, pdTRUE ) == pdFALSE )
         {
-            /*_RB_ Is this comment correct?  The socket is not of a type that
+            /* The socket is not of a type that
              * supports the listen() operation. */
             xResult = -pdFREERTOS_ERRNO_EOPNOTSUPP;
         }
         else if( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eESTABLISHED )
         {
-            /*_RB_ Is this comment correct?  The socket is not of a type that
-             * supports the listen() operation. */
-            xResult = -pdFREERTOS_ERRNO_EOPNOTSUPP;
+            /* The socket is not connected. */
+            xResult = -pdFREERTOS_ERRNO_ENOTCONN;
         }
         else
         {
