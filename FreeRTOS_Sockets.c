@@ -1663,17 +1663,27 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
         xCloseEvent.eEventType = eSocketCloseEvent;
         xCloseEvent.pvData = xSocket;
 
-        #if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_CALLBACKS == 1 ) )
+        #if ( ipconfigUSE_CALLBACKS == 1 )
             {
-                if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                #if ( ipconfigUSE_TCP == 1 )
+                    if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                    {
+                        /* Make sure that IP-task won't call the user callback's anymore */
+                        pxSocket->u.xTCP.pxHandleConnected = NULL;
+                        pxSocket->u.xTCP.pxHandleReceive = NULL;
+                        pxSocket->u.xTCP.pxHandleSent = NULL;
+                    }
+                    else
+                #endif
+
+                if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_UDP )
                 {
-                    /* Make sure that IP-task won't call the user callback's anymore */
-                    pxSocket->u.xTCP.pxHandleConnected = NULL;
-                    pxSocket->u.xTCP.pxHandleReceive = NULL;
-                    pxSocket->u.xTCP.pxHandleSent = NULL;
+                    /* Clear the two UDP handlers. */
+                    pxSocket->u.xUDP.pxHandleReceive = NULL;
+                    pxSocket->u.xUDP.pxHandleSent = NULL;
                 }
             }
-        #endif /* ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_CALLBACKS == 1 ) ) */
+        #endif /* ( ipconfigUSE_CALLBACKS == 1 ) */
 
         /* Let the IP task close the socket to keep it synchronised with the
          * packet handling. */
@@ -4592,15 +4602,14 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         if( prvValidSocket( pxSocket, FREERTOS_IPPROTO_TCP, pdTRUE ) == pdFALSE )
         {
-            /*_RB_ Is this comment correct?  The socket is not of a type that
+            /* The socket is not of a type that
              * supports the listen() operation. */
             xResult = -pdFREERTOS_ERRNO_EOPNOTSUPP;
         }
         else if( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eESTABLISHED )
         {
-            /*_RB_ Is this comment correct?  The socket is not of a type that
-             * supports the listen() operation. */
-            xResult = -pdFREERTOS_ERRNO_EOPNOTSUPP;
+            /* The socket is not connected. */
+            xResult = -pdFREERTOS_ERRNO_ENOTCONN;
         }
         else
         {

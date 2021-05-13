@@ -361,6 +361,7 @@ gmacsa
 gpio
 gpl
 gratuitous
+greaterthan
 grr
 gswutr
 gw
@@ -460,6 +461,7 @@ ldistance
 leds
 len
 lendofframe
+lessthan
 letbase
 linkcurr
 linklayer
@@ -1651,6 +1653,7 @@ xipaddress
 xipaddressfound
 xipheader
 xipheadersize
+xiptaskhandle
 xiptaskinitialised
 xiptracevalues
 xiptype
