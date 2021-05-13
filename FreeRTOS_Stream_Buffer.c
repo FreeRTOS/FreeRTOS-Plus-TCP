@@ -332,6 +332,12 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
                 ( void ) memcpy( pxBuffer->ucArray, &( pucData[ uxFirst ] ), uxCount - uxFirst );
             }
         }
+        else
+        {
+            /* Update the count to show that nothing was written and to avoid
+             * updating the head position. */
+            uxCount = 0;
+        }
 
         if( uxOffset == 0U )
         {
@@ -424,6 +430,12 @@ size_t uxStreamBufferGet( StreamBuffer_t * pxBuffer,
                 /*...then read the remaining bytes from the start of the buffer. */
                 ( void ) memcpy( &( pucData[ uxFirst ] ), pxBuffer->ucArray, uxCount - uxFirst );
             }
+        }
+        else
+        {
+            /* Update the count to show that nothing was read from the buffer and to avoid
+             * updating the tail position. */
+            uxCount = 0;
         }
 
         if( ( xPeek == pdFALSE ) && ( uxOffset == 0UL ) )
