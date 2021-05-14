@@ -269,7 +269,8 @@ size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
  * @param[in,out] pxBuffer: The buffer to which the bytes will be added.
  * @param[in] uxOffset: If uxOffset > 0, data will be written at an offset from uxHead
  *                      while uxHead will not be moved yet.
- * @param[in] pucData: A pointer to the data to be added.
+ * @param[in,out] pucData: A pointer to the data to be added. If 'pucData' equals NULL,
+ *                         the function is called to advance 'lTail' only.
  * @param[in] uxByteCount: The number of bytes to add.
  *
  * @return The number of bytes added to the buffer.
@@ -331,12 +332,6 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
                  * buffer. */
                 ( void ) memcpy( pxBuffer->ucArray, &( pucData[ uxFirst ] ), uxCount - uxFirst );
             }
-        }
-        else
-        {
-            /* Update the count to show that nothing was written and to avoid
-             * updating the head position. */
-            uxCount = 0;
         }
 
         if( uxOffset == 0U )
@@ -430,12 +425,6 @@ size_t uxStreamBufferGet( StreamBuffer_t * pxBuffer,
                 /*...then read the remaining bytes from the start of the buffer. */
                 ( void ) memcpy( &( pucData[ uxFirst ] ), pxBuffer->ucArray, uxCount - uxFirst );
             }
-        }
-        else
-        {
-            /* Update the count to show that nothing was read from the buffer and to avoid
-             * updating the tail position. */
-            uxCount = 0;
         }
 
         if( ( xPeek == pdFALSE ) && ( uxOffset == 0UL ) )

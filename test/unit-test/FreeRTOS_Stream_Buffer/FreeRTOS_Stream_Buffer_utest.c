@@ -741,8 +741,8 @@ void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataW
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, NULL, uxByteCount );
 
-    /* Nothing should be written. */
-    TEST_ASSERT_EQUAL( 0, uxReturn );
+    /* Nothing should be written but tail will be updated. */
+    TEST_ASSERT_EQUAL( 500, uxReturn );
 
     /* Assert that data was not written. Here in 2 steps. */
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &temp, pxLocalBuffer->ucArray + 1000, sizeof( temp ), "First block Mismatch" );
@@ -753,10 +753,10 @@ void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataW
      * that we did not overwrite pre-existing data. */
     TEST_ASSERT_EQUAL_MEMORY( &temp, pxLocalBuffer->ucArray + uxBytesToBeWritten - 24, sizeof( temp ) );
 
-    /* Make sure that the head is not moved since data was not written. */
-    TEST_ASSERT_EQUAL( 1000, pxLocalBuffer->uxHead );
+    /* Make sure that the head is moved as well. */
+    TEST_ASSERT_EQUAL( 476, pxLocalBuffer->uxHead );
 
-    TEST_ASSERT_EQUAL( 0, pxLocalBuffer->uxFront );
+    TEST_ASSERT_EQUAL( 476, pxLocalBuffer->uxFront );
 }
 
 /*
@@ -796,8 +796,8 @@ void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataW
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, NULL, uxByteCount );
 
-    /* Nothing should be written. */
-    TEST_ASSERT_EQUAL( 0, uxReturn );
+    /* Nothing should be written but tail should be updated. */
+    TEST_ASSERT_EQUAL( 500, uxReturn );
 
     /* Assert that data was not written. Here in 2 steps. */
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &temp, pxLocalBuffer->ucArray + 1000, sizeof( temp ), "First block Mismatch" );
@@ -808,10 +808,10 @@ void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataW
      * that we did not overwrite pre-existing data. */
     TEST_ASSERT_EQUAL_MEMORY( &temp, pxLocalBuffer->ucArray + uxBytesToBeWritten - 24, sizeof( temp ) );
 
-    /* Make sure that the head is not moved since data was not written. */
-    TEST_ASSERT_EQUAL( 1000, pxLocalBuffer->uxHead );
+    /* Make sure that the head is moved as well. */
+    TEST_ASSERT_EQUAL( 476, pxLocalBuffer->uxHead );
 
-    TEST_ASSERT_EQUAL( 1002, pxLocalBuffer->uxFront );
+    TEST_ASSERT_EQUAL( 476, pxLocalBuffer->uxFront );
 }
 
 /*
@@ -1099,10 +1099,10 @@ void test_uxStreamBufferGet_NULLPointer( void )
 
     uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, NULL, uxMaxCount, xPeek );
 
-    /* No bytes should be read. */
-    TEST_ASSERT_EQUAL( 0, uxReturn );
-    /* the tail should not be moved. */
-    TEST_ASSERT_EQUAL( 1000, pxLocalBuffer->uxTail );
+    /* No bytes should be read. But still the tail moves forward. */
+    TEST_ASSERT_EQUAL( 500, uxReturn );
+    /* The tail should be moved. */
+    TEST_ASSERT_EQUAL( 476, pxLocalBuffer->uxTail );
     /* See if the data is copied. */
     TEST_ASSERT_EQUAL_MEMORY( &temp, pucData, sizeof( temp ) );
 }
