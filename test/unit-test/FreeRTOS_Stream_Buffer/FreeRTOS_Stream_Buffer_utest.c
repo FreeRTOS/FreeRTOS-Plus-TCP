@@ -261,7 +261,7 @@ void test_vStreamBufferClear( void )
 }
 
 /*
- * @brief Test moving the mid of the stream buffer when the 
+ * @brief Test moving the mid of the stream buffer when the
  *        count is less than the distance.
  */
 void test_vStreamBufferMoveMid_CountLTDistance( void )
@@ -281,7 +281,7 @@ void test_vStreamBufferMoveMid_CountLTDistance( void )
 }
 
 /*
- * @brief Test moving the mid of the stream buffer when the 
+ * @brief Test moving the mid of the stream buffer when the
  *        count is greater than the distance.
  */
 void test_vStreamBufferMoveMid_CountGTDistance( void )
@@ -303,7 +303,7 @@ void test_vStreamBufferMoveMid_CountGTDistance( void )
 }
 
 /*
- * @brief Test moving the mid of the stream buffer when the 
+ * @brief Test moving the mid of the stream buffer when the
  *        count is equal to the distance and there is a rollover.
  */
 void test_vStreamBufferMoveMid_CountEQDistance_RollOver( void )
