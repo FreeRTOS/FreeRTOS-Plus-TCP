@@ -61,6 +61,9 @@ static uint32_t FreeRTOS_min_stub( uint32_t a,
     }
 }
 
+/*
+ * @brief Test when upper and lower values are same.
+ */
 void test_uxStreamBufferSpace_SameLocation( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -74,6 +77,9 @@ void test_uxStreamBufferSpace_SameLocation( void )
     TEST_ASSERT_EQUAL( xLocalBuffer.LENGTH + uxUpper - uxLower - 1, xReturn );
 }
 
+/*
+ * @brief Test when upper is greater than lower value.
+ */
 void test_uxStreamBufferSpace_UpperGTLower( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -87,6 +93,9 @@ void test_uxStreamBufferSpace_UpperGTLower( void )
     TEST_ASSERT_EQUAL( uxUpper - uxLower - 1, xReturn );
 }
 
+/*
+ * @brief Test when upper is smaller than lower value.
+ */
 void test_uxStreamBufferSpace_UpperLTLower( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -100,6 +109,9 @@ void test_uxStreamBufferSpace_UpperLTLower( void )
     TEST_ASSERT_EQUAL( xLocalBuffer.LENGTH + uxUpper - uxLower - 1, xReturn );
 }
 
+/*
+ * @brief Test when upper and lower are same value.
+ */
 void test_uxStreamBufferDistance_SameLocation( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -113,6 +125,9 @@ void test_uxStreamBufferDistance_SameLocation( void )
     TEST_ASSERT_EQUAL( uxUpper - uxLower, xReturn );
 }
 
+/*
+ * @brief Test when upper is greater than lower value.
+ */
 void test_uxStreamBufferDistance_UpperGTLower( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -126,6 +141,9 @@ void test_uxStreamBufferDistance_UpperGTLower( void )
     TEST_ASSERT_EQUAL( uxUpper - uxLower, xReturn );
 }
 
+/*
+ * @brief Test when upper is smaller than lower value.
+ */
 void test_uxStreamBufferDistance_UpperLTLower( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -139,7 +157,9 @@ void test_uxStreamBufferDistance_UpperLTLower( void )
     TEST_ASSERT_EQUAL( xLocalBuffer.LENGTH + uxUpper - uxLower, xReturn );
 }
 
-/* There is nothing to test here as this is just a wrapper. */
+/*
+ * @brief There is nothing to test here as this is just a wrapper.
+ */
 void test_uxStreamBufferGetSpace( void )
 {
     size_t uxHead = 10;
@@ -157,7 +177,9 @@ void test_uxStreamBufferGetSpace( void )
     TEST_ASSERT_EQUAL( uxHead - uxTail - 1, uxReturn );
 }
 
-/* There is nothing to test here as this is just a wrapper. */
+/*
+ * @brief There is nothing to test here as this is just a wrapper.
+ */
 void test_uxStreamBufferFrontSpace( void )
 {
     size_t uxFront = 10;
@@ -175,7 +197,9 @@ void test_uxStreamBufferFrontSpace( void )
     TEST_ASSERT_EQUAL( uxFront - uxTail - 1, uxReturn );
 }
 
-/* There is nothing to test here as this is just a wrapper. */
+/*
+ * @brief There is nothing to test here as this is just a wrapper.
+ */
 void test_uxStreamBufferGetSize( void )
 {
     size_t uxHead = 10;
@@ -193,7 +217,9 @@ void test_uxStreamBufferGetSize( void )
     TEST_ASSERT_EQUAL( uxHead - uxTail, uxReturn );
 }
 
-/* There is nothing to test here as this is just a wrapper. */
+/*
+ * @brief There is nothing to test here as this is just a wrapper.
+ */
 void test_uxStreamBufferMidSpace( void )
 {
     size_t uxHead = 10;
@@ -211,6 +237,9 @@ void test_uxStreamBufferMidSpace( void )
     TEST_ASSERT_EQUAL( uxHead - uxMid, uxReturn );
 }
 
+/*
+ * @brief Clear the stream buffer and test the values.
+ */
 void test_vStreamBufferClear( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -231,6 +260,10 @@ void test_vStreamBufferClear( void )
     TEST_ASSERT_EQUAL( 0, xLocalBuffer.uxMid );
 }
 
+/*
+ * @brief Test moving the mid of the stream buffer when the 
+ *        count is less than the distance.
+ */
 void test_vStreamBufferMoveMid_CountLTDistance( void )
 {
     size_t Mid = 5;
@@ -247,6 +280,10 @@ void test_vStreamBufferMoveMid_CountLTDistance( void )
     TEST_ASSERT_EQUAL( Mid + uxCount, xLocalBuffer.uxMid );
 }
 
+/*
+ * @brief Test moving the mid of the stream buffer when the 
+ *        count is greater than the distance.
+ */
 void test_vStreamBufferMoveMid_CountGTDistance( void )
 {
     size_t Mid = 5;
@@ -265,6 +302,10 @@ void test_vStreamBufferMoveMid_CountGTDistance( void )
     TEST_ASSERT_EQUAL( xLocalBuffer.uxHead, xLocalBuffer.uxMid );
 }
 
+/*
+ * @brief Test moving the mid of the stream buffer when the 
+ *        count is equal to the distance and there is a rollover.
+ */
 void test_vStreamBufferMoveMid_CountEQDistance_RollOver( void )
 {
     size_t Mid = 5;
@@ -278,11 +319,14 @@ void test_vStreamBufferMoveMid_CountEQDistance_RollOver( void )
 
     vStreamBufferMoveMid( &xLocalBuffer, uxCount );
 
-    /* Since we wanted to mave mid equal to the distance, and the head has rolled over,
+    /* Since we wanted to move mid equal to the distance, and the head has rolled over,
      * mid will also roll over. */
     TEST_ASSERT_EQUAL( xLocalBuffer.uxHead, xLocalBuffer.uxMid );
 }
 
+/*
+ * @brief Test when left and right are zero.
+ */
 void test_xStreamBufferLessThenEqual_LeftRightZero( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -295,6 +339,10 @@ void test_xStreamBufferLessThenEqual_LeftRightZero( void )
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
 }
 
+/*
+ * @brief Test when left and right are non zero but equal and are less
+ *        than tail pointer.
+ */
 void test_xStreamBufferLessThenEqual_LeftRightNonZeroButEqual( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -308,6 +356,9 @@ void test_xStreamBufferLessThenEqual_LeftRightNonZeroButEqual( void )
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
 }
 
+/*
+ * @brief Test when left and right are equal but are greater than tail.
+ */
 void test_xStreamBufferLessThenEqual_LeftRightEqualButGreaterThanTail( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -321,6 +372,9 @@ void test_xStreamBufferLessThenEqual_LeftRightEqualButGreaterThanTail( void )
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
 }
 
+/*
+ * @brief Test when Left is greater than right and both are greater than tail.
+ */
 void test_xStreamBufferLessThenEqual_LeftGTRightBothGreaterThanTail( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -335,6 +389,10 @@ void test_xStreamBufferLessThenEqual_LeftGTRightBothGreaterThanTail( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
+/*
+ * @brief Test when left is greater than right and tail. Right is smaller
+ *        than the tail.
+ */
 void test_xStreamBufferLessThenEqual_LeftGTRightAndTail( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -349,6 +407,10 @@ void test_xStreamBufferLessThenEqual_LeftGTRightAndTail( void )
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
 }
 
+/*
+ * @brief Test when left is less than both right and tail. Right is greater
+ *        than the tail.
+ */
 void test_xStreamBufferLessThenEqual_LeftLTRightAndTail( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -363,6 +425,9 @@ void test_xStreamBufferLessThenEqual_LeftLTRightAndTail( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
+/*
+ * @brief Test getting a pointer to the data.
+ */
 void test_uxStreamBufferGetPtr( void )
 {
     StreamBuffer_t xLocalBuffer;
@@ -380,6 +445,9 @@ void test_uxStreamBufferGetPtr( void )
     TEST_ASSERT_EQUAL_PTR( xLocalBuffer.ucArray + xLocalBuffer.uxTail, pucprvData );
 }
 
+/*
+ * @brief Test adding to the stream buffer when everything is zeroed out.
+ */
 void test_uxStreamBufferAdd_EverythingResetToZero( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -402,6 +470,10 @@ void test_uxStreamBufferAdd_EverythingResetToZero( void )
     TEST_ASSERT_EQUAL( 0, uxReturn );
 }
 
+/*
+ * @brief Test adding to the buffer when it is already full with
+ *        zero offset.
+ */
 void test_uxStreamBufferAdd_BufferFullZeroOffset( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -424,6 +496,10 @@ void test_uxStreamBufferAdd_BufferFullZeroOffset( void )
     TEST_ASSERT_EQUAL( 0, uxReturn );
 }
 
+/*
+ * @brief Test adding to the buffer when it is already full with
+ *        positive offset.
+ */
 void test_uxStreamBufferAdd_BufferFullPositiveOffset( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -446,6 +522,10 @@ void test_uxStreamBufferAdd_BufferFullPositiveOffset( void )
     TEST_ASSERT_EQUAL( 0, uxReturn );
 }
 
+/*
+ * @brief Test adding to the buffer when it has less space than data with
+ *        zero offset.
+ */
 void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -480,6 +560,10 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset( void )
     TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray + uxOffset, pucData, 500 - uxOffset );
 }
 
+/*
+ * @brief Test adding to the buffer when it has less space than the data.
+ *        And it has non-zero offset.
+ */
 void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffset( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -523,6 +607,10 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffset( void )
     TEST_ASSERT_EQUAL( 0, pxLocalBuffer->uxHead );
 }
 
+/*
+ * @brief Test adding to the buffer when it has less space than the data.
+ *        And it has non-zero offset which causes rollover.
+ */
 void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffsetCausesRollover( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -565,6 +653,10 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffsetCausesRollov
     TEST_ASSERT_EQUAL( 1000, pxLocalBuffer->uxHead );
 }
 
+/*
+ * @brief Test adding to the buffer when it has less space than the data.
+ *        And it has zero offset where data write causes head to rollover.
+ */
 void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCausesRollover( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -613,6 +705,10 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCause
     TEST_ASSERT_EQUAL( pxLocalBuffer->uxTail - 1, pxLocalBuffer->uxHead );
 }
 
+/*
+ * @brief Test adding to the buffer when NULL pointer is passed with
+ *        zero offset and data write causes a head pointer roll over.
+ */
 void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCausesRollover( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -663,6 +759,11 @@ void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataW
     TEST_ASSERT_EQUAL( 0, pxLocalBuffer->uxFront );
 }
 
+/*
+ * @brief Test adding to the buffer when NULL pointer is passed with
+ *        zero offset and when the data write causes head roll over
+ *        with front pointer greater than the head pointer.
+ */
 void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCausesRollover_Front( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -713,6 +814,10 @@ void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataW
     TEST_ASSERT_EQUAL( 1002, pxLocalBuffer->uxFront );
 }
 
+/*
+ * @brief Test reading from the stream buffer when all values are reset
+ *        to 0.
+ */
 void test_uxStreamBufferGet_ResetEverything( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -739,6 +844,10 @@ void test_uxStreamBufferGet_ResetEverything( void )
     TEST_ASSERT_EQUAL( 0, uxReturn );
 }
 
+/*
+ * @brief Test reading from the stream buffer when there are just enough
+ *        bytes and we are reading without offset.
+ */
 void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_NoOffset( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -775,6 +884,10 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_NoOffset( void )
     TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray, pucData, uxMaxCount );
 }
 
+/*
+ * @brief Test reading from the stream buffer when there are just enough
+ *        bytes and we are reading with a positive offset.
+ */
 void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -813,6 +926,11 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset( void )
     TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray, pucData, uxBufferSpace - uxOffset );
 }
 
+/*
+ * @brief Test reading from the stream buffer when there are just enough
+ *        bytes and we are reading with positive offset and the tail is
+ *        about to rollover the stream buffer.
+ */
 void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset_TailAboutToRollOver( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -853,6 +971,11 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset_TailAbout
     TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray, pucData, uxBufferSpace - uxOffset );
 }
 
+/*
+ * @brief Test reading from the stream buffer when there are just enough
+ *        bytes and we are reading without offset and the tail is about
+ *        to rollover.
+ */
 void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRollOver( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -893,6 +1016,11 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRo
     TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray, pucData, uxBufferSpace - uxOffset );
 }
 
+/*
+ * @brief Test reading from the stream buffer when there are just enough
+ *        bytes and we are reading without any offset and the tail is about
+ *        to roll over. But, as a twist, we are just peeking into the buffer.
+ */
 void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRollOver_ButJustPeeking( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
@@ -934,6 +1062,10 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRo
     TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray, pucData, uxBufferSpace - uxOffset );
 }
 
+/*
+ * @brief Test reading from the stream buffer when we provide a NULL buffer to
+ *        copy data.
+ */
 void test_uxStreamBufferGet_NULLPointer( void )
 {
     /* Now we need to get a buffer which can store up to 1024 bytes. */
