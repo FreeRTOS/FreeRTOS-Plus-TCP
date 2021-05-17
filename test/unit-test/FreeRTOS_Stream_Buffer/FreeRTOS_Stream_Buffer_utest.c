@@ -956,7 +956,7 @@ void test_uxStreamBufferGet_ResetEverything( void )
 
     /* Nothing should be written. */
     TEST_ASSERT_EQUAL( 0, uxReturn );
-    
+
     /* Make sure that the rest of buffer is untouched. i.e. zero.*/
     TEST_ASSERT_EACH_EQUAL_UINT8( 0, pxLocalBuffer->ucArray, usBufferSize );
 
@@ -1003,9 +1003,9 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_NoOffset( void )
     TEST_ASSERT_EQUAL( uxBufferSpace, uxReturn );
     TEST_ASSERT_EQUAL( uxBufferSpace, pxLocalBuffer->uxTail );
     TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray, pucData, uxMaxCount );
-    
+
     /* Make sure that the rest of buffer is untouched. i.e. zero.*/
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, pucData + uxMaxCount, sizeof(pucData)- uxMaxCount );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, pucData + uxMaxCount, sizeof( pucData ) - uxMaxCount );
 
     /* Free the allocated data. */
     free( pxLocalBuffer );
