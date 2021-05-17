@@ -270,7 +270,7 @@ size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
  * @param[in] uxOffset: If uxOffset > 0, data will be written at an offset from uxHead
  *                      while uxHead will not be moved yet.
  * @param[in,out] pucData: A pointer to the data to be added. If 'pucData' equals NULL,
- *                         the function is called to advance 'lTail' only.
+ *                         the function is called to advance the 'Head' only.
  * @param[in] uxByteCount: The number of bytes to add.
  *
  * @return The number of bytes added to the buffer.
