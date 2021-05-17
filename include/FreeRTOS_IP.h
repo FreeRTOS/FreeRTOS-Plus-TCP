@@ -321,6 +321,8 @@
                                     const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                                     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 
+        TaskHandle_t FreeRTOS_GetIPTaskHandle( void );
+
 /* The following 2 functions also assume that there is only 1 network interface.
  * The new function are called: FreeRTOS_GetEndPointConfiguration() and
  * FreeRTOS_SetEndPointConfiguration(), see below. */
