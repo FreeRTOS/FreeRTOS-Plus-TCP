@@ -218,6 +218,31 @@
                                 uint32_t ulFirst,
                                 uint32_t ulLast );
 
+/**
+ * @brief Check if a > b, where a and b are rolling counters.
+ *
+ * @param[in] a: The value on the left-hand side.
+ * @param[in] b: The value on the right-hand side.
+ *
+ * @return pdTRUE if a > b, otherwise pdFALSE.
+ *
+ * @note GreaterThan is calculated as "( a - ( b + 1U ) ) < 0x80000000".
+ */
+    BaseType_t xSequenceGreaterThan( uint32_t a,
+                                     uint32_t b );
+
+/**
+ * @brief Check if a < b, where a and b are rolling counters.
+ *
+ * @param[in] a: The value on the left-hand side.
+ * @param[in] b: The value on the right-hand side.
+ *
+ * @return pdTRUE if a < b, otherwise pdFALSE.
+ *
+ * @note LessThan is implemented as "( b - ( a + 1 ) ) < 0x80000000".
+ */
+    BaseType_t xSequenceLessThan( uint32_t a,
+                                  uint32_t b );
 
     #ifdef __cplusplus
         } /* extern "C" */
