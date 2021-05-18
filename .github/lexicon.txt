@@ -1437,6 +1437,7 @@ uxlast
 uxleft
 uxlength
 uxlittlespace
+uxlistremove
 uxlocalport
 uxlower
 uxmax
@@ -1508,6 +1509,7 @@ vlantagcomparison
 vlantagidentifier
 vlistinitialise
 vlistinitialiseitem
+vlistinsertend
 vmyconnecthandler
 vndrefreshcacheentry
 vnetworkinterfaceallocateramtobuffers

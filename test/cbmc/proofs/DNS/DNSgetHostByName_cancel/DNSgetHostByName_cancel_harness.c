@@ -70,19 +70,19 @@ void vListInsertEnd( List_t * const pxList,
     __CPROVER_assert( pxList != NULL, "NULL list cannot be inserted into." );
     __CPROVER_assert( pxNewListItem != NULL, "NULL value cannot be inserted into a list." );
 
-   ListItem_t * temp = &(pxList->xListEnd);
+    ListItem_t * temp = &( pxList->xListEnd );
 
-   /* This is a crude implementation. We do not care about the
-    * previous and other values. */
-   temp->pxNext = pxNewListItem;
-   pxNewListItem->pxNext = temp;
+    /* This is a crude implementation. We do not care about the
+     * previous and other values. */
+    temp->pxNext = pxNewListItem;
+    pxNewListItem->pxNext = temp;
 
-   /* Remember the list in which this is stored. */
-   pxNewListItem->pxContainer = pxList;
+    /* Remember the list in which this is stored. */
+    pxNewListItem->pxContainer = pxList;
 
-   /* Increment the item count. We will use only this to remove
-    * something from the list. */
-   ( pxList->uxNumberOfItems )++;
+    /* Increment the item count. We will use only this to remove
+     * something from the list. */
+    ( pxList->uxNumberOfItems )++;
 }
 
 /* Abstraction of uxListRemove. Here, we will only decrement the count
