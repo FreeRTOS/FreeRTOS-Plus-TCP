@@ -67,9 +67,9 @@
  * It is used as a parameter for the function prvFindCachEntry().*/
     typedef struct xCacheLocation
     {
-        BaseType_t xIpEntry;  /** The index of the matching IP-address. */
-        BaseType_t xMacEntry; /** The index of the matching MAC-address. */
-        BaseType_t xUseEntry; /** The index of the first free location. */
+        BaseType_t xIpEntry;  /**< The index of the matching IP-address. */
+        BaseType_t xMacEntry; /**< The index of the matching MAC-address. */
+        BaseType_t xUseEntry; /**< The index of the first free location. */
     } CacheLocation_t;
 
 /*
