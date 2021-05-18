@@ -73,6 +73,11 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
 
 static void prvUDPSendPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
+static void prvFindIPv4Endpoint( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
+static BaseType_t prvHandleUDPPacketWithoutSocket( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                   uint16_t usPort );
+
 /*-----------------------------------------------------------*/
 
 
@@ -226,7 +231,10 @@ static void prvSetIPHeaderForUDP( NetworkBufferDescriptor_t * const pxNetworkBuf
  *        i.e. in the cache 'eARPCacheMiss' was returned.
  *        Either an ARP request or a Neighbour solicitation will be emitted.
  *
- * @param[in] pxNetworkBuffer: The network buffer carrying the UDP or ICMP packet.
+ * @param[in] pxNetworkBuffer : The network buffer carrying the UDP or ICMP packet.
+ * @param[out] pxLostBuffer : The pointee will be set to true in case the network packet got released
+ *                            ( the ownership was taken ).
+ * @param[in] ulIPAddress : In case of an IPv4 lookup: the target IP-address.
  */
 static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                           BaseType_t * pxLostBuffer,
@@ -319,6 +327,10 @@ static void prvUDPSendPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer 
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Find an IPv4 end-point that matches with the address found in a network buffer.
+ * @param[in] pxNetworkBuffer: the network buffer containing a received packet.
+ */
 static void prvFindIPv4Endpoint( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     if( pxNetworkBuffer->pxEndPoint == NULL )
@@ -476,6 +488,11 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief A UDP packet has been received. Check if the message is for either DNS/NBNS or LLMNR.
+ * @param[in] pxNetworkBuffer : the packet received.
+ * @param[in] usPort: The port number on which this packet was received.
+ */
 static BaseType_t prvHandleUDPPacketWithoutSocket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                                    uint16_t usPort )
 {
