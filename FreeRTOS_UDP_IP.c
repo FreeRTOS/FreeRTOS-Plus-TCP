@@ -590,7 +590,10 @@ static BaseType_t prvHandleUDPPacketWithoutSocket( NetworkBufferDescriptor_t * p
         size_t uxIPLength = uxIPHeaderSizePacket( pxNetworkBuffer );
         void * pcData = &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPLength + ipSIZE_OF_UDP_HEADER ] );
         FOnUDPReceive_t xHandler = ( FOnUDPReceive_t ) pxSocket->u.xUDP.pxHandleReceive;
-        UDPPacket_IPv6_t * pxUDPPacket_IPv6;
+
+        #if ( ipconfigUSE_IPv6 != 0 )
+            UDPPacket_IPv6_t * pxUDPPacket_IPv6;
+        #endif
         size_t uxPayloadSize;
 
         #if ( ipconfigUSE_IPv6 != 0 )
