@@ -732,6 +732,7 @@ prvdeterminesocketsize
 prvechoclienttask
 prvemacdeferredinterrupthandlertask
 prvemachandlertask
+prvfindcachentry
 prvfindendpointonnetmask
 prvgethostbyname
 prvhandleestablished
