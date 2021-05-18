@@ -76,6 +76,8 @@
 #define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 6 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
+#define ipconfigDNS_CACHE_NAME_LENGTH              ( 100 )
+
 /* The IP stack executes it its own task (although any application task can make
  * use of its services through the published sockets API). ipconfigUDP_TASK_PRIORITY
  * sets the priority of the task that executes the IP stack.  The priority is a
@@ -239,7 +241,7 @@ extern uint32_t ulRand();
 
 /* If ipconfigSUPPORT_OUTGOING_PINGS is set to 1 then the
  * FreeRTOS_SendPingRequest() API function is available. */
-#define ipconfigSUPPORT_OUTGOING_PINGS                 0
+#define ipconfigSUPPORT_OUTGOING_PINGS                 1
 
 /* If ipconfigSUPPORT_SELECT_FUNCTION is set to 1 then the FreeRTOS_select()
  * (and associated) API function is available. */
@@ -292,10 +294,10 @@ extern uint32_t ulRand();
 #define ipconfigTCP_KEEP_ALIVE_INTERVAL          ( 20 ) /* Seconds. */
 
 /* The socket semaphore is used to unblock the MQTT task. */
-#define ipconfigSOCKET_HAS_USER_SEMAPHORE        ( 0 )
+#define ipconfigSOCKET_HAS_USER_SEMAPHORE        ( 1 )
 
 #define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 1 )
-#define ipconfigUSE_CALLBACKS                    ( 0 )
+#define ipconfigUSE_CALLBACKS                    ( 1 )
 
 #define ipconfigUSE_NBNS                         ( 1 )
 
@@ -312,5 +314,7 @@ extern uint32_t ulRand();
 #define ipconfigARP_USE_CLASH_DETECTION          ( 1 )
 
 #define ipconfigDHCP_FALL_BACK_AUTO_IP           ( 1 )
+
+#define ipconfigUDP_MAX_RX_PACKETS               ( 1 )
 
 #endif /* FREERTOS_IP_CONFIG_H */

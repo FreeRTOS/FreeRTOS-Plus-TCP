@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.2
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -588,6 +588,18 @@ static void prvIPTask( void * pvParameters )
                 #if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigHAS_PRINTF == 1 ) )
                     vTCPNetStat();
                 #endif /* ipconfigUSE_TCP */
+                break;
+
+            case eSocketSetDeleteEvent:
+                #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+                    {
+                        SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
+
+                        iptraceMEM_STATS_DELETE( pxSocketSet );
+                        vEventGroupDelete( pxSocketSet->xSelectGroup );
+                        vPortFree( ( void * ) pxSocketSet );
+                    }
+                #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
                 break;
 
             case eNoEvent:
