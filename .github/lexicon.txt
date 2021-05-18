@@ -878,6 +878,7 @@ pxiterator
 pxlength
 pxlist
 pxlistfindlistitemwithvalue
+pxlocation
 pxmacaddress
 pxmessage
 pxnetprefix
