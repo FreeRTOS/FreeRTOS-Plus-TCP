@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+FAT V2.3.3
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -97,7 +97,7 @@
 /* When the PHY is forces to work with a speed of 100 Mbps
  * many outgoing packets seem to get dropped.
  */
-    #warning ipconfigNIC_LINKSPEED100 is btoken. Are you sure?
+    #warning ipconfigNIC_LINKSPEED100 is broken. Are you sure?
 #endif
 
 static NetworkInterface_t * pxMyInterfaces[ XPAR_XEMACPS_NUM_INSTANCES ];
