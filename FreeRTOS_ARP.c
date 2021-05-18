@@ -280,6 +280,12 @@ static void vARPProcessPacketRequest( ARPPacket_t * pxARPFrame,
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief A device has sent an ARP reply, process it.
+ * @param[in] pxARPFrame: The ARP packet received.
+ * @param[in] pxTargetEndPoint: The end-point on which it is received.
+ * @param[in] ulSenderProtocolAddress: The IPv4 address involved.
+ */
 static void vARPProcessPacketReply( ARPPacket_t * pxARPFrame,
                                     NetworkEndPoint_t * pxTargetEndPoint,
                                     uint32_t ulSenderProtocolAddress )
@@ -421,6 +427,14 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief The results of an ARP look-up shall be stored in the ARP cache.
+ *        This helper function looks up the location.
+ * @param[in] pxMACAddress: The MAC-address belonging to the IP-address.
+ * @param[in] ulIPAddress: The IP-address of the entry.
+ * @param[in] pxEndPoint: The end-point that will stored in the table.
+ * @param[out] pxLocation: The results of this search are written in this struct.
+ */
 static void prvFindCachEntry( const MACAddress_t * pxMACAddress,
                               const uint32_t ulIPAddress,
                               struct xNetworkEndPoint * pxEndPoint,
@@ -667,6 +681,14 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief The IPv4 address is apparently a web-address. Find a gateway..
+ * @param[in] pulIPAddress: The target IP-address. It may be replaced with the IP
+ *                          address of a gateway.
+ * @param[in] pxMACAddress: In case the MAC-address is found in cache, it will be
+ *                          stored to the buffer provided.
+ * @param[out] ppxEndPoint: The end-point of the gateway will be copy to the pointee.
+ */
 static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
                                                     MACAddress_t * const pxMACAddress,
                                                     struct xNetworkEndPoint ** ppxEndPoint )
@@ -800,6 +822,10 @@ static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Check all entries in the ARP cache: see which ones need to be refreshed,
+ *        and which ones are out-dated.
+ */
 static void vARPAgeCacheCheckEntries( void )
 {
     BaseType_t x;
@@ -950,6 +976,10 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Send the ARP packet that has been prepared.
+ * @param[in] pxNetworkBuffer: the packet to be sent.
+ */
 static void vARPSendRequestPacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     NetworkInterface_t * pxInterface = pxNetworkBuffer->pxInterface;
