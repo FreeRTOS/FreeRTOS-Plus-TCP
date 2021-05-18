@@ -3,7 +3,6 @@
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 #include "queue.h"
-#include "list.h"
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
@@ -49,6 +48,55 @@ BaseType_t xTaskResumeAll( void )
 /* Abstraction of vTaskSuspendAll from task pool. This also abstracts the concurrency. */
 void vTaskSuspendAll( void )
 {
+}
+
+/* Abstraction of vListInitialise. Initialise the list in the simplest possible way. */
+void vListInitialise( List_t * pxList )
+{
+    __CPROVER_assert( pxList != NULL, "NULL list cannot be initialised." );
+
+    /* The list end next and previous pointers point to itself so we know
+     * when the list is empty. */
+    pxList->xListEnd.pxNext = ( ListItem_t * ) &( pxList->xListEnd );
+
+    pxList->uxNumberOfItems = ( UBaseType_t ) 0U;
+}
+
+/* Abstraction of vListInsertEnd. Fill in the item in the list considering
+ * the list as a singly linked list. */
+void vListInsertEnd( List_t * const pxList,
+                     ListItem_t * const pxNewListItem )
+{
+    __CPROVER_assert( pxList != NULL, "NULL list cannot be inserted into." );
+    __CPROVER_assert( pxNewListItem != NULL, "NULL value cannot be inserted into a list." );
+
+   ListItem_t * temp = &(pxList->xListEnd);
+
+   /* This is a crude implementation. We do not care about the
+    * previous and other values. */
+   temp->pxNext = pxNewListItem;
+   pxNewListItem->pxNext = temp;
+
+   /* Remember the list in which this is stored. */
+   pxNewListItem->pxContainer = pxList;
+
+   /* Increment the item count. We will use only this to remove
+    * something from the list. */
+   ( pxList->uxNumberOfItems )++;
+}
+
+/* Abstraction of uxListRemove. Here, we will only decrement the count
+ * to indicate the number of remaining elements.
+ * NOTE: this would work as long as loop is using listLIST_IS_EMPTY as
+ *       a check. */
+UBaseType_t uxListRemove( ListItem_t * const pxItemToRemove )
+{
+    __CPROVER_assert( pxItemToRemove != NULL, "NULL value cannot be passed to list remove function." );
+
+    List_t * const pxList = pxItemToRemove->pxContainer;
+
+    /* This should suffice for the stub. */
+    ( pxList->uxNumberOfItems )--;
 }
 
 /* The function func mimics the callback function.*/
