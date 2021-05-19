@@ -41,7 +41,7 @@
     #define CATCH_JMPBUF    waypoint_
 #endif
 
-jmp_buf CATCH_JMPBUF;
+static jmp_buf CATCH_JMPBUF;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
