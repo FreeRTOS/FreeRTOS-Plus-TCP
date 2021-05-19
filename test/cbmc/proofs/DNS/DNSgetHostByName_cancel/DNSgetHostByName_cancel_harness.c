@@ -50,10 +50,21 @@ void vTaskSuspendAll( void )
 {
 }
 
+
+/***************************************************************************
+ ***************************************************************************
+ *****  THIS PROOF ASSUMES THAT THE KERNEL LIST APIS HAVE BEEN PROVED  *****
+ *****       MEMORY SAFE AND HENCE WE ARE ABSTRACTING THEM.            *****
+ ***************************************************************************
+ ***************************************************************************/
+
 /* Abstraction of vListInitialise. Initialise the list in the simplest possible way. */
 void vListInitialise( List_t * pxList )
 {
     __CPROVER_assert( pxList != NULL, "NULL list cannot be initialised." );
+
+    /* Fill the list data structure with unconstrained data. */
+    __CPROVER_havoc_object( pxList );
 
     /* The list end next and previous pointers point to itself so we know
      * when the list is empty. */
@@ -70,7 +81,12 @@ void vListInsertEnd( List_t * const pxList,
     __CPROVER_assert( pxList != NULL, "NULL list cannot be inserted into." );
     __CPROVER_assert( pxNewListItem != NULL, "NULL value cannot be inserted into a list." );
 
+    ListItem_t * const pxIndex = &(pxList->xListEnd);
     ListItem_t * temp = &( pxList->xListEnd );
+
+    /* Fill in unconstrained data in these fields. */
+    pxNewListItem->pxPrevious = nondet_uint32_t();
+    pxIndex->pxPrevious = nondet_uint32_t();
 
     /* This is a crude implementation. We do not care about the
      * previous and other values. */
