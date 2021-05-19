@@ -57,15 +57,19 @@
 /* Changed 'vCastConstPointerTo' to the shorter              */
 /* vCastConstPtrTo to limit the length of the function name. */
 /*-----------------------------------------------------------*/
-    #define ipCAST_PTR_TO_TYPE_PTR( TYPE, pointer )                ( vCastPointerTo_ ## TYPE( ( void * ) ( pointer ) ) )
-    #define ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TYPE, pointer )    ( vCastConstPtrTo_ ## TYPE( ( const void * ) ( pointer ) ) )
+    #define ipCAST_PTR_TO_TYPE_PTR( TYPE, pointer )             \
+            ( vCastPointerTo_ ## TYPE( ( void * ) ( pointer ) ) )
+    #define ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TYPE, pointer )  \
+            ( vCastConstPointerTo_ ## TYPE( ( const void * ) ( pointer ) ) )
 
 /*-----------------------------------------------------------*/
 /* Utility macros for declaring cast utility functions in    */
 /* order to centralize typecasting for static analysis.      */
 /*-----------------------------------------------------------*/
-    #define ipDECL_CAST_PTR_FUNC_FOR_TYPE( TYPE )          TYPE * vCastPointerTo_ ## TYPE( void * pvArgument )
-    #define ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TYPE )    const TYPE * vCastConstPtrTo_ ## TYPE( const void * pvArgument )
+    #define ipDECL_CAST_PTR_FUNC_FOR_TYPE( TYPE )          \
+            TYPE * vCastPointerTo_ ## TYPE( void * pvArgument )
+    #define ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TYPE )    \
+            const TYPE * vCastConstPointerTo_ ## TYPE( const void * pvArgument )
 
 /**
  * Structure to hold the information about the Network parameters.
