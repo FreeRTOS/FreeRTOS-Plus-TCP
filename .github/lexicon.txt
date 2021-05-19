@@ -1647,6 +1647,7 @@ xinternal
 xip
 xipaddress
 xipaddressfound
+xipentry
 xipheader
 xipheadersize
 xiptaskhandle
@@ -1678,6 +1679,7 @@ xloop
 xlwipconfig
 xmacaddress
 xmacbroadcast
+xmacentry
 xmaxtime
 xmessage
 xmicreldevice
@@ -1792,6 +1794,7 @@ xudp
 xudpheader
 xudppacket
 xusebroadcast
+xuseentry
 xwaitallbits
 xwaitingpacketslist
 xwaitqueue
