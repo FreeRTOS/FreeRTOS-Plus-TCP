@@ -59,6 +59,10 @@ set( TCP_INCLUDES "${MODULE_ROOT_DIR}/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_UDP_IP.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_DHCP.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS.h"
+                  "${MODULE_ROOT_DIR}/include/DNS/DNS_Cache.h"
+                  "${MODULE_ROOT_DIR}/include/DNS/DNS_Callback.h"
+                  "${MODULE_ROOT_DIR}/include/DNS/DNS_Networking.h"
+                  "${MODULE_ROOT_DIR}/include/DNS/DNS_Parser.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_IP.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_WIN.h"
                   "${MODULE_ROOT_DIR}/include/NetworkBufferManagement.h"
@@ -154,12 +158,13 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_DNS/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 
 # Add a target for running coverage on tests.
 add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
-    DEPENDS cmock unity FreeRTOS_UDP_IP_utest FreeRTOS_ARP_utest FreeRTOS_DHCP_utest
+    DEPENDS cmock unity FreeRTOS_UDP_IP_utest FreeRTOS_ARP_utest FreeRTOS_DHCP_utest FreeRTOS_DNS_utest
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
