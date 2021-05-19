@@ -36,12 +36,10 @@
 #include "list.h"
 
 #include "FreeRTOS_IP.h"
-#include "DNS/DNS_Globals.h"
 #include "FreeRTOS_IP_Private.h"
 
 
 const BaseType_t xBufferAllocFixedSize = pdTRUE;
-
 
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
 {
@@ -52,8 +50,6 @@ portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
 {
     return ( const UDPPacket_t * ) pvArgument;
 }
-
-
 
 void vPortEnterCritical( void )
 {

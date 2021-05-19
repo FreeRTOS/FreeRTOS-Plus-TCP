@@ -2,7 +2,7 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "FreeRTOS_DNS" )
+set( project_name "DNS_Networking" )
 message( STATUS "${project_name}" )
 # =====================  Create your mock here  (edit)  ========================
 
@@ -20,7 +20,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Cache.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Callback.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Networking.h"
+#"${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Networking.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Parser.h"
         )
 # list the directories your mocks need
@@ -44,7 +44,7 @@ set(real_source_files ""
         )
 list(APPEND real_source_files
             ${project_name}/FreeRTOS_UDP_IP_stubs.c
-            ${MODULE_ROOT_DIR}/DNS/FreeRTOS_DNS.c
+            ${MODULE_ROOT_DIR}/DNS/DNS_Networking.c
 	)
 # list the directories the module under test includes
 list(APPEND real_include_directories

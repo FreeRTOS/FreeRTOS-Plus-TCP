@@ -50,7 +50,7 @@ static void dns_callback( const char * pcName,
 /* ============================  TEST FIXTURES  ============================= */
 
 /**
- * @brief calls at the beginning of each testcase
+ * @brief calls at the beginning of each test case
  */
 void setUp( void )
 {
@@ -58,7 +58,7 @@ void setUp( void )
 }
 
 /**
- * @brief calls at the end of each testcase
+ * @brief calls at the end of each test case
  */
 void tearDown( void )
 {
@@ -95,7 +95,7 @@ void test_FreeRTOS_gethostbyname_fail_allocate_network_buffer( void )
 }
 
 /**
- * @brief ensure that when a NULL address is recieved a zero is returned
+ * @brief ensure that when a NULL address is received a zero is returned
  */
 void test_FreeRTOS_gethostbyname_fail_NULL_address( void )
 {
@@ -123,7 +123,7 @@ void test_FreeRTOS_gethostbyname_fail_long_address( void )
 }
 
 /**
- * @brief Ensures that when the supplied address is in the dottet format, it is
+ * @brief Ensures that when the supplied address is in the dotted format, it is
  *        translated to the numerical form and no lookup is performed
  */
 void test_FreeRTOS_gethostbyname_success_dot_address( void )
@@ -200,7 +200,7 @@ void test_FreeRTOS_gethostbyname_fail_send_dns_request( void )
     /* prvGetHostByNameOp */
     for( i = 0; i < ipconfigDNS_REQUEST_ATTEMPTS; i++ )
     {
-        /* prvFillockAddress */
+        /* prvFillSockAddress */
         FreeRTOS_GetAddressConfiguration_ExpectAnyArgs();
         /* back prvGetHostByNameOp */
         DNS_SendRequest_ExpectAnyArgsAndReturn( pdFAIL );
@@ -242,7 +242,7 @@ void test_FreeRTOS_gethostbyname_fail_read_dns_reply_null( void )
     DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
 
     /* prvGetHostByNameOp */
-    /* prvFillockAddress */
+    /* prvFillSockAddress */
     for( i = 0; i < ipconfigDNS_REQUEST_ATTEMPTS; i++ )
     {
         FreeRTOS_GetAddressConfiguration_ExpectAnyArgs();
@@ -289,7 +289,7 @@ void test_FreeRTOS_gethostbyname_fail_send_dns_reply_zero( void )
     DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
 
     /* prvGetHostByNameOp */
-    /* prvFillockAddress */
+    /* prvFillSockAddress */
     for( i = 0; i < ipconfigDNS_REQUEST_ATTEMPTS; i++ )
     {
         FreeRTOS_GetAddressConfiguration_ExpectAnyArgs();
@@ -337,7 +337,7 @@ void test_FreeRTOS_gethostbyname_succes( void )
     /* back in prvGetHostByName */
     DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
     /* prvGetHostByNameOp */
-    /* prvFillockAddress */
+    /* prvFillSockAddress */
     FreeRTOS_GetAddressConfiguration_ExpectAnyArgs();
     /* back prvGetHostByNameOp */
     DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );
@@ -538,7 +538,7 @@ void test_FreeRTOS_gethostbyname_a_callback( void )
 
 /**
  * @brief Ensures that if vDNSSetCallBack is called the client is put in
- *        asynchronous mode, and only one retry is perfomred by calling
+ *        asynchronous mode, and only one retry is performed by calling
  *        prvGetHostByNameOp instead of prvGetHostByNameOp_WithRetry
  */
 void ignore_test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
@@ -564,7 +564,7 @@ void ignore_test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
     /* back in prvGetHostByName */
     DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
     /* prvGetHostByNameOp */
-    /* prvFillockAddress */
+    /* prvFillSockAddress */
     FreeRTOS_GetAddressConfiguration_ExpectAnyArgs();
     /* back prvGetHostByNameOp */
     DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );

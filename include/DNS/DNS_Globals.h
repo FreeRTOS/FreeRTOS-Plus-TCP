@@ -33,24 +33,23 @@
 #include "IPTraceMacroDefaults.h"
 
 /* Standard includes. */
-    #include <stdint.h>
 
-    #define dnsPARSE_ERROR              0UL
+#define dnsPARSE_ERROR              0UL
 
-    #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
-        #define dnsDNS_PORT             0x3500U /**< Little endian: Port used for DNS. */
-        #define dnsONE_QUESTION         0x0100U /**< Little endian representation of a DNS question.*/
-        #define dnsOUTGOING_FLAGS       0x0001U /**< Little endian representation of standard query. */
-        #define dnsRX_FLAGS_MASK        0x0f80U /**< Little endian:  The bits of interest in the flags field of incoming DNS messages. */
-        #define dnsEXPECTED_RX_FLAGS    0x0080U /**< Little Endian: Should be a response, without any errors. */
-    #else
-        #define dnsDNS_PORT             0x0035U /**< Big endian: Port used for DNS. */
-        #define dnsONE_QUESTION         0x0001U /**< Big endian representation of a DNS question.*/
-        #define dnsOUTGOING_FLAGS       0x0100U /**< Big endian representation of standard query. */
-        #define dnsRX_FLAGS_MASK        0x800fU /**< Big endian: The bits of interest in the flags field of incoming DNS messages. */
-        #define dnsEXPECTED_RX_FLAGS    0x8000U /**< Big endian: Should be a response, without any errors. */
+#if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
+    #define dnsDNS_PORT             0x3500U     /**< Little endian: Port used for DNS. */
+    #define dnsONE_QUESTION         0x0100U     /**< Little endian representation of a DNS question.*/
+    #define dnsOUTGOING_FLAGS       0x0001U     /**< Little endian representation of standard query. */
+    #define dnsRX_FLAGS_MASK        0x0f80U     /**< Little endian:  The bits of interest in the flags field of incoming DNS messages. */
+    #define dnsEXPECTED_RX_FLAGS    0x0080U     /**< Little Endian: Should be a response, without any errors. */
+#else
+    #define dnsDNS_PORT             0x0035U     /**< Big endian: Port used for DNS. */
+    #define dnsONE_QUESTION         0x0001U     /**< Big endian representation of a DNS question.*/
+    #define dnsOUTGOING_FLAGS       0x0100U     /**< Big endian representation of standard query. */
+    #define dnsRX_FLAGS_MASK        0x800fU     /**< Big endian: The bits of interest in the flags field of incoming DNS messages. */
+    #define dnsEXPECTED_RX_FLAGS    0x8000U     /**< Big endian: Should be a response, without any errors. */
 
-    #endif /* ipconfigBYTE_ORDER */
+#endif /* ipconfigBYTE_ORDER */
 #if ( ipconfigUSE_DNS != 0 )
 
 /** @brief The maximum number of times a DNS request should be sent out if a response
@@ -212,7 +211,7 @@
         /** @brief The structure to hold information for a DNS callback. */
         typedef struct xDNS_Callback
         {
-            TickType_t uxRemaningTime;     /**< Timeout in ms */
+            TickType_t uxRemainingTime;     /**< Timeout in ms */
             FOnDNSEvent pCallbackFunction; /**< Function to be called when the address has been found or when a timeout has been reached */
             TimeOut_t uxTimeoutState;      /**< Timeout state. */
             void * pvSearchID;             /**< Search ID of the callback function. */
