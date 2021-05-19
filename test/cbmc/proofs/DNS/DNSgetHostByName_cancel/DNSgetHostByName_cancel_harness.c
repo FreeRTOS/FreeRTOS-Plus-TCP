@@ -51,12 +51,13 @@ void vTaskSuspendAll( void )
 }
 
 
-/***************************************************************************
- ***************************************************************************
- *****  THIS PROOF ASSUMES THAT THE KERNEL LIST APIS HAVE BEEN PROVED  *****
- *****       MEMORY SAFE AND HENCE WE ARE ABSTRACTING THEM.            *****
- ***************************************************************************
- ***************************************************************************/
+/* **************************************************************************
+ * **************************************************************************
+ * ****  THIS PROOF ASSUMES THAT THE KERNEL LIST APIS HAVE BEEN PROVED  *****
+ * ****       MEMORY SAFE AND HENCE WE ARE ABSTRACTING THEM.            *****
+ * **************************************************************************
+ * **************************************************************************
+ */
 
 /* Abstraction of vListInitialise. Initialise the list in the simplest possible way. */
 void vListInitialise( List_t * pxList )
@@ -81,7 +82,7 @@ void vListInsertEnd( List_t * const pxList,
     __CPROVER_assert( pxList != NULL, "NULL list cannot be inserted into." );
     __CPROVER_assert( pxNewListItem != NULL, "NULL value cannot be inserted into a list." );
 
-    ListItem_t * const pxIndex = &(pxList->xListEnd);
+    ListItem_t * const pxIndex = &( pxList->xListEnd );
     ListItem_t * temp = &( pxList->xListEnd );
 
     /* Fill in unconstrained data in these fields. */
