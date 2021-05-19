@@ -41,7 +41,7 @@ list(APPEND mock_define_list
 list(APPEND real_source_files
             "${project_name}/FreeRTOS_UDP_IP_stubs.c"
 #${FREERTOS_KERNEL_DIR}/portable/MemMang/heap_4.c
-            "${CMAKE_CURRENT_LIST_DIR}/../../../portable/BufferManagement/BufferAllocation_2.c"
+            "${CMAKE_CURRENT_LIST_DIR}/../../../portable/BufferManagement/BufferAllocation_1.c"
 
             ${MODULE_ROOT_DIR}/DNS/FreeRTOS_DNS.c
 	)

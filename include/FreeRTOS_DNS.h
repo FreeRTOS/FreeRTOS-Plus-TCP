@@ -88,14 +88,6 @@
         void vDNSInitialise( void );
     #endif /* ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
-    #if ( ipconfigDNS_USE_CALLBACKS == 1 )
-
-/*
- * A function local to the library.
- */
-        extern void vDNSCheckCallBack( void * pvSearchID );
-    #endif
-
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */
