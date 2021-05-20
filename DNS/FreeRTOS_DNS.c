@@ -52,6 +52,7 @@
 #include "DNS/DNS_Networking.h"
 #include "DNS/DNS_Callback.h"
 
+extern const BaseType_t xBufferAllocFixedSize;
 /* Exclude the entire file if DNS is not enabled. */
 #if ( ipconfigUSE_DNS != 0 )
 

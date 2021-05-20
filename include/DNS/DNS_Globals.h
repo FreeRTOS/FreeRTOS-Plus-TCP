@@ -27,13 +27,6 @@
 #define DNS_GLOBALS_H
 
 #include "FreeRTOS.h"
-//#include "FreeRTOS_IP.h"
-//#include "FreeRTOS_Sockets.h"
-//#include "FreeRTOS_IP_Private.h"
-// include dns here
-//#include "FreeRTOS_UDP_IP.h"
-//#include "FreeRTOS_DHCP.h"
-
 
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"

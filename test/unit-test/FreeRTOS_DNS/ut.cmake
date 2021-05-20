@@ -7,19 +7,21 @@ message( STATUS "${project_name}" )
 # =====================  Create your mock here  (edit)  ========================
 
 # list the files to mock here
+set (mock_list "")
 list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/portable.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
-#"${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Cache.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Callback.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Networking.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Parser.h"
-#"${MODULE_ROOT_DIR}/test/unit-test/${project_name}/FreeRTOS_DHCP_mock.h"
         )
 # list the directories your mocks need
 list(APPEND mock_include_list
@@ -31,6 +33,7 @@ list(APPEND mock_include_list
 
 #list the definitions of your mocks to control what to be included
 list(APPEND mock_define_list
+        -DportUSING_MPU_WRAPPERS=0
 #        -UipconfigETHERNET_MINIMUM_PACKET_BYTES
        )
 
@@ -38,11 +41,10 @@ list(APPEND mock_define_list
 
     add_compile_options(-Wno-pedantic -Wno-div-by-zero)
 # list the files you would like to test here
+set( real_source_files "")
 list(APPEND real_source_files
             "${project_name}/FreeRTOS_UDP_IP_stubs.c"
-#${FREERTOS_KERNEL_DIR}/portable/MemMang/heap_4.c
             "${CMAKE_CURRENT_LIST_DIR}/../../../portable/BufferManagement/BufferAllocation_1.c"
-
             ${MODULE_ROOT_DIR}/DNS/FreeRTOS_DNS.c
 	)
 # list the directories the module under test includes
@@ -84,11 +86,13 @@ create_real_library(${real_name}
                     "${mock_name}"
         )
 
+set( utest_link_list "")
 list(APPEND utest_link_list
             -l${mock_name}
             lib${real_name}.a
         )
 
+set (utest_dep_list "")
 list(APPEND utest_dep_list
             ${real_name}
         )
