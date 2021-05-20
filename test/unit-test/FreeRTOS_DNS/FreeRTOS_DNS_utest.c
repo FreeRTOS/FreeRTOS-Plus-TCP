@@ -9,12 +9,16 @@
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_IP_Private.h"
-#include "mock_FreeRTOS_UDP_IP.h"
 //#include "mock_FreeRTOS_ARP.h"
 #include "mock_task.h"
+#include "mock_list.h"
+#include "mock_queue.h"
+#include "mock_portable.h"
+
 #include "mock_DNS_Callback.h"
 #include "mock_DNS_Cache.h"
 #include "mock_DNS_Parser.h"
+#include "mock_DNS_Networking.h"
 #include "mock_NetworkBufferManagement.h"
 //#include "mock_FreeRTOS_DHCP_mock.h"
 #include "FreeRTOS_DNS.h"
@@ -35,6 +39,8 @@ void test_dummy_test(void)
 
 void test_vDNSInitialise(void)
 {
+    //vDNSInitialise_Ignore();
+    vDNSCallbackInitialise_Ignore();
     vDNSInitialise();
 }
 
