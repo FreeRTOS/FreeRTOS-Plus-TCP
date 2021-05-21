@@ -664,9 +664,13 @@ prvcheckrxdata
 prvcopydatatoqueue
 prvcreatednsmessage
 prvdeterminesocketsize
+prvdnsreply
 prvemacdeferredinterrupthandlertask
 prvemachandlertask
+prvfillsockaddress
 prvgethostbyname
+prvgethostbynameop
+prvgetpayloadbuffer
 prvhandleestablished
 prvhandlelisten
 prvhandlesynreceived
@@ -770,6 +774,7 @@ pxdescriptor
 pxdestinationaddress
 pxdhcpmessage
 pxdnsmessageheader
+pxdnsbuf
 pxduplicatenetworkbufferwithdescriptor
 pxevent
 pxgetnetworkbuffer
@@ -808,6 +813,7 @@ pxphyobject
 pxprops
 pxprotocolheaders
 pxprotpack
+pxreceivebuffer
 pxsegment
 pxsocket
 pxsocketset
@@ -946,6 +952,7 @@ sof
 sourceaddrfilter
 spi
 sprintf
+squestions
 sram
 src
 srdbl
@@ -1315,6 +1322,7 @@ vcastconstptrto
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
+vdnscheckcallback
 vdnsinitialise
 vdnssetcallback
 ve

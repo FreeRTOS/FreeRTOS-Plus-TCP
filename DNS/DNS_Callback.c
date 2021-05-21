@@ -124,7 +124,7 @@
             ( void ) strcpy( pxCallback->pcName, pcHostName );
             pxCallback->pCallbackFunction = pCallbackFunction;
             pxCallback->pvSearchID = pvSearchID;
-            pxCallback->uxRemaningTime = uxTimeout;
+            pxCallback->uxRemainingTime = uxTimeout;
             vTaskSetTimeOutState( &pxCallback->uxTimeoutState );
             listSET_LIST_ITEM_OWNER( &( pxCallback->xListItem ), ( void * ) pxCallback );
             listSET_LIST_ITEM_VALUE( &( pxCallback->xListItem ), uxIdentifier );
@@ -159,8 +159,7 @@
         vTaskSuspendAll();
         {
             for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
-                 pxIterator != xEnd;
-                 )
+                 pxIterator != xEnd; )
             {
                 DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
                 /* Move to the next item because we might remove this item */
@@ -171,7 +170,7 @@
                     ( void ) uxListRemove( &( pxCallback->xListItem ) );
                     vPortFree( pxCallback );
                 }
-                else if( xTaskCheckForTimeOut( &pxCallback->uxTimeoutState, &pxCallback->uxRemaningTime ) != pdFALSE )
+                else if( xTaskCheckForTimeOut( &pxCallback->uxTimeoutState, &pxCallback->uxRemainingTime ) != pdFALSE )
                 {
                     pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, 0 );
                     ( void ) uxListRemove( &( pxCallback->xListItem ) );

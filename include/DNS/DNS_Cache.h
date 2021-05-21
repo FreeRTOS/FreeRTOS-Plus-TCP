@@ -22,6 +22,7 @@
  * https://github.com/FreeRTOS
  * https://www.FreeRTOS.org
  */
+
 #ifndef DNS_CACHE_H
 #define DNS_CACHE_H
 

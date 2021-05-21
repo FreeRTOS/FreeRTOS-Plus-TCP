@@ -34,18 +34,20 @@
 
 /* Application level configuration options. */
 #include "DNS/DNS_Globals.h"
+#include "DNS/DNS_Callback.h"
+#include "DNS/DNS_Cache.h"
 
 /*
  * LLMNR is very similar to DNS, so is handled by the DNS routines.
  */
-    uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
-    #if ( ipconfigUSE_LLMNR == 1 )
-        /* The LLMNR MAC address is 01:00:5e:00:00:fc */
-        extern const MACAddress_t xLLMNR_MacAdress;
-    #endif /* ipconfigUSE_LLMNR */
+#if ( ipconfigUSE_LLMNR == 1 )
+    /* The LLMNR MAC address is 01:00:5e:00:00:fc */
+    extern const MACAddress_t xLLMNR_MacAdress;
+#endif /* ipconfigUSE_LLMNR */
 
-    #if ( ipconfigUSE_NBNS != 0 )
+#if ( ipconfigUSE_NBNS != 0 )
 
 /*
  * Inspect a NetBIOS Names-Service message.  If the name matches with ours
@@ -53,40 +55,41 @@
  * Note that LLMNR is a better protocol for name services on a LAN as it is
  * less polluted
  */
-        uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer );
+    uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
-    #endif /* ipconfigUSE_NBNS */
+#endif /* ipconfigUSE_NBNS */
 
 
-    #if ( ipconfigDNS_USE_CALLBACKS != 0 )
+#if ( ipconfigDNS_USE_CALLBACKS != 0 )
+
 /*
  * Asynchronous version of gethostbyname()
  * xTimeout is in units of ms.
  */
-        uint32_t FreeRTOS_gethostbyname_a( const char * pcHostName,
-                                           FOnDNSEvent pCallback,
-                                           void * pvSearchID,
-                                           TickType_t uxTimeout );
-        void FreeRTOS_gethostbyname_cancel( void * pvSearchID );
+    uint32_t FreeRTOS_gethostbyname_a( const char * pcHostName,
+                                       FOnDNSEvent pCallback,
+                                       void * pvSearchID,
+                                       TickType_t uxTimeout );
+    void FreeRTOS_gethostbyname_cancel( void * pvSearchID );
 
 
-    #endif /* if ( ipconfigDNS_USE_CALLBACKS != 0 ) */
+#endif /* if ( ipconfigDNS_USE_CALLBACKS != 0 ) */
 
 /*
  * Lookup a IPv4 node in a blocking-way.
  * It returns a 32-bit IP-address, 0 when not found.
  * gethostbyname() is already deprecated.
  */
-    uint32_t FreeRTOS_gethostbyname( const char * pcHostName );
+uint32_t FreeRTOS_gethostbyname( const char * pcHostName );
 
-    #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+#if ( ipconfigDNS_USE_CALLBACKS == 1 )
 
 /*
  * The function vDNSInitialise() initialises the DNS module.
  * It will be called "internally", by the IP-task.
  */
-        void vDNSInitialise( void );
-    #endif /* ( ipconfigDNS_USE_CALLBACKS == 1 ) */
+    void vDNSInitialise( void );
+#endif /* ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

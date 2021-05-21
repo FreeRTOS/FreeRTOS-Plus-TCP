@@ -22,6 +22,7 @@
  * https://github.com/FreeRTOS
  * https://www.FreeRTOS.org
  */
+
 #ifndef DNS_PARSER_H
 #define DNS_PARSER_H
 
@@ -77,5 +78,16 @@
                             size_t uxBufferLength,
                             uint32_t ulIPAddress );
     #endif
+
+    BaseType_t parseDNSAnswer( DNSMessage_t * pxDNSMessageHeader,
+                         uint8_t * pucByte,
+                         size_t uxSourceBytesRemaining,
+                         size_t * uxBytesRead
+        #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+                          ,
+                          char * pcName,
+                          BaseType_t xDoStore
+        #endif
+                         );
 #endif /* if ( ipconfigUSE_DNS != 0 ) */
 #endif /* ifndef DNS_PARSER_H */

@@ -36,23 +36,10 @@
 #include "list.h"
 
 #include "FreeRTOS_IP.h"
-#include "DNS/DNS_Globals.h"
 #include "FreeRTOS_IP_Private.h"
 
 
-const BaseType_t xBufferAllocFixedSize = pdTRUE;
-
-
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-{
-    return ( UDPPacket_t * ) pvArgument;
-}
-
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-{
-    return ( const UDPPacket_t * ) pvArgument;
-}
-
+const BaseType_t xBufferAllocFixedSize = pdFALSE;
 
 
 void vPortEnterCritical( void )
@@ -63,9 +50,14 @@ void vPortExitCritical( void )
 {
 }
 
+/*
 BaseType_t xApplicationDNSQueryHook( const char * pcName )
 {
+    return pdFALSE;
 }
+*/
+
+uint16_t usPacketIdentifier;
 
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 UDPPacketHeader_t xDefaultPartUDPPacketHeader =

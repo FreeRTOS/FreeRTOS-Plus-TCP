@@ -52,7 +52,7 @@
 #include "DNS/DNS_Networking.h"
 #include "DNS/DNS_Callback.h"
 
-extern const BaseType_t xBufferAllocFixedSize;
+
 /* Exclude the entire file if DNS is not enabled. */
 #if ( ipconfigUSE_DNS != 0 )
 
@@ -83,13 +83,6 @@ extern const BaseType_t xBufferAllocFixedSize;
     static uint32_t prvGetHostByName( const char * pcHostName,
                                       TickType_t uxIdentifier,
                                       TickType_t uxReadTimeOut_ticks );
-
-
-    #if ( ipconfigUSE_NBNS == 1 )
-        static portINLINE void prvTreatNBNS( uint8_t * pucPayload,
-                                             size_t uxBufferLength,
-                                             uint32_t ulIPAddress );
-    #endif /* ipconfigUSE_NBNS */
 
     #if ( ipconfigUSE_LLMNR == 1 )
         /** @brief The MAC address used for LLMNR. */
@@ -343,7 +336,7 @@ extern const BaseType_t xBufferAllocFixedSize;
             /* Check the cache before issuing another DNS request. */
             if( ulIPAddress == 0UL )
             {
-                /* If caching is not defined dnslookup will return zero */
+                /* If caching is not defined dns lookup will return zero */
                 ulIPAddress = FreeRTOS_dnslookup( pcHostName );
 
                 if( ulIPAddress != 0UL )
@@ -406,8 +399,13 @@ extern const BaseType_t xBufferAllocFixedSize;
 
     #if ( ipconfigUSE_LLMNR == 1 )
 
-/* If LLMNR is being used then determine if the host name includes a '.' -
- * if not then LLMNR can be used as the lookup method. */
+/*!
+ * @brief If LLMNR is being used then determine if the host name includes a '.'
+ *        if not then LLMNR can be used as the lookup method.
+ * @param [in] pcHostName hostname to check
+ * @returns true if the hostname is a dotted format, else false
+ *
+ */
         static BaseType_t llmnr_has_dot( const char * pcHostName )
         {
             BaseType_t bHasDot = pdFALSE;
@@ -426,6 +424,14 @@ extern const BaseType_t xBufferAllocFixedSize;
         }
     #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
 
+/*!
+ * @brief create a payload buffer and return it through the parameter
+ *
+ * @param [out] ppxNetworkBuffer network buffer to create
+ * @param [in] pcHostName hostname to get its length
+ * @returns pointer address to the payload buffer
+ *
+ */
     static uint8_t * prvGetPayloadBuffer( NetworkBufferDescriptor_t ** ppxNetworkBuffer,
                                           const char * pcHostName )
     {
@@ -457,6 +463,14 @@ extern const BaseType_t xBufferAllocFixedSize;
         return pucUDPPayloadBuffer;
     }
 
+/*!
+ * @brief  fill  xAddress from pucUDPPayloadBuffer
+ *
+ * @param [out]  xAddress
+ * @param [in] pucUDPPayloadBuffer
+ * @param [in] pcHostName hostname to get its length
+ *
+ */
     static void prvFillSockAddress( struct freertos_sockaddr * xAddress,
                                     uint8_t * pucUDPPayloadBuffer,
                                     const char * pcHostName )
@@ -487,6 +501,14 @@ extern const BaseType_t xBufferAllocFixedSize;
         }
     }
 
+/*!
+ * @brief return ip address from the dns reply message
+ *
+ * @param [in] pxReceiveBuffer
+ * @param [in] uxIdentifier
+ * @returns ip address or zero on error
+ *
+ */
     static uint32_t prvDNSReply( struct dns_buffer * pxReceiveBuffer,
                                  TickType_t uxIdentifier )
     {
@@ -515,7 +537,16 @@ extern const BaseType_t xBufferAllocFixedSize;
         return ulIPAddress;
     }
 
-/* main dns operation description function */
+/*!
+ * @brief main dns operation description function
+ *
+ * @param [in] pcHostName hostname to get its ip address
+ * @param [in] uxIdentifier
+ * @param [in] xDNSSocket socket
+ * @param [in] pxDNSBuf dns message buffer
+ * @returns ip address or zero on error
+ *
+ */
     static uint32_t prvGetHostByNameOp( const char * pcHostName,
                                         TickType_t uxIdentifier,
                                         Socket_t xDNSSocket,
@@ -535,12 +566,6 @@ extern const BaseType_t xBufferAllocFixedSize;
                                                              pcHostName,
                                                              uxIdentifier );
 
-            /* cannot be zero
-             * if( pxDNSBuf->uxPayloadLength == 0 )
-             * {
-             * break;
-             * }
-             */
             /* send the dns message */
             xReturn = DNS_SendRequest( pcHostName,
                                        uxIdentifier,
@@ -574,6 +599,17 @@ extern const BaseType_t xBufferAllocFixedSize;
         return ulIPAddress;
     }
 
+/*!
+ * @brief helper function to prvGetHostByNameOP with multiple retries equal to
+ *        ipconfigDNS_REQUEST_ATTEMPTS
+ *
+ * @param [in] pcHostName hostname to get its ip address
+ * @param [in] uxIdentifier
+ * @param [in] xDNSSocket socket
+ * @param [in] pxDNSBuf dns message buffer
+ * @returns ip address or zero on error
+ *
+ */
     static uint32_t prvGetHostByNameOp_WithRetry( const char * pcHostName,
                                                   TickType_t uxIdentifier,
                                                   Socket_t xDNSSocket,
