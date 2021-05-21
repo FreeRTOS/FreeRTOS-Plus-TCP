@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.2
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -269,7 +269,8 @@ size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
  * @param[in,out] pxBuffer: The buffer to which the bytes will be added.
  * @param[in] uxOffset: If uxOffset > 0, data will be written at an offset from uxHead
  *                      while uxHead will not be moved yet.
- * @param[in] pucData: A pointer to the data to be added.
+ * @param[in,out] pucData: A pointer to the data to be added. If 'pucData' equals NULL,
+ *                         the function is called to advance the 'Head' only.
  * @param[in] uxByteCount: The number of bytes to add.
  *
  * @return The number of bytes added to the buffer.
