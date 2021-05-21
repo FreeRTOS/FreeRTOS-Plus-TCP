@@ -528,13 +528,6 @@ EXTRACT_LOCAL_METHODS  = NO
 
 EXTRACT_ANON_NSPACES   = NO
 
-# If this flag is set to YES, the name of an unnamed parameter in a declaration
-# will be determined by the corresponding definition. By default unnamed
-# parameters remain unnamed in the output.
-# The default value is: YES.
-
-RESOLVE_UNNAMED_PARAMS = YES
-
 # If the HIDE_UNDOC_MEMBERS tag is set to YES, doxygen will hide all
 # undocumented members inside documented classes or files. If set to NO these
 # members will be included in the various overviews, but no documentation
@@ -2433,28 +2426,6 @@ UML_LOOK               = NO
 # This tag requires that the tag UML_LOOK is set to YES.
 
 UML_LIMIT_NUM_FIELDS   = 10
-
-# If the DOT_UML_DETAILS tag is set to NO, doxygen will show attributes and
-# methods without types and arguments in the UML graphs. If the DOT_UML_DETAILS
-# tag is set to YES, doxygen will add type and arguments for attributes and
-# methods in the UML graphs. If the DOT_UML_DETAILS tag is set to NONE, doxygen
-# will not generate fields with class member information in the UML graphs. The
-# class diagrams will look similar to the default class diagrams but using UML
-# notation for the relationships.
-# Possible values are: NO, YES and NONE.
-# The default value is: NO.
-# This tag requires that the tag UML_LOOK is set to YES.
-
-DOT_UML_DETAILS        = NO
-
-# The DOT_WRAP_THRESHOLD tag can be used to set the maximum number of characters
-# to display on a single line. If the actual line length exceeds this threshold
-# significantly it will wrapped across multiple lines. Some heuristics are apply
-# to avoid ugly line breaks.
-# Minimum value: 0, maximum value: 1000, default value: 17.
-# This tag requires that the tag HAVE_DOT is set to YES.
-
-DOT_WRAP_THRESHOLD     = 17
 
 # If the TEMPLATE_RELATIONS tag is set to YES then the inheritance and
 # collaboration graphs will show the relations between templates and their
