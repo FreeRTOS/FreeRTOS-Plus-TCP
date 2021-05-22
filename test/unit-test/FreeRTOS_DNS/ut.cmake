@@ -12,7 +12,7 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
-            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/portable.h"
+#"${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/portable.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
@@ -34,17 +34,16 @@ list(APPEND mock_include_list
 #list the definitions of your mocks to control what to be included
 list(APPEND mock_define_list
         -DportUSING_MPU_WRAPPERS=0
-#        -UipconfigETHERNET_MINIMUM_PACKET_BYTES
        )
 
 # ================= Create the library under test here (edit) ==================
 
-    add_compile_options(-Wno-pedantic -Wno-div-by-zero)
+add_compile_options(-Wno-pedantic -Wno-div-by-zero -O0 -ggdb3)
 # list the files you would like to test here
-set( real_source_files "")
+set(real_source_files ""
+        )
 list(APPEND real_source_files
-            "${project_name}/FreeRTOS_UDP_IP_stubs.c"
-            "${CMAKE_CURRENT_LIST_DIR}/../../../portable/BufferManagement/BufferAllocation_1.c"
+            ${project_name}/FreeRTOS_UDP_IP_stubs.c
             ${MODULE_ROOT_DIR}/DNS/FreeRTOS_DNS.c
 	)
 # list the directories the module under test includes

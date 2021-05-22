@@ -70,4 +70,9 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
         void prepareReplyDNSMessage( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                         BaseType_t lNetLength );
     #endif
+#if ( ipconfigUSE_NBNS == 1 )
+    void DNS_TreatNBNS( uint8_t * pucPayload,
+                        size_t uxBufferLength,
+                        uint32_t ulIPAddress );
+#endif
 #endif
