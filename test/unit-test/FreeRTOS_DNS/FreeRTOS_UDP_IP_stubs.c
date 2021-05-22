@@ -38,6 +38,9 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+
+const BaseType_t xBufferAllocFixedSize = pdTRUE;
+
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
 {
     return ( UDPPacket_t * ) pvArgument;

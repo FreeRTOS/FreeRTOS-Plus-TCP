@@ -38,22 +38,22 @@
 #include <stdint.h>
 
 #if ( ipconfigDNS_USE_CALLBACKS == 1 )
-BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
-                           const char * pcName,
-                           uint32_t ulIPAddress );
+    BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
+                               const char * pcName,
+                               uint32_t ulIPAddress );
 
-void vDNSSetCallBack( const char * pcHostName,
-                     void * pvSearchID,
-                     FOnDNSEvent pCallbackFunction,
-                     TickType_t uxTimeout,
-                     TickType_t uxIdentifier );
+    void vDNSSetCallBack( const char * pcHostName,
+                          void * pvSearchID,
+                          FOnDNSEvent pCallbackFunction,
+                          TickType_t uxTimeout,
+                          TickType_t uxIdentifier );
 
-void vDNSCheckCallBack( void * pvSearchID );
+    void vDNSCheckCallBack( void * pvSearchID );
 
 
-void vDNSCallbackInitialise();
+    void vDNSCallbackInitialise();
 
 #endif /* ipconfigDNS_USE_CALLBACKS */
 
 
-#endif
+#endif /* ifndef DNS_CALLBACK_H */
