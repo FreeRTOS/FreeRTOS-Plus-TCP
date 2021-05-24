@@ -77,6 +77,8 @@ foreach( file ${TCP_INCLUDES} )
 
     if(${MODIFIED_FILE} STREQUAL "NetworkBufferManagement" )
         set( Guard "NETWORK_BUFFER_MANAGEMENT_H" )
+    elseif(  ${MODIFIED_FILE} STREQUAL "NetworkInterface" )
+        set( Guard "NETWORK_INTERFACE_H" )
     else()
         set( Guard ${Guard}_H )
     endif()
@@ -90,7 +92,7 @@ foreach( file ${TCP_INCLUDES} )
                      OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h )
 
     # Use this tool to process all conditional declarations.
-    execute_process( COMMAND unifdefall -U${Guard} -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
+    execute_process( COMMAND unifdefall -U${Guard} -D__COVERITY__ -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
                                                    -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
                                                    -I ${UNIT_TEST_DIR}/ConfigFiles
                                                    -I ${MODULE_ROOT_DIR}/include
@@ -148,17 +150,18 @@ add_cmock_targets()
 # Add function to enable CMock based tests and coverage.
 include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 
-set(FILE_UNDER_TEST FreeRTOS_ARP)
-
 # Include unit-test build configuration
+
 include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 
 # Add a target for running coverage on tests.
 add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
-    DEPENDS cmock unity FreeRTOS_ARP_utest FreeRTOS_DHCP_utest
+    DEPENDS cmock unity FreeRTOS_ARP_utest FreeRTOS_DHCP_utest FreeRTOS_UDP_IP_utest FreeRTOS_Stream_Buffer_utest
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )

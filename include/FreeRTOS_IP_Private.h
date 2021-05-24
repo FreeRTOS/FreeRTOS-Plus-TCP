@@ -778,11 +778,6 @@
     FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort );
 
 /*
- * Called when the application has generated a UDP packet to send.
- */
-    void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
-
-/*
  * Calculate the upper-layer checksum
  * Works both for UDP, ICMP and TCP packages
  * bOut = true: checksum will be set in outgoing packets
