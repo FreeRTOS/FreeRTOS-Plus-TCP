@@ -902,7 +902,7 @@ pxonudpsent
 pxopenedinterfacehandle
 pxoptionsarraysize
 pxpacket
-pxparentsocket 
+pxparentsocket
 pxpeersocket
 pxphyobject
 pxprefix
@@ -916,7 +916,7 @@ pxright
 pxsegment
 pxset
 pxsocket
-pxsocketlist 
+pxsocketlist
 pxsocketset
 pxsocketsize
 pxsockettodelete
