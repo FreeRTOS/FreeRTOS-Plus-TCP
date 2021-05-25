@@ -60,16 +60,14 @@
 
 /*-----------------------------------------------------------*/
 
-static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                              uint32_t * pulIPAddress );
+static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 static void prvSetIPHeaderForICMP( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 static void prvSetIPHeaderForUDP( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                          BaseType_t * pxLostBuffer,
-                                          uint32_t ulIPAddress );
+                                          BaseType_t * pxLostBuffer );
 
 static void prvUDPSendPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
@@ -84,16 +82,15 @@ static BaseType_t prvHandleUDPPacketWithoutSocket( NetworkBufferDescriptor_t * p
 /**
  * @brief Look-up the target IP-address, works for both IPv4 and IPv6.
  *
- * @param[in] pxNetworkBuffer: The network buffer carrying the UDP or ICMP packet.
- * @param[in,out] pulIPAddress: only used for IPv4: the IP-address of the destination.
- *                              In case the packet has to go through a gateway, the
- *                              IP-address of the gateway will be filled in.
+ * @param[in,out] pxNetworkBuffer: The network buffer carrying the UDP or ICMP packet.
+ *                                 It is also an "out" parameter: in case the target can only
+ *                                 be reached through a gateway, the gateway's address will be
+ *                                 filled in.
  *
  * @return When the IP-address is found: eARPCacheHit, when not found: eARPCacheMiss,
  *         and when waiting for a ARP reply: eCantSendPacket.
  */
-static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                              uint32_t * pulIPAddress )
+static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eARPLookupResult_t eReturned;
     /* Map the UDP packet onto the start of the frame. */
@@ -124,7 +121,7 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
             }
         #endif
 
-        eReturned = eARPGetCacheEntry( pulIPAddress, &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
+        eReturned = eARPGetCacheEntry( &( pxNetworkBuffer->ulIPAddress ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
     }
 
     if( pxNetworkBuffer->pxEndPoint == NULL )
@@ -232,13 +229,12 @@ static void prvSetIPHeaderForUDP( NetworkBufferDescriptor_t * const pxNetworkBuf
  *        Either an ARP request or a Neighbour solicitation will be emitted.
  *
  * @param[in] pxNetworkBuffer : The network buffer carrying the UDP or ICMP packet.
+ *
  * @param[out] pxLostBuffer : The pointee will be set to true in case the network packet got released
  *                            ( the ownership was taken ).
- * @param[in] ulIPAddress : In case of an IPv4 lookup: the target IP-address.
  */
 static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                          BaseType_t * pxLostBuffer,
-                                          uint32_t ulIPAddress )
+                                          BaseType_t * pxLostBuffer )
 {
     eARPLookupResult_t eReturned = eARPCacheMiss;
 
@@ -263,23 +259,21 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         else
     #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
     {
-        FreeRTOS_printf( ( "Looking up %lxip%s with%s end-point\n",
-                           FreeRTOS_ntohl( ulIPAddress ),
-                           ( pxNetworkBuffer->ulIPAddress != ulIPAddress ) ? " (gateway)" : "",
+        FreeRTOS_printf( ( "Looking up %xip with%s end-point\n",
+                           ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->ulIPAddress ),
                            ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
 
         /* Add an entry to the ARP table with a null hardware address.
          * This allows the ARP timer to know that an ARP reply is
          * outstanding, and perform retransmissions if necessary. */
-        vARPRefreshCacheEntry( NULL, ulIPAddress, NULL );
+        vARPRefreshCacheEntry( NULL, pxNetworkBuffer->ulIPAddress, NULL );
 
         /* Generate an ARP for the required IP address. */
         iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->ulIPAddress );
-        pxNetworkBuffer->ulIPAddress = ulIPAddress;
 
         /* 'ulIPAddress' might have become the address of the Gateway.
          * Find the route again. */
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 11 ); /* ARP request */
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->ulIPAddress, 11 ); /* ARP request */
 
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
@@ -363,6 +357,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 
     #if ( ipconfigUSE_IPv6 != 0 )
         BaseType_t xIsIPV6 = pdFALSE;
+        IPv6_Address_t xIPv6_Address;
     #endif
     eARPLookupResult_t eReturned;
     uint32_t ulIPAddress = pxNetworkBuffer->ulIPAddress;
@@ -375,17 +370,40 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
         if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
         {
             xIsIPV6 = pdTRUE;
+
+            /* Remember the original address. It might get replaced with
+             * the address of the gateway. */
+            memcpy( xIPv6_Address.ucBytes, pxNetworkBuffer->xIPv6Address.ucBytes, sizeof( xIPv6_Address.ucBytes ) );
         }
+        else
     #endif
+    {
+        /* Remember the original IPv4 address. */
+        ulIPAddress = pxNetworkBuffer->ulIPAddress;
+    }
 
     /* Create short cuts to the data within the packet. */
     pxIPHeader = &( pxUDPPacket->xIPHeader );
 
     /* Look in the IPv4 or IPv6 MAC-address cache for the target IP-address. */
-    eReturned = prvLookupIPInCache( pxNetworkBuffer, &( ulIPAddress ) );
+    eReturned = prvLookupIPInCache( pxNetworkBuffer );
 
     if( eReturned == eARPCacheHit )
     {
+        /* As the MAC-address was found in the cache, the IP-asdress
+         * can be restorde to its original. */
+        #if ( ipconfigUSE_IPv6 != 0 )
+            if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+            {
+                xIsIPV6 = pdTRUE;
+                memcpy( pxNetworkBuffer->xIPv6Address.ucBytes, xIPv6_Address.ucBytes, sizeof( pxNetworkBuffer->xIPv6Address.ucBytes ) );
+            }
+            else
+        #endif
+        {
+            pxNetworkBuffer->ulIPAddress = ulIPAddress;
+        }
+
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
             uint8_t ucSocketOptions = pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ];
         #endif
@@ -449,7 +467,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
     } /* if( eReturned == eARPCacheHit ) */
     else if( eReturned == eARPCacheMiss )
     {
-        eReturned = prvStartLookup( pxNetworkBuffer, &( xLostBuffer ), ulIPAddress );
+        eReturned = prvStartLookup( pxNetworkBuffer, &( xLostBuffer ) );
     }
     else
     {
