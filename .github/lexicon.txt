@@ -659,6 +659,7 @@ pcname
 pcnames
 pcnetworkbuffer
 pcremoteip
+pcreturn
 pcs
 pcservername
 pcservice
@@ -924,6 +925,7 @@ pxsourceaddress
 pxsourceaddresslength
 pxsourceendpoint
 pxtargetendpoint
+pxtcp
 pxtcpheader
 pxtcppacket
 pxtcpsocketlookup
@@ -1591,6 +1593,8 @@ xclientid
 xclientsocket
 xcolon
 xcount
+xcurlength
+xcurstart
 xdatalength
 xdatalengthbytes
 xdefaultaddressing
@@ -1637,6 +1641,7 @@ xgatewayaddress
 xgetphylinkstatus
 xgivingup
 xgmacswitchrequired
+xhaddigit
 xhadreception
 xhand
 xhandler
@@ -1761,6 +1766,7 @@ xserverid
 xserversemaphore
 xserversocket
 xset
+xshortcount
 xsize
 xsizewithoutdata
 xsocket
@@ -1792,6 +1798,7 @@ xtcpwindowrxconfirm
 xtcpwindowtxdone
 xtickcount
 xtickstojump
+xtickstowait
 xtime
 xtimeout
 xtransmittimer
