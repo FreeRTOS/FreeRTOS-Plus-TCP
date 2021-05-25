@@ -357,7 +357,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 
     #if ( ipconfigUSE_IPv6 != 0 )
         BaseType_t xIsIPV6 = pdFALSE;
-        IPv6_Address_t xIPv6_Address;
+        IPv6_Address_t xIPv6Address;
     #endif
     eARPLookupResult_t eReturned;
     uint32_t ulIPAddress = pxNetworkBuffer->ulIPAddress;
@@ -373,7 +373,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 
             /* Remember the original address. It might get replaced with
              * the address of the gateway. */
-            memcpy( xIPv6_Address.ucBytes, pxNetworkBuffer->xIPv6Address.ucBytes, sizeof( xIPv6_Address.ucBytes ) );
+            ( void ) memcpy( xIPv6Address.ucBytes, pxNetworkBuffer->xIPv6Address.ucBytes, sizeof( xIPv6Address.ucBytes ) );
         }
         else
     #endif
@@ -396,7 +396,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
             if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
             {
                 xIsIPV6 = pdTRUE;
-                memcpy( pxNetworkBuffer->xIPv6Address.ucBytes, xIPv6_Address.ucBytes, sizeof( pxNetworkBuffer->xIPv6Address.ucBytes ) );
+                ( void ) memcpy( pxNetworkBuffer->xIPv6Address.ucBytes, xIPv6Address.ucBytes, sizeof( pxNetworkBuffer->xIPv6Address.ucBytes ) );
             }
             else
         #endif
