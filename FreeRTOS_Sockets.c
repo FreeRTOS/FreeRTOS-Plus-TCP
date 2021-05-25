@@ -2343,7 +2343,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                 if( ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) &&
                     ( FreeRTOS_outstanding( pxSocket ) != 0 ) )
                 {
-                    /* There might be some data in the TX-sream, less than full-size,
+                    /* There might be some data in the TX-stream, less than full-size,
                      * which equals a MSS.  Wake-up the IP-task to check this. */
                     pxSocket->u.xTCP.usTimeout = 1U;
                     ( void ) xSendEventToIPTask( eTCPTimerEvent );
@@ -3044,7 +3044,7 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 
 	/**
 	 * @brief Convert a short numeric value to a hex string of at most 4 characters.
-	 *        The resulting string is **not** nul-terminated. The resulting string
+	 *        The resulting string is **not** null-terminated. The resulting string
 	 *        will not have leading zero's, except when 'usValue' equals zero.
 	 * @param pcBuffer[in] : The buffer to which the string is written.
 	 * @param uxBufferSize[in] : The size of the buffer pointed to by 'pcBuffer'.
@@ -4326,7 +4326,7 @@ static BaseType_t prvRecvWait( FreeRTOS_Socket_t * pxSocket,
             ( eType == eCLOSE_WAIT ) || /* (server + client) waiting for a connection termination request from the local user. */
             ( eType == eCLOSING ) )     /* (server + client) waiting for a connection termination request acknowledgement from the remote TCP. */
         {
-            /* Return -ENOTCONN, unles there was a malloc failure. */
+            /* Return -ENOTCONN, unless there was a malloc failure. */
             xByteCount = -pdFREERTOS_ERRNO_ENOTCONN;
 
             if( pxSocket->u.xTCP.bits.bMallocError != pdFALSE_UNSIGNED )

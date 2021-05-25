@@ -3,6 +3,7 @@ aaa
 aaaa
 aaaaaaa
 aal
+abcd
 abuflen
 ack
 acked
@@ -765,6 +766,7 @@ prvtcphandlestate
 prvtcpprepareconnect
 prvtcppreparesend
 prvtcpreturnpacket
+prvtcpsendloop
 prvtcpsendpacket
 prvtcpsendrepeated
 prvtcpsendreset
@@ -900,6 +902,7 @@ pxonudpsent
 pxopenedinterfacehandle
 pxoptionsarraysize
 pxpacket
+pxparentsocket 
 pxpeersocket
 pxphyobject
 pxprefix
@@ -913,6 +916,7 @@ pxright
 pxsegment
 pxset
 pxsocket
+pxsocketlist 
 pxsocketset
 pxsocketsize
 pxsockettodelete
@@ -1416,6 +1420,7 @@ uxblocktimeticks
 uxborn
 uxbuffer
 uxbufferlength
+uxbuffersize
 uxbytecount
 uxclockticks
 uxcontents
@@ -1456,6 +1461,7 @@ uxnumberofbytestosend
 uxoffset
 uxoptionlength
 uxoptionslength
+uxpayloadoffset
 uxprefixlength
 uxprotocolheaderlength
 uxptr
@@ -1583,6 +1589,7 @@ xchecksizefields
 xclearonexit
 xclientid
 xclientsocket
+xcolon
 xcount
 xdatalength
 xdatalengthbytes
@@ -1753,6 +1760,7 @@ xsendlength
 xserverid
 xserversemaphore
 xserversocket
+xset
 xsize
 xsizewithoutdata
 xsocket
@@ -1766,6 +1774,7 @@ xstatus
 xstream
 xsum
 xtargethardwareaddress
+xtargetindex
 xtaskcheckfortimeout
 xtaskcreate
 xtaskgettickcount
@@ -1803,6 +1812,8 @@ xwanteditemvalue
 xwantedsize
 xwillsleep
 xxx
+xzerolength
+xzerostart
 xzynqdescriptor
 xzynqgemgetphylinkstatus
 xzynqgeminitialise
