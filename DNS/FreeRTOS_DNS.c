@@ -525,10 +525,12 @@ static uint32_t prvGetHostByNameOp( const char * pcHostName,
          pxDNSBuf->uxPayloadLength = prvCreateDNSMessage( pxDNSBuf->pucPayloadBuffer,
                                                           pcHostName,
                                                           uxIdentifier );
+         /* cannot be zero
         if( pxDNSBuf->uxPayloadLength == 0 )
         {
             break;
         }
+        */
         /* send the dns message */
         xReturn = DNS_SendRequest( pcHostName,
                                  uxIdentifier,
