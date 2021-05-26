@@ -765,8 +765,8 @@ static uint32_t prvGetHostByNameOp_WithRetry( const char * pcHostName,
 
                 /* The parameter pdFALSE indicates that the reply was not expected. */
                 ( void ) DNS_ParseDNSReply( pucPayLoadBuffer,
-                                           uxPayloadSize,
-                                           pdFALSE );
+                                            uxPayloadSize,
+                                            pdFALSE );
             }
         }
 
