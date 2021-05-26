@@ -28,19 +28,20 @@
 #include "FreeRTOS_IP_Private.h"
 #include "DNS/DNS_Globals.h"
 
-#if ( ipconfigDNS_USE_CALLBACKS == 1 )
+#if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
-static List_t xCallbackList;
+    static List_t xCallbackList;
 
 /**
  * @brief Utility function to cast pointer of a type to pointer of type DNSCallback_t.
  *
  * @return The casted pointer.
  */
-static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSCallback_t )
-{
-    return ( DNSCallback_t * ) pvArgument;
-}
+    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSCallback_t )
+    {
+        return ( DNSCallback_t * ) pvArgument;
+    }
+
 /**
  * @brief A DNS reply was received, see if there is any matching entry and
  *        call the handler.
@@ -51,44 +52,44 @@ static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSCallback_t )
  *
  * @return Returns pdTRUE if uxIdentifier was recognized.
  */
-BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
-                           const char * pcName,
-                           uint32_t ulIPAddress )
-{
-    BaseType_t xResult = pdFALSE;
-    const ListItem_t * pxIterator;
-    const ListItem_t * xEnd = listGET_END_MARKER( &xCallbackList );
-
-    vTaskSuspendAll();
+    BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
+                               const char * pcName,
+                               uint32_t ulIPAddress )
     {
-        for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
-                pxIterator != ( const ListItem_t * ) xEnd;
-                pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator ) )
+        BaseType_t xResult = pdFALSE;
+        const ListItem_t * pxIterator;
+        const ListItem_t * xEnd = listGET_END_MARKER( &xCallbackList );
+
+        vTaskSuspendAll();
         {
-            if( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier )
+            for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
+                 pxIterator != ( const ListItem_t * ) xEnd;
+                 pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator ) )
             {
-                DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t,
-                                                                     listGET_LIST_ITEM_OWNER( pxIterator ) );
-
-                pxCallback->pCallbackFunction( pcName, pxCallback->pvSearchID,
-                                               ulIPAddress );
-                ( void ) uxListRemove( &pxCallback->xListItem );
-                vPortFree( pxCallback );
-
-                if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
+                if( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier )
                 {
-                    /* The list of outstanding requests is empty. No need for periodic polling. */
-                    vIPSetDnsTimerEnableState( pdFALSE );
-                }
+                    DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t,
+                                                                         listGET_LIST_ITEM_OWNER( pxIterator ) );
 
-                xResult = pdTRUE;
-                break;
+                    pxCallback->pCallbackFunction( pcName, pxCallback->pvSearchID,
+                                                   ulIPAddress );
+                    ( void ) uxListRemove( &pxCallback->xListItem );
+                    vPortFree( pxCallback );
+
+                    if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
+                    {
+                        /* The list of outstanding requests is empty. No need for periodic polling. */
+                        vIPSetDnsTimerEnableState( pdFALSE );
+                    }
+
+                    xResult = pdTRUE;
+                    break;
+                }
             }
         }
+        ( void ) xTaskResumeAll();
+        return xResult;
     }
-    ( void ) xTaskResumeAll();
-    return xResult;
-}
 
 /**
  * @brief FreeRTOS_gethostbyname_a() was called along with callback parameters.
@@ -100,45 +101,45 @@ BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
  * @param[in] uxTimeout: Timeout of the callback function.
  * @param[in] uxIdentifier: Random number used as ID in the DNS message.
  */
-void vDNSSetCallBack( const char * pcHostName,
-                     void * pvSearchID,
-                     FOnDNSEvent pCallbackFunction,
-                     TickType_t uxTimeout,
-                     TickType_t uxIdentifier )
-{
-    size_t lLength = strlen( pcHostName );
-    DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, pvPortMalloc( sizeof( *pxCallback ) + lLength ) );
-
-    /* Translate from ms to number of clock ticks. */
-    uxTimeout /= portTICK_PERIOD_MS;
-
-    if( pxCallback != NULL )
+    void vDNSSetCallBack( const char * pcHostName,
+                          void * pvSearchID,
+                          FOnDNSEvent pCallbackFunction,
+                          TickType_t uxTimeout,
+                          TickType_t uxIdentifier )
     {
-        if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
-        {
-            /* This is the first one, start the DNS timer to check for timeouts */
-            vIPReloadDNSTimer( FreeRTOS_min_uint32( 1000U, uxTimeout ) );
-        }
+        size_t lLength = strlen( pcHostName );
+        DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, pvPortMalloc( sizeof( *pxCallback ) + lLength ) );
 
-        ( void ) strcpy( pxCallback->pcName, pcHostName );
-        pxCallback->pCallbackFunction = pCallbackFunction;
-        pxCallback->pvSearchID = pvSearchID;
-        pxCallback->uxRemaningTime = uxTimeout;
-        vTaskSetTimeOutState( &pxCallback->uxTimeoutState );
-        listSET_LIST_ITEM_OWNER( &( pxCallback->xListItem ), ( void * ) pxCallback );
-        listSET_LIST_ITEM_VALUE( &( pxCallback->xListItem ), uxIdentifier );
-        vTaskSuspendAll();
+        /* Translate from ms to number of clock ticks. */
+        uxTimeout /= portTICK_PERIOD_MS;
+
+        if( pxCallback != NULL )
         {
-            vListInsertEnd( &xCallbackList, &pxCallback->xListItem );
+            if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
+            {
+                /* This is the first one, start the DNS timer to check for timeouts */
+                vIPReloadDNSTimer( FreeRTOS_min_uint32( 1000U, uxTimeout ) );
+            }
+
+            ( void ) strcpy( pxCallback->pcName, pcHostName );
+            pxCallback->pCallbackFunction = pCallbackFunction;
+            pxCallback->pvSearchID = pvSearchID;
+            pxCallback->uxRemaningTime = uxTimeout;
+            vTaskSetTimeOutState( &pxCallback->uxTimeoutState );
+            listSET_LIST_ITEM_OWNER( &( pxCallback->xListItem ), ( void * ) pxCallback );
+            listSET_LIST_ITEM_VALUE( &( pxCallback->xListItem ), uxIdentifier );
+            vTaskSuspendAll();
+            {
+                vListInsertEnd( &xCallbackList, &pxCallback->xListItem );
+            }
+            ( void ) xTaskResumeAll();
         }
-        ( void ) xTaskResumeAll();
+        else
+        {
+            FreeRTOS_debug_printf( ( " vDNSSetCallBack : Could not allocate memory: %lu bytes",
+                                     sizeof( *pxCallback ) + lLength ) );
+        }
     }
-    else
-    {
-        FreeRTOS_debug_printf( ( " vDNSSetCallBack : Could not allocate memory: %lu bytes",
-                                 sizeof( *pxCallback ) + lLength ) );
-    }
-}
 
 /**
  * @brief Iterate through the list of call-back structures and remove
@@ -150,49 +151,48 @@ void vDNSSetCallBack( const char * pcHostName,
  *                 DNS request is being cancelled. If non-ID specific checking of
  *                 all requests is required, then this field should be kept as NULL.
  */
-void vDNSCheckCallBack( void * pvSearchID )
-{
-    const ListItem_t * pxIterator;
-    const ListItem_t * xEnd = listGET_END_MARKER( &xCallbackList );
-
-    vTaskSuspendAll();
+    void vDNSCheckCallBack( void * pvSearchID )
     {
-        for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
-                pxIterator != xEnd;
-                )
-        {
-            DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
-            /* Move to the next item because we might remove this item */
-            pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator );
+        const ListItem_t * pxIterator;
+        const ListItem_t * xEnd = listGET_END_MARKER( &xCallbackList );
 
-            if( ( pvSearchID != NULL ) && ( pvSearchID == pxCallback->pvSearchID ) )
+        vTaskSuspendAll();
+        {
+            for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
+                 pxIterator != xEnd;
+                 )
             {
-                ( void ) uxListRemove( &( pxCallback->xListItem ) );
-                vPortFree( pxCallback );
-            }
-            else if( xTaskCheckForTimeOut( &pxCallback->uxTimeoutState, &pxCallback->uxRemaningTime ) != pdFALSE )
-            {
-                pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, 0 );
-                ( void ) uxListRemove( &( pxCallback->xListItem ) );
-                vPortFree( pxCallback );
-            }
-            else
-            {
-                /* This call-back is still waiting for a reply or a time-out. */
+                DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                /* Move to the next item because we might remove this item */
+                pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator );
+
+                if( ( pvSearchID != NULL ) && ( pvSearchID == pxCallback->pvSearchID ) )
+                {
+                    ( void ) uxListRemove( &( pxCallback->xListItem ) );
+                    vPortFree( pxCallback );
+                }
+                else if( xTaskCheckForTimeOut( &pxCallback->uxTimeoutState, &pxCallback->uxRemaningTime ) != pdFALSE )
+                {
+                    pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, 0 );
+                    ( void ) uxListRemove( &( pxCallback->xListItem ) );
+                    vPortFree( pxCallback );
+                }
+                else
+                {
+                    /* This call-back is still waiting for a reply or a time-out. */
+                }
             }
         }
-    }
-    ( void ) xTaskResumeAll();
+        ( void ) xTaskResumeAll();
 
-    if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
+        if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
+        {
+            vIPSetDnsTimerEnableState( pdFALSE );
+        }
+    }
+
+    void vDNSCallbackInitialise()
     {
-        vIPSetDnsTimerEnableState( pdFALSE );
+        vListInitialise( &xCallbackList );
     }
-}
-
-void vDNSCallbackInitialise()
-{
-    vListInitialise( &xCallbackList );
-}
-#endif
-
+#endif /* if ( ipconfigDNS_USE_CALLBACKS == 1 ) */

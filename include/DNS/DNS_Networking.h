@@ -28,22 +28,24 @@
 #include "FreeRTOS_Sockets.h"
 #include "DNS/DNS_Globals.h"
 
+#if ( ipconfigUSE_DNS != 0 )
+
 /*
  * Create a socket and bind it to the standard DNS port number.  Return the
  * the created socket - or NULL if the socket could not be created or bound.
  */
-Socket_t DNS_CreateSocket( TickType_t uxReadTimeOut_ticks );
+    Socket_t DNS_CreateSocket( TickType_t uxReadTimeOut_ticks );
 
-uint32_t DNS_SendRequest( const char * pcHostName,
-                      TickType_t uxIdentifier,
-                      Socket_t xDNSSocket,
-                      struct freertos_sockaddr * xAddress,
-                      struct dns_buffer * pxDNSBuf );
+    uint32_t DNS_SendRequest( const char * pcHostName,
+                              TickType_t uxIdentifier,
+                              Socket_t xDNSSocket,
+                              struct freertos_sockaddr * xAddress,
+                              struct dns_buffer * pxDNSBuf );
 
-void DNS_ReadReply( Socket_t xDNSSocket,
-                            struct freertos_sockaddr * xAddress,
-                            struct dns_buffer * pxReceiveBuffer );
+    void DNS_ReadReply( Socket_t xDNSSocket,
+                        struct freertos_sockaddr * xAddress,
+                        struct dns_buffer * pxReceiveBuffer );
 
-void DNS_CloseSocket( Socket_t xDNSSocket );
-
-#endif
+    void DNS_CloseSocket( Socket_t xDNSSocket );
+#endif /* if ( ipconfigUSE_DNS != 0 ) */
+#endif /* ifndef DNS_NETWORKING_H */

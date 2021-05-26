@@ -37,7 +37,7 @@
 /* Standard includes. */
 #include <stdint.h>
 
-#if ( ipconfigDNS_USE_CALLBACKS == 1 )
+#if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
     BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
                                const char * pcName,
                                uint32_t ulIPAddress );
