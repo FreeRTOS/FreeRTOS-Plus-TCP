@@ -33,46 +33,49 @@
 
 /* Standard includes. */
 #include <stdint.h>
+#if ( ipconfigUSE_DNS != 0 )
 
 /** @brief If the top two bits in the first character of a name field are set then the
  * name field is an offset to the string, rather than the string itself. */
-#define dnsNAME_IS_OFFSET    ( ( uint8_t ) 0xc0 )
+    #define dnsNAME_IS_OFFSET    ( ( uint8_t ) 0xc0 )
 
 /** @brief Flag DNS parsing errors in situations where an IPv4 address is the return
  * type. */
 
-#if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
-size_t DNS_ReadNameField( const uint8_t * pucByte,
-                         size_t uxRemainingBytes,
-                         char * pcName,
-                         size_t uxDestLen );
-#endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
+    #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+        size_t DNS_ReadNameField( const uint8_t * pucByte,
+                                  size_t uxRemainingBytes,
+                                  char * pcName,
+                                  size_t uxDestLen );
+    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
 
 /*
  * Simple routine that jumps over the NAME field of a resource record.
  * It returns the number of bytes read.
  */
-size_t DNS_SkipNameField( const uint8_t * pucByte,
-                         size_t uxLength );
+    size_t DNS_SkipNameField( const uint8_t * pucByte,
+                              size_t uxLength );
 
 /*
  * Process a response packet from a DNS server.
  * The parameter 'xExpected' indicates whether the identifier in the reply
  * was expected, and thus if the DNS cache may be updated with the reply.
  */
-uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                            size_t uxBufferLength,
-                            BaseType_t xExpected );
+    uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+                                size_t uxBufferLength,
+                                BaseType_t xExpected );
+
 /*
  * The NBNS and the LLMNR protocol share this reply function.
  */
     #if ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) )
         void prepareReplyDNSMessage( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                        BaseType_t lNetLength );
+                                     BaseType_t lNetLength );
     #endif
-#if ( ipconfigUSE_NBNS == 1 )
-    void DNS_TreatNBNS( uint8_t * pucPayload,
-                        size_t uxBufferLength,
-                        uint32_t ulIPAddress );
-#endif
-#endif
+    #if ( ipconfigUSE_NBNS == 1 )
+        void DNS_TreatNBNS( uint8_t * pucPayload,
+                            size_t uxBufferLength,
+                            uint32_t ulIPAddress );
+    #endif
+#endif /* if ( ipconfigUSE_DNS != 0 ) */
+#endif /* ifndef DNS_PARSER_H */

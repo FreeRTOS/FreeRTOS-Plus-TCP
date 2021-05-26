@@ -25,7 +25,6 @@
 #ifndef DNS_CACHE_H
 #define DNS_CACHE_H
 
-#if( ipconfigUSE_DNS_CACHE == 1 )
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 
@@ -35,19 +34,20 @@
 /* Standard includes. */
 #include <stdint.h>
 
+#if ( ( ipconfigUSE_DNS_CACHE == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
-uint32_t FreeRTOS_dnslookup( const char * pcHostName );
+    uint32_t FreeRTOS_dnslookup( const char * pcHostName );
 
-void FreeRTOS_dnsclear( void );
+    void FreeRTOS_dnsclear( void );
 
-BaseType_t FreeRTOS_dns_update( const char * pcName,
-                                uint32_t * pulIP,
-                                uint32_t ulTTL);
+    BaseType_t FreeRTOS_dns_update( const char * pcName,
+                                    uint32_t * pulIP,
+                                    uint32_t ulTTL );
 
-BaseType_t FreeRTOS_ProcessDNSCache( const char * pcName,
-                               uint32_t * pulIP,
-                               uint32_t ulTTL,
-                               BaseType_t xLookUp );
-#endif
+    BaseType_t FreeRTOS_ProcessDNSCache( const char * pcName,
+                                         uint32_t * pulIP,
+                                         uint32_t ulTTL,
+                                         BaseType_t xLookUp );
+#endif /* if ( ipconfigUSE_DNS_CACHE == 1 ) */
 
-#endif
+#endif /* ifndef DNS_CACHE_H */

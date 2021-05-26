@@ -228,14 +228,14 @@ extern const BaseType_t xBufferAllocFixedSize;
  *                        the DNS request being cancelled. Note that the value of
  *                        the pointer matters, not the pointee.
  */
-void FreeRTOS_gethostbyname_cancel( void * pvSearchID )
-{
-    /* _HT_ Should better become a new API call to have the IP-task remove the callback */
-    vDNSCheckCallBack( pvSearchID );
-}
+        void FreeRTOS_gethostbyname_cancel( void * pvSearchID )
+        {
+            /* _HT_ Should better become a new API call to have the IP-task remove the callback */
+            vDNSCheckCallBack( pvSearchID );
+        }
         /*-----------------------------------------------------------*/
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 
     #endif /* ipconfigDNS_USE_CALLBACKS == 1 */
@@ -312,6 +312,7 @@ void FreeRTOS_gethostbyname_cancel( void * pvSearchID )
         TickType_t uxIdentifier = 0U;
 
         BaseType_t xLengthOk = pdFALSE;
+
         if( pcHostName != NULL )
         {
             size_t xLength = strlen( pcHostName ) + 1U;
@@ -324,8 +325,8 @@ void FreeRTOS_gethostbyname_cancel( void * pvSearchID )
             else
             {
                 FreeRTOS_printf( ( "prvPrepareLookup: name is too long ( %lu > %lu )\n",
-                                    ( uint32_t ) xLength,
-                                    ( uint32_t ) ipconfigDNS_CACHE_NAME_LENGTH ) );
+                                   ( uint32_t ) xLength,
+                                   ( uint32_t ) ipconfigDNS_CACHE_NAME_LENGTH ) );
             }
         }
 
@@ -398,187 +399,204 @@ void FreeRTOS_gethostbyname_cancel( void * pvSearchID )
                                                 uxReadTimeOut_ticks );
             }
         }
+
         return ulIPAddress;
     }
     /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_LLMNR == 1 )
+    #if ( ipconfigUSE_LLMNR == 1 )
+
 /* If LLMNR is being used then determine if the host name includes a '.' -
  * if not then LLMNR can be used as the lookup method. */
-static BaseType_t llmnr_has_dot(const char * pcHostName )
-{
-    BaseType_t bHasDot = pdFALSE;
-    const char * pucPtr;
-
-    for( pucPtr = pcHostName; *pucPtr != ( char ) 0; pucPtr++ )
-    {
-        if( *pucPtr == '.' )
+        static BaseType_t llmnr_has_dot( const char * pcHostName )
         {
-            bHasDot = pdTRUE;
-            break;
+            BaseType_t bHasDot = pdFALSE;
+            const char * pucPtr;
+
+            for( pucPtr = pcHostName; *pucPtr != ( char ) 0; pucPtr++ )
+            {
+                if( *pucPtr == '.' )
+                {
+                    bHasDot = pdTRUE;
+                    break;
+                }
+            }
+
+            return bHasDot;
+        }
+    #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
+
+    static uint8_t * prvGetPayloadBuffer( NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                                          const char * pcHostName )
+    {
+        size_t uxExpectedPayloadLength;
+        uint8_t * pucUDPPayloadBuffer = NULL;
+        size_t uxHeaderBytes;
+
+        uxHeaderBytes = ipSIZE_OF_ETH_HEADER +
+                        ipSIZE_OF_IPv4_HEADER +
+                        ipSIZE_OF_UDP_HEADER;
+
+        uxExpectedPayloadLength = sizeof( DNSMessage_t ) +
+                                  strlen( pcHostName ) +
+                                  sizeof( uint16_t ) +
+                                  sizeof( uint16_t ) + 2U;
+
+        /* Get a buffer.  This uses a maximum delay, but the delay will be
+         * capped to ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS so the return value
+         * still needs to be tested. */
+        *ppxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxExpectedPayloadLength +
+                                                              uxHeaderBytes,
+                                                              0UL );
+
+        if( *ppxNetworkBuffer != NULL )
+        {
+            pucUDPPayloadBuffer = &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ uxHeaderBytes ] );
+        }
+
+        return pucUDPPayloadBuffer;
+    }
+
+    static void prvFillSockAddress( struct freertos_sockaddr * xAddress,
+                                    uint8_t * pucUDPPayloadBuffer,
+                                    const char * pcHostName )
+    {
+        uint32_t ulIPAddress = 0UL;
+
+        /* Obtain the DNS server address. */
+        FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, &ulIPAddress );
+        #if ( ipconfigUSE_LLMNR == 1 )
+            BaseType_t bHasDot = llmnr_has_dot( pcHostName );
+        #endif /* ipconfigUSE_LLMNR == 1 */
+
+        #if ( ipconfigUSE_LLMNR == 1 )
+            if( bHasDot == pdFALSE )
+            {
+                /* Use LLMNR addressing. */
+                ( ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucUDPPayloadBuffer ) )->usFlags = 0;
+                xAddress->sin_addr = ipLLMNR_IP_ADDR; /* Is in network byte order. */
+                xAddress->sin_port = ipLLMNR_PORT;
+                xAddress->sin_port = FreeRTOS_ntohs( xAddress->sin_port );
+            }
+            else
+        #endif
+        {
+            /* Use DNS server. */
+            xAddress->sin_addr = ulIPAddress;
+            xAddress->sin_port = dnsDNS_PORT;
         }
     }
-    return bHasDot;
-}
-#endif
 
-static uint8_t * prvGetPayloadBuffer( NetworkBufferDescriptor_t **ppxNetworkBuffer,
-                                      const char * pcHostName )
-{
-    size_t uxExpectedPayloadLength;
-    uint8_t * pucUDPPayloadBuffer = NULL;
-    size_t uxHeaderBytes;
-
-    uxHeaderBytes = ipSIZE_OF_ETH_HEADER  +
-                    ipSIZE_OF_IPv4_HEADER +
-                    ipSIZE_OF_UDP_HEADER;
-
-    uxExpectedPayloadLength = sizeof( DNSMessage_t ) +
-                                strlen( pcHostName ) +
-                                sizeof( uint16_t ) +
-                                sizeof( uint16_t ) + 2U;
-
-    /* Get a buffer.  This uses a maximum delay, but the delay will be
-        * capped to ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS so the return value
-        * still needs to be tested. */
-    *ppxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxExpectedPayloadLength  +
-                                                                uxHeaderBytes,
-                                                        0UL );
-    if( *ppxNetworkBuffer != NULL )
+    static uint32_t prvDNSReply( struct dns_buffer * pxReceiveBuffer,
+                                 TickType_t uxIdentifier )
     {
-        pucUDPPayloadBuffer = &( (*ppxNetworkBuffer)->pucEthernetBuffer[ uxHeaderBytes ] );
-    }
-    return pucUDPPayloadBuffer;
-}
+        uint32_t ulIPAddress = 0UL;
+        BaseType_t xExpected;
+        const DNSMessage_t * pxDNSMessageHeader =
+            ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( DNSMessage_t,
+                                                pxReceiveBuffer->pucPayloadBuffer );
 
-static void prvFillSockAddress( struct freertos_sockaddr * xAddress,
-                                uint8_t * pucUDPPayloadBuffer,
-                                const char * pcHostName )
-{
-    uint32_t ulIPAddress = 0UL;
-    /* Obtain the DNS server address. */
-    FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, &ulIPAddress );
-    #if ( ipconfigUSE_LLMNR == 1 )
-        BaseType_t bHasDot = llmnr_has_dot( pcHostName );
-    #endif /* ipconfigUSE_LLMNR == 1 */
+        /* See if the identifiers match. */
+        xExpected = ( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier );
 
-    #if ( ipconfigUSE_LLMNR == 1 )
-        if( bHasDot == pdFALSE )
+        /* The reply was received.  Process it. */
+        #if ( ipconfigDNS_USE_CALLBACKS == 0 )
+
+            /* It is useless to analyse the unexpected reply
+             * unless asynchronous look-ups are enabled. */
+            if( xExpected != pdFALSE )
+        #endif /* ipconfigDNS_USE_CALLBACKS == 0 */
         {
-            /* Use LLMNR addressing. */
-            ( ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucUDPPayloadBuffer ) )->usFlags = 0;
-            xAddress->sin_addr = ipLLMNR_IP_ADDR; /* Is in network byte order. */
-            xAddress->sin_port = ipLLMNR_PORT;
-            xAddress->sin_port = FreeRTOS_ntohs( xAddress->sin_port );
+            ulIPAddress = DNS_ParseDNSReply( pxReceiveBuffer->pucPayloadBuffer,
+                                             pxReceiveBuffer->uxPayloadLength,
+                                             xExpected );
         }
-        else
-    #endif
-    {
-        /* Use DNS server. */
-        xAddress->sin_addr = ulIPAddress;
-        xAddress->sin_port = dnsDNS_PORT;
+
+        return ulIPAddress;
     }
-}
-
-static uint32_t prvDNSReply( struct dns_buffer * pxReceiveBuffer,
-                             TickType_t uxIdentifier )
-{
-    uint32_t ulIPAddress = 0UL;
-    BaseType_t xExpected;
-    const DNSMessage_t * pxDNSMessageHeader =
-                ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( DNSMessage_t,
-                                                    pxReceiveBuffer->pucPayloadBuffer );
-
-    /* See if the identifiers match. */
-    xExpected = ( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier );
-
-    /* The reply was received.  Process it. */
-    #if ( ipconfigDNS_USE_CALLBACKS == 0 )
-
-        /* It is useless to analyse the unexpected reply
-            * unless asynchronous look-ups are enabled. */
-        if( xExpected != pdFALSE )
-    #endif /* ipconfigDNS_USE_CALLBACKS == 0 */
-    {
-        ulIPAddress = DNS_ParseDNSReply( pxReceiveBuffer->pucPayloadBuffer,
-                                        pxReceiveBuffer->uxPayloadLength,
-                                        xExpected );
-    }
-    return ulIPAddress;
-}
 
 /* main dns operation description function */
-static uint32_t prvGetHostByNameOp( const char * pcHostName,
-                                    TickType_t uxIdentifier,
-                                    Socket_t xDNSSocket,
-                                    struct dns_buffer * pxDNSBuf)
-{
-    uint32_t ulIPAddress = 0UL;
-    BaseType_t xReturn;
-    struct freertos_sockaddr xAddress;
-    struct dns_buffer xReceiveBuffer;
-
-    prvFillSockAddress( &xAddress, pxDNSBuf->pucPayloadBuffer, pcHostName );
-
-    do {
-        /* Create the message in the obtained buffer. */
-         pxDNSBuf->uxPayloadLength = prvCreateDNSMessage( pxDNSBuf->pucPayloadBuffer,
-                                                          pcHostName,
-                                                          uxIdentifier );
-         /* cannot be zero
-        if( pxDNSBuf->uxPayloadLength == 0 )
-        {
-            break;
-        }
-        */
-        /* send the dns message */
-        xReturn = DNS_SendRequest( pcHostName,
-                                 uxIdentifier,
-                                 xDNSSocket,
-                                 &xAddress,
-                                 pxDNSBuf );
-        if( xReturn == pdFAIL )
-        {
-            break;
-        }
-        /* receive a dns reply message */
-        DNS_ReadReply( xDNSSocket,
-                       &xAddress,
-                       &xReceiveBuffer );
-        if (xReceiveBuffer.pucPayloadBuffer == NULL )
-        {
-            break;
-        }
-        ulIPAddress = prvDNSReply( &xReceiveBuffer, uxIdentifier );
-        /* Finished with the buffer.  The zero copy interface
-         * is being used, so the buffer must be freed by the
-         * task. */
-        FreeRTOS_ReleaseUDPPayloadBuffer( xReceiveBuffer.pucPayloadBuffer );
-    } while ( 0 );
-    return ulIPAddress;
-}
-
-static uint32_t prvGetHostByNameOp_WithRetry( const char * pcHostName,
-                                              TickType_t uxIdentifier,
-                                              Socket_t xDNSSocket,
-                                              struct dns_buffer * pxDNSBuf)
-{
-    BaseType_t xAttempt;
-    uint32_t ulIPAddress = 0UL;
-
-    for( xAttempt = 0; xAttempt <  ipconfigDNS_REQUEST_ATTEMPTS; xAttempt++ )
+    static uint32_t prvGetHostByNameOp( const char * pcHostName,
+                                        TickType_t uxIdentifier,
+                                        Socket_t xDNSSocket,
+                                        struct dns_buffer * pxDNSBuf )
     {
-        ulIPAddress =  prvGetHostByNameOp( pcHostName,
-                                           uxIdentifier,
-                                           xDNSSocket,
-                                           pxDNSBuf);
-        if( ulIPAddress !=  0 )
-        {   /* ip found, no need to retry */
-            break;
-        }
+        uint32_t ulIPAddress = 0UL;
+        BaseType_t xReturn;
+        struct freertos_sockaddr xAddress;
+        struct dns_buffer xReceiveBuffer;
+
+        prvFillSockAddress( &xAddress, pxDNSBuf->pucPayloadBuffer, pcHostName );
+
+        do
+        {
+            /* Create the message in the obtained buffer. */
+            pxDNSBuf->uxPayloadLength = prvCreateDNSMessage( pxDNSBuf->pucPayloadBuffer,
+                                                             pcHostName,
+                                                             uxIdentifier );
+
+            /* cannot be zero
+             * if( pxDNSBuf->uxPayloadLength == 0 )
+             * {
+             * break;
+             * }
+             */
+            /* send the dns message */
+            xReturn = DNS_SendRequest( pcHostName,
+                                       uxIdentifier,
+                                       xDNSSocket,
+                                       &xAddress,
+                                       pxDNSBuf );
+
+            if( xReturn == pdFAIL )
+            {
+                break;
+            }
+
+            /* receive a dns reply message */
+            DNS_ReadReply( xDNSSocket,
+                           &xAddress,
+                           &xReceiveBuffer );
+
+            if( xReceiveBuffer.pucPayloadBuffer == NULL )
+            {
+                break;
+            }
+
+            ulIPAddress = prvDNSReply( &xReceiveBuffer, uxIdentifier );
+
+            /* Finished with the buffer.  The zero copy interface
+             * is being used, so the buffer must be freed by the
+             * task. */
+            FreeRTOS_ReleaseUDPPayloadBuffer( xReceiveBuffer.pucPayloadBuffer );
+        } while( 0 );
+
+        return ulIPAddress;
     }
-    return ulIPAddress;
-}
+
+    static uint32_t prvGetHostByNameOp_WithRetry( const char * pcHostName,
+                                                  TickType_t uxIdentifier,
+                                                  Socket_t xDNSSocket,
+                                                  struct dns_buffer * pxDNSBuf )
+    {
+        BaseType_t xAttempt;
+        uint32_t ulIPAddress = 0UL;
+
+        for( xAttempt = 0; xAttempt < ipconfigDNS_REQUEST_ATTEMPTS; xAttempt++ )
+        {
+            ulIPAddress = prvGetHostByNameOp( pcHostName,
+                                              uxIdentifier,
+                                              xDNSSocket,
+                                              pxDNSBuf );
+
+            if( ulIPAddress != 0 )
+            { /* ip found, no need to retry */
+                break;
+            }
+        }
+
+        return ulIPAddress;
+    }
 
 
 /**
@@ -601,12 +619,14 @@ static uint32_t prvGetHostByNameOp_WithRetry( const char * pcHostName,
         NetworkBufferDescriptor_t * pxNetworkBuffer;
         struct dns_buffer xDNSBuf;
 
-        //get dns message buffer
+        /*get dns message buffer */
         xDNSBuf.pucPayloadBuffer = prvGetPayloadBuffer( &pxNetworkBuffer,
-                                                           pcHostName );
+                                                        pcHostName );
+
         if( xDNSBuf.pucPayloadBuffer != NULL )
         {
             xDNSSocket = DNS_CreateSocket( uxReadTimeOut_ticks );
+
             if( xDNSSocket != NULL )
             {
                 if( uxReadTimeOut_ticks == 0 )
@@ -614,20 +634,23 @@ static uint32_t prvGetHostByNameOp_WithRetry( const char * pcHostName,
                     ulIPAddress = prvGetHostByNameOp( pcHostName,
                                                       uxIdentifier,
                                                       xDNSSocket,
-                                                      &xDNSBuf);
+                                                      &xDNSBuf );
                 }
                 else
                 {
-                    ulIPAddress =  prvGetHostByNameOp_WithRetry( pcHostName,
-                                                                 uxIdentifier,
-                                                                 xDNSSocket,
-                                                                 &xDNSBuf);
+                    ulIPAddress = prvGetHostByNameOp_WithRetry( pcHostName,
+                                                                uxIdentifier,
+                                                                xDNSSocket,
+                                                                &xDNSBuf );
                 }
+
                 /* Finished with the socket. */
                 DNS_CloseSocket( xDNSSocket );
             }
+
             vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
         }
+
         return ulIPAddress;
     }
     /*-----------------------------------------------------------*/
@@ -732,7 +755,7 @@ static uint32_t prvGetHostByNameOp_WithRetry( const char * pcHostName,
         return uxIndex + sizeof( DNSTail_t ) + 1U;
     }
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 /* The function below will only be called :
  * when ipconfigDNS_USE_CALLBACKS == 1
@@ -745,7 +768,7 @@ static uint32_t prvGetHostByNameOp_WithRetry( const char * pcHostName,
  *
  * @param[in] pxNetworkBuffer: The network buffer to be parsed.
  *
- * @return Always pdFAIL to indicate that the packet was not consumed and must
+ * @return pdFAIL Always to indicate that the packet was not consumed and must
  *         be released by the caller.
  */
     uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
@@ -788,7 +811,7 @@ static uint32_t prvGetHostByNameOp_WithRetry( const char * pcHostName,
         uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
         {
             UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t,
-                                        pxNetworkBuffer->pucEthernetBuffer );
+                                                                pxNetworkBuffer->pucEthernetBuffer );
             uint8_t * pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( *pxUDPPacket ) ] );
 
             size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
@@ -796,18 +819,18 @@ static uint32_t prvGetHostByNameOp_WithRetry( const char * pcHostName,
             /* Check for minimum buffer size. */
             if( pxNetworkBuffer->xDataLength >= uxBytesNeeded )
             {
-                 DNS_TreatNBNS( pucUDPPayloadBuffer,
-                                pxNetworkBuffer->xDataLength,
-                                pxUDPPacket->xIPHeader.ulSourceIPAddress );
-
+                DNS_TreatNBNS( pucUDPPayloadBuffer,
+                               pxNetworkBuffer->xDataLength,
+                               pxUDPPacket->xIPHeader.ulSourceIPAddress );
             }
+
             /* The packet was not consumed. */
             return pdFAIL;
         }
 
     #endif /* ipconfigUSE_NBNS */
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 #endif /* ipconfigUSE_DNS != 0 */
 
