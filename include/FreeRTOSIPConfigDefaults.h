@@ -640,7 +640,7 @@
 #endif
 
 #ifndef ipconfigTCP_MEM_STATS_MAX_ALLOCATION
-	/* See "/tools/tcp_utilities/tcp_mem_stats.c". */
+    /* See "/tools/tcp_utilities/tcp_mem_stats.c". */
     #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    0
 #endif
 

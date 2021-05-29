@@ -2546,11 +2546,11 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                                      BaseType_t xOutgoingPacket )
 {
     uint32_t ulLength;
-	uint16_t usChecksum;            /* The checksum as calculated. */
-	uint16_t usChecksumFound = 0U;  /* The checksum as found in the incoming packet. */
+    uint16_t usChecksum;           /* The checksum as calculated. */
+    uint16_t usChecksumFound = 0U; /* The checksum as found in the incoming packet. */
     const IPPacket_t * pxIPPacket;
     UBaseType_t uxIPHeaderLength;
-	ProtocolPacket_t * pxProtPack;
+    ProtocolPacket_t * pxProtPack;
     uint8_t ucProtocol;
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
@@ -2607,7 +2607,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
          * and IP headers incorrectly aligned. However, either way, the "third"
          * protocol (Layer 3 or 4) header will be aligned, which is the convenience
          * of this calculation. */
-		pxProtPack = ipCAST_PTR_TO_TYPE_PTR( ProtocolPacket_t, &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
+        pxProtPack = ipCAST_PTR_TO_TYPE_PTR( ProtocolPacket_t, &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
         /* Switch on the Layer 3/4 protocol. */
         if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
@@ -2619,15 +2619,16 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                 break;
             }
 
-			if( xOutgoingPacket != pdFALSE )
-			{
-				/* Clear the UDP checksum field before calculating it. */
-				pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0U;
-			}
-			else
-			{
-				usChecksumFound = pxProtPack->xUDPPacket.xUDPHeader.usChecksum;
-			}
+            if( xOutgoingPacket != pdFALSE )
+            {
+                /* Clear the UDP checksum field before calculating it. */
+                pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0U;
+            }
+            else
+            {
+                usChecksumFound = pxProtPack->xUDPPacket.xUDPHeader.usChecksum;
+            }
+
             #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
                 {
                     pcType = "UDP";
@@ -2643,15 +2644,16 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                 break;
             }
 
-			if( xOutgoingPacket != pdFALSE )
-			{
-				/* Clear the TCP checksum field before calculating it. */
-				pxProtPack->xTCPPacket.xTCPHeader.usChecksum = 0U;
-			}
-			else
-			{
-				usChecksumFound = pxProtPack->xTCPPacket.xTCPHeader.usChecksum;
-			}
+            if( xOutgoingPacket != pdFALSE )
+            {
+                /* Clear the TCP checksum field before calculating it. */
+                pxProtPack->xTCPPacket.xTCPHeader.usChecksum = 0U;
+            }
+            else
+            {
+                usChecksumFound = pxProtPack->xTCPPacket.xTCPHeader.usChecksum;
+            }
+
             #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
                 {
                     pcType = "TCP";
@@ -2668,15 +2670,16 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                 break;
             }
 
-			if( xOutgoingPacket != pdFALSE )
-			{
-				/* Clear the ICMP/IGMP checksum field before calculating it. */
-				pxProtPack->xICMPPacket.xICMPHeader.usChecksum = 0U;
-			}
-			else
-			{
-				usChecksumFound = pxProtPack->xICMPPacket.xICMPHeader.usChecksum;
-			}
+            if( xOutgoingPacket != pdFALSE )
+            {
+                /* Clear the ICMP/IGMP checksum field before calculating it. */
+                pxProtPack->xICMPPacket.xICMPHeader.usChecksum = 0U;
+            }
+            else
+            {
+                usChecksumFound = pxProtPack->xICMPPacket.xICMPHeader.usChecksum;
+            }
+
             #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
                 {
                     if( ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
@@ -2702,9 +2705,9 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
          * of the packet. */
         if( xOutgoingPacket != pdFALSE )
         {
-			/* This is an outgoing packet. The CRC-field has been cleared. */
+            /* This is an outgoing packet. The CRC-field has been cleared. */
         }
-		else if( ( usChecksumFound == 0U ) && ( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP ) )
+        else if( ( usChecksumFound == 0U ) && ( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP ) )
         {
             #if ( ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS == 0 )
                 {
@@ -2804,18 +2807,21 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 
         if( xOutgoingPacket != pdFALSE )
         {
-			switch( ucProtocol )
-			case ipPROTOCOL_UDP:
-				pxProtPack->xUDPPacket.xUDPHeader.usChecksum = usChecksum;
-				break;
-			case ipPROTOCOL_TCP:
-				pxProtPack->xTCPPacket.xTCPHeader.usChecksum = usChecksum;
-				break;
-			case ipPROTOCOL_ICMP:
-			case ipPROTOCOL_IGMP:
-				pxProtPack->xICMPPacket.xICMPHeader.usChecksum = usChecksum;
-				break;
-			}
+            switch( ucProtocol )
+            {
+                case ipPROTOCOL_UDP:
+                    pxProtPack->xUDPPacket.xUDPHeader.usChecksum = usChecksum;
+                    break;
+
+                case ipPROTOCOL_TCP:
+                    pxProtPack->xTCPPacket.xTCPHeader.usChecksum = usChecksum;
+                    break;
+
+                case ipPROTOCOL_ICMP:
+                case ipPROTOCOL_IGMP:
+                    pxProtPack->xICMPPacket.xICMPHeader.usChecksum = usChecksum;
+                    break;
+            }
         }
 
         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
@@ -2826,7 +2832,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                                          FreeRTOS_ntohs( pxIPPacket->xIPHeader.usIdentification ),
                                          FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ),
                                          FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulDestinationIPAddress ),
-										 FreeRTOS_ntohs( usChecksumFound ) ) );
+                                         FreeRTOS_ntohs( usChecksumFound ) ) );
             }
             else
             {
