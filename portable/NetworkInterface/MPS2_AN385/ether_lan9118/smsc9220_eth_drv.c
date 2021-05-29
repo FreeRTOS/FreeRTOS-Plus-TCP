@@ -669,7 +669,7 @@ enum smsc9220_error_t smsc9220_set_fifo_level_irq( const struct smsc9220_eth_dev
         ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
     enum smsc9220_error_t eReturn = SMSC9220_ERROR_PARAM;
 
-    #if( SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MIN > 0 )
+    #if ( SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MIN > 0 )
         if( level < SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MIN )
         {
             /* An error will be returned. */
