@@ -48,7 +48,14 @@
 #include "tcp_mem_stats.h"
 
 #ifndef ipconfigTCP_MEM_STATS_MAX_ALLOCATION
+
+/* Define the maximum number of objects ( memory allocations by
+ * the IP-stack ) that will be recorded. */
     #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    128u
+
+/* If you don't want to see this pragma message, you can either
+ * remove it or define 'ipconfigTCP_MEM_STATS_MAX_ALLOCATION' in
+ * your freeRTOSIPConfig.h. */
     #pragma message ("ipconfigTCP_MEM_STATS_MAX_ALLOCATION undefined?")
 #endif
 
@@ -104,21 +111,21 @@
                 {
                     /* Already added, strange. */
                     FreeRTOS_printf( ( "vAddAllocation: Pointer %p already added\n", pxObject ) );
-                    return;
+                    break;
                 }
             }
 
-            if( uxAllocationCount >= ipconfigTCP_MEM_STATS_MAX_ALLOCATION )
+            /* If the object has not been found,
+             * and if there is still space, add the object. */
+            if( ( uxIndex == uxAllocationCount ) &&
+                ( uxAllocationCount < ipconfigTCP_MEM_STATS_MAX_ALLOCATION ) )
             {
-                /* The table is full. */
-                return;
+                xAllocations[ uxIndex ].pxObject = pxObject;
+                xAllocations[ uxIndex ].xMemType = xMemType;
+                xAllocations[ uxIndex ].uxSize = uxSize;
+                xAllocations[ uxIndex ].uxNumber = uxNextObjectNumber++;
+                uxAllocationCount++;
             }
-
-            xAllocations[ uxIndex ].pxObject = pxObject;
-            xAllocations[ uxIndex ].xMemType = xMemType;
-            xAllocations[ uxIndex ].uxSize = uxSize;
-            xAllocations[ uxIndex ].uxNumber = uxNextObjectNumber++;
-            uxAllocationCount++;
         }
         xTaskResumeAll();
     }
