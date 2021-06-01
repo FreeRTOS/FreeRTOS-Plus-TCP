@@ -76,6 +76,19 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
     __CPROVER_assume( pxSocket->pxEndPoint != NULL );
 }
 
+/* Abstraction of xSocketValid. Used to determine whether a socket is valid or not. */
+BaseType_t xSocketValid( ConstSocket_t xSocket )
+{
+    BaseType_t xReturn = pdFALSE;
+
+    if( ( xSocket != NULL ) && ( xSocket != FREERTOS_INVALID_SOCKET ) )
+    {
+        xReturn = pdTRUE;
+    }
+
+    return xReturn;
+}
+
 void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = nondet_bool() ? NULL : malloc( sizeof( NetworkBufferDescriptor_t ) );

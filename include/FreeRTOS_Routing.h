@@ -44,15 +44,15 @@
     struct xNetworkInterface;
 
 /* Initialise the interface. */
-    typedef BaseType_t ( * NetworkInterfaceInitialiseFunction_t ) ( struct xNetworkInterface * /* pxDescriptor */ );
+    typedef BaseType_t ( * NetworkInterfaceInitialiseFunction_t ) ( struct xNetworkInterface * pxDescriptor );
 
 /* Send out an Ethernet packet. */
-    typedef BaseType_t ( * NetworkInterfaceOutputFunction_t ) ( struct xNetworkInterface * /* pxDescriptor */,
-                                                                NetworkBufferDescriptor_t * const /* pxNetworkBuffer */,
-                                                                BaseType_t /* xReleaseAfterSend */ );
+    typedef BaseType_t ( * NetworkInterfaceOutputFunction_t ) ( struct xNetworkInterface * pxDescriptor,
+                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                                BaseType_t xReleaseAfterSend );
 
 /* Return true as long as the LinkStatus on the PHY is present. */
-    typedef BaseType_t ( * GetPhyLinkStatusFunction_t ) ( struct xNetworkInterface * /* pxDescriptor */ );
+    typedef BaseType_t ( * GetPhyLinkStatusFunction_t ) ( struct xNetworkInterface * pxDescriptor );
 
 /** @brief These NetworkInterface access functions are collected in a struct: */
     typedef struct xNetworkInterface
@@ -92,6 +92,7 @@
         uint32_t ulGatewayAddress;                                           /**< The IP-address of the gateway. */
         uint32_t ulDNSServerAddresses[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ]; /**< IP-addresses of DNS servers. */
         uint32_t ulBroadcastAddress;                                         /**< The local broadcast address, e.g. '192.168.1.255'. */
+        uint8_t ucDNSIndex;                                                  /**< The index of the next DNS address to be used. */
     } IPV4Parameters_t;
 
     #if ( ipconfigUSE_IPv6 != 0 )
@@ -101,7 +102,8 @@
             size_t uxPrefixLength;          /* Number of valid bytes in the network prefix. */
             IPv6_Address_t xPrefix;         /* The network prefix, e.g. fe80::/10 */
             IPv6_Address_t xGatewayAddress; /* Gateway to the web. */
-            IPv6_Address_t xDNSServerAddresses[ 2 ];
+            IPv6_Address_t xDNSServerAddresses[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ];
+            uint8_t ucDNSIndex;             /**< The index of the next DNS address to be used. */
         } IPV6Parameters_t;
     #endif
 
@@ -175,9 +177,9 @@
         #if ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_RA != 0 )
             IPTimer_t xDHCP_RATimer; /**<  The timer used to call the DHCP/DHCPv6/RA state machine. */
         #endif /* ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_RA != 0 ) */
-        #if ( ipconfigUSE_DHCP != 0 )
+        #if ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 )
             DHCPData_t xDHCPData; /**< A description of the DHCP client state machine. */
-        #endif /* ( ipconfigUSE_DHCP != 0 ) */
+        #endif /* ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 ) */
         #if ( ipconfigUSE_IPv6 != 0 )
             DHCPMessage_IPv6_t * pxDHCPMessage; /**< A description of the DHCPv6 client state machine. */
         #endif
@@ -196,35 +198,13 @@
         #define ENDPOINT_IS_IPv4( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 == 0U ) )
         #define ENDPOINT_IS_IPv6( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 != 0U ) )
 
-        static __inline void CONFIRM_EP_v4( const NetworkEndPoint_t * pxEndPoint )
-        {
-            ( void ) pxEndPoint;
-            configASSERT( pxEndPoint != NULL );
-            configASSERT( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED );
-        }
-        static __inline void CONFIRM_EP_v6( const NetworkEndPoint_t * pxEndPoint )
-        {
-            ( void ) pxEndPoint;
-            configASSERT( pxEndPoint != NULL );
-            configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
-        }
     #else /* if ( ipconfigUSE_IPv6 != 0 ) */
         #define END_POINT_USES_DHCP( pxEndPoint )    ( ( pxEndPoint )->bits.bWantDHCP != pdFALSE_UNSIGNED )
-        #define END_POINT_USES_RA( pxEndPoint )      ( 0 )
+        #define END_POINT_USES_RA( pxEndPoint )      ( ipFALSE_BOOL )
 
-        #define ENDPOINT_IS_IPv4( pxEndPoint )       ( 1 )
-        #define ENDPOINT_IS_IPv6( pxEndPoint )       ( 0 )
+        #define ENDPOINT_IS_IPv4( pxEndPoint )       ( ipTRUE_BOOL )
+        #define ENDPOINT_IS_IPv6( pxEndPoint )       ( ipFALSE_BOOL )
 
-        static __inline void CONFIRM_EP_v4( const NetworkEndPoint_t * pxEndPoint )
-        {
-            ( void ) pxEndPoint;
-            configASSERT( pxEndPoint != NULL );
-        }
-        static __inline void CONFIRM_EP_v6( const NetworkEndPoint_t * pxEndPoint )
-        {
-            ( void ) pxEndPoint;
-            configASSERT( 0 == 1 );
-        }
     #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
 /*
@@ -307,11 +287,7 @@
     NetworkEndPoint_t * FreeRTOS_MatchingEndpoint( NetworkInterface_t * pxNetworkInterface,
                                                    uint8_t * pucEthernetBuffer );
 
-/* Find an end-point that has a defined gateway.. */
-    NetworkEndPoint_t * FreeRTOS_MatchingEndpoint( NetworkInterface_t * pxNetworkInterface,
-                                                   uint8_t * pucEthernetBuffer );
-
-/* Return the default end-point.
+/* Find an end-point that has a defined gateway.
  * xIPType should equal ipTYPE_IPv4 or ipTYPE_IPv6. */
     NetworkEndPoint_t * FreeRTOS_FindGateWay( BaseType_t xIPType );
 
@@ -336,18 +312,20 @@
                                          const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
     #endif
 
+    #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
 /** @brief Some simple network statistics. */
-    typedef struct xRoutingStats
-    {
-        UBaseType_t ulOnIp;             /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called. */
-        UBaseType_t ulOnMAC;            /**< The number of times 'FreeRTOS_FindEndPointOnMAC()' has been called. */
-        UBaseType_t ulOnNetMask;        /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called. */
-        UBaseType_t ulMatching;         /**< The number of times 'FreeRTOS_MatchingEndpoint()' has been called. */
-        UBaseType_t ulLocations[ 14 ];  /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called from a particular location. */
-        UBaseType_t ulLocationsIP[ 8 ]; /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called from a particular location. */
-    } RoutingStats_t;
+        typedef struct xRoutingStats
+        {
+            UBaseType_t ulOnIp;             /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called. */
+            UBaseType_t ulOnMAC;            /**< The number of times 'FreeRTOS_FindEndPointOnMAC()' has been called. */
+            UBaseType_t ulOnNetMask;        /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called. */
+            UBaseType_t ulMatching;         /**< The number of times 'FreeRTOS_MatchingEndpoint()' has been called. */
+            UBaseType_t ulLocations[ 14 ];  /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called from a particular location. */
+            UBaseType_t ulLocationsIP[ 8 ]; /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called from a particular location. */
+        } RoutingStats_t;
 
-    extern RoutingStats_t xRoutingStats;
+        extern RoutingStats_t xRoutingStatistics;
+    #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
     NetworkEndPoint_t * pxGetSocketEndpoint( Socket_t xSocket );
     void vSetSocketEndpoint( Socket_t xSocket,

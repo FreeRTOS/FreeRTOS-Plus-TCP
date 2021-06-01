@@ -40,6 +40,8 @@
         #error FreeRTOSIPConfig.h has not been included yet
     #endif
 
+    #include "FreeRTOS_IP.h"
+
 /* Event bit definitions are required by the select functions. */
     #include "event_groups.h"
 
@@ -145,12 +147,12 @@
     #define FREERTOS_SHUT_RDWR                        ( 2 )
 
 /* Values for flag for FreeRTOS_recv(). */
-    #define FREERTOS_MSG_OOB                          ( 2 )   /* process out-of-band data */
-    #define FREERTOS_MSG_PEEK                         ( 4 )   /* peek at incoming message */
-    #define FREERTOS_MSG_DONTROUTE                    ( 8 )   /* send without using routing tables */
-    #define FREERTOS_MSG_DONTWAIT                     ( 16 )  /* Can be used with recvfrom(), sendto(), recv(), and send(). */
+    #define FREERTOS_MSG_OOB                          ( 2 )  /* process out-of-band data */
+    #define FREERTOS_MSG_PEEK                         ( 4 )  /* peek at incoming message */
+    #define FREERTOS_MSG_DONTROUTE                    ( 8 )  /* send without using routing tables */
+    #define FREERTOS_MSG_DONTWAIT                     ( 16 ) /* Can be used with recvfrom(), sendto(), recv(), and send(). */
 
-    #define FREERTOS_INADDR_ANY                       ( 0UL ) /* The 0.0.0.0 IPv4 address. */
+    #define FREERTOS_INADDR_ANY                       ( 0U ) /* The 0.0.0.0 IPv4 address. */
 
 /** @brief A helper struct to adjust the TCP-window properties. */
     typedef struct xWIN_PROPS
@@ -173,9 +175,9 @@
     } LowHighWater_t;
 
 /* For compatibility with the expected Berkeley sockets naming. */
-    #define socklen_t    uint32_t
+    #define socklen_t    size_t
 
-/** brief For this limited implementation, only two members are required in the
+/** @brief For this limited implementation, only two members are required in the
  * Berkeley style sockaddr structure. */
     struct freertos_sockaddr
     {
@@ -188,6 +190,9 @@
         #endif
     };
 
+/** @brief Introduce a short name to make casting easier. */
+    typedef struct freertos_sockaddr sockaddr4_t;
+
     #if ( ipconfigUSE_IPv6 != 0 )
         struct freertos_sockaddr6
         {
@@ -197,8 +202,9 @@
             uint32_t sin_flowinfo;     /**< IPv6 flow information, not used in this library. */
             IPv6_Address_t sin_addrv6; /**< The IPv6 address. */
         };
-    #endif
-
+        /** @brief Introduce a short name to make casting easier. */
+        typedef struct freertos_sockaddr6 sockaddr6_t;
+    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
 /* In earlier release, FreeRTOS_inet_ntoa was a macro that used snprintf(),
  * which was not MISRA compliant. Now it has become a normal function that
@@ -206,35 +212,30 @@
     extern const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
                                             char * pcBuffer );
 
-/* Testing: when using formatted printing, MISRA and some compilers complain
- * about an incompatibility between format and parameters.
- * Sometimes uint32_t is an unsigned (%u), sometimes it is a ulong (%lu). */
-
-    typedef unsigned   printf_unsigned;
-    typedef int        printf_signed;
-
     #if ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN
 
         #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8UL ) |                                   \
+    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24U ) |                                   \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16U ) |                                   \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8U ) |                                    \
       ( ( uint32_t ) ( ucOctet0 ) ) )
 
     #else /* ipconfigBYTE_ORDER */
 
         #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8UL ) |                                   \
+    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8 ) |                                     \
       ( ( uint32_t ) ( ucOctet3 ) ) )
 
     #endif /* ipconfigBYTE_ORDER */
 
 /* The socket type itself. */
     struct xSOCKET;
-    typedef struct xSOCKET         * Socket_t;
-    typedef struct xSOCKET const   * ConstSocket_t;
+    typedef struct xSOCKET       * Socket_t;
+    typedef struct xSOCKET const * ConstSocket_t;
+
+    BaseType_t xSocketValid( ConstSocket_t xSocket );
 
     #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
@@ -499,8 +500,8 @@
             eSELECT_INTR = 0x0008,
             eSELECT_ALL = 0x000F,
             /* Reserved for internal use: */
-            eSELECT_CALL_IP = 0x0010,
-            /* end */
+            eSELECT_CALL_IP = 0x0010
+                              /* end */
         } eSelectEvent_t;
 
         SocketSet_t FreeRTOS_CreateSocketSet( void );

@@ -84,14 +84,19 @@
 
     #endif /* ipconfigUSE_IPv6 */
 
+    #if ( ipconfigUSE_TCP == 1 )
+
 /*
  * Generate a randomized TCP Initial Sequence Number per RFC.
  * This function must be provided my the application builder.
  */
-    extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
-                                                        uint16_t usSourcePort,
-                                                        uint32_t ulDestinationAddress,
-                                                        uint16_t usDestinationPort );
+        /* The function below is defined in main.c but not seen by Coverity. */
+        /* misra_c_2012_rule_8_6_violation */
+        extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
+                                                            uint16_t usSourcePort,
+                                                            uint32_t ulDestinationAddress,
+                                                            uint16_t usDestinationPort );
+    #endif /* ( ipconfigUSE_TCP == 1 ) */
 
 /* The number of octets in the MAC and IP addresses respectively. */
     #define ipMAC_ADDRESS_LENGTH_BYTES                 ( 6U )
@@ -126,8 +131,8 @@
     #define ipECHO_DATA_FILL_BYTE                      'x'
 
 /* Dimensions the buffers that are filled by received Ethernet frames. */
-    #define ipSIZE_OF_ETH_CRC_BYTES                    ( 4UL )
-    #define ipSIZE_OF_ETH_OPTIONAL_802_1Q_TAG_BYTES    ( 4UL )
+    #define ipSIZE_OF_ETH_CRC_BYTES                    ( 4U )
+    #define ipSIZE_OF_ETH_OPTIONAL_802_1Q_TAG_BYTES    ( 4U )
     #define ipTOTAL_ETHERNET_FRAME_SIZE                ( ( ( uint32_t ) ipconfigNETWORK_MTU ) + ( ( uint32_t ) ipSIZE_OF_ETH_HEADER ) + ipSIZE_OF_ETH_CRC_BYTES + ipSIZE_OF_ETH_OPTIONAL_802_1Q_TAG_BYTES )
 
 
@@ -178,7 +183,7 @@
             struct xNETWORK_BUFFER * pxNextBuffer; /**< Possible optimisation for expert users - requires network driver support. */
         #endif
         #if ( ipconfigUSE_IPv6 != 0 )
-            IPv6_Address_t xIPv6_Address; /**< The IP-address of the unit which sent this packet. */
+            IPv6_Address_t xIPv6Address; /**< The IP-address of the unit which sent this packet. */
         #endif
     } NetworkBufferDescriptor_t;
 
@@ -197,13 +202,15 @@
         eNetworkDown /**< The network connection has been lost. */
     } eIPCallbackEvent_t;
 
+    #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 /** @brief Ping status: used as a parameter for the call-back function vApplicationPingReplyHook(). */
-    typedef enum ePING_REPLY_STATUS
-    {
-        eSuccess = 0,     /**< A correct reply has been received for an outgoing ping. */
-        eInvalidChecksum, /**< A reply was received for an outgoing ping but the checksum of the reply was incorrect. */
-        eInvalidData      /**< A reply was received to an outgoing ping but the payload of the reply was not correct. */
-    } ePingReplyStatus_t;
+        typedef enum ePING_REPLY_STATUS
+        {
+            eSuccess = 0,     /**< A correct reply has been received for an outgoing ping. */
+            eInvalidChecksum, /**< A reply was received for an outgoing ping but the checksum of the reply was incorrect. */
+            eInvalidData      /**< A reply was received to an outgoing ping but the payload of the reply was not correct. */
+        } ePingReplyStatus_t;
+    #endif /* ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
 
 /** @brief A light-weight timer used for various tasks of the IP-task. */
     typedef struct xIP_TIMER
@@ -226,15 +233,15 @@
         #endif
 
         #ifndef FreeRTOS_htonl
-            #define FreeRTOS_htonl( ulIn )                          \
-    (                                                               \
-        ( uint32_t )                                                \
-        (                                                           \
-            ( ( ( ( uint32_t ) ( ulIn ) ) ) << 24 ) |               \
-            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x0000ff00UL ) << 8 ) | \
-            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x00ff0000UL ) >> 8 ) | \
-            ( ( ( ( uint32_t ) ( ulIn ) ) ) >> 24 )                 \
-        )                                                           \
+            #define FreeRTOS_htonl( ulIn )                         \
+    (                                                              \
+        ( uint32_t )                                               \
+        (                                                          \
+            ( ( ( ( uint32_t ) ( ulIn ) ) ) << 24 ) |              \
+            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x0000ff00U ) << 8 ) | \
+            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x00ff0000U ) >> 8 ) | \
+            ( ( ( ( uint32_t ) ( ulIn ) ) ) >> 24 )                \
+        )                                                          \
     )
         #endif /* ifndef FreeRTOS_htonl */
 
@@ -248,75 +255,27 @@
     #define FreeRTOS_ntohs( x )    FreeRTOS_htons( x )
     #define FreeRTOS_ntohl( x )    FreeRTOS_htonl( x )
 
-    #if ( ipconfigHAS_INLINE_FUNCTIONS == 1 )
+/* Some simple helper functions. */
+    int32_t FreeRTOS_max_int32( int32_t a,
+                                int32_t b );
 
-        static portINLINE int32_t FreeRTOS_max_int32( int32_t a,
-                                                      int32_t b );
-        static portINLINE uint32_t FreeRTOS_max_uint32( uint32_t a,
-                                                        uint32_t b );
-        static portINLINE int32_t FreeRTOS_min_int32( int32_t a,
-                                                      int32_t b );
-        static portINLINE uint32_t FreeRTOS_min_uint32( uint32_t a,
-                                                        uint32_t b );
-        static portINLINE uint32_t FreeRTOS_round_up( uint32_t a,
-                                                      uint32_t d );
-        static portINLINE uint32_t FreeRTOS_round_down( uint32_t a,
-                                                        uint32_t d );
-        static portINLINE BaseType_t FreeRTOS_min_BaseType( BaseType_t a,
-                                                            BaseType_t b );
+    uint32_t FreeRTOS_max_uint32( uint32_t a,
+                                  uint32_t b );
 
-        static portINLINE int32_t FreeRTOS_max_int32( int32_t a,
-                                                      int32_t b )
-        {
-            return ( a >= b ) ? a : b;
-        }
-        static portINLINE uint32_t FreeRTOS_max_uint32( uint32_t a,
-                                                        uint32_t b )
-        {
-            return ( a >= b ) ? a : b;
-        }
-        static portINLINE int32_t FreeRTOS_min_int32( int32_t a,
-                                                      int32_t b )
-        {
-            return ( a <= b ) ? a : b;
-        }
-        static portINLINE uint32_t FreeRTOS_min_uint32( uint32_t a,
-                                                        uint32_t b )
-        {
-            return ( a <= b ) ? a : b;
-        }
-        static portINLINE uint32_t FreeRTOS_round_up( uint32_t a,
-                                                      uint32_t d )
-        {
-            return d * ( ( a + d - 1U ) / d );
-        }
-        static portINLINE uint32_t FreeRTOS_round_down( uint32_t a,
-                                                        uint32_t d )
-        {
-            return d * ( a / d );
-        }
+    size_t FreeRTOS_max_size_t( size_t a,
+                                size_t b );
 
-        static portINLINE BaseType_t FreeRTOS_min_BaseType( BaseType_t a,
-                                                            BaseType_t b )
-        {
-            return ( a <= b ) ? a : b;
-        }
+    int32_t FreeRTOS_min_int32( int32_t a,
+                                int32_t b );
 
-    #else /* if ( ipconfigHAS_INLINE_FUNCTIONS == 1 ) */
+    uint32_t FreeRTOS_min_uint32( uint32_t a,
+                                  uint32_t b );
 
-        #define FreeRTOS_max_int32( a, b )       ( ( ( ( int32_t ) ( a ) ) >= ( ( int32_t ) ( b ) ) ) ? ( ( int32_t ) ( a ) ) : ( ( int32_t ) ( b ) ) )
-        #define FreeRTOS_max_uint32( a, b )      ( ( ( ( uint32_t ) ( a ) ) >= ( ( uint32_t ) ( b ) ) ) ? ( ( uint32_t ) ( a ) ) : ( ( uint32_t ) ( b ) ) )
+    size_t FreeRTOS_min_size_t( size_t a,
+                                size_t b );
 
-        #define FreeRTOS_min_int32( a, b )       ( ( ( ( int32_t ) a ) <= ( ( int32_t ) b ) ) ? ( ( int32_t ) a ) : ( ( int32_t ) b ) )
-        #define FreeRTOS_min_uint32( a, b )      ( ( ( ( uint32_t ) a ) <= ( ( uint32_t ) b ) ) ? ( ( uint32_t ) a ) : ( ( uint32_t ) b ) )
-
-/*  Round-up: a = d * ( ( a + d - 1 ) / d ) */
-        #define FreeRTOS_round_up( a, d )        ( ( ( uint32_t ) ( d ) ) * ( ( ( ( uint32_t ) ( a ) ) + ( ( uint32_t ) ( d ) ) - 1UL ) / ( ( uint32_t ) ( d ) ) ) )
-        #define FreeRTOS_round_down( a, d )      ( ( ( uint32_t ) ( d ) ) * ( ( ( uint32_t ) ( a ) ) / ( ( uint32_t ) ( d ) ) ) )
-
-        #define FreeRTOS_min_BaseType( a, b )    ( ( ( BaseType_t ) ( a ) ) <= ( ( BaseType_t ) ( b ) ) ? ( ( BaseType_t ) ( a ) ) : ( ( BaseType_t ) ( b ) ) )
-
-    #endif /* ipconfigHAS_INLINE_FUNCTIONS */
+    uint32_t FreeRTOS_round_up( uint32_t a,
+                                uint32_t d );
 
     #define ipMS_TO_MIN_TICKS( xTimeInMs )    ( ( pdMS_TO_TICKS( ( xTimeInMs ) ) < ( ( TickType_t ) 1U ) ) ? ( ( TickType_t ) 1U ) : pdMS_TO_TICKS( ( xTimeInMs ) ) )
 
@@ -361,6 +320,8 @@
                                     const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                                     const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                                     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
+
+        TaskHandle_t FreeRTOS_GetIPTaskHandle( void );
 
 /* The following 2 functions also assume that there is only 1 network interface.
  * The new function are called: FreeRTOS_GetEndPointConfiguration() and
@@ -408,23 +369,39 @@
                                             const uint32_t * pulGatewayAddress,
                                             const uint32_t * pulDNSServerAddress,
                                             struct xNetworkEndPoint * pxEndPoint );
-
-    BaseType_t FreeRTOS_SendPingRequest( uint32_t ulIPAddress,
-                                         size_t uxNumberOfBytesToSend,
-                                         TickType_t uxBlockTimeTicks );
+    #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+        BaseType_t FreeRTOS_SendPingRequest( uint32_t ulIPAddress,
+                                             size_t uxNumberOfBytesToSend,
+                                             TickType_t uxBlockTimeTicks );
+    #endif
     void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer );
-/* _HT_ FreeRTOS_GetMACAddress() can not continue to exist with multiple interfaces.*/
-/*const uint8_t * FreeRTOS_GetMACAddress( void ); */
 
-    #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
-        void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                             struct xNetworkEndPoint * pxEndPoint );
-    #else
-        void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
+    #if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+        /* FreeRTOS_GetMACAddress() can not continue to exist with multiple interfaces.*/
+        const uint8_t * FreeRTOS_GetMACAddress( void );
     #endif
 
-    void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
-                                    uint16_t usIdentifier );
+    #if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+        /* FreeRTOS_UpdateMACAddress() can not continue to exist with multiple interfaces.*/
+        void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
+    #endif
+
+    #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
+        #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
+            /* Not clear why Coverity doesn't see the declaration in main.c */
+            /* misra_c_2012_rule_8_6_violation */
+            void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                                 struct xNetworkEndPoint * pxEndPoint );
+        #else
+            /* misra_c_2012_rule_8_6_violation */
+            void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
+        #endif
+    #endif
+
+    #if ( ipconfigSUPPORT_OUTGOING_PINGS != 0 )
+        void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
+                                        uint16_t usIdentifier );
+    #endif
     uint32_t FreeRTOS_GetIPAddress( void );
 
 /*
@@ -475,13 +452,18 @@
  * Socket has had activity, reset the timer so it will not be closed
  * because of inactivity
  */
-    const char * FreeRTOS_GetTCPStateName( UBaseType_t ulState );
+    #if ( ipconfigHAS_DEBUG_PRINTF == 1 ) || ( ipconfigHAS_PRINTF != 0 )
+        const char * FreeRTOS_GetTCPStateName( UBaseType_t ulState );
+    #endif
 
 /* _HT_ Temporary: show all valid ARP entries
  */
-    void FreeRTOS_PrintARPCache( void );
+    #if ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 )
+        extern void FreeRTOS_PrintARPCache( void );
+    #endif
+
     #if ( ipconfigUSE_IPv6 != 0 )
-        void FreeRTOS_ClearND( void );
+        extern void FreeRTOS_ClearND( void );
     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
 /* Return pdTRUE if the IPv4 address is a multicast address. */
@@ -507,6 +489,8 @@
  * have much use, except that a device can be found in a router along with its
  * name. If this option is used the callback below must be provided by the
  * application	writer to return a const string, denoting the device's name. */
+        /* Not every application will call the function below. */
+        /* misra_c_2012_rule_8_6_violation */
         const char * pcApplicationHostnameHook( void );
 
     #endif /* ipconfigDHCP_REGISTER_HOSTNAME */
@@ -519,6 +503,8 @@
  * If that module is not included in the project, the application must provide an
  * implementation of it.
  * The macro's ipconfigRAND32() and configRAND32() are not in use anymore. */
+    /* Although defined in main.c, this rule seems to be violated. */
+    /* misra_c_2012_rule_8_6_violation */
     BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
 
 /* For backward compatibility define old structure names to the newer equivalent

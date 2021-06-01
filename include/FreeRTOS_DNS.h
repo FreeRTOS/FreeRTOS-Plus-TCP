@@ -92,13 +92,17 @@
  * The following function should be provided by the user and return true if it
  * matches the domain name.
  */
+    /* Even though the function is defined in main.c, the rule is violated. */
+    /* misra_c_2012_rule_8_6_violation */
     extern BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
                                                 const char * pcName );
 
 /*
  * LLMNR is very similar to DNS, so is handled by the DNS routines.
  */
-    uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+    #if ( ipconfigUSE_DNS == 1 ) && ( ( ipconfigDNS_USE_CALLBACKS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) )
+        uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+    #endif
 
     #if ( ipconfigUSE_LLMNR == 1 )
         /* The LLMNR MAC address is 01:00:5e:00:00:fc */
@@ -204,11 +208,14 @@
  */
     void FreeRTOS_freeaddrinfo( struct freertos_addrinfo * pxInfo );
 
+    #if ( ipconfigDNS_USE_CALLBACKS != 0 )
+
 /*
  * The function vDNSInitialise() initialises the DNS module.
  * It will be called "internally", by the IP-task.
  */
-    void vDNSInitialise( void );
+        void vDNSInitialise( void );
+    #endif /* ( ipconfigDNS_USE_CALLBACKS != 0 ) */
 
 
     #ifdef __cplusplus

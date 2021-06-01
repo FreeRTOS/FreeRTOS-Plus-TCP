@@ -345,8 +345,10 @@ BaseType_t xNetworkInterfaceInitialise( void )
     }
 #endif
 
-void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
-                                uint16_t usIdentifier )
-{
-    /* Provide a stub for this function. */
-}
+#if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+    void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
+                                    uint16_t usIdentifier )
+    {
+        /* Provide a stub for this function. */
+    }
+#endif

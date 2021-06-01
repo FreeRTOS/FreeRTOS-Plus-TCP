@@ -19,10 +19,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * http://www.FreeRTOS.org
  * http://aws.amazon.com/freertos
- *
- * 1 tab == 4 spaces!
+ * http://www.FreeRTOS.org
  */
 
 /******************************************************************************
@@ -61,15 +59,21 @@
     #define baMINIMAL_BUFFER_SIZE    sizeof( ARPPacket_t )
 #endif /* ipconfigUSE_TCP == 1 */
 
-/*_RB_ This is too complex not to have an explanation. */
 #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
-    #define ASSERT_CONCAT_( a, b )    a ## b
-    #define ASSERT_CONCAT( a, b )     ASSERT_CONCAT_( a, b )
-    #define STATIC_ASSERT( e ) \
+
+/* Crteating a static assert that can be used with sizeof()
+ * expressions, but lint doesn't like it.
+ * If the expression is not as expected, the compiler will
+ * detect a division-by-zero in an enum expression. */
+    #ifndef _lint
+        #define ASSERT_CONCAT_( a, b )    a ## b
+        #define ASSERT_CONCAT( a, b )     ASSERT_CONCAT_( a, b )
+        #define STATIC_ASSERT( e ) \
     ; enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( !!( e ) ) }
 
-    STATIC_ASSERT( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE );
-#endif
+        STATIC_ASSERT( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE );
+    #endif
+#endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
 
 /* A list of free (available) NetworkBufferDescriptor_t structures. */
 static List_t xFreeBuffersList;
@@ -102,7 +106,20 @@ BaseType_t xNetworkBuffersInitialise( void )
      * have not been initialised before. */
     if( xNetworkBufferSemaphore == NULL )
     {
-        xNetworkBufferSemaphore = xSemaphoreCreateCounting( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
+        #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
+            {
+                static StaticSemaphore_t xNetworkBufferSemaphoreBuffer;
+                xNetworkBufferSemaphore = xSemaphoreCreateCountingStatic(
+                    ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
+                    ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
+                    &xNetworkBufferSemaphoreBuffer );
+            }
+        #else
+            {
+                xNetworkBufferSemaphore = xSemaphoreCreateCounting( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
+            }
+        #endif /* configSUPPORT_STATIC_ALLOCATION */
+
         configASSERT( xNetworkBufferSemaphore != NULL );
 
         if( xNetworkBufferSemaphore != NULL )
@@ -132,7 +149,7 @@ BaseType_t xNetworkBuffersInitialise( void )
                 /* Initialise and set the owner of the buffer list items. */
                 xNetworkBufferDescriptors[ x ].pucEthernetBuffer = NULL;
                 vListInitialiseItem( &( xNetworkBufferDescriptors[ x ].xBufferListItem ) );
-                listSET_LIST_ITEM_OWNER( &( xNetworkBufferDescriptors[ x ].xBufferListItem ), &xNetworkBufferDescriptors[ x ] );
+                listSET_LIST_ITEM_OWNER( &( xNetworkBufferDescriptors[ x ].xBufferListItem ), &( xNetworkBufferDescriptors[ x ] ) );
 
                 /* Currently, all buffers are available for use. */
                 vListInsert( &xFreeBuffersList, &( xNetworkBufferDescriptors[ x ].xBufferListItem ) );
@@ -187,7 +204,7 @@ uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
         /* Enough space is left at the start of the buffer to place a pointer to
          * the network buffer structure that references this Ethernet buffer.
          * Return a pointer to the start of the Ethernet buffer itself. */
-        pucEthernetBuffer += ipBUFFER_PADDING;
+        pucEthernetBuffer = &( pucEthernetBuffer[ ipBUFFER_PADDING ] );
     }
 
     return pucEthernetBuffer;
@@ -207,32 +224,33 @@ void vReleaseNetworkBuffer( uint8_t * pucEthernetBuffer )
 }
 /*-----------------------------------------------------------*/
 
-NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
-                                                              TickType_t xBlockTimeTicks )
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t uxRequestedSizeBytes,
+                                                              TickType_t uxBlockTimeTicks )
 {
     NetworkBufferDescriptor_t * pxReturn = NULL;
     size_t uxCount;
+    size_t uxByteCount = uxRequestedSizeBytes; /* To avoid lint complain: function parameter modified [MISRA 2012 Rule 17.8, advisory]. */
 
     if( xNetworkBufferSemaphore != NULL )
     {
-        if( ( xRequestedSizeBytes != 0U ) && ( xRequestedSizeBytes < ( size_t ) baMINIMAL_BUFFER_SIZE ) )
+        if( ( uxByteCount != 0U ) && ( uxByteCount < ( size_t ) baMINIMAL_BUFFER_SIZE ) )
         {
             /* ARP packets can replace application packets, so the storage must be
              * at least large enough to hold an ARP. */
-            xRequestedSizeBytes = baMINIMAL_BUFFER_SIZE;
+            uxByteCount = baMINIMAL_BUFFER_SIZE;
         }
 
-        /* Add 2 bytes to xRequestedSizeBytes and round up xRequestedSizeBytes
+        /* Add 2 bytes to uxByteCount and round up uxByteCount
          * to the nearest multiple of N bytes, where N equals 'sizeof( size_t )'. */
-        xRequestedSizeBytes += 2U;
+        uxByteCount += 2U;
 
-        if( ( xRequestedSizeBytes & ( sizeof( size_t ) - 1U ) ) != 0U )
+        if( ( uxByteCount & ( sizeof( size_t ) - 1U ) ) != 0U )
         {
-            xRequestedSizeBytes = ( xRequestedSizeBytes | ( sizeof( size_t ) - 1U ) ) + 1U;
+            uxByteCount = ( uxByteCount | ( sizeof( size_t ) - 1U ) ) + 1U;
         }
 
         /* If there is a semaphore available, there is a network buffer available. */
-        if( xSemaphoreTake( xNetworkBufferSemaphore, xBlockTimeTicks ) == pdPASS )
+        if( xSemaphoreTake( xNetworkBufferSemaphore, uxBlockTimeTicks ) == pdPASS )
         {
             /* Protect the structure as it is accessed from tasks and interrupts. */
             taskENTER_CRITICAL();
@@ -253,11 +271,11 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
             /* Allocate storage of exactly the requested size to the buffer. */
             configASSERT( pxReturn->pucEthernetBuffer == NULL );
 
-            if( xRequestedSizeBytes > 0U )
+            if( uxByteCount > 0U )
             {
                 /* Extra space is obtained so a pointer to the network buffer can
                  * be stored at the beginning of the buffer. */
-                pxReturn->pucEthernetBuffer = ( uint8_t * ) pvPortMalloc( xRequestedSizeBytes + ipBUFFER_PADDING );
+                pxReturn->pucEthernetBuffer = ( uint8_t * ) pvPortMalloc( uxByteCount + ipBUFFER_PADDING );
 
                 if( pxReturn->pucEthernetBuffer == NULL )
                 {
@@ -274,11 +292,13 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                      * stored pointer so the pointer value is not overwritten by the
                      * application when the buffer is used. */
                     *( ( NetworkBufferDescriptor_t ** ) ( pxReturn->pucEthernetBuffer ) ) = pxReturn;
-                    pxReturn->pucEthernetBuffer += ipBUFFER_PADDING;
+                    pxReturn->pucEthernetBuffer = &( pxReturn->pucEthernetBuffer[ ipBUFFER_PADDING ] );
 
                     /* Store the actual size of the allocated buffer, which may be
                      * greater than the original requested size. */
-                    pxReturn->xDataLength = xRequestedSizeBytes;
+                    pxReturn->xDataLength = uxByteCount;
+                    pxReturn->pxEndPoint = NULL;
+                    pxReturn->pxInterface = NULL;
 
                     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
                         {
@@ -307,6 +327,28 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     }
 
     return pxReturn;
+}
+/*-----------------------------------------------------------*/
+
+NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t uxRequestedSizeBytes )
+{
+    /* If you want to allocate or relase network buffers from an ISR contect, please
+     * use BufferAllocation_2.c in stead of this version. .
+     */
+    configASSERT( ipFALSE_BOOL );
+
+    return NULL;
+}
+/*-----------------------------------------------------------*/
+
+BaseType_t vNetworkBufferReleaseFromISR( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    /* If you want to allocate or relase network buffers from an ISR contect, please
+     * use BufferAllocation_2.c in stead of this version. .
+     */
+    configASSERT( ipFALSE_BOOL );
+
+    return NULL;
 }
 /*-----------------------------------------------------------*/
 
@@ -367,11 +409,13 @@ UBaseType_t uxGetMinimumFreeNetworkBuffers( void )
 }
 /*-----------------------------------------------------------*/
 
-NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                                 size_t xNewSizeBytes )
+NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxDescriptor,
+                                                                 size_t xByteCount )
 {
     size_t xOriginalLength;
     uint8_t * pucBuffer;
+    size_t xNewSizeBytes = xByteCount;                          /* To avoid lint complain: function parameter modified [MISRA 2012 Rule 17.8, advisory]. */
+    NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor; /* Same reason. */
 
     xOriginalLength = pxNetworkBuffer->xDataLength + ipBUFFER_PADDING;
     xNewSizeBytes = xNewSizeBytes + ipBUFFER_PADDING;

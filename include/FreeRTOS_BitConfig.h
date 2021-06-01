@@ -59,18 +59,17 @@
                                    uint8_t * pucData,
                                    size_t uxSize );
 
-    BaseType_t xBitConfig_write_8( BitConfig_t * pxConfig,
-                                   uint8_t ucValue );
-    BaseType_t xBitConfig_write_16( BitConfig_t * pxConfig,
-                                    uint16_t usValue );
-    BaseType_t xBitConfig_write_32( BitConfig_t * pxConfig,
-                                    uint32_t ulValue );
-    BaseType_t xBitConfig_write_uc( BitConfig_t * pxConfig,
-                                    uint8_t * pucData,
-                                    size_t uxSize );
+    void vBitConfig_write_8( BitConfig_t * pxConfig,
+                             uint8_t ucValue );
+    void vBitConfig_write_16( BitConfig_t * pxConfig,
+                              uint16_t usValue );
+    void vBitConfig_write_32( BitConfig_t * pxConfig,
+                              uint32_t ulValue );
+    void vBitConfig_write_uc( BitConfig_t * pxConfig,
+                              uint8_t * pucData,
+                              size_t uxSize );
 
     void vBitConfig_release( BitConfig_t * pxConfig );
-    void vBitConfig_show( BitConfig_t * pxConfig );
 
 
     #ifdef __cplusplus
