@@ -95,14 +95,10 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: Install Doxygen
-        run: |
-          wget -qO- "http://doxygen.nl/files/doxygen-1.9.1.linux.bin.tar.gz" | sudo tar --strip-components=1 -xz -C /usr/local
-          sudo apt-get install -y libclang-9-dev
-      - name: Run Doxygen And Verify Stdout Is Empty
-        run: |
-          doxygen docs/doxygen/config.doxyfile 2>&1 | tee doxyoutput.txt
-          if [[ "$(wc -c < doxyoutput.txt | bc)" = "0" ]]; then exit 0; else exit 1; fi
+      - name: Run doxygen build
+        uses: FreeRTOS/CI-CD-Github-Actions/doxygen@main
+        with:
+          path: ./
 
   build-checks:
     runs-on: ubuntu-latest
