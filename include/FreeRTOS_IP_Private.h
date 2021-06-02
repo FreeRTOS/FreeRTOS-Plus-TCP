@@ -788,7 +788,7 @@
  * bOut = false: checksum will be calculated for incoming packets
  *     returning 0xffff means: checksum was correct
  */
-    uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
+    uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                                          size_t uxBufferLength,
                                          BaseType_t xOutgoingPacket );
 
