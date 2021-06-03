@@ -1176,6 +1176,7 @@ usauthrss
 usbacklog
 usboundport
 uschecksum
+uschecksumfound
 uschildcount
 usclass
 uscurmss
