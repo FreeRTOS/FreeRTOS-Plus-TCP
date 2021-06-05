@@ -108,13 +108,19 @@
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
 #endif
 
-/* Ethernet buffers for BufferAllocation_1.c scheme. 
- * The variable "ucBuffers" can be commented out if BufferAllocation_2.c is used.
- * 1536 bytes is more than needed, 1524 would be enough.
- * But 1536 is a multiple of 32, which gives a great alignment for cached memories.
+/* Ethernet buffers for BufferAllocation_1.c scheme.
+ * Set ipUSE_STATIC_ALLOCATION to 1 if using BufferAllocation_1.c,
+ * otherwise to 0, to save RAM. From Iperf testing, there is no point in using
+ * static allocation with a non zero-copy driver.
  */
-#define NETWORK_BUFFER_SIZE    1536
-static uint8_t ucBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ NETWORK_BUFFER_SIZE ];
+#define ipUSE_STATIC_ALLOCATION    0
+#if ( defined( ipUSE_STATIC_ALLOCATION ) && ( ipUSE_STATIC_ALLOCATION == 1 ) )
+
+/* 1536 bytes is more than needed, 1524 would be enough.
+ * But 1536 is a multiple of 32, which gives a great alignment for cached memories. */
+    #define NETWORK_BUFFER_SIZE    1536
+    static uint8_t ucBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ NETWORK_BUFFER_SIZE ];
+#endif /* ( defined( ipUSE_STATIC_ALLOCATION ) && ( ipUSE_STATIC_ALLOCATION == 1 )) */
 
 
 /* Holds the handle of the task used as a deferred interrupt processor.  The
@@ -391,24 +397,26 @@ void xRxCallback( void )
     vTaskNotifyGiveFromISR( xEMACTaskHandle, 0 );
 }
 
+#if ( defined( ipUSE_STATIC_ALLOCATION ) && ( ipUSE_STATIC_ALLOCATION == 1 ) )
+
 /* Next provide the vNetworkInterfaceAllocateRAMToBuffers() function, which
  * simply fills in the pucEthernetBuffer member of each descriptor. */
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    BaseType_t x;
-
-    for( x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
+    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
     {
-        /* pucEthernetBuffer is set to point ipBUFFER_PADDING bytes in from the
-         * beginning of the allocated buffer. */
-        pxNetworkBuffers[ x ].pucEthernetBuffer = &( ucBuffers[ x ][ ipBUFFER_PADDING ] );
+        BaseType_t x;
 
-        /* The following line is also required, but will not be required in
-         * future versions. */
-        *( ( uint32_t * ) &ucBuffers[ x ][ 0 ] ) = ( uint32_t ) &( pxNetworkBuffers[ x ] );
+        for( x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
+        {
+            /* pucEthernetBuffer is set to point ipBUFFER_PADDING bytes in from the
+             * beginning of the allocated buffer. */
+            pxNetworkBuffers[ x ].pucEthernetBuffer = &( ucBuffers[ x ][ ipBUFFER_PADDING ] );
+
+            /* The following line is also required, but will not be required in
+             * future versions. */
+            *( ( uint32_t * ) &ucBuffers[ x ][ 0 ] ) = ( uint32_t ) &( pxNetworkBuffers[ x ] );
+        }
     }
-}
-
+#endif /* ( defined( ipUSE_STATIC_ALLOCATION ) && ( ipUSE_STATIC_ALLOCATION == 1 )) */
 
 
 /*********************************************************************/
