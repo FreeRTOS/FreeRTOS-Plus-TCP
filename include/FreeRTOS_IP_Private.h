@@ -332,43 +332,49 @@
     #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
 
 /* Ethernet frame types. */
-        #define ipARP_FRAME_TYPE                ( 0x0608U )
-        #define ipIPv4_FRAME_TYPE               ( 0x0008U )
+        #define ipARP_FRAME_TYPE                   ( 0x0608U )
+        #define ipIPv4_FRAME_TYPE                  ( 0x0008U )
 
 /* ARP related definitions. */
-        #define ipARP_PROTOCOL_TYPE             ( 0x0008U )
-        #define ipARP_HARDWARE_TYPE_ETHERNET    ( 0x0100U )
-        #define ipARP_REQUEST                   ( 0x0100U )
-        #define ipARP_REPLY                     ( 0x0200U )
+        #define ipARP_PROTOCOL_TYPE                ( 0x0008U )
+        #define ipARP_HARDWARE_TYPE_ETHERNET       ( 0x0100U )
+        #define ipARP_REQUEST                      ( 0x0100U )
+        #define ipARP_REPLY                        ( 0x0200U )
 
-        /* The bits in the two byte IP header field that make up the fragment offset value. */
+/* The bits in the two byte IP header field that make up the fragment offset value. */
         #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0xff1fU )
-        /* The bits in the two byte IP header field that make up the flags value. */
+
+/* The bits in the two byte IP header field that make up the flags value. */
         #define ipFRAGMENT_FLAGS_BIT_MASK          ( ( uint16_t ) 0x00e0U )
-        /* Don't Fragment Flag */
+
+/* Don't Fragment Flag */
         #define ipFRAGMENT_FLAGS_DONT_FRAGMENT     ( ( uint16_t ) 0x0040U )
-        /* More Fragments Flag */
+
+/* More Fragments Flag */
         #define ipFRAGMENT_FLAGS_MORE_FRAGMENTS    ( ( uint16_t ) 0x0020U )
 
     #else /* if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
 
 /* Ethernet frame types. */
-        #define ipARP_FRAME_TYPE                ( 0x0806U )
-        #define ipIPv4_FRAME_TYPE               ( 0x0800U )
+        #define ipARP_FRAME_TYPE                   ( 0x0806U )
+        #define ipIPv4_FRAME_TYPE                  ( 0x0800U )
 
 /* ARP related definitions. */
-        #define ipARP_PROTOCOL_TYPE             ( 0x0800U )
-        #define ipARP_HARDWARE_TYPE_ETHERNET    ( 0x0001U )
-        #define ipARP_REQUEST                   ( 0x0001 )
-        #define ipARP_REPLY                     ( 0x0002 )
+        #define ipARP_PROTOCOL_TYPE                ( 0x0800U )
+        #define ipARP_HARDWARE_TYPE_ETHERNET       ( 0x0001U )
+        #define ipARP_REQUEST                      ( 0x0001 )
+        #define ipARP_REPLY                        ( 0x0002 )
 
-        /* The bits in the two byte IP header field that make up the fragment offset value. */
+/* The bits in the two byte IP header field that make up the fragment offset value. */
         #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0x1fffU )
-        /* The bits in the two byte IP header field that make up the flags value. */
+
+/* The bits in the two byte IP header field that make up the flags value. */
         #define ipFRAGMENT_FLAGS_BIT_MASK          ( ( uint16_t ) 0xe000U )
-        /* Don't Fragment Flag */
+
+/* Don't Fragment Flag */
         #define ipFRAGMENT_FLAGS_DONT_FRAGMENT     ( ( uint16_t ) 0x4000U )
-        /* More Fragments Flag */
+
+/* More Fragments Flag */
         #define ipFRAGMENT_FLAGS_MORE_FRAGMENTS    ( ( uint16_t ) 0x2000U )
 
     #endif /* ipconfigBYTE_ORDER */

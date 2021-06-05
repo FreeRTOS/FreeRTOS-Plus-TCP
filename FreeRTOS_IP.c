@@ -2834,6 +2834,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                     pxProtPack->xICMPPacket.xICMPHeader.usChecksum = usChecksum;
                     break;
             }
+
             usChecksum = ( uint16_t ) ipCORRECT_CRC;
         }
 
