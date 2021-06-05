@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.3
+ * FreeRTOS+TCP V2.3.2
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -36,6 +36,7 @@
 /* Atmel ASF includes */
 #include "hal_mac_async.h"
 #include "hpl_gmac_config.h"
+/* Include MAC initialization function here: */
 #include "driver_init.h"
 
 /* FreeRTOS includes */
@@ -82,7 +83,7 @@
 #endif
 
 /* Receive task refresh time */
-#define RECEIVE_BLOCK_TIME_MS    1000
+#define RECEIVE_BLOCK_TIME_MS    100
 
 /***********************************************/
 /*              FreeRTOS variables             */
@@ -107,6 +108,15 @@
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
 #endif
 
+/* Ethernet buffers for BufferAllocation_1.c scheme. 
+ * The variable "ucBuffers" can be commented out if BufferAllocation_2.c is used.
+ * 1536 bytes is more than needed, 1524 would be enough.
+ * But 1536 is a multiple of 32, which gives a great alignment for cached memories.
+ */
+#define NETWORK_BUFFER_SIZE    1536
+static uint8_t ucBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ NETWORK_BUFFER_SIZE ];
+
+
 /* Holds the handle of the task used as a deferred interrupt processor.  The
  * handle is used so direct notifications can be sent to the task for all EMAC/DMA
  * related interrupts. */
@@ -126,7 +136,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters );
 /***********************************************/
 
 /* The Ethernet MAC instance created by ASF4 */
-extern struct mac_async_descriptor ETHERNET_MAC_0;
+extern struct mac_async_descriptor ETH_MAC;
 
 static void prvGMACInit( void );
 
@@ -233,7 +243,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
         /* See how much data was received.  Here it is assumed ReceiveSize() is
          * a peripheral driver function that returns the number of bytes in the
          * received Ethernet frame. */
-        xBytesReceived = mac_async_read_len( &ETHERNET_MAC_0 );
+        xBytesReceived = mac_async_read_len( &ETH_MAC );
 
         if( xBytesReceived > 0 )
         {
@@ -253,7 +263,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                  * parameter.  Remember! While is is a simple robust technique -
                  * it is not efficient.  An example that uses a zero copy technique
                  * is provided further down this page. */
-                xBytesRead = mac_async_read( &ETHERNET_MAC_0, pxBufferDescriptor->pucEthernetBuffer, xBytesReceived );
+                xBytesRead = mac_async_read( &ETH_MAC, pxBufferDescriptor->pucEthernetBuffer, xBytesReceived );
                 pxBufferDescriptor->xDataLength = xBytesRead;
 
 
@@ -359,7 +369,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
             }
         #endif
 
-        mac_async_write( &ETHERNET_MAC_0, pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength );
+        mac_async_write( &ETH_MAC, pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength );
 
         /* Call the standard trace macro to log the send event. */
         iptraceNETWORK_INTERFACE_TRANSMIT();
@@ -381,6 +391,25 @@ void xRxCallback( void )
     vTaskNotifyGiveFromISR( xEMACTaskHandle, 0 );
 }
 
+/* Next provide the vNetworkInterfaceAllocateRAMToBuffers() function, which
+ * simply fills in the pucEthernetBuffer member of each descriptor. */
+void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+{
+    BaseType_t x;
+
+    for( x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
+    {
+        /* pucEthernetBuffer is set to point ipBUFFER_PADDING bytes in from the
+         * beginning of the allocated buffer. */
+        pxNetworkBuffers[ x ].pucEthernetBuffer = &( ucBuffers[ x ][ ipBUFFER_PADDING ] );
+
+        /* The following line is also required, but will not be required in
+         * future versions. */
+        *( ( uint32_t * ) &ucBuffers[ x ][ 0 ] ) = ( uint32_t ) &( pxNetworkBuffers[ x ] );
+    }
+}
+
+
 
 /*********************************************************************/
 /*                          GMAC functions                           */
@@ -393,16 +422,16 @@ void xRxCallback( void )
  * configuration is saved in "hpl_gmac_config.h". */
 static void prvGMACInit()
 {
-    /* Apply Atmel START base configuration and initialize clocks and GPIO. */
-    ETHERNET_MAC_0_init();
+    /* Call MAC initialization function here: */
+    vGMACInit();
     prvGMACEnablePHYManagementPort( false );
-    mac_async_disable_irq( &ETHERNET_MAC_0 );
+    mac_async_disable_irq( &ETH_MAC );
 
     /* Set GMAC Filtering for own MAC address */
     struct mac_async_filter mac_filter;
     memcpy( mac_filter.mac, ipLOCAL_MAC_ADDRESS, ipMAC_ADDRESS_LENGTH_BYTES );
     mac_filter.tid_enable = false;
-    mac_async_set_filter( &ETHERNET_MAC_0, 0, &mac_filter );
+    mac_async_set_filter( &ETH_MAC, 0, &mac_filter );
 
     /* Set GMAC filtering for LLMNR, if defined. */
     #if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
@@ -410,7 +439,7 @@ static void prvGMACInit()
             memcpy( mac_filter.mac, ucLLMNR_MAC_address, ipMAC_ADDRESS_LENGTH_BYTES );
             /* LLMNR requires responders to listen to both TCP and UDP protocols. */
             mac_filter.tid_enable = false;
-            mac_async_set_filter( &ETHERNET_MAC_0, 1, &mac_filter );
+            mac_async_set_filter( &ETH_MAC, 1, &mac_filter );
         }
     #endif
 
@@ -418,22 +447,22 @@ static void prvGMACInit()
     NVIC_SetPriority( GMAC_IRQn, configMAX_SYSCALL_INTERRUPT_PRIORITY >> ( 8 - configPRIO_BITS ) );
 
     /* Register callback(s). Currently only RX callback is implemented, but TX callback can be added the same way. */
-    mac_async_register_callback( &ETHERNET_MAC_0, MAC_ASYNC_RECEIVE_CB, ( FUNC_PTR ) xRxCallback );
+    mac_async_register_callback( &ETH_MAC, MAC_ASYNC_RECEIVE_CB, ( FUNC_PTR ) xRxCallback );
 
     /* Start the GMAC. */
-    mac_async_enable_irq( &ETHERNET_MAC_0 );
-    mac_async_enable( &ETHERNET_MAC_0 );
+    mac_async_enable( &ETH_MAC );
+    mac_async_enable_irq( &ETH_MAC );
 }
 
 static inline void prvGMACEnablePHYManagementPort( bool enable )
 {
     if( enable )
     {
-        ( ( Gmac * ) ETHERNET_MAC_0.dev.hw )->NCR.reg |= GMAC_NCR_MPE;
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCR.reg |= GMAC_NCR_MPE;
     }
     else
     {
-        ( ( Gmac * ) ETHERNET_MAC_0.dev.hw )->NCR.reg &= ~GMAC_NCR_MPE;
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCR.reg &= ~GMAC_NCR_MPE;
     }
 }
 
@@ -441,11 +470,11 @@ static inline void prvGMACEnable100Mbps( bool enable )
 {
     if( enable )
     {
-        ( ( Gmac * ) ETHERNET_MAC_0.dev.hw )->NCFGR.reg |= GMAC_NCFGR_SPD;
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg |= GMAC_NCFGR_SPD;
     }
     else
     {
-        ( ( Gmac * ) ETHERNET_MAC_0.dev.hw )->NCFGR.reg &= ~GMAC_NCFGR_SPD;
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg &= ~GMAC_NCFGR_SPD;
     }
 }
 
@@ -453,11 +482,11 @@ static inline void prvGMACEnableFullDuplex( bool enable )
 {
     if( enable )
     {
-        ( ( Gmac * ) ETHERNET_MAC_0.dev.hw )->NCFGR.reg |= GMAC_NCFGR_FD;
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg |= GMAC_NCFGR_FD;
     }
     else
     {
-        ( ( Gmac * ) ETHERNET_MAC_0.dev.hw )->NCFGR.reg &= ~GMAC_NCFGR_FD;
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg &= ~GMAC_NCFGR_FD;
     }
 }
 
@@ -514,7 +543,7 @@ static BaseType_t xPHYRead( BaseType_t xAddress,
                             uint32_t * pulValue )
 {
     prvGMACEnablePHYManagementPort( true );
-    BaseType_t readStatus = mac_async_read_phy_reg( &ETHERNET_MAC_0, xAddress, xRegister, ( ( uint16_t * ) pulValue ) );
+    BaseType_t readStatus = mac_async_read_phy_reg( &ETH_MAC, xAddress, xRegister, ( ( uint16_t * ) pulValue ) );
     prvGMACEnablePHYManagementPort( false );
     return readStatus;
 }
@@ -524,7 +553,7 @@ static BaseType_t xPHYWrite( BaseType_t xAddress,
                              uint32_t pulValue )
 {
     prvGMACEnablePHYManagementPort( true );
-    BaseType_t writeStatus = mac_async_write_phy_reg( &ETHERNET_MAC_0, xAddress, xRegister, pulValue );
+    BaseType_t writeStatus = mac_async_write_phy_reg( &ETH_MAC, xAddress, xRegister, pulValue );
     prvGMACEnablePHYManagementPort( false );
     return writeStatus;
 }
