@@ -124,6 +124,7 @@ checkoptionsouter
 checksum
 checksummode
 checksumoffload
+chextochar
 christian
 cli
 clk
@@ -1649,6 +1650,7 @@ xhaserror
 xhasspace
 xhassynflag
 xhigherprioritytaskwoken
+xhighestindex
 xhints
 xhnd
 xhow
