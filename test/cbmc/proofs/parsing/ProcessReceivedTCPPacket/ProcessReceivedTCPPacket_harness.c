@@ -36,6 +36,22 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     return safeMalloc( sizeof( FreeRTOS_Socket_t ) );
 }
 
+/* Abstraction of xTaskGetCurrentTaskHandle */
+TaskHandle_t xTaskGetCurrentTaskHandle( void )
+{
+    static int xIsInit = 0;
+    static TaskHandle_t pxCurrentTCB;
+    TaskHandle_t xRandomTaskHandle; /* not initialized on purpose */
+
+    if( xIsInit == 0 )
+    {
+        pxCurrentTCB = xRandomTaskHandle;
+        xIsInit = 1;
+    }
+
+    return pxCurrentTCB;
+}
+
 /* Abstraction of pxTCPSocketLookup */
 FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                        UBaseType_t uxLocalPort,
@@ -48,6 +64,12 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
     {
         xRetSocket->u.xTCP.txStream = safeMalloc( sizeof( StreamBuffer_t ) );
         xRetSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( StreamBuffer_t ) );
+
+        if( xIsCallingFromIPTask() == pdFALSE )
+        {
+            xRetSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
+            xRetSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
+        }
     }
 
     return xRetSocket;
