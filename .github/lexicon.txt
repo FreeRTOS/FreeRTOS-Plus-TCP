@@ -636,6 +636,7 @@ ppucdata
 ppucrecvdata
 ppxnetworkbuffer
 pr
+pragma
 pre
 printf
 printfs
