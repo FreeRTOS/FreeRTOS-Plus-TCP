@@ -118,12 +118,12 @@ struct sNTOP6_Set
  * It passes this set to a few helper functions. */
 struct sPTON6_Set
 {
-    uint32_t ulValue;     /**< A 32-bit accumulator, only 16 bits are used. */
-    BaseType_t xHadDigit; /**< Becomes pdTRUE as soon as ulValue has valid data. */
-    BaseType_t xTargetIndex;
-    BaseType_t xColon;    /**< The position in the output where the train of zero's will start. */
-    BaseType_t xHighestIndex;
-    uint8_t * pucTarget;
+    uint32_t ulValue;         /**< A 32-bit accumulator, only 16 bits are used. */
+    BaseType_t xHadDigit;     /**< Becomes pdTRUE as soon as ulValue has valid data. */
+    BaseType_t xTargetIndex;  /**< The index in the array pucTarget to write the next byte. */
+    BaseType_t xColon;        /**< The position in the output where the train of zero's will start. */
+    BaseType_t xHighestIndex; /**< The highest allowed value of xTargetIndex. */
+    uint8_t * pucTarget;      /**< The array of bytes in which the resulting IPv6 address is written. */
 };
 
 /*-----------------------------------------------------------*/
@@ -213,6 +213,8 @@ static int32_t prvSendUDPPacket( FreeRTOS_Socket_t * pxSocket,
                                  TickType_t xTicksToWait,
                                  size_t uxPayloadOffset );
 
+/** @brief Scan the binary IPv6 address and find the longest train of consecutive zero's.
+ *         The result of this search will be stored in 'xZeroStart' and 'xZeroLength'. */
 static void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet );
 
 static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
@@ -221,8 +223,8 @@ static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
 
 static uint8_t ucASCIIToHex( char cChar );
 
-static char cHexToChar( unsigned short usValue );
-
+/** @brief Converts a hex value to a readable hex character, *
+ *         e.g. 14 becomes 'e'.static char cHexToChar( unsigned short usValue ); */
 static socklen_t uxHexPrintShort( char * pcBuffer,
                                   size_t uxBufferSize,
                                   uint16_t usValue );
@@ -3521,7 +3523,7 @@ static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
  * @brief Convert an ASCII character to its corresponding hexadecimal value.
  *        Accepted characters are 0-9, a-f, and A-F.
  *
- * @param[in] c: The character to be converted.
+ * @param[in] cChar: The character to be converted.
  *
  * @return The hexadecimal value, between 0 and 15.
  *         When the character is not valid, socketINVALID_HEX_CHAR will be returned.
@@ -4310,6 +4312,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  * @param[in] pxSocket: The socket owning the connection.
  * @param[out] pxEventBits: A bit-mask of socket events will be set:
  *             eSOCKET_RECEIVE, eSOCKET_CLOSED, and or eSOCKET_INTR.
+ * @param[in] xFlags: flags passed by the user, only 'FREERTOS_MSG_DONTWAIT'
+ *            is checked in this function.
  */
     static BaseType_t prvRecvWait( FreeRTOS_Socket_t * pxSocket,
                                    EventBits_t * pxEventBits,
