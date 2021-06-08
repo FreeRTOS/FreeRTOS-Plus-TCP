@@ -390,8 +390,8 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 
     if( eReturned == eARPCacheHit )
     {
-        /* As the MAC-address was found in the cache, the IP-asdress
-         * can be restorde to its original. */
+        /* As the MAC-address was found in the cache, the IP-address
+         * can be restored to its original. */
         #if ( ipconfigUSE_IPv6 != 0 )
             if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
             {
