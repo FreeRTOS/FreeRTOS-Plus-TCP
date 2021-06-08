@@ -421,6 +421,23 @@
 
         return xResult;
     }
+/*-----------------------------------------------------------*/
+
+/** @brief Close the socket another time.
+ *
+ * @param[in] pxSocket: The socket to be checked.
+ */
+    void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
+    {
+        static FreeRTOS_Socket_t * xPreviousSocket = NULL;
+
+        if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )
+        {
+            vSocketClose( xPreviousSocket );
+        }
+
+        xPreviousSocket = pxSocket;
+    }
     /*-----------------------------------------------------------*/
 
     #if ( ipconfigTCP_HANG_PROTECTION == 1 )
@@ -499,7 +516,7 @@
                      * gets connected. */
                     if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
                     {
-                        /* vTCPStateChange() has called FreeRTOS_closesocket()
+                        /* vTCPStateChange() has called vSocketCloseNextTime()
                          * in case the socket is not yet owned by the application.
                          * Return a negative value to inform the caller that
                          * the socket will be closed in the next cycle. */
@@ -1837,7 +1854,8 @@
 
                     if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
                     {
-                        ( void ) FreeRTOS_closesocket( pxSocket );
+                        configASSERT( xIsCallingFromIPTask() != pdFALSE );
+                        vSocketCloseNextTime( pxSocket );
                     }
                 }
             }
@@ -3889,7 +3907,7 @@
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )
         {
             FreeRTOS_debug_printf( ( "TCP: Listen: new socket bind error\n" ) );
-            ( void ) FreeRTOS_closesocket( pxNewSocket );
+            vSocketClose( pxNewSocket );
             xResult = pdFALSE;
         }
         else

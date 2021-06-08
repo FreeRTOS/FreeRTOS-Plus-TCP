@@ -639,11 +639,6 @@
     #define ipconfigSELECT_USES_NOTIFY    0
 #endif
 
-#ifndef ipconfigTCP_MEM_STATS_MAX_ALLOCATION
-    /* See "/tools/tcp_utilities/tcp_mem_stats.c". */
-    #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    0
-#endif
-
 /* Set to 1 if you plan on processing custom Ethernet protocols or protocols
  * that are not yet supported by the FreeRTOS+TCP stack. If set to 1,
  * the user must define eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer )

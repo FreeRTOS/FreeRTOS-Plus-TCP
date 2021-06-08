@@ -636,6 +636,7 @@ ppucdata
 ppucrecvdata
 ppxnetworkbuffer
 pr
+pragma
 pre
 printf
 printfs
@@ -1303,6 +1304,7 @@ vreleasenetworkbufferanddescriptor
 vrxfaultinjection
 vsocketbind
 vsocketclose
+vsocketclosenexttime
 vsocketselect
 vsocketwakeupuser
 vtasklist
@@ -1451,6 +1453,7 @@ xqueuecreateset
 xqueuegenericsend
 xqueueitem
 xqueuereceive
+xrandomtaskhandle
 xreceiveblocktime
 xregister
 xreleaseaftersend
@@ -1483,6 +1486,7 @@ xstream
 xsum
 xtargethardwareaddress
 xtaskcheckfortimeout
+xtaskgetcurrenttaskhandle
 xtaskgettickcount
 xtaskhandle
 xtaskresumeall

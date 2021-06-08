@@ -763,6 +763,11 @@
     #if ( ipconfigUSE_TCP == 1 )
 
 /*
+ * Close the socket another time.
+ */
+        void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket );
+
+/*
  * Lookup a TCP socket, using a multiple matching: both port numbers and
  * return IP address.
  */
