@@ -47,19 +47,19 @@
 
 #include "tcp_mem_stats.h"
 
-#ifndef ipconfigTCP_MEM_STATS_MAX_ALLOCATION
+#if ( ipconfigUSE_TCP_MEM_STATS != 0 )
+
+    #ifndef ipconfigTCP_MEM_STATS_MAX_ALLOCATION
 
 /* Define the maximum number of objects ( memory allocations by
  * the IP-stack ) that will be recorded. */
-    #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    128u
+        #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    128u
 
 /* If you don't want to see this pragma message, you can either
  * remove it or define 'ipconfigTCP_MEM_STATS_MAX_ALLOCATION' in
  * your freeRTOSIPConfig.h. */
-    #pragma message ("ipconfigTCP_MEM_STATS_MAX_ALLOCATION undefined?")
-#endif
-
-#if ( ipconfigUSE_TCP_MEM_STATS != 0 )
+        #pragma message ("ipconfigTCP_MEM_STATS_MAX_ALLOCATION undefined?")
+    #endif
 
 /* When a streambuffer is allocated, 4 extra bytes will be reserved. */
 
