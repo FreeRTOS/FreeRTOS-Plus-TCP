@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.2
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -34,7 +34,12 @@
     #include "FreeRTOSIPConfig.h"
     #include "FreeRTOSIPConfigDefaults.h"
     #include "IPTraceMacroDefaults.h"
+    #include "FreeRTOS_IP.h"
 
+/*
+ * Called when the application has generated a UDP packet to send.
+ */
+    void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
     #ifdef __cplusplus
         } /* extern "C" */

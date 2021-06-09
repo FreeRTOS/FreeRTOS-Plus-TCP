@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.2
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -590,6 +590,18 @@ static void prvIPTask( void * pvParameters )
                 #endif /* ipconfigUSE_TCP */
                 break;
 
+            case eSocketSetDeleteEvent:
+                #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+                    {
+                        SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
+
+                        iptraceMEM_STATS_DELETE( pxSocketSet );
+                        vEventGroupDelete( pxSocketSet->xSelectGroup );
+                        vPortFree( ( void * ) pxSocketSet );
+                    }
+                #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
+                break;
+
             case eNoEvent:
                 /* xQueueReceive() returned because of a normal time-out. */
                 break;
@@ -822,6 +834,9 @@ static void prvCheckNetworkTimers( void )
                 xProcessedTCPMessage = 0;
             }
         }
+
+        /* See if any socket was planned to be closed. */
+        vSocketCloseNextTime( NULL );
     #endif /* ipconfigUSE_TCP == 1 */
 }
 /*-----------------------------------------------------------*/
@@ -2529,15 +2544,16 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  *         ipUNHANDLED_PROTOCOL, ipWRONG_CRC, or ipCORRECT_CRC.
  *         When xOutgoingPacket is true: either ipINVALID_LENGTH or ipCORRECT_CRC.
  */
-uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
+uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                                      size_t uxBufferLength,
                                      BaseType_t xOutgoingPacket )
 {
     uint32_t ulLength;
-    uint16_t usChecksum, * pusChecksum;
+    uint16_t usChecksum;           /* The checksum as calculated. */
+    uint16_t usChecksumFound = 0U; /* The checksum as found in the incoming packet. */
     const IPPacket_t * pxIPPacket;
     UBaseType_t uxIPHeaderLength;
-    const ProtocolPacket_t * pxProtPack;
+    ProtocolPacket_t * pxProtPack;
     uint8_t ucProtocol;
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
@@ -2594,7 +2610,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
          * and IP headers incorrectly aligned. However, either way, the "third"
          * protocol (Layer 3 or 4) header will be aligned, which is the convenience
          * of this calculation. */
-        pxProtPack = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolPacket_t, &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
+        pxProtPack = ipCAST_PTR_TO_TYPE_PTR( ProtocolPacket_t, &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
         /* Switch on the Layer 3/4 protocol. */
         if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
@@ -2606,7 +2622,16 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                 break;
             }
 
-            pusChecksum = ( uint16_t * ) ( &( pxProtPack->xUDPPacket.xUDPHeader.usChecksum ) );
+            if( xOutgoingPacket != pdFALSE )
+            {
+                /* Clear the UDP checksum field before calculating it. */
+                pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0U;
+            }
+            else
+            {
+                usChecksumFound = pxProtPack->xUDPPacket.xUDPHeader.usChecksum;
+            }
+
             #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
                 {
                     pcType = "UDP";
@@ -2622,7 +2647,16 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                 break;
             }
 
-            pusChecksum = ( uint16_t * ) ( &( pxProtPack->xTCPPacket.xTCPHeader.usChecksum ) );
+            if( xOutgoingPacket != pdFALSE )
+            {
+                /* Clear the TCP checksum field before calculating it. */
+                pxProtPack->xTCPPacket.xTCPHeader.usChecksum = 0U;
+            }
+            else
+            {
+                usChecksumFound = pxProtPack->xTCPPacket.xTCPHeader.usChecksum;
+            }
+
             #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
                 {
                     pcType = "TCP";
@@ -2639,7 +2673,16 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                 break;
             }
 
-            pusChecksum = ( uint16_t * ) ( &( pxProtPack->xICMPPacket.xICMPHeader.usChecksum ) );
+            if( xOutgoingPacket != pdFALSE )
+            {
+                /* Clear the ICMP/IGMP checksum field before calculating it. */
+                pxProtPack->xICMPPacket.xICMPHeader.usChecksum = 0U;
+            }
+            else
+            {
+                usChecksumFound = pxProtPack->xICMPPacket.xICMPHeader.usChecksum;
+            }
+
             #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
                 {
                     if( ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
@@ -2665,11 +2708,9 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
          * of the packet. */
         if( xOutgoingPacket != pdFALSE )
         {
-            /* This is an outgoing packet. Before calculating the checksum, set it
-             * to zero. */
-            *( pusChecksum ) = 0U;
+            /* This is an outgoing packet. The CRC-field has been cleared. */
         }
-        else if( ( *pusChecksum == 0U ) && ( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP ) )
+        else if( ( usChecksumFound == 0U ) && ( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP ) )
         {
             #if ( ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS == 0 )
                 {
@@ -2761,15 +2802,6 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
             {
                 /* In case of UDP, a calculated checksum of 0x0000 is transmitted
                  * as 0xffff. A value of zero would mean that the checksum is not used. */
-                #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-                    {
-                        if( xOutgoingPacket != pdFALSE )
-                        {
-                            FreeRTOS_debug_printf( ( "usGenerateProtocolChecksum[%s]: crc swap: %04X\n", pcType, usChecksum ) );
-                        }
-                    }
-                #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
-
                 usChecksum = ( uint16_t ) 0xffffu;
             }
         }
@@ -2778,7 +2810,21 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
 
         if( xOutgoingPacket != pdFALSE )
         {
-            *( pusChecksum ) = usChecksum;
+            switch( ucProtocol )
+            {
+                case ipPROTOCOL_UDP:
+                    pxProtPack->xUDPPacket.xUDPHeader.usChecksum = usChecksum;
+                    break;
+
+                case ipPROTOCOL_TCP:
+                    pxProtPack->xTCPPacket.xTCPHeader.usChecksum = usChecksum;
+                    break;
+
+                case ipPROTOCOL_ICMP:
+                case ipPROTOCOL_IGMP:
+                    pxProtPack->xICMPPacket.xICMPHeader.usChecksum = usChecksum;
+                    break;
+            }
         }
 
         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
@@ -2789,7 +2835,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                                          FreeRTOS_ntohs( pxIPPacket->xIPHeader.usIdentification ),
                                          FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ),
                                          FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulDestinationIPAddress ),
-                                         FreeRTOS_ntohs( *pusChecksum ) ) );
+                                         FreeRTOS_ntohs( usChecksumFound ) ) );
             }
             else
             {

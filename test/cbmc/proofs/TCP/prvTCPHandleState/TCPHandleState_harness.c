@@ -37,6 +37,22 @@
 
 #include "../../utility/memory_assignments.c"
 
+/* Abstraction of xTaskGetCurrentTaskHandle */
+TaskHandle_t xTaskGetCurrentTaskHandle( void )
+{
+    static int xIsInit = 0;
+    static TaskHandle_t pxCurrentTCB;
+    TaskHandle_t xRandomTaskHandle; /* not initialized on purpose */
+
+    if( xIsInit == 0 )
+    {
+        pxCurrentTCB = xRandomTaskHandle;
+        xIsInit = 1;
+    }
+
+    return pxCurrentTCB;
+}
+
 /* This proof assumes that prvTCPPrepareSend and prvTCPReturnPacket are correct.
  * These functions are proved to be correct separately. */
 
@@ -59,6 +75,12 @@ void harness()
         __CPROVER_assume( pxSocket->u.xTCP.uxRxWinSize >= 0 && pxSocket->u.xTCP.uxRxWinSize <= sizeof( size_t ) );
         /* uxRxWinSize is initialized as uint16_t. This assumption is required to terminate `while(uxWinSize > 0xfffful)` loop.*/
         __CPROVER_assume( pxSocket->u.xTCP.usInitMSS == sizeof( uint16_t ) );
+
+        if( xIsCallingFromIPTask() == pdFALSE )
+        {
+            __CPROVER_assume( pxSocket->u.xTCP.bits.bPassQueued == pdFALSE_UNSIGNED );
+            __CPROVER_assume( pxSocket->u.xTCP.bits.bPassAccept == pdFALSE_UNSIGNED );
+        }
     }
 
     NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();

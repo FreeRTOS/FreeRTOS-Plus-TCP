@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,11 +23,34 @@
  * http://www.FreeRTOS.org
  */
 
-/*****************************************************************************
-*
-* See the following URL for an explanation of this file:
-* http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Compiler_Porting.html
-*
-*****************************************************************************/
 
-#pragma pack( push, 1 )
+/* Include Unity header */
+#include <unity.h>
+
+/* Include standard libraries */
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include "FreeRTOS.h"
+#include "task.h"
+#include "list.h"
+
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+    return ( UDPPacket_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+    return ( const UDPPacket_t * ) pvArgument;
+}
+
+void vPortEnterCritical( void )
+{
+}
+void vPortExitCritical( void )
+{
+}

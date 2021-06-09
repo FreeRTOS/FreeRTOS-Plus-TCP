@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.2
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -550,13 +550,16 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  */
     void FreeRTOS_DeleteSocketSet( SocketSet_t xSocketSet )
     {
-        SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) xSocketSet;
+        IPStackEvent_t xCloseEvent;
 
 
-        iptraceMEM_STATS_DELETE( pxSocketSet );
+        xCloseEvent.eEventType = eSocketSetDeleteEvent;
+        xCloseEvent.pvData = ( void * ) xSocketSet;
 
-        vEventGroupDelete( pxSocketSet->xSelectGroup );
-        vPortFree( pxSocketSet );
+        if( xSendEventStructToIPTask( &xCloseEvent, ( TickType_t ) portMAX_DELAY ) == pdFAIL )
+        {
+            FreeRTOS_printf( ( "FreeRTOS_DeleteSocketSet: xSendEventStructToIPTask failed\n" ) );
+        }
     }
 
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
@@ -1436,17 +1439,27 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
     }
     else
     {
-        #if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_CALLBACKS == 1 ) )
+        #if ( ipconfigUSE_CALLBACKS == 1 )
             {
-                if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                #if ( ipconfigUSE_TCP == 1 )
+                    if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                    {
+                        /* Make sure that IP-task won't call the user callback's anymore */
+                        pxSocket->u.xTCP.pxHandleConnected = NULL;
+                        pxSocket->u.xTCP.pxHandleReceive = NULL;
+                        pxSocket->u.xTCP.pxHandleSent = NULL;
+                    }
+                    else
+                #endif
+
+                if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_UDP )
                 {
-                    /* Make sure that IP-task won't call the user callback's anymore */
-                    pxSocket->u.xTCP.pxHandleConnected = NULL;
-                    pxSocket->u.xTCP.pxHandleReceive = NULL;
-                    pxSocket->u.xTCP.pxHandleSent = NULL;
+                    /* Clear the two UDP handlers. */
+                    pxSocket->u.xUDP.pxHandleReceive = NULL;
+                    pxSocket->u.xUDP.pxHandleSent = NULL;
                 }
             }
-        #endif /* ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_CALLBACKS == 1 ) ) */
+        #endif /* ( ipconfigUSE_CALLBACKS == 1 ) */
 
         /* Let the IP task close the socket to keep it synchronised with the
          * packet handling. */
@@ -1584,8 +1597,8 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
 /**
  * @brief When a child socket gets closed, make sure to update the child-count of the
- *        parent. When a listening parent socket is closed, make sure no child-sockets
- *        keep a pointer to it.
+ *        parent. When a listening parent socket is closed, make sure to close also
+ *        all orphaned child-sockets.
  *
  * @param[in] pxSocketToDelete: The socket being closed.
  */
@@ -1596,23 +1609,45 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
         FreeRTOS_Socket_t * pxOtherSocket;
         uint16_t usLocalPort = pxSocketToDelete->usLocalPort;
 
-        for( pxIterator = listGET_NEXT( pxEnd );
-             pxIterator != pxEnd;
-             pxIterator = listGET_NEXT( pxIterator ) )
+        if( pxSocketToDelete->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN )
         {
-            pxOtherSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
-
-            if( ( pxOtherSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN ) &&
-                ( pxOtherSocket->usLocalPort == usLocalPort ) &&
-                ( pxOtherSocket->u.xTCP.usChildCount != 0U ) )
+            for( pxIterator = listGET_NEXT( pxEnd );
+                 pxIterator != pxEnd; )
             {
-                pxOtherSocket->u.xTCP.usChildCount--;
-                FreeRTOS_debug_printf( ( "Lost: Socket %u now has %u / %u child%s\n",
-                                         pxOtherSocket->usLocalPort,
-                                         pxOtherSocket->u.xTCP.usChildCount,
-                                         pxOtherSocket->u.xTCP.usBacklog,
-                                         ( pxOtherSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren" ) );
-                break;
+                pxOtherSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+
+                /* This needs to be done here, before calling vSocketClose. */
+                pxIterator = listGET_NEXT( pxIterator );
+
+                if( ( pxOtherSocket->u.xTCP.ucTCPState != ( uint8_t ) eTCP_LISTEN ) &&
+                    ( pxOtherSocket->usLocalPort == usLocalPort ) &&
+                    ( ( pxOtherSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
+                      ( pxOtherSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) ) )
+                {
+                    vSocketClose( pxOtherSocket );
+                }
+            }
+        }
+        else
+        {
+            for( pxIterator = listGET_NEXT( pxEnd );
+                 pxIterator != pxEnd;
+                 pxIterator = listGET_NEXT( pxIterator ) )
+            {
+                pxOtherSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+
+                if( ( pxOtherSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN ) &&
+                    ( pxOtherSocket->usLocalPort == usLocalPort ) &&
+                    ( pxOtherSocket->u.xTCP.usChildCount != 0U ) )
+                {
+                    pxOtherSocket->u.xTCP.usChildCount--;
+                    FreeRTOS_debug_printf( ( "Lost: Socket %u now has %u / %u child%s\n",
+                                             pxOtherSocket->usLocalPort,
+                                             pxOtherSocket->u.xTCP.usChildCount,
+                                             pxOtherSocket->u.xTCP.usBacklog,
+                                             ( pxOtherSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren" ) );
+                    break;
+                }
             }
         }
     }
@@ -4482,8 +4517,8 @@ BaseType_t xSocketValid( Socket_t xSocket )
                 {
                     /* Using function "snprintf". */
                     const int32_t copied_len = snprintf( ucChildText, sizeof( ucChildText ), " %d/%d",
-                                                         ( int32_t ) pxSocket->u.xTCP.usChildCount,
-                                                         ( int32_t ) pxSocket->u.xTCP.usBacklog );
+                                                         pxSocket->u.xTCP.usChildCount,
+                                                         pxSocket->u.xTCP.usBacklog );
                     ( void ) copied_len;
                     /* These should never evaluate to false since the buffers are both shorter than 5-6 characters (<=65535) */
                     configASSERT( copied_len >= 0 );

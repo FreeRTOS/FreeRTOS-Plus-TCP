@@ -667,18 +667,26 @@ enum smsc9220_error_t smsc9220_set_fifo_level_irq( const struct smsc9220_eth_dev
 {
     struct smsc9220_eth_reg_map_t * register_map =
         ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    enum smsc9220_error_t eReturn = SMSC9220_ERROR_PARAM;
 
-    if( ( level < SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MIN ) ||
-        ( level > SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MAX ) )
+    #if ( SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MIN > 0 )
+        if( level < SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MIN )
+        {
+            /* An error will be returned. */
+        }
+        else
+    #endif
+
+    if( level <= SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MAX )
     {
-        return SMSC9220_ERROR_PARAM;
+        CLR_BIT_FIELD( register_map->fifo_level_irq, SMSC9220_FIFO_LEVEL_IRQ_MASK,
+                       irq_level_pos, SMSC9220_FIFO_LEVEL_IRQ_MASK );
+        SET_BIT_FIELD( register_map->fifo_level_irq, SMSC9220_FIFO_LEVEL_IRQ_MASK,
+                       irq_level_pos, level );
+        eReturn = SMSC9220_ERROR_NONE;
     }
 
-    CLR_BIT_FIELD( register_map->fifo_level_irq, SMSC9220_FIFO_LEVEL_IRQ_MASK,
-                   irq_level_pos, SMSC9220_FIFO_LEVEL_IRQ_MASK );
-    SET_BIT_FIELD( register_map->fifo_level_irq, SMSC9220_FIFO_LEVEL_IRQ_MASK,
-                   irq_level_pos, level );
-    return SMSC9220_ERROR_NONE;
+    return eReturn;
 }
 
 enum smsc9220_error_t smsc9220_wait_eeprom( const struct smsc9220_eth_dev_t * dev )

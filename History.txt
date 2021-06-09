@@ -1,3 +1,8 @@
+Changes between V2.3.2 and V2.3.3 releases:
+	+ Repaired buffer leak in NBNS reply logic.
+	+ Added a hook function which can be used to process unsupported ethernet
+	  frames.
+	+ Added a check for ICMP packets with incorrect checksum.
 Changes between V2.3.1 and V2.3.2 releases:
 	+ When a protocol error occurs during the SYN-phase of a TCP connection, a
 	  child socket will now be closed ( calling FreeRTOS_closesocket() ),
