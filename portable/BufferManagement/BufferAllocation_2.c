@@ -334,6 +334,7 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
     * MEMORY.  For example, heap_2 must not be used, heap_4 can be used. */
     vReleaseNetworkBuffer( pxNetworkBuffer->pucEthernetBuffer );
     pxNetworkBuffer->pucEthernetBuffer = NULL;
+    pxNetworkBuffer->xDataLength = 0U;
 
     taskENTER_CRITICAL();
     {
