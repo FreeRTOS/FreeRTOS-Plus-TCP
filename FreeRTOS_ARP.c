@@ -85,10 +85,10 @@ static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
 
 static void vARPSendRequestPacket( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
-static void prvFindCachEntry( const MACAddress_t * pxMACAddress,
-                              const uint32_t ulIPAddress,
-                              struct xNetworkEndPoint * pxEndPoint,
-                              CacheLocation_t * pxLocation );
+static void prvFindCacheEntry( const MACAddress_t * pxMACAddress,
+                               const uint32_t ulIPAddress,
+                               struct xNetworkEndPoint * pxEndPoint,
+                               CacheLocation_t * pxLocation );
 
 /*-----------------------------------------------------------*/
 
@@ -147,7 +147,6 @@ eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * pxNetwor
     ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( ulSenderProtocolAddress ) );
     /* The field ulTargetProtocolAddress is well-aligned, a 32-bits copy. */
     ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
-    ( void ) ulTargetProtocolAddress;
 
     #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
         {
@@ -158,27 +157,30 @@ eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * pxNetwor
     traceARP_PACKET_RECEIVED();
 
     /* Some extra logging while still testing. */
-    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+    #if ( ipconfigHAS_PRINTF != 0 )
         if( pxARPHeader->usOperation == ( uint16_t ) ipARP_REPLY )
         {
-            FreeRTOS_printf( ( "ipARP_REPLY from %lxip to %lxip end-point %lxip\n",
-                               FreeRTOS_ntohl( ulSenderProtocolAddress ),
-                               FreeRTOS_ntohl( ulTargetProtocolAddress ),
-                               FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) );
+            FreeRTOS_printf( ( "ipARP_REPLY from %xip to %xip end-point %xip\n",
+                               ( unsigned ) FreeRTOS_ntohl( ulSenderProtocolAddress ),
+                               ( unsigned ) FreeRTOS_ntohl( ulTargetProtocolAddress ),
+                               ( unsigned ) FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) );
         }
     #endif /* ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
-    #if ( ipconfigHAS_PRINTF != 0 )
+    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
         if( ( pxARPHeader->usOperation == ( uint16_t ) ipARP_REQUEST ) &&
             ( ulSenderProtocolAddress != ulTargetProtocolAddress ) &&
             ( pxTargetEndPoint != NULL ) )
         {
-            FreeRTOS_debug_printf( ( "ipARP_REQUEST from %lxip to %lxip end-point %lxip\n",
-                                     FreeRTOS_ntohl( ulSenderProtocolAddress ),
-                                     FreeRTOS_ntohl( ulTargetProtocolAddress ),
-                                     FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) );
+            FreeRTOS_debug_printf( ( "ipARP_REQUEST from %xip to %xip end-point %xip\n",
+                                     ( unsigned ) FreeRTOS_ntohl( ulSenderProtocolAddress ),
+                                     ( unsigned ) FreeRTOS_ntohl( ulTargetProtocolAddress ),
+                                     ( unsigned ) ( FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) ) );
         }
     #endif /* ( ipconfigHAS_PRINTF != 0 ) */
+
+    /* ulTargetProtocolAddress won't be used unless logging is enabled. */
+    ( void ) ulTargetProtocolAddress;
 
     if( ( pxTargetEndPoint != NULL ) && ( pxTargetEndPoint->bits.bEndPointUp != pdFALSE_UNSIGNED ) )
     {
@@ -198,6 +200,17 @@ eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * pxNetwor
                 break;
         }
     }
+    /* Process received ARP frame to see if there is a clash. */
+    #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
+        {
+            if( pxSourceEndPoint != NULL )
+            {
+                xARPHadIPClash = pdTRUE;
+                /* Remember the MAC-address of the other device which has the same IP-address. */
+                ( void ) memcpy( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( xARPClashMacAddress.ucBytes ) );
+            }
+        }
+    #endif /* ipconfigARP_USE_CLASH_DETECTION */
 
     return eReturn;
 }
@@ -294,17 +307,6 @@ static void vARPProcessPacketReply( ARPPacket_t * pxARPFrame,
 
     iptracePROCESSING_RECEIVED_ARP_REPLY( ulTargetProtocolAddress );
     vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress, pxTargetEndPoint );
-    /* Process received ARP frame to see if there is a clash. */
-    #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
-        {
-            if( pxSourceEndPoint != NULL )
-            {
-                xARPHadIPClash = pdTRUE;
-                /* Remember the MAC-address of the other device which has the same IP-address. */
-                ( void ) memcpy( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( xARPClashMacAddress.ucBytes ) );
-            }
-        }
-    #endif /* ipconfigARP_USE_CLASH_DETECTION */
 }
 /*-----------------------------------------------------------*/
 
@@ -377,7 +379,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
     {
         CacheLocation_t xLocation;
 
-        prvFindCachEntry( pxMACAddress, ulIPAddress, pxEndPoint, &( xLocation ) );
+        prvFindCacheEntry( pxMACAddress, ulIPAddress, pxEndPoint, &( xLocation ) );
 
         if( xLocation.xMacEntry >= 0 )
         {
@@ -435,13 +437,17 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
  * @param[in] pxEndPoint: The end-point that will stored in the table.
  * @param[out] pxLocation: The results of this search are written in this struct.
  */
-static void prvFindCachEntry( const MACAddress_t * pxMACAddress,
+static void prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                               const uint32_t ulIPAddress,
                               struct xNetworkEndPoint * pxEndPoint,
                               CacheLocation_t * pxLocation )
 {
     BaseType_t x = 0;
     uint8_t ucMinAgeFound = 0U;
+
+    #if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 )
+        BaseType_t xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 2 ) != NULL ) ? 1 : 0; /* ARP remote address. */
+    #endif
 
     /* Start with the maximum possible number. */
     ucMinAgeFound--;
