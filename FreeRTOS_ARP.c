@@ -200,6 +200,7 @@ eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * pxNetwor
                 break;
         }
     }
+
     /* Process received ARP frame to see if there is a clash. */
     #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
         {
@@ -438,9 +439,9 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
  * @param[out] pxLocation: The results of this search are written in this struct.
  */
 static void prvFindCacheEntry( const MACAddress_t * pxMACAddress,
-                              const uint32_t ulIPAddress,
-                              struct xNetworkEndPoint * pxEndPoint,
-                              CacheLocation_t * pxLocation )
+                               const uint32_t ulIPAddress,
+                               struct xNetworkEndPoint * pxEndPoint,
+                               CacheLocation_t * pxLocation )
 {
     BaseType_t x = 0;
     uint8_t ucMinAgeFound = 0U;
