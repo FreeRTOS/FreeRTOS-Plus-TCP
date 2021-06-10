@@ -12,6 +12,24 @@ When a MAC address changes or when there is a change in the network setup,
 it is recommended to perform a hard reset of the microcontroller in lieu
 of resetting only the MAC hardware.
 
+# List of Tasks
+
+The tasks listed in the table below are implemented internally by the driver (NetworkInterface.c).
+
+| Task Name                             | Purpose                                                           |
+|---------------------------------------|-------------------------------------------------------------------|
+| prvEMACDeferredInterruptHandlerTaskRX | RX Task                                                           |
+| prvEMACDeferredInterfaceOutputTaskTX  | TX Task                                                           |
+| prvCheckLinkUpOrDownNetStateTask      | Network State Checking Task (link up/down, network state & reset) |
+
+The tasks listed in the table below are implemented by additional code provided as an example
+related to how the driver might be used in an application (NetworkMiddleware.c).
+The additional code does not have to be used and is only provided to be useful.
+
+| Task Name                             | Purpose                                                           |
+|---------------------------------------|-------------------------------------------------------------------|
+| prvNetworkResetTask                   | Task to periodically reset the network (if required)
+
 # Example Code
 
 ```
@@ -48,7 +66,8 @@ void setup_wired_ethernet()
     /*
        Start the RTOS scheduler by calling vTaskStartScheduler()
        Use publicPreventNetworkReset() to block the network reset during a critical section of the code
-       Set the device name using vPublicSetupDeviceName() */
+       Set the device name using vPublicSetupDeviceName()
+    */
 }
 
 ```
