@@ -3,6 +3,7 @@ aaa
 aaaa
 aaaaaaa
 aal
+abcd
 abuflen
 ack
 acked
@@ -110,6 +111,7 @@ castingmacrofunctions
 cbmc
 ccfg
 cchannel
+cchar
 ce
 centralised
 ceo
@@ -122,6 +124,7 @@ checkoptionsouter
 checksum
 checksummode
 checksumoffload
+chextochar
 christian
 cli
 clk
@@ -267,6 +270,7 @@ enetworkrxevent
 enetworktxevent
 enetworkup
 enhanceddescriptorformat
+enotconn
 enotusingleasedaddress
 enum
 eof
@@ -301,6 +305,7 @@ ethernetif
 ethertype
 ettinger
 etv
+etype
 eunknown
 eventbits
 ewaitingacknowledge
@@ -655,6 +660,7 @@ pcname
 pcnames
 pcnetworkbuffer
 pcremoteip
+pcreturn
 pcs
 pcservername
 pcservice
@@ -762,6 +768,7 @@ prvtcphandlestate
 prvtcpprepareconnect
 prvtcppreparesend
 prvtcpreturnpacket
+prvtcpsendloop
 prvtcpsendpacket
 prvtcpsendrepeated
 prvtcpsendreset
@@ -857,6 +864,7 @@ pxdnsserveraddress
 pxduplicatenetworkbufferwithdescriptor
 pxendpoint
 pxevent
+pxeventbits
 pxfrom
 pxgatewayaddress
 pxgetnetworkbufferwithdescriptor
@@ -897,6 +905,7 @@ pxonudpsent
 pxopenedinterfacehandle
 pxoptionsarraysize
 pxpacket
+pxparentsocket
 pxpeersocket
 pxphyobject
 pxprefix
@@ -910,6 +919,7 @@ pxright
 pxsegment
 pxset
 pxsocket
+pxsocketlist
 pxsocketset
 pxsocketsize
 pxsockettodelete
@@ -917,6 +927,7 @@ pxsourceaddress
 pxsourceaddresslength
 pxsourceendpoint
 pxtargetendpoint
+pxtcp
 pxtcpheader
 pxtcppacket
 pxtcpsocketlookup
@@ -1137,6 +1148,7 @@ ucaddresslength
 ucaddresstype
 ucage
 ucarray
+ucasciitohex
 ucbootfilename
 ucbytes
 ucchildtext
@@ -1412,6 +1424,7 @@ uxblocktimeticks
 uxborn
 uxbuffer
 uxbufferlength
+uxbuffersize
 uxbytecount
 uxclockticks
 uxcontents
@@ -1453,6 +1466,7 @@ uxnumberofbytestosend
 uxoffset
 uxoptionlength
 uxoptionslength
+uxpayloadoffset
 uxprefixlength
 uxprotocolheaderlength
 uxptr
@@ -1582,7 +1596,10 @@ xchecksizefields
 xclearonexit
 xclientid
 xclientsocket
+xcolon
 xcount
+xcurlength
+xcurstart
 xdatalength
 xdatalengthbytes
 xdefaultaddressing
@@ -1622,12 +1639,14 @@ xexpected
 xexpectedmessagetype
 xfamily
 xflags
+xforsend
 xfound
 xfreebufferslist
 xgatewayaddress
 xgetphylinkstatus
 xgivingup
 xgmacswitchrequired
+xhaddigit
 xhadreception
 xhand
 xhandler
@@ -1635,6 +1654,7 @@ xhaserror
 xhasspace
 xhassynflag
 xhigherprioritytaskwoken
+xhighestindex
 xhints
 xhnd
 xhow
@@ -1751,6 +1771,8 @@ xsendlength
 xserverid
 xserversemaphore
 xserversocket
+xset
+xshortcount
 xsize
 xsizewithoutdata
 xsocket
@@ -1764,6 +1786,7 @@ xstatus
 xstream
 xsum
 xtargethardwareaddress
+xtargetindex
 xtaskcheckfortimeout
 xtaskcreate
 xtaskgettickcount
@@ -1782,6 +1805,7 @@ xtcpwindowtxdone
 xtemplist
 xtickcount
 xtickstojump
+xtickstowait
 xtime
 xtimeout
 xtransmittimer
@@ -1802,6 +1826,8 @@ xwanteditemvalue
 xwantedsize
 xwillsleep
 xxx
+xzerolength
+xzerostart
 xzynqdescriptor
 xzynqgemgetphylinkstatus
 xzynqgeminitialise
