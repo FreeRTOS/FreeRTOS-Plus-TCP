@@ -229,10 +229,10 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 
         FreeRTOS_inet_ntoa( ulDNSServerAddress, cBuffer );
         vLoggingPrintf( "DNS server IP Address: %s\r\n", cBuffer );
-    }     /* end if */
+    } /* end if */
     else if( eNetworkEvent == eNetworkDown )
     {
-        xNetworkTasksAlreadyCreated = pdFALSE;   /* clear a flag to indicate that the tasks needs to be created again */
+        xNetworkTasksAlreadyCreated = pdFALSE; /* clear a flag to indicate that the tasks needs to be created again */
         /* Stop or block any running tasks here */
     } /* end if */
 } /* end */
