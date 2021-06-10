@@ -257,9 +257,7 @@ bool setupEMAC()
 {
     uint32_t ul32Loop;
     bool rv;
-    bool interruptsMasked;
-
-    interruptsMasked = false;
+    bool interruptsMasked = false;
 
     if( xTaskGetSchedulerState() == taskSCHEDULER_RUNNING )
     {
@@ -292,6 +290,11 @@ bool setupEMAC()
     {
         SysCtlDelay( 1 );
         ul32Loop += 1;
+    }
+
+    if( ul32Loop == ETH_STARTUP_TIMEOUT )
+    {
+        return false;
     }
 
     /* configure the internal PHY */
@@ -824,8 +827,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
 {
     struct NetworkInterfaceDataOut NIDataOutput;
     BaseType_t txResp;
-    BaseType_t returnValue;
-    returnValue = pdFALSE;
+    BaseType_t returnValue = pdFALSE;
 
     NIDataOutput.pxDescriptor = pxDescriptor;
     NIDataOutput.xReleaseAfterSend = xReleaseAfterSend;
@@ -855,36 +857,33 @@ bool isEMACLinkUp()
 {
     uint8_t uci8PHYAddr = 0; /* refers to the internal PHY */
     uint16_t check;
-    BaseType_t returnValue;
-    returnValue = pdTRUE;
+    BaseType_t returnValue = pdFALSE;
 
     check = EMACPHYRead( EMAC0_BASE, uci8PHYAddr, EPHY_BMSR );
 
-    if( ( ( check & EPHY_BMSR_LINKSTAT ) == 0 ) || ( check & EPHY_BMSR_RFAULT ) )
+    if( ( ( check & EPHY_BMSR_LINKSTAT ) != 0 ) && !( check & EPHY_BMSR_RFAULT ) )
     {
-        returnValue = pdFALSE; /* link is not up */
+        returnValue = pdTRUE; /* link is up */
     }
 
-    return returnValue; /* link is up */
+    return returnValue; /* return link status  */
 }
 
 
 /* A task to check and see if the link is up or down by polling an EMAC register */
 void prvCheckLinkUpOrDownNetStateTask( void * pvParameters )
 {
-    bool check;
-
-    check = false;
+    bool checkLinkStatus = false;
 
     for( ; ; )
     {
-        check = isEMACLinkUp();
+        checkLinkStatus = isEMACLinkUp();
 
-        if( ( check == true ) && ( networkUP == false ) )
+        if( ( checkLinkStatus == true ) && ( networkUP == false ) )
         {
             networkUP = true;
         }
-        else if( ( networkUP == true ) && ( check == false ) )
+        else if( ( checkLinkStatus == true ) && ( checkLinkStatus == false ) )
         {
             /*   FreeRTOS will poll xNetworkInterfaceInitialise() to check if the network is up.
              *   So after FreeRTOS_NetworkDown() is called, there is no corresponding FreeRTOS_NetworkUp() function...
@@ -934,7 +933,7 @@ bool vPublicTurnOffEMAC()
 {
     if( hasBeenSetup == false )
     {
-        return false;                        /* make sure that the MAC has been setup */
+        return false; /* make sure that the MAC has been setup */
     }
 
     if( xTaskGetSchedulerState() == taskSCHEDULER_RUNNING )
@@ -953,7 +952,7 @@ bool vPublicTurnOffEMAC()
         vTaskDelay( pdMS_TO_TICKS( ETH_DOWN_DELAY_MS ) ); /* Wait until FreeRTOS has finished processing */
     }
 
-    offEMAC();   /* Turn off the physical hardware */
+    offEMAC(); /* Turn off the physical hardware */
     return true;
 }
 
