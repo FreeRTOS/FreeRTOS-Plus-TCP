@@ -1,20 +1,34 @@
-/*
- * Copyright (c) 2010-2013 Xilinx, Inc.  All rights reserved.
- *
- * Xilinx, Inc.
- * XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" AS A
- * COURTESY TO YOU.  BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS
- * ONE POSSIBLE   IMPLEMENTATION OF THIS FEATURE, APPLICATION OR
- * STANDARD, XILINX IS MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION
- * IS FREE FROM ANY CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE
- * FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.
- * XILINX EXPRESSLY DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO
- * THE ADEQUACY OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO
- * ANY WARRANTIES OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE
- * FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS FOR A PARTICULAR PURPOSE.
- *
- */
+/******************************************************************************
+*
+* Copyright (C) 2010 - 2015 Xilinx, Inc.  All rights reserved.
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in
+* all copies or substantial portions of the Software.
+*
+* Use of the Software is limited solely to applications:
+* (a) running on a Xilinx device, or
+* (b) that interact with a Xilinx device through a bus or interconnect.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* XILINX CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+* WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+* OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*
+* Except as contained in this notice, the name of the Xilinx shall not be used
+* in advertising or otherwise to promote the sale, use or other dealings in
+* this Software without prior written authorization from Xilinx.
+*
+******************************************************************************/
 
 
 /* Standard includes. */
@@ -31,12 +45,13 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Routing.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
 #include "Zynq/x_emacpsif.h"
 
-extern TaskHandle_t xEMACTaskHandle;
+extern TaskHandle_t xEMACTaskHandles[ XPAR_XEMACPS_NUM_INSTANCES ];
 
 /*** IMPORTANT: Define PEEP in xemacpsif.h and sys_arch_raw.c
  *** to run it on a PEEP board
@@ -66,7 +81,6 @@ void start_emacps( xemacpsif_s * xemacps )
     XEmacPs_Start( &xemacps->emacps );
 }
 
-extern struct xtopology_t xXTopology;
 
 volatile int error_msg_count = 0;
 volatile const char * last_err_msg = "";
@@ -88,8 +102,10 @@ void emacps_error_handler( void * arg,
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     xemacpsif_s * xemacpsif;
     BaseType_t xNextHead = xErrorHead;
+    BaseType_t xEMACIndex;
 
     xemacpsif = ( xemacpsif_s * ) ( arg );
+    xEMACIndex = xemacpsif->emacps.Config.DeviceId;
 
     if( ( Direction != XEMACPS_SEND ) || ( ErrorWord != XEMACPS_TXSR_USEDREAD_MASK ) )
     {
@@ -110,9 +126,9 @@ void emacps_error_handler( void * arg,
             xemacpsif->isr_events |= EMAC_IF_ERR_EVENT;
         }
 
-        if( xEMACTaskHandle != NULL )
+        if( xEMACTaskHandles[ xEMACIndex ] != NULL )
         {
-            vTaskNotifyGiveFromISR( xEMACTaskHandle, &xHigherPriorityTaskWoken );
+            vTaskNotifyGiveFromISR( xEMACTaskHandles[ xEMACIndex ], &xHigherPriorityTaskWoken );
         }
     }
 
@@ -150,18 +166,13 @@ static void emacps_handle_error( void * arg,
                                  u32 ErrorWord )
 {
     xemacpsif_s * xemacpsif;
-    struct xtopology_t * xtopologyp;
     XEmacPs * xemacps;
+    BaseType_t xEMACIndex;
 
     xemacpsif = ( xemacpsif_s * ) ( arg );
 
-    xtopologyp = &xXTopology;
-
     xemacps = &xemacpsif->emacps;
-
-    /* Do not appear to be used. */
-    ( void ) xemacps;
-    ( void ) xtopologyp;
+    xEMACIndex = xemacps->Config.DeviceId;
 
     last_err_msg = NULL;
 
@@ -174,7 +185,7 @@ static void emacps_handle_error( void * arg,
                 if( ( ErrorWord & XEMACPS_RXSR_HRESPNOK_MASK ) != 0 )
                 {
                     last_err_msg = "Receive DMA error";
-                    xNetworkInterfaceInitialise();
+                    vInitialiseOnIndex( xEMACIndex );
                 }
 
                 if( ( ErrorWord & XEMACPS_RXSR_RXOVR_MASK ) != 0 )
@@ -196,7 +207,7 @@ static void emacps_handle_error( void * arg,
                 if( ( ErrorWord & XEMACPS_TXSR_HRESPNOK_MASK ) != 0 )
                 {
                     last_err_msg = "Transmit DMA error";
-                    xNetworkInterfaceInitialise();
+                    vInitialiseOnIndex( xEMACIndex );
                 }
 
                 if( ( ErrorWord & XEMACPS_TXSR_URUN_MASK ) != 0 )
