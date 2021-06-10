@@ -41,6 +41,7 @@ struct InternalNetworkInterfaceMSP432EConfig
     bool setMACAddrInternal;                         /* true to set the MAC address from internal registers */
 };                                                   /* end */
 
+bool vPublicCheckNetworkInterfaceUp();
 bool vPublicTurnOffEMAC();
 bool vPublicTurnOnEMAC();
 void vPublicGetMACAddr( uint8_t pui8MACAddrGet[ ipMAC_ADDRESS_LENGTH_BYTES ] );
