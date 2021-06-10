@@ -883,7 +883,7 @@ void prvCheckLinkUpOrDownNetStateTask( void * pvParameters )
         {
             networkUP = true;
         }
-        else if( ( checkLinkStatus == true ) && ( checkLinkStatus == false ) )
+        else if( ( checkLinkStatus == false ) && ( networkUP == true ) )
         {
             /*   FreeRTOS will poll xNetworkInterfaceInitialise() to check if the network is up.
              *   So after FreeRTOS_NetworkDown() is called, there is no corresponding FreeRTOS_NetworkUp() function...
