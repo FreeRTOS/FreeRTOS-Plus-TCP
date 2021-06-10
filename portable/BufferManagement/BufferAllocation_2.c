@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.2
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -102,7 +102,20 @@ BaseType_t xNetworkBuffersInitialise( void )
      * have not been initialised before. */
     if( xNetworkBufferSemaphore == NULL )
     {
-        xNetworkBufferSemaphore = xSemaphoreCreateCounting( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
+        #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
+            {
+                static StaticSemaphore_t xNetworkBufferSemaphoreBuffer;
+                xNetworkBufferSemaphore = xSemaphoreCreateCountingStatic(
+                    ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
+                    ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
+                    &xNetworkBufferSemaphoreBuffer );
+            }
+        #else
+            {
+                xNetworkBufferSemaphore = xSemaphoreCreateCounting( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
+            }
+        #endif /* configSUPPORT_STATIC_ALLOCATION */
+
         configASSERT( xNetworkBufferSemaphore != NULL );
 
         if( xNetworkBufferSemaphore != NULL )

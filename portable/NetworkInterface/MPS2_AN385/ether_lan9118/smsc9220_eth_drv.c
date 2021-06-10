@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "cmsis.h"
+
 #include "smsc9220_eth_drv.h"
 /*#include "CMSIS/SMM_MPS2.h" */
 
@@ -46,42 +46,42 @@
 
 struct smsc9220_eth_reg_map_t
 {
-    __I uint32_t rx_data_port; /**< Receive FIFO Ports (offset 0x0) */
+    volatile uint32_t rx_data_port; /**< Receive FIFO Ports (offset 0x0) */
     uint32_t reserved1[ 0x7 ];
-    __O uint32_t tx_data_port; /**< Transmit FIFO Ports (offset 0x20) */
+    volatile uint32_t tx_data_port; /**< Transmit FIFO Ports (offset 0x20) */
     uint32_t reserved2[ 0x7 ];
 
-    __I uint32_t rx_status_port;    /**< Receive FIFO status port (offset 0x40) */
-    __I uint32_t rx_status_peek;    /**< Receive FIFO status peek (offset 0x44) */
-    __I uint32_t tx_status_port;    /**< Transmit FIFO status port (offset 0x48) */
-    __I uint32_t tx_status_peek;    /**< Transmit FIFO status peek (offset 0x4C) */
+    volatile uint32_t rx_status_port;    /**< Receive FIFO status port (offset 0x40) */
+    volatile uint32_t rx_status_peek;    /**< Receive FIFO status peek (offset 0x44) */
+    volatile uint32_t tx_status_port;    /**< Transmit FIFO status port (offset 0x48) */
+    volatile uint32_t tx_status_peek;    /**< Transmit FIFO status peek (offset 0x4C) */
 
-    __I uint32_t id_revision;       /**< Chip ID and Revision (offset 0x50) */
-    __IO uint32_t irq_cfg;          /**< Main Interrupt Config (offset 0x54) */
-    __IO uint32_t irq_status;       /**< Interrupt Status (offset 0x58) */
-    __IO uint32_t irq_enable;       /**< Interrupt Enable Register (offset 0x5C) */
-    uint32_t reserved3;             /**< Reserved for future use (offset 0x60) */
-    __I uint32_t byte_test;         /**< Byte order test 87654321h (offset 0x64) */
-    __IO uint32_t fifo_level_irq;   /**< FIFO Level Interrupts (offset 0x68) */
-    __IO uint32_t rx_cfg;           /**< Receive Configuration (offset 0x6C) */
-    __IO uint32_t tx_cfg;           /**< Transmit Configuration (offset 0x70) */
-    __IO uint32_t hw_cfg;           /**< Hardware Configuration (offset 0x74) */
-    __IO uint32_t rx_datapath_ctrl; /**< RX Datapath Control (offset 0x78) */
-    __I uint32_t rx_fifo_inf;       /**< Receive FIFO Information (offset 0x7C) */
-    __I uint32_t tx_fifo_inf;       /**< Transmit FIFO Information (offset 0x80) */
-    __IO uint32_t pmt_ctrl;         /**< Power Management Control (offset 0x84) */
-    __IO uint32_t gpio_cfg;         /**< GPIO Configuration (offset 0x88) */
-    __IO uint32_t gptimer_cfg;      /**< GP Timer Configuration (offset 0x8C) */
-    __I uint32_t gptimer_count;     /**< GP Timer Count (offset 0x90) */
-    uint32_t reserved4;             /**< Reserved for future use (offset 0x94) */
-    __IO uint32_t word_swap;        /**< WORD SWAP Register (offset 0x98) */
-    __I uint32_t free_run_counter;  /**< Free Run Counter (offset 0x9C) */
-    __I uint32_t rx_dropped_frames; /**< RX Dropped Frames Counter (offset 0xA0) */
-    __IO uint32_t mac_csr_cmd;      /**< MAC CSR Synchronizer Cmd (offset 0xA4) */
-    __IO uint32_t mac_csr_data;     /**< MAC CSR Synchronizer Data (offset 0xA8) */
-    __IO uint32_t afc_cfg;          /**< AutomaticFlow Ctrl Config (offset 0xAC) */
-    __IO uint32_t eeprom_cmd;       /**< EEPROM Command (offset 0xB0) */
-    __IO uint32_t eeprom_data;      /**< EEPROM Data (offset 0xB4) */
+    volatile uint32_t id_revision;       /**< Chip ID and Revision (offset 0x50) */
+    volatile uint32_t irq_cfg;           /**< Main Interrupt Config (offset 0x54) */
+    volatile uint32_t irq_status;        /**< Interrupt Status (offset 0x58) */
+    volatile uint32_t irq_enable;        /**< Interrupt Enable Register (offset 0x5C) */
+    uint32_t reserved3;                  /**< Reserved for future use (offset 0x60) */
+    volatile uint32_t byte_test;         /**< Byte order test 87654321h (offset 0x64) */
+    volatile uint32_t fifo_level_irq;    /**< FIFO Level Interrupts (offset 0x68) */
+    volatile uint32_t rx_cfg;            /**< Receive Configuration (offset 0x6C) */
+    volatile uint32_t tx_cfg;            /**< Transmit Configuration (offset 0x70) */
+    volatile uint32_t hw_cfg;            /**< Hardware Configuration (offset 0x74) */
+    volatile uint32_t rx_datapath_ctrl;  /**< RX Datapath Control (offset 0x78) */
+    volatile uint32_t rx_fifo_inf;       /**< Receive FIFO Information (offset 0x7C) */
+    volatile uint32_t tx_fifo_inf;       /**< Transmit FIFO Information (offset 0x80) */
+    volatile uint32_t pmt_ctrl;          /**< Power Management Control (offset 0x84) */
+    volatile uint32_t gpio_cfg;          /**< GPIO Configuration (offset 0x88) */
+    volatile uint32_t gptimer_cfg;       /**< GP Timer Configuration (offset 0x8C) */
+    volatile uint32_t gptimer_count;     /**< GP Timer Count (offset 0x90) */
+    uint32_t reserved4;                  /**< Reserved for future use (offset 0x94) */
+    volatile uint32_t word_swap;         /**< WORD SWAP Register (offset 0x98) */
+    volatile uint32_t free_run_counter;  /**< Free Run Counter (offset 0x9C) */
+    volatile uint32_t rx_dropped_frames; /**< RX Dropped Frames Counter (offset 0xA0) */
+    volatile uint32_t mac_csr_cmd;       /**< MAC CSR Synchronizer Cmd (offset 0xA4) */
+    volatile uint32_t mac_csr_data;      /**< MAC CSR Synchronizer Data (offset 0xA8) */
+    volatile uint32_t afc_cfg;           /**< AutomaticFlow Ctrl Config (offset 0xAC) */
+    volatile uint32_t eeprom_cmd;        /**< EEPROM Command (offset 0xB0) */
+    volatile uint32_t eeprom_data;       /**< EEPROM Data (offset 0xB4) */
 };
 
 /**
@@ -221,7 +221,7 @@ enum irq_cfg_bits_t
 {
     IRQ_CFG_IRQ_TYPE = 0U,
     IRQ_CFG_IRQ_POL = 4U,
-    IRQ_CFG_IRQ_EN_INDEX = 8U,
+    IRQ_CFG_IRQ_EN_INDEX = 8U
 };
 
 #define IRQ_CFG_INT_DEAS_MASK    0xFFU
@@ -667,18 +667,26 @@ enum smsc9220_error_t smsc9220_set_fifo_level_irq( const struct smsc9220_eth_dev
 {
     struct smsc9220_eth_reg_map_t * register_map =
         ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    enum smsc9220_error_t eReturn = SMSC9220_ERROR_PARAM;
 
-    if( ( level < SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MIN ) ||
-        ( level > SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MAX ) )
+    #if ( SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MIN > 0 )
+        if( level < SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MIN )
+        {
+            /* An error will be returned. */
+        }
+        else
+    #endif
+
+    if( level <= SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MAX )
     {
-        return SMSC9220_ERROR_PARAM;
+        CLR_BIT_FIELD( register_map->fifo_level_irq, SMSC9220_FIFO_LEVEL_IRQ_MASK,
+                       irq_level_pos, SMSC9220_FIFO_LEVEL_IRQ_MASK );
+        SET_BIT_FIELD( register_map->fifo_level_irq, SMSC9220_FIFO_LEVEL_IRQ_MASK,
+                       irq_level_pos, level );
+        eReturn = SMSC9220_ERROR_NONE;
     }
 
-    CLR_BIT_FIELD( register_map->fifo_level_irq, SMSC9220_FIFO_LEVEL_IRQ_MASK,
-                   irq_level_pos, SMSC9220_FIFO_LEVEL_IRQ_MASK );
-    SET_BIT_FIELD( register_map->fifo_level_irq, SMSC9220_FIFO_LEVEL_IRQ_MASK,
-                   irq_level_pos, level );
-    return SMSC9220_ERROR_NONE;
+    return eReturn;
 }
 
 enum smsc9220_error_t smsc9220_wait_eeprom( const struct smsc9220_eth_dev_t * dev )
@@ -885,6 +893,15 @@ void smsc9220_clear_interrupt( const struct smsc9220_eth_dev_t * dev,
 
     SET_BIT( register_map->irq_status, source );
 }
+
+uint32_t get_irq_status( const struct smsc9220_eth_dev_t * dev )
+{
+    struct smsc9220_eth_reg_map_t * register_map =
+        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+
+    return register_map->irq_status;
+}
+
 
 void smsc9220_clear_all_interrupts( const struct smsc9220_eth_dev_t * dev )
 {
@@ -1171,84 +1188,19 @@ uint32_t smsc9220_receive_by_chunks( const struct smsc9220_eth_dev_t * dev,
                                      char * data,
                                      uint32_t dlen )
 {
-    uint32_t rxfifo_inf = 0;
-    uint32_t rxfifo_stat = 0;
     uint32_t packet_length_byte = 0;
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     if( !data )
     {
         return 0; /* Invalid input parameter, cannot read */
     }
 
-    rxfifo_inf = register_map->rx_fifo_inf;
-
-    if( rxfifo_inf & 0xFFFF ) /* If there's data */
-    {
-        rxfifo_stat = register_map->rx_status_port;
-
-        if( rxfifo_stat != 0 ) /* Fetch status of this packet */
-        {                      /* Ethernet controller is padding to 32bit aligned data */
-            packet_length_byte = GET_BIT_FIELD( rxfifo_stat,
-                                                RX_FIFO_STATUS_PKT_LENGTH_MASK,
-                                                RX_FIFO_STATUS_PKT_LENGTH_POS );
-            dev->data->current_rx_size_words = packet_length_byte;
-        }
-    }
+    packet_length_byte = dlen; /*_RB_ Hard set to length read from peek register. */
+    dev->data->current_rx_size_words = packet_length_byte;
 
     empty_rx_fifo( dev, ( uint8_t * ) data, packet_length_byte );
     dev->data->current_rx_size_words = 0;
     return packet_length_byte;
-}
-
-/*!
- * @brief second version to circumvent a  <a href="https://bugs.launchpad.net/qemu/+bug/1904954">bug</a>
- *        in quemu where the peeked message
- *        size is different than the actual message size
- */
-uint32_t smsc9220_receive_by_chunks2( const struct smsc9220_eth_dev_t * dev,
-                                      char * data,
-                                      uint32_t dlen )
-{
-    uint32_t rxfifo_inf = 0;
-    uint32_t rxfifo_stat = 0;
-    /*uint32_t packet_length_byte = 0; */
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
-
-    if( !data )
-    {
-        return 0; /* Invalid input parameter, cannot read */
-    }
-
-    dev->data->current_rx_size_words = dlen;
-
-    empty_rx_fifo( dev, ( uint8_t * ) data, dlen );
-    dev->data->current_rx_size_words = 0;
-    return dlen;
-}
-
-/*!
- * @brief second version to circumvent a  <a href="https://bugs.launchpad.net/qemu/+bug/1904954">bug</a>
- *        in quemu where the peeked message
- *        size is different than the actual message size
- */
-uint32_t smsc9220_peek_next_packet_size2( const struct
-                                          smsc9220_eth_dev_t * dev )
-{
-    uint32_t packet_size = 0;
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
-
-    if( smsc9220_get_rxfifo_data_used_space( dev ) )
-    {
-        packet_size = GET_BIT_FIELD( register_map->rx_status_port,
-                                     RX_FIFO_STATUS_PKT_LENGTH_MASK,
-                                     RX_FIFO_STATUS_PKT_LENGTH_POS );
-    }
-
-    return packet_size;
 }
 
 uint32_t smsc9220_peek_next_packet_size( const struct
@@ -1257,12 +1209,21 @@ uint32_t smsc9220_peek_next_packet_size( const struct
     uint32_t packet_size = 0;
     struct smsc9220_eth_reg_map_t * register_map =
         ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    volatile uint32_t rx_status_from_peek = 0;
 
     if( smsc9220_get_rxfifo_data_used_space( dev ) )
     {
-        packet_size = GET_BIT_FIELD( register_map->rx_status_peek,
+        rx_status_from_peek = register_map->rx_status_peek;
+        /* Warning: try reading from port as peek is often zero. */
+        rx_status_from_peek = register_map->rx_status_port;
+
+        packet_size = GET_BIT_FIELD( rx_status_from_peek,
                                      RX_FIFO_STATUS_PKT_LENGTH_MASK,
                                      RX_FIFO_STATUS_PKT_LENGTH_POS );
+    }
+    else
+    {
+        rx_status_from_peek = -1;
     }
 
     return packet_size;
