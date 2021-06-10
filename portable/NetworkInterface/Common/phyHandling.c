@@ -193,7 +193,7 @@ BaseType_t xPhyDiscover( EthernetPhy_t * pxPhyObject )
 
     for( xPhyAddress = phyMIN_PHY_ADDRESS; xPhyAddress <= phyMAX_PHY_ADDRESS; xPhyAddress++ )
     {
-        uint32_t ulLowerID;
+        uint32_t ulLowerID = 0;
 
         pxPhyObject->fnPhyRead( xPhyAddress, phyREG_03_PHYSID2, &ulLowerID );
 
