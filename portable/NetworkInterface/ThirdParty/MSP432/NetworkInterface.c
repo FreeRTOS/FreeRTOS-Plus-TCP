@@ -824,6 +824,8 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
 {
     struct NetworkInterfaceDataOut NIDataOutput;
     BaseType_t txResp;
+    BaseType_t returnValue;
+    returnValue = pdFALSE;
 
     NIDataOutput.pxDescriptor = pxDescriptor;
     NIDataOutput.xReleaseAfterSend = xReleaseAfterSend;
@@ -832,10 +834,10 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
     if( txResp == pdTRUE )
     {
         xTaskNotifyGiveIndexed( xTaskToNotifyEthernetTX, 0 );
-        return pdTRUE;
+        returnValue = pdTRUE;
     }
 
-    return pdFALSE;
+    return returnValue;
 }
 
 
