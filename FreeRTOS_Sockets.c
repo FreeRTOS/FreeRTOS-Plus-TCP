@@ -201,9 +201,9 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
                                     List_t * pxSocketList,
                                     BaseType_t xInternal );
 
-static NetworkBufferDescriptor_t * prvRecvFromWaitPacket( FreeRTOS_Socket_t const * pxSocket,
-                                                          BaseType_t xFlags,
-                                                          EventBits_t * pxEventBits );
+static NetworkBufferDescriptor_t * prvRecvFromWaitForPacket( FreeRTOS_Socket_t const * pxSocket,
+                                                             BaseType_t xFlags,
+                                                             EventBits_t * pxEventBits );
 
 static int32_t prvSendUDPPacket( FreeRTOS_Socket_t * pxSocket,
                                  NetworkBufferDescriptor_t * pxNetworkBuffer,
@@ -986,9 +986,9 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  * @param[in,out] pxEventBits : The last even received in this function,
  *                              either eSOCKET_INTR or eSOCKET_RECEIVE.
  */
-static NetworkBufferDescriptor_t * prvRecvFromWaitPacket( FreeRTOS_Socket_t const * pxSocket,
-                                                          BaseType_t xFlags,
-                                                          EventBits_t * pxEventBits )
+static NetworkBufferDescriptor_t * prvRecvFromWaitForPacket( FreeRTOS_Socket_t const * pxSocket,
+                                                             BaseType_t xFlags,
+                                                             EventBits_t * pxEventBits )
 {
     BaseType_t xTimed = pdFALSE;
     TickType_t xRemainingTime;
@@ -1138,7 +1138,7 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
          * sockets standard, but this implementation does not use all the parameters. */
         ( void ) pxSourceAddressLength;
 
-        pxNetworkBuffer = prvRecvFromWaitPacket( pxSocket, xFlags, &( xEventBits ) );
+        pxNetworkBuffer = prvRecvFromWaitForPacket( pxSocket, xFlags, &( xEventBits ) );
 
         if( pxNetworkBuffer != NULL )
         {
