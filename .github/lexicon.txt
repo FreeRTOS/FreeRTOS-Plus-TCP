@@ -878,6 +878,7 @@ pxiterator
 pxlength
 pxlist
 pxlistfindlistitemwithvalue
+pxlostbuffer
 pxmacaddress
 pxmessage
 pxnetprefix
@@ -1437,6 +1438,7 @@ uxlast
 uxleft
 uxlength
 uxlittlespace
+uxlistremove
 uxlocalport
 uxlower
 uxmax
@@ -1508,6 +1510,7 @@ vlantagcomparison
 vlantagidentifier
 vlistinitialise
 vlistinitialiseitem
+vlistinsertend
 vmyconnecthandler
 vndrefreshcacheentry
 vnetworkinterfaceallocateramtobuffers
@@ -1573,6 +1576,7 @@ xbufferlength
 xbufferlistitem
 xbytecount
 xbytesleft
+xcallbacklist
 xcheckloopback
 xchecksizefields
 xclearonexit
@@ -1775,6 +1779,7 @@ xtcptimercheck
 xtcpwindow
 xtcpwindowrxconfirm
 xtcpwindowtxdone
+xtemplist
 xtickcount
 xtickstojump
 xtime
