@@ -855,15 +855,17 @@ bool isEMACLinkUp()
 {
     uint8_t uci8PHYAddr = 0; /* refers to the internal PHY */
     uint16_t check;
+    BaseType_t returnValue;
+    returnValue = pdTRUE;
 
     check = EMACPHYRead( EMAC0_BASE, uci8PHYAddr, EPHY_BMSR );
 
     if( ( ( check & EPHY_BMSR_LINKSTAT ) == 0 ) || ( check & EPHY_BMSR_RFAULT ) )
     {
-        return false; /* link is not up */
+        returnValue = pdFALSE; /* link is not up */
     }
 
-    return true; /* link is up */
+    return returnValue; /* link is up */
 }
 
 
