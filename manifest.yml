@@ -9,6 +9,7 @@ dependencies:
     repository:
       type: "git"
       url: "https://github.com/FreeRTOS/FreeRTOS-Kernel"
+      path: "test/FreeRTOS-Kernel"
       branch: "main"
 
 license: "MIT"
