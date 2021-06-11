@@ -32,13 +32,10 @@
 
 #define _static
 
-#define ipconfigUSE_ARP_REMOVE_ENTRY       1
-#define ipconfigUSE_ARP_REVERSED_LOOKUP    1
-
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF           0
+#define ipconfigHAS_DEBUG_PRINTF    0
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
     #define FreeRTOS_debug_printf( X )    configPRINTF( X )
 #endif
@@ -78,6 +75,8 @@
 #define ipconfigUSE_DNS_CACHE                      ( 1 )
 #define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 6 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
+
+#define ipconfigDNS_CACHE_NAME_LENGTH              ( 100 )
 
 /* The IP stack executes it its own task (although any application task can make
  * use of its services through the published sockets API). ipconfigUDP_TASK_PRIORITY
@@ -140,7 +139,7 @@ extern uint32_t ulRand();
 /* If ipconfigDHCP_USES_USER_HOOK is set to 1 then the application writer must
  * provide an implementation of the DHCP callback function,
  * xApplicationDHCPUserHook(). */
-#define ipconfigUSE_DHCP_HOOK                    0
+#define ipconfigUSE_DHCP_HOOK                    1
 
 /* When ipconfigUSE_DHCP is set to 1, DHCP requests will be sent out at
  * increasing time intervals until either a reply is received from a DHCP server
@@ -242,7 +241,7 @@ extern uint32_t ulRand();
 
 /* If ipconfigSUPPORT_OUTGOING_PINGS is set to 1 then the
  * FreeRTOS_SendPingRequest() API function is available. */
-#define ipconfigSUPPORT_OUTGOING_PINGS                 0
+#define ipconfigSUPPORT_OUTGOING_PINGS                 1
 
 /* If ipconfigSUPPORT_SELECT_FUNCTION is set to 1 then the FreeRTOS_select()
  * (and associated) API function is available. */
@@ -295,16 +294,27 @@ extern uint32_t ulRand();
 #define ipconfigTCP_KEEP_ALIVE_INTERVAL          ( 20 ) /* Seconds. */
 
 /* The socket semaphore is used to unblock the MQTT task. */
-#define ipconfigSOCKET_HAS_USER_SEMAPHORE        ( 0 )
+#define ipconfigSOCKET_HAS_USER_SEMAPHORE        ( 1 )
 
 #define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 1 )
-#define ipconfigUSE_CALLBACKS                    ( 0 )
+#define ipconfigUSE_CALLBACKS                    ( 1 )
 
+#define ipconfigUSE_NBNS                         ( 1 )
 
-#define portINLINE
+#define ipconfigUSE_LLMNR                        ( 1 )
 
-void vApplicationMQTTGetKeys( const char ** ppcRootCA,
-                              const char ** ppcClientCert,
-                              const char ** ppcClientPrivateKey );
+#define ipconfigDNS_USE_CALLBACKS                1
+#define ipconfigUSE_ARP_REMOVE_ENTRY             1
+#define ipconfigUSE_ARP_REVERSED_LOOKUP          1
+
+#define ipconfigETHERNET_MINIMUM_PACKET_BYTES    ( 200 )
+
+#define ipconfigARP_STORES_REMOTE_ADDRESSES      ( 1 )
+
+#define ipconfigARP_USE_CLASH_DETECTION          ( 1 )
+
+#define ipconfigDHCP_FALL_BACK_AUTO_IP           ( 1 )
+
+#define ipconfigUDP_MAX_RX_PACKETS               ( 1 )
 
 #endif /* FREERTOS_IP_CONFIG_H */

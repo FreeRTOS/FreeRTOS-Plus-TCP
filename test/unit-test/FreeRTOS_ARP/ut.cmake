@@ -2,19 +2,25 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set(project_name "FreeRTOS_TCP_Unit")
+set( project_name "FreeRTOS_ARP" )
+
+message( STATUS "${project_name}" )
 
 # =====================  Create your mock here  (edit)  ========================
 
 # list the files to mock here
 list(APPEND mock_list
-            "${MODULE_ROOT_DIR}/include/FreeRTOS_ARP.h"
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
         )
 # list the directories your mocks need
 list(APPEND mock_include_list
             .
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
+            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
         )
 
@@ -27,10 +33,7 @@ list(APPEND mock_define_list
 
 # list the files you would like to test here
 list(APPEND real_source_files
-            ${TCP_SOURCES}
-            ${KERNEL_SOURCES}
-            ${MODULE_ROOT_DIR}/test/unit-test/stubs/FreeRTOS_ARP_stubs.c
-            ${MODULE_ROOT_DIR}/portable/BufferManagement/BufferAllocation_2.c
+            ${MODULE_ROOT_DIR}/FreeRTOS_ARP.c
 	)
 # list the directories the module under test includes
 list(APPEND real_include_directories
@@ -38,6 +41,7 @@ list(APPEND real_include_directories
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
+            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${CMOCK_DIR}/vendor/unity/src
 	)
 
@@ -46,6 +50,7 @@ list(APPEND real_include_directories
 # list the directories your test needs to include
 list(APPEND test_include_directories
             .
+            ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
         )
 
@@ -76,8 +81,9 @@ list(APPEND utest_dep_list
             ${real_name}
         )
 
-set(utest_name "${project_name}_test")
-set(utest_source "${project_name}_test.c")
+set(utest_name "${project_name}_utest")
+set(utest_source "${project_name}/${project_name}_utest.c")
+
 create_test(${utest_name}
             ${utest_source}
             "${utest_link_list}"

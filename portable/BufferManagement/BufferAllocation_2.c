@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.2
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -102,7 +102,20 @@ BaseType_t xNetworkBuffersInitialise( void )
      * have not been initialised before. */
     if( xNetworkBufferSemaphore == NULL )
     {
-        xNetworkBufferSemaphore = xSemaphoreCreateCounting( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
+        #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
+            {
+                static StaticSemaphore_t xNetworkBufferSemaphoreBuffer;
+                xNetworkBufferSemaphore = xSemaphoreCreateCountingStatic(
+                    ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
+                    ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
+                    &xNetworkBufferSemaphoreBuffer );
+            }
+        #else
+            {
+                xNetworkBufferSemaphore = xSemaphoreCreateCounting( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
+            }
+        #endif /* configSUPPORT_STATIC_ALLOCATION */
+
         configASSERT( xNetworkBufferSemaphore != NULL );
 
         if( xNetworkBufferSemaphore != NULL )
@@ -215,22 +228,6 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
     if( xNetworkBufferSemaphore != NULL )
     {
-        if( ( xRequestedSizeBytes != 0U ) && ( xRequestedSizeBytes < ( size_t ) baMINIMAL_BUFFER_SIZE ) )
-        {
-            /* ARP packets can replace application packets, so the storage must be
-             * at least large enough to hold an ARP. */
-            xRequestedSizeBytes = baMINIMAL_BUFFER_SIZE;
-        }
-
-        /* Add 2 bytes to xRequestedSizeBytes and round up xRequestedSizeBytes
-         * to the nearest multiple of N bytes, where N equals 'sizeof( size_t )'. */
-        xRequestedSizeBytes += 2U;
-
-        if( ( xRequestedSizeBytes & ( sizeof( size_t ) - 1U ) ) != 0U )
-        {
-            xRequestedSizeBytes = ( xRequestedSizeBytes | ( sizeof( size_t ) - 1U ) ) + 1U;
-        }
-
         /* If there is a semaphore available, there is a network buffer available. */
         if( xSemaphoreTake( xNetworkBufferSemaphore, xBlockTimeTicks ) == pdPASS )
         {
@@ -255,6 +252,22 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
             if( xRequestedSizeBytes > 0U )
             {
+                if( ( xRequestedSizeBytes < ( size_t ) baMINIMAL_BUFFER_SIZE ) )
+                {
+                    /* ARP packets can replace application packets, so the storage must be
+                     * at least large enough to hold an ARP. */
+                    xRequestedSizeBytes = baMINIMAL_BUFFER_SIZE;
+                }
+
+                /* Add 2 bytes to xRequestedSizeBytes and round up xRequestedSizeBytes
+                 * to the nearest multiple of N bytes, where N equals 'sizeof( size_t )'. */
+                xRequestedSizeBytes += 2U;
+
+                if( ( xRequestedSizeBytes & ( sizeof( size_t ) - 1U ) ) != 0U )
+                {
+                    xRequestedSizeBytes = ( xRequestedSizeBytes | ( sizeof( size_t ) - 1U ) ) + 1U;
+                }
+
                 /* Extra space is obtained so a pointer to the network buffer can
                  * be stored at the beginning of the buffer. */
                 pxReturn->pucEthernetBuffer = ( uint8_t * ) pvPortMalloc( xRequestedSizeBytes + ipBUFFER_PADDING );
@@ -321,6 +334,7 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
     * MEMORY.  For example, heap_2 must not be used, heap_4 can be used. */
     vReleaseNetworkBuffer( pxNetworkBuffer->pucEthernetBuffer );
     pxNetworkBuffer->pucEthernetBuffer = NULL;
+    pxNetworkBuffer->xDataLength = 0U;
 
     taskENTER_CRITICAL();
     {

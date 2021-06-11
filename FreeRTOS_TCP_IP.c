@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.2
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -421,6 +421,23 @@
 
         return xResult;
     }
+/*-----------------------------------------------------------*/
+
+/** @brief Close the socket another time.
+ *
+ * @param[in] pxSocket: The socket to be checked.
+ */
+    void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
+    {
+        static FreeRTOS_Socket_t * xPreviousSocket = NULL;
+
+        if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )
+        {
+            vSocketClose( xPreviousSocket );
+        }
+
+        xPreviousSocket = pxSocket;
+    }
     /*-----------------------------------------------------------*/
 
     #if ( ipconfigTCP_HANG_PROTECTION == 1 )
@@ -499,7 +516,7 @@
                      * gets connected. */
                     if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
                     {
-                        /* vTCPStateChange() has called FreeRTOS_closesocket()
+                        /* vTCPStateChange() has called vSocketCloseNextTime()
                          * in case the socket is not yet owned by the application.
                          * Return a negative value to inform the caller that
                          * the socket will be closed in the next cycle. */
@@ -1844,7 +1861,8 @@
 
                     if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
                     {
-                        ( void ) FreeRTOS_closesocket( pxSocket );
+                        configASSERT( xIsCallingFromIPTask() != pdFALSE );
+                        vSocketCloseNextTime( pxSocket );
                     }
                 }
             }
@@ -3583,9 +3601,9 @@
                                 vTCPStateChange( pxSocket, eCLOSED );
                             }
                             /* Otherwise, check whether the packet is within the receive window. */
-                            else if( ( ulSequenceNumber > pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber ) &&
-                                     ( ulSequenceNumber < ( pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber +
-                                                            pxSocket->u.xTCP.xTCPWindow.xSize.ulRxWindowLength ) ) )
+                            else if( ( xSequenceGreaterThan( ulSequenceNumber, pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber ) ) &&
+                                     ( xSequenceLessThan( ulSequenceNumber, ( pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber +
+                                                                              pxSocket->u.xTCP.xTCPWindow.xSize.ulRxWindowLength ) ) ) )
                             {
                                 /* Send a challenge ACK. */
                                 ( void ) prvTCPSendChallengeAck( pxNetworkBuffer );
@@ -3896,7 +3914,7 @@
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )
         {
             FreeRTOS_debug_printf( ( "TCP: Listen: new socket bind error\n" ) );
-            ( void ) FreeRTOS_closesocket( pxNewSocket );
+            vSocketClose( pxNewSocket );
             xResult = pdFALSE;
         }
         else
