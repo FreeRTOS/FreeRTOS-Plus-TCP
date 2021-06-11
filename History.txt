@@ -1,4 +1,13 @@
 Changes between V2.3.2 and V2.3.3 releases:
+        + When a listening socket is closed, all child sockets not yet owned by the
+          application will be closed too. (Thanks Bernd Edlinger).
+        + Fixed buffer allocation to return a zero length buffer when requested
+          instead of a buffer with length of two bytes. (Thanks Thomas Pedersen). 
+        + Fixed a bug which can cause memory leak when there is insufficient space
+          in the network event queue. (Thanks Bernd Edlinger).
+        + Fixed a bug which can lead to orphaned sockets when a listening TCP socket
+          receiving connections is closed. (Thanks Bernd Edlinger).
+        + Added FreeRTOS+TCP version number macros. 
 	+ Repaired buffer leak in NBNS reply logic.
 	+ Added a hook function which can be used to process unsupported ethernet
 	  frames.
