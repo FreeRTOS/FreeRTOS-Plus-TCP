@@ -29,7 +29,6 @@
  */
 
 #pragma once
-#include <stdbool.h>
 #include <stdint.h>
 #include "FreeRTOS.h"
 #include "FreeRTOS_IP.h"
@@ -43,15 +42,15 @@ struct InternalNetworkMiddlewareData
     uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ];
     uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
     uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
-    bool resetNetworkTaskRunning;
+    BaseType_t resetNetworkTaskRunning;
     uint32_t resetNetworkTaskEveryXSeconds;
     char deviceName[ MAX_NAME_LLMNR ];
 }; /* end */
 
 void vPublicSetupFreeRTOSTasks( const struct InternalNetworkMiddlewareData data );
 void vPublicSetupDeviceName( const char * deviceName );
-bool vPublicPreventNetworkReset( const bool preventReset,
-                                 const uint32_t waitTime );
+BaseType_t vPublicPreventNetworkReset( const BaseType_t preventReset,
+                                       const uint32_t waitTime );
 void vConvertOctetsToAddr( uint8_t arr[ ipIP_ADDRESS_LENGTH_BYTES ],
                            uint8_t b0,
                            uint8_t b1,

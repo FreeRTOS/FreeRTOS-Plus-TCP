@@ -30,7 +30,6 @@
 
 #include <string.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <ti/devices/msp432e4/driverlib/driverlib.h>
 #include <ti/devices/msp432e4/driverlib/emac.h>
 
@@ -84,30 +83,30 @@
  * [2] Texas Instruments Driverlib code examples
  */
 
-#define RTOS_NET_UP_DOWN_TASK_NAME    "NetUpDownS"
-#define RTOS_NET_RX_TASK_NAME         "NetRX"
-#define RTOS_NET_TX_TASK_NAME         "NetTX"
-#define RTOS_NET_CHECK_TASK_SIZE      configMINIMAL_STACK_SIZE
-#define RTOS_RX_POLL_MAC_TASK_SIZE    3 * configMINIMAL_STACK_SIZE
-#define RTOS_TX_POLL_MAC_TASK_SIZE    3 * configMINIMAL_STACK_SIZE
-#define NUM_TX_DESCRIPTORS            8
-#define NUM_RX_DESCRIPTORS            8
+#define RTOS_NET_UP_DOWN_TASK_NAME     "NetUpDownS"
+#define RTOS_NET_RX_TASK_NAME          "NetRX"
+#define RTOS_NET_TX_TASK_NAME          "NetTX"
+#define RTOS_NET_CHECK_TASK_SIZE       configMINIMAL_STACK_SIZE
+#define RTOS_RX_POLL_MAC_TASK_SIZE     3 * configMINIMAL_STACK_SIZE
+#define RTOS_TX_POLL_MAC_TASK_SIZE     3 * configMINIMAL_STACK_SIZE
+#define NUM_TX_DESCRIPTORS             8U
+#define NUM_RX_DESCRIPTORS             8U
 
-#define ETH_UP_DELAY_MS               1000
-#define ETH_DOWN_DELAY_MS             1000
-#define ETH_MAX_TIMEOUT_CYCLES        12000000
-#define ETH_STARTUP_TIMEOUT           ETH_MAX_TIMEOUT_CYCLES
+#define ETH_DOWN_DELAY_MS              1000U
+#define ETH_MAX_TIMEOUT_CYCLES         12000000U
+#define ETH_STARTUP_TIMEOUT            ETH_MAX_TIMEOUT_CYCLES
+#define CHECK_LINK_UP_DOWN_DELAY_MS    1000U
 
-#define ETH_RX_QUEUE_LEN              NUM_TX_DESCRIPTORS
-#define ETH_TX_QUEUE_LEN              NUM_RX_DESCRIPTORS
+#define ETH_RX_QUEUE_LEN               NUM_TX_DESCRIPTORS
+#define ETH_TX_QUEUE_LEN               NUM_RX_DESCRIPTORS
 
 /* TX Queue positions */
-#define TX_QUEPOS_FIRST_EVENT         0
-#define TX_QUEPOS_SECOND_EVENT        1
+#define TX_QUEPOS_FIRST_EVENT          0
+#define TX_QUEPOS_SECOND_EVENT         1
 
 /* Minimum packet length is required to ensure that all of the bytes are transmitted
  * even when there are issues with the network (i.e. a network cable pulled out during TX or RX) */
-#define ETHERNET_MIN_PACKET_BYTES     60
+#define ETHERNET_MIN_PACKET_BYTES      60
 
 /* Ensure that the RTOS settings work well for this driver */
 #if configTASK_NOTIFICATION_ARRAY_ENTRIES < 2
@@ -142,8 +141,8 @@
     #define __MSP432E401Y__
 #endif
 
-static bool loadMACInternal();
-static bool setupEMAC();
+static BaseType_t loadMACInternal();
+static BaseType_t setupEMAC();
 static void offEMAC();
 static void initDescriptors( uint32_t ul32Base );
 static uint32_t packetTransmit( uint8_t * pui8Buf,
@@ -155,7 +154,7 @@ static void applicationProcessFrameRX( uint32_t ul32FrameLen,
                                        uint32_t ulindex );
 static void prvCheckLinkUpOrDownNetStateTask( void * pvParameters );
 static void prvEMACDeferredInterruptHandlerTaskRX( void * pvParameters );
-static bool isEMACLinkUp();
+static BaseType_t isEMACLinkUp();
 static void DMAFreeDescriptorRX( uint32_t ulindx );
 static void prvEMACDeferredInterfaceOutputTaskTX( void * pvParameters );
 static void vSetNetworkInterfaceConfig( const struct InternalNetworkInterfaceMSP432EConfig config );
@@ -169,7 +168,9 @@ tEMACDMADescriptor g_psTxDescriptor[ NUM_RX_DESCRIPTORS ];
 uint32_t ulg_ui32RxDescIndex;
 uint32_t ulg_ui32TxDescIndex;
 
-#define ETH_MAX_BUFFER_SIZE    1526
+/* Define the maximum length of a packet buffer. 1536 is ideal because it
+ * allows for a perfect alignment. */
+#define ETH_MAX_BUFFER_SIZE    1536
 #define ETH_RX_BUFFER_SIZE     ETH_MAX_BUFFER_SIZE
 #define ETH_TX_BUFFER_SIZE     ETH_MAX_BUFFER_SIZE
 uint8_t ucg_ppui8RxBuffer[ NUM_RX_DESCRIPTORS ][ ETH_RX_BUFFER_SIZE ];
@@ -179,9 +180,6 @@ TaskHandle_t xTaskToNotifyEthernetRX = NULL;
 TaskHandle_t xTaskToNotifyEthernetTX = NULL;
 TaskHandle_t xHandleCheckLinkUpOrDown = NULL;
 TaskHandle_t xHandleCheckNet = NULL;
-BaseType_t xHigherPriorityTaskWokenRX = pdFALSE;
-BaseType_t xHigherPriorityTaskWokenTX = pdFALSE;
-BaseType_t xHigherPriorityTaskWokenCheck = pdFALSE;
 
 /* Queue handles */
 QueueHandle_t xQueueRX;
@@ -191,11 +189,11 @@ QueueHandle_t xQueueTX;
 uint8_t ucpui8MACAddr[ ipMAC_ADDRESS_LENGTH_BYTES ];
 
 /* State variable that indicates whether the network is up or down */
-static bool networkUP = false;
+static BaseType_t networkUP = pdFALSE;
 /* Check to see if the device has been setup */
-static bool hasBeenSetup = false;
+static BaseType_t hasBeenSetup = pdFALSE;
 /* Check to see if the network needs to be reset */
-static bool resetNetwork = false;
+static BaseType_t resetNetwork = pdFALSE;
 
 /* RX data input buffer */
 struct NetworkInterfaceDataIn
@@ -219,13 +217,13 @@ static struct InternalNetworkInterfaceMSP432EConfig configLocal;
 /* Call this function to check if the network interface is up.
  * The function can be called from code external to this file.
  */
-bool vPublicCheckNetworkInterfaceUp()
+BaseType_t vPublicCheckNetworkInterfaceUp()
 {
     return networkUP;
 } /* end */
 
 
-bool loadMACInternal()
+static BaseType_t loadMACInternal()
 {
     uint32_t ui32User0, ui32User1;
 
@@ -239,39 +237,39 @@ bool loadMACInternal()
         ( ui32User0 == 0xffffffff ) ||
         ( ui32User1 == 0xffffffff ) )
     {
-        return false;
+        return pdFALSE;
     }
 
-    configLocal.ucMACAddr[ 0 ] = ( ( ui32User0 >> 0 ) & 0xff );
-    configLocal.ucMACAddr[ 1 ] = ( ( ui32User0 >> 8 ) & 0xff );
-    configLocal.ucMACAddr[ 2 ] = ( ( ui32User0 >> 16 ) & 0xff );
-    configLocal.ucMACAddr[ 3 ] = ( ( ui32User1 >> 0 ) & 0xff );
-    configLocal.ucMACAddr[ 4 ] = ( ( ui32User1 >> 8 ) & 0xff );
-    configLocal.ucMACAddr[ 5 ] = ( ( ui32User1 >> 16 ) & 0xff );
-    return true;
+    configLocal.ucMACAddr[ 0 ] = ( ( ui32User0 >> 0 ) & 0xffU );
+    configLocal.ucMACAddr[ 1 ] = ( ( ui32User0 >> 8 ) & 0xffU );
+    configLocal.ucMACAddr[ 2 ] = ( ( ui32User0 >> 16 ) & 0xffU );
+    configLocal.ucMACAddr[ 3 ] = ( ( ui32User1 >> 0 ) & 0xffU );
+    configLocal.ucMACAddr[ 4 ] = ( ( ui32User1 >> 8 ) & 0xffU );
+    configLocal.ucMACAddr[ 5 ] = ( ( ui32User1 >> 16 ) & 0xffU );
+    return pdTRUE;
 }
 
 
 /* This function sets up the EMAC. Not to be called directly from outside of this file. */
-bool setupEMAC()
+static BaseType_t setupEMAC()
 {
     uint32_t ul32Loop;
-    bool rv;
-    bool interruptsMasked = false;
+    BaseType_t rv;
+    BaseType_t interruptsMasked = pdFALSE;
 
     if( xTaskGetSchedulerState() == taskSCHEDULER_RUNNING )
     {
         taskENTER_CRITICAL();
-        interruptsMasked = true;
+        interruptsMasked = pdTRUE;
     }
 
-    if( configLocal.setMACAddrInternal == true )
+    if( configLocal.setMACAddrInternal == pdTRUE )
     {
         rv = loadMACInternal();
 
-        if( rv == false )
+        if( rv == pdFALSE )
         {
-            return false;
+            return pdFALSE;
         }
     }
 
@@ -294,7 +292,7 @@ bool setupEMAC()
 
     if( ul32Loop == ETH_STARTUP_TIMEOUT )
     {
-        return false;
+        return pdFALSE;
     }
 
     /* configure the internal PHY */
@@ -360,36 +358,36 @@ bool setupEMAC()
     EMACIntRegister( EMAC0_BASE, ethernetIntHandler );
 
     /* enable the interrupts for the EMAC */
-    EMACIntClear( EMAC0_BASE, EMACIntStatus( EMAC0_BASE, false ) );
+    EMACIntClear( EMAC0_BASE, EMACIntStatus( EMAC0_BASE, pdFALSE ) );
     IntEnable( INT_EMAC0 );
     EMACIntEnable( EMAC0_BASE, EMAC_INTERRUPTS );
 
     /* exit the critical section */
-    if( interruptsMasked == true )
+    if( interruptsMasked == pdTRUE )
     {
         taskEXIT_CRITICAL();
     }
 
-    return true;
+    return pdTRUE;
 }
 
 
 /* This function only turns off the Ethernet EMAC.  This function does not turn off any
  * of the processing tasks and therefore should not be called directly from external tasks. */
-void offEMAC()
+static void offEMAC()
 {
     uint32_t ulstatus, ulcnt;
-    bool interruptsMasked;
+    BaseType_t interruptsMasked;
 
-    interruptsMasked = false;
+    interruptsMasked = pdFALSE;
 
     if( xTaskGetSchedulerState() == taskSCHEDULER_RUNNING )
     {
         taskENTER_CRITICAL();
-        interruptsMasked = true;
+        interruptsMasked = pdTRUE;
     }
 
-    networkUP = false;
+    networkUP = pdFALSE;
 
     ulcnt = 0;
     ulstatus = EMACStatusGet( EMAC0_BASE );
@@ -401,7 +399,7 @@ void offEMAC()
 
         if( ulcnt == ETH_STARTUP_TIMEOUT )
         {
-            if( interruptsMasked == true )
+            if( interruptsMasked == pdTRUE )
             {
                 taskEXIT_CRITICAL();
             }
@@ -416,7 +414,7 @@ void offEMAC()
     SysCtlPeripheralPowerOff( SYSCTL_PERIPH_EMAC0 );
     SysCtlPeripheralPowerOff( SYSCTL_PERIPH_EPHY0 );
 
-    if( interruptsMasked == true )
+    if( interruptsMasked == pdTRUE )
     {
         taskEXIT_CRITICAL();
     }
@@ -424,11 +422,11 @@ void offEMAC()
 
 
 /* Interrupt handler */
-void ethernetIntHandler( void )
+static void ethernetIntHandler( void )
 {
     uint32_t ui32Temp;
 
-    ui32Temp = EMACIntStatus( EMAC0_BASE, true );
+    ui32Temp = EMACIntStatus( EMAC0_BASE, pdTRUE );
 
     if( ui32Temp & EMAC_INT_RECEIVE )
     {
@@ -438,6 +436,7 @@ void ethernetIntHandler( void )
 
     if( ui32Temp & EMAC_INT_TRANSMIT )
     {
+        BaseType_t xHigherPriorityTaskWokenTX = pdFALSE;
         /* TX */
         vTaskNotifyGiveIndexedFromISR( xTaskToNotifyEthernetTX, TX_QUEPOS_SECOND_EVENT, &xHigherPriorityTaskWokenTX );
         portYIELD_FROM_ISR( xHigherPriorityTaskWokenTX );
@@ -446,7 +445,7 @@ void ethernetIntHandler( void )
     if( ( ui32Temp & EMAC_INT_BUS_ERROR ) || ( ui32Temp & EMAC_INT_TX_STOPPED ) || ( ui32Temp & EMAC_INT_RX_STOPPED ) )
     {
         /* Reset the network since something has gone wrong */
-        resetNetwork = true;
+        resetNetwork = pdTRUE;
     }
 
     /* clear the interrupt */
@@ -460,11 +459,11 @@ void ethernetIntHandler( void )
 
 
 /* Init the DMA descriptors */
-void initDescriptors( uint32_t ul32Base )
+static void initDescriptors( uint32_t ul32Base )
 {
     uint32_t ul32Loop;
 
-    for( ul32Loop = 0; ul32Loop < NUM_TX_DESCRIPTORS; ul32Loop++ )
+    for( ul32Loop = 0U; ul32Loop < NUM_TX_DESCRIPTORS; ul32Loop++ )
     {
         g_psTxDescriptor[ ul32Loop ].ui32Count = DES1_TX_CTRL_SADDR_INSERT;
         g_psTxDescriptor[ ul32Loop ].DES3.pLink =
@@ -500,8 +499,8 @@ void initDescriptors( uint32_t ul32Base )
  *  pui8Buf = the buffer
  *  i32BufLen = length of the buffer
  */
-uint32_t packetTransmit( uint8_t * pui8Buf,
-                         uint32_t ul32BufLen )
+static uint32_t packetTransmit( uint8_t * pui8Buf,
+                                uint32_t ul32BufLen )
 {
     uint8_t bufferTX[ ETH_TX_BUFFER_SIZE ];
 
@@ -530,7 +529,7 @@ uint32_t packetTransmit( uint8_t * pui8Buf,
 
 
 /* Function to process the received packet */
-uint32_t processReceivedPacket( void )
+static uint32_t processReceivedPacket( void )
 {
     uint32_t ul32FrameLen;
 
@@ -573,12 +572,13 @@ uint32_t processReceivedPacket( void )
 
 /* This function passes the framelength and the RX buffer into the FreeRTOS task.
  * The function is called from the ISR and therefore must use portYIELD_FROM_ISR() */
-void applicationProcessFrameRX( uint32_t ul32FrameLen,
-                                uint8_t * uc8Buf,
-                                uint32_t ulindex )
+static void applicationProcessFrameRX( uint32_t ul32FrameLen,
+                                       uint8_t * uc8Buf,
+                                       uint32_t ulindex )
 {
     BaseType_t rv;
     struct NetworkInterfaceDataIn NIDataIn;
+    BaseType_t xHigherPriorityTaskWokenRX = pdFALSE;
 
     NIDataIn.ucbuff = uc8Buf;
     NIDataIn.ulbuff_siz = ul32FrameLen;
@@ -590,16 +590,17 @@ void applicationProcessFrameRX( uint32_t ul32FrameLen,
     if( rv == pdTRUE )
     {
         vTaskNotifyGiveFromISR( xTaskToNotifyEthernetRX, &xHigherPriorityTaskWokenRX );
-        portYIELD_FROM_ISR( xHigherPriorityTaskWokenRX );
     }
     else
     {
         DMAFreeDescriptorRX( ulindex );
     }
+
+    portYIELD_FROM_ISR( xHigherPriorityTaskWokenRX );
 }
 
 /* Function to free the RX descriptor */
-void DMAFreeDescriptorRX( uint32_t ulindx )
+static void DMAFreeDescriptorRX( uint32_t ulindx )
 {
     g_psRxDescriptor[ ulindx ].ui32CtrlStatus = DES0_RX_CTRL_OWN;
 }
@@ -615,8 +616,8 @@ void vGetInternalNetworkInterfaceMSP432EConfigDefaults( struct InternalNetworkIn
 {
     uint32_t k;
 
-    config->turnOnEMAC = true;
-    config->setMACAddrInternal = false;
+    config->turnOnEMAC = pdTRUE;
+    config->setMACAddrInternal = pdFALSE;
 
     for( k = 0; k < ipMAC_ADDRESS_LENGTH_BYTES; k++ )
     {
@@ -625,18 +626,18 @@ void vGetInternalNetworkInterfaceMSP432EConfigDefaults( struct InternalNetworkIn
 }
 
 
-void vSetNetworkInterfaceConfig( const struct InternalNetworkInterfaceMSP432EConfig config )
+static void vSetNetworkInterfaceConfig( const struct InternalNetworkInterfaceMSP432EConfig config )
 {
     configLocal = config;
 }
 
 
 /* Call this function to setup the network */
-bool vPublicSetupEMACNetwork( const struct InternalNetworkInterfaceMSP432EConfig config )
+BaseType_t vPublicSetupEMACNetwork( const struct InternalNetworkInterfaceMSP432EConfig config )
 {
-    bool rv;
+    BaseType_t rv;
 
-    rv = false;
+    rv = pdFALSE;
     BaseType_t tv;
 
     /* setup the MAC address and turn on the EMAC if required */
@@ -647,15 +648,15 @@ bool vPublicSetupEMACNetwork( const struct InternalNetworkInterfaceMSP432EConfig
         rv = setupEMAC();
     }
 
-    if( rv == false )
+    if( rv == pdFALSE )
     {
-        return false;
+        return pdFALSE;
     }
 
     /* ensure that the code can only be run once to create the tasks */
-    if( hasBeenSetup == true )
+    if( hasBeenSetup == pdTRUE )
     {
-        return true;
+        return pdTRUE;
     }
 
     /* create the queues */
@@ -663,14 +664,14 @@ bool vPublicSetupEMACNetwork( const struct InternalNetworkInterfaceMSP432EConfig
 
     if( xQueueRX == NULL )
     {
-        return false;
+        return pdFALSE;
     }
 
     xQueueTX = xQueueCreate( ETH_TX_QUEUE_LEN, sizeof( struct NetworkInterfaceDataOut ) );
 
     if( xQueueTX == NULL )
     {
-        return false;
+        return pdFALSE;
     }
 
     /* RX task */
@@ -683,7 +684,7 @@ bool vPublicSetupEMACNetwork( const struct InternalNetworkInterfaceMSP432EConfig
 
     if( tv != pdPASS )
     {
-        return false;
+        return pdFALSE;
     }
 
     /* TX task */
@@ -696,7 +697,7 @@ bool vPublicSetupEMACNetwork( const struct InternalNetworkInterfaceMSP432EConfig
 
     if( tv != pdPASS )
     {
-        return false;
+        return pdFALSE;
     }
 
     /* Link Up/Down/Network task */
@@ -709,19 +710,19 @@ bool vPublicSetupEMACNetwork( const struct InternalNetworkInterfaceMSP432EConfig
 
     if( tv != pdPASS )
     {
-        return false;
+        return pdFALSE;
     }
 
     /* latch the setup state */
-    hasBeenSetup = true;
+    hasBeenSetup = pdTRUE;
 
     /* the setup has succeeded */
-    return true;
+    return pdTRUE;
 }
 
 
 /* FreeRTOS task that handles the RX interrupt */
-void prvEMACDeferredInterruptHandlerTaskRX( void * pvParameters )
+static void prvEMACDeferredInterruptHandlerTaskRX( void * pvParameters )
 {
     NetworkBufferDescriptor_t * pxDescriptor = NULL;
     IPStackEvent_t xRxEvent;
@@ -771,9 +772,8 @@ void prvEMACDeferredInterruptHandlerTaskRX( void * pvParameters )
  * report if the network is initialized by returning a flag. Called directly by FreeRTOS. */
 BaseType_t xNetworkInterfaceInitialise( void )
 {
-    if( networkUP == true )
+    if( networkUP == pdTRUE )
     {
-        vTaskDelay( pdMS_TO_TICKS( ETH_UP_DELAY_MS ) );
         return pdTRUE;
     }
 
@@ -783,7 +783,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
 /*  Task to output the data to the network interface. This allows the network stack to continue
  *  processing while the data is able to be sent. */
-void prvEMACDeferredInterfaceOutputTaskTX( void * pvParameters )
+static void prvEMACDeferredInterfaceOutputTaskTX( void * pvParameters )
 {
     struct NetworkInterfaceDataOut NIDataOutput;
 
@@ -828,15 +828,34 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
     struct NetworkInterfaceDataOut NIDataOutput;
     BaseType_t txResp;
     BaseType_t returnValue = pdFALSE;
+    BaseType_t xDescriptorUsed = pdFALSE;
 
-    NIDataOutput.pxDescriptor = pxDescriptor;
-    NIDataOutput.xReleaseAfterSend = xReleaseAfterSend;
-    txResp = xQueueSend( xQueueTX, &NIDataOutput, 0 );
+    /* When the following assert is hit, please make sure that
+     * ipconfigZERO_COPY_TX_DRIVER is defined as '1' in your
+     * FreeRTOSIPConfig.h header file. */
+    configASSERT( xReleaseAfterSend != pdFALSE );
 
-    if( txResp == pdTRUE )
+    if( networkUP != pdFALSE )
     {
-        xTaskNotifyGiveIndexed( xTaskToNotifyEthernetTX, 0 );
-        returnValue = pdTRUE;
+        NIDataOutput.pxDescriptor = pxDescriptor;
+        NIDataOutput.xReleaseAfterSend = xReleaseAfterSend;
+        txResp = xQueueSend( xQueueTX, &NIDataOutput, 0 );
+
+        if( txResp == pdTRUE )
+        {
+            xTaskNotifyGiveIndexed( xTaskToNotifyEthernetTX, 0 );
+            returnValue = pdTRUE;
+            xDescriptorUsed = pdTRUE;
+        }
+    }
+    else
+    {
+        /* The PHY has no Link Status, packet shall be dropped. */
+    }
+
+    if( xDescriptorUsed == pdFALSE )
+    {
+        vReleaseNetworkBufferAndDescriptor( pxDescriptor );
     }
 
     return returnValue;
@@ -853,7 +872,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
  *  Apparently there is no other way to do this other than polling.  The register is checked for link status,
  *  but also for remote faults and this takes into consideration a pulled Ethernet cable during RX and TX.
  */
-bool isEMACLinkUp()
+static BaseType_t isEMACLinkUp()
 {
     uint8_t uci8PHYAddr = 0; /* refers to the internal PHY */
     uint16_t check;
@@ -870,44 +889,12 @@ bool isEMACLinkUp()
 }
 
 
-/* A task to check and see if the link is up or down by polling an EMAC register */
-void prvCheckLinkUpOrDownNetStateTask( void * pvParameters )
-{
-    bool checkLinkStatus = false;
-
-    for( ; ; )
-    {
-        checkLinkStatus = isEMACLinkUp();
-
-        if( ( checkLinkStatus == true ) && ( networkUP == false ) )
-        {
-            networkUP = true;
-        }
-        else if( ( checkLinkStatus == false ) && ( networkUP == true ) )
-        {
-            /*   FreeRTOS will poll xNetworkInterfaceInitialise() to check if the network is up.
-             *   So after FreeRTOS_NetworkDown() is called, there is no corresponding FreeRTOS_NetworkUp() function...
-             */
-            networkUP = false;
-            FreeRTOS_NetworkDown();
-        }
-
-        if( resetNetwork == true )
-        {
-            vPublicTurnOffEMAC();
-            vPublicTurnOnEMAC();
-            resetNetwork = false;
-        }
-    }
-}
-
-
 /* Call this network function to physically turn on the EMAC from an internal task. */
-bool vPublicTurnOnEMAC()
+static BaseType_t vPrivateTurnOnEMAC()
 {
-    if( hasBeenSetup == false )
+    if( hasBeenSetup == pdFALSE )
     {
-        return false;
+        return pdFALSE;
     }
 
     setupEMAC();
@@ -921,7 +908,7 @@ bool vPublicTurnOnEMAC()
         vTaskResume( xTaskToNotifyEthernetTX );
     }
 
-    return true;
+    return pdTRUE;
 }
 
 
@@ -929,11 +916,11 @@ bool vPublicTurnOnEMAC()
  *  It is recommended to check the network stack for open sockets before calling this task,
  *  and only call the task after all sockets are closed and there are no connected clients.
  *  In an operational sense, the best way to turn off the EMAC is to do a hard reset. */
-bool vPublicTurnOffEMAC()
+static BaseType_t vPrivateTurnOffEMAC()
 {
-    if( hasBeenSetup == false )
+    if( hasBeenSetup == pdFALSE )
     {
-        return false; /* make sure that the MAC has been setup */
+        return pdFALSE; /* make sure that the MAC has been setup */
     }
 
     if( xTaskGetSchedulerState() == taskSCHEDULER_RUNNING )
@@ -944,7 +931,7 @@ bool vPublicTurnOffEMAC()
         vTaskSuspend( xTaskToNotifyEthernetTX );
     }
 
-    networkUP = false;
+    networkUP = pdFALSE;
 
     if( xTaskGetSchedulerState() == taskSCHEDULER_RUNNING )
     {
@@ -953,14 +940,53 @@ bool vPublicTurnOffEMAC()
     }
 
     offEMAC(); /* Turn off the physical hardware */
-    return true;
+    return pdTRUE;
 }
+
+
+/* A task to check and see if the link is up or down by polling an EMAC register */
+static void prvCheckLinkUpOrDownNetStateTask( void * pvParameters )
+{
+    BaseType_t checkLinkStatus = pdFALSE;
+
+    for( ; ; )
+    {
+        checkLinkStatus = isEMACLinkUp();
+
+        if( ( checkLinkStatus == pdTRUE ) && ( networkUP == pdFALSE ) )
+        {
+            networkUP = pdTRUE;
+        }
+        else if( ( checkLinkStatus == pdFALSE ) && ( networkUP == pdTRUE ) )
+        {
+            /*   FreeRTOS will poll xNetworkInterfaceInitialise() to check if the network is up.
+             *   So after FreeRTOS_NetworkDown() is called, there is no corresponding FreeRTOS_NetworkUp() function...
+             */
+            networkUP = pdFALSE;
+            FreeRTOS_NetworkDown();
+        }
+
+        if( resetNetwork == pdTRUE )
+        {
+            vPrivateTurnOffEMAC();
+            vPrivateTurnOnEMAC();
+            resetNetwork = pdFALSE;
+        }
+    }
+}
+
 
 
 /* Call this function to obtain the MAC address used by the driver */
 void vPublicGetMACAddr( uint8_t uc8MACAddrGet[ ipMAC_ADDRESS_LENGTH_BYTES ] )
 {
     memcpy( uc8MACAddrGet, configLocal.ucMACAddr, ipMAC_ADDRESS_LENGTH_BYTES );
+}
+
+
+BaseType_t xGetPhyLinkStatus( void )
+{
+    return networkUP;
 }
 
 

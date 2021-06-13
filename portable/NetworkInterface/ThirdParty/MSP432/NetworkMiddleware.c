@@ -29,7 +29,6 @@
  */
 
 #include <stdint.h>
-#include <stdbool.h>
 
 #include "FreeRTOS.h"
 #include "FreeRTOS_IP.h"
@@ -70,7 +69,7 @@ void vPublicSetupFreeRTOSTasks( const struct InternalNetworkMiddlewareData data 
     vPublicGetMACAddr( uc8MACAddr );
 
     /* set up the task to reset the network every so often */
-    if( data.resetNetworkTaskRunning == true )
+    if( data.resetNetworkTaskRunning == pdTRUE )
     {
         xDelay = data.resetNetworkTaskEveryXSeconds;
         xSemaphore = xSemaphoreCreateMutex();
@@ -132,18 +131,18 @@ void prvNetworkResetTask( void * pvParameters )
 
 
 /* Call this function from a task to prevent a network reset during a critical section of the code */
-bool publicPreventNetworkReset( const bool preventReset,
-                                const uint32_t waitTime )
+BaseType_t publicPreventNetworkReset( const BaseType_t preventReset,
+                                      const uint32_t waitTime )
 {
-    if( preventReset == true )
+    if( preventReset == pdTRUE )
     {
         if( xSemaphoreTake( xSemaphore, pdMS_TO_TICKS( waitTime ) ) == pdTRUE )
         {
-            return true;
+            return pdTRUE;
         }
         else
         {
-            return false;
+            return pdFALSE;
         }
     }
     else /* do not prevent reset */
@@ -151,7 +150,7 @@ bool publicPreventNetworkReset( const bool preventReset,
         xSemaphoreGive( xSemaphore );
     }
 
-    return true;
+    return pdTRUE;
 }
 
 
@@ -173,7 +172,7 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 }
 
 /*  CALLED BY FREERTOS
- *  Function that returns a random number for TCP.  This is taken to be a true random number. */
+ *  Function that returns a random number for TCP.  This is taken to be a random number. */
 uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
                                              uint16_t usSourcePort,
                                              uint32_t ulDestinationAddress,

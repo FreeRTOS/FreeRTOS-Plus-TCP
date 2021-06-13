@@ -30,20 +30,17 @@
 
 #pragma once
 #include <stdint.h>
-#include <stdbool.h>
 #include "FreeRTOS.h"
 #include "FreeRTOS_IP.h"
 
 struct InternalNetworkInterfaceMSP432EConfig
 {
-    bool turnOnEMAC;                                 /* true to turn on the EMAC initially on startup */
+    BaseType_t turnOnEMAC;                                 /* true to turn on the EMAC initially on startup */
     uint8_t ucMACAddr[ ipMAC_ADDRESS_LENGTH_BYTES ]; /* MAC address */
-    bool setMACAddrInternal;                         /* true to set the MAC address from internal registers */
+    BaseType_t setMACAddrInternal;                         /* true to set the MAC address from internal registers */
 };                                                   /* end */
 
-bool vPublicCheckNetworkInterfaceUp();
-bool vPublicTurnOffEMAC();
-bool vPublicTurnOnEMAC();
+BaseType_t vPublicCheckNetworkInterfaceUp();
 void vPublicGetMACAddr( uint8_t pui8MACAddrGet[ ipMAC_ADDRESS_LENGTH_BYTES ] );
-bool vPublicSetupEMACNetwork( const struct InternalNetworkInterfaceMSP432EConfig config );
+BaseType_t vPublicSetupEMACNetwork( const struct InternalNetworkInterfaceMSP432EConfig config );
 void vGetInternalNetworkInterfaceMSP432EConfigDefaults( struct InternalNetworkInterfaceMSP432EConfig * config );
