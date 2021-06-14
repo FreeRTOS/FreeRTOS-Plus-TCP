@@ -357,14 +357,14 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                             const uint32_t ulIPAddress,
                             struct xNetworkEndPoint * pxEndPoint )
 {
-    BaseType_t xAddressIsLocal;
-
-    xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 2 ) != NULL ) ? 1 : 0; /* ARP remote address. */
+    #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
+        BaseType_t xAddressIsLocal;
+    #endif
 
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
+        xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 2 ) != NULL ) ? 1 : 0; /* ARP remote address. */
 
-        /* Only process the IP address if it matches with one of the end-points,
-         * or as long as not all end-points are up. */
+        /* Only process the IP address if it matches with one of the end-points. */
         if( xAddressIsLocal != 0 )
     #else
 
