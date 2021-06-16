@@ -3,7 +3,7 @@
   "CBMCFLAGS":
   [
       "--unwind 1",
-      "--unwindset vARPRefreshCacheEntry.0:7,memcmp.0:17,FreeRTOS_FindEndPointOnIP_IPv4.0:2",
+      "--unwindset prvFindCacheEntry.0:7,memcmp.0:17,FreeRTOS_FindEndPointOnIP_IPv4.0:2",
       "--nondet-static"
   ],
   "OBJS":

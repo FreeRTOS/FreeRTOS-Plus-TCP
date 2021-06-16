@@ -738,6 +738,7 @@ prvdeterminesocketsize
 prvechoclienttask
 prvemacdeferredinterrupthandlertask
 prvemachandlertask
+prvfindcachentry
 prvfindendpointonnetmask
 prvgethostbyname
 prvhandleestablished
@@ -886,6 +887,7 @@ pxiterator
 pxlength
 pxlist
 pxlistfindlistitemwithvalue
+pxlocation
 pxlostbuffer
 pxmacaddress
 pxmessage
@@ -1669,6 +1671,7 @@ xinternal
 xip
 xipaddress
 xipaddressfound
+xipentry
 xipheader
 xipheadersize
 xiptaskhandle
@@ -1700,6 +1703,7 @@ xloop
 xlwipconfig
 xmacaddress
 xmacbroadcast
+xmacentry
 xmaxtime
 xmessage
 xmicreldevice
@@ -1819,6 +1823,7 @@ xudp
 xudpheader
 xudppacket
 xusebroadcast
+xuseentry
 xwaitallbits
 xwaitingpacketslist
 xwaitqueue
