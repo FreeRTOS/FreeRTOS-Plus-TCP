@@ -24,7 +24,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_IP_ReceptionWork.c
+ * @file FreeRTOS_TCP_IP_Reception.c
  *
  * The functions in this module are called when a TCP packet is received.
  */

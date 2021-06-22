@@ -24,7 +24,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_IP_Utils.c
+ * @file FreeRTOS_TCP_IP_utils.c
  *
  * This module contains a set of relatively unrelated functions
  * that are called from other FreeRTOS_TCP_IP modules.
