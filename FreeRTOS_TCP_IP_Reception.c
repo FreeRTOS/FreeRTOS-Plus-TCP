@@ -30,7 +30,7 @@
  */
 
 
- /* Standard includes. */
+/* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
 
@@ -70,7 +70,7 @@
  *       the TP header is longer than the usual 20 (5 x 4) bytes.
  */
     void prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                  const NetworkBufferDescriptor_t * pxNetworkBuffer )
+                          const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
         const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -153,9 +153,9 @@
  *         should continue to parse more header options or break the loop.
  */
     size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                                  size_t uxTotalLength,
-                                                  FreeRTOS_Socket_t * const pxSocket,
-                                                  BaseType_t xHasSYNFlag )
+                                          size_t uxTotalLength,
+                                          FreeRTOS_Socket_t * const pxSocket,
+                                          BaseType_t xHasSYNFlag )
     {
         UBaseType_t uxNewMSS;
         size_t uxRemainingOptionsBytes = uxTotalLength;
@@ -350,7 +350,7 @@
  *         that socket is returned or else, a NULL pointer is returned.
  */
     FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
-                                                NetworkBufferDescriptor_t * pxNetworkBuffer )
+                                         NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
         const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
@@ -474,7 +474,7 @@
  * only, most compilers will inline them, thus avoiding a call and return.
  */
     BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
-                                         NetworkBufferDescriptor_t ** ppxNetworkBuffer )
+                                  NetworkBufferDescriptor_t ** ppxNetworkBuffer )
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -667,7 +667,7 @@
  * @return Total number of bytes sent.
  */
     int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
-                                       NetworkBufferDescriptor_t ** ppxNetworkBuffer )
+                                NetworkBufferDescriptor_t ** ppxNetworkBuffer )
     {
         UBaseType_t uxIndex;
         int32_t lResult = 0;
@@ -713,8 +713,8 @@
  *         is returned in case of any error.
  */
     int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
-                                      NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                      UBaseType_t uxOptionsLength )
+                               NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                               UBaseType_t uxOptionsLength )
     {
         int32_t lDataLen;
         uint8_t * pucEthernetBuffer, * pucSendData;
@@ -911,4 +911,4 @@
     }
     /*-----------------------------------------------------------*/
 
-#endif
+#endif /* if ipconfigUSE_TCP == 1 */

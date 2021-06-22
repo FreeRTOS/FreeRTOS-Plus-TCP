@@ -63,30 +63,31 @@
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
+
 /*
  * Returns true if the socket must be checked.  Non-active sockets are waiting
  * for user action, either connect() or close().
  */
-     BaseType_t prvTCPSocketIsActive( eIPTCPState_t xStatus );
+    BaseType_t prvTCPSocketIsActive( eIPTCPState_t xStatus );
 
 /*
  * Either sends a SYN or calls prvTCPSendRepeated (for regular messages).
  */
-     int32_t prvTCPSendPacket( FreeRTOS_Socket_t * pxSocket );
+    int32_t prvTCPSendPacket( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Try to send a series of messages.
  */
     int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
-                                       NetworkBufferDescriptor_t ** ppxNetworkBuffer );
+                                NetworkBufferDescriptor_t ** ppxNetworkBuffer );
 
 /*
  * Return or send a packet to the other party.
  */
     void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
-                                    NetworkBufferDescriptor_t * pxDescriptor,
-                                    uint32_t ulLen,
-                                    BaseType_t xReleaseAfterSend );
+                             NetworkBufferDescriptor_t * pxDescriptor,
+                             uint32_t ulLen,
+                             BaseType_t xReleaseAfterSend );
 
 /*
  * Initialise the data structures which keep track of the TCP windowing system.
@@ -111,7 +112,7 @@
  * Parse the TCP option(s) received, if present.
  */
     void prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                  const NetworkBufferDescriptor_t * pxNetworkBuffer );
+                          const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Identify and deal with a single TCP header option, advancing the pointer to
@@ -119,9 +120,9 @@
  * caller should continue to parse more header options or break the loop.
  */
     size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                                  size_t uxTotalLength,
-                                                  FreeRTOS_Socket_t * const pxSocket,
-                                                  BaseType_t xHasSYNFlag );
+                                          size_t uxTotalLength,
+                                          FreeRTOS_Socket_t * const pxSocket,
+                                          BaseType_t xHasSYNFlag );
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
 
@@ -130,8 +131,8 @@
  * more options left.
  */
         void prvReadSackOption( const uint8_t * const pucPtr,
-                                        size_t uxIndex,
-                                        FreeRTOS_Socket_t * const pxSocket );
+                                size_t uxIndex,
+                                FreeRTOS_Socket_t * const pxSocket );
     #endif /* ( ipconfigUSE_TCP_WIN == 1 ) */
 
 
@@ -141,7 +142,7 @@
  * 'eCONNECT_SYN'.
  */
     UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t * pxSocket,
-                                            TCPHeader_t * pxTCPHeader );
+                                     TCPHeader_t * pxTCPHeader );
 
 /*
  * For anti-hang protection and TCP keep-alive messages.  Called in two places:
@@ -154,8 +155,8 @@
  * Prepare an outgoing message, if anything has to be sent.
  */
     int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
-                                      NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                      UBaseType_t uxOptionsLength );
+                               NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                               UBaseType_t uxOptionsLength );
 
 /*
  * Calculate when this socket needs to be checked to do (re-)transmissions.
@@ -172,46 +173,46 @@
  *  Called to handle the closure of a TCP connection.
  */
     BaseType_t prvTCPHandleFin( FreeRTOS_Socket_t * pxSocket,
-                                       const NetworkBufferDescriptor_t * pxNetworkBuffer );
+                                const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Called from prvTCPHandleState().  Find the TCP payload data and check and
  * return its length.
  */
     BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint8_t ** ppucRecvData );
+                               uint8_t ** ppucRecvData );
 
 /*
  * Called from prvTCPHandleState().  Check if the payload data may be accepted.
  * If so, it will be added to the socket's reception queue.
  */
     BaseType_t prvStoreRxData( FreeRTOS_Socket_t * pxSocket,
-                                      const uint8_t * pucRecvData,
-                                      NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint32_t ulReceiveLength );
+                               const uint8_t * pucRecvData,
+                               NetworkBufferDescriptor_t * pxNetworkBuffer,
+                               uint32_t ulReceiveLength );
 
 /*
  * Set the TCP options (if any) for the outgoing packet.
  */
     UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
-                                      const NetworkBufferDescriptor_t * pxNetworkBuffer );
+                               const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Called from prvTCPHandleState() as long as the TCP status is eSYN_RECEIVED to
  * eCONNECT_SYN.
  */
     BaseType_t prvHandleSynReceived( FreeRTOS_Socket_t * pxSocket,
-                                            const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                            uint32_t ulReceiveLength,
-                                            UBaseType_t uxOptionsLength );
+                                     const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                     uint32_t ulReceiveLength,
+                                     UBaseType_t uxOptionsLength );
 
 /*
  * Called from prvTCPHandleState() as long as the TCP status is eESTABLISHED.
  */
     BaseType_t prvHandleEstablished( FreeRTOS_Socket_t * pxSocket,
-                                            NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                            uint32_t ulReceiveLength,
-                                            UBaseType_t uxOptionsLength );
+                                     NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                                     uint32_t ulReceiveLength,
+                                     UBaseType_t uxOptionsLength );
 
 /*
  * Called from prvTCPHandleState().  There is data to be sent.
@@ -219,23 +220,23 @@
  * be checked if it would better be postponed for efficiency.
  */
     BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
-                                   NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                   uint32_t ulReceiveLength,
-                                   BaseType_t xByteCount );
+                            NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                            uint32_t ulReceiveLength,
+                            BaseType_t xByteCount );
 
 /*
  * The heart of all: check incoming packet for valid data and acks and do what
  * is necessary in each state.
  */
     BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
-                                         NetworkBufferDescriptor_t ** ppxNetworkBuffer );
+                                  NetworkBufferDescriptor_t ** ppxNetworkBuffer );
 
 /*
  * Common code for sending a TCP protocol control packet (i.e. no options, no
  * payload, just flags).
  */
     BaseType_t prvTCPSendSpecialPacketHelper( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                     uint8_t ucTCPFlags );
+                                              uint8_t ucTCPFlags );
 
 /*
  * A "challenge ACK" is as per https://tools.ietf.org/html/rfc5961#section-3.2,
@@ -259,14 +260,14 @@
  * state (depends on the 'bReuseSocket' flag).
  */
     FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
-                                                NetworkBufferDescriptor_t * pxNetworkBuffer );
+                                         NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * After a listening socket receives a new connection, it may duplicate itself.
  * The copying takes place in prvTCPSocketCopy.
  */
     BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
-                                        FreeRTOS_Socket_t * pxSocket );
+                                 FreeRTOS_Socket_t * pxSocket );
 
 /*
  * prvTCPStatusAgeCheck() will see if the socket has been in a non-connected
@@ -278,9 +279,9 @@
     #endif
 
     NetworkBufferDescriptor_t * prvTCPBufferResize( const FreeRTOS_Socket_t * pxSocket,
-                                                           NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                           int32_t lDataLen,
-                                                           UBaseType_t uxOptionsLength );
+                                                    NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                    int32_t lDataLen,
+                                                    UBaseType_t uxOptionsLength );
 
     #if ( ipconfigUSE_TCP_WIN != 0 )
         uint8_t prvWinScaleFactor( const FreeRTOS_Socket_t * pxSocket );

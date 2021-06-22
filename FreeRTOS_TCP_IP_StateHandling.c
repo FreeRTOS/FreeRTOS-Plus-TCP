@@ -28,11 +28,11 @@
  *
  * All TCP events and actions that are related to the current state
  * like TCP options, SYN, FIN, transmission and reception.
- * 
+ *
  */
 
 
- /* Standard includes. */
+/* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
 
@@ -71,7 +71,7 @@
  * @return Length of the received buffer.
  */
     BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint8_t ** ppucRecvData )
+                               uint8_t ** ppucRecvData )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -157,9 +157,9 @@
  * @return The send length of the packet to be sent.
  */
     BaseType_t prvHandleEstablished( FreeRTOS_Socket_t * pxSocket,
-                                            NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                            uint32_t ulReceiveLength,
-                                            UBaseType_t uxOptionsLength )
+                                     NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                                     uint32_t ulReceiveLength,
+                                     UBaseType_t uxOptionsLength )
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -336,7 +336,7 @@
  * @return Length of the packet to be sent.
  */
     BaseType_t prvTCPHandleFin( FreeRTOS_Socket_t * pxSocket,
-                                       const NetworkBufferDescriptor_t * pxNetworkBuffer )
+                                const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -445,9 +445,9 @@
  * @return Length of the data to be sent.
  */
     BaseType_t prvHandleSynReceived( FreeRTOS_Socket_t * pxSocket,
-                                            const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                            uint32_t ulReceiveLength,
-                                            UBaseType_t uxOptionsLength )
+                                     const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                     uint32_t ulReceiveLength,
+                                     UBaseType_t uxOptionsLength )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -579,7 +579,7 @@
  * @return Length of the TCP options after they are set.
  */
     UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
-                                      const NetworkBufferDescriptor_t * pxNetworkBuffer )
+                               const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -662,9 +662,9 @@
  * @return The number of bytes actually sent.
  */
     BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
-                                   NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                   uint32_t ulReceiveLength,
-                                   BaseType_t xByteCount )
+                            NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                            uint32_t ulReceiveLength,
+                            BaseType_t xByteCount )
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -811,9 +811,9 @@
  * @return 0 on success, -1 on failure of storing data.
  */
     BaseType_t prvStoreRxData( FreeRTOS_Socket_t * pxSocket,
-                                      const uint8_t * pucRecvData,
-                                      NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint32_t ulReceiveLength )
+                               const uint8_t * pucRecvData,
+                               NetworkBufferDescriptor_t * pxNetworkBuffer,
+                               uint32_t ulReceiveLength )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t,
@@ -890,4 +890,4 @@
     }
     /*-----------------------------------------------------------*/
 
-#endif
+#endif /* if ipconfigUSE_TCP == 1 */

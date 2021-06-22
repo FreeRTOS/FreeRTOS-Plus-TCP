@@ -23,7 +23,7 @@
  * http://www.FreeRTOS.org
  */
 
- /* Standard includes. */
+/* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
 
@@ -48,63 +48,63 @@
     #define FREERTOS_TCP_IP_RECEPTION_H
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
-#if ipconfigUSE_TCP == 1
+    #if ipconfigUSE_TCP == 1
 
 /*
  * Parse the TCP option(s) received, if present.
  */
-    void prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                  const NetworkBufferDescriptor_t * pxNetworkBuffer );
+        void prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+                              const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Identify and deal with a single TCP header option, advancing the pointer to
  * the header. This function returns pdTRUE or pdFALSE depending on whether the
  * caller should continue to parse more header options or break the loop.
  */
-    size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                                  size_t uxTotalLength,
-                                                  FreeRTOS_Socket_t * const pxSocket,
-                                                  BaseType_t xHasSYNFlag );
+        size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                              size_t uxTotalLength,
+                                              FreeRTOS_Socket_t * const pxSocket,
+                                              BaseType_t xHasSYNFlag );
 
 /*
  * A "challenge ACK" is as per https://tools.ietf.org/html/rfc5961#section-3.2,
  * case #3. In summary, an RST was received with a sequence number that is
  * unexpected but still within the window.
  */
-    BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer );
+        BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Reply to a peer with the RST flag on, in case a packet can not be handled.
  */
-    BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
+        BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Return either a newly created socket, or the current socket in a connected
  * state (depends on the 'bReuseSocket' flag).
  */
-    FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
-                                                NetworkBufferDescriptor_t * pxNetworkBuffer );
+        FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
+                                             NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * The heart of all: check incoming packet for valid data and acks and do what
  * is necessary in each state.
  */
-    BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
-                                         NetworkBufferDescriptor_t ** ppxNetworkBuffer );
+        BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
+                                      NetworkBufferDescriptor_t ** ppxNetworkBuffer );
 
 /*
  * Try to send a series of messages.
  */
-    int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
-                                       NetworkBufferDescriptor_t ** ppxNetworkBuffer );
+        int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
+                                    NetworkBufferDescriptor_t ** ppxNetworkBuffer );
 
 /*
  * Prepare an outgoing message, if anything has to be sent.
  */
-    int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
-                                      NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                      UBaseType_t uxOptionsLength );
+        int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
+                                   NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                                   UBaseType_t uxOptionsLength );
 
-#endif
+    #endif /* if ipconfigUSE_TCP == 1 */
 
-#endif
+#endif /* ifndef FREERTOS_TCP_IP_RECEPTION_H */

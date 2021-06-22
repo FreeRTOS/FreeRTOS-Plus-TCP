@@ -23,7 +23,7 @@
  * http://www.FreeRTOS.org
  */
 
- /* Standard includes. */
+/* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
 
@@ -48,64 +48,64 @@
     #define FREERTOS_TCP_IP_STATE_HANDLING_H
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
-#if ipconfigUSE_TCP == 1
+    #if ipconfigUSE_TCP == 1
 
 /*
  * Called from prvTCPHandleState().  Find the TCP payload data and check and
  * return its length.
  */
-    BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint8_t ** ppucRecvData );
+        BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                   uint8_t ** ppucRecvData );
 
 /*
  * Called from prvTCPHandleState() as long as the TCP status is eESTABLISHED.
  */
-    BaseType_t prvHandleEstablished( FreeRTOS_Socket_t * pxSocket,
-                                            NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                            uint32_t ulReceiveLength,
-                                            UBaseType_t uxOptionsLength );
+        BaseType_t prvHandleEstablished( FreeRTOS_Socket_t * pxSocket,
+                                         NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                                         uint32_t ulReceiveLength,
+                                         UBaseType_t uxOptionsLength );
 
 /*
  *  Called to handle the closure of a TCP connection.
  */
-    BaseType_t prvTCPHandleFin( FreeRTOS_Socket_t * pxSocket,
-                                       const NetworkBufferDescriptor_t * pxNetworkBuffer );
+        BaseType_t prvTCPHandleFin( FreeRTOS_Socket_t * pxSocket,
+                                    const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Called from prvTCPHandleState() as long as the TCP status is eSYN_RECEIVED to
  * eCONNECT_SYN.
  */
-    BaseType_t prvHandleSynReceived( FreeRTOS_Socket_t * pxSocket,
-                                            const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                            uint32_t ulReceiveLength,
-                                            UBaseType_t uxOptionsLength );
+        BaseType_t prvHandleSynReceived( FreeRTOS_Socket_t * pxSocket,
+                                         const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                         uint32_t ulReceiveLength,
+                                         UBaseType_t uxOptionsLength );
 
 /*
  * Set the TCP options (if any) for the outgoing packet.
  */
-    UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
-                                      const NetworkBufferDescriptor_t * pxNetworkBuffer );
+        UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
+                                   const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Called from prvTCPHandleState().  There is data to be sent.
  * If ipconfigUSE_TCP_WIN is defined, and if only an ACK must be sent, it will
  * be checked if it would better be postponed for efficiency.
  */
-    BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
-                                   NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                   uint32_t ulReceiveLength,
-                                   BaseType_t xByteCount );
+        BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
+                                NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                                uint32_t ulReceiveLength,
+                                BaseType_t xByteCount );
 
 
 /*
  * Called from prvTCPHandleState().  Check if the payload data may be accepted.
  * If so, it will be added to the socket's reception queue.
  */
-    BaseType_t prvStoreRxData( FreeRTOS_Socket_t * pxSocket,
-                                      const uint8_t * pucRecvData,
-                                      NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint32_t ulReceiveLength );
+        BaseType_t prvStoreRxData( FreeRTOS_Socket_t * pxSocket,
+                                   const uint8_t * pucRecvData,
+                                   NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                   uint32_t ulReceiveLength );
 
-#endif
+    #endif /* if ipconfigUSE_TCP == 1 */
 
-#endif
+#endif /* ifndef FREERTOS_TCP_IP_STATE_HANDLING_H */

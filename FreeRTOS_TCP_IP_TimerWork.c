@@ -23,7 +23,7 @@
  * http://www.FreeRTOS.org
  */
 
- /* Standard includes. */
+/* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
 
@@ -55,7 +55,7 @@
  *
  * The functions in this module are called when the socket timer expires.
  * It will check if there are pending (re)transmissions, or protection
- * timers going off. 
+ * timers going off.
  */
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
@@ -461,4 +461,4 @@
     }
     /*-----------------------------------------------------------*/
 
-#endif
+#endif /* if ipconfigUSE_TCP == 1 */

@@ -31,7 +31,7 @@
  */
 
 
- /* Standard includes. */
+/* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
 
@@ -171,9 +171,9 @@
  *       cannot be used any longer.
  */
     NetworkBufferDescriptor_t * prvTCPBufferResize( const FreeRTOS_Socket_t * pxSocket,
-                                                           NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                           int32_t lDataLen,
-                                                           UBaseType_t uxOptionsLength )
+                                                    NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                    int32_t lDataLen,
+                                                    UBaseType_t uxOptionsLength )
     {
         NetworkBufferDescriptor_t * pxReturn;
         size_t uxNeeded;
@@ -568,7 +568,7 @@
  * @return pdFAIL always indicating that the packet was not consumed.
  */
     BaseType_t prvTCPSendSpecialPacketHelper( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                     uint8_t ucTCPFlags )
+                                              uint8_t ucTCPFlags )
     {
         #if ( ipconfigIGNORE_UNKNOWN_PACKETS == 1 )
             /* Configured to ignore unknown packets just suppress a compiler warning. */
@@ -607,9 +607,9 @@
  *                               transferred to the network interface.
  */
     void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
-                                    NetworkBufferDescriptor_t * pxDescriptor,
-                                    uint32_t ulLen,
-                                    BaseType_t xReleaseAfterSend )
+                             NetworkBufferDescriptor_t * pxDescriptor,
+                             uint32_t ulLen,
+                             BaseType_t xReleaseAfterSend )
     {
         TCPPacket_t * pxTCPPacket;
         IPHeader_t * pxIPHeader;
@@ -900,7 +900,7 @@
  * @return If all steps all successful, then pdTRUE is returned. Else, pdFALSE.
  */
     BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
-                                        FreeRTOS_Socket_t * pxSocket )
+                                 FreeRTOS_Socket_t * pxSocket )
     {
         struct freertos_sockaddr xAddress;
         BaseType_t xResult;
@@ -998,7 +998,7 @@
     /*-----------------------------------------------------------*/
 
 
-#if ( ipconfigUSE_TCP_WIN == 1 )
+    #if ( ipconfigUSE_TCP_WIN == 1 )
 
 /**
  * @brief Skip past TCP header options when doing Selective ACK, until there are no
@@ -1009,8 +1009,8 @@
  * @param[in] pxSocket: Socket handling the TCP connection.
  */
         void prvReadSackOption( const uint8_t * const pucPtr,
-                                        size_t uxIndex,
-                                        FreeRTOS_Socket_t * const pxSocket )
+                                size_t uxIndex,
+                                FreeRTOS_Socket_t * const pxSocket )
         {
             uint32_t ulFirst = ulChar2u32( &( pucPtr[ uxIndex ] ) );
             uint32_t ulLast = ulChar2u32( &( pucPtr[ uxIndex + 4U ] ) );
@@ -1069,7 +1069,7 @@
  * @note MSS is the net size of the payload, an is always smaller than MTU.
  */
     UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t * pxSocket,
-                                            TCPHeader_t * pxTCPHeader )
+                                     TCPHeader_t * pxTCPHeader )
     {
         uint16_t usMSS = pxSocket->u.xTCP.usInitMSS;
         UBaseType_t uxOptionsLength;
@@ -1109,4 +1109,4 @@
         return uxOptionsLength; /* bytes, not words. */
     }
 
-#endif 
+#endif /* if ipconfigUSE_TCP == 1 */

@@ -23,7 +23,7 @@
  * http://www.FreeRTOS.org
  */
 
- /* Standard includes. */
+/* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
 
@@ -47,33 +47,34 @@
 #ifndef FREERTOS_TCP_IP_TIMERWORK_H
     #define FREERTOS_TCP_IP_TIMERWORK_H
 
-    /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
+/* Just make sure the contents doesn't get compiled if TCP is not enabled. */
     #if ipconfigUSE_TCP == 1
-    /*
-     * Calculate when this socket needs to be checked to do (re-)transmissions.
-     */
+
+/*
+ * Calculate when this socket needs to be checked to do (re-)transmissions.
+ */
         TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket );
 
-    /*
-     * prvTCPStatusAgeCheck() will see if the socket has been in a non-connected
-     * state for too long.  If so, the socket will be closed, and -1 will be
-     * returned.
-     */
+/*
+ * prvTCPStatusAgeCheck() will see if the socket has been in a non-connected
+ * state for too long.  If so, the socket will be closed, and -1 will be
+ * returned.
+ */
         #if ( ipconfigTCP_HANG_PROTECTION == 1 )
             BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket );
         #endif
 
-    /*
-     * Either sends a SYN or calls prvTCPSendRepeated (for regular messages).
-     */
-         int32_t prvTCPSendPacket( FreeRTOS_Socket_t * pxSocket );
+/*
+ * Either sends a SYN or calls prvTCPSendRepeated (for regular messages).
+ */
+        int32_t prvTCPSendPacket( FreeRTOS_Socket_t * pxSocket );
 
 
-    /*
-     * Let ARP look-up the MAC-address of the peer and initialise the first SYN
-     * packet.
-     */
+/*
+ * Let ARP look-up the MAC-address of the peer and initialise the first SYN
+ * packet.
+ */
         BaseType_t prvTCPPrepareConnect( FreeRTOS_Socket_t * pxSocket );
-    #endif
+    #endif /* if ipconfigUSE_TCP == 1 */
 
-#endif
+#endif /* ifndef FREERTOS_TCP_IP_TIMERWORK_H */
