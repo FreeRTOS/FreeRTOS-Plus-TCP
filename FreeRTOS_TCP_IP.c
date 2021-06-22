@@ -55,6 +55,11 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
 
+/* Private includes. */
+#include "FreeRTOS_TCP_IP_StateHandling.h"
+#include "FreeRTOS_TCP_IP_utils.h"
+#include "FreeRTOS_TCP_IP_Reception.h"
+#include "FreeRTOS_TCP_IP_TimerWork.h"
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
