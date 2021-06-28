@@ -1,8 +1,18 @@
 Changes between V2.3.2 and V2.3.3 releases:
+        + When a listening socket is closed, all child sockets not yet owned by the
+          application will be closed too. (Thanks Bernd Edlinger).
+        + Updated buffer allocation to return a zero length buffer when
+          requested. (Thanks Thomas Pedersen).
+        + When there is insufficient space in the network event queue, closing of a
+          socket will be deferred for a later time. (Thanks Bernd Edlinger).
+        + Allow IP-task to clean up while deleting socket-sets to avoid race
+          conditions. (Thanks Bernd Edlinger).
+        + Added FreeRTOS+TCP version number macros.
 	+ Repaired buffer leak in NBNS reply logic.
 	+ Added a hook function which can be used to process unsupported ethernet
 	  frames.
 	+ Added a check for ICMP packets with incorrect checksum.
+
 Changes between V2.3.1 and V2.3.2 releases:
 	+ When a protocol error occurs during the SYN-phase of a TCP connection, a
 	  child socket will now be closed ( calling FreeRTOS_closesocket() ),

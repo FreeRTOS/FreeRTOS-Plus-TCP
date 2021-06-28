@@ -761,6 +761,11 @@
     #if ( ipconfigUSE_TCP == 1 )
 
 /*
+ * Close the socket another time.
+ */
+        void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket );
+
+/*
  * Lookup a TCP socket, using a multiple matching: both port numbers and
  * return IP address.
  */
@@ -784,7 +789,7 @@
  * bOut = false: checksum will be calculated for incoming packets
  *     returning 0xffff means: checksum was correct
  */
-    uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
+    uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                                          size_t uxBufferLength,
                                          BaseType_t xOutgoingPacket );
 
