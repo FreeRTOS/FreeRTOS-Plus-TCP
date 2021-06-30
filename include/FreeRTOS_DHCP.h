@@ -160,20 +160,20 @@
         /* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
         typedef enum eDHCP_PHASE
         {
-            eDHCPPhasePreDiscover, /* Driver is about to send a DHCP discovery. */
-            eDHCPPhasePreRequest   /* Driver is about to request DHCP an IP address. */
+            eDHCPPhasePreDiscover, /**< Driver is about to send a DHCP discovery. */
+            eDHCPPhasePreRequest   /**< Driver is about to request DHCP an IP address. */
         } eDHCPCallbackPhase_t;
 
-/* Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
+/** @brief Used in the DHCP callback if ipconfigUSE_DHCP_HOOK is set to 1. */
         typedef enum eDHCP_ANSWERS
         {
-            eDHCPContinue,      /* Continue the DHCP process */
-            eDHCPUseDefaults,   /* Stop DHCP and use the static defaults. */
-            eDHCPStopNoChanges, /* Stop DHCP and continue with current settings. */
+            eDHCPContinue,      /**< Continue the DHCP process */
+            eDHCPUseDefaults,   /**< Stop DHCP and use the static defaults. */
+            eDHCPStopNoChanges, /**< Stop DHCP and continue with current settings. */
         } eDHCPCallbackAnswer_t;
     #endif /* #if( ipconfigUSE_DHCP_HOOK != 0 ) */
 
-/* DHCP state machine states. */
+/** @brief DHCP state machine states. */
     typedef enum
     {
         eInitialWait = 0,          /**< Initial state: open a socket and wait a short time. */
@@ -182,25 +182,24 @@
         eWaitingAcknowledge,       /**< Either resend the request. */
         eSendDHCPRequest,          /**< Sendto failed earlier, resend the request to lease the IP-address offered. */
         #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-            eGetLinkLayerAddress,  /* When DHCP didn't respond, try to obtain a LinkLayer address 168.254.x.x. */
+            eGetLinkLayerAddress,  /**< When DHCP didn't respond, try to obtain a LinkLayer address 168.254.x.x. */
         #endif
         eLeasedAddress,            /**< Resend the request at the appropriate time to renew the lease. */
         eNotUsingLeasedAddress     /**< DHCP failed, and a default IP address is being used. */
     } eDHCPState_t;
 
-/**
- * Hold information in between steps in the DHCP state machine.
- */
+/** @brief Hold information in between steps in the DHCP state machine. */
     struct xDHCP_DATA
     {
-        uint32_t ulTransactionId;     /**< The ID of the DHCP transaction */
-        uint32_t ulOfferedIPAddress;  /**< The IP address offered by the DHCP server */
-        uint32_t ulDHCPServerAddress; /**< The IP address of the DHCP server */
-        uint32_t ulLeaseTime;         /**< The time for which the current IP address is leased */
-        TickType_t xDHCPTxTime;       /**< The time at which a DHCP request was sent. */
-        TickType_t xDHCPTxPeriod;     /**< The maximum time that the client will wait for a reply. */
-        BaseType_t xUseBroadcast;     /**< Try both without and with the broadcast flag */
-        eDHCPState_t eDHCPState;      /**< Maintains the DHCP state machine state. */
+        uint32_t ulTransactionId;      /**< The ID of the DHCP transaction */
+        uint32_t ulOfferedIPAddress;   /**< The IP address offered by the DHCP server */
+        uint32_t ulPreferredIPAddress; /**< A preferred IP address */
+        uint32_t ulDHCPServerAddress;  /**< The IP address of the DHCP server */
+        uint32_t ulLeaseTime;          /**< The time for which the current IP address is leased */
+        TickType_t xDHCPTxTime;        /**< The time at which a DHCP request was sent. */
+        TickType_t xDHCPTxPeriod;      /**< The maximum time that the client will wait for a reply. */
+        BaseType_t xUseBroadcast;      /**< Try both without and with the broadcast flag */
+        eDHCPState_t eDHCPState;       /**< Maintains the DHCP state machine state. */
     };
 
     typedef struct xDHCP_DATA DHCPData_t;
@@ -224,6 +223,11 @@
 
 /* Internal call: returns true if socket is the current DHCP socket */
     BaseType_t xIsDHCPSocket( Socket_t xSocket );
+
+
+/* The application can indicate a preferred IP address by calling this function
+ * before FreeRTOS_IPInit() is called. */
+    uint32_t vDHCPSetPreferredIPAddress( uint32_t ulIPAddress );
 
     #if ( ipconfigUSE_DHCP_HOOK != 0 )
 
