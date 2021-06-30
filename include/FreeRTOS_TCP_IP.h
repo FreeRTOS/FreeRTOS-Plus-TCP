@@ -26,6 +26,8 @@
 #ifndef FREERTOS_TCP_IP_H
     #define FREERTOS_TCP_IP_H
 
+    #include "FreeRTOS_IP_Private.h"
+
 /*lint -e750  local macro not referenced [MISRA 2012 Rule 2.5, advisory] */
 
 /*
@@ -167,5 +169,15 @@
     #ifdef __cplusplus
         } /* extern "C" */
     #endif
+
+/*
+ * Close the socket another time.
+ */
+        void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket );
+
+/* Check a single socket for retransmissions and timeouts */
+    BaseType_t xTCPSocketCheck( FreeRTOS_Socket_t * pxSocket );
+
+    BaseType_t xTCPCheckNewClient( FreeRTOS_Socket_t * pxSocket );
 
 #endif /* FREERTOS_TCP_IP_H */

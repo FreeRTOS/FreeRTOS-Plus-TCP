@@ -58,6 +58,17 @@
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
+/*
+ * Identify and deal with a single TCP header option, advancing the pointer to
+ * the header. This function returns pdTRUE or pdFALSE depending on whether the
+ * caller should continue to parse more header options or break the loop.
+ */
+        static size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                              size_t uxTotalLength,
+                                              FreeRTOS_Socket_t * const pxSocket,
+                                              BaseType_t xHasSYNFlag );
+
+
 /**
  * @brief Parse the TCP option(s) received, if present.
  *
@@ -152,7 +163,7 @@
  * @return This function returns pdTRUE or pdFALSE depending on whether the caller
  *         should continue to parse more header options or break the loop.
  */
-    size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+    static size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
                                           size_t uxTotalLength,
                                           FreeRTOS_Socket_t * const pxSocket,
                                           BaseType_t xHasSYNFlag )

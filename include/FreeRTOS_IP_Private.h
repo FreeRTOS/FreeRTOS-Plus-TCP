@@ -38,7 +38,6 @@
     #include "FreeRTOS_Stream_Buffer.h"
     #if ( ipconfigUSE_TCP == 1 )
         #include "FreeRTOS_TCP_WIN.h"
-        #include "FreeRTOS_TCP_IP.h"
     #endif
 
     #include "semphr.h"
@@ -761,11 +760,6 @@
     #if ( ipconfigUSE_TCP == 1 )
 
 /*
- * Close the socket another time.
- */
-        void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket );
-
-/*
  * Lookup a TCP socket, using a multiple matching: both port numbers and
  * return IP address.
  */
@@ -838,11 +832,6 @@
 
     extern uint16_t usChar2u16( const uint8_t * pucPtr );
 
-/* Check a single socket for retransmissions and timeouts */
-    BaseType_t xTCPSocketCheck( FreeRTOS_Socket_t * pxSocket );
-
-    BaseType_t xTCPCheckNewClient( FreeRTOS_Socket_t * pxSocket );
-
 /* Defined in FreeRTOS_Sockets.c
  * Close a socket
  */
@@ -878,15 +867,6 @@
  */
         NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void * pvBuffer );
     #endif
-
-/*
- * Internal: Sets a new state for a TCP socket and performs the necessary
- * actions like calling a OnConnected handler to notify the socket owner.
- */
-    #if ( ipconfigUSE_TCP == 1 )
-        void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
-                              enum eTCP_STATE eTCPState );
-    #endif /* ipconfigUSE_TCP */
 
 /* Returns pdTRUE is this function is called from the IP-task */
     BaseType_t xIsCallingFromIPTask( void );

@@ -6,6 +6,12 @@ function(create_test test_name
                      link_list
                      dep_list
                      include_list)
+    message( STATUS "${test_name}" )
+    message( STATUS "${test_src}" )
+    message( STATUS "${link_list}" )
+    message( STATUS "${dep_list}" )
+    message( STATUS "${include_list}" )
+
     set(mocks_dir "${CMAKE_CURRENT_BINARY_DIR}/mocks")
     include (CTest)
     get_filename_component(test_src_absolute ${test_src} ABSOLUTE)
@@ -95,6 +101,8 @@ function(create_mock_list mock_name
                           cmock_config
                           mock_include_list
                           mock_define_list)
+    message( STATUS "${mock_list}" )
+
     set(mocks_dir "${CMAKE_CURRENT_BINARY_DIR}/mocks")
     add_library(${mock_name} SHARED)
     foreach (mock_file IN LISTS mock_list)
@@ -144,7 +152,8 @@ endfunction()
 function(create_real_library target
                              src_file
                              real_include_list
-                             mock_name)
+                             mock_name
+                             additional_compile_flags)
     add_library(${target} STATIC
             ${src_file}
         )
@@ -154,7 +163,7 @@ function(create_real_library target
     set_target_properties(${target} PROPERTIES
                 COMPILE_FLAGS "-O0 -ggdb -Wextra -Wpedantic \
                     -fprofile-arcs -ftest-coverage -fprofile-generate \
-                    -Wno-unused-but-set-variable"
+                    -Wno-unused-but-set-variable ${additional_compile_flags}"
                 LINK_FLAGS "-fprofile-arcs -ftest-coverage \
                     -fprofile-generate "
                 ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib

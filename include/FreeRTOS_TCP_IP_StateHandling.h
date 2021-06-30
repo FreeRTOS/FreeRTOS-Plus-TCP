@@ -44,8 +44,8 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
 
-#ifndef FREERTOS_TCP_IP_STATE_HANDLING_H
-    #define FREERTOS_TCP_IP_STATE_HANDLING_H
+#ifndef FREERTOS_TCP_IP_STATEHANDLING_H
+    #define FREERTOS_TCP_IP_STATEHANDLING_H
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
     #if ipconfigUSE_TCP == 1

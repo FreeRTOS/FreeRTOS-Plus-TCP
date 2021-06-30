@@ -8,6 +8,8 @@ message( STATUS "${project_name}" )
 
 # =====================  Create your mock here  (edit)  ========================
 
+# clear the variable
+set( mock_list "" )
 # list the files to mock here
 list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
@@ -15,6 +17,9 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
         )
+
+# clear the variable
+set( mock_include_list "" )
 # list the directories your mocks need
 list(APPEND mock_include_list
             .
@@ -24,17 +29,23 @@ list(APPEND mock_include_list
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
         )
 
+# clear the variable
+set( mock_define_list "" )
 #list the definitions of your mocks to control what to be included
 list(APPEND mock_define_list
             ""
        )
 
 # ================= Create the library under test here (edit) ==================
-
+# clear the variable
+set( real_source_files "" )
 # list the files you would like to test here
 list(APPEND real_source_files
             ${MODULE_ROOT_DIR}/FreeRTOS_ARP.c
 	)
+
+# clear the variable
+set( real_include_directories "" )
 # list the directories the module under test includes
 list(APPEND real_include_directories
             .
@@ -46,7 +57,8 @@ list(APPEND real_include_directories
 	)
 
 # =====================  Create UnitTest Code here (edit)  =====================
-
+# clear the variable
+set( test_include_directories "" )
 # list the directories your test needs to include
 list(APPEND test_include_directories
             .
@@ -54,6 +66,8 @@ list(APPEND test_include_directories
             ${TCP_INCLUDE_DIRS}
         )
 
+# clear the variable
+set( additional_compile_options "" )
 # =============================  (end edit)  ===================================
 
 set(mock_name "${project_name}_mock")
@@ -70,6 +84,7 @@ create_real_library(${real_name}
                     "${real_source_files}"
                     "${real_include_directories}"
                     "${mock_name}"
+                    "${additional_compile_options}"
         )
 
 list(APPEND utest_link_list

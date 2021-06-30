@@ -57,16 +57,6 @@
                               const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
- * Identify and deal with a single TCP header option, advancing the pointer to
- * the header. This function returns pdTRUE or pdFALSE depending on whether the
- * caller should continue to parse more header options or break the loop.
- */
-        size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                              size_t uxTotalLength,
-                                              FreeRTOS_Socket_t * const pxSocket,
-                                              BaseType_t xHasSYNFlag );
-
-/*
  * A "challenge ACK" is as per https://tools.ietf.org/html/rfc5961#section-3.2,
  * case #3. In summary, an RST was received with a sequence number that is
  * unexpected but still within the window.

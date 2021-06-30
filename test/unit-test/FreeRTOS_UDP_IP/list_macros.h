@@ -70,4 +70,7 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
+#undef listGET_HEAD_ENTRY
+void * listGET_HEAD_ENTRY( const ListItem_t * listItem );
+
 #endif /* ifndef LIST_MACRO_H */

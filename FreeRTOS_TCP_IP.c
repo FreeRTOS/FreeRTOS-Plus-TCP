@@ -49,6 +49,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_TCP_WIN.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
 #include "NetworkInterface.h"
@@ -249,6 +250,9 @@
         /* Function might modify the parameter. */
         NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
 
+        configASSERT( pxNetworkBuffer != NULL );
+        configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
         /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
         const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t,
                                                                                           &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
@@ -262,8 +266,6 @@
         uint32_t ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
         BaseType_t xResult = pdPASS;
 
-        configASSERT( pxNetworkBuffer != NULL );
-        configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
         const IPHeader_t * pxIPHeader;
 
         /* Check for a minimum packet size. */

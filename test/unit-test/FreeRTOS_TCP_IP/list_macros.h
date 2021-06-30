@@ -57,7 +57,6 @@ TickType_t listGET_LIST_ITEM_VALUE( const ListItem_t * listItem );
 void listSET_LIST_ITEM_VALUE( ListItem_t * listItem,
                               TickType_t itemValue );
 
-
 #undef listLIST_ITEM_CONTAINER
 List_t * listLIST_ITEM_CONTAINER( const ListItem_t * listItem );
 
@@ -67,8 +66,8 @@ UBaseType_t listCURRENT_LIST_LENGTH( List_t * list );
 #undef listGET_ITEM_VALUE_OF_HEAD_ENTRY
 TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 
-#undef listGET_LIST_ITEM_OWNER
-void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
+#undef listGET_HEAD_ENTRY
+ListItem_t * listGET_HEAD_ENTRY( ListItem_t * pxList );
 
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );

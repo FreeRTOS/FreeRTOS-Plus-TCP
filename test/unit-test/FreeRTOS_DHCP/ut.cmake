@@ -56,6 +56,8 @@ list(APPEND test_include_directories
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
         )
 
+# clear the variable
+set( additional_compile_options "" )
 # =============================  (end edit)  ===================================
 
 set(mock_name "${project_name}_mock")
@@ -72,6 +74,7 @@ create_real_library(${real_name}
                     "${real_source_files}"
                     "${real_include_directories}"
                     "${mock_name}"
+                    "${additional_compile_options}"
         )
 
 list(APPEND utest_link_list
