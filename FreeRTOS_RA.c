@@ -72,6 +72,34 @@
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Find a link-local address that is bound to a given interface.
+ *
+ * @param[in] pxInterface: The interface for which a link-local address is looked up.
+ * @param[out] pxIPAddress: The IP address will be copied to this parameter.
+ *
+ * @return pdPASS in case a link-local address was found, otherwise pdFAIL.
+ */
+static BaseType_t xGetlinklocaladdress( NetworkInterface_t *pxInterface, IPv6_Address_t * pxAddress )
+{
+	BaseType_t xResult = pdFAIL;
+	NetworkEndPoint_t * pxEndPoint;
+	for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
+		pxEndPoint != NULL;
+		pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
+	{
+		if( ( pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 0 ] == 0xfeU ) &&
+			( pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 1 ] == 0x80U ) )
+		{
+			memcpy( pxAddress->ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+			xResult = pdPASS;
+			break;
+		}
+	}
+	return xResult;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Send an ICMPv6 message of the type: Router Solicitation.
  *
  * @param[in] pxNetworkBuffer: The network buffer which can be used for this.
@@ -88,60 +116,75 @@
         size_t uxNeededSize;
         MACAddress_t xMultiCastMacAddress;
         NetworkBufferDescriptor_t * pxDescriptor = pxNetworkBuffer;
+		IPv6_Address_t xSourceAddress;
+		BaseType_t xHasLocal;
 
         configASSERT( pxEndPoint != NULL );
-        uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t );
 
-        if( pxDescriptor->xDataLength < uxNeededSize )
-        {
-            pxDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
-        }
+		xHasLocal = xGetlinklocaladdress( pxEndPoint->pxNetworkInterface, &( xSourceAddress ) );
+		if( xHasLocal == pdFAIL )
+		{
+			FreeRTOS_printf( ( "RA: can not find a Link-local address\n"  ) );
+		}
+		else
+		{
+			FreeRTOS_printf( ( "RA: source %pip\n", xSourceAddress.ucBytes ) );
+			uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t );
 
-        if( pxDescriptor != NULL )
-        {
-            pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_IPv6_t, pxDescriptor->pucEthernetBuffer );
-            xRASolicitationRequest = ipCAST_PTR_TO_TYPE_PTR( ICMPRouterSolicitation_IPv6_t, &( pxICMPPacket->xICMPHeaderIPv6 ) );
+			if( pxDescriptor->xDataLength < uxNeededSize )
+			{
+				pxDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
+			}
 
-            pxDescriptor->xDataLength = uxNeededSize;
+			if( pxDescriptor != NULL )
+			{
+				pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_IPv6_t, pxDescriptor->pucEthernetBuffer );
+				xRASolicitationRequest = ipCAST_PTR_TO_TYPE_PTR( ICMPRouterSolicitation_IPv6_t, &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
-            ( void ) eNDGetCacheEntry( pxIPAddress, &( xMultiCastMacAddress ), NULL );
+				pxDescriptor->xDataLength = uxNeededSize;
 
-            /* Set Ethernet header. Will be swapped. */
-            ( void ) memcpy( pxICMPPacket->xEthernetHeader.xSourceAddress.ucBytes, xMultiCastMacAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
-            ( void ) memcpy( pxICMPPacket->xEthernetHeader.xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
-            pxICMPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+				( void ) eNDGetCacheEntry( pxIPAddress, &( xMultiCastMacAddress ), NULL );
 
-            /* Set IP-header. */
-            pxICMPPacket->xIPHeader.ucVersionTrafficClass = raDEFAULT_VERSION_TRAFFIC_CLASS;
-            pxICMPPacket->xIPHeader.ucTrafficClassFlow = 0U;
-            pxICMPPacket->xIPHeader.usFlowLabel = 0U;
-            pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( ICMPRouterSolicitation_IPv6_t ) );
-            pxICMPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
-            pxICMPPacket->xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
+				/* Set Ethernet header. Will be swapped. */
+				( void ) memcpy( pxICMPPacket->xEthernetHeader.xSourceAddress.ucBytes, xMultiCastMacAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+				( void ) memcpy( pxICMPPacket->xEthernetHeader.xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+				pxICMPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-            configASSERT( pxEndPoint != NULL );
-            configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
+				/* Set IP-header. */
+				pxICMPPacket->xIPHeader.ucVersionTrafficClass = raDEFAULT_VERSION_TRAFFIC_CLASS;
+				pxICMPPacket->xIPHeader.ucTrafficClassFlow = 0U;
+				pxICMPPacket->xIPHeader.usFlowLabel = 0U;
+				pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( ICMPRouterSolicitation_IPv6_t ) );
+				pxICMPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+				pxICMPPacket->xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
 
-            ( void ) memcpy( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, 16 );
+				configASSERT( pxEndPoint != NULL );
+				configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
 
-            ( void ) memcpy( pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes, pxIPAddress->ucBytes, 16 );
+				/* Normally, the source address is set as 'ipv6_settings.xIPAddress'.
+				 * But is some routers will not accept a public IP-address, the original
+				 * default address will be used. It must be a link-local address. */
+				( void ) memcpy( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, xSourceAddress.ucBytes, 16 );
 
-            /* Set ICMP header. */
-            ( void ) memset( xRASolicitationRequest, 0, sizeof( *xRASolicitationRequest ) );
-            xRASolicitationRequest->ucTypeOfMessage = ipICMP_ROUTER_SOLICITATION_IPv6;
+				( void ) memcpy( pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes, pxIPAddress->ucBytes, 16 );
 
-/*
- *  xRASolicitationRequest->ucOptionType = ndICMP_SOURCE_LINK_LAYER_ADDRESS;
- *  xRASolicitationRequest->ucOptionLength = 1;
- *  ( void ) memcpy( xRASolicitationRequest->ucOptionBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
- */
-            /* Checksums. */
-            xRASolicitationRequest->usChecksum = 0U;
-            /* calculate the UDP checksum for outgoing package */
-            ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
+				/* Set ICMP header. */
+				( void ) memset( xRASolicitationRequest, 0, sizeof( *xRASolicitationRequest ) );
+				xRASolicitationRequest->ucTypeOfMessage = ipICMP_ROUTER_SOLICITATION_IPv6;
 
-            /* This function will fill in the eth addresses and send the packet */
-            vReturnEthernetFrame( pxDescriptor, pdTRUE );
+				/*
+				 *  xRASolicitationRequest->ucOptionType = ndICMP_SOURCE_LINK_LAYER_ADDRESS;
+				 *  xRASolicitationRequest->ucOptionLength = 1;
+				 *  ( void ) memcpy( xRASolicitationRequest->ucOptionBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+				 */
+				/* Checksums. */
+				xRASolicitationRequest->usChecksum = 0U;
+				/* calculate the UDP checksum for outgoing package */
+				( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
+
+				/* This function will fill in the eth addresses and send the packet */
+				vReturnEthernetFrame( pxDescriptor, pdTRUE );
+			}
         }
     }
 /*-----------------------------------------------------------*/
