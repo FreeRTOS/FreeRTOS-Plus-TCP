@@ -1124,6 +1124,7 @@ uloffset
 uloptionsdata
 uloursequencenumber
 ulphymask
+ulpreferredipaddress
 ulprocessed
 ulprotocol
 ulreadmdio
