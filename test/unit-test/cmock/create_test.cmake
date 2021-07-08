@@ -6,11 +6,6 @@ function(create_test test_name
                      link_list
                      dep_list
                      include_list)
-    message( STATUS "${test_name}" )
-    message( STATUS "${test_src}" )
-    message( STATUS "${link_list}" )
-    message( STATUS "${dep_list}" )
-    message( STATUS "${include_list}" )
 
     set(mocks_dir "${CMAKE_CURRENT_BINARY_DIR}/mocks")
     include (CTest)
@@ -101,7 +96,6 @@ function(create_mock_list mock_name
                           cmock_config
                           mock_include_list
                           mock_define_list)
-    message( STATUS "${mock_list}" )
 
     set(mocks_dir "${CMAKE_CURRENT_BINARY_DIR}/mocks")
     add_library(${mock_name} SHARED)

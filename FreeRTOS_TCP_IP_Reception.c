@@ -109,42 +109,39 @@
         {
             ucLength = ( ( ( pxTCPHeader->ucTCPOffset >> 4U ) - 5U ) << 2U );
             uxOptionsLength = ( size_t ) ucLength;
-
-            if( pxNetworkBuffer->xDataLength > uxOptionOffset )
+            
+            /* Validate options size calculation. */
+            if( ( pxNetworkBuffer->xDataLength > uxOptionOffset ) &&
+                ( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) ) )
             {
-                /* Validate options size calculation. */
-                if( ( pxNetworkBuffer->xDataLength > uxOptionOffset ) &&
-                    ( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) ) )
+                if( ( pxTCPHeader->ucTCPFlags & tcpTCP_FLAG_SYN ) != ( uint8_t ) 0U )
                 {
-                    if( ( pxTCPHeader->ucTCPFlags & tcpTCP_FLAG_SYN ) != ( uint8_t ) 0U )
+                    xHasSYNFlag = pdTRUE;
+                }
+                else
+                {
+                    xHasSYNFlag = pdFALSE;
+                }
+
+                /* The length check is only necessary in case the option data are
+                 *  corrupted, we don't like to run into invalid memory and crash. */
+                for( ; ; )
+                {
+                    if( uxOptionsLength == 0U )
                     {
-                        xHasSYNFlag = pdTRUE;
+                        /* coverity[break_stmt] : Break statement terminating the loop */
+                        break;
                     }
-                    else
+
+                    uxResult = prvSingleStepTCPHeaderOptions( pucPtr, uxOptionsLength, pxSocket, xHasSYNFlag );
+
+                    if( uxResult == 0UL )
                     {
-                        xHasSYNFlag = pdFALSE;
+                        break;
                     }
 
-                    /* The length check is only necessary in case the option data are
-                     *  corrupted, we don't like to run into invalid memory and crash. */
-                    for( ; ; )
-                    {
-                        if( uxOptionsLength == 0U )
-                        {
-                            /* coverity[break_stmt] : Break statement terminating the loop */
-                            break;
-                        }
-
-                        uxResult = prvSingleStepTCPHeaderOptions( pucPtr, uxOptionsLength, pxSocket, xHasSYNFlag );
-
-                        if( uxResult == 0UL )
-                        {
-                            break;
-                        }
-
-                        uxOptionsLength -= uxResult;
-                        pucPtr = &( pucPtr[ uxResult ] );
-                    }
+                    uxOptionsLength -= uxResult;
+                    pucPtr = &( pucPtr[ uxResult ] );
                 }
             }
         }
@@ -249,20 +246,11 @@
                 {
                     if( pxSocket->u.xTCP.usInitMSS > uxNewMSS )
                     {
-                        /* our MSS was bigger than the MSS of the other party: adapt it. */
-                        pxSocket->u.xTCP.bits.bMssChange = pdTRUE_UNSIGNED;
-
-                        if( pxSocket->u.xTCP.usCurMSS > uxNewMSS )
-                        {
-                            /* The peer advertises a smaller MSS than this socket was
-                             * using.  Use that as well. */
-                            FreeRTOS_debug_printf( ( "Change mss %d => %lu\n", pxSocket->u.xTCP.usCurMSS, uxNewMSS ) );
-                            pxSocket->u.xTCP.usCurMSS = ( uint16_t ) uxNewMSS;
-                        }
-
                         pxTCPWindow->xSize.ulRxWindowLength = ( ( uint32_t ) uxNewMSS ) * ( pxTCPWindow->xSize.ulRxWindowLength / ( ( uint32_t ) uxNewMSS ) );
                         pxTCPWindow->usMSSInit = ( uint16_t ) uxNewMSS;
                         pxTCPWindow->usMSS = ( uint16_t ) uxNewMSS;
+                        /* our MSS was bigger than the MSS of the other party: adapt it. */
+                        pxSocket->u.xTCP.bits.bMssChange = pdTRUE_UNSIGNED;
                         pxSocket->u.xTCP.usInitMSS = ( uint16_t ) uxNewMSS;
                         pxSocket->u.xTCP.usCurMSS = ( uint16_t ) uxNewMSS;
                     }

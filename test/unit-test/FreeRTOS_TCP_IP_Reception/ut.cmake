@@ -19,11 +19,13 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_WIN.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Stream_Buffer.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_IP_StateHandling.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_IP_TimerWork.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_IP_utils.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
+            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/Reception_list_macros.h"
         )
 
 set( mock_include_list "" )
@@ -65,7 +67,7 @@ list(APPEND real_include_directories
 
 set( test_compile_options "" )
 list(APPEND test_compile_options
-            "-include list_macros.h"
+            "-include Reception_list_macros.h"
     )
 
 # =====================  Create UnitTest Code here (edit)  =====================
@@ -104,6 +106,7 @@ list(APPEND utest_link_list
             lib${real_name}.a
         )
 
+set( utest_dep_list "" )
 list(APPEND utest_dep_list
             ${real_name}
         )

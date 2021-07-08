@@ -39,6 +39,7 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
     }
 };
 
+
 portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
 {
     return ( ARPPacket_t * ) pvArgument;
@@ -106,12 +107,6 @@ StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
 }
 
 const char * pcApplicationHostnameHook( void )
-{
-}
-uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
-                                             uint16_t usSourcePort,
-                                             uint32_t ulDestinationAddress,
-                                             uint16_t usDestinationPort )
 {
 }
 BaseType_t xNetworkInterfaceInitialise( void )
