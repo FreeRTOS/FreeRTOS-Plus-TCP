@@ -317,4 +317,8 @@ extern uint32_t ulRand();
 
 #define ipconfigUDP_MAX_RX_PACKETS               ( 1 )
 
+#define ipconfigTCP_HANG_PROTECTION              ( 1 )
+
+#define ipconfigZERO_COPY_TX_DRIVER              ( 1 )
+
 #endif /* FREERTOS_IP_CONFIG_H */
