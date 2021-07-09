@@ -1,0 +1,34 @@
+{
+  "ENTRY": "ProcessIPPacket",
+  "CBMCFLAGS":
+  [
+    "--unwind 1",
+    "--nondet-static"
+  ],
+  "OBJS":
+  [
+    "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_IP.goto"
+  ],
+  "DEF":
+  [
+    {
+      "ChecksumIncluded":
+      [
+        "ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM=1",
+        "FREERTOS_TCP_ENABLE_VERIFICATION"
+      ]
+    },
+    {
+      "ChecksumNotIncluded":
+      [
+        "ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM=0",
+        "FREERTOS_TCP_ENABLE_VERIFICATION"
+      ]
+    }
+  ],
+  "INC":
+  [
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/include"
+  ]
+}

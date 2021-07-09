@@ -1003,13 +1003,6 @@
 
                     /* calculate the TCP checksum for an outgoing packet. */
                     ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxTCPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
-
-                    /* A calculated checksum of 0 must be inverted as 0 means the checksum
-                     * is disabled. */
-                    if( pxTCPPacket->xTCPHeader.usChecksum == 0U )
-                    {
-                        pxTCPPacket->xTCPHeader.usChecksum = 0xffffU;
-                    }
                 }
             #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
