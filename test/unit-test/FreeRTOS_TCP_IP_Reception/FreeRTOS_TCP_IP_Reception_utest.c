@@ -1779,7 +1779,7 @@ void test_prvTCPHandleState_eSynReceived_FlagNotSyn( void )
     prvStoreRxData_IgnoreArg_pucRecvData();
 
     prvSetOptions_ExpectAndReturn( pxSocket, *ppxNetworkBuffer, xOptionLength );
-    
+
     prvHandleSynReceived_ExpectAnyArgsAndReturn( xSendLength );
 
     xReturn = prvTCPHandleState( pxSocket, ppxNetworkBuffer );
@@ -1827,7 +1827,7 @@ void test_prvTCPHandleState_eSynReceived_FlagSyn( void )
     prvStoreRxData_IgnoreArg_pucRecvData();
 
     prvSetOptions_ExpectAndReturn( pxSocket, *ppxNetworkBuffer, xOptionLength );
-    
+
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_SYN;
     vTCPStateChange_Expect( pxSocket, eSYN_FIRST );
 
@@ -1878,7 +1878,7 @@ void test_prvTCPHandleState_eSynReceived_FlagFIN_FinRecvFalse( void )
     prvStoreRxData_IgnoreArg_pucRecvData();
 
     prvSetOptions_ExpectAndReturn( pxSocket, *ppxNetworkBuffer, xOptionLength );
-    
+
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
     pxSocket->u.xTCP.bits.bFinRecv = pdTRUE_UNSIGNED;
     pxTCPWindow->rx.ulFINSequenceNumber = 0x12;
@@ -1931,7 +1931,7 @@ void test_prvTCPHandleState_eSynReceived_FlagFIN_FinRecvTrue_FinSentTrue( void )
     prvStoreRxData_IgnoreArg_pucRecvData();
 
     prvSetOptions_ExpectAndReturn( pxSocket, *ppxNetworkBuffer, xOptionLength );
-    
+
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
     pxSocket->u.xTCP.bits.bFinLast = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bFinRecv = pdFALSE_UNSIGNED;
@@ -1985,7 +1985,7 @@ void test_prvTCPHandleState_eSynReceived_FlagFIN_FinRecvTrue_FinSentFalse( void 
     prvStoreRxData_IgnoreArg_pucRecvData();
 
     prvSetOptions_ExpectAndReturn( pxSocket, *ppxNetworkBuffer, xOptionLength );
-    
+
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
     pxSocket->u.xTCP.bits.bFinLast = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bFinRecv = pdFALSE_UNSIGNED;
@@ -2039,7 +2039,7 @@ void test_prvTCPHandleState_eLastAck( void )
     prvStoreRxData_IgnoreArg_pucRecvData();
 
     prvSetOptions_ExpectAndReturn( pxSocket, *ppxNetworkBuffer, xOptionLength );
-    
+
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
     pxSocket->u.xTCP.bits.bFinLast = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bFinRecv = pdFALSE_UNSIGNED;
@@ -2093,7 +2093,7 @@ void test_prvTCPHandleState_eFinWait1( void )
     prvStoreRxData_IgnoreArg_pucRecvData();
 
     prvSetOptions_ExpectAndReturn( pxSocket, *ppxNetworkBuffer, xOptionLength );
-    
+
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
     pxSocket->u.xTCP.bits.bFinLast = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bFinRecv = pdFALSE_UNSIGNED;
@@ -2147,7 +2147,7 @@ void test_prvTCPHandleState_eFinWait2( void )
     prvStoreRxData_IgnoreArg_pucRecvData();
 
     prvSetOptions_ExpectAndReturn( pxSocket, *ppxNetworkBuffer, xOptionLength );
-    
+
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
     pxSocket->u.xTCP.bits.bFinLast = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bFinRecv = pdFALSE_UNSIGNED;
@@ -2201,7 +2201,7 @@ void test_prvTCPHandleState_eCloseWait( void )
     prvStoreRxData_IgnoreArg_pucRecvData();
 
     prvSetOptions_ExpectAndReturn( pxSocket, *ppxNetworkBuffer, xOptionLength );
-    
+
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
     pxSocket->u.xTCP.bits.bFinLast = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bFinRecv = pdFALSE_UNSIGNED;
@@ -2253,7 +2253,7 @@ void test_prvTCPHandleState_eClosing( void )
     prvStoreRxData_IgnoreArg_pucRecvData();
 
     prvSetOptions_ExpectAndReturn( pxSocket, *ppxNetworkBuffer, xOptionLength );
-    
+
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
     pxSocket->u.xTCP.bits.bFinLast = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bFinRecv = pdFALSE_UNSIGNED;
@@ -2305,7 +2305,7 @@ void test_prvTCPHandleState_eTimeWait( void )
     prvStoreRxData_IgnoreArg_pucRecvData();
 
     prvSetOptions_ExpectAndReturn( pxSocket, *ppxNetworkBuffer, xOptionLength );
-    
+
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
     pxSocket->u.xTCP.bits.bFinLast = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bFinRecv = pdFALSE_UNSIGNED;
@@ -2357,7 +2357,7 @@ void test_prvTCPHandleState_eDefault( void )
     prvStoreRxData_IgnoreArg_pucRecvData();
 
     prvSetOptions_ExpectAndReturn( pxSocket, *ppxNetworkBuffer, xOptionLength );
-    
+
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
     pxSocket->u.xTCP.bits.bFinLast = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bFinRecv = pdFALSE_UNSIGNED;
@@ -2369,154 +2369,156 @@ void test_prvTCPHandleState_eDefault( void )
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, pxSocket->u.xTCP.bits.bFinLast );
 }
 
-void test_prvTCPSendRepeated_MaxOutLoop(void)
+void test_prvTCPSendRepeated_MaxOutLoop( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxLocalBuffer, **ppxLocalBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxLocalBuffer, ** ppxLocalBuffer;
     int32_t ulReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxLocalBuffer = &xLocalBuffer;
     ppxLocalBuffer = &pxLocalBuffer;
     pxLocalBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxSocket->u.xTCP.txStream = NULL;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED - 1;
-    
-    for(int i =0;i<SEND_REPEATED_COUNT; i++)
+
+    for( int i = 0; i < SEND_REPEATED_COUNT; i++ )
+    {
         prvTCPReturnPacket_ExpectAnyArgs();
-    
+    }
+
     ulReturn = prvTCPSendRepeated( pxSocket, ppxLocalBuffer );
-    
-    TEST_ASSERT_EQUAL( 40*SEND_REPEATED_COUNT, ulReturn );
+
+    TEST_ASSERT_EQUAL( 40 * SEND_REPEATED_COUNT, ulReturn );
 }
 
-void test_prvTCPSendRepeated_BufferResizeFail(void)
+void test_prvTCPSendRepeated_BufferResizeFail( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxLocalBuffer, **ppxLocalBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxLocalBuffer, ** ppxLocalBuffer;
     int32_t ulReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxLocalBuffer = &xLocalBuffer;
     ppxLocalBuffer = &pxLocalBuffer;
     pxLocalBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
     /* Anything greater than 1 */
     pxSocket->u.xTCP.usCurMSS = 2U;
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED - 1;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
-    
+
     /* Get 100 bytes in the Tx window. */
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 100 );
-    
+
     /* Buffer resize fail. */
     prvTCPBufferResize_ExpectAnyArgsAndReturn( NULL );
-    
+
     ulReturn = prvTCPSendRepeated( pxSocket, ppxLocalBuffer );
-    
+
     TEST_ASSERT_EQUAL( 0, ulReturn );
 }
 
-void test_prvTCPPrepareSend_WinChangeFalse_KeepAliveFalse(void)
+void test_prvTCPPrepareSend_WinChangeFalse_KeepAliveFalse( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
     UBaseType_t uxOptionsLength;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     pxSocket->u.xTCP.usCurMSS = 0;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eCLOSE_WAIT;
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
+
     TEST_ASSERT_EQUAL( 0, lReturn );
 }
 
-void test_prvTCPPrepareSend_WinChangeFalse_KeepAliveTrue(void)
+void test_prvTCPPrepareSend_WinChangeFalse_KeepAliveTrue( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
     UBaseType_t uxOptionsLength = 0xAB;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     pxSocket->u.xTCP.usCurMSS = 0;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eCLOSE_WAIT;
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
+
     TEST_ASSERT_EQUAL( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
 }
 
-void test_prvTCPPrepareSend_WinChangeTrue_KeepAliveFalse(void)
+void test_prvTCPPrepareSend_WinChangeTrue_KeepAliveFalse( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
     UBaseType_t uxOptionsLength = 0xAB;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     pxSocket->u.xTCP.usCurMSS = 0;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eCLOSE_WAIT;
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdTRUE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
+
     TEST_ASSERT_EQUAL( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
 }
 
-void test_prvTCPPrepareSend_CloseWaitState(void)
+void test_prvTCPPrepareSend_CloseWaitState( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
@@ -2525,45 +2527,45 @@ void test_prvTCPPrepareSend_CloseWaitState(void)
     size_t uxOffset = 0xFEDC;
     uint32_t ulDataGot = 0xBAC;
     ProtocolHeaders_t * pxProtocolHeaders;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxProtocolHeaders = ( ProtocolHeaders_t * ) &( ucBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] );
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     /* Any value greater than 1 */
     pxSocket->u.xTCP.usCurMSS = 2;
-    
+
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( lDataLength );
     /* Return a stream buffer which is valid */
     prvTCPBufferResize_ExpectAnyArgsAndReturn( pxNetworkBuffer );
-    
-    
+
+
     uxStreamBufferDistance_ExpectAndReturn( pxSocket->u.xTCP.txStream, pxSocket->u.xTCP.txStream->uxTail, 0, uxOffset );
     uxStreamBufferGet_ExpectAnyArgsAndReturn( ulDataGot );
-    
+
     pxSocket->u.xTCP.bits.bCloseRequested = pdFALSE_UNSIGNED;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eCLOSE_WAIT;
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
+
     TEST_ASSERT_EQUAL( lDataLength + uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
     TEST_ASSERT_NOT_EQUAL( 0, pxProtocolHeaders->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
 }
 
-void test_prvTCPPrepareSend_EstablishedState_UserShutdownFalse_RepCount3(void)
+void test_prvTCPPrepareSend_EstablishedState_UserShutdownFalse_RepCount3( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
@@ -2572,49 +2574,49 @@ void test_prvTCPPrepareSend_EstablishedState_UserShutdownFalse_RepCount3(void)
     size_t uxOffset = 0xFEDC;
     uint32_t ulDataGot = 0xBAC;
     ProtocolHeaders_t * pxProtocolHeaders;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxProtocolHeaders = ( ProtocolHeaders_t * ) &( ucBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] );
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     /* Any value greater than 1 */
     pxSocket->u.xTCP.usCurMSS = 2;
-    
+
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( lDataLength );
     /* Return a stream buffer which is valid */
     prvTCPBufferResize_ExpectAnyArgsAndReturn( pxNetworkBuffer );
-    
-    
+
+
     uxStreamBufferDistance_ExpectAndReturn( pxSocket->u.xTCP.txStream, pxSocket->u.xTCP.txStream->uxTail, 0, uxOffset );
     uxStreamBufferGet_ExpectAnyArgsAndReturn( ulDataGot );
-    
+
     pxSocket->u.xTCP.bits.bCloseRequested = pdFALSE_UNSIGNED;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
-    
+
     /* Stop User shutdown */
     pxSocket->u.xTCP.bits.bUserShutdown = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.ucKeepRepCount = 3U;
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
+
     TEST_ASSERT_EQUAL( lDataLength + uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
     TEST_ASSERT_NOT_EQUAL( 0, pxProtocolHeaders->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
 }
 
-void test_prvTCPPrepareSend_EstablishedState_UserShutdownFalse_RepCountGreaterThan3(void)
+void test_prvTCPPrepareSend_EstablishedState_UserShutdownFalse_RepCountGreaterThan3( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
@@ -2623,50 +2625,50 @@ void test_prvTCPPrepareSend_EstablishedState_UserShutdownFalse_RepCountGreaterTh
     size_t uxOffset = 0xFEDC;
     uint32_t ulDataGot = 0xBAC;
     ProtocolHeaders_t * pxProtocolHeaders;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxProtocolHeaders = ( ProtocolHeaders_t * ) &( ucBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] );
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     /* Any value greater than 1 */
     pxSocket->u.xTCP.usCurMSS = 2;
-    
+
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( lDataLength );
     /* Return a stream buffer which is valid */
     prvTCPBufferResize_ExpectAnyArgsAndReturn( pxNetworkBuffer );
-    
+
     uxStreamBufferDistance_ExpectAndReturn( pxSocket->u.xTCP.txStream, pxSocket->u.xTCP.txStream->uxTail, 0, uxOffset );
     uxStreamBufferGet_ExpectAnyArgsAndReturn( ulDataGot );
-    
+
     pxSocket->u.xTCP.bits.bCloseRequested = pdFALSE_UNSIGNED;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
-    
+
     /* Stop User shutdown */
     pxSocket->u.xTCP.bits.bUserShutdown = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.ucKeepRepCount = 4U;
-    
+
     vTCPStateChange_Expect( pxSocket, eCLOSE_WAIT );
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
+
     TEST_ASSERT_EQUAL( -1 + uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
     TEST_ASSERT_NOT_EQUAL( 0, pxProtocolHeaders->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
 }
 
-void test_prvTCPPrepareSend_EstablishedState_RepCountNonZeroButPositive(void)
+void test_prvTCPPrepareSend_EstablishedState_RepCountNonZeroButPositive( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
@@ -2675,46 +2677,46 @@ void test_prvTCPPrepareSend_EstablishedState_RepCountNonZeroButPositive(void)
     size_t uxOffset = 0xFEDC;
     uint32_t ulDataGot = 0xBAC;
     ProtocolHeaders_t * pxProtocolHeaders;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxProtocolHeaders = ( ProtocolHeaders_t * ) &( ucBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] );
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     /* Any value greater than 1 */
     pxSocket->u.xTCP.usCurMSS = 2;
-    
+
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( lDataLength );
-    
+
     pxSocket->u.xTCP.bits.bCloseRequested = pdFALSE_UNSIGNED;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
-    
+
     /* Stop User shutdown */
     pxSocket->u.xTCP.bits.bUserShutdown = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.ucKeepRepCount = 3U;
-    
+
     pxSocket->u.xTCP.xLastAliveTime = 0x123;
     xTaskGetTickCount_ExpectAndReturn( pxSocket->u.xTCP.xLastAliveTime + 0x12 );
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
+
     TEST_ASSERT_EQUAL( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
     TEST_ASSERT_NOT_EQUAL( 0, pxProtocolHeaders->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
 }
 
-void test_prvTCPPrepareSend_EstablishedState_RepCountZero(void)
+void test_prvTCPPrepareSend_EstablishedState_RepCountZero( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
@@ -2723,46 +2725,46 @@ void test_prvTCPPrepareSend_EstablishedState_RepCountZero(void)
     size_t uxOffset = 0xFEDC;
     uint32_t ulDataGot = 0xBAC;
     ProtocolHeaders_t * pxProtocolHeaders;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxProtocolHeaders = ( ProtocolHeaders_t * ) &( ucBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] );
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     /* Any value greater than 1 */
     pxSocket->u.xTCP.usCurMSS = 2;
-    
+
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( lDataLength );
-    
+
     pxSocket->u.xTCP.bits.bCloseRequested = pdFALSE_UNSIGNED;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
-    
+
     /* Stop User shutdown */
     pxSocket->u.xTCP.bits.bUserShutdown = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.ucKeepRepCount = 0U;
-    
+
     pxSocket->u.xTCP.xLastAliveTime = 0x123;
     xTaskGetTickCount_ExpectAndReturn( pxSocket->u.xTCP.xLastAliveTime + 0x12 );
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
+
     TEST_ASSERT_EQUAL( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
     TEST_ASSERT_NOT_EQUAL( 0, pxProtocolHeaders->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
 }
 
-void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds(void)
+void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
@@ -2771,50 +2773,50 @@ void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds(void)
     size_t uxOffset = 0xFEDC, uxTickCount = 0x12AB;
     uint32_t ulDataGot = 0xBAC;
     ProtocolHeaders_t * pxProtocolHeaders;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxProtocolHeaders = ( ProtocolHeaders_t * ) &( ucBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] );
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     /* Any value greater than 1 */
     pxSocket->u.xTCP.usCurMSS = 2;
-    
+
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( lDataLength );
-    
+
     pxSocket->u.xTCP.bits.bCloseRequested = pdFALSE_UNSIGNED;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
-    
+
     /* Stop User shutdown */
     pxSocket->u.xTCP.bits.bUserShutdown = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.ucKeepRepCount = 0U;
-    
+
     pxSocket->u.xTCP.xLastAliveTime = 0x123;
     xTaskGetTickCount_ExpectAndReturn( pxSocket->u.xTCP.xLastAliveTime + ( ipconfigTCP_KEEP_ALIVE_INTERVAL * ( TickType_t ) configTICK_RATE_HZ ) + 1 );
-    
+
     xTaskGetTickCount_ExpectAndReturn( uxTickCount );
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
+
     TEST_ASSERT_EQUAL( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
     TEST_ASSERT_NOT_EQUAL( 0, pxProtocolHeaders->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, pxSocket->u.xTCP.bits.bSendKeepAlive );
     TEST_ASSERT_EQUAL( uxTickCount, pxSocket->u.xTCP.xLastAliveTime );
 }
 
-void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTrue(void)
+void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTrue( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
@@ -2823,47 +2825,47 @@ void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTr
     size_t uxOffset = 0xFEDC, uxTickCount = 0x12AB;
     uint32_t ulDataGot = 0xBAC;
     ProtocolHeaders_t * pxProtocolHeaders;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxProtocolHeaders = ( ProtocolHeaders_t * ) &( ucBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] );
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     /* Any value greater than 1 */
     pxSocket->u.xTCP.usCurMSS = 2;
-    
+
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( lDataLength );
-    
+
     pxSocket->u.xTCP.bits.bCloseRequested = pdFALSE_UNSIGNED;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
-    
+
     /* Stop User shutdown */
     pxSocket->u.xTCP.bits.bUserShutdown = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.ucKeepRepCount = 0U;
-    
+
     pxSocket->u.xTCP.xLastAliveTime = 0x123;
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdTRUE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
+
     TEST_ASSERT_EQUAL( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
     TEST_ASSERT_NOT_EQUAL( 0, pxProtocolHeaders->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, pxSocket->u.xTCP.bits.bSendKeepAlive );
     TEST_ASSERT_EQUAL( 0x123, pxSocket->u.xTCP.xLastAliveTime );
 }
 
-void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTrue1(void)
+void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTrue1( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
@@ -2872,48 +2874,48 @@ void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTr
     size_t uxOffset = 0xFEDC, uxTickCount = 0x12AB;
     uint32_t ulDataGot = 0xBAC;
     ProtocolHeaders_t * pxProtocolHeaders;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxProtocolHeaders = ( ProtocolHeaders_t * ) &( ucBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] );
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     /* Any value greater than 1 */
     pxSocket->u.xTCP.usCurMSS = 2;
-    
+
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( lDataLength );
-    
+
     pxSocket->u.xTCP.bits.bCloseRequested = pdFALSE_UNSIGNED;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
-    
+
     /* Stop User shutdown */
     pxSocket->u.xTCP.bits.bUserShutdown = pdTRUE_UNSIGNED;
     xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdFALSE );
     pxSocket->u.xTCP.ucKeepRepCount = 0U;
-    
+
     pxSocket->u.xTCP.xLastAliveTime = 0x123;
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdTRUE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
+
     TEST_ASSERT_EQUAL( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
     TEST_ASSERT_NOT_EQUAL( 0, pxProtocolHeaders->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, pxSocket->u.xTCP.bits.bSendKeepAlive );
     TEST_ASSERT_EQUAL( 0x123, pxSocket->u.xTCP.xLastAliveTime );
 }
 
-void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTrue2(void)
+void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTrue2( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
@@ -2922,40 +2924,40 @@ void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTr
     size_t uxOffset = 0xFEDC, uxTickCount = 0x12AB;
     uint32_t ulDataGot = 0xBAC;
     ProtocolHeaders_t * pxProtocolHeaders;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxProtocolHeaders = ( ProtocolHeaders_t * ) &( ucBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] );
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     /* Any value greater than 1 */
     pxSocket->u.xTCP.usCurMSS = 2;
-    
+
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( lDataLength );
-    
+
     pxSocket->u.xTCP.bits.bCloseRequested = pdFALSE_UNSIGNED;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
-    
+
     /* Stop User shutdown */
     pxSocket->u.xTCP.bits.bUserShutdown = pdTRUE_UNSIGNED;
     xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdTRUE );
     vTCPStateChange_Expect( pxSocket, eFIN_WAIT_1 );
-    
+
     pxSocket->u.xTCP.ucKeepRepCount = 0U;
-    
+
     pxSocket->u.xTCP.xLastAliveTime = 0x123;
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdTRUE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
+
     TEST_ASSERT_EQUAL( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
     TEST_ASSERT_NOT_EQUAL( 0, pxProtocolHeaders->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, pxSocket->u.xTCP.bits.bSendKeepAlive );
@@ -2963,10 +2965,10 @@ void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTr
     TEST_ASSERT_EQUAL( pdFALSE, pxSocket->u.xTCP.bits.bUserShutdown );
 }
 
-void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTrue3(void)
+void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTrue3( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
@@ -2975,57 +2977,57 @@ void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTr
     size_t uxOffset = 0xFEDC, uxTickCount = 0x12AB;
     uint32_t ulDataGot = 0xBAC;
     ProtocolHeaders_t * pxProtocolHeaders;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxProtocolHeaders = ( ProtocolHeaders_t * ) &( ucBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] );
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     /* Any value greater than 1 */
     pxSocket->u.xTCP.usCurMSS = 2;
-    
+
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( lDataLength );
-    
+
     prvTCPBufferResize_ExpectAnyArgsAndReturn( pxNetworkBuffer );
-    
+
     uxStreamBufferDistance_ExpectAndReturn( pxSocket->u.xTCP.txStream, pxSocket->u.xTCP.txStream->uxTail, 0, uxOffset );
     uxStreamBufferGet_ExpectAnyArgsAndReturn( ulDataGot );
-    
+
     pxSocket->u.xTCP.bits.bCloseRequested = pdTRUE_UNSIGNED;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
-    
+
     /* Stop User shutdown */
     pxSocket->u.xTCP.bits.bUserShutdown = pdTRUE_UNSIGNED;
     xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdTRUE );
     vTCPStateChange_Expect( pxSocket, eFIN_WAIT_1 );
-    
+
     pxSocket->u.xTCP.ucKeepRepCount = 0U;
-    
+
     pxSocket->u.xTCP.xLastAliveTime = 0x123;
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdTRUE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bFinSent = pdTRUE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
-    TEST_ASSERT_EQUAL( lDataLength+ uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
+
+    TEST_ASSERT_EQUAL( lDataLength + uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
     TEST_ASSERT_NOT_EQUAL( 0, pxProtocolHeaders->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, pxSocket->u.xTCP.bits.bSendKeepAlive );
     TEST_ASSERT_EQUAL( 0x123, pxSocket->u.xTCP.xLastAliveTime );
     TEST_ASSERT_EQUAL( pdFALSE, pxSocket->u.xTCP.bits.bUserShutdown );
 }
 
-void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTrue4(void)
+void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTrue4( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
@@ -3034,59 +3036,59 @@ void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTr
     size_t uxOffset = 0xFEDC, uxTickCount = 0x12AB;
     uint32_t ulDataGot = 0xBAC;
     ProtocolHeaders_t * pxProtocolHeaders;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxProtocolHeaders = ( ProtocolHeaders_t * ) &( ucBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] );
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     /* Any value greater than 1 */
     pxSocket->u.xTCP.usCurMSS = 2;
-    
+
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( lDataLength );
-    
+
     prvTCPBufferResize_ExpectAnyArgsAndReturn( pxNetworkBuffer );
-    
+
     uxStreamBufferDistance_ExpectAndReturn( pxSocket->u.xTCP.txStream, pxSocket->u.xTCP.txStream->uxTail, 0, uxOffset );
     uxStreamBufferGet_ExpectAnyArgsAndReturn( ulDataGot );
-    
+
     uxStreamBufferDistance_ExpectAnyArgsAndReturn( ulDataGot + 1 );
-    
+
     pxSocket->u.xTCP.bits.bCloseRequested = pdTRUE_UNSIGNED;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
-    
+
     /* Stop User shutdown */
     pxSocket->u.xTCP.bits.bUserShutdown = pdTRUE_UNSIGNED;
     xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdTRUE );
     vTCPStateChange_Expect( pxSocket, eFIN_WAIT_1 );
-    
+
     pxSocket->u.xTCP.ucKeepRepCount = 0U;
-    
+
     pxSocket->u.xTCP.xLastAliveTime = 0x123;
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdTRUE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
-    TEST_ASSERT_EQUAL( lDataLength+ uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
+
+    TEST_ASSERT_EQUAL( lDataLength + uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
     TEST_ASSERT_NOT_EQUAL( 0, pxProtocolHeaders->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, pxSocket->u.xTCP.bits.bSendKeepAlive );
     TEST_ASSERT_EQUAL( 0x123, pxSocket->u.xTCP.xLastAliveTime );
     TEST_ASSERT_EQUAL( pdFALSE, pxSocket->u.xTCP.bits.bUserShutdown );
 }
 
-void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTrue5(void)
+void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTrue5( void )
 {
     FreeRTOS_Socket_t xLocalSocket, * pxSocket;
-    NetworkBufferDescriptor_t xLocalBuffer, *pxNetworkBuffer, **ppxNetworkBuffer;
+    NetworkBufferDescriptor_t xLocalBuffer, * pxNetworkBuffer, ** ppxNetworkBuffer;
     int32_t lReturn;
     uint8_t ucBuffer[ ipconfigTCP_MSS ];
     uint8_t ucStream[ ipconfigTCP_MSS ];
@@ -3095,49 +3097,49 @@ void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTr
     size_t uxOffset = 0xFEDC, uxTickCount = 0x12AB;
     uint32_t ulDataGot = 0xBAC;
     ProtocolHeaders_t * pxProtocolHeaders;
-    
+
     pxSocket = &xLocalSocket;
-    
+
     pxNetworkBuffer = &xLocalBuffer;
     ppxNetworkBuffer = &pxNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-    
+
     pxProtocolHeaders = ( ProtocolHeaders_t * ) &( ucBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] );
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    
+
     /* Any value greater than 1 */
     pxSocket->u.xTCP.usCurMSS = 2;
-    
+
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( lDataLength );
-    
+
     prvTCPBufferResize_ExpectAnyArgsAndReturn( pxNetworkBuffer );
-    
+
     uxStreamBufferDistance_ExpectAndReturn( pxSocket->u.xTCP.txStream, pxSocket->u.xTCP.txStream->uxTail, 0, uxOffset );
     uxStreamBufferGet_ExpectAnyArgsAndReturn( ulDataGot );
-    
+
     uxStreamBufferDistance_ExpectAnyArgsAndReturn( ulDataGot );
-    
+
     pxSocket->u.xTCP.bits.bCloseRequested = pdTRUE_UNSIGNED;
-    
+
     pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
-    
+
     /* Stop User shutdown */
     pxSocket->u.xTCP.bits.bUserShutdown = pdTRUE_UNSIGNED;
     xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdTRUE );
     vTCPStateChange_Expect( pxSocket, eFIN_WAIT_1 );
-    
+
     pxSocket->u.xTCP.ucKeepRepCount = 0U;
-    
+
     pxSocket->u.xTCP.xLastAliveTime = 0x123;
-    
+
     pxSocket->u.xTCP.bits.bWinChange = pdTRUE_UNSIGNED;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE_UNSIGNED;
-    
+
     lReturn = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-    
-    TEST_ASSERT_EQUAL( lDataLength+ uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
+
+    TEST_ASSERT_EQUAL( lDataLength + uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength, lReturn );
     TEST_ASSERT_NOT_EQUAL( 0, pxProtocolHeaders->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
     TEST_ASSERT_NOT_EQUAL( 0, pxProtocolHeaders->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_FIN );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, pxSocket->u.xTCP.bits.bSendKeepAlive );
@@ -3145,56 +3147,3 @@ void test_prvTCPPrepareSend_EstablishedState_RepCountZero_AgeExceeds_WinChangeTr
     TEST_ASSERT_EQUAL( pdFALSE, pxSocket->u.xTCP.bits.bUserShutdown );
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, pxSocket->u.xTCP.bits.bFinSent );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
