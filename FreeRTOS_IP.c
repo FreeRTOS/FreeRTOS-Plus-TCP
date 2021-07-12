@@ -217,14 +217,15 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 /*
  * Process incoming ICMP packets.
  */
-    static eFrameProcessingResult_t prvProcessICMPPacket( ICMPPacket_t * const pxICMPPacket );
+    static eFrameProcessingResult_t prvProcessICMPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
 
 /*
  * Turns around an incoming ping request to convert it into a ping reply.
  */
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 )
-    static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket );
+    static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
+                                                               NetworkBufferDescriptor_t * const pxNetworkBuffer );
 #endif /* ipconfigREPLY_TO_INCOMING_PINGS */
 
 /*
@@ -834,6 +835,9 @@ static void prvCheckNetworkTimers( void )
                 xProcessedTCPMessage = 0;
             }
         }
+
+        /* See if any socket was planned to be closed. */
+        vSocketCloseNextTime( NULL );
     #endif /* ipconfigUSE_TCP == 1 */
 }
 /*-----------------------------------------------------------*/
@@ -2097,6 +2101,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
                         ( void ) memmove( pucTarget, pucSource, xMoveLen );
                         pxNetworkBuffer->xDataLength -= optlen;
+                        pxIPHeader->usLength = FreeRTOS_htons( FreeRTOS_ntohs( pxIPHeader->usLength ) - optlen );
 
                         /* Rewrite the Version/IHL byte to indicate that this packet has no IP options. */
                         pxIPHeader->ucVersionHeaderLength = ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
@@ -2136,20 +2141,11 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                          * went wrong because it will not be able to validate what it
                          * receives. */
                         #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                            if( pxNetworkBuffer->xDataLength >= sizeof( ICMPPacket_t ) )
                             {
-                                /* Map the buffer onto a ICMP-Packet struct to easily access the
-                                 * fields of ICMP packet. */
-                                ICMPPacket_t * pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
-
                                 if( pxIPHeader->ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
                                 {
-                                    eReturn = prvProcessICMPPacket( pxICMPPacket );
+                                    eReturn = prvProcessICMPPacket( pxNetworkBuffer );
                                 }
-                            }
-                            else
-                            {
-                                eReturn = eReleaseBuffer;
                             }
                         #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
                         break;
@@ -2294,11 +2290,11 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  *
  * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
  */
-    static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket )
+    static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
+                                                               NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
         ICMPHeader_t * pxICMPHeader;
         IPHeader_t * pxIPHeader;
-        uint16_t usRequest;
 
         pxICMPHeader = &( pxICMPPacket->xICMPHeader );
         pxIPHeader = &( pxICMPPacket->xIPHeader );
@@ -2323,22 +2319,23 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             pxIPHeader->usFragmentOffset = 0U;
         #endif
 
-        /* Update the checksum because the ucTypeOfMessage member in the header
-         * has been changed to ipICMP_ECHO_REPLY.  This is faster than calling
-         * usGenerateChecksum(). */
+        #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
+            {
+                /* calculate the IP header checksum, in case the driver won't do that. */
+                pxIPHeader->usHeaderChecksum = 0x00U;
+                pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ipSIZE_OF_IPv4_HEADER );
+                pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
-        /* due to compiler warning "integer operation result is out of range" */
-
-        usRequest = ( uint16_t ) ( ( uint16_t ) ipICMP_ECHO_REQUEST << 8 );
-
-        if( pxICMPHeader->usChecksum >= FreeRTOS_htons( 0xFFFFU - usRequest ) )
-        {
-            pxICMPHeader->usChecksum = pxICMPHeader->usChecksum + FreeRTOS_htons( usRequest + 1U );
-        }
-        else
-        {
-            pxICMPHeader->usChecksum = pxICMPHeader->usChecksum + FreeRTOS_htons( usRequest );
-        }
+                /* calculate the ICMP checksum for an outgoing packet. */
+                ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxICMPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
+            }
+        #else
+            {
+                /* Many EMAC peripherals will only calculate the ICMP checksum
+                 * correctly if the field is nulled beforehand. */
+                pxICMPHeader->usChecksum = 0U;
+            }
+        #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
         return eReturnEthernetFrame;
     }
@@ -2356,29 +2353,42 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  * @return eReleaseBuffer when the message buffer should be released, or eReturnEthernetFrame
  *                        when the packet should be returned.
  */
-    static eFrameProcessingResult_t prvProcessICMPPacket( ICMPPacket_t * const pxICMPPacket )
+    static eFrameProcessingResult_t prvProcessICMPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
         eFrameProcessingResult_t eReturn = eReleaseBuffer;
 
         iptraceICMP_PACKET_RECEIVED();
 
-        switch( pxICMPPacket->xICMPHeader.ucTypeOfMessage )
+        configASSERT( pxNetworkBuffer->xDataLength >= sizeof( ICMPPacket_t ) );
+
+        if( pxNetworkBuffer->xDataLength >= sizeof( ICMPPacket_t ) )
         {
-            case ipICMP_ECHO_REQUEST:
-                #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 )
-                    eReturn = prvProcessICMPEchoRequest( pxICMPPacket );
-                #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) */
-                break;
+            /* Map the buffer onto a ICMP-Packet struct to easily access the
+             * fields of ICMP packet. */
+            ICMPPacket_t * pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
 
-            case ipICMP_ECHO_REPLY:
-                #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                    prvProcessICMPEchoReply( pxICMPPacket );
-                #endif /* ipconfigSUPPORT_OUTGOING_PINGS */
-                break;
+            switch( pxICMPPacket->xICMPHeader.ucTypeOfMessage )
+            {
+                case ipICMP_ECHO_REQUEST:
+                    #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 )
+                        {
+                            eReturn = prvProcessICMPEchoRequest( pxICMPPacket, pxNetworkBuffer );
+                        }
+                    #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) */
+                    break;
 
-            default:
-                /* Only ICMP echo packets are handled. */
-                break;
+                case ipICMP_ECHO_REPLY:
+                    #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+                        {
+                            prvProcessICMPEchoReply( pxICMPPacket );
+                        }
+                    #endif /* ipconfigSUPPORT_OUTGOING_PINGS */
+                    break;
+
+                default:
+                    /* Only ICMP echo packets are handled. */
+                    break;
+            }
         }
 
         return eReturn;
@@ -2539,17 +2549,19 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  *
  * @return When xOutgoingPacket is false: the error code can be either: ipINVALID_LENGTH,
  *         ipUNHANDLED_PROTOCOL, ipWRONG_CRC, or ipCORRECT_CRC.
- *         When xOutgoingPacket is true: either ipINVALID_LENGTH or ipCORRECT_CRC.
+ *         When xOutgoingPacket is true: either ipINVALID_LENGTH, ipUNHANDLED_PROTOCOL,
+ *         or ipCORRECT_CRC.
  */
-uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
+uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                                      size_t uxBufferLength,
                                      BaseType_t xOutgoingPacket )
 {
     uint32_t ulLength;
-    uint16_t usChecksum, * pusChecksum;
+    uint16_t usChecksum;           /* The checksum as calculated. */
+    uint16_t usChecksumFound = 0U; /* The checksum as found in the incoming packet. */
     const IPPacket_t * pxIPPacket;
     UBaseType_t uxIPHeaderLength;
-    const ProtocolPacket_t * pxProtPack;
+    ProtocolPacket_t * pxProtPack;
     uint8_t ucProtocol;
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
@@ -2606,7 +2618,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
          * and IP headers incorrectly aligned. However, either way, the "third"
          * protocol (Layer 3 or 4) header will be aligned, which is the convenience
          * of this calculation. */
-        pxProtPack = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolPacket_t, &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
+        pxProtPack = ipCAST_PTR_TO_TYPE_PTR( ProtocolPacket_t, &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
         /* Switch on the Layer 3/4 protocol. */
         if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
@@ -2618,7 +2630,16 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                 break;
             }
 
-            pusChecksum = ( uint16_t * ) ( &( pxProtPack->xUDPPacket.xUDPHeader.usChecksum ) );
+            if( xOutgoingPacket != pdFALSE )
+            {
+                /* Clear the UDP checksum field before calculating it. */
+                pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0U;
+            }
+            else
+            {
+                usChecksumFound = pxProtPack->xUDPPacket.xUDPHeader.usChecksum;
+            }
+
             #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
                 {
                     pcType = "UDP";
@@ -2634,7 +2655,16 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                 break;
             }
 
-            pusChecksum = ( uint16_t * ) ( &( pxProtPack->xTCPPacket.xTCPHeader.usChecksum ) );
+            if( xOutgoingPacket != pdFALSE )
+            {
+                /* Clear the TCP checksum field before calculating it. */
+                pxProtPack->xTCPPacket.xTCPHeader.usChecksum = 0U;
+            }
+            else
+            {
+                usChecksumFound = pxProtPack->xTCPPacket.xTCPHeader.usChecksum;
+            }
+
             #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
                 {
                     pcType = "TCP";
@@ -2651,7 +2681,16 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                 break;
             }
 
-            pusChecksum = ( uint16_t * ) ( &( pxProtPack->xICMPPacket.xICMPHeader.usChecksum ) );
+            if( xOutgoingPacket != pdFALSE )
+            {
+                /* Clear the ICMP/IGMP checksum field before calculating it. */
+                pxProtPack->xICMPPacket.xICMPHeader.usChecksum = 0U;
+            }
+            else
+            {
+                usChecksumFound = pxProtPack->xICMPPacket.xICMPHeader.usChecksum;
+            }
+
             #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
                 {
                     if( ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
@@ -2677,11 +2716,9 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
          * of the packet. */
         if( xOutgoingPacket != pdFALSE )
         {
-            /* This is an outgoing packet. Before calculating the checksum, set it
-             * to zero. */
-            *( pusChecksum ) = 0U;
+            /* This is an outgoing packet. The CRC-field has been cleared. */
         }
-        else if( ( *pusChecksum == 0U ) && ( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP ) )
+        else if( ( usChecksumFound == 0U ) && ( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP ) )
         {
             #if ( ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS == 0 )
                 {
@@ -2743,7 +2780,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
             /* ICMP/IGMP do not have a pseudo header for CRC-calculation. */
             usChecksum = ( uint16_t )
                          ( ~usGenerateChecksum( 0U,
-                                                ( const uint8_t * ) &( pxProtPack->xTCPPacket.xTCPHeader ), ( size_t ) ulLength ) );
+                                                ( const uint8_t * ) &( pxProtPack->xICMPPacket.xICMPHeader ), ( size_t ) ulLength ) );
         }
         else
         {
@@ -2766,6 +2803,10 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
             {
                 usChecksum = ( uint16_t ) ipCORRECT_CRC;
             }
+            else
+            {
+                usChecksum = ( uint16_t ) ipWRONG_CRC;
+            }
         }
         else
         {
@@ -2773,15 +2814,6 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
             {
                 /* In case of UDP, a calculated checksum of 0x0000 is transmitted
                  * as 0xffff. A value of zero would mean that the checksum is not used. */
-                #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-                    {
-                        if( xOutgoingPacket != pdFALSE )
-                        {
-                            FreeRTOS_debug_printf( ( "usGenerateProtocolChecksum[%s]: crc swap: %04X\n", pcType, usChecksum ) );
-                        }
-                    }
-                #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
-
                 usChecksum = ( uint16_t ) 0xffffu;
             }
         }
@@ -2790,7 +2822,23 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
 
         if( xOutgoingPacket != pdFALSE )
         {
-            *( pusChecksum ) = usChecksum;
+            switch( ucProtocol )
+            {
+                case ipPROTOCOL_UDP:
+                    pxProtPack->xUDPPacket.xUDPHeader.usChecksum = usChecksum;
+                    break;
+
+                case ipPROTOCOL_TCP:
+                    pxProtPack->xTCPPacket.xTCPHeader.usChecksum = usChecksum;
+                    break;
+
+                case ipPROTOCOL_ICMP:
+                case ipPROTOCOL_IGMP:
+                    pxProtPack->xICMPPacket.xICMPHeader.usChecksum = usChecksum;
+                    break;
+            }
+
+            usChecksum = ( uint16_t ) ipCORRECT_CRC;
         }
 
         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
@@ -2801,7 +2849,7 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                                          FreeRTOS_ntohs( pxIPPacket->xIPHeader.usIdentification ),
                                          FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ),
                                          FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulDestinationIPAddress ),
-                                         FreeRTOS_ntohs( *pusChecksum ) ) );
+                                         FreeRTOS_ntohs( usChecksumFound ) ) );
             }
             else
             {
