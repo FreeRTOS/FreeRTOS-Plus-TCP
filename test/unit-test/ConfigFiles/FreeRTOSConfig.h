@@ -75,6 +75,8 @@
 #define configTIMER_TASK_STACK_DEPTH                     ( configMINIMAL_STACK_SIZE * 2 )
 
 #define configMAX_PRIORITIES                             ( 7 )
+#define configENABLE_MPU 0
+#define portUSING_MPU_WRAPPERS 0
 
 /* Run time stats gathering configuration options. */
 

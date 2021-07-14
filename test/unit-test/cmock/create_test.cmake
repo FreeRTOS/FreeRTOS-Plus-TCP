@@ -119,11 +119,11 @@ function(create_mock_list mock_name
                 )
         target_sources(${mock_name} PUBLIC
                        ${mocks_dir}/mock_${mock_file_name}.c
-        )
+                )
 
         target_include_directories(${mock_name} PUBLIC
                                    ${mock_file_dir}
-        )
+                )
     endforeach()
     target_include_directories(${mock_name} PUBLIC
                                ${mocks_dir}
@@ -136,7 +136,7 @@ function(create_mock_list mock_name
             )
     target_compile_definitions(${mock_name} PUBLIC
             ${mock_define_list}
-        )
+            )
     target_link_libraries(${mock_name} cmock unity)
 endfunction()
 
