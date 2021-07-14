@@ -346,7 +346,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
         }
         else if( ( xTaskCheckForTimeOut( &xPhyTime, &xPhyRemTime ) != pdFALSE ) || ( FreeRTOS_IsNetworkUp() == pdFALSE ) )
         {
-            R_ETHER_LinkProcess( 0 );
+            R_ETHER_LinkProcess( ETHER_CHANNEL_0 );
 
             if( xPHYLinkStatus != xReportedStatus )
             {

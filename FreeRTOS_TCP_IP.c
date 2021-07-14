@@ -1003,13 +1003,6 @@
 
                     /* calculate the TCP checksum for an outgoing packet. */
                     ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxTCPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
-
-                    /* A calculated checksum of 0 must be inverted as 0 means the checksum
-                     * is disabled. */
-                    if( pxTCPPacket->xTCPHeader.usChecksum == 0U )
-                    {
-                        pxTCPPacket->xTCPHeader.usChecksum = 0xffffU;
-                    }
                 }
             #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
@@ -2196,24 +2189,27 @@
             #endif /* ipconfigTCP_KEEP_ALIVE */
         }
 
-        /* Anything to send, a change of the advertised window size, or maybe send a
-         * keep-alive message? */
-        if( ( lDataLen > 0 ) ||
-            ( pxSocket->u.xTCP.bits.bWinChange != pdFALSE_UNSIGNED ) ||
-            ( pxSocket->u.xTCP.bits.bSendKeepAlive != pdFALSE_UNSIGNED ) )
+        if( lDataLen >= 0 )
         {
-            pxProtocolHeaders->xTCPHeader.ucTCPFlags &= ( ( uint8_t ) ~tcpTCP_FLAG_PSH );
-            pxProtocolHeaders->xTCPHeader.ucTCPOffset = ( uint8_t ) ( ( ipSIZE_OF_TCP_HEADER + uxOptionsLength ) << 2 ); /*_RB_ "2" needs comment. */
-
-            pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_ACK;
-
-            if( lDataLen != 0L )
+            /* Anything to send, a change of the advertised window size, or maybe send a
+             * keep-alive message? */
+            if( ( lDataLen > 0 ) ||
+                ( pxSocket->u.xTCP.bits.bWinChange != pdFALSE_UNSIGNED ) ||
+                ( pxSocket->u.xTCP.bits.bSendKeepAlive != pdFALSE_UNSIGNED ) )
             {
-                pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_PSH;
-            }
+                pxProtocolHeaders->xTCPHeader.ucTCPFlags &= ( ( uint8_t ) ~tcpTCP_FLAG_PSH );
+                pxProtocolHeaders->xTCPHeader.ucTCPOffset = ( uint8_t ) ( ( ipSIZE_OF_TCP_HEADER + uxOptionsLength ) << 2 ); /*_RB_ "2" needs comment. */
 
-            uxIntermediateResult = uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
-            lDataLen += ( int32_t ) uxIntermediateResult;
+                pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_ACK;
+
+                if( lDataLen != 0L )
+                {
+                    pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_PSH;
+                }
+
+                uxIntermediateResult = uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
+                lDataLen += ( int32_t ) uxIntermediateResult;
+            }
         }
 
         return lDataLen;

@@ -166,6 +166,23 @@
     /*-----------------------------------------------------------*/
 
 /**
+ * @brief The application can indicate a preferred IP address by calling this function.
+ *        before starting up the IP-task by calling FreeRTOS_IPInit().
+ *
+ * @param[in] ulIPAddress: The preferred IP-address.
+ *
+ * @return The previous value of ulPreferredIPAddress.
+ */
+    uint32_t vDHCPSetPreferredIPAddress( uint32_t ulIPAddress )
+    {
+        uint32_t ulPrevious = xDHCPData.ulPreferredIPAddress;
+
+        xDHCPData.ulPreferredIPAddress = ulIPAddress;
+
+        return ulPrevious;
+    }
+
+/**
  * @brief Returns the current state of a DHCP process.
  *
  * @return The current state ( eDHCPState_t ) of the DHCP process.
@@ -1119,9 +1136,10 @@
         static const uint8_t ucDHCPDiscoverOptions[] =
         {
             /* Do not change the ordering without also changing dhcpCLIENT_IDENTIFIER_OFFSET. */
-            dhcpIPv4_MESSAGE_TYPE_OPTION_CODE,      1, dhcpMESSAGE_TYPE_DISCOVER,                                                                        /* Message type option. */
-            dhcpIPv4_CLIENT_IDENTIFIER_OPTION_CODE, 7, 1,                                0,                            0, 0, 0, 0, 0,                    /* Client identifier. */
-            dhcpIPv4_PARAMETER_REQUEST_OPTION_CODE, 3, dhcpIPv4_SUBNET_MASK_OPTION_CODE, dhcpIPv4_GATEWAY_OPTION_CODE, dhcpIPv4_DNS_SERVER_OPTIONS_CODE, /* Parameter request option. */
+            dhcpIPv4_MESSAGE_TYPE_OPTION_CODE,       1, dhcpMESSAGE_TYPE_DISCOVER,                                                                        /* Message type option. */
+            dhcpIPv4_CLIENT_IDENTIFIER_OPTION_CODE,  7, 1,                                0,                            0, 0, 0, 0, 0,                    /* Client identifier. */
+            dhcpIPv4_REQUEST_IP_ADDRESS_OPTION_CODE, 4, 0,                                0,                            0, 0,                             /* The IP address being requested. */
+            dhcpIPv4_PARAMETER_REQUEST_OPTION_CODE,  3, dhcpIPv4_SUBNET_MASK_OPTION_CODE, dhcpIPv4_GATEWAY_OPTION_CODE, dhcpIPv4_DNS_SERVER_OPTIONS_CODE, /* Parameter request option. */
             dhcpOPTION_END_BYTE
         };
         size_t uxOptionsLength = sizeof( ucDHCPDiscoverOptions );
@@ -1133,8 +1151,14 @@
 
         if( pucUDPPayloadBuffer != NULL )
         {
+            void * pvCopySource, * pvCopyDest;
+
             FreeRTOS_debug_printf( ( "vDHCPProcess: discover\n" ) );
             iptraceSENDING_DHCP_DISCOVER();
+
+            pvCopySource = &xDHCPData.ulPreferredIPAddress;
+            pvCopyDest = &pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ];
+            ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulPreferredIPAddress ) );
 
             if( FreeRTOS_sendto( xDHCPSocket,
                                  pucUDPPayloadBuffer,
