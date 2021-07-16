@@ -676,14 +676,6 @@
         BaseType_t xSendLength = xByteCount;
         uint32_t ulRxBufferSpace;
 
-        #if ( ipconfigUSE_TCP_WIN == 1 )
-            #if ( ipconfigTCP_ACK_EARLIER_PACKET == 0 )
-                const int32_t lMinLength = 0;
-            #else
-                int32_t lMinLength;
-            #endif
-        #endif
-
         /* Set the time-out field, so that we'll be called by the IP-task in case no
          * next message will be received. */
         ulRxBufferSpace = pxSocket->u.xTCP.ulHighestRxAllowed - pxTCPWindow->rx.ulCurrentSequenceNumber;
@@ -691,11 +683,7 @@
 
         #if ipconfigUSE_TCP_WIN == 1
             {
-                #if ( ipconfigTCP_ACK_EARLIER_PACKET != 0 )
-                    {
-                        lMinLength = ( ( int32_t ) 2 ) * ( ( int32_t ) pxSocket->u.xTCP.usCurMSS );
-                    }
-                #endif /* ipconfigTCP_ACK_EARLIER_PACKET */
+                int32_t lMinLength = ( ( int32_t ) 2 ) * ( ( int32_t ) pxSocket->u.xTCP.usCurMSS );
 
                 /* In case we're receiving data continuously, we might postpone sending
                  * an ACK to gain performance. */
@@ -718,8 +706,7 @@
                         pxSocket->u.xTCP.pxAckMessage = *ppxNetworkBuffer;
                     }
 
-                    if( ( ulReceiveLength < ( uint32_t ) pxSocket->u.xTCP.usCurMSS ) ||            /* Received a small message. */
-                        ( lRxSpace < ipNUMERIC_CAST( int32_t, 2U * pxSocket->u.xTCP.usCurMSS ) ) ) /* There are less than 2 x MSS space in the Rx buffer. */
+                    if( ulReceiveLength < ( uint32_t ) pxSocket->u.xTCP.usCurMSS )
                     {
                         pxSocket->u.xTCP.usTimeout = ( uint16_t ) tcpDELAYED_ACK_SHORT_DELAY_MS;
                     }
