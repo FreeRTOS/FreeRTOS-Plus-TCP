@@ -163,6 +163,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP_Reception/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP_StateHandling/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP_TimerWork/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 
