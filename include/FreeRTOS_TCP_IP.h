@@ -173,7 +173,7 @@
 /*
  * Close the socket another time.
  */
-        void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket );
+    void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket );
 
 /* Check a single socket for retransmissions and timeouts */
     BaseType_t xTCPSocketCheck( FreeRTOS_Socket_t * pxSocket );

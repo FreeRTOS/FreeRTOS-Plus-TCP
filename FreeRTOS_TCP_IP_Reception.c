@@ -63,10 +63,10 @@
  * the header. This function returns pdTRUE or pdFALSE depending on whether the
  * caller should continue to parse more header options or break the loop.
  */
-        static size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                              size_t uxTotalLength,
-                                              FreeRTOS_Socket_t * const pxSocket,
-                                              BaseType_t xHasSYNFlag );
+    static size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                                 size_t uxTotalLength,
+                                                 FreeRTOS_Socket_t * const pxSocket,
+                                                 BaseType_t xHasSYNFlag );
 
 
 /**
@@ -109,7 +109,7 @@
         {
             ucLength = ( ( ( pxTCPHeader->ucTCPOffset >> 4U ) - 5U ) << 2U );
             uxOptionsLength = ( size_t ) ucLength;
-            
+
             /* Validate options size calculation. */
             if( ( pxNetworkBuffer->xDataLength > uxOptionOffset ) &&
                 ( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) ) )
@@ -161,9 +161,9 @@
  *         should continue to parse more header options or break the loop.
  */
     static size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                          size_t uxTotalLength,
-                                          FreeRTOS_Socket_t * const pxSocket,
-                                          BaseType_t xHasSYNFlag )
+                                                 size_t uxTotalLength,
+                                                 FreeRTOS_Socket_t * const pxSocket,
+                                                 BaseType_t xHasSYNFlag )
     {
         UBaseType_t uxNewMSS;
         size_t uxRemainingOptionsBytes = uxTotalLength;
