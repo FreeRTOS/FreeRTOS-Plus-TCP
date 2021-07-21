@@ -1272,6 +1272,11 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
                                                        ipconfigIP_TASK_PRIORITY,
                                                        xIPTaskStack,
                                                        &xIPTaskBuffer );
+
+                    if( xIPTaskHandle != NULL )
+                    {
+                        xReturn = pdTRUE;
+                    }
                 }
             #else /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
                 {
