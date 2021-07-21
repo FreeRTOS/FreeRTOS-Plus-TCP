@@ -26,6 +26,37 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 eFrameProcessingResult_t publicProcessIPPacket( IPPacket_t * const pxIPPacket,
                                                 NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
+#if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
+
+/* The checksum generation is stubbed out since the actual checksum
+ * does not matter. The stub will return an indeterminate value each time. */
+    uint16_t usGenerateChecksum( uint16_t usSum,
+                                 const uint8_t * pucNextData,
+                                 size_t uxByteCount )
+    {
+        uint16_t usReturn;
+
+        __CPROVER_assert( pucNextData != NULL, "Next data cannot be NULL" );
+
+        /* Return an indeterminate value. */
+        return usReturn;
+    }
+
+/* The checksum generation is stubbed out since the actual checksum
+ * does not matter. The stub will return an indeterminate value each time. */
+    uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
+                                         size_t uxBufferLength,
+                                         BaseType_t xOutgoingPacket )
+    {
+        uint16_t usReturn;
+
+        __CPROVER_assert( pucEthernetBuffer != NULL, "Ethernet buffer cannot be NULL" );
+
+        /* Return an indeterminate value. */
+        return usReturn;
+    }
+#endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
+
 void harness()
 {
     NetworkBufferDescriptor_t * const pxNetworkBuffer = malloc( sizeof( NetworkBufferDescriptor_t ) );
@@ -39,9 +70,7 @@ void harness()
     /* Minimum length of the pxNetworkBuffer->xDataLength is at least the size of the IPPacket_t. */
     __CPROVER_assume( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) && pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE );
 
-    IPPacket_t * const pxIPPacket = malloc( sizeof( IPPacket_t ) );
-
-    __CPROVER_assume( pxIPPacket != NULL );
+    IPPacket_t * const pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
     publicProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 }
