@@ -3725,12 +3725,22 @@
         FreeRTOS_Socket_t * pxReturn = NULL;
         uint32_t ulInitialSequenceNumber;
 
-        /* Assume that a new Initial Sequence Number will be required. Request
-         * it now in order to fail out if necessary. */
-        ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
-                                                                      pxSocket->usLocalPort,
-                                                                      pxTCPPacket->xIPHeader.ulSourceIPAddress,
-                                                                      pxTCPPacket->xTCPHeader.usSourcePort );
+        /* Silently discard a SYN packet which was sent to the broadcast address
+         * 255.255.255.255. */
+        if( pxTCPPacket->xIPHeader.ulDestinationIPAddress != 0xFFFFFFFF )
+        {
+            /* Assume that a new Initial Sequence Number will be required. Request
+             * it now in order to fail out if necessary. */
+            ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
+                                                                          pxSocket->usLocalPort,
+                                                                          pxTCPPacket->xIPHeader.ulSourceIPAddress,
+                                                                          pxTCPPacket->xTCPHeader.usSourcePort );
+        }
+        else
+        {
+            /* Set the sequence number to 0 to avoid further processing. */
+            ulInitialSequenceNumber = 0;
+        }
 
         /* A pure SYN (without ACK) has come in, create a new socket to answer
          * it. */
