@@ -47,7 +47,7 @@ void __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvTCPReturnPacket( FreeRTOS_Socket_
 
 /* Abstraction of pxDuplicateNetworkBufferWithDescriptor*/
 NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                                    BaseType_t xNewLength )
+                                                                    size_t xNewLength )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
 
@@ -60,6 +60,28 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( NetworkBuffe
     }
 
     return pxNetworkBuffer;
+}
+
+uint16_t usGenerateChecksum( uint16_t usSum,
+                             const uint8_t * pucNextData,
+                             size_t uxByteCount )
+{
+    __CPROVER_assert( pucNextData != NULL, "The next data pointer cannot be NULL" );
+    __CPROVER_assert( __CPROVER_r_ok( pucNextData, uxByteCount ), "The pucNextData should be readable." );
+
+    uint16_t usReturn;
+    return usReturn;
+}
+
+uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
+                                     size_t uxBufferLength,
+                                     BaseType_t xOutgoingPacket )
+{
+    __CPROVER_assert( pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL" );
+    __CPROVER_assert( __CPROVER_r_ok( pucEthernetBuffer, uxBufferLength ), "pucEthernetBuffer should be readable." );
+
+    uint16_t usReturn;
+    return usReturn;
 }
 
 /* Network Interface Output function is a portable low level function
@@ -96,14 +118,15 @@ void harness()
     FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
     NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
 
+    /* The code does not expect both of these to be equal to NULL at the same time. */
+    __CPROVER_assume( pxSocket != NULL || pxNetworkBuffer != NULL );
+
     /* Define and allocate members of an endpoint to be used later. */
     struct xNetworkEndPoint xLocalEndPoint;
 
     xLocalEndPoint.pxNetworkInterface = nondet_bool() ? NULL : malloc( sizeof( *( xLocalEndPoint.pxNetworkInterface ) ) );
-
     /* This cannot be NULL. */
     __CPROVER_assume( xLocalEndPoint.pxNetworkInterface != NULL );
-
     /* Assign the Network output function to the endpoint. This cannot be NULL. */
     xLocalEndPoint.pxNetworkInterface->pfOutput = NetworkInterfaceOutput;
 
@@ -113,14 +136,26 @@ void harness()
     __CPROVER_assume( pxNetworkInterfaces == NULL );
     __CPROVER_assume( pxNetworkEndPoints == NULL );
 
+    uint32_t ulLen;
+
     /* Ensure that the memory is non-NULL and writable. This Macro is
      * defined in memory_assignments.c. */
     if( ensure_memory_is_valid( pxNetworkBuffer, sizeof( *pxNetworkBuffer ) ) )
     {
-        pxNetworkBuffer->pucEthernetBuffer = malloc( sizeof( TCPPacket_t ) );
+        /* Assume that the length is proper. */
+        __CPROVER_assume( ( ulLen >= 60 /*sizeof( TCPPacket_t )*/ ) && ( ulLen < ipconfigNETWORK_MTU ) );
+        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( ulLen + ipSIZE_OF_ETH_HEADER );
         __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
         pxNetworkBuffer->pxEndPoint = &xLocalEndPoint;
+    }
+    else
+    {
+        /* Assume that the length is proper. The length should be between this range. It
+         * is made so by the functions up the call tree. Essentially, this is equal to a
+         * TCP packet header with and without TCP options. */
+        __CPROVER_assume( ( ulLen >= ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) &&
+                          ( ulLen <= ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + 40 /* Maximum option bytes. */ ) );
     }
 
     /* Ensure that the memory is non-NULL and writable. This Macro is
@@ -150,11 +185,7 @@ void harness()
         }
     }
 
-    uint32_t ulLen;
     BaseType_t xReleaseAfterSend;
-
-    /* The code does not expect both of these to be equal to NULL at the same time. */
-    __CPROVER_assume( pxSocket != NULL || pxNetworkBuffer != NULL );
 
     __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvTCPReturnPacket( pxSocket, pxNetworkBuffer, ulLen, xReleaseAfterSend );
 }

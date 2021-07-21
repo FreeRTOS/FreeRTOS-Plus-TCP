@@ -71,7 +71,7 @@ jobs:
           fi
 
   formatting:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
       - name: Install Uncrustify
@@ -95,14 +95,10 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: Install Doxygen
-        run: |
-          wget -qO- "http://doxygen.nl/files/doxygen-1.9.1.linux.bin.tar.gz" | sudo tar --strip-components=1 -xz -C /usr/local
-          sudo apt-get install -y libclang-9-dev
-      - name: Run Doxygen And Verify Stdout Is Empty
-        run: |
-          doxygen docs/doxygen/config.doxyfile 2>&1 | tee doxyoutput.txt
-          if [[ "$(wc -c < doxyoutput.txt | bc)" = "0" ]]; then exit 0; else exit 1; fi
+      - name: Run doxygen build
+        uses: FreeRTOS/CI-CD-Github-Actions/doxygen@main
+        with:
+          path: ./
 
   build-checks:
     runs-on: ubuntu-latest
@@ -131,3 +127,22 @@ jobs:
         run: |
           find . -iname '*.c' |\
           xargs complexity --scores --threshold=0 --horrid-threshold=55
+
+  git-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Checkout awslabs/git-secrets
+        uses: actions/checkout@v2
+        with:
+          repository: awslabs/git-secrets
+          ref: master
+          path: git-secrets
+      - name: Install git-secrets
+        run: cd git-secrets && sudo make install && cd ..
+      - name: Run git-secrets
+        run: |
+          git-secrets --register-aws
+          git-secrets --scan

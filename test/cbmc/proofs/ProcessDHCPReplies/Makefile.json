@@ -20,13 +20,14 @@
 ################################################################
 # Buffer payload
   "BUFFER_PAYLOAD": "__eval 1 if {BUFFER_SIZE} <= {BUFFER_HEADER} else {BUFFER_SIZE} - {BUFFER_HEADER} + 1",
+  "DNS_ADDRESSES": "__eval {BUFFER_PAYLOAD}/4",
 
 ################################################################
 
   "CBMCFLAGS": [
       # "--nondet-static",
       "--unwind 1",
-      "--unwindset memcmp.0:7,__CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies.0:{BUFFER_PAYLOAD}"
+      "--unwindset memcmp.0:7,__CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies.2:{BUFFER_PAYLOAD},__CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies.0:{DNS_ADDRESSES},__CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies.1:{DNS_ADDRESSES}"
   ],
 
   "OBJS":

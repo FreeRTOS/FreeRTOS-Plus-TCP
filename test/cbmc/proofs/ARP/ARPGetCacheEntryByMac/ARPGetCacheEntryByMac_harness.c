@@ -8,6 +8,8 @@
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_Routing.h"
 
+extern ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
+
 /* Global variables accessible throughout the program. Used in adding
  * Network interface/endpoint. */
 NetworkInterface_t xNetworkInterface1;
@@ -22,13 +24,18 @@ const uint8_t ucMACAddress[ 6 ];
 void harness()
 {
     MACAddress_t xMACAddress;
-    uint32_t ulIPAddress;
+    uint32_t ulIPAddress, x;
     struct xNetworkEndPoint xLocalEndPoint;
-    struct xNetworkEndPoint * pxLocalEndPointPointer = &xLocalEndPoint;
+    struct xNetworkEndPoint * pxLocalEndPointPointer = nondet_bool() ? &xLocalEndPoint : NULL;
 
     /* Assume that the list of interfaces/endpoints is not initialized. */
     __CPROVER_assume( pxNetworkInterfaces == NULL );
     __CPROVER_assume( pxNetworkEndPoints == NULL );
+
+    for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+    {
+        xARPCache[ x ].pxEndPoint = nondet_bool() ? NULL : malloc( sizeof( NetworkEndPoint_t ) );
+    }
 
     /* Non-deterministically add a network-interface and its endpoint. */
     if( nondet_bool() )

@@ -16,10 +16,10 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_IP.goto",
     "$(FREERTOS_PLUS_TCP)/FreeRTOS_DNS.goto",
     "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/tasks.goto",
-    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/freertos_api.goto",
-    "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/list.goto"
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/freertos_api.goto"
   ],
   "DEF":
   [
