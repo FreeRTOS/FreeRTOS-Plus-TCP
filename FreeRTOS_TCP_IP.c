@@ -2094,7 +2094,7 @@
 
                     /* If the owner of the socket requests a closure, add the FIN
                      * flag to the last packet. */
-                    if( ( pxSocket->u.xTCP.bits.bCloseRequested != pdFALSE_UNSIGNED ) && ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) )
+                    if( pxSocket->u.xTCP.bits.bCloseRequested != pdFALSE_UNSIGNED )
                     {
                         ulDistance = ( uint32_t ) uxStreamBufferDistance( pxSocket->u.xTCP.txStream, ( size_t ) lStreamPos, pxSocket->u.xTCP.txStream->uxHead );
 
