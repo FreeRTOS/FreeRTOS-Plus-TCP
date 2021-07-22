@@ -652,13 +652,13 @@ prvcheckrxdata
 prvcopydatatoqueue
 prvcreatednsmessage
 prvdeterminesocketsize
-prvDNSReply
+prvdnsreply
 prvemacdeferredinterrupthandlertask
 prvemachandlertask
-prvFillSockAddress
+prvfillsockaddress
 prvgethostbyname
-prvGetHostByNameOp
-prvGetPayloadBuffer
+prvgethostbynameop
+prvgetpayloadbuffer
 prvhandleestablished
 prvhandlelisten
 prvhandlesynreceived
@@ -931,7 +931,7 @@ sof
 sourceaddrfilter
 spi
 sprintf
-sQuestions
+squestions
 sram
 src
 srdbl
@@ -1292,7 +1292,7 @@ varpgeneraterequestpacket
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
-vDNSCheckCallback
+vdnscheckcallback
 vdnsinitialise
 vdnssetcallback
 ve

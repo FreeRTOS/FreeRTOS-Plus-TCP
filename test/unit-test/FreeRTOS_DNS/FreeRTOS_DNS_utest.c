@@ -200,7 +200,7 @@ void test_FreeRTOS_gethostbyname_fail_send_dns_request( void )
     /* prvGetHostByNameOp */
     for( i = 0; i < ipconfigDNS_REQUEST_ATTEMPTS; i++ )
     {
-        /* prvFillockAddress */
+        /* prvFillSockAddress */
         FreeRTOS_GetAddressConfiguration_ExpectAnyArgs();
         /* back prvGetHostByNameOp */
         DNS_SendRequest_ExpectAnyArgsAndReturn( pdFAIL );
@@ -242,7 +242,7 @@ void test_FreeRTOS_gethostbyname_fail_read_dns_reply_null( void )
     DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
 
     /* prvGetHostByNameOp */
-    /* prvFillockAddress */
+    /* prvFillSockAddress */
     for( i = 0; i < ipconfigDNS_REQUEST_ATTEMPTS; i++ )
     {
         FreeRTOS_GetAddressConfiguration_ExpectAnyArgs();
