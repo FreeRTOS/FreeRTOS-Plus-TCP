@@ -758,6 +758,7 @@ pxbufferdescriptor
 pxdescriptor
 pxdestinationaddress
 pxdnsmessageheader
+pxdnsbuf
 pxduplicatenetworkbufferwithdescriptor
 pxevent
 pxgetnetworkbuffer
@@ -794,6 +795,7 @@ pxphyobject
 pxprops
 pxprotocolheaders
 pxprotpack
+pxreceivebuffer
 pxsegment
 pxsocket
 pxsocketset
