@@ -33,7 +33,6 @@
 #include "IPTraceMacroDefaults.h"
 
 /* Standard includes. */
-    #include <stdint.h>
 
     #define dnsPARSE_ERROR              0UL
 

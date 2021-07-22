@@ -34,6 +34,8 @@
 
 /* Application level configuration options. */
 #include "DNS/DNS_Globals.h"
+#include "DNS/DNS_Callback.h"
+#include "DNS/DNS_Cache.h"
 
 /*
  * LLMNR is very similar to DNS, so is handled by the DNS routines.
