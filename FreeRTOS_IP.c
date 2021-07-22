@@ -2943,7 +2943,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             eReturn = prvAllowIPPacketIPv6( ipCAST_PTR_TO_TYPE_PTR( IPHeader_IPv6_t, &( pxIPPacket->xIPHeader ) ), pxNetworkBuffer, uxHeaderLength );
 
             /* Check whether the length given in the IPv6 header and the link-layer length make sense. */
-            if( FreeRTOS_ntohs( pxIPHeader_IPv6->usPayloadLength ) > ( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + sizeof( * pxIPHeader_IPv6 ) ) ) )
+            if( FreeRTOS_ntohs( pxIPHeader_IPv6->usPayloadLength ) != ( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + sizeof( * pxIPHeader_IPv6 ) ) ) )
             {
                 eReturn = eReleaseBuffer;
             }
