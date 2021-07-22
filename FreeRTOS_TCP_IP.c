@@ -431,23 +431,23 @@
  * @return pdTRUE if the IP address is either multicast or broadcast. pdFALSE
  *         otherwise.
  */
-BaseType_t xIsUnicastAddress( uint32_t ulIPAddress )
-{
-    BaseType_t xResult = pdTRUE;
-
-    if( ( FreeRTOS_ntohl( ulIPAddress ) & 0xffU ) == 0xffU )
+    BaseType_t xIsUnicastAddress( uint32_t ulIPAddress )
     {
-        /* This is a broadcast address x.x.x.255. */
-        xResult = pdFALSE;
-    }
-    else if( xIsIPv4Multicast( ulIPAddress ) != pdFALSE )
-    {
-        /* This is a multicast address. */
-        xResult = pdFALSE;
-    }
+        BaseType_t xResult = pdTRUE;
 
-    return xResult;
-}
+        if( ( FreeRTOS_ntohl( ulIPAddress ) & 0xffU ) == 0xffU )
+        {
+            /* This is a broadcast address x.x.x.255. */
+            xResult = pdFALSE;
+        }
+        else if( xIsIPv4Multicast( ulIPAddress ) != pdFALSE )
+        {
+            /* This is a multicast address. */
+            xResult = pdFALSE;
+        }
+
+        return xResult;
+    }
 /*-----------------------------------------------------------*/
 
 /** @brief Close the socket another time.
