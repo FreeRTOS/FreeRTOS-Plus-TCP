@@ -502,10 +502,10 @@
     }
 
 /*!
- * @brief return ip address from the dns reply message 
+ * @brief return ip address from the dns reply message
  *
  * @param [in] pxReceiveBuffer
- * @param [in] uxIdentifier 
+ * @param [in] uxIdentifier
  * @returns ip address or zero on error
  *
  */
