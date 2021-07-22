@@ -30,6 +30,7 @@
         extern "C" {
     #endif
 
+    BaseType_t xIsUnicastAddress( uint32_t ulIPAddress );
     BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t * pxDescriptor );
 
     typedef enum eTCP_STATE

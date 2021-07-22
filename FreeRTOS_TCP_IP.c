@@ -423,6 +423,33 @@
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Check whether the address is unicast of multicast/broadcast.
+ *
+ * @param[in] ulIPAddress: The IP address to be checked (in 32-bit format).
+ *
+ * @return pdTRUE if the IP address is either multicast or broadcast. pdFALSE
+ *         otherwise.
+ */
+BaseType_t xIsUnicastAddress( uint32_t ulIPAddress )
+{
+    BaseType_t xResult = pdTRUE;
+
+    if( ( FreeRTOS_ntohl( ulIPAddress ) & 0xffU ) == 0xffU )
+    {
+        /* This is a broadcast address x.x.x.255. */
+        xResult = pdFALSE;
+    }
+    else if( xIsIPv4Multicast( ulIPAddress ) != pdFALSE )
+    {
+        /* This is a multicast address. */
+        xResult = pdFALSE;
+    }
+
+    return xResult;
+}
+/*-----------------------------------------------------------*/
+
 /** @brief Close the socket another time.
  *
  * @param[in] pxSocket: The socket to be checked.
@@ -3726,8 +3753,8 @@
         uint32_t ulInitialSequenceNumber;
 
         /* Silently discard a SYN packet which was sent to the broadcast address
-         * 255.255.255.255. */
-        if( pxTCPPacket->xIPHeader.ulDestinationIPAddress != 0xFFFFFFFF )
+         * (x.x.x.255) or a multicast address. */
+        if( xIsUnicastAddress( pxTCPPacket->xIPHeader.ulDestinationIPAddress ) != pdFALSE )
         {
             /* Assume that a new Initial Sequence Number will be required. Request
              * it now in order to fail out if necessary. */
