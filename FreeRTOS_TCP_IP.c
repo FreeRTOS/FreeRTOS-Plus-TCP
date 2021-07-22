@@ -421,6 +421,23 @@
 
         return xResult;
     }
+/*-----------------------------------------------------------*/
+
+/** @brief Close the socket another time.
+ *
+ * @param[in] pxSocket: The socket to be checked.
+ */
+    void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
+    {
+        static FreeRTOS_Socket_t * xPreviousSocket = NULL;
+
+        if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )
+        {
+            vSocketClose( xPreviousSocket );
+        }
+
+        xPreviousSocket = pxSocket;
+    }
     /*-----------------------------------------------------------*/
 
     #if ( ipconfigTCP_HANG_PROTECTION == 1 )
@@ -499,7 +516,7 @@
                      * gets connected. */
                     if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
                     {
-                        /* vTCPStateChange() has called FreeRTOS_closesocket()
+                        /* vTCPStateChange() has called vSocketCloseNextTime()
                          * in case the socket is not yet owned by the application.
                          * Return a negative value to inform the caller that
                          * the socket will be closed in the next cycle. */
@@ -986,13 +1003,6 @@
 
                     /* calculate the TCP checksum for an outgoing packet. */
                     ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxTCPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
-
-                    /* A calculated checksum of 0 must be inverted as 0 means the checksum
-                     * is disabled. */
-                    if( pxTCPPacket->xTCPHeader.usChecksum == 0U )
-                    {
-                        pxTCPPacket->xTCPHeader.usChecksum = 0xffffU;
-                    }
                 }
             #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
@@ -1844,7 +1854,8 @@
 
                     if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
                     {
-                        ( void ) FreeRTOS_closesocket( pxSocket );
+                        configASSERT( xIsCallingFromIPTask() != pdFALSE );
+                        vSocketCloseNextTime( pxSocket );
                     }
                 }
             }
@@ -2083,7 +2094,7 @@
 
                     /* If the owner of the socket requests a closure, add the FIN
                      * flag to the last packet. */
-                    if( ( pxSocket->u.xTCP.bits.bCloseRequested != pdFALSE_UNSIGNED ) && ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) )
+                    if( pxSocket->u.xTCP.bits.bCloseRequested != pdFALSE_UNSIGNED )
                     {
                         ulDistance = ( uint32_t ) uxStreamBufferDistance( pxSocket->u.xTCP.txStream, ( size_t ) lStreamPos, pxSocket->u.xTCP.txStream->uxHead );
 
@@ -2178,24 +2189,27 @@
             #endif /* ipconfigTCP_KEEP_ALIVE */
         }
 
-        /* Anything to send, a change of the advertised window size, or maybe send a
-         * keep-alive message? */
-        if( ( lDataLen > 0 ) ||
-            ( pxSocket->u.xTCP.bits.bWinChange != pdFALSE_UNSIGNED ) ||
-            ( pxSocket->u.xTCP.bits.bSendKeepAlive != pdFALSE_UNSIGNED ) )
+        if( lDataLen >= 0 )
         {
-            pxProtocolHeaders->xTCPHeader.ucTCPFlags &= ( ( uint8_t ) ~tcpTCP_FLAG_PSH );
-            pxProtocolHeaders->xTCPHeader.ucTCPOffset = ( uint8_t ) ( ( ipSIZE_OF_TCP_HEADER + uxOptionsLength ) << 2 ); /*_RB_ "2" needs comment. */
-
-            pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_ACK;
-
-            if( lDataLen != 0L )
+            /* Anything to send, a change of the advertised window size, or maybe send a
+             * keep-alive message? */
+            if( ( lDataLen > 0 ) ||
+                ( pxSocket->u.xTCP.bits.bWinChange != pdFALSE_UNSIGNED ) ||
+                ( pxSocket->u.xTCP.bits.bSendKeepAlive != pdFALSE_UNSIGNED ) )
             {
-                pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_PSH;
-            }
+                pxProtocolHeaders->xTCPHeader.ucTCPFlags &= ( ( uint8_t ) ~tcpTCP_FLAG_PSH );
+                pxProtocolHeaders->xTCPHeader.ucTCPOffset = ( uint8_t ) ( ( ipSIZE_OF_TCP_HEADER + uxOptionsLength ) << 2 ); /*_RB_ "2" needs comment. */
 
-            uxIntermediateResult = uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
-            lDataLen += ( int32_t ) uxIntermediateResult;
+                pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_ACK;
+
+                if( lDataLen != 0L )
+                {
+                    pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_PSH;
+                }
+
+                uxIntermediateResult = uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
+                lDataLen += ( int32_t ) uxIntermediateResult;
+            }
         }
 
         return lDataLen;
@@ -3896,7 +3910,7 @@
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )
         {
             FreeRTOS_debug_printf( ( "TCP: Listen: new socket bind error\n" ) );
-            ( void ) FreeRTOS_closesocket( pxNewSocket );
+            vSocketClose( pxNewSocket );
             xResult = pdFALSE;
         }
         else
