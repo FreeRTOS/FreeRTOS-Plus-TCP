@@ -861,7 +861,7 @@ INPUT                  = ./ \
                          ./docs/doxygen \
                          ./include \
                          ./portable \
-                         ./FreeRTOS_DNS.c \
+                         ./DNS/FreeRTOS_DNS.c \
                          ./FreeRTOS_Stream_Buffer.c \
                          ./FreeRTOS_UDP_IP.c \
                          ./FreeRTOS_ARP.c \
