@@ -592,7 +592,7 @@ static void prvIPTask( void * pvParameters )
                                 vSocketSelect( pxMessage->pxSocketSet );
                                 ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
                             }
-                        #else
+                        #else 
                             {
                                 vSocketSelect( ipCAST_PTR_TO_TYPE_PTR( SocketSelect_t, xReceivedEvent.pvData ) );
                             }
@@ -2903,7 +2903,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
     #if ( ipconfigUSE_IPv6 != 0 )
-        const IPHeader_IPv6_t * pxIPHeader_IPv6;
+        IPHeader_IPv6_t * pxIPHeader_IPv6;
     #endif
     UBaseType_t uxHeaderLength;
     uint8_t ucProtocol;
@@ -2915,7 +2915,38 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         {
             uxHeaderLength = ipSIZE_OF_IPv6_HEADER;
             ucProtocol = pxIPHeader_IPv6->ucNextHeader;
+
+            /* If this is a hop-by-hop option (See RFC 8200 for more details) */
+            if( ucProtocol == 0 )
+            {
+                /* Get the location of start of Hop-By-Hop option. (Just after IP header ends) */
+                uint8_t * temp = &( pxIPHeader_IPv6->xDestinationAddress );
+                temp += sizeof( pxIPHeader_IPv6->xDestinationAddress );
+
+                /* Get the protocol from the hop-by-hop option. */
+                ucProtocol = * temp;
+                /* Put it in the IP Header for later use. */
+                pxIPHeader_IPv6->ucNextHeader = ucProtocol;
+
+                /* Get the length of the hop-by-hop option */
+                size_t lengthOfOption = *( temp + 1 );
+                lengthOfOption = lengthOfOption * 16;
+
+                /* Copy remaining data over the hop-by-hop option. We don't need the hop-by-hop option anymore. */
+                memmove( temp, temp + lengthOfOption, pxNetworkBuffer->xDataLength - 54 - lengthOfOption );
+
+                /* Set the length of the network buffer after removal of hop-by-hop option. */
+                pxNetworkBuffer->xDataLength -= lengthOfOption;
+                /* Also set the new payload length - after removal of hop-to-hop option. */
+                pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( FreeRTOS_ntohs( pxIPHeader_IPv6->usPayloadLength ) - lengthOfOption );
+            }
             eReturn = prvAllowIPPacketIPv6( ipCAST_PTR_TO_TYPE_PTR( IPHeader_IPv6_t, &( pxIPPacket->xIPHeader ) ), pxNetworkBuffer, uxHeaderLength );
+
+            /* Check whether the length given in the IPv6 header and the link-layer length make sense. */
+            if( FreeRTOS_ntohs( pxIPHeader_IPv6->usPayloadLength ) > ( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + sizeof( * pxIPHeader_IPv6 ) ) ) )
+            {
+                eReturn = eReleaseBuffer;
+            }
 
             /* The IP-header type is copied to a location 6 bytes before the messages
              * starts.  It might be needed later on when a UDP-payload buffer is being

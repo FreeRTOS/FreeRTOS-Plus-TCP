@@ -343,7 +343,7 @@
                         continue;
                     }
                 #endif /* if ( ipconfigMULTI_INTERFACE == 0 ) */
-            }
+            } 
 
             #if ( ipconfigUSE_IPv6 != 0 )
                 if( xHasIPv6Address != 0 )

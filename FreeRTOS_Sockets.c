@@ -498,7 +498,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
     else
     {
         /* Only Ethernet is currently supported. */
-        configASSERT( xDomain == FREERTOS_AF_INET );
+        //configASSERT( xDomain == FREERTOS_AF_INET );
 
         /* Check if the UDP socket-list has been initialised. */
         configASSERT( listLIST_IS_INITIALISED( &xBoundUDPSocketsList ) );

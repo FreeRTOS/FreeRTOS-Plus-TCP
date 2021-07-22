@@ -150,8 +150,8 @@
  * results in the wired network being used, while setting
  * configNETWORK_INTERFACE_TO_USE to 2 results in the wireless network being
  * used. */
-#define configNETWORK_INTERFACE_TO_USE         3L
-#define configNETWORK_INTERFACE_TYPE_TO_USE    "Realtek"
+#define configNETWORK_INTERFACE_TO_USE         8L
+#define configNETWORK_INTERFACE_TYPE_TO_USE    "Intel"
 
 /* The address of an echo server that will be used by the two demo echo client
  * tasks.
@@ -167,25 +167,25 @@
  * to and from a real network connection on the host PC.  See the
  * configNETWORK_INTERFACE_TO_USE definition above for information on how to
  * configure the real network connection to use. */
-#define configMAC_ADDR0                        0x00
-#define configMAC_ADDR1                        0x11
-#define configMAC_ADDR2                        0x22
-#define configMAC_ADDR3                        0x33
-#define configMAC_ADDR4                        0x44
-#define configMAC_ADDR5                        0x41
+#define configMAC_ADDR0                        0x9c
+#define configMAC_ADDR1                        0x7b
+#define configMAC_ADDR2                        0xef
+#define configMAC_ADDR3                        0xa3
+#define configMAC_ADDR4                        0x87
+#define configMAC_ADDR5                        0xec
 
 /* Default IP address configuration.  Used in ipconfigUSE_DNS is set to 0, or
  * ipconfigUSE_DNS is set to 1 but a DNS server cannot be contacted. */
 #define configIP_ADDR0                         192
 #define configIP_ADDR1                         168
-#define configIP_ADDR2                         2
-#define configIP_ADDR3                         114
+#define configIP_ADDR2                         11
+#define configIP_ADDR3                         111
 
 /* Default gateway IP address configuration.  Used in ipconfigUSE_DNS is set to
  * 0, or ipconfigUSE_DNS is set to 1 but a DNS server cannot be contacted. */
 #define configGATEWAY_ADDR0                    192
 #define configGATEWAY_ADDR1                    168
-#define configGATEWAY_ADDR2                    2
+#define configGATEWAY_ADDR2                    11
 #define configGATEWAY_ADDR3                    1
 
 /* Default DNS server configuration.  OpenDNS addresses are 208.67.222.222 and

@@ -109,6 +109,7 @@
     <ClCompile Include="$(FREERTOS_SOURCE_DIR)\tasks.c">
       <Filter>FreeRTOS\Source</Filter>
     </ClCompile>
+    <ClCompile Include="SimpleTCPEchoServer.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(FREERTOS_INCLUDE_DIR)\timers.h">

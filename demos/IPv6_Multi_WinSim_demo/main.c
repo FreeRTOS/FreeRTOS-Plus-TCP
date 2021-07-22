@@ -99,7 +99,7 @@
  */
 #define mainCREATE_SIMPLE_UDP_CLIENT_SERVER_TASKS     0
 #define mainCREATE_TCP_ECHO_TASKS_SINGLE              0
-#define mainCREATE_TCP_ECHO_SERVER_TASK               0
+#define mainCREATE_TCP_ECHO_SERVER_TASK               1
 /*-----------------------------------------------------------*/
 
 /* Define a task that is used to start and monitor several tests. */
@@ -233,10 +233,12 @@ int main( void )
                 IPv6_Address_t xGateWay;
                 IPv6_Address_t xDNSServer;
 
-                FreeRTOS_inet_pton6( "2001:470:ec54::", xPrefix.ucBytes );
+                FreeRTOS_inet_pton6( "2001:470:ec54::2", xPrefix.ucBytes );
                 FreeRTOS_inet_pton6( "2001:4860:4860::8888", xDNSServer.ucBytes );
 
-                FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, 64, pdTRUE );
+                FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, 64, pdFALSE );
+                xIPAddress.ucBytes[15] = 2;
+
                 FreeRTOS_inet_pton6( "fe80::9355:69c7:585a:afe7", xGateWay.ucBytes );
 
                 FreeRTOS_FillEndPoint_IPv6( &( xInterfaces[ 0 ] ),
@@ -263,7 +265,7 @@ int main( void )
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         FreeRTOS_IPStart();
     #endif /* if ( ipconfigMULTI_INTERFACE == 0 ) || ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 ) */
-    xTaskCreate( prvServerWorkTask, "SvrWork", mainTCP_SERVER_STACK_SIZE, NULL, mainTCP_SERVER_TASK_PRIORITY, NULL );
+    //xTaskCreate( prvServerWorkTask, "SvrWork", mainTCP_SERVER_STACK_SIZE, NULL, mainTCP_SERVER_TASK_PRIORITY, NULL );
 
     /* Start the RTOS scheduler. */
     FreeRTOS_debug_printf( ( "vTaskStartScheduler\r\n" ) );

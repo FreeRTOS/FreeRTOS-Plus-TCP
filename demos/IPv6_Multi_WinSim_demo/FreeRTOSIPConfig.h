@@ -150,7 +150,7 @@ extern UBaseType_t uxRand();
  * set to 1 if a valid configuration cannot be obtained from a DHCP server for any
  * reason.  The static configuration used is that passed into the stack by the
  * FreeRTOS_IPInit() function call. */
-#define ipconfigUSE_DHCP                               1
+#define ipconfigUSE_DHCP                               0
 
 /* When ipconfigUSE_DHCP is set to 1, DHCP requests will be sent out at
  * increasing time intervals until either a reply is received from a DHCP server
@@ -313,7 +313,7 @@ extern UBaseType_t uxRand();
 #define ipconfigUSE_NTP_DEMO                1
 #define ipconfigDNS_USE_CALLBACKS           1
 #define ipconfigSUPPORT_SIGNALS             1
-#define ipconfigUSE_IPv6                    0 /* 1 */
+#define ipconfigUSE_IPv6                    1 /* 0 */
 #define ipconfigUSE_RA                      0 /* 1 */
 #define ipconfigSUPPORT_OUTGOING_PINGS      1
 
