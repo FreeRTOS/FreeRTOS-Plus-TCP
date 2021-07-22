@@ -374,8 +374,6 @@
                 /* Skip any question records. */
                 usQuestions = FreeRTOS_ntohs( pxDNSMessageHeader->usQuestions );
 
-                /*prvSkipQuestionRecords(usQuestions); */
-
                 for( x = 0U; x < usQuestions; x++ )
                 {
                     #if ( ipconfigUSE_LLMNR == 1 )

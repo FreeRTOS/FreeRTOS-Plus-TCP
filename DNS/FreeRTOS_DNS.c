@@ -343,7 +343,7 @@ extern const BaseType_t xBufferAllocFixedSize;
             /* Check the cache before issuing another DNS request. */
             if( ulIPAddress == 0UL )
             {
-                /* If caching is not defined dnslookup will return zero */
+                /* If caching is not defined dns lookup will return zero */
                 ulIPAddress = FreeRTOS_dnslookup( pcHostName );
 
                 if( ulIPAddress != 0UL )
@@ -535,12 +535,6 @@ extern const BaseType_t xBufferAllocFixedSize;
                                                              pcHostName,
                                                              uxIdentifier );
 
-            /* cannot be zero
-             * if( pxDNSBuf->uxPayloadLength == 0 )
-             * {
-             * break;
-             * }
-             */
             /* send the dns message */
             xReturn = DNS_SendRequest( pcHostName,
                                        uxIdentifier,
