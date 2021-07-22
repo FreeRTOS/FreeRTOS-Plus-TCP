@@ -24,7 +24,7 @@
  */
 
 /**
- * @file FreeRTOS_DNS.c
+ * @file DNS/FreeRTOS_DNS.c
  * @brief Implements the Domain Name System for the FreeRTOS+TCP network stack.
  */
 
