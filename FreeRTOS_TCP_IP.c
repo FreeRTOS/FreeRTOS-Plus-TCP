@@ -3624,6 +3624,7 @@
                     else
                     {
                         ProtocolHeaders_t * pxProtocolHeaders;
+
                         /* Update the copy of the TCP header only (skipping eth and IP
                          * headers).  It might be used later on, whenever data must be sent
                          * to the peer. */
