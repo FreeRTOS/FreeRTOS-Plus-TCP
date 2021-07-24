@@ -3623,6 +3623,7 @@
                     }
                     else
                     {
+                        ProtocolHeaders_t * pxProtocolHeaders;
                         /* Update the copy of the TCP header only (skipping eth and IP
                          * headers).  It might be used later on, whenever data must be sent
                          * to the peer. */
@@ -3630,6 +3631,10 @@
                         ( void ) memcpy( ( void * ) ( &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ uxOffset ] ) ),
                                          ( const void * ) ( &( pxNetworkBuffer->pucEthernetBuffer[ uxOffset ] ) ),
                                          ipSIZE_OF_TCP_HEADER );
+                        pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ uxOffset ] ) );
+                        /* Clear flags that are set by the peer, and set the ACK flag. */
+                        pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK;
                     }
                 }
             }
