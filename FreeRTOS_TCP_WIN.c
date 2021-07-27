@@ -986,6 +986,190 @@
     #if ( ipconfigUSE_TCP_WIN == 1 )
 
 /**
+ * @brief Data has been received with the correct (expected  ) sequence number.
+ *        It can be added to the RX stream buffer.
+ * @param[in] pxWindow: The TCP sliding window data of the socket.
+ * @param[in] ulLength: The number of bytes that can be added.
+ */
+        static void prvTCPWindowRx_ExpectedRX( TCPWindow_t * pxWindow,
+                                               uint32_t ulLength )
+        {
+            uint32_t ulSequenceNumber = pxWindow->rx.ulCurrentSequenceNumber;
+            uint32_t ulCurrentSequenceNumber = ulSequenceNumber + ulLength;
+
+            if( listCURRENT_LIST_LENGTH( &( pxWindow->xRxSegments ) ) != 0U )
+            {
+                uint32_t ulSavedSequenceNumber = ulCurrentSequenceNumber;
+                TCPSegment_t * pxFound;
+
+                /* Clean up all sequence received between ulSequenceNumber and ulSequenceNumber + ulLength since they are duplicated.
+                 * If the server is forced to retransmit packets several time in a row it might send a batch of concatenated packet for speed.
+                 * So we cannot rely on the packets between ulSequenceNumber and ulSequenceNumber + ulLength to be sequential and it is better to just
+                 * clean them out. */
+                do
+                {
+                    pxFound = xTCPWindowRxConfirm( pxWindow, ulSequenceNumber, ulLength );
+
+                    if( pxFound != NULL )
+                    {
+                        /* Remove it because it will be passed to user directly. */
+                        vTCPWindowFree( pxFound );
+                    }
+                } while( pxFound != NULL );
+
+                /*  Check for following segments that are already in the
+                 * queue and increment ulCurrentSequenceNumber. */
+                for( ; ; )
+                {
+                    pxFound = xTCPWindowRxFind( pxWindow, ulCurrentSequenceNumber );
+
+                    if( pxFound == NULL )
+                    {
+                        break;
+                    }
+
+                    ulCurrentSequenceNumber += ( uint32_t ) pxFound->lDataLength;
+
+                    /* As all packet below this one have been passed to the
+                     * user it can be discarded. */
+                    vTCPWindowFree( pxFound );
+                }
+
+                if( ulSavedSequenceNumber != ulCurrentSequenceNumber )
+                {
+                    /*  After the current data-package, there is more data
+                     * to be popped. */
+                    pxWindow->ulUserDataLength = ulCurrentSequenceNumber - ulSavedSequenceNumber;
+
+                    if( xTCPWindowLoggingLevel >= 1 )
+                    {
+                        FreeRTOS_debug_printf( ( "lTCPWindowRxCheck[%d,%d]: retran %lu (Found %lu bytes at %lu cnt %ld)\n",
+                                                 pxWindow->usPeerPortNumber, pxWindow->usOurPortNumber,
+                                                 ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber,
+                                                 pxWindow->ulUserDataLength,
+                                                 ulSavedSequenceNumber - pxWindow->rx.ulFirstSequenceNumber,
+                                                 listCURRENT_LIST_LENGTH( &pxWindow->xRxSegments ) ) );
+                    }
+                }
+            }
+
+            pxWindow->rx.ulCurrentSequenceNumber = ulCurrentSequenceNumber;
+        }
+    #endif /* ipconfgiUSE_TCP_WIN == 1 */
+/*-----------------------------------------------------------*/
+
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+
+/**
+ * @brief Data has been received with a non-expected sequence number.
+ *        This function will check if the RX data can be accepted.
+ * @param[in] pxWindow: The TCP sliding window data of the socket.
+ * @param[in] ulSequenceNumber: The sequence number at which the data should be placed.
+ * @param[in] ulLength: The number of bytes that can be added.
+ * @return Return -1 if the data must be refused, otherwise it returns the
+ *         offset ( from the head ) at which the data can be placed.
+ */
+        static int32_t prvTCPWindowRx_UnexpectedRX( TCPWindow_t * pxWindow,
+                                                    uint32_t ulSequenceNumber,
+                                                    uint32_t ulLength )
+        {
+            int32_t lReturn = -1;
+            uint32_t ulLast = ulSequenceNumber + ulLength;
+            uint32_t ulCurrentSequenceNumber = pxWindow->rx.ulCurrentSequenceNumber;
+            TCPSegment_t * pxFound;
+
+            /* See if there is more data in a contiguous block to make the
+             * SACK describe a longer range of data. */
+
+            /* TODO: SACK's may also be delayed for a short period
+             * This is useful because subsequent packets will be SACK'd with
+             * single one message
+             */
+            for( ; ; )
+            {
+                pxFound = xTCPWindowRxFind( pxWindow, ulLast );
+
+                if( pxFound == NULL )
+                {
+                    break;
+                }
+
+                ulLast += ( uint32_t ) pxFound->lDataLength;
+            }
+
+            if( xTCPWindowLoggingLevel >= 1 )
+            {
+                FreeRTOS_debug_printf( ( "lTCPWindowRxCheck[%d,%d]: seqnr %u exp %u (dist %d) SACK to %u\n",
+                                         ( int ) pxWindow->usPeerPortNumber,
+                                         ( int ) pxWindow->usOurPortNumber,
+                                         ( unsigned ) ( ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
+                                         ( unsigned ) ( ulCurrentSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
+                                         ( unsigned ) ( ulSequenceNumber - ulCurrentSequenceNumber ), /* want this signed */
+                                         ( unsigned ) ( ulLast - pxWindow->rx.ulFirstSequenceNumber ) ) );
+            }
+
+            /* Now prepare the SACK message.
+             * Code OPTION_CODE_SINGLE_SACK already in network byte order. */
+            pxWindow->ulOptionsData[ 0 ] = OPTION_CODE_SINGLE_SACK;
+
+            /* First sequence number that we received. */
+            pxWindow->ulOptionsData[ 1 ] = FreeRTOS_htonl( ulSequenceNumber );
+
+            /* Last + 1 */
+            pxWindow->ulOptionsData[ 2 ] = FreeRTOS_htonl( ulLast );
+
+            /* Which make 12 (3*4) option bytes. */
+            pxWindow->ucOptionLength = ( uint8_t ) ( 3U * sizeof( pxWindow->ulOptionsData[ 0 ] ) );
+
+            pxFound = xTCPWindowRxFind( pxWindow, ulSequenceNumber );
+
+            if( pxFound != NULL )
+            {
+                /* This out-of-sequence packet has been received for a
+                 * second time.  It is already stored but do send a SACK
+                 * again. */
+                /* A negative value will be returned to indicate than error. */
+            }
+            else
+            {
+                pxFound = xTCPWindowRxNew( pxWindow, ulSequenceNumber, ( int32_t ) ulLength );
+
+                if( pxFound == NULL )
+                {
+                    /* Can not send a SACK, because the segment cannot be
+                     * stored. */
+                    pxWindow->ucOptionLength = 0U;
+
+                    /* Needs to be stored but there is no segment
+                     * available. A negative value will be returned. */
+                }
+                else
+                {
+                    uint32_t ulIntermediateResult;
+
+                    if( xTCPWindowLoggingLevel != 0 )
+                    {
+                        FreeRTOS_debug_printf( ( "lTCPWindowRxCheck[%u,%u]: seqnr %lu (cnt %lu)\n",
+                                                 pxWindow->usPeerPortNumber, pxWindow->usOurPortNumber, ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber,
+                                                 listCURRENT_LIST_LENGTH( &pxWindow->xRxSegments ) ) );
+                        FreeRTOS_flush_logging();
+                    }
+
+                    /* Return a positive value.  The packet may be accepted
+                    * and stored but an earlier packet is still missing. */
+                    ulIntermediateResult = ulSequenceNumber - ulCurrentSequenceNumber;
+                    lReturn = ( int32_t ) ulIntermediateResult;
+                }
+            }
+
+            return lReturn;
+        }
+    #endif /* ipconfgiUSE_TCP_WIN == 1 */
+/*-----------------------------------------------------------*/
+
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+
+/**
  * @brief Check what to do with a new incoming packet: store or ignore.
  *
  * @param[in] pxWindow: The descriptor of the TCP sliding windows.
@@ -1001,9 +1185,9 @@
                                    uint32_t ulLength,
                                    uint32_t ulSpace )
         {
-            uint32_t ulCurrentSequenceNumber, ulLast, ulSavedSequenceNumber, ulIntermediateResult = 0;
-            int32_t lReturn, lDistance;
-            TCPSegment_t * pxFound;
+            uint32_t ulCurrentSequenceNumber, ulIntermediateResult = 0;
+            int32_t lReturn = -1;
+            int32_t lDistance;
 
             /* If lTCPWindowRxCheck( ) returns == 0, the packet will be passed
              * directly to user (segment is expected).  If it returns a positive
@@ -1029,71 +1213,12 @@
                 if( ulLength > ulSpace )
                 {
                     FreeRTOS_debug_printf( ( "lTCPWindowRxCheck: Refuse %lu bytes, due to lack of space (%lu)\n", ulLength, ulSpace ) );
-                    lReturn = -1;
                 }
                 else
                 {
-                    ulCurrentSequenceNumber += ulLength;
-
-                    if( listCURRENT_LIST_LENGTH( &( pxWindow->xRxSegments ) ) != 0U )
-                    {
-                        ulSavedSequenceNumber = ulCurrentSequenceNumber;
-
-                        /* Clean up all sequence received between ulSequenceNumber and ulSequenceNumber + ulLength since they are duplicated.
-                         * If the server is forced to retransmit packets several time in a row it might send a batch of concatenated packet for speed.
-                         * So we cannot rely on the packets between ulSequenceNumber and ulSequenceNumber + ulLength to be sequential and it is better to just
-                         * clean them out. */
-                        do
-                        {
-                            pxFound = xTCPWindowRxConfirm( pxWindow, ulSequenceNumber, ulLength );
-
-                            if( pxFound != NULL )
-                            {
-                                /* Remove it because it will be passed to user directly. */
-                                vTCPWindowFree( pxFound );
-                            }
-                        } while( pxFound != NULL );
-
-                        /*  Check for following segments that are already in the
-                         * queue and increment ulCurrentSequenceNumber. */
-                        for( ; ; )
-                        {
-                            pxFound = xTCPWindowRxFind( pxWindow, ulCurrentSequenceNumber );
-
-                            if( pxFound == NULL )
-                            {
-                                break;
-                            }
-
-                            ulCurrentSequenceNumber += ( uint32_t ) pxFound->lDataLength;
-
-                            /* As all packet below this one have been passed to the
-                             * user it can be discarded. */
-                            vTCPWindowFree( pxFound );
-                        }
-
-                        if( ulSavedSequenceNumber != ulCurrentSequenceNumber )
-                        {
-                            /*  After the current data-package, there is more data
-                             * to be popped. */
-                            pxWindow->ulUserDataLength = ulCurrentSequenceNumber - ulSavedSequenceNumber;
-
-                            if( xTCPWindowLoggingLevel >= 1 )
-                            {
-                                FreeRTOS_debug_printf( ( "lTCPWindowRxCheck[%d,%d]: retran %lu (Found %lu bytes at %lu cnt %ld)\n",
-                                                         pxWindow->usPeerPortNumber, pxWindow->usOurPortNumber,
-                                                         ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber,
-                                                         pxWindow->ulUserDataLength,
-                                                         ulSavedSequenceNumber - pxWindow->rx.ulFirstSequenceNumber,
-                                                         listCURRENT_LIST_LENGTH( &pxWindow->xRxSegments ) ) );
-                            }
-                        }
-                    }
-
-                    pxWindow->rx.ulCurrentSequenceNumber = ulCurrentSequenceNumber;
-
                     /* Packet was expected, may be passed directly to the socket
                      * buffer or application.  Store the packet at offset 0. */
+                    prvTCPWindowRx_ExpectedRX( pxWindow, ulLength );
                     lReturn = 0;
                 }
             }
@@ -1101,7 +1226,6 @@
             {
                 /* Looks like a TCP keep-alive message.  Do not accept/store Rx data
                  * ulUserDataLength = 0. Not packet out-of-sync.  Just reply to it. */
-                lReturn = -1;
             }
             else
             {
@@ -1110,7 +1234,7 @@
 
                 /*  An "out-of-sequence" segment was received, must have missed one.
                  * Prepare a SACK (Selective ACK). */
-                ulLast = ulSequenceNumber + ulLength;
+                uint32_t ulLast = ulSequenceNumber + ulLength;
 
                 ulIntermediateResult = ulLast - ulCurrentSequenceNumber;
                 /* The cast from unsigned long to signed long is on purpose. */
@@ -1121,99 +1245,16 @@
                     /* An earlier has been received, must be a retransmission of a
                      * packet that has been accepted already.  No need to send out a
                      * Selective ACK (SACK). */
-                    lReturn = -1;
                 }
                 else if( lDistance > ( int32_t ) ulSpace )
                 {
                     /* The new segment is ahead of rx.ulCurrentSequenceNumber.  The
                      * sequence number of this packet is too far ahead, ignore it. */
                     FreeRTOS_debug_printf( ( "lTCPWindowRxCheck: Refuse %lu+%lu bytes, due to lack of space (%lu)\n", lDistance, ulLength, ulSpace ) );
-                    lReturn = -1;
                 }
                 else
                 {
-                    /* See if there is more data in a contiguous block to make the
-                     * SACK describe a longer range of data. */
-
-                    /* TODO: SACK's may also be delayed for a short period
-                     * This is useful because subsequent packets will be SACK'd with
-                     * single one message
-                     */
-                    for( ; ; )
-                    {
-                        pxFound = xTCPWindowRxFind( pxWindow, ulLast );
-
-                        if( pxFound == NULL )
-                        {
-                            break;
-                        }
-
-                        ulLast += ( uint32_t ) pxFound->lDataLength;
-                    }
-
-                    if( xTCPWindowLoggingLevel >= 1 )
-                    {
-                        FreeRTOS_debug_printf( ( "lTCPWindowRxCheck[%d,%d]: seqnr %u exp %u (dist %d) SACK to %u\n",
-                                                 ( int ) pxWindow->usPeerPortNumber,
-                                                 ( int ) pxWindow->usOurPortNumber,
-                                                 ( unsigned ) ( ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
-                                                 ( unsigned ) ( ulCurrentSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
-                                                 ( unsigned ) ( ulSequenceNumber - ulCurrentSequenceNumber ), /* want this signed */
-                                                 ( unsigned ) ( ulLast - pxWindow->rx.ulFirstSequenceNumber ) ) );
-                    }
-
-                    /* Now prepare the SACK message.
-                     * Code OPTION_CODE_SINGLE_SACK already in network byte order. */
-                    pxWindow->ulOptionsData[ 0 ] = OPTION_CODE_SINGLE_SACK;
-
-                    /* First sequence number that we received. */
-                    pxWindow->ulOptionsData[ 1 ] = FreeRTOS_htonl( ulSequenceNumber );
-
-                    /* Last + 1 */
-                    pxWindow->ulOptionsData[ 2 ] = FreeRTOS_htonl( ulLast );
-
-                    /* Which make 12 (3*4) option bytes. */
-                    pxWindow->ucOptionLength = ( uint8_t ) ( 3U * sizeof( pxWindow->ulOptionsData[ 0 ] ) );
-
-                    pxFound = xTCPWindowRxFind( pxWindow, ulSequenceNumber );
-
-                    if( pxFound != NULL )
-                    {
-                        /* This out-of-sequence packet has been received for a
-                         * second time.  It is already stored but do send a SACK
-                         * again. */
-                        lReturn = -1;
-                    }
-                    else
-                    {
-                        pxFound = xTCPWindowRxNew( pxWindow, ulSequenceNumber, ( int32_t ) ulLength );
-
-                        if( pxFound == NULL )
-                        {
-                            /* Can not send a SACK, because the segment cannot be
-                             * stored. */
-                            pxWindow->ucOptionLength = 0U;
-
-                            /* Needs to be stored but there is no segment
-                             * available. */
-                            lReturn = -1;
-                        }
-                        else
-                        {
-                            if( xTCPWindowLoggingLevel != 0 )
-                            {
-                                FreeRTOS_debug_printf( ( "lTCPWindowRxCheck[%u,%u]: seqnr %lu (cnt %lu)\n",
-                                                         pxWindow->usPeerPortNumber, pxWindow->usOurPortNumber, ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber,
-                                                         listCURRENT_LIST_LENGTH( &pxWindow->xRxSegments ) ) );
-                                FreeRTOS_flush_logging();
-                            }
-
-                            /* Return a positive value.  The packet may be accepted
-                            * and stored but an earlier packet is still missing. */
-                            ulIntermediateResult = ulSequenceNumber - ulCurrentSequenceNumber;
-                            lReturn = ( int32_t ) ulIntermediateResult;
-                        }
-                    }
+                    lReturn = prvTCPWindowRx_UnexpectedRX( pxWindow, ulSequenceNumber, ulLength );
                 }
             }
 
@@ -1276,6 +1317,56 @@
     #if ( ipconfigUSE_TCP_WIN == 1 )
 
 /**
+ * @brief Adding data to a segment that was already in the TX queue.  It
+ *        will be filled-up to a maximum of MSS ( maximum segment size ).
+ *
+ * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+ * @param[in] pxSegment: The TX segment with the highest sequence number,
+ *                       i.e. the "front segment".
+ * @param[in] lBytesLeft: The number of bytes that must be added.
+ *
+ * @return lToWrite: the number of bytes added to the segment.
+ */
+        static int32_t prvTCPWindowTxAdd_FrontSegment( TCPWindow_t * pxWindow,
+                                                       TCPSegment_t * pxSegment,
+                                                       int32_t lBytesLeft )
+        {
+            int32_t lToWrite = FreeRTOS_min_int32( lBytesLeft, pxSegment->lMaxLength - pxSegment->lDataLength );
+
+            pxSegment->lDataLength += lToWrite;
+
+            if( pxSegment->lDataLength >= pxSegment->lMaxLength )
+            {
+                /* This segment is full, don't add more bytes. */
+                pxWindow->pxHeadSegment = NULL;
+            }
+
+            /* ulNextTxSequenceNumber is the sequence number of the next byte to
+             * be stored for transmission. */
+            pxWindow->ulNextTxSequenceNumber += ( uint32_t ) lToWrite;
+
+            /* Some detailed logging, for those who're interested. */
+            if( ( xTCPWindowLoggingLevel >= 2 ) && ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) )
+            {
+                FreeRTOS_debug_printf( ( "lTCPWindowTxAdd: Add %4ld bytes for seqNr %lu len %4lu (nxt %lu) pos %lu\n",
+                                         lBytesLeft,
+                                         pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber,
+                                         pxSegment->lDataLength,
+                                         pxWindow->ulNextTxSequenceNumber - pxWindow->tx.ulFirstSequenceNumber,
+                                         pxSegment->lStreamPos ) );
+                FreeRTOS_flush_logging();
+            }
+
+            return lToWrite;
+        }
+
+
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
+/*-----------------------------------------------------------*/
+
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+
+/**
  * @brief Will add data to be transmitted to the front of the segment fifo.
  *
  * @param[in] pxWindow: The descriptor of the TCP sliding windows.
@@ -1298,50 +1389,19 @@
 
             /* Puts a message in the Tx-window (after buffer size has been
              * verified). */
-            if( pxSegment != NULL )
+            if( ( pxSegment != NULL ) &&
+                ( pxSegment->lDataLength < pxSegment->lMaxLength ) &&
+                ( pxSegment->u.bits.bOutstanding == pdFALSE_UNSIGNED ) &&
+                ( pxSegment->lDataLength != 0 ) )
             {
-                if( pxSegment->lDataLength < pxSegment->lMaxLength )
-                {
-                    if( ( pxSegment->u.bits.bOutstanding == pdFALSE_UNSIGNED ) && ( pxSegment->lDataLength != 0 ) )
-                    {
-                        /* Adding data to a segment that was already in the TX queue.  It
-                         * will be filled-up to a maximum of MSS (maximum segment size). */
-                        lToWrite = FreeRTOS_min_int32( lBytesLeft, pxSegment->lMaxLength - pxSegment->lDataLength );
+                lToWrite = prvTCPWindowTxAdd_FrontSegment( pxWindow, pxSegment, lBytesLeft );
+                lBytesLeft -= lToWrite;
+                /* Increased the return value. */
+                lDone += lToWrite;
 
-                        pxSegment->lDataLength += lToWrite;
-
-                        if( pxSegment->lDataLength >= pxSegment->lMaxLength )
-                        {
-                            /* This segment is full, don't add more bytes. */
-                            pxWindow->pxHeadSegment = NULL;
-                        }
-
-                        lBytesLeft -= lToWrite;
-
-                        /* ulNextTxSequenceNumber is the sequence number of the next byte to
-                         * be stored for transmission. */
-                        pxWindow->ulNextTxSequenceNumber += ( uint32_t ) lToWrite;
-
-                        /* Increased the return value. */
-                        lDone += lToWrite;
-
-                        /* Some detailed logging, for those who're interested. */
-                        if( ( xTCPWindowLoggingLevel >= 2 ) && ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) )
-                        {
-                            FreeRTOS_debug_printf( ( "lTCPWindowTxAdd: Add %4lu bytes for seqNr %lu len %4lu (nxt %lu) pos %lu\n",
-                                                     ulLength,
-                                                     pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber,
-                                                     pxSegment->lDataLength,
-                                                     pxWindow->ulNextTxSequenceNumber - pxWindow->tx.ulFirstSequenceNumber,
-                                                     pxSegment->lStreamPos ) );
-                            FreeRTOS_flush_logging();
-                        }
-
-                        /* Calculate the next position in the circular data buffer, knowing
-                         * its maximum length 'lMax'. */
-                        lBufferIndex = lTCPIncrementTxPosition( lBufferIndex, lMax, lToWrite );
-                    }
-                }
+                /* Calculate the next position in the circular data buffer, knowing
+                 * its maximum length 'lMax'. */
+                lBufferIndex = lTCPIncrementTxPosition( lBufferIndex, lMax, lToWrite );
             }
 
             while( lBytesLeft > 0 )
@@ -1377,20 +1437,18 @@
                         pxWindow->pxHeadSegment = NULL;
                     }
 
-                    if( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) )
-                    {
-                        if( ( xTCPWindowLoggingLevel >= 3 ) ||
-                            ( ( xTCPWindowLoggingLevel >= 2 ) && ( pxWindow->pxHeadSegment != NULL ) ) )
-                        {
-                            FreeRTOS_debug_printf( ( "lTCPWindowTxAdd: New %4ld bytes for seqNr %lu len %4lu (nxt %lu) pos %lu\n",
-                                                     ulLength,
-                                                     pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber,
-                                                     pxSegment->lDataLength,
-                                                     pxWindow->ulNextTxSequenceNumber - pxWindow->tx.ulFirstSequenceNumber,
-                                                     pxSegment->lStreamPos ) );
-                            FreeRTOS_flush_logging();
-                        }
-                    }
+/*					if( ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) ) && */
+/*						( ( xTCPWindowLoggingLevel >= 3 ) || */
+/*						( ( xTCPWindowLoggingLevel >= 2 ) && ( pxWindow->pxHeadSegment != NULL ) ) ) ) */
+/*					{ */
+/*						FreeRTOS_debug_printf( ( "lTCPWindowTxAdd: New %4ld bytes for seqNr %lu len %4lu (nxt %lu) pos %lu\n", */
+/*												ulLength, */
+/*												pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber, */
+/*												pxSegment->lDataLength, */
+/*												pxWindow->ulNextTxSequenceNumber - pxWindow->tx.ulFirstSequenceNumber, */
+/*												pxSegment->lStreamPos ) ); */
+/*						FreeRTOS_flush_logging(); */
+/*					} */
                 }
                 else
                 {
@@ -1593,7 +1651,125 @@
     #if ( ipconfigUSE_TCP_WIN == 1 )
 
 /**
- * @brief Get data that can be transmitted right now.
+ * @brief Three type of queues are used for transmission: priority, waiting, and
+ *        the normal TX queue of unsent data.  Message in the waiting queue will
+ *        be sent when their timer has expired.
+ * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+ */
+        static TCPSegment_t * pxTCPWindowTx_GetWaitQueue( TCPWindow_t * pxWindow )
+        {
+            TCPSegment_t * pxSegment = xTCPWindowPeekHead( &( pxWindow->xWaitQueue ) );
+
+            if( pxSegment != NULL )
+            {
+                /* Do check the timing. */
+                uint32_t ulMaxTime;
+
+                ulMaxTime = ( ( uint32_t ) 1U ) << pxSegment->u.bits.ucTransmitCount;
+                ulMaxTime *= ( uint32_t ) pxWindow->lSRTT;
+
+                if( ulTimerGetAge( &pxSegment->xTransmitTimer ) > ulMaxTime )
+                {
+                    /* A normal (non-fast) retransmission.  Move it from the
+                     * head of the waiting queue. */
+                    pxSegment = xTCPWindowGetHead( &( pxWindow->xWaitQueue ) );
+                    pxSegment->u.bits.ucDupAckCount = ( uint8_t ) pdFALSE_UNSIGNED;
+
+                    /* Some detailed logging. */
+                    if( ( xTCPWindowLoggingLevel != 0 ) && ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) ) )
+                    {
+                        FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u,%u]: WaitQueue %ld bytes for sequence number %lu (%lX)\n",
+                                                 pxWindow->usPeerPortNumber,
+                                                 pxWindow->usOurPortNumber,
+                                                 pxSegment->lDataLength,
+                                                 pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber,
+                                                 pxSegment->ulSequenceNumber ) );
+                        FreeRTOS_flush_logging();
+                    }
+                }
+                else
+                {
+                    pxSegment = NULL;
+                }
+            }
+
+            return pxSegment;
+        }
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
+
+/*-----------------------------------------------------------*/
+
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+
+/**
+ * @brief See if there is a transmission in the normal TX queue. It is the
+ *        first time these data are being sent. After sending they will move
+ *        the waiting queue.
+ * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+ * @param[in] ulWindowSize: The available space that the peer has in his
+ *                          reception window.
+ * @return Either a segment that has to be sent, or NULL.
+ */
+        static TCPSegment_t * pxTCPWindowTx_GetTXQueue( TCPWindow_t * pxWindow,
+                                                        uint32_t ulWindowSize )
+        {
+            TCPSegment_t * pxSegment = xTCPWindowPeekHead( &( pxWindow->xTxQueue ) );
+
+            if( pxSegment == NULL )
+            {
+                /* No segments queued. */
+            }
+            else if( ( pxWindow->u.bits.bSendFullSize != pdFALSE_UNSIGNED ) && ( pxSegment->lDataLength < pxSegment->lMaxLength ) )
+            {
+                /* A segment has been queued but the driver waits until it
+                 * has a full size of MSS. */
+                pxSegment = NULL;
+            }
+            else if( prvTCPWindowTxHasSpace( pxWindow, ulWindowSize ) == pdFALSE )
+            {
+                /* Peer has no more space at this moment. */
+                pxSegment = NULL;
+            }
+            else
+            {
+                /* pxSegment was just obtained with a peek function,
+                 * now remove it from of the Tx queue. */
+                pxSegment = xTCPWindowGetHead( &( pxWindow->xTxQueue ) );
+
+                /* Don't let pxHeadSegment point to this segment any more,
+                 * so no more data will be added. */
+                if( pxWindow->pxHeadSegment == pxSegment )
+                {
+                    pxWindow->pxHeadSegment = NULL;
+                }
+
+                /* pxWindow->tx.highest registers the highest sequence
+                 * number in our transmission window. */
+                pxWindow->tx.ulHighestSequenceNumber = pxSegment->ulSequenceNumber + ( ( uint32_t ) pxSegment->lDataLength );
+
+                /* ...and more detailed logging */
+                if( ( xTCPWindowLoggingLevel >= 2 ) && ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) ) )
+                {
+                    FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u,%u]: XmitQueue %ld bytes for sequence number %lu (ws %lu)\n",
+                                             pxWindow->usPeerPortNumber,
+                                             pxWindow->usOurPortNumber,
+                                             pxSegment->lDataLength,
+                                             pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber,
+                                             ulWindowSize ) );
+                    FreeRTOS_flush_logging();
+                }
+            }
+
+            return pxSegment;
+        }
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
+/*-----------------------------------------------------------*/
+
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+
+/**
+ * @brief Get data that can be transmitted right now. There are three types of
+ *        outstanding segments: Priority queue, Waiting queue, Normal TX queue.
  *
  * @param[in] pxWindow: The descriptor of the TCP sliding windows.
  * @param[in] ulWindowSize: The current size of the sliding RX window of the peer.
@@ -1606,9 +1782,7 @@
                                    int32_t * plPosition )
         {
             TCPSegment_t * pxSegment;
-            uint32_t ulMaxTime;
-            uint32_t ulReturn = ~0U;
-
+            uint32_t ulReturn = 0U;
 
             /* Fetches data to be sent-out now.
              *
@@ -1617,97 +1791,7 @@
             pxSegment = xTCPWindowGetHead( &( pxWindow->xPriorityQueue ) );
             pxWindow->ulOurSequenceNumber = pxWindow->tx.ulHighestSequenceNumber;
 
-            if( pxSegment == NULL )
-            {
-                /* Waiting messages: outstanding messages with a running timer
-                 * neither check peer's reception window size because these packets
-                 * have been sent earlier. */
-                pxSegment = xTCPWindowPeekHead( &( pxWindow->xWaitQueue ) );
-
-                if( pxSegment != NULL )
-                {
-                    /* Do check the timing. */
-                    ulMaxTime = ( ( uint32_t ) 1U ) << pxSegment->u.bits.ucTransmitCount;
-                    ulMaxTime *= ( uint32_t ) pxWindow->lSRTT;
-
-                    if( ulTimerGetAge( &pxSegment->xTransmitTimer ) > ulMaxTime )
-                    {
-                        /* A normal (non-fast) retransmission.  Move it from the
-                         * head of the waiting queue. */
-                        pxSegment = xTCPWindowGetHead( &( pxWindow->xWaitQueue ) );
-                        pxSegment->u.bits.ucDupAckCount = ( uint8_t ) pdFALSE_UNSIGNED;
-
-                        /* Some detailed logging. */
-                        if( ( xTCPWindowLoggingLevel != 0 ) && ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) ) )
-                        {
-                            FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u,%u]: WaitQueue %ld bytes for sequence number %lu (%lX)\n",
-                                                     pxWindow->usPeerPortNumber,
-                                                     pxWindow->usOurPortNumber,
-                                                     pxSegment->lDataLength,
-                                                     pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber,
-                                                     pxSegment->ulSequenceNumber ) );
-                            FreeRTOS_flush_logging();
-                        }
-                    }
-                    else
-                    {
-                        pxSegment = NULL;
-                    }
-                }
-
-                if( pxSegment == NULL )
-                {
-                    /* New messages: sent-out for the first time.  Check current
-                     * sliding window size of peer. */
-                    pxSegment = xTCPWindowPeekHead( &( pxWindow->xTxQueue ) );
-
-                    if( pxSegment == NULL )
-                    {
-                        /* No segments queued. */
-                        ulReturn = 0U;
-                    }
-                    else if( ( pxWindow->u.bits.bSendFullSize != pdFALSE_UNSIGNED ) && ( pxSegment->lDataLength < pxSegment->lMaxLength ) )
-                    {
-                        /* A segment has been queued but the driver waits until it
-                         * has a full size of MSS. */
-                        ulReturn = 0;
-                    }
-                    else if( prvTCPWindowTxHasSpace( pxWindow, ulWindowSize ) == pdFALSE )
-                    {
-                        /* Peer has no more space at this moment. */
-                        ulReturn = 0;
-                    }
-                    else
-                    {
-                        /* Move it out of the Tx queue. */
-                        pxSegment = xTCPWindowGetHead( &( pxWindow->xTxQueue ) );
-
-                        /* Don't let pxHeadSegment point to this segment any more,
-                         * so no more data will be added. */
-                        if( pxWindow->pxHeadSegment == pxSegment )
-                        {
-                            pxWindow->pxHeadSegment = NULL;
-                        }
-
-                        /* pxWindow->tx.highest registers the highest sequence
-                         * number in our transmission window. */
-                        pxWindow->tx.ulHighestSequenceNumber = pxSegment->ulSequenceNumber + ( ( uint32_t ) pxSegment->lDataLength );
-
-                        /* ...and more detailed logging */
-                        if( ( xTCPWindowLoggingLevel >= 2 ) && ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) ) )
-                        {
-                            FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u,%u]: XmitQueue %ld bytes for sequence number %lu (ws %lu)\n",
-                                                     pxWindow->usPeerPortNumber,
-                                                     pxWindow->usOurPortNumber,
-                                                     pxSegment->lDataLength,
-                                                     pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber,
-                                                     ulWindowSize ) );
-                            FreeRTOS_flush_logging();
-                        }
-                    }
-                }
-            }
-            else
+            if( pxSegment != NULL )
             {
                 /* There is a priority segment. It doesn't need any checking for
                  * space or timeouts. */
@@ -1722,12 +1806,24 @@
                     FreeRTOS_flush_logging();
                 }
             }
+            else
+            {
+                /* Waiting messages: outstanding messages with a running timer
+                 * neither check peer's reception window size because these packets
+                 * have been sent earlier. */
+                pxSegment = pxTCPWindowTx_GetWaitQueue( pxWindow );
+
+                if( pxSegment == NULL )
+                {
+                    /* New messages: sent-out for the first time.  Check current
+                     * sliding window size of peer. */
+                    pxSegment = pxTCPWindowTx_GetTXQueue( pxWindow, ulWindowSize );
+                }
+            }
 
             /* See if it has already been determined to return 0. */
-            if( ulReturn != 0U )
+            if( pxSegment != NULL )
             {
-                /* pxSegment is not NULL when ulReturn != 0U. */
-                configASSERT( pxSegment != NULL );
                 configASSERT( listLIST_ITEM_CONTAINER( &( pxSegment->xQueueItem ) ) == NULL );
 
                 /* Now that the segment will be transmitted, add it to the tail of
@@ -1743,18 +1839,16 @@
 
                 /* If there have been several retransmissions (4), decrease the
                  * size of the transmission window to at most 2 times MSS. */
-                if( pxSegment->u.bits.ucTransmitCount == MAX_TRANSMIT_COUNT_USING_LARGE_WINDOW )
+                if( ( pxSegment->u.bits.ucTransmitCount == MAX_TRANSMIT_COUNT_USING_LARGE_WINDOW ) &&
+                    ( pxWindow->xSize.ulTxWindowLength > ( 2U * ( ( uint32_t ) pxWindow->usMSS ) ) ) )
                 {
-                    if( pxWindow->xSize.ulTxWindowLength > ( 2U * ( ( uint32_t ) pxWindow->usMSS ) ) )
-                    {
-                        uint16_t usMSS2 = pxWindow->usMSS * 2U;
-                        FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u - %d]: Change Tx window: %lu -> %u\n",
-                                                 pxWindow->usPeerPortNumber,
-                                                 pxWindow->usOurPortNumber,
-                                                 pxWindow->xSize.ulTxWindowLength,
-                                                 usMSS2 ) );
-                        pxWindow->xSize.ulTxWindowLength = usMSS2;
-                    }
+                    uint16_t usMSS2 = pxWindow->usMSS * 2U;
+                    FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u - %d]: Change Tx window: %lu -> %u\n",
+                                             pxWindow->usPeerPortNumber,
+                                             pxWindow->usOurPortNumber,
+                                             pxWindow->xSize.ulTxWindowLength,
+                                             usMSS2 ) );
+                    pxWindow->xSize.ulTxWindowLength = usMSS2;
                 }
 
                 /* Clear the transmit timer. */
@@ -1772,6 +1866,42 @@
             return ulReturn;
         }
 
+
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
+/*-----------------------------------------------------------*/
+
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+
+/**
+ * @brief Data has been sent, and an ACK has been received. Make an estimate
+ *        of the round-trip time, and calculate the new timeout for transmissions.
+ *        More explanation in a comment here below.
+ *
+ * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+ * @param[in] pxSegment: The segment that was just acknowledged.
+ */
+        static void prvTCPWindowTxCheckAck_CalcSRTT( TCPWindow_t * pxWindow,
+                                                     TCPSegment_t * pxSegment )
+        {
+            int32_t mS = ( int32_t ) ulTimerGetAge( &( pxSegment->xTransmitTimer ) );
+
+            if( pxWindow->lSRTT >= mS )
+            {
+                /* RTT becomes smaller: adapt slowly. */
+                pxWindow->lSRTT = ( ( winSRTT_DECREMENT_NEW * mS ) + ( winSRTT_DECREMENT_CURRENT * pxWindow->lSRTT ) ) / ( winSRTT_DECREMENT_NEW + winSRTT_DECREMENT_CURRENT );
+            }
+            else
+            {
+                /* RTT becomes larger: adapt quicker */
+                pxWindow->lSRTT = ( ( winSRTT_INCREMENT_NEW * mS ) + ( winSRTT_INCREMENT_CURRENT * pxWindow->lSRTT ) ) / ( winSRTT_INCREMENT_NEW + winSRTT_INCREMENT_CURRENT );
+            }
+
+            /* Cap to the minimum of 50ms. */
+            if( pxWindow->lSRTT < winSRTT_CAP_mS )
+            {
+                pxWindow->lSRTT = winSRTT_CAP_mS;
+            }
+        }
 
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
@@ -1867,7 +1997,7 @@
                                                          ulLast - pxWindow->tx.ulFirstSequenceNumber,
                                                          ulFirstSeq, ulFirstSeq + ulDataLength ) );
                             }
-                        #endif /* ipconfigHAS_DEBUG_PRINTF */
+                        #endif /* ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
                         break;
                     }
 
@@ -1878,24 +2008,7 @@
                      * first time and if this is the last ACK'd segment in a range. */
                     if( ( pxSegment->u.bits.ucTransmitCount == 1U ) && ( ( pxSegment->ulSequenceNumber + ulDataLength ) == ulLast ) )
                     {
-                        int32_t mS = ( int32_t ) ulTimerGetAge( &( pxSegment->xTransmitTimer ) );
-
-                        if( pxWindow->lSRTT >= mS )
-                        {
-                            /* RTT becomes smaller: adapt slowly. */
-                            pxWindow->lSRTT = ( ( winSRTT_DECREMENT_NEW * mS ) + ( winSRTT_DECREMENT_CURRENT * pxWindow->lSRTT ) ) / ( winSRTT_DECREMENT_NEW + winSRTT_DECREMENT_CURRENT );
-                        }
-                        else
-                        {
-                            /* RTT becomes larger: adapt quicker */
-                            pxWindow->lSRTT = ( ( winSRTT_INCREMENT_NEW * mS ) + ( winSRTT_INCREMENT_CURRENT * pxWindow->lSRTT ) ) / ( winSRTT_INCREMENT_NEW + winSRTT_INCREMENT_CURRENT );
-                        }
-
-                        /* Cap to the minimum of 50ms. */
-                        if( pxWindow->lSRTT < winSRTT_CAP_mS )
-                        {
-                            pxWindow->lSRTT = winSRTT_CAP_mS;
-                        }
+                        prvTCPWindowTxCheckAck_CalcSRTT( pxWindow, pxSegment );
                     }
 
                     /* Unlink it from the 3 queues, but do not destroy it (yet). */
@@ -2093,19 +2206,22 @@
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
-/*
- #####   #                      #####   ####  ######
- # # #   #                      # # #  #    #  #    #
- #                              #   #     #  #    #
- #   ###   #####  #    #        #   #        #    #
- #     #   #    # #    #        #   #        #####
- #     #   #    # #    # ####   #   #        #
- #     #   #    # #    #        #   #     #  #
- #     #   #    #  ####         #    #    #  #
- #### ##### #    #     #        ####   ####  ####
- #
- ###
- */
+/*=============================================================================
+ *
+ *       #####   #                      #####   ####  ######
+ *       # # #   #                      # # #  #    #  #    #
+ *         #                              #   #     #  #    #
+ *         #   ###   #####  #    #        #   #        #    #
+ *         #     #   #    # #    #        #   #        #####
+ *         #     #   #    # #    # ####   #   #        #
+ *         #     #   #    # #    #        #   #     #  #
+ *         #     #   #    #  ####         #    #    #  #
+ *        #### ##### #    #     #        ####   ####  ####
+ *                             #
+ *                          ###
+ *         Tiny-TCP: TCP without sliding windows.
+ *
+ *=============================================================================*/
     #if ( ipconfigUSE_TCP_WIN == 0 )
 
 /**
