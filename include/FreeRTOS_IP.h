@@ -49,6 +49,8 @@
     #include "FreeRTOSIPConfig.h"
     #include "FreeRTOSIPConfigDefaults.h"
     #include "IPTraceMacroDefaults.h"
+    #include "list.h"
+    #include "task.h"
 
     #define ipSIZE_OF_IPv4_ADDRESS    4U
     #define ipSIZE_OF_IPv6_ADDRESS    16U

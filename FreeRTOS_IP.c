@@ -2608,6 +2608,7 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
              * to have incoming messages checked earlier, by the network card driver.
              * This method may decrease the usage of sparse network buffers. */
             uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+            uint32_t ulSourceIPAddress = pxIPHeader->ulSourceIPAddress;
 
             /* Ensure that the incoming packet is not fragmented (fragmentation
              * was only supported for outgoing packets, and is not currently
@@ -2637,6 +2638,11 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
             {
                 /* Packet is not for this node, release it */
                 eReturn = eReleaseBuffer;
+            }
+            else if( ( ulSourceIPAddress & 0xff ) == 0xff )
+            {
+            	/* Source is a broadcast address. */
+            	eReturn = eReleaseBuffer;
             }
             else
             {
@@ -2916,14 +2922,14 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             uxHeaderLength = ipSIZE_OF_IPv6_HEADER;
             ucProtocol = pxIPHeader_IPv6->ucNextHeader;
 
-            /* If this is a hop-by-hop option (See RFC 8200 for more details) */
-            if( ucProtocol == 0 )
+            /* If this is an option (See RFC 8200 for more details) */
+            while( ( ucProtocol != ipPROTOCOL_ICMP ) && ( ucProtocol != ipPROTOCOL_ICMP_IPv6 ) && ( ucProtocol != ipPROTOCOL_UDP ) && ( ucProtocol != ipPROTOCOL_TCP ) )
             {
-                /* Get the location of start of Hop-By-Hop option. (Just after IP header ends) */
+                /* Get the location of start of the option. (Just after IP header ends) */
                 uint8_t * temp = &( pxIPHeader_IPv6->xDestinationAddress );
                 temp += sizeof( pxIPHeader_IPv6->xDestinationAddress );
 
-                /* Get the protocol from the hop-by-hop option. */
+                /* Get the next protocol from the option. */
                 ucProtocol = * temp;
                 /* Put it in the IP Header for later use. */
                 pxIPHeader_IPv6->ucNextHeader = ucProtocol;
@@ -2933,7 +2939,16 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 lengthOfOption = lengthOfOption * 16;
 
                 /* Copy remaining data over the hop-by-hop option. We don't need the hop-by-hop option anymore. */
-                memmove( temp, temp + lengthOfOption, pxNetworkBuffer->xDataLength - 54 - lengthOfOption );
+                if( pxNetworkBuffer->xDataLength - 54 - lengthOfOption >= 0 )
+                {
+                	memmove( temp, temp + lengthOfOption, pxNetworkBuffer->xDataLength - 54 - lengthOfOption );
+                }
+                else
+                {
+                	/* Something is wrong. */
+                	pxNetworkBuffer->xDataLength = 0;
+                	break;
+                }
 
                 /* Set the length of the network buffer after removal of hop-by-hop option. */
                 pxNetworkBuffer->xDataLength -= lengthOfOption;

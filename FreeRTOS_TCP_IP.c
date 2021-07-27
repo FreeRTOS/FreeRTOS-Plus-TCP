@@ -54,7 +54,7 @@
 #include "FreeRTOS_Routing.h"
 #include "FreeRTOS_ND.h"
 
-
+#define ipconfigUSE_IPv6  1
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
@@ -424,6 +424,42 @@
         return xResult;
     }
 /*-----------------------------------------------------------*/
+
+    /**
+     * @brief Check whether the address is unicast of multicast/broadcast.
+     *
+     * @param[in] ulIPAddress: The IP address to be checked (in 32-bit format).
+     *
+     * @return pdTRUE if the IP address is either multicast or broadcast. pdFALSE
+     *         otherwise.
+     */
+        BaseType_t xIsUnicastAddress( uint32_t ulIPAddress )
+        {
+            BaseType_t xResult = pdTRUE;
+
+            if( ( FreeRTOS_ntohl( ulIPAddress ) & 0xffU ) == 0xffU )
+            {
+                /* This is a broadcast address x.x.x.255. */
+                xResult = pdFALSE;
+            }
+            else if( xIsIPv4Multicast( ulIPAddress ) != pdFALSE )
+            {
+                /* This is a multicast address. */
+                xResult = pdFALSE;
+            }
+            else if( ulIPAddress == 0 )
+            {
+            	/* This is a non-standard broadcast. */
+            	xResult = pdFALSE;
+            }
+            else
+            {
+            	/* This IP address is not multicast. */
+            }
+
+            return xResult;
+        }
+    /*-----------------------------------------------------------*/
 
     #if ( ipconfigTCP_HANG_PROTECTION == 1 )
 
@@ -4096,12 +4132,22 @@
         uint32_t ulInitialSequenceNumber;
         NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
 
-        /* Assume that a new Initial Sequence Number will be required. Request
-         * it now in order to fail out if necessary. */
-        ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( ( pxEndPoint != NULL ) ? pxEndPoint->ipv4_settings.ulIPAddress : 0U,
-                                                                      pxSocket->usLocalPort,
-                                                                      pxTCPPacket->xIPHeader.ulSourceIPAddress,
-                                                                      pxTCPPacket->xTCPHeader.usSourcePort );
+        /* Silently discard a SYN packet which was sent to the broadcast address
+         * (x.x.x.255) or a multicast address. */
+        if( ( pxTCPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) || ( xIsUnicastAddress( pxTCPPacket->xIPHeader.ulDestinationIPAddress ) != pdFALSE ) )
+        {
+			/* Assume that a new Initial Sequence Number will be required. Request
+			 * it now in order to fail out if necessary. */
+			ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( ( pxEndPoint != NULL ) ? pxEndPoint->ipv4_settings.ulIPAddress : 0U,
+																		  pxSocket->usLocalPort,
+																		  pxTCPPacket->xIPHeader.ulSourceIPAddress,
+																		  pxTCPPacket->xTCPHeader.usSourcePort );
+        }
+        else
+        {
+        	/* Set the sequence number to 0 to avoid further processing. */
+        	ulInitialSequenceNumber = 0;
+        }
 
         /* A pure SYN (without ACK) has come in, create a new socket to answer
          * it. */
@@ -4315,6 +4361,8 @@
                                  pxSocket->u.xTCP.usChildCount,
                                  pxSocket->u.xTCP.usBacklog,
                                  ( pxSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren" ) );
+
+        FreeRTOS_debug_printf( ( "Address %08x:%d\n", xAddress.sin_addr, xAddress.sin_port ) );
 
         /* Now bind the child socket to the same port as the listening socket. */
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )

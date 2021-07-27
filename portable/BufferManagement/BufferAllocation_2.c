@@ -363,6 +363,9 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
     * MEMORY.  For example, heap_2 must not be used, heap_4 can be used. */
     vReleaseNetworkBuffer( pxNetworkBuffer->pucEthernetBuffer );
     pxNetworkBuffer->pucEthernetBuffer = NULL;
+    static int a =0;
+    a++;
+    FreeRTOS_printf( ( "Released %d\n", a ) );
 
     taskENTER_CRITICAL();
     {

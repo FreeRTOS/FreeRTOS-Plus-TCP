@@ -1685,6 +1685,8 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
     List_t * pxSocketList;
     struct freertos_sockaddr * pxAddress = pxBindAddress;
 
+    FreeRTOS_printf(( "Bind called\n" ));
+
     #if ( ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND == 1 )
         struct freertos_sockaddr xAddress;
     #endif /* ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND */
