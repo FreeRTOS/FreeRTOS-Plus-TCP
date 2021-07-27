@@ -445,6 +445,15 @@
             /* This is a multicast address. */
             xResult = pdFALSE;
         }
+        else if( ulIPAddress == 0 )
+        {
+            /* This is a non-standard broadcast address. */
+            xResult = pdFALSE;
+        }
+        else
+        {
+            /* This is a unicast address. */
+        }
 
         return xResult;
     }
