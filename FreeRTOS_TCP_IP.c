@@ -3657,6 +3657,8 @@
                         ( void ) memcpy( ( void * ) ( &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ uxOffset ] ) ),
                                          ( const void * ) ( &( pxNetworkBuffer->pucEthernetBuffer[ uxOffset ] ) ),
                                          ipSIZE_OF_TCP_HEADER );
+                        /* Clear flags that are set by the peer, and set the ACK flag. */
+                        pxSocket->u.xTCP.xPacket.u.ucLastPacket[ uxOffset + ipTCP_FLAGS_OFFSET ] = tcpTCP_FLAG_ACK;
                     }
                 }
             }
