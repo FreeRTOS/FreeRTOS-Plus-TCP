@@ -88,6 +88,53 @@
         xPrivateStorage; /**< In order to avoid extra calls to malloc, the necessary space is reserved 'statically'. */
     };
 
+/* Below #include just tells the compiler to pack the structure.
+ * It is included in to make the code more readable */
+    #include "pack_struct_start.h"
+    struct xDNSMessage
+    {
+        uint16_t usIdentifier;    /**< Query identifier. Used to match up replies to outstanding queries. */
+        uint16_t usFlags;         /**< Flags. */
+        uint16_t usQuestions;     /**< Number of questions asked in this query. */
+        uint16_t usAnswers;       /**< Number of answers being provided in this query. */
+        uint16_t usAuthorityRRs;  /**< Authoritative name server resource records. */
+        uint16_t usAdditionalRRs; /**< Additional resource records.*/
+    }
+    #include "pack_struct_end.h"
+    typedef struct xDNSMessage DNSMessage_t;
+
+/* @brief A struct with a set of variables that are shared among the helper functions
+ *        for the function 'prvParseDNSReply()'. For internal use only.
+ */
+	typedef struct xParseSet
+	{
+		DNSMessage_t * pxDNSMessageHeader; /**< A pointer to the UDP payload buffer where the DNS message is stored. */
+		uint16_t usQuestions;              /**< The number of DNS questions that were asked. */
+		uint8_t * pucByte;                 /**< A pointer that is used while parsing. */
+		size_t uxSourceBytesRemaining;     /**< As pucByte is incremented, 'uxSourceBytesRemaining' will be decremented. */
+		uint16_t usType;                   /**< The type of address, recognised are dnsTYPE_A_HOST ( Ipv4 ) and
+	                                        *   dnsTYPE_AAAA_HOST ( IPv6 ). */
+		uint32_t ulIPAddress;              /**< The IPv4 address found. In an IPv6 look-up, store a non-zero value when
+	                                        *   an IPv6 address was found. */
+		size_t uxAddressLength;            /**< The size of the address, either ipSIZE_OF_IPv4_ADDRESS or
+	                                        *   ipSIZE_OF_IPv6_ADDRESS */
+		uint16_t usNumARecordsStored;      /**< The number of A-records stored during a look-up. */
+		#if ( ipconfigUSE_LLMNR == 1 )
+			uint16_t usClass;              /**< Only the value 'dnsCLASS_IN' is recognised, which stands for "Internet". */
+			char * pcRequestedName;        /**< A pointer to the full name of the host being looked up. */
+		#endif
+		#if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+			BaseType_t xDoStore;                          /**< Becomes true when a DNS reply was requested by this device,
+	                                                       *   i.e. it has a matching request ID. */
+			char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ]; /**< A copy of the name that is mentioned in the questions. */
+		#endif
+		struct freertos_addrinfo * pxLastAddress;
+		struct freertos_addrinfo ** ppxLastAddress;
+	} ParseSet_t;
+
+	extern void show_single_addressinfo( const char *pcFormat, const struct freertos_addrinfo * pxAddress );
+	extern void show_addressinfo( const struct freertos_addrinfo * pxAddress );
+
 /*
  * The following function should be provided by the user and return true if it
  * matches the domain name.
