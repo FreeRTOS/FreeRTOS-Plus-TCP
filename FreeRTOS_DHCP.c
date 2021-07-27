@@ -264,6 +264,22 @@
         static void prvPrepareLinkLayerIPLookUp( NetworkEndPoint_t * pxEndPoint );
     #endif
 
+    static BaseType_t xHandleWaitingOffer( NetworkEndPoint_t * pxEndPoint,
+                                           BaseType_t xDoCheck );
+
+    static void vHandleWaitingAcknowledge( NetworkEndPoint_t * pxEndPoint,
+                                           BaseType_t xDoCheck );
+
+    static BaseType_t xHandleWaitingFirstDiscover( NetworkEndPoint_t * pxEndPoint );
+
+    static void prvHandleWaitingeLeasedAddress( NetworkEndPoint_t * pxEndPoint );
+
+    static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
+                                      ProcessSet_t * pxSet,
+                                      BaseType_t xExpectedMessageType );
+
+    static BaseType_t xProcessCheckOption( ProcessSet_t * pxSet );
+
 /*-----------------------------------------------------------*/
 
 /**
