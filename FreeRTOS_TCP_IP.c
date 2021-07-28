@@ -445,7 +445,7 @@
             /* This is a multicast address. */
             xResult = pdFALSE;
         }
-        else if( ulIPAddress == 0 )
+        else if( ulIPAddress == 0U )
         {
             /* This is a non-standard broadcast address. */
             xResult = pdFALSE;
