@@ -245,15 +245,15 @@
     #include "pack_struct_start.h"
     struct xTCP_HEADER
     {
-		uint16_t usSourcePort;                       /**< The Source port                       0 +  2 =  2 */
-		uint16_t usDestinationPort;                  /**< The destination port                  2 +  2 =  4 */
-		uint32_t ulSequenceNumber;                   /**< The Sequence number                   4 +  4 =  8 */
-		uint32_t ulAckNr;                            /**< The acknowledgement number            8 +  4 = 12 */
-		uint8_t ucTCPOffset;                         /**< The value of TCP offset              12 +  1 = 13 */
-		uint8_t ucTCPFlags;                          /**< The TCP-flags field                  13 +  1 = 14 */
-		uint16_t usWindow;                           /**< The size of the receive window       14 +  2 = 15 */
-		uint16_t usChecksum;                         /**< The checksum of the header           15 +  2 = 18 */
-		uint16_t usUrgent;                           /**< Pointer to the last urgent data byte 18 +  2 = 20 */
+        uint16_t usSourcePort;                       /**< The Source port                       0 +  2 =  2 */
+        uint16_t usDestinationPort;                  /**< The destination port                  2 +  2 =  4 */
+        uint32_t ulSequenceNumber;                   /**< The Sequence number                   4 +  4 =  8 */
+        uint32_t ulAckNr;                            /**< The acknowledgement number            8 +  4 = 12 */
+        uint8_t ucTCPOffset;                         /**< The value of TCP offset              12 +  1 = 13 */
+        uint8_t ucTCPFlags;                          /**< The TCP-flags field                  13 +  1 = 14 */
+        uint16_t usWindow;                           /**< The size of the receive window       14 +  2 = 15 */
+        uint16_t usChecksum;                         /**< The checksum of the header           15 +  2 = 18 */
+        uint16_t usUrgent;                           /**< Pointer to the last urgent data byte 18 +  2 = 20 */
         #if ipconfigUSE_TCP == 1
             uint8_t ucOptdata[ ipSIZE_TCP_OPTIONS ]; /**< The options + 12 = 32 */
         #endif
