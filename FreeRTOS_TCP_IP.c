@@ -77,19 +77,19 @@
 /*
  * A few values of the TCP options:
  */
-    #define tcpTCP_OPT_END                        0U /**< End of TCP options list. */
-    #define tcpTCP_OPT_NOOP                       1U /**< "No-operation" TCP option. */
-    #define tcpTCP_OPT_MSS                        2U /**< Maximum segment size TCP option. */
-    #define tcpTCP_OPT_WSOPT                      3U /**< TCP Window Scale Option (3-byte long). */
-    #define tcpTCP_OPT_SACK_P                     4U /**< Advertise that SACK is permitted. */
-    #define tcpTCP_OPT_SACK_A                     5U /**< SACK option with first/last. */
-    #define tcpTCP_OPT_TIMESTAMP                  8U /**< Time-stamp option. */
+    #define tcpTCP_OPT_END              0U           /**< End of TCP options list. */
+    #define tcpTCP_OPT_NOOP             1U           /**< "No-operation" TCP option. */
+    #define tcpTCP_OPT_MSS              2U           /**< Maximum segment size TCP option. */
+    #define tcpTCP_OPT_WSOPT            3U           /**< TCP Window Scale Option (3-byte long). */
+    #define tcpTCP_OPT_SACK_P           4U           /**< Advertise that SACK is permitted. */
+    #define tcpTCP_OPT_SACK_A           5U           /**< SACK option with first/last. */
+    #define tcpTCP_OPT_TIMESTAMP        8U           /**< Time-stamp option. */
 
 
-    #define tcpTCP_OPT_MSS_LEN                    4U /**< Length of TCP MSS option. */
-    #define tcpTCP_OPT_WSOPT_LEN                  3U /**< Length of TCP WSOPT option. */
+    #define tcpTCP_OPT_MSS_LEN          4U           /**< Length of TCP MSS option. */
+    #define tcpTCP_OPT_WSOPT_LEN        3U           /**< Length of TCP WSOPT option. */
 
-    #define tcpTCP_OPT_TIMESTAMP_LEN              10 /**< fixed length of the time-stamp option. */
+    #define tcpTCP_OPT_TIMESTAMP_LEN    10           /**< fixed length of the time-stamp option. */
 
 /** @brief
  * The macro tcpNOW_CONNECTED() is use to determine if the connection makes a
@@ -3041,7 +3041,7 @@
         #if ipconfigUSE_TCP_WIN == 1
             {
                 lMinLength = ( ( int32_t ) 2 ) * ( ( int32_t ) pxSocket->u.xTCP.usCurMSS );
-                
+
                 /* In case we're receiving data continuously, we might postpone sending
                  * an ACK to gain performance. */
                 /* lint e9007 is OK because 'uxIPHeaderSizeSocket()' has no side-effects. */
