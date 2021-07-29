@@ -89,8 +89,9 @@
              pxEndPoint != NULL;
              pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
         {
+            /* Check if it has the link-local prefix FE80::/10 */
             if( ( pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 0 ] == 0xfeU ) &&
-                ( pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 1 ] == 0x80U ) )
+                ( ( pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 1 ] & 0xc0U ) == 0x80U ) )
             {
                 ( void ) memcpy( pxAddress->ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 xResult = pdPASS;
