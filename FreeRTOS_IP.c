@@ -992,6 +992,9 @@ static void prvCheckNetworkTimers( void )
                 xProcessedTCPMessage = 0;
             }
         }
+
+        /* See if any socket was planned to be closed. */
+        vSocketCloseNextTime( NULL );
     #endif /* ipconfigUSE_TCP == 1 */
 
     /* Is it time to trigger the repeated NetworkDown events? */

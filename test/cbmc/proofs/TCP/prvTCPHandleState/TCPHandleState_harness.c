@@ -43,6 +43,13 @@
 BaseType_t publicTCPHandleState( FreeRTOS_Socket_t * pxSocket,
                                  NetworkBufferDescriptor_t ** ppxNetworkBuffer );
 
+/* The function under test requires that it be called from IP-task. Thus, the below stub makes sure
+ * that a pdTRUE is returned meaning that the context is that of the IP-Task. */
+BaseType_t xIsCallingFromIPTask( void )
+{
+    return pdTRUE;
+}
+
 void harness()
 {
     FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
