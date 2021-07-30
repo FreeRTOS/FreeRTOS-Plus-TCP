@@ -91,11 +91,6 @@
 
     #define tcpTCP_OPT_TIMESTAMP_LEN              10 /**< fixed length of the time-stamp option. */
 
-    #ifndef ipconfigTCP_ACK_EARLIER_PACKET
-        #define ipconfigTCP_ACK_EARLIER_PACKET    1   /**< Acknowledge an earlier packet. */
-    #endif
-
-
 /** @brief
  * The macro tcpNOW_CONNECTED() is use to determine if the connection makes a
  * transition from connected to non-connected and vice versa.
@@ -3035,11 +3030,7 @@
         uint32_t ulRxBufferSpace;
 
         #if ( ipconfigUSE_TCP_WIN == 1 )
-            #if ( ipconfigTCP_ACK_EARLIER_PACKET == 0 )
-                const int32_t lMinLength = 0;
-            #else
-                int32_t lMinLength;
-            #endif
+            int32_t lMinLength;
         #endif
 
         /* Set the time-out field, so that we'll be called by the IP-task in case no
@@ -3049,12 +3040,8 @@
 
         #if ipconfigUSE_TCP_WIN == 1
             {
-                #if ( ipconfigTCP_ACK_EARLIER_PACKET != 0 )
-                    {
-                        lMinLength = ( ( int32_t ) 2 ) * ( ( int32_t ) pxSocket->u.xTCP.usCurMSS );
-                    }
-                #endif /* ipconfigTCP_ACK_EARLIER_PACKET */
-
+                lMinLength = ( ( int32_t ) 2 ) * ( ( int32_t ) pxSocket->u.xTCP.usCurMSS );
+                
                 /* In case we're receiving data continuously, we might postpone sending
                  * an ACK to gain performance. */
                 /* lint e9007 is OK because 'uxIPHeaderSizeSocket()' has no side-effects. */
