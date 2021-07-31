@@ -2905,7 +2905,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                                     NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
-    eFrameProcessingResult_t eReturn;
+    eFrameProcessingResult_t eReturn = eProcessBuffer;
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
     #if ( ipconfigUSE_IPv6 != 0 )
@@ -2923,7 +2923,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             ucProtocol = pxIPHeader_IPv6->ucNextHeader;
 
             /* If this is an option (See RFC 8200 for more details) */
-            while( ( ucProtocol != ipPROTOCOL_ICMP ) && ( ucProtocol != ipPROTOCOL_ICMP_IPv6 ) && ( ucProtocol != ipPROTOCOL_UDP ) && ( ucProtocol != ipPROTOCOL_TCP ) )
+            while( ( ucProtocol < 144 ) && ( ucProtocol != ipPROTOCOL_ICMP ) && ( ucProtocol != ipPROTOCOL_ICMP_IPv6 ) && ( ucProtocol != ipPROTOCOL_UDP ) && ( ucProtocol != ipPROTOCOL_TCP ) )
             {
                 /* Get the location of start of the option. (Just after IP header ends) */
                 uint8_t * temp = &( pxIPHeader_IPv6->xDestinationAddress );
@@ -2931,22 +2931,31 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
                 /* Get the next protocol from the option. */
                 ucProtocol = * temp;
+
                 /* Put it in the IP Header for later use. */
                 pxIPHeader_IPv6->ucNextHeader = ucProtocol;
 
                 /* Get the length of the hop-by-hop option */
-                size_t lengthOfOption = *( temp + 1 );
+                int32_t lengthOfOption = *( temp + 1 );
                 lengthOfOption = lengthOfOption * 16;
 
                 /* Copy remaining data over the hop-by-hop option. We don't need the hop-by-hop option anymore. */
-                if( pxNetworkBuffer->xDataLength - 54 - lengthOfOption >= 0 )
+                if( ( ( int32_t ) pxNetworkBuffer->xDataLength ) - ( ( int32_t ) 54 ) - lengthOfOption >= 0 )
                 {
+                	if( lengthOfOption == 0 )
+                	{
+                		/* Something is wrong. */
+                		pxNetworkBuffer->xDataLength = 0;
+                		eReturn = eReleaseBuffer;
+                		break;
+                	}
                 	memmove( temp, temp + lengthOfOption, pxNetworkBuffer->xDataLength - 54 - lengthOfOption );
                 }
                 else
                 {
                 	/* Something is wrong. */
                 	pxNetworkBuffer->xDataLength = 0;
+                	eReturn = eReleaseBuffer;
                 	break;
                 }
 
@@ -2955,10 +2964,15 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 /* Also set the new payload length - after removal of hop-to-hop option. */
                 pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( FreeRTOS_ntohs( pxIPHeader_IPv6->usPayloadLength ) - lengthOfOption );
             }
-            eReturn = prvAllowIPPacketIPv6( ipCAST_PTR_TO_TYPE_PTR( IPHeader_IPv6_t, &( pxIPPacket->xIPHeader ) ), pxNetworkBuffer, uxHeaderLength );
+
+            if( eReturn != eReleaseBuffer )
+            {
+            	eReturn = prvAllowIPPacketIPv6( ipCAST_PTR_TO_TYPE_PTR( IPHeader_IPv6_t, &( pxIPPacket->xIPHeader ) ), pxNetworkBuffer, uxHeaderLength );
+            }
 
             /* Check whether the length given in the IPv6 header and the link-layer length make sense. */
-            if( FreeRTOS_ntohs( pxIPHeader_IPv6->usPayloadLength ) != ( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + sizeof( * pxIPHeader_IPv6 ) ) ) )
+            if( ( eReturn != eReleaseBuffer ) &&
+            	( FreeRTOS_ntohs( pxIPHeader_IPv6->usPayloadLength ) != ( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + sizeof( * pxIPHeader_IPv6 ) ) ) ) )
             {
                 eReturn = eReleaseBuffer;
             }

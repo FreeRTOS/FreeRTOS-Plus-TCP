@@ -622,7 +622,7 @@
 #endif
 
 #ifndef ipconfigUSE_IPv6
-    #define ipconfigUSE_IPv6    0
+    #define ipconfigUSE_IPv6    1
 #endif
 
 #ifndef ipconfigUSE_RA

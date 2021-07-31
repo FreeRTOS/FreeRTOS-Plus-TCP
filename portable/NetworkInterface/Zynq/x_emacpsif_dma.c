@@ -541,6 +541,12 @@ int emacps_check_rx( xemacpsif_s * xemacpsif,
             pxBuffer->pxInterface = pxInterface;
             pxBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxInterface, pxBuffer->pucEthernetBuffer );
 
+            if( pxBuffer->pxEndPoint == NULL )
+            {
+            	FreeRTOS_printf( ( "Endpoint NULL" ) );
+            	vReleaseNetworkBufferAndDescriptor( pxBuffer );
+            	return 0;
+            }
             /* Just avoiding to use or refer to the same buffer again */
             pxDMA_rx_buffers[ xEMACIndex ][ rxHead ] = pxNewBuffer;
 
