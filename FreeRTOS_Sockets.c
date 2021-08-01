@@ -223,6 +223,8 @@ static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
 
 static uint8_t ucASCIIToHex( char cChar );
 
+
+/** @brief Converts a hex value to a readable hex character, e.g. 14 becomes 'e'. */
 static char cHexToChar( unsigned short usValue );
 
 /** @brief Converts a hex value to a readable hex character, *
@@ -413,16 +415,22 @@ static int32_t prvSendTo_ActualSend( FreeRTOS_Socket_t * pxSocket,
                                      const struct freertos_sockaddr * pxDestinationAddress,
                                      size_t uxPayloadOffset );
 
+/** @brief Called by pxTCPSocketLookup(), this function will check if a socket
+ *         is connected to a remote IP-address. It will be called from a loop
+ *         iterating through all sockets. */
 static FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
                                                    IPv6_Address_t * pxAddress_IPv6,
                                                    uint32_t ulRemoteIP );
 
+/** @brief The application can attach callback functions to a socket. In this function,
+ *         called by lTCPAddRxdata(), the TCP reception handler will be called. */
 static void vTCPAddRxdata_Callback( FreeRTOS_Socket_t * pxSocket,
                                     const uint8_t * pcData,
                                     uint32_t ulByteCount );
 
 static void vTCPAddRxdata_Stored( FreeRTOS_Socket_t * pxSocket );
 
+/** @brief A helper function of vTCPNetStat(), see below. */
 static void vTCPNetStat_TCPSocket( FreeRTOS_Socket_t * pxSocket );
 
 /*-----------------------------------------------------------*/
@@ -1149,8 +1157,12 @@ static NetworkBufferDescriptor_t * prvRecvFromWaitForPacket( FreeRTOS_Socket_t c
  * @brief Called by FreeRTOS_recvfrom(). it will copy the received data
  *        or just a pointer to the received data in case of zero-copy,
  *        to the buffer provided by the caller.
- * @param[in]
- * @return
+ * @param[in] pucEthernetBuffer: The packet that was received.
+ * @param[in] pvBuffer: The user-supplied buffer.
+ * @param[in] uxBufferLength: The size of the user-supplied buffer.
+ * @param[in] xFlags: Only 'FREERTOS_ZERO_COPY' will be tested.
+ * @param[in] lDataLength: The number of bytes in the UDP payload.
+ * @return The number of bytes copied to the use buffer.
  */
 static int32_t prvRecvFrom_CopyPacket( uint8_t * pucEthernetBuffer,
                                        void * pvBuffer,
