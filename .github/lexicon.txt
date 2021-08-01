@@ -1452,8 +1452,8 @@ uxipheadersizesocket
 uxlast
 uxleft
 uxlength
-uxlittlespace
 uxlistremove
+uxlittlespace
 uxlocalport
 uxlower
 uxmax
@@ -1484,6 +1484,7 @@ uxrxwinsize
 uxschedulersuspended
 uxsecs
 uxsize
+uxsocketsize
 uxsourcelen
 uxstreambufferadd
 uxstreambufferget

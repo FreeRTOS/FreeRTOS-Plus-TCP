@@ -5360,7 +5360,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 /**
  * @brief The application can attach callback functions to a socket. In this function,
  *        called by lTCPAddRxdata(), the TCP reception handler will be called.
- * @param[in] pxSocket: The scoket which has received TCP data.
+ * @param[in] pxSocket: The socket which has received TCP data.
  * @param[in] pcData: The actual data received.
  * @param[in] ulByteCount: The number of bytes that were received.
  */
