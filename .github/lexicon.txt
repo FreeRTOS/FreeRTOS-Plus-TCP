@@ -389,6 +389,7 @@ https
 huc
 hw
 hz
+ia
 iacr
 iadhr
 iadlr
@@ -603,6 +604,7 @@ nobroadcast
 noevent
 nondet
 noninfringement
+nontemporaryaddress
 nop
 ntoh
 ntp
@@ -1452,8 +1454,8 @@ uxipheadersizesocket
 uxlast
 uxleft
 uxlength
-uxlittlespace
 uxlistremove
+uxlittlespace
 uxlocalport
 uxlower
 uxmax
