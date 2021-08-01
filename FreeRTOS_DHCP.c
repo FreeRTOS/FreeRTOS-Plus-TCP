@@ -647,7 +647,7 @@
  * @brief Called by vDHCPProcessEndPoint(), this function handles the state 'eWaitingSendFirstDiscover'.
  *        If will send a DISCOVER message to a DHCP server, and move to the next status 'eWaitingOffer'.
  * @param[in] pxEndPoint: The end-point that is getting an IP-address from a DHCP server
- * @return xGivingUp: whem pdTRUE, there was a fatal error and the process can not continue;
+ * @return xGivingUp: when pdTRUE, there was a fatal error and the process can not continue;
  */
     static BaseType_t xHandleWaitingFirstDiscover( NetworkEndPoint_t * pxEndPoint )
     {
