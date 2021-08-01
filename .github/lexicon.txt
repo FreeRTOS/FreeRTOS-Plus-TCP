@@ -660,6 +660,7 @@ pcname
 pcnames
 pcnetworkbuffer
 pcremoteip
+pcrequestedname
 pcreturn
 pcs
 pcservername
@@ -1452,8 +1453,8 @@ uxipheadersizesocket
 uxlast
 uxleft
 uxlength
-uxlittlespace
 uxlistremove
+uxlittlespace
 uxlocalport
 uxlower
 uxmax
@@ -1484,6 +1485,7 @@ uxrxwinsize
 uxschedulersuspended
 uxsecs
 uxsize
+uxsourcebytesremaining
 uxsourcelen
 uxstreambufferadd
 uxstreambufferget
@@ -1579,6 +1581,7 @@ xarpheader
 xarppacket
 xarpwaitresolution
 xasynchronous
+xattempt
 xbacklog
 xbitstoclear
 xbitstoset
@@ -1619,11 +1622,13 @@ xdnsmessage
 xdnsserver
 xdnsserveraddresses
 xdnssocket
+xdoaccept
 xdocheck
 xdolog
 xdomain
 xdorandom
 xdoreset
+xdostore
 xdumpingready
 xechoserveraddress
 xemacps
