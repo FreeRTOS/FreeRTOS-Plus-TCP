@@ -401,10 +401,10 @@ static void prvInitialiseTCPFields( FreeRTOS_Socket_t * pxSocket,
                                     size_t uxSocketSize );
 
 static int32_t prvRecvFrom_CopyPacket( uint8_t * pucEthernetBuffer,
-                                      void * pvBuffer,
-                                      size_t uxBufferLength,
-                                      BaseType_t xFlags,
-                                      int32_t lDataLength );
+                                       void * pvBuffer,
+                                       size_t uxBufferLength,
+                                       BaseType_t xFlags,
+                                       int32_t lDataLength );
 
 static int32_t prvSendTo_ActualSend( FreeRTOS_Socket_t * pxSocket,
                                      const void * pvBuffer,
@@ -418,13 +418,13 @@ static FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
                                                    uint32_t ulRemoteIP );
 
 static void vTCPAddRxdata_Callback( FreeRTOS_Socket_t * pxSocket,
-										const uint8_t * pcData,
-									    uint32_t ulByteCount );
- 
+                                    const uint8_t * pcData,
+                                    uint32_t ulByteCount );
+
 static void vTCPAddRxdata_Stored( FreeRTOS_Socket_t * pxSocket );
- 
+
 static void vTCPNetStat_TCPSocket( FreeRTOS_Socket_t * pxSocket );
- 
+
 /*-----------------------------------------------------------*/
 
 /** @brief The list that contains mappings between sockets and port numbers.
