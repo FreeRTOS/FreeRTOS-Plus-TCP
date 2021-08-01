@@ -128,8 +128,8 @@
                                                            *   i.e. it has a matching request ID. */
             char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ]; /**< A copy of the name that is mentioned in the questions. */
         #endif
-        struct freertos_addrinfo * pxLastAddress;    /**< The address where the original freertos_addrinfo is stored. */
-        struct freertos_addrinfo ** ppxLastAddress;  /**< The address where the last freertos_addrinfo is stored. */
+        struct freertos_addrinfo * pxLastAddress;         /**< The address where the original freertos_addrinfo is stored. */
+        struct freertos_addrinfo ** ppxLastAddress;       /**< The address where the last freertos_addrinfo is stored. */
     } ParseSet_t;
 
 /** @brief Show the first IP-address within the linked struct 'pxAddress'. */
