@@ -416,6 +416,9 @@
                                            int32_t lStreamPos,
                                            uint32_t ulDataGot );
 
+/** @brief Called by prvTCPPrepareSend(), this function checks if a keep-alive message
+ *        should be sent.  Also, when the 3 keep-alive packets have been sent, the connection
+ *        will be aborted. */
     static int32_t prvTCPPrepare_KeepAlive( FreeRTOS_Socket_t * pxSocket,
                                             int32_t lDataLen );
 
