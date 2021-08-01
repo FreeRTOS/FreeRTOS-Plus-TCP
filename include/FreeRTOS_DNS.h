@@ -103,8 +103,8 @@
     #include "pack_struct_end.h"
     typedef struct xDNSMessage DNSMessage_t;
 
-/* @brief A struct with a set of variables that are shared among the helper functions
- *        for the function 'prvParseDNSReply()'. For internal use only.
+/** @brief A struct with a set of variables that are shared among the helper functions
+ *         for the function 'prvParseDNSReply()'. For internal use only.
  */
     typedef struct xParseSet
     {
@@ -132,6 +132,7 @@
         struct freertos_addrinfo ** ppxLastAddress;
     } ParseSet_t;
 
+/** @brief Show the first IP-address within the linked struct 'pxAddress'. */
     extern void show_single_addressinfo( const char * pcFormat,
                                          const struct freertos_addrinfo * pxAddress );
     extern void show_addressinfo( const struct freertos_addrinfo * pxAddress );

@@ -384,9 +384,14 @@
     _static struct freertos_addrinfo * pxLastInfo = NULL;
 
     static BaseType_t prvParseDNS_ReadQuestions( ParseSet_t * pxSet );
+
+/** @brief Parse the array of answers that are received from a DNS server. */
     static BaseType_t prvParseDNS_ReadAnswers( ParseSet_t * pxSet,
                                                struct freertos_addrinfo ** ppxAddressInfo );
     #if ( ipconfigUSE_LLMNR == 1 )
+/** @brief An LLMNR lookup of a host was received. The application code is consulted
+ *         by calling xApplicationDNSQueryHook(), which returns true in case the
+ *         driver should reply to the lookup. */
         static void prvParseDNS_HandleLLMNRRequest( ParseSet_t * pxSet,
                                                     uint8_t * pucUDPPayloadBuffer );
     #endif
@@ -397,10 +402,12 @@
                                                 struct freertos_addrinfo ** ppxAddressInfo );
     #endif
 
+/** @brief See if pcHostName contains a valid IPv4 or IPv6 IP-address. */
     static uint32_t prvPrepare_ReadIPAddress( const char * pcHostName,
                                               BaseType_t xFamily,
                                               struct freertos_addrinfo ** ppxAddressInfo );
 
+/** @brief Get an IP address ( IPv4 for now ) of a DNS server. */
     static NetworkEndPoint_t * prvGetDNSAddress( struct freertos_sockaddr * pxAddress,
                                                  uint8_t * pucUDPPayloadBuffer,
                                                  const char * pcHostName );
@@ -1192,6 +1199,7 @@
  * @param[in] xFamily: the IP-type, either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
  * @param[in] ppxAddressInfo: A pointer to a pointer where the find results will
  *                            be stored.
+ * @return Either 0 or an IP=address.
  */
         static uint32_t prvPrepare_ReadIPAddress( const char * pcHostName,
                                                   BaseType_t xFamily,
@@ -2310,7 +2318,7 @@
         }
     }
 
-/*
+/**
  * @brief Parse the array of answers that are received from a DNS server.
  * @param[in] pxSet: a set of variables that are shared among the helper functions.
  * @param[out] ppxAddressInfo: a linked list storing the DNS answers.
@@ -2471,7 +2479,7 @@
 
     #if ( ipconfigUSE_LLMNR == 1 )
 
-/* @brief An LLMNR lookup of a host was received. The application code is consulted
+/** @brief An LLMNR lookup of a host was received. The application code is consulted
  *        by calling xApplicationDNSQueryHook(), which returns true in case the
  *        driver should reply to the lookup.
  * @param[in] pxSet: a set of variables that are shared among the helper functions.
