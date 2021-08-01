@@ -715,6 +715,7 @@ ppucrecvdata
 ppxaddressinfo
 ppxendpoint
 ppxinterface
+ppxlastaddress
 ppxnetworkbuffer
 ppxresult
 pr
@@ -885,6 +886,7 @@ pxipaddress
 pxipheader
 pxippacket
 pxiterator
+pxlastaddress
 pxlength
 pxlist
 pxlistfindlistitemwithvalue
