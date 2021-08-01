@@ -407,6 +407,7 @@ inc
 infos
 init
 initialisation
+initialisations
 initialise
 initialised
 initialisenetwork
@@ -915,6 +916,7 @@ pxprefix
 pxprops
 pxprotocolheaders
 pxprotpack
+pxreceivedevent
 pxreplyendpoint
 pxresult
 pxresults
@@ -1723,6 +1725,7 @@ xnetworkinterfaceinitialise
 xnetworkinterfaceoutput
 xnetworkparams
 xnetworktimer
+xnextipsleep
 xntppacket
 xntptaskhandle
 xontcpreceive
