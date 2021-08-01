@@ -89,7 +89,7 @@
 /** brief: a set of parameters that are passed to helper functions. */
     typedef struct xProcessSet
     {
-        uint8_t ucOptionCode;       /**< The code curretly being handled. */
+        uint8_t ucOptionCode;       /**< The code currently being handled. */
         size_t uxIndex;             /**< The index within 'pucByte'. */
         size_t uxPayloadDataLength; /**< The number of bytes in the UDP payload. */
         size_t uxLength;            /**< The size of the current option. */
