@@ -389,6 +389,7 @@
     static BaseType_t prvParseDNS_ReadAnswers( ParseSet_t * pxSet,
                                                struct freertos_addrinfo ** ppxAddressInfo );
     #if ( ipconfigUSE_LLMNR == 1 )
+
 /** @brief An LLMNR lookup of a host was received. The application code is consulted
  *         by calling xApplicationDNSQueryHook(), which returns true in case the
  *         driver should reply to the lookup. */
