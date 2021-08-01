@@ -270,6 +270,7 @@ enetworkrxevent
 enetworktxevent
 enetworkup
 enhanceddescriptorformat
+enoevent
 enotconn
 enotusingleasedaddress
 enum
