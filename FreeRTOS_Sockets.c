@@ -596,6 +596,8 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_TCP == 1 )
+
 /**
  * @brief Called by FreeRTOS_socket(), it will initialise some essential TCP
  *        fields in the socket.
@@ -603,35 +605,36 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
  * @param[in] uxSocketSize: The calculated size of the socket, only used to
  *                          gather memory usage statistics.
  */
-static void prvInitialiseTCPFields( FreeRTOS_Socket_t * pxSocket,
-                                    size_t uxSocketSize )
-{
-    ( void ) uxSocketSize;
-    /* Lint wants at least a comment, in case the macro is empty. */
-    iptraceMEM_STATS_CREATE( tcpSOCKET_TCP, pxSocket, uxSocketSize + sizeof( StaticEventGroup_t ) );
-    /* StreamSize is expressed in number of bytes */
-    /* Round up buffer sizes to nearest multiple of MSS */
-    pxSocket->u.xTCP.usCurMSS = ( uint16_t ) ipconfigTCP_MSS;
-    pxSocket->u.xTCP.usInitMSS = ( uint16_t ) ipconfigTCP_MSS;
-    pxSocket->u.xTCP.uxRxStreamSize = ( size_t ) ipconfigTCP_RX_BUFFER_LENGTH;
-    pxSocket->u.xTCP.uxTxStreamSize = ( size_t ) FreeRTOS_round_up( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS );
-    /* Use half of the buffer size of the TCP windows */
-    #if ( ipconfigUSE_TCP_WIN == 1 )
-        {
-            pxSocket->u.xTCP.uxRxWinSize = FreeRTOS_max_size_t( 1U, ( pxSocket->u.xTCP.uxRxStreamSize / 2U ) / ipconfigTCP_MSS );
-            pxSocket->u.xTCP.uxTxWinSize = FreeRTOS_max_size_t( 1U, ( pxSocket->u.xTCP.uxTxStreamSize / 2U ) / ipconfigTCP_MSS );
-        }
-    #else
-        {
-            pxSocket->u.xTCP.uxRxWinSize = 1U;
-            pxSocket->u.xTCP.uxTxWinSize = 1U;
-        }
-    #endif
+    static void prvInitialiseTCPFields( FreeRTOS_Socket_t * pxSocket,
+                                        size_t uxSocketSize )
+    {
+        ( void ) uxSocketSize;
+        /* Lint wants at least a comment, in case the macro is empty. */
+        iptraceMEM_STATS_CREATE( tcpSOCKET_TCP, pxSocket, uxSocketSize + sizeof( StaticEventGroup_t ) );
+        /* StreamSize is expressed in number of bytes */
+        /* Round up buffer sizes to nearest multiple of MSS */
+        pxSocket->u.xTCP.usCurMSS = ( uint16_t ) ipconfigTCP_MSS;
+        pxSocket->u.xTCP.usInitMSS = ( uint16_t ) ipconfigTCP_MSS;
+        pxSocket->u.xTCP.uxRxStreamSize = ( size_t ) ipconfigTCP_RX_BUFFER_LENGTH;
+        pxSocket->u.xTCP.uxTxStreamSize = ( size_t ) FreeRTOS_round_up( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS );
+        /* Use half of the buffer size of the TCP windows */
+        #if ( ipconfigUSE_TCP_WIN == 1 )
+            {
+                pxSocket->u.xTCP.uxRxWinSize = FreeRTOS_max_size_t( 1U, ( pxSocket->u.xTCP.uxRxStreamSize / 2U ) / ipconfigTCP_MSS );
+                pxSocket->u.xTCP.uxTxWinSize = FreeRTOS_max_size_t( 1U, ( pxSocket->u.xTCP.uxTxStreamSize / 2U ) / ipconfigTCP_MSS );
+            }
+        #else
+            {
+                pxSocket->u.xTCP.uxRxWinSize = 1U;
+                pxSocket->u.xTCP.uxTxWinSize = 1U;
+            }
+        #endif
 
-    /* The above values are just defaults, and can be overridden by
-     * calling FreeRTOS_setsockopt().  No buffers will be allocated until a
-     * socket is connected and data is exchanged. */
-}
+        /* The above values are just defaults, and can be overridden by
+         * calling FreeRTOS_setsockopt().  No buffers will be allocated until a
+         * socket is connected and data is exchanged. */
+    }
+#endif /* ( ipconfigUSE_TCP == 1 ) */
 /*-----------------------------------------------------------*/
 
 /**
