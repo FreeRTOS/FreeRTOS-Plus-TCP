@@ -859,7 +859,7 @@
 /**
  * @brief Called by prvTCPReturn_SwapAddresses(), this function will set some fields
  *        and both checksum: the IP-header and the protocol checksum.
- * @param[in] pxNetworkBuffer: The network buffer containing hte outgoing packet.
+ * @param[in] pxNetworkBuffer: The network buffer containing the outgoing packet.
  * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
  * @param[in] ulLen: The length of the packet minus the Ethernet header.
  */

@@ -1245,6 +1245,7 @@ ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
 uldata
+uldatagot
 uldefaultipaddress
 uldelayms
 uldestinationaddress
@@ -1448,12 +1449,13 @@ uxidentifier
 uxidsize
 uxindex
 uxipheaderlength
+uxipheadersize
 uxipheadersizesocket
 uxlast
 uxleft
 uxlength
-uxlittlespace
 uxlistremove
+uxlittlespace
 uxlocalport
 uxlower
 uxmax
@@ -1539,6 +1541,7 @@ vreleasenetworkbufferanddescriptor
 vrxfaultinjection
 vsocketbind
 vsocketclose
+vsocketclosenexttime
 vsocketselect
 vsocketwakeupuser
 vstartntptask
