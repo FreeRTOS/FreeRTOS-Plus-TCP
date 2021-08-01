@@ -70,8 +70,8 @@
     #define ipEXPECTED_EthernetHeader_t_SIZE    ( ( size_t ) 14 ) /**< Ethernet Header size in bytes. */
     #define ipEXPECTED_ARPHeader_t_SIZE         ( ( size_t ) 28 ) /**< ARP header size in bytes. */
     #define ipEXPECTED_IPHeader_t_SIZE          ( ( size_t ) 20 ) /**< IP header size in bytes. */
-    #define ipEXPECTED_ICMPHeader_t_SIZE        ( ( size_t )  8 ) /**< ICMP header size in bytes. */
-    #define ipEXPECTED_UDPHeader_t_SIZE         ( ( size_t )  8 ) /**< UDP header size in bytes. */
+    #define ipEXPECTED_ICMPHeader_t_SIZE        ( ( size_t ) 8 )  /**< ICMP header size in bytes. */
+    #define ipEXPECTED_UDPHeader_t_SIZE         ( ( size_t ) 8 )  /**< UDP header size in bytes. */
     #define ipEXPECTED_TCPHeader_t_SIZE         ( ( size_t ) 20 ) /**< TCP header size in bytes. */
 #endif
 
@@ -508,7 +508,7 @@ static void prvIPTask( void * pvParameters )
                 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
                     {
                         prvIPTask_HandleSelectEvent( &( xReceivedEvent ) );
-                            }
+                    }
                 #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
                 break;
 
@@ -539,7 +539,7 @@ static void prvIPTask( void * pvParameters )
                  * received a new connection. */
 
                 #if ( ipconfigUSE_TCP == 1 )
-                        {
+                    {
                         prvIPTask_HandleAcceptEvent( &( xReceivedEvent ) );
                     }
                 #endif
@@ -704,6 +704,7 @@ static void prvIPTask_HandleBindEvent( IPStackEvent_t * pxReceivedEvent )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_TCP == 1 )
+
 /**
  * @brief Helper function for prvIPTask, handle message of the type 'eTCPAcceptEvent'
  * @param[in] pxReceivedEvent: the pvData field points to a socket.
@@ -722,6 +723,7 @@ static void prvIPTask_HandleBindEvent( IPStackEvent_t * pxReceivedEvent )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+
 /**
  * @brief Helper function for prvIPTask, handle message of the type 'eSocketSelectEvent'
  * @param[in] pxReceivedEvent: the pvData field points to a socket.
@@ -751,26 +753,26 @@ static void prvIPTask_CheckPendingEvents( void )
 {
     NetworkInterface_t * pxInterface;
 
-        if( xNetworkDownEventPending != pdFALSE )
-        {
-            /* A network down event could not be posted to the network event
-             * queue because the queue was full.
-             * As this code runs in the IP-task, it can be done directly by
-             * calling prvProcessNetworkDownEvent(). */
-            xNetworkDownEventPending = pdFALSE;
+    if( xNetworkDownEventPending != pdFALSE )
+    {
+        /* A network down event could not be posted to the network event
+         * queue because the queue was full.
+         * As this code runs in the IP-task, it can be done directly by
+         * calling prvProcessNetworkDownEvent(). */
+        xNetworkDownEventPending = pdFALSE;
 
-            for( pxInterface = FreeRTOS_FirstNetworkInterface();
-                 pxInterface != NULL;
-                 pxInterface = FreeRTOS_NextNetworkInterface( pxInterface ) )
+        for( pxInterface = FreeRTOS_FirstNetworkInterface();
+             pxInterface != NULL;
+             pxInterface = FreeRTOS_NextNetworkInterface( pxInterface ) )
+        {
+            if( pxInterface->bits.bCallDownEvent != pdFALSE_UNSIGNED )
             {
-                if( pxInterface->bits.bCallDownEvent != pdFALSE_UNSIGNED )
-                {
-                    prvProcessNetworkDownEvent( pxInterface );
-                    pxInterface->bits.bCallDownEvent = pdFALSE_UNSIGNED;
-                }
+                prvProcessNetworkDownEvent( pxInterface );
+                pxInterface->bits.bCallDownEvent = pdFALSE_UNSIGNED;
             }
         }
     }
+}
 /*-----------------------------------------------------------*/
 
 /**
