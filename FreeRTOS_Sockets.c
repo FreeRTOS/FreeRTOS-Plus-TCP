@@ -415,12 +415,14 @@ static int32_t prvSendTo_ActualSend( FreeRTOS_Socket_t * pxSocket,
                                      const struct freertos_sockaddr * pxDestinationAddress,
                                      size_t uxPayloadOffset );
 
-/** @brief Called by pxTCPSocketLookup(), this function will check if a socket
- *         is connected to a remote IP-address. It will be called from a loop
- *         iterating through all sockets. */
-static FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
-                                                   IPv6_Address_t * pxAddress_IPv6,
-                                                   uint32_t ulRemoteIP );
+#if( ipconfigUSE_IPv6 != 0 )
+	/** @brief Called by pxTCPSocketLookup(), this function will check if a socket
+	 *         is connected to a remote IP-address. It will be called from a loop
+	 *         iterating through all sockets. */
+	static FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
+													IPv6_Address_t * pxAddress_IPv6,
+													uint32_t ulRemoteIP );
+#endif
 
 /** @brief The application can attach callback functions to a socket. In this function,
  *         called by lTCPAddRxdata(), the TCP reception handler will be called. */
