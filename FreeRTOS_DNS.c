@@ -1414,7 +1414,7 @@
 
 /**
  * @brief Get an IP address ( IPv4 for now ) of a DNS server.
- * @param[out] Variable to store the address found.
+ * @param[out] pxAddress: Variable to store the address found.
  * @param[out] pucUDPPayloadBuffer: flags in LLMNR message should be cleared.
  * @param[in] pcHostName: use to check if it contains a dot ( DNS ), or not ( LLMNR ).
  * @return The end-point that holds the DNS address.
