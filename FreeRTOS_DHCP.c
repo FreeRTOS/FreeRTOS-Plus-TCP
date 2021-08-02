@@ -1398,10 +1398,6 @@
             size_t uxNameLength = strlen( pucHostName );
             uint8_t * pucPtr;
 
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-            const void * pvCopySource;
-            void * pvCopyDest;
-
             /* Two extra bytes for option code and length. */
             uxRequiredBufferSize += ( 2U + uxNameLength );
         #endif /* if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) */
@@ -1451,6 +1447,10 @@
 
             #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
                 {
+/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+                    const void * pvCopySource;
+                    void * pvCopyDest;
+
                     /* With this option, the hostname can be registered as well which makes
                      * it easier to lookup a device in a router's list of DHCP clients. */
 
