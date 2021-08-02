@@ -1262,6 +1262,8 @@
 
             /* Return 1 so that the option will be processed. */
             xResult = 1;
+            /* Try to please CBMC with a break statement here. */
+            break;
         } while( ipFALSE_BOOL );
 
         return xResult;
