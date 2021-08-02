@@ -55,6 +55,12 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( UBaseType_t uxLocalPort,
 
         /* Since the socket is bound, it must have an endpoint. */
         __CPROVER_assume( xRetSocket->pxEndPoint != NULL );
+
+        if( xIsCallingFromIPTask() == pdFALSE )
+        {
+            xRetSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
+            xRetSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
+        }
     }
 
     return xRetSocket;
