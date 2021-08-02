@@ -3289,9 +3289,11 @@
                                          ( ( uint32_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY - 1U ) );
                     #endif /* ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 ) */
 
-                    xFreeDNSEntry++;
-
-                    if( xFreeDNSEntry == ipconfigDNS_CACHE_ENTRIES )
+                    if( xFreeDNSEntry < ( ipconfigDNS_CACHE_ENTRIES - 1 ) )
+                    {
+                        xFreeDNSEntry++;
+                    }
+                    else
                     {
                         xFreeDNSEntry = 0;
                     }
