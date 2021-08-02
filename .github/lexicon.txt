@@ -1751,6 +1751,7 @@ xqueuegenericsend
 xqueueitem
 xqueuereceive
 xradata
+xrandomtaskhandle
 xrasolicitationrequest
 xready
 xreceiveblocktime
