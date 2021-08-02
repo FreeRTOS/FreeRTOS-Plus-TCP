@@ -1797,6 +1797,7 @@ xtargethardwareaddress
 xtargetindex
 xtaskcheckfortimeout
 xtaskcreate
+xtaskgetcurrenttaskhandle
 xtaskgettickcount
 xtaskhandle
 xtaskresumeall
