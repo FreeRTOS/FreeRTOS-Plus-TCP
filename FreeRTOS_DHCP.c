@@ -1103,6 +1103,12 @@
 
                     void * pvCopyDest = &( pxSet->ulParameter );
 
+                    /* Just to try-out for CBMC. */
+                    if( uxDNSCount > ipconfigENDPOINT_DNS_ADDRESS_COUNT )
+                    {
+                        uxDNSCount = ipconfigENDPOINT_DNS_ADDRESS_COUNT;
+                    }
+
                     for( uxSourceIndex = 0U; uxSourceIndex < uxDNSCount; uxSourceIndex++ )
                     {
                         const void * pvCopySource = &( pxSet->pucByte[ uxByteIndex ] );
