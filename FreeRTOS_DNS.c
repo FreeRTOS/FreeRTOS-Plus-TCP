@@ -1472,32 +1472,39 @@
                             LLMNRAnswer_t * pxAnswer;
                             uint8_t * pucNewBuffer = NULL;
 
-                            if( ( xBufferAllocFixedSize == pdFALSE ) && ( pxNetworkBuffer != NULL ) )
+                            if( pxNetworkBuffer != NULL )
                             {
-                                size_t uxDataLength = uxBufferLength + sizeof( UDPHeader_t ) + sizeof( EthernetHeader_t ) + sizeof( IPHeader_t );
-
-                                /* Set the size of the outgoing packet. */
-                                pxNetworkBuffer->xDataLength = uxDataLength;
-                                pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxDataLength + sizeof( LLMNRAnswer_t ) );
-
-                                if( pxNewBuffer != NULL )
+                                if( xBufferAllocFixedSize == pdFALSE )
                                 {
-                                    BaseType_t xOffset1, xOffset2;
+                                    size_t uxDataLength = uxBufferLength + sizeof( UDPHeader_t ) + sizeof( EthernetHeader_t ) + sizeof( IPHeader_t );
 
-                                    xOffset1 = ( BaseType_t ) ( pucByte - pucUDPPayloadBuffer );
-                                    xOffset2 = ( BaseType_t ) ( ( ( uint8_t * ) pcRequestedName ) - pucUDPPayloadBuffer );
+                                    /* Set the size of the outgoing packet. */
+                                    pxNetworkBuffer->xDataLength = uxDataLength;
+                                    pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxDataLength + sizeof( LLMNRAnswer_t ) );
 
-                                    pxNetworkBuffer = pxNewBuffer;
-                                    pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+                                    if( pxNewBuffer != NULL )
+                                    {
+                                        BaseType_t xOffset1, xOffset2;
 
-                                    pucByte = &( pucNewBuffer[ xOffset1 ] );
-                                    pcRequestedName = ( char * ) &( pucNewBuffer[ xOffset2 ] );
-                                    pxDNSMessageHeader = ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucNewBuffer );
+                                        xOffset1 = ( BaseType_t ) ( pucByte - pucUDPPayloadBuffer );
+                                        xOffset2 = ( BaseType_t ) ( ( ( uint8_t * ) pcRequestedName ) - pucUDPPayloadBuffer );
+
+                                        pxNetworkBuffer = pxNewBuffer;
+                                        pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+
+                                        pucByte = &( pucNewBuffer[ xOffset1 ] );
+                                        pcRequestedName = ( char * ) &( pucNewBuffer[ xOffset2 ] );
+                                        pxDNSMessageHeader = ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucNewBuffer );
+                                    }
+                                    else
+                                    {
+                                        /* Just to indicate that the message may not be answered. */
+                                        pxNetworkBuffer = NULL;
+                                    }
                                 }
                                 else
                                 {
-                                    /* Just to indicate that the message may not be answered. */
-                                    pxNetworkBuffer = NULL;
+                                    pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
                                 }
                             }
 
