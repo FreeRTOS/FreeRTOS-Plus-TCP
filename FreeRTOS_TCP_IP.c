@@ -1543,7 +1543,7 @@
                 /* Only set the SYN flag. */
                 pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
 
-                /* Set the values of usInitMSS / usCurMSS for this socket. */
+                /* Set the values of usMSS / usCurMSS for this socket. */
                 prvSocketSetMSS( pxSocket );
 
                 /* The initial sequence numbers at our side are known.  Later
