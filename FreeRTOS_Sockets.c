@@ -640,8 +640,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                         {
                             /* StreamSize is expressed in number of bytes */
                             /* Round up buffer sizes to nearest multiple of MSS */
-                            pxSocket->u.xTCP.usCurMSS = ( uint16_t ) ipconfigTCP_MSS;
-                            pxSocket->u.xTCP.usInitMSS = ( uint16_t ) ipconfigTCP_MSS;
+                            pxSocket->u.xTCP.usMSS = ( uint16_t ) ipconfigTCP_MSS;
                             pxSocket->u.xTCP.uxRxStreamSize = ( size_t ) ipconfigTCP_RX_BUFFER_LENGTH;
                             pxSocket->u.xTCP.uxTxStreamSize = ( size_t ) FreeRTOS_round_up( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS );
                             /* Use half of the buffer size of the TCP windows */
@@ -2105,7 +2104,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
             if( lOptionName == FREERTOS_SO_SNDBUF )
             {
                 /* Round up to nearest MSS size */
-                ulNewValue = FreeRTOS_round_up( ulNewValue, ( uint32_t ) pxSocket->u.xTCP.usInitMSS );
+                ulNewValue = FreeRTOS_round_up( ulNewValue, ( uint32_t ) pxSocket->u.xTCP.usMSS );
                 pxSocket->u.xTCP.uxTxStreamSize = ulNewValue;
             }
             else
@@ -2267,8 +2266,8 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
              * adapt the window size parameters */
             if( pxTCP->xTCPWindow.u.bits.bHasInit != pdFALSE_UNSIGNED )
             {
-                pxTCP->xTCPWindow.xSize.ulRxWindowLength = ( uint32_t ) ( pxTCP->uxRxWinSize * pxTCP->usInitMSS );
-                pxTCP->xTCPWindow.xSize.ulTxWindowLength = ( uint32_t ) ( pxTCP->uxTxWinSize * pxTCP->usInitMSS );
+                pxTCP->xTCPWindow.xSize.ulRxWindowLength = ( uint32_t ) ( pxTCP->uxRxWinSize * pxTCP->usMSS );
+                pxTCP->xTCPWindow.xSize.ulTxWindowLength = ( uint32_t ) ( pxTCP->uxTxWinSize * pxTCP->usMSS );
             }
         }
         while( ipFALSE_BOOL );
@@ -4648,7 +4647,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                  * last transmission? */
                 if( pxSocket->u.xTCP.bits.bCloseAfterSend != pdFALSE_UNSIGNED )
                 {
-                    FreeRTOS_printf( ( "bCloseAfterSend[%u]: xByteCount %u xBytesLeft %u\n", pxSocket->usLocalPort, xByteCount, xBytesLeft ) );
+                    FreeRTOS_printf( ( "bCloseAfterSend[%u]: xByteCount %u xBytesLeft %u\n", pxSocket->usLocalPort, ( unsigned ) xByteCount, ( unsigned ) xBytesLeft ) );
                 }
 
                 if( ( pxSocket->u.xTCP.bits.bCloseAfterSend != pdFALSE_UNSIGNED ) &&
@@ -5673,7 +5672,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* usCurMSS is declared as uint16_t to save space.  FreeRTOS_mss()
              * will often be used in signed native-size expressions cast it to
              * BaseType_t. */
-            xReturn = ( BaseType_t ) ( pxSocket->u.xTCP.usCurMSS );
+            xReturn = ( BaseType_t ) ( pxSocket->u.xTCP.usMSS );
         }
 
         return xReturn;
