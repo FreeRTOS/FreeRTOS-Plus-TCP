@@ -1128,7 +1128,7 @@
                 /* This out-of-sequence packet has been received for a
                  * second time.  It is already stored but do send a SACK
                  * again. */
-                /* A negative value will be returned to indicate than error. */
+                /* A negative value will be returned to indicate an error. */
             }
             else
             {
@@ -1436,19 +1436,6 @@
                     {
                         pxWindow->pxHeadSegment = NULL;
                     }
-
-/*					if( ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) ) && */
-/*						( ( xTCPWindowLoggingLevel >= 3 ) || */
-/*						( ( xTCPWindowLoggingLevel >= 2 ) && ( pxWindow->pxHeadSegment != NULL ) ) ) ) */
-/*					{ */
-/*						FreeRTOS_debug_printf( ( "lTCPWindowTxAdd: New %4ld bytes for seqNr %lu len %4lu (nxt %lu) pos %lu\n", */
-/*												ulLength, */
-/*												pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber, */
-/*												pxSegment->lDataLength, */
-/*												pxWindow->ulNextTxSequenceNumber - pxWindow->tx.ulFirstSequenceNumber, */
-/*												pxSegment->lStreamPos ) ); */
-/*						FreeRTOS_flush_logging(); */
-/*					} */
                 }
                 else
                 {
