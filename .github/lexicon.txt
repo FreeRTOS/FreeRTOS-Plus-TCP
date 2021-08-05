@@ -1543,6 +1543,7 @@ vreleasenetworkbufferanddescriptor
 vrxfaultinjection
 vsocketbind
 vsocketclose
+vsocketclosenexttime
 vsocketselect
 vsocketwakeupuser
 vstartntptask
