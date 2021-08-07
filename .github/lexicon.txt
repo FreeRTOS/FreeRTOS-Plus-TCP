@@ -452,6 +452,7 @@ lan
 lastpacket
 laststate
 lbytes
+lbytesleft
 lc
 lca
 lco
@@ -502,6 +503,7 @@ ltcpaddrxdata
 ltcpwindowrxcheck
 ltcpwindowtxadd
 ltd
+ltowrite
 ltransmitted
 ltxbufsize
 ltxwinsize
@@ -707,6 +709,7 @@ pme
 pmecr
 pmt
 pointee
+pos
 posix
 pparam
 ppkt
@@ -1053,6 +1056,7 @@ senddata
 sendeventtoiptask
 sendto
 seq
+seqnr
 setsockopt
 shouldn
 sht
@@ -1541,6 +1545,7 @@ vreleasenetworkbufferanddescriptor
 vrxfaultinjection
 vsocketbind
 vsocketclose
+vsocketclosenexttime
 vsocketselect
 vsocketwakeupuser
 vstartntptask
@@ -1806,6 +1811,7 @@ xtcpsocketcheck
 xtcptimer
 xtcptimercheck
 xtcpwindow
+xtcpwindowlogginglevel
 xtcpwindowrxconfirm
 xtcpwindowtxdone
 xtemplist
