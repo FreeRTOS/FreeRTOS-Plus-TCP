@@ -66,6 +66,13 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( UBaseType_t uxLocalPort,
     return xRetSocket;
 }
 
+/* The function under test requires that it be called from IP-task. Thus, the below stub makes sure
+ * that a pdTRUE is returned meaning that the context is that of the IP-Task. */
+BaseType_t xIsCallingFromIPTask( void )
+{
+    return pdTRUE;
+}
+
 /* Abstraction of pxGetNetworkBufferWithDescriptor */
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
                                                               TickType_t xBlockTimeTicks )

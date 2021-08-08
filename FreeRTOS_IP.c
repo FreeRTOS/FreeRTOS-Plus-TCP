@@ -992,6 +992,9 @@ static void prvCheckNetworkTimers( void )
                 xProcessedTCPMessage = 0;
             }
         }
+
+        /* See if any socket was planned to be closed. */
+        vSocketCloseNextTime( NULL );
     #endif /* ipconfigUSE_TCP == 1 */
 
     /* Is it time to trigger the repeated NetworkDown events? */
@@ -1614,6 +1617,11 @@ BaseType_t FreeRTOS_IPStart( void )
                                                        ipconfigIP_TASK_PRIORITY,
                                                        xIPTaskStack,
                                                        &xIPTaskBuffer );
+
+                    if( xIPTaskHandle != NULL )
+                    {
+                        xReturn = pdTRUE;
+                    }
                 }
             #else /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
                 {
