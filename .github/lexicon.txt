@@ -1251,6 +1251,7 @@ ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
 uldata
+uldatagot
 uldefaultipaddress
 uldelayms
 uldestinationaddress
@@ -1454,6 +1455,7 @@ uxidentifier
 uxidsize
 uxindex
 uxipheaderlength
+uxipheadersize
 uxipheadersizesocket
 uxlast
 uxleft
@@ -1756,6 +1758,7 @@ xqueuegenericsend
 xqueueitem
 xqueuereceive
 xradata
+xrandomtaskhandle
 xrasolicitationrequest
 xready
 xreceiveblocktime
@@ -1801,6 +1804,7 @@ xtargethardwareaddress
 xtargetindex
 xtaskcheckfortimeout
 xtaskcreate
+xtaskgetcurrenttaskhandle
 xtaskgettickcount
 xtaskhandle
 xtaskresumeall
