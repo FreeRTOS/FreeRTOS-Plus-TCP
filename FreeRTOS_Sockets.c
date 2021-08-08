@@ -2552,7 +2552,11 @@ uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
     uint32_t ulReturn = 0UL;
 
     /* inet_pton AF_INET target is a 4-byte 'struct in_addr'. */
-    ( void ) FreeRTOS_inet_pton4( pcIPAddress, &( ulReturn ) );
+    if( pdFAIL == FreeRTOS_inet_pton4( pcIPAddress, &( ulReturn ) ) )
+    {
+        /* Return 0 if translation failed. */
+        ulReturn = 0;
+    }
 
     return ulReturn;
 }
