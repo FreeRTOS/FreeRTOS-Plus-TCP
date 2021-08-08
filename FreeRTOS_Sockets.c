@@ -2554,7 +2554,7 @@ uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
     if( pdFAIL == FreeRTOS_inet_pton4( pcIPAddress, &( ulReturn ) ) )
     {
         /* Return 0 if translation failed. */
-        ulReturn = 0;
+        ulReturn = 0UL;
     }
 
     return ulReturn;
