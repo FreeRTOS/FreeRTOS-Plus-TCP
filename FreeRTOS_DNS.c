@@ -519,35 +519,30 @@
          * as gethostbyname() may be called from different threads */
         BaseType_t xHasRandom = pdFALSE;
         TickType_t uxIdentifier = 0U;
+        BaseType_t xLengthOk = pdFALSE;
 
-        #if ( ipconfigUSE_DNS_CACHE != 0 )
-            BaseType_t xLengthOk = pdFALSE;
-        #endif
+        if( pcHostName != NULL )
+        {
+            size_t uxLength = strlen( pcHostName ) + 1U;
 
-        #if ( ipconfigUSE_DNS_CACHE != 0 )
+            #if ( ipconfigUSE_DNS_CACHE != 0 )
+                if( uxLength <= ipconfigDNS_CACHE_NAME_LENGTH )
+            #else
+                if( uxLength <= dnsMAX_HOSTNAME_LENGTH )
+            #endif
             {
-                if( pcHostName != NULL )
-                {
-                    size_t xLength = strlen( pcHostName ) + 1U;
-
-                    if( xLength <= ipconfigDNS_CACHE_NAME_LENGTH )
-                    {
-                        /* The name is not too long. */
-                        xLengthOk = pdTRUE;
-                    }
-                    else
-                    {
-                        FreeRTOS_printf( ( "prvPrepareLookup: name is too long ( %lu > %lu )\n",
-                                           ( uint32_t ) xLength,
-                                           ( uint32_t ) ipconfigDNS_CACHE_NAME_LENGTH ) );
-                    }
-                }
+                /* The name is not too long. */
+                xLengthOk = pdTRUE;
             }
+            else
+            {
+                FreeRTOS_printf( ( "prvPrepareLookup: name is too long ( %lu > %lu )\n",
+                                    ( uint32_t ) uxLength,
+                                    ( uint32_t ) ipconfigDNS_CACHE_NAME_LENGTH ) );
+            }
+        }
 
-            if( ( pcHostName != NULL ) && ( xLengthOk != pdFALSE ) )
-        #else /* if ( ipconfigUSE_DNS_CACHE != 0 ) */
-            if( pcHostName != NULL )
-        #endif /* ( ipconfigUSE_DNS_CACHE != 0 ) */
+        if( ( pcHostName != NULL ) && ( xLengthOk != pdFALSE ) )
         {
             /* If the supplied hostname is IP address, convert it to uint32_t
              * and return. */
