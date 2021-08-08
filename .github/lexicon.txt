@@ -389,6 +389,7 @@ https
 huc
 hw
 hz
+ia
 iacr
 iadhr
 iadlr
@@ -451,6 +452,7 @@ lan
 lastpacket
 laststate
 lbytes
+lbytesleft
 lc
 lca
 lco
@@ -501,6 +503,7 @@ ltcpaddrxdata
 ltcpwindowrxcheck
 ltcpwindowtxadd
 ltd
+ltowrite
 ltransmitted
 ltxbufsize
 ltxwinsize
@@ -603,6 +606,7 @@ nobroadcast
 noevent
 nondet
 noninfringement
+nontemporaryaddress
 nop
 ntoh
 ntp
@@ -705,6 +709,7 @@ pme
 pmecr
 pmt
 pointee
+pos
 posix
 pparam
 ppkt
@@ -1051,6 +1056,7 @@ senddata
 sendeventtoiptask
 sendto
 seq
+seqnr
 setsockopt
 shouldn
 sht
@@ -1452,8 +1458,8 @@ uxipheadersizesocket
 uxlast
 uxleft
 uxlength
-uxlittlespace
 uxlistremove
+uxlittlespace
 uxlocalport
 uxlower
 uxmax
@@ -1484,6 +1490,7 @@ uxrxwinsize
 uxschedulersuspended
 uxsecs
 uxsize
+uxsocketsize
 uxsourcelen
 uxstreambufferadd
 uxstreambufferget
@@ -1805,6 +1812,7 @@ xtcpsocketcheck
 xtcptimer
 xtcptimercheck
 xtcpwindow
+xtcpwindowlogginglevel
 xtcpwindowrxconfirm
 xtcpwindowtxdone
 xtemplist
