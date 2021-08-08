@@ -74,7 +74,7 @@ void harness()
         /* uxRxWinSize is initialized as size_t. This assumption is required to terminate `while(uxWinSize > 0xfffful)` loop.*/
         __CPROVER_assume( pxSocket->u.xTCP.uxRxWinSize >= 0 && pxSocket->u.xTCP.uxRxWinSize <= sizeof( size_t ) );
         /* uxRxWinSize is initialized as uint16_t. This assumption is required to terminate `while(uxWinSize > 0xfffful)` loop.*/
-        __CPROVER_assume( pxSocket->u.xTCP.usInitMSS == sizeof( uint16_t ) );
+        __CPROVER_assume( pxSocket->u.xTCP.usMSS == sizeof( uint16_t ) );
 
         if( xIsCallingFromIPTask() == pdFALSE )
         {
