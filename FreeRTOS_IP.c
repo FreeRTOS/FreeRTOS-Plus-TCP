@@ -1709,6 +1709,11 @@ BaseType_t FreeRTOS_IPStart( void )
                                                        ipconfigIP_TASK_PRIORITY,
                                                        xIPTaskStack,
                                                        &xIPTaskBuffer );
+
+                    if( xIPTaskHandle != NULL )
+                    {
+                        xReturn = pdTRUE;
+                    }
                 }
             #else /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
                 {
