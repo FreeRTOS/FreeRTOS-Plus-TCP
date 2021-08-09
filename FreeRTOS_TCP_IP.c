@@ -1078,9 +1078,9 @@
         /* If possible, advertise an RX window size of at least 1 MSS, otherwise
          * the peer might start 'zero window probing', i.e. sending small packets
          * (1, 2, 4, 8... bytes). */
-        if( ( ulSpace < pxSocket->u.xTCP.usCurMSS ) && ( ulFrontSpace >= pxSocket->u.xTCP.usCurMSS ) )
+        if( ( ulSpace < pxSocket->u.xTCP.usMSS ) && ( ulFrontSpace >= pxSocket->u.xTCP.usMSS ) )
         {
-            ulSpace = pxSocket->u.xTCP.usCurMSS;
+            ulSpace = pxSocket->u.xTCP.usMSS;
         }
 
         /* Avoid overflow of the 16-bit win field. */
@@ -1468,7 +1468,7 @@
             ulTxWindowSize * ipconfigTCP_MSS,
             pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber,
             pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber,
-            ( uint32_t ) pxSocket->u.xTCP.usInitMSS );
+            ( uint32_t ) pxSocket->u.xTCP.usMSS );
     }
 /*-----------------------------------------------------------*/
 
@@ -1723,7 +1723,7 @@
                 /* Only set the SYN flag. */
                 pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
 
-                /* Set the values of usInitMSS / usCurMSS for this socket. */
+                /* Set the values of usMSS for this socket. */
                 prvSocketSetMSS( pxSocket );
 
                 /* The initial sequence numbers at our side are known.  Later
@@ -1933,7 +1933,7 @@
                  * endian number. */
                 uxNewMSS = usChar2u16( &( pucPtr[ 2 ] ) );
 
-                if( pxSocket->u.xTCP.usInitMSS != uxNewMSS )
+                if( pxSocket->u.xTCP.usMSS != uxNewMSS )
                 {
                     /* Perform a basic check on the the new MSS. */
                     if( uxNewMSS == 0U )
@@ -1945,31 +1945,26 @@
                     }
                     else
                     {
-                        FreeRTOS_debug_printf( ( "MSS change %u -> %lu\n", pxSocket->u.xTCP.usInitMSS, uxNewMSS ) );
+                        FreeRTOS_debug_printf( ( "MSS change %u -> %lu\n", pxSocket->u.xTCP.usMSS, uxNewMSS ) );
                     }
                 }
 
                 /* If a 'return' condition has not been found. */
                 if( xReturn == pdFALSE )
                 {
-                    if( pxSocket->u.xTCP.usInitMSS > uxNewMSS )
+                    if( pxSocket->u.xTCP.usMSS > uxNewMSS )
                     {
                         /* our MSS was bigger than the MSS of the other party: adapt it. */
                         pxSocket->u.xTCP.bits.bMssChange = pdTRUE_UNSIGNED;
 
-                        if( pxSocket->u.xTCP.usCurMSS > uxNewMSS )
-                        {
-                            /* The peer advertises a smaller MSS than this socket was
-                             * using.  Use that as well. */
-                            FreeRTOS_debug_printf( ( "Change mss %d => %lu\n", pxSocket->u.xTCP.usCurMSS, uxNewMSS ) );
-                            pxSocket->u.xTCP.usCurMSS = ( uint16_t ) uxNewMSS;
-                        }
+                        /* The peer advertises a smaller MSS than this socket was
+                         * using.  Use that as well. */
+                        FreeRTOS_debug_printf( ( "Change mss %d => %lu\n", pxSocket->u.xTCP.usMSS, uxNewMSS ) );
 
                         pxTCPWindow->xSize.ulRxWindowLength = ( ( uint32_t ) uxNewMSS ) * ( pxTCPWindow->xSize.ulRxWindowLength / ( ( uint32_t ) uxNewMSS ) );
                         pxTCPWindow->usMSSInit = ( uint16_t ) uxNewMSS;
                         pxTCPWindow->usMSS = ( uint16_t ) uxNewMSS;
-                        pxSocket->u.xTCP.usInitMSS = ( uint16_t ) uxNewMSS;
-                        pxSocket->u.xTCP.usCurMSS = ( uint16_t ) uxNewMSS;
+                        pxSocket->u.xTCP.usMSS = ( uint16_t ) uxNewMSS;
                     }
 
                     uxIndex = tcpTCP_OPT_MSS_LEN;
@@ -2093,7 +2088,7 @@
 
 
             /* 'xTCP.uxRxWinSize' is the size of the reception window in units of MSS. */
-            uxWinSize = pxSocket->u.xTCP.uxRxWinSize * ( size_t ) pxSocket->u.xTCP.usInitMSS;
+            uxWinSize = pxSocket->u.xTCP.uxRxWinSize * ( size_t ) pxSocket->u.xTCP.usMSS;
             ucFactor = 0U;
 
             while( uxWinSize > 0xffffUL )
@@ -2105,7 +2100,7 @@
 
             FreeRTOS_debug_printf( ( "prvWinScaleFactor: uxRxWinSize %u MSS %u Factor %u\n",
                                      ( unsigned ) pxSocket->u.xTCP.uxRxWinSize,
-                                     ( unsigned ) pxSocket->u.xTCP.usInitMSS,
+                                     ( unsigned ) pxSocket->u.xTCP.usMSS,
                                      ucFactor ) );
 
             return ucFactor;
@@ -2132,7 +2127,7 @@
     static UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t * pxSocket,
                                             TCPHeader_t * pxTCPHeader )
     {
-        uint16_t usMSS = pxSocket->u.xTCP.usInitMSS;
+        uint16_t usMSS = pxSocket->u.xTCP.usMSS;
         UBaseType_t uxOptionsLength;
 
         /* We send out the TCP Maximum Segment Size option with our SYN[+ACK]. */
@@ -2633,7 +2628,7 @@
                  * along with the position in the txStream.
                  * Why check for MSS > 1 ?
                  * Because some TCP-stacks (like uIP) use it for flow-control. */
-                if( pxSocket->u.xTCP.usCurMSS > 1U )
+                if( pxSocket->u.xTCP.usMSS > 1U )
                 {
                     lDataLen = ( int32_t ) ulTCPWindowTxGet( pxTCPWindow, pxSocket->u.xTCP.ulWindowSize, &( lStreamPos ) );
                 }
@@ -3193,13 +3188,13 @@
 
             if( xTCPWindowLoggingLevel >= 0 )
             {
-                FreeRTOS_debug_printf( ( "MSS: sending %d\n", pxSocket->u.xTCP.usCurMSS ) );
+                FreeRTOS_debug_printf( ( "MSS: sending %d\n", pxSocket->u.xTCP.usMSS ) );
             }
 
             pxTCPHeader->ucOptdata[ 0 ] = tcpTCP_OPT_MSS;
             pxTCPHeader->ucOptdata[ 1 ] = tcpTCP_OPT_MSS_LEN;
-            pxTCPHeader->ucOptdata[ 2 ] = ( uint8_t ) ( ( pxSocket->u.xTCP.usCurMSS ) >> 8 );
-            pxTCPHeader->ucOptdata[ 3 ] = ( uint8_t ) ( ( pxSocket->u.xTCP.usCurMSS ) & 0xffU );
+            pxTCPHeader->ucOptdata[ 2 ] = ( uint8_t ) ( ( pxSocket->u.xTCP.usMSS ) >> 8 );
+            pxTCPHeader->ucOptdata[ 3 ] = ( uint8_t ) ( ( pxSocket->u.xTCP.usMSS ) & 0xffU );
             uxOptionsLength = 4U;
             pxTCPHeader->ucTCPOffset = ( uint8_t ) ( ( ipSIZE_OF_TCP_HEADER + uxOptionsLength ) << 2 );
         }
@@ -3293,7 +3288,7 @@
                 /* This socket was the one connecting actively so now perform the
                  * synchronisation. */
                 vTCPWindowInit( &pxSocket->u.xTCP.xTCPWindow,
-                                ulSequenceNumber, pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber, ( uint32_t ) pxSocket->u.xTCP.usCurMSS );
+                                ulSequenceNumber, pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber, ( uint32_t ) pxSocket->u.xTCP.usMSS );
                 pxTCPWindow->rx.ulHighestSequenceNumber = ulSequenceNumber + 1U;
                 pxTCPWindow->rx.ulCurrentSequenceNumber = ulSequenceNumber + 1U;
                 pxTCPWindow->tx.ulCurrentSequenceNumber++; /* because we send a TCP_SYN [ | TCP_ACK ]; */
@@ -3578,7 +3573,7 @@
             {
                 #if ( ipconfigTCP_ACK_EARLIER_PACKET != 0 )
                     {
-                        lMinLength = ( ( int32_t ) 2 ) * ( ( int32_t ) pxSocket->u.xTCP.usCurMSS );
+                        lMinLength = ( ( int32_t ) 2 ) * ( ( int32_t ) pxSocket->u.xTCP.usMSS );
                     }
                 #endif /* ipconfigTCP_ACK_EARLIER_PACKET */
 
@@ -3592,7 +3587,7 @@
                     ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eESTABLISHED ) && /* Connection established. */
                     ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )               /* There are no other flags than an ACK. */
                 {
-                    uint32_t ulCurMSS = ( uint32_t ) pxSocket->u.xTCP.usCurMSS;
+                    uint32_t ulCurMSS = ( uint32_t ) pxSocket->u.xTCP.usMSS;
                     int32_t lCurMSS = ( int32_t ) ulCurMSS;
 
                     if( pxSocket->u.xTCP.pxAckMessage != *ppxNetworkBuffer )
@@ -4026,8 +4021,7 @@
 
         FreeRTOS_debug_printf( ( "prvSocketSetMSS: %lu bytes for %s\n", ulMSS, prvSocketProps( pxSocket ) ) );
 
-        pxSocket->u.xTCP.usInitMSS = ( uint16_t ) ulMSS;
-        pxSocket->u.xTCP.usCurMSS = ( uint16_t ) ulMSS;
+        pxSocket->u.xTCP.usMSS = ( uint16_t ) ulMSS;
     }
 /*-----------------------------------------------------------*/
 
