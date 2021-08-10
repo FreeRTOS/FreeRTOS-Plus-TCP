@@ -69,8 +69,11 @@
     #endif /* ( ipconfigUSE_NBNS == 1 ) */
 
 /* Host types. */
-    #define dnsTYPE_A_HOST    0x01U /**< DNS type A host. */
-    #define dnsCLASS_IN       0x01U /**< DNS class IN (Internet). */
+    #define dnsTYPE_A_HOST            0x01U /**< DNS type A host. */
+    #define dnsCLASS_IN               0x01U /**< DNS class IN (Internet). */
+
+/* Maximum hostname length as defined in RFC 1035 section 3.1. */
+    #define dnsMAX_HOSTNAME_LENGTH    0xFFU
 
     #ifndef _lint
         /* LLMNR constants. */
