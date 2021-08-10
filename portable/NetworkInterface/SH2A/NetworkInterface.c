@@ -80,7 +80,6 @@ SemaphoreHandle_t xEMACRxEventSemaphore = NULL;
 BaseType_t xNetworkInterfaceInitialise( void )
 {
     BaseType_t xStatus, xReturn;
-    extern uint8_t ucMACAddress[ 6 ];
 
     /* Initialise the MAC. */
     vInitEmac();
