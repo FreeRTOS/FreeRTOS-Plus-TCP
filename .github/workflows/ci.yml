@@ -123,7 +123,7 @@ jobs:
         run: sudo apt-get install uncrustify
       - name: Complexity
         run: |
-          COMPLEXITY_PARAMS="--scores --threshold=10 --horrid-threshold=250"
+          COMPLEXITY_PARAMS="--scores --threshold=10 --horrid-threshold=283"
           TEMP_DIR=./temp
           mkdir -p ${TEMP_DIR}
           for SOURCE_FILE in portable/BufferManagement/*.c *.c
