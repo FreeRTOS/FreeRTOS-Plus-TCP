@@ -111,11 +111,12 @@
 /* Router Advertisement (RA). End-points can obtain their IP-address by asking for a RA. */
         typedef enum xRAState
         {
-            eRAStateApply,  /* Send a Router Solicitation. */
-            eRAStateWait,   /* Wait for a Router Advertisement. */
-            eRAStateIPTest, /* Take a random IP address, test if another device is using it already. */
-            eRAStateIPWait, /* Wait for a reply, if any */
-            eRAStateLease,  /* The device is up, repeat the RA-process when timer expires. */
+            eRAStateApply,    /* Send a Router Solicitation. */
+            eRAStateWait,     /* Wait for a Router Advertisement. */
+            eRAStateIPTest,   /* Take a random IP address, test if another device is using it already. */
+            eRAStateIPWait,   /* Wait for a reply, if any */
+            eRAStatePreLease, /* The device is ready to go to the 'eRAStateLease' state. */
+            eRAStateLease,    /* The device is up, repeat the RA-process when timer expires. */
             eRAStateFailed,
         } eRAState_t;
 

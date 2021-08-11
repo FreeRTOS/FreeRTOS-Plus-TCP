@@ -24,6 +24,22 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     return nondet_bool() ? NULL : malloc( sizeof( FreeRTOS_Socket_t ) );
 }
 
+/* Abstraction of xTaskGetCurrentTaskHandle */
+TaskHandle_t xTaskGetCurrentTaskHandle( void )
+{
+    static int xIsInit = 0;
+    static TaskHandle_t pxCurrentTCB;
+    TaskHandle_t xRandomTaskHandle; /* not initialized on purpose */
+
+    if( xIsInit == 0 )
+    {
+        pxCurrentTCB = xRandomTaskHandle;
+        xIsInit = 1;
+    }
+
+    return pxCurrentTCB;
+}
+
 /* Abstraction of pxTCPSocketLookup */
 FreeRTOS_Socket_t * pxTCPSocketLookup( UBaseType_t uxLocalPort,
                                        uint32_t ulRemoteIP,
@@ -39,9 +55,22 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( UBaseType_t uxLocalPort,
 
         /* Since the socket is bound, it must have an endpoint. */
         __CPROVER_assume( xRetSocket->pxEndPoint != NULL );
+
+        if( xIsCallingFromIPTask() == pdFALSE )
+        {
+            xRetSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
+            xRetSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
+        }
     }
 
     return xRetSocket;
+}
+
+/* The function under test requires that it be called from IP-task. Thus, the below stub makes sure
+ * that a pdTRUE is returned meaning that the context is that of the IP-Task. */
+BaseType_t xIsCallingFromIPTask( void )
+{
+    return pdTRUE;
 }
 
 /* Abstraction of pxGetNetworkBufferWithDescriptor */
