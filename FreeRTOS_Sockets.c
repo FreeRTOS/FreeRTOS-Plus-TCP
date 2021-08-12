@@ -2450,6 +2450,8 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
     const char * pcIPAddress = pcSource;
     const void * pvCopySource;
 
+    ( void ) memset( pvDestination, 0, sizeof( ulReturn ) );
+
     /* Translate "192.168.2.100" to a 32-bit number, network-endian. */
     for( uxOctetNumber = 0U; uxOctetNumber < socketMAX_IP_ADDRESS_OCTETS; uxOctetNumber++ )
     {
