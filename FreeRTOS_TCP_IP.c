@@ -70,37 +70,33 @@
 /*
  * The meaning of the TCP flags:
  */
-    #define tcpTCP_FLAG_FIN                       ( ( uint8_t ) 0x01U ) /**< No more data from sender. */
-    #define tcpTCP_FLAG_SYN                       ( ( uint8_t ) 0x02U ) /**< Synchronize sequence numbers. */
-    #define tcpTCP_FLAG_RST                       ( ( uint8_t ) 0x04U ) /**< Reset the connection. */
-    #define tcpTCP_FLAG_PSH                       ( ( uint8_t ) 0x08U ) /**< Push function: please push buffered data to the recv application. */
-    #define tcpTCP_FLAG_ACK                       ( ( uint8_t ) 0x10U ) /**< Acknowledgment field is significant. */
-    #define tcpTCP_FLAG_URG                       ( ( uint8_t ) 0x20U ) /**< Urgent pointer field is significant. */
-    #define tcpTCP_FLAG_ECN                       ( ( uint8_t ) 0x40U ) /**< ECN-Echo. */
-    #define tcpTCP_FLAG_CWR                       ( ( uint8_t ) 0x80U ) /**< Congestion Window Reduced. */
+    #define tcpTCP_FLAG_FIN             ( ( uint8_t ) 0x01U )           /**< No more data from sender. */
+    #define tcpTCP_FLAG_SYN             ( ( uint8_t ) 0x02U )           /**< Synchronize sequence numbers. */
+    #define tcpTCP_FLAG_RST             ( ( uint8_t ) 0x04U )           /**< Reset the connection. */
+    #define tcpTCP_FLAG_PSH             ( ( uint8_t ) 0x08U )           /**< Push function: please push buffered data to the recv application. */
+    #define tcpTCP_FLAG_ACK             ( ( uint8_t ) 0x10U )           /**< Acknowledgment field is significant. */
+    #define tcpTCP_FLAG_URG             ( ( uint8_t ) 0x20U )           /**< Urgent pointer field is significant. */
+    #define tcpTCP_FLAG_ECN             ( ( uint8_t ) 0x40U )           /**< ECN-Echo. */
+    #define tcpTCP_FLAG_CWR             ( ( uint8_t ) 0x80U )           /**< Congestion Window Reduced. */
 
-    #define tcpTCP_FLAG_CTRL                      ( ( uint8_t ) 0x1FU ) /**< A mask to filter all protocol flags. */
+    #define tcpTCP_FLAG_CTRL            ( ( uint8_t ) 0x1FU )           /**< A mask to filter all protocol flags. */
 
 /*
  * A few values of the TCP options:
  */
-    #define tcpTCP_OPT_END                        0U /**< End of TCP options list. */
-    #define tcpTCP_OPT_NOOP                       1U /**< "No-operation" TCP option. */
-    #define tcpTCP_OPT_MSS                        2U /**< Maximum segment size TCP option. */
-    #define tcpTCP_OPT_WSOPT                      3U /**< TCP Window Scale Option (3-byte long). */
-    #define tcpTCP_OPT_SACK_P                     4U /**< Advertise that SACK is permitted. */
-    #define tcpTCP_OPT_SACK_A                     5U /**< SACK option with first/last. */
-    #define tcpTCP_OPT_TIMESTAMP                  8U /**< Time-stamp option. */
+    #define tcpTCP_OPT_END              0U           /**< End of TCP options list. */
+    #define tcpTCP_OPT_NOOP             1U           /**< "No-operation" TCP option. */
+    #define tcpTCP_OPT_MSS              2U           /**< Maximum segment size TCP option. */
+    #define tcpTCP_OPT_WSOPT            3U           /**< TCP Window Scale Option (3-byte long). */
+    #define tcpTCP_OPT_SACK_P           4U           /**< Advertise that SACK is permitted. */
+    #define tcpTCP_OPT_SACK_A           5U           /**< SACK option with first/last. */
+    #define tcpTCP_OPT_TIMESTAMP        8U           /**< Time-stamp option. */
 
 
-    #define tcpTCP_OPT_MSS_LEN                    4U /**< Length of TCP MSS option. */
-    #define tcpTCP_OPT_WSOPT_LEN                  3U /**< Length of TCP WSOPT option. */
+    #define tcpTCP_OPT_MSS_LEN          4U           /**< Length of TCP MSS option. */
+    #define tcpTCP_OPT_WSOPT_LEN        3U           /**< Length of TCP WSOPT option. */
 
-    #define tcpTCP_OPT_TIMESTAMP_LEN              10 /**< fixed length of the time-stamp option. */
-
-    #ifndef ipconfigTCP_ACK_EARLIER_PACKET
-        #define ipconfigTCP_ACK_EARLIER_PACKET    1   /**< Acknowledge an earlier packet. */
-    #endif
+    #define tcpTCP_OPT_TIMESTAMP_LEN    10           /**< fixed length of the time-stamp option. */
 
 
 /** @brief
@@ -3557,11 +3553,7 @@
         BaseType_t xSizeWithoutData = ( BaseType_t ) uxSize;
 
         #if ( ipconfigUSE_TCP_WIN == 1 )
-            #if ( ipconfigTCP_ACK_EARLIER_PACKET == 0 )
-                const int32_t lMinLength = 0;
-            #else
-                int32_t lMinLength;
-            #endif
+            int32_t lMinLength;
         #endif
 
         /* Set the time-out field, so that we'll be called by the IP-task in case no
@@ -3571,11 +3563,8 @@
 
         #if ipconfigUSE_TCP_WIN == 1
             {
-                #if ( ipconfigTCP_ACK_EARLIER_PACKET != 0 )
-                    {
-                        lMinLength = ( ( int32_t ) 2 ) * ( ( int32_t ) pxSocket->u.xTCP.usMSS );
-                    }
-                #endif /* ipconfigTCP_ACK_EARLIER_PACKET */
+                /* An ACK may be delayed if the peer has space for at least 2 x MSS. */
+                lMinLength = ( ( int32_t ) 2 ) * ( ( int32_t ) pxSocket->u.xTCP.usMSS );
 
                 /* In case we're receiving data continuously, we might postpone sending
                  * an ACK to gain performance. */
