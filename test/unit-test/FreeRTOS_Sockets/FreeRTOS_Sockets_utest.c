@@ -114,40 +114,40 @@ void test_FreeRTOS_inet_pton4( void )
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString1, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 1." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString2, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 2." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString3, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 3." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString4, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 4." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString5, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 5." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString6, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 6." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString7, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 7." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString8, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 8." );
 }
