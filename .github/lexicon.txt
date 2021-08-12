@@ -665,6 +665,7 @@ pcname
 pcnames
 pcnetworkbuffer
 pcremoteip
+pcrequestedname
 pcreturn
 pcs
 pcservername
@@ -720,6 +721,7 @@ ppucrecvdata
 ppxaddressinfo
 ppxendpoint
 ppxinterface
+ppxlastaddress
 ppxnetworkbuffer
 ppxresult
 pr
@@ -890,6 +892,7 @@ pxipaddress
 pxipheader
 pxippacket
 pxiterator
+pxlastaddress
 pxlength
 pxlist
 pxlistfindlistitemwithvalue
@@ -1496,6 +1499,7 @@ uxrxwinsize
 uxschedulersuspended
 uxsecs
 uxsize
+uxsourcebytesremaining
 uxsocketsize
 uxsourcelen
 uxstreambufferadd
@@ -1593,6 +1597,7 @@ xarpheader
 xarppacket
 xarpwaitresolution
 xasynchronous
+xattempt
 xbacklog
 xbitstoclear
 xbitstoset
@@ -1633,11 +1638,13 @@ xdnsmessage
 xdnsserver
 xdnsserveraddresses
 xdnssocket
+xdoaccept
 xdocheck
 xdolog
 xdomain
 xdorandom
 xdoreset
+xdostore
 xdumpingready
 xechoserveraddress
 xemacps
