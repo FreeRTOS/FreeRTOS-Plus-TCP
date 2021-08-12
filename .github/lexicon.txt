@@ -1206,6 +1206,7 @@ ucoctet
 ucopcode
 ucoptdata
 ucoptionbytes
+ucoptioncode
 ucoptionlength
 ucoptiontype
 ucpeerwinscalefactor
@@ -1315,6 +1316,7 @@ ulonmac
 ulonnetmask
 uloptionsdata
 uloursequencenumber
+ulparameter
 ulphymask
 ulpreferredlifetime
 ulprocessed
@@ -1480,6 +1482,7 @@ uxnumberofbytestosend
 uxoffset
 uxoptionlength
 uxoptionslength
+uxpayloaddatalength
 uxpayloadoffset
 uxprefixlength
 uxprotocolheaderlength
