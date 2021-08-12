@@ -90,7 +90,7 @@ void vPortExitCritical( void )
 
 void * pvPortMalloc( size_t xNeeded )
 {
-    return malloc(xNeeded);
+    return malloc( xNeeded );
 }
 
 void vPortFree( void * ptr )

@@ -59,7 +59,7 @@
 #include "FreeRTOSIPConfig.h"
 
 /* Test for FreeRTOS_inet_pton4 function. */
-void test_FreeRTOS_inet_pton4(void)
+void test_FreeRTOS_inet_pton4( void )
 {
     char * pucValidString1 = "192.68.1.1";
     uint32_t ulValidResponse1 = 0x010144C0;
@@ -71,7 +71,7 @@ void test_FreeRTOS_inet_pton4(void)
     uint32_t ulValidResponse4 = 0x00000000;
     char * pucValidString5 = "0.68.1.1";
     uint32_t ulValidResponse5 = 0x01014400;
-    
+
     char * pucInvalidString1 = "0192.68.1.1";
     char * pucInvalidString2 = "192.68.00.1";
     char * pucInvalidString3 = "192.00.1.1";
@@ -81,71 +81,71 @@ void test_FreeRTOS_inet_pton4(void)
     char * pucInvalidString7 = "1234.68.1.1";
     char * pucInvalidString8 = "123.68.0a.1";
     uint32_t ulInValidResponse = 0x00;
-    
+
     BaseType_t xResult;
     uint32_t ulIPAddress;
-    
+
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucValidString1, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
     TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse1, ulIPAddress, "Could not convert string 1 correctly." );
-    
+
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucValidString2, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
     TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse2, ulIPAddress, "Could not convert string 2 correctly." );
-    
+
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucValidString3, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
     TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse3, ulIPAddress, "Could not convert string 3 correctly." );
-    
+
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucValidString4, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
     TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse4, ulIPAddress, "Could not convert string 4 correctly." );
-    
+
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucValidString5, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
     TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse5, ulIPAddress, "Could not convert string 5 correctly." );
-    
+
     /* Invalid test cases. */
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString1, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
     TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
-    
+
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString2, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
     TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
-    
+
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString3, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
     TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
-    
+
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString4, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
     TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
-    
+
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString5, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
     TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
-    
+
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString6, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
     TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
-    
+
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString7, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
     TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Could not convert string 5 correctly." );
-    
+
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString8, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
