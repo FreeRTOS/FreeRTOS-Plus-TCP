@@ -426,9 +426,10 @@
  * @return pdTRUE if the IP address is either multicast or broadcast. pdFALSE
  *         otherwise.
  */
-    BaseType_t xIsUnicastAddress( uint32_t ulIPAddress )
+    BaseType_t xIsUnicastAddress( struct freertos_sockaddr * pxAddress )
     {
         BaseType_t xResult = pdTRUE;
+        uint32_t ulIPAddress = pxAddress->sin_addr;
 
         if( ( FreeRTOS_ntohl( ulIPAddress ) & 0xffU ) == 0xffU )
         {
@@ -3747,10 +3748,14 @@
         const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
         FreeRTOS_Socket_t * pxReturn = NULL;
         uint32_t ulInitialSequenceNumber;
+        struct freertos_sockaddr xAddress;
+
+        /* Put the IP address in the address-structure. */
+        xAddress.sin_addr = pxTCPPacket->xIPHeader.ulDestinationIPAddress;
 
         /* Silently discard a SYN packet which was sent to the broadcast address
          * (x.x.x.255) or a multicast address. */
-        if( xIsUnicastAddress( pxTCPPacket->xIPHeader.ulDestinationIPAddress ) != pdFALSE )
+        if( xIsUnicastAddress( &xAddress ) != pdFALSE )
         {
             /* Assume that a new Initial Sequence Number will be required. Request
              * it now in order to fail out if necessary. */
@@ -3762,7 +3767,7 @@
         else
         {
             /* Set the sequence number to 0 to avoid further processing. */
-            ulInitialSequenceNumber = 0;
+            ulInitialSequenceNumber = 0UL;
         }
 
         /* A pure SYN (without ACK) has come in, create a new socket to answer
