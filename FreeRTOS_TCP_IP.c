@@ -421,10 +421,14 @@
 /**
  * @brief Check whether the address is unicast of multicast/broadcast.
  *
- * @param[in] ulIPAddress: The IP address to be checked (in 32-bit format).
+ * @param[in] pxAddress: The structure containing the IP-address to be
+ *            checked (in 32-bit format).
  *
  * @return pdTRUE if the IP address is either multicast or broadcast. pdFALSE
  *         otherwise.
+ *
+ * @note The structure is used instead of a 32-bit IP is to make this function
+ *       similar in signature for IPv6.
  */
     BaseType_t xIsUnicastAddress( struct freertos_sockaddr * pxAddress )
     {
