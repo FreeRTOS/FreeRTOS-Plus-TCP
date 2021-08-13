@@ -1264,15 +1264,15 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
                         uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv6;
                         xAddressLength = sizeof( struct freertos_sockaddr6 );
                         pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET6;
-                        memcpy( &( ( ( struct freertos_sockaddr6 * )pxSourceAddress )->sin_addrv6 ), &(( (UDPPacket_IPv6_t *)( pxNetworkBuffer->pucEthernetBuffer ))->xIPHeader.xSourceAddress) , sizeof( IPv6_Address_t ) );
+                        memcpy( &( ( ( struct freertos_sockaddr6 * ) pxSourceAddress )->sin_addrv6 ), &( ( ( UDPPacket_IPv6_t * ) ( pxNetworkBuffer->pucEthernetBuffer ) )->xIPHeader.xSourceAddress ), sizeof( IPv6_Address_t ) );
                     }
                     else
                     {
-                    	pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET;
-                    	memset( &( ( ( struct freertos_sockaddr6 * )pxSourceAddress )->sin_addrv6 ), 0, sizeof( IPv6_Address_t ) );
+                        pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET;
+                        memset( &( ( ( struct freertos_sockaddr6 * ) pxSourceAddress )->sin_addrv6 ), 0, sizeof( IPv6_Address_t ) );
                     }
                 }
-            #endif
+            #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
             if( pxSourceAddressLength != NULL )
             {
