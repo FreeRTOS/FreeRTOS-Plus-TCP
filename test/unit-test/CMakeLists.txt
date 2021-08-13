@@ -60,6 +60,7 @@ set( TCP_INCLUDES "${MODULE_ROOT_DIR}/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_DHCP.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_IP.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_Stream_Buffer.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_WIN.h"
                   "${MODULE_ROOT_DIR}/include/NetworkBufferManagement.h"
                   "${MODULE_ROOT_DIR}/include/NetworkInterface.h" )
@@ -154,6 +155,7 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 
 include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
 
