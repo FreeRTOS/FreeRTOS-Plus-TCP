@@ -4146,7 +4146,7 @@
         else
         {
         	/* Set the sequence number to 0 to avoid further processing. */
-        	ulInitialSequenceNumber = 0;
+        	ulInitialSequenceNumber = 0U;
         }
 
         /* A pure SYN (without ACK) has come in, create a new socket to answer

@@ -2902,6 +2902,14 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
  *
  * @return An enum to show whether the packet should be released/kept/processed etc.
  */
+
+struct HopByHopDestOpts{
+	uint8_t ucNextheader;
+	uint8_t ucHeaderExtensionLen;
+	uint16_t usOptPad;
+	uint32_t ulOptPad;
+};
+
 static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                                     NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
@@ -2935,9 +2943,10 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 /* Put it in the IP Header for later use. */
                 pxIPHeader_IPv6->ucNextHeader = ucProtocol;
 
-                /* Get the length of the hop-by-hop option */
+                /* Get the length of the option */
                 int32_t lengthOfOption = *( temp + 1 );
-                lengthOfOption = lengthOfOption * 16;
+                /* Length is mentioned in 8-octet units ignoring the first 8 octets. */
+                lengthOfOption = ( lengthOfOption /* Following octets */ + 1 /* First 8 octets. */ ) * 8;
 
                 /* Copy remaining data over the hop-by-hop option. We don't need the hop-by-hop option anymore. */
                 if( ( ( int32_t ) pxNetworkBuffer->xDataLength ) - ( ( int32_t ) 54 ) - lengthOfOption >= 0 )
@@ -3037,6 +3046,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
                 }
             }
+
+            FreeRTOS_printf( ( "Protocol value %d", ucProtocol ) );
 
             switch( ucProtocol )
             {
