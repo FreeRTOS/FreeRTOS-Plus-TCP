@@ -173,5 +173,8 @@ void harness()
     __CPROVER_assume( pcHostName != NULL );
     pcHostName[ len - 1 ] = NULL;
 
+    /* Clear the cache and a static variable. */
+    FreeRTOS_dnsclear();
+
     FreeRTOS_gethostbyname( pcHostName );
 }

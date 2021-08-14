@@ -279,6 +279,7 @@ erastateapply
 erastateiptest
 erastateipwait
 erastatelease
+erastateprelease
 erastatewait
 ereleasebuffer
 ereturn
@@ -389,6 +390,7 @@ https
 huc
 hw
 hz
+ia
 iacr
 iadhr
 iadlr
@@ -451,6 +453,7 @@ lan
 lastpacket
 laststate
 lbytes
+lbytesleft
 lc
 lca
 lco
@@ -501,6 +504,7 @@ ltcpaddrxdata
 ltcpwindowrxcheck
 ltcpwindowtxadd
 ltd
+ltowrite
 ltransmitted
 ltxbufsize
 ltxwinsize
@@ -603,6 +607,7 @@ nobroadcast
 noevent
 nondet
 noninfringement
+nontemporaryaddress
 nop
 ntoh
 ntp
@@ -660,6 +665,7 @@ pcname
 pcnames
 pcnetworkbuffer
 pcremoteip
+pcrequestedname
 pcreturn
 pcs
 pcservername
@@ -705,6 +711,7 @@ pme
 pmecr
 pmt
 pointee
+pos
 posix
 pparam
 ppkt
@@ -714,6 +721,7 @@ ppucrecvdata
 ppxaddressinfo
 ppxendpoint
 ppxinterface
+ppxlastaddress
 ppxnetworkbuffer
 ppxresult
 pr
@@ -884,6 +892,7 @@ pxipaddress
 pxipheader
 pxippacket
 pxiterator
+pxlastaddress
 pxlength
 pxlist
 pxlistfindlistitemwithvalue
@@ -1051,6 +1060,7 @@ senddata
 sendeventtoiptask
 sendto
 seq
+seqnr
 setsockopt
 shouldn
 sht
@@ -1196,6 +1206,7 @@ ucoctet
 ucopcode
 ucoptdata
 ucoptionbytes
+ucoptioncode
 ucoptionlength
 ucoptiontype
 ucpeerwinscalefactor
@@ -1245,6 +1256,7 @@ ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
 uldata
+uldatagot
 uldefaultipaddress
 uldelayms
 uldestinationaddress
@@ -1304,6 +1316,7 @@ ulonmac
 ulonnetmask
 uloptionsdata
 uloursequencenumber
+ulparameter
 ulphymask
 ulpreferredlifetime
 ulprocessed
@@ -1448,12 +1461,13 @@ uxidentifier
 uxidsize
 uxindex
 uxipheaderlength
+uxipheadersize
 uxipheadersizesocket
 uxlast
 uxleft
 uxlength
-uxlittlespace
 uxlistremove
+uxlittlespace
 uxlocalport
 uxlower
 uxmax
@@ -1468,6 +1482,7 @@ uxnumberofbytestosend
 uxoffset
 uxoptionlength
 uxoptionslength
+uxpayloaddatalength
 uxpayloadoffset
 uxprefixlength
 uxprotocolheaderlength
@@ -1484,6 +1499,8 @@ uxrxwinsize
 uxschedulersuspended
 uxsecs
 uxsize
+uxsourcebytesremaining
+uxsocketsize
 uxsourcelen
 uxstreambufferadd
 uxstreambufferget
@@ -1539,6 +1556,7 @@ vreleasenetworkbufferanddescriptor
 vrxfaultinjection
 vsocketbind
 vsocketclose
+vsocketclosenexttime
 vsocketselect
 vsocketwakeupuser
 vstartntptask
@@ -1579,6 +1597,7 @@ xarpheader
 xarppacket
 xarpwaitresolution
 xasynchronous
+xattempt
 xbacklog
 xbitstoclear
 xbitstoset
@@ -1619,11 +1638,13 @@ xdnsmessage
 xdnsserver
 xdnsserveraddresses
 xdnssocket
+xdoaccept
 xdocheck
 xdolog
 xdomain
 xdorandom
 xdoreset
+xdostore
 xdumpingready
 xechoserveraddress
 xemacps
@@ -1748,6 +1769,7 @@ xqueuegenericsend
 xqueueitem
 xqueuereceive
 xradata
+xrandomtaskhandle
 xrasolicitationrequest
 xready
 xreceiveblocktime
@@ -1793,6 +1815,7 @@ xtargethardwareaddress
 xtargetindex
 xtaskcheckfortimeout
 xtaskcreate
+xtaskgetcurrenttaskhandle
 xtaskgettickcount
 xtaskhandle
 xtaskresumeall
@@ -1804,6 +1827,7 @@ xtcpsocketcheck
 xtcptimer
 xtcptimercheck
 xtcpwindow
+xtcpwindowlogginglevel
 xtcpwindowrxconfirm
 xtcpwindowtxdone
 xtemplist
