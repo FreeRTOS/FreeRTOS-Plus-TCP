@@ -280,6 +280,7 @@ erastateapply
 erastateiptest
 erastateipwait
 erastatelease
+erastateprelease
 erastatewait
 ereleasebuffer
 ereturn
@@ -666,6 +667,7 @@ pcname
 pcnames
 pcnetworkbuffer
 pcremoteip
+pcrequestedname
 pcreturn
 pcs
 pcservername
@@ -721,6 +723,7 @@ ppucrecvdata
 ppxaddressinfo
 ppxendpoint
 ppxinterface
+ppxlastaddress
 ppxnetworkbuffer
 ppxresult
 pr
@@ -891,6 +894,7 @@ pxipaddress
 pxipheader
 pxippacket
 pxiterator
+pxlastaddress
 pxlength
 pxlist
 pxlistfindlistitemwithvalue
@@ -1205,6 +1209,7 @@ ucoctet
 ucopcode
 ucoptdata
 ucoptionbytes
+ucoptioncode
 ucoptionlength
 ucoptiontype
 ucpeerwinscalefactor
@@ -1314,6 +1319,7 @@ ulonmac
 ulonnetmask
 uloptionsdata
 uloursequencenumber
+ulparameter
 ulphymask
 ulpreferredlifetime
 ulprocessed
@@ -1479,6 +1485,7 @@ uxnumberofbytestosend
 uxoffset
 uxoptionlength
 uxoptionslength
+uxpayloaddatalength
 uxpayloadoffset
 uxprefixlength
 uxprotocolheaderlength
@@ -1495,6 +1502,7 @@ uxrxwinsize
 uxschedulersuspended
 uxsecs
 uxsize
+uxsourcebytesremaining
 uxsocketsize
 uxsourcelen
 uxstreambufferadd
@@ -1592,6 +1600,7 @@ xarpheader
 xarppacket
 xarpwaitresolution
 xasynchronous
+xattempt
 xbacklog
 xbitstoclear
 xbitstoset
@@ -1632,11 +1641,13 @@ xdnsmessage
 xdnsserver
 xdnsserveraddresses
 xdnssocket
+xdoaccept
 xdocheck
 xdolog
 xdomain
 xdorandom
 xdoreset
+xdostore
 xdumpingready
 xechoserveraddress
 xemacps

@@ -199,5 +199,8 @@ void harness()
      * initially. */
     __CPROVER_assume( pxLastInfo == NULL );
 
+    /* Clear the cache and the static variable. */
+    FreeRTOS_dnsclear();
+
     FreeRTOS_gethostbyname_a( pcHostName, pCallback, pvSearchID, xTimeout );
 }
