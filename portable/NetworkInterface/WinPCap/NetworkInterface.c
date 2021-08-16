@@ -130,9 +130,6 @@ static pcap_t * pxOpenedInterfaceHandle = NULL;
 static StreamBuffer_t * xSendBuffer = NULL;
 static StreamBuffer_t * xRecvBuffer = NULL;
 
-/* The MAC address initially set to the constants defined in FreeRTOSConfig.h. */
-extern uint8_t ucMACAddress[ 6 ];
-
 /* Logs the number of WinPCAP send failures, for viewing in the debugger only. */
 static volatile uint32_t ulWinPCAPSendFailures = 0;
 
@@ -378,7 +375,7 @@ static void prvConfigureCaptureBehaviour( void )
      * stack.  cErrorBuffer is used for convenience to create the string.  Don't
      * confuse this with an error message. */
     sprintf( cErrorBuffer, "broadcast or multicast or ether host %x:%x:%x:%x:%x:%x",
-             ucMACAddress[ 0 ], ucMACAddress[ 1 ], ucMACAddress[ 2 ], ucMACAddress[ 3 ], ucMACAddress[ 4 ], ucMACAddress[ 5 ] );
+             ipLOCAL_MAC_ADDRESS[ 0 ], ipLOCAL_MAC_ADDRESS[ 1 ], ipLOCAL_MAC_ADDRESS[ 2 ], ipLOCAL_MAC_ADDRESS[ 3 ], ipLOCAL_MAC_ADDRESS[ 4 ], ipLOCAL_MAC_ADDRESS[ 5 ] );
 
     ulNetMask = ( configNET_MASK3 << 24UL ) | ( configNET_MASK2 << 16UL ) | ( configNET_MASK1 << 8L ) | configNET_MASK0;
 
@@ -526,7 +523,7 @@ static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer )
 
     /* Sometimes, packets are bounced back by the driver and we need not process them. Check
      * whether this packet is one such packet. */
-    if( memcmp( ucMACAddress, pxEtherHeader->xSourceAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
+    if( memcmp( ipLOCAL_MAC_ADDRESS, pxEtherHeader->xSourceAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
     {
         xResult = pdTRUE;
     }
