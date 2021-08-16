@@ -1218,13 +1218,16 @@ static int32_t prvRecvFrom_CopyPacket( uint8_t * pucEthernetBuffer,
  * @param[in] uxBufferLength: The length of the buffer.
  * @param[in] xFlags: The flags to indicate preferences while calling this function.
  * @param[out] pxSourceAddress: The source address from which the data is being sent.
- * @param[out] pxSourceAddressLength: This parameter is used only to adhere to Berkeley
- *                              sockets standard. It is not used internally.
+ * @param[out] pxSourceAddressLength: The length of the source address structure.
+ *                  This would always be a constant - 24 (in case of no error) as
+ *                  FreeRTOS+TCP makes the sizes of IPv4 and IPv6 structures equal
+ *                  (24-bytes) for compatibility.
  *
  * @return The number of bytes received. Or else, an error code is returned. When it
  *         returns a negative value, the cause can be looked-up in
  *         'FreeRTOS_errno_TCP.h'.
  */
+#define ipconfigUSE_IPv6 1
 int32_t FreeRTOS_recvfrom( Socket_t xSocket,
                            void * pvBuffer,
                            size_t uxBufferLength,
@@ -1238,7 +1241,7 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
     EventBits_t xEventBits = ( EventBits_t ) 0;
     size_t uxPayloadOffset;
     size_t uxPayloadLength;
-    socklen_t xAddressLength = sizeof( struct freertos_sockaddr );
+    socklen_t xAddressLength;
 
     if( prvValidSocket( pxSocket, FREERTOS_IPPROTO_UDP, pdTRUE ) == pdFALSE )
     {
@@ -1254,25 +1257,38 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
 
         if( pxNetworkBuffer != NULL )
         {
-            uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv4;
-            #if ( ipconfigUSE_IPv6 != 0 )
-                {
-                    UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+            UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
 
-                    if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+            #if ( ipconfigUSE_IPv6 != 0 )
+                if (pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE)
+                {
+                    if (pxSourceAddress != NULL)
                     {
-                        uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv6;
-                        xAddressLength = sizeof( struct freertos_sockaddr6 );
-                        pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET6;
-                        memcpy( &( ( ( struct freertos_sockaddr6 * ) pxSourceAddress )->sin_addrv6 ), &( ( ( UDPPacket_IPv6_t * ) ( pxNetworkBuffer->pucEthernetBuffer ) )->xIPHeader.xSourceAddress ), sizeof( IPv6_Address_t ) );
+                        sockaddr6_t* pxSourceAddressV6 = ipCAST_PTR_TO_TYPE_PTR(sockaddr6_t, pxSourceAddress);
+                        UDPPacket_IPv6_t* pxUDPPacketV6 = ipCAST_PTR_TO_TYPE_PTR(UDPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer);
+
+                        memcpy((void*)pxSourceAddressV6->sin_addrv6.ucBytes,
+                            (void*)pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
+                            ipSIZE_OF_IPv6_ADDRESS);
+                        pxSourceAddress->sin_family = (uint8_t)FREERTOS_AF_INET6;
+                        pxSourceAddress->sin_addr = 0U;
+                        pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
                     }
-                    else
-                    {
-                        pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET;
-                        memset( &( ( ( struct freertos_sockaddr6 * ) pxSourceAddress )->sin_addrv6 ), 0, sizeof( IPv6_Address_t ) );
-                    }
+                    uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv6;
+                    xAddressLength = sizeof(struct freertos_sockaddr6);
                 }
+                else
             #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+            {
+                if (pxSourceAddress != NULL)
+                {
+                    pxSourceAddress->sin_family = (uint8_t)FREERTOS_AF_INET;
+                    pxSourceAddress->sin_addr = pxNetworkBuffer->ulIPAddress;
+                    pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
+                }
+                uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv4;
+                xAddressLength = sizeof(struct freertos_sockaddr);
+            }
 
             if( pxSourceAddressLength != NULL )
             {
@@ -1283,14 +1299,8 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
              * calculated at the total packet size minus the headers.
              * The validity of `xDataLength` prvProcessIPPacket has been confirmed
              * in 'prvProcessIPPacket()'. */
-            uxPayloadLength = pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) + sizeof( UDPHeader_t ) );
+            uxPayloadLength = pxNetworkBuffer->xDataLength - uxPayloadOffset;
             lReturn = ( int32_t ) uxPayloadLength;
-
-            if( pxSourceAddress != NULL )
-            {
-                pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
-                pxSourceAddress->sin_addr = pxNetworkBuffer->ulIPAddress;
-            }
 
             lReturn = prvRecvFrom_CopyPacket( &( pxNetworkBuffer->pucEthernetBuffer[ uxPayloadOffset ] ), pvBuffer, uxBufferLength, xFlags, lReturn );
 
