@@ -1227,7 +1227,6 @@ static int32_t prvRecvFrom_CopyPacket( uint8_t * pucEthernetBuffer,
  *         returns a negative value, the cause can be looked-up in
  *         'FreeRTOS_errno_TCP.h'.
  */
-#define ipconfigUSE_IPv6 1
 int32_t FreeRTOS_recvfrom( Socket_t xSocket,
                            void * pvBuffer,
                            size_t uxBufferLength,
@@ -1260,34 +1259,36 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
             UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
 
             #if ( ipconfigUSE_IPv6 != 0 )
-                if (pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE)
+                if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                 {
-                    if (pxSourceAddress != NULL)
+                    if( pxSourceAddress != NULL )
                     {
-                        sockaddr6_t* pxSourceAddressV6 = ipCAST_PTR_TO_TYPE_PTR(sockaddr6_t, pxSourceAddress);
-                        UDPPacket_IPv6_t* pxUDPPacketV6 = ipCAST_PTR_TO_TYPE_PTR(UDPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer);
+                        sockaddr6_t * pxSourceAddressV6 = ipCAST_PTR_TO_TYPE_PTR( sockaddr6_t, pxSourceAddress );
+                        UDPPacket_IPv6_t * pxUDPPacketV6 = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
 
-                        memcpy((void*)pxSourceAddressV6->sin_addrv6.ucBytes,
-                            (void*)pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
-                            ipSIZE_OF_IPv6_ADDRESS);
-                        pxSourceAddress->sin_family = (uint8_t)FREERTOS_AF_INET6;
+                        memcpy( ( void * ) pxSourceAddressV6->sin_addrv6.ucBytes,
+                                ( void * ) pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
+                                ipSIZE_OF_IPv6_ADDRESS );
+                        pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET6;
                         pxSourceAddress->sin_addr = 0U;
                         pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
                     }
+
                     uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv6;
-                    xAddressLength = sizeof(struct freertos_sockaddr6);
+                    xAddressLength = sizeof( struct freertos_sockaddr6 );
                 }
                 else
             #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
             {
-                if (pxSourceAddress != NULL)
+                if( pxSourceAddress != NULL )
                 {
-                    pxSourceAddress->sin_family = (uint8_t)FREERTOS_AF_INET;
+                    pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET;
                     pxSourceAddress->sin_addr = pxNetworkBuffer->ulIPAddress;
                     pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
                 }
+
                 uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv4;
-                xAddressLength = sizeof(struct freertos_sockaddr);
+                xAddressLength = sizeof( struct freertos_sockaddr );
             }
 
             if( pxSourceAddressLength != NULL )
