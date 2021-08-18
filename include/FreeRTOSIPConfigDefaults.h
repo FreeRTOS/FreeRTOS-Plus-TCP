@@ -344,7 +344,7 @@
 #endif
 
 #ifndef ipconfigICMP_TIME_TO_LIVE
-    #define ipconfigICMP_TIME_TO_LIVE   64
+    #define ipconfigICMP_TIME_TO_LIVE    64
 #endif
 
 #ifndef ipconfigUDP_MAX_RX_PACKETS
