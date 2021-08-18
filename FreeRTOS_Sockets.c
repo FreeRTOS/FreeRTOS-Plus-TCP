@@ -1257,7 +1257,7 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
         if( pxNetworkBuffer != NULL )
         {
             #if ( ipconfigUSE_IPv6 != 0 )
-                UDPPacket_IPv6_t * pxUDPPacketV6 = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_IPv6_t, , pxNetworkBuffer->pucEthernetBuffer );
+                UDPPacket_IPv6_t * pxUDPPacketV6 = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
 
                 if( pxUDPPacketV6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                 {
