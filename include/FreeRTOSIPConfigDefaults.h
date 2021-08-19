@@ -343,6 +343,10 @@
     #define ipconfigTCP_TIME_TO_LIVE    128
 #endif
 
+#ifndef ipconfigICMP_TIME_TO_LIVE
+    #define ipconfigICMP_TIME_TO_LIVE   64
+#endif
+
 #ifndef ipconfigUDP_MAX_RX_PACKETS
 
 /* Make positive to define the maximum number of packets which will be buffered
