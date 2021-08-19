@@ -340,6 +340,7 @@
 #endif
 
 #ifndef ipconfigTCP_TIME_TO_LIVE
+    /* Set the default value suggested in RFC 1700. */
     #define ipconfigTCP_TIME_TO_LIVE    128
 #endif
 
