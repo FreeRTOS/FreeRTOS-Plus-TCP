@@ -2772,6 +2772,7 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
     #if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 )
         {
             size_t uxHeaderLength;
+            uint16_t usTotalLength;
 
             IPHeader_t * pxIPHeader = ipCAST_PTR_TO_TYPE_PTR( IPHeader_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
@@ -2804,12 +2805,10 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
             pxIPHeader->ucVersionHeaderLength = ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
                                                 ( ( ipSIZE_OF_IPv4_HEADER >> 2 ) & 0x0FU );
 
-            uint16_t usLength;
-
             /* Update the total length of the IP packet after removing options. */
-            usLength = FreeRTOS_ntohs( pxIPHeader->usLength );
-            usLength = usLength - uxOptionsLength;
-            pxIPHeader->usLength = FreeRTOS_htons( usLength );
+            usTotalLength = FreeRTOS_ntohs( pxIPHeader->usLength );
+            usTotalLength = usTotalLength - uxOptionsLength;
+            pxIPHeader->usLength = FreeRTOS_htons( usTotalLength );
 
             eReturn = eProcessBuffer;
         }
