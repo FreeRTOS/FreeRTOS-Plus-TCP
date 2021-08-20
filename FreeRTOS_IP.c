@@ -2784,25 +2784,32 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
              * length in multiples of 4. */
             uxHeaderLength = ( size_t ) ( ( uxLength & 0x0FU ) << 2 );
 
-            const size_t optlen = ( ( size_t ) uxHeaderLength ) - ipSIZE_OF_IPv4_HEADER;
+            /* Number of bytes contained in IPv4 header options. */
+            const size_t uxOptionsLength = ( ( size_t ) uxHeaderLength ) - ipSIZE_OF_IPv4_HEADER;
 
-            if( optlen > 0U )
+            if( uxOptionsLength > 0U )
             {
                 /* From: the previous start of UDP/ICMP/TCP data. */
                 const uint8_t * pucSource = ( const uint8_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( EthernetHeader_t ) + uxHeaderLength ] );
                 /* To: the usual start of UDP/ICMP/TCP data at offset 20 (decimal ) from IP header. */
                 uint8_t * pucTarget = ( uint8_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( EthernetHeader_t ) + ipSIZE_OF_IPv4_HEADER ] );
                 /* How many: total length minus the options and the lower headers. */
-                const size_t xMoveLen = pxNetworkBuffer->xDataLength - ( optlen + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ETH_HEADER );
+                const size_t xMoveLen = pxNetworkBuffer->xDataLength - ( uxOptionsLength + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ETH_HEADER );
 
                 ( void ) memmove( pucTarget, pucSource, xMoveLen );
-                pxNetworkBuffer->xDataLength -= optlen;
+                pxNetworkBuffer->xDataLength -= uxOptionsLength;
             }
 
             /* Rewrite the Version/IHL byte to indicate that this packet has no IP options. */
             pxIPHeader->ucVersionHeaderLength = ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
                                                 ( ( ipSIZE_OF_IPv4_HEADER >> 2 ) & 0x0FU );
-            pxIPHeader->usLength = FreeRTOS_htons( FreeRTOS_ntohs( pxIPHeader->usLength ) - optlen );
+
+            uint16_t usLength;
+
+            /* Update the total length of the IP packet after removing options. */
+            usLength = FreeRTOS_ntohs( pxIPHeader->usLength );
+            usLength = usLength - uxOptionsLength;
+            pxIPHeader->usLength = FreeRTOS_htons( usLength );
 
             eReturn = eProcessBuffer;
         }
