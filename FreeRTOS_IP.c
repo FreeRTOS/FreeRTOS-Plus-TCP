@@ -2649,7 +2649,7 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
             else if( ( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
                                ( void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
                                sizeof( MACAddress_t ) ) == 0 ) &&
-                     ( ( ulSourceIPAddress & 0xff ) != 0xff ) )
+                     ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xff ) != 0xff ) )
             {
                 /* Ethernet address is a broadcast address, but the IP address is not a
                  * broadcast address. */
@@ -2658,8 +2658,7 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
             else
             {
                 /* Packet is not fragmented, destination is this device. */
-            }
-        }
+            }        }
     #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
 
     #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 )
