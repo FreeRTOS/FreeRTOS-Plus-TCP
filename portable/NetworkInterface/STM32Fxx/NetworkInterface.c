@@ -212,7 +212,7 @@ static void prvEthernetUpdateConfig( BaseType_t xForce );
  */
 static BaseType_t prvNetworkInterfaceInput( void );
 
-#if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_IPv6 != 0 )
 
 /*
  * For LLMNR, an extra MAC-address must be configured to
@@ -271,6 +271,10 @@ static volatile uint32_t ulISREvents;
 
 #if ( ipconfigUSE_LLMNR == 1 )
     static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
+#endif
+
+#if ( ipconfigUSE_MDNS == 1 )
+    static const uint8_t xMDNS_MACAddressIPv4[] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb };
 #endif
 
 static EthernetPhy_t xPhyObject;
@@ -534,6 +538,19 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
 
             cache_clean_invalidate();
 
+            #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+                {
+                    prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
+                    xMACEntry += 8;
+                }
+            #endif /* ipconfigUSE_LLMNR */
+            #if ( ipconfigUSE_MDNS == 1 )
+                {
+                    /* Program the MDNS address at index 1. */
+                    prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAddressIPv4 );
+                    xMACEntry += 8;
+                }
+            #endif
             #if ( ipconfigUSE_LLMNR != 0 )
                 {
                     /* Program the LLMNR address at index 1. */
@@ -760,17 +777,21 @@ static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
 
     ( void ) heth;
 
-    /* Calculate the selected MAC address high register. */
-    ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
+    /* Check the multicast bit. */
+    if( ( Addr[ 0 ] & 1U ) == 0U )
+    {
+        /* Calculate the selected MAC address high register. */
+        ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
 
-    /* Load the selected MAC address high register. */
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
+        /* Load the selected MAC address high register. */
+        ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
 
-    /* Calculate the selected MAC address low register. */
-    ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
+        /* Calculate the selected MAC address low register. */
+        ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
 
-    /* Load the selected MAC address low register */
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
+        /* Load the selected MAC address low register */
+        ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
+    }
 }
 /*-----------------------------------------------------------*/
 
@@ -987,6 +1008,10 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
                     #if ipconfigUSE_LLMNR == 1
                         && ( usDestinationPort != ipLLMNR_PORT ) &&
                         ( usSourcePort != ipLLMNR_PORT )
+                    #endif
+                    #if ipconfigUSE_MDNS == 1
+                        && ( usDestinationPort != ipMDNS_PORT ) &&
+                        ( usSourcePort != ipMDNS_PORT )
                     #endif
                     #if ipconfigUSE_NBNS == 1
                         && ( usDestinationPort != ipNBNS_PORT ) &&
@@ -1329,6 +1354,9 @@ static void prvEthernetUpdateConfig( BaseType_t xForce )
 
         /* ETHERNET MAC Re-Configuration */
         HAL_ETH_ConfigMAC( &xETH, ( ETH_MACInitTypeDef * ) NULL );
+
+        /* Pass all mutlicast */
+        xETH.Instance->MACFFR |= ETH_MACFFR_PAM;
 
         /* Restart MAC interface */
         HAL_ETH_Start( &xETH );
