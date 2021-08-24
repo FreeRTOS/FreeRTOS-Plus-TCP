@@ -388,6 +388,8 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
     static UBaseType_t uxQueueMinimumSpace = ipconfigEVENT_QUEUE_LENGTH;
 #endif
 
+static eFrameProcessingResult_t eRemoveHopByHop( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
 /*-----------------------------------------------------------*/
 
 /* Coverity wants to make pvParameters const, which would make it incompatible. Leave the
@@ -2896,6 +2898,61 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 }
 /*-----------------------------------------------------------*/
 
+#if( ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigIP_PASS_PACKETS_WITH_HOP_BY_HOP_OPTIONS != 0 ) )
+	static eFrameProcessingResult_t eRemoveHopByHop( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+	{
+		eFrameProcessingResult_t eResult = eReleaseBuffer;
+		const size_t uxMaxLength = pxNetworkBuffer->xDataLength;
+		const uint8_t * pucSource = pxNetworkBuffer->pucEthernetBuffer;
+		IPPacket_IPv6_t * pxIPPacket_IPv6 = ipCAST_PTR_TO_TYPE_PTR( IPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
+		size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+		uint8_t ucNextHeader = 0U;
+		size_t uxHopSize = 0U;
+		size_t xMoveLen = 0U;
+		size_t uxRemovedBytes = 0U;
+
+		while( ( uxIndex + 8U ) < uxMaxLength )
+		{
+			ucNextHeader = pucSource[ uxIndex ];
+			uxHopSize = ( size_t ) pucSource[ uxIndex + 1U ];
+			uxHopSize = ( uxHopSize * 8U ) + 8U;
+			if( uxIndex + uxHopSize >= uxMaxLength )
+			{
+				uxIndex = uxMaxLength;
+				break;
+			}
+			uxIndex = uxIndex + uxHopSize;
+			if( ( ucNextHeader == ipPROTOCOL_TCP ) ||
+				( ucNextHeader == ipPROTOCOL_UDP ) ||
+				( ucNextHeader == ipPROTOCOL_ICMP ) ||
+				( ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
+			{
+				break;
+			}
+		}
+		if( uxIndex < uxMaxLength )
+		{
+			uint8_t * pucTo;
+			const uint8_t * pucFrom;
+
+			uxRemovedBytes = uxIndex - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+			pxIPPacket_IPv6->xIPHeader.ucNextHeader = ucNextHeader;
+			pucTo   = &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] );
+			pucFrom = &( pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] );
+			xMoveLen = uxMaxLength - uxIndex;
+			( void ) memmove( pucTo, pucFrom, xMoveLen );
+			pxNetworkBuffer->xDataLength -= uxRemovedBytes;
+			eResult = eProcessBuffer;
+		}
+
+		FreeRTOS_printf( ( "Hop-by-hop option : %s Truncated %u bytes. Removed %u, xDataLength now %u\n",
+			( eResult == eProcessBuffer ) ? "good" : "bad", xMoveLen, uxRemovedBytes, pxNetworkBuffer->xDataLength ) );
+		return eResult;
+	}
+#endif /* ( ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigIP_PASS_PACKETS_WITH_HOP_BY_HOP_OPTIONS != 0 ) ) */
+
+/*-----------------------------------------------------------*/
+
 /**
  * @brief Process an IP-packet.
  *
@@ -2960,6 +3017,22 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
              * either drop the packet, or remove the options. */
             eReturn = prvCheckIP4HeaderOptions( pxNetworkBuffer );
         }
+
+		#if ( ipconfigUSE_IPv6 != 0 )
+		if( ( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
+			( ucProtocol == ipPROTOCOL_EXT_HEADER ) )
+		{
+			#if( ipconfigIP_PASS_PACKETS_WITH_HOP_BY_HOP_OPTIONS != 0 )
+				eReturn = eRemoveHopByHop( pxNetworkBuffer );
+				if( eReturn != eReleaseBuffer )
+				{
+					ucProtocol = pxIPHeader_IPv6->ucNextHeader;
+				}
+			#else
+				eReturn = eReleaseBuffer;
+			#endif
+		}
+		#endif
 
         /* If the packet can be processed. */
         if( eReturn != eReleaseBuffer )
