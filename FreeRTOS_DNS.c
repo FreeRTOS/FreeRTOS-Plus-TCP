@@ -355,6 +355,9 @@
         const MACAddress_t xMDNS_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } };
     #endif /* ipconfigUSE_MDNS == 1 */
 
+    /** @brief The following variable is a temporary aid for testing: the application
+	 *         can indicate a preference for using either IPv4 or IPv6 addressing.
+	 *         It can be used for */
     IPPreference_t xDNS_IP_Preference =
     #if ( ipconfigUSE_IPv6 != 0 )
             xPreferenceIPv6;
