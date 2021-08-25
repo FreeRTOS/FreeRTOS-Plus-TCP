@@ -64,11 +64,11 @@ void harness()
 
     ParseSet_t xSet;
 
-    size_t uxDestLen;
     size_t uxRemainingBytes;
+    size_t uxDestLen;
 
-    xSet.pucByte = malloc( uxRemainingBytes );
-    xSet.pcName = malloc( xSet.uxDestLen );
+    uint8_t * pucByte = malloc( uxRemainingBytes );
+    char * pcName = malloc( uxDestLen );
 
     /* Preconditions */
 
@@ -78,8 +78,8 @@ void harness()
     __CPROVER_assume( uxRemainingBytes <= NETWORK_BUFFER_SIZE );
     __CPROVER_assume( uxDestLen <= NAME_SIZE );
 
-    __CPROVER_assume( xSet.pucByte != NULL );
-    __CPROVER_assume( xSet.pcName != NULL );
+    __CPROVER_assume( pucByte != NULL );
+    __CPROVER_assume( pcName != NULL );
 
     /* Avoid overflow on uxSourceLen - 1U with uxSourceLen == uxRemainingBytes */
     /*__CPROVER_assume(uxRemainingBytes > 0); */
@@ -87,11 +87,17 @@ void harness()
     /* Avoid overflow on uxDestLen - 1U */
     __CPROVER_assume( uxDestLen > 0 );
 
+    memset( xSet, 0, sizeof( xSet ) );
+
+    xSet.uxSourceBytesRemaining = uxRemainingBytes;
+    xSet.pucByte = pucByte;
+    xSet.pcName = pcName;
+
     size_t index = prvReadNameField( &xSet,
                                      uxDestLen );
 
     /* Postconditions */
 
-    __CPROVER_assert( index <= uxDestLen + 1 && index <= uxRemainingBytes,
+    __CPROVER_assert( index <= uxDestLen + 1 && index <= xSet.uxSourceBytesRemaining,
                       "prvReadNamefield: index <= uxDestLen+1" );
 }

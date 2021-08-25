@@ -44,13 +44,13 @@ size_t prvReadNameField( ParseSet_t * pxSet,
 
 
     /* Preconditions */
-    __CPROVER_assert( pxSet->uxRemainingBytes < CBMC_MAX_OBJECT_SIZE,
-                      "ReadNameField: pxSet->uxRemainingBytes < CBMC_MAX_OBJECT_SIZE)" );
+    __CPROVER_assert( pxSet->uxSourceBytesRemaining < CBMC_MAX_OBJECT_SIZE,
+                      "ReadNameField: pxSet->uxSourceBytesRemaining < CBMC_MAX_OBJECT_SIZE)" );
     __CPROVER_assert( uxDestLen < CBMC_MAX_OBJECT_SIZE,
                       "ReadNameField: uxDestLen < CBMC_MAX_OBJECT_SIZE)" );
 
-    __CPROVER_assert( pxSet->uxRemainingBytes <= NETWORK_BUFFER_SIZE,
-                      "ReadNameField: pxSet->uxRemainingBytes <= NETWORK_BUFFER_SIZE)" );
+    __CPROVER_assert( pxSet->uxSourceBytesRemaining <= NETWORK_BUFFER_SIZE,
+                      "ReadNameField: pxSet->uxSourceBytesRemaining <= NETWORK_BUFFER_SIZE)" );
 
     /* This precondition in the function contract for prvReadNameField
      * fails because prvCheckOptions called prvReadNameField with the
@@ -71,7 +71,7 @@ size_t prvReadNameField( ParseSet_t * pxSet,
     size_t index;
 
     /* Postconditions */
-    __CPROVER_assume( index <= ( uxDestLen + 1U ) && index <= pxSet->uxRemainingBytes );
+    __CPROVER_assume( index <= ( uxDestLen + 1U ) && index <= pxSet->uxSourceBytesRemaining );
 
     return index;
 }
