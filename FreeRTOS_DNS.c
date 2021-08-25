@@ -826,20 +826,26 @@
         }
         /*-----------------------------------------------------------*/
 
+        #if ( ipconfigUSE_IPv6 != 0 )
+
 /**
  * @brief A DNS reply was received, see if there is any matching entry and
  *        call the handler.
- *
- * @param[in] uxIdentifier: Identifier associated with the callback function.
- * @param[in] pcName: The name associated with the callback function.
- * @param[in] ulIPAddress: IP-address ( IPv6/IPv4 ) obtained from the DNS server.
- *
+ * @param[in,out] pxSet: a set of variables that are shared among the helper functions.
+ * @param[in] pxAddress: IP-address ( IPv6/IPv4 ) obtained from the DNS server.
  * @return Returns pdTRUE if uxIdentifier was recognized.
  */
-        #if ( ipconfigUSE_IPv6 != 0 )
             static BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
                                               struct freertos_addrinfo * pxAddress )
         #else
+
+/**
+ * @brief A DNS reply was received, see if there is any matching entry and
+ *        call the handler.
+ * @param[in,out] pxSet: a set of variables that are shared among the helper functions.
+ * @param[in] ulIPAddress: IP-address ( IPv4 ) obtained from the DNS server.
+ * @return Returns pdTRUE if uxIdentifier was recognized.
+ */
             static BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
                                               uint32_t ulIPAddress )
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -871,7 +877,7 @@
                             xMatching = ( strcasecmp( pxCallback->pcName, pxSet->pcName ) == 0 ) ? pdTRUE : pdFALSE;
                         }
                         else
-                    #endif
+                    #endif /* if ( ipconfigUSE_MDNS == 1 ) */
                     {
                         xMatching = ( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier ) ? pdTRUE : pdFALSE;
                     }
@@ -1844,7 +1850,7 @@
                             xExpected = pdTRUE;
                         }
                         else
-                    #endif
+                    #endif /* if ( ipconfigUSE_MDNS == 1 ) */
                     {
                         /* See if the identifiers match. */
                         xExpected = ( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier ) ? pdTRUE : pdFALSE;
@@ -2864,6 +2870,7 @@
  * @param[in] xExpected: indicates whether the identifier in the reply
  *                       was expected, and thus if the DNS cache may be
  *                       updated with the reply.
+ * @param[in] usPort: The server port number in order to identify the protocol.
  *
  * @return The IP address in the DNS response if present and if xExpected is set to pdTRUE.
  *         An error code (dnsPARSE_ERROR) if there was an error in the DNS response.
