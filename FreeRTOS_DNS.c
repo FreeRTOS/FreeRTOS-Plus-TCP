@@ -3176,7 +3176,7 @@
 /**
  * @brief Bind the socket to a port number.
  * @param[in] xSocket: the socket that must be bound.
- * @param[in] usPort: the nport number to bind to.
+ * @param[in] usPort: the port number to bind to.
  * @return The created socket - or NULL if the socket could not be created or could not be bound.
  */
     static BaseType_t prvBindDNSSocket( Socket_t xSocket,

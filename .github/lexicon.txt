@@ -546,6 +546,7 @@ mdc
 mdi
 mdio
 mdix
+mdns
 mediainterface
 memcmp
 memcopy
