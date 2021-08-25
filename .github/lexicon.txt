@@ -1415,6 +1415,7 @@ uspayloadlength
 uspeerportnumber
 usport
 usportnr
+usportnumber
 usprotocolbytes
 usprotocoltype
 usquestions
@@ -1774,6 +1775,7 @@ xrandomtaskhandle
 xrasolicitationrequest
 xready
 xreceiveblocktime
+xrecvaddress
 xregister
 xreleaseaftersend
 xremainingtime
