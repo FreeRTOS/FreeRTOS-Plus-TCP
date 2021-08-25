@@ -65,16 +65,17 @@ void harness()
     ParseSet_t xSet;
 
     size_t uxDestLen;
+    size_t uxRemainingBytes;
 
-    xSet.pucByte = malloc( xSet.uxRemainingBytes );
+    xSet.pucByte = malloc( uxRemainingBytes );
     xSet.pcName = malloc( xSet.uxDestLen );
 
     /* Preconditions */
 
-    __CPROVER_assume( xSet.uxRemainingBytes < CBMC_MAX_OBJECT_SIZE );
+    __CPROVER_assume( uxRemainingBytes < CBMC_MAX_OBJECT_SIZE );
     __CPROVER_assume( uxDestLen < CBMC_MAX_OBJECT_SIZE );
 
-    __CPROVER_assume( xSet.uxRemainingBytes <= NETWORK_BUFFER_SIZE );
+    __CPROVER_assume( uxRemainingBytes <= NETWORK_BUFFER_SIZE );
     __CPROVER_assume( uxDestLen <= NAME_SIZE );
 
     __CPROVER_assume( xSet.pucByte != NULL );
