@@ -24,9 +24,7 @@
 * Signature of function under test
 ****************************************************************/
 
-size_t prvReadNameField( const uint8_t * pucByte,
-                         size_t uxRemainingBytes,
-                         char * pcName,
+size_t prvReadNameField( ParseSet_t * pxSet,
                          size_t uxDestLen );
 
 /****************************************************************
@@ -41,9 +39,7 @@ size_t prvReadNameField( const uint8_t * pucByte,
 
 /* prvReadNameField is not defined in this configuration, stub it. */
 
-    size_t prvReadNameField( const uint8_t * pucByte,
-                             size_t uxRemainingBytes,
-                             char * pcName,
+    size_t prvReadNameField( ParseSet_t * pxSet,
                              size_t uxDestLen )
     {
         return 0;

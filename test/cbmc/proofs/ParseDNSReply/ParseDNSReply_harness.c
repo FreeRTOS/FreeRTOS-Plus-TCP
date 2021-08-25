@@ -32,9 +32,7 @@ uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
 * Abstraction of prvReadNameField proved in ReadNameField
 ****************************************************************/
 
-size_t prvReadNameField( const uint8_t * pucByte,
-                         size_t uxRemainingBytes,
-                         char * pcName,
+size_t prvReadNameField( ParseSet_t * pxSet,
                          size_t uxDestLen )
 {
     __CPROVER_assert( NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE,
@@ -46,13 +44,13 @@ size_t prvReadNameField( const uint8_t * pucByte,
 
 
     /* Preconditions */
-    __CPROVER_assert( uxRemainingBytes < CBMC_MAX_OBJECT_SIZE,
-                      "ReadNameField: uxRemainingBytes < CBMC_MAX_OBJECT_SIZE)" );
+    __CPROVER_assert( pxSet->uxRemainingBytes < CBMC_MAX_OBJECT_SIZE,
+                      "ReadNameField: pxSet->uxRemainingBytes < CBMC_MAX_OBJECT_SIZE)" );
     __CPROVER_assert( uxDestLen < CBMC_MAX_OBJECT_SIZE,
                       "ReadNameField: uxDestLen < CBMC_MAX_OBJECT_SIZE)" );
 
-    __CPROVER_assert( uxRemainingBytes <= NETWORK_BUFFER_SIZE,
-                      "ReadNameField: uxRemainingBytes <= NETWORK_BUFFER_SIZE)" );
+    __CPROVER_assert( pxSet->uxRemainingBytes <= NETWORK_BUFFER_SIZE,
+                      "ReadNameField: pxSet->uxRemainingBytes <= NETWORK_BUFFER_SIZE)" );
 
     /* This precondition in the function contract for prvReadNameField
      * fails because prvCheckOptions called prvReadNameField with the
@@ -61,10 +59,10 @@ size_t prvReadNameField( const uint8_t * pucByte,
      *       "ReadNameField: uxDestLen <= NAME_SIZE)");
      */
 
-    __CPROVER_assert( pucByte != NULL,
-                      "ReadNameField:  pucByte != NULL )" );
-    __CPROVER_assert( pcName != NULL,
-                      "ReadNameField:  pcName != NULL )" );
+    __CPROVER_assert( pxSet->pucByte != NULL,
+                      "ReadNameField:  pxSetpucByte != NULL )" );
+    __CPROVER_assert( pxSet->pcName != NULL,
+                      "ReadNameField:  pxSet->pcName != NULL )" );
 
     __CPROVER_assert( uxDestLen > 0,
                       "ReadNameField: uxDestLen > 0)" );
@@ -73,7 +71,7 @@ size_t prvReadNameField( const uint8_t * pucByte,
     size_t index;
 
     /* Postconditions */
-    __CPROVER_assume( index <= uxDestLen + 1 && index <= uxRemainingBytes );
+    __CPROVER_assume( index <= ( uxDestLen + 1U ) && index <= pxSet->uxRemainingBytes );
 
     return index;
 }
