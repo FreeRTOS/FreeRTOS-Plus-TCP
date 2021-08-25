@@ -25,7 +25,7 @@ BaseType_t xIsDHCPSocket( Socket_t xSocket )
 }
 
 /* This proof was done before. Hence we assume it to be correct here. */
-uint32_t ulDNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
+uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     __CPROVER_assert( pxNetworkBuffer, "The Network Buffer cannot be NULL" );
 }
