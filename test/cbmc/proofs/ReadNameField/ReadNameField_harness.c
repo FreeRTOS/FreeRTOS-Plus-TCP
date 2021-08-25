@@ -66,6 +66,7 @@ void harness()
 
     size_t uxRemainingBytes;
     size_t uxDestLen;
+    size_t uxCopyLength;
 
     uint8_t * pucByte = malloc( uxRemainingBytes );
     char * pcName = malloc( uxDestLen );
@@ -91,7 +92,15 @@ void harness()
 
     xSet.uxSourceBytesRemaining = uxRemainingBytes;
     xSet.pucByte = pucByte;
-    xSet.pcName = pcName;
+
+    uxCopyLength = sizeof xSet.pcName;
+
+    if( uxCopyLength > uxDestLen )
+    {
+        uxCopyLength > uxDestLen;
+    }
+
+    memcpy( xSet.pcName, pcName, uxCopyLength );
 
     size_t index = prvReadNameField( &xSet,
                                      uxDestLen );
