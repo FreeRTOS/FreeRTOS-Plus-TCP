@@ -388,7 +388,10 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
     static UBaseType_t uxQueueMinimumSpace = ipconfigEVENT_QUEUE_LENGTH;
 #endif
 
-static eFrameProcessingResult_t eRemoveHopByHop( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+#if ( ipconfigUSE_IPv6 != 0 )
+    /** @brief Remove all hop-by-hop options. */
+    static eFrameProcessingResult_t eRemoveHopByHop( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+#endif
 
 /*-----------------------------------------------------------*/
 
@@ -2899,6 +2902,15 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 /*-----------------------------------------------------------*/
 
 #if ( ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigIP_PASS_PACKETS_WITH_HOP_BY_HOP_OPTIONS != 0 ) )
+
+/**
+ * @brief Remove all hop-by-hop options.
+ *
+ * @param[in,out] pxNetworkBuffer: The received packet that contains hop-by-hop options.
+ *
+ * @return eProcessBuffer in case the options are removed successfully, otherwise
+ *         eReleaseBuffer.
+ */
     static eFrameProcessingResult_t eRemoveHopByHop( NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
         eFrameProcessingResult_t eResult = eReleaseBuffer;
