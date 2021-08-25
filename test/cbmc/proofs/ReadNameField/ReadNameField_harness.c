@@ -87,7 +87,7 @@ void harness()
     /* Avoid overflow on uxDestLen - 1U */
     __CPROVER_assume( uxDestLen > 0 );
 
-    memset( xSet, 0, sizeof( xSet ) );
+    memset( &xSet, 0, sizeof( xSet ) );
 
     xSet.uxSourceBytesRemaining = uxRemainingBytes;
     xSet.pucByte = pucByte;
