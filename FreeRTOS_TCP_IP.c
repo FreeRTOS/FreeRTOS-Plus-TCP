@@ -2688,8 +2688,6 @@
                 #endif /* ipconfigTCP_KEEP_ALIVE */
             }
 
-            
-
             if( lDataLen >= 0 )
             {
                 /* Anything to send, a change of the advertised window size, or maybe send a
@@ -2711,7 +2709,7 @@
                     uxIntermediateResult = uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
                     lDataLen += ( int32_t ) uxIntermediateResult;
                 }
-            }      
+            }
         }
         while( ipFALSE_BOOL );
 
