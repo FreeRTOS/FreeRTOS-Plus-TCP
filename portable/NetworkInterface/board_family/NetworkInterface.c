@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.1
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -22,6 +22,16 @@
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
+
+/*****************************************************************************
+* Note: This file is Not! to be used as is. The purpose of this file is to provide
+* a template for writing a network interface. Each network interface will have to provide
+* concrete implementations of the functions in this file.
+*
+* See the following URL for an explanation of this file and its functions:
+* https://freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Porting.html
+*
+*****************************************************************************/
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
