@@ -27,7 +27,7 @@
   "CBMCFLAGS": [
       # "--nondet-static",
       "--unwind 1",
-      "--unwindset memcmp.0:7,__CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies.2:{BUFFER_PAYLOAD},__CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies.0:{DNS_ADDRESSES},__CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies.1:{DNS_ADDRESSES}"
+      "--unwindset __CPROVER_file_local_FreeRTOS_DHCP_c_vProcessHandleOption.0:{DNS_ADDRESSES},memcmp.0:7,__CPROVER_file_local_FreeRTOS_DHCP_c_vProcessHandleOption.1:{BUFFER_PAYLOAD},__CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies.0:{BUFFER_PAYLOAD}"
   ],
 
   "OBJS":
