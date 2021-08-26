@@ -613,8 +613,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
         iptraceMEM_STATS_CREATE( tcpSOCKET_TCP, pxSocket, uxSocketSize + sizeof( StaticEventGroup_t ) );
         /* StreamSize is expressed in number of bytes */
         /* Round up buffer sizes to nearest multiple of MSS */
-        pxSocket->u.xTCP.usCurMSS = ( uint16_t ) ipconfigTCP_MSS;
-        pxSocket->u.xTCP.usInitMSS = ( uint16_t ) ipconfigTCP_MSS;
+        pxSocket->u.xTCP.usMSS = ( uint16_t ) ipconfigTCP_MSS;
         pxSocket->u.xTCP.uxRxStreamSize = ( size_t ) ipconfigTCP_RX_BUFFER_LENGTH;
         pxSocket->u.xTCP.uxTxStreamSize = ( size_t ) FreeRTOS_round_up( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS );
         /* Use half of the buffer size of the TCP windows */
@@ -1219,8 +1218,10 @@ static int32_t prvRecvFrom_CopyPacket( uint8_t * pucEthernetBuffer,
  * @param[in] uxBufferLength: The length of the buffer.
  * @param[in] xFlags: The flags to indicate preferences while calling this function.
  * @param[out] pxSourceAddress: The source address from which the data is being sent.
- * @param[out] pxSourceAddressLength: This parameter is used only to adhere to Berkeley
- *                              sockets standard. It is not used internally.
+ * @param[out] pxSourceAddressLength: The length of the source address structure.
+ *                  This would always be a constant - 24 (in case of no error) as
+ *                  FreeRTOS+TCP makes the sizes of IPv4 and IPv6 structures equal
+ *                  (24-bytes) for compatibility.
  *
  * @return The number of bytes received. Or else, an error code is returned. When it
  *         returns a negative value, the cause can be looked-up in
@@ -1239,7 +1240,7 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
     EventBits_t xEventBits = ( EventBits_t ) 0;
     size_t uxPayloadOffset;
     size_t uxPayloadLength;
-    socklen_t xAddressLength = sizeof( struct freertos_sockaddr );
+    socklen_t xAddressLength;
 
     if( prvValidSocket( pxSocket, FREERTOS_IPPROTO_UDP, pdTRUE ) == pdFALSE )
     {
@@ -1255,18 +1256,39 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
 
         if( pxNetworkBuffer != NULL )
         {
-            uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv4;
             #if ( ipconfigUSE_IPv6 != 0 )
-                {
-                    UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+                UDPPacket_IPv6_t * pxUDPPacketV6 = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
 
-                    if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+                if( pxUDPPacketV6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+                {
+                    if( pxSourceAddress != NULL )
                     {
-                        uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv6;
-                        xAddressLength = sizeof( struct freertos_sockaddr6 );
+                        sockaddr6_t * pxSourceAddressV6 = ipCAST_PTR_TO_TYPE_PTR( sockaddr6_t, pxSourceAddress );
+
+                        memcpy( ( void * ) pxSourceAddressV6->sin_addrv6.ucBytes,
+                                ( void * ) pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
+                                ipSIZE_OF_IPv6_ADDRESS );
+                        pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET6;
+                        pxSourceAddress->sin_addr = 0U;
+                        pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
                     }
+
+                    uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv6;
+                    xAddressLength = sizeof( struct freertos_sockaddr6 );
                 }
-            #endif
+                else
+            #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+            {
+                if( pxSourceAddress != NULL )
+                {
+                    pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET;
+                    pxSourceAddress->sin_addr = pxNetworkBuffer->ulIPAddress;
+                    pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
+                }
+
+                uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv4;
+                xAddressLength = sizeof( struct freertos_sockaddr );
+            }
 
             if( pxSourceAddressLength != NULL )
             {
@@ -1277,14 +1299,8 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
              * calculated at the total packet size minus the headers.
              * The validity of `xDataLength` prvProcessIPPacket has been confirmed
              * in 'prvProcessIPPacket()'. */
-            uxPayloadLength = pxNetworkBuffer->xDataLength - sizeof( UDPPacket_t );
+            uxPayloadLength = pxNetworkBuffer->xDataLength - uxPayloadOffset;
             lReturn = ( int32_t ) uxPayloadLength;
-
-            if( pxSourceAddress != NULL )
-            {
-                pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
-                pxSourceAddress->sin_addr = pxNetworkBuffer->ulIPAddress;
-            }
 
             lReturn = prvRecvFrom_CopyPacket( &( pxNetworkBuffer->pucEthernetBuffer[ uxPayloadOffset ] ), pvBuffer, uxBufferLength, xFlags, lReturn );
 
@@ -2222,7 +2238,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
             if( lOptionName == FREERTOS_SO_SNDBUF )
             {
                 /* Round up to nearest MSS size */
-                ulNewValue = FreeRTOS_round_up( ulNewValue, ( uint32_t ) pxSocket->u.xTCP.usInitMSS );
+                ulNewValue = FreeRTOS_round_up( ulNewValue, ( uint32_t ) pxSocket->u.xTCP.usMSS );
                 pxSocket->u.xTCP.uxTxStreamSize = ulNewValue;
             }
             else
@@ -2384,8 +2400,8 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
              * adapt the window size parameters */
             if( pxTCP->xTCPWindow.u.bits.bHasInit != pdFALSE_UNSIGNED )
             {
-                pxTCP->xTCPWindow.xSize.ulRxWindowLength = ( uint32_t ) ( pxTCP->uxRxWinSize * pxTCP->usInitMSS );
-                pxTCP->xTCPWindow.xSize.ulTxWindowLength = ( uint32_t ) ( pxTCP->uxTxWinSize * pxTCP->usInitMSS );
+                pxTCP->xTCPWindow.xSize.ulRxWindowLength = ( uint32_t ) ( pxTCP->uxRxWinSize * pxTCP->usMSS );
+                pxTCP->xTCPWindow.xSize.ulTxWindowLength = ( uint32_t ) ( pxTCP->uxTxWinSize * pxTCP->usMSS );
             }
         }
         while( ipFALSE_BOOL );
@@ -5820,10 +5836,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         }
         else
         {
-            /* usCurMSS is declared as uint16_t to save space.  FreeRTOS_mss()
+            /* usMSS is declared as uint16_t to save space.  FreeRTOS_mss()
              * will often be used in signed native-size expressions cast it to
              * BaseType_t. */
-            xReturn = ( BaseType_t ) ( pxSocket->u.xTCP.usCurMSS );
+            xReturn = ( BaseType_t ) ( pxSocket->u.xTCP.usMSS );
         }
 
         return xReturn;
