@@ -160,6 +160,9 @@
         #define ipBUFFER_PADDING    ( 8U + ipconfigPACKET_FILLER_SIZE )
     #endif
 
+/* The offset of ucTCPFlags within the TCP header. */
+    #define ipTCP_FLAGS_OFFSET    13U
+
 /* A forward declaration of 'struct xNetworkEndPoint' and 'xNetworkInterface'.
  * The actual declaration can be found in FreeRTOS_Routing.h which is included
  * as the last +TCP header file. */
