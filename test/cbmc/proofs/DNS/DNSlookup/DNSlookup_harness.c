@@ -32,11 +32,13 @@ void harness()
 
         if( len && pcHostName )
         {
-            pcHostName[ len - 1 ] = NULL;
+            pcHostName[ len - 1 ] = '\0';
         }
 
         if( pcHostName ) /* guarding against NULL pointer */
         {
+            FreeRTOS_dnsclear();
+
             FreeRTOS_dnslookup( pcHostName );
         }
     }

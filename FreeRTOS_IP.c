@@ -1617,6 +1617,11 @@ BaseType_t FreeRTOS_IPStart( void )
                                                        ipconfigIP_TASK_PRIORITY,
                                                        xIPTaskStack,
                                                        &xIPTaskBuffer );
+
+                    if( xIPTaskHandle != NULL )
+                    {
+                        xReturn = pdTRUE;
+                    }
                 }
             #else /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
                 {
@@ -3102,6 +3107,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         ulIPAddress = pxIPHeader->ulDestinationIPAddress;
         pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
         pxIPHeader->ulSourceIPAddress = ulIPAddress;
+        /* Update the TTL field. */
+        pxIPHeader->ucTimeToLive = ipconfigICMP_TIME_TO_LIVE;
 
         /* The stack doesn't support fragments, so the fragment offset field must always be zero.
          * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.

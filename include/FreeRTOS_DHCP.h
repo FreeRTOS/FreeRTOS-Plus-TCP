@@ -86,6 +86,18 @@
 
     typedef struct xDHCP_DATA DHCPData_t;
 
+/** brief: a set of parameters that are passed to helper functions. */
+    typedef struct xProcessSet
+    {
+        uint8_t ucOptionCode;       /**< The code currently being handled. */
+        size_t uxIndex;             /**< The index within 'pucByte'. */
+        size_t uxPayloadDataLength; /**< The number of bytes in the UDP payload. */
+        size_t uxLength;            /**< The size of the current option. */
+        uint32_t ulParameter;       /**< The uint32 value of the answer, if available. */
+        uint32_t ulProcessed;       /**< The number of essential options that were parsed. */
+        const uint8_t * pucByte;    /**< A pointer to the data to be analysed. */
+    } ProcessSet_t;
+
 /* Returns the current state of a DHCP process. */
     struct xNetworkEndPoint;
 
