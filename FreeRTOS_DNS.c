@@ -1510,7 +1510,19 @@
         /* mDNS uses names ending with the string ".local" */
         BaseType_t bHasDot = pdFALSE;
         BaseType_t bHasLocal = pdFALSE;
-        char * pcDot = strchr( pcHostName, '.' );
+        const char * pcDot = NULL;
+        char * pcSource = pcHostName;
+
+        while( *pcSource != 0 )
+        {
+            if( *pcSource == '.' )
+            {
+                pcDot = pcSource;
+                break;
+            }
+
+            pcSource++;
+        }
 
         if( pcDot != NULL )
         {
@@ -2125,12 +2137,14 @@
 
                     if( ( uxIndex + uxCount ) > uxSourceLen )
                     {
+                        /* Not enough bytes in the source. */
                         uxIndex = 0U;
                         break;
                     }
 
                     if( ( uxNameLen + uxCount ) >= uxDestLen )
                     {
+                        /* Not enough space in the target. */
                         uxIndex = 0U;
                         break;
                     }
