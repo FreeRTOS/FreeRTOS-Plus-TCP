@@ -2646,6 +2646,15 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
                 /* Packet is not for this node, release it */
                 eReturn = eReleaseBuffer;
             }
+            else if( ( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
+                               ( void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
+                               sizeof( MACAddress_t ) ) == 0 ) &&
+                     ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
+            {
+                /* Ethernet address is a broadcast address, but the IP address is not a
+                 * broadcast address. */
+                eReturn = eReleaseBuffer;
+            }
             else
             {
                 /* Packet is not fragmented, destination is this device. */
@@ -2772,6 +2781,7 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
     #if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 )
         {
             size_t uxHeaderLength;
+            uint16_t usTotalLength;
 
             IPHeader_t * pxIPHeader = ipCAST_PTR_TO_TYPE_PTR( IPHeader_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
@@ -2784,24 +2794,31 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
              * length in multiples of 4. */
             uxHeaderLength = ( size_t ) ( ( uxLength & 0x0FU ) << 2 );
 
-            const size_t optlen = ( ( size_t ) uxHeaderLength ) - ipSIZE_OF_IPv4_HEADER;
+            /* Number of bytes contained in IPv4 header options. */
+            const size_t uxOptionsLength = ( ( size_t ) uxHeaderLength ) - ipSIZE_OF_IPv4_HEADER;
 
-            if( optlen > 0U )
+            if( uxOptionsLength > 0U )
             {
                 /* From: the previous start of UDP/ICMP/TCP data. */
                 const uint8_t * pucSource = ( const uint8_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( EthernetHeader_t ) + uxHeaderLength ] );
                 /* To: the usual start of UDP/ICMP/TCP data at offset 20 (decimal ) from IP header. */
                 uint8_t * pucTarget = ( uint8_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( EthernetHeader_t ) + ipSIZE_OF_IPv4_HEADER ] );
                 /* How many: total length minus the options and the lower headers. */
-                const size_t xMoveLen = pxNetworkBuffer->xDataLength - ( optlen + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ETH_HEADER );
+                const size_t xMoveLen = pxNetworkBuffer->xDataLength - ( uxOptionsLength + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ETH_HEADER );
 
                 ( void ) memmove( pucTarget, pucSource, xMoveLen );
-                pxNetworkBuffer->xDataLength -= optlen;
+                pxNetworkBuffer->xDataLength -= uxOptionsLength;
             }
 
             /* Rewrite the Version/IHL byte to indicate that this packet has no IP options. */
             pxIPHeader->ucVersionHeaderLength = ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
                                                 ( ( ipSIZE_OF_IPv4_HEADER >> 2 ) & 0x0FU );
+
+            /* Update the total length of the IP packet after removing options. */
+            usTotalLength = FreeRTOS_ntohs( pxIPHeader->usLength );
+            usTotalLength = usTotalLength - uxOptionsLength;
+            pxIPHeader->usLength = FreeRTOS_htons( usTotalLength );
+
             eReturn = eProcessBuffer;
         }
     #else /* if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 ) */
