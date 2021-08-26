@@ -2646,6 +2646,15 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
                 /* Packet is not for this node, release it */
                 eReturn = eReleaseBuffer;
             }
+            else if( ( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
+                               ( void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
+                               sizeof( MACAddress_t ) ) == 0 ) &&
+                     ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
+            {
+                /* Ethernet address is a broadcast address, but the IP address is not a
+                 * broadcast address. */
+                eReturn = eReleaseBuffer;
+            }
             else
             {
                 /* Packet is not fragmented, destination is this device. */
