@@ -97,7 +97,7 @@ void harness()
 
     if( uxCopyLength > uxDestLen )
     {
-        uxCopyLength > uxDestLen;
+        uxCopyLength = uxDestLen;
     }
 
     memcpy( xSet.pcName, pcName, uxCopyLength );
