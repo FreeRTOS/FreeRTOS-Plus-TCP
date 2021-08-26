@@ -123,10 +123,30 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup
         run: sudo apt-get install complexity
+      - name: Install Uncrustify
+        run: sudo apt-get install uncrustify
       - name: Complexity
         run: |
-          find . -iname '*.c' |\
-          xargs complexity --scores --threshold=0 --horrid-threshold=55
+          COMPLEXITY_PARAMS="--scores --threshold=10 --horrid-threshold=550"
+          TEMP_DIR=./temp
+          mkdir -p ${TEMP_DIR}
+          for SOURCE_FILE in portable/BufferManagement/*.c *.c
+          do
+              TARGET_DIR=${TEMP_DIR}/`dirname ${SOURCE_FILE}`
+              TARGET_FILE=${TARGET_DIR}/`basename ${SOURCE_FILE}`
+              mkdir -p ${TARGET_DIR}
+              uncrustify -c tools/uncrustify.complexity.cfg -f ${SOURCE_FILE} > ${TARGET_FILE}
+          done
+          find ${TEMP_DIR} -iname '*.c' | xargs complexity ${COMPLEXITY_PARAMS}
+          RESULT=$?
+          rm -rf ${TEMP_DIR}
+          if [ "${RESULT}" = "0" ]; then
+              echo "All is good."
+              exit 0
+          else
+              echo "Sources are too complex, rc = " ${RESULT}
+              exit 1
+          fi
 
   git-secrets:
     runs-on: ubuntu-latest
