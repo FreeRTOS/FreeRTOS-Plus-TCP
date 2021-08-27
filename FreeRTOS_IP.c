@@ -2739,7 +2739,7 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
                 /* Packet is not for this node, release it */
                 eReturn = eReleaseBuffer;
             }
-            else if( ( FreeRTOS_ntohl( ulSourceIPAddress ) & 0xff ) != 0xff )
+            else if( ( FreeRTOS_ntohl( ulSourceIPAddress ) & 0xffU ) == 0xffU )
             {
                 /* Source IP address is a broadcast address, discard the packet. */
                 eReturn = eReleaseBuffer;
