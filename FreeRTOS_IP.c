@@ -2708,6 +2708,7 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
              * to have incoming messages checked earlier, by the network card driver.
              * This method may decrease the usage of sparse network buffers. */
             uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+            uint32_t ulSourceIPAddress = pxIPHeader->ulSourceIPAddress;
 
             /* Ensure that the incoming packet is not fragmented (fragmentation
              * was only supported for outgoing packets, and is not currently
@@ -2736,6 +2737,11 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
                 ( FreeRTOS_IsNetworkUp() != pdFALSE ) )
             {
                 /* Packet is not for this node, release it */
+                eReturn = eReleaseBuffer;
+            }
+            else if( ( FreeRTOS_ntohl( ulSourceIPAddress ) & 0xffU ) == 0xffU )
+            {
+                /* Source IP address is a broadcast address, discard the packet. */
                 eReturn = eReleaseBuffer;
             }
             else if( ( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
