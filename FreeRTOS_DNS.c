@@ -1510,19 +1510,7 @@
         /* mDNS uses names ending with the string ".local" */
         BaseType_t bHasDot = pdFALSE;
         BaseType_t bHasLocal = pdFALSE;
-        const char * pcDot = NULL;
-        char * pcSource = pcHostName;
-
-        while( *pcSource != 0 )
-        {
-            if( *pcSource == '.' )
-            {
-                pcDot = pcSource;
-                break;
-            }
-
-            pcSource++;
-        }
+        const char * pcDot = strchr( pcHostName, '.' );
 
         if( pcDot != NULL )
         {
