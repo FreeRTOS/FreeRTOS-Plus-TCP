@@ -4812,6 +4812,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 xBytesLeft -= xByteCount;
                 xBytesSent += xByteCount;
 
+                if( ( xBytesLeft == 0U ) && ( pvBuffer == NULL ) )
+                {
+                    /* pvBuffer can be NULL in case TCP zero-copy transmissions are used. */
+                    break;
+                }
+
                 /* As there are still bytes left to be sent, increase the
                  * data pointer. */
                 pucSource = &( pucSource[ xByteCount ] );
