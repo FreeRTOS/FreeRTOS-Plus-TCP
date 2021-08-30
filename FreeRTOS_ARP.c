@@ -798,7 +798,7 @@ BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup )
          * being queried? */
         if( xARPCache[ x ].ulIPAddress == ulAddressToLookup )
         {
-        	xReturn = pdTRUE;
+            xReturn = pdTRUE;
 
             /* A matching valid entry was found. */
             if( xARPCache[ x ].ucValid == ( uint8_t ) pdFALSE )

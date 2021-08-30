@@ -3097,7 +3097,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     else
                 #endif /* ipconfigUSE_IPv6 */
                 {
-                    IPV4Parameters_t * pxIPv4Settings = &(pxNetworkBuffer->pxEndPoint->ipv4_settings);
+                    IPV4Parameters_t * pxIPv4Settings = &( pxNetworkBuffer->pxEndPoint->ipv4_settings );
 
                     if( ( pxIPHeader->ulSourceIPAddress & pxIPv4Settings->ulNetMask ) == ( pxIPv4Settings->ulIPAddress & pxIPv4Settings->ulNetMask ) )
                     {
