@@ -126,6 +126,15 @@
     #define ipICMP_NEIGHBOR_SOLICITATION_IPv6          ( ( uint8_t ) 135U )
     #define ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6         ( ( uint8_t ) 136U )
 
+    #define ipIPv6_EXT_HEADER_HOP_BY_HOP               0U
+    #define ipIPv6_EXT_HEADER_DESTINATION_OPTIONS      60U
+    #define ipIPv6_EXT_HEADER_ROUTING_HEADER           43U
+    #define ipIPv6_EXT_HEADER_FRAGMENT_HEADER          44U
+    #define ipIPv6_EXT_HEADER_AUTHEN_HEADER            51U
+    #define ipIPv6_EXT_HEADER_SECURE_PAYLOAD           50U
+    /* Destination options may follow here in case there are no routing options. */
+    #define ipIPv6_EXT_HEADER_MOBILITY_HEADER          135U
+
 /* The character used to fill ICMP echo requests, and therefore also the
  * character expected to fill ICMP echo replies. */
     #define ipECHO_DATA_FILL_BYTE                      'x'

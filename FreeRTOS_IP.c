@@ -390,7 +390,8 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
 
 #if ( ipconfigUSE_IPv6 != 0 )
     /** @brief Handle the IPv6 extension headers. */
-    static eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer, BaseType_t xDoRemove );
+    static eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                                 BaseType_t xDoRemove );
 #endif
 
 /*-----------------------------------------------------------*/
@@ -2902,40 +2903,51 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_IPv6 != 0 )
-static BaseType_t xGetExtensionOrder( uint8_t ucProtocol, uint8_t ucNextHeader )
-{
-	BaseType_t xReturn = -1;
-	switch( ucProtocol )
-	{
-        case ipIPv6_EXT_HEADER_HOP_BY_HOP:
-			xReturn = 1;
-			break;
-        case ipIPv6_EXT_HEADER_DESTINATION_OPTIONS:
-			xReturn = 7;
-			if( ucNextHeader == ipIPv6_EXT_HEADER_ROUTING_HEADER )
-			{
-				xReturn = 2;
-			}
-			break;
-        case ipIPv6_EXT_HEADER_ROUTING_HEADER:
-			xReturn = 3;
-			break;
-        case ipIPv6_EXT_HEADER_FRAGMENT_HEADER:
-			xReturn = 4;
-			break;
-		case ipIPv6_EXT_HEADER_AUTHEN_HEADER:
-			xReturn = 5;
-			break;
-		case ipIPv6_EXT_HEADER_SECURE_PAYLOAD:
-			xReturn = 6;
-			break;
-		/* Destination options may follow here in case there are no routing options. */
-		case ipIPv6_EXT_HEADER_MOBILITY_HEADER:
-			xReturn = 8;
-			break;
-	}
-	return xReturn;
-}
+    static BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
+                                          uint8_t ucNextHeader )
+    {
+        BaseType_t xReturn = -1;
+
+        switch( ucProtocol )
+        {
+            case ipIPv6_EXT_HEADER_HOP_BY_HOP:
+                xReturn = 1;
+                break;
+
+            case ipIPv6_EXT_HEADER_DESTINATION_OPTIONS:
+                xReturn = 7;
+
+                if( ucNextHeader == ipIPv6_EXT_HEADER_ROUTING_HEADER )
+                {
+                    xReturn = 2;
+                }
+
+                break;
+
+            case ipIPv6_EXT_HEADER_ROUTING_HEADER:
+                xReturn = 3;
+                break;
+
+            case ipIPv6_EXT_HEADER_FRAGMENT_HEADER:
+                xReturn = 4;
+                break;
+
+            case ipIPv6_EXT_HEADER_AUTHEN_HEADER:
+                xReturn = 5;
+                break;
+
+            case ipIPv6_EXT_HEADER_SECURE_PAYLOAD:
+                xReturn = 6;
+                break;
+
+            /* Destination options may follow here in case there are no routing options. */
+            case ipIPv6_EXT_HEADER_MOBILITY_HEADER:
+                xReturn = 8;
+                break;
+        }
+
+        return xReturn;
+    }
 
 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
@@ -2950,7 +2962,8 @@ static BaseType_t xGetExtensionOrder( uint8_t ucProtocol, uint8_t ucNextHeader )
  * @return eProcessBuffer in case the options are removed successfully, otherwise
  *         eReleaseBuffer.
  */
-    static eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer, BaseType_t xDoRemove )
+    static eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                                 BaseType_t xDoRemove )
     {
         eFrameProcessingResult_t eResult = eReleaseBuffer;
         const size_t uxMaxLength = pxNetworkBuffer->xDataLength;
@@ -2961,19 +2974,19 @@ static BaseType_t xGetExtensionOrder( uint8_t ucProtocol, uint8_t ucNextHeader )
         size_t xMoveLen = 0U;
         size_t uxRemovedBytes = 0U;
         uint8_t ucCurrentHeader = pxIPPacket_IPv6->xIPHeader.ucNextHeader;
-		BaseType_t xCurrentOrder;
-		uint8_t ucNextHeader = 0U;
-		BaseType_t xNextOrder = 0;
+        BaseType_t xCurrentOrder;
+        uint8_t ucNextHeader = 0U;
+        BaseType_t xNextOrder = 0;
 
         while( ( uxIndex + 8U ) < uxMaxLength )
         {
             ucNextHeader = pucSource[ uxIndex ];
 
-			xCurrentOrder = xGetExtensionOrder( ucCurrentHeader, ucNextHeader );
+            xCurrentOrder = xGetExtensionOrder( ucCurrentHeader, ucNextHeader );
 
-			/* Read the length expressed in number of octets. */
+            /* Read the length expressed in number of octets. */
             uxHopSize = ( size_t ) pucSource[ uxIndex + 1U ];
-			/* And multiply by 8 and add the minimum size of 8. */
+            /* And multiply by 8 and add the minimum size of 8. */
             uxHopSize = ( uxHopSize * 8U ) + 8U;
 
             if( ( uxIndex + uxHopSize ) >= uxMaxLength )
@@ -2981,72 +2994,75 @@ static BaseType_t xGetExtensionOrder( uint8_t ucProtocol, uint8_t ucNextHeader )
                 uxIndex = uxMaxLength;
                 break;
             }
+
             uxIndex = uxIndex + uxHopSize;
 
             if( ( ucNextHeader == ipPROTOCOL_TCP ) ||
-				( ucNextHeader == ipPROTOCOL_UDP ) ||
-				( ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
+                ( ucNextHeader == ipPROTOCOL_UDP ) ||
+                ( ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
             {
-FreeRTOS_printf( ( "Stop at header %u\n", ucNextHeader ) );
+                FreeRTOS_printf( ( "Stop at header %u\n", ucNextHeader ) );
                 break;
             }
 
-			xNextOrder = xGetExtensionOrder( ucNextHeader, pucSource[ uxIndex ] );
+            xNextOrder = xGetExtensionOrder( ucNextHeader, pucSource[ uxIndex ] );
+
 /*
-[IP-Task         ] Going from header  0 (1) to 60 (2)
-[IP-Task         ] Going from header 60 (2) to 43 (3)
-[IP-Task         ] Going from header 43 (3) to 44 (4)
-[IP-Task         ] Stop at header 58
-*/
-FreeRTOS_printf( ( "Going from header %2u (%d) to %2u (%d)\n", 
-				   ucCurrentHeader,
-				   ( int ) xCurrentOrder,
-				   ucNextHeader,
-				   ( int ) xNextOrder ) );
+ * [IP-Task         ] Going from header  0 (1) to 60 (2)
+ * [IP-Task         ] Going from header 60 (2) to 43 (3)
+ * [IP-Task         ] Going from header 43 (3) to 44 (4)
+ * [IP-Task         ] Stop at header 58
+ */
+            FreeRTOS_printf( ( "Going from header %2u (%d) to %2u (%d)\n",
+                               ucCurrentHeader,
+                               ( int ) xCurrentOrder,
+                               ucNextHeader,
+                               ( int ) xNextOrder ) );
 
-			if( xNextOrder <= xCurrentOrder )
-			{
-FreeRTOS_printf( ( "Wrong order\n" ) );
+            if( xNextOrder <= xCurrentOrder )
+            {
+                FreeRTOS_printf( ( "Wrong order\n" ) );
                 uxIndex = uxMaxLength;
-				break;
-			}
+                break;
+            }
 
-			ucCurrentHeader = ucNextHeader;
-			xCurrentOrder = xNextOrder;
+            ucCurrentHeader = ucNextHeader;
+            xCurrentOrder = xNextOrder;
         }
 
         if( uxIndex < uxMaxLength )
         {
             uint8_t * pucTo;
             const uint8_t * pucFrom;
-			uint16_t usPayloadLength = FreeRTOS_ntohs( pxIPPacket_IPv6->xIPHeader.usPayloadLength );
+            uint16_t usPayloadLength = FreeRTOS_ntohs( pxIPPacket_IPv6->xIPHeader.usPayloadLength );
 
             uxRemovedBytes = uxIndex - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
-			if( uxRemovedBytes >= ( size_t ) usPayloadLength )
-			{
-				/* Can not remove more bytes than the payload length. */
-			}
-			else if( xDoRemove == pdTRUE )
-			{
-				pxIPPacket_IPv6->xIPHeader.ucNextHeader = ucNextHeader;
-				pucTo = &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] );
-				pucFrom = &( pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] );
-				xMoveLen = uxMaxLength - uxIndex;
-				( void ) memmove( pucTo, pucFrom, xMoveLen );
-				pxNetworkBuffer->xDataLength -= uxRemovedBytes;
 
-				usPayloadLength -= uxRemovedBytes;
-				pxIPPacket_IPv6->xIPHeader.usPayloadLength = FreeRTOS_htons( usPayloadLength );
-				eResult = eProcessBuffer;
-			}
+            if( uxRemovedBytes >= ( size_t ) usPayloadLength )
+            {
+                /* Can not remove more bytes than the payload length. */
+            }
+            else if( xDoRemove == pdTRUE )
+            {
+                pxIPPacket_IPv6->xIPHeader.ucNextHeader = ucNextHeader;
+                pucTo = &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] );
+                pucFrom = &( pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] );
+                xMoveLen = uxMaxLength - uxIndex;
+                ( void ) memmove( pucTo, pucFrom, xMoveLen );
+                pxNetworkBuffer->xDataLength -= uxRemovedBytes;
+
+                usPayloadLength -= uxRemovedBytes;
+                pxIPPacket_IPv6->xIPHeader.usPayloadLength = FreeRTOS_htons( usPayloadLength );
+                eResult = eProcessBuffer;
+            }
         }
 
         FreeRTOS_printf( ( "Hop-by-hop option : %s Truncated %u bytes. Removed %u, Payload %u xDataLength now %u\n",
                            ( eResult == eProcessBuffer ) ? "good" : "bad",
-						   xMoveLen,
-						   uxRemovedBytes,
-						   FreeRTOS_ntohs( pxIPPacket_IPv6->xIPHeader.usPayloadLength ),
-						   pxNetworkBuffer->xDataLength ) );
+                           xMoveLen,
+                           uxRemovedBytes,
+                           FreeRTOS_ntohs( pxIPPacket_IPv6->xIPHeader.usPayloadLength ),
+                           pxNetworkBuffer->xDataLength ) );
         return eResult;
     }
 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -3123,6 +3139,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 ( xGetExtensionOrder( ucProtocol, 0U ) > 0 ) )
             {
                 eReturn = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
+
                 if( eReturn != eReleaseBuffer )
                 {
                     ucProtocol = pxIPHeader_IPv6->ucNextHeader;
