@@ -780,6 +780,42 @@ static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Check whether an IP address is in the ARP cache.
+ *
+ * @param[in] ulAddressToLookup: The 32-bit representation of an IP address to
+ *                    check for.
+ *
+ * @return When the IP-address is found: pdTRUE, else pdFALSE.
+ */
+BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup )
+{
+    BaseType_t x, xReturn = pdFALSE;
+
+    /* Loop through each entry in the ARP cache. */
+    for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+    {
+        /* Does this row in the ARP cache table hold an entry for the IP address
+         * being queried? */
+        if( xARPCache[ x ].ulIPAddress == ulAddressToLookup )
+        {
+        	xReturn = pdTRUE;
+
+            /* A matching valid entry was found. */
+            if( xARPCache[ x ].ucValid == ( uint8_t ) pdFALSE )
+            {
+                /* This entry is waiting an ARP reply, so is not valid. */
+                xReturn = pdFALSE;
+            }
+
+            break;
+        }
+    }
+
+    return xReturn;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Lookup an IP address in the ARP cache.
  *
  * @param[in] ulAddressToLookup: The 32-bit representation of an IP address to

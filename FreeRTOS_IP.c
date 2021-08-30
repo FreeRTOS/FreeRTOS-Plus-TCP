@@ -3097,7 +3097,24 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     else
                 #endif /* ipconfigUSE_IPv6 */
                 {
-                    vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+                    IPV4Parameters_t * pxIPv4Settings = &(pxNetworkBuffer->pxEndPoint->ipv4_settings);
+
+                    if( ( pxIPHeader->ulSourceIPAddress & pxIPv4Settings->ulNetMask ) == ( pxIPv4Settings->ulIPAddress & pxIPv4Settings->ulNetMask ) )
+                    {
+                        /* If the IP is on the same subnet and we do not have an ARP entry already,
+                         * then we should send out ARP for finding the MAC address. */
+                        if( xIsIPInARPCache( pxIPHeader->ulSourceIPAddress ) == pdFALSE )
+                        {
+                            FreeRTOS_OutputARPRequest( pxIPHeader->ulSourceIPAddress );
+                            /* Drop this packet. */
+                            eReturn = eReleaseBuffer;
+                        }
+                    }
+                    else
+                    {
+                        /* IP address is not on the same subnet, ARP table can be updated. */
+                        vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+                    }
                 }
             }
 
