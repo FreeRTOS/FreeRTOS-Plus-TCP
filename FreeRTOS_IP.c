@@ -198,12 +198,12 @@ static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkEndPoint_t )
 static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint );
 
 #if ( ipconfigUSE_IPv6 != 0 )
-    static BaseType_t prvChecksumIPv6Checks( const uint8_t * pucEthernetBuffer,
+    static BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
                                              size_t uxBufferLength,
                                              struct xPacketSummary * pxSet );
 #endif
 
-static BaseType_t prvChecksumIPv4Checks( const uint8_t * pucEthernetBuffer,
+static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
                                          size_t uxBufferLength,
                                          struct xPacketSummary * pxSet );
 
@@ -220,6 +220,24 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
                                             const uint8_t * pucEthernetBuffer,
                                             size_t uxBufferLength,
                                             struct xPacketSummary * pxSet );
+
+static void prvIPTask_Initialise( void );
+
+static void prvIPTask_WaitForEvent( IPStackEvent_t * pxReceivedEvent,
+                                    TickType_t xNextIPSleep );
+
+static void prvIPTask_HandleBindEvent( IPStackEvent_t * pxReceivedEvent );
+
+#if ( ipconfigUSE_TCP == 1 )
+    static void prvIPTask_HandleAcceptEvent( IPStackEvent_t * pxReceivedEvent );
+#endif /* ( ipconfigUSE_TCP == 1 ) */
+
+#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+    static void prvIPTask_HandleSelectEvent( IPStackEvent_t * pxReceivedEvent );
+#endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
+
+static void prvIPTask_CheckPendingEvents( void );
+
 
 /*-----------------------------------------------------------*/
 
@@ -405,51 +423,11 @@ static void prvIPTask( void * pvParameters )
 {
     IPStackEvent_t xReceivedEvent;
     TickType_t xNextIPSleep;
-    FreeRTOS_Socket_t * pxSocket;
-
-    #if ( ipconfigUSE_IPv6 != 0 )
-        struct freertos_sockaddr6 xAddress;
-    #else
-        struct freertos_sockaddr xAddress;
-    #endif
-    NetworkInterface_t * pxInterface;
 
     /* Just to prevent compiler warnings about unused parameters. */
     ( void ) pvParameters;
 
-    /* A possibility to set some additional task properties. */
-    iptraceIP_TASK_STARTING();
-
-    /* Generate a dummy message to say that the network connection has gone
-     * down.  This will cause this task to initialise the network interface.  After
-     * this it is the responsibility of the network interface hardware driver to
-     * send this message if a previously connected network is disconnected. */
-
-    prvIPTimerReload( &( xNetworkTimer ), pdMS_TO_TICKS( ipINITIALISATION_RETRY_DELAY ) );
-
-    for( pxInterface = pxNetworkInterfaces; pxInterface != NULL; pxInterface = pxInterface->pxNext )
-    {
-        /* Post a 'eNetworkDownEvent' for every interface. */
-        FreeRTOS_NetworkDown( pxInterface );
-    }
-
-    #if ( ipconfigUSE_TCP == 1 )
-        {
-            /* Initialise the TCP timer. */
-            prvIPTimerReload( &xTCPTimer, pdMS_TO_TICKS( ipTCP_TIMER_PERIOD_MS ) );
-        }
-    #endif
-
-    #if ( ipconfigDNS_USE_CALLBACKS != 0 )
-        {
-            /* The following function is declared in FreeRTOS_DNS.c and 'private' to
-             * this library */
-            vDNSInitialise();
-        }
-    #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
-
-    /* Initialisation is complete and events can now be processed. */
-    xIPTaskInitialised = pdTRUE;
+    prvIPTask_Initialise();
 
     FreeRTOS_debug_printf( ( "prvIPTask started\n" ) );
 
@@ -465,31 +443,7 @@ static void prvIPTask( void * pvParameters )
         /* Calculate the acceptable maximum sleep time. */
         xNextIPSleep = prvCalculateSleepTime();
 
-        /* Wait until there is something to do. If the following call exits
-         * due to a time out rather than a message being received, set a
-         * 'NoEvent' value. */
-        if( xQueueReceive( xNetworkEventQueue, ( void * ) &xReceivedEvent, xNextIPSleep ) == pdFALSE )
-        {
-            xReceivedEvent.eEventType = eNoEvent;
-        }
-
-        #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
-            {
-                if( xReceivedEvent.eEventType != eNoEvent )
-                {
-                    UBaseType_t uxCount;
-
-                    uxCount = uxQueueSpacesAvailable( xNetworkEventQueue );
-
-                    if( uxQueueMinimumSpace > uxCount )
-                    {
-                        uxQueueMinimumSpace = uxCount;
-                    }
-                }
-            }
-        #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
-
-        iptraceNETWORK_EVENT_RECEIVED( xReceivedEvent.eEventType );
+        prvIPTask_WaitForEvent( &( xReceivedEvent ), xNextIPSleep );
 
         switch( xReceivedEvent.eEventType )
         {
@@ -522,40 +476,7 @@ static void prvIPTask( void * pvParameters )
                 break;
 
             case eSocketBindEvent:
-
-                /* FreeRTOS_bind (a user API) wants the IP-task to bind a socket
-                 * to a port. The port number is communicated in the socket field
-                 * usLocalPort. vSocketBind() will actually bind the socket and the
-                 * API will unblock as soon as the eSOCKET_BOUND event is
-                 * triggered. */
-                pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, xReceivedEvent.pvData );
-                xAddress.sin_len = ( uint8_t ) sizeof( xAddress );
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
-                    {
-                        xAddress.sin_family = FREERTOS_AF_INET6;
-                        ( void ) memcpy( xAddress.sin_addrv6.ucBytes, pxSocket->xLocalAddress_IPv6.ucBytes, sizeof( xAddress.sin_addrv6.ucBytes ) );
-                    }
-                    else
-                #endif
-                {
-                    struct freertos_sockaddr * pxAddress = ipCAST_PTR_TO_TYPE_PTR( sockaddr4_t, &( xAddress ) );
-
-                    pxAddress->sin_family = FREERTOS_AF_INET;
-                    pxAddress->sin_addr = FreeRTOS_htonl( pxSocket->ulLocalAddress );
-                }
-
-                xAddress.sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
-                /* 'ulLocalAddress' and 'usLocalPort' will be set again by vSocketBind(). */
-                pxSocket->ulLocalAddress = 0;
-                pxSocket->usLocalPort = 0;
-                ( void ) vSocketBind( pxSocket, ipCAST_PTR_TO_TYPE_PTR( sockaddr4_t, &( xAddress ) ), sizeof( xAddress ), pdFALSE );
-
-                /* Before 'eSocketBindEvent' was sent it was tested that
-                 * ( xEventGroup != NULL ) so it can be used now to wake up the
-                 * user. */
-                pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_BOUND;
-                vSocketWakeUpUser( pxSocket );
+                prvIPTask_HandleBindEvent( &( xReceivedEvent ) );
                 break;
 
             case eSocketCloseEvent:
@@ -586,19 +507,9 @@ static void prvIPTask( void * pvParameters )
                  * and update the socket field xSocketBits. */
                 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
                     {
-                        #if ( ipconfigSELECT_USES_NOTIFY != 0 )
-                            {
-                                SocketSelectMessage_t * pxMessage = ipCAST_PTR_TO_TYPE_PTR( SocketSelectMessage_t, xReceivedEvent.pvData );
-                                vSocketSelect( pxMessage->pxSocketSet );
-                                ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
-                            }
-                        #else
-                            {
-                                vSocketSelect( ipCAST_PTR_TO_TYPE_PTR( SocketSelect_t, xReceivedEvent.pvData ) );
-                            }
-                        #endif /* ( ipconfigSELECT_USES_NOTIFY != 0 ) */
+                        prvIPTask_HandleSelectEvent( &( xReceivedEvent ) );
                     }
-                #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
+                #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
                 break;
 
             case eSocketSignalEvent:
@@ -626,17 +537,12 @@ static void prvIPTask( void * pvParameters )
                 /* The API FreeRTOS_accept() was called, the IP-task will now
                  * check if the listening socket (communicated in pvData) actually
                  * received a new connection. */
+
                 #if ( ipconfigUSE_TCP == 1 )
                     {
-                        pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, xReceivedEvent.pvData );
-
-                        if( xTCPCheckNewClient( pxSocket ) != pdFALSE )
-                        {
-                            pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_ACCEPT;
-                            vSocketWakeUpUser( pxSocket );
-                        }
+                        prvIPTask_HandleAcceptEvent( &( xReceivedEvent ) );
                     }
-                #endif /* ipconfigUSE_TCP */
+                #endif
                 break;
 
             case eTCPNetStat:
@@ -659,29 +565,215 @@ static void prvIPTask( void * pvParameters )
                 break;
         }
 
-        if( xNetworkDownEventPending != pdFALSE )
-        {
-            /* A network down event could not be posted to the network event
-             * queue because the queue was full.
-             * As this code runs in the IP-task, it can be done directly by
-             * calling prvProcessNetworkDownEvent(). */
-            xNetworkDownEventPending = pdFALSE;
+        prvIPTask_CheckPendingEvents();
+    }
+}
+/*-----------------------------------------------------------*/
 
-            for( pxInterface = FreeRTOS_FirstNetworkInterface();
-                 pxInterface != NULL;
-                 pxInterface = FreeRTOS_NextNetworkInterface( pxInterface ) )
+/**
+ * @brief Helper function for prvIPTask, it does the first initialisations
+ *        at start-up. No parameters, no return type.
+ */
+static void prvIPTask_Initialise( void )
+{
+    NetworkInterface_t * pxInterface;
+
+    /* A possibility to set some additional task properties. */
+    iptraceIP_TASK_STARTING();
+
+    /* Generate a dummy message to say that the network connection has gone
+     * down.  This will cause this task to initialise the network interface.  After
+     * this it is the responsibility of the network interface hardware driver to
+     * send this message if a previously connected network is disconnected. */
+
+    prvIPTimerReload( &( xNetworkTimer ), pdMS_TO_TICKS( ipINITIALISATION_RETRY_DELAY ) );
+
+    for( pxInterface = pxNetworkInterfaces; pxInterface != NULL; pxInterface = pxInterface->pxNext )
+    {
+        /* Post a 'eNetworkDownEvent' for every interface. */
+        FreeRTOS_NetworkDown( pxInterface );
+    }
+
+    #if ( ipconfigUSE_TCP == 1 )
+        {
+            /* Initialise the TCP timer. */
+            prvIPTimerReload( &xTCPTimer, pdMS_TO_TICKS( ipTCP_TIMER_PERIOD_MS ) );
+        }
+    #endif
+
+    #if ( ipconfigDNS_USE_CALLBACKS != 0 )
+        {
+            /* The following function is declared in FreeRTOS_DNS.c	and 'private' to
+             * this library */
+            vDNSInitialise();
+        }
+    #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
+
+    /* Initialisation is complete and events can now be processed. */
+    xIPTaskInitialised = pdTRUE;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Helper function for prvIPTask, it waits for an event arriving
+ *        on the queue, or a time-out.
+ * @param[out] pxReceivedEvent: will be filled with the event received, or set
+ *             to 'eNoEvent' in case of a time-out.
+ * @param[in] xNextIPSleep: the maximum time to wait for a message ( unit:
+ *            clock-ticks.
+ */
+static void prvIPTask_WaitForEvent( IPStackEvent_t * pxReceivedEvent,
+                                    TickType_t xNextIPSleep )
+{
+    /* Wait until there is something to do. If the following call exits
+     * due to a time out rather than a message being received, set a
+     * 'NoEvent' value. */
+    if( xQueueReceive( xNetworkEventQueue, ( void * ) pxReceivedEvent, xNextIPSleep ) == pdFALSE )
+    {
+        pxReceivedEvent->eEventType = eNoEvent;
+    }
+
+    #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
+        {
+            if( pxReceivedEvent->eEventType != eNoEvent )
             {
-                if( pxInterface->bits.bCallDownEvent != pdFALSE_UNSIGNED )
+                UBaseType_t uxCount;
+
+                uxCount = uxQueueSpacesAvailable( xNetworkEventQueue );
+
+                if( uxQueueMinimumSpace > uxCount )
                 {
-                    prvProcessNetworkDownEvent( pxInterface );
-                    pxInterface->bits.bCallDownEvent = pdFALSE_UNSIGNED;
+                    uxQueueMinimumSpace = uxCount;
                 }
+            }
+        }
+    #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
+
+    iptraceNETWORK_EVENT_RECEIVED( xReceivedEvent.eEventType );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Helper function for prvIPTask, handle message of the type 'eSocketBindEvent'
+ * @param[in] pxReceivedEvent: the pvData field points to a socket.
+ */
+static void prvIPTask_HandleBindEvent( IPStackEvent_t * pxReceivedEvent )
+{
+    FreeRTOS_Socket_t * pxSocket;
+
+    #if ( ipconfigUSE_IPv6 != 0 )
+        struct freertos_sockaddr6 xAddress;
+    #else
+        struct freertos_sockaddr xAddress;
+    #endif
+
+    /* FreeRTOS_bind (a user API) wants the IP-task to bind a socket
+     * to a port. The port number is communicated in the socket field
+     * usLocalPort. vSocketBind() will actually bind the socket and the
+     * API will unblock as soon as the eSOCKET_BOUND event is
+     * triggered. */
+    pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, pxReceivedEvent->pvData );
+    xAddress.sin_len = ( uint8_t ) sizeof( xAddress );
+    #if ( ipconfigUSE_IPv6 != 0 )
+        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+        {
+            xAddress.sin_family = FREERTOS_AF_INET6;
+            ( void ) memcpy( xAddress.sin_addrv6.ucBytes, pxSocket->xLocalAddress_IPv6.ucBytes, sizeof( xAddress.sin_addrv6.ucBytes ) );
+        }
+        else
+    #endif
+    {
+        struct freertos_sockaddr * pxAddress = ipCAST_PTR_TO_TYPE_PTR( sockaddr4_t, &( xAddress ) );
+
+        pxAddress->sin_family = FREERTOS_AF_INET;
+        pxAddress->sin_addr = FreeRTOS_htonl( pxSocket->ulLocalAddress );
+    }
+
+    xAddress.sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
+    /* 'ulLocalAddress' and 'usLocalPort' will be set again by vSocketBind(). */
+    pxSocket->ulLocalAddress = 0;
+    pxSocket->usLocalPort = 0;
+    ( void ) vSocketBind( pxSocket, ipCAST_PTR_TO_TYPE_PTR( sockaddr4_t, &( xAddress ) ), sizeof( xAddress ), pdFALSE );
+
+    /* Before 'eSocketBindEvent' was sent it was tested that
+     * ( xEventGroup != NULL ) so it can be used now to wake up the
+     * user. */
+    pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_BOUND;
+    vSocketWakeUpUser( pxSocket );
+}
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_TCP == 1 )
+
+/**
+ * @brief Helper function for prvIPTask, handle message of the type 'eTCPAcceptEvent'
+ * @param[in] pxReceivedEvent: the pvData field points to a socket.
+ */
+    static void prvIPTask_HandleAcceptEvent( IPStackEvent_t * pxReceivedEvent )
+    {
+        FreeRTOS_Socket_t * pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, pxReceivedEvent->pvData );
+
+        if( xTCPCheckNewClient( pxSocket ) != pdFALSE )
+        {
+            pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_ACCEPT;
+            vSocketWakeUpUser( pxSocket );
+        }
+    }
+#endif /* ipconfigUSE_TCP */
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+
+/**
+ * @brief Helper function for prvIPTask, handle message of the type 'eSocketSelectEvent'
+ * @param[in] pxReceivedEvent: the pvData field points to a socket.
+ */
+    static void prvIPTask_HandleSelectEvent( IPStackEvent_t * pxReceivedEvent )
+    {
+        #if ( ipconfigSELECT_USES_NOTIFY != 0 )
+            {
+                SocketSelectMessage_t * pxMessage = ipCAST_PTR_TO_TYPE_PTR( SocketSelectMessage_t, pxReceivedEvent->pvData );
+                vSocketSelect( pxMessage->pxSocketSet );
+                ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
+            }
+        #else
+            {
+                vSocketSelect( ipCAST_PTR_TO_TYPE_PTR( SocketSelect_t, pxReceivedEvent->pvData ) );
+            }
+        #endif /* ( ipconfigSELECT_USES_NOTIFY != 0 ) */
+    }
+#endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Check the value of 'xNetworkDownEventPending'. When non-zero, pending
+ *        network-down events will be handled.
+ */
+static void prvIPTask_CheckPendingEvents( void )
+{
+    NetworkInterface_t * pxInterface;
+
+    if( xNetworkDownEventPending != pdFALSE )
+    {
+        /* A network down event could not be posted to the network event
+         * queue because the queue was full.
+         * As this code runs in the IP-task, it can be done directly by
+         * calling prvProcessNetworkDownEvent(). */
+        xNetworkDownEventPending = pdFALSE;
+
+        for( pxInterface = FreeRTOS_FirstNetworkInterface();
+             pxInterface != NULL;
+             pxInterface = FreeRTOS_NextNetworkInterface( pxInterface ) )
+        {
+            if( pxInterface->bits.bCallDownEvent != pdFALSE_UNSIGNED )
+            {
+                prvProcessNetworkDownEvent( pxInterface );
+                pxInterface->bits.bCallDownEvent = pdFALSE_UNSIGNED;
             }
         }
     }
 }
 /*-----------------------------------------------------------*/
-
 
 /**
  * @brief Call the state machine of either DHCP, DHCPv6, or RA, whichever is activated.
@@ -2616,6 +2708,7 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
              * to have incoming messages checked earlier, by the network card driver.
              * This method may decrease the usage of sparse network buffers. */
             uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+            uint32_t ulSourceIPAddress = pxIPHeader->ulSourceIPAddress;
 
             /* Ensure that the incoming packet is not fragmented (fragmentation
              * was only supported for outgoing packets, and is not currently
@@ -2644,6 +2737,20 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
                 ( FreeRTOS_IsNetworkUp() != pdFALSE ) )
             {
                 /* Packet is not for this node, release it */
+                eReturn = eReleaseBuffer;
+            }
+            else if( ( FreeRTOS_ntohl( ulSourceIPAddress ) & 0xffU ) == 0xffU )
+            {
+                /* Source IP address is a broadcast address, discard the packet. */
+                eReturn = eReleaseBuffer;
+            }
+            else if( ( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
+                               ( void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
+                               sizeof( MACAddress_t ) ) == 0 ) &&
+                     ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
+            {
+                /* Ethernet address is a broadcast address, but the IP address is not a
+                 * broadcast address. */
                 eReturn = eReleaseBuffer;
             }
             else
@@ -2772,6 +2879,7 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
     #if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 )
         {
             size_t uxHeaderLength;
+            uint16_t usTotalLength;
 
             IPHeader_t * pxIPHeader = ipCAST_PTR_TO_TYPE_PTR( IPHeader_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
@@ -2784,24 +2892,31 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
              * length in multiples of 4. */
             uxHeaderLength = ( size_t ) ( ( uxLength & 0x0FU ) << 2 );
 
-            const size_t optlen = ( ( size_t ) uxHeaderLength ) - ipSIZE_OF_IPv4_HEADER;
+            /* Number of bytes contained in IPv4 header options. */
+            const size_t uxOptionsLength = ( ( size_t ) uxHeaderLength ) - ipSIZE_OF_IPv4_HEADER;
 
-            if( optlen > 0U )
+            if( uxOptionsLength > 0U )
             {
                 /* From: the previous start of UDP/ICMP/TCP data. */
                 const uint8_t * pucSource = ( const uint8_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( EthernetHeader_t ) + uxHeaderLength ] );
                 /* To: the usual start of UDP/ICMP/TCP data at offset 20 (decimal ) from IP header. */
                 uint8_t * pucTarget = ( uint8_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( EthernetHeader_t ) + ipSIZE_OF_IPv4_HEADER ] );
                 /* How many: total length minus the options and the lower headers. */
-                const size_t xMoveLen = pxNetworkBuffer->xDataLength - ( optlen + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ETH_HEADER );
+                const size_t xMoveLen = pxNetworkBuffer->xDataLength - ( uxOptionsLength + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ETH_HEADER );
 
                 ( void ) memmove( pucTarget, pucSource, xMoveLen );
-                pxNetworkBuffer->xDataLength -= optlen;
+                pxNetworkBuffer->xDataLength -= uxOptionsLength;
             }
 
             /* Rewrite the Version/IHL byte to indicate that this packet has no IP options. */
             pxIPHeader->ucVersionHeaderLength = ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
                                                 ( ( ipSIZE_OF_IPv4_HEADER >> 2 ) & 0x0FU );
+
+            /* Update the total length of the IP packet after removing options. */
+            usTotalLength = FreeRTOS_ntohs( pxIPHeader->usLength );
+            usTotalLength = usTotalLength - uxOptionsLength;
+            pxIPHeader->usLength = FreeRTOS_htons( usTotalLength );
+
             eReturn = eProcessBuffer;
         }
     #else /* if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 ) */
@@ -3107,6 +3222,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         ulIPAddress = pxIPHeader->ulDestinationIPAddress;
         pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
         pxIPHeader->ulSourceIPAddress = ulIPAddress;
+        /* Update the TTL field. */
+        pxIPHeader->ucTimeToLive = ipconfigICMP_TIME_TO_LIVE;
 
         /* The stack doesn't support fragments, so the fragment offset field must always be zero.
          * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
@@ -3203,7 +3320,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  *
  * @return Non-zero in case of an error.
  */
-    static BaseType_t prvChecksumIPv6Checks( const uint8_t * pucEthernetBuffer,
+    static BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
                                              size_t uxBufferLength,
                                              struct xPacketSummary * pxSet )
     {
@@ -3250,7 +3367,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  *
  * @return Non-zero in case of an error.
  */
-static BaseType_t prvChecksumIPv4Checks( const uint8_t * pucEthernetBuffer,
+static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
                                          size_t uxBufferLength,
                                          struct xPacketSummary * pxSet )
 {
@@ -4461,8 +4578,14 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
                                   size_t uxLength )
 {
     const char * pcName;
+    BaseType_t xErrnumPositive = xErrnum;
 
-    switch( xErrnum )
+    if( xErrnumPositive < 0 )
+    {
+        xErrnumPositive = -xErrnumPositive;
+    }
+
+    switch( xErrnumPositive )
     {
         case pdFREERTOS_ERRNO_EADDRINUSE:
             pcName = "EADDRINUSE";
