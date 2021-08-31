@@ -2430,6 +2430,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
             break;
 
         case eWaitingARPResolution:
+
             if( pxARPWaitingNetworkBuffer == NULL )
             {
                 pxARPWaitingNetworkBuffer = pxNetworkBuffer;
@@ -2437,8 +2438,9 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
             else
             {
                 /* We are already waiting on one ARP resolution. This frame will be dropped. */
-        	vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+                vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
             }
+
             break;
 
         case eReleaseBuffer:
@@ -3135,42 +3137,42 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
             if( ( eReturn != eReleaseBuffer ) && ( eReturn != eWaitingARPResolution ) )
             {
-            switch( ucProtocol )
-            {
-                #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                    case ipPROTOCOL_ICMP:
-                        /* As for now, only ICMP/ping messages are recognised. */
-                        eReturn = prvProcessICMPPacket( pxNetworkBuffer );
-                        break;
-                #endif
-
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    case ipPROTOCOL_ICMP_IPv6:
-                        eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
-                        break;
-                #endif
-
-                case ipPROTOCOL_UDP:
-                    eReturn = prvProcessUDPPacket( pxNetworkBuffer );
-                    break;
-
-                    #if ipconfigUSE_TCP == 1
-                        case ipPROTOCOL_TCP:
-
-                            if( xProcessReceivedTCPPacket( pxNetworkBuffer ) == pdPASS )
-                            {
-                                eReturn = eFrameConsumed;
-                            }
-
-                            /* Setting this variable will cause xTCPTimerCheck()
-                             * to be called just before the IP-task blocks. */
-                            xProcessedTCPMessage++;
+                switch( ucProtocol )
+                {
+                    #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+                        case ipPROTOCOL_ICMP:
+                            /* As for now, only ICMP/ping messages are recognised. */
+                            eReturn = prvProcessICMPPacket( pxNetworkBuffer );
                             break;
-                    #endif /* if ipconfigUSE_TCP == 1 */
-                default:
-                    /* Not a supported protocol type. */
-                    break;
-            }
+                    #endif
+
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                        case ipPROTOCOL_ICMP_IPv6:
+                            eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+                            break;
+                    #endif
+
+                    case ipPROTOCOL_UDP:
+                        eReturn = prvProcessUDPPacket( pxNetworkBuffer );
+                        break;
+
+                        #if ipconfigUSE_TCP == 1
+                            case ipPROTOCOL_TCP:
+
+                                if( xProcessReceivedTCPPacket( pxNetworkBuffer ) == pdPASS )
+                                {
+                                    eReturn = eFrameConsumed;
+                                }
+
+                                /* Setting this variable will cause xTCPTimerCheck()
+                                 * to be called just before the IP-task blocks. */
+                                xProcessedTCPMessage++;
+                                break;
+                        #endif /* if ipconfigUSE_TCP == 1 */
+                    default:
+                        /* Not a supported protocol type. */
+                        break;
+                }
             }
         }
     }

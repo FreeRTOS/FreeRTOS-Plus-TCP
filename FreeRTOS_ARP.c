@@ -331,17 +331,18 @@ static void vARPProcessPacketReply( ARPPacket_t * pxARPFrame,
             /* Clear the buffer. */
             pxARPWaitingNetworkBuffer = NULL;
             uxCount = 0;
-         }
-         else
-         {
-             uxCount++;
-             if( uxCount > 5 )
-             {
-                 vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
-                 pxARPWaitingNetworkBuffer = NULL;
-                 uxCount = 0;
-             }
-         }
+        }
+        else
+        {
+            uxCount++;
+
+            if( uxCount > 5 )
+            {
+                vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
+                pxARPWaitingNetworkBuffer = NULL;
+                uxCount = 0;
+            }
+        }
     }
 }
 /*-----------------------------------------------------------*/
