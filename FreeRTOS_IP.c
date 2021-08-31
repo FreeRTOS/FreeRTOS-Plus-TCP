@@ -171,6 +171,9 @@
     #define DEBUG_SET_TRACE_VARIABLE( var, value )                                 /**< Empty definition since ipconfigHAS_PRINTF != 1. */
 #endif
 
+/** @brief The pointer to buffer with packet waiting for ARP resolution. */
+NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
+
 /**
  * @brief Helper function to do a cast to a NetworkInterface_t pointer.
  *
@@ -2426,6 +2429,18 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
              * yet. */
             break;
 
+        case eWaitingARPResolution:
+            if( pxARPWaitingNetworkBuffer == NULL )
+            {
+                pxARPWaitingNetworkBuffer = pxNetworkBuffer;
+            }
+            else
+            {
+                /* We are already waiting on one ARP resolution. This frame will be dropped. */
+        	vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+            }
+            break;
+
         case eReleaseBuffer:
         case eProcessBuffer:
         default:
@@ -3107,7 +3122,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                         {
                             FreeRTOS_OutputARPRequest( pxIPHeader->ulSourceIPAddress );
                             /* Drop this packet. */
-                            eReturn = eReleaseBuffer;
+                            eReturn = eWaitingARPResolution;
                         }
                     }
                     else
@@ -3118,6 +3133,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 }
             }
 
+            if( ( eReturn != eReleaseBuffer ) && ( eReturn != eWaitingARPResolution ) )
+            {
             switch( ucProtocol )
             {
                 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
@@ -3153,6 +3170,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 default:
                     /* Not a supported protocol type. */
                     break;
+            }
             }
         }
     }

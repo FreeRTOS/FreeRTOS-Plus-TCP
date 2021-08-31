@@ -62,6 +62,9 @@
     #define arpGRATUITOUS_ARP_PERIOD    ( pdMS_TO_TICKS( 20000U ) )
 #endif
 
+/** @brief The pointer to buffer with packet waiting for ARP resolution. */
+extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
+
 /*-----------------------------------------------------------*/
 
 /*
@@ -305,9 +308,41 @@ static void vARPProcessPacketReply( ARPPacket_t * pxARPFrame,
                                     uint32_t ulSenderProtocolAddress )
 {
     ARPHeader_t * pxARPHeader = &( pxARPFrame->xARPHeader );
+    static BaseType_t uxCount = 0;
 
     iptracePROCESSING_RECEIVED_ARP_REPLY( ulTargetProtocolAddress );
     vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress, pxTargetEndPoint );
+
+    if( pxARPWaitingNetworkBuffer != NULL )
+    {
+        IPPacket_t * pxARPWaitingIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxARPWaitingNetworkBuffer->pucEthernetBuffer );
+        IPHeader_t * pxIPHeader = &( pxARPWaitingIPPacket->xIPHeader );
+
+        if( ulSenderProtocolAddress == pxIPHeader->ulSourceIPAddress )
+        {
+            IPStackEvent_t xEventMessage;
+            const TickType_t xDontBlock = ( TickType_t ) 0;
+
+            xEventMessage.eEventType = eNetworkRxEvent;
+            xEventMessage.pvData = ( void * ) pxARPWaitingNetworkBuffer;
+
+            xSendEventStructToIPTask( &xEventMessage, xDontBlock );
+
+            /* Clear the buffer. */
+            pxARPWaitingNetworkBuffer = NULL;
+            uxCount = 0;
+         }
+         else
+         {
+             uxCount++;
+             if( uxCount > 5 )
+             {
+                 vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
+                 pxARPWaitingNetworkBuffer = NULL;
+                 uxCount = 0;
+             }
+         }
+    }
 }
 /*-----------------------------------------------------------*/
 
