@@ -33,6 +33,7 @@
 #include "task.h"
 
 #include <windows.h>
+#include <time.h>
 
 /* System application includes. */
 #include "FreeRTOS_IP.h"
@@ -352,5 +353,13 @@ BaseType_t xNetworkInterfaceInitialise( void )
                                     uint16_t usIdentifier )
     {
         /* Provide a stub for this function. */
+    }
+#endif
+
+#if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 )
+    /* DHCPv6 needs a time-stamp, seconds after 1970. */
+    uint32_t ulApplicationTimeHook( void )
+    {
+        return time( NULL );
     }
 #endif
