@@ -158,7 +158,7 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
         /* Determine if a name lookup is for this node.  Two names are given
          * to this node: that returned by pcApplicationHostnameHook() and that set
          * by mainDEVICE_NICK_NAME. */
-        if( _stricmp( pcName, pcApplicationHostnameHook() ) == 0 )
+        if( strcasecmp( pcName, pcApplicationHostnameHook() ) == 0 )
         {
             xReturn = pdPASS;
         }
