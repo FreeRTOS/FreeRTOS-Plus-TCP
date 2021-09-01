@@ -299,6 +299,27 @@ extern uint32_t ulRand();
 #define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 1 )
 #define ipconfigUSE_CALLBACKS                    ( 1 )
 
+/* Optimisation that allows more than one Rx buffer to be passed to the TCP task
+ * at a time - requires driver support. */
+#define ipconfigUSE_LINKED_RX_MESSAGES           ( 1 )
+
+/* Adds IPv6. */
+#define ipconfigUSE_IPv6                         ( 1 )
+
+/* Adds a DHCP client for IPv6. */
+#define ipconfigUSE_DHCPv6                       ( 1 )
+
+/* Enables a client for Router Advertisement. */
+#define ipconfigUSE_RA                           ( 1 )
+
+/* Enables Link-Local Multicast Name Resolution. */
+#define ipconfigUSE_LLMNR                        ( 1 )
+
+/* Enables mDNS for local resolutions. */
+#define ipconfigUSE_MDNS                         ( 1 )
+
+/* Include support for NBNS: NetBIOS Name Service. */
+#define ipconfigUSE_NBNS                         ( 1 )
 
 #define portINLINE                               __inline
 
