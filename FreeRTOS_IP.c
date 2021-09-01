@@ -101,7 +101,7 @@
 
 /** @brief Maximum time to wait for an ARP resolution while holding a packet. */
 #ifndef ipARP_RESOLUTION_MAX_DELAY
-    #define ipARP_RESOLUTION_MAX_DELAY      ( pdMS_TO_TICKS( 2000U ) )
+    #define ipARP_RESOLUTION_MAX_DELAY    ( pdMS_TO_TICKS( 2000U ) )
 #endif
 
 
