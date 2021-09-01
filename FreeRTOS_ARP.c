@@ -88,10 +88,10 @@ static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
 
 static void vARPSendRequestPacket( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
-static void prvFindCacheEntry( const MACAddress_t * pxMACAddress,
-                               const uint32_t ulIPAddress,
-                               struct xNetworkEndPoint * pxEndPoint,
-                               CacheLocation_t * pxLocation );
+static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
+                                     const uint32_t ulIPAddress,
+                                     struct xNetworkEndPoint * pxEndPoint,
+                                     CacheLocation_t * pxLocation );
 
 /*-----------------------------------------------------------*/
 
@@ -415,52 +415,56 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
     #endif /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 ) */
     {
         CacheLocation_t xLocation;
+        BaseType_t xReady;
 
-        prvFindCacheEntry( pxMACAddress, ulIPAddress, pxEndPoint, &( xLocation ) );
+        xReady = prvFindCacheEntry( pxMACAddress, ulIPAddress, pxEndPoint, &( xLocation ) );
 
-        if( xLocation.xMacEntry >= 0 )
+        if( xReady == pdFALSE )
         {
-            xLocation.xUseEntry = xLocation.xMacEntry;
-
-            if( xLocation.xIpEntry >= 0 )
+            if( xLocation.xMacEntry >= 0 )
             {
-                /* Both the MAC address as well as the IP address were found in
-                 * different locations: clear the entry which matches the
-                 * IP-address */
-                ( void ) memset( &( xARPCache[ xLocation.xIpEntry ] ), 0, sizeof( ARPCacheRow_t ) );
+                xLocation.xUseEntry = xLocation.xMacEntry;
+
+                if( xLocation.xIpEntry >= 0 )
+                {
+                    /* Both the MAC address as well as the IP address were found in
+                     * different locations: clear the entry which matches the
+                     * IP-address */
+                    ( void ) memset( &( xARPCache[ xLocation.xIpEntry ] ), 0, sizeof( ARPCacheRow_t ) );
+                }
             }
-        }
-        else if( xLocation.xIpEntry >= 0 )
-        {
-            /* An entry containing the IP-address was found, but it had a different MAC address */
-            xLocation.xUseEntry = xLocation.xIpEntry;
-        }
-        else
-        {
-            /* No matching entry found. */
-        }
+            else if( xLocation.xIpEntry >= 0 )
+            {
+                /* An entry containing the IP-address was found, but it had a different MAC address */
+                xLocation.xUseEntry = xLocation.xIpEntry;
+            }
+            else
+            {
+                /* No matching entry found. */
+            }
 
-        /* If the entry was not found, we use the oldest entry and set the IPaddress */
-        xARPCache[ xLocation.xUseEntry ].ulIPAddress = ulIPAddress;
+            /* If the entry was not found, we use the oldest entry and set the IPaddress */
+            xARPCache[ xLocation.xUseEntry ].ulIPAddress = ulIPAddress;
 
-        if( pxMACAddress != NULL )
-        {
-            ( void ) memcpy( xARPCache[ xLocation.xUseEntry ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( pxMACAddress->ucBytes ) );
+            if( pxMACAddress != NULL )
+            {
+                ( void ) memcpy( xARPCache[ xLocation.xUseEntry ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( pxMACAddress->ucBytes ) );
 
-            iptraceARP_TABLE_ENTRY_CREATED( ulIPAddress, ( *pxMACAddress ) );
-            /* And this entry does not need immediate attention */
-            xARPCache[ xLocation.xUseEntry ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
-            xARPCache[ xLocation.xUseEntry ].ucValid = ( uint8_t ) pdTRUE;
-            xARPCache[ xLocation.xUseEntry ].pxEndPoint = pxEndPoint;
-        }
-        else if( xLocation.xIpEntry < 0 )
-        {
-            xARPCache[ xLocation.xUseEntry ].ucAge = ( uint8_t ) ipconfigMAX_ARP_RETRANSMISSIONS;
-            xARPCache[ xLocation.xUseEntry ].ucValid = ( uint8_t ) pdFALSE;
-        }
-        else
-        {
-            /* Nothing will be stored. */
+                iptraceARP_TABLE_ENTRY_CREATED( ulIPAddress, ( *pxMACAddress ) );
+                /* And this entry does not need immediate attention */
+                xARPCache[ xLocation.xUseEntry ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
+                xARPCache[ xLocation.xUseEntry ].ucValid = ( uint8_t ) pdTRUE;
+                xARPCache[ xLocation.xUseEntry ].pxEndPoint = pxEndPoint;
+            }
+            else if( xLocation.xIpEntry < 0 )
+            {
+                xARPCache[ xLocation.xUseEntry ].ucAge = ( uint8_t ) ipconfigMAX_ARP_RETRANSMISSIONS;
+                xARPCache[ xLocation.xUseEntry ].ucValid = ( uint8_t ) pdFALSE;
+            }
+            else
+            {
+                /* Nothing will be stored. */
+            }
         }
     }
 }
@@ -474,13 +478,14 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
  * @param[in] pxEndPoint: The end-point that will stored in the table.
  * @param[out] pxLocation: The results of this search are written in this struct.
  */
-static void prvFindCacheEntry( const MACAddress_t * pxMACAddress,
-                               const uint32_t ulIPAddress,
-                               struct xNetworkEndPoint * pxEndPoint,
-                               CacheLocation_t * pxLocation )
+static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
+                                     const uint32_t ulIPAddress,
+                                     struct xNetworkEndPoint * pxEndPoint,
+                                     CacheLocation_t * pxLocation )
 {
     BaseType_t x = 0;
     uint8_t ucMinAgeFound = 0U;
+    BaseType_t xReturn = pdFALSE;
 
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 )
         BaseType_t xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 2 ) != NULL ) ? 1 : 0; /* ARP remote address. */
@@ -523,13 +528,13 @@ static void prvFindCacheEntry( const MACAddress_t * pxMACAddress,
             if( xMatchingMAC != pdFALSE )
             {
                 /* This function will be called for each received packet
-                 * As this is by far the most common path the coding standard
-                 * is relaxed in this case and a return is permitted as an
-                 * optimisation. */
+                 * This is by far the most common path. */
                 xARPCache[ x ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
                 xARPCache[ x ].ucValid = ( uint8_t ) pdTRUE;
                 xARPCache[ x ].pxEndPoint = pxEndPoint;
-                return;
+                /* Indicate to the caller that the entry is updated. */
+                xReturn = pdTRUE;
+                break;
             }
 
             /* Found an entry containing ulIPAddress, but the MAC address
@@ -578,7 +583,9 @@ static void prvFindCacheEntry( const MACAddress_t * pxMACAddress,
         {
             /* Nothing happens to this cache entry for now. */
         }
-    }
+    } /* for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ ) */
+
+    return xReturn;
 }
 /*-----------------------------------------------------------*/
 
