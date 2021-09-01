@@ -39,7 +39,8 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_DHCP.h"
 
-#define mainHOST_NAME    "Build Combination"
+#define mainHOST_NAME           "Build Combination"
+#define mainDEVICE_NICK_NAME    "Nickname"
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
@@ -133,8 +134,9 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
 
 /*-----------------------------------------------------------*/
 
-#if ( ( ipconfigUSE_LLMNR != 0 ) || \
-    ( ipconfigUSE_NBNS != 0 ) ||    \
+#if ( ( ipconfigUSE_MDNS != 0 ) || \
+    ( ipconfigUSE_LLMNR != 0 ) ||  \
+    ( ipconfigUSE_NBNS != 0 ) ||   \
     ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) )
 
     const char * pcApplicationHostnameHook( void )
@@ -144,10 +146,10 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
         return mainHOST_NAME;
     }
 
-#endif /* if ( ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) || ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) ) */
+#endif /* if ( ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) || ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) ) */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 )
+#if ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 )
 
     BaseType_t xApplicationDNSQueryHook( const char * pcName )
     {
@@ -172,7 +174,7 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
         return xReturn;
     }
 
-#endif /* if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) */
+#endif /* if ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) */
 /*-----------------------------------------------------------*/
 
 void vApplicationIdleHook( void )
