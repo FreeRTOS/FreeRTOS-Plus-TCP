@@ -308,7 +308,6 @@ static void vARPProcessPacketReply( ARPPacket_t * pxARPFrame,
                                     uint32_t ulSenderProtocolAddress )
 {
     ARPHeader_t * pxARPHeader = &( pxARPFrame->xARPHeader );
-    static BaseType_t uxCount = 0;
 
     iptracePROCESSING_RECEIVED_ARP_REPLY( ulTargetProtocolAddress );
     vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress, pxTargetEndPoint );
@@ -330,18 +329,9 @@ static void vARPProcessPacketReply( ARPPacket_t * pxARPFrame,
 
             /* Clear the buffer. */
             pxARPWaitingNetworkBuffer = NULL;
-            uxCount = 0;
-        }
-        else
-        {
-            uxCount++;
 
-            if( uxCount > 5 )
-            {
-                vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
-                pxARPWaitingNetworkBuffer = NULL;
-                uxCount = 0;
-            }
+            /* Found an ARP resolution, disable ARP resolution timer. */
+            vIPSetARPResolutionTimerEnableState( pdFALSE );
         }
     }
 }

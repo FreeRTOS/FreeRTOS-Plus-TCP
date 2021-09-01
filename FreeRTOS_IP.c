@@ -99,6 +99,12 @@
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
 #endif
 
+/** @brief Maximum time to wait for an ARP resolution while holding a packet. */
+#ifndef ipARP_RESOLUTION_MAX_DELAY
+    #define ipARP_RESOLUTION_MAX_DELAY      ( pdMS_TO_TICKS( 2000U ) )
+#endif
+
+
 /** @brief Defines how often the ARP timer callback function is executed.  The time is
  * shorter in the Windows simulator as simulated time is not real time. */
 #ifndef ipARP_TIMER_PERIOD_MS
@@ -591,6 +597,9 @@ static void prvIPTask_Initialise( void )
 
     prvIPTimerReload( &( xNetworkTimer ), pdMS_TO_TICKS( ipINITIALISATION_RETRY_DELAY ) );
 
+    /* Mark the timer as inactive since we are not waiting on any ARP resolution as of now. */
+    vIPSetARPResolutionTimerEnableState( pdFALSE );
+
     for( pxInterface = pxNetworkInterfaces; pxInterface != NULL; pxInterface = pxInterface->pxNext )
     {
         /* Post a 'eNetworkDownEvent' for every interface. */
@@ -1010,6 +1019,15 @@ static void prvCheckNetworkTimers( void )
     if( prvIPTimerCheck( &xARPTimer ) != pdFALSE )
     {
         ( void ) xSendEventToIPTask( eARPTimerEvent );
+    }
+
+    /* Is the ARP resolution timer expired? */
+    if( prvIPTimerCheck( &xARPResolutionTimer ) != pdFALSE )
+    {
+        /* We have waited long enough for the ARP response. Now, free the network
+         * buffer and clear the pointer. */
+        vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
+        pxARPWaitingNetworkBuffer = NULL;
     }
 
     #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
@@ -2434,6 +2452,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
             if( pxARPWaitingNetworkBuffer == NULL )
             {
                 pxARPWaitingNetworkBuffer = pxNetworkBuffer;
+                prvIPTimerStart( &( xARPResolutionTimer ), ipARP_RESOLUTION_MAX_DELAY );
             }
             else
             {
@@ -4432,6 +4451,23 @@ uint32_t FreeRTOS_GetIPAddress( void )
     }
 /*-----------------------------------------------------------*/
 #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+
+/**
+ * @brief Enable or disable the ARP resolution timer.
+ *
+ * @param[in] xEnableState: pdTRUE if the timer must be enabled, pdFALSE otherwise.
+ */
+void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
+{
+    if( xEnableState != pdFALSE )
+    {
+        xARPResolutionTimer.bActive = pdTRUE_UNSIGNED;
+    }
+    else
+    {
+        xARPResolutionTimer.bActive = pdFALSE_UNSIGNED;
+    }
+}
 
 #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 )
 
