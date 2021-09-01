@@ -162,7 +162,7 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
         {
             xReturn = pdPASS;
         }
-        else if( _stricmp( pcName, mainDEVICE_NICK_NAME ) == 0 )
+        else if( strcasecmp( pcName, mainDEVICE_NICK_NAME ) == 0 )
         {
             xReturn = pdPASS;
         }
