@@ -396,6 +396,10 @@ static IPTimer_t xNetworkTimer;
  * regular basis
  */
 
+/** @brief Timer to limit the maximum time a packet should be stored while
+ *         awaiting an ARP resolution. */
+static IPTimer_t xARPResolutionTimer;
+
 /** @brief ARP timer, to check its table entries. */
 static IPTimer_t xARPTimer;
 #if ( ipconfigUSE_TCP != 0 )
