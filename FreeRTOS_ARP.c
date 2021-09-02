@@ -135,6 +135,15 @@ eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * pxNetwor
         NetworkEndPoint_t * pxSourceEndPoint;
     #endif
 
+    /* Only Ethernet hardware type is supported.
+     * Only IPv4 address can be present in the ARP packet.
+     * The hardware length (the MAC address) must be 6 bytes. And,
+     * The Protocol address length must be 4 bytes as it is IPv4. */
+    if( ( pxARPHeader->usHardwareType == ipARP_HARDWARE_TYPE_ETHERNET ) &&
+    	( pxARPHeader->usProtocolType == ipARP_PROTOCOL_TYPE ) &&
+        ( pxARPHeader->ucHardwareAddressLength == ipMAC_ADDRESS_LENGTH_BYTES )  &&
+	( pxARPHeader->ucProtocolAddressLength == ipIP_ADDRESS_LENGTH_BYTES ) )
+    {
     /* The field ulSenderProtocolAddress is badly aligned, copy byte-by-byte. */
 
     /*
@@ -212,6 +221,7 @@ eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * pxNetwor
             }
         }
     #endif /* ipconfigARP_USE_CLASH_DETECTION */
+    }
 
     return eReturn;
 }
