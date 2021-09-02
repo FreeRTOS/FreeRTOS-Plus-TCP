@@ -1028,10 +1028,13 @@ static void prvCheckNetworkTimers( void )
     /* Is the ARP resolution timer expired? */
     if( prvIPTimerCheck( &xARPResolutionTimer ) != pdFALSE )
     {
-        /* We have waited long enough for the ARP response. Now, free the network
-         * buffer and clear the pointer. */
-        vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
-        pxARPWaitingNetworkBuffer = NULL;
+        if( pxARPWaitingNetworkBuffer != NULL )
+        {
+            /* We have waited long enough for the ARP response. Now, free the network
+             * buffer and clear the pointer. */
+            vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
+            pxARPWaitingNetworkBuffer = NULL;
+        }
     }
 
     #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )

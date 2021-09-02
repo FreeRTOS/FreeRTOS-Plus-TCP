@@ -209,6 +209,7 @@ earpcachehit
 earpcachemiss
 earpgetcacheentry
 earptimerevent
+ewaitingarpresolution
 ec
 ecantsendpacket
 eclosed
