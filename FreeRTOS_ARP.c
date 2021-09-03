@@ -325,7 +325,11 @@ static void vARPProcessPacketReply( ARPPacket_t * pxARPFrame,
             xEventMessage.eEventType = eNetworkRxEvent;
             xEventMessage.pvData = ( void * ) pxARPWaitingNetworkBuffer;
 
-            xSendEventStructToIPTask( &xEventMessage, xDontBlock );
+            if( xSendEventStructToIPTask( &xEventMessage, xDontBlock ) != pdPASS )
+            {
+                /* Failed to send the message, so release the network buffer. */
+                vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
+            }
 
             /* Clear the buffer. */
             pxARPWaitingNetworkBuffer = NULL;

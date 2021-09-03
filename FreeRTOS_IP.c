@@ -1030,9 +1030,14 @@ static void prvCheckNetworkTimers( void )
     {
         if( pxARPWaitingNetworkBuffer != NULL )
         {
+            /* Disable the ARP resolution timer. */
+            vIPSetARPResolutionTimerEnableState( pdFALSE );
+
             /* We have waited long enough for the ARP response. Now, free the network
-             * buffer and clear the pointer. */
+             * buffer. */
             vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
+
+            /* Clear the pointer. */
             pxARPWaitingNetworkBuffer = NULL;
         }
     }
