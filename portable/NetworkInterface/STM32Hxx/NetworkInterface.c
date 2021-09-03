@@ -349,7 +349,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
     TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 100U );
     uint8_t * pucTXBuffer;
 
-    if( xGetPhyLinkStatus() == = pdPASS )
+    if( xGetPhyLinkStatus() == pdPASS )
     {
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
             /* Zero-copy method, pass the buffer. */
@@ -804,8 +804,6 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 }
 /*-----------------------------------------------------------*/
 
-#define __NOP()    __ASM volatile ( "nop" )
-
 static void vClearOptionBit( volatile uint32_t * pulValue,
                              uint32_t ulValue )
 {
@@ -922,7 +920,7 @@ static void prvEMACHandlerTask( void * pvParameters )
             xResult += prvNetworkInterfaceInput();
         }
 
-        if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != 0 )
+		if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != pdFALSE )
         {
             /*
              * The function xPhyCheckLinkStatus() returns pdTRUE if the
