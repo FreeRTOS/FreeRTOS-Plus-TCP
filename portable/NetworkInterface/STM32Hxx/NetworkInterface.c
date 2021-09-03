@@ -920,7 +920,7 @@ static void prvEMACHandlerTask( void * pvParameters )
             xResult += prvNetworkInterfaceInput();
         }
 
-		if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != pdFALSE )
+        if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != pdFALSE )
         {
             /*
              * The function xPhyCheckLinkStatus() returns pdTRUE if the
