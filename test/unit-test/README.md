@@ -31,6 +31,12 @@ To compile and run this project successfully, you must have the following:
 Go to the root directory of the FreeRTOS+TCP repo and run the following script:
 ~~~
 #!/bin/bash
+# This script should be run from the root directory of the FreeRTOS+TCP repo.
+
+if [[ ! -f FreeRTOS_IP.c ]]; then
+    echo "Please run this script from the root directory of the FreeRTOS+TCP repo."
+    exit 1
+fi
 
 UNIT_TEST_DIR="test/unit-test"
 BUILD_DIR="${UNIT_TEST_DIR}/build/"
