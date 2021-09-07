@@ -710,7 +710,8 @@
  * is at least the size of UDPPacket_t.
  */
     BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                          uint16_t usPort );
+                                          uint16_t usPort,
+                                          BaseType_t * xIsWaitingForARPResolution );
 
 /*
  * Initialize the socket list data structures for TCP and UDP.
