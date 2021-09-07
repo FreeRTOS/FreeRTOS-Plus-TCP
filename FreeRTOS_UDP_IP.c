@@ -672,11 +672,14 @@ static BaseType_t prvHandleUDPPacketWithoutSocket( NetworkBufferDescriptor_t * p
  *
  * @param[in] pxNetworkBuffer: The network buffer carrying the UDP packet.
  * @param[in] usPort: The port number on which this packet was received.
+ * @param[out] xIsWaitingARPResolution: If the packet is awaiting ARP resolution, this
+ *                                    pointer will be set to pdTRUE. pdFALSE otherwise.
  *
  * @return pdPASS in case the UDP packet could be processed. Else pdFAIL is returned.
  */
 BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint16_t usPort )
+                                      uint16_t usPort,
+                                      BaseType_t * xIsWaitingARPResolution )
 {
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
@@ -687,6 +690,8 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     #if ( ipconfigUSE_IPv6 != 0 )
         UDPPacket_IPv6_t * pxUDPPacket_IPv6;
     #endif
+
+    *xIsWaitingARPResolution = pdFALSE;
 
     /* Caller must check for minimum packet size. */
     pxSocket = pxUDPSocketLookup( usPort );
@@ -723,17 +728,17 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
         {
             if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
             {
-                /* Store the pointer to the network buffer. */
-                pxARPWaitingNetworkBuffer = pxNetworkBuffer;
+                /* Mark this packet as waiting for ARP resolution. */
+                *xIsWaitingARPResolution = pdTRUE;
 
-                /* Return a pass to show that the frame is consumed. */
-                xReturn = pdPASS;
+                /* Return a fail to show that the frame will not be processed right now. */
+                xReturn = pdFAIL;
                 break;
             }
             else
             {
                 /* IP address is not on the same subnet, ARP table can be updated. */
-                vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+                vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
             }
         }
 

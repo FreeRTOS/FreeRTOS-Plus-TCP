@@ -2989,7 +2989,7 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
 static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t eReturn = eReleaseBuffer;
-
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     /* The IP packet contained a UDP frame. */
     UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
     UDPHeader_t * pxUDPHeader = &( pxUDPPacket->xUDPHeader );
@@ -3045,17 +3045,18 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
         /* Pass the packet payload to the UDP sockets
          * implementation. */
         if( xProcessReceivedUDPPacket( pxNetworkBuffer,
-                                       pxUDPHeader->usDestinationPort ) == pdPASS )
+                                       pxUDPHeader->usDestinationPort,
+                                       &( xIsWaitingARPResolution ) ) == pdPASS )
         {
-            /* Is this packet stored aside for ARP resolution. */
-            if( pxARPWaitingNetworkBuffer == pxNetworkBuffer )
-        	{
-        	    eReturn = eWaitingARPResolution;
-        	}
-        	else
-        	{
-                eReturn = eFrameConsumed;
-        	}
+            eReturn = eFrameConsumed;
+        }
+        else
+        {
+            /* Is this packet to be set aside for ARP resolution. */
+            if( xIsWaitingARPResolution == pdTRUE )
+            {
+                eReturn = eWaitingARPResolution;
+            }
         }
     }
     else
@@ -4086,6 +4087,13 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Check whether a packet needs ARP resolution if it is on local subnet. If required send an ARP request.
+ *
+ * @param[in] pxNetworkBuffer: The network buffer with the packet to be checked.
+ *
+ * @return pdTRUE if the packet needs ARP resolution, pdFALSE otherwise.
+ */
 BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xNeedsARPResolution = pdFALSE;
@@ -4101,6 +4109,7 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
         if( xIsIPInARPCache( pxIPHeader->ulSourceIPAddress ) == pdFALSE )
         {
             FreeRTOS_OutputARPRequest( pxIPHeader->ulSourceIPAddress );
+
             /* This packet needs resolution since this is on the same subnet
              * but not in the ARP cache. */
             xNeedsARPResolution = pdTRUE;
@@ -4109,7 +4118,7 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
 
     return xNeedsARPResolution;
 }
-
+/*-----------------------------------------------------------*/
 
 /* This function is used in other files, has external linkage e.g. in
  * FreeRTOS_DNS.c. Not to be made static. */
