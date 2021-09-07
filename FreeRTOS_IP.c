@@ -3047,7 +3047,15 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
         if( xProcessReceivedUDPPacket( pxNetworkBuffer,
                                        pxUDPHeader->usDestinationPort ) == pdPASS )
         {
-            eReturn = eFrameConsumed;
+            /* Is this packet stored aside for ARP resolution. */
+            if( pxARPWaitingNetworkBuffer == pxNetworkBuffer )
+        	{
+        	    eReturn = eWaitingARPResolution;
+        	}
+        	else
+        	{
+                eReturn = eFrameConsumed;
+        	}
         }
     }
     else
@@ -3145,18 +3153,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     else
                 #endif /* ipconfigUSE_IPv6 */
                 {
-                    IPV4Parameters_t * pxIPv4Settings = &( pxNetworkBuffer->pxEndPoint->ipv4_settings );
-
-                    if( ( pxIPHeader->ulSourceIPAddress & pxIPv4Settings->ulNetMask ) == ( pxIPv4Settings->ulIPAddress & pxIPv4Settings->ulNetMask ) )
+                    if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
                     {
-                        /* If the IP is on the same subnet and we do not have an ARP entry already,
-                         * then we should send out ARP for finding the MAC address. */
-                        if( xIsIPInARPCache( pxIPHeader->ulSourceIPAddress ) == pdFALSE )
-                        {
-                            FreeRTOS_OutputARPRequest( pxIPHeader->ulSourceIPAddress );
-                            /* Drop this packet. */
-                            eReturn = eWaitingARPResolution;
-                        }
+                        eReturn = eWaitingARPResolution;
                     }
                     else
                     {
@@ -4086,6 +4085,31 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     return FreeRTOS_ntohs( ( uint16_t ) ulAccum );
 }
 /*-----------------------------------------------------------*/
+
+BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    BaseType_t xNeedsARPResolution = pdFALSE;
+    /* The device's IP-settings. */
+    IPV4Parameters_t * pxIPv4Settings = &( pxNetworkBuffer->pxEndPoint->ipv4_settings );
+    IPPacket_t * pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    if( ( pxIPHeader->ulSourceIPAddress & pxIPv4Settings->ulNetMask ) == ( pxIPv4Settings->ulIPAddress & pxIPv4Settings->ulNetMask ) )
+    {
+        /* If the IP is on the same subnet and we do not have an ARP entry already,
+         * then we should send out ARP for finding the MAC address. */
+        if( xIsIPInARPCache( pxIPHeader->ulSourceIPAddress ) == pdFALSE )
+        {
+            FreeRTOS_OutputARPRequest( pxIPHeader->ulSourceIPAddress );
+            /* This packet needs resolution since this is on the same subnet
+             * but not in the ARP cache. */
+            xNeedsARPResolution = pdTRUE;
+        }
+    }
+
+    return xNeedsARPResolution;
+}
+
 
 /* This function is used in other files, has external linkage e.g. in
  * FreeRTOS_DNS.c. Not to be made static. */

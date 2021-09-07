@@ -721,7 +721,20 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
             else
         #endif
         {
-            vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+            if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
+            {
+                /* Store the pointer to the network buffer. */
+                pxARPWaitingNetworkBuffer = pxNetworkBuffer;
+
+                /* Return a pass to show that the frame is consumed. */
+                xReturn = pdPASS;
+                break;
+            }
+            else
+            {
+                /* IP address is not on the same subnet, ARP table can be updated. */
+                vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+            }
         }
 
         #if ( ipconfigUSE_CALLBACKS == 1 )
