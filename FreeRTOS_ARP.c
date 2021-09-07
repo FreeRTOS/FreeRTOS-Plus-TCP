@@ -222,6 +222,10 @@ eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * pxNetwor
             }
         #endif /* ipconfigARP_USE_CLASH_DETECTION */
     }
+    else
+    {
+        iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
+    }
 
     return eReturn;
 }
