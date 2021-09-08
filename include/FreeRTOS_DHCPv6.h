@@ -64,6 +64,13 @@
         ClientServerID_t xServerID;    /**< The UUID of the server. */
     } DHCPMessage_IPv6_t;
 
+/** @brief A struct describing an option. */
+    typedef struct xDHCPOptionSet
+    {
+        size_t uxOptionLength; /**<  The length of the option being handled. */
+        size_t uxStart;        /**<  The position in xMessage where the option starts. */
+    } DHCPOptionSet_t;
+
 /* Returns the current state of a DHCP process. */
     eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint * pxEndPoint );
 
