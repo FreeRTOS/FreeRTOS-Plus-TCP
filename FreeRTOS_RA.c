@@ -515,7 +515,7 @@
                    xIPAddress.ucBytes[ 1 ] = 0x02U;
                    xIPAddress.ucBytes[ 15 ] = 0x02U;
                    uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t );
-                   pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( BUFFER_FROM_WHERE_CALL( "freertos_ra.c(1)" ) uxNeededSize, raDONT_BLOCK );
+                   pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxNeededSize, raDONT_BLOCK );
 
                    if( pxNetworkBuffer != NULL )
                    {
@@ -565,7 +565,7 @@
                    FreeRTOS_printf( ( "RA: Neighbour solicitation for %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
 
                    uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPHeader_IPv6_t );
-                   pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( BUFFER_FROM_WHERE_CALL( "freertos_ra.c(2)" ) uxNeededSize, raDONT_BLOCK );
+                   pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxNeededSize, raDONT_BLOCK );
 
                    if( pxNetworkBuffer != NULL )
                    {

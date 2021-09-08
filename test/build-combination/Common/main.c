@@ -33,13 +33,15 @@
 #include "task.h"
 
 #include <windows.h>
+#include <time.h>
 
 /* System application includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_DHCP.h"
 
-#define mainHOST_NAME    "Build Combination"
+#define mainHOST_NAME           "Build Combination"
+#define mainDEVICE_NICK_NAME    "Nickname"
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
@@ -133,8 +135,9 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
 
 /*-----------------------------------------------------------*/
 
-#if ( ( ipconfigUSE_LLMNR != 0 ) || \
-    ( ipconfigUSE_NBNS != 0 ) ||    \
+#if ( ( ipconfigUSE_MDNS != 0 ) || \
+    ( ipconfigUSE_LLMNR != 0 ) ||  \
+    ( ipconfigUSE_NBNS != 0 ) ||   \
     ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) )
 
     const char * pcApplicationHostnameHook( void )
@@ -144,10 +147,10 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
         return mainHOST_NAME;
     }
 
-#endif /* if ( ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) || ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) ) */
+#endif /* if ( ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) || ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) ) */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 )
+#if ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 )
 
     BaseType_t xApplicationDNSQueryHook( const char * pcName )
     {
@@ -156,11 +159,11 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
         /* Determine if a name lookup is for this node.  Two names are given
          * to this node: that returned by pcApplicationHostnameHook() and that set
          * by mainDEVICE_NICK_NAME. */
-        if( _stricmp( pcName, pcApplicationHostnameHook() ) == 0 )
+        if( strcasecmp( pcName, pcApplicationHostnameHook() ) == 0 )
         {
             xReturn = pdPASS;
         }
-        else if( _stricmp( pcName, mainDEVICE_NICK_NAME ) == 0 )
+        else if( strcasecmp( pcName, mainDEVICE_NICK_NAME ) == 0 )
         {
             xReturn = pdPASS;
         }
@@ -172,7 +175,7 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
         return xReturn;
     }
 
-#endif /* if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) */
+#endif /* if ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) */
 /*-----------------------------------------------------------*/
 
 void vApplicationIdleHook( void )
@@ -350,5 +353,13 @@ BaseType_t xNetworkInterfaceInitialise( void )
                                     uint16_t usIdentifier )
     {
         /* Provide a stub for this function. */
+    }
+#endif
+
+#if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 )
+    /* DHCPv6 needs a time-stamp, seconds after 1970. */
+    uint32_t ulApplicationTimeHook( void )
+    {
+        return time( NULL );
     }
 #endif
