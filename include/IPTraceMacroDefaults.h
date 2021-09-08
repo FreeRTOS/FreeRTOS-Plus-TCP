@@ -64,6 +64,10 @@
     #define iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER_FROM_ISR()
 #endif
 
+#ifndef iptraceDROPPED_INVALID_ARP_PACKET
+    #define iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader )
+#endif
+
 #ifndef iptraceCREATING_ARP_REQUEST
     #define iptraceCREATING_ARP_REQUEST( ulIPAddress )
 #endif
