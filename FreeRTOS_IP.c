@@ -4087,39 +4087,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 }
 /*-----------------------------------------------------------*/
 
-/**
- * @brief Check whether a packet needs ARP resolution if it is on local subnet. If required send an ARP request.
- *
- * @param[in] pxNetworkBuffer: The network buffer with the packet to be checked.
- *
- * @return pdTRUE if the packet needs ARP resolution, pdFALSE otherwise.
- */
-BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
-{
-    BaseType_t xNeedsARPResolution = pdFALSE;
-    /* The device's IP-settings. */
-    IPV4Parameters_t * pxIPv4Settings = &( pxNetworkBuffer->pxEndPoint->ipv4_settings );
-    IPPacket_t * pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
-    IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    if( ( pxIPHeader->ulSourceIPAddress & pxIPv4Settings->ulNetMask ) == ( pxIPv4Settings->ulIPAddress & pxIPv4Settings->ulNetMask ) )
-    {
-        /* If the IP is on the same subnet and we do not have an ARP entry already,
-         * then we should send out ARP for finding the MAC address. */
-        if( xIsIPInARPCache( pxIPHeader->ulSourceIPAddress ) == pdFALSE )
-        {
-            FreeRTOS_OutputARPRequest( pxIPHeader->ulSourceIPAddress );
-
-            /* This packet needs resolution since this is on the same subnet
-             * but not in the ARP cache. */
-            xNeedsARPResolution = pdTRUE;
-        }
-    }
-
-    return xNeedsARPResolution;
-}
-/*-----------------------------------------------------------*/
-
 /* This function is used in other files, has external linkage e.g. in
  * FreeRTOS_DNS.c. Not to be made static. */
 

@@ -102,6 +102,8 @@
 
     BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup );
 
+    BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer );
+
 /*
  * Look for ulIPAddress in the ARP cache.  If the IP address exists, copy the
  * associated MAC address into pxMACAddress, refresh the ARP cache entry's

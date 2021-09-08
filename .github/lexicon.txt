@@ -1708,6 +1708,7 @@ xisbound
 xisforrx
 xisinputstream
 xitemvalue
+xiswaitingarpresolution
 xlastacttime
 xlastalivetime
 xlastgratuitousarptime

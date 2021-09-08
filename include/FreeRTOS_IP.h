@@ -407,8 +407,6 @@
     #endif
     uint32_t FreeRTOS_GetIPAddress( void );
 
-    BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer );
-
 /*
  *  _HT_ : these functions come from the IPv4-only library.
  *  They should get an extra parameter, the end-point
