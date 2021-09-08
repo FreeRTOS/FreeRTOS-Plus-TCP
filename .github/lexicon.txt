@@ -1507,6 +1507,7 @@ uxsize
 uxsourcebytesremaining
 uxsocketsize
 uxsourcelen
+uxstart
 uxstreambufferadd
 uxstreambufferget
 uxstreambuffermidspace
