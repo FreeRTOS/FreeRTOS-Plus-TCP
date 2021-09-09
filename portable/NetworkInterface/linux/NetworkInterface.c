@@ -84,7 +84,6 @@ static void print_hex( unsigned const char * const bin_data,
 /* ======================== Static Global Variables ========================= */
 static StreamBuffer_t * xSendBuffer = NULL;
 static StreamBuffer_t * xRecvBuffer = NULL;
-extern uint8_t ucMACAddress[ 6 ];
 static char errbuf[ PCAP_ERRBUF_SIZE ];
 static pcap_t * pxOpenedInterfaceHandle = NULL;
 static struct event * pvSendEvent = NULL;
@@ -567,12 +566,12 @@ static int prvConfigureCaptureBehaviour( void )
      * stack.  errbuf is used for convenience to create the string.  Don't
      * confuse this with an error message. */
     sprintf( pcap_filter, "broadcast or multicast or ether host %x:%x:%x:%x:%x:%x",
-             ucMACAddress[ 0 ],
-             ucMACAddress[ 1 ],
-             ucMACAddress[ 2 ],
-             ucMACAddress[ 3 ],
-             ucMACAddress[ 4 ],
-             ucMACAddress[ 5 ] );
+             ipLOCAL_MAC_ADDRESS[ 0 ],
+             ipLOCAL_MAC_ADDRESS[ 1 ],
+             ipLOCAL_MAC_ADDRESS[ 2 ],
+             ipLOCAL_MAC_ADDRESS[ 3 ],
+             ipLOCAL_MAC_ADDRESS[ 4 ],
+             ipLOCAL_MAC_ADDRESS[ 5 ] );
     FreeRTOS_debug_printf( ( "pcap filter to compile: %s\n", pcap_filter ) );
 
     ulNetMask = ( configNET_MASK3 << 24UL ) | ( configNET_MASK2 << 16UL ) | ( configNET_MASK1 << 8L ) | configNET_MASK0;

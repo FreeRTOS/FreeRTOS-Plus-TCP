@@ -113,6 +113,9 @@
         #define ipBUFFER_PADDING    ( 8U + ipconfigPACKET_FILLER_SIZE )
     #endif
 
+/* The offset of ucTCPFlags within the TCP header. */
+    #define ipTCP_FLAGS_OFFSET    13U
+
 /**
  * The structure used to store buffers and pass them around the network stack.
  * Buffers can be in use by the stack, in use by the network interface hardware
