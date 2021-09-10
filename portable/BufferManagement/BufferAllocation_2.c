@@ -231,7 +231,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t uxRequested
     size_t uxCount;
     size_t uxByteCount = uxRequestedSizeBytes; /* To avoid lint complain: function parameter modified [MISRA 2012 Rule 17.8, advisory]. */
 
-    if( ( xRequestedSizeBytes <= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) ) && ( xNetworkBufferSemaphore != NULL ) )
+    if( ( uxRequestedSizeBytes <= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) ) && ( xNetworkBufferSemaphore != NULL ) )
     {
         if( ( uxByteCount != 0U ) && ( uxByteCount < ( size_t ) baMINIMAL_BUFFER_SIZE ) )
         {
