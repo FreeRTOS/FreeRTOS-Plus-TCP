@@ -1,3 +1,19 @@
+Changes between V2.3.2 and V2.3.2 LTS Patch 1
+        + In BufferAllocation_2.c
+          (https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/portable/BufferManagement/BufferAllocation_2.c),
+          there is an unchecked possible addition overflow when calculating the size
+          of the block of memory to be allocated for a network buffer that could
+          result in the size overflowing and the allocation returning success but
+          allocating only a fraction of the memory asked for. With default settings,
+          this would only occur when attempting to allocate within 12 bytes of 4 GB.
+          Thanks to Bernard Lebel (RMDS Innovation) for reporting this potential
+          issue.
+        + Update FreeRTOS_inet_pton4() so it rejects IP addresses that have leading
+          zeros. Previously, if the IP address had leading zeros, perhaps because it
+          was entered in octal format, the address was interpreted as decimal (the
+          leading zeros were stripped). That could result in the function returning
+          an unexpected IP address, and so also to unwanted behavior.
+
 Changes between V2.3.1 and V2.3.2 releases:
 	+ When a protocol error occurs during the SYN-phase of a TCP connection, a
 	  child socket will now be closed ( calling FreeRTOS_closesocket() ),
