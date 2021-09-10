@@ -86,13 +86,12 @@ BaseType_t xNetworkInterfaceInitialise( void )
     EMAC_CFG_Type Emac_Config;
     PINSEL_CFG_Type xPinConfig;
     BaseType_t xStatus, xReturn;
-    extern uint8_t ucMACAddress[ 6 ];
 
     /* Enable Ethernet Pins */
     boardCONFIGURE_ENET_PINS( xPinConfig );
 
     Emac_Config.Mode = EMAC_MODE_AUTO;
-    Emac_Config.pbEMAC_Addr = ucMACAddress;
+    Emac_Config.pbEMAC_Addr = ipLOCAL_MAC_ADDRESS;
     xStatus = EMAC_Init( &Emac_Config );
 
     LPC_EMAC->IntEnable &= ~( EMAC_INT_TX_DONE );

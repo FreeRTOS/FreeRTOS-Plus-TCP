@@ -14,7 +14,7 @@
   "DEF":
   [
     "ipconfigSOCKET_HAS_USER_SEMAPHORE=1",
-    "ipconfigSOCKET_HAS_USER_WAKE_CAlLBACK=1",
+    "ipconfigSOCKET_HAS_USER_WAKE_CALLBACK=1",
     "ipconfigSUPPORT_SELECT_FUNCTION=1",
     "configUSE_16_BIT_TICKS=0"
   ],

@@ -470,8 +470,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                         {
                             /* StreamSize is expressed in number of bytes */
                             /* Round up buffer sizes to nearest multiple of MSS */
-                            pxSocket->u.xTCP.usCurMSS = ( uint16_t ) ipconfigTCP_MSS;
-                            pxSocket->u.xTCP.usInitMSS = ( uint16_t ) ipconfigTCP_MSS;
+                            pxSocket->u.xTCP.usMSS = ( uint16_t ) ipconfigTCP_MSS;
                             pxSocket->u.xTCP.uxRxStreamSize = ( size_t ) ipconfigTCP_RX_BUFFER_LENGTH;
                             pxSocket->u.xTCP.uxTxStreamSize = ( size_t ) FreeRTOS_round_up( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS );
                             /* Use half of the buffer size of the TCP windows */
@@ -1697,7 +1696,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
             if( lOptionName == FREERTOS_SO_SNDBUF )
             {
                 /* Round up to nearest MSS size */
-                ulNewValue = FreeRTOS_round_up( ulNewValue, ( uint32_t ) pxSocket->u.xTCP.usInitMSS );
+                ulNewValue = FreeRTOS_round_up( ulNewValue, ( uint32_t ) pxSocket->u.xTCP.usMSS );
                 pxSocket->u.xTCP.uxTxStreamSize = ulNewValue;
             }
             else
@@ -1988,8 +1987,8 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         * adapt the window size parameters */
                        if( pxSocket->u.xTCP.xTCPWindow.u.bits.bHasInit != pdFALSE_UNSIGNED )
                        {
-                           pxSocket->u.xTCP.xTCPWindow.xSize.ulRxWindowLength = pxSocket->u.xTCP.uxRxWinSize * pxSocket->u.xTCP.usInitMSS;
-                           pxSocket->u.xTCP.xTCPWindow.xSize.ulTxWindowLength = pxSocket->u.xTCP.uxTxWinSize * pxSocket->u.xTCP.usInitMSS;
+                           pxSocket->u.xTCP.xTCPWindow.xSize.ulRxWindowLength = pxSocket->u.xTCP.uxRxWinSize * pxSocket->u.xTCP.usMSS;
+                           pxSocket->u.xTCP.xTCPWindow.xSize.ulTxWindowLength = pxSocket->u.xTCP.uxTxWinSize * pxSocket->u.xTCP.usMSS;
                        }
                    }
 
@@ -2451,10 +2450,24 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
     const char * pcIPAddress = pcSource;
     const void * pvCopySource;
 
+    ( void ) memset( pvDestination, 0, sizeof( ulReturn ) );
+
     /* Translate "192.168.2.100" to a 32-bit number, network-endian. */
     for( uxOctetNumber = 0U; uxOctetNumber < socketMAX_IP_ADDRESS_OCTETS; uxOctetNumber++ )
     {
         ulValue = 0UL;
+
+        if( pcIPAddress[ 0 ] == '0' )
+        {
+            /* Test for the sequence "0[0-9]", which would make it an octal representation. */
+            if( ( pcIPAddress[ 1 ] >= '0' ) && ( pcIPAddress[ 1 ] <= '9' ) )
+            {
+                FreeRTOS_printf( ( "Octal representation of IP-addresses is not supported." ) );
+                /* Don't support octal numbers. */
+                xResult = pdFAIL;
+                break;
+            }
+        }
 
         while( ( *pcIPAddress >= '0' ) && ( *pcIPAddress <= '9' ) )
         {
@@ -2532,8 +2545,11 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
         ulReturn = 0UL;
     }
 
-    pvCopySource = ( const void * ) &ulReturn;
-    ( void ) memcpy( pvDestination, pvCopySource, sizeof( ulReturn ) );
+    if( xResult == pdPASS )
+    {
+        pvCopySource = ( const void * ) &ulReturn;
+        ( void ) memcpy( pvDestination, pvCopySource, sizeof( ulReturn ) );
+    }
 
     return xResult;
 }
@@ -2552,7 +2568,11 @@ uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
     uint32_t ulReturn = 0UL;
 
     /* inet_pton AF_INET target is a 4-byte 'struct in_addr'. */
-    ( void ) FreeRTOS_inet_pton4( pcIPAddress, &( ulReturn ) );
+    if( pdFAIL == FreeRTOS_inet_pton4( pcIPAddress, &( ulReturn ) ) )
+    {
+        /* Return 0 if translation failed. */
+        ulReturn = 0UL;
+    }
 
     return ulReturn;
 }
@@ -4319,10 +4339,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         }
         else
         {
-            /* usCurMSS is declared as uint16_t to save space.  FreeRTOS_mss()
+            /* usMSS is declared as uint16_t to save space.  FreeRTOS_mss()
              * will often be used in signed native-size expressions cast it to
              * BaseType_t. */
-            xReturn = ( BaseType_t ) ( pxSocket->u.xTCP.usCurMSS );
+            xReturn = ( BaseType_t ) ( pxSocket->u.xTCP.usMSS );
         }
 
         return xReturn;
