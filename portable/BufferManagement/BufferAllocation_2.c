@@ -213,7 +213,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     NetworkBufferDescriptor_t * pxReturn = NULL;
     size_t uxCount;
 
-    if( xNetworkBufferSemaphore != NULL )
+    if( ( xRequestedSizeBytes <= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) ) && ( xNetworkBufferSemaphore != NULL ) )
     {
         if( ( xRequestedSizeBytes != 0U ) && ( xRequestedSizeBytes < ( size_t ) baMINIMAL_BUFFER_SIZE ) )
         {

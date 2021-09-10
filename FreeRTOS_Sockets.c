@@ -2412,10 +2412,24 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
     const char * pcIPAddress = pcSource;
     const void * pvCopySource;
 
+    ( void ) memset( pvDestination, 0, sizeof( ulReturn ) );
+
     /* Translate "192.168.2.100" to a 32-bit number, network-endian. */
     for( uxOctetNumber = 0U; uxOctetNumber < socketMAX_IP_ADDRESS_OCTETS; uxOctetNumber++ )
     {
         ulValue = 0UL;
+
+        if( pcIPAddress[ 0 ] == '0' )
+        {
+            /* Test for the sequence "0[0-9]", which would make it an octal representation. */
+            if( ( pcIPAddress[ 1 ] >= '0' ) && ( pcIPAddress[ 1 ] <= '9' ) )
+            {
+                FreeRTOS_printf( ( "Octal representation of IP-addresses is not supported." ) );
+                /* Don't support octal numbers. */
+                xResult = pdFAIL;
+                break;
+            }
+        }
 
         while( ( *pcIPAddress >= '0' ) && ( *pcIPAddress <= '9' ) )
         {
@@ -2493,8 +2507,11 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
         ulReturn = 0UL;
     }
 
-    pvCopySource = ( const void * ) &ulReturn;
-    ( void ) memcpy( pvDestination, pvCopySource, sizeof( ulReturn ) );
+    if( xResult == pdPASS )
+    {
+        pvCopySource = ( const void * ) &ulReturn;
+        ( void ) memcpy( pvDestination, pvCopySource, sizeof( ulReturn ) );
+    }
 
     return xResult;
 }
