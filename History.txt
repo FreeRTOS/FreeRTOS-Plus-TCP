@@ -1,4 +1,14 @@
-Changes between V2.3.1 and V2.3.2 releases:
+Changes between V2.3.2 and V2.3.3 releases:
+        + Added a check in BufferAllocation_2.c to ensure adding (2 +
+          ipBUFFER_PADDING) bytes to the requested allocation size does
+          not cause an integer overflow. Thanks to Bernard Lebel
+          (RMDS Innovation) reporting this potential issue.
+        + Updated FreeRTOS_inet_pton4() so it rejects IP addresses that
+          have leading zeros. Previously, if the IP address had leading
+          zeros, perhaps because it was entered in octal format, the
+          address was interpreted as decimal (the leading zeros were
+          stripped). That could result in the function returning an
+          unexpected IP address.
         + Improved RFC compliance.
         + Fixed FreeRTOS_recvfrom function to return an address which
           can be used for IPv4 and IPv6 communications.
