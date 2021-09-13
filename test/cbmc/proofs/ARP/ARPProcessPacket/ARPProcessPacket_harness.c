@@ -63,7 +63,7 @@ void harness()
     }
     else
     {
-        pxARPWaitingNetworkBuffer  = &xLocalNetworkBufferDescriptor;
+        pxARPWaitingNetworkBuffer = &xLocalNetworkBufferDescriptor;
     }
 
     /* A valid network buffer must be passed to the function under test. */
