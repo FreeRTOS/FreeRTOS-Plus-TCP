@@ -19,6 +19,8 @@ const uint8_t ucGatewayAddress2[ 4 ];
 const uint8_t ucDNSServerAddress2[ 4 ];
 const uint8_t ucMACAddress[ 6 ];
 
+extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
+
 void harness()
 {
     NetworkBufferDescriptor_t xLocalNetworkBufferDescriptor;
@@ -53,6 +55,15 @@ void harness()
                                    ucDNSServerAddress2,
                                    ucMACAddress );
         }
+    }
+
+    if( nondet_bool() )
+    {
+        pxARPWaitingNetworkBuffer = NULL;
+    }
+    else
+    {
+        pxARPWaitingNetworkBuffer  = &xLocalNetworkBufferDescriptor;
     }
 
     /* A valid network buffer must be passed to the function under test. */
