@@ -1013,5 +1013,6 @@ static void prvEMACHandlerTask( void * pvParameters )
             }
         }
     }
+}
 
 /*-----------------------------------------------------------*/
