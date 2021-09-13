@@ -414,6 +414,11 @@
 
 #ifndef ipconfigNETWORK_MTU
     #define ipconfigNETWORK_MTU    1500U
+#else
+    #if ipconfigNETWORK_MTU > ( SIZE_MAX >> 1 )
+        #undef ipconfigNETWORK_MTU
+        #define ipconfigNETWORK_MTU    ( SIZE_MAX >> 1 )
+    #endif
 #endif
 
 #ifndef ipconfigTCP_MSS

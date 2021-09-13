@@ -549,6 +549,7 @@ mdc
 mdi
 mdio
 mdix
+mdns
 mediainterface
 memcmp
 memcopy
@@ -1506,6 +1507,7 @@ uxsize
 uxsourcebytesremaining
 uxsocketsize
 uxsourcelen
+uxstart
 uxstreambufferadd
 uxstreambufferget
 uxstreambuffermidspace
