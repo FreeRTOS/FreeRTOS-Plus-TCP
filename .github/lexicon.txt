@@ -209,6 +209,7 @@ earpcachehit
 earpcachemiss
 earpgetcacheentry
 earptimerevent
+ewaitingarpresolution
 ec
 ecantsendpacket
 eclosed
@@ -1709,6 +1710,7 @@ xisbound
 xisforrx
 xisinputstream
 xitemvalue
+xiswaitingarpresolution
 xlastacttime
 xlastalivetime
 xlastgratuitousarptime
