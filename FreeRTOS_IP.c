@@ -1039,6 +1039,8 @@ static void prvCheckNetworkTimers( void )
 
             /* Clear the pointer. */
             pxARPWaitingNetworkBuffer = NULL;
+
+            iptraceDELAYED_ARP_TIMER_EXPIRED();
         }
     }
 
@@ -2465,11 +2467,15 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
             {
                 pxARPWaitingNetworkBuffer = pxNetworkBuffer;
                 prvIPTimerStart( &( xARPResolutionTimer ), ipARP_RESOLUTION_MAX_DELAY );
+
+                iptraceDELAYED_ARP_REQUEST_STARTED();
             }
             else
             {
                 /* We are already waiting on one ARP resolution. This frame will be dropped. */
                 vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+
+                iptraceDELAYED_ARP_BUFFER_FULL();
             }
 
             break;
