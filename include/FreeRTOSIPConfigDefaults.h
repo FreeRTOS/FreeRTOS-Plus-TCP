@@ -652,4 +652,8 @@
     #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES    0
 #endif
 
+#ifnef ipconfigDONOT_COPY_SOCKETSET_TO_CHIELD_SOCKET
+	#define ipconfigDONOT_COPY_SOCKETSET_TO_CHIELD_SOCKET	0
+#endif
+
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */
