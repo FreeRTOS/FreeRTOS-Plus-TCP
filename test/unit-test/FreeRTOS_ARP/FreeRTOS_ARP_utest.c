@@ -149,7 +149,7 @@ void test_eARPProcessPacket_DifferentHardwareAddress( void )
     /* =================================================== */
     /* Different Hardware address. */
     xARPFrame.xARPHeader.usHardwareType = ipARP_HARDWARE_TYPE_ETHERNET + 1;
-    
+
     /* When the local IP address is 0, we should not process any ARP Packets. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0UL;
     eResult = eARPProcessPacket( &xARPFrame );
@@ -166,12 +166,12 @@ void test_eARPProcessPacket_DifferentProtocolType( void )
     xARPFrame.xARPHeader.usHardwareType = ipARP_HARDWARE_TYPE_ETHERNET;
     /* Different protocol type */
     xARPFrame.xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE + 1;
-    
+
     /* When the local IP address is 0, we should not process any ARP Packets. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0UL;
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
-    /* =================================================== */    
+    /* =================================================== */
 }
 
 void test_eARPProcessPacket_DifferentHardwareLength( void )
@@ -184,7 +184,7 @@ void test_eARPProcessPacket_DifferentHardwareLength( void )
     xARPFrame.xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE;
     /* Different MAC address length. */
     xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES + 1;
-    
+
     /* When the local IP address is 0, we should not process any ARP Packets. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0UL;
     eResult = eARPProcessPacket( &xARPFrame );
@@ -204,7 +204,7 @@ void test_eARPProcessPacket_DifferentProtocolLength( void )
     xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     /* Different protocol length. */
     xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES + 1;
-    
+
     /* When the local IP address is 0, we should not process any ARP Packets. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0UL;
     eResult = eARPProcessPacket( &xARPFrame );
@@ -223,7 +223,7 @@ void test_eARPProcessPacket_LocalIPisZero( void )
     xARPFrame.xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE;
     xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
-    
+
     /* When the local IP address is 0, we should not process any ARP Packets. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0UL;
     eResult = eARPProcessPacket( &xARPFrame );
@@ -242,7 +242,7 @@ void test_eARPProcessPacket_InvalidOperation( void )
     xARPFrame.xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE;
     xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
-    
+
     /* What is some invalid option is sent in the ARP Packet? */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
     /* Add invalid operation */
@@ -262,7 +262,7 @@ void test_eARPProcessPacket_Request_DifferentIP( void )
     xARPFrame.xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE;
     xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
-    
+
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
     /* Fill in the request option. */
     xARPFrame.xARPHeader.usOperation = ipARP_REQUEST;
@@ -283,7 +283,7 @@ void test_eARPProcessPacket_Request_SenderAndTargetDifferent( void )
     xARPFrame.xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE;
     xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
-    
+
     /* Process an ARP request - meant for this node with target and source different. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
     /* Fill in the request option. */
@@ -308,7 +308,7 @@ void test_eARPProcessPacket_Request_SenderAndTargetSame( void )
     xARPFrame.xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE;
     xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
-    
+
     /* Process an ARP request - meant for this node with target and source same. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
     /* Fill in the request option. */
@@ -331,7 +331,7 @@ void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
     xARPFrame.xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE;
     xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
-    
+
     /* Process an ARP reply - meant for this node with target and source same. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
     /* Fill in the request option. */
@@ -354,7 +354,7 @@ void test_eARPProcessPacket_Reply_DifferentIP( void )
     xARPFrame.xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE;
     xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
-    
+
     /* Process an ARP reply - not meant for this node. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
     /* Fill in the request option. */
