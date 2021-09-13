@@ -460,7 +460,13 @@
                 {
                     /* Could call vListInitialiseItem here but all data has been
                     * nulled already.  Set the owner to a segment descriptor. */
+					
+					/*
+					* Without call of the vListInitialiseItem, the list aata integrity check bytes aren't set
+					*/
+					vListInitialiseItem( &( xTCPSegments[ xIndex ].xSegmentItem )); 
                     listSET_LIST_ITEM_OWNER( &( xTCPSegments[ xIndex ].xSegmentItem ), ( void * ) &( xTCPSegments[ xIndex ] ) );
+					vListInitialiseItem( &( xTCPSegments[ xIndex ].xQueueItem )); 
                     listSET_LIST_ITEM_OWNER( &( xTCPSegments[ xIndex ].xQueueItem ), ( void * ) &( xTCPSegments[ xIndex ] ) );
 
                     /* And add it to the pool of available segments */
