@@ -30,7 +30,6 @@
         extern "C" {
     #endif
 
-    BaseType_t xIsUnicastAddress( struct freertos_sockaddr * pxAddress );
     BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t * pxDescriptor );
 
     typedef enum eTCP_STATE

@@ -418,47 +418,6 @@
     }
 /*-----------------------------------------------------------*/
 
-/**
- * @brief Check whether the address is unicast of multicast/broadcast.
- *
- * @param[in] pxAddress: The structure containing the IP-address to be
- *            checked (in 32-bit format).
- *
- * @return pdTRUE if the IP address is either multicast or broadcast. pdFALSE
- *         otherwise.
- *
- * @note The structure is used instead of a 32-bit IP is to make this function
- *       similar in signature for IPv6.
- */
-    BaseType_t xIsUnicastAddress( struct freertos_sockaddr * pxAddress )
-    {
-        BaseType_t xResult = pdTRUE;
-        uint32_t ulIPAddress = pxAddress->sin_addr;
-
-        if( ( FreeRTOS_ntohl( ulIPAddress ) & 0xffU ) == 0xffU )
-        {
-            /* This is a broadcast address x.x.x.255. */
-            xResult = pdFALSE;
-        }
-        else if( xIsIPv4Multicast( ulIPAddress ) != pdFALSE )
-        {
-            /* This is a multicast address. */
-            xResult = pdFALSE;
-        }
-        else if( ulIPAddress == 0U )
-        {
-            /* This is a non-standard broadcast address. */
-            xResult = pdFALSE;
-        }
-        else
-        {
-            /* This is a unicast address. */
-        }
-
-        return xResult;
-    }
-/*-----------------------------------------------------------*/
-
 /** @brief Close the socket another time.
  *
  * @param[in] pxSocket: The socket to be checked.
@@ -3752,14 +3711,9 @@
         const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
         FreeRTOS_Socket_t * pxReturn = NULL;
         uint32_t ulInitialSequenceNumber;
-        struct freertos_sockaddr xAddress;
 
-        /* Put the IP address in the address-structure. */
-        xAddress.sin_addr = pxTCPPacket->xIPHeader.ulDestinationIPAddress;
-
-        /* Silently discard a SYN packet which was sent to the broadcast address
-         * (x.x.x.255) or a multicast address. */
-        if( xIsUnicastAddress( &xAddress ) != pdFALSE )
+        /* Silently discard a SYN packet which was not specifically sent for this node. */
+        if( pxTCPPacket->xIPHeader.ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
         {
             /* Assume that a new Initial Sequence Number will be required. Request
              * it now in order to fail out if necessary. */
