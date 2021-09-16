@@ -3021,7 +3021,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     static BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
                                           uint8_t ucNextHeader )
     {
-        BaseType_t xReturn = -1;
+        BaseType_t xReturn;
 
         switch( ucProtocol )
         {
@@ -3059,6 +3059,10 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
             case ipIPv6_EXT_HEADER_MOBILITY_HEADER:
                 xReturn = 8;
                 break;
+
+            default:
+                xReturn = -1
+                          break;
         }
 
         return xReturn;
@@ -3072,7 +3076,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 /**
  * @brief Handle the IPv6 extension headers.
  *
- * @param[in,out] pxNetworkBuffer: The received packet that contains hop-by-hop options.
+ * @param[in,out] pxNetworkBuffer: The received packet that contains IPv6 extension headers.
  *
  * @return eProcessBuffer in case the options are removed successfully, otherwise
  *         eReleaseBuffer.
@@ -3116,23 +3120,17 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
                 ( ucNextHeader == ipPROTOCOL_UDP ) ||
                 ( ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
             {
-                FreeRTOS_printf( ( "Stop at header %u\n", ucNextHeader ) );
+                FreeRTOS_debug_printf( ( "Stop at header %u\n", ucNextHeader ) );
                 break;
             }
 
             xNextOrder = xGetExtensionOrder( ucNextHeader, pucSource[ uxIndex ] );
 
-/*
- * [IP-Task         ] Going from header  0 (1) to 60 (2)
- * [IP-Task         ] Going from header 60 (2) to 43 (3)
- * [IP-Task         ] Going from header 43 (3) to 44 (4)
- * [IP-Task         ] Stop at header 58
- */
-            FreeRTOS_printf( ( "Going from header %2u (%d) to %2u (%d)\n",
-                               ucCurrentHeader,
-                               ( int ) xCurrentOrder,
-                               ucNextHeader,
-                               ( int ) xNextOrder ) );
+            FreeRTOS_debug_printf( ( "Going from header %2u (%d) to %2u (%d)\n",
+                                     ucCurrentHeader,
+                                     ( int ) xCurrentOrder,
+                                     ucNextHeader,
+                                     ( int ) xNextOrder ) );
 
             if( xNextOrder <= xCurrentOrder )
             {
@@ -3170,9 +3168,14 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
                 pxIPPacket_IPv6->xIPHeader.usPayloadLength = FreeRTOS_htons( usPayloadLength );
                 eResult = eProcessBuffer;
             }
+            else
+            {
+                /* xDoRemove is false, so the function is not supposed to
+                 * remove extension headers. */
+            }
         }
 
-        FreeRTOS_printf( ( "Hop-by-hop option : %s Truncated %u bytes. Removed %u, Payload %u xDataLength now %u\n",
+        FreeRTOS_printf( ( "Extension headers : %s Truncated %u bytes. Removed %u, Payload %u xDataLength now %u\n",
                            ( eResult == eProcessBuffer ) ? "good" : "bad",
                            xMoveLen,
                            uxRemovedBytes,
