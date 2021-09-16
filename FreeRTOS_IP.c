@@ -1958,7 +1958,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                 eReturn = eReleaseBuffer;
             }
             /* Is the source address correct? */
-            else if( ulSourceIPAddress == ipBROADCAST_IP_ADDRESS )
+            else if( ( FreeRTOS_ntohl( ulSourceIPAddress ) & 0xffU ) == 0xffU )
             {
                 /* The source address cannot be broadcast address. Replying to this
                  * packet may cause network storms. Drop the packet. */
