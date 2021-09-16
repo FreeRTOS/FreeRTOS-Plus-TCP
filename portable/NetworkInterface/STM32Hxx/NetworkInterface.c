@@ -4,7 +4,7 @@
  */
 
 /*
- * FreeRTOS+TCP V2.2.2
+ * FreeRTOS+TCP V2.3.2
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -415,71 +415,74 @@ static BaseType_t xSTM32H_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
     TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 100U );
     uint8_t * pucTXBuffer;
 
-    #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-        /* Zero-copy method, pass the buffer. */
-        pucTXBuffer = pxBuffer->pucEthernetBuffer;
-
-        /* As the buffer is passed to the driver, it must exist.
-         * The library takes care of this. */
-        configASSERT( xReleaseAfterSend != pdFALSE );
-    #else
-        pucTXBuffer = Tx_Buff[ xEthHandle.TxDescList.CurTxDesc ];
-        /* The copy method, left here for educational purposes. */
-        configASSERT( pxBuffer->xDataLength <= sizeof( Tx_Buff[ 0 ] ) );
-    #endif
-
-    ETH_BufferTypeDef xTransmitBuffer =
+    if( xGetPhyLinkStatus() == = pdPASS )
     {
-        .buffer = pucTXBuffer,
-        .len    = pxBuffer->xDataLength,
-        .next   = NULL  /* FreeRTOS+TCP does not use linked buffers. */
-    };
-    /* This is the total length, which is equal to the buffer. */
-    xTxConfig.Length = pxBuffer->xDataLength;
-    xTxConfig.TxBuffer = &( xTransmitBuffer );
+        #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
+            /* Zero-copy method, pass the buffer. */
+            pucTXBuffer = pxBuffer->pucEthernetBuffer;
 
-    /* This counting semaphore counts the number of free TX DMA descriptors. */
-    if( xSemaphoreTake( xTXDescriptorSemaphore, xBlockTimeTicks ) != pdPASS )
-    {
-        /* If the logging routine is using the network, the following message
-         * may cause a new error message. */
-        FreeRTOS_printf( ( "emacps_send_message: Time-out waiting for TX buffer\n" ) );
-    }
-    else
-    {
-        /* Memory barrier: Make sure that the data written to the packet buffer got written. */
-        __DSB();
+            /* As the buffer is passed to the driver, it must exist.
+             * The library takes care of this. */
+            configASSERT( xReleaseAfterSend != pdFALSE );
+        #else
+            pucTXBuffer = Tx_Buff[ xEthHandle.TxDescList.CurTxDesc ];
+            /* The copy method, left here for educational purposes. */
+            configASSERT( pxBuffer->xDataLength <= sizeof( Tx_Buff[ 0 ] ) );
+        #endif
 
-        /* Get exclusive accces to the TX process.
-         * Both the IP-task and the EMAC task will work on the TX process. */
-        if( xSemaphoreTake( xTransmissionMutex, xBlockTimeTicks ) != pdFAIL )
+        ETH_BufferTypeDef xTransmitBuffer =
         {
-            #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-                {
-                    /* Do not release the buffer. */
-                    xReleaseAfterSend = pdFALSE;
-                }
-            #else
-                {
-                    memcpy( pucTXBuffer, pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength );
+            .buffer = pucTXBuffer,
+            .len    = pxBuffer->xDataLength,
+            .next   = NULL /* FreeRTOS+TCP does not use linked buffers. */
+        };
+        /* This is the total length, which is equal to the buffer. */
+        xTxConfig.Length = pxBuffer->xDataLength;
+        xTxConfig.TxBuffer = &( xTransmitBuffer );
 
-                    /* A memory barrier to make sure that the outgoing packets has been written
-                     * to the physical memory. */
-                    __DSB();
-                }
-            #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+        /* This counting semaphore counts the number of free TX DMA descriptors. */
+        if( xSemaphoreTake( xTXDescriptorSemaphore, xBlockTimeTicks ) != pdPASS )
+        {
+            /* If the logging routine is using the network, the following message
+             * may cause a new error message. */
+            FreeRTOS_printf( ( "emacps_send_message: Time-out waiting for TX buffer\n" ) );
+        }
+        else
+        {
+            /* Memory barrier: Make sure that the data written to the packet buffer got written. */
+            __DSB();
 
-            if( HAL_ETH_Transmit_IT( &( xEthHandle ), &( xTxConfig ) ) == HAL_OK )
+            /* Get exclusive accces to the TX process.
+             * Both the IP-task and the EMAC task will work on the TX process. */
+            if( xSemaphoreTake( xTransmissionMutex, xBlockTimeTicks ) != pdFAIL )
             {
-                xResult = pdPASS;
+                #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
+                    {
+                        /* Do not release the buffer. */
+                        xReleaseAfterSend = pdFALSE;
+                    }
+                #else
+                    {
+                        memcpy( pucTXBuffer, pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength );
+
+                        /* A memory barrier to make sure that the outgoing packets has been written
+                         * to the physical memory. */
+                        __DSB();
+                    }
+                #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+
+                if( HAL_ETH_Transmit_IT( &( xEthHandle ), &( xTxConfig ) ) == HAL_OK )
+                {
+                    xResult = pdPASS;
+                }
+
+                /* And release the mutex. */
+                xSemaphoreGive( xTransmissionMutex );
             }
 
-            /* And release the mutex. */
-            xSemaphoreGive( xTransmissionMutex );
+            /* Call the standard trace macro to log the send event. */
+            iptraceNETWORK_INTERFACE_TRANSMIT();
         }
-
-        /* Call the standard trace macro to log the send event. */
-        iptraceNETWORK_INTERFACE_TRANSMIT();
     }
 
     if( xReleaseAfterSend != pdFALSE )
@@ -990,9 +993,26 @@ static void prvEMACHandlerTask( void * pvParameters )
 
         if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != 0 )
         {
-            /* Something has changed to a Link Status, need re-check. */
-            prvEthernetUpdateConfig( pdFALSE );
+            /*
+             * The function xPhyCheckLinkStatus() returns pdTRUE if the
+             * Link Status has changes since it was called the last time.
+             */
+            if( xGetPhyLinkStatus() == pdFALSE )
+            {
+                /* Stop the DMA transfer. */
+                HAL_ETH_Stop_IT( &( xEthHandle ) );
+                /* Clear the Transmit buffers. */
+                memset( &( DMATxDscrTab ), '\0', sizeof( DMATxDscrTab ) );
+                /* Since the link is down, clear the descriptors. */
+                ETH_Clear_Tx_Descriptors( &( xEthHandle ) );
+            }
+            else
+            {
+                /* Something has changed to a Link Status, need re-check. */
+                prvEthernetUpdateConfig( pdFALSE );
+            }
         }
     }
 }
+
 /*-----------------------------------------------------------*/

@@ -99,6 +99,12 @@
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
 #endif
 
+/** @brief Maximum time to wait for an ARP resolution while holding a packet. */
+#ifndef ipARP_RESOLUTION_MAX_DELAY
+    #define ipARP_RESOLUTION_MAX_DELAY    ( pdMS_TO_TICKS( 2000U ) )
+#endif
+
+
 /** @brief Defines how often the ARP timer callback function is executed.  The time is
  * shorter in the Windows simulator as simulated time is not real time. */
 #ifndef ipARP_TIMER_PERIOD_MS
@@ -170,6 +176,9 @@
     #define DEBUG_DECLARE_TRACE_VARIABLE( type, var, init )                        /**< Empty definition since ipconfigHAS_PRINTF != 1. */
     #define DEBUG_SET_TRACE_VARIABLE( var, value )                                 /**< Empty definition since ipconfigHAS_PRINTF != 1. */
 #endif
+
+/** @brief The pointer to buffer with packet waiting for ARP resolution. */
+NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
 
 /**
  * @brief Helper function to do a cast to a NetworkInterface_t pointer.
@@ -387,6 +396,10 @@ static IPTimer_t xNetworkTimer;
  * regular basis
  */
 
+/** @brief Timer to limit the maximum time a packet should be stored while
+ *         awaiting an ARP resolution. */
+static IPTimer_t xARPResolutionTimer;
+
 /** @brief ARP timer, to check its table entries. */
 static IPTimer_t xARPTimer;
 #if ( ipconfigUSE_TCP != 0 )
@@ -593,6 +606,9 @@ static void prvIPTask_Initialise( void )
      * send this message if a previously connected network is disconnected. */
 
     prvIPTimerReload( &( xNetworkTimer ), pdMS_TO_TICKS( ipINITIALISATION_RETRY_DELAY ) );
+
+    /* Mark the timer as inactive since we are not waiting on any ARP resolution as of now. */
+    vIPSetARPResolutionTimerEnableState( pdFALSE );
 
     for( pxInterface = pxNetworkInterfaces; pxInterface != NULL; pxInterface = pxInterface->pxNext )
     {
@@ -1013,6 +1029,25 @@ static void prvCheckNetworkTimers( void )
     if( prvIPTimerCheck( &xARPTimer ) != pdFALSE )
     {
         ( void ) xSendEventToIPTask( eARPTimerEvent );
+    }
+
+    /* Is the ARP resolution timer expired? */
+    if( prvIPTimerCheck( &xARPResolutionTimer ) != pdFALSE )
+    {
+        if( pxARPWaitingNetworkBuffer != NULL )
+        {
+            /* Disable the ARP resolution timer. */
+            vIPSetARPResolutionTimerEnableState( pdFALSE );
+
+            /* We have waited long enough for the ARP response. Now, free the network
+             * buffer. */
+            vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
+
+            /* Clear the pointer. */
+            pxARPWaitingNetworkBuffer = NULL;
+
+            iptraceDELAYED_ARP_TIMER_EXPIRED();
+        }
     }
 
     #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
@@ -2432,6 +2467,25 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
              * yet. */
             break;
 
+        case eWaitingARPResolution:
+
+            if( pxARPWaitingNetworkBuffer == NULL )
+            {
+                pxARPWaitingNetworkBuffer = pxNetworkBuffer;
+                prvIPTimerStart( &( xARPResolutionTimer ), ipARP_RESOLUTION_MAX_DELAY );
+
+                iptraceDELAYED_ARP_REQUEST_STARTED();
+            }
+            else
+            {
+                /* We are already waiting on one ARP resolution. This frame will be dropped. */
+                vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+
+                iptraceDELAYED_ARP_BUFFER_FULL();
+            }
+
+            break;
+
         case eReleaseBuffer:
         case eProcessBuffer:
         default:
@@ -2947,7 +3001,7 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
 static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t eReturn = eReleaseBuffer;
-
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     /* The IP packet contained a UDP frame. */
     UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
     UDPHeader_t * pxUDPHeader = &( pxUDPPacket->xUDPHeader );
@@ -3003,9 +3057,18 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
         /* Pass the packet payload to the UDP sockets
          * implementation. */
         if( xProcessReceivedUDPPacket( pxNetworkBuffer,
-                                       pxUDPHeader->usDestinationPort ) == pdPASS )
+                                       pxUDPHeader->usDestinationPort,
+                                       &( xIsWaitingARPResolution ) ) == pdPASS )
         {
             eReturn = eFrameConsumed;
+        }
+        else
+        {
+            /* Is this packet to be set aside for ARP resolution. */
+            if( xIsWaitingARPResolution == pdTRUE )
+            {
+                eReturn = eWaitingARPResolution;
+            }
         }
     }
     else
@@ -3286,45 +3349,56 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     else
                 #endif /* ipconfigUSE_IPv6 */
                 {
-                    vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+                    if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
+                    {
+                        eReturn = eWaitingARPResolution;
+                    }
+                    else
+                    {
+                        /* IP address is not on the same subnet, ARP table can be updated. */
+                        vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+                    }
                 }
             }
 
-            switch( ucProtocol )
+            if( ( eReturn != eReleaseBuffer ) && ( eReturn != eWaitingARPResolution ) )
             {
-                #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                    case ipPROTOCOL_ICMP:
-                        /* As for now, only ICMP/ping messages are recognised. */
-                        eReturn = prvProcessICMPPacket( pxNetworkBuffer );
-                        break;
-                #endif
-
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    case ipPROTOCOL_ICMP_IPv6:
-                        eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
-                        break;
-                #endif
-
-                case ipPROTOCOL_UDP:
-                    eReturn = prvProcessUDPPacket( pxNetworkBuffer );
-                    break;
-
-                    #if ipconfigUSE_TCP == 1
-                        case ipPROTOCOL_TCP:
-
-                            if( xProcessReceivedTCPPacket( pxNetworkBuffer ) == pdPASS )
-                            {
-                                eReturn = eFrameConsumed;
-                            }
-
-                            /* Setting this variable will cause xTCPTimerCheck()
-                             * to be called just before the IP-task blocks. */
-                            xProcessedTCPMessage++;
+                switch( ucProtocol )
+                {
+                    #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+                        case ipPROTOCOL_ICMP:
+                            /* As for now, only ICMP/ping messages are recognised. */
+                            eReturn = prvProcessICMPPacket( pxNetworkBuffer );
                             break;
-                    #endif /* if ipconfigUSE_TCP == 1 */
-                default:
-                    /* Not a supported protocol type. */
-                    break;
+                    #endif
+
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                        case ipPROTOCOL_ICMP_IPv6:
+                            eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+                            break;
+                    #endif
+
+                    case ipPROTOCOL_UDP:
+                        eReturn = prvProcessUDPPacket( pxNetworkBuffer );
+                        break;
+
+                        #if ipconfigUSE_TCP == 1
+                            case ipPROTOCOL_TCP:
+
+                                if( xProcessReceivedTCPPacket( pxNetworkBuffer ) == pdPASS )
+                                {
+                                    eReturn = eFrameConsumed;
+                                }
+
+                                /* Setting this variable will cause xTCPTimerCheck()
+                                 * to be called just before the IP-task blocks. */
+                                xProcessedTCPMessage++;
+                                break;
+                        #endif /* if ipconfigUSE_TCP == 1 */
+                    default:
+                        /* Not a supported protocol type. */
+                        break;
+                }
             }
         }
     }
@@ -4584,6 +4658,23 @@ uint32_t FreeRTOS_GetIPAddress( void )
     }
 /*-----------------------------------------------------------*/
 #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+
+/**
+ * @brief Enable or disable the ARP resolution timer.
+ *
+ * @param[in] xEnableState: pdTRUE if the timer must be enabled, pdFALSE otherwise.
+ */
+void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
+{
+    if( xEnableState != pdFALSE )
+    {
+        xARPResolutionTimer.bActive = pdTRUE_UNSIGNED;
+    }
+    else
+    {
+        xARPResolutionTimer.bActive = pdFALSE_UNSIGNED;
+    }
+}
 
 #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 )
 

@@ -65,5 +65,7 @@ void harness()
 
     uint16_t usPort;
 
-    xProcessReceivedUDPPacket( pxNetworkBuffer, usPort );
+    BaseType_t xIsWaitingForARPResolution;
+
+    xProcessReceivedUDPPacket( pxNetworkBuffer, usPort, &xIsWaitingForARPResolution );
 }

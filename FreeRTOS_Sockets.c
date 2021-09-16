@@ -3468,10 +3468,24 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
     const char * pcIPAddress = pcSource;
     const void * pvCopySource;
 
+    ( void ) memset( pvDestination, 0, sizeof( ulReturn ) );
+
     /* Translate "192.168.2.100" to a 32-bit number, network-endian. */
     for( uxOctetNumber = 0U; uxOctetNumber < socketMAX_IP_ADDRESS_OCTETS; uxOctetNumber++ )
     {
         ulValue = 0U;
+
+        if( pcIPAddress[ 0 ] == '0' )
+        {
+            /* Test for the sequence "0[0-9]", which would make it an octal representation. */
+            if( ( pcIPAddress[ 1 ] >= '0' ) && ( pcIPAddress[ 1 ] <= '9' ) )
+            {
+                FreeRTOS_printf( ( "Octal representation of IP-addresses is not supported." ) );
+                /* Don't support octal numbers. */
+                xResult = pdFAIL;
+                break;
+            }
+        }
 
         while( ( *pcIPAddress >= '0' ) && ( *pcIPAddress <= '9' ) )
         {
@@ -3549,8 +3563,11 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
         ulReturn = 0U;
     }
 
-    pvCopySource = ( const void * ) &ulReturn;
-    ( void ) memcpy( pvDestination, pvCopySource, sizeof( ulReturn ) );
+    if( xResult == pdPASS )
+    {
+        pvCopySource = ( const void * ) &ulReturn;
+        ( void ) memcpy( pvDestination, pvCopySource, sizeof( ulReturn ) );
+    }
 
     return xResult;
 }
@@ -4812,6 +4829,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 xBytesLeft -= xByteCount;
                 xBytesSent += xByteCount;
 
+                if( ( xBytesLeft == 0U ) && ( pvBuffer == NULL ) )
+                {
+                    /* pvBuffer can be NULL in case TCP zero-copy transmissions are used. */
+                    break;
+                }
+
                 /* As there are still bytes left to be sent, increase the
                  * data pointer. */
                 pucSource = &( pucSource[ xByteCount ] );
@@ -4874,7 +4897,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  * the socket gets connected.
  *
  * @param[in] xSocket: The socket owning the connection.
- * @param[in] pvBuffer: The buffer containing the data.
+ * @param[in] pvBuffer: The buffer containing the data. The value of this pointer
+ *                      may be NULL in case zero-copy transmissions are used.
+ *                      It is used in combination with 'FreeRTOS_get_tx_head()'.
  * @param[in] uxDataLength: The length of the data to be added.
  * @param[in] xFlags: This parameter is not used. (zero or FREERTOS_MSG_DONTWAIT).
  *

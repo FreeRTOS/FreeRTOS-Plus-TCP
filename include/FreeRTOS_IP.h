@@ -427,6 +427,8 @@
  *  uint32_t FreeRTOS_GetNetmask( void );
  */
 
+    void vIPSetARPResolutionTimerEnableState( BaseType_t xState );
+
 /* xARPWaitResolution checks if an IPv4 address is already known. If not
  * it may send an ARP request and wait for a reply.  This function will
  * only be called from an application. */
