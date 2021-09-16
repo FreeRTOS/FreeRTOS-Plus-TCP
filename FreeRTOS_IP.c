@@ -1921,6 +1921,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
              * to have incoming messages checked earlier, by the network card driver.
              * This method may decrease the usage of sparse network buffers. */
             uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+            uint32_t ulSourceIPAddress = pxIPHeader->ulSourceIPAddress;
 
             /* Ensure that the incoming packet is not fragmented because the stack
              * doesn't not support IP fragmentation. All but the last fragment coming in will have their
@@ -1954,6 +1955,13 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                      ( *ipLOCAL_IP_ADDRESS_POINTER != 0UL ) )
             {
                 /* Packet is not for this node, release it */
+                eReturn = eReleaseBuffer;
+            }
+            /* Is the source address correct? */
+            else if( ulSourceIPAddress == ipBROADCAST_IP_ADDRESS )
+            {
+                /* The source address cannot be broadcast address. Replying to this
+                 * packet may cause network storms. Drop the packet. */
                 eReturn = eReleaseBuffer;
             }
             else
