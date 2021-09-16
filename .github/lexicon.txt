@@ -1648,6 +1648,7 @@ xdocheck
 xdolog
 xdomain
 xdorandom
+xdoremove
 xdoreset
 xdostore
 xdumpingready

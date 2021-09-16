@@ -3061,8 +3061,8 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
                 break;
 
             default:
-                xReturn = -1
-                          break;
+                xReturn = -1;
+                break;
         }
 
         return xReturn;
