@@ -170,6 +170,10 @@
             #if ( ipconfigUSE_IPv6 != 0 )
                 bIPv6 : 1, /**< This end-point has an IP-address of type IPv6. */
             #endif /* ipconfigUSE_IPv6 */
+            #if ( ipconfigUSE_IPv6 != 0 )
+                bDNS_IPv6 : 1, /**< A LLMNR/mDNS lookup is being done for an IPv6 address.
+                                * This bit is only valid while xApplicationDNSQueryHook() is called. */
+            #endif /* ipconfigUSE_IPv6 */
             #if ( ipconfigUSE_NETWORK_EVENT_HOOK != 0 )
                 bCallDownHook : 1,   /**< The network down hook-must be called for this end-point. */
             #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */

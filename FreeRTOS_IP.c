@@ -2181,6 +2181,14 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         }
         else
     #endif /* ipconfigUSE_LLMNR */
+    #if ( ipconfigUSE_MDNS == 1 )
+        if( memcmp( xMDNS_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* The packet is a request for MDNS - process it. */
+            eReturn = eProcessBuffer;
+        }
+        else
+    #endif /* ipconfigUSE_MDNS */
 
     #if ( ipconfigUSE_IPv6 != 0 )
         if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
