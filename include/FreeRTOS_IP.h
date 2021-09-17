@@ -285,6 +285,7 @@
     uint32_t FreeRTOS_GetGatewayAddress( void );
     uint32_t FreeRTOS_GetDNSServerAddress( void );
     uint32_t FreeRTOS_GetNetmask( void );
+    void vIPSetARPResolutionTimerEnableState( BaseType_t xState );
     BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
                                    TickType_t uxTicksToWait );
     void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
