@@ -2775,14 +2775,7 @@
                         /*logging*/
                         FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest[%s]: type %04X\n", pxSet->pcName, pxSet->usType ) );
 
-                        if( pxSet->usType == dnsTYPE_AAAA_HOST )
-                        {
-                            xEndPoint.bits.bDNS_IPv6 = pdTRUE_UNSIGNED;
-                        }
-                        else
-                        {
-                            xEndPoint.bits.bDNS_IPv6 = pdFALSE_UNSIGNED;
-                        }
+                        xEndPoint.usDNSType = pxSet->usType;
                     }
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
