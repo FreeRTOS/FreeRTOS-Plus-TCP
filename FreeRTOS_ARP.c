@@ -213,7 +213,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                     break;
 
                 case ipARP_REPLY:
-                	vProcessARPPacketReply( pxARPFrame, ulSenderProtocolAddress );
+                    vProcessARPPacketReply( pxARPFrame, ulSenderProtocolAddress );
 
                     /* Process received ARP frame to see if there is a clash. */
                     #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
@@ -251,39 +251,39 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
                                     uint32_t ulSenderProtocolAddress )
 {
-	ARPHeader_t * pxARPHeader = &( pxARPFrame->xARPHeader );
+    ARPHeader_t * pxARPHeader = &( pxARPFrame->xARPHeader );
 
-	iptracePROCESSING_RECEIVED_ARP_REPLY( ulTargetProtocolAddress );
-	vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress );
+    iptracePROCESSING_RECEIVED_ARP_REPLY( ulTargetProtocolAddress );
+    vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress );
 
-	if( pxARPWaitingNetworkBuffer != NULL )
-	{
-		IPPacket_t * pxARPWaitingIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxARPWaitingNetworkBuffer->pucEthernetBuffer );
-		IPHeader_t * pxARPWaitingIPHeader = &( pxARPWaitingIPPacket->xIPHeader );
+    if( pxARPWaitingNetworkBuffer != NULL )
+    {
+        IPPacket_t * pxARPWaitingIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxARPWaitingNetworkBuffer->pucEthernetBuffer );
+        IPHeader_t * pxARPWaitingIPHeader = &( pxARPWaitingIPPacket->xIPHeader );
 
-		if( ulSenderProtocolAddress == pxARPWaitingIPHeader->ulSourceIPAddress )
-		{
-			IPStackEvent_t xEventMessage;
-			const TickType_t xDontBlock = ( TickType_t ) 0;
+        if( ulSenderProtocolAddress == pxARPWaitingIPHeader->ulSourceIPAddress )
+        {
+            IPStackEvent_t xEventMessage;
+            const TickType_t xDontBlock = ( TickType_t ) 0;
 
-			xEventMessage.eEventType = eNetworkRxEvent;
-			xEventMessage.pvData = ( void * ) pxARPWaitingNetworkBuffer;
+            xEventMessage.eEventType = eNetworkRxEvent;
+            xEventMessage.pvData = ( void * ) pxARPWaitingNetworkBuffer;
 
-			if( xSendEventStructToIPTask( &xEventMessage, xDontBlock ) != pdPASS )
-			{
-				/* Failed to send the message, so release the network buffer. */
-				vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
-			}
+            if( xSendEventStructToIPTask( &xEventMessage, xDontBlock ) != pdPASS )
+            {
+                /* Failed to send the message, so release the network buffer. */
+                vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
+            }
 
-			/* Clear the buffer. */
-			pxARPWaitingNetworkBuffer = NULL;
+            /* Clear the buffer. */
+            pxARPWaitingNetworkBuffer = NULL;
 
-			/* Found an ARP resolution, disable ARP resolution timer. */
-			vIPSetARPResolutionTimerEnableState( pdFALSE );
+            /* Found an ARP resolution, disable ARP resolution timer. */
+            vIPSetARPResolutionTimerEnableState( pdFALSE );
 
-			iptrace_DELAYED_ARP_REQUEST_REPLIED();
-		}
-	}
+            iptrace_DELAYED_ARP_REQUEST_REPLIED();
+        }
+    }
 }
 
 /**

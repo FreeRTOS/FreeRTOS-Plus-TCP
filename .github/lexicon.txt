@@ -279,6 +279,7 @@ etv
 eunknown
 eventbits
 ewaitingacknowledge
+ewaitingarpresolution
 ewaitingoffer
 ewaitingsendfirstdiscover
 ewouldblock
@@ -1407,6 +1408,7 @@ xiptaskinitialised
 xisbound
 xisforrx
 xisinputstream
+xiswaitingarpresolution
 xitemvalue
 xlastacttime
 xlastalivetime
