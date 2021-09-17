@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -632,8 +632,7 @@
             } bits;                        /**< The bits structure */
             uint32_t ulHighestRxAllowed;   /**< The highest sequence number that we can receive at any moment */
             uint16_t usTimeout;            /**< Time (in ticks) after which this socket needs attention */
-            uint16_t usCurMSS;             /**< Current Maximum Segment Size */
-            uint16_t usInitMSS;            /**< Initial maximum segment Size */
+            uint16_t usMSS;                /**< Current Maximum Segment Size */
             uint16_t usChildCount;         /**< In case of a listening socket: number of connections on this port number */
             uint16_t usBacklog;            /**< In case of a listening socket: maximum number of concurrent connections on this port number */
             uint8_t ucRepCount;            /**< Send repeat count, for retransmissions

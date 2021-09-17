@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -69,8 +69,11 @@
     #endif /* ( ipconfigUSE_NBNS == 1 ) */
 
 /* Host types. */
-    #define dnsTYPE_A_HOST    0x01U /**< DNS type A host. */
-    #define dnsCLASS_IN       0x01U /**< DNS class IN (Internet). */
+    #define dnsTYPE_A_HOST            0x01U /**< DNS type A host. */
+    #define dnsCLASS_IN               0x01U /**< DNS class IN (Internet). */
+
+/* Maximum hostname length as defined in RFC 1035 section 3.1. */
+    #define dnsMAX_HOSTNAME_LENGTH    0xFFU
 
     #ifndef _lint
         /* LLMNR constants. */

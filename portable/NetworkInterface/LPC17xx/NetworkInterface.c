@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -86,13 +86,12 @@ BaseType_t xNetworkInterfaceInitialise( void )
     EMAC_CFG_Type Emac_Config;
     PINSEL_CFG_Type xPinConfig;
     BaseType_t xStatus, xReturn;
-    extern uint8_t ucMACAddress[ 6 ];
 
     /* Enable Ethernet Pins */
     boardCONFIGURE_ENET_PINS( xPinConfig );
 
     Emac_Config.Mode = EMAC_MODE_AUTO;
-    Emac_Config.pbEMAC_Addr = ucMACAddress;
+    Emac_Config.pbEMAC_Addr = ipLOCAL_MAC_ADDRESS;
     xStatus = EMAC_Init( &Emac_Config );
 
     LPC_EMAC->IntEnable &= ~( EMAC_INT_TX_DONE );

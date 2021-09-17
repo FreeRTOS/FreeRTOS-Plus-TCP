@@ -38,9 +38,42 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+volatile BaseType_t xInsideInterrupt = pdFALSE;
+
+/** @brief The expected IP version and header length coded into the IP header itself. */
+#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
+
+UDPPacketHeader_t xDefaultPartUDPPacketHeader =
 {
-    return ( UDPPacket_t * ) pvArgument;
+    /* .ucBytes : */
+    {
+        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
+        0x08, 0x00,                          /* Ethernet frame type. */
+        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
+        0x00,                                /* ucDifferentiatedServicesCode. */
+        0x00, 0x00,                          /* usLength. */
+        0x00, 0x00,                          /* usIdentification. */
+        0x00, 0x00,                          /* usFragmentOffset. */
+        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
+        ipPROTOCOL_UDP,                      /* ucProtocol. */
+        0x00, 0x00,                          /* usHeaderChecksum. */
+        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
+    }
+};
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
+{
+    return ( FreeRTOS_Socket_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
+{
+    return ( FreeRTOS_Socket_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
+{
+    return ( SocketSelect_t * ) pvArgument;
 }
 
 portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
@@ -53,4 +86,14 @@ void vPortEnterCritical( void )
 }
 void vPortExitCritical( void )
 {
+}
+
+void * pvPortMalloc( size_t xNeeded )
+{
+    return malloc( xNeeded );
+}
+
+void vPortFree( void * ptr )
+{
+    free( ptr );
 }

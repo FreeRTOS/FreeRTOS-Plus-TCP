@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -209,9 +209,6 @@ static uint32_t ulTxDescriptorToClear;
 static ENET_ENHRXDESC_T xDMARxDescriptors[ configNUM_RX_DESCRIPTORS ];
 static uint32_t ulNextRxDescriptorToProcess;
 
-/* Must be defined externally - the demo applications define this in main.c. */
-extern uint8_t ucMACAddress[ 6 ];
-
 /* The handle of the task that processes Rx packets.  The handle is required so
  * the task can be notified when new packets arrive. */
 static TaskHandle_t xRxHanderTask = NULL;
@@ -245,7 +242,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
     Chip_ENET_Init( LPC_ETHERNET );
 
     /* Save MAC address. */
-    Chip_ENET_SetADDR( LPC_ETHERNET, ucMACAddress );
+    Chip_ENET_SetADDR( LPC_ETHERNET, ipLOCAL_MAC_ADDRESS );
 
     /* Clear all MAC address hash entries. */
     LPC_ETHERNET->MAC_HASHTABLE_HIGH = 0;

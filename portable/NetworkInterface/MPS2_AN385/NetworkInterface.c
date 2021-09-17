@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -96,7 +96,6 @@ static const struct smsc9220_eth_dev_t SMSC9220_ETH_DEV =
     &( SMSC9220_ETH_DEV_DATA )
 };
 
-extern uint8_t ucMACAddress[ SMSC9220_HWADDR_SIZE ]; /* 6 bytes */
 static TaskHandle_t xRxTaskHandle = NULL;
 
 /*-----------------------------------------------------------*/
@@ -115,8 +114,8 @@ static void prvSetMACAddress( void )
 
     /* Using local variables to make sure the right alignment is used.  The MAC
      * address is 6 bytes, hence the copy of 4 bytes followed by 2 bytes. */
-    memcpy( ( void * ) &ucMACLow, ( void * ) ucMACAddress, 4 );
-    memcpy( ( void * ) &ucMACHigh, ( void * ) ( ucMACAddress + 4 ), 2 );
+    memcpy( ( void * ) &ucMACLow, ( void * ) ipLOCAL_MAC_ADDRESS, 4 );
+    memcpy( ( void * ) &ucMACHigh, ( void * ) ( ipLOCAL_MAC_ADDRESS + 4 ), 2 );
 
     if( smsc9220_mac_regwrite( dev, SMSC9220_MAC_REG_OFFSET_ADDRL, ucMACLow ) != 0 )
     {

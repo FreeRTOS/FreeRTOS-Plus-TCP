@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -519,35 +519,30 @@
          * as gethostbyname() may be called from different threads */
         BaseType_t xHasRandom = pdFALSE;
         TickType_t uxIdentifier = 0U;
+        BaseType_t xLengthOk = pdFALSE;
 
-        #if ( ipconfigUSE_DNS_CACHE != 0 )
-            BaseType_t xLengthOk = pdFALSE;
-        #endif
+        if( pcHostName != NULL )
+        {
+            size_t uxLength = strlen( pcHostName ) + 1U;
 
-        #if ( ipconfigUSE_DNS_CACHE != 0 )
+            #if ( ipconfigUSE_DNS_CACHE != 0 )
+                if( uxLength <= ipconfigDNS_CACHE_NAME_LENGTH )
+            #else
+                if( uxLength <= dnsMAX_HOSTNAME_LENGTH )
+            #endif
             {
-                if( pcHostName != NULL )
-                {
-                    size_t xLength = strlen( pcHostName ) + 1U;
-
-                    if( xLength <= ipconfigDNS_CACHE_NAME_LENGTH )
-                    {
-                        /* The name is not too long. */
-                        xLengthOk = pdTRUE;
-                    }
-                    else
-                    {
-                        FreeRTOS_printf( ( "prvPrepareLookup: name is too long ( %lu > %lu )\n",
-                                           ( uint32_t ) xLength,
-                                           ( uint32_t ) ipconfigDNS_CACHE_NAME_LENGTH ) );
-                    }
-                }
+                /* The name is not too long. */
+                xLengthOk = pdTRUE;
             }
+            else
+            {
+                FreeRTOS_printf( ( "prvPrepareLookup: name is too long ( %lu > %lu )\n",
+                                   ( uint32_t ) uxLength,
+                                   ( uint32_t ) ipconfigDNS_CACHE_NAME_LENGTH ) );
+            }
+        }
 
-            if( ( pcHostName != NULL ) && ( xLengthOk != pdFALSE ) )
-        #else /* if ( ipconfigUSE_DNS_CACHE != 0 ) */
-            if( pcHostName != NULL )
-        #endif /* ( ipconfigUSE_DNS_CACHE != 0 ) */
+        if( ( pcHostName != NULL ) && ( xLengthOk != pdFALSE ) )
         {
             /* If the supplied hostname is IP address, convert it to uint32_t
              * and return. */
@@ -1472,32 +1467,39 @@
                             LLMNRAnswer_t * pxAnswer;
                             uint8_t * pucNewBuffer = NULL;
 
-                            if( ( xBufferAllocFixedSize == pdFALSE ) && ( pxNetworkBuffer != NULL ) )
+                            if( pxNetworkBuffer != NULL )
                             {
-                                size_t uxDataLength = uxBufferLength + sizeof( UDPHeader_t ) + sizeof( EthernetHeader_t ) + sizeof( IPHeader_t );
-
-                                /* Set the size of the outgoing packet. */
-                                pxNetworkBuffer->xDataLength = uxDataLength;
-                                pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxDataLength + sizeof( LLMNRAnswer_t ) );
-
-                                if( pxNewBuffer != NULL )
+                                if( xBufferAllocFixedSize == pdFALSE )
                                 {
-                                    BaseType_t xOffset1, xOffset2;
+                                    size_t uxDataLength = uxBufferLength + sizeof( UDPHeader_t ) + sizeof( EthernetHeader_t ) + sizeof( IPHeader_t );
 
-                                    xOffset1 = ( BaseType_t ) ( pucByte - pucUDPPayloadBuffer );
-                                    xOffset2 = ( BaseType_t ) ( ( ( uint8_t * ) pcRequestedName ) - pucUDPPayloadBuffer );
+                                    /* Set the size of the outgoing packet. */
+                                    pxNetworkBuffer->xDataLength = uxDataLength;
+                                    pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxDataLength + sizeof( LLMNRAnswer_t ) );
 
-                                    pxNetworkBuffer = pxNewBuffer;
-                                    pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+                                    if( pxNewBuffer != NULL )
+                                    {
+                                        BaseType_t xOffset1, xOffset2;
 
-                                    pucByte = &( pucNewBuffer[ xOffset1 ] );
-                                    pcRequestedName = ( char * ) &( pucNewBuffer[ xOffset2 ] );
-                                    pxDNSMessageHeader = ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucNewBuffer );
+                                        xOffset1 = ( BaseType_t ) ( pucByte - pucUDPPayloadBuffer );
+                                        xOffset2 = ( BaseType_t ) ( ( ( uint8_t * ) pcRequestedName ) - pucUDPPayloadBuffer );
+
+                                        pxNetworkBuffer = pxNewBuffer;
+                                        pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+
+                                        pucByte = &( pucNewBuffer[ xOffset1 ] );
+                                        pcRequestedName = ( char * ) &( pucNewBuffer[ xOffset2 ] );
+                                        pxDNSMessageHeader = ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucNewBuffer );
+                                    }
+                                    else
+                                    {
+                                        /* Just to indicate that the message may not be answered. */
+                                        pxNetworkBuffer = NULL;
+                                    }
                                 }
                                 else
                                 {
-                                    /* Just to indicate that the message may not be answered. */
-                                    pxNetworkBuffer = NULL;
+                                    pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
                                 }
                             }
 
