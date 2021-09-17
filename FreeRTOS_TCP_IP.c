@@ -3727,12 +3727,20 @@
         FreeRTOS_Socket_t * pxReturn = NULL;
         uint32_t ulInitialSequenceNumber;
 
-        /* Assume that a new Initial Sequence Number will be required. Request
-         * it now in order to fail out if necessary. */
-        ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
-                                                                      pxSocket->usLocalPort,
-                                                                      pxTCPPacket->xIPHeader.ulSourceIPAddress,
-                                                                      pxTCPPacket->xTCPHeader.usSourcePort );
+        /* Silently discard a SYN packet which was not specifically sent for this node. */
+        if( pxTCPPacket->xIPHeader.ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
+        {
+        	/* Assume that a new Initial Sequence Number will be required. Request
+             * it now in order to fail out if necessary. */
+            ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
+                                                                          pxSocket->usLocalPort,
+                                                                          pxTCPPacket->xIPHeader.ulSourceIPAddress,
+                                                                          pxTCPPacket->xTCPHeader.usSourcePort );
+        }
+        else
+        {
+        	ulInitialSequenceNumber = 0;
+        }
 
         /* A pure SYN (without ACK) has come in, create a new socket to answer
          * it. */

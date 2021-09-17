@@ -1921,6 +1921,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
              * to have incoming messages checked earlier, by the network card driver.
              * This method may decrease the usage of sparse network buffers. */
             uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+            uint32_t ulSourceIPAddress = pxIPHeader->ulSourceIPAddress;
 
             /* Ensure that the incoming packet is not fragmented because the stack
              * doesn't not support IP fragmentation. All but the last fragment coming in will have their
@@ -1955,6 +1956,21 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
             {
                 /* Packet is not for this node, release it */
                 eReturn = eReleaseBuffer;
+            }
+            /* Is this a link level only broadcast? */
+            else if( ( memcmp( ( void * ) &xBroadcastMACAddress,
+                       ( void * ) &( pxIPPacket->xEthernetHeader.xDestinationAddress ),
+                       sizeof( MACAddress_t ) ) == 0 ) &&
+                     ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
+            {
+                /* Ethernet address is a broadcast address, but the IP address is not a
+                 * broadcast address. */
+                eReturn = eReleaseBuffer;
+            }
+            else if( ulSourceIPAddress == ipBROADCAST_IP_ADDRESS )
+            {
+            	/* Packet with source IP address as a broadcast address. */
+            	eReturn = eReleaseBuffer;
             }
             else
             {
@@ -2314,6 +2330,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         pxICMPHeader->ucTypeOfMessage = ( uint8_t ) ipICMP_ECHO_REPLY;
         pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
         pxIPHeader->ulSourceIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+        /* Update the TTL field. */
+        pxIPHeader->ucTimeToLive = ipconfigICMP_TIME_TO_LIVE;
 
         /* The stack doesn't support fragments, so the fragment offset field must always be zero.
          * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
