@@ -298,6 +298,7 @@ fclwr
 fcowr
 fcs
 fd
+fe
 fef
 fes
 ff
@@ -723,6 +724,7 @@ pucptr
 pucrecvdata
 pucsource
 pucstart
+puctarget
 pucudppayload
 pucudppayloadbuffer
 pucusebuffer
