@@ -97,6 +97,7 @@ castingmacrofunctions
 cbmc
 ccfg
 cchannel
+cchar
 ce
 centralised
 cerrorbuffer
@@ -1014,6 +1015,7 @@ ucaddresslength
 ucaddresstype
 ucage
 ucarray
+ucasciitohex
 ucbootfilename
 ucbytes
 ucclienthardwareaddress
