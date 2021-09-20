@@ -3876,7 +3876,7 @@ void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
                 ucNibble = ucByte & 0x0FU;
             }
 
-            if( ucNibble < 0x09U )
+            if( ucNibble <= 0x09U )
             {
                 cResult = '0';
                 cResult = cResult + ucNibble;
