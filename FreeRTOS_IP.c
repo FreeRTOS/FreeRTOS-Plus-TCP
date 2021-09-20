@@ -726,7 +726,7 @@ static TickType_t prvCalculateSleepTime( void )
     {
         if( xARPTimer.ulRemainingTime < xMaximumSleepTime )
         {
-            xMaximumSleepTime = xARPTimer.ulReloadTime;
+            xMaximumSleepTime = xARPTimer.ulRemainingTime;
         }
     }
 
