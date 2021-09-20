@@ -17,6 +17,6 @@
   ],
   "DEF":
   [
-   "ipconfigUST_TCP_WIN=1"
+   "ipconfigUSE_TCP_WIN=1"
   ]
 }

@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -411,6 +411,11 @@
 
 #ifndef ipconfigNETWORK_MTU
     #define ipconfigNETWORK_MTU    1500
+#else
+    #if ipconfigNETWORK_MTU > ( SIZE_MAX >> 1 )
+        #undef ipconfigNETWORK_MTU
+        #define ipconfigNETWORK_MTU    ( SIZE_MAX >> 1 )
+    #endif
 #endif
 
 #ifndef ipconfigTCP_MSS

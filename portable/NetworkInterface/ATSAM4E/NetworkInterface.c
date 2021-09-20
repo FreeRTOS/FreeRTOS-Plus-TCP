@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -144,9 +144,6 @@ static const uint8_t llmnr_mac_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC 
 
 /* The GMAC object as defined by the ASF drivers. */
 static gmac_device_t gs_gmac_dev;
-
-/* MAC address to use. */
-extern const uint8_t ucMACAddress[ 6 ];
 
 /* Holds the handle of the task used as a deferred interrupt processor.  The
  * handle is used so direct notifications can be sent to the task for all EMAC/DMA
@@ -325,7 +322,7 @@ static BaseType_t prvGMACInit( void )
     memset( &gmac_option, '\0', sizeof( gmac_option ) );
     gmac_option.uc_copy_all_frame = 0;
     gmac_option.uc_no_boardcast = 0;
-    memcpy( gmac_option.uc_mac_addr, ucMACAddress, sizeof( gmac_option.uc_mac_addr ) );
+    memcpy( gmac_option.uc_mac_addr, ipLOCAL_MAC_ADDRESS, sizeof( gmac_option.uc_mac_addr ) );
 
     gs_gmac_dev.p_hw = GMAC;
     gmac_dev_init( GMAC, &gs_gmac_dev, &gmac_option );
