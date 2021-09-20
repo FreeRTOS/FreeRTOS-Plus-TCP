@@ -2447,36 +2447,36 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
  */
 static uint8_t ucASCIIToHex( char cChar )
 {
-	char cValue = cChar;
-	uint8_t ucNew;
+    char cValue = cChar;
+    uint8_t ucNew;
 
-	if( ( cValue >= '0' ) && ( cValue <= '9' ) )
-	{
-		cValue -= ( char ) '0';
-		/* The value will be between 0 and 9. */
-		ucNew = ( uint8_t ) cValue;
-	}
-	else if( ( cValue >= 'a' ) && ( cValue <= 'f' ) )
-	{
-		cValue -= ( char ) 'a';
-		ucNew = ( uint8_t ) cValue;
-		/* The value will be between 10 and 15. */
-		ucNew += ( uint8_t ) 10;
-	}
-	else if( ( cValue >= 'A' ) && ( cValue <= 'F' ) )
-	{
-		cValue -= ( char ) 'A';
-		ucNew = ( uint8_t ) cValue;
-		/* The value will be between 10 and 15. */
-		ucNew += ( uint8_t ) 10;
-	}
-	else
-	{
-		/* The character does not represent a valid hex number, return 255. */
-		ucNew = ( uint8_t ) socketINVALID_HEX_CHAR;
-	}
+    if( ( cValue >= '0' ) && ( cValue <= '9' ) )
+    {
+        cValue -= ( char ) '0';
+        /* The value will be between 0 and 9. */
+        ucNew = ( uint8_t ) cValue;
+    }
+    else if( ( cValue >= 'a' ) && ( cValue <= 'f' ) )
+    {
+        cValue -= ( char ) 'a';
+        ucNew = ( uint8_t ) cValue;
+        /* The value will be between 10 and 15. */
+        ucNew += ( uint8_t ) 10;
+    }
+    else if( ( cValue >= 'A' ) && ( cValue <= 'F' ) )
+    {
+        cValue -= ( char ) 'A';
+        ucNew = ( uint8_t ) cValue;
+        /* The value will be between 10 and 15. */
+        ucNew += ( uint8_t ) 10;
+    }
+    else
+    {
+        /* The character does not represent a valid hex number, return 255. */
+        ucNew = ( uint8_t ) socketINVALID_HEX_CHAR;
+    }
 
-	return ucNew;
+    return ucNew;
 }
 /*-----------------------------------------------------------*/
 
