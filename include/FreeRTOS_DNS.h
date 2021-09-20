@@ -141,8 +141,8 @@
                                                            *   i.e. it has a matching request ID. */
             char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ]; /**< A copy of the name that is mentioned in the questions. */
         #endif
-        struct freertos_addrinfo * pxLastAddress;   /**< This variable is used while creating a linked-list of IP-addresses. */
-        struct freertos_addrinfo ** ppxLastAddress; /**< This variable is also used while creating a linked-list of IP-addresses. */
+        struct freertos_addrinfo * pxLastAddress;         /**< This variable is used while creating a linked-list of IP-addresses. */
+        struct freertos_addrinfo ** ppxLastAddress;       /**< This variable is also used while creating a linked-list of IP-addresses. */
     } ParseSet_t;
 
 /** @brief Show the first IP-address within the linked struct 'pxAddress'. */
