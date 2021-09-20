@@ -3,6 +3,7 @@
   "CBMCFLAGS":
   [
     "--unwind 1",
+    "--unwindset memcmp.0:7",
     "--nondet-static"
   ],
   "OBJS":

@@ -3382,7 +3382,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  *        the socket gets connected.
  *
  * @param[in] xSocket: The socket owning the connection.
- * @param[in] pvBuffer: The buffer containing the data.
+ * @param[in] pvBuffer: The buffer containing the data. The value of this pointer
+ *                      may be NULL in case zero-copy transmissions are used.
+ *                      It is used in combination with 'FreeRTOS_get_tx_head()'.
  * @param[in] uxDataLength: The length of the data to be added.
  * @param[in] xFlags: This parameter is not used. (zero or FREERTOS_MSG_DONTWAIT).
  *
@@ -3394,7 +3396,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                               size_t uxDataLength,
                               BaseType_t xFlags )
     {
-        BaseType_t xByteCount = -pdFREERTOS_ERRNO_EINVAL;
+        BaseType_t xByteCount;
         BaseType_t xBytesLeft;
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
         TickType_t xRemainingTime;
@@ -3407,10 +3409,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
          * may be used in future versions. */
         ( void ) xFlags;
 
-        if( pvBuffer != NULL )
-        {
-            xByteCount = ( BaseType_t ) prvTCPSendCheck( pxSocket, uxDataLength );
-        }
+        xByteCount = ( BaseType_t ) prvTCPSendCheck( pxSocket, uxDataLength );
 
         if( xByteCount > 0 )
         {
@@ -3482,8 +3481,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
                     xBytesLeft -= xByteCount;
 
-                    if( xBytesLeft == 0 )
+                    if( ( xBytesLeft == 0 ) || ( pvBuffer == NULL ) )
                     {
+                        /* pvBuffer can be NULL in case TCP zero-copy transmissions are used. */
                         break;
                     }
 
