@@ -726,7 +726,7 @@ static TickType_t prvCalculateSleepTime( void )
     {
         if( xARPTimer.ulRemainingTime < xMaximumSleepTime )
         {
-            xMaximumSleepTime = xARPTimer.ulReloadTime;
+            xMaximumSleepTime = xARPTimer.ulRemainingTime;
         }
     }
 
@@ -1954,6 +1954,15 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                      ( *ipLOCAL_IP_ADDRESS_POINTER != 0UL ) )
             {
                 /* Packet is not for this node, release it */
+                eReturn = eReleaseBuffer;
+            }
+            else if( ( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
+                               ( void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
+                               sizeof( MACAddress_t ) ) == 0 ) &&
+                     ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
+            {
+                /* Ethernet address is a broadcast address, but the IP address is not a
+                 * broadcast address. */
                 eReturn = eReleaseBuffer;
             }
             else
