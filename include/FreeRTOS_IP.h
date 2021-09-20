@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -40,10 +40,10 @@
 
 /* Constants defining the current version of the FreeRTOS+TCP
  * network stack. */
-    #define ipFR_TCP_VERSION_NUMBER    "V2.3.3"
+    #define ipFR_TCP_VERSION_NUMBER    "V2.3.4"
     #define ipFR_TCP_VERSION_MAJOR     2
     #define ipFR_TCP_VERSION_MINOR     3
-    #define ipFR_TCP_VERSION_BUILD     3
+    #define ipFR_TCP_VERSION_BUILD     4
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */
