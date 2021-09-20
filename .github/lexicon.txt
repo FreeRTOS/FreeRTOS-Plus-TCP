@@ -209,7 +209,6 @@ earpcachehit
 earpcachemiss
 earpgetcacheentry
 earptimerevent
-ewaitingarpresolution
 ec
 ecantsendpacket
 eclosed
@@ -312,6 +311,7 @@ etype
 eunknown
 eventbits
 ewaitingacknowledge
+ewaitingarpresolution
 ewaitingoffer
 ewaitingsendfirstdiscover
 ewouldblock
@@ -584,6 +584,7 @@ mtu
 multicastframesfilter
 mutex
 mutexes
+mydevice
 na
 nack
 nanosec
@@ -1389,6 +1390,7 @@ usclass
 uscurmss
 usdatalength
 usdestinationport
+usdnstype
 usduidtype
 uselapsedtime
 userdaata
@@ -1419,6 +1421,7 @@ uspayloadlength
 uspeerportnumber
 usport
 usportnr
+usportnumber
 usprotocolbytes
 usprotocoltype
 usquestions
@@ -1504,8 +1507,8 @@ uxrxwinsize
 uxschedulersuspended
 uxsecs
 uxsize
-uxsourcebytesremaining
 uxsocketsize
+uxsourcebytesremaining
 uxsourcelen
 uxstart
 uxstreambufferadd
@@ -1709,8 +1712,8 @@ xipversion
 xisbound
 xisforrx
 xisinputstream
-xitemvalue
 xiswaitingarpresolution
+xitemvalue
 xlastacttime
 xlastalivetime
 xlastgratuitousarptime
@@ -1781,6 +1784,7 @@ xrandomtaskhandle
 xrasolicitationrequest
 xready
 xreceiveblocktime
+xrecvaddress
 xregister
 xreleaseaftersend
 xremainingtime
