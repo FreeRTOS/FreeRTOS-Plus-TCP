@@ -141,8 +141,8 @@
                                                            *   i.e. it has a matching request ID. */
             char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ]; /**< A copy of the name that is mentioned in the questions. */
         #endif
-        struct freertos_addrinfo * pxLastAddress;
-        struct freertos_addrinfo ** ppxLastAddress;
+        struct freertos_addrinfo * pxLastAddress;   /**< This variable is used while creating a linked-list of IP-addresses. */
+        struct freertos_addrinfo ** ppxLastAddress; /**< This variable is also used while creating a linked-list of IP-addresses. */
     } ParseSet_t;
 
 /** @brief Show the first IP-address within the linked struct 'pxAddress'. */
@@ -194,6 +194,9 @@
         extern const MACAddress_t xMDNS_MACAdressIPv6;
     #endif /* ipconfigUSE_MDNS */
 
+/** @brief While doing integration tests, it is necessary to influence the choice
+ * between DNS/IPv4 and DNS/IPv4.  Depending on this, a DNS server will be
+ * addressed via IPv4 or IPv6 messages. */
     typedef enum xIPPreference
     {
         xPreferenceNone,
@@ -203,6 +206,7 @@
         #endif
     } IPPreference_t;
 
+/** @brief This variable determines he choice of DNS server, either IPv4 or IPv6. */
     extern IPPreference_t xDNS_IP_Preference;
 
     #if ( ipconfigUSE_NBNS != 0 )
