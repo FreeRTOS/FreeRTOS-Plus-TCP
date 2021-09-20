@@ -726,7 +726,7 @@ static TickType_t prvCalculateSleepTime( void )
     {
         if( xARPTimer.ulRemainingTime < xMaximumSleepTime )
         {
-            xMaximumSleepTime = xARPTimer.ulReloadTime;
+            xMaximumSleepTime = xARPTimer.ulRemainingTime;
         }
     }
 
@@ -1964,9 +1964,19 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                  * packet may cause network storms. Drop the packet. */
                 eReturn = eReleaseBuffer;
             }
+            else if( ( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
+                               ( void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
+                               sizeof( MACAddress_t ) ) == 0 ) &&
+                     ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
+            {
+                /* Ethernet address is a broadcast address, but the IP address is not a
+                 * broadcast address. */
+                eReturn = eReleaseBuffer;
+            }
             else
             {
-                /* Packet is not fragmented, destination is this device. */
+                /* Packet is not fragmented, destination is this device, source IP and MAC
+                 * addresses are correct. */
             }
         }
     #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
