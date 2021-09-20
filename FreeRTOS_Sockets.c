@@ -90,9 +90,14 @@
 #endif
 
 /* Some helper macro's for defining the 20/80 % limits of uxLittleSpace / uxEnoughSpace. */
-#define sock20_PERCENT     20U  /**< 20% of the defined limit. */
-#define sock80_PERCENT     80U  /**< 80% of the defined limit. */
-#define sock100_PERCENT    100U /**< 100% of the defined limit. */
+#define sock20_PERCENT            20U  /**< 20% of the defined limit. */
+#define sock80_PERCENT            80U  /**< 80% of the defined limit. */
+#define sock100_PERCENT           100U /**< 100% of the defined limit. */
+
+/** @brief When ucASCIIToHex() can not convert a character,
+ *         the value 255 will be returned.
+ */
+#define socketINVALID_HEX_CHAR    0xffU
 
 #if ( ipconfigUSE_CALLBACKS != 0 )
     static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( F_TCP_UDP_Handler_t )
