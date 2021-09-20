@@ -3841,6 +3841,139 @@ static void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet )
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief This funtion converts a 48-bit MAC address to a human readable string.
+ *
+ * @param[in] pucSource: A pointer to an array of 6 bytes.
+ * @param[out] pcTarget: A buffer that is 18 bytes long, it will contain the resulting string.
+ * @param[in] cTen: Either an 'A' or an 'a'. It determines whether the hex numbers will use
+ *                  capital or small letters.
+ * @param[in] cSeparator: The separator that should appear between the bytes, either ':' or '-'.
+ */
+void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
+                          char * pcTarget,
+                          char cTen,
+                          char cSeparator )
+{
+    size_t uxIndex;
+    size_t uxNibble;
+    size_t uxTarget = 0U;
+
+    for( uxIndex = 0U; uxIndex < ipMAC_ADDRESS_LENGTH_BYTES; uxIndex++ )
+    {
+        uint8_t ucByte = pucSource[ uxIndex ];
+
+        for( uxNibble = 0; uxNibble < 2U; uxNibble++ )
+        {
+            uint8_t ucNibble;
+            char cResult;
+
+            if( uxNibble == 0U )
+            {
+                ucNibble = ucByte >> 4;
+            }
+            else
+            {
+                ucNibble = ucByte & 0x0FU;
+            }
+
+            if( ucNibble < 0x09U )
+            {
+                cResult = '0';
+                cResult = cResult + ucNibble;
+            }
+            else
+            {
+                cResult = cTen; /* Either 'a' or 'A' */
+                cResult = cResult + ( ucNibble - 10U );
+            }
+
+            pcTarget[ uxTarget++ ] = cResult;
+        }
+
+        if( uxIndex == ( ipMAC_ADDRESS_LENGTH_BYTES - 1U ) )
+        {
+            pcTarget[ uxTarget++ ] = 0;
+        }
+        else
+        {
+            pcTarget[ uxTarget++ ] = cSeparator;
+        }
+    }
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief This funtion converts a human readable string, representing an 48-bit MAC address,
+ *        into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba".
+ *
+ * @param[in] pcSource: The string to be parsed.
+ * @param[out] pucTarget: A buffer that is 6 bytes long, it will contain the MAC address.
+ *
+ * @return pdTRUE in case the string got parsed correctly, otherwise pdFALSE.
+ */
+BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
+                                uint8_t * pucTarget )
+{
+    BaseType_t xResult = pdFALSE;
+    size_t uxByteNr = 0U;
+    size_t uxSourceIndex;
+    size_t uxNibbleCount = 0U;
+    size_t uxLength = strlen( pcSource );
+    uint32_t uxSum = 0U;
+    uint8_t ucHex;
+    char cChar;
+
+    for( uxSourceIndex = 0U; uxSourceIndex <= uxLength; uxSourceIndex++ )
+    {
+        cChar = pcSource[ uxSourceIndex ];
+        ucHex = ucASCIIToHex( cChar );
+
+        if( ucHex != socketINVALID_HEX_CHAR )
+        {
+            /* A valid nibble was found. Shift it into the accumulator. */
+            uxSum = uxSum << 4;
+
+            if( uxSum > 0xffU )
+            {
+                /* A hex value was too big. */
+                break;
+            }
+
+            uxSum |= ucHex;
+            uxNibbleCount++;
+        }
+        else
+        {
+            if( uxNibbleCount < 1U )
+            {
+                /* Missing nibble. */
+                break;
+            }
+
+            pucTarget[ uxByteNr ] = ( uint8_t ) uxSum;
+            uxSum = 0U;
+            uxNibbleCount = 0U;
+            uxByteNr++;
+
+            if( uxByteNr == ipMAC_ADDRESS_LENGTH_BYTES )
+            {
+                xResult = pdTRUE;
+                break;
+            }
+
+            if( ( cChar != ':' ) && ( cChar != '-' ) )
+            {
+                /* Invalid character. */
+                break;
+            }
+        }
+    }
+
+    return xResult;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Function to get the local address and IP port of the given socket.
  *
  * @param[in] xSocket: Socket whose port is to be added to the pxAddress.
