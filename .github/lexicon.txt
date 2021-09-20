@@ -33,6 +33,7 @@ atmel
 automaticpadcrcstrip
 autonegotiation
 aws
+ba
 backoff
 backofflimit
 backpressure
@@ -125,10 +126,13 @@ cpu
 cpus
 cr
 crc
+cresult
 crs
+cseparator
 csn
 csr
 csv
+cten
 ctrl
 cwd
 da
@@ -593,6 +597,7 @@ pcnetworkbuffer
 pcrequestedname
 pcs
 pcsource
+pctarget
 pcto
 pd
 pdata
@@ -716,6 +721,7 @@ pucoptionsarray
 pucpayload
 pucptr
 pucrecvdata
+pucsource
 pucstart
 pucudppayload
 pucudppayloadbuffer
@@ -835,8 +841,8 @@ reg
 regist
 regvalue
 reinit
-renesas
 releaseudppayloadbuffer
+renesas
 reqlength
 resetpins
 retrytransmission
@@ -1045,6 +1051,7 @@ ucprotocoladdresslength
 ucrepcount
 ucsenderprotocoladdress
 ucserverhostname
+ucserveridentifier
 ucsocketoptions
 ucspeed
 uctcpflags
@@ -1052,7 +1059,6 @@ uctcpoffset
 uctcpstate
 uctimetolive
 uctransmitcount
-ucserveridentifier
 uctypeofmessage
 uctypeofservice
 ucvalid
@@ -1070,9 +1076,9 @@ ulborn
 ulbroadcastaddress
 ulbytecount
 ulchecktime
+ulclientipaddress
 ulconnected
 ulcount
-ulclientipaddress
 ulcurrentsequencenumber
 ulcurrentspistatus
 uldefaultipaddress
@@ -1312,8 +1318,8 @@ vtasklist
 vtasknotifygivefromisr
 vtcpnetstat
 vtcpstatechange
-vtcpwindowinit
 vtcpwindowdestroy
+vtcpwindowinit
 wasn
 wcast
 wdwfcr
