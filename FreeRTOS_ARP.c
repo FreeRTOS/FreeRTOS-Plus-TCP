@@ -110,15 +110,44 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 
     pxARPHeader = &( pxARPFrame->xARPHeader );
 
-    /* Only Ethernet hardware type is supported.
-     * Only IPv4 address can be present in the ARP packet.
-     * The hardware length (the MAC address) must be 6 bytes. And,
-     * The Protocol address length must be 4 bytes as it is IPv4. */
-    if( ( pxARPHeader->usHardwareType == ipARP_HARDWARE_TYPE_ETHERNET ) &&
-        ( pxARPHeader->usProtocolType == ipARP_PROTOCOL_TYPE ) &&
-        ( pxARPHeader->ucHardwareAddressLength == ipMAC_ADDRESS_LENGTH_BYTES ) &&
-        ( pxARPHeader->ucProtocolAddressLength == ipIP_ADDRESS_LENGTH_BYTES ) )
+    /* Introduce a do while loop to allow use of breaks. */
+    do
     {
+        /* Only Ethernet hardware type is supported.
+         * Only IPv4 address can be present in the ARP packet.
+         * The hardware length (the MAC address) must be 6 bytes. And,
+         * The Protocol address length must be 4 bytes as it is IPv4. */
+        if( ( pxARPHeader->usHardwareType != ipARP_HARDWARE_TYPE_ETHERNET ) ||
+            ( pxARPHeader->usProtocolType != ipARP_PROTOCOL_TYPE ) ||
+            ( pxARPHeader->ucHardwareAddressLength != ipMAC_ADDRESS_LENGTH_BYTES ) ||
+            ( pxARPHeader->ucProtocolAddressLength != ipIP_ADDRESS_LENGTH_BYTES ) )
+        {
+            /* One or more fields are not valid. */
+            iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
+            break;
+        }
+        else if( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
+                         ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
+                         sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* Source hardware address is a broadcast address which cannot be the
+             * case for ARP. See RFC 1812 section 3.3.2. */
+            iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
+            break;
+        }
+	/* Check whether the lowest bit of the highest byte is 1 to check for
+         * multicast address. */
+        else if( ( pxARPHeader->xSenderHardwareAddress.ucBytes[0] & 0x01 ) == 0x01 )
+        {
+            /* Senders address is a multicast address which is not allowed for
+             * an ARP packet. Drop the packet. See RFC 1812 section 3.3.2. */
+            break;
+        }
+        else
+        {
+            /* All fields are valid and addresses are proper. */
+        }
+
         /* The field ulSenderProtocolAddress is badly aligned, copy byte-by-byte. */
 
         /*
@@ -224,11 +253,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                     break;
             }
         }
-    }
-    else
-    {
-        iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
-    }
+    }while( ipFALSE_BOOL );
 
     return eReturn;
 }
