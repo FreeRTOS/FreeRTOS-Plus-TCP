@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -726,7 +726,7 @@ static TickType_t prvCalculateSleepTime( void )
     {
         if( xARPTimer.ulRemainingTime < xMaximumSleepTime )
         {
-            xMaximumSleepTime = xARPTimer.ulReloadTime;
+            xMaximumSleepTime = xARPTimer.ulRemainingTime;
         }
     }
 
@@ -1921,6 +1921,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
              * to have incoming messages checked earlier, by the network card driver.
              * This method may decrease the usage of sparse network buffers. */
             uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+            uint32_t ulSourceIPAddress = pxIPHeader->ulSourceIPAddress;
 
             /* Ensure that the incoming packet is not fragmented because the stack
              * doesn't not support IP fragmentation. All but the last fragment coming in will have their
@@ -1956,9 +1957,26 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                 /* Packet is not for this node, release it */
                 eReturn = eReleaseBuffer;
             }
+            /* Is the source address correct? */
+            else if( ( FreeRTOS_ntohl( ulSourceIPAddress ) & 0xffU ) == 0xffU )
+            {
+                /* The source address cannot be broadcast address. Replying to this
+                 * packet may cause network storms. Drop the packet. */
+                eReturn = eReleaseBuffer;
+            }
+            else if( ( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
+                               ( void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
+                               sizeof( MACAddress_t ) ) == 0 ) &&
+                     ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
+            {
+                /* Ethernet address is a broadcast address, but the IP address is not a
+                 * broadcast address. */
+                eReturn = eReleaseBuffer;
+            }
             else
             {
-                /* Packet is not fragmented, destination is this device. */
+                /* Packet is not fragmented, destination is this device, source IP and MAC
+                 * addresses are correct. */
             }
         }
     #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */

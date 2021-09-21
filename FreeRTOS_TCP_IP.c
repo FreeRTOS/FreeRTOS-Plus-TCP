@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -3712,12 +3712,21 @@
         FreeRTOS_Socket_t * pxReturn = NULL;
         uint32_t ulInitialSequenceNumber;
 
-        /* Assume that a new Initial Sequence Number will be required. Request
-         * it now in order to fail out if necessary. */
-        ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
-                                                                      pxSocket->usLocalPort,
-                                                                      pxTCPPacket->xIPHeader.ulSourceIPAddress,
-                                                                      pxTCPPacket->xTCPHeader.usSourcePort );
+        /* Silently discard a SYN packet which was not specifically sent for this node. */
+        if( pxTCPPacket->xIPHeader.ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
+        {
+            /* Assume that a new Initial Sequence Number will be required. Request
+             * it now in order to fail out if necessary. */
+            ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
+                                                                          pxSocket->usLocalPort,
+                                                                          pxTCPPacket->xIPHeader.ulSourceIPAddress,
+                                                                          pxTCPPacket->xTCPHeader.usSourcePort );
+        }
+        else
+        {
+            /* Set the sequence number to 0 to avoid further processing. */
+            ulInitialSequenceNumber = 0UL;
+        }
 
         /* A pure SYN (without ACK) has come in, create a new socket to answer
          * it. */

@@ -1,3 +1,19 @@
+Changes between V2.3.3 and V2.3.4 releases:
+        + Added a check in BufferAllocation_2.c to ensure adding (2 +
+          ipBUFFER_PADDING) bytes to the requested allocation size does
+          not cause an integer overflow. Thanks to Bernard Lebel
+          (RMDS Innovation) reporting this potential issue.
+        + Updated FreeRTOS_inet_pton4() so it rejects IP addresses that
+          have leading zeros. Previously, if the IP address had leading
+          zeros, perhaps because it was entered in octal format, the
+          address was interpreted as decimal (the leading zeros were
+          stripped). That could result in the function returning an
+          unexpected IP address.
+        + Added logic to clear flags of a stored TCP packet to avoid
+          sending incorrect flags when receiving incorrect packets from
+          the peer.
+        + Fixed the IP header checksum calculation of ICMP response.
+
 Changes between V2.3.2 and V2.3.3 releases:
         + When a listening socket is closed, all child sockets not yet owned by the
           application will be closed too. (Thanks Bernd Edlinger).
