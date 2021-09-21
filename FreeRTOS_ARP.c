@@ -282,6 +282,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
     BaseType_t xIpEntry = -1;
     BaseType_t xMacEntry = -1;
     BaseType_t xUseEntry = 0;
+    BaseType_t xAllDone = pdFALSE;
     uint8_t ucMinAgeFound = 0U;
 
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
@@ -339,13 +340,12 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                 /* See if the MAC-address also matches. */
                 if( xMatchingMAC != pdFALSE )
                 {
-                    /* This function will be called for each received packet
-                     * As this is by far the most common path the coding standard
-                     * is relaxed in this case and a return is permitted as an
-                     * optimisation. */
+                    /* A perfect match is found, update the entry and leave this
+                     * function by setting 'xAllDone' to pdTRUE. */
                     xARPCache[ x ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
                     xARPCache[ x ].ucValid = ( uint8_t ) pdTRUE;
-                    return;
+                    xAllDone = pdTRUE;
+                    break;
                 }
 
                 /* Found an entry containing ulIPAddress, but the MAC address
@@ -395,48 +395,53 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
             }
         }
 
-        if( xMacEntry >= 0 )
+        if( xAllDone == pdFALSE )
         {
-            xUseEntry = xMacEntry;
-
-            if( xIpEntry >= 0 )
+            /* A perfect match was not found. See if either the MAC-address
+             * or the IP-address has a match. */
+            if( xMacEntry >= 0 )
             {
-                /* Both the MAC address as well as the IP address were found in
-                 * different locations: clear the entry which matches the
-                 * IP-address */
-                ( void ) memset( &( xARPCache[ xIpEntry ] ), 0, sizeof( ARPCacheRow_t ) );
+                xUseEntry = xMacEntry;
+
+                if( xIpEntry >= 0 )
+                {
+                    /* Both the MAC address as well as the IP address were found in
+                     * different locations: clear the entry which matches the
+                     * IP-address */
+                    ( void ) memset( &( xARPCache[ xIpEntry ] ), 0, sizeof( ARPCacheRow_t ) );
+                }
             }
-        }
-        else if( xIpEntry >= 0 )
-        {
-            /* An entry containing the IP-address was found, but it had a different MAC address */
-            xUseEntry = xIpEntry;
-        }
-        else
-        {
-            /* No matching entry found. */
-        }
+            else if( xIpEntry >= 0 )
+            {
+                /* An entry containing the IP-address was found, but it had a different MAC address */
+                xUseEntry = xIpEntry;
+            }
+            else
+            {
+                /* No matching entry found. */
+            }
 
-        /* If the entry was not found, we use the oldest entry and set the IPaddress */
-        xARPCache[ xUseEntry ].ulIPAddress = ulIPAddress;
+            /* If the entry was not found, we use the oldest entry and set the IPaddress */
+            xARPCache[ xUseEntry ].ulIPAddress = ulIPAddress;
 
-        if( pxMACAddress != NULL )
-        {
-            ( void ) memcpy( xARPCache[ xUseEntry ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( pxMACAddress->ucBytes ) );
+            if( pxMACAddress != NULL )
+            {
+                ( void ) memcpy( xARPCache[ xUseEntry ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( pxMACAddress->ucBytes ) );
 
-            iptraceARP_TABLE_ENTRY_CREATED( ulIPAddress, ( *pxMACAddress ) );
-            /* And this entry does not need immediate attention */
-            xARPCache[ xUseEntry ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
-            xARPCache[ xUseEntry ].ucValid = ( uint8_t ) pdTRUE;
-        }
-        else if( xIpEntry < 0 )
-        {
-            xARPCache[ xUseEntry ].ucAge = ( uint8_t ) ipconfigMAX_ARP_RETRANSMISSIONS;
-            xARPCache[ xUseEntry ].ucValid = ( uint8_t ) pdFALSE;
-        }
-        else
-        {
-            /* Nothing will be stored. */
+                iptraceARP_TABLE_ENTRY_CREATED( ulIPAddress, ( *pxMACAddress ) );
+                /* And this entry does not need immediate attention */
+                xARPCache[ xUseEntry ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
+                xARPCache[ xUseEntry ].ucValid = ( uint8_t ) pdTRUE;
+            }
+            else if( xIpEntry < 0 )
+            {
+                xARPCache[ xUseEntry ].ucAge = ( uint8_t ) ipconfigMAX_ARP_RETRANSMISSIONS;
+                xARPCache[ xUseEntry ].ucValid = ( uint8_t ) pdFALSE;
+            }
+            else
+            {
+                /* Nothing will be stored. */
+            }
         }
     }
 }
