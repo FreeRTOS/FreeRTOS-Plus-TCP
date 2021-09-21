@@ -2332,6 +2332,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         pxICMPHeader->ucTypeOfMessage = ( uint8_t ) ipICMP_ECHO_REPLY;
         pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
         pxIPHeader->ulSourceIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+        /* Update the TTL field. */
+        pxIPHeader->ucTimeToLive = ipconfigICMP_TIME_TO_LIVE;
 
         /* The stack doesn't support fragments, so the fragment offset field must always be zero.
          * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
