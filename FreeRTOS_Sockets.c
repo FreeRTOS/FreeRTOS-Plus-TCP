@@ -3906,7 +3906,7 @@ void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
  * @brief This function converts a human readable string, representing an 48-bit MAC address,
  *        into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba".
  *
- * @param[in] pcSource: The string to be parsed.
+ * @param[in] pcSource: The null terminated string to be parsed.
  * @param[out] pucTarget: A buffer that is 6 bytes long, it will contain the MAC address.
  *
  * @return pdTRUE in case the string got parsed correctly, otherwise pdFALSE.
@@ -3944,9 +3944,9 @@ BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
         }
         else
         {
-            if( uxNibbleCount < 1U )
+            if( uxNibbleCount != 2U )
             {
-                /* Missing nibble. */
+                /* Each number should have 2 nibbles. */
                 break;
             }
 
