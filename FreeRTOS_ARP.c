@@ -135,9 +135,10 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
             iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
             break;
         }
-	/* Check whether the lowest bit of the highest byte is 1 to check for
+
+        /* Check whether the lowest bit of the highest byte is 1 to check for
          * multicast address. */
-        else if( ( pxARPHeader->xSenderHardwareAddress.ucBytes[0] & 0x01 ) == 0x01 )
+        else if( ( pxARPHeader->xSenderHardwareAddress.ucBytes[ 0 ] & 0x01 ) == 0x01 )
         {
             /* Senders address is a multicast address which is not allowed for
              * an ARP packet. Drop the packet. See RFC 1812 section 3.3.2. */
@@ -253,7 +254,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                     break;
             }
         }
-    }while( ipFALSE_BOOL );
+    } while( ipFALSE_BOOL );
 
     return eReturn;
 }
