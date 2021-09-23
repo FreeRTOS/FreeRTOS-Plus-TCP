@@ -153,6 +153,21 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
              * an ARP packet. Drop the packet. See RFC 1812 section 3.3.2. */
             break;
         }
+        else if( ( ipFIRST_LOOPBACK_IPv4 <= FreeRTOS_ntohl( ulSenderProtocolAddress ) ) &&
+                 ( FreeRTOS_ntohl( ulSenderProtocolAddress ) < ipLAST_LOOPBACK_IPv4 ) )
+        {
+            /* The local loopback addresses must never appear outside a host. See RFC 1122
+             * section 3.2.1.3. */
+            break;
+        }
+        /* Check whether there is a clash with another device for this IP address. */
+        else if( memcmp( pxARPHeader->ucSenderProtocolAddress, ipLOCAL_IP_ADDRESS_POINTER, sizeof( uint32_t ) ) == 0 )
+        {
+            /* There is a clash with another device. Send out ARP request to show
+             * that there is a clash. */
+            FreeRTOS_OutputARPRequest( *ipLOCAL_IP_ADDRESS_POINTER );
+            break;
+        }
         else
         {
             /* All fields are valid and addresses are proper. */
@@ -182,8 +197,12 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                 case ipARP_REQUEST:
 
                     /* The packet contained an ARP request.  Was it for the IP
-                     * address of the node running this code? */
-                    if( ulTargetProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER )
+                     * address of the node running this code? And does the MAC
+                     * address claim that it is coming from this device itself? */
+                    if( ( ulTargetProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER ) &&
+                        ( memcmp( ( void * ) ipLOCAL_MAC_ADDRESS,
+                                  ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
+                                  sizeof( MACAddress_t ) ) != 0 ) )
                     {
                         iptraceSENDING_ARP_REPLY( ulSenderProtocolAddress );
 
@@ -278,9 +297,15 @@ static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
                                     uint32_t ulSenderProtocolAddress )
 {
     ARPHeader_t * pxARPHeader = &( pxARPFrame->xARPHeader );
+    uint32_t ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
 
-    iptracePROCESSING_RECEIVED_ARP_REPLY( ulTargetProtocolAddress );
-    vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress );
+    /* If the packet is meant for this device or if the entry already exists. */
+    if( ( ulTargetProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER ) ||
+        ( xIsIPInARPCache( ulSenderProtocolAddress ) == pdTRUE ) )
+    {
+        iptracePROCESSING_RECEIVED_ARP_REPLY( ulTargetProtocolAddress );
+        vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress );
+    }
 
     if( pxARPWaitingNetworkBuffer != NULL )
     {
