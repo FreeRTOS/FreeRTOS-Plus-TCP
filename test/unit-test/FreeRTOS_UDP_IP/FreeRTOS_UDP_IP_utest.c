@@ -291,11 +291,12 @@ void test_vProcessGeneratedUDPPacket_CacheHit_ICMPPacket_LLMNR_UDPChkSumOption( 
 void test_xProcessReceivedUDPPacket_catchAsserts( void )
 {
     NetworkBufferDescriptor_t xLocalNetworkBuffer;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
 
-    catch_assert( xProcessReceivedUDPPacket( NULL, 0 ) );
+    catch_assert( xProcessReceivedUDPPacket( NULL, 0, &xIsWaitingARPResolution ) );
 
     xLocalNetworkBuffer.pucEthernetBuffer = NULL;
-    catch_assert( xProcessReceivedUDPPacket( &xLocalNetworkBuffer, 0 ) );
+    catch_assert( xProcessReceivedUDPPacket( &xLocalNetworkBuffer, 0, &xIsWaitingARPResolution ) );
 }
 
 /*
@@ -308,6 +309,7 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_NotForThisNode( void )
     uint16_t usPort = 0;
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
     BaseType_t xResult;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
 
     /* Cleanup the ethernet buffer. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
@@ -317,8 +319,9 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_NotForThisNode( void )
     /* No socket found. */
     pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
 
-    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
+    TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
 }
 
 /*
@@ -331,6 +334,7 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_DelayedDNSResponse( void )
     uint16_t usPort = 0;
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
     BaseType_t xResult;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     UDPPacket_t * pxUDPPacket;
 
     /* Cleanup the ethernet buffer. */
@@ -348,8 +352,9 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_DelayedDNSResponse( void )
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
     ulDNSHandlePacket_ExpectAndReturn( &xLocalNetworkBuffer, pdPASS );
 
-    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
+    TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
 }
 
 /*
@@ -362,6 +367,7 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_LLMNRResponse( void )
     uint16_t usPort = FreeRTOS_ntohs( ipLLMNR_PORT );
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
     BaseType_t xResult;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     UDPPacket_t * pxUDPPacket;
 
     /* Cleanup the ethernet buffer. */
@@ -379,8 +385,9 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_LLMNRResponse( void )
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
     ulDNSHandlePacket_ExpectAndReturn( &xLocalNetworkBuffer, pdPASS );
 
-    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
+    TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
 }
 
 /*
@@ -393,6 +400,7 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_LLMNRResponse_MismatchingP
     uint16_t usPort = FreeRTOS_ntohs( ipLLMNR_PORT + 1 );
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
     BaseType_t xResult;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     UDPPacket_t * pxUDPPacket;
 
     /* Cleanup the ethernet buffer. */
@@ -408,8 +416,9 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_LLMNRResponse_MismatchingP
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
     ulDNSHandlePacket_ExpectAndReturn( &xLocalNetworkBuffer, pdPASS );
 
-    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
+    TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
 }
 
 /*
@@ -421,6 +430,7 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_NBNSResponse( void )
     uint16_t usPort = FreeRTOS_ntohs( ipNBNS_PORT );
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
     BaseType_t xResult;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     UDPPacket_t * pxUDPPacket;
 
     /* Cleanup the ethernet buffer. */
@@ -436,8 +446,9 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_NBNSResponse( void )
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
     ulNBNSHandlePacket_ExpectAndReturn( &xLocalNetworkBuffer, pdPASS );
 
-    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
+    TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
 }
 
 /*
@@ -450,6 +461,7 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_NBNSResponse_MismatchingPo
     uint16_t usPort = FreeRTOS_ntohs( ipNBNS_PORT + 1 );
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
     BaseType_t xResult;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     UDPPacket_t * pxUDPPacket;
 
     /* Cleanup the ethernet buffer. */
@@ -465,8 +477,9 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_NBNSResponse_MismatchingPo
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
     ulNBNSHandlePacket_ExpectAndReturn( &xLocalNetworkBuffer, pdPASS );
 
-    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
+    TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
 }
 
 /*
@@ -478,6 +491,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_BufferFull( void )
     uint16_t usPort = FreeRTOS_ntohs( ipNBNS_PORT );
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
     BaseType_t xResult;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     FreeRTOS_Socket_t xLocalSocket;
     UDPPacket_t * pxUDPPacket;
 
@@ -494,10 +508,12 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_BufferFull( void )
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
+    xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
 
-    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
+    TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
 }
 
 /*
@@ -510,6 +526,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_NoEventGroupSocketSetU
     uint16_t usPort = FreeRTOS_ntohs( ipNBNS_PORT );
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
     BaseType_t xResult;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     FreeRTOS_Socket_t xLocalSocket;
     UDPPacket_t * pxUDPPacket;
 
@@ -530,6 +547,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_NoEventGroupSocketSetU
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
+    xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
 
     vTaskSuspendAll_Expect();
@@ -538,8 +556,9 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_NoEventGroupSocketSetU
 
     xIsDHCPSocket_ExpectAndReturn( &xLocalSocket, 0 );
 
-    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
+    TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
 }
 
 /*
@@ -552,6 +571,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     uint16_t usPort = FreeRTOS_ntohs( ipNBNS_PORT );
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
     BaseType_t xResult;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     FreeRTOS_Socket_t xLocalSocket;
     UDPPacket_t * pxUDPPacket;
 
@@ -572,6 +592,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
+    xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
 
     vTaskSuspendAll_Expect();
@@ -584,8 +605,9 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     xIsDHCPSocket_ExpectAndReturn( &xLocalSocket, 1 );
     xSendDHCPEvent_ExpectAndReturn( pdPASS );
 
-    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
+    TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
 }
 
 /*
@@ -598,6 +620,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     uint16_t usPort = FreeRTOS_ntohs( ipNBNS_PORT );
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
     BaseType_t xResult;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     FreeRTOS_Socket_t xLocalSocket;
     UDPPacket_t * pxUDPPacket;
 
@@ -618,6 +641,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
+    xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
 
     vTaskSuspendAll_Expect();
@@ -630,8 +654,9 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     xIsDHCPSocket_ExpectAndReturn( &xLocalSocket, 1 );
     xSendDHCPEvent_ExpectAndReturn( pdPASS );
 
-    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
+    TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
 }
 
 /*
@@ -646,6 +671,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     BaseType_t xResult;
     FreeRTOS_Socket_t xLocalSocket;
     UDPPacket_t * pxUDPPacket;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     SocketSelect_t xLocalSocketSet;
 
     /* Cleanup. */
@@ -668,6 +694,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
+    xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
 
     vTaskSuspendAll_Expect();
@@ -681,8 +708,9 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     xIsDHCPSocket_ExpectAndReturn( &xLocalSocket, 1 );
     xSendDHCPEvent_ExpectAndReturn( pdPASS );
 
-    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
+    TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
 }
 
 /*
@@ -695,6 +723,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_HandlerFoundReturnZero_ValidEven
     uint16_t usPort = FreeRTOS_ntohs( ipNBNS_PORT );
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
     BaseType_t xResult;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     FreeRTOS_Socket_t xLocalSocket;
     UDPPacket_t * pxUDPPacket;
     SocketSelect_t xLocalSocketSet;
@@ -720,6 +749,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_HandlerFoundReturnZero_ValidEven
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
+    xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
 
     vTaskSuspendAll_Expect();
@@ -733,9 +763,54 @@ void test_xProcessReceivedUDPPacket_SocketFound_HandlerFoundReturnZero_ValidEven
     xIsDHCPSocket_ExpectAndReturn( &xLocalSocket, 1 );
     xSendDHCPEvent_ExpectAndReturn( pdPASS );
 
-    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
     TEST_ASSERT_EQUAL( 1, ulFunctionCalled );
+    TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
+}
+
+/*
+ * @brief Test when a matching socket is found but the IP-address requires ARP
+ * resolution.
+ */
+void test_xProcessReceivedUDPPacket_SocketFound_ARPResolutionRequired( void )
+{
+    NetworkBufferDescriptor_t xLocalNetworkBuffer;
+    uint16_t usPort = FreeRTOS_ntohs( ipNBNS_PORT );
+    uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xResult;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
+    FreeRTOS_Socket_t xLocalSocket;
+    UDPPacket_t * pxUDPPacket;
+    SocketSelect_t xLocalSocketSet;
+
+    /* Cleanup. */
+    memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
+    memset( &xLocalSocket, 0, sizeof( xLocalSocket ) );
+    ulFunctionCalled = 0;
+
+    xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
+
+    pxUDPPacket = ( UDPPacket_t * ) xLocalNetworkBuffer.pucEthernetBuffer;
+
+    xLocalSocket.u.xUDP.pxHandleReceive = xLocalHandler;
+    /* Since we have memset this to 0, anything bigger than 0 should suffice. */
+    xLocalSocket.u.xUDP.uxMaxPackets = 1;
+    xLocalSocket.xEventGroup = ( void * ) 1;
+    xLocalSocket.pxSocketSet = &xLocalSocketSet;
+    xLocalSocket.pxUserSemaphore = ( void * ) 1;
+    xLocalSocket.xSelectBits = eSELECT_READ;
+
+    xFunctionReturn = 0;
+
+    pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
+
+    xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdTRUE );
+
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
+    TEST_ASSERT_EQUAL( pdFAIL, xResult );
+    TEST_ASSERT_EQUAL( 0, ulFunctionCalled );
+    TEST_ASSERT_EQUAL( pdTRUE, xIsWaitingARPResolution );
 }
 
 /*
@@ -748,6 +823,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_HandlerFoundReturnNonZero( void 
     uint16_t usPort = FreeRTOS_ntohs( ipNBNS_PORT );
     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
     BaseType_t xResult;
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     FreeRTOS_Socket_t xLocalSocket;
     UDPPacket_t * pxUDPPacket;
     SocketSelect_t xLocalSocketSet;
@@ -774,9 +850,11 @@ void test_xProcessReceivedUDPPacket_SocketFound_HandlerFoundReturnNonZero( void 
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
+    xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
 
-    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort );
+    xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
     TEST_ASSERT_EQUAL( 1, ulFunctionCalled );
+    TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
 }
