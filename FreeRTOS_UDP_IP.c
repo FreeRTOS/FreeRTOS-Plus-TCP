@@ -292,11 +292,14 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
  *
  * @param[in] pxNetworkBuffer: The network buffer carrying the UDP packet.
  * @param[in] usPort: The port number on which this packet was received.
+ * @param[out] xIsWaitingARPResolution: If the packet is awaiting ARP resolution, this
+ *             pointer will be set to pdTRUE. pdFALSE otherwise.
  *
  * @return pdPASS in case the UDP packet could be processed. Else pdFAIL is returned.
  */
 BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint16_t usPort )
+                                      uint16_t usPort,
+                                      BaseType_t * xIsWaitingARPResolution )
 {
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
@@ -310,150 +313,169 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     /* Caller must check for minimum packet size. */
     pxSocket = pxUDPSocketLookup( usPort );
 
-    if( pxSocket != NULL )
+    *xIsWaitingARPResolution = pdFALSE;
+
+    do
     {
-        /* When refreshing the ARP cache with received UDP packets we must be
-         * careful;  hundreds of broadcast messages may pass and if we're not
-         * handling them, no use to fill the ARP cache with those IP addresses. */
-        vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
-
-        #if ( ipconfigUSE_CALLBACKS == 1 )
-            {
-                /* Did the owner of this socket register a reception handler ? */
-                if( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xUDP.pxHandleReceive ) )
-                {
-                    struct freertos_sockaddr xSourceAddress, destinationAddress;
-                    void * pcData = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
-                    FOnUDPReceive_t xHandler = ( FOnUDPReceive_t ) pxSocket->u.xUDP.pxHandleReceive;
-                    xSourceAddress.sin_port = pxNetworkBuffer->usPort;
-                    xSourceAddress.sin_addr = pxNetworkBuffer->ulIPAddress;
-                    destinationAddress.sin_port = usPort;
-                    destinationAddress.sin_addr = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
-
-                    /* The value of 'xDataLength' was proven to be at least the size of a UDP packet in prvProcessIPPacket(). */
-                    if( xHandler( ( Socket_t ) pxSocket,
-                                  ( void * ) pcData,
-                                  ( size_t ) ( pxNetworkBuffer->xDataLength - ipUDP_PAYLOAD_OFFSET_IPv4 ),
-                                  &( xSourceAddress ),
-                                  &( destinationAddress ) ) != 0 )
-                    {
-                        xReturn = pdFAIL; /* xHandler has consumed the data, do not add it to .xWaitingPacketsList'. */
-                    }
-                }
-            }
-        #endif /* ipconfigUSE_CALLBACKS */
-
-        #if ( ipconfigUDP_MAX_RX_PACKETS > 0U )
-            {
-                if( xReturn == pdPASS )
-                {
-                    if( listCURRENT_LIST_LENGTH( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) >= pxSocket->u.xUDP.uxMaxPackets )
-                    {
-                        FreeRTOS_debug_printf( ( "xProcessReceivedUDPPacket: buffer full %ld >= %ld port %u\n",
-                                                 listCURRENT_LIST_LENGTH( &( pxSocket->u.xUDP.xWaitingPacketsList ) ),
-                                                 pxSocket->u.xUDP.uxMaxPackets, pxSocket->usLocalPort ) );
-                        xReturn = pdFAIL; /* we did not consume or release the buffer */
-                    }
-                }
-            }
-        #endif /* if ( ipconfigUDP_MAX_RX_PACKETS > 0U ) */
-
-        #if ( ipconfigUSE_CALLBACKS == 1 ) || ( ipconfigUDP_MAX_RX_PACKETS > 0U )
-            if( xReturn == pdPASS ) /*lint !e774: Boolean within 'if' always evaluates to True, depending on configuration. [MISRA 2012 Rule 14.3, required. */
-        #else
-            /* xReturn is still pdPASS. */
-        #endif
+        if( pxSocket != NULL )
         {
-            vTaskSuspendAll();
+            if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
             {
-                taskENTER_CRITICAL();
-                {
-                    /* Add the network packet to the list of packets to be
-                     * processed by the socket. */
-                    vListInsertEnd( &( pxSocket->u.xUDP.xWaitingPacketsList ), &( pxNetworkBuffer->xBufferListItem ) );
-                }
-                taskEXIT_CRITICAL();
-            }
-            ( void ) xTaskResumeAll();
+                /* Mark this packet as waiting for ARP resolution. */
+                *xIsWaitingARPResolution = pdTRUE;
 
-            /* Set the socket's receive event */
-            if( pxSocket->xEventGroup != NULL )
+                /* Return a fail to show that the frame will not be processed right now. */
+                xReturn = pdFAIL;
+                break;
+            }
+            else
             {
-                ( void ) xEventGroupSetBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_RECEIVE );
+                /* IP address is not on the same subnet, ARP table can be updated.
+                 * When refreshing the ARP cache with received UDP packets we must be
+                 * careful;  hundreds of broadcast messages may pass and if we're not
+                 * handling them, no use to fill the ARP cache with those IP addresses.
+                 */
+                vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
             }
 
-            #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+            #if ( ipconfigUSE_CALLBACKS == 1 )
                 {
-                    if( ( pxSocket->pxSocketSet != NULL ) && ( ( pxSocket->xSelectBits & ( ( EventBits_t ) eSELECT_READ ) ) != 0U ) )
+                    /* Did the owner of this socket register a reception handler ? */
+                    if( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xUDP.pxHandleReceive ) )
                     {
-                        ( void ) xEventGroupSetBits( pxSocket->pxSocketSet->xSelectGroup, ( EventBits_t ) eSELECT_READ );
-                    }
-                }
-            #endif
+                        struct freertos_sockaddr xSourceAddress, destinationAddress;
+                        void * pcData = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+                        FOnUDPReceive_t xHandler = ( FOnUDPReceive_t ) pxSocket->u.xUDP.pxHandleReceive;
+                        xSourceAddress.sin_port = pxNetworkBuffer->usPort;
+                        xSourceAddress.sin_addr = pxNetworkBuffer->ulIPAddress;
+                        destinationAddress.sin_port = usPort;
+                        destinationAddress.sin_addr = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
 
-            #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE == 1 )
-                {
-                    if( pxSocket->pxUserSemaphore != NULL )
-                    {
-                        ( void ) xSemaphoreGive( pxSocket->pxUserSemaphore );
+                        /* The value of 'xDataLength' was proven to be at least the size of a UDP packet in prvProcessIPPacket(). */
+                        if( xHandler( ( Socket_t ) pxSocket,
+                                      ( void * ) pcData,
+                                      ( size_t ) ( pxNetworkBuffer->xDataLength - ipUDP_PAYLOAD_OFFSET_IPv4 ),
+                                      &( xSourceAddress ),
+                                      &( destinationAddress ) ) != 0 )
+                        {
+                            xReturn = pdFAIL; /* xHandler has consumed the data, do not add it to .xWaitingPacketsList'. */
+                        }
                     }
                 }
-            #endif
+            #endif /* ipconfigUSE_CALLBACKS */
 
-            #if ( ipconfigUSE_DHCP == 1 )
+            #if ( ipconfigUDP_MAX_RX_PACKETS > 0U )
                 {
-                    if( xIsDHCPSocket( pxSocket ) != 0 )
+                    if( xReturn == pdPASS )
                     {
-                        ( void ) xSendDHCPEvent();
+                        if( listCURRENT_LIST_LENGTH( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) >= pxSocket->u.xUDP.uxMaxPackets )
+                        {
+                            FreeRTOS_debug_printf( ( "xProcessReceivedUDPPacket: buffer full %ld >= %ld port %u\n",
+                                                     listCURRENT_LIST_LENGTH( &( pxSocket->u.xUDP.xWaitingPacketsList ) ),
+                                                     pxSocket->u.xUDP.uxMaxPackets, pxSocket->usLocalPort ) );
+                            xReturn = pdFAIL; /* we did not consume or release the buffer */
+                        }
                     }
                 }
+            #endif /* if ( ipconfigUDP_MAX_RX_PACKETS > 0U ) */
+
+            #if ( ipconfigUSE_CALLBACKS == 1 ) || ( ipconfigUDP_MAX_RX_PACKETS > 0U )
+                if( xReturn == pdPASS ) /*lint !e774: Boolean within 'if' always evaluates to True, depending on configuration. [MISRA 2012 Rule 14.3, required. */
+            #else
+                /* xReturn is still pdPASS. */
             #endif
+            {
+                vTaskSuspendAll();
+                {
+                    taskENTER_CRITICAL();
+                    {
+                        /* Add the network packet to the list of packets to be
+                         * processed by the socket. */
+                        vListInsertEnd( &( pxSocket->u.xUDP.xWaitingPacketsList ), &( pxNetworkBuffer->xBufferListItem ) );
+                    }
+                    taskEXIT_CRITICAL();
+                }
+                ( void ) xTaskResumeAll();
+
+                /* Set the socket's receive event */
+                if( pxSocket->xEventGroup != NULL )
+                {
+                    ( void ) xEventGroupSetBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_RECEIVE );
+                }
+
+                #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+                    {
+                        if( ( pxSocket->pxSocketSet != NULL ) && ( ( pxSocket->xSelectBits & ( ( EventBits_t ) eSELECT_READ ) ) != 0U ) )
+                        {
+                            ( void ) xEventGroupSetBits( pxSocket->pxSocketSet->xSelectGroup, ( EventBits_t ) eSELECT_READ );
+                        }
+                    }
+                #endif
+
+                #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE == 1 )
+                    {
+                        if( pxSocket->pxUserSemaphore != NULL )
+                        {
+                            ( void ) xSemaphoreGive( pxSocket->pxUserSemaphore );
+                        }
+                    }
+                #endif
+
+                #if ( ipconfigUSE_DHCP == 1 )
+                    {
+                        if( xIsDHCPSocket( pxSocket ) != 0 )
+                        {
+                            ( void ) xSendDHCPEvent();
+                        }
+                    }
+                #endif
+            }
         }
-    }
-    else
-    {
-        /* There is no socket listening to the target port, but still it might
-         * be for this node. */
-
-        #if ( ipconfigUSE_DNS == 1 ) && ( ipconfigDNS_USE_CALLBACKS == 1 )
-
-            /* A DNS reply, check for the source port.  Although the DNS client
-             * does open a UDP socket to send a messages, this socket will be
-             * closed after a short timeout.  Messages that come late (after the
-             * socket is closed) will be treated here. */
-            if( FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usSourcePort ) == ( uint16_t ) ipDNS_PORT )
-            {
-                vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
-                xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
-            }
-            else
-        #endif
-
-        #if ( ipconfigUSE_LLMNR == 1 )
-            /* A LLMNR request, check for the destination port. */
-            if( ( usPort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) ||
-                ( pxUDPPacket->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) )
-            {
-                vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
-                xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
-            }
-            else
-        #endif /* ipconfigUSE_LLMNR */
-
-        #if ( ipconfigUSE_NBNS == 1 )
-            /* a NetBIOS request, check for the destination port */
-            if( ( usPort == FreeRTOS_ntohs( ipNBNS_PORT ) ) ||
-                ( pxUDPPacket->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipNBNS_PORT ) ) )
-            {
-                vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
-                xReturn = ( BaseType_t ) ulNBNSHandlePacket( pxNetworkBuffer );
-            }
-            else
-        #endif /* ipconfigUSE_NBNS */
+        else
         {
-            xReturn = pdFAIL;
+            /* There is no socket listening to the target port, but still it might
+             * be for this node. */
+
+            #if ( ipconfigUSE_DNS == 1 ) && ( ipconfigDNS_USE_CALLBACKS == 1 )
+
+                /* A DNS reply, check for the source port.  Although the DNS client
+                 * does open a UDP socket to send a messages, this socket will be
+                 * closed after a short timeout.  Messages that come late (after the
+                 * socket is closed) will be treated here. */
+                if( FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usSourcePort ) == ( uint16_t ) ipDNS_PORT )
+                {
+                    vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
+                    xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
+                }
+                else
+            #endif
+
+            #if ( ipconfigUSE_LLMNR == 1 )
+                /* A LLMNR request, check for the destination port. */
+                if( ( usPort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) ||
+                    ( pxUDPPacket->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) )
+                {
+                    vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
+                    xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
+                }
+                else
+            #endif /* ipconfigUSE_LLMNR */
+
+            #if ( ipconfigUSE_NBNS == 1 )
+                /* a NetBIOS request, check for the destination port */
+                if( ( usPort == FreeRTOS_ntohs( ipNBNS_PORT ) ) ||
+                    ( pxUDPPacket->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipNBNS_PORT ) ) )
+                {
+                    vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
+                    xReturn = ( BaseType_t ) ulNBNSHandlePacket( pxNetworkBuffer );
+                }
+                else
+            #endif /* ipconfigUSE_NBNS */
+            {
+                xReturn = pdFAIL;
+            }
         }
-    }
+    } while( 0 );
 
     return xReturn;
 }

@@ -49,6 +49,14 @@ FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
 void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    BaseType_t * pxIsWaitingForARPResolution;
+
+    pxIsWaitingForARPResolution = safeMalloc( sizeof( BaseType_t ) );
+
+    /* The function under test is only called by the IP-task. The below pointer is an
+     * address of a local variable which is being passed to the function under test.
+     * Thus, it cannot ever be NULL. */
+    __CPROVER_assume( pxIsWaitingForARPResolution != NULL );
 
     if( pxNetworkBuffer )
     {
@@ -59,6 +67,6 @@ void harness()
 
     if( pxNetworkBuffer && pxNetworkBuffer->pucEthernetBuffer )
     {
-        xProcessReceivedUDPPacket( pxNetworkBuffer, usPort );
+        xProcessReceivedUDPPacket( pxNetworkBuffer, usPort, pxIsWaitingForARPResolution );
     }
 }
