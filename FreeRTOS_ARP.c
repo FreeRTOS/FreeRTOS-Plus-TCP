@@ -86,19 +86,6 @@ _static ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
 /** @brief  The time at which the last gratuitous ARP was sent.  Gratuitous ARPs are used
  * to ensure ARP tables are up to date and to detect IP address conflicts. */
 static TickType_t xLastGratuitousARPTime = ( TickType_t ) 0;
-
-/*
- * IP-clash detection is currently only used internally. When DHCP doesn't respond, the
- * driver can try out a random LinkLayer IP address (169.254.x.x).  It will send out a
- * gratuitous ARP message and, after a period of time, check the variables here below:
- */
-#if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
-    /* Becomes non-zero if another device responded to a gratuitous ARP message. */
-    BaseType_t xARPHadIPClash;
-    /* MAC-address of the other device containing the same IP-address. */
-    MACAddress_t xARPClashMacAddress;
-#endif /* ipconfigARP_USE_CLASH_DETECTION */
-
 /*-----------------------------------------------------------*/
 
 /**
@@ -118,6 +105,19 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
     void * pvCopyDest;
 
     pxARPHeader = &( pxARPFrame->xARPHeader );
+
+    /* The field ulSenderProtocolAddress is badly aligned, copy byte-by-byte. */
+
+    /*
+     * Use helper variables for memcpy() to remain
+     * compliant with MISRA Rule 21.15.  These should be
+     * optimized away.
+     */
+    pvCopySource = pxARPHeader->ucSenderProtocolAddress;
+    pvCopyDest = &ulSenderProtocolAddress;
+    ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( ulSenderProtocolAddress ) );
+    /* The field ulTargetProtocolAddress is well-aligned, a 32-bits copy. */
+    ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
 
     /* Introduce a do while loop to allow use of breaks. */
     do
@@ -161,7 +161,8 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
             break;
         }
         /* Check whether there is a clash with another device for this IP address. */
-        else if( memcmp( pxARPHeader->ucSenderProtocolAddress, ipLOCAL_IP_ADDRESS_POINTER, sizeof( uint32_t ) ) == 0 )
+        else if( ( ulSenderProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER ) &&
+                 ( *ipLOCAL_IP_ADDRESS_POINTER != 0UL ) )
         {
             /* There is a clash with another device. Send out ARP request to show
              * that there is a clash. */
@@ -172,19 +173,6 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
         {
             /* All fields are valid and addresses are proper. */
         }
-
-        /* The field ulSenderProtocolAddress is badly aligned, copy byte-by-byte. */
-
-        /*
-         * Use helper variables for memcpy() to remain
-         * compliant with MISRA Rule 21.15.  These should be
-         * optimized away.
-         */
-        pvCopySource = pxARPHeader->ucSenderProtocolAddress;
-        pvCopyDest = &ulSenderProtocolAddress;
-        ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( ulSenderProtocolAddress ) );
-        /* The field ulTargetProtocolAddress is well-aligned, a 32-bits copy. */
-        ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
 
         traceARP_PACKET_RECEIVED();
 
@@ -214,35 +202,11 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                         /* Generate a reply payload in the same buffer. */
                         pxARPHeader->usOperation = ( uint16_t ) ipARP_REPLY;
 
-                        if( ulTargetProtocolAddress == ulSenderProtocolAddress )
-                        {
-                            /* A double IP address is detected! */
-                            /* Give the sources MAC address the value of the broadcast address, will be swapped later */
+                        ( void ) memcpy( &( pxARPHeader->xTargetHardwareAddress ),
+                                         &( pxARPHeader->xSenderHardwareAddress ),
+                                         sizeof( MACAddress_t ) );
 
-                            /*
-                             * Use helper variables for memcpy() to remain
-                             * compliant with MISRA Rule 21.15.  These should be
-                             * optimized away.
-                             */
-                            pvCopySource = xBroadcastMACAddress.ucBytes;
-                            pvCopyDest = pxARPFrame->xEthernetHeader.xSourceAddress.ucBytes;
-                            ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( xBroadcastMACAddress ) );
-
-                            ( void ) memset( pxARPHeader->xTargetHardwareAddress.ucBytes, 0, sizeof( MACAddress_t ) );
-                            pxARPHeader->ulTargetProtocolAddress = 0UL;
-                        }
-                        else
-                        {
-                            /*
-                             * Use helper variables for memcpy() to remain
-                             * compliant with MISRA Rule 21.15.  These should be
-                             * optimized away.
-                             */
-                            pvCopySource = pxARPHeader->xSenderHardwareAddress.ucBytes;
-                            pvCopyDest = pxARPHeader->xTargetHardwareAddress.ucBytes;
-                            ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( MACAddress_t ) );
-                            pxARPHeader->ulTargetProtocolAddress = ulSenderProtocolAddress;
-                        }
+                        pxARPHeader->ulTargetProtocolAddress = ulSenderProtocolAddress;
 
                         /*
                          * Use helper variables for memcpy() to remain
@@ -252,6 +216,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                         pvCopySource = ipLOCAL_MAC_ADDRESS;
                         pvCopyDest = pxARPHeader->xSenderHardwareAddress.ucBytes;
                         ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( MACAddress_t ) );
+
                         pvCopySource = ipLOCAL_IP_ADDRESS_POINTER;
                         pvCopyDest = pxARPHeader->ucSenderProtocolAddress;
                         ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxARPHeader->ucSenderProtocolAddress ) );
@@ -264,17 +229,6 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                 case ipARP_REPLY:
                     vProcessARPPacketReply( pxARPFrame, ulSenderProtocolAddress );
 
-                    /* Process received ARP frame to see if there is a clash. */
-                    #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
-                        {
-                            if( ulSenderProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER )
-                            {
-                                xARPHadIPClash = pdTRUE;
-                                /* Remember the MAC-address of the other device which has the same IP-address. */
-                                ( void ) memcpy( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( xARPClashMacAddress.ucBytes ) );
-                            }
-                        }
-                    #endif /* ipconfigARP_USE_CLASH_DETECTION */
                     break;
 
                 default:
