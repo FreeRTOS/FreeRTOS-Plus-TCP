@@ -65,6 +65,17 @@
  *  is defined in FreeRTOS_IP.c. */
 extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
+/*
+ * IP-clash detection is currently only used internally. When DHCP doesn't respond, the
+ * driver can try out a random LinkLayer IP address (169.254.x.x).  It will send out a
+ * gratuitous ARP message and, after a period of time, check the variables here below:
+ */
+#if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
+    /* Becomes non-zero if another device responded to a gratuitous ARP message. */
+    BaseType_t xARPHadIPClash;
+    /* MAC-address of the other device containing the same IP-address. */
+    MACAddress_t xARPClashMacAddress;
+#endif /* ipconfigARP_USE_CLASH_DETECTION */
 /*-----------------------------------------------------------*/
 
 /*
@@ -167,6 +178,16 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
             /* There is a clash with another device. Send out ARP request to show
              * that there is a clash. */
             FreeRTOS_OutputARPRequest( *ipLOCAL_IP_ADDRESS_POINTER );
+
+            /* Process received ARP frame to see if there is a clash. */
+            #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
+                {
+                    xARPHadIPClash = pdTRUE;
+                    /* Remember the MAC-address of the other device which has the same IP-address. */
+                    ( void ) memcpy( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( xARPClashMacAddress.ucBytes ) );
+                }
+            #endif /* ipconfigARP_USE_CLASH_DETECTION */
+
             break;
         }
         else
