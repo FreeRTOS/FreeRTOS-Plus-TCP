@@ -934,6 +934,8 @@
         extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t );
     #endif
 
+    extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t );
+
     void vIPSetDHCPTimerEnableState( BaseType_t xEnableState );
     void vIPReloadDHCPTimer( uint32_t ulLeaseTime );
     #if ( ipconfigDNS_USE_CALLBACKS != 0 )

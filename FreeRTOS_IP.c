@@ -174,16 +174,6 @@ typedef union _xUnionPtr
 /** @brief The pointer to buffer with packet waiting for ARP resolution. */
 NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
 
-/**
- * @brief Utility function to cast pointer of a type to pointer of type NetworkBufferDescriptor_t.
- *
- * @return The casted pointer.
- */
-static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
-{
-    return ( NetworkBufferDescriptor_t * ) pvArgument;
-}
-
 /*-----------------------------------------------------------*/
 
 /*
