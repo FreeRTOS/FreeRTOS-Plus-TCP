@@ -299,7 +299,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
  */
 BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                       uint16_t usPort,
-                                      BaseType_t * xIsWaitingARPResolution )
+                                      BaseType_t * xIsWaitingForARPResolution )
 {
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
@@ -313,7 +313,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     /* Caller must check for minimum packet size. */
     pxSocket = pxUDPSocketLookup( usPort );
 
-    *xIsWaitingARPResolution = pdFALSE;
+    *xIsWaitingForARPResolution = pdFALSE;
 
     do
     {
@@ -322,7 +322,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
             if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
             {
                 /* Mark this packet as waiting for ARP resolution. */
-                *xIsWaitingARPResolution = pdTRUE;
+                *xIsWaitingForARPResolution = pdTRUE;
 
                 /* Return a fail to show that the frame will not be processed right now. */
                 xReturn = pdFAIL;
@@ -475,7 +475,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
                 xReturn = pdFAIL;
             }
         }
-    } while( 0 );
+    } while( ipFALSE_BOOL );
 
     return xReturn;
 }
