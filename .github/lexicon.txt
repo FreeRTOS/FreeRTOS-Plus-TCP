@@ -1278,6 +1278,7 @@ uxtotaldatalength
 uxtotallength
 uxtxstreamsize
 uxtxwinsize
+uxunrollcount
 uxupper
 uxwinsize
 val
@@ -1286,6 +1287,8 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
+vcastconstpointerto
+vcastconstptrto
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess

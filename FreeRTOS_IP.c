@@ -2932,7 +2932,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                 default:
 
                     /* When there is a default statement, MISRA complains,
-                     * but without a default stament, MISRA also complains. */
+                     * but without a default statement, MISRA also complains. */
                     break;
             }
 
