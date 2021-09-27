@@ -3980,6 +3980,16 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t )
     }
     /*-----------------------------------------------------------*/
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
+
+/**
+ * @brief Cast a given pointer to NetworkBufferDescriptor_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
+{
+    return ( NetworkBufferDescriptor_t * ) pvArgument;
+}
+
+
 /** @} */
 
 /**
