@@ -284,6 +284,7 @@ etv
 eunknown
 eventbits
 ewaitingacknowledge
+ewaitingarpresolution
 ewaitingoffer
 ewaitingsendfirstdiscover
 ewouldblock
@@ -757,6 +758,7 @@ pxaddresslength
 pxallnetworkinterfaces
 pxanswer
 pxarpframe
+pxarpwaitingnetworkbuffer
 pxbindaddress
 pxbuffer
 pxbufferdescriptor
@@ -1341,6 +1343,7 @@ www
 xaddress
 xaddressfamily
 xaddresslength
+xalldone
 xapplicationdhcphook
 xapplicationdhcpuserhook
 xapplicationdnsqueryhook
@@ -1417,6 +1420,7 @@ xiptaskinitialised
 xisbound
 xisforrx
 xisinputstream
+xiswaitingarpresolution
 xitemvalue
 xlastacttime
 xlastalivetime
@@ -1428,6 +1432,7 @@ xlinkstatustimer
 xlistend
 xlistitem
 xlistitemalreadyinfreelist
+xlocalbuffer
 xlocalport
 xlookup
 xlwipconfig
