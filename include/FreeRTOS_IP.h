@@ -70,8 +70,8 @@
                                                         uint16_t usDestinationPort );
 
 /* The number of octets in the MAC and IP addresses respectively. */
-    #define ipMAC_ADDRESS_LENGTH_BYTES                 ( 6 )
-    #define ipIP_ADDRESS_LENGTH_BYTES                  ( 4 )
+    #define ipMAC_ADDRESS_LENGTH_BYTES                 ( 6U )
+    #define ipIP_ADDRESS_LENGTH_BYTES                  ( 4U )
 
 /* IP protocol definitions. */
     #define ipPROTOCOL_ICMP                            ( 1U )
@@ -186,15 +186,15 @@
         #endif
 
         #ifndef FreeRTOS_htonl
-            #define FreeRTOS_htonl( ulIn )                          \
-    (                                                               \
-        ( uint32_t )                                                \
-        (                                                           \
-            ( ( ( ( uint32_t ) ( ulIn ) ) ) << 24 ) |               \
-            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x0000ff00UL ) << 8 ) | \
-            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x00ff0000UL ) >> 8 ) | \
-            ( ( ( ( uint32_t ) ( ulIn ) ) ) >> 24 )                 \
-        )                                                           \
+            #define FreeRTOS_htonl( ulIn )                         \
+    (                                                              \
+        ( uint32_t )                                               \
+        (                                                          \
+            ( ( ( ( uint32_t ) ( ulIn ) ) ) << 24 ) |              \
+            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x0000ff00U ) << 8 ) | \
+            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x00ff0000U ) >> 8 ) | \
+            ( ( ( ( uint32_t ) ( ulIn ) ) ) >> 24 )                \
+        )                                                          \
     )
         #endif /* ifndef FreeRTOS_htonl */
 
@@ -208,14 +208,25 @@
     #define FreeRTOS_ntohs( x )    FreeRTOS_htons( x )
     #define FreeRTOS_ntohl( x )    FreeRTOS_htonl( x )
 
+/* Some simple helper functions. */
     int32_t FreeRTOS_max_int32( int32_t a,
                                 int32_t b );
+
     uint32_t FreeRTOS_max_uint32( uint32_t a,
                                   uint32_t b );
+
+    size_t FreeRTOS_max_size_t( size_t a,
+                                size_t b );
+
     int32_t FreeRTOS_min_int32( int32_t a,
                                 int32_t b );
+
     uint32_t FreeRTOS_min_uint32( uint32_t a,
                                   uint32_t b );
+
+    size_t FreeRTOS_min_size_t( size_t a,
+                                size_t b );
+
     uint32_t FreeRTOS_round_up( uint32_t a,
                                 uint32_t d );
     uint32_t FreeRTOS_round_down( uint32_t a,
@@ -285,7 +296,7 @@
     uint32_t FreeRTOS_GetGatewayAddress( void );
     uint32_t FreeRTOS_GetDNSServerAddress( void );
     uint32_t FreeRTOS_GetNetmask( void );
-    void vIPSetARPResolutionTimerEnableState( BaseType_t xState );
+    void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
     BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
                                    TickType_t uxTicksToWait );
     void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
@@ -349,6 +360,11 @@
 /* "xApplicationGetRandomNumber" is declared but never defined, because it may
  * be defined in a user module. */
     extern BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
+
+/** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
+ *  is defined in FreeRTOS_IP.c.
+ *  This pointer is for internal use only. */
+    extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
 /* For backward compatibility define old structure names to the newer equivalent
  * structure name. */
