@@ -363,7 +363,7 @@
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
  *  is defined in FreeRTOS_IP.c.
- *  This pointer os for internal use only. */
+ *  This pointer is for internal use only. */
     extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
 /* For backward compatibility define old structure names to the newer equivalent
