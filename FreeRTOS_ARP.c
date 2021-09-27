@@ -148,22 +148,13 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
             break;
         }
 
-        if( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
-                    ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
-                    sizeof( MACAddress_t ) ) == 0 )
-        {
-            /* Source hardware address is a broadcast address which cannot be the
-             * case for ARP. See RFC 1812 section 3.3.2. */
-            iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
-            break;
-        }
-
         /* Check whether the lowest bit of the highest byte is 1 to check for
-         * multicast address. */
+         * multicast address or even a broadcast address (FF:FF:FF:FF:FF:FF). */
         if( ( pxARPHeader->xSenderHardwareAddress.ucBytes[ 0 ] & 0x01U ) == 0x01U )
         {
-            /* Senders address is a multicast address which is not allowed for
-             * an ARP packet. Drop the packet. See RFC 1812 section 3.3.2. */
+            /* Senders address is a multicast OR broadcast address which is not
+             * allowed for an ARP packet. Drop the packet. See RFC 1812 section
+             * 3.3.2. */
             break;
         }
 
