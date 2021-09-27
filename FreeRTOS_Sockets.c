@@ -110,17 +110,6 @@
 
 
 /**
- * @brief Utility function to cast pointer of a type to pointer of type NetworkBufferDescriptor_t.
- *
- * @return The casted pointer.
- */
-static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
-{
-    return ( NetworkBufferDescriptor_t * ) pvArgument;
-}
-/*-----------------------------------------------------------*/
-
-/**
  * @brief Utility function to cast pointer of a type to pointer of type StreamBuffer_t.
  *
  * @return The casted pointer.
