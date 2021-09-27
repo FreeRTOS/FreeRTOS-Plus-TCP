@@ -921,6 +921,11 @@
 
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
+    #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) || ( ipconfigUSE_TCP == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t );
+        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t );
+    #endif
+
     void vIPSetDHCPTimerEnableState( BaseType_t xEnableState );
     void vIPReloadDHCPTimer( uint32_t ulLeaseTime );
     #if ( ipconfigDNS_USE_CALLBACKS != 0 )

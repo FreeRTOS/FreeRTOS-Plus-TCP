@@ -410,6 +410,7 @@ knowns
 lan
 lastpacket
 lbytes
+lbytesleft
 lc
 lca
 lco
@@ -457,6 +458,7 @@ ltcpaddrxdata
 ltcpwindowrxcheck
 ltcpwindowtxadd
 ltd
+ltowrite
 ltxbufsize
 ltxwinsize
 lwip
@@ -1142,6 +1144,7 @@ ulsequencenumber
 ulsize
 ulsourceipaddress
 ulspace
+ulsrtt
 ulstatus
 ulsubnetmask
 ulsum
@@ -1224,6 +1227,7 @@ utf
 uuid
 uxaddresslength
 uxblocktimeticks
+uxborn
 uxbufferlength
 uxbytecount
 uxcount
