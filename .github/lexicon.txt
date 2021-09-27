@@ -414,6 +414,7 @@ lc
 lca
 lco
 lcount
+lcurmss
 ldatalen
 ldatalength
 ldistance
@@ -1049,6 +1050,7 @@ ucsenderprotocoladdress
 ucserverhostname
 ucsocketoptions
 ucspeed
+ucstatus
 uctcpflags
 uctcpoffset
 uctcpstate
@@ -1075,6 +1077,7 @@ ulchecktime
 ulconnected
 ulcount
 ulclientipaddress
+ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
 uldefaultipaddress
@@ -1350,6 +1353,7 @@ xboundsocketlistitem
 xboundtcpsocketslist
 xboundudpsocketslist
 xbroadcastmacaddress
+xbufferallocfixedsize
 xbufferlength
 xbufferlistitem
 xbytecount
@@ -1482,6 +1486,7 @@ xsendeventstructtoiptask
 xsendlength
 xserversocket
 xsize
+xsizewithoutdata
 xsocket
 xsocketbits
 xsocketset
