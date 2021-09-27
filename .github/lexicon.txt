@@ -1289,6 +1289,8 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
+vcastconstpointerto
+vcastconstptrto
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
