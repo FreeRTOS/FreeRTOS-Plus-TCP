@@ -64,18 +64,6 @@
 /** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
  *  is defined in FreeRTOS_IP.c. */
 extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
-
-/*
- * IP-clash detection is currently only used internally. When DHCP doesn't respond, the
- * driver can try out a random LinkLayer IP address (169.254.x.x).  It will send out a
- * gratuitous ARP message and, after a period of time, check the variables here below:
- */
-#if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
-    /* Becomes non-zero if another device responded to a gratuitous ARP message. */
-    BaseType_t xARPHadIPClash;
-    /* MAC-address of the other device containing the same IP-address. */
-    MACAddress_t xARPClashMacAddress;
-#endif /* ipconfigARP_USE_CLASH_DETECTION */
 /*-----------------------------------------------------------*/
 
 /*
@@ -97,6 +85,19 @@ _static ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
 /** @brief  The time at which the last gratuitous ARP was sent.  Gratuitous ARPs are used
  * to ensure ARP tables are up to date and to detect IP address conflicts. */
 static TickType_t xLastGratuitousARPTime = ( TickType_t ) 0;
+
+/*
+ * IP-clash detection is currently only used internally. When DHCP doesn't respond, the
+ * driver can try out a random LinkLayer IP address (169.254.x.x).  It will send out a
+ * gratuitous ARP message and, after a period of time, check the variables here below:
+ */
+#if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
+    /* Becomes non-zero if another device responded to a gratuitous ARP message. */
+    BaseType_t xARPHadIPClash;
+    /* MAC-address of the other device containing the same IP-address. */
+    MACAddress_t xARPClashMacAddress;
+#endif /* ipconfigARP_USE_CLASH_DETECTION */
+
 /*-----------------------------------------------------------*/
 
 /**
@@ -146,9 +147,10 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
             iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
             break;
         }
-        else if( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
-                         ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
-                         sizeof( MACAddress_t ) ) == 0 )
+
+        if( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
+                    ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
+                    sizeof( MACAddress_t ) ) == 0 )
         {
             /* Source hardware address is a broadcast address which cannot be the
              * case for ARP. See RFC 1812 section 3.3.2. */
@@ -158,22 +160,26 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 
         /* Check whether the lowest bit of the highest byte is 1 to check for
          * multicast address. */
-        else if( ( pxARPHeader->xSenderHardwareAddress.ucBytes[ 0 ] & 0x01 ) == 0x01 )
+        if( ( pxARPHeader->xSenderHardwareAddress.ucBytes[ 0 ] & 0x01U ) == 0x01U )
         {
             /* Senders address is a multicast address which is not allowed for
              * an ARP packet. Drop the packet. See RFC 1812 section 3.3.2. */
             break;
         }
-        else if( ( ipFIRST_LOOPBACK_IPv4 <= FreeRTOS_ntohl( ulSenderProtocolAddress ) ) &&
-                 ( FreeRTOS_ntohl( ulSenderProtocolAddress ) < ipLAST_LOOPBACK_IPv4 ) )
+
+        uint32_t ulHostEndianProtocolAddr = FreeRTOS_ntohl( ulSenderProtocolAddress );
+
+        if( ( ipFIRST_LOOPBACK_IPv4 <= ulHostEndianProtocolAddr ) &&
+            ( ulHostEndianProtocolAddr < ipLAST_LOOPBACK_IPv4 ) )
         {
             /* The local loopback addresses must never appear outside a host. See RFC 1122
              * section 3.2.1.3. */
             break;
         }
+
         /* Check whether there is a clash with another device for this IP address. */
-        else if( ( ulSenderProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER ) &&
-                 ( *ipLOCAL_IP_ADDRESS_POINTER != 0UL ) )
+        if( ( ulSenderProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER ) &&
+            ( *ipLOCAL_IP_ADDRESS_POINTER != 0UL ) )
         {
             /* There is a clash with another device. Send out ARP request to show
              * that there is a clash. */
@@ -189,10 +195,6 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
             #endif /* ipconfigARP_USE_CLASH_DETECTION */
 
             break;
-        }
-        else
-        {
-            /* All fields are valid and addresses are proper. */
         }
 
         traceARP_PACKET_RECEIVED();
