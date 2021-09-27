@@ -769,6 +769,7 @@ pxhigherprioritytaskwoken
 pxicmppacket
 pxipheader
 pxippacket
+pxiswaitingforarpresolution
 pxiterator
 pxlength
 pxlist
@@ -1286,6 +1287,8 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
+vcastconstpointerto
+vcastconstptrto
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
