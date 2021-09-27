@@ -41,6 +41,7 @@ atmel
 automaticpadcrcstrip
 autonegotiation
 aws
+ba
 backoff
 backofflimit
 backpressure
@@ -144,10 +145,13 @@ cpu
 cpus
 cr
 crc
+cresult
 crs
+cseparator
 csn
 csr
 csv
+cten
 ctrl
 curtok
 cwd
@@ -676,6 +680,7 @@ pcs
 pcservername
 pcservice
 pcsource
+pctarget
 pcto
 pctype
 pd
@@ -826,6 +831,7 @@ pucpayload
 pucptr
 pucrecvdata
 pucreturn
+pucsource
 pucstart
 puctarget
 pucudppayload
@@ -1652,6 +1658,7 @@ xdocheck
 xdolog
 xdomain
 xdorandom
+xdoremove
 xdoreset
 xdostore
 xdumpingready

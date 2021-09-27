@@ -419,6 +419,12 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
     static UBaseType_t uxQueueMinimumSpace = ipconfigEVENT_QUEUE_LENGTH;
 #endif
 
+#if ( ipconfigUSE_IPv6 != 0 )
+    /** @brief Handle the IPv6 extension headers. */
+    static eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                                 BaseType_t xDoRemove );
+#endif
+
 /*-----------------------------------------------------------*/
 
 /* Coverity wants to make pvParameters const, which would make it incompatible. Leave the
@@ -963,7 +969,7 @@ static TickType_t prvCalculateSleepTime( void )
     {
         if( xARPTimer.ulRemainingTime < xMaximumSleepTime )
         {
-            xMaximumSleepTime = xARPTimer.ulReloadTime;
+            xMaximumSleepTime = xARPTimer.ulRemainingTime;
         }
     }
 
@@ -3082,6 +3088,176 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_IPv6 != 0 )
+    static BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
+                                          uint8_t ucNextHeader )
+    {
+        BaseType_t xReturn;
+
+        switch( ucProtocol )
+        {
+            case ipIPv6_EXT_HEADER_HOP_BY_HOP:
+                xReturn = 1;
+                break;
+
+            case ipIPv6_EXT_HEADER_DESTINATION_OPTIONS:
+                xReturn = 7;
+
+                if( ucNextHeader == ipIPv6_EXT_HEADER_ROUTING_HEADER )
+                {
+                    xReturn = 2;
+                }
+
+                break;
+
+            case ipIPv6_EXT_HEADER_ROUTING_HEADER:
+                xReturn = 3;
+                break;
+
+            case ipIPv6_EXT_HEADER_FRAGMENT_HEADER:
+                xReturn = 4;
+                break;
+
+            case ipIPv6_EXT_HEADER_AUTHEN_HEADER:
+                xReturn = 5;
+                break;
+
+            case ipIPv6_EXT_HEADER_SECURE_PAYLOAD:
+                xReturn = 6;
+                break;
+
+            /* Destination options may follow here in case there are no routing options. */
+            case ipIPv6_EXT_HEADER_MOBILITY_HEADER:
+                xReturn = 8;
+                break;
+
+            default:
+                xReturn = -1;
+                break;
+        }
+
+        return xReturn;
+    }
+
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv6 != 0 )
+
+/**
+ * @brief Handle the IPv6 extension headers.
+ *
+ * @param[in,out] pxNetworkBuffer: The received packet that contains IPv6 extension headers.
+ *
+ * @return eProcessBuffer in case the options are removed successfully, otherwise
+ *         eReleaseBuffer.
+ */
+    static eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                                 BaseType_t xDoRemove )
+    {
+        eFrameProcessingResult_t eResult = eReleaseBuffer;
+        const size_t uxMaxLength = pxNetworkBuffer->xDataLength;
+        const uint8_t * pucSource = pxNetworkBuffer->pucEthernetBuffer;
+        IPPacket_IPv6_t * pxIPPacket_IPv6 = ipCAST_PTR_TO_TYPE_PTR( IPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
+        size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+        size_t uxHopSize = 0U;
+        size_t xMoveLen = 0U;
+        size_t uxRemovedBytes = 0U;
+        uint8_t ucCurrentHeader = pxIPPacket_IPv6->xIPHeader.ucNextHeader;
+        BaseType_t xCurrentOrder;
+        uint8_t ucNextHeader = 0U;
+        BaseType_t xNextOrder = 0;
+
+        while( ( uxIndex + 8U ) < uxMaxLength )
+        {
+            ucNextHeader = pucSource[ uxIndex ];
+
+            xCurrentOrder = xGetExtensionOrder( ucCurrentHeader, ucNextHeader );
+
+            /* Read the length expressed in number of octets. */
+            uxHopSize = ( size_t ) pucSource[ uxIndex + 1U ];
+            /* And multiply by 8 and add the minimum size of 8. */
+            uxHopSize = ( uxHopSize * 8U ) + 8U;
+
+            if( ( uxIndex + uxHopSize ) >= uxMaxLength )
+            {
+                uxIndex = uxMaxLength;
+                break;
+            }
+
+            uxIndex = uxIndex + uxHopSize;
+
+            if( ( ucNextHeader == ipPROTOCOL_TCP ) ||
+                ( ucNextHeader == ipPROTOCOL_UDP ) ||
+                ( ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
+            {
+                FreeRTOS_debug_printf( ( "Stop at header %u\n", ucNextHeader ) );
+                break;
+            }
+
+            xNextOrder = xGetExtensionOrder( ucNextHeader, pucSource[ uxIndex ] );
+
+            FreeRTOS_debug_printf( ( "Going from header %2u (%d) to %2u (%d)\n",
+                                     ucCurrentHeader,
+                                     ( int ) xCurrentOrder,
+                                     ucNextHeader,
+                                     ( int ) xNextOrder ) );
+
+            if( xNextOrder <= xCurrentOrder )
+            {
+                FreeRTOS_printf( ( "Wrong order\n" ) );
+                uxIndex = uxMaxLength;
+                break;
+            }
+
+            ucCurrentHeader = ucNextHeader;
+            xCurrentOrder = xNextOrder;
+        }
+
+        if( uxIndex < uxMaxLength )
+        {
+            uint8_t * pucTo;
+            const uint8_t * pucFrom;
+            uint16_t usPayloadLength = FreeRTOS_ntohs( pxIPPacket_IPv6->xIPHeader.usPayloadLength );
+
+            uxRemovedBytes = uxIndex - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+
+            if( uxRemovedBytes >= ( size_t ) usPayloadLength )
+            {
+                /* Can not remove more bytes than the payload length. */
+            }
+            else if( xDoRemove == pdTRUE )
+            {
+                pxIPPacket_IPv6->xIPHeader.ucNextHeader = ucNextHeader;
+                pucTo = &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] );
+                pucFrom = &( pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] );
+                xMoveLen = uxMaxLength - uxIndex;
+                ( void ) memmove( pucTo, pucFrom, xMoveLen );
+                pxNetworkBuffer->xDataLength -= uxRemovedBytes;
+
+                usPayloadLength -= uxRemovedBytes;
+                pxIPPacket_IPv6->xIPHeader.usPayloadLength = FreeRTOS_htons( usPayloadLength );
+                eResult = eProcessBuffer;
+            }
+            else
+            {
+                /* xDoRemove is false, so the function is not supposed to
+                 * remove extension headers. */
+            }
+        }
+
+        FreeRTOS_printf( ( "Extension headers : %s Truncated %u bytes. Removed %u, Payload %u xDataLength now %u\n",
+                           ( eResult == eProcessBuffer ) ? "good" : "bad",
+                           xMoveLen,
+                           uxRemovedBytes,
+                           FreeRTOS_ntohs( pxIPPacket_IPv6->xIPHeader.usPayloadLength ),
+                           pxNetworkBuffer->xDataLength ) );
+        return eResult;
+    }
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+/*-----------------------------------------------------------*/
+
 /**
  * @brief Process an IP-packet.
  *
@@ -3146,6 +3322,19 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
              * either drop the packet, or remove the options. */
             eReturn = prvCheckIP4HeaderOptions( pxNetworkBuffer );
         }
+
+        #if ( ipconfigUSE_IPv6 != 0 )
+            if( ( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
+                ( xGetExtensionOrder( ucProtocol, 0U ) > 0 ) )
+            {
+                eReturn = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
+
+                if( eReturn != eReleaseBuffer )
+                {
+                    ucProtocol = pxIPHeader_IPv6->ucNextHeader;
+                }
+            }
+        #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
         /* If the packet can be processed. */
         if( eReturn != eReleaseBuffer )
