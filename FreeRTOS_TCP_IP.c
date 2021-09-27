@@ -699,7 +699,7 @@
                  * status 'eCLOSE_WAIT'. */
                 FreeRTOS_debug_printf( ( "Connect: giving up %xip:%u\n",
                                          ( unsigned ) pxSocket->u.xTCP.ulRemoteIP, /* IP address of remote machine. */
-                                         pxSocket->u.xTCP.usRemotePort ) ); /* Port on remote machine. */
+                                         pxSocket->u.xTCP.usRemotePort ) );        /* Port on remote machine. */
                 vTCPStateChange( pxSocket, eCLOSE_WAIT );
             }
             else if( prvTCPMakeSurePrepared( pxSocket ) == pdTRUE )
@@ -983,8 +983,8 @@
             if( ( pxSocket == NULL ) || ( *ipLOCAL_IP_ADDRESS_POINTER == 0U ) )
             {
                 /* When pxSocket is NULL, this function is called by prvTCPSendReset()
-                * and the IP-addresses must be swapped.
-                * Also swap the IP-addresses in case the IP-tack doesn't have an
+                 * and the IP-addresses must be swapped.
+                 * Also swap the IP-addresses in case the IP-tack doesn't have an
                  * IP-address yet, i.e. when ( *ipLOCAL_IP_ADDRESS_POINTER == 0U ). */
                 ulSourceAddress = pxIPHeader->ulDestinationIPAddress;
             }
@@ -2159,7 +2159,7 @@
                     {
                         FreeRTOS_debug_printf( ( "keep-alive: giving up %xip:%u\n",
                                                  ( unsigned ) pxSocket->u.xTCP.ulRemoteIP, /* IP address of remote machine. */
-                                                 pxSocket->u.xTCP.usRemotePort ) ); /* Port on remote machine. */
+                                                 pxSocket->u.xTCP.usRemotePort ) );        /* Port on remote machine. */
                         vTCPStateChange( pxSocket, eCLOSE_WAIT );
                         lDataLen = -1;
                     }
@@ -3067,12 +3067,12 @@
                 /* In case we're receiving data continuously, we might postpone sending
                  * an ACK to gain performance. */
                 /* lint e9007 is OK because 'uxIPHeaderSizeSocket()' has no side-effects. */
-                if( ( ulReceiveLength > 0U ) &&                                                   /* Data was sent to this socket. */
-                    ( lRxSpace >= lMinLength ) &&                                                 /* There is Rx space for more data. */
-                    ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) &&                     /* Not in a closure phase. */
+                if( ( ulReceiveLength > 0U ) &&                                    /* Data was sent to this socket. */
+                    ( lRxSpace >= lMinLength ) &&                                  /* There is Rx space for more data. */
+                    ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) &&      /* Not in a closure phase. */
                     ( xSendLength == xSizeWithoutData ) &&                         /* No Tx data or options to be sent. */
-                    ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eESTABLISHED ) &&                /* Connection established. */
-                    ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )                              /* There are no other flags than an ACK. */
+                    ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eESTABLISHED ) && /* Connection established. */
+                    ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )               /* There are no other flags than an ACK. */
                 {
                     uint32_t ulCurMSS = ( uint32_t ) pxSocket->u.xTCP.usMSS;
                     int32_t lCurMSS = ( int32_t ) ulCurMSS;
