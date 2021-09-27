@@ -41,6 +41,7 @@ atmel
 automaticpadcrcstrip
 autonegotiation
 aws
+ba
 backoff
 backofflimit
 backpressure
@@ -144,10 +145,13 @@ cpu
 cpus
 cr
 crc
+cresult
 crs
+cseparator
 csn
 csr
 csv
+cten
 ctrl
 curtok
 cwd
@@ -209,7 +213,6 @@ earpcachehit
 earpcachemiss
 earpgetcacheentry
 earptimerevent
-ewaitingarpresolution
 ec
 ecantsendpacket
 eclosed
@@ -312,6 +315,7 @@ etype
 eunknown
 eventbits
 ewaitingacknowledge
+ewaitingarpresolution
 ewaitingoffer
 ewaitingsendfirstdiscover
 ewouldblock
@@ -675,6 +679,7 @@ pcs
 pcservername
 pcservice
 pcsource
+pctarget
 pcto
 pctype
 pd
@@ -825,6 +830,7 @@ pucpayload
 pucptr
 pucrecvdata
 pucreturn
+pucsource
 pucstart
 puctarget
 pucudppayload
@@ -1504,8 +1510,8 @@ uxrxwinsize
 uxschedulersuspended
 uxsecs
 uxsize
-uxsourcebytesremaining
 uxsocketsize
+uxsourcebytesremaining
 uxsourcelen
 uxstart
 uxstreambufferadd
@@ -1710,8 +1716,8 @@ xipversion
 xisbound
 xisforrx
 xisinputstream
-xitemvalue
 xiswaitingarpresolution
+xitemvalue
 xlastacttime
 xlastalivetime
 xlastgratuitousarptime
