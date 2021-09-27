@@ -186,15 +186,15 @@
         #endif
 
         #ifndef FreeRTOS_htonl
-            #define FreeRTOS_htonl( ulIn )                          \
-    (                                                               \
-        ( uint32_t )                                                \
-        (                                                           \
-            ( ( ( ( uint32_t ) ( ulIn ) ) ) << 24 ) |               \
+            #define FreeRTOS_htonl( ulIn )                         \
+    (                                                              \
+        ( uint32_t )                                               \
+        (                                                          \
+            ( ( ( ( uint32_t ) ( ulIn ) ) ) << 24 ) |              \
             ( ( ( ( uint32_t ) ( ulIn ) ) & 0x0000ff00U ) << 8 ) | \
             ( ( ( ( uint32_t ) ( ulIn ) ) & 0x00ff0000U ) >> 8 ) | \
-            ( ( ( ( uint32_t ) ( ulIn ) ) ) >> 24 )                 \
-        )                                                           \
+            ( ( ( ( uint32_t ) ( ulIn ) ) ) >> 24 )                \
+        )                                                          \
     )
         #endif /* ifndef FreeRTOS_htonl */
 
