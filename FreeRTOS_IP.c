@@ -69,8 +69,8 @@
 #define ipICMP_ECHO_REPLY                   ( ( uint8_t ) 0 ) /**< ICMP echo reply. */
 
 /* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
-#define ipFIRST_MULTI_CAST_IPv4             0xE0000000UL /**< Lower bound of the IPv4 multicast address. */
-#define ipLAST_MULTI_CAST_IPv4              0xF0000000UL /**< Higher bound of the IPv4 multicast address. */
+#define ipFIRST_MULTI_CAST_IPv4             0xE0000000U /**< Lower bound of the IPv4 multicast address. */
+#define ipLAST_MULTI_CAST_IPv4              0xF0000000U /**< Higher bound of the IPv4 multicast address. */
 
 /* The first byte in the IPv4 header combines the IP version (4) with
  * with the length of the IP header. */
@@ -3928,6 +3928,27 @@ ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
 ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
 {
     return ( const FreeRTOS_Socket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) || ( ipconfigUSE_TCP == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+
+/**
+ * @brief Cast a given pointer to ListItem_t type pointer.
+ */
+    ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t )
+    {
+        return ( ListItem_t * ) pvArgument;
+    }
+    /*-----------------------------------------------------------*/
+#endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) || ( ipconfigUSE_TCP == 1 ) */
+
+/**
+ * @brief Cast a given constant pointer to ListItem_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t )
+{
+    return ( const ListItem_t * ) pvArgument;
 }
 /*-----------------------------------------------------------*/
 
