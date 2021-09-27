@@ -799,6 +799,7 @@ pxsocketsize
 pxsockettodelete
 pxsourceaddress
 pxsourceaddresslength
+pxtcp
 pxtcpheader
 pxtcppacket
 pxtcpsocketlookup
