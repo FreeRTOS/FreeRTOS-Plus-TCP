@@ -213,27 +213,38 @@ static int32_t prvSendUDPPacket( FreeRTOS_Socket_t * pxSocket,
                                  TickType_t xTicksToWait,
                                  size_t uxPayloadOffset );
 
+#if ( ipconfigUSE_IPv6 != 0 )
+
 /** @brief Scan the binary IPv6 address and find the longest train of consecutive zero's.
  *         The result of this search will be stored in 'xZeroStart' and 'xZeroLength'. */
 static void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet );
+#endif
 
+#if ( ipconfigUSE_IPv6 != 0 )
 static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
                                              uint8_t ucNew,
                                              char ch );
+#endif
 
 static uint8_t ucASCIIToHex( char cChar );
 
-
+#if ( ipconfigUSE_IPv6 != 0 )
 /** @brief Converts a hex value to a readable hex character, e.g. 14 becomes 'e'. */
 static char cHexToChar( unsigned short usValue );
+#endif
+
+#if ( ipconfigUSE_IPv6 != 0 )
 
 /** @brief Converts a hex value to a readable hex character, *
  *         e.g. 14 becomes 'e'.static char cHexToChar( unsigned short usValue ); */
 static socklen_t uxHexPrintShort( char * pcBuffer,
                                   size_t uxBufferSize,
                                   uint16_t usValue );
+#endif
 
+#if ( ipconfigUSE_IPv6 != 0 )
 static void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet );
+#endif
 
 #if ( ipconfigUSE_TCP == 1 )
     static FreeRTOS_Socket_t * prvAcceptWaitClient( FreeRTOS_Socket_t * pxParentSocket,
@@ -425,16 +436,23 @@ static int32_t prvSendTo_ActualSend( FreeRTOS_Socket_t * pxSocket,
                                                        uint32_t ulRemoteIP );
 #endif
 
+#if ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_CALLBACKS == 1 )
+
 /** @brief The application can attach callback functions to a socket. In this function,
  *         called by lTCPAddRxdata(), the TCP reception handler will be called. */
 static void vTCPAddRxdata_Callback( FreeRTOS_Socket_t * pxSocket,
                                     const uint8_t * pcData,
                                     uint32_t ulByteCount );
+#endif
 
+#if ( ipconfigUSE_TCP == 1 )
 static void vTCPAddRxdata_Stored( FreeRTOS_Socket_t * pxSocket );
+#endif
 
+#if ( ( ipconfigHAS_PRINTF != 0 ) && ( ipconfigUSE_TCP == 1 ) )
 /** @brief A helper function of vTCPNetStat(), see below. */
 static void vTCPNetStat_TCPSocket( FreeRTOS_Socket_t * pxSocket );
+#endif
 
 /*-----------------------------------------------------------*/
 
@@ -1265,8 +1283,8 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
                     {
                         sockaddr6_t * pxSourceAddressV6 = ipCAST_PTR_TO_TYPE_PTR( sockaddr6_t, pxSourceAddress );
 
-                        memcpy( ( void * ) pxSourceAddressV6->sin_addrv6.ucBytes,
-                                ( void * ) pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
+                        ( void ) memcpy( ( void * ) pxSourceAddressV6->sin_addrv6.ucBytes,
+                                         ( const void * ) pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
                                 ipSIZE_OF_IPv6_ADDRESS );
                         pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET6;
                         pxSourceAddress->sin_addr = 0U;
@@ -3174,7 +3192,10 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 
         return cReturn;
     }
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv6 != 0 )
 
 /**
  * @brief Convert a short numeric value to a hex string of at most 4 characters.
@@ -3220,7 +3241,10 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 
         return uxIndex;
     }
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv6 != 0 )
 
 /**
  * @brief Scan the binary IPv6 address and find the longest train of consecutive zero's.
@@ -3270,7 +3294,10 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
             }
         }
     }
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv6 != 0 )
 
 /**
  * @brief The location is now at the longest train of zero's. Two colons have to
@@ -3321,7 +3348,10 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 
         return xReturn;
     }
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv6 != 0 )
 
 /**
  * @brief Write a short value, as a hex number with at most 4 characters. E.g. the
@@ -3377,7 +3407,10 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 
         return xReturn;
     }
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv6 != 0 )
 
 /**
  * @brief This function converts a binary IPv6 address to a human readable notation.
@@ -3592,6 +3625,8 @@ uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_IPv6 != 0 )
+
 /**
  * @brief Converting a readable IPv6 address to its binary form, add one nibble.
  *
@@ -3664,6 +3699,8 @@ static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
 
     return xReturn;
 }
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Convert an ASCII character to its corresponding hexadecimal value.
@@ -3709,6 +3746,8 @@ static uint8_t ucASCIIToHex( char cChar )
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_IPv6 != 0 )
+
 /**
  * @brief Convert an ASCII character to its corresponding hexadecimal value.
  *        A :: block was found, now fill in the zero's.
@@ -3734,6 +3773,7 @@ static void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet )
 
     pxSet->xTargetIndex = ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS;
 }
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_IPv6 != 0 )
@@ -4829,7 +4869,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 xBytesLeft -= xByteCount;
                 xBytesSent += xByteCount;
 
-                if( ( xBytesLeft == 0U ) && ( pvBuffer == NULL ) )
+                if( ( xBytesLeft == 0 ) && ( pvBuffer == NULL ) )
                 {
                     /* pvBuffer can be NULL in case TCP zero-copy transmissions are used. */
                     break;

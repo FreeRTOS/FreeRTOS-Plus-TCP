@@ -62,10 +62,6 @@
     #define arpGRATUITOUS_ARP_PERIOD    ( pdMS_TO_TICKS( 20000U ) )
 #endif
 
-/** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
- *  is defined in FreeRTOS_IP.c. */
-extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
-
 /*-----------------------------------------------------------*/
 
 /*

@@ -427,12 +427,12 @@ UBaseType_t uxGetNumberOfFreeNetworkBuffers( void )
     return listCURRENT_LIST_LENGTH( &xFreeBuffersList );
 }
 
-NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
+NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxDescriptor,
                                                                  size_t xNewSizeBytes )
 {
     /* In BufferAllocation_1.c all network buffer are allocated with a
      * maximum size of 'ipTOTAL_ETHERNET_FRAME_SIZE'.No need to resize the
      * network buffer. */
-    pxNetworkBuffer->xDataLength = xNewSizeBytes;
-    return pxNetworkBuffer;
+    pxDescriptor->xDataLength = xNewSizeBytes;
+    return pxDescriptor;
 }

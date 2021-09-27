@@ -186,7 +186,7 @@
         uint16_t sin_port;                                /**< The port number in network-endian format. */
         uint32_t sin_addr;                                /**< The IP-address in network-endian format. */
         #if ( ipconfigUSE_IPv6 != 0 )
-            uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ]; /**< Make sure that the IPv4 and IPv6 socket addresses have en equal size. */
+            uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ]; /**< Make sure that the IPv4 and IPv6 socket addresses have an equal size. */
         #endif
     };
 
@@ -335,7 +335,7 @@
                 static __inline BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
                 {
                     ( void ) xSocket;
-                    return ipTYPE_IPv4;
+                    return ( BaseType_t ) ipTYPE_IPv4;
                 }
             #endif
 
