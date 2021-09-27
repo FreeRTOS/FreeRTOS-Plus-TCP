@@ -186,15 +186,15 @@
         #endif
 
         #ifndef FreeRTOS_htonl
-            #define FreeRTOS_htonl( ulIn )                          \
-    (                                                               \
-        ( uint32_t )                                                \
-        (                                                           \
-            ( ( ( ( uint32_t ) ( ulIn ) ) ) << 24 ) |               \
+            #define FreeRTOS_htonl( ulIn )                         \
+    (                                                              \
+        ( uint32_t )                                               \
+        (                                                          \
+            ( ( ( ( uint32_t ) ( ulIn ) ) ) << 24 ) |              \
             ( ( ( ( uint32_t ) ( ulIn ) ) & 0x0000ff00U ) << 8 ) | \
             ( ( ( ( uint32_t ) ( ulIn ) ) & 0x00ff0000U ) >> 8 ) | \
-            ( ( ( ( uint32_t ) ( ulIn ) ) ) >> 24 )                 \
-        )                                                           \
+            ( ( ( ( uint32_t ) ( ulIn ) ) ) >> 24 )                \
+        )                                                          \
     )
         #endif /* ifndef FreeRTOS_htonl */
 
@@ -363,7 +363,7 @@
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
  *  is defined in FreeRTOS_IP.c.
- *  This pointer os for internal use only. */
+ *  This pointer is for internal use only. */
     extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
 /* For backward compatibility define old structure names to the newer equivalent
