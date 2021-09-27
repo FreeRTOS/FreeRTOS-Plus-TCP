@@ -2422,7 +2422,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 /* Many EMAC peripherals will only calculate the ICMP checksum
                  * correctly if the field is nulled beforehand. */
                 pxICMPHeader->usChecksum = 0U;
-				( void ) pxNetworkBuffer;
+                ( void ) pxNetworkBuffer;
             }
         #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
@@ -2928,10 +2928,12 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                 case ipPROTOCOL_IGMP:
                     pxProtPack->xICMPPacket.xICMPHeader.usChecksum = usChecksum;
                     break;
+
                 default:
+
                     /* When there is a default statement, MISRA complains,
-					 * but without a default stament, MISRA also complains. */
-					break;
+                     * but without a default stament, MISRA also complains. */
+                    break;
             }
 
             usChecksum = ( uint16_t ) ipCORRECT_CRC;
@@ -3491,11 +3493,12 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
                                   size_t uxLength )
 {
     const char * pcName;
-	BaseType_t xUseErrnum = xErrnum;
-	if( xUseErrnum < 0 )
-	{
-		xUseErrnum = -xUseErrnum;
-	}
+    BaseType_t xUseErrnum = xErrnum;
+
+    if( xUseErrnum < 0 )
+    {
+        xUseErrnum = -xUseErrnum;
+    }
 
     switch( xUseErrnum )
     {
@@ -3950,10 +3953,10 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t )
 /**
  * @brief Cast a given pointer to NetworkBufferDescriptor_t type pointer.
  */
-    ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
-    {
-        return ( NetworkBufferDescriptor_t * ) pvArgument;
-    }
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
+{
+    return ( NetworkBufferDescriptor_t * ) pvArgument;
+}
 
 
 /** @} */
