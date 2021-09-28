@@ -2251,8 +2251,17 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                 * these values. */
                                usLength = FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength );
 
-                               if( ( pxNetworkBuffer->xDataLength >= sizeof( UDPPacket_t ) ) &&
-                                   ( ( ( size_t ) usLength ) >= sizeof( UDPHeader_t ) ) )
+                               if( ( pxNetworkBuffer->xDataLength < sizeof( UDPPacket_t ) ) ||
+                                   ( ( ( size_t ) usLength ) < sizeof( UDPHeader_t ) ) )
+                               {
+                                   eReturn = eReleaseBuffer;
+                               }
+                               else if( usLength > ( FreeRTOS_ntohs( pxIPHeader->usLength ) - ipSIZE_OF_IPv4_HEADER ) )
+                               {
+                                   /* The UDP packet is bigger than the IP-payload. Something is wrong, drop the packet. */
+                                      eReturn = eReleaseBuffer;
+                               }
+                               else
                                {
                                    size_t uxPayloadSize_1, uxPayloadSize_2;
 
@@ -2296,10 +2305,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                            eReturn = eWaitingARPResolution;
                                        }
                                    }
-                               }
-                               else
-                               {
-                                   eReturn = eReleaseBuffer;
                                }
                            }
                            break;
