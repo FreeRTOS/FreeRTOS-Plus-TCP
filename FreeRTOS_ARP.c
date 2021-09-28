@@ -645,11 +645,9 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
     }
     else if( *ipLOCAL_IP_ADDRESS_POINTER == *pulIPAddress )
     {
-        const void * pvCopySource = ( const void * ) ipLOCAL_MAC_ADDRESS;
-        void * pvCopyDest = ( void * ) pxMACAddress->ucBytes;
         /* The address of this device. May be useful for the loopback device. */
         eReturn = eARPCacheHit;
-        ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxMACAddress->ucBytes ) );
+        ( void ) memcpy( pxMACAddress->ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( pxMACAddress->ucBytes ) );
     }
     else
     {
