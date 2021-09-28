@@ -359,7 +359,7 @@
 
 /* "xApplicationGetRandomNumber" is declared but never defined, because it may
  * be defined in a user module. */
-    extern BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
+    BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
  *  is defined in FreeRTOS_IP.c.
