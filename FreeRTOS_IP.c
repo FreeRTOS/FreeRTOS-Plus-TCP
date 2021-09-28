@@ -2259,7 +2259,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                else if( usLength > ( FreeRTOS_ntohs( pxIPHeader->usLength ) - ipSIZE_OF_IPv4_HEADER ) )
                                {
                                    /* The UDP packet is bigger than the IP-payload. Something is wrong, drop the packet. */
-                                      eReturn = eReleaseBuffer;
+                                   eReturn = eReleaseBuffer;
                                }
                                else
                                {
