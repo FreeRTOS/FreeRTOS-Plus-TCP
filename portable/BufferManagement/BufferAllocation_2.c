@@ -220,13 +220,16 @@ void vReleaseNetworkBuffer( uint8_t * pucEthernetBuffer )
 }
 /*-----------------------------------------------------------*/
 
+/* Make this 32-bit aligned. */
+#define ipconfigMAX_DESCRIPTOR_SIZE ( ( ( ipTOTAL_ETHERNET_FRAME_SIZE >> 5 ) << 5 ) + 32 )
+
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
                                                               TickType_t xBlockTimeTicks )
 {
     NetworkBufferDescriptor_t * pxReturn = NULL;
     size_t uxCount;
 
-    if( ( xRequestedSizeBytes <= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) ) && ( xNetworkBufferSemaphore != NULL ) )
+    if( ( xRequestedSizeBytes <= ( ipconfigMAX_DESCRIPTOR_SIZE /*ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER*/ ) ) && ( xNetworkBufferSemaphore != NULL ) )
     {
         /* If there is a semaphore available, there is a network buffer available. */
         if( xSemaphoreTake( xNetworkBufferSemaphore, xBlockTimeTicks ) == pdPASS )

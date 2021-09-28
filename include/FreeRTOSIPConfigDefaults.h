@@ -411,7 +411,7 @@
 #endif
 
 #ifndef ipconfigARP_USE_CLASH_DETECTION
-    #define ipconfigARP_USE_CLASH_DETECTION    0
+    #define ipconfigARP_USE_CLASH_DETECTION    1
 #endif
 
 #ifndef ipconfigNETWORK_MTU
