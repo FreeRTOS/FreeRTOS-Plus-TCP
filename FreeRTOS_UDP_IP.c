@@ -122,7 +122,7 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
         #endif
         #if ( ipconfigUSE_MDNS == 1 )
             {
-                /* LLMNR messages are typically used on a LAN and they're
+                /* mDNS messages are typically used on a LAN and they're
                  * not supposed to cross routers */
                 if( pxNetworkBuffer->ulIPAddress == ipMDNS_IP_ADDRESS )
                 {

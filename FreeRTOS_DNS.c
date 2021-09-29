@@ -3224,7 +3224,6 @@
     static Socket_t prvCreateDNSSocket()
     {
         Socket_t xSocket;
-        BaseType_t xReturn;
 
         /* This must be the first time this function has been called.  Create
          * the socket. */
