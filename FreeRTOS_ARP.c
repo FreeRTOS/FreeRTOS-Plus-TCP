@@ -65,11 +65,11 @@
  * of this device, a defensive ARP request should be sent out. However, according to
  * RFC 5227 section 1.1, there must be a minimum interval of 10 seconds between
  * consecutive defensive ARP packets. */
-#define arpIP_CLASH_RESET_TIMEOUT 10000
+#define arpIP_CLASH_RESET_TIMEOUT    10000
 
 /** @brief Maximum number of defensive ARPs to be sent for an ARP clash per
  * arpIP_CLASH_RESET_TIMEOUT period. */
-#define arpIP_CLASH_MAX_RETRIES   1
+#define arpIP_CLASH_MAX_RETRIES      1
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
  *  is defined in FreeRTOS_IP.c. */
@@ -151,16 +151,16 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 
     if( uxARPClashCounter != 0 )
     {
-        /* Next defensive request must not be sent for ipARP_CLASH_RESET_TIMEOUT
+        /* Next defensive request must not be sent for arpIP_CLASH_RESET_TIMEOUT
          * period. */
-        TickType_t xARPClashTimeout = pdMS_TO_TICKS( ipARP_CLASH_RESET_TIMEOUT );
+        TickType_t xARPClashTimeout = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT );
 
         /* Has the timeout been reached? */
         if( pdTRUE == xTaskCheckForTimeOut( &ARPClashTimeOut, &xARPClashTimeout ) )
         {
             /* We have waited long enough, reset the counter. */
             uxARPClashCounter = 0;
-	}
+        }
     }
 
     /* Introduce a do while loop to allow use of breaks. */
@@ -204,23 +204,23 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
         if( ( ulSenderProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER ) &&
             ( *ipLOCAL_IP_ADDRESS_POINTER != 0UL ) )
         {
-            if( uxARPClashCounter < ipARP_CLASH_MAX_RETRIES )
-			{
-				/* Increment the counter. */
-				uxARPClashCounter++;
+            if( uxARPClashCounter < arpIP_CLASH_MAX_RETRIES )
+            {
+                /* Increment the counter. */
+                uxARPClashCounter++;
 
-				/* Send out a defensive ARP request. */
-				FreeRTOS_OutputARPRequest( *ipLOCAL_IP_ADDRESS_POINTER );
+                /* Send out a defensive ARP request. */
+                FreeRTOS_OutputARPRequest( *ipLOCAL_IP_ADDRESS_POINTER );
 
-				/* Since an ARP Request for this IP was just sent, do not send a gratuitous
-				 * APR for arpGRATUITOUS_ARP_PERIOD. */
-				xLastGratuitousARPTime = xTaskGetTickCount();
+                /* Since an ARP Request for this IP was just sent, do not send a gratuitous
+                 * APR for arpGRATUITOUS_ARP_PERIOD. */
+                xLastGratuitousARPTime = xTaskGetTickCount();
 
-				FreeRTOS_printf(( "First one at %u\n", xLastGratuitousARPTime ));
+                FreeRTOS_printf( ( "First one at %u\n", xLastGratuitousARPTime ) );
 
-				/* Note the time at which this request was sent. */
-				vTaskSetTimeOutState( &ARPClashTimeOut );
-			}
+                /* Note the time at which this request was sent. */
+                vTaskSetTimeOutState( &ARPClashTimeOut );
+            }
 
             /* Process received ARP frame to see if there is a clash. */
             #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
