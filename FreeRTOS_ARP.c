@@ -94,7 +94,7 @@ _static ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
 
 /** @brief  The time at which the last gratuitous ARP was sent.  Gratuitous ARPs are used
  * to ensure ARP tables are up to date and to detect IP address conflicts. */
-static TickType_t xLastGratuitousARPTime = ( TickType_t ) 0;
+static TickType_t xLastGratuitousARPTime = 0U;
 
 /*
  * IP-clash detection is currently only used internally. When DHCP doesn't respond, the
@@ -156,7 +156,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
         TickType_t xARPClashTimeout = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT );
 
         /* Has the timeout been reached? */
-        if( pdTRUE == xTaskCheckForTimeOut( &ARPClashTimeOut, &xARPClashTimeout ) )
+        if( xTaskCheckForTimeOut( &ARPClashTimeOut, &xARPClashTimeout ) == pdTRUE )
         {
             /* We have waited long enough, reset the counter. */
             uxARPClashCounter = 0;
