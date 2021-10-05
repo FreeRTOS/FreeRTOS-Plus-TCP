@@ -73,7 +73,7 @@
  * arpIP_CLASH_RESET_TIMEOUT_MS period. The retries are limited to one as outlined
  * by RFC 5227 section 2.4 part b.*/
 #ifndef arpIP_CLASH_MAX_RETRIES
-    #define arpIP_CLASH_MAX_RETRIES      1
+    #define arpIP_CLASH_MAX_RETRIES    1
 #endif
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
