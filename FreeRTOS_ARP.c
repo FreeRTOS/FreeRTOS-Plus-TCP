@@ -141,7 +141,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 
     pxARPHeader = &( pxARPFrame->xARPHeader );
 
-    /* The field ulSenderProtocolAddress is badly aligned, copy byte-by-byte. */
+    /* The field ucSenderProtocolAddress is badly aligned, copy byte-by-byte. */
 
     /*
      * Use helper variables for memcpy() to remain
