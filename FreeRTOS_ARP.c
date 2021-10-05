@@ -70,7 +70,7 @@
 #endif
 
 /** @brief Maximum number of defensive ARPs to be sent for an ARP clash per
- * arpIP_CLASH_RESET_TIMEOUT period. The retries are limited to one as outlined
+ * arpIP_CLASH_RESET_TIMEOUT_MS period. The retries are limited to one as outlined
  * by RFC 5227 section 2.4 part b.*/
 #ifndef arpIP_CLASH_MAX_RETRIES
     #define arpIP_CLASH_MAX_RETRIES      1
@@ -114,7 +114,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
 #endif /* ipconfigARP_USE_CLASH_DETECTION */
 
 /** @brief This local variable is used to keep track of number of ARP requests sent and
- * also to limit the requests to arpIP_CLASH_MAX_RETRIES per arpIP_CLASH_RESET_TIMEOUT
+ * also to limit the requests to arpIP_CLASH_MAX_RETRIES per arpIP_CLASH_RESET_TIMEOUT_MS
  * period. */
 UBaseType_t uxARPClashCounter = 0;
 
@@ -156,9 +156,9 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 
     if( uxARPClashCounter != 0 )
     {
-        /* Next defensive request must not be sent for arpIP_CLASH_RESET_TIMEOUT
+        /* Next defensive request must not be sent for arpIP_CLASH_RESET_TIMEOUT_MS
          * period. */
-        TickType_t xARPClashTimeout = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT );
+        TickType_t xARPClashTimeout = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
 
         /* Has the timeout been reached? */
         if( xTaskCheckForTimeOut( &ARPClashTimeOut, &xARPClashTimeout ) == pdTRUE )
