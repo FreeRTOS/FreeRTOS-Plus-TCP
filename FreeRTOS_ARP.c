@@ -65,11 +65,16 @@
  * of this device, a defensive ARP request should be sent out. However, according to
  * RFC 5227 section 1.1, there must be a minimum interval of 10 seconds between
  * consecutive defensive ARP packets. */
-#define arpIP_CLASH_RESET_TIMEOUT    10000
+#ifndef arpIP_CLASH_RESET_TIMEOUT_MS
+    #define arpIP_CLASH_RESET_TIMEOUT_MS    10000
+#endif
 
 /** @brief Maximum number of defensive ARPs to be sent for an ARP clash per
- * arpIP_CLASH_RESET_TIMEOUT period. */
-#define arpIP_CLASH_MAX_RETRIES      1
+ * arpIP_CLASH_RESET_TIMEOUT period. The retries are limited to one as outlined
+ * by RFC 5227 section 2.4 part b.*/
+#ifndef arpIP_CLASH_MAX_RETRIES
+    #define arpIP_CLASH_MAX_RETRIES      1
+#endif
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
  *  is defined in FreeRTOS_IP.c. */
@@ -213,7 +218,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                 FreeRTOS_OutputARPRequest( *ipLOCAL_IP_ADDRESS_POINTER );
 
                 /* Since an ARP Request for this IP was just sent, do not send a gratuitous
-                 * APR for arpGRATUITOUS_ARP_PERIOD. */
+                 * ARP for arpGRATUITOUS_ARP_PERIOD. */
                 xLastGratuitousARPTime = xTaskGetTickCount();
 
                 FreeRTOS_printf( ( "First one at %u\n", xLastGratuitousARPTime ) );
@@ -250,7 +255,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                     if( ( ulTargetProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER ) &&
                         ( memcmp( ( void * ) ipLOCAL_MAC_ADDRESS,
                                   ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
-                                  sizeof( MACAddress_t ) ) != 0 ) )
+                                  ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
                     {
                         iptraceSENDING_ARP_REPLY( ulSenderProtocolAddress );
 
