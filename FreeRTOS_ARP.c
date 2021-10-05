@@ -192,6 +192,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
             /* Senders address is a multicast OR broadcast address which is not
              * allowed for an ARP packet. Drop the packet. See RFC 1812 section
              * 3.3.2. */
+            iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
             break;
         }
 
@@ -202,6 +203,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
         {
             /* The local loopback addresses must never appear outside a host. See RFC 1122
              * section 3.2.1.3. */
+            iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
             break;
         }
 
@@ -220,8 +222,6 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                 /* Since an ARP Request for this IP was just sent, do not send a gratuitous
                  * ARP for arpGRATUITOUS_ARP_PERIOD. */
                 xLastGratuitousARPTime = xTaskGetTickCount();
-
-                FreeRTOS_printf( ( "First one at %u\n", xLastGratuitousARPTime ) );
 
                 /* Note the time at which this request was sent. */
                 vTaskSetTimeOutState( &ARPClashTimeOut );
