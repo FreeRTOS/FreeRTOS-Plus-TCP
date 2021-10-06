@@ -116,10 +116,10 @@ static TickType_t xLastGratuitousARPTime = 0U;
 /** @brief This local variable is used to keep track of number of ARP requests sent and
  * also to limit the requests to arpIP_CLASH_MAX_RETRIES per arpIP_CLASH_RESET_TIMEOUT_MS
  * period. */
-UBaseType_t uxARPClashCounter = 0;
+static UBaseType_t uxARPClashCounter = 0;
 
 /** @brief The time at which the last ARP clash was sent. */
-TimeOut_t ARPClashTimeOut;
+static TimeOut_t ARPClashTimeOut;
 
 /*-----------------------------------------------------------*/
 

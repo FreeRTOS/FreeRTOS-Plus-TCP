@@ -1233,6 +1233,7 @@ uswindow
 utf
 uuid
 uxaddresslength
+uxarpclashcounter
 uxblocktimeticks
 uxbufferlength
 uxbytecount

@@ -24,7 +24,7 @@ extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
 extern BaseType_t xARPHadIPClash;
 
-/* Helpre function to reset the uxARPClashCounterVariable before a test is run. It
+/* Helper function to reset the uxARPClashCounter variable before a test is run. It
  * cannot be directly reset since it is declared as static. */
 static void vResetARPClashCounter( void )
 {
