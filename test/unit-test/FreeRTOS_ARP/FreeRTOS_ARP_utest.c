@@ -22,6 +22,34 @@ extern ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
 
 extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
+extern BaseType_t xARPHadIPClash;
+
+/* Helpre function to reset the uxARPClashCounterVariable before a test is run. It
+ * cannot be directly reset since it is declared as static. */
+static void vResetARPClashCounter( void )
+{
+    ARPPacket_t xARPFrame;
+    eFrameProcessingResult_t eResult;
+
+    memset( &xARPFrame, 0, sizeof( ARPPacket_t ) );
+
+    /* =================================================== */
+    /* Add settings required for ARP header to pass checks */
+    xARPFrame.xARPHeader.usHardwareType = ipARP_HARDWARE_TYPE_ETHERNET;
+    xARPFrame.xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE;
+    xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
+    /* Different protocol length. */
+    xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES + 1;
+
+    /* Regardless of whether this is called or not, the test should not fail. */
+    xTaskCheckForTimeOut_IgnoreAndReturn( pdTRUE );
+
+    eResult = eARPProcessPacket( &xARPFrame );
+
+    /* Stop ignoring after the helper function is called. */
+    xTaskCheckForTimeOut_StopIgnore();
+}
+
 void test_xCheckLoopback_IncorrectFrameType( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -454,9 +482,21 @@ void test_eARPProcessPacket_Request_SenderAndTargetSame( void )
     xARPFrame.xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER;
     memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress, &( xARPFrame.xARPHeader.ulTargetProtocolAddress ), sizeof( xARPFrame.xARPHeader.ulTargetProtocolAddress ) );
 
+    /* Reset the private variable uxARPClashCounter. */
+    vResetARPClashCounter();
+
     /* For this unit-test, we do not concern ourselves with whether the ARP request
      * is actually sent or not. Effort is all that matters. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+
+    /* The value returned doesn't matter as this will determine when would the
+     * next timeout for Gratuitous ARP occur. And for this unit-test, that doesn't
+     * matter. */
+    xTaskGetTickCount_ExpectAndReturn( 100 );
+
+    /* This function will setup the timeout which is used to limit the number of defensive
+     * ARPs. */
+    vTaskSetTimeOutState_ExpectAnyArgs();
 
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -488,6 +528,9 @@ void test_eARPProcessPacket_Reply_TargetIPSameAsLocalIP( void )
 
     uint32_t ulSenderProtocolAddress = 0xFFAAEEBB;
     memcpy( &( xARPFrame.xARPHeader.ucSenderProtocolAddress ), &ulSenderProtocolAddress, sizeof( uint32_t ) );
+
+    /* Reset the private variable uxARPClashCounter. */
+    vResetARPClashCounter();
 
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -525,6 +568,9 @@ void test_eARPProcessPacket_Reply_TargetIPNotSameAsLocalIP_ButEntryInCache( void
     xARPCache[ 0 ].ucAge = 1;
     xARPCache[ 0 ].ucValid = 1;
 
+    /* Reset the private variable uxARPClashCounter. */
+    vResetARPClashCounter();
+
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     TEST_ASSERT_EQUAL( pdTRUE, xIsIPInARPCache( ulSenderProtocolAddress ) );
@@ -554,13 +600,39 @@ void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
     xARPFrame.xARPHeader.ulTargetProtocolAddress = 0xAABBCCDD;
     memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress, &( xARPFrame.xARPHeader.ulTargetProtocolAddress ), sizeof( xARPFrame.xARPHeader.ulTargetProtocolAddress ) );
 
+    /* Reset the private variable uxARPClashCounter. */
+    vResetARPClashCounter();
+
     /* For this unit-test, we do not concern ourselves with whether the ARP request
      * is actually sent or not. Effort is all that matters. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
+    /* The value returned doesn't matter as this will determine when would the
+     * next timeout for Gratuitous ARP occur. And for this unit-test, that doesn't
+     * matter. */
+    xTaskGetTickCount_ExpectAndReturn( 100 );
+
+    /* This function will setup the timeout which is used to limit the number of defensive
+     * ARPs. */
+    vTaskSetTimeOutState_ExpectAnyArgs();
+
+    /* Reset the flag. */
+    xARPHadIPClash = pdFALSE;
+
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+    TEST_ASSERT_EQUAL( pdTRUE, xARPHadIPClash );
     /* =================================================== */
+
+    /* Reset the flag. */
+    xARPHadIPClash = pdFALSE;
+    /* Let there be no timeout. */
+    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFAIL );
+
+    /* Call it again and do not expect the task functions to be called. */
+    eResult = eARPProcessPacket( &xARPFrame );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+    TEST_ASSERT_EQUAL( pdTRUE, xARPHadIPClash );
 }
 
 void test_eARPProcessPacket_Reply_DifferentIP( void )
@@ -583,6 +655,10 @@ void test_eARPProcessPacket_Reply_DifferentIP( void )
     xARPFrame.xARPHeader.usOperation = ipARP_REPLY;
     xARPFrame.xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 0x11;
     memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress, &( xARPFrame.xARPHeader.ulTargetProtocolAddress ), sizeof( xARPFrame.xARPHeader.ulTargetProtocolAddress ) );
+
+    /* Reset the private variable uxARPClashCounter. */
+    vResetARPClashCounter();
+
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
@@ -616,6 +692,9 @@ void test_eARPProcessPacket_Reply_DifferentIP_WaitingBufferNonNull( void )
     xARPFrame.xARPHeader.usOperation = ipARP_REPLY;
     xARPFrame.xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 0x11;
     memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress, &( xARPFrame.xARPHeader.ulTargetProtocolAddress ), sizeof( xARPFrame.xARPHeader.ulTargetProtocolAddress ) );
+
+    /* Reset the private variable uxARPClashCounter. */
+    vResetARPClashCounter();
 
     eResult = eARPProcessPacket( &xARPFrame );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -654,6 +733,9 @@ void test_eARPProcessPacket_Reply_WaitingBufferNonNull_MatchingAddress1( void )
     memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress, &( xARPFrame.xARPHeader.ulTargetProtocolAddress ), sizeof( xARPFrame.xARPHeader.ulTargetProtocolAddress ) );
 
     memcpy( &( pxARPWaitingIPHeader->ulSourceIPAddress ), xARPFrame.xARPHeader.ucSenderProtocolAddress, sizeof( pxARPWaitingIPHeader->ulSourceIPAddress ) );
+
+    /* Reset the private variable uxARPClashCounter. */
+    vResetARPClashCounter();
 
     xSendEventStructToIPTask_IgnoreAndReturn( pdFAIL );
     vReleaseNetworkBufferAndDescriptor_Ignore();
@@ -697,6 +779,9 @@ void test_eARPProcessPacket_Reply_WaitingBufferNonNull_MatchingAddress2( void )
     memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress, &( xARPFrame.xARPHeader.ulTargetProtocolAddress ), sizeof( xARPFrame.xARPHeader.ulTargetProtocolAddress ) );
 
     memcpy( &( pxARPWaitingIPHeader->ulSourceIPAddress ), xARPFrame.xARPHeader.ucSenderProtocolAddress, sizeof( pxARPWaitingIPHeader->ulSourceIPAddress ) );
+
+    /* Reset the private variable uxARPClashCounter. */
+    vResetARPClashCounter();
 
     xSendEventStructToIPTask_IgnoreAndReturn( pdPASS );
     vIPSetARPResolutionTimerEnableState_Expect( pdFALSE );
@@ -1383,6 +1468,17 @@ void test_vARPAgeCache( void )
     uint8_t ucEntryToCheck = 1;
 
     /* =================================================== */
+    /* Let the value returned first time be 0 such that the variable is reset. */
+    xTaskGetTickCount_ExpectAndReturn( 0 );
+
+    /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
+     * It doesn't return anything and will be tested separately. */
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+
+    vARPAgeCache();
+    /* =================================================== */
+
+    /* =================================================== */
     /* Make second entry invalid but with age > 1. */
     xARPCache[ ucEntryToCheck ].ucAge = 1;
     xARPCache[ ucEntryToCheck ].ucValid = pdFALSE;
@@ -1392,10 +1488,14 @@ void test_vARPAgeCache( void )
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
 
     /* Let the value returned first time be 100. */
-    xTaskGetTickCount_IgnoreAndReturn( 100 );
+    xTaskGetTickCount_ExpectAndReturn( 100 );
+
+    /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
+     * It doesn't return anything and will be tested separately. */
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+
     vARPAgeCache();
     /* =================================================== */
 
@@ -1411,7 +1511,8 @@ void test_vARPAgeCache( void )
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
 
     /* Let the value returned second time be 100. */
-    xTaskGetTickCount_IgnoreAndReturn( 100 );
+    xTaskGetTickCount_ExpectAndReturn( 100 );
+
     vARPAgeCache();
     /* =================================================== */
 
@@ -1424,7 +1525,8 @@ void test_vARPAgeCache( void )
 
     /* This time the pxGetNetworkBuffer will be called. */
     /* Let the value returned third time be 100000. */
-    xTaskGetTickCount_IgnoreAndReturn( 100000 );
+    xTaskGetTickCount_ExpectAndReturn( 100000 );
+
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
     vARPAgeCache();
     /* =================================================== */
