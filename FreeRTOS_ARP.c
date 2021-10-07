@@ -137,6 +137,21 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
     /* Introduce a do while loop to allow use of breaks. */
     do
     {
+    	static UBaseType_t uxARPClashCounter = 0;
+    	static TimeOut_t ARPClashTimeOut;
+        #define ipARP_CLASH_RESET_TIMEOUT    10000
+        #define ipARP_CLASH_MAX_RETRIES    1
+
+    	if( uxARPClashCounter != 0 )
+		{
+    		TickType_t xARPClashTimeout = pdMS_TO_TICKS( ipARP_CLASH_RESET_TIMEOUT );
+			if( pdTRUE == xTaskCheckForTimeOut( &ARPClashTimeOut, &xARPClashTimeout ) )
+			{
+				FreeRTOS_printf(( "Done at %u\n", xTaskGetTickCount() ));
+				uxARPClashCounter = 0;
+			}
+		}
+
 		/* Only Ethernet hardware type is supported.
 		 * Only IPv4 address can be present in the ARP packet.
 		 * The hardware length (the MAC address) must be 6 bytes. And,
@@ -166,14 +181,30 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 		}
 		else if( ulSenderProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER )
 		{
-			FreeRTOS_OutputARPRequest( *ipLOCAL_IP_ADDRESS_POINTER );
+			if( uxARPClashCounter < ipARP_CLASH_MAX_RETRIES )
+			{
+				/* Increment the counter. */
+				uxARPClashCounter++;
+
+				/* Send out a defensive ARP request. */
+				FreeRTOS_OutputARPRequest( *ipLOCAL_IP_ADDRESS_POINTER );
+
+				/* Since an ARP Request for this IP was just sent, do not send a gratuitous
+				 * APR for arpGRATUITOUS_ARP_PERIOD. */
+				xLastGratuitousARPTime = xTaskGetTickCount();
+
+				FreeRTOS_printf(( "First one at %u\n", xLastGratuitousARPTime ));
+
+				/* Note the time at which this request was sent. */
+				vTaskSetTimeOutState( &ARPClashTimeOut );
+			}
+
 			break;
 		}
 		else
 		{
 			/* All checks passed. */
 		}
-
 
         traceARP_PACKET_RECEIVED();
 

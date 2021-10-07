@@ -106,7 +106,8 @@
                 uint32_t
                     bHasInit : 1,      /**< The window structure has been initialised */
                     bSendFullSize : 1, /**< May only send packets with a size equal to MSS (for optimisation) */
-                    bTimeStamps : 1;   /**< Socket is supposed to use TCP time-stamps. This depends on the */
+                    bTimeStamps : 1,   /**< Socket is supposed to use TCP time-stamps. This depends on the */
+                    bWindowFull : 1;   /**< Window of the peer is full.  */
             } bits;                    /**< party which opens the connection */
             uint32_t ulFlags;
         } u;                           /**< Use a union to store the 32-bit flag field and the breakdown at the same place. */
@@ -202,7 +203,8 @@
     int32_t lTCPWindowTxAdd( TCPWindow_t * pxWindow,
                              uint32_t ulLength,
                              int32_t lPosition,
-                             int32_t lMax );
+                             int32_t lMax,
+							 uint32_t ulWindowSize );
 
 /* Check data to be sent and calculate the time period we may sleep */
     BaseType_t xTCPWindowTxHasData( TCPWindow_t const * pxWindow,

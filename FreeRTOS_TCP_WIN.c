@@ -195,7 +195,7 @@
  * true if there is data to be sent.
  */
     #if ( ipconfigUSE_TCP_WIN == 1 )
-        static BaseType_t prvTCPWindowTxHasSpace( TCPWindow_t const * pxWindow,
+        static BaseType_t prvTCPWindowTxHasSpace( TCPWindow_t * pxWindow,
                                                   uint32_t ulWindowSize );
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 
@@ -370,6 +370,24 @@
                                                 ListItem_t * const pxNewListItem )
         {
             vListInsertGeneric( pxList, pxNewListItem, &pxList->xListEnd );
+        }
+    #endif
+
+
+#if ( ipconfigUSE_TCP_WIN == 1 )
+        static portINLINE void vListInsertLifo( List_t * const pxList,
+                                                ListItem_t * const pxNewListItem );
+
+/**
+ * @brief Insert the given item in the list in FIFO manner.
+ *
+ * @param[in] pxList: The list in which the item is to inserted.
+ * @param[in] pxNewListItem: The item to be inserted.
+ */
+        static portINLINE void vListInsertLifo( List_t * const pxList,
+                                                ListItem_t * const pxNewListItem )
+        {
+            vListInsertGeneric( pxList, pxNewListItem, ( MiniListItem_t * ) pxList->xListEnd.pxNext );
         }
     #endif
 /*-----------------------------------------------------------*/
@@ -848,6 +866,7 @@
 
         pxWindow->u.ulFlags = 0UL;
         pxWindow->u.bits.bHasInit = pdTRUE_UNSIGNED;
+        pxWindow->u.bits.bWindowFull = 0;
 
         if( ulMSS != 0UL )
         {
@@ -1306,7 +1325,8 @@
         int32_t lTCPWindowTxAdd( TCPWindow_t * pxWindow,
                                  uint32_t ulLength,
                                  int32_t lPosition,
-                                 int32_t lMax )
+                                 int32_t lMax,
+								 uint32_t ulWindowSize )
         {
             int32_t lBytesLeft = ( int32_t ) ulLength, lToWrite;
             int32_t lDone = 0;
@@ -1365,7 +1385,27 @@
             {
                 /* The current transmission segment is full, create new segments as
                  * needed. */
-                pxSegment = xTCPWindowTxNew( pxWindow, pxWindow->ulNextTxSequenceNumber, ( int32_t ) pxWindow->usMSS );
+
+            	/* If the window length is less than the size of the MSS, then it makes sense to create
+            	 * smaller segments and send the data rather than waiting for window to get bigger. */
+            	int32_t lCount;
+            	if( ulWindowSize > 0 )
+            	{
+            	    lCount = FreeRTOS_min_int32( ( int32_t ) ulWindowSize, ( int32_t ) pxWindow->usMSS );
+            	    pxWindow->u.bits.bWindowFull = 0;
+            	}
+            	else
+            	{
+            		if( pxWindow->u.bits.bWindowFull != 0 )
+            		{
+            			break;
+            		}
+            		pxWindow->u.bits.bWindowFull = 1;
+            		/* Window size is 0, we should have at least 1 byte long segment. */
+            		lCount = 1;
+            	}
+
+                pxSegment = xTCPWindowTxNew( pxWindow, pxWindow->ulNextTxSequenceNumber, lCount );
 
                 if( pxSegment != NULL )
                 {
@@ -1456,7 +1496,7 @@
  *
  * @return True if the peer has space in it window to receive more data.
  */
-        static BaseType_t prvTCPWindowTxHasSpace( TCPWindow_t const * pxWindow,
+        static BaseType_t prvTCPWindowTxHasSpace( TCPWindow_t * pxWindow,
                                                   uint32_t ulWindowSize )
         {
             uint32_t ulTxOutstanding;
@@ -1494,6 +1534,47 @@
                 {
                     xHasSpace = pdTRUE;
                 }
+#if 0
+                else if( ulNettSize != 0 )
+                {
+                	/* There is data to be sent and peer has some space (less than MSS). */
+                	pxSegment = xTCPWindowGetHead( &( pxWindow->xTxQueue ) );
+                	TCPSegment_t * segment1, * segment2;
+
+                    segment1 = xTCPWindowTxNew( pxWindow, pxSegment->ulSequenceNumber, ulNettSize );
+                    segment2 = xTCPWindowTxNew( pxWindow, pxSegment->ulSequenceNumber + ulNettSize, pxSegment->lDataLength - ulNettSize );
+
+                    if( ( segment1 != NULL ) && ( segment2 != NULL ) )
+                    {
+                    	segment1->lDataLength = ulNettSize;
+                    	segment1->lStreamPos = pxSegment->lStreamPos;
+
+                    	segment2->lDataLength = pxSegment->lDataLength - ulNettSize;
+                    	segment2->lStreamPos = lTCPIncrementTxPosition( segment1->lStreamPos, 17524, ulNettSize );
+
+                    	vListInsertLifo( &( pxWindow->xTxQueue ), &( segment2->xQueueItem ) );
+                    	vListInsertLifo( &( pxWindow->xTxQueue ), &( segment1->xQueueItem ) );
+
+                    	pxWindow->pxHeadSegment = segment1;
+
+                    	vTCPWindowFree( pxSegment );
+                    }
+                    else
+                    {
+                    	if( segment1 != NULL )
+                    	{
+                    		vTCPWindowFree( segment1 );
+                    	}
+
+                    	if( segment2 != NULL )
+						{
+							vTCPWindowFree( segment2 );
+						}
+                    }
+
+                	xHasSpace = pdTRUE;
+                }
+#endif
                 else
                 {
                     xHasSpace = pdFALSE;
@@ -2316,7 +2397,7 @@
 
     #if ( ipconfigUSE_TCP_WIN == 0 )
 
-        static BaseType_t prvTCPWindowTxHasSpace( TCPWindow_t const * pxWindow,
+        static BaseType_t prvTCPWindowTxHasSpace( TCPWindow_t * pxWindow,
                                                   uint32_t ulWindowSize );
 
 /**
@@ -2327,7 +2408,7 @@
  *
  * @return pdTRUE if the window has space, pdFALSE otherwise.
  */
-        static BaseType_t prvTCPWindowTxHasSpace( TCPWindow_t const * pxWindow,
+        static BaseType_t prvTCPWindowTxHasSpace( TCPWindow_t * pxWindow,
                                                   uint32_t ulWindowSize )
         {
             BaseType_t xReturn;
