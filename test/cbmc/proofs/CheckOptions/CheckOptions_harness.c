@@ -25,7 +25,7 @@
 ****************************************************************/
 
 BaseType_t __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                      const NetworkBufferDescriptor_t * pxNetworkBuffer );
+                                                                   const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /****************************************************************
 * Declare the buffer size external to the harness so it can be
@@ -39,9 +39,9 @@ size_t buffer_size;
 ****************************************************************/
 
 int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                      size_t uxTotalLength,
-                                      FreeRTOS_Socket_t * const pxSocket,
-                                      BaseType_t xHasSYNFlag )
+                                       size_t uxTotalLength,
+                                       FreeRTOS_Socket_t * const pxSocket,
+                                       BaseType_t xHasSYNFlag )
 {
     /* CBMC model of pointers limits the size of the buffer */
 

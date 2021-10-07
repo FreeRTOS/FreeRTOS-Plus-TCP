@@ -25,9 +25,9 @@
 ****************************************************************/
 
 int32_t __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                      size_t uxTotalLength,
-                                      FreeRTOS_Socket_t * const pxSocket,
-                                      BaseType_t xHasSYNFlag );
+                                                                              size_t uxTotalLength,
+                                                                              FreeRTOS_Socket_t * const pxSocket,
+                                                                              BaseType_t xHasSYNFlag );
 
 /****************************************************************
 * Declare the buffer size external to the harness so it can be
@@ -90,9 +90,9 @@ void harness()
     __CPROVER_assume( pxSocket != NULL );
 
     int32_t index = __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvSingleStepTCPHeaderOptions( pucPtr,
-                                                  uxTotalLength,
-                                                  pxSocket,
-                                                  xHasSYNFlag );
+                                                                                          uxTotalLength,
+                                                                                          pxSocket,
+                                                                                          xHasSYNFlag );
 
     /* Postconditions */
     __CPROVER_assert( ( ( index == -1 ) || ( index == 1 ) || ( index <= uxTotalLength ) ),
