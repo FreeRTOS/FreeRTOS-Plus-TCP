@@ -208,7 +208,7 @@
 /*
  * Parse the TCP option(s) received, if present.
  */
-    _static BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+    static BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
                                         const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
@@ -216,7 +216,7 @@
  * the header. This function returns pdTRUE or pdFALSE depending on whether the
  * caller should continue to parse more header options or break the loop.
  */
-    _static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+    static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
                                                    size_t uxTotalLength,
                                                    FreeRTOS_Socket_t * const pxSocket,
                                                    BaseType_t xHasSYNFlag );
@@ -1290,7 +1290,7 @@
  *       ((pxTCPHeader->ucTCPOffset & 0xf0) > 0x50), meaning that
  *       the TP header is longer than the usual 20 (5 x 4) bytes.
  */
-    _static BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+    static BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
                                         const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
@@ -1388,7 +1388,7 @@
  *         negative value wherein the calling function should not process this packet any
  *         further and drop it.
  */
-    _static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+    static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
                                                    size_t uxTotalLength,
                                                    FreeRTOS_Socket_t * const pxSocket,
                                                    BaseType_t xHasSYNFlag )

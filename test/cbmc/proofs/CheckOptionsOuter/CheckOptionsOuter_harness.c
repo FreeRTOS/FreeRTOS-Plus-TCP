@@ -24,7 +24,7 @@
 * Signature of the function under test
 ****************************************************************/
 
-size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+int32_t __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
                                       size_t uxTotalLength,
                                       FreeRTOS_Socket_t * const pxSocket,
                                       BaseType_t xHasSYNFlag );
@@ -89,12 +89,12 @@ void harness()
     __CPROVER_assume( uxTotalLength <= buffer_size );
     __CPROVER_assume( pxSocket != NULL );
 
-    size_t index = prvSingleStepTCPHeaderOptions( pucPtr,
+    int32_t index = __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvSingleStepTCPHeaderOptions( pucPtr,
                                                   uxTotalLength,
                                                   pxSocket,
                                                   xHasSYNFlag );
 
     /* Postconditions */
-    __CPROVER_assert( index == 1 || index <= uxTotalLength,
+    __CPROVER_assert( ( ( index == -1 ) || ( index == 1 ) || ( index <= uxTotalLength ) ),
                       "prvSingleStepTCPHeaderOptions: index <= uxTotalLength" );
 }
