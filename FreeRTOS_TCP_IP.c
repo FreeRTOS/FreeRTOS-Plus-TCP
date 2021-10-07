@@ -1382,7 +1382,7 @@
  * @return This function returns index of the next option if the current option is
  *         successfully processed and it is not the end of options whereafter the caller
  *         should continue to process more options.
- *         If the options haved ended, this function will return a zero whereafter the
+ *         If the options have ended, this function will return a zero whereafter the
  *         caller should stop parsing options and continue further processing.
  *         If the current option has erroneous value, then the function returns a
  *         negative value wherein the calling function should not process this packet any
