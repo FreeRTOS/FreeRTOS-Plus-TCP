@@ -209,7 +209,7 @@
  * Parse the TCP option(s) received, if present.
  */
     static BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                        const NetworkBufferDescriptor_t * pxNetworkBuffer );
+                                       const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Identify and deal with a single TCP header option, advancing the pointer to
@@ -217,9 +217,9 @@
  * caller should continue to parse more header options or break the loop.
  */
     static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                                   size_t uxTotalLength,
-                                                   FreeRTOS_Socket_t * const pxSocket,
-                                                   BaseType_t xHasSYNFlag );
+                                                  size_t uxTotalLength,
+                                                  FreeRTOS_Socket_t * const pxSocket,
+                                                  BaseType_t xHasSYNFlag );
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
 
@@ -1291,7 +1291,7 @@
  *       the TP header is longer than the usual 20 (5 x 4) bytes.
  */
     static BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                        const NetworkBufferDescriptor_t * pxNetworkBuffer )
+                                       const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
         const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -1389,9 +1389,9 @@
  *         further and drop it.
  */
     static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                                   size_t uxTotalLength,
-                                                   FreeRTOS_Socket_t * const pxSocket,
-                                                   BaseType_t xHasSYNFlag )
+                                                  size_t uxTotalLength,
+                                                  FreeRTOS_Socket_t * const pxSocket,
+                                                  BaseType_t xHasSYNFlag )
     {
         UBaseType_t uxNewMSS;
         size_t uxRemainingOptionsBytes = uxTotalLength;
