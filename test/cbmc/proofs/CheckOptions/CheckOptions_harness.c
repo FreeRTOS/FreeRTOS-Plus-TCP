@@ -38,10 +38,10 @@ size_t buffer_size;
 * Function contract proved correct by CheckOptionsOuter
 ****************************************************************/
 
-int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                       size_t uxTotalLength,
-                                       FreeRTOS_Socket_t * const pxSocket,
-                                       BaseType_t xHasSYNFlag )
+int32_t __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                                                              size_t uxTotalLength,
+                                                                              FreeRTOS_Socket_t * const pxSocket,
+                                                                              BaseType_t xHasSYNFlag )
 {
     /* CBMC model of pointers limits the size of the buffer */
 
