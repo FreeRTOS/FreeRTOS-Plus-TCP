@@ -1359,7 +1359,7 @@
                             break;
                         }
 
-                        uxOptionsLength -= lResult;
+                        uxOptionsLength -= ( size_t ) lResult;
                         pucPtr = &( pucPtr[ lResult ] );
                     }
                 }
@@ -1435,7 +1435,7 @@
                         pxSocket->u.xTCP.bits.bWinScaling = pdTRUE_UNSIGNED;
                     }
 
-                    lIndex = tcpTCP_OPT_WSOPT_LEN;
+                    lIndex = ( int32_t ) tcpTCP_OPT_WSOPT_LEN;
                 }
             }
         #endif /* ipconfigUSE_TCP_WIN */
@@ -1531,7 +1531,7 @@
 
                             while( ucLen >= ( uint8_t ) 8U )
                             {
-                                prvReadSackOption( pucPtr, lIndex, pxSocket );
+                                prvReadSackOption( pucPtr, ( size_t ) lIndex, pxSocket );
                                 lIndex += 8;
                                 ucLen -= 8U;
                             }
@@ -3455,6 +3455,12 @@
     {
         uint32_t ulMSS = ipconfigTCP_MSS;
 
+        /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
+        if( ulMSS < tcpMINIMUM_SEGMENT_LENGTH )
+        {
+            ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
+        }
+
         if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.ulRemoteIP ) ^ *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) != 0UL )
         {
             /* Data for this peer will pass through a router, and maybe through
@@ -3630,8 +3636,8 @@
                         /* Otherwise, do nothing. In any case, the packet cannot be handled. */
                         xResult = pdFAIL;
                     }
-                    /* Check whether there is SYN amongst the TCP flags while the connection is established. */
-                    else if( ( ( ucTCPFlags & tcpTCP_FLAG_SYN ) == tcpTCP_FLAG_SYN ) && ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) )
+                    /* Check whether there is a pure SYN amongst the TCP flags while the connection is established. */
+                    else if( ( ( ucTCPFlags & tcpTCP_FLAG_CTRL ) == tcpTCP_FLAG_SYN ) && ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) )
                     {
                         /* SYN flag while this socket is already connected. */
                         FreeRTOS_debug_printf( ( "TCP: SYN unexpected from %lxip:%u\n", ulRemoteIP, xRemotePort ) );
