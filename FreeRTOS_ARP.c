@@ -119,7 +119,11 @@ static TickType_t xLastGratuitousARPTime = 0U;
 static UBaseType_t uxARPClashCounter = 0;
 
 /** @brief The time at which the last ARP clash was sent. */
-static TimeOut_t ARPClashTimeOut;
+static TimeOut_t xARPClashTimeOut;
+
+/** @brief Next defensive request must not be sent for arpIP_CLASH_RESET_TIMEOUT_MS
+ * period. */
+static TickType_t xARPClashTimeoutPeriod = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
 
 /*-----------------------------------------------------------*/
 
@@ -156,12 +160,8 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 
     if( uxARPClashCounter != 0 )
     {
-        /* Next defensive request must not be sent for arpIP_CLASH_RESET_TIMEOUT_MS
-         * period. */
-        TickType_t xARPClashTimeout = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
-
         /* Has the timeout been reached? */
-        if( xTaskCheckForTimeOut( &ARPClashTimeOut, &xARPClashTimeout ) == pdTRUE )
+        if( xTaskCheckForTimeOut( &xARPClashTimeOut, &xARPClashTimeoutPeriod ) == pdTRUE )
         {
             /* We have waited long enough, reset the counter. */
             uxARPClashCounter = 0;
@@ -224,7 +224,10 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                 xLastGratuitousARPTime = xTaskGetTickCount();
 
                 /* Note the time at which this request was sent. */
-                vTaskSetTimeOutState( &ARPClashTimeOut );
+                vTaskSetTimeOutState( &xARPClashTimeOut );
+
+                /* Reset the time-out period to the given value. */
+                xARPClashTimeoutPeriod = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
             }
 
             /* Process received ARP frame to see if there is a clash. */
