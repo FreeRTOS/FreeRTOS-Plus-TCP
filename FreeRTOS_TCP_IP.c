@@ -1354,7 +1354,7 @@
                             break;
                         }
 
-                        if( lResult == 0UL )
+                        if( lResult == 0 )
                         {
                             break;
                         }
