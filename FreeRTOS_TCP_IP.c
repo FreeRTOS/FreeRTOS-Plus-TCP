@@ -77,19 +77,25 @@
 /*
  * A few values of the TCP options:
  */
-    #define tcpTCP_OPT_END              0U           /**< End of TCP options list. */
-    #define tcpTCP_OPT_NOOP             1U           /**< "No-operation" TCP option. */
-    #define tcpTCP_OPT_MSS              2U           /**< Maximum segment size TCP option. */
-    #define tcpTCP_OPT_WSOPT            3U           /**< TCP Window Scale Option (3-byte long). */
-    #define tcpTCP_OPT_SACK_P           4U           /**< Advertise that SACK is permitted. */
-    #define tcpTCP_OPT_SACK_A           5U           /**< SACK option with first/last. */
-    #define tcpTCP_OPT_TIMESTAMP        8U           /**< Time-stamp option. */
+    #define tcpTCP_OPT_END               0U          /**< End of TCP options list. */
+    #define tcpTCP_OPT_NOOP              1U          /**< "No-operation" TCP option. */
+    #define tcpTCP_OPT_MSS               2U          /**< Maximum segment size TCP option. */
+    #define tcpTCP_OPT_WSOPT             3U          /**< TCP Window Scale Option (3-byte long). */
+    #define tcpTCP_OPT_SACK_P            4U          /**< Advertise that SACK is permitted. */
+    #define tcpTCP_OPT_SACK_A            5U          /**< SACK option with first/last. */
+    #define tcpTCP_OPT_TIMESTAMP         8U          /**< Time-stamp option. */
 
 
-    #define tcpTCP_OPT_MSS_LEN          4U           /**< Length of TCP MSS option. */
-    #define tcpTCP_OPT_WSOPT_LEN        3U           /**< Length of TCP WSOPT option. */
+    #define tcpTCP_OPT_MSS_LEN           4U          /**< Length of TCP MSS option. */
+    #define tcpTCP_OPT_WSOPT_LEN         3U          /**< Length of TCP WSOPT option. */
 
-    #define tcpTCP_OPT_TIMESTAMP_LEN    10           /**< fixed length of the time-stamp option. */
+    #define tcpTCP_OPT_TIMESTAMP_LEN     10          /**< fixed length of the time-stamp option. */
+
+/** @brief
+ * Minimum segment length as outlined by RFC 791 section 3.1.
+ * Minimum segment length ( 536 ) = Minimum MTU ( 576 ) - IP Header ( 20 ) - TCP Header ( 20 ).
+ */
+    #define tcpMINIMUM_SEGMENT_LENGTH    536U
 
 /** @brief
  * The macro tcpNOW_CONNECTED() is use to determine if the connection makes a
@@ -202,15 +208,15 @@
 /*
  * Parse the TCP option(s) received, if present.
  */
-    _static void prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                  const NetworkBufferDescriptor_t * pxNetworkBuffer );
+    static BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+                                       const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Identify and deal with a single TCP header option, advancing the pointer to
  * the header. This function returns pdTRUE or pdFALSE depending on whether the
  * caller should continue to parse more header options or break the loop.
  */
-    _static size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+    static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
                                                   size_t uxTotalLength,
                                                   FreeRTOS_Socket_t * const pxSocket,
                                                   BaseType_t xHasSYNFlag );
@@ -1277,12 +1283,15 @@
  * @param[in] pxNetworkBuffer: The network buffer containing the TCP
  *                             packet.
  *
+ * @return: If the options are well formed and processed successfully
+ *          then pdPASS is returned; else a pdFAIL is returned.
+ *
  * @note It has already been verified that:
  *       ((pxTCPHeader->ucTCPOffset & 0xf0) > 0x50), meaning that
  *       the TP header is longer than the usual 20 (5 x 4) bytes.
  */
-    _static void prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                  const NetworkBufferDescriptor_t * pxNetworkBuffer )
+    static BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+                                       const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
         const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -1290,10 +1299,11 @@
         const TCPHeader_t * pxTCPHeader;
         const uint8_t * pucPtr;
         BaseType_t xHasSYNFlag;
+        BaseType_t xReturn = pdPASS;
         /* Offset in the network packet where the first option byte is stored. */
         size_t uxOptionOffset = uxTCPHeaderOffset + ( sizeof( TCPHeader_t ) - sizeof( pxTCPHeader->ucOptdata ) );
         size_t uxOptionsLength;
-        size_t uxResult;
+        int32_t lResult;
         uint8_t ucLength;
 
         pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
@@ -1336,19 +1346,27 @@
                             break;
                         }
 
-                        uxResult = prvSingleStepTCPHeaderOptions( pucPtr, uxOptionsLength, pxSocket, xHasSYNFlag );
+                        lResult = prvSingleStepTCPHeaderOptions( pucPtr, uxOptionsLength, pxSocket, xHasSYNFlag );
 
-                        if( uxResult == 0UL )
+                        if( lResult < 0 )
+                        {
+                            xReturn = pdFAIL;
+                            break;
+                        }
+
+                        if( lResult == 0 )
                         {
                             break;
                         }
 
-                        uxOptionsLength -= uxResult;
-                        pucPtr = &( pucPtr[ uxResult ] );
+                        uxOptionsLength -= ( size_t ) lResult;
+                        pucPtr = &( pucPtr[ lResult ] );
                     }
                 }
             }
         }
+
+        return xReturn;
     }
     /*-----------------------------------------------------------*/
 
@@ -1361,10 +1379,16 @@
  * @param[in] pxSocket: Socket handling the connection.
  * @param[in] xHasSYNFlag: Whether the header has SYN flag or not.
  *
- * @return This function returns pdTRUE or pdFALSE depending on whether the caller
- *         should continue to parse more header options or break the loop.
+ * @return This function returns index of the next option if the current option is
+ *         successfully processed and it is not the end of options whereafter the caller
+ *         should continue to process more options.
+ *         If the options have ended, this function will return a zero whereafter the
+ *         caller should stop parsing options and continue further processing.
+ *         If the current option has erroneous value, then the function returns a
+ *         negative value wherein the calling function should not process this packet any
+ *         further and drop it.
  */
-    _static size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+    static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
                                                   size_t uxTotalLength,
                                                   FreeRTOS_Socket_t * const pxSocket,
                                                   BaseType_t xHasSYNFlag )
@@ -1372,25 +1396,25 @@
         UBaseType_t uxNewMSS;
         size_t uxRemainingOptionsBytes = uxTotalLength;
         uint8_t ucLen;
-        size_t uxIndex;
+        int32_t lIndex;
         TCPWindow_t * pxTCPWindow = &( pxSocket->u.xTCP.xTCPWindow );
         BaseType_t xReturn = pdFALSE;
 
         if( pucPtr[ 0U ] == tcpTCP_OPT_END )
         {
             /* End of options. */
-            uxIndex = 0U;
+            lIndex = 0;
         }
         else if( pucPtr[ 0U ] == tcpTCP_OPT_NOOP )
         {
             /* NOP option, inserted to make the length a multiple of 4. */
-            uxIndex = 1U;
+            lIndex = 1;
         }
         else if( uxRemainingOptionsBytes < 2U )
         {
             /* Any other well-formed option must be at least two bytes: the option
              * type byte followed by a length byte. */
-            uxIndex = 0U;
+            lIndex = -1;
         }
 
         #if ( ipconfigUSE_TCP_WIN != 0 )
@@ -1400,7 +1424,7 @@
                 /* Confirm that the option fits in the remaining buffer space. */
                 if( ( uxRemainingOptionsBytes < tcpTCP_OPT_WSOPT_LEN ) || ( pucPtr[ 1 ] != tcpTCP_OPT_WSOPT_LEN ) )
                 {
-                    uxIndex = 0U;
+                    lIndex = -1;
                 }
                 else
                 {
@@ -1411,7 +1435,7 @@
                         pxSocket->u.xTCP.bits.bWinScaling = pdTRUE_UNSIGNED;
                     }
 
-                    uxIndex = tcpTCP_OPT_WSOPT_LEN;
+                    lIndex = ( int32_t ) tcpTCP_OPT_WSOPT_LEN;
                 }
             }
         #endif /* ipconfigUSE_TCP_WIN */
@@ -1420,7 +1444,7 @@
             /* Confirm that the option fits in the remaining buffer space. */
             if( ( uxRemainingOptionsBytes < tcpTCP_OPT_MSS_LEN ) || ( pucPtr[ 1 ] != tcpTCP_OPT_MSS_LEN ) )
             {
-                uxIndex = 0U;
+                lIndex = -1;
             }
             else
             {
@@ -1434,7 +1458,7 @@
                     /* Perform a basic check on the the new MSS. */
                     if( uxNewMSS == 0U )
                     {
-                        uxIndex = 0U;
+                        lIndex = -1;
 
                         /* Return Condition found. */
                         xReturn = pdTRUE;
@@ -1448,6 +1472,13 @@
                 /* If a 'return' condition has not been found. */
                 if( xReturn == pdFALSE )
                 {
+                    /* Restrict the minimum value of segment length to the ( Minimum IP MTU (576) - IP header(20) - TCP Header(20) ).
+                     * See "RFC 791 section 3.1 Total Length" for more details. */
+                    if( uxNewMSS < tcpMINIMUM_SEGMENT_LENGTH )
+                    {
+                        uxNewMSS = tcpMINIMUM_SEGMENT_LENGTH;
+                    }
+
                     if( pxSocket->u.xTCP.usMSS > uxNewMSS )
                     {
                         /* our MSS was bigger than the MSS of the other party: adapt it. */
@@ -1467,7 +1498,7 @@
                         pxSocket->u.xTCP.usMSS = ( uint16_t ) uxNewMSS;
                     }
 
-                    uxIndex = tcpTCP_OPT_MSS_LEN;
+                    lIndex = tcpTCP_OPT_MSS_LEN;
                 }
             }
         }
@@ -1476,13 +1507,14 @@
             /* All other options have a length field, so that we easily
              * can skip past them. */
             ucLen = pucPtr[ 1 ];
-            uxIndex = 0U;
+            lIndex = 0;
 
             if( ( ucLen < ( uint8_t ) 2U ) || ( uxRemainingOptionsBytes < ( size_t ) ucLen ) )
             {
                 /* If the length field is too small or too big, the options are
                  * malformed, don't process them further.
                  */
+                lIndex = -1;
             }
             else
             {
@@ -1495,12 +1527,12 @@
                         if( pucPtr[ 0U ] == tcpTCP_OPT_SACK_A )
                         {
                             ucLen -= 2U;
-                            uxIndex += 2U;
+                            lIndex += 2;
 
                             while( ucLen >= ( uint8_t ) 8U )
                             {
-                                prvReadSackOption( pucPtr, uxIndex, pxSocket );
-                                uxIndex += 8U;
+                                prvReadSackOption( pucPtr, ( size_t ) lIndex, pxSocket );
+                                lIndex += 8;
                                 ucLen -= 8U;
                             }
 
@@ -1509,7 +1541,7 @@
                     }
                 #endif /* ipconfigUSE_TCP_WIN == 1 */
 
-                uxIndex += ( size_t ) ucLen;
+                lIndex += ( int32_t ) ucLen;
             }
         }
 
@@ -1518,7 +1550,7 @@
             ( void ) xHasSYNFlag;
         #endif
 
-        return uxIndex;
+        return lIndex;
     }
     /*-----------------------------------------------------------*/
 
@@ -3423,6 +3455,12 @@
     {
         uint32_t ulMSS = ipconfigTCP_MSS;
 
+        /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
+        if( ulMSS < tcpMINIMUM_SEGMENT_LENGTH )
+        {
+            ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
+        }
+
         if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.ulRemoteIP ) ^ *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) != 0UL )
         {
             /* Data for this peer will pass through a router, and maybe through
@@ -3598,6 +3636,7 @@
                         /* Otherwise, do nothing. In any case, the packet cannot be handled. */
                         xResult = pdFAIL;
                     }
+                    /* Check whether there is a pure SYN amongst the TCP flags while the connection is established. */
                     else if( ( ( ucTCPFlags & tcpTCP_FLAG_CTRL ) == tcpTCP_FLAG_SYN ) && ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) )
                     {
                         /* SYN flag while this socket is already connected. */
@@ -3641,52 +3680,53 @@
                  * the number 5 (words) in the higher nibble of the TCP-offset byte. */
                 if( ( pxProtocolHeaders->xTCPHeader.ucTCPOffset & tcpTCP_OFFSET_LENGTH_BITS ) > tcpTCP_OFFSET_STANDARD_LENGTH )
                 {
-                    prvCheckOptions( pxSocket, pxNetworkBuffer );
+                    xResult = prvCheckOptions( pxSocket, pxNetworkBuffer );
                 }
 
-                usWindow = FreeRTOS_ntohs( pxProtocolHeaders->xTCPHeader.usWindow );
-                pxSocket->u.xTCP.ulWindowSize = ( uint32_t ) usWindow;
-                #if ( ipconfigUSE_TCP_WIN == 1 )
-                    {
-                        /* rfc1323 : The Window field in a SYN (i.e., a <SYN> or <SYN,ACK>)
-                         * segment itself is never scaled. */
-                        if( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_SYN ) == 0U )
-                        {
-                            pxSocket->u.xTCP.ulWindowSize =
-                                ( pxSocket->u.xTCP.ulWindowSize << pxSocket->u.xTCP.ucPeerWinScaleFactor );
-                        }
-                    }
-                #endif /* ipconfigUSE_TCP_WIN */
-
-                /* In prvTCPHandleState() the incoming messages will be handled
-                 * depending on the current state of the connection. */
-                if( prvTCPHandleState( pxSocket, &pxNetworkBuffer ) > 0 )
+                if( xResult != pdFAIL )
                 {
-                    /* prvTCPHandleState() has sent a message, see if there are more to
-                     * be transmitted. */
+                    usWindow = FreeRTOS_ntohs( pxProtocolHeaders->xTCPHeader.usWindow );
+                    pxSocket->u.xTCP.ulWindowSize = ( uint32_t ) usWindow;
                     #if ( ipconfigUSE_TCP_WIN == 1 )
                         {
-                            ( void ) prvTCPSendRepeated( pxSocket, &pxNetworkBuffer );
+                            /* rfc1323 : The Window field in a SYN (i.e., a <SYN> or <SYN,ACK>)
+                             * segment itself is never scaled. */
+                            if( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_SYN ) == 0U )
+                            {
+                                pxSocket->u.xTCP.ulWindowSize =
+                                    ( pxSocket->u.xTCP.ulWindowSize << pxSocket->u.xTCP.ucPeerWinScaleFactor );
+                            }
                         }
                     #endif /* ipconfigUSE_TCP_WIN */
-                }
 
-                if( pxNetworkBuffer != NULL )
-                {
-                    /* We must check if the buffer is unequal to NULL, because the
-                     * socket might keep a reference to it in case a delayed ACK must be
-                     * sent. */
-                    vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                    #ifndef _lint
-                        /* Clear pointers that are freed. */
-                        pxNetworkBuffer = NULL;
-                    #endif
-                }
+                    /* In prvTCPHandleState() the incoming messages will be handled
+                     * depending on the current state of the connection. */
+                    if( prvTCPHandleState( pxSocket, &pxNetworkBuffer ) > 0 )
+                    {
+                        /* prvTCPHandleState() has sent a message, see if there are more to
+                         * be transmitted. */
+                        #if ( ipconfigUSE_TCP_WIN == 1 )
+                            {
+                                ( void ) prvTCPSendRepeated( pxSocket, &pxNetworkBuffer );
+                            }
+                        #endif /* ipconfigUSE_TCP_WIN */
+                    }
 
-                /* And finally, calculate when this socket wants to be woken up. */
-                ( void ) prvTCPNextTimeout( pxSocket );
-                /* Return pdPASS to tell that the network buffer is 'consumed'. */
-                xResult = pdPASS;
+                    if( pxNetworkBuffer != NULL )
+                    {
+                        /* We must check if the buffer is unequal to NULL, because the
+                         * socket might keep a reference to it in case a delayed ACK must be
+                         * sent. */
+                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+                        #ifndef _lint
+                            /* Clear pointers that are freed. */
+                            pxNetworkBuffer = NULL;
+                        #endif
+                    }
+
+                    /* And finally, calculate when this socket wants to be woken up. */
+                    ( void ) prvTCPNextTimeout( pxSocket );
+                }
             }
         }
 
