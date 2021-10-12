@@ -73,7 +73,7 @@
  * arpIP_CLASH_RESET_TIMEOUT_MS period. The retries are limited to one as outlined
  * by RFC 5227 section 2.4 part b.*/
 #ifndef arpIP_CLASH_MAX_RETRIES
-    #define arpIP_CLASH_MAX_RETRIES    1
+    #define arpIP_CLASH_MAX_RETRIES    1U
 #endif
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
@@ -116,14 +116,14 @@ static TickType_t xLastGratuitousARPTime = 0U;
 /** @brief This local variable is used to keep track of number of ARP requests sent and
  * also to limit the requests to arpIP_CLASH_MAX_RETRIES per arpIP_CLASH_RESET_TIMEOUT_MS
  * period. */
-static UBaseType_t uxARPClashCounter = 0;
+static UBaseType_t uxARPClashCounter = 0U;
 
 /** @brief The time at which the last ARP clash was sent. */
 static TimeOut_t xARPClashTimeOut;
 
 /** @brief Next defensive request must not be sent for arpIP_CLASH_RESET_TIMEOUT_MS
  * period. */
-static TickType_t xARPClashTimeoutPeriod = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
+static TickType_t uxARPClashTimeoutPeriod = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
 
 /*-----------------------------------------------------------*/
 
@@ -161,7 +161,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
     if( uxARPClashCounter != 0 )
     {
         /* Has the timeout been reached? */
-        if( xTaskCheckForTimeOut( &xARPClashTimeOut, &xARPClashTimeoutPeriod ) == pdTRUE )
+        if( xTaskCheckForTimeOut( &xARPClashTimeOut, &uxARPClashTimeoutPeriod ) == pdTRUE )
         {
             /* We have waited long enough, reset the counter. */
             uxARPClashCounter = 0;
@@ -227,7 +227,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                 vTaskSetTimeOutState( &xARPClashTimeOut );
 
                 /* Reset the time-out period to the given value. */
-                xARPClashTimeoutPeriod = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
+                uxARPClashTimeoutPeriod = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
             }
 
             /* Process received ARP frame to see if there is a clash. */
