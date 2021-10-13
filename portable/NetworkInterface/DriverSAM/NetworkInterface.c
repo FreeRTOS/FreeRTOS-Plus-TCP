@@ -866,7 +866,7 @@ static void prvEMACHandlerTask( void * pvParameters )
 
                 if( xTXDescriptorSemaphore != NULL )
                 {
-                    uxCurrentSemCount = uxSemaphoreGetCount( xTXDescriptorSemaphore );
+                    UBaseType_t uxCurrentSemCount = uxSemaphoreGetCount( xTXDescriptorSemaphore );
 
                     if( uxLowestSemCount > uxCurrentSemCount )
                     {

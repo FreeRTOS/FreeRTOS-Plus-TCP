@@ -52,13 +52,16 @@
 /* ST includes. */
 #if defined( STM32F7xx )
     #include "stm32f7xx_hal.h"
+    #define CACHE_LINE_SIZE    32u
 #elif defined( STM32F4xx )
     #include "stm32f4xx_hal.h"
 #elif defined( STM32F2xx )
     #include "stm32f2xx_hal.h"
+#elif defined( STM32F1xx )
+    #include "stm32f1xx_hal.h"
 #elif !defined( _lint ) /* Lint does not like an #error */
     #error What part?
-#endif
+#endif /* if defined( STM32F7xx ) */
 
 #include "stm32fxx_hal_eth.h"
 
@@ -74,6 +77,10 @@
     ( ETH_DMA_IT_TST | ETH_DMA_IT_PMT | ETH_DMA_IT_MMC | ETH_DMA_IT_NIS | ETH_DMA_IT_ER | \
       ETH_DMA_IT_FBE | ETH_DMA_IT_RWT | ETH_DMA_IT_RPS | ETH_DMA_IT_RBU | ETH_DMA_IT_R |  \
       ETH_DMA_IT_TU | ETH_DMA_IT_RO | ETH_DMA_IT_TJT | ETH_DMA_IT_TPS | ETH_DMA_IT_T )
+
+#ifndef NETWORK_BUFFER_HEADER_SIZE
+    #define NETWORK_BUFFER_HEADER_SIZE    ( ipBUFFER_PADDING )
+#endif
 
 #ifndef niEMAC_HANDLER_TASK_PRIORITY
     #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
@@ -187,7 +194,7 @@ static BaseType_t prvNetworkInterfaceInput( void );
 /*
  * Check if a given packet should be accepted.
  */
-static BaseType_t xMayAcceptPacket( uint8_t * pcBuffer );
+static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer );
 
 /*
  * Initialise the TX descriptors.
@@ -489,7 +496,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
                 xMacInitStatus = eMACFailed;
             }
         }
-    } /* if( xEMACTaskHandle == NULL ) */
+    } /* if( xMacInitStatus == eMACInit ) */
 
     if( xMacInitStatus != eMACPass )
     {
@@ -498,7 +505,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
     }
     else
     {
-        if( xPhyObject.ulLinkStatusMask != 0uL )
+        if( xPhyObject.ulLinkStatusMask != 0U )
         {
             xETH.Instance->DMAIER |= ETH_DMA_ALL_INTS;
             xResult = pdPASS;
@@ -777,9 +784,9 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t xMayAcceptPacket( uint8_t * pcBuffer )
+static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
 {
-    const ProtocolPacket_t * pxProtPacket = ( const ProtocolPacket_t * ) pcBuffer;
+    const ProtocolPacket_t * pxProtPacket = ( const ProtocolPacket_t * ) pucEthernetBuffer;
 
     switch( pxProtPacket->xTCPPacket.xEthernetHeader.usFrameType )
     {
