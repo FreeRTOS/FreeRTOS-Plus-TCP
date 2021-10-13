@@ -48,7 +48,7 @@
 /*-----------------------------------------------------------*/
 /* Utility macros for marking casts as recognized during     */
 /* static analysis.                                          */
-/* Note _HT_ Changed 'vCastConstPointerTo' to the shorter    */
+/* Changed 'vCastConstPointerTo' to the shorter              */
 /* vCastConstPtrTo to limit the length of the function name. */
 /*-----------------------------------------------------------*/
     #define ipCAST_PTR_TO_TYPE_PTR( TYPE, pointer )                ( vCastPointerTo_ ## TYPE( ( void * ) ( pointer ) ) )

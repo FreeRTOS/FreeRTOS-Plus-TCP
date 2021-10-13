@@ -116,6 +116,9 @@
 /* The offset of ucTCPFlags within the TCP header. */
     #define ipTCP_FLAGS_OFFSET    13U
 
+    #define ipFIRST_LOOPBACK_IPv4    0x7F000000UL            /**< Lowest IPv4 loopback address (including). */
+    #define ipLAST_LOOPBACK_IPv4     0x80000000UL            /**< Highest IPv4 loopback address (excluding). */
+
 /**
  * The structure used to store buffers and pass them around the network stack.
  * Buffers can be in use by the stack, in use by the network interface hardware
