@@ -141,10 +141,10 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
     	static TimeOut_t ARPClashTimeOut;
         #define ipARP_CLASH_RESET_TIMEOUT    10000
         #define ipARP_CLASH_MAX_RETRIES    1
+    	static TickType_t xARPClashTimeout = pdMS_TO_TICKS( ipARP_CLASH_RESET_TIMEOUT );
 
     	if( uxARPClashCounter != 0 )
 		{
-    		TickType_t xARPClashTimeout = pdMS_TO_TICKS( ipARP_CLASH_RESET_TIMEOUT );
 			if( pdTRUE == xTaskCheckForTimeOut( &ARPClashTimeOut, &xARPClashTimeout ) )
 			{
 				FreeRTOS_printf(( "Done at %u\n", xTaskGetTickCount() ));
@@ -181,6 +181,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 		}
 		else if( ulSenderProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER )
 		{
+			FreeRTOS_printf(( "Next at %u\n", xTaskGetTickCount() ));
 			if( uxARPClashCounter < ipARP_CLASH_MAX_RETRIES )
 			{
 				/* Increment the counter. */
@@ -197,6 +198,8 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 
 				/* Note the time at which this request was sent. */
 				vTaskSetTimeOutState( &ARPClashTimeOut );
+
+				xARPClashTimeout = pdMS_TO_TICKS( ipARP_CLASH_RESET_TIMEOUT );
 			}
 
 			break;

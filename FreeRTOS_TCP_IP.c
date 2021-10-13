@@ -3630,17 +3630,29 @@
                         /* Otherwise, do nothing. In any case, the packet cannot be handled. */
                         xResult = pdFAIL;
                     }
-                    else if( ( ( ucTCPFlags & tcpTCP_FLAG_SYN ) != 0 ) && ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) )
+                    else if( ( ( ucTCPFlags & tcpTCP_FLAG_CTRL ) == tcpTCP_FLAG_SYN ) && ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) )
                     {
                         /* SYN flag while this socket is already connected. */
                         FreeRTOS_debug_printf( ( "TCP: SYN unexpected from %lxip:%u\n", ulRemoteIP, xRemotePort ) );
 
-                        /* Reset must be sent and the socket must be closed. See RFC 793 section 3.9 page 70/71. */
-                        ( void ) prvTCPSendReset( pxNetworkBuffer );
-                        vTCPStateChange( pxSocket, eCLOSED );
-
                         /* The packet cannot be handled. */
                         xResult = pdFAIL;
+                    }
+                    /* A SYN ACK when the connection is established, drop the packet! */
+                    else if( ( ( ucTCPFlags & tcpTCP_FLAG_CTRL ) == ( tcpTCP_FLAG_SYN | tcpTCP_FLAG_ACK ) ) && ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eESTABLISHED ) )
+                    {
+                    	/* Reset must be sent and the socket must be closed. See RFC 793 section 3.9 page 70/71. */
+                    	( void ) prvTCPSendReset( pxNetworkBuffer );
+
+                    	/* Close the connection. */
+                    	vTCPStateChange( pxSocket, eCLOSED );
+
+                    }
+                    else if( ( ( ucTCPFlags & tcpTCP_FLAG_SYN ) == tcpTCP_FLAG_SYN ) && ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eSYN_RECEIVED ) )
+                    {
+                    	/* SYN received after we have already sent a SYN/ACK - maybe the peer missed it. Reset the
+                    	 * state to a previous value so that it can be processed. */
+                    	vTCPStateChange( pxSocket, eSYN_FIRST );
                     }
                     else if( ( ucTCPFlags & tcpTCP_FLAG_ACK ) == 0 )
                     {
