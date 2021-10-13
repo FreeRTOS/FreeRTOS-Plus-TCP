@@ -24,8 +24,8 @@
 * Signature of function under test
 ****************************************************************/
 
-void prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                      const NetworkBufferDescriptor_t * pxNetworkBuffer );
+BaseType_t __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+                                                                   const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /****************************************************************
 * Declare the buffer size external to the harness so it can be
@@ -38,10 +38,10 @@ size_t buffer_size;
 * Function contract proved correct by CheckOptionsOuter
 ****************************************************************/
 
-size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                      size_t uxTotalLength,
-                                      FreeRTOS_Socket_t * const pxSocket,
-                                      BaseType_t xHasSYNFlag )
+int32_t __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                                                              size_t uxTotalLength,
+                                                                              FreeRTOS_Socket_t * const pxSocket,
+                                                                              BaseType_t xHasSYNFlag )
 {
     /* CBMC model of pointers limits the size of the buffer */
 
@@ -58,9 +58,9 @@ size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
                       "prvSingleStepTCPHeaderOptions: pxSocket != NULL" );
 
     /* Postconditions */
-    size_t index;
+    int32_t index;
 
-    __CPROVER_assume( index == 1 || index <= uxTotalLength );
+    __CPROVER_assume( ( index == -1 ) || ( index == 1 ) || ( index <= uxTotalLength ) );
 
     return index;
 }
@@ -99,5 +99,5 @@ void harness()
     /* Buffer must be big enough to hold pxTCPPacket and pxTCPHeader */
     __CPROVER_assume( buffer_size > 47 );
 
-    prvCheckOptions( &pxSocket, &pxNetworkBuffer );
+    __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvCheckOptions( &pxSocket, &pxNetworkBuffer );
 }

@@ -740,7 +740,7 @@ static TickType_t prvCalculateSleepTime( void )
     {
         if( xARPTimer.ulRemainingTime < xMaximumSleepTime )
         {
-            xMaximumSleepTime = xARPTimer.ulReloadTime;
+            xMaximumSleepTime = xARPTimer.ulRemainingTime;
         }
     }
 
@@ -794,23 +794,23 @@ static void prvCheckNetworkTimers( void )
     }
 
     /* Is the ARP resolution timer expired? */
-	if( prvIPTimerCheck( &xARPResolutionTimer ) != pdFALSE )
-	{
-		if( pxARPWaitingNetworkBuffer != NULL )
-		{
-			/* Disable the ARP resolution timer. */
-			vIPSetARPResolutionTimerEnableState( pdFALSE );
+    if( prvIPTimerCheck( &xARPResolutionTimer ) != pdFALSE )
+    {
+        if( pxARPWaitingNetworkBuffer != NULL )
+        {
+            /* Disable the ARP resolution timer. */
+            vIPSetARPResolutionTimerEnableState( pdFALSE );
 
-			/* We have waited long enough for the ARP response. Now, free the network
-			 * buffer. */
-			vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
+            /* We have waited long enough for the ARP response. Now, free the network
+             * buffer. */
+            vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
 
-			/* Clear the pointer. */
-			pxARPWaitingNetworkBuffer = NULL;
+            /* Clear the pointer. */
+            pxARPWaitingNetworkBuffer = NULL;
 
-			iptraceDELAYED_ARP_TIMER_EXPIRED();
-		}
-	}
+            iptraceDELAYED_ARP_TIMER_EXPIRED();
+        }
+    }
 
     #if ( ipconfigUSE_DHCP == 1 )
         {
@@ -1868,22 +1868,22 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
         case eWaitingARPResolution:
 
-			if( pxARPWaitingNetworkBuffer == NULL )
-			{
-				pxARPWaitingNetworkBuffer = pxNetworkBuffer;
-				prvIPTimerStart( &( xARPResolutionTimer ), ipARP_RESOLUTION_MAX_DELAY );
+            if( pxARPWaitingNetworkBuffer == NULL )
+            {
+                pxARPWaitingNetworkBuffer = pxNetworkBuffer;
+                prvIPTimerStart( &( xARPResolutionTimer ), ipARP_RESOLUTION_MAX_DELAY );
 
-				iptraceDELAYED_ARP_REQUEST_STARTED();
-			}
-			else
-			{
-				/* We are already waiting on one ARP resolution. This frame will be dropped. */
-				vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+                iptraceDELAYED_ARP_REQUEST_STARTED();
+            }
+            else
+            {
+                /* We are already waiting on one ARP resolution. This frame will be dropped. */
+                vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
 
-				iptraceDELAYED_ARP_BUFFER_FULL();
-			}
+                iptraceDELAYED_ARP_BUFFER_FULL();
+            }
 
-			break;
+            break;
 
         case eReleaseBuffer:
         case eProcessBuffer:
@@ -2009,10 +2009,16 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                 /* Packet is not for this node, release it */
                 eReturn = eReleaseBuffer;
             }
-            /* Is this a link level only broadcast? */
-            else if( ( memcmp( ( void * ) &xBroadcastMACAddress,
-                       ( void * ) &( pxIPPacket->xEthernetHeader.xDestinationAddress ),
-                       sizeof( MACAddress_t ) ) == 0 ) &&
+            /* Is the source address correct? */
+            else if( ( FreeRTOS_ntohl( ulSourceIPAddress ) & 0xffU ) == 0xffU )
+            {
+                /* The source address cannot be broadcast address. Replying to this
+                 * packet may cause network storms. Drop the packet. */
+                eReturn = eReleaseBuffer;
+            }
+            else if( ( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
+                               ( void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
+                               sizeof( MACAddress_t ) ) == 0 ) &&
                      ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
             {
                 /* Ethernet address is a broadcast address, but the IP address is not a
@@ -2024,15 +2030,9 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                     ( void * ) &( pxIPPacket->xEthernetHeader.xSourceAddress ),
                     sizeof( MACAddress_t ) ) == 0 )
             {
-				 /* Ethernet source is a broadcast address. */
-				 eReturn = eReleaseBuffer;
-			}
-            /* Is this packet claiming to be coming from a broadcast IP address? */
-            else if( ulSourceIPAddress == ipBROADCAST_IP_ADDRESS )
-            {
-            	/* Packet has source IP address as a broadcast address. */
-            	eReturn = eReleaseBuffer;
-            }
+				        /* Ethernet source is a broadcast address. */
+				        eReturn = eReleaseBuffer;
+			      }
             else if( ( ipFIRST_MULTI_CAST_IPv4 <= FreeRTOS_ntohl( ulSourceIPAddress ) ) && ( FreeRTOS_ntohl( ulSourceIPAddress ) < ipLAST_MULTI_CAST_IPv4 ) )
             {
             	/* Source is a multicast IP address. Drop the packet in conformity with RFC 1112 section 7.2. */
@@ -2040,7 +2040,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
             }
             else
             {
-                /* Packet is not fragmented, destination is this device. */
+                /* Packet is not fragmented, destination is this device, source IP and MAC
+                 * addresses are correct. */
             }
         }
     #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
@@ -2210,134 +2211,134 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                  * entry. */
                 if( ucProtocol != ( uint8_t ) ipPROTOCOL_UDP )
                 {
-                	if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
-					{
-						eReturn = eWaitingARPResolution;
-					}
-					else
-					{
-						/* IP address is not on the same subnet, ARP table can be updated.
-						 * Refresh the ARP cache with the IP/MAC-address of the received
-						 *  packet. For UDP packets, this will be done later in
-						 *  xProcessReceivedUDPPacket(), as soon as it's know that the message
-						 *  will be handled.  This will prevent the ARP cache getting
-						 *  overwritten with the IP address of useless broadcast packets.
-						 */
-						//vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress );
-					}
+                    if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
+                    {
+                        eReturn = eWaitingARPResolution;
+                    }
+                    else
+                    {
+                        /* IP address is not on the same subnet, ARP table can be updated.
+                         * Refresh the ARP cache with the IP/MAC-address of the received
+                         *  packet. For UDP packets, this will be done later in
+                         *  xProcessReceivedUDPPacket(), as soon as it's know that the message
+                         *  will be handled.  This will prevent the ARP cache getting
+                         *  overwritten with the IP address of useless broadcast packets.
+                         */
+                        //vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress );
+                    }
                 }
 
                 if( ( eReturn != eReleaseBuffer ) && ( eReturn != eWaitingARPResolution ) )
                 {
-					switch( ucProtocol )
-					{
-						case ipPROTOCOL_ICMP:
+                    switch( ucProtocol )
+                    {
+                        case ipPROTOCOL_ICMP:
 
-							/* The IP packet contained an ICMP frame.  Don't bother checking
-							 * the ICMP checksum, as if it is wrong then the wrong data will
-							 * also be returned, and the source of the ping will know something
-							 * went wrong because it will not be able to validate what it
-							 * receives. */
-							#if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-								{
-									if( pxIPHeader->ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
-									{
-										eReturn = prvProcessICMPPacket( pxNetworkBuffer );
-									}
-								}
-							#endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
-							break;
+                            /* The IP packet contained an ICMP frame.  Don't bother checking
+                             * the ICMP checksum, as if it is wrong then the wrong data will
+                             * also be returned, and the source of the ping will know something
+                             * went wrong because it will not be able to validate what it
+                             * receives. */
+                            #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+                                {
+                                    if( pxIPHeader->ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
+                                    {
+                                        eReturn = prvProcessICMPPacket( pxNetworkBuffer );
+                                    }
+                                }
+                            #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
+                            break;
 
-						case ipPROTOCOL_UDP:
-						   {
-							   /* The IP packet contained a UDP frame. */
+                        case ipPROTOCOL_UDP:
+                           {
+                               /* The IP packet contained a UDP frame. */
 
-							   /* Map the buffer onto a UDP-Packet struct to easily access the
-								* fields of UDP packet. */
-							   const UDPPacket_t * pxUDPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
-							   uint16_t usLength;
-							   BaseType_t xIsWaitingARPResolution = pdFALSE;
+                               /* Map the buffer onto a UDP-Packet struct to easily access the
+                                * fields of UDP packet. */
+                               const UDPPacket_t * pxUDPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+                               uint16_t usLength;
+                               BaseType_t xIsWaitingARPResolution = pdFALSE;
 
-							   /* Note the header values required prior to the checksum
-								* generation as the checksum pseudo header may clobber some of
-								* these values. */
-							   usLength = FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength );
+                               /* Note the header values required prior to the checksum
+                                * generation as the checksum pseudo header may clobber some of
+                                * these values. */
+                               usLength = FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength );
 
-							   if( ( pxNetworkBuffer->xDataLength < sizeof( UDPPacket_t ) ) ||
-								   ( ( ( size_t ) usLength ) < sizeof( UDPHeader_t ) ) )
-							   {
+                               if( ( pxNetworkBuffer->xDataLength < sizeof( UDPPacket_t ) ) ||
+                                   ( ( ( size_t ) usLength ) < sizeof( UDPHeader_t ) ) )
+                               {
                                    eReturn = eReleaseBuffer;
-							   }
-							   else if( usLength > ( FreeRTOS_ntohs( pxIPHeader->usLength ) - ipSIZE_OF_IPv4_HEADER ) )
-							   {
-								   /* The UDP packet is bigger than the IP-payload. Something is wrong, drop the packet. */
-								   eReturn = eReleaseBuffer;
-							   }
-							   else
-							   {
-								   size_t uxPayloadSize_1, uxPayloadSize_2;
+                               }
+                               else if( usLength > ( FreeRTOS_ntohs( pxIPHeader->usLength ) - ipSIZE_OF_IPv4_HEADER ) )
+                               {
+                                   /* The UDP packet is bigger than the IP-payload. Something is wrong, drop the packet. */
+                                   eReturn = eReleaseBuffer;
+                               }
+                               else
+                               {
+                                   size_t uxPayloadSize_1, uxPayloadSize_2;
 
-								   /* Ensure that downstream UDP packet handling has the lesser
-									* of: the actual network buffer Ethernet frame length, or
-									* the sender's UDP packet header payload length, minus the
-									* size of the UDP header.
-									*
-									* The size of the UDP packet structure in this implementation
-									* includes the size of the Ethernet header, the size of
-									* the IP header, and the size of the UDP header. */
-								   uxPayloadSize_1 = pxNetworkBuffer->xDataLength - sizeof( UDPPacket_t );
-								   uxPayloadSize_2 = ( ( size_t ) usLength ) - sizeof( UDPHeader_t );
+                                   /* Ensure that downstream UDP packet handling has the lesser
+                                    * of: the actual network buffer Ethernet frame length, or
+                                    * the sender's UDP packet header payload length, minus the
+                                    * size of the UDP header.
+                                    *
+                                    * The size of the UDP packet structure in this implementation
+                                    * includes the size of the Ethernet header, the size of
+                                    * the IP header, and the size of the UDP header. */
+                                   uxPayloadSize_1 = pxNetworkBuffer->xDataLength - sizeof( UDPPacket_t );
+                                   uxPayloadSize_2 = ( ( size_t ) usLength ) - sizeof( UDPHeader_t );
 
-								   if( uxPayloadSize_1 > uxPayloadSize_2 )
-								   {
-									   pxNetworkBuffer->xDataLength = uxPayloadSize_2 + sizeof( UDPPacket_t );
-								   }
+                                   if( uxPayloadSize_1 > uxPayloadSize_2 )
+                                   {
+                                       pxNetworkBuffer->xDataLength = uxPayloadSize_2 + sizeof( UDPPacket_t );
+                                   }
 
-								   /* Fields in pxNetworkBuffer (usPort, ulIPAddress) are network order. */
-								   pxNetworkBuffer->usPort = pxUDPPacket->xUDPHeader.usSourcePort;
-								   pxNetworkBuffer->ulIPAddress = pxUDPPacket->xIPHeader.ulSourceIPAddress;
+                                   /* Fields in pxNetworkBuffer (usPort, ulIPAddress) are network order. */
+                                   pxNetworkBuffer->usPort = pxUDPPacket->xUDPHeader.usSourcePort;
+                                   pxNetworkBuffer->ulIPAddress = pxUDPPacket->xIPHeader.ulSourceIPAddress;
 
-								   /* ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM:
-									* In some cases, the upper-layer checksum has been calculated
-									* by the NIC driver. */
+                                   /* ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM:
+                                    * In some cases, the upper-layer checksum has been calculated
+                                    * by the NIC driver. */
 
-								   /* Pass the packet payload to the UDP sockets
-									* implementation. */
-								   if( xProcessReceivedUDPPacket( pxNetworkBuffer,
-																  pxUDPPacket->xUDPHeader.usDestinationPort,
-																  &( xIsWaitingARPResolution ) ) == pdPASS )
-								   {
-									   eReturn = eFrameConsumed;
-								   }
-								   else
-								   {
-									   /* Is this packet to be set aside for ARP resolution. */
-									   if( xIsWaitingARPResolution == pdTRUE )
-									   {
-										   eReturn = eWaitingARPResolution;
-									   }
-								   }
-							   }
-						   }
-						   break;
+                                   /* Pass the packet payload to the UDP sockets
+                                    * implementation. */
+                                   if( xProcessReceivedUDPPacket( pxNetworkBuffer,
+                                                                  pxUDPPacket->xUDPHeader.usDestinationPort,
+                                                                  &( xIsWaitingARPResolution ) ) == pdPASS )
+                                   {
+                                       eReturn = eFrameConsumed;
+                                   }
+                                   else
+                                   {
+                                       /* Is this packet to be set aside for ARP resolution. */
+                                       if( xIsWaitingARPResolution == pdTRUE )
+                                       {
+                                           eReturn = eWaitingARPResolution;
+                                       }
+                                   }
+                               }
+                           }
+                           break;
 
-							#if ipconfigUSE_TCP == 1
-								case ipPROTOCOL_TCP:
+                            #if ipconfigUSE_TCP == 1
+                                case ipPROTOCOL_TCP:
 
-									if( xProcessReceivedTCPPacket( pxNetworkBuffer ) == pdPASS )
-									{
-										eReturn = eFrameConsumed;
-									}
+                                    if( xProcessReceivedTCPPacket( pxNetworkBuffer ) == pdPASS )
+                                    {
+                                        eReturn = eFrameConsumed;
+                                    }
 
-									/* Setting this variable will cause xTCPTimerCheck()
-									 * to be called just before the IP-task blocks. */
-									xProcessedTCPMessage++;
-									break;
-							#endif /* if ipconfigUSE_TCP == 1 */
-						default:
-							/* Not a supported frame type. */
-							break;
-					}
+                                    /* Setting this variable will cause xTCPTimerCheck()
+                                     * to be called just before the IP-task blocks. */
+                                    xProcessedTCPMessage++;
+                                    break;
+                            #endif /* if ipconfigUSE_TCP == 1 */
+                        default:
+                            /* Not a supported frame type. */
+                            break;
+                    }
                 }
             }
         }

@@ -283,7 +283,7 @@
         eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */
         eReturnEthernetFrame, /* The Ethernet frame contains an ARP or ICMP packet that can be returned to its source. */
         eFrameConsumed,       /* Processing the Ethernet packet contents resulted in the payload being sent to the stack. */
-		eWaitingARPResolution /* Frame is awaiting ARP resolution. */
+        eWaitingARPResolution /* Frame is awaiting ARP resolution. */
     } eFrameProcessingResult_t;
 
     typedef enum

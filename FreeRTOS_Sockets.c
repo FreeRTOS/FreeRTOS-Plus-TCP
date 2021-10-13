@@ -90,9 +90,14 @@
 #endif
 
 /* Some helper macro's for defining the 20/80 % limits of uxLittleSpace / uxEnoughSpace. */
-#define sock20_PERCENT     20U  /**< 20% of the defined limit. */
-#define sock80_PERCENT     80U  /**< 80% of the defined limit. */
-#define sock100_PERCENT    100U /**< 100% of the defined limit. */
+#define sock20_PERCENT            20U  /**< 20% of the defined limit. */
+#define sock80_PERCENT            80U  /**< 80% of the defined limit. */
+#define sock100_PERCENT           100U /**< 100% of the defined limit. */
+
+/** @brief When ucASCIIToHex() can not convert a character,
+ *         the value 255 will be returned.
+ */
+#define socketINVALID_HEX_CHAR    0xffU
 
 #if ( ipconfigUSE_CALLBACKS != 0 )
     static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( F_TCP_UDP_Handler_t )
@@ -172,6 +177,8 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
                                           BaseType_t xType,
                                           BaseType_t xProtocol,
                                           size_t * pxSocketSize );
+
+static uint8_t ucASCIIToHex( char cChar );
 
 #if ( ipconfigUSE_TCP == 1 )
 
@@ -2430,6 +2437,183 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Convert an ASCII character to its corresponding hexadecimal value.
+ *        Accepted characters are 0-9, a-f, and A-F.
+ *
+ * @param[in] cChar: The character to be converted.
+ *
+ * @return The hexadecimal value, between 0 and 15.
+ *         When the character is not valid, socketINVALID_HEX_CHAR will be returned.
+ */
+static uint8_t ucASCIIToHex( char cChar )
+{
+    char cValue = cChar;
+    uint8_t ucNew;
+
+    if( ( cValue >= '0' ) && ( cValue <= '9' ) )
+    {
+        cValue -= ( char ) '0';
+        /* The value will be between 0 and 9. */
+        ucNew = ( uint8_t ) cValue;
+    }
+    else if( ( cValue >= 'a' ) && ( cValue <= 'f' ) )
+    {
+        cValue -= ( char ) 'a';
+        ucNew = ( uint8_t ) cValue;
+        /* The value will be between 10 and 15. */
+        ucNew += ( uint8_t ) 10;
+    }
+    else if( ( cValue >= 'A' ) && ( cValue <= 'F' ) )
+    {
+        cValue -= ( char ) 'A';
+        ucNew = ( uint8_t ) cValue;
+        /* The value will be between 10 and 15. */
+        ucNew += ( uint8_t ) 10;
+    }
+    else
+    {
+        /* The character does not represent a valid hex number, return 255. */
+        ucNew = ( uint8_t ) socketINVALID_HEX_CHAR;
+    }
+
+    return ucNew;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief This function converts a 48-bit MAC address to a human readable string.
+ *
+ * @param[in] pucSource: A pointer to an array of 6 bytes.
+ * @param[out] pcTarget: A buffer that is 18 bytes long, it will contain the resulting string.
+ * @param[in] cTen: Either an 'A' or an 'a'. It determines whether the hex numbers will use
+ *                  capital or small letters.
+ * @param[in] cSeparator: The separator that should appear between the bytes, either ':' or '-'.
+ */
+void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
+                          char * pcTarget,
+                          char cTen,
+                          char cSeparator )
+{
+    size_t uxIndex;
+    size_t uxNibble;
+    size_t uxTarget = 0U;
+
+    for( uxIndex = 0U; uxIndex < ipMAC_ADDRESS_LENGTH_BYTES; uxIndex++ )
+    {
+        uint8_t ucByte = pucSource[ uxIndex ];
+
+        for( uxNibble = 0; uxNibble < 2U; uxNibble++ )
+        {
+            uint8_t ucNibble;
+            char cResult;
+
+            if( uxNibble == 0U )
+            {
+                ucNibble = ucByte >> 4;
+            }
+            else
+            {
+                ucNibble = ucByte & 0x0FU;
+            }
+
+            if( ucNibble <= 0x09U )
+            {
+                cResult = '0';
+                cResult = cResult + ucNibble;
+            }
+            else
+            {
+                cResult = cTen; /* Either 'a' or 'A' */
+                cResult = cResult + ( ucNibble - 10U );
+            }
+
+            pcTarget[ uxTarget++ ] = cResult;
+        }
+
+        if( uxIndex == ( ipMAC_ADDRESS_LENGTH_BYTES - 1U ) )
+        {
+            pcTarget[ uxTarget++ ] = 0;
+        }
+        else
+        {
+            pcTarget[ uxTarget++ ] = cSeparator;
+        }
+    }
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief This function converts a human readable string, representing an 48-bit MAC address,
+ *        into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba".
+ *
+ * @param[in] pcSource: The null terminated string to be parsed.
+ * @param[out] pucTarget: A buffer that is 6 bytes long, it will contain the MAC address.
+ *
+ * @return pdTRUE in case the string got parsed correctly, otherwise pdFALSE.
+ */
+BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
+                                uint8_t * pucTarget )
+{
+    BaseType_t xResult = pdFALSE;
+    size_t uxByteNr = 0U;
+    size_t uxSourceIndex;
+    size_t uxNibbleCount = 0U;
+    size_t uxLength = strlen( pcSource );
+    uint32_t uxSum = 0U;
+    uint8_t ucHex;
+    char cChar;
+
+    for( uxSourceIndex = 0U; uxSourceIndex <= uxLength; uxSourceIndex++ )
+    {
+        cChar = pcSource[ uxSourceIndex ];
+        ucHex = ucASCIIToHex( cChar );
+
+        if( ucHex != socketINVALID_HEX_CHAR )
+        {
+            /* A valid nibble was found. Shift it into the accumulator. */
+            uxSum = uxSum << 4;
+
+            if( uxSum > 0xffU )
+            {
+                /* A hex value was too big. */
+                break;
+            }
+
+            uxSum |= ucHex;
+            uxNibbleCount++;
+        }
+        else
+        {
+            if( uxNibbleCount != 2U )
+            {
+                /* Each number should have 2 nibbles. */
+                break;
+            }
+
+            pucTarget[ uxByteNr ] = ( uint8_t ) uxSum;
+            uxSum = 0U;
+            uxNibbleCount = 0U;
+            uxByteNr++;
+
+            if( uxByteNr == ipMAC_ADDRESS_LENGTH_BYTES )
+            {
+                xResult = pdTRUE;
+                break;
+            }
+
+            if( ( cChar != ':' ) && ( cChar != '-' ) )
+            {
+                /* Invalid character. */
+                break;
+            }
+        }
+    }
+
+    return xResult;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief This function converts the character string pcSource into a network address
  *        structure, then copies the network address structure to pvDestination.
  *        pvDestination is written in network byte order.
@@ -3382,7 +3566,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  *        the socket gets connected.
  *
  * @param[in] xSocket: The socket owning the connection.
- * @param[in] pvBuffer: The buffer containing the data.
+ * @param[in] pvBuffer: The buffer containing the data. The value of this pointer
+ *                      may be NULL in case zero-copy transmissions are used.
+ *                      It is used in combination with 'FreeRTOS_get_tx_head()'.
  * @param[in] uxDataLength: The length of the data to be added.
  * @param[in] xFlags: This parameter is not used. (zero or FREERTOS_MSG_DONTWAIT).
  *
@@ -3394,7 +3580,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                               size_t uxDataLength,
                               BaseType_t xFlags )
     {
-        BaseType_t xByteCount = -pdFREERTOS_ERRNO_EINVAL;
+        BaseType_t xByteCount;
         BaseType_t xBytesLeft;
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
         TickType_t xRemainingTime;
@@ -3407,10 +3593,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
          * may be used in future versions. */
         ( void ) xFlags;
 
-        if( pvBuffer != NULL )
-        {
-            xByteCount = ( BaseType_t ) prvTCPSendCheck( pxSocket, uxDataLength );
-        }
+        xByteCount = ( BaseType_t ) prvTCPSendCheck( pxSocket, uxDataLength );
 
         if( xByteCount > 0 )
         {
@@ -3482,8 +3665,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
                     xBytesLeft -= xByteCount;
 
-                    if( xBytesLeft == 0 )
+                    if( ( xBytesLeft == 0 ) || ( pvBuffer == NULL ) )
                     {
+                        /* pvBuffer can be NULL in case TCP zero-copy transmissions are used. */
                         break;
                     }
 
