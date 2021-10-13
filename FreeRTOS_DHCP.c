@@ -1226,7 +1226,7 @@
             xApplicationGetRandomNumber( &( ulNumbers[ 0 ] ) );
             EP_DHCPData.xDHCPTxPeriod = pdMS_TO_TICKS( 3000U + ( ulNumbers[ 0 ] & 0x3ffU ) ); /*  do ARP test every (3 + 0-1024mS) seconds. */
 
-            xARPHadIPClash = pdFALSE;                                                           /* reset flag that shows if have ARP clash. */
+            xARPHadIPClash = pdFALSE;                                                         /* reset flag that shows if have ARP clash. */
             vARPSendGratuitous();
         }
 
