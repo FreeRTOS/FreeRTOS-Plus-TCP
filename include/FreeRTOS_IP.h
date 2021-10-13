@@ -114,7 +114,10 @@
     #endif
 
 /* The offset of ucTCPFlags within the TCP header. */
-    #define ipTCP_FLAGS_OFFSET    13U
+    #define ipTCP_FLAGS_OFFSET       13U
+
+    #define ipFIRST_LOOPBACK_IPv4    0x7F000000UL            /**< Lowest IPv4 loopback address (including). */
+    #define ipLAST_LOOPBACK_IPv4     0x80000000UL            /**< Highest IPv4 loopback address (excluding). */
 
     #define ipFIRST_LOOPBACK_IPv4    0x7F000000UL            /**< Lowest IPv4 loopback address (including). */
     #define ipLAST_LOOPBACK_IPv4     0x80000000UL            /**< Highest IPv4 loopback address (excluding). */
