@@ -3292,7 +3292,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             while( xByteCount == 0 )
             {
-				eIPTCPState_t eState = pxSocket->u.xTCP.ucTCPState;
+                eIPTCPState_t eState = pxSocket->u.xTCP.ucTCPState;
 
                 switch( eState )
                 {

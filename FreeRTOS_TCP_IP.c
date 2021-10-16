@@ -1775,7 +1775,7 @@
     {
         FreeRTOS_Socket_t * xParent = NULL;
         BaseType_t bBefore = tcpNOW_CONNECTED( ( BaseType_t ) pxSocket->u.xTCP.ucTCPState ); /* Was it connected ? */
-        BaseType_t bAfter  = tcpNOW_CONNECTED( ( BaseType_t ) eTCPState );                    /* Is it connected now ? */
+        BaseType_t bAfter = tcpNOW_CONNECTED( ( BaseType_t ) eTCPState );                    /* Is it connected now ? */
 
         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
             BaseType_t xPreviousState = ( BaseType_t ) pxSocket->u.xTCP.ucTCPState;
@@ -3300,7 +3300,7 @@
         }
         else
         {
-			eIPTCPState_t eState;
+            eIPTCPState_t eState;
 
             uxOptionsLength = prvSetOptions( pxSocket, *ppxNetworkBuffer );
 
@@ -3330,7 +3330,8 @@
                 }
             }
 
-			eState = pxSocket->u.xTCP.ucTCPState;
+            eState = pxSocket->u.xTCP.ucTCPState;
+
             switch( eState )
             {
                 case eCLOSED: /* (server + client) no connection state at all. */
@@ -3509,15 +3510,15 @@
         uint32_t ulMSS;
 
         /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
-        #if( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
-		{
-			ulMSS = ipconfigTCP_MSS;
-		}
-		#else
-        {
-            ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
-        }
-		#endif
+        #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
+            {
+                ulMSS = ipconfigTCP_MSS;
+            }
+        #else
+            {
+                ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
+            }
+        #endif
 
         if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.ulRemoteIP ) ^ *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) != 0U )
         {

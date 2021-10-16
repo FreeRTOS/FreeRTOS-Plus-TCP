@@ -511,10 +511,11 @@
 #endif
 
 #ifndef ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES
-	/* The macros 'ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES' and
-	 * 'ipconfigETHERNET_DRIVER_FILTERS_PACKETS' are too long:
-	 * the first 32 bytes are equal, which might cause problems
-	 * for some sompilers. */
+
+/* The macros 'ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES' and
+ * 'ipconfigETHERNET_DRIVER_FILTERS_PACKETS' are too long:
+ * the first 32 bytes are equal, which might cause problems
+ * for some sompilers. */
     #define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    1
 #endif
 
