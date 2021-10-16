@@ -515,7 +515,7 @@
 /* The macros 'ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES' and
  * 'ipconfigETHERNET_DRIVER_FILTERS_PACKETS' are too long:
  * the first 32 bytes are equal, which might cause problems
- * for some sompilers. */
+ * for some compilers. */
     #define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    1
 #endif
 
