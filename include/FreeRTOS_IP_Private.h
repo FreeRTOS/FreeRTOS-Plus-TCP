@@ -448,19 +448,6 @@
 
     #define ipPOINTER_CAST( TYPE, pointer )    ( ( TYPE ) ( pointer ) )
 
-/* Sequence and ACK numbers are essentially unsigned (uint32_t). But when
- * a distance is calculated, it is useful to use signed numbers:
- * int32_t lDistance = ( int32_t ) ( ulSeq1 - ulSeq2 );
- *
- * 1 required by MISRA:
- * -emacro(9033,ipNUMERIC_CAST) // 9033: Impermissible cast of composite expression (different essential type categories) [MISRA 2012 Rule 10.8, required])
- *
- * 1 advisory by MISRA:
- * -emacro(9030,ipNUMERIC_CAST) // 9030: Impermissible cast; cannot cast from 'essentially Boolean' to 'essentially signed' [MISRA 2012 Rule 10.5, advisory])
- */
-
-    #define ipNUMERIC_CAST( TYPE, expression )    ( ( TYPE ) ( expression ) )
-
 /* ICMP packets are sent using the same function as UDP packets.  The port
  * number is used to distinguish between the two, as 0 is an invalid UDP port. */
     #define ipPACKET_CONTAINS_ICMP_DATA    ( 0 )
@@ -545,7 +532,7 @@
  */
     BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                           uint16_t usPort,
-                                          BaseType_t * xIsWaitingForARPResolution );
+                                          BaseType_t * pxIsWaitingForARPResolution );
 
 /*
  * Initialize the socket list data structures for TCP and UDP.

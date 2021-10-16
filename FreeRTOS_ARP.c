@@ -76,11 +76,6 @@
     #define arpIP_CLASH_MAX_RETRIES    1U
 #endif
 
-/** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
- *  is defined in FreeRTOS_IP.c. */
-extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
-/*-----------------------------------------------------------*/
-
 /*
  * Lookup an MAC address in the ARP cache from the IP address.
  */
@@ -158,7 +153,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
     /* The field ulTargetProtocolAddress is well-aligned, a 32-bits copy. */
     ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
 
-    if( uxARPClashCounter != 0 )
+    if( uxARPClashCounter != 0U )
     {
         /* Has the timeout been reached? */
         if( xTaskCheckForTimeOut( &xARPClashTimeOut, &uxARPClashTimeoutPeriod ) == pdTRUE )
@@ -246,7 +241,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 
         /* Don't do anything if the local IP address is zero because
          * that means a DHCP request has not completed. */
-        if( *ipLOCAL_IP_ADDRESS_POINTER != 0UL )
+        if( *ipLOCAL_IP_ADDRESS_POINTER != 0U )
         {
             switch( pxARPHeader->usOperation )
             {
@@ -724,7 +719,7 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
     {
         /* The address of this device. May be useful for the loopback device. */
         eReturn = eARPCacheHit;
-        memcpy( pxMACAddress->ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( pxMACAddress->ucBytes ) );
+        ( void ) memcpy( pxMACAddress->ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( pxMACAddress->ucBytes ) );
     }
     else
     {

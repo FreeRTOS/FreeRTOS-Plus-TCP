@@ -99,11 +99,6 @@
  */
 #define socketINVALID_HEX_CHAR    0xffU
 
-/** @brief When ucASCIIToHex() can not convert a character,
- *         the value 255 will be returned.
- */
-#define socketINVALID_HEX_CHAR    0xffU
-
 #if ( ipconfigUSE_CALLBACKS != 0 )
     static ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( F_TCP_UDP_Handler_t )
     {
@@ -1010,14 +1005,12 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
  */
 static BaseType_t prvMakeSureSocketIsBound( FreeRTOS_Socket_t * pxSocket )
 {
-    BaseType_t xReturn;
-
     /* Check if this is a valid UDP socket, does not have to be bound yet. */
-    xReturn = prvValidSocket( pxSocket, FREERTOS_IPPROTO_UDP, pdFALSE );
+    BaseType_t xReturn = prvValidSocket( pxSocket, FREERTOS_IPPROTO_UDP, pdFALSE );
 
     if( ( xReturn == pdTRUE ) && ( !socketSOCKET_IS_BOUND( pxSocket ) ) )
     {
-        /* The socket is not yet bound. */
+        /* The socket is valid but it is not yet bound. */
         if( FreeRTOS_bind( pxSocket, NULL, 0U ) != 0 )
         {
             /* The socket was not yet bound, and binding it has failed. */
@@ -2548,7 +2541,7 @@ void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
 
         if( uxIndex == ( ipMAC_ADDRESS_LENGTH_BYTES - 1U ) )
         {
-            pcTarget[ uxTarget++ ] = 0;
+            pcTarget[ uxTarget++ ] = ( char ) 0;
         }
         else
         {
@@ -2902,7 +2895,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     static BaseType_t bMayConnect( FreeRTOS_Socket_t const * pxSocket )
     {
         BaseType_t xResult;
-        eIPTCPState_t eState = ipNUMERIC_CAST( eIPTCPState_t, pxSocket->u.xTCP.ucTCPState );
+        eIPTCPState_t eState = pxSocket->u.xTCP.ucTCPState;
 
         switch( eState )
         {
@@ -3299,7 +3292,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             while( xByteCount == 0 )
             {
-                switch( ipNUMERIC_CAST( eIPTCPState_t, pxSocket->u.xTCP.ucTCPState ) )
+				eIPTCPState_t eState = pxSocket->u.xTCP.ucTCPState;
+
+                switch( eState )
                 {
                     case eCLOSED:
                     case eCLOSE_WAIT: /* (server + client) waiting for a connection termination request from the local user. */
@@ -4752,7 +4747,7 @@ BaseType_t xSocketValid( Socket_t xSocket )
                                    ( pxSocket->u.xTCP.rxStream != NULL ) ? 1 : 0,
                                    ( pxSocket->u.xTCP.txStream != NULL ) ? 1 : 0,
                                    FreeRTOS_GetTCPStateName( pxSocket->u.xTCP.ucTCPState ),
-                                   ( unsigned ) ( ( age > 999999u ) ? 999999u : age ), /* Format 'age' for printing */
+                                   ( unsigned ) ( ( age > 999999U ) ? 999999U : age ), /* Format 'age' for printing */
                                    pxSocket->u.xTCP.usTimeout,
                                    ucChildText ) );
                 count++;

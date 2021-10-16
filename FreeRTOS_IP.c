@@ -1202,14 +1202,12 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
     configASSERT( xNetworkEventQueue == NULL );
     configASSERT( xIPTaskHandle == NULL );
 
-    {
-        /* This is a 64-bit platform, make sure there is enough space in
-         * pucEthernetBuffer to store a pointer. */
-        configASSERT( ( sizeof( uintptr_t ) != 8U ) || ( ipconfigBUFFER_PADDING >= 14 ) );
+    /* This is a 64-bit platform, make sure there is enough space in
+     * pucEthernetBuffer to store a pointer. */
+    configASSERT( ( sizeof( uintptr_t ) != 8U ) || ( ipconfigBUFFER_PADDING >= 14 ) );
 
-        /* But it must have this strange alignment: */
-        configASSERT( ( sizeof( uintptr_t ) != 8U ) || ( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 ) );
-    }
+    /* But it must have this strange alignment: */
+    configASSERT( ( sizeof( uintptr_t ) != 8U ) || ( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 ) );
 
     /* Check if MTU is big enough. */
     configASSERT( ( ( size_t ) ipconfigNETWORK_MTU ) >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
@@ -3568,7 +3566,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
             break;
 
         default:
-            /* Using function "snprintf". */
+            /* Using function "snprintf", for logging purposes. */
             ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int ) xErrnum );
             pcName = NULL;
             break;

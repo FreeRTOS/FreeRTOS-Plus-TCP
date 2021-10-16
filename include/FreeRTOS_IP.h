@@ -119,9 +119,6 @@
     #define ipFIRST_LOOPBACK_IPv4    0x7F000000UL            /**< Lowest IPv4 loopback address (including). */
     #define ipLAST_LOOPBACK_IPv4     0x80000000UL            /**< Highest IPv4 loopback address (excluding). */
 
-    #define ipFIRST_LOOPBACK_IPv4    0x7F000000UL            /**< Lowest IPv4 loopback address (including). */
-    #define ipLAST_LOOPBACK_IPv4     0x80000000UL            /**< Highest IPv4 loopback address (excluding). */
-
 /**
  * The structure used to store buffers and pass them around the network stack.
  * Buffers can be in use by the stack, in use by the network interface hardware
@@ -365,7 +362,7 @@
 
 /* "xApplicationGetRandomNumber" is declared but never defined, because it may
  * be defined in a user module. */
-    extern BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
+    BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
  *  is defined in FreeRTOS_IP.c.

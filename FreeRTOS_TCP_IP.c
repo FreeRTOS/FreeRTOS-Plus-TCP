@@ -458,7 +458,7 @@
         static BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket )
         {
             BaseType_t xResult;
-            eIPTCPState_t eState = ipNUMERIC_CAST( eIPTCPState_t, pxSocket->u.xTCP.ucTCPState );
+            eIPTCPState_t eState = pxSocket->u.xTCP.ucTCPState;
 
             switch( eState )
             {
@@ -1526,7 +1526,7 @@
                         pxSocket->u.xTCP.usMSS = ( uint16_t ) uxNewMSS;
                     }
 
-                    lIndex = tcpTCP_OPT_MSS_LEN;
+                    lIndex = ( int32_t ) tcpTCP_OPT_MSS_LEN;
                 }
             }
         }
@@ -1774,8 +1774,8 @@
                           enum eTCP_STATE eTCPState )
     {
         FreeRTOS_Socket_t * xParent = NULL;
-        BaseType_t bBefore = ipNUMERIC_CAST( BaseType_t, tcpNOW_CONNECTED( ( BaseType_t ) pxSocket->u.xTCP.ucTCPState ) ); /* Was it connected ? */
-        BaseType_t bAfter = ipNUMERIC_CAST( BaseType_t, tcpNOW_CONNECTED( ( BaseType_t ) eTCPState ) );                    /* Is it connected now ? */
+        BaseType_t bBefore = tcpNOW_CONNECTED( ( BaseType_t ) pxSocket->u.xTCP.ucTCPState ); /* Was it connected ? */
+        BaseType_t bAfter  = tcpNOW_CONNECTED( ( BaseType_t ) eTCPState );                    /* Is it connected now ? */
 
         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
             BaseType_t xPreviousState = ( BaseType_t ) pxSocket->u.xTCP.ucTCPState;
@@ -2530,7 +2530,8 @@
         /* Calculate lReceiveLength - the length of the TCP data received.  This is
          * equal to the total packet length minus:
          * ( LinkLayer length (14) + IP header length (20) + size of TCP header(20 +) ).*/
-        lReceiveLength = ipNUMERIC_CAST( int32_t, pxNetworkBuffer->xDataLength ) - ( int32_t ) ipSIZE_OF_ETH_HEADER;
+        lReceiveLength = ( int32_t ) pxNetworkBuffer->xDataLength;
+        lReceiveLength -= ( int32_t ) ipSIZE_OF_ETH_HEADER;
 
         usLength = FreeRTOS_htons( pxIPHeader->usLength );
         lLength = ( int32_t ) usLength;
@@ -3299,6 +3300,8 @@
         }
         else
         {
+			eIPTCPState_t eState;
+
             uxOptionsLength = prvSetOptions( pxSocket, *ppxNetworkBuffer );
 
             if( ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eSYN_RECEIVED ) && ( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_CTRL ) == ( uint8_t ) tcpTCP_FLAG_SYN ) )
@@ -3327,7 +3330,8 @@
                 }
             }
 
-            switch( ipNUMERIC_CAST( eIPTCPState_t, pxSocket->u.xTCP.ucTCPState ) )
+			eState = pxSocket->u.xTCP.ucTCPState;
+            switch( eState )
             {
                 case eCLOSED: /* (server + client) no connection state at all. */
 
@@ -3502,13 +3506,18 @@
  */
     static void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket )
     {
-        uint32_t ulMSS = ipconfigTCP_MSS;
+        uint32_t ulMSS;
 
         /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
-        if( ulMSS < tcpMINIMUM_SEGMENT_LENGTH )
+        #if( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
+		{
+			ulMSS = ipconfigTCP_MSS;
+		}
+		#else
         {
             ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
         }
+		#endif
 
         if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.ulRemoteIP ) ^ *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) != 0U )
         {
