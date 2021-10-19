@@ -10,6 +10,11 @@
 /* This pointer is maintained by the IP-task. Defined in FreeRTOS_IP.c */
 extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
+/* This is an output function and need not be tested with this proof. */
+void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
+{
+}
+
 void harness()
 {
     ARPPacket_t xARPFrame;
