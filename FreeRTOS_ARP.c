@@ -470,30 +470,30 @@ void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
 
     if( pxMACAddress != NULL )
     {
-    /* Loop through each entry in the ARP cache. */
-    for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
-    {
-        if( memcmp( xARPCache[ x ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( pxMACAddress->ucBytes ) ) == 0 )
+        /* Loop through each entry in the ARP cache. */
+        for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
         {
-            xMatchingMAC = pdTRUE;
-        }
-        else
-        {
-            xMatchingMAC = pdFALSE;
-        }
-
-        /* Does this line in the cache table hold an entry for the IP
-         * address being queried? */
-        if( xARPCache[ x ].ulIPAddress == ulIPAddress )
-        {
-            if( xMatchingMAC == pdTRUE )
+            if( memcmp( xARPCache[ x ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( pxMACAddress->ucBytes ) ) == 0 )
             {
-                /* The IP address and the MAC matched, update the entry age. */
-                xARPCache[ x ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
-                break;
+                xMatchingMAC = pdTRUE;
+            }
+            else
+            {
+                xMatchingMAC = pdFALSE;
+            }
+
+            /* Does this line in the cache table hold an entry for the IP
+             * address being queried? */
+            if( xARPCache[ x ].ulIPAddress == ulIPAddress )
+            {
+                if( xMatchingMAC == pdTRUE )
+                {
+                    /* The IP address and the MAC matched, update the entry age. */
+                    xARPCache[ x ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
+                    break;
+                }
             }
         }
-    }
     }
 }
 /*-----------------------------------------------------------*/

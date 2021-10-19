@@ -3229,18 +3229,19 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
 
                 /* Try to find a MAC address corresponding to the destination IP
                  * address. */
-            	eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress );
+                eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress );
 
-            	if( eResult == eARPCacheHit )
-            	{
+                if( eResult == eARPCacheHit )
+                {
                     /* Best case scenario - an address is found, use it. */
                     pvCopySource = &xMACAddress;
-            	}
-            	else
-            	{
+                }
+                else
+                {
                     /* If an address is not found, just swap the source and destination MAC addresses. */
                     pvCopySource = &pxEthernetHeader->xSourceAddress;
-            	}
+                }
+
                 break;
 
             case ipARP_FRAME_TYPE:
