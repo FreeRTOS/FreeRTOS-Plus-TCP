@@ -59,7 +59,7 @@
 
 
     void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
-                                   const uint32_t ulIPAddress )
+                                   const uint32_t ulIPAddress );
 
 /*
  * If ulIPAddress is already in the ARP cache table then reset the age of the
