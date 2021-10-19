@@ -1013,9 +1013,24 @@
                 }
             #endif
 
+            MACAddress_t xMACAddress;
+            uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+            eARPLookupResult_t eResult;
+
+            eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress );
+
+            if( eResult == eARPCacheHit )
+            {
+                pvCopySource = &xMACAddress;
+            }
+            else
+            {
+                pvCopySource = &pxEthernetHeader->xSourceAddress;
+            }
+
             /* Fill in the destination MAC addresses. */
             ( void ) memcpy( ( void * ) ( &( pxEthernetHeader->xDestinationAddress ) ),
-                             ( const void * ) ( &( pxEthernetHeader->xSourceAddress ) ),
+                             pvCopySource,
                              sizeof( pxEthernetHeader->xDestinationAddress ) );
 
             /*
