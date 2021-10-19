@@ -2027,16 +2027,16 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                 eReturn = eReleaseBuffer;
             }
             else if( memcmp( ( void * ) &xBroadcastMACAddress,
-                     ( void * ) &( pxIPPacket->xEthernetHeader.xSourceAddress ),
-                     sizeof( MACAddress_t ) ) == 0 )
+                             ( void * ) &( pxIPPacket->xEthernetHeader.xSourceAddress ),
+                             sizeof( MACAddress_t ) ) == 0 )
             {
                 /* Ethernet source is a broadcast address. */
                 eReturn = eReleaseBuffer;
             }
             else if( ( ipFIRST_MULTI_CAST_IPv4 <= ulHostEndianSrcIPAddr ) && ( ulHostEndianSrcIPAddr < ipLAST_MULTI_CAST_IPv4 ) )
             {
-            	/* Source is a multicast IP address. Drop the packet in conformity with RFC 1112 section 7.2. */
-            	eReturn = eReleaseBuffer;
+                /* Source is a multicast IP address. Drop the packet in conformity with RFC 1112 section 7.2. */
+                eReturn = eReleaseBuffer;
             }
             else
             {
