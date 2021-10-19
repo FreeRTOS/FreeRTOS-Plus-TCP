@@ -1974,6 +1974,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
              * This method may decrease the usage of sparse network buffers. */
             uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
             uint32_t ulSourceIPAddress = pxIPHeader->ulSourceIPAddress;
+            uint32_t ulHostEndianSrcIPAddr = FreeRTOS_ntohl( ulSourceIPAddress );
 
             /* Ensure that the incoming packet is not fragmented because the stack
              * doesn't not support IP fragmentation. All but the last fragment coming in will have their
@@ -2024,6 +2025,18 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                 /* Ethernet address is a broadcast address, but the IP address is not a
                  * broadcast address. */
                 eReturn = eReleaseBuffer;
+            }
+            else if( memcmp( ( void * ) &xBroadcastMACAddress,
+                     ( void * ) &( pxIPPacket->xEthernetHeader.xSourceAddress ),
+                     sizeof( MACAddress_t ) ) == 0 )
+            {
+                /* Ethernet source is a broadcast address. */
+                eReturn = eReleaseBuffer;
+            }
+            else if( ( ipFIRST_MULTI_CAST_IPv4 <= ulHostEndianSrcIPAddr ) && ( ulHostEndianSrcIPAddr < ipLAST_MULTI_CAST_IPv4 ) )
+            {
+            	/* Source is a multicast IP address. Drop the packet in conformity with RFC 1112 section 7.2. */
+            	eReturn = eReleaseBuffer;
             }
             else
             {
