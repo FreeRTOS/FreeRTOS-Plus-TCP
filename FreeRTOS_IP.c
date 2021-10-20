@@ -2012,6 +2012,18 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                  * broadcast address. */
                 eReturn = eReleaseBuffer;
             }
+            else if( memcmp( ( void * ) &xBroadcastMACAddress,
+                             ( void * ) &( pxIPPacket->xEthernetHeader.xSourceAddress ),
+                             sizeof( MACAddress_t ) ) == 0 )
+            {
+                /* Ethernet source is a broadcast address. Drop the packet. */
+                eReturn = eReleaseBuffer;
+            }
+            else if( xIsIPv4Multicast( ulSourceIPAddress ) == pdTRUE )
+            {
+                /* Source is a multicast IP address. Drop the packet in conformity with RFC 1112 section 7.2. */
+                eReturn = eReleaseBuffer;
+            }
             else
             {
                 /* Packet is not fragmented, destination is this device, source IP and MAC
