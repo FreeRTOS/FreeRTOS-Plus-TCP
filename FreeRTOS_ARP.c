@@ -458,7 +458,8 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Update the 'age' of an ARP cache entry.
+ * @brief Look for an IP-MAC couple in ARP cache and reset the 'age' field. If no match
+ *        is found then no action will be taken.
  *
  * @param[in] pxMACAddress: Pointer to the MAC address whose entry needs to be updated.
  * @param[in] ulIPAddress: the IP address whose corresponding entry needs to be updated.
@@ -473,22 +474,14 @@ void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
         /* Loop through each entry in the ARP cache. */
         for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
         {
-            if( memcmp( xARPCache[ x ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( pxMACAddress->ucBytes ) ) == 0 )
-            {
-                xMatchingMAC = pdTRUE;
-            }
-            else
-            {
-                xMatchingMAC = pdFALSE;
-            }
-
             /* Does this line in the cache table hold an entry for the IP
              * address being queried? */
             if( xARPCache[ x ].ulIPAddress == ulIPAddress )
             {
-                if( xMatchingMAC == pdTRUE )
+                /* Does this cache entry have the same MAC address? */
+                if( memcmp( xARPCache[ x ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( pxMACAddress->ucBytes ) ) == 0 )
                 {
-                    /* The IP address and the MAC matched, update the entry age. */
+                    /* The IP address and the MAC matched, update this entry age. */
                     xARPCache[ x ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
                     break;
                 }

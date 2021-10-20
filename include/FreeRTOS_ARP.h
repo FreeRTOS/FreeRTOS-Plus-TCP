@@ -58,6 +58,10 @@
     } eARPLookupResult_t;
 
 
+/**
+ * Look for an IP-MAC couple in ARP cache and reset the 'age' field. If no match
+ * is found then no action will be taken.
+ */
     void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
                                    const uint32_t ulIPAddress );
 

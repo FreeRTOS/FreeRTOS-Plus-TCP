@@ -3169,9 +3169,6 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                            BaseType_t xReleaseAfterSend )
 {
     EthernetHeader_t * pxEthernetHeader;
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-    const void * pvCopySource;
-    void * pvCopyDest;
 
     #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
         NetworkBufferDescriptor_t * pxNewBuffer;
@@ -3213,6 +3210,9 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         if( pxNetworkBuffer != NULL )
     #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
     {
+        /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+        const void * pvCopySource;
+        void * pvCopyDest;
         MACAddress_t xMACAddress;
         IPPacket_t * pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
         IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
