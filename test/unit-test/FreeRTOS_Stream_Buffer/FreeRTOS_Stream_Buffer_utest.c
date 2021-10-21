@@ -445,7 +445,7 @@ void test_uxStreamBufferGetPtr( void )
     size_t uxRight = 7;
     uint8_t * pucData;
 
-    FreeRTOS_min_s_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
     uxResult = uxStreamBufferGetPtr( &xLocalBuffer, &pucData );
     TEST_ASSERT_EQUAL( 5, uxResult );
     TEST_ASSERT_EQUAL_PTR( xLocalBuffer.ucArray + xLocalBuffer.uxTail, pucData );
