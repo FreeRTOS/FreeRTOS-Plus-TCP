@@ -441,6 +441,7 @@ lmax
 lmaxlength
 lminlength
 lnetlength
+localhost
 loffset
 longjmp
 loopback

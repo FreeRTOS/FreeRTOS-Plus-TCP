@@ -726,7 +726,7 @@
                      ( pxDHCPMessage->ucAddressType != ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET ) ||
                      ( pxDHCPMessage->ucAddressLength != ( uint8_t ) dhcpETHERNET_ADDRESS_LENGTH ) ||
                      ( ( FreeRTOS_ntohl( pxDHCPMessage->ulYourIPAddress_yiaddr ) & 0xFF ) == 0xFF ) ||
-                     ( ( ( FreeRTOS_ntohl( pxDHCPMessage->ulYourIPAddress_yiaddr ) & 0x7F ) ^ 0x7F ) != 0x00 ) )
+                     ( ( ( pxDHCPMessage->ulYourIPAddress_yiaddr & 0x7F ) ^ 0x7F ) == 0x00 ) )
             {
                 /* Invalid cookie OR
                  * Unexpected opcode OR
