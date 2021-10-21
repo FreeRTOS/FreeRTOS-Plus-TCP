@@ -722,9 +722,18 @@
                 /* Not enough bytes. */
             }
             else if( ( pxDHCPMessage->ulDHCPCookie != ( uint32_t ) dhcpCOOKIE ) ||
-                     ( pxDHCPMessage->ucOpcode != ( uint8_t ) dhcpREPLY_OPCODE ) )
+                     ( pxDHCPMessage->ucOpcode != ( uint8_t ) dhcpREPLY_OPCODE ) ||
+                     ( pxDHCPMessage->ucAddressType != ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET ) ||
+                     ( pxDHCPMessage->ucAddressLength != ( uint8_t ) dhcpETHERNET_ADDRESS_LENGTH ) ||
+                     ( ( FreeRTOS_ntohl( pxDHCPMessage->ulYourIPAddress_yiaddr ) & 0xFF ) == 0xFF ) ||
+                     ( ( ( FreeRTOS_ntohl( pxDHCPMessage->ulYourIPAddress_yiaddr ) & 0x7F ) ^ 0x7F ) != 0x00 ) )
             {
-                /* Invalid cookie or unexpected opcode. */
+                /* Invalid cookie OR
+                 * Unexpected opcode OR
+                 * Incorrect address type OR
+                 * Incorrect address length OR
+                 * The DHCP server is trying to assign a broadcast address to the device OR
+                 * The DHCP server is trying to assign a localhost address to the device. */
             }
             else if( ( pxDHCPMessage->ulTransactionID != FreeRTOS_htonl( EP_DHCPData.ulTransactionId ) ) )
             {
