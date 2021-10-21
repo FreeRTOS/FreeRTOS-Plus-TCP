@@ -122,8 +122,7 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
         #endif
         #if ( ipconfigUSE_MDNS == 1 )
             {
-                /* mDNS messages are typically used on a LAN and they're
-                 * not supposed to cross routers */
+                /* mDNS messages have a hop-count of 255, see RFC 6762, section 11. */
                 if( pxNetworkBuffer->ulIPAddress == ipMDNS_IP_ADDRESS )
                 {
                     pxUDPPacket->xIPHeader.ucTimeToLive = 0xffU;
