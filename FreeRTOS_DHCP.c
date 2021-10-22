@@ -687,6 +687,38 @@
     /*-----------------------------------------------------------*/
 
 /**
+ * @brief Check whether the DHCP response from the server has all valid
+ *        invarient parameters and valid (non broadcast and non localhost)
+ *        IP address being assigned to the device.
+ *
+ * @param[in] pxDHCPMessage: The DHCP message.
+ *
+ * @return pdPASS if the DHCP response has correct parameters; pdFAIL otherwise.
+ */
+static BaseType_t prvIsValidDHCPResponse( DHCPMessage_IPv4_t * pxDHCPMessage )
+{
+    BaseType_t xReturn = pdPASS;
+
+    if( ( pxDHCPMessage->ulDHCPCookie != ( uint32_t ) dhcpCOOKIE ) ||
+        ( pxDHCPMessage->ucOpcode != ( uint8_t ) dhcpREPLY_OPCODE ) ||
+        ( pxDHCPMessage->ucAddressType != ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET ) ||
+        ( pxDHCPMessage->ucAddressLength != ( uint8_t ) dhcpETHERNET_ADDRESS_LENGTH ) ||
+        ( ( FreeRTOS_ntohl( pxDHCPMessage->ulYourIPAddress_yiaddr ) & 0xFF ) == 0xFF ) ||
+        ( ( ( pxDHCPMessage->ulYourIPAddress_yiaddr & 0x7F ) ^ 0x7F ) == 0x00 ) )
+    {
+        /* Invalid cookie OR
+         * Unexpected opcode OR
+         * Incorrect address type OR
+         * Incorrect address length OR
+         * The DHCP server is trying to assign a broadcast address to the device OR
+         * The DHCP server is trying to assign a localhost address to the device. */
+        xReturn = pdFAIL;
+    }
+
+    return xReturn;
+}
+
+/**
  * @brief Process the DHCP replies.
  *
  * @param[in] xExpectedMessageType: The type of the message the DHCP state machine is expecting.
@@ -721,19 +753,9 @@
             {
                 /* Not enough bytes. */
             }
-            else if( ( pxDHCPMessage->ulDHCPCookie != ( uint32_t ) dhcpCOOKIE ) ||
-                     ( pxDHCPMessage->ucOpcode != ( uint8_t ) dhcpREPLY_OPCODE ) ||
-                     ( pxDHCPMessage->ucAddressType != ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET ) ||
-                     ( pxDHCPMessage->ucAddressLength != ( uint8_t ) dhcpETHERNET_ADDRESS_LENGTH ) ||
-                     ( ( FreeRTOS_ntohl( pxDHCPMessage->ulYourIPAddress_yiaddr ) & 0xFF ) == 0xFF ) ||
-                     ( ( ( pxDHCPMessage->ulYourIPAddress_yiaddr & 0x7F ) ^ 0x7F ) == 0x00 ) )
+            else if( prvIsValidDHCPResponse( pxDHCPMessage ) == pdFAIL )
             {
-                /* Invalid cookie OR
-                 * Unexpected opcode OR
-                 * Incorrect address type OR
-                 * Incorrect address length OR
-                 * The DHCP server is trying to assign a broadcast address to the device OR
-                 * The DHCP server is trying to assign a localhost address to the device. */
+                /* Invalid values in DHCP response. */
             }
             else if( ( pxDHCPMessage->ulTransactionID != FreeRTOS_htonl( EP_DHCPData.ulTransactionId ) ) )
             {
