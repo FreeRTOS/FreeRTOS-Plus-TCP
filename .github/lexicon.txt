@@ -765,6 +765,7 @@ pxbuffer
 pxbufferdescriptor
 pxdescriptor
 pxdestinationaddress
+pxdhcpmessage
 pxdnsmessageheader
 pxduplicatenetworkbufferwithdescriptor
 pxevent

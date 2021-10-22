@@ -688,7 +688,7 @@
 
 /**
  * @brief Check whether the DHCP response from the server has all valid
- *        invarient parameters and valid (non broadcast and non localhost)
+ *        invariant parameters and valid (non broadcast and non localhost)
  *        IP address being assigned to the device.
  *
  * @param[in] pxDHCPMessage: The DHCP message.
