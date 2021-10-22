@@ -1,5 +1,10 @@
 # !/bin/bash
 
+if [[ ! -f run_test.sh ]]; then
+    echo "Please run this script from the test/unit-test directory of the FreeRTOS+TCP repo."
+    exit 1
+fi
+
 echo "Starting submodule checks"
 cd ../..
 
@@ -35,14 +40,30 @@ fi
 # Install the required tools
 echo ""
 echo ""
+echo "Installing make..."
+apt-get install make > /dev/null
+
+echo ""
+echo ""
+echo "Installing Ruby (required by CMock)..."
+apt-get install ruby > /dev/null
+
+
+echo ""
+echo ""
+echo "Installing CMake (Used to generate the build system)..."
+apt-get install cmake > /dev/null
+
+echo ""
+echo ""
 echo "Installing lcov..."
-sudo apt-get install -y lcov > /dev/null
+apt-get install -y lcov > /dev/null
 lcov --version
 
 echo ""
 echo ""
 echo "Installing unifdef..."
-sudo apt-get install -y unifdef > /dev/null
+apt-get install -y unifdef > /dev/null
 unifdef -V
 
 # Build the build system
@@ -55,3 +76,9 @@ make -C test/unit-test/build/ all
 cd test/unit-test/build/
 ctest -E system --output-on-failure
 cd ..
+
+# Build the coverage info
+make -C build/ coverage
+
+# Display the coverage
+lcov --list --rc lcov_branch_coverage=1 build/coverage.info
