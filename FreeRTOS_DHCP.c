@@ -695,28 +695,28 @@
  *
  * @return pdPASS if the DHCP response has correct parameters; pdFAIL otherwise.
  */
-static BaseType_t prvIsValidDHCPResponse( DHCPMessage_IPv4_t * pxDHCPMessage )
-{
-    BaseType_t xReturn = pdPASS;
-
-    if( ( pxDHCPMessage->ulDHCPCookie != ( uint32_t ) dhcpCOOKIE ) ||
-        ( pxDHCPMessage->ucOpcode != ( uint8_t ) dhcpREPLY_OPCODE ) ||
-        ( pxDHCPMessage->ucAddressType != ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET ) ||
-        ( pxDHCPMessage->ucAddressLength != ( uint8_t ) dhcpETHERNET_ADDRESS_LENGTH ) ||
-        ( ( FreeRTOS_ntohl( pxDHCPMessage->ulYourIPAddress_yiaddr ) & 0xFF ) == 0xFF ) ||
-        ( ( ( pxDHCPMessage->ulYourIPAddress_yiaddr & 0x7F ) ^ 0x7F ) == 0x00 ) )
+    static BaseType_t prvIsValidDHCPResponse( DHCPMessage_IPv4_t * pxDHCPMessage )
     {
-        /* Invalid cookie OR
-         * Unexpected opcode OR
-         * Incorrect address type OR
-         * Incorrect address length OR
-         * The DHCP server is trying to assign a broadcast address to the device OR
-         * The DHCP server is trying to assign a localhost address to the device. */
-        xReturn = pdFAIL;
-    }
+        BaseType_t xReturn = pdPASS;
 
-    return xReturn;
-}
+        if( ( pxDHCPMessage->ulDHCPCookie != ( uint32_t ) dhcpCOOKIE ) ||
+            ( pxDHCPMessage->ucOpcode != ( uint8_t ) dhcpREPLY_OPCODE ) ||
+            ( pxDHCPMessage->ucAddressType != ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET ) ||
+            ( pxDHCPMessage->ucAddressLength != ( uint8_t ) dhcpETHERNET_ADDRESS_LENGTH ) ||
+            ( ( FreeRTOS_ntohl( pxDHCPMessage->ulYourIPAddress_yiaddr ) & 0xFF ) == 0xFF ) ||
+            ( ( ( pxDHCPMessage->ulYourIPAddress_yiaddr & 0x7F ) ^ 0x7F ) == 0x00 ) )
+        {
+            /* Invalid cookie OR
+             * Unexpected opcode OR
+             * Incorrect address type OR
+             * Incorrect address length OR
+             * The DHCP server is trying to assign a broadcast address to the device OR
+             * The DHCP server is trying to assign a localhost address to the device. */
+            xReturn = pdFAIL;
+        }
+
+        return xReturn;
+    }
 
 /**
  * @brief Process the DHCP replies.
