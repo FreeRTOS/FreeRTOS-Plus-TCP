@@ -443,6 +443,7 @@ lmax
 lmaxlength
 lminlength
 lnetlength
+localhost
 loffset
 longjmp
 loopback
@@ -767,6 +768,7 @@ pxbuffer
 pxbufferdescriptor
 pxdescriptor
 pxdestinationaddress
+pxdhcpmessage
 pxdnsmessageheader
 pxduplicatenetworkbufferwithdescriptor
 pxevent
