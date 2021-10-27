@@ -190,8 +190,8 @@ static BaseType_t xHas_19_PHYCR( uint32_t ulPhyID )
             xResult = pdTRUE;
             break;
 
-        default:
         case PHY_ID_MV88E6071: /* Marvell 88E6071 */
+        default:
             /* Most PHY's do not have a 19_PHYCR */
             break;
     }
