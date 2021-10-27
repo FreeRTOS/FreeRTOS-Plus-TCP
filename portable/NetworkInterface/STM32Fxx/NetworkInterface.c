@@ -60,6 +60,10 @@
     #error What part?
 #endif
 
+ifndef HAL_ETH_MODULE_ENABLED
+#define HAL_ETH_MODULE_ENABLED 1
+endif
+
 #include "stm32fxx_hal_eth.h"
 
 /* Interrupt events to process.  Currently only the Rx event is processed
