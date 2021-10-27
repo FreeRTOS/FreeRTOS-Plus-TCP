@@ -20,6 +20,11 @@ ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
     return ( FreeRTOS_Socket_t * ) pvArgument;
 }
 
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
+{
+    return ( NetworkBufferDescriptor_t * ) pvArgument;
+}
+
 ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t )
 {
     return ( ListItem_t * ) pvArgument;
