@@ -70,7 +70,7 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
  * periodic or timeout processing must be performed.
  */
 static TickType_t prvCalculateSleepTime( void );
-                              
+
 /*
  * A timer for each of the following processes, all of which need attention on a
  * regular basis
@@ -339,19 +339,19 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
  *
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
-    void vIPSetARPTimerEnableState( BaseType_t xEnableState )
+void vIPSetARPTimerEnableState( BaseType_t xEnableState )
+{
+    if( xEnableState != pdFALSE )
     {
-        if( xEnableState != pdFALSE )
-        {
-            xDNSTimer.bActive = pdTRUE_UNSIGNED;
-        }
-        else
-        {
-            xDNSTimer.bActive = pdFALSE_UNSIGNED;
-        }
+        xDNSTimer.bActive = pdTRUE_UNSIGNED;
     }
+    else
+    {
+        xDNSTimer.bActive = pdFALSE_UNSIGNED;
+    }
+}
 /*-----------------------------------------------------------*/
-    
+
 /**
  * @brief Enable or disable the ARP resolution timer.
  *
@@ -434,4 +434,3 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 
 #endif /* ipconfigUSE_DHCP */
 /*-----------------------------------------------------------*/
-
