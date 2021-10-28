@@ -50,6 +50,26 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
 
+/**
+ * Used in checksum calculation.
+ */
+typedef union _xUnion32
+{
+    uint32_t u32;      /**< The 32-bit member of the union. */
+    uint16_t u16[ 2 ]; /**< The array of 2 16-bit members of the union. */
+    uint8_t u8[ 4 ];   /**< The array of 4 8-bit members of the union. */
+} xUnion32;
+
+/**
+ * Used in checksum calculation.
+ */
+typedef union _xUnionPtr
+{
+    uint32_t * u32ptr; /**< The pointer member to a 32-bit variable. */
+    uint16_t * u16ptr; /**< The pointer member to a 16-bit variable. */
+    uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
+} xUnionPtr;
+
 #if ( ipconfigUSE_DHCP != 0 )
 
 /**

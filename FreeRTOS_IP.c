@@ -115,57 +115,7 @@
 #else
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
 #endif
-
-/** @brief The maximum time the IP task is allowed to remain in the Blocked state if no
- * events are posted to the network event queue. */
-#ifndef ipconfigMAX_IP_TASK_SLEEP_TIME
-    #define ipconfigMAX_IP_TASK_SLEEP_TIME    ( pdMS_TO_TICKS( 10000UL ) )
-#endif
-
-/** @brief Returned as the (invalid) checksum when the protocol being checked is not
- * handled.  The value is chosen simply to be easy to spot when debugging. */
-#define ipUNHANDLED_PROTOCOL    0x4321U
-
-/** @brief Returned to indicate a valid checksum. */
-#define ipCORRECT_CRC           0xffffU
-
-/** @brief Returned to indicate incorrect checksum. */
-#define ipWRONG_CRC             0x0000U
-
-/** @brief Returned as the (invalid) checksum when the length of the data being checked
- * had an invalid length. */
-#define ipINVALID_LENGTH        0x1234U
-
-/* Trace macros to aid in debugging, disabled if ipconfigHAS_PRINTF != 1 */
-#if ( ipconfigHAS_PRINTF == 1 )
-    #define DEBUG_DECLARE_TRACE_VARIABLE( type, var, init )    type var = ( init ) /**< Trace macro to set "type var = init". */
-    #define DEBUG_SET_TRACE_VARIABLE( var, value )             var = ( value )     /**< Trace macro to set var = value. */
-#else
-    #define DEBUG_DECLARE_TRACE_VARIABLE( type, var, init )                        /**< Empty definition since ipconfigHAS_PRINTF != 1. */
-    #define DEBUG_SET_TRACE_VARIABLE( var, value )                                 /**< Empty definition since ipconfigHAS_PRINTF != 1. */
-#endif
-
 /*-----------------------------------------------------------*/
-
-/**
- * Used in checksum calculation.
- */
-typedef union _xUnion32
-{
-    uint32_t u32;      /**< The 32-bit member of the union. */
-    uint16_t u16[ 2 ]; /**< The array of 2 16-bit members of the union. */
-    uint8_t u8[ 4 ];   /**< The array of 4 8-bit members of the union. */
-} xUnion32;
-
-/**
- * Used in checksum calculation.
- */
-typedef union _xUnionPtr
-{
-    uint32_t * u32ptr; /**< The pointer member to a 32-bit variable. */
-    uint16_t * u16ptr; /**< The pointer member to a 16-bit variable. */
-    uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
-} xUnionPtr;
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. */
 NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
@@ -278,13 +228,6 @@ static volatile BaseType_t xNetworkDownEventPending = pdFALSE;
 
 static TaskHandle_t xIPTaskHandle = NULL;
 
-#if ( ipconfigUSE_TCP != 0 )
-
-/** @brief Set to a non-zero value if one or more TCP message have been processed
- * within the last round. */
-    static BaseType_t xProcessedTCPMessage;
-#endif
-
 /** @brief Simple set to pdTRUE or pdFALSE depending on whether the network is up or
  * down (connected, not connected) respectively. */
 static BaseType_t xNetworkUp = pdFALSE;
@@ -332,7 +275,7 @@ static void prvIPTask( void * pvParameters )
     #if ( ipconfigUSE_TCP == 1 )
         {
             /* Initialise the TCP timer. */
-            prvIPTimerReload( &xTCPTimer, pdMS_TO_TICKS( ipTCP_TIMER_PERIOD_MS ) );
+            vTCPTimerReload( pdMS_TO_TICKS( ipTCP_TIMER_PERIOD_MS ) );
         }
     #endif
 
@@ -504,7 +447,7 @@ static void prvIPTask( void * pvParameters )
 
                     /* Simply mark the TCP timer as expired so it gets processed
                      * the next time prvCheckNetworkTimers() is called. */
-                    xTCPTimer.bExpired = pdTRUE_UNSIGNED;
+                    vIPSetTCPTimerEnableState( pdTRUE );
                 #endif /* ipconfigUSE_TCP */
                 break;
 
@@ -1102,7 +1045,7 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                     /* TCP timer events are sent to wake the timer task when
                      * xTCPTimer has expired, but there is no point sending them if the
                      * IP task is already awake processing other message. */
-                    xTCPTimer.bExpired = pdTRUE_UNSIGNED;
+                    vIPSetTCPTimerEnableState( pdTRUE );
 
                     if( uxQueueMessagesWaiting( xNetworkEventQueue ) != 0U )
                     {
@@ -1287,7 +1230,7 @@ void vIPNetworkUpCalls( void )
     #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
 
     /* Set remaining time to 0 so it will become active immediately. */
-    prvIPTimerReload( &xARPTimer, pdMS_TO_TICKS( ipARP_TIMER_PERIOD_MS ) );
+    vARPTimerReload( pdMS_TO_TICKS( ipARP_TIMER_PERIOD_MS ) );
 }
 /*-----------------------------------------------------------*/
 
@@ -1388,7 +1331,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
             if( pxARPWaitingNetworkBuffer == NULL )
             {
                 pxARPWaitingNetworkBuffer = pxNetworkBuffer;
-                prvIPTimerStart( &( xARPResolutionTimer ), ipARP_RESOLUTION_MAX_DELAY );
+                vIPTimerStartARPResolution( ipARP_RESOLUTION_MAX_DELAY );
 
                 iptraceDELAYED_ARP_REQUEST_STARTED();
             }
@@ -2163,20 +2106,6 @@ void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress )
 {
     xNetworkAddressing.ulGatewayAddress = ulGatewayAddress;
 }
-/*-----------------------------------------------------------*/
-
-#if ( ipconfigUSE_DHCP == 1 )
-
-/**
- * @brief Reload the DHCP timer.
- *
- * @param[in] ulLeaseTime: The reload value.
- */
-    void vIPReloadDHCPTimer( uint32_t ulLeaseTime )
-    {
-        prvIPTimerReload( &xDHCPTimer, ulLeaseTime );
-    }
-#endif /* ipconfigUSE_DHCP */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )

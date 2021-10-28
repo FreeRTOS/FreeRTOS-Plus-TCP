@@ -50,6 +50,9 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
 
+/** @brief The pointer to buffer with packet waiting for ARP resolution. */
+extern NetworkBufferDescriptor_t* pxARPWaitingNetworkBuffer;
+
 /*
  * Checks the ARP, DHCP and TCP timers to see if any periodic or timeout
  * processing is required.
@@ -277,6 +280,11 @@ static void prvIPTimerStart( IPTimer_t * pxTimer,
 }
 /*-----------------------------------------------------------*/
 
+void vIPTimerStartARPResolution( TickType_t xTime )
+{
+    prvIPTimerStart( &( xARPResolutionTimer ), xTime );
+}
+
 /**
  * @brief Sets the reload time of an IP timer and restarts it.
  *
@@ -289,6 +297,30 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
     pxTimer->ulReloadTime = xTime;
     prvIPTimerStart( pxTimer, xTime );
 }
+/*-----------------------------------------------------------*/
+
+void vTCPTimerReload( TickType_t xTime )
+{
+    prvIPTimerReload( &xTCPTimer, xTime );
+}
+
+void vARPTimerReload( TickType_t xTime )
+{
+    prvIPTimerReload( &xARPTimer, xTime );
+}
+
+#if ( ipconfigUSE_DHCP == 1 )
+
+/**
+ * @brief Reload the DHCP timer.
+ *
+ * @param[in] ulLeaseTime: The reload value.
+ */
+    void vIPReloadDHCPTimer( TickType_t xLeaseTime )
+    {
+        prvIPTimerReload( &xDHCPTimer, xLeaseTime );
+    }
+#endif /* ipconfigUSE_DHCP */
 /*-----------------------------------------------------------*/
 
 /**
@@ -335,7 +367,26 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Enable/disable the ARP timer.
+ * @brief Enable/disable the TCP timer.
+ *
+ * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
+ */
+void vIPSetTCPTimerEnableState(BaseType_t xEnableState)
+{
+    if (xEnableState != pdFALSE)
+    {
+        xTCPTimer.bActive = pdTRUE_UNSIGNED;
+    }
+    else
+    {
+        xTCPTimer.bActive = pdFALSE_UNSIGNED;
+    }
+}
+/*-----------------------------------------------------------*/
+
+#if( ipconfigDNS_USE_CALLBACKS != 0 )
+/**
+ * @brief Enable/disable the DNS timer.
  *
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
@@ -350,6 +401,7 @@ void vIPSetARPTimerEnableState( BaseType_t xEnableState )
         xDNSTimer.bActive = pdFALSE_UNSIGNED;
     }
 }
+#endif
 /*-----------------------------------------------------------*/
 
 /**
