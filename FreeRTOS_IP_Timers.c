@@ -54,12 +54,6 @@
 extern NetworkBufferDescriptor_t* pxARPWaitingNetworkBuffer;
 
 /*
- * Checks the ARP, DHCP and TCP timers to see if any periodic or timeout
- * processing is required.
- */
-static void prvCheckNetworkTimers( void );
-
-/*
  * Utility functions for the light weight IP timers.
  */
 static void prvIPTimerStart( IPTimer_t * pxTimer,
@@ -67,12 +61,6 @@ static void prvIPTimerStart( IPTimer_t * pxTimer,
 static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer );
 static void prvIPTimerReload( IPTimer_t * pxTimer,
                               TickType_t xTime );
-
-/*
- * Determine how long the IP task can sleep for, which depends on when the next
- * periodic or timeout processing must be performed.
- */
-static TickType_t prvCalculateSleepTime( void );
 
 /*
  * A timer for each of the following processes, all of which need attention on a
@@ -106,7 +94,7 @@ static IPTimer_t xARPTimer;
  * @return The maximum sleep time or ipconfigMAX_IP_TASK_SLEEP_TIME,
  *         whichever is smaller.
  */
-static TickType_t prvCalculateSleepTime( void )
+TickType_t xCalculateSleepTime( void )
 {
     TickType_t xMaximumSleepTime;
 
@@ -163,7 +151,7 @@ static TickType_t prvCalculateSleepTime( void )
  * @brief Check the network timers (ARP/DHCP/DNS/TCP) and if they are
  *        expired, send an event to the IP-Task.
  */
-static void prvCheckNetworkTimers( void )
+void vCheckNetworkTimers( void )
 {
     /* Is it time for ARP processing? */
     if( prvIPTimerCheck( &xARPTimer ) != pdFALSE )
@@ -284,6 +272,7 @@ void vIPTimerStartARPResolution( TickType_t xTime )
 {
     prvIPTimerStart( &( xARPResolutionTimer ), xTime );
 }
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Sets the reload time of an IP timer and restarts it.
@@ -303,11 +292,13 @@ void vTCPTimerReload( TickType_t xTime )
 {
     prvIPTimerReload( &xTCPTimer, xTime );
 }
+/*-----------------------------------------------------------*/
 
 void vARPTimerReload( TickType_t xTime )
 {
     prvIPTimerReload( &xARPTimer, xTime );
 }
+/*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_DHCP == 1 )
 
@@ -384,9 +375,8 @@ void vIPSetTCPTimerEnableState(BaseType_t xEnableState)
 }
 /*-----------------------------------------------------------*/
 
-#if( ipconfigDNS_USE_CALLBACKS != 0 )
 /**
- * @brief Enable/disable the DNS timer.
+ * @brief Enable/disable the ARP timer.
  *
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
@@ -394,14 +384,13 @@ void vIPSetARPTimerEnableState( BaseType_t xEnableState )
 {
     if( xEnableState != pdFALSE )
     {
-        xDNSTimer.bActive = pdTRUE_UNSIGNED;
+        xARPTimer.bActive = pdTRUE_UNSIGNED;
     }
     else
     {
-        xDNSTimer.bActive = pdFALSE_UNSIGNED;
+        xARPTimer.bActive = pdFALSE_UNSIGNED;
     }
 }
-#endif
 /*-----------------------------------------------------------*/
 
 /**

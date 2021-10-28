@@ -70,6 +70,12 @@ typedef union _xUnionPtr
     uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
 } xUnionPtr;
 
+/*
+ * Returns the network buffer descriptor that owns a given packet buffer.
+ */
+static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void * pvBuffer,
+                                                                     size_t uxOffset );
+
 #if ( ipconfigUSE_DHCP != 0 )
 
 /**
@@ -222,17 +228,6 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
 NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer )
 {
     return prvPacketBuffer_to_NetworkBuffer( pvBuffer, sizeof( UDPPacket_t ) );
-}
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Release the UDP payload buffer.
- *
- * @param[in] pvBuffer: Pointer to the UDP buffer that is to be released.
- */
-void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
-{
-    vReleaseNetworkBufferAndDescriptor( pxUDPPayloadBuffer_to_NetworkBuffer( pvBuffer ) );
 }
 /*-----------------------------------------------------------*/
 
@@ -788,7 +783,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 #if ( ipconfigHAS_PRINTF != 0 )
 
     #ifndef ipMONITOR_MAX_HEAP
-
 /* As long as the heap has more space than e.g. 1 MB, there
  * will be no messages. */
         #define ipMONITOR_MAX_HEAP    ( 1024U * 1024U )

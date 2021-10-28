@@ -41,6 +41,8 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_ICMP.h"
+#include "FreeRTOS_IP_Timers.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
@@ -190,13 +192,6 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
     static BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
                                         size_t uxBufferLength );
 #endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
-
-/*
- * Returns the network buffer descriptor that owns a given packet buffer.
- */
-static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void * pvBuffer,
-                                                                     size_t uxOffset );
-
 /*-----------------------------------------------------------*/
 
 /** @brief The queue used to pass events into the IP-task for processing. */
@@ -294,10 +289,10 @@ static void prvIPTask( void * pvParameters )
 
         /* Check the ARP, DHCP and TCP timers to see if there is any periodic
          * or timeout processing to perform. */
-        prvCheckNetworkTimers();
+        vCheckNetworkTimers();
 
         /* Calculate the acceptable maximum sleep time. */
-        xNextIPSleep = prvCalculateSleepTime();
+        xNextIPSleep = xCalculateSleepTime();
 
         /* Wait until there is something to do. If the following call exits
          * due to a time out rather than a message being received, set a
@@ -895,6 +890,17 @@ void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
     {
         xNetworkAddressing.ulDNSServerAddress = *pulDNSServerAddress;
     }
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Release the UDP payload buffer.
+ *
+ * @param[in] pvBuffer: Pointer to the UDP buffer that is to be released.
+ */
+void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
+{
+    vReleaseNetworkBufferAndDescriptor( pxUDPPayloadBuffer_to_NetworkBuffer( pvBuffer ) );
 }
 /*-----------------------------------------------------------*/
 
@@ -1682,7 +1688,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                 {
                                     if( pxIPHeader->ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
                                     {
-                                        eReturn = prvProcessICMPPacket( pxNetworkBuffer );
+                                        eReturn = ProcessICMPPacket( pxNetworkBuffer );
                                     }
                                 }
                             #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
