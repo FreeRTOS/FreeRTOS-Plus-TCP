@@ -922,10 +922,10 @@
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
     void vIPSetDHCPTimerEnableState( BaseType_t xEnableState );
-    void vIPReloadDHCPTimer( uint32_t ulLeaseTime );
+    void vDHCPTimerReload( TickType_t xLeaseTime );
     #if ( ipconfigDNS_USE_CALLBACKS != 0 )
-        void vIPReloadDNSTimer( uint32_t ulCheckTime );
-        void vIPSetDnsTimerEnableState( BaseType_t xEnableState );
+        void vDNSTimerReload( uint32_t ulCheckTime );
+        void vIPSetDNSTimerEnableState( BaseType_t xEnableState );
     #endif
 
 

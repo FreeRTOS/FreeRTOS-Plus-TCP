@@ -452,7 +452,7 @@
 
                         /* Check for clashes. */
                         vARPSendGratuitous();
-                        vIPReloadDHCPTimer( EP_DHCPData.ulLeaseTime );
+                        vDHCPTimerReload( EP_DHCPData.ulLeaseTime );
                     }
                     else
                     {
@@ -550,14 +550,14 @@
                             }
 
                             /* From now on, we should be called more often */
-                            vIPReloadDHCPTimer( dhcpINITIAL_TIMER_PERIOD );
+                            vDHCPTimerReload( dhcpINITIAL_TIMER_PERIOD );
                         }
                     }
                     else
                     {
                         /* See PR #53 on github/freertos/freertos */
                         FreeRTOS_printf( ( "DHCP: lease time finished but network is down\n" ) );
-                        vIPReloadDHCPTimer( pdMS_TO_TICKS( 5000U ) );
+                        vDHCPTimerReload( pdMS_TO_TICKS( 5000U ) );
                     }
 
                     break;
@@ -677,7 +677,7 @@
             /* Create the DHCP socket if it has not already been created. */
             prvCreateDHCPSocket();
             FreeRTOS_debug_printf( ( "prvInitialiseDHCP: start after %lu ticks\n", dhcpINITIAL_TIMER_PERIOD ) );
-            vIPReloadDHCPTimer( dhcpINITIAL_TIMER_PERIOD );
+            vDHCPTimerReload( dhcpINITIAL_TIMER_PERIOD );
         }
         else
         {

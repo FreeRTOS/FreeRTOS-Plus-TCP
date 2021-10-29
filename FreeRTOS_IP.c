@@ -2114,20 +2114,6 @@ void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigDNS_USE_CALLBACKS != 0 )
-
-/**
- * @brief Reload the DNS timer.
- *
- * @param[in] ulCheckTime: The reload value.
- */
-    void vIPReloadDNSTimer( uint32_t ulCheckTime )
-    {
-        prvIPTimerReload( &xDNSTimer, ulCheckTime );
-    }
-#endif /* ipconfigDNS_USE_CALLBACKS != 0 */
-/*-----------------------------------------------------------*/
-
 /**
  * @brief Returns whether the IP task is ready.
  *

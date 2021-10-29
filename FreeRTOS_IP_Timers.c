@@ -307,11 +307,24 @@ void vARPTimerReload( TickType_t xTime )
  *
  * @param[in] ulLeaseTime: The reload value.
  */
-    void vIPReloadDHCPTimer( TickType_t xLeaseTime )
+    void vDHCPTimerReload( TickType_t xLeaseTime )
     {
         prvIPTimerReload( &xDHCPTimer, xLeaseTime );
     }
 #endif /* ipconfigUSE_DHCP */
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigDNS_USE_CALLBACKS != 0 )
+/**
+ * @brief Reload the DNS timer.
+ *
+ * @param[in] ulCheckTime: The reload value.
+ */
+    void vDNSTimerReload(uint32_t ulCheckTime)
+    {
+        prvIPTimerReload(&xDNSTimer, ulCheckTime);
+    }
+#endif /* ipconfigDNS_USE_CALLBACKS != 0 */
 /*-----------------------------------------------------------*/
 
 /**
@@ -439,29 +452,7 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
  *
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
-    void vIPSetDnsTimerEnableState( BaseType_t xEnableState )
-    {
-        if( xEnableState != 0 )
-        {
-            xDNSTimer.bActive = pdTRUE_UNSIGNED;
-        }
-        else
-        {
-            xDNSTimer.bActive = pdFALSE_UNSIGNED;
-        }
-    }
-
-#endif /* ipconfigUSE_DHCP */
-/*-----------------------------------------------------------*/
-
-#if ( ipconfigDNS_USE_CALLBACKS == 1 )
-
-/**
- * @brief Enable/disable the DNS timer.
- *
- * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
- */
-    void vIPSetDnsTimerEnableState( BaseType_t xEnableState )
+    void vIPSetDNSTimerEnableState( BaseType_t xEnableState )
     {
         if( xEnableState != 0 )
         {
