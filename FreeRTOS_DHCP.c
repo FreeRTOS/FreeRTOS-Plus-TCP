@@ -695,7 +695,7 @@
  *
  * @return pdPASS if the DHCP response has correct parameters; pdFAIL otherwise.
  */
-    static BaseType_t prvIsValidDHCPResponse( DHCPMessage_IPv4_t * pxDHCPMessage )
+    static BaseType_t prvIsValidDHCPResponse( const DHCPMessage_IPv4_t * pxDHCPMessage )
     {
         BaseType_t xReturn = pdPASS;
 
@@ -1162,7 +1162,7 @@
     static BaseType_t prvSendDHCPDiscover( void )
     {
         BaseType_t xResult = pdFAIL;
-        uint8_t const * pucUDPPayloadBuffer;
+        uint8_t * pucUDPPayloadBuffer;
         struct freertos_sockaddr xAddress;
         static const uint8_t ucDHCPDiscoverOptions[] =
         {
