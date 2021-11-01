@@ -86,8 +86,6 @@
     #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
 #endif
 
-#define ipFRAGMENT_OFFSET_BIT_MASK          ( ( uint16_t ) 0x0fff ) /* The bits in the two byte IP header field that make up the fragment offset value. */
-
 #if ( ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) || ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) )
     #warning Consider enabling checksum offloading
 #endif
@@ -810,7 +808,7 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
 
             /* Ensure that the incoming packet is not fragmented (only outgoing packets
              * can be fragmented) as these are the only handled IP frames currently. */
-            if( ( pxIPHeader->usFragmentOffset & FreeRTOS_ntohs( ipFRAGMENT_OFFSET_BIT_MASK ) ) != 0U )
+            if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U )
             {
                 return pdFALSE;
             }
