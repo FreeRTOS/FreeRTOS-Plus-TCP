@@ -103,7 +103,7 @@
 #if defined( STM32F7xx )
     #include "stm32f7xx_hal.h"
     #define stm_is_F7    1
-#elif defined( STM32F407xx ) || defined( STM32F417xx ) || defined( STM32F427xx ) || defined( STM32F437xx ) || defined( STM32F429xx ) || defined( STM32F439xx )
+#elif defined( STM32F4xx )
     #include "stm32f4xx_hal.h"
     #define stm_is_F4    1
 #elif defined( STM32F2xx )
