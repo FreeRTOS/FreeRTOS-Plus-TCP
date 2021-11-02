@@ -247,7 +247,7 @@
                         }
                         else
                         {
-                            *ipLOCAL_IP_ADDRESS_POINTER = 0UL;
+                            *ipLOCAL_IP_ADDRESS_POINTER = 0U;
 
                             /* Send the first discover request. */
                             EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
@@ -416,7 +416,7 @@
                     /* Look for acks coming in. */
                     if( prvProcessDHCPReplies( dhcpMESSAGE_TYPE_ACK ) == pdPASS )
                     {
-                        FreeRTOS_debug_printf( ( "vDHCPProcess: acked %lxip\n", FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
+                        FreeRTOS_debug_printf( ( "vDHCPProcess: acked %xip\n", ( unsigned ) FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
 
                         /* DHCP completed.  The IP address can now be used, and the
                          * timer set to the lease timeout time. */
@@ -437,7 +437,7 @@
                         /* Close socket to ensure packets don't queue on it. */
                         prvCloseDHCPSocket();
 
-                        if( EP_DHCPData.ulLeaseTime == 0UL )
+                        if( EP_DHCPData.ulLeaseTime == 0U )
                         {
                             EP_DHCPData.ulLeaseTime = ( uint32_t ) dhcpDEFAULT_LEASE_TIME;
                         }
@@ -527,7 +527,7 @@
 
                         if( xDHCPSocket != NULL )
                         {
-                            uint32_t ulID;
+                            uint32_t ulID = 0U;
 
                             if( xApplicationGetRandomNumber( &( ulID ) ) != pdFALSE )
                             {
@@ -670,8 +670,8 @@
         if( xApplicationGetRandomNumber( &( EP_DHCPData.ulTransactionId ) ) != pdFALSE )
         {
             EP_DHCPData.xUseBroadcast = 0;
-            EP_DHCPData.ulOfferedIPAddress = 0UL;
-            EP_DHCPData.ulDHCPServerAddress = 0UL;
+            EP_DHCPData.ulOfferedIPAddress = 0U;
+            EP_DHCPData.ulDHCPServerAddress = 0U;
             EP_DHCPData.xDHCPTxPeriod = dhcpINITIAL_DHCP_TX_PERIOD;
 
             /* Create the DHCP socket if it has not already been created. */
@@ -735,13 +735,13 @@
         uint8_t ucOptionCode;
         uint32_t ulProcessed, ulParameter;
         BaseType_t xReturn = pdFALSE;
-        const uint32_t ulMandatoryOptions = 2UL; /* DHCP server address, and the correct DHCP message type must be present in the options. */
+        const uint32_t ulMandatoryOptions = 2U; /* DHCP server address, and the correct DHCP message type must be present in the options. */
         /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
         const void * pvCopySource;
         void * pvCopyDest;
 
         /* Passing the address of a pointer (pucUDPPayload) because FREERTOS_ZERO_COPY is used. */
-        lBytes = FreeRTOS_recvfrom( xDHCPSocket, &pucUDPPayload, 0UL, FREERTOS_ZERO_COPY, NULL, NULL );
+        lBytes = FreeRTOS_recvfrom( xDHCPSocket, &pucUDPPayload, 0U, FREERTOS_ZERO_COPY, NULL, NULL );
 
         if( lBytes > 0 )
         {
@@ -774,7 +774,7 @@
                     size_t uxIndex, uxPayloadDataLength, uxLength;
 
                     /* None of the essential options have been processed yet. */
-                    ulProcessed = 0UL;
+                    ulProcessed = 0U;
 
                     /* Walk through the options until the dhcpOPTION_END_BYTE byte
                      * is found, taking care not to walk off the end of the options. */
@@ -942,7 +942,7 @@
 
                                     /* Divide the lease time by two to ensure a renew
                                      * request is sent before the lease actually expires. */
-                                    EP_DHCPData.ulLeaseTime >>= 1UL;
+                                    EP_DHCPData.ulLeaseTime >>= 1;
 
                                     /* Multiply with configTICK_RATE_HZ to get clock ticks. */
                                     EP_DHCPData.ulLeaseTime = ( uint32_t ) configTICK_RATE_HZ * ( uint32_t ) EP_DHCPData.ulLeaseTime;
@@ -971,7 +971,7 @@
                     {
                         /* HT:endian: used to be network order */
                         EP_DHCPData.ulOfferedIPAddress = pxDHCPMessage->ulYourIPAddress_yiaddr;
-                        FreeRTOS_printf( ( "vDHCPProcess: offer %lxip\n", FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
+                        FreeRTOS_printf( ( "vDHCPProcess: offer %xip\n", ( unsigned ) FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
                         xReturn = pdPASS;
                     }
                 }
@@ -1136,10 +1136,10 @@
             pvCopyDest = &pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpDHCP_SERVER_IP_ADDRESS_OFFSET ];
             ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulDHCPServerAddress ) );
 
-            FreeRTOS_debug_printf( ( "vDHCPProcess: reply %lxip\n", FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
+            FreeRTOS_debug_printf( ( "vDHCPProcess: reply %xip\n", ( unsigned ) FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
             iptraceSENDING_DHCP_REQUEST();
 
-            if( FreeRTOS_sendto( xDHCPSocket, pucUDPPayloadBuffer, sizeof( DHCPMessage_IPv4_t ) + uxOptionsLength, FREERTOS_ZERO_COPY, &xAddress, sizeof( xAddress ) ) == 0 )
+            if( FreeRTOS_sendto( xDHCPSocket, pucUDPPayloadBuffer, sizeof( DHCPMessage_IPv4_t ) + uxOptionsLength, FREERTOS_ZERO_COPY, &xAddress, ( socklen_t ) sizeof( xAddress ) ) == 0 )
             {
                 /* The packet was not successfully queued for sending and must be
                  * returned to the stack. */
@@ -1188,7 +1188,7 @@
             iptraceSENDING_DHCP_DISCOVER();
 
             pvCopySource = &xDHCPData.ulPreferredIPAddress;
-            pvCopyDest = &pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ];
+            pvCopyDest = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ] );
             ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulPreferredIPAddress ) );
 
             if( FreeRTOS_sendto( xDHCPSocket,
@@ -1196,7 +1196,7 @@
                                  sizeof( DHCPMessage_IPv4_t ) + uxOptionsLength,
                                  FREERTOS_ZERO_COPY,
                                  &( xAddress ),
-                                 sizeof( xAddress ) ) == 0 )
+                                 ( socklen_t ) sizeof( xAddress ) ) == 0 )
             {
                 /* The packet was not successfully queued for sending and must be
                  * returned to the stack. */
@@ -1233,7 +1233,7 @@
             ucLinkLayerIPAddress[ 0 ] = ( uint8_t ) 1 + ( uint8_t ) ( ulNumbers[ 0 ] % 0xFDU ); /* get value 1..254 for IP-address 3rd byte of IP address to try. */
             ucLinkLayerIPAddress[ 1 ] = ( uint8_t ) 1 + ( uint8_t ) ( ulNumbers[ 1 ] % 0xFDU ); /* get value 1..254 for IP-address 4th byte of IP address to try. */
 
-            EP_IPv4_SETTINGS.ulGatewayAddress = 0UL;
+            EP_IPv4_SETTINGS.ulGatewayAddress = 0U;
 
             /* prepare xDHCPData with data to test. */
             EP_DHCPData.ulOfferedIPAddress =
@@ -1255,9 +1255,9 @@
             prvCloseDHCPSocket();
 
             xApplicationGetRandomNumber( &( ulNumbers[ 0 ] ) );
-            EP_DHCPData.xDHCPTxPeriod = pdMS_TO_TICKS( 3000UL + ( ulNumbers[ 0 ] & 0x3ffUL ) ); /*  do ARP test every (3 + 0-1024mS) seconds. */
+            EP_DHCPData.xDHCPTxPeriod = pdMS_TO_TICKS( 3000U + ( ulNumbers[ 0 ] & 0x3ffU ) ); /*  do ARP test every (3 + 0-1024mS) seconds. */
 
-            xARPHadIPClash = pdFALSE;                                                           /* reset flag that shows if have ARP clash. */
+            xARPHadIPClash = pdFALSE;                                                         /* reset flag that shows if have ARP clash. */
             vARPSendGratuitous();
         }
 

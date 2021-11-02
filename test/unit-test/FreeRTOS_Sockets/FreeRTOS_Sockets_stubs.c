@@ -61,24 +61,34 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
     }
 };
 
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
 {
     return ( FreeRTOS_Socket_t * ) pvArgument;
 }
 
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
 {
     return ( FreeRTOS_Socket_t * ) pvArgument;
 }
 
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
 {
     return ( SocketSelect_t * ) pvArgument;
 }
 
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
 {
     return ( const UDPPacket_t * ) pvArgument;
+}
+
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
+{
+    return ( NetworkBufferDescriptor_t * ) pvArgument;
+}
+
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t )
+{
+    return ( const ListItem_t * ) pvArgument;
 }
 
 void vPortEnterCritical( void )

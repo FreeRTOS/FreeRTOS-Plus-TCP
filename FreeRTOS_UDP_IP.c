@@ -292,14 +292,14 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
  *
  * @param[in] pxNetworkBuffer: The network buffer carrying the UDP packet.
  * @param[in] usPort: The port number on which this packet was received.
- * @param[out] xIsWaitingARPResolution: If the packet is awaiting ARP resolution, this
- *             pointer will be set to pdTRUE. pdFALSE otherwise.
+ * @param[out] pxIsWaitingForARPResolution: If the packet is awaiting ARP resolution,
+ *             this pointer will be set to pdTRUE. pdFALSE otherwise.
  *
  * @return pdPASS in case the UDP packet could be processed. Else pdFAIL is returned.
  */
 BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                       uint16_t usPort,
-                                      BaseType_t * xIsWaitingARPResolution )
+                                      BaseType_t * pxIsWaitingForARPResolution )
 {
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
@@ -313,7 +313,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     /* Caller must check for minimum packet size. */
     pxSocket = pxUDPSocketLookup( usPort );
 
-    *xIsWaitingARPResolution = pdFALSE;
+    *pxIsWaitingForARPResolution = pdFALSE;
 
     do
     {
@@ -322,7 +322,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
             if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
             {
                 /* Mark this packet as waiting for ARP resolution. */
-                *xIsWaitingARPResolution = pdTRUE;
+                *pxIsWaitingForARPResolution = pdTRUE;
 
                 /* Return a fail to show that the frame will not be processed right now. */
                 xReturn = pdFAIL;
@@ -475,7 +475,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
                 xReturn = pdFAIL;
             }
         }
-    } while( 0 );
+    } while( ipFALSE_BOOL );
 
     return xReturn;
 }
