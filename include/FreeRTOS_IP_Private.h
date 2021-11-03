@@ -921,14 +921,6 @@
 
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
-    void vIPSetDHCPTimerEnableState( BaseType_t xEnableState );
-    void vDHCPTimerReload( TickType_t xLeaseTime );
-    #if ( ipconfigDNS_USE_CALLBACKS != 0 )
-        void vDNSTimerReload( uint32_t ulCheckTime );
-        void vIPSetDNSTimerEnableState( BaseType_t xEnableState );
-    #endif
-
-
 /* Send the network-up event and start the ARP timer. */
     void vIPNetworkUpCalls( void );
 

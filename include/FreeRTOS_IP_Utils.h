@@ -60,12 +60,6 @@
     BaseType_t xSendDHCPEvent( void );
 #endif
 
-void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
-                                  MACAddress_t * pxMACAddress );
-
-NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                                    size_t uxNewLength );
-
 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )
 
 /**
@@ -78,44 +72,14 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
     NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void * pvBuffer );
 #endif
 
-NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer );
-
-BaseType_t xIsCallingFromIPTask( void );
-
-uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
-                                     size_t uxBufferLength,
-                                     BaseType_t xOutgoingPacket );
-
-uint16_t usGenerateChecksum( uint16_t usSum,
-                             const uint8_t * pucNextData,
-                             size_t uxByteCount );
+void vPreCheckConfigs( void );
 
 #if ( ipconfigHAS_PRINTF != 0 )
-    void vPrintResourceStats( void );
+    extern void vPrintResourceStats( void );
+#else
+    #define vPrintResourceStats()    do {} while( ipFALSE_BOOL )
 #endif
 
 const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
                                   char * pcBuffer,
                                   size_t uxLength );
-
-int32_t FreeRTOS_max_int32( int32_t a,
-                            int32_t b );
-
-uint32_t FreeRTOS_max_uint32( uint32_t a,
-                              uint32_t b );
-
-int32_t FreeRTOS_min_int32( int32_t a,
-                            int32_t b );
-
-uint32_t FreeRTOS_min_uint32( uint32_t a,
-                              uint32_t b );
-
-uint32_t FreeRTOS_round_up( uint32_t a,
-                            uint32_t d );
-
-uint32_t FreeRTOS_round_down( uint32_t a,
-                              uint32_t d );
-
-uint32_t ulChar2u32( const uint8_t * pucPtr );
-
-uint16_t usChar2u16( const uint8_t * pucPtr );

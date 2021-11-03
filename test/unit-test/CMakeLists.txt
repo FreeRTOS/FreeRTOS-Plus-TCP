@@ -54,6 +54,9 @@ set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 # Set TCP includes.
 set( TCP_INCLUDES "${MODULE_ROOT_DIR}/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_ARP.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_ICMP.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_IP_Timers.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_IP_Utils.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_Sockets.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_IP_Private.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_UDP_IP.h"
@@ -157,6 +160,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================

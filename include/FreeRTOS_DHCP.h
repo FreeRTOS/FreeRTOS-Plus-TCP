@@ -208,12 +208,6 @@
     eDHCPState_t eGetDHCPState( void );
 
 /*
- * Send a message to the IP-task, which will call vDHCPProcess().
- *
- */
-    BaseType_t xSendDHCPEvent( void );
-
-/*
  * NOT A PUBLIC API FUNCTION.
  * It will be called when the DHCP timer expires, or when
  * data has been received on the DHCP socket.

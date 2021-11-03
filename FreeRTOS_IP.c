@@ -683,30 +683,10 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
                             const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
 {
     BaseType_t xReturn = pdFALSE;
-
-    /* This function should only be called once. */
-    configASSERT( xIPIsNetworkTaskReady() == pdFALSE );
-    configASSERT( xNetworkEventQueue == NULL );
-    configASSERT( xIPTaskHandle == NULL );
-
-    if( sizeof( uintptr_t ) == 8 )
-    {
-        /* This is a 64-bit platform, make sure there is enough space in
-         * pucEthernetBuffer to store a pointer. */
-        configASSERT( ipconfigBUFFER_PADDING >= 14 );
-
-        /* But it must have this strange alignment: */
-        configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
-    }
-
-    /* Check if MTU is big enough. */
-    configASSERT( ( ( size_t ) ipconfigNETWORK_MTU ) >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
-    /* Check structure packing is correct. */
-    configASSERT( sizeof( EthernetHeader_t ) == ipEXPECTED_EthernetHeader_t_SIZE );
-    configASSERT( sizeof( ARPHeader_t ) == ipEXPECTED_ARPHeader_t_SIZE );
-    configASSERT( sizeof( IPHeader_t ) == ipEXPECTED_IPHeader_t_SIZE );
-    configASSERT( sizeof( ICMPHeader_t ) == ipEXPECTED_ICMPHeader_t_SIZE );
-    configASSERT( sizeof( UDPHeader_t ) == ipEXPECTED_UDPHeader_t_SIZE );
+    
+    /* Check that the configuration values are correct and that the IP-task has not
+     * already been initialized. */
+    vPreCheckConfigs();
 
     /* Attempt to create the queue used to communicate with the IP task. */
     #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
