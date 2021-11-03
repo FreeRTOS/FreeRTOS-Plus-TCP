@@ -1,5 +1,21 @@
 This is a FreeeRTOS+TCP driver that works for both STM32F4xx and STM32F7xx parts.
 
+
+BUILDING
+========
+
+When you are building outside of the IDE, for example building an
+application with the STM32 Cube SDK directly, you must define
+HAL_ETH_MODULE_ENABLED to enable the STM ethernet driver, i.e.
+
+gcc ... -DHAL_ETH_MODULE_ENABLED=1
+
+Otherwise, the ethernet module will not be activated and you will find
+that the expected symbols will not be in the resulting object file.
+
+CONFIGURATION AND RUNNING
+=========================
+
 The code of stm32fxx_hal_eth.c is based on both drivers as provided by ST.
 
 These modules should be included:
