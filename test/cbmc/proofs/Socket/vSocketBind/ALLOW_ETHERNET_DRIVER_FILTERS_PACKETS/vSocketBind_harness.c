@@ -15,6 +15,16 @@
 
 uint16_t prvGetPrivatePortNumber( BaseType_t xProtocol );
 
+/* Provide definition of casting functions. */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t )
+{
+    return ( ListItem_t * ) pvArgument;
+}
+
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t )
+{
+    return ( ListItem_t * ) pvArgument;
+}
 
 uint16_t prvGetPrivatePortNumber( BaseType_t xProtocol )
 {

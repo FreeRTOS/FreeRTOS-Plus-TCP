@@ -50,9 +50,9 @@
 /*
  * @brief Function to calculate smaller of the two numbers given.
  */
-static uint32_t FreeRTOS_min_stub( uint32_t a,
-                                   uint32_t b,
-                                   int callback_count )
+static size_t FreeRTOS_min_stub( size_t a,
+                                 size_t b,
+                                 int callback_count )
 {
     /* Avoid compiler warnings about unused variable. */
     ( void ) callback_count;
@@ -445,7 +445,7 @@ void test_uxStreamBufferGetPtr( void )
     size_t uxRight = 7;
     uint8_t * pucData;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
     uxResult = uxStreamBufferGetPtr( &xLocalBuffer, &pucData );
     TEST_ASSERT_EQUAL( 5, uxResult );
     TEST_ASSERT_EQUAL_PTR( xLocalBuffer.ucArray + xLocalBuffer.uxTail, pucData );
@@ -476,7 +476,7 @@ void test_uxStreamBufferAdd_EverythingResetToZero( void )
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
 
@@ -514,7 +514,7 @@ void test_uxStreamBufferAdd_BufferFullZeroOffset( void )
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
 
@@ -552,7 +552,7 @@ void test_uxStreamBufferAdd_BufferFullPositiveOffset( void )
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
 
@@ -598,7 +598,7 @@ void test_uxStreamBufferAdd_BufferHasMoreSpaceThanData_ZeroOffset_DataWriteCause
     /* Front is already ahead of the Head. */
     pxLocalBuffer->uxFront = 500;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
 
@@ -650,7 +650,7 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset( void )
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
 
@@ -693,7 +693,7 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffset( void )
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
 
@@ -745,7 +745,7 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffsetCausesRollov
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
 
@@ -798,7 +798,7 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCause
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
 
@@ -855,7 +855,7 @@ void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataW
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, NULL, uxByteCount );
 
@@ -908,7 +908,7 @@ void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataW
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = pxLocalBuffer->uxHead - 2;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, NULL, uxByteCount );
 
@@ -950,7 +950,7 @@ void test_uxStreamBufferGet_ResetEverything( void )
 
     pxLocalBuffer->LENGTH = usBufferSize;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, pucData, uxMaxCount, xPeek );
 
@@ -995,7 +995,7 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_NoOffset( void )
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, pucData, uxMaxCount, xPeek );
 
@@ -1042,7 +1042,7 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset( void )
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, pucData, uxMaxCount, xPeek );
 
@@ -1091,7 +1091,7 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset_TailAbout
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, pucData, uxMaxCount, xPeek );
 
@@ -1140,7 +1140,7 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRo
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, pucData, uxMaxCount, xPeek );
 
@@ -1190,7 +1190,7 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRo
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, pucData, uxMaxCount, xPeek );
 
@@ -1238,7 +1238,7 @@ void test_uxStreamBufferGet_NULLPointer( void )
     pxLocalBuffer->uxMid = 0;
     pxLocalBuffer->uxFront = 0;
 
-    FreeRTOS_min_uint32_Stub( FreeRTOS_min_stub );
+    FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
     uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, NULL, uxMaxCount, xPeek );
 

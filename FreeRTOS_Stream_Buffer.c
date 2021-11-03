@@ -37,8 +37,8 @@
 #include "semphr.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 
@@ -209,31 +209,13 @@ BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
                                        const size_t uxLeft,
                                        const size_t uxRight )
 {
-    BaseType_t xReturn;
+    BaseType_t xReturn = pdFALSE;
     size_t uxTail = pxBuffer->uxTail;
 
-    /* Returns true if ( uxLeft < uxRight ) */
-    if( ( ( ( uxLeft < uxTail ) ? 1U : 0U ) ^ ( ( uxRight < uxTail ) ? 1U : 0U ) ) != 0U )
+    /* Returns true if ( uxLeft <= uxRight ) */
+    if( ( uxLeft - uxTail ) <= ( uxRight - uxTail ) )
     {
-        if( uxRight < uxTail )
-        {
-            xReturn = pdTRUE;
-        }
-        else
-        {
-            xReturn = pdFALSE;
-        }
-    }
-    else
-    {
-        if( uxLeft <= uxRight )
-        {
-            xReturn = pdTRUE;
-        }
-        else
-        {
-            xReturn = pdFALSE;
-        }
+        xReturn = pdTRUE;
     }
 
     return xReturn;
@@ -259,7 +241,7 @@ size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
 
     *ppucData = pxBuffer->ucArray + uxNextTail;
 
-    return FreeRTOS_min_uint32( uxSize, pxBuffer->LENGTH - uxNextTail );
+    return FreeRTOS_min_size_t( uxSize, pxBuffer->LENGTH - uxNextTail );
 }
 /*-----------------------------------------------------------*/
 
@@ -297,7 +279,7 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
 
     /* The number of bytes that can be written is the minimum of the number of
      * bytes requested and the number available. */
-    uxCount = FreeRTOS_min_uint32( uxSpace, uxCount );
+    uxCount = FreeRTOS_min_size_t( uxSpace, uxCount );
 
     if( uxCount != 0U )
     {
@@ -319,7 +301,7 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
             /* Calculate the number of bytes that can be added in the first
             * write - which may be less than the total number of bytes that need
             * to be added if the buffer will wrap back to the beginning. */
-            uxFirst = FreeRTOS_min_uint32( pxBuffer->LENGTH - uxNextHead, uxCount );
+            uxFirst = FreeRTOS_min_size_t( pxBuffer->LENGTH - uxNextHead, uxCount );
 
             /* Write as many bytes as can be written in the first write. */
             ( void ) memcpy( &( pxBuffer->ucArray[ uxNextHead ] ), pucData, uxFirst );
@@ -391,7 +373,7 @@ size_t uxStreamBufferGet( StreamBuffer_t * pxBuffer,
     }
 
     /* Use the minimum of the wanted bytes and the available bytes. */
-    uxCount = FreeRTOS_min_uint32( uxSize, uxMaxCount );
+    uxCount = FreeRTOS_min_size_t( uxSize, uxMaxCount );
 
     if( uxCount > 0U )
     {
@@ -412,7 +394,7 @@ size_t uxStreamBufferGet( StreamBuffer_t * pxBuffer,
             /* Calculate the number of bytes that can be read - which may be
              * less than the number wanted if the data wraps around to the start of
              * the buffer. */
-            uxFirst = FreeRTOS_min_uint32( pxBuffer->LENGTH - uxNextTail, uxCount );
+            uxFirst = FreeRTOS_min_size_t( pxBuffer->LENGTH - uxNextTail, uxCount );
 
             /* Obtain the number of bytes it is possible to obtain in the first
              * read. */
@@ -427,7 +409,7 @@ size_t uxStreamBufferGet( StreamBuffer_t * pxBuffer,
             }
         }
 
-        if( ( xPeek == pdFALSE ) && ( uxOffset == 0UL ) )
+        if( ( xPeek == pdFALSE ) && ( uxOffset == 0U ) )
         {
             /* Move the tail pointer to effectively remove the data read from
              * the buffer. */
