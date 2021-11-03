@@ -52,20 +52,6 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
 
-
-/* Used to ensure the structure packing is having the desired effect.  The
- * 'volatile' is used to prevent compiler warnings about comparing a constant with
- * a constant. */
-#ifndef _lint
-    #define ipEXPECTED_EthernetHeader_t_SIZE    ( ( size_t ) 14 ) /**< Ethernet Header size in bytes. */
-    #define ipEXPECTED_ARPHeader_t_SIZE         ( ( size_t ) 28 ) /**< ARP header size in bytes. */
-    #define ipEXPECTED_IPHeader_t_SIZE          ( ( size_t ) 20 ) /**< IP header size in bytes. */
-    #define ipEXPECTED_IGMPHeader_t_SIZE        ( ( size_t ) 8 )  /**< IGMP header size in bytes. */
-    #define ipEXPECTED_ICMPHeader_t_SIZE        ( ( size_t ) 8 )  /**< ICMP header size in bytes. */
-    #define ipEXPECTED_UDPHeader_t_SIZE         ( ( size_t ) 8 )  /**< UDP header size in bytes. */
-    #define ipEXPECTED_TCPHeader_t_SIZE         ( ( size_t ) 20 ) /**< TCP header size in bytes. */
-#endif
-
 /* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
 #define ipFIRST_MULTI_CAST_IPv4             0xE0000000UL /**< Lower bound of the IPv4 multicast address. */
 #define ipLAST_MULTI_CAST_IPv4              0xF0000000UL /**< Higher bound of the IPv4 multicast address. */
