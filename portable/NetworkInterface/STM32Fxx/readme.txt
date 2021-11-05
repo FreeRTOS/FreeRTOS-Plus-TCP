@@ -35,10 +35,10 @@ Note that it is required to define `HAL_ETH_MODULE_ENABLED` in your STM32 config
 
 This configuration file defines the HAL modules that will be used. Here are some examples of the module macros:
 ~~~c
-#define HAL_MODULE_ENABLED  
+#define HAL_MODULE_ENABLED
 #define HAL_ETH_MODULE_ENABLED   /* <= this one is needed to get Ethernet. */
 #define HAL_SRAM_MODULE_ENABLED
-#define HAL_RNG_MODULE_ENABLED   
+#define HAL_RNG_MODULE_ENABLED
 #define HAL_RTC_MODULE_ENABLED
 etc
 ~~~
