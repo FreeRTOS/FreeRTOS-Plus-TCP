@@ -1053,7 +1053,7 @@
             pvCopyDest = &pxEthernetHeader->xSourceAddress;
             ( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
-            #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
+            #if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
                 {
                     if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
                     {
@@ -1067,7 +1067,7 @@
                         pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
                     }
                 }
-            #endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
+            #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
 
             /* Send! */
             iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );

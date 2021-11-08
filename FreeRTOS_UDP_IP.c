@@ -260,7 +260,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
         /* The network driver is responsible for freeing the network buffer
          * after the packet has been sent. */
 
-        #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
+        #if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
             {
                 if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
                 {
@@ -274,7 +274,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
                     pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
                 }
             }
-        #endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
+        #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
         iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
         ( void ) xNetworkInterfaceOutput( pxNetworkBuffer, pdTRUE );
     }

@@ -427,6 +427,15 @@
     #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) )
 #endif
 
+#ifndef ipconfigETHERNET_MINIMUM_PACKET_BYTES
+
+/* This macro defines the minimum size of an outgoing Ethernet packet.
+ * When zero, there is no minimum.
+ * When non-zero, the packet will be extended to the minimum size.
+ * The extra bytes will be zero'd. */
+    #define ipconfigETHERNET_MINIMUM_PACKET_BYTES    0
+#endif
+
 /* Each TCP socket has circular stream buffers for Rx and Tx, which
  * have a fixed maximum size.
  * The defaults for these size are defined here, although

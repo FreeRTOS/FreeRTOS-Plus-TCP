@@ -55,7 +55,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                                                               TickType_t xBlockTimeTicks )
 {
     #ifdef CBMC_PROOF_ASSUMPTION_HOLDS
-        #ifdef ipconfigETHERNET_MINIMUM_PACKET_BYTES
+        #if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
             xNetworkBuffer.pucEthernetBuffer = malloc( ipconfigETHERNET_MINIMUM_PACKET_BYTES );
         #else
             xNetworkBuffer.pucEthernetBuffer = malloc( xRequestedSizeBytes );

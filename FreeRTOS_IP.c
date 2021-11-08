@@ -3120,7 +3120,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         NetworkBufferDescriptor_t * pxNewBuffer;
     #endif
 
-    #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
+    #if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
         {
             if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
             {
@@ -3136,7 +3136,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                 pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
             }
         }
-    #endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
+    #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
 
     #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
         if( xReleaseAfterSend == pdFALSE )
