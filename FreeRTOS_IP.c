@@ -198,7 +198,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
  * eReturnEthernetFrame, that means user code has reused the network buffer
  * to generate a response and the stack will send that response out.
  * If this hook returns eFrameConsumed, the user code has ownership of the
- * network buffer and has to release it when it’s done.
+ * network buffer and has to release it when it's done.
  */
     extern eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 #endif /* ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0 ) */
