@@ -930,7 +930,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
         pxNetworkBuffer->ulIPAddress = ulIPAddress;
         vARPGenerateRequestPacket( pxNetworkBuffer );
 
-        #if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
+        #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
             {
                 if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
                 {
