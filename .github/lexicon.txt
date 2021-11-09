@@ -895,6 +895,7 @@ pxip
 pxipaddress
 pxipheader
 pxippacket
+pxiswaitingarpresolution
 pxiterator
 pxlastaddress
 pxlength
