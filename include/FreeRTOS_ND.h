@@ -186,7 +186,7 @@
  *         address in the ND address cache.
  *  @param[in] pxNetworkBuffer The buffer containing the packet.
  */
-        void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+            void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
         #endif
 
 /* Receive a Router Advertisement. */

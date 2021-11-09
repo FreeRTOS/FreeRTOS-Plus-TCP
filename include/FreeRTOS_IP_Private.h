@@ -1181,7 +1181,7 @@
 
 /* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
  * It handles all ICMP messages except the PING requests. */
-    eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+        eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
     #endif
 
     #ifdef __cplusplus

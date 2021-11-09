@@ -217,33 +217,33 @@ static int32_t prvSendUDPPacket( FreeRTOS_Socket_t * pxSocket,
 
 /** @brief Scan the binary IPv6 address and find the longest train of consecutive zero's.
  *         The result of this search will be stored in 'xZeroStart' and 'xZeroLength'. */
-static void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet );
+    static void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet );
 #endif
 
 #if ( ipconfigUSE_IPv6 != 0 )
-static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
-                                             uint8_t ucNew,
-                                             char ch );
+    static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
+                                                 uint8_t ucNew,
+                                                 char ch );
 #endif
 
 static uint8_t ucASCIIToHex( char cChar );
 
 #if ( ipconfigUSE_IPv6 != 0 )
 /** @brief Converts a hex value to a readable hex character, e.g. 14 becomes 'e'. */
-static char cHexToChar( unsigned short usValue );
+    static char cHexToChar( unsigned short usValue );
 #endif
 
 #if ( ipconfigUSE_IPv6 != 0 )
 
 /** @brief Converts a hex value to a readable hex character, *
  *         e.g. 14 becomes 'e'.static char cHexToChar( unsigned short usValue ); */
-static socklen_t uxHexPrintShort( char * pcBuffer,
-                                  size_t uxBufferSize,
-                                  uint16_t usValue );
+    static socklen_t uxHexPrintShort( char * pcBuffer,
+                                      size_t uxBufferSize,
+                                      uint16_t usValue );
 #endif
 
 #if ( ipconfigUSE_IPv6 != 0 )
-static void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet );
+    static void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet );
 #endif
 
 #if ( ipconfigUSE_TCP == 1 )
@@ -440,18 +440,18 @@ static int32_t prvSendTo_ActualSend( FreeRTOS_Socket_t * pxSocket,
 
 /** @brief The application can attach callback functions to a socket. In this function,
  *         called by lTCPAddRxdata(), the TCP reception handler will be called. */
-static void vTCPAddRxdata_Callback( FreeRTOS_Socket_t * pxSocket,
-                                    const uint8_t * pcData,
-                                    uint32_t ulByteCount );
+    static void vTCPAddRxdata_Callback( FreeRTOS_Socket_t * pxSocket,
+                                        const uint8_t * pcData,
+                                        uint32_t ulByteCount );
 #endif
 
 #if ( ipconfigUSE_TCP == 1 )
-static void vTCPAddRxdata_Stored( FreeRTOS_Socket_t * pxSocket );
+    static void vTCPAddRxdata_Stored( FreeRTOS_Socket_t * pxSocket );
 #endif
 
 #if ( ( ipconfigHAS_PRINTF != 0 ) && ( ipconfigUSE_TCP == 1 ) )
 /** @brief A helper function of vTCPNetStat(), see below. */
-static void vTCPNetStat_TCPSocket( FreeRTOS_Socket_t * pxSocket );
+    static void vTCPNetStat_TCPSocket( FreeRTOS_Socket_t * pxSocket );
 #endif
 
 /*-----------------------------------------------------------*/
@@ -1285,7 +1285,7 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
 
                         ( void ) memcpy( ( void * ) pxSourceAddressV6->sin_addrv6.ucBytes,
                                          ( const void * ) pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
-                                ipSIZE_OF_IPv6_ADDRESS );
+                                         ipSIZE_OF_IPv6_ADDRESS );
                         pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET6;
                         pxSourceAddress->sin_addr = 0U;
                         pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
@@ -3636,69 +3636,69 @@ uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
  *
  * @return pdTRUE when the nibble was added, otherwise pdFALSE.
  */
-static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
-                                             uint8_t ucNew,
-                                             char ch )
-{
-    BaseType_t xReturn = pdPASS;
-
-    if( ucNew != ( uint8_t ) socketINVALID_HEX_CHAR )
+    static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
+                                                 uint8_t ucNew,
+                                                 char ch )
     {
-        /* Shift in 4 bits. */
-        pxSet->ulValue <<= 4;
-        pxSet->ulValue |= ( uint32_t ) ucNew;
+        BaseType_t xReturn = pdPASS;
 
-        /* Remember that ulValue is valid now. */
-        pxSet->xHadDigit = pdTRUE;
+        if( ucNew != ( uint8_t ) socketINVALID_HEX_CHAR )
+        {
+            /* Shift in 4 bits. */
+            pxSet->ulValue <<= 4;
+            pxSet->ulValue |= ( uint32_t ) ucNew;
 
-        /* Check if the number is not becoming larger than 16 bits. */
-        if( pxSet->ulValue > 0xffffU )
-        {
-            /* The highest nibble has already been set,
-             * an overflow would occur.  Break out of the for-loop. */
-            xReturn = pdFAIL;
-        }
-    }
-    else if( ch == ':' )
-    {
-        if( pxSet->xHadDigit == pdFALSE )
-        {
-            /* A "::" sequence has been received. Check if it is not a third colon. */
-            if( pxSet->xColon >= 0 )
+            /* Remember that ulValue is valid now. */
+            pxSet->xHadDigit = pdTRUE;
+
+            /* Check if the number is not becoming larger than 16 bits. */
+            if( pxSet->ulValue > 0xffffU )
             {
+                /* The highest nibble has already been set,
+                 * an overflow would occur.  Break out of the for-loop. */
                 xReturn = pdFAIL;
+            }
+        }
+        else if( ch == ':' )
+        {
+            if( pxSet->xHadDigit == pdFALSE )
+            {
+                /* A "::" sequence has been received. Check if it is not a third colon. */
+                if( pxSet->xColon >= 0 )
+                {
+                    xReturn = pdFAIL;
+                }
+                else
+                {
+                    /* Two or more zero's are expected, starting at position 'xColon'. */
+                    pxSet->xColon = pxSet->xTargetIndex;
+                }
             }
             else
             {
-                /* Two or more zero's are expected, starting at position 'xColon'. */
-                pxSet->xColon = pxSet->xTargetIndex;
+                if( pxSet->xTargetIndex <= pxSet->xHighestIndex )
+                {
+                    /* Store a short value at position 'xTargetIndex'. */
+                    pxSet->pucTarget[ pxSet->xTargetIndex ] = ( uint8_t ) ( ( pxSet->ulValue >> 8 ) & 0xffU );
+                    pxSet->pucTarget[ pxSet->xTargetIndex + 1 ] = ( uint8_t ) ( pxSet->ulValue & 0xffU );
+                    pxSet->xTargetIndex += 2;
+                    pxSet->xHadDigit = pdFALSE;
+                    pxSet->ulValue = 0U;
+                }
+                else
+                {
+                    xReturn = pdFAIL;
+                }
             }
         }
         else
         {
-            if( pxSet->xTargetIndex <= pxSet->xHighestIndex )
-            {
-                /* Store a short value at position 'xTargetIndex'. */
-                pxSet->pucTarget[ pxSet->xTargetIndex ] = ( uint8_t ) ( ( pxSet->ulValue >> 8 ) & 0xffU );
-                pxSet->pucTarget[ pxSet->xTargetIndex + 1 ] = ( uint8_t ) ( pxSet->ulValue & 0xffU );
-                pxSet->xTargetIndex += 2;
-                pxSet->xHadDigit = pdFALSE;
-                pxSet->ulValue = 0U;
-            }
-            else
-            {
-                xReturn = pdFAIL;
-            }
+            /* When an IPv4 address or rubbish is provided, this statement will be reached. */
+            xReturn = pdFAIL;
         }
-    }
-    else
-    {
-        /* When an IPv4 address or rubbish is provided, this statement will be reached. */
-        xReturn = pdFAIL;
-    }
 
-    return xReturn;
-}
+        return xReturn;
+    }
 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
 
@@ -3753,26 +3753,26 @@ static uint8_t ucASCIIToHex( char cChar )
  *        A :: block was found, now fill in the zero's.
  * @param[in] pxSet : A set of variables describing the conversion.
  */
-static void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet )
-{
-    /* The number of bytes that were written after the :: */
-    const BaseType_t xCount = pxSet->xTargetIndex - pxSet->xColon;
-    const BaseType_t xTopIndex = ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS;
-    BaseType_t xIndex;
-    BaseType_t xTarget = xTopIndex - 1;
-    BaseType_t xSource = pxSet->xColon + ( xCount - 1 );
-
-    /* Inserting 'xCount' zero's. */
-    for( xIndex = 0; xIndex < xCount; xIndex++ )
+    static void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet )
     {
-        pxSet->pucTarget[ xTarget ] = pxSet->pucTarget[ xSource ];
-        pxSet->pucTarget[ xSource ] = 0;
-        xTarget--;
-        xSource--;
-    }
+        /* The number of bytes that were written after the :: */
+        const BaseType_t xCount = pxSet->xTargetIndex - pxSet->xColon;
+        const BaseType_t xTopIndex = ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS;
+        BaseType_t xIndex;
+        BaseType_t xTarget = xTopIndex - 1;
+        BaseType_t xSource = pxSet->xColon + ( xCount - 1 );
 
-    pxSet->xTargetIndex = ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS;
-}
+        /* Inserting 'xCount' zero's. */
+        for( xIndex = 0; xIndex < xCount; xIndex++ )
+        {
+            pxSet->pucTarget[ xTarget ] = pxSet->pucTarget[ xSource ];
+            pxSet->pucTarget[ xSource ] = 0;
+            xTarget--;
+            xSource--;
+        }
+
+        pxSet->xTargetIndex = ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS;
+    }
 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
 
