@@ -334,6 +334,8 @@
         UBaseType_t uxGetMinimumIPQueueSpace( void );
     #endif
 
+    BaseType_t xIsNetworkDownEventPending( void );
+
 /*
  * Defined in FreeRTOS_Sockets.c
  * //_RB_ Don't think this comment is correct.  If this is for internal use only it should appear after all the public API functions and not start with FreeRTOS_.

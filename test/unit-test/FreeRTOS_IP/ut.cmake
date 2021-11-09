@@ -52,7 +52,7 @@ set(real_source_files "")
 
 # list the files you would like to test here
 list(APPEND real_source_files
-            ${MODULE_ROOT_DIR}/${project_name}.c
+            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${project_name}.c
 	)
 
 set(real_include_directories "")
@@ -75,6 +75,7 @@ list(APPEND test_include_directories
             ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
+            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources
         )
 
 # =============================  (end edit)  ===================================

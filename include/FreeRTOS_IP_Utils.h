@@ -79,6 +79,11 @@ void vPreCheckConfigs( void );
 #else
     #define vPrintResourceStats()    do {} while( ipFALSE_BOOL )
 #endif
+/*
+ * Called to create a network connection when the stack is first started, or
+ * when the network connection is lost.
+ */
+void prvProcessNetworkDownEvent( void );
 
 const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
                                   char * pcBuffer,

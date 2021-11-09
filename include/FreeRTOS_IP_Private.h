@@ -45,6 +45,12 @@
 
     #include "event_groups.h"
 
+    #ifdef TEST
+        int ipFOREVER( void );
+    #else
+        #define ipFOREVER()   1
+    #endif
+
 /*-----------------------------------------------------------*/
 /* Utility macros for marking casts as recognized during     */
 /* static analysis.                                          */

@@ -107,18 +107,9 @@
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. */
 NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type NetworkBufferDescriptor_t.
- *
- * @return The casted pointer.
- */
-static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
-{
-    return ( NetworkBufferDescriptor_t * ) pvArgument;
-}
-
 /*-----------------------------------------------------------*/
+
+static void prvProcessIPEventsAndTimers( void );
 
 /*
  * The main TCP/IP stack processing task.  This task receives commands/events
@@ -152,12 +143,6 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
  */
 static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                                     NetworkBufferDescriptor_t * const pxNetworkBuffer );
-
-/*
- * Called to create a network connection when the stack is first started, or
- * when the network connection is lost.
- */
-static void prvProcessNetworkDownEvent( void );
 
 /*
  * The network card driver has received a packet.  In the case that it is part
@@ -236,11 +221,6 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
  */
 static void prvIPTask( void * pvParameters )
 {
-    IPStackEvent_t xReceivedEvent;
-    TickType_t xNextIPSleep;
-    FreeRTOS_Socket_t * pxSocket;
-    struct freertos_sockaddr xAddress;
-
     /* Just to prevent compiler warnings about unused parameters. */
     ( void ) pvParameters;
 
@@ -269,223 +249,237 @@ static void prvIPTask( void * pvParameters )
     FreeRTOS_debug_printf( ( "prvIPTask started\n" ) );
 
     /* Loop, processing IP events. */
-    for( ; ; )
+    while( ipFOREVER() )
     {
-        ipconfigWATCHDOG_TIMER();
+        prvProcessIPEventsAndTimers();
+    }
+}
+/*-----------------------------------------------------------*/
 
-        /* Check the ARP, DHCP and TCP timers to see if there is any periodic
-         * or timeout processing to perform. */
-        vCheckNetworkTimers();
+/**
+ * @brief Process the events sent to the IP task and process the timers.
+ */
+static void prvProcessIPEventsAndTimers( void )
+{
+    IPStackEvent_t xReceivedEvent;
+    TickType_t xNextIPSleep;
+    FreeRTOS_Socket_t * pxSocket;
+    struct freertos_sockaddr xAddress;
+    
+    ipconfigWATCHDOG_TIMER();
 
-        /* Calculate the acceptable maximum sleep time. */
-        xNextIPSleep = xCalculateSleepTime();
+    /* Check the ARP, DHCP and TCP timers to see if there is any periodic
+     * or timeout processing to perform. */
+    vCheckNetworkTimers();
 
-        /* Wait until there is something to do. If the following call exits
-         * due to a time out rather than a message being received, set a
-         * 'NoEvent' value. */
-        if( xQueueReceive( xNetworkEventQueue, ( void * ) &xReceivedEvent, xNextIPSleep ) == pdFALSE )
+    /* Calculate the acceptable maximum sleep time. */
+    xNextIPSleep = xCalculateSleepTime();
+
+    /* Wait until there is something to do. If the following call exits
+     * due to a time out rather than a message being received, set a
+     * 'NoEvent' value. */
+    if( xQueueReceive( xNetworkEventQueue, ( void * ) &xReceivedEvent, xNextIPSleep ) == pdFALSE )
+    {
+        xReceivedEvent.eEventType = eNoEvent;
+    }
+
+    #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
         {
-            xReceivedEvent.eEventType = eNoEvent;
-        }
-
-        #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
+            if( xReceivedEvent.eEventType != eNoEvent )
             {
-                if( xReceivedEvent.eEventType != eNoEvent )
+                UBaseType_t uxCount;
+
+                uxCount = uxQueueSpacesAvailable( xNetworkEventQueue );
+
+                if( uxQueueMinimumSpace > uxCount )
                 {
-                    UBaseType_t uxCount;
-
-                    uxCount = uxQueueSpacesAvailable( xNetworkEventQueue );
-
-                    if( uxQueueMinimumSpace > uxCount )
-                    {
-                        uxQueueMinimumSpace = uxCount;
-                    }
+                    uxQueueMinimumSpace = uxCount;
                 }
             }
-        #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
-
-        iptraceNETWORK_EVENT_RECEIVED( xReceivedEvent.eEventType );
-
-        switch( xReceivedEvent.eEventType )
-        {
-            case eNetworkDownEvent:
-                /* Attempt to establish a connection. */
-                xNetworkUp = pdFALSE;
-                prvProcessNetworkDownEvent();
-                break;
-
-            case eNetworkRxEvent:
-
-                /* The network hardware driver has received a new packet.  A
-                 * pointer to the received buffer is located in the pvData member
-                 * of the received event structure. */
-                prvHandleEthernetPacket( ipCAST_PTR_TO_TYPE_PTR( NetworkBufferDescriptor_t, xReceivedEvent.pvData ) );
-                break;
-
-            case eNetworkTxEvent:
-
-               {
-                   NetworkBufferDescriptor_t * pxDescriptor = ipCAST_PTR_TO_TYPE_PTR( NetworkBufferDescriptor_t, xReceivedEvent.pvData );
-
-                   /* Send a network packet. The ownership will  be transferred to
-                    * the driver, which will release it after delivery. */
-                   iptraceNETWORK_INTERFACE_OUTPUT( pxDescriptor->xDataLength, pxDescriptor->pucEthernetBuffer );
-                   ( void ) xNetworkInterfaceOutput( pxDescriptor, pdTRUE );
-               }
-
-               break;
-
-            case eARPTimerEvent:
-                /* The ARP timer has expired, process the ARP cache. */
-                vARPAgeCache();
-                break;
-
-            case eSocketBindEvent:
-
-                /* FreeRTOS_bind (a user API) wants the IP-task to bind a socket
-                 * to a port. The port number is communicated in the socket field
-                 * usLocalPort. vSocketBind() will actually bind the socket and the
-                 * API will unblock as soon as the eSOCKET_BOUND event is
-                 * triggered. */
-                pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, xReceivedEvent.pvData );
-                xAddress.sin_addr = 0U; /* For the moment. */
-                xAddress.sin_port = FreeRTOS_ntohs( pxSocket->usLocalPort );
-                pxSocket->usLocalPort = 0U;
-                ( void ) vSocketBind( pxSocket, &xAddress, sizeof( xAddress ), pdFALSE );
-
-                /* Before 'eSocketBindEvent' was sent it was tested that
-                 * ( xEventGroup != NULL ) so it can be used now to wake up the
-                 * user. */
-                pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_BOUND;
-                vSocketWakeUpUser( pxSocket );
-                break;
-
-            case eSocketCloseEvent:
-
-                /* The user API FreeRTOS_closesocket() has sent a message to the
-                 * IP-task to actually close a socket. This is handled in
-                 * vSocketClose().  As the socket gets closed, there is no way to
-                 * report back to the API, so the API won't wait for the result */
-                ( void ) vSocketClose( ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, xReceivedEvent.pvData ) );
-                break;
-
-            case eStackTxEvent:
-
-                /* The network stack has generated a packet to send.  A
-                 * pointer to the generated buffer is located in the pvData
-                 * member of the received event structure. */
-                vProcessGeneratedUDPPacket( ipCAST_PTR_TO_TYPE_PTR( NetworkBufferDescriptor_t, xReceivedEvent.pvData ) );
-                break;
-
-            case eDHCPEvent:
-                /* The DHCP state machine needs processing. */
-                #if ( ipconfigUSE_DHCP == 1 )
-                    {
-                        uintptr_t uxState;
-                        eDHCPState_t eState;
-
-                        /* Cast in two steps to please MISRA. */
-                        uxState = ( uintptr_t ) xReceivedEvent.pvData;
-                        eState = ( eDHCPState_t ) uxState;
-
-                        /* Process DHCP messages for a given end-point. */
-                        vDHCPProcess( pdFALSE, eState );
-                    }
-                #endif /* ipconfigUSE_DHCP */
-                break;
-
-            case eSocketSelectEvent:
-
-                /* FreeRTOS_select() has got unblocked by a socket event,
-                 * vSocketSelect() will check which sockets actually have an event
-                 * and update the socket field xSocketBits. */
-                #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-                    #if ( ipconfigSELECT_USES_NOTIFY != 0 )
-                        {
-                            SocketSelectMessage_t * pxMessage = ipCAST_PTR_TO_TYPE_PTR( SocketSelectMessage_t, xReceivedEvent.pvData );
-                            vSocketSelect( pxMessage->pxSocketSet );
-                            ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
-                        }
-                    #else
-                        {
-                            vSocketSelect( ipCAST_PTR_TO_TYPE_PTR( SocketSelect_t, xReceivedEvent.pvData ) );
-                        }
-                    #endif /* ( ipconfigSELECT_USES_NOTIFY != 0 ) */
-                #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
-                break;
-
-            case eSocketSignalEvent:
-                #if ( ipconfigSUPPORT_SIGNALS != 0 )
-
-                    /* Some task wants to signal the user of this socket in
-                     * order to interrupt a call to recv() or a call to select(). */
-                    ( void ) FreeRTOS_SignalSocket( ipPOINTER_CAST( Socket_t, xReceivedEvent.pvData ) );
-                #endif /* ipconfigSUPPORT_SIGNALS */
-                break;
-
-            case eTCPTimerEvent:
-                #if ( ipconfigUSE_TCP == 1 )
-
-                    /* Simply mark the TCP timer as expired so it gets processed
-                     * the next time prvCheckNetworkTimers() is called. */
-                    vIPSetTCPTimerEnableState( pdTRUE );
-                #endif /* ipconfigUSE_TCP */
-                break;
-
-            case eTCPAcceptEvent:
-
-                /* The API FreeRTOS_accept() was called, the IP-task will now
-                 * check if the listening socket (communicated in pvData) actually
-                 * received a new connection. */
-                #if ( ipconfigUSE_TCP == 1 )
-                    pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, xReceivedEvent.pvData );
-
-                    if( xTCPCheckNewClient( pxSocket ) != pdFALSE )
-                    {
-                        pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_ACCEPT;
-                        vSocketWakeUpUser( pxSocket );
-                    }
-                #endif /* ipconfigUSE_TCP */
-                break;
-
-            case eTCPNetStat:
-
-                /* FreeRTOS_netstat() was called to have the IP-task print an
-                 * overview of all sockets and their connections */
-                #if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigHAS_PRINTF == 1 ) )
-                    vTCPNetStat();
-                #endif /* ipconfigUSE_TCP */
-                break;
-
-            case eSocketSetDeleteEvent:
-                #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-                    {
-                        SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
-
-                        iptraceMEM_STATS_DELETE( pxSocketSet );
-                        vEventGroupDelete( pxSocketSet->xSelectGroup );
-                        vPortFree( ( void * ) pxSocketSet );
-                    }
-                #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
-                break;
-
-            case eNoEvent:
-                /* xQueueReceive() returned because of a normal time-out. */
-                break;
-
-            default:
-                /* Should not get here. */
-                break;
         }
+    #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
 
-        if( xNetworkDownEventPending != pdFALSE )
-        {
-            /* A network down event could not be posted to the network event
-             * queue because the queue was full.
-             * As this code runs in the IP-task, it can be done directly by
-             * calling prvProcessNetworkDownEvent(). */
+    iptraceNETWORK_EVENT_RECEIVED( xReceivedEvent.eEventType );
+
+    switch( xReceivedEvent.eEventType )
+    {
+        case eNetworkDownEvent:
+            /* Attempt to establish a connection. */
+            xNetworkUp = pdFALSE;
             prvProcessNetworkDownEvent();
-        }
+            break;
+
+        case eNetworkRxEvent:
+
+            /* The network hardware driver has received a new packet.  A
+             * pointer to the received buffer is located in the pvData member
+             * of the received event structure. */
+            prvHandleEthernetPacket( ( NetworkBufferDescriptor_t * ) xReceivedEvent.pvData );
+            break;
+
+        case eNetworkTxEvent:
+
+           {
+               NetworkBufferDescriptor_t * pxDescriptor = ( NetworkBufferDescriptor_t * ) xReceivedEvent.pvData;
+
+               /* Send a network packet. The ownership will  be transferred to
+                * the driver, which will release it after delivery. */
+               iptraceNETWORK_INTERFACE_OUTPUT( pxDescriptor->xDataLength, pxDescriptor->pucEthernetBuffer );
+               ( void ) xNetworkInterfaceOutput( pxDescriptor, pdTRUE );
+           }
+
+           break;
+
+        case eARPTimerEvent:
+            /* The ARP timer has expired, process the ARP cache. */
+            vARPAgeCache();
+            break;
+
+        case eSocketBindEvent:
+
+            /* FreeRTOS_bind (a user API) wants the IP-task to bind a socket
+             * to a port. The port number is communicated in the socket field
+             * usLocalPort. vSocketBind() will actually bind the socket and the
+             * API will unblock as soon as the eSOCKET_BOUND event is
+             * triggered. */
+            pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, xReceivedEvent.pvData );
+            xAddress.sin_addr = 0U; /* For the moment. */
+            xAddress.sin_port = FreeRTOS_ntohs( pxSocket->usLocalPort );
+            pxSocket->usLocalPort = 0U;
+            ( void ) vSocketBind( pxSocket, &xAddress, sizeof( xAddress ), pdFALSE );
+
+            /* Before 'eSocketBindEvent' was sent it was tested that
+             * ( xEventGroup != NULL ) so it can be used now to wake up the
+             * user. */
+            pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_BOUND;
+            vSocketWakeUpUser( pxSocket );
+            break;
+
+        case eSocketCloseEvent:
+
+            /* The user API FreeRTOS_closesocket() has sent a message to the
+             * IP-task to actually close a socket. This is handled in
+             * vSocketClose().  As the socket gets closed, there is no way to
+             * report back to the API, so the API won't wait for the result */
+            ( void ) vSocketClose( ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, xReceivedEvent.pvData ) );
+            break;
+
+        case eStackTxEvent:
+
+            /* The network stack has generated a packet to send.  A
+             * pointer to the generated buffer is located in the pvData
+             * member of the received event structure. */
+            vProcessGeneratedUDPPacket( ( NetworkBufferDescriptor_t * ) xReceivedEvent.pvData );
+            break;
+
+        case eDHCPEvent:
+            /* The DHCP state machine needs processing. */
+            #if ( ipconfigUSE_DHCP == 1 )
+                {
+                    uintptr_t uxState;
+                    eDHCPState_t eState;
+
+                    /* Cast in two steps to please MISRA. */
+                    uxState = ( uintptr_t ) xReceivedEvent.pvData;
+                    eState = ( eDHCPState_t ) uxState;
+
+                    /* Process DHCP messages for a given end-point. */
+                    vDHCPProcess( pdFALSE, eState );
+                }
+            #endif /* ipconfigUSE_DHCP */
+            break;
+
+        case eSocketSelectEvent:
+
+            /* FreeRTOS_select() has got unblocked by a socket event,
+             * vSocketSelect() will check which sockets actually have an event
+             * and update the socket field xSocketBits. */
+            #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+                #if ( ipconfigSELECT_USES_NOTIFY != 0 )
+                    {
+                        SocketSelectMessage_t * pxMessage = ipCAST_PTR_TO_TYPE_PTR( SocketSelectMessage_t, xReceivedEvent.pvData );
+                        vSocketSelect( pxMessage->pxSocketSet );
+                        ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
+                    }
+                #else
+                    {
+                        vSocketSelect( ipCAST_PTR_TO_TYPE_PTR( SocketSelect_t, xReceivedEvent.pvData ) );
+                    }
+                #endif /* ( ipconfigSELECT_USES_NOTIFY != 0 ) */
+            #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
+            break;
+
+        case eSocketSignalEvent:
+            #if ( ipconfigSUPPORT_SIGNALS != 0 )
+
+                /* Some task wants to signal the user of this socket in
+                 * order to interrupt a call to recv() or a call to select(). */
+                ( void ) FreeRTOS_SignalSocket( ipPOINTER_CAST( Socket_t, xReceivedEvent.pvData ) );
+            #endif /* ipconfigSUPPORT_SIGNALS */
+            break;
+
+        case eTCPTimerEvent:
+            #if ( ipconfigUSE_TCP == 1 )
+
+                /* Simply mark the TCP timer as expired so it gets processed
+                 * the next time prvCheckNetworkTimers() is called. */
+                vIPSetTCPTimerEnableState( pdTRUE );
+            #endif /* ipconfigUSE_TCP */
+            break;
+
+        case eTCPAcceptEvent:
+
+            /* The API FreeRTOS_accept() was called, the IP-task will now
+             * check if the listening socket (communicated in pvData) actually
+             * received a new connection. */
+            #if ( ipconfigUSE_TCP == 1 )
+                pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, xReceivedEvent.pvData );
+
+                if( xTCPCheckNewClient( pxSocket ) != pdFALSE )
+                {
+                    pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_ACCEPT;
+                    vSocketWakeUpUser( pxSocket );
+                }
+            #endif /* ipconfigUSE_TCP */
+            break;
+
+        case eTCPNetStat:
+
+            /* FreeRTOS_netstat() was called to have the IP-task print an
+             * overview of all sockets and their connections */
+            #if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigHAS_PRINTF == 1 ) )
+                vTCPNetStat();
+            #endif /* ipconfigUSE_TCP */
+            break;
+
+        case eSocketSetDeleteEvent:
+            #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+                {
+                    SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
+
+                    iptraceMEM_STATS_DELETE( pxSocketSet );
+                    vEventGroupDelete( pxSocketSet->xSelectGroup );
+                    vPortFree( ( void * ) pxSocketSet );
+                }
+            #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
+            break;
+
+        case eNoEvent:
+            /* xQueueReceive() returned because of a normal time-out. */
+            break;
+
+        default:
+            /* Should not get here. */
+            break;
+    }
+
+    if( xNetworkDownEventPending != pdFALSE )
+    {
+        /* A network down event could not be posted to the network event
+         * queue because the queue was full.
+         * As this code runs in the IP-task, it can be done directly by
+         * calling prvProcessNetworkDownEvent(). */
+        prvProcessNetworkDownEvent();
     }
 }
 /*-----------------------------------------------------------*/
@@ -499,6 +493,18 @@ static void prvIPTask( void * pvParameters )
 TaskHandle_t FreeRTOS_GetIPTaskHandle( void )
 {
     return xIPTaskHandle;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief The variable 'xNetworkDownEventPending' is declared static.  This function
+ *        gives read-only access to it.
+ *
+ * @return pdTRUE if there a network-down event pending. pdFALSE otherwise.
+ */
+BaseType_t xIsNetworkDownEventPending( void )
+{
+    return xNetworkDownEventPending;
 }
 /*-----------------------------------------------------------*/
 
@@ -669,7 +675,7 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
                             const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
 {
     BaseType_t xReturn = pdFALSE;
-    
+
     /* Check that the configuration values are correct and that the IP-task has not
      * already been initialized. */
     vPreCheckConfigs();
@@ -1118,91 +1124,6 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
     #endif /* ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES == 1  */
 
     return eReturn;
-}
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Process a 'Network down' event and complete required processing.
- */
-static void prvProcessNetworkDownEvent( void )
-{
-    /* Stop the ARP timer while there is no network. */
-    vIPSetARPTimerEnableState( pdFALSE );
-
-    #if ipconfigUSE_NETWORK_EVENT_HOOK == 1
-        {
-            static BaseType_t xCallEventHook = pdFALSE;
-
-            /* The first network down event is generated by the IP stack itself to
-             * initialise the network hardware, so do not call the network down event
-             * the first time through. */
-            if( xCallEventHook == pdTRUE )
-            {
-                vApplicationIPNetworkEventHook( eNetworkDown );
-            }
-
-            xCallEventHook = pdTRUE;
-        }
-    #endif /* if ipconfigUSE_NETWORK_EVENT_HOOK == 1 */
-
-    /* Per the ARP Cache Validation section of https://tools.ietf.org/html/rfc1122,
-     * treat network down as a "delivery problem" and flush the ARP cache for this
-     * interface. */
-    FreeRTOS_ClearARP();
-
-    /* The network has been disconnected (or is being initialised for the first
-     * time).  Perform whatever hardware processing is necessary to bring it up
-     * again, or wait for it to be available again.  This is hardware dependent. */
-    if( xNetworkInterfaceInitialise() != pdPASS )
-    {
-        /* Ideally the network interface initialisation function will only
-         * return when the network is available.  In case this is not the case,
-         * wait a while before retrying the initialisation. */
-        vTaskDelay( ipINITIALISATION_RETRY_DELAY );
-        FreeRTOS_NetworkDown();
-    }
-    else
-    {
-        /* Set remaining time to 0 so it will become active immediately. */
-        #if ipconfigUSE_DHCP == 1
-            {
-                /* The network is not up until DHCP has completed. */
-                vDHCPProcess( pdTRUE, eInitialWait );
-            }
-        #else
-            {
-                /* Perform any necessary 'network up' processing. */
-                vIPNetworkUpCalls();
-            }
-        #endif
-    }
-}
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Perform all the required tasks when the network gets connected.
- */
-void vIPNetworkUpCalls( void )
-{
-    xNetworkUp = pdTRUE;
-
-    #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-        {
-            vApplicationIPNetworkEventHook( eNetworkUp );
-        }
-    #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
-
-    #if ( ipconfigDNS_USE_CALLBACKS != 0 )
-        {
-            /* The following function is declared in FreeRTOS_DNS.c and 'private' to
-             * this library */
-            extern void vDNSInitialise( void );
-            vDNSInitialise();
-        }
-    #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
-
-    /* Set remaining time to 0 so it will become active immediately. */
-    vARPTimerReload( pdMS_TO_TICKS( ipARP_TIMER_PERIOD_MS ) );
 }
 /*-----------------------------------------------------------*/
 

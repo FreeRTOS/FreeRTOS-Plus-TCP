@@ -96,7 +96,7 @@ foreach( file ${TCP_INCLUDES} )
                      OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h )
 
     # Use this tool to process all conditional declarations.
-    execute_process( COMMAND unifdefall -U${Guard} -D__COVERITY__ -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
+    execute_process( COMMAND unifdefall -U${Guard} -D__COVERITY__ -DTEST -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
                                                    -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
                                                    -I ${UNIT_TEST_DIR}/ConfigFiles
                                                    -I ${MODULE_ROOT_DIR}/include
@@ -105,6 +105,10 @@ foreach( file ${TCP_INCLUDES} )
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                      OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h
                      OUTPUT_QUIET )
+
+    # Remove the temporary files
+    file( REMOVE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h )
+    file( REMOVE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp1.h )
 
     # Add the guards back to the files
     execute_process( COMMAND sed -i "1 i\#ifndef ${Guard}" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h )
@@ -115,15 +119,38 @@ foreach( file ${TCP_INCLUDES} )
 endforeach()
 # ===========================================================================
 
-
-
 # ===================================== Include the cmake configurations =================================================
-
+message( STATUS ${CMAKE_BINARY_DIR} )
 # Include filepaths for source and include.
 include( ${UNIT_TEST_DIR}/TCPFilePaths.cmake )
+# ===========================================================================
 
-#  ==================================== Test Configuration ========================================
 
+# ===========================================================================
+# Remove static qualifier from the souce files so that internal functions
+# can be called directly.
+file( MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources )
+
+foreach( file ${TCP_SOURCES} )
+
+    get_filename_component( MODIFIED_FILE ${file} NAME_WLE )
+
+    # Strip static constraints so unit tests may call internal functions
+    execute_process( COMMAND sed "s/^[ ]*static //"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                     INPUT_FILE ${file}
+                     OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${MODIFIED_FILE}.c )
+
+    # Generate a header file for internal functions
+    execute_process( COMMAND sed -n "/^[ ]*static.*(/,/^{\$/{s/^static //; s/)\$/&;/; /{/d; p;}"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                     INPUT_FILE ${file}
+                     OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${MODIFIED_FILE}_internal.h )
+endforeach()
+# ===========================================================================
+
+
+# ========================= Test Configuration ==============================
 # Define a CMock resource path.
 set( CMOCK_DIR ${MODULE_ROOT_DIR}/tools/CMock CACHE INTERNAL "CMock library source directory." )
 
@@ -140,9 +167,6 @@ if( NOT EXISTS ${CMOCK_DIR}/src )
         message( FATAL_ERROR "The required submodule CMock does not exist. Either clone it manually, or set BUILD_CLONE_SUBMODULES to 'ON' to automatically clone it during build." )
     endif()
 endif()
-
-
-# Add unit test and coverage configuration.
 
 # Use CTest utility for managing test runs. This has to be added BEFORE
 # defining test targets with add_test()
