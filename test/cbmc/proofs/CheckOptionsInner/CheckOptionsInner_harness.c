@@ -20,6 +20,17 @@
 
 #include "cbmc.h"
 
+/* Provide a casting function. */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t )
+{
+    return ( ListItem_t * ) pvArgument;
+}
+
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t )
+{
+    return ( ListItem_t * ) pvArgument;
+}
+
 /****************************************************************
 * Signature of function under test
 ****************************************************************/
@@ -31,6 +42,8 @@ void prvReadSackOption( const uint8_t * const pucPtr,
 /****************************************************************
 * Proof of prvReadSackOption function contract
 ****************************************************************/
+
+
 
 void harness()
 {

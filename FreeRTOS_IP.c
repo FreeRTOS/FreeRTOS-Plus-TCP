@@ -53,8 +53,8 @@
 #include "FreeRTOS_DNS.h"
 
 /* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
-#define ipFIRST_MULTI_CAST_IPv4             0xE0000000UL /**< Lower bound of the IPv4 multicast address. */
-#define ipLAST_MULTI_CAST_IPv4              0xF0000000UL /**< Higher bound of the IPv4 multicast address. */
+#define ipFIRST_MULTI_CAST_IPv4             0xE0000000U /**< Lower bound of the IPv4 multicast address. */
+#define ipLAST_MULTI_CAST_IPv4              0xF0000000U /**< Higher bound of the IPv4 multicast address. */
 
 /* The first byte in the IPv4 header combines the IP version (4) with
  * with the length of the IP header. */
@@ -107,6 +107,7 @@
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. */
 NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
+
 /*-----------------------------------------------------------*/
 
 static void prvProcessIPEventsAndTimers( void );
@@ -719,7 +720,7 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
             #if ipconfigUSE_DHCP == 1
                 {
                     /* The IP address is not set until DHCP completes. */
-                    *ipLOCAL_IP_ADDRESS_POINTER = 0x00UL;
+                    *ipLOCAL_IP_ADDRESS_POINTER = 0x00U;
                 }
             #else
                 {
@@ -728,7 +729,7 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
 
                     /* Added to prevent ARP flood to gateway.  Ensure the
                     * gateway is on the same subnet as the IP address. */
-                    if( xNetworkAddressing.ulGatewayAddress != 0UL )
+                    if( xNetworkAddressing.ulGatewayAddress != 0U )
                     {
                         configASSERT( ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) == ( xNetworkAddressing.ulGatewayAddress & xNetworkAddressing.ulNetMask ) );
                     }
@@ -1337,7 +1338,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                          ( ulDestinationIPAddress != ipLLMNR_IP_ADDR ) &&
                      #endif
                      /* Or (during DHCP negotiation) we have no IP-address yet? */
-                     ( *ipLOCAL_IP_ADDRESS_POINTER != 0UL ) )
+                     ( *ipLOCAL_IP_ADDRESS_POINTER != 0U ) )
             {
                 /* Packet is not for this node, release it */
                 eReturn = eReleaseBuffer;
@@ -1349,8 +1350,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                  * packet may cause network storms. Drop the packet. */
                 eReturn = eReleaseBuffer;
             }
-            else if( ( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
-                               ( void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
+            else if( ( memcmp( ( const void * ) xBroadcastMACAddress.ucBytes,
+                               ( const void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
                                sizeof( MACAddress_t ) ) == 0 ) &&
                      ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
             {
@@ -2221,6 +2222,27 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) || ( ipconfigUSE_TCP == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+
+/**
+ * @brief Cast a given pointer to ListItem_t type pointer.
+ */
+    ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t )
+    {
+        return ( ListItem_t * ) pvArgument;
+    }
+    /*-----------------------------------------------------------*/
+#endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) || ( ipconfigUSE_TCP == 1 ) */
+
+/**
+ * @brief Cast a given constant pointer to ListItem_t type pointer.
+ */
+ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t )
+{
+    return ( const ListItem_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
 /**
@@ -2259,6 +2281,16 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
     }
     /*-----------------------------------------------------------*/
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
+
+/**
+ * @brief Cast a given pointer to NetworkBufferDescriptor_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
+{
+    return ( NetworkBufferDescriptor_t * ) pvArgument;
+}
+
+
 /** @} */
 
 /* Provide access to private members for verification. */

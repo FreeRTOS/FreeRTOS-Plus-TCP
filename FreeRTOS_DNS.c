@@ -245,7 +245,7 @@
     #if ( ipconfigUSE_DNS_CACHE == 1 )
         uint32_t FreeRTOS_dnslookup( const char * pcHostName )
         {
-            uint32_t ulIPAddress = 0UL;
+            uint32_t ulIPAddress = 0U;
 
             ( void ) prvProcessDNSCache( pcHostName, &ulIPAddress, 0, pdTRUE );
             return ulIPAddress;
@@ -512,7 +512,7 @@
         static uint32_t prvPrepareLookup( const char * pcHostName )
     #endif
     {
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = 0U;
         TickType_t uxReadTimeOut_ticks = ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS;
 
         /* Generate a unique identifier for this query. Keep it in a local variable
@@ -536,9 +536,9 @@
             }
             else
             {
-                FreeRTOS_printf( ( "prvPrepareLookup: name is too long ( %lu > %lu )\n",
-                                   ( uint32_t ) uxLength,
-                                   ( uint32_t ) ipconfigDNS_CACHE_NAME_LENGTH ) );
+                FreeRTOS_printf( ( "prvPrepareLookup: name is too long ( %u > %u )\n",
+                                   ( unsigned ) uxLength,
+                                   ( unsigned ) ipconfigDNS_CACHE_NAME_LENGTH ) );
             }
         }
 
@@ -556,13 +556,13 @@
              * request. */
             #if ( ipconfigUSE_DNS_CACHE == 1 )
                 {
-                    if( ulIPAddress == 0UL )
+                    if( ulIPAddress == 0U )
                     {
                         ulIPAddress = FreeRTOS_dnslookup( pcHostName );
 
-                        if( ulIPAddress != 0UL )
+                        if( ulIPAddress != 0U )
                         {
-                            FreeRTOS_debug_printf( ( "FreeRTOS_gethostbyname: found '%s' in cache: %lxip\n", pcHostName, ulIPAddress ) );
+                            FreeRTOS_debug_printf( ( "FreeRTOS_gethostbyname: found '%s' in cache: %xip\n", pcHostName, ( unsigned ) ulIPAddress ) );
                         }
                         else
                         {
@@ -573,9 +573,9 @@
             #endif /* ipconfigUSE_DNS_CACHE == 1 */
 
             /* Generate a unique identifier. */
-            if( ulIPAddress == 0UL )
+            if( ulIPAddress == 0U )
             {
-                uint32_t ulNumber;
+                uint32_t ulNumber = 0U;
 
                 xHasRandom = xApplicationGetRandomNumber( &( ulNumber ) );
                 /* DNS identifiers are 16-bit. */
@@ -586,7 +586,7 @@
                 {
                     if( pCallback != NULL )
                     {
-                        if( ulIPAddress == 0UL )
+                        if( ulIPAddress == 0U )
                         {
                             /* The user has provided a callback function, so do not block on recvfrom() */
                             if( xHasRandom != pdFALSE )
@@ -604,7 +604,7 @@
                 }
             #endif /* if ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
-            if( ( ulIPAddress == 0UL ) && ( xHasRandom != pdFALSE ) )
+            if( ( ulIPAddress == 0U ) && ( xHasRandom != pdFALSE ) )
             {
                 ulIPAddress = prvGetHostByName( pcHostName, uxIdentifier, uxReadTimeOut_ticks );
             }
@@ -631,8 +631,8 @@
     {
         struct freertos_sockaddr xAddress;
         Socket_t xDNSSocket;
-        uint32_t ulIPAddress = 0UL;
-        uint32_t ulAddressLength = sizeof( struct freertos_sockaddr );
+        uint32_t ulIPAddress = 0U;
+        uint32_t ulAddressLength = ( uint32_t ) sizeof( struct freertos_sockaddr );
         BaseType_t xAttempt;
         int32_t lBytes;
         size_t uxPayloadLength, uxExpectedPayloadLength;
@@ -685,7 +685,7 @@
 
                 uxHeaderBytes = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER;
 
-                pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxHeaderBytes + uxExpectedPayloadLength, 0UL );
+                pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxHeaderBytes + uxExpectedPayloadLength, 0U );
 
                 if( pxNetworkBuffer != NULL )
                 {
@@ -720,9 +720,9 @@
                         xAddress.sin_port = dnsDNS_PORT;
                     }
 
-                    ulIPAddress = 0UL;
+                    ulIPAddress = 0U;
 
-                    if( FreeRTOS_sendto( xDNSSocket, pucUDPPayloadBuffer, uxPayloadLength, FREERTOS_ZERO_COPY, &xAddress, sizeof( xAddress ) ) != 0 )
+                    if( FreeRTOS_sendto( xDNSSocket, pucUDPPayloadBuffer, uxPayloadLength, FREERTOS_ZERO_COPY, &xAddress, ( socklen_t ) sizeof( xAddress ) ) != 0 )
                     {
                         /* Wait for the reply. */
                         lBytes = FreeRTOS_recvfrom( xDNSSocket, &pucReceiveBuffer, 0, FREERTOS_ZERO_COPY, &xAddress, &ulAddressLength );
@@ -759,7 +759,7 @@
                              * task. */
                             FreeRTOS_ReleaseUDPPayloadBuffer( pucReceiveBuffer );
 
-                            if( ulIPAddress != 0UL )
+                            if( ulIPAddress != 0U )
                             {
                                 /* All done. */
                                 /* coverity[break_stmt] : Break statement terminating the loop */
@@ -1172,7 +1172,7 @@
         DNSMessage_t * pxDNSMessageHeader;
         /* This pointer is not used to modify anything */
         const DNSAnswerRecord_t * pxDNSAnswerRecord;
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = 0U;
 
         #if ( ipconfigUSE_LLMNR == 1 )
             char * pcRequestedName = NULL;
@@ -1403,7 +1403,7 @@
                                             usNumARecordsStored++; /* Track # of A records stored */
                                         }
 
-                                        ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET, ( const void * ) &( ulIPAddress ), cBuffer, sizeof( cBuffer ) );
+                                        ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET, ( const void * ) &( ulIPAddress ), cBuffer, ( socklen_t ) sizeof( cBuffer ) );
                                         /* Show what has happened. */
                                         FreeRTOS_printf( ( "DNS[0x%04lX]: The answer to '%s' (%s) will%s be stored\n",
                                                            ( UBaseType_t ) pxDNSMessageHeader->usIdentifier,
@@ -1554,7 +1554,7 @@
         else if( xExpected == pdFALSE )
         {
             /* Do not return a valid IP-address in case the reply was not expected. */
-            ulIPAddress = 0UL;
+            ulIPAddress = 0U;
         }
         else
         {
@@ -1755,7 +1755,7 @@
         {
             /* Auto bind the port. */
             xAddress.sin_port = 0U;
-            xReturn = FreeRTOS_bind( xSocket, &xAddress, sizeof( xAddress ) );
+            xReturn = FreeRTOS_bind( xSocket, &xAddress, ( socklen_t ) sizeof( xAddress ) );
 
             /* Check the bind was successful, and clean up if not. */
             if( xReturn != 0 )
@@ -1866,10 +1866,10 @@
 
             configASSERT( ( pcName != NULL ) );
 
-            ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000UL;
+            ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000U;
 
             /* For each entry in the DNS cache table. */
-            for( x = 0; x < ipconfigDNS_CACHE_ENTRIES; x++ )
+            for( x = 0; x < ( BaseType_t ) ipconfigDNS_CACHE_ENTRIES; x++ )
             {
                 if( xDNSCache[ x ].pcName[ 0 ] == ( char ) 0 )
                 {
@@ -1892,7 +1892,7 @@
                                 /*  Also perform a final modulo by the max number of IP addresses    */
                                 /*  per DNS cache entry to prevent out-of-bounds access in the event */
                                 /*  that ucNumIPAddresses has been corrupted.                        */
-                                if( xDNSCache[ x ].ucNumIPAddresses == 0 )
+                                if( xDNSCache[ x ].ucNumIPAddresses == 0U )
                                 {
                                     /* Trying lookup before cache is updated with the number of IP
                                      * addressed? Maybe an accident. Break out of the loop. */
@@ -1940,7 +1940,7 @@
             {
                 if( xLookUp != pdFALSE )
                 {
-                    *pulIP = 0UL;
+                    *pulIP = 0U;
                 }
                 else
                 {
@@ -1965,7 +1965,7 @@
 
                         xFreeEntry++;
 
-                        if( xFreeEntry == ipconfigDNS_CACHE_ENTRIES )
+                        if( xFreeEntry == ( BaseType_t ) ipconfigDNS_CACHE_ENTRIES )
                         {
                             xFreeEntry = 0;
                         }
@@ -1973,9 +1973,9 @@
                 }
             }
 
-            if( ( xLookUp == 0 ) || ( *pulIP != 0UL ) )
+            if( ( xLookUp == 0 ) || ( *pulIP != 0U ) )
             {
-                FreeRTOS_debug_printf( ( "prvProcessDNSCache: %s: '%s' @ %lxip\n", ( xLookUp != 0 ) ? "look-up" : "add", pcName, FreeRTOS_ntohl( *pulIP ) ) );
+                FreeRTOS_debug_printf( ( "prvProcessDNSCache: %s: '%s' @ %xip\n", ( xLookUp != 0 ) ? "look-up" : "add", pcName, ( unsigned ) FreeRTOS_ntohl( *pulIP ) ) );
             }
 
             return xFound;
