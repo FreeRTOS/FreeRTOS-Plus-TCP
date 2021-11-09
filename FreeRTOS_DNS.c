@@ -1624,13 +1624,14 @@
                 #if ( ipconfigUSE_IPv6 != 0 )
                     if( ENDPOINT_IS_IPv6( pxEndPoint ) )
                     {
-                        uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
+                        uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
                         uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
-                        struct freertos_sockaddr6 * pxAddress6 = ( struct freertos_sockaddr6 * ) pxAddress;
 
                         /* Test if the DNS entry is in used. */
                         if( ( ucBytes[ 0 ] != 0U ) && ( ucBytes[ 1 ] != 0U ) )
                         {
+	                        struct freertos_sockaddr6 * pxAddress6 = ( struct freertos_sockaddr6 * ) pxAddress;
+
                             pxAddress->sin_family = FREERTOS_AF_INET6;
                             pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr6 );
                             ( void ) memcpy( pxAddress6->sin_addrv6.ucBytes,
