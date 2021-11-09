@@ -96,7 +96,7 @@
 
 /** @brief Flag DNS parsing errors in situations where an IPv4 address is the return
  * type. */
-    #define dnsPARSE_ERROR    0UL
+    #define dnsPARSE_ERROR    0U
 
     #ifndef _lint
         #if ( ipconfigUSE_DNS_CACHE == 0 )
