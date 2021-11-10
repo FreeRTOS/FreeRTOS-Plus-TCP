@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -459,6 +459,19 @@
     const char * FreeRTOS_inet_ntop4( const void * pvSource,
                                       char * pcDestination,
                                       socklen_t uxSize );
+
+/** @brief This function converts a 48-bit MAC address to a human readable string. */
+
+    void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
+                              char * pcTarget,
+                              char cTen,
+                              char cSeparator );
+
+/** @brief This function converts a human readable string, representing an 48-bit MAC address,
+ * into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba". */
+
+    BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
+                                    uint8_t * pucTarget );
 
 
 /*

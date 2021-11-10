@@ -33,6 +33,7 @@ atmel
 automaticpadcrcstrip
 autonegotiation
 aws
+ba
 backoff
 backofflimit
 backpressure
@@ -96,6 +97,7 @@ castingmacrofunctions
 cbmc
 ccfg
 cchannel
+cchar
 ce
 centralised
 cerrorbuffer
@@ -125,10 +127,13 @@ cpu
 cpus
 cr
 crc
+cresult
 crs
+cseparator
 csn
 csr
 csv
+cten
 ctrl
 cwd
 da
@@ -279,6 +284,7 @@ etv
 eunknown
 eventbits
 ewaitingacknowledge
+ewaitingarpresolution
 ewaitingoffer
 ewaitingsendfirstdiscover
 ewouldblock
@@ -294,6 +300,7 @@ fclwr
 fcowr
 fcs
 fd
+fe
 fef
 fes
 ff
@@ -409,10 +416,12 @@ knowns
 lan
 lastpacket
 lbytes
+lbytesleft
 lc
 lca
 lco
 lcount
+lcurmss
 ldatalen
 ldatalength
 ldistance
@@ -434,6 +443,7 @@ lmax
 lmaxlength
 lminlength
 lnetlength
+localhost
 loffset
 longjmp
 loopback
@@ -456,6 +466,7 @@ ltcpaddrxdata
 ltcpwindowrxcheck
 ltcpwindowtxadd
 ltd
+ltowrite
 ltxbufsize
 ltxwinsize
 lwip
@@ -593,6 +604,7 @@ pcnetworkbuffer
 pcrequestedname
 pcs
 pcsource
+pctarget
 pcto
 pd
 pdata
@@ -716,7 +728,9 @@ pucoptionsarray
 pucpayload
 pucptr
 pucrecvdata
+pucsource
 pucstart
+puctarget
 pucudppayload
 pucudppayloadbuffer
 pucusebuffer
@@ -748,11 +762,13 @@ pxaddresslength
 pxallnetworkinterfaces
 pxanswer
 pxarpframe
+pxarpwaitingnetworkbuffer
 pxbindaddress
 pxbuffer
 pxbufferdescriptor
 pxdescriptor
 pxdestinationaddress
+pxdhcpmessage
 pxdnsmessageheader
 pxduplicatenetworkbufferwithdescriptor
 pxevent
@@ -767,6 +783,7 @@ pxhigherprioritytaskwoken
 pxicmppacket
 pxipheader
 pxippacket
+pxiswaitingforarpresolution
 pxiterator
 pxlength
 pxlist
@@ -797,6 +814,7 @@ pxsocketsize
 pxsockettodelete
 pxsourceaddress
 pxsourceaddresslength
+pxtcp
 pxtcpheader
 pxtcppacket
 pxtcpsocketlookup
@@ -835,8 +853,8 @@ reg
 regist
 regvalue
 reinit
-renesas
 releaseudppayloadbuffer
+renesas
 reqlength
 resetpins
 retrytransmission
@@ -1006,6 +1024,7 @@ ucaddresslength
 ucaddresstype
 ucage
 ucarray
+ucasciitohex
 ucbootfilename
 ucbytes
 ucclienthardwareaddress
@@ -1045,14 +1064,15 @@ ucprotocoladdresslength
 ucrepcount
 ucsenderprotocoladdress
 ucserverhostname
+ucserveridentifier
 ucsocketoptions
 ucspeed
+ucstatus
 uctcpflags
 uctcpoffset
 uctcpstate
 uctimetolive
 uctransmitcount
-ucserveridentifier
 uctypeofmessage
 uctypeofservice
 ucvalid
@@ -1070,9 +1090,10 @@ ulborn
 ulbroadcastaddress
 ulbytecount
 ulchecktime
+ulclientipaddress
 ulconnected
 ulcount
-ulclientipaddress
+ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
 uldefaultipaddress
@@ -1140,6 +1161,7 @@ ulsequencenumber
 ulsize
 ulsourceipaddress
 ulspace
+ulsrtt
 ulstatus
 ulsubnetmask
 ulsum
@@ -1221,7 +1243,9 @@ uswindow
 utf
 uuid
 uxaddresslength
+uxarpclashcounter
 uxblocktimeticks
+uxborn
 uxbufferlength
 uxbytecount
 uxcount
@@ -1276,6 +1300,7 @@ uxtotaldatalength
 uxtotallength
 uxtxstreamsize
 uxtxwinsize
+uxunrollcount
 uxupper
 uxwinsize
 val
@@ -1284,6 +1309,8 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
+vcastconstpointerto
+vcastconstptrto
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
@@ -1312,11 +1339,12 @@ vtasklist
 vtasknotifygivefromisr
 vtcpnetstat
 vtcpstatechange
-vtcpwindowinit
 vtcpwindowdestroy
+vtcpwindowinit
 wasn
 wcast
 wdwfcr
+whereafter
 wifi
 wikipedia
 winpcap
@@ -1331,6 +1359,7 @@ www
 xaddress
 xaddressfamily
 xaddresslength
+xalldone
 xapplicationdhcphook
 xapplicationdhcpuserhook
 xapplicationdnsqueryhook
@@ -1407,6 +1436,7 @@ xiptaskinitialised
 xisbound
 xisforrx
 xisinputstream
+xiswaitingarpresolution
 xitemvalue
 xlastacttime
 xlastalivetime
@@ -1418,6 +1448,7 @@ xlinkstatustimer
 xlistend
 xlistitem
 xlistitemalreadyinfreelist
+xlocalbuffer
 xlocalport
 xlookup
 xlwipconfig
@@ -1477,6 +1508,7 @@ xsendeventstructtoiptask
 xsendlength
 xserversocket
 xsize
+xsizewithoutdata
 xsocket
 xsocketbits
 xsocketset

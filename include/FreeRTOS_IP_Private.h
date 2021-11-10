@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -48,16 +48,18 @@
 /*-----------------------------------------------------------*/
 /* Utility macros for marking casts as recognized during     */
 /* static analysis.                                          */
+/* Changed 'vCastConstPointerTo' to the shorter              */
+/* vCastConstPtrTo to limit the length of the function name. */
 /*-----------------------------------------------------------*/
     #define ipCAST_PTR_TO_TYPE_PTR( TYPE, pointer )                ( vCastPointerTo_ ## TYPE( ( void * ) ( pointer ) ) )
-    #define ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TYPE, pointer )    ( vCastConstPointerTo_ ## TYPE( ( const void * ) ( pointer ) ) )
+    #define ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TYPE, pointer )    ( vCastConstPtrTo_ ## TYPE( ( const void * ) ( pointer ) ) )
 
 /*-----------------------------------------------------------*/
 /* Utility macros for declaring cast utility functions in    */
 /* order to centralize typecasting for static analysis.      */
 /*-----------------------------------------------------------*/
     #define ipDECL_CAST_PTR_FUNC_FOR_TYPE( TYPE )          TYPE * vCastPointerTo_ ## TYPE( void * pvArgument )
-    #define ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TYPE )    const TYPE * vCastConstPointerTo_ ## TYPE( const void * pvArgument )
+    #define ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TYPE )    const TYPE * vCastConstPtrTo_ ## TYPE( const void * pvArgument )
 
 /**
  * Structure to hold the information about the Network parameters.
@@ -282,7 +284,8 @@
         eReleaseBuffer = 0,   /* Processing the frame did not find anything to do - just release the buffer. */
         eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */
         eReturnEthernetFrame, /* The Ethernet frame contains an ARP or ICMP packet that can be returned to its source. */
-        eFrameConsumed        /* Processing the Ethernet packet contents resulted in the payload being sent to the stack. */
+        eFrameConsumed,       /* Processing the Ethernet packet contents resulted in the payload being sent to the stack. */
+        eWaitingARPResolution /* Frame is awaiting ARP resolution. */
     } eFrameProcessingResult_t;
 
     typedef enum
@@ -313,7 +316,7 @@
         void * pvData;         /**< The data in the event */
     } IPStackEvent_t;
 
-    #define ipBROADCAST_IP_ADDRESS    0xffffffffUL
+    #define ipBROADCAST_IP_ADDRESS    0xffffffffU
 
 
 /* Offset into the Ethernet frame that is used to temporarily store information
@@ -384,6 +387,12 @@
     extern const MACAddress_t xBroadcastMACAddress; /* all 0xff's */
     extern uint16_t usPacketIdentifier;
 
+/** @brief The list that contains mappings between sockets and port numbers.
+ *         Accesses to this list must be protected by critical sections of
+ *         some kind.
+ */
+    extern List_t xBoundUDPSocketsList;
+
 /**
  * Define a default UDP packet header (declared in FreeRTOS_UDP_IP.c)
  */
@@ -438,19 +447,6 @@
  */
 
     #define ipPOINTER_CAST( TYPE, pointer )    ( ( TYPE ) ( pointer ) )
-
-/* Sequence and ACK numbers are essentially unsigned (uint32_t). But when
- * a distance is calculated, it is useful to use signed numbers:
- * int32_t lDistance = ( int32_t ) ( ulSeq1 - ulSeq2 );
- *
- * 1 required by MISRA:
- * -emacro(9033,ipNUMERIC_CAST) // 9033: Impermissible cast of composite expression (different essential type categories) [MISRA 2012 Rule 10.8, required])
- *
- * 1 advisory by MISRA:
- * -emacro(9030,ipNUMERIC_CAST) // 9030: Impermissible cast; cannot cast from 'essentially Boolean' to 'essentially signed' [MISRA 2012 Rule 10.5, advisory])
- */
-
-    #define ipNUMERIC_CAST( TYPE, expression )    ( ( TYPE ) ( expression ) )
 
 /* ICMP packets are sent using the same function as UDP packets.  The port
  * number is used to distinguish between the two, as 0 is an invalid UDP port. */
@@ -535,7 +531,8 @@
  * is at least the size of UDPPacket_t.
  */
     BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                          uint16_t usPort );
+                                          uint16_t usPort,
+                                          BaseType_t * pxIsWaitingForARPResolution );
 
 /*
  * Initialize the socket list data structures for TCP and UDP.
@@ -918,6 +915,13 @@
         extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t );
 
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
+
+    #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) || ( ipconfigUSE_TCP == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t );
+        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t );
+    #endif
+
+    extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t );
 
     void vIPSetDHCPTimerEnableState( BaseType_t xEnableState );
     void vIPReloadDHCPTimer( uint32_t ulLeaseTime );

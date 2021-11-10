@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -82,6 +82,11 @@
         uint32_t ulARPRemoveCacheEntryByMac( const MACAddress_t * pxMACAddress );
 
     #endif /* ipconfigUSE_ARP_REMOVE_ENTRY != 0 */
+
+
+    BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup );
+
+    BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Look for ulIPAddress in the ARP cache.  If the IP address exists, copy the

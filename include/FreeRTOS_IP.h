@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -40,10 +40,10 @@
 
 /* Constants defining the current version of the FreeRTOS+TCP
  * network stack. */
-    #define ipFR_TCP_VERSION_NUMBER    "V2.3.3"
+    #define ipFR_TCP_VERSION_NUMBER    "V2.3.4"
     #define ipFR_TCP_VERSION_MAJOR     2
     #define ipFR_TCP_VERSION_MINOR     3
-    #define ipFR_TCP_VERSION_BUILD     3
+    #define ipFR_TCP_VERSION_BUILD     4
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */
@@ -70,8 +70,8 @@
                                                         uint16_t usDestinationPort );
 
 /* The number of octets in the MAC and IP addresses respectively. */
-    #define ipMAC_ADDRESS_LENGTH_BYTES                 ( 6 )
-    #define ipIP_ADDRESS_LENGTH_BYTES                  ( 4 )
+    #define ipMAC_ADDRESS_LENGTH_BYTES                 ( 6U )
+    #define ipIP_ADDRESS_LENGTH_BYTES                  ( 4U )
 
 /* IP protocol definitions. */
     #define ipPROTOCOL_ICMP                            ( 1U )
@@ -114,7 +114,10 @@
     #endif
 
 /* The offset of ucTCPFlags within the TCP header. */
-    #define ipTCP_FLAGS_OFFSET    13U
+    #define ipTCP_FLAGS_OFFSET       13U
+
+    #define ipFIRST_LOOPBACK_IPv4    0x7F000000UL            /**< Lowest IPv4 loopback address (including). */
+    #define ipLAST_LOOPBACK_IPv4     0x80000000UL            /**< Highest IPv4 loopback address (excluding). */
 
 /**
  * The structure used to store buffers and pass them around the network stack.
@@ -186,15 +189,15 @@
         #endif
 
         #ifndef FreeRTOS_htonl
-            #define FreeRTOS_htonl( ulIn )                          \
-    (                                                               \
-        ( uint32_t )                                                \
-        (                                                           \
-            ( ( ( ( uint32_t ) ( ulIn ) ) ) << 24 ) |               \
-            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x0000ff00UL ) << 8 ) | \
-            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x00ff0000UL ) >> 8 ) | \
-            ( ( ( ( uint32_t ) ( ulIn ) ) ) >> 24 )                 \
-        )                                                           \
+            #define FreeRTOS_htonl( ulIn )                         \
+    (                                                              \
+        ( uint32_t )                                               \
+        (                                                          \
+            ( ( ( ( uint32_t ) ( ulIn ) ) ) << 24 ) |              \
+            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x0000ff00U ) << 8 ) | \
+            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x00ff0000U ) >> 8 ) | \
+            ( ( ( ( uint32_t ) ( ulIn ) ) ) >> 24 )                \
+        )                                                          \
     )
         #endif /* ifndef FreeRTOS_htonl */
 
@@ -208,14 +211,25 @@
     #define FreeRTOS_ntohs( x )    FreeRTOS_htons( x )
     #define FreeRTOS_ntohl( x )    FreeRTOS_htonl( x )
 
+/* Some simple helper functions. */
     int32_t FreeRTOS_max_int32( int32_t a,
                                 int32_t b );
+
     uint32_t FreeRTOS_max_uint32( uint32_t a,
                                   uint32_t b );
+
+    size_t FreeRTOS_max_size_t( size_t a,
+                                size_t b );
+
     int32_t FreeRTOS_min_int32( int32_t a,
                                 int32_t b );
+
     uint32_t FreeRTOS_min_uint32( uint32_t a,
                                   uint32_t b );
+
+    size_t FreeRTOS_min_size_t( size_t a,
+                                size_t b );
+
     uint32_t FreeRTOS_round_up( uint32_t a,
                                 uint32_t d );
     uint32_t FreeRTOS_round_down( uint32_t a,
@@ -285,6 +299,7 @@
     uint32_t FreeRTOS_GetGatewayAddress( void );
     uint32_t FreeRTOS_GetDNSServerAddress( void );
     uint32_t FreeRTOS_GetNetmask( void );
+    void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
     BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
                                    TickType_t uxTicksToWait );
     void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
@@ -347,7 +362,12 @@
 
 /* "xApplicationGetRandomNumber" is declared but never defined, because it may
  * be defined in a user module. */
-    extern BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
+    BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
+
+/** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
+ *  is defined in FreeRTOS_IP.c.
+ *  This pointer is for internal use only. */
+    extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
 /* For backward compatibility define old structure names to the newer equivalent
  * structure name. */

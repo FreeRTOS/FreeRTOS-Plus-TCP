@@ -1,6 +1,6 @@
 /*
  * FreeRTOS memory safety proofs with CBMC.
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,7 +55,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                                                               TickType_t xBlockTimeTicks )
 {
     #ifdef CBMC_PROOF_ASSUMPTION_HOLDS
-        #ifdef ipconfigETHERNET_MINIMUM_PACKET_BYTES
+        #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
             xNetworkBuffer.pucEthernetBuffer = malloc( ipconfigETHERNET_MINIMUM_PACKET_BYTES );
         #else
             xNetworkBuffer.pucEthernetBuffer = malloc( xRequestedSizeBytes );

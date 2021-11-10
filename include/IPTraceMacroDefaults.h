@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -64,8 +64,40 @@
     #define iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER_FROM_ISR()
 #endif
 
+#ifndef iptraceDROPPED_INVALID_ARP_PACKET
+    #define iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader )
+#endif
+
 #ifndef iptraceCREATING_ARP_REQUEST
     #define iptraceCREATING_ARP_REQUEST( ulIPAddress )
+#endif
+
+/* A packet came in from an unknown IPv4 address.
+ * An ARP request has been sent and the network
+ * buffer is stored for processing later.*/
+#ifndef iptraceDELAYED_ARP_REQUEST_STARTED
+    #define iptraceDELAYED_ARP_REQUEST_STARTED()
+#endif
+
+/* A packet has come in from an unknown IPv4 address.
+ * An ARP request has been sent, but the queue is
+ * still filled with a different packet. */
+#ifndef iptraceDELAYED_ARP_BUFFER_FULL
+    #define iptraceDELAYED_ARP_BUFFER_FULL()
+#endif
+
+/* An ARP request has been sent, and a matching
+ * reply is received. Now the original
+ * packet will be processed by the IP-task. */
+#ifndef iptrace_DELAYED_ARP_REQUEST_REPLIED
+    #define iptrace_DELAYED_ARP_REQUEST_REPLIED()
+#endif
+
+/* A packet was stored for delayed processing, but
+ * there is no ARP reply. The network buffer will
+ * be released without being processed. */
+#ifndef iptraceDELAYED_ARP_TIMER_EXPIRED
+    #define iptraceDELAYED_ARP_TIMER_EXPIRED()
 #endif
 
 #ifndef iptraceARP_TABLE_ENTRY_WILL_EXPIRE

@@ -4,8 +4,8 @@
  */
 
 /*
- * FreeRTOS+TCP V2.3.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -52,13 +52,16 @@
 /* ST includes. */
 #if defined( STM32F7xx )
     #include "stm32f7xx_hal.h"
+    #define CACHE_LINE_SIZE    32u
 #elif defined( STM32F4xx )
     #include "stm32f4xx_hal.h"
 #elif defined( STM32F2xx )
     #include "stm32f2xx_hal.h"
+#elif defined( STM32F1xx )
+    #include "stm32f1xx_hal.h"
 #elif !defined( _lint ) /* Lint does not like an #error */
     #error What part?
-#endif
+#endif /* if defined( STM32F7xx ) */
 
 #include "stm32fxx_hal_eth.h"
 
@@ -75,11 +78,13 @@
       ETH_DMA_IT_FBE | ETH_DMA_IT_RWT | ETH_DMA_IT_RPS | ETH_DMA_IT_RBU | ETH_DMA_IT_R |  \
       ETH_DMA_IT_TU | ETH_DMA_IT_RO | ETH_DMA_IT_TJT | ETH_DMA_IT_TPS | ETH_DMA_IT_T )
 
+#ifndef NETWORK_BUFFER_HEADER_SIZE
+    #define NETWORK_BUFFER_HEADER_SIZE    ( ipBUFFER_PADDING )
+#endif
+
 #ifndef niEMAC_HANDLER_TASK_PRIORITY
     #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
 #endif
-
-#define ipFRAGMENT_OFFSET_BIT_MASK          ( ( uint16_t ) 0x0fff ) /* The bits in the two byte IP header field that make up the fragment offset value. */
 
 #if ( ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) || ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) )
     #warning Consider enabling checksum offloading
@@ -187,7 +192,7 @@ static BaseType_t prvNetworkInterfaceInput( void );
 /*
  * Check if a given packet should be accepted.
  */
-static BaseType_t xMayAcceptPacket( uint8_t * pcBuffer );
+static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer );
 
 /*
  * Initialise the TX descriptors.
@@ -489,7 +494,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
                 xMacInitStatus = eMACFailed;
             }
         }
-    } /* if( xEMACTaskHandle == NULL ) */
+    } /* if( xMacInitStatus == eMACInit ) */
 
     if( xMacInitStatus != eMACPass )
     {
@@ -498,7 +503,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
     }
     else
     {
-        if( xPhyObject.ulLinkStatusMask != 0uL )
+        if( xPhyObject.ulLinkStatusMask != 0U )
         {
             xETH.Instance->DMAIER |= ETH_DMA_ALL_INTS;
             xResult = pdPASS;
@@ -777,9 +782,9 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t xMayAcceptPacket( uint8_t * pcBuffer )
+static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
 {
-    const ProtocolPacket_t * pxProtPacket = ( const ProtocolPacket_t * ) pcBuffer;
+    const ProtocolPacket_t * pxProtPacket = ( const ProtocolPacket_t * ) pucEthernetBuffer;
 
     switch( pxProtPacket->xTCPPacket.xEthernetHeader.usFrameType )
     {
@@ -803,7 +808,7 @@ static BaseType_t xMayAcceptPacket( uint8_t * pcBuffer )
 
             /* Ensure that the incoming packet is not fragmented (only outgoing packets
              * can be fragmented) as these are the only handled IP frames currently. */
-            if( ( pxIPHeader->usFragmentOffset & FreeRTOS_ntohs( ipFRAGMENT_OFFSET_BIT_MASK ) ) != 0U )
+            if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U )
             {
                 return pdFALSE;
             }
