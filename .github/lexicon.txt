@@ -416,10 +416,12 @@ knowns
 lan
 lastpacket
 lbytes
+lbytesleft
 lc
 lca
 lco
 lcount
+lcurmss
 ldatalen
 ldatalength
 ldistance
@@ -441,6 +443,7 @@ lmax
 lmaxlength
 lminlength
 lnetlength
+localhost
 loffset
 longjmp
 loopback
@@ -463,6 +466,7 @@ ltcpaddrxdata
 ltcpwindowrxcheck
 ltcpwindowtxadd
 ltd
+ltowrite
 ltxbufsize
 ltxwinsize
 lwip
@@ -764,6 +768,7 @@ pxbuffer
 pxbufferdescriptor
 pxdescriptor
 pxdestinationaddress
+pxdhcpmessage
 pxdnsmessageheader
 pxduplicatenetworkbufferwithdescriptor
 pxevent
@@ -778,6 +783,7 @@ pxhigherprioritytaskwoken
 pxicmppacket
 pxipheader
 pxippacket
+pxiswaitingforarpresolution
 pxiterator
 pxlength
 pxlist
@@ -808,6 +814,7 @@ pxsocketsize
 pxsockettodelete
 pxsourceaddress
 pxsourceaddresslength
+pxtcp
 pxtcpheader
 pxtcppacket
 pxtcpsocketlookup
@@ -1060,6 +1067,7 @@ ucserverhostname
 ucserveridentifier
 ucsocketoptions
 ucspeed
+ucstatus
 uctcpflags
 uctcpoffset
 uctcpstate
@@ -1085,6 +1093,7 @@ ulchecktime
 ulclientipaddress
 ulconnected
 ulcount
+ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
 uldefaultipaddress
@@ -1152,6 +1161,7 @@ ulsequencenumber
 ulsize
 ulsourceipaddress
 ulspace
+ulsrtt
 ulstatus
 ulsubnetmask
 ulsum
@@ -1235,6 +1245,7 @@ uuid
 uxaddresslength
 uxarpclashcounter
 uxblocktimeticks
+uxborn
 uxbufferlength
 uxbytecount
 uxcount
@@ -1289,6 +1300,7 @@ uxtotaldatalength
 uxtotallength
 uxtxstreamsize
 uxtxwinsize
+uxunrollcount
 uxupper
 uxwinsize
 val
@@ -1297,6 +1309,8 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
+vcastconstpointerto
+vcastconstptrto
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
@@ -1494,6 +1508,7 @@ xsendeventstructtoiptask
 xsendlength
 xserversocket
 xsize
+xsizewithoutdata
 xsocket
 xsocketbits
 xsocketset
