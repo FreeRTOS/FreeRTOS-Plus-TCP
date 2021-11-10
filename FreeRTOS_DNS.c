@@ -1630,7 +1630,7 @@
                         /* Test if the DNS entry is in used. */
                         if( ( ucBytes[ 0 ] != 0U ) && ( ucBytes[ 1 ] != 0U ) )
                         {
-	                        struct freertos_sockaddr6 * pxAddress6 = ( struct freertos_sockaddr6 * ) pxAddress;
+                            struct freertos_sockaddr6 * pxAddress6 = ( struct freertos_sockaddr6 * ) pxAddress;
 
                             pxAddress->sin_family = FREERTOS_AF_INET6;
                             pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr6 );
