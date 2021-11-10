@@ -28,7 +28,7 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
     for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
     {
         NetworkBufferDescriptor_t * current = &pxNetworkBuffers[ x ];
-        #ifdef ipconfigETHERNET_MINIMUM_PACKET_BYTES
+        #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
             current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) + ( ipconfigETHERNET_MINIMUM_PACKET_BYTES - sizeof( ARPPacket_t ) ) );
         #else
             current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) );
