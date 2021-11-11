@@ -1,23 +1,47 @@
-This is a FreeeRTOS+TCP driver that works for both STM32F4xx and STM32F7xx parts.
+This is a FreeeRTOS+TCP driver that works for STM32Fxx parts.
 
-The code of stm32fxx_hal_eth.c is based on both drivers as provided by ST.
+
+CONFIGURATION AND RUNNING
+=========================
+
+The code of stm32fxx_hal_eth.c is based on the ETH drivers as provided by ST.
 
 These modules should be included:
 
-    NetworkInterface.c
-	stm32fxx_hal_eth.c
+    portable/NetworkInterface/STM32Fxx/NetworkInterface.c
+    portable/NetworkInterface/STM32Fxx/stm32fxx_hal_eth.c
 
-It is assumed that one of these words are defined:
+It is assumed that one of these macros is defined at the highest level:
 
-	STM32F7xx
-	STM32F407xx
-	STM32F417xx
-	STM32F427xx
-	STM32F437xx
-	STM32F429xx
-	STM32F439xx
+    STM32F1xx
+    STM32F2xx
+    STM32F4xx
+    STM32F7xx
 
-The driver has been tested on both Eval and Discovery boards with both STM32F4 and STM32F7.
+For instance, you can pass it to the compiler with the `-D` option:
+
+    gcc ... -D STM32F4xx=1
+
+And sub-models may also be indicated, such as `STM32F401xC` or `STM32F407xx`.
+
+The driver has been tested on both Eval and Discovery boards with STM32F1, STM32F2, STM32F4 and STM32F7. The F1 and F2 boards have only be tested by customers who reported about it on the FreeRTOS forum.
+
+Note that it is required to define `HAL_ETH_MODULE_ENABLED` in your STM32 configuration file. The name of this file is one out of:
+
+    stm32f1xx_hal_conf.h
+    stm32f2xx_hal_conf.h
+    stm32f4xx_hal_conf.h
+    stm32f7xx_hal_conf.h
+
+This configuration file defines the HAL modules that will be used. Here are some examples of the module macros:
+~~~c
+#define HAL_MODULE_ENABLED
+#define HAL_ETH_MODULE_ENABLED   /* <= this one is needed to get Ethernet. */
+#define HAL_SRAM_MODULE_ENABLED
+#define HAL_RNG_MODULE_ENABLED
+#define HAL_RTC_MODULE_ENABLED
+etc
+~~~
 
 Recommended settings for STM32Fxx Network Interface:
 
@@ -32,7 +56,7 @@ Recommended settings for STM32Fxx Network Interface:
 
 // Defined in stm32f4xx_hal_conf.h
 #define ETH_RXBUFNB                                   3 or 4
-#define ETH_TXBUFNB                                   2 or 3
+#define ETH_TXBUFNB                                   1 or 2
 #define ETH_RX_BUF_SIZE                               ( ipconfigNETWORK_MTU + 36 )
 #define ETH_TX_BUF_SIZE                               ( ipconfigNETWORK_MTU + 36 )
 
@@ -49,7 +73,7 @@ Without memory caching, let the size be at least a multiple of 8 ( for DMA ), an
 
 STM32F7xx only:
 
-Networkinterface.c will place the 2 DMA tables in a special section called 'first_data'.
+NetworkInterface.c will place the 2 DMA tables in a special section called 'first_data'.
 In case 'BufferAllocation_1.c' is used, the network packets will also be declared in this section 'first_data'.
 As long as the part has no caching, this section can be placed anywhere in RAM.
 On an STM32F7 with an L1 data cache, it shall be placed in the first 64KB of RAM, which is always uncached.
@@ -70,11 +94,12 @@ The linker script must be changed for this, for instance as follows:
 
 The driver contains these files:
 
-	stm32fxx_hal_eth.c
-	stm32f2xx_hal_eth.h
-	stm32f4xx_hal_eth.h
-	stm32f7xx_hal_eth.h
-	stm32fxx_hal_eth.h
+    NetworkInterface.c
+    stm32fxx_hal_eth.c
+    stm32f2xx_hal_eth.h
+    stm32f4xx_hal_eth.h
+    stm32f7xx_hal_eth.h
+    stm32fxx_hal_eth.h
 
 These files are copied from ST's HAL library. These work both for STM32F4 and STM32F7.
 Please remove or rename these files from the HAL distribution that you are using.
