@@ -1561,7 +1561,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     }
                 }
 
-                if( ( eReturn != eReleaseBuffer ) && ( eReturn != eWaitingARPResolution ) )
+                if( eReturn != eWaitingARPResolution )
                 {
                     switch( ucProtocol )
                     {
@@ -1670,6 +1670,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                             #endif /* if ipconfigUSE_TCP == 1 */
                         default:
                             /* Not a supported frame type. */
+                            eReturn = eReleaseBuffer;
                             break;
                     }
                 }
@@ -2070,15 +2071,6 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( EthernetHeader_t )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Cast a given pointer to IPHeader_t type pointer.
- */
-ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPHeader_t )
-{
-    return ( IPHeader_t * ) pvArgument;
-}
-/*-----------------------------------------------------------*/
-
-/**
  * @brief Cast a given constant pointer to IPHeader_t type pointer.
  */
 ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_t )
@@ -2097,15 +2089,6 @@ ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Cast a given constant pointer to ARPPacket_t type pointer.
- */
-ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
-{
-    return ( const ARPPacket_t * ) pvArgument;
-}
-/*-----------------------------------------------------------*/
-
-/**
  * @brief Cast a given pointer to IPPacket_t type pointer.
  */
 ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t )
@@ -2120,15 +2103,6 @@ ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t )
 ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPPacket_t )
 {
     return ( const IPPacket_t * ) pvArgument;
-}
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Cast a given pointer to ICMPPacket_t type pointer.
- */
-ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_t )
-{
-    return ( ICMPPacket_t * ) pvArgument;
 }
 /*-----------------------------------------------------------*/
 

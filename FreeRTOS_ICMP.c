@@ -250,3 +250,13 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
 
 #endif /* if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
 /*-----------------------------------------------------------*/
+
+/**
+ * @brief Cast a given pointer to ICMPPacket_t type pointer.
+ */
+ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_t )
+{
+    return ( ICMPPacket_t * ) pvArgument;
+}
+/*-----------------------------------------------------------*/
+
