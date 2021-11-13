@@ -1,3 +1,11 @@
+Changes between V2.3.3 and V2.3.3-Patch-1 releases:
+        + Updated FreeRTOS_inet_pton4() so it rejects IP addresses that
+          have leading zeros. Previously, if the IP address had leading
+          zeros, perhaps because it was entered in octal format, the
+          address was interpreted as decimal (the leading zeros were
+          stripped). That could result in the function returning an
+          unexpected IP address.
+
 Changes between V2.3.2 and V2.3.3 releases:
         + When a listening socket is closed, all child sockets not yet owned by the
           application will be closed too. (Thanks Bernd Edlinger).
