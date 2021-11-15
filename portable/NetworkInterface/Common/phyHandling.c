@@ -593,7 +593,7 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
 
         if( xTaskCheckForTimeOut( &xTimer, &xRemainingTime ) != pdFALSE )
         {
-            FreeRTOS_printf( ( "xPhyStartAutoNegotiation: phyBMCR_RESET timed out ( done 0x%02lX )\n", ulDoneMask ) );
+            FreeRTOS_printf( ( "xPhyStartAutoNegotiation: phyBMSR_AN_COMPLETE timed out ( done 0x%02lX )\n", ulDoneMask ) );
             break;
         }
 
