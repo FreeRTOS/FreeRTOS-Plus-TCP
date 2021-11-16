@@ -184,7 +184,8 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 #include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
 #include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
 #include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_IP/ut.cmake )
+#include( ${UNIT_TEST_DIR}/FreeRTOS_IP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP/ut.cmake )
 #include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
