@@ -24,7 +24,7 @@
  */
 
 /**
- * @file FreeRTOS_IP.c
+ * @file FreeRTOS_IP_Utils.c
  * @brief Implements the basic functionality for the FreeRTOS+TCP network stack.
  */
 
@@ -41,6 +41,7 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Utils.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
@@ -62,6 +63,13 @@
     #define ipEXPECTED_UDPHeader_t_SIZE         ( ( size_t ) 8 )  /**< UDP header size in bytes. */
     #define ipEXPECTED_TCPHeader_t_SIZE         ( ( size_t ) 20 ) /**< TCP header size in bytes. */
 #endif
+
+/** @brief Time delay between repeated attempts to initialise the network hardware. */
+#ifndef ipINITIALISATION_RETRY_DELAY
+    #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
+#endif
+
+extern QueueHandle_t xNetworkEventQueue;
 
 /**
  * Used in checksum calculation.
@@ -144,14 +152,21 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
                                                                     size_t uxNewLength )
 {
     NetworkBufferDescriptor_t * pxNewBuffer;
+    size_t uxLengthToCopy = uxNewLength;
 
     /* This function is only used when 'ipconfigZERO_COPY_TX_DRIVER' is set to 1.
      * The transmit routine wants to have ownership of the network buffer
      * descriptor, because it will pass the buffer straight to DMA. */
     pxNewBuffer = pxGetNetworkBufferWithDescriptor( uxNewLength, ( TickType_t ) 0 );
-
+    
     if( pxNewBuffer != NULL )
     {
+        /* Get the minimum of both values to copy the data. */
+        if( uxLengthToCopy > pxNetworkBuffer->xDataLength )
+        {
+            uxLengthToCopy = pxNetworkBuffer->xDataLength;
+        }
+        
         /* Set the actual packet size in case a bigger buffer than requested
          * was returned. */
         pxNewBuffer->xDataLength = uxNewLength;
@@ -160,7 +175,7 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         pxNewBuffer->ulIPAddress = pxNetworkBuffer->ulIPAddress;
         pxNewBuffer->usPort = pxNetworkBuffer->usPort;
         pxNewBuffer->usBoundPort = pxNetworkBuffer->usBoundPort;
-        ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
+        ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, uxLengthToCopy );
     }
 
     return pxNewBuffer;
@@ -326,33 +341,6 @@ void prvProcessNetworkDownEvent( void )
             }
         #endif
     }
-}
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Perform all the required tasks when the network gets connected.
- */
-void vIPNetworkUpCalls( void )
-{
-    xNetworkUp = pdTRUE;
-
-    #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-        {
-            vApplicationIPNetworkEventHook( eNetworkUp );
-        }
-    #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
-
-    #if ( ipconfigDNS_USE_CALLBACKS != 0 )
-        {
-            /* The following function is declared in FreeRTOS_DNS.c and 'private' to
-             * this library */
-            extern void vDNSInitialise( void );
-            vDNSInitialise();
-        }
-    #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
-
-    /* Set remaining time to 0 so it will become active immediately. */
-    vARPTimerReload( pdMS_TO_TICKS( ipARP_TIMER_PERIOD_MS ) );
 }
 /*-----------------------------------------------------------*/
 

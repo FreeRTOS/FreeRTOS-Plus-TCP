@@ -43,6 +43,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_ICMP.h"
 #include "FreeRTOS_IP_Timers.h"
+#include "FreeRTOS_IP_Utils.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
@@ -61,14 +62,18 @@
 #define ipIPV4_VERSION_HEADER_LENGTH_MIN    0x45U /**< Minimum IPv4 header length. */
 #define ipIPV4_VERSION_HEADER_LENGTH_MAX    0x4FU /**< Maximum IPv4 header length. */
 
-/** @brief Time delay between repeated attempts to initialise the network hardware. */
-#ifndef ipINITIALISATION_RETRY_DELAY
-    #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
-#endif
-
 /** @brief Maximum time to wait for an ARP resolution while holding a packet. */
 #ifndef ipARP_RESOLUTION_MAX_DELAY
     #define ipARP_RESOLUTION_MAX_DELAY    ( pdMS_TO_TICKS( 2000U ) )
+#endif
+
+#ifndef iptraceIP_TASK_STARTING
+    #define iptraceIP_TASK_STARTING()    do {} while( ipFALSE_BOOL ) /**< Empty definition in case iptraceIP_TASK_STARTING is not defined. */
+#endif
+
+#if ( ( ipconfigUSE_TCP == 1 ) && !defined( ipTCP_TIMER_PERIOD_MS ) )
+    /** @brief When initialising the TCP timer, give it an initial time-out of 1 second. */
+    #define ipTCP_TIMER_PERIOD_MS    ( 1000U )
 #endif
 
 /** @brief Defines how often the ARP timer callback function is executed.  The time is
@@ -79,15 +84,6 @@
     #else
         #define ipARP_TIMER_PERIOD_MS    ( 10000U )
     #endif
-#endif
-
-#ifndef iptraceIP_TASK_STARTING
-    #define iptraceIP_TASK_STARTING()    do {} while( ipFALSE_BOOL ) /**< Empty definition in case iptraceIP_TASK_STARTING is not defined. */
-#endif
-
-#if ( ( ipconfigUSE_TCP == 1 ) && !defined( ipTCP_TIMER_PERIOD_MS ) )
-    /** @brief When initialising the TCP timer, give it an initial time-out of 1 second. */
-    #define ipTCP_TIMER_PERIOD_MS    ( 1000U )
 #endif
 
 /** @brief If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
@@ -494,6 +490,33 @@ static void prvProcessIPEventsAndTimers( void )
 TaskHandle_t FreeRTOS_GetIPTaskHandle( void )
 {
     return xIPTaskHandle;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Perform all the required tasks when the network gets connected.
+ */
+void vIPNetworkUpCalls( void )
+{
+    xNetworkUp = pdTRUE;
+
+    #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
+        {
+            vApplicationIPNetworkEventHook( eNetworkUp );
+        }
+    #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
+
+    #if ( ipconfigDNS_USE_CALLBACKS != 0 )
+        {
+            /* The following function is declared in FreeRTOS_DNS.c and 'private' to
+             * this library */
+            extern void vDNSInitialise( void );
+            vDNSInitialise();
+        }
+    #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
+
+    /* Set remaining time to 0 so it will become active immediately. */
+    vARPTimerReload( pdMS_TO_TICKS( ipARP_TIMER_PERIOD_MS ) );
 }
 /*-----------------------------------------------------------*/
 

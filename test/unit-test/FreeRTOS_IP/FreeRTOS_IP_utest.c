@@ -66,6 +66,10 @@
 void prvIPTask( void * pvParameters );
 void prvProcessIPEventsAndTimers( void );
 eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket, NetworkBufferDescriptor_t * const pxNetworkBuffer );
+void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPPacket,
+                                                  const NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                  UBaseType_t uxHeaderLength );
 
 extern BaseType_t xIPTaskInitialised;
 extern BaseType_t xNetworkDownEventPending;
@@ -114,6 +118,19 @@ void test_FreeRTOS_GetIPTaskHandle( void )
     vSetIPTaskHandle( xIPTaskHandleToSet );
 
     TEST_ASSERT_EQUAL( xIPTaskHandleToSet, FreeRTOS_GetIPTaskHandle() );
+}
+
+void test_vIPNetworkUpCalls( void )
+{
+    xNetworkUp = pdFALSE;
+    
+    vApplicationIPNetworkEventHook_Expect( eNetworkUp );
+    vDNSInitialise_Expect();
+    vARPTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
+    
+    vIPNetworkUpCalls();
+    
+    TEST_ASSERT_EQUAL( pdTRUE, xNetworkUp );
 }
 
 void test_FreeRTOS_NetworkDown_SendToIPTaskSuccessful( void )
@@ -540,7 +557,7 @@ void test_FreeRTOS_ReleaseUDPPayloadBuffer( void )
     void * pvBuffer = ( void * ) 0xFFCDEA;
 
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAndReturn( pvBuffer, ( NetworkBufferDescriptor_t * ) 0x12123434 );
-    vReleaseNetworkBufferAndDescriptor_Expect( 0x12123434 );
+    vReleaseNetworkBufferAndDescriptor_Expect( ( NetworkBufferDescriptor_t * ) 0x12123434 );
 
     FreeRTOS_ReleaseUDPPayloadBuffer( pvBuffer );
 }
@@ -602,7 +619,6 @@ void test_prvProcessIPEventsAndTimers_eNetworkDownEvent( void )
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -623,7 +639,6 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL( void )
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -647,7 +662,6 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEvent( void )
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -673,7 +687,6 @@ void test_prvProcessIPEventsAndTimers_eNetworkTxEvent( void )
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -693,7 +706,6 @@ void test_prvProcessIPEventsAndTimers_eARPTimerEvent( void )
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -710,14 +722,13 @@ void test_prvProcessIPEventsAndTimers_eSocketBindEvent( void )
     xReceivedEvent.eEventType = eSocketBindEvent;
     xReceivedEvent.pvData = &xSocket;
     
-    xSocket.usLocalPort = ~0U;
+    xSocket.usLocalPort = ( uint16_t ) ~0U;
     xSocket.xEventBits = 0;
     
     vCheckNetworkTimers_Expect();
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -740,14 +751,13 @@ void test_prvProcessIPEventsAndTimers_eSocketCloseEvent( void )
     xReceivedEvent.eEventType = eSocketCloseEvent;
     xReceivedEvent.pvData = &xSocket;
     
-    xSocket.usLocalPort = ~0U;
+    xSocket.usLocalPort = ( uint16_t ) ~0U;
     xSocket.xEventBits = 0;
     
     vCheckNetworkTimers_Expect();
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -768,7 +778,6 @@ void test_prvProcessIPEventsAndTimers_eStackTxEvent( void )
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -783,13 +792,12 @@ void test_prvProcessIPEventsAndTimers_eDHCPEvent( void )
     uint32_t ulDHCPEvent = 0x1234;
        
     xReceivedEvent.eEventType = eDHCPEvent;
-    xReceivedEvent.pvData = ulDHCPEvent;
+    xReceivedEvent.pvData = ( void * ) ulDHCPEvent;
     
     vCheckNetworkTimers_Expect();
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -804,17 +812,16 @@ void test_prvProcessIPEventsAndTimers_eSocketSelectEvent( void )
     uint32_t ulData = 0x1234;
        
     xReceivedEvent.eEventType = eSocketSelectEvent;
-    xReceivedEvent.pvData = ulData;
+    xReceivedEvent.pvData = ( void * ) ulData;
     
     vCheckNetworkTimers_Expect();
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
-    vSocketSelect_Expect( ulData );
+    vSocketSelect_Expect( (SocketSelect_t *) ulData );
     
     prvProcessIPEventsAndTimers();
 }
@@ -825,17 +832,16 @@ void test_prvProcessIPEventsAndTimers_eSocketSignalEvent( void )
     uint32_t ulData = 0x1234;
        
     xReceivedEvent.eEventType = eSocketSignalEvent;
-    xReceivedEvent.pvData = ulData;
+    xReceivedEvent.pvData = ( void * ) ulData;
     
     vCheckNetworkTimers_Expect();
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
-    FreeRTOS_SignalSocket_ExpectAndReturn( ulData, 0 );
+    FreeRTOS_SignalSocket_ExpectAndReturn( ( Socket_t ) ulData, 0 );
     
     prvProcessIPEventsAndTimers();
 }
@@ -849,8 +855,7 @@ void test_prvProcessIPEventsAndTimers_eTCPTimerEvent( void )
     vCheckNetworkTimers_Expect();
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
-    
-    /* No event received. */
+
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -873,7 +878,6 @@ void test_prvProcessIPEventsAndTimers_eTCPAcceptEvent_NoNewClient( void )
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -898,7 +902,6 @@ void test_prvProcessIPEventsAndTimers_eTCPAcceptEvent_NewClient( void )
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -921,7 +924,6 @@ void test_prvProcessIPEventsAndTimers_eTCPNetStat( void )
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -942,7 +944,6 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent( void )
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -965,7 +966,6 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending( void
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -989,7 +989,6 @@ void test_prvProcessIPEventsAndTimers_Error( void )
     
     xCalculateSleepTime_ExpectAndReturn( 0 );
     
-    /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     
@@ -1497,7 +1496,7 @@ void test_prvProcessEthernetPacket_ARPFrameType1( void )
     
     pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
     
-    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, eReleaseBuffer );
+    eARPProcessPacket_ExpectAndReturn( ( ARPPacket_t * const ) pxNetworkBuffer->pucEthernetBuffer, eReleaseBuffer );
     
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
     
@@ -1520,7 +1519,7 @@ void test_prvProcessEthernetPacket_ARPFrameType2( void )
     
     pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
     
-    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, eProcessBuffer );
+    eARPProcessPacket_ExpectAndReturn( ( ARPPacket_t * const )pxNetworkBuffer->pucEthernetBuffer, eProcessBuffer );
     
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
     
@@ -1545,7 +1544,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution( void )
     
     pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
     
-    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, eWaitingARPResolution );
+    eARPProcessPacket_ExpectAndReturn( ( ARPPacket_t * const )pxNetworkBuffer->pucEthernetBuffer, eWaitingARPResolution );
     
     vIPTimerStartARPResolution_ExpectAnyArgs();
     
@@ -1562,7 +1561,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2( void )
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
     
-    pxARPWaitingNetworkBuffer = 0x1234ABCD;
+    pxARPWaitingNetworkBuffer = ( NetworkBufferDescriptor_t * ) 0x1234ABCD;
     
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
     
@@ -1570,7 +1569,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2( void )
     
     pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
     
-    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, eWaitingARPResolution );
+    eARPProcessPacket_ExpectAndReturn( ( ARPPacket_t * const )pxNetworkBuffer->pucEthernetBuffer, eWaitingARPResolution );
     
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
     
@@ -1579,7 +1578,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2( void )
 
 void test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame( void )
 {
-    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t xNetworkBuffer, xARPWaitingBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
     uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
@@ -1587,7 +1586,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame( void )
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
     
-    pxARPWaitingNetworkBuffer = 0x1234ABCD;
+    pxARPWaitingNetworkBuffer = &xARPWaitingBuffer;
     
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
     
@@ -1595,7 +1594,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame( void )
     
     pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
     
-    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, eReturnEthernetFrame );
+    eARPProcessPacket_ExpectAndReturn( ( ARPPacket_t * const )pxNetworkBuffer->pucEthernetBuffer, eReturnEthernetFrame );
     
     xNetworkInterfaceOutput_ExpectAndReturn( pxNetworkBuffer, pdTRUE, pdPASS );
     
@@ -1604,7 +1603,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame( void )
 
 void test_prvProcessEthernetPacket_ARPFrameType_eFrameConsumed( void )
 {
-    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t xNetworkBuffer, xARPWaitingBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
     uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
@@ -1612,7 +1611,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_eFrameConsumed( void )
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
     
-    pxARPWaitingNetworkBuffer = 0x1234ABCD;
+    pxARPWaitingNetworkBuffer = &xARPWaitingBuffer;
     
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
     
@@ -1620,7 +1619,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_eFrameConsumed( void )
     
     pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
     
-    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, eFrameConsumed );
+    eARPProcessPacket_ExpectAndReturn( ( ARPPacket_t * const )pxNetworkBuffer->pucEthernetBuffer, eFrameConsumed );
     
     prvProcessEthernetPacket( pxNetworkBuffer );
 }
@@ -1730,7 +1729,7 @@ void test_prvAllowIPPacket( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
     
     eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
     
@@ -1750,7 +1749,7 @@ void test_prvAllowIPPacket_FragmentedPacket( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     pxIPHeader->usFragmentOffset = ipFRAGMENT_OFFSET_BIT_MASK;
@@ -1773,7 +1772,7 @@ void test_prvAllowIPPacket_FragmentedPacket1( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_MORE_FRAGMENTS;
@@ -1796,7 +1795,7 @@ void test_prvAllowIPPacket_IncorrectLength( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     pxIPHeader->ucVersionHeaderLength = 0xFF;
@@ -1819,7 +1818,7 @@ void test_prvAllowIPPacket_NotMatchingIP( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAB12CD34;
@@ -1845,7 +1844,7 @@ void test_prvAllowIPPacket_SourceIPBrdCast_DestIPMatch( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAB12CD34;
@@ -1873,7 +1872,7 @@ void test_prvAllowIPPacket_SourceIPBrdCast_DestIPBrdCast( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAB12CD34;
@@ -1901,7 +1900,7 @@ void test_prvAllowIPPacket_SourceIPBrdCast_DestIPBrdcast1( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAB12CD34;
@@ -1929,7 +1928,7 @@ void test_prvAllowIPPacket_SourceIPBrdCast_DestIPLLMNR( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAB12CD34;
@@ -1957,7 +1956,7 @@ void test_prvAllowIPPacket_SourceIPBrdCast_NoLocalIP( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0x00;
@@ -1985,7 +1984,7 @@ void test_prvAllowIPPacket_DestMACBrdCast_DestIPUnicast( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0x00;
@@ -2014,7 +2013,7 @@ void test_prvAllowIPPacket_SrcMACBrdCast( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
@@ -2043,7 +2042,7 @@ void test_prvAllowIPPacket_SrcMACBrdCast2( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
@@ -2073,7 +2072,7 @@ void test_prvAllowIPPacket_SrcIPAddrIsMulticast( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
@@ -2104,7 +2103,7 @@ void test_prvAllowIPPacket_IncorrectChecksum( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPHeader_t, pxNetworkBuffer->pucEthernetBuffer );
+    pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
@@ -2137,7 +2136,7 @@ void test_prvAllowIPPacket_IncorrectProtocolChecksum( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
@@ -2152,7 +2151,7 @@ void test_prvAllowIPPacket_IncorrectProtocolChecksum( void )
     
     usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC );
     
-    usGenerateProtocolChecksum_ExpectAndReturn( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC + 1 );
+    usGenerateProtocolChecksum_ExpectAndReturn( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE, (uint16_t) ( ipCORRECT_CRC + 1 ) );
     
     eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
     
@@ -2172,7 +2171,7 @@ void test_prvAllowIPPacket_HappyPath( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
@@ -2206,7 +2205,7 @@ void test_prvProcessIPPacket_HeaderLengthSmaller( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     pxIPHeader->ucVersionHeaderLength = 0xF0;
@@ -2228,7 +2227,7 @@ void test_prvProcessIPPacket_HeaderLengthGreater( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     pxIPHeader->ucVersionHeaderLength = 0xFF;
@@ -2254,7 +2253,7 @@ void test_prvProcessIPPacket_ValidHeaderButNoData( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     pxIPHeader->ucVersionHeaderLength = 0xF6;
@@ -2281,7 +2280,7 @@ void test_prvProcessIPPacket_ValidHeader_ARPResolutionReqd( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
@@ -2318,7 +2317,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_InvalidProt( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
@@ -2357,7 +2356,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMP( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
@@ -2401,7 +2400,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMP2( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
@@ -2444,7 +2443,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP( void )
     
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
@@ -2485,7 +2484,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_DataLengthCorrect( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t );
     
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
@@ -2529,7 +2528,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect( void )
     
     pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
     
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
@@ -2577,7 +2576,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect2( void )
     
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
@@ -2626,7 +2625,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect3( void )
     
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
@@ -2676,7 +2675,7 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
     
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
@@ -2731,7 +2730,7 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
     
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
@@ -2783,7 +2782,7 @@ void test_prvProcessIPPacket_TCP( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t );
     
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
@@ -2829,7 +2828,7 @@ void test_prvProcessIPPacket_TCP1( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t );
     
-    pxIPPacket = pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
@@ -2969,7 +2968,7 @@ void test_FreeRTOS_UpdateMACAddress( void )
 
 void test_FreeRTOS_GetMACAddress( void )
 {
-    uint8_t * pucMACAddrPtr;
+    const uint8_t * pucMACAddrPtr;
     
     pucMACAddrPtr = FreeRTOS_GetMACAddress();
     
@@ -3010,28 +3009,21 @@ void test_CastingFunctions( void )
 {
    void * pvPtr;
    
-   IPPacket_t * pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pvPtr );
+   const IPPacket_t * pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pvPtr );
+   const IPHeader_t * pxIPHeader = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPHeader_t, pvPtr );
    const TCPPacket_t * pxConstTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pvPtr );
    TCPPacket_t * pxTCPPacket = ipCAST_PTR_TO_TYPE_PTR( TCPPacket_t, pvPtr );
    ProtocolPacket_t * pxProtPacket = ipCAST_PTR_TO_TYPE_PTR( ProtocolPacket_t, pvPtr );
    const ProtocolPacket_t * pxConstProtPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolPacket_t, pvPtr );
-   SocketSelect_t * pxSockSelPtr = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( SocketSelect_t, pvPtr );
+   const SocketSelect_t * pxSockSelPtr = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( SocketSelect_t, pvPtr );
    const SocketSelectMessage_t* pxConstSockSelMsgPtr = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( SocketSelectMessage_t, pvPtr );
    SocketSelectMessage_t * pxSockSelMsgPtr = ipCAST_PTR_TO_TYPE_PTR( SocketSelectMessage_t, pvPtr );
    NetworkBufferDescriptor_t * pxNetworkBuffer = ipCAST_PTR_TO_TYPE_PTR( NetworkBufferDescriptor_t, pvPtr );
    ListItem_t * pxList = ipCAST_PTR_TO_TYPE_PTR( ListItem_t, pvPtr );
    const ListItem_t * pxConstList = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, pvPtr );
-   FreeRTOS_Socket_t * pxSocket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( FreeRTOS_Socket_t, pvPtr );
+   const FreeRTOS_Socket_t * pxSocket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( FreeRTOS_Socket_t, pvPtr );
    const ProtocolHeaders_t * pxConstProtHeader = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t, pvPtr );
    ProtocolHeaders_t * pxProtHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t, pvPtr );
    
 }
-
-
-
-
-
-
-
-
 
