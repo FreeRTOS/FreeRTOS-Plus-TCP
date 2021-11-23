@@ -124,9 +124,12 @@ TickType_t xCalculateSleepTime( void )
 
     #if ( ipconfigUSE_TCP == 1 )
         {
-            if( xTCPTimer.ulRemainingTime < xMaximumSleepTime )
+            if( xTCPTimer.bActive != pdFALSE_UNSIGNED )
             {
-                xMaximumSleepTime = xTCPTimer.ulRemainingTime;
+                if( xTCPTimer.ulRemainingTime < xMaximumSleepTime )
+                {
+                    xMaximumSleepTime = xTCPTimer.ulRemainingTime;
+                }
             }
         }
     #endif

@@ -46,7 +46,7 @@
  * FreeRTOS_netstat() command, and ping replies.  If ipconfigHAS_PRINTF is set to 1
  * then FreeRTOS_printf should be set to the function used to print out the
  * messages. */
-#define ipconfigHAS_PRINTF    1
+#define ipconfigHAS_PRINTF    0
 #if ( ipconfigHAS_PRINTF == 1 )
     #define FreeRTOS_printf( X )    configPRINTF( X )
 #endif
@@ -320,5 +320,7 @@ extern uint32_t ulRand();
 #define ipconfigUDP_MAX_RX_PACKETS               ( 1 )
 
 #define ipconfigSUPPORT_SIGNALS                  ( 1 )
+
+#define ipconfigBUFFER_PADDING                   ( 14 )
 
 #endif /* FREERTOS_IP_CONFIG_H */
