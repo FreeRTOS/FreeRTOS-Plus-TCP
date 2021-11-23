@@ -66,7 +66,7 @@
  * RFC 5227 section 1.1, there must be a minimum interval of 10 seconds between
  * consecutive defensive ARP packets. */
 #ifndef arpIP_CLASH_RESET_TIMEOUT_MS
-    #define arpIP_CLASH_RESET_TIMEOUT_MS    10000
+    #define arpIP_CLASH_RESET_TIMEOUT_MS    10000U
 #endif
 
 /** @brief Maximum number of defensive ARPs to be sent for an ARP clash per
@@ -75,11 +75,6 @@
 #ifndef arpIP_CLASH_MAX_RETRIES
     #define arpIP_CLASH_MAX_RETRIES    1U
 #endif
-
-/** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
- *  is defined in FreeRTOS_IP.c. */
-extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
-/*-----------------------------------------------------------*/
 
 /*
  * Lookup an MAC address in the ARP cache from the IP address.
@@ -158,7 +153,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
     /* The field ulTargetProtocolAddress is well-aligned, a 32-bits copy. */
     ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
 
-    if( uxARPClashCounter != 0 )
+    if( uxARPClashCounter != 0U )
     {
         /* Has the timeout been reached? */
         if( xTaskCheckForTimeOut( &xARPClashTimeOut, &uxARPClashTimeoutPeriod ) == pdTRUE )
@@ -246,7 +241,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 
         /* Don't do anything if the local IP address is zero because
          * that means a DHCP request has not completed. */
-        if( *ipLOCAL_IP_ADDRESS_POINTER != 0UL )
+        if( *ipLOCAL_IP_ADDRESS_POINTER != 0U )
         {
             switch( pxARPHeader->usOperation )
             {
@@ -695,6 +690,9 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
     eARPLookupResult_t eReturn;
     uint32_t ulAddressToLookup;
 
+    configASSERT( pxMACAddress != NULL );
+    configASSERT( pulIPAddress != NULL );
+
     ulAddressToLookup = *pulIPAddress;
 
     if( xIsIPv4Multicast( ulAddressToLookup ) != 0 )
@@ -711,7 +709,7 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
         ( void ) memcpy( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
         eReturn = eARPCacheHit;
     }
-    else if( *ipLOCAL_IP_ADDRESS_POINTER == 0UL )
+    else if( *ipLOCAL_IP_ADDRESS_POINTER == 0U )
     {
         /* The IP address has not yet been assigned, so there is nothing that
          * can be done. */
@@ -721,7 +719,7 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
     {
         /* The address of this device. May be useful for the loopback device. */
         eReturn = eARPCacheHit;
-        memcpy( pxMACAddress->ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( pxMACAddress->ucBytes ) );
+        ( void ) memcpy( pxMACAddress->ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( pxMACAddress->ucBytes ) );
     }
     else
     {
@@ -767,7 +765,7 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
             /* No cache look-up was done, so the result is still 'eARPCacheMiss'. */
         #endif
         {
-            if( ulAddressToLookup == 0UL )
+            if( ulAddressToLookup == 0U )
             {
                 /* The address is not on the local network, and there is not a
                  * router. */
@@ -882,7 +880,7 @@ void vARPAgeCache( void )
             {
                 /* The entry is no longer valid.  Wipe it out. */
                 iptraceARP_TABLE_ENTRY_EXPIRED( xARPCache[ x ].ulIPAddress );
-                xARPCache[ x ].ulIPAddress = 0UL;
+                xARPCache[ x ].ulIPAddress = 0U;
             }
         }
     }
@@ -932,7 +930,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
         pxNetworkBuffer->ulIPAddress = ulIPAddress;
         vARPGenerateRequestPacket( pxNetworkBuffer );
 
-        #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
+        #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
             {
                 if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
                 {
@@ -946,7 +944,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
                     pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
                 }
             }
-        #endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
+        #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
 
         if( xIsCallingFromIPTask() != pdFALSE )
         {
@@ -990,11 +988,12 @@ BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
     MACAddress_t xMACAddress;
     eARPLookupResult_t xLookupResult;
     size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
+    uint32_t ulIPAddressCopy = ulIPAddress;
 
     /* The IP-task is not supposed to call this function. */
     configASSERT( xIsCallingFromIPTask() == pdFALSE );
 
-    xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ) );
+    xLookupResult = eARPGetCacheEntry( &( ulIPAddressCopy ), &( xMACAddress ) );
 
     if( xLookupResult == eARPCacheMiss )
     {
@@ -1003,13 +1002,13 @@ BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
         /* We might use ipconfigMAX_ARP_RETRANSMISSIONS here. */
         vTaskSetTimeOutState( &xTimeOut );
 
-        while( uxSendCount > 0 )
+        while( uxSendCount > 0U )
         {
-            FreeRTOS_OutputARPRequest( ulIPAddress );
+            FreeRTOS_OutputARPRequest( ulIPAddressCopy );
 
             vTaskDelay( uxSleepTime );
 
-            xLookupResult = eARPGetCacheEntry( &( ulIPAddress ), &( xMACAddress ) );
+            xLookupResult = eARPGetCacheEntry( &( ulIPAddressCopy ), &( xMACAddress ) );
 
             if( ( xTaskCheckForTimeOut( &( xTimeOut ), &( uxTicksToWait ) ) == pdTRUE ) ||
                 ( xLookupResult != eARPCacheMiss ) )
@@ -1188,13 +1187,13 @@ void FreeRTOS_ClearARP( void )
         /* Loop through each entry in the ARP cache. */
         for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
         {
-            if( ( xARPCache[ x ].ulIPAddress != 0UL ) && ( xARPCache[ x ].ucAge > ( uint8_t ) 0U ) )
+            if( ( xARPCache[ x ].ulIPAddress != 0U ) && ( xARPCache[ x ].ucAge > ( uint8_t ) 0U ) )
             {
                 /* See if the MAC-address also matches, and we're all happy */
-                FreeRTOS_printf( ( "Arp %2ld: %3u - %16lxip : %02x:%02x:%02x : %02x:%02x:%02x\n",
-                                   x,
+                FreeRTOS_printf( ( "ARP %2d: %3u - %16xip : %02x:%02x:%02x : %02x:%02x:%02x\n",
+                                   ( int ) x,
                                    xARPCache[ x ].ucAge,
-                                   xARPCache[ x ].ulIPAddress,
+                                   ( unsigned ) xARPCache[ x ].ulIPAddress,
                                    xARPCache[ x ].xMACAddress.ucBytes[ 0 ],
                                    xARPCache[ x ].xMACAddress.ucBytes[ 1 ],
                                    xARPCache[ x ].xMACAddress.ucBytes[ 2 ],
