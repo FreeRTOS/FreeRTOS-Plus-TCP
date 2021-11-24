@@ -443,13 +443,15 @@
                 {
                     /* Could call vListInitialiseItem here but all data has been
                     * nulled already.  Set the owner to a segment descriptor. */
-					
-					/*
-					* Without call of the vListInitialiseItem, the list aata integrity check bytes aren't set
-					*/
-					vListInitialiseItem( &( xTCPSegments[ xIndex ].xSegmentItem )); 
+
+                    #if ( configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES == 1 )
+                        {
+                            vListInitialiseItem( &( xTCPSegments[ xIndex ].xSegmentItem ) );
+                            vListInitialiseItem( &( xTCPSegments[ xIndex ].xQueueItem ) );
+                        }
+                    #endif
+
                     listSET_LIST_ITEM_OWNER( &( xTCPSegments[ xIndex ].xSegmentItem ), ( void * ) &( xTCPSegments[ xIndex ] ) );
-					vListInitialiseItem( &( xTCPSegments[ xIndex ].xQueueItem )); 
                     listSET_LIST_ITEM_OWNER( &( xTCPSegments[ xIndex ].xQueueItem ), ( void * ) &( xTCPSegments[ xIndex ] ) );
 
                     /* And add it to the pool of available segments */
@@ -461,7 +463,6 @@
 
             return xReturn;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -501,7 +502,6 @@
 
             return pxReturn;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -580,8 +580,6 @@
 
             return pxSegment;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -624,8 +622,6 @@
 
             return xReturn;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -658,7 +654,6 @@
 
             return pxSegment;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -689,7 +684,6 @@
 
             return pxReturn;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -724,8 +718,6 @@
             /* Return it to xSegmentList */
             vListInsertFifo( &xSegmentList, &( pxSegment->xSegmentItem ) );
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -767,8 +759,6 @@
                 }
             }
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -801,9 +791,9 @@
                 vListInitialise( &( pxWindow->xTxSegments ) );
                 vListInitialise( &( pxWindow->xRxSegments ) );
 
-                vListInitialise( &( pxWindow->xPriorityQueue ) ); /* Priority queue: segments which must be sent immediately */
-                vListInitialise( &( pxWindow->xTxQueue ) );       /* Transmit queue: segments queued for transmission */
-                vListInitialise( &( pxWindow->xWaitQueue ) );     /* Waiting queue:  outstanding segments */
+                vListInitialise( &( pxWindow->xPriorityQueue ) );                 /* Priority queue: segments which must be sent immediately */
+                vListInitialise( &( pxWindow->xTxQueue ) );                       /* Transmit queue: segments queued for transmission */
+                vListInitialise( &( pxWindow->xWaitQueue ) );                     /* Waiting queue:  outstanding segments */
             }
         #endif /* ipconfigUSE_TCP_WIN == 1 */
 
@@ -901,8 +891,6 @@
                 xTCPSegments = NULL;
             }
         }
-
-
     #endif /* ipconfgiUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1111,7 +1099,7 @@
                                          ( int ) pxWindow->usOurPortNumber,
                                          ( unsigned ) ( ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
                                          ( unsigned ) ( ulCurrentSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
-                                         ( int ) ( ulSequenceNumber - ulCurrentSequenceNumber ), /* want this signed */
+                                         ( int ) ( ulSequenceNumber - ulCurrentSequenceNumber ),                 /* want this signed */
                                          ( unsigned ) ( ulLast - pxWindow->rx.ulFirstSequenceNumber ) ) );
             }
 
@@ -1272,8 +1260,6 @@
 
             return lReturn;
         }
-
-
     #endif /* ipconfgiUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1322,7 +1308,6 @@
 
             return lReturn;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1371,8 +1356,6 @@
 
             return lToWrite;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1464,8 +1447,6 @@
 
             return lDone;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1482,7 +1463,6 @@
         {
             return listLIST_IS_EMPTY( ( &pxWindow->xTxSegments ) );
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1551,8 +1531,6 @@
 
             return xHasSpace;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1642,8 +1620,6 @@
 
             return xReturn;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1864,8 +1840,6 @@
 
             return ulReturn;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1901,7 +1875,6 @@
                 pxWindow->lSRTT = winSRTT_CAP_mS;
             }
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -2052,7 +2025,6 @@
 
             return ulBytesConfirmed;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -2127,7 +2099,6 @@
 
             return ulCount;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -2161,7 +2132,6 @@
 
             return ulReturn;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -2201,8 +2171,6 @@
 
             return ulAckCount;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -2260,8 +2228,6 @@
 
             return iReturn;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 0 */
 /*-----------------------------------------------------------*/
 
@@ -2331,8 +2297,6 @@
 
             return lResult;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 0 */
 /*-----------------------------------------------------------*/
 
@@ -2384,8 +2348,6 @@
 
             return ulLength;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 0 */
 /*-----------------------------------------------------------*/
 
@@ -2415,12 +2377,10 @@
 
             return xReturn;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 0 */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_TCP_WIN == 0 )
-
         static BaseType_t prvTCPWindowTxHasSpace( TCPWindow_t const * pxWindow,
                                                   uint32_t ulWindowSize );
 
@@ -2448,7 +2408,6 @@
 
             return xReturn;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 0 */
 /*-----------------------------------------------------------*/
 
@@ -2506,8 +2465,6 @@
 
             return xReturn;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 0 */
 /*-----------------------------------------------------------*/
 
@@ -2561,8 +2518,6 @@
 
             return ulDataLength;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 0 */
 /*-----------------------------------------------------------*/
 
@@ -2583,7 +2538,6 @@
              * 'ulHighestSequenceNumber' is the highest sequence number seen. */
             return xSequenceGreaterThanOrEqual( pxWindow->rx.ulCurrentSequenceNumber, pxWindow->rx.ulHighestSequenceNumber );
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 0 */
 /*-----------------------------------------------------------*/
 
@@ -2602,8 +2556,6 @@
              * nothing to release. */
             ( void ) pxWindow;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 0 */
 /*-----------------------------------------------------------*/
 

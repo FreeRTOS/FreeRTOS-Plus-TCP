@@ -3952,11 +3952,6 @@
 
         #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
             {
-		
-		#if ( ipconfigDONOT_COPY_SOCKETSET_TO_CHIELD_SOCKET == 1 )
-				pxNewSocket->pxSocketSet = NULL;
-                pxNewSocket->xSelectBits = 0;
-		#else
                 /* Child socket of listening sockets will inherit the Socket Set
                  * Otherwise the owner has no chance of including it into the set. */
                 if( pxSocket->pxSocketSet != NULL )
@@ -3964,7 +3959,6 @@
                     pxNewSocket->pxSocketSet = pxSocket->pxSocketSet;
                     pxNewSocket->xSelectBits = pxSocket->xSelectBits | ( ( EventBits_t ) eSELECT_READ ) | ( ( EventBits_t ) eSELECT_EXCEPT );
                 }
-		#endif
             }
         #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
