@@ -2208,7 +2208,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     }
                 }
 
-                if( ( eReturn != eReleaseBuffer ) && ( eReturn != eWaitingARPResolution ) )
+                if( eReturn != eWaitingARPResolution )
                 {
                     switch( ucProtocol )
                     {
@@ -2317,6 +2317,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                             #endif /* if ipconfigUSE_TCP == 1 */
                         default:
                             /* Not a supported frame type. */
+                            eReturn = eReleaseBuffer;
                             break;
                     }
                 }
