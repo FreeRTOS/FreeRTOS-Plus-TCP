@@ -791,9 +791,9 @@
                 vListInitialise( &( pxWindow->xTxSegments ) );
                 vListInitialise( &( pxWindow->xRxSegments ) );
 
-                vListInitialise( &( pxWindow->xPriorityQueue ) );                 /* Priority queue: segments which must be sent immediately */
-                vListInitialise( &( pxWindow->xTxQueue ) );                       /* Transmit queue: segments queued for transmission */
-                vListInitialise( &( pxWindow->xWaitQueue ) );                     /* Waiting queue:  outstanding segments */
+                vListInitialise( &( pxWindow->xPriorityQueue ) ); /* Priority queue: segments which must be sent immediately */
+                vListInitialise( &( pxWindow->xTxQueue ) );       /* Transmit queue: segments queued for transmission */
+                vListInitialise( &( pxWindow->xWaitQueue ) );     /* Waiting queue:  outstanding segments */
             }
         #endif /* ipconfigUSE_TCP_WIN == 1 */
 
@@ -1099,7 +1099,7 @@
                                          ( int ) pxWindow->usOurPortNumber,
                                          ( unsigned ) ( ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
                                          ( unsigned ) ( ulCurrentSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
-                                         ( int ) ( ulSequenceNumber - ulCurrentSequenceNumber ),                 /* want this signed */
+                                         ( int ) ( ulSequenceNumber - ulCurrentSequenceNumber ), /* want this signed */
                                          ( unsigned ) ( ulLast - pxWindow->rx.ulFirstSequenceNumber ) ) );
             }
 
