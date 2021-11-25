@@ -780,6 +780,7 @@ pxhandlesent
 pxhead
 pxheadsegment
 pxhigherprioritytaskwoken
+pxicmpheader
 pxicmppacket
 pxipheader
 pxippacket
