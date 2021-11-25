@@ -226,7 +226,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     NetworkBufferDescriptor_t * pxReturn = NULL;
     size_t uxCount;
 
-    if( ( xRequestedSizeBytes <= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) ) && ( xNetworkBufferSemaphore != NULL ) )
+    if( ( xRequestedSizeBytes <= ( SIZE_MAX >> 1 ) ) && ( xNetworkBufferSemaphore != NULL ) )
     {
         /* If there is a semaphore available, there is a network buffer available. */
         if( xSemaphoreTake( xNetworkBufferSemaphore, xBlockTimeTicks ) == pdPASS )
