@@ -149,9 +149,9 @@ typedef struct                         /* */
                                /*                        [31:24] : FPGA build number */
                                /*                        [23:20] : V2M-MPS2 target board revision (A = 0, B = 1) */
                                /*                        [19:11] : Reserved */
-                               /*                           [10] : if “1” SCC_SW register has been implemented */
-                               /*                            [9] : if “1” SCC_LED register has been implemented */
-                               /*                            [8] : if “1” DLL lock register has been implemented */
+                               /*                           [10] : if "1" SCC_SW register has been implemented */
+                               /*                            [9] : if "1" SCC_LED register has been implemented */
+                               /*                            [8] : if "1" DLL lock register has been implemented */
                                /*                          [7:0] : number of SCC configuration register */
     volatile uint32_t SCC_ID;  /* Offset: 0xFFC (R/ )  Contains information about the FPGA image */
                                /*                        [31:24] : Implementer ID: 0x41 = ARM */
