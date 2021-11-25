@@ -51,6 +51,7 @@
 #include "FreeRTOS_DNS.h"
 
 #if ( ipconfigUSE_DHCP != 0 )
+
 /**
  * @brief Create a DHCP event.
  *
@@ -79,6 +80,7 @@ void vPreCheckConfigs( void );
 #else
     #define vPrintResourceStats()    do {} while( ipFALSE_BOOL )
 #endif
+
 /*
  * Called to create a network connection when the stack is first started, or
  * when the network connection is lost.

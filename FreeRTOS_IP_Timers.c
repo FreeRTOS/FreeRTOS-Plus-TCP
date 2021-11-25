@@ -51,7 +51,7 @@
 #include "FreeRTOS_DNS.h"
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. */
-extern NetworkBufferDescriptor_t* pxARPWaitingNetworkBuffer;
+extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
 /*
  * Utility functions for the light weight IP timers.
@@ -315,14 +315,15 @@ void vARPTimerReload( TickType_t xTime )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
+
 /**
  * @brief Reload the DNS timer.
  *
  * @param[in] ulCheckTime: The reload value.
  */
-    void vDNSTimerReload(uint32_t ulCheckTime)
+    void vDNSTimerReload( uint32_t ulCheckTime )
     {
-        prvIPTimerReload(&xDNSTimer, ulCheckTime);
+        prvIPTimerReload( &xDNSTimer, ulCheckTime );
     }
 #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
 /*-----------------------------------------------------------*/
@@ -375,9 +376,9 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
  *
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
-void vIPSetTCPTimerEnableState(BaseType_t xEnableState)
+void vIPSetTCPTimerEnableState( BaseType_t xEnableState )
 {
-    if (xEnableState != pdFALSE)
+    if( xEnableState != pdFALSE )
     {
         xTCPTimer.bActive = pdTRUE_UNSIGNED;
     }

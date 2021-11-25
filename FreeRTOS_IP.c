@@ -262,7 +262,7 @@ static void prvProcessIPEventsAndTimers( void )
     TickType_t xNextIPSleep;
     FreeRTOS_Socket_t * pxSocket;
     struct freertos_sockaddr xAddress;
-    
+
     ipconfigWATCHDOG_TIMER();
 
     /* Check the ARP, DHCP and TCP timers to see if there is any periodic

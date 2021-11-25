@@ -60,17 +60,18 @@ void vCheckNetworkTimers( void );
  * Determine how long the IP task can sleep for, which depends on when the next
  * periodic or timeout processing must be performed.
  */
-TickType_t xCalculateSleepTime(void);
+TickType_t xCalculateSleepTime( void );
 
 void vIPTimerStartARPResolution( TickType_t xTime );
 
-void vIPSetTCPTimerEnableState(BaseType_t xEnableState);
+void vIPSetTCPTimerEnableState( BaseType_t xEnableState );
 
 void vIPSetARPTimerEnableState( BaseType_t xEnableState );
 
 void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
 
 #if ( ipconfigUSE_DHCP != 0 )
+
 /**
  * @brief Enable/disable the DHCP timer.
  *
@@ -96,5 +97,5 @@ void vTCPTimerReload( TickType_t xTime );
 #endif
 
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
-    void vDNSTimerReload(uint32_t ulCheckTime);
+    void vDNSTimerReload( uint32_t ulCheckTime );
 #endif

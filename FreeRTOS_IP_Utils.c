@@ -158,7 +158,7 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
      * The transmit routine wants to have ownership of the network buffer
      * descriptor, because it will pass the buffer straight to DMA. */
     pxNewBuffer = pxGetNetworkBufferWithDescriptor( uxNewLength, ( TickType_t ) 0 );
-    
+
     if( pxNewBuffer != NULL )
     {
         /* Get the minimum of both values to copy the data. */
@@ -166,7 +166,7 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         {
             uxLengthToCopy = pxNetworkBuffer->xDataLength;
         }
-        
+
         /* Set the actual packet size in case a bigger buffer than requested
          * was returned. */
         pxNewBuffer->xDataLength = uxNewLength;
@@ -900,6 +900,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 #if ( ipconfigHAS_PRINTF != 0 )
 
     #ifndef ipMONITOR_MAX_HEAP
+
 /* As long as the heap has more space than e.g. 1 MB, there
  * will be no messages. */
         #define ipMONITOR_MAX_HEAP    ( 1024U * 1024U )

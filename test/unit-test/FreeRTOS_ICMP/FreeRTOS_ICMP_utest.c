@@ -67,10 +67,10 @@ void test_ProcessICMPPacket_CatchAssert( void )
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    
+
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->xDataLength = sizeof( ICMPPacket_t ) - 1;
-    
+
     catch_assert( ProcessICMPPacket( pxNetworkBuffer ) );
 }
 
@@ -79,17 +79,17 @@ void test_ProcessICMPPacket_AllZeroData( void )
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
-    
+
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
-    
+
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-    
+
     vApplicationPingReplyHook_Expect( eInvalidData, 0 );
-    
+
     eResult = ProcessICMPPacket( pxNetworkBuffer );
-    
+
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
@@ -101,32 +101,32 @@ void test_ProcessICMPPacket_EchoRequest( void )
     IPHeader_t * pxIPHeader;
     ICMPPacket_t * pxICMPPacket;
     ICMPHeader_t * pxICMPHeader;
-    
+
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
-    
+
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-    
+
     pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxICMPHeader = ipCAST_PTR_TO_TYPE_PTR( ICMPHeader_t, &( pxICMPPacket->xICMPHeader ) );
     pxIPHeader = &( pxICMPPacket->xIPHeader );
-    
+
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REQUEST;
-    
+
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0xAA );
-    
+
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0 );
-    
+
     eResult = ProcessICMPPacket( pxNetworkBuffer );
-    
+
     TEST_ASSERT_EQUAL( eReturnEthernetFrame, eResult );
     TEST_ASSERT_EQUAL( ( uint8_t ) ipICMP_ECHO_REPLY, pxICMPHeader->ucTypeOfMessage );
     TEST_ASSERT_EQUAL( pxIPHeader->ulSourceIPAddress, pxIPHeader->ulDestinationIPAddress );
     TEST_ASSERT_EQUAL( *ipLOCAL_IP_ADDRESS_POINTER, pxIPHeader->ulSourceIPAddress );
     TEST_ASSERT_EQUAL( ipconfigICMP_TIME_TO_LIVE, pxIPHeader->ucTimeToLive );
     TEST_ASSERT_EQUAL( 0, pxIPHeader->usFragmentOffset );
-    TEST_ASSERT_EQUAL( ( uint16_t )~FreeRTOS_htons( 0xAA ), pxIPHeader->usHeaderChecksum );
+    TEST_ASSERT_EQUAL( ( uint16_t ) ~FreeRTOS_htons( 0xAA ), pxIPHeader->usHeaderChecksum );
 }
 
 void test_ProcessICMPPacket_UnknownICMPPacket( void )
@@ -135,20 +135,20 @@ void test_ProcessICMPPacket_UnknownICMPPacket( void )
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     ICMPPacket_t * pxICMPPacket;
-    
+
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
-    
+
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-    
+
     pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    
+
     /* Unknown ICMP Packet. */
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REQUEST + 2;
-    
+
     eResult = ProcessICMPPacket( pxNetworkBuffer );
-    
+
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
@@ -158,24 +158,24 @@ void test_ProcessICMPPacket_ICMPEchoReply_NULLData( void )
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     ICMPPacket_t * pxICMPPacket;
-    
+
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
-    
+
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-    
+
     pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    
+
     pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMP_HEADER );
-    
+
     /* ICMP Reply. */
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REPLY;
-    
+
     vApplicationPingReplyHook_Expect( eSuccess, 0 );
-    
+
     eResult = ProcessICMPPacket( pxNetworkBuffer );
-    
+
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
@@ -186,28 +186,28 @@ void test_ProcessICMPPacket_ICMPEchoReply_ProperData( void )
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     ICMPPacket_t * pxICMPPacket;
     uint8_t * pucByte;
-    
+
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
-    
+
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-    
+
     pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    
-    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMP_HEADER + 10);
-    
+
+    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMP_HEADER + 10 );
+
     /* ICMP Reply. */
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REPLY;
-    
+
     pucByte = ( uint8_t * ) pxICMPPacket;
     pucByte = &( pucByte[ sizeof( ICMPPacket_t ) ] );
     memset( pucByte, ipECHO_DATA_FILL_BYTE, 10 );
-    
+
     vApplicationPingReplyHook_Expect( eSuccess, 0 );
-    
+
     eResult = ProcessICMPPacket( pxNetworkBuffer );
-    
+
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
@@ -218,35 +218,34 @@ void test_ProcessICMPPacket_ICMPEchoReply_ImproperData( void )
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     ICMPPacket_t * pxICMPPacket;
     uint8_t * pucByte;
-    
+
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
-    
+
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-    
+
     pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    
-    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMP_HEADER + 10);
-    
+
+    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMP_HEADER + 10 );
+
     /* ICMP Reply. */
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REPLY;
-    
+
     pucByte = ( uint8_t * ) pxICMPPacket;
     pucByte = &( pucByte[ sizeof( ICMPPacket_t ) ] );
     memset( pucByte, ipECHO_DATA_FILL_BYTE, 5 );
-    
+
     vApplicationPingReplyHook_Expect( eInvalidData, 0 );
-    
+
     eResult = ProcessICMPPacket( pxNetworkBuffer );
-    
+
     TEST_ASSERT_EQUAL( eSuccess, eResult );
 }
 
 void test_CastingFunctions( void )
 {
     void * pvTemp;
-    
+
     const ICMPHeader_t * pxICMPHeader = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ICMPHeader_t, pvTemp );
 }
-
