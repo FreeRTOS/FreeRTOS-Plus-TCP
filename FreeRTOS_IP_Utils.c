@@ -1110,6 +1110,19 @@ uint32_t FreeRTOS_max_uint32( uint32_t a,
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Get the highest value of two size_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The highest of the two values.
+ */
+size_t FreeRTOS_max_size_t( size_t a,
+                            size_t b )
+{
+    return ( a >= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Get the lowest value of two int32_t's.
  * @param[in] a: the first value.
  * @param[in] b: the second value.
@@ -1130,6 +1143,19 @@ int32_t FreeRTOS_min_int32( int32_t a,
  */
 uint32_t FreeRTOS_min_uint32( uint32_t a,
                               uint32_t b )
+{
+    return ( a <= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the lowest value of two size_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The lowest of the two values.
+ */
+size_t FreeRTOS_min_size_t( size_t a,
+                            size_t b )
 {
     return ( a <= b ) ? a : b;
 }
