@@ -931,7 +931,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
         pxNetworkBuffer->ulIPAddress = ulIPAddress;
         vARPGenerateRequestPacket( pxNetworkBuffer );
 
-        #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
+        #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
             {
                 if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
                 {
@@ -945,7 +945,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
                     pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
                 }
             }
-        #endif /* if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES ) */
+        #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
 
         if( xIsCallingFromIPTask() != pdFALSE )
         {
