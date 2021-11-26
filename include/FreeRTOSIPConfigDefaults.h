@@ -379,7 +379,7 @@
  * the result will be rounded up to a minimum value.
  * The default has always been 50, but a value of 1000
  * is recommended (see RFC6298) because hosts often delay the
- * sending of ACK packets with 20 mms. */
+ * sending of ACK packets with 200 ms. */
     #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS    50U
 #endif
 
