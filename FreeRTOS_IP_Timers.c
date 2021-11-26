@@ -288,10 +288,12 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
 }
 /*-----------------------------------------------------------*/
 
-void vTCPTimerReload( TickType_t xTime )
-{
-    prvIPTimerReload( &xTCPTimer, xTime );
-}
+#if ( ipconfigUSE_TCP == 1 )
+    void vTCPTimerReload( TickType_t xTime )
+    {
+        prvIPTimerReload( &xTCPTimer, xTime );
+    }
+#endif
 /*-----------------------------------------------------------*/
 
 void vARPTimerReload( TickType_t xTime )
@@ -371,23 +373,26 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_TCP == 1 )
+
 /**
  * @brief Enable/disable the TCP timer.
  *
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
-void vIPSetTCPTimerEnableState( BaseType_t xEnableState )
-{
-    if( xEnableState != pdFALSE )
+    void vIPSetTCPTimerEnableState( BaseType_t xEnableState )
     {
-        xTCPTimer.bActive = pdTRUE_UNSIGNED;
+        if( xEnableState != pdFALSE )
+        {
+            xTCPTimer.bActive = pdTRUE_UNSIGNED;
+        }
+        else
+        {
+            xTCPTimer.bActive = pdFALSE_UNSIGNED;
+        }
     }
-    else
-    {
-        xTCPTimer.bActive = pdFALSE_UNSIGNED;
-    }
-}
 /*-----------------------------------------------------------*/
+#endif /* if ( ipconfigUSE_TCP == 1 ) */
 
 /**
  * @brief Enable/disable the ARP timer.

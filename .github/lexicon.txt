@@ -1328,6 +1328,7 @@ vlistinitialiseitem
 vmyconnecthandler
 vnetworkinterfaceallocateramtobuffers
 vportfree
+vprintresourcestats
 vprocessgeneratedudppacket
 vreleasenetworkbufferanddescriptor
 vrxfaultinjection
