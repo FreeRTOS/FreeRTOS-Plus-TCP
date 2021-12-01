@@ -588,6 +588,7 @@ mtu
 multicastframesfilter
 mutex
 mutexes
+mydevice
 na
 nack
 nanosec
@@ -1395,6 +1396,7 @@ usclass
 uscurmss
 usdatalength
 usdestinationport
+usdnstype
 usduidtype
 uselapsedtime
 userdaata
@@ -1425,6 +1427,7 @@ uspayloadlength
 uspeerportnumber
 usport
 usportnr
+usportnumber
 usprotocolbytes
 usprotocoltype
 usquestions
@@ -1788,6 +1791,7 @@ xrandomtaskhandle
 xrasolicitationrequest
 xready
 xreceiveblocktime
+xrecvaddress
 xregister
 xreleaseaftersend
 xremainingtime

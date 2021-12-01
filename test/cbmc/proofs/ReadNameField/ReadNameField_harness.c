@@ -24,9 +24,7 @@
 * Signature of function under test
 ****************************************************************/
 
-size_t prvReadNameField( const uint8_t * pucByte,
-                         size_t uxRemainingBytes,
-                         char * pcName,
+size_t prvReadNameField( ParseSet_t * pxSet,
                          size_t uxDestLen );
 
 /****************************************************************
@@ -41,9 +39,7 @@ size_t prvReadNameField( const uint8_t * pucByte,
 
 /* prvReadNameField is not defined in this configuration, stub it. */
 
-    size_t prvReadNameField( const uint8_t * pucByte,
-                             size_t uxRemainingBytes,
-                             char * pcName,
+    size_t prvReadNameField( ParseSet_t * pxSet,
                              size_t uxDestLen )
     {
         return 0;
@@ -66,9 +62,11 @@ void harness()
     __CPROVER_assert( NAME_SIZE >= 4,
                       "NAME_SIZE >= 4 required for good coverage." );
 
+    ParseSet_t xSet;
 
     size_t uxRemainingBytes;
     size_t uxDestLen;
+    size_t uxCopyLength;
 
     uint8_t * pucByte = malloc( uxRemainingBytes );
     char * pcName = malloc( uxDestLen );
@@ -90,13 +88,25 @@ void harness()
     /* Avoid overflow on uxDestLen - 1U */
     __CPROVER_assume( uxDestLen > 0 );
 
-    size_t index = prvReadNameField( pucByte,
-                                     uxRemainingBytes,
-                                     pcName,
+    memset( &xSet, 0, sizeof( xSet ) );
+
+    xSet.uxSourceBytesRemaining = uxRemainingBytes;
+    xSet.pucByte = pucByte;
+
+    uxCopyLength = sizeof xSet.pcName;
+
+    if( uxCopyLength > uxDestLen )
+    {
+        uxCopyLength = uxDestLen;
+    }
+
+    memcpy( xSet.pcName, pcName, uxCopyLength );
+
+    size_t index = prvReadNameField( &xSet,
                                      uxDestLen );
 
     /* Postconditions */
 
-    __CPROVER_assert( index <= uxDestLen + 1 && index <= uxRemainingBytes,
+    __CPROVER_assert( index <= uxDestLen + 1 && index <= xSet.uxSourceBytesRemaining,
                       "prvReadNamefield: index <= uxDestLen+1" );
 }

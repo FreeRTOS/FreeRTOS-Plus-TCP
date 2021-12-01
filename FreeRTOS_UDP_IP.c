@@ -120,6 +120,15 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
                 }
             }
         #endif
+        #if ( ipconfigUSE_MDNS == 1 )
+            {
+                /* mDNS messages have a hop-count of 255, see RFC 6762, section 11. */
+                if( pxNetworkBuffer->ulIPAddress == ipMDNS_IP_ADDRESS )
+                {
+                    pxUDPPacket->xIPHeader.ucTimeToLive = 0xffU;
+                }
+            }
+        #endif
 
         eReturned = eARPGetCacheEntry( &( pxNetworkBuffer->ulIPAddress ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
     }
@@ -572,6 +581,27 @@ static BaseType_t prvHandleUDPPacketWithoutSocket( NetworkBufferDescriptor_t * p
         }
         else
     #endif /* ipconfigUSE_LLMNR */
+
+    #if ( ipconfigUSE_MDNS == 1 )
+        /* A MDNS request, check for the destination port. */
+        if( ( usPort == FreeRTOS_ntohs( ipMDNS_PORT ) ) ||
+            ( pxProtocolHeaders->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipMDNS_PORT ) ) )
+        {
+            #if ( ipconfigUSE_IPv6 != 0 )
+                if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+                {
+                }
+                else
+            #endif
+            {
+                vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress,
+                                       pxNetworkBuffer->pxEndPoint );
+            }
+
+            xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
+        }
+        else
+    #endif /* ipconfigUSE_MDNS */
 
     #if ( ipconfigUSE_NBNS == 1 )
         /* a NetBIOS request, check for the destination port */

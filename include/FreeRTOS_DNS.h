@@ -49,17 +49,27 @@
     #endif /* ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN */
 
     #define ipLLMNR_PORT           5355 /* Standard LLMNR port. */
-    #define ipDNS_PORT             53   /* Standard DNS port. */
-    #define ipDHCP_CLIENT          67
-    #define ipDHCP_SERVER          68
-    #define ipNBNS_PORT            137 /* NetBIOS Name Service. */
-    #define ipNBDGM_PORT           138 /* Datagram Service, not included. */
+
+
+    #if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
+        #define ipMDNS_IP_ADDRESS    0xe00000fbU /* 224.0.0.251 */
+    #else
+        #define ipMDNS_IP_ADDRESS    0xfb0000e0U /* 224.0.0.251 */
+    #endif
+    #define ipMDNS_PORT              5353U       /* Standard mDNS port. */
+
+    #define ipDNS_PORT               53          /* Standard DNS port. */
+    #define ipDHCP_CLIENT            67
+    #define ipDHCP_SERVER            68
+    #define ipNBNS_PORT              137 /* NetBIOS Name Service. */
+    #define ipNBDGM_PORT             138 /* Datagram Service, not included. */
 
 /* Even when a DNS server is contacted through its IPv4 address,
  * it can look-up IPv6 addresses. */
 
     #define dnsTYPE_A_HOST       0x0001U
     #define dnsTYPE_AAAA_HOST    0x001CU
+    #define dnsTYPE_ANY_HOST     0x00FFU
 
 /** @brief freertos_addrinfo is the equivalent of 'struct addrinfo'. */
     struct freertos_addrinfo
@@ -110,7 +120,9 @@
     {
         DNSMessage_t * pxDNSMessageHeader; /**< A pointer to the UDP payload buffer where the DNS message is stored. */
         uint16_t usQuestions;              /**< The number of DNS questions that were asked. */
+        uint8_t * pucUDPPayloadBuffer;     /**< A pointer to the original UDP load buffer. */
         uint8_t * pucByte;                 /**< A pointer that is used while parsing. */
+        size_t uxBufferLength;             /**< The total number of bytes received in the UDP payload. */
         size_t uxSourceBytesRemaining;     /**< As pucByte is incremented, 'uxSourceBytesRemaining' will be decremented. */
         uint16_t usType;                   /**< The type of address, recognised are dnsTYPE_A_HOST ( Ipv4 ) and
                                             *   dnsTYPE_AAAA_HOST ( IPv6 ). */
@@ -119,17 +131,18 @@
         size_t uxAddressLength;            /**< The size of the address, either ipSIZE_OF_IPv4_ADDRESS or
                                             *   ipSIZE_OF_IPv6_ADDRESS */
         uint16_t usNumARecordsStored;      /**< The number of A-records stored during a look-up. */
-        #if ( ipconfigUSE_LLMNR == 1 )
+        uint16_t usPortNumber;             /**< The port number that belong to the protocol ( DNS, MDNS etc ). */
+        #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 )
             uint16_t usClass;              /**< Only the value 'dnsCLASS_IN' is recognised, which stands for "Internet". */
             char * pcRequestedName;        /**< A pointer to the full name of the host being looked up. */
         #endif
-        #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+        #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 ) || ( ipconfigUSE_MDNS == 1 )
             BaseType_t xDoStore;                          /**< Becomes true when a DNS reply was requested by this device,
                                                            *   i.e. it has a matching request ID. */
             char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ]; /**< A copy of the name that is mentioned in the questions. */
         #endif
-        struct freertos_addrinfo * pxLastAddress;         /**< The address where the original freertos_addrinfo is stored. */
-        struct freertos_addrinfo ** ppxLastAddress;       /**< The address where the last freertos_addrinfo is stored. */
+        struct freertos_addrinfo * pxLastAddress;         /**< This variable is used while creating a linked-list of IP-addresses. */
+        struct freertos_addrinfo ** ppxLastAddress;       /**< This variable is also used while creating a linked-list of IP-addresses. */
     } ParseSet_t;
 
 /** @brief Show the first IP-address within the linked struct 'pxAddress'. */
@@ -166,6 +179,35 @@
 /* The LLMNR IPv6 MAC address is 33:33:00:01:00:03 */
         extern const MACAddress_t xLLMNR_MacAdressIPv6;
     #endif /* ipconfigUSE_LLMNR */
+
+    #if ( ipconfigUSE_MDNS == 1 )
+        /* The MDNS MAC address is 01:00:5e:00:00:fc */
+        extern const MACAddress_t xMDNS_MacAdress;
+    #endif /* ipconfigUSE_MDNS */
+
+    #if ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 )
+
+/* The MDNS IPv6 address is ff02::1:3 */
+        extern const IPv6_Address_t ipMDNS_IP_ADDR_IPv6;
+
+/* The MDNS IPv6 MAC address is 33:33:00:01:00:03 */
+        extern const MACAddress_t xMDNS_MACAdressIPv6;
+    #endif /* ipconfigUSE_MDNS */
+
+/** @brief While doing integration tests, it is necessary to influence the choice
+ * between DNS/IPv4 and DNS/IPv4.  Depending on this, a DNS server will be
+ * addressed via IPv4 or IPv6 messages. */
+    typedef enum xIPPreference
+    {
+        xPreferenceNone,
+        xPreferenceIPv4,
+        #if ( ipconfigUSE_IPv6 != 0 )
+            xPreferenceIPv6,
+        #endif
+    } IPPreference_t;
+
+/** @brief This variable determines he choice of DNS server, either IPv4 or IPv6. */
+    extern IPPreference_t xDNS_IP_Preference;
 
     #if ( ipconfigUSE_NBNS != 0 )
 

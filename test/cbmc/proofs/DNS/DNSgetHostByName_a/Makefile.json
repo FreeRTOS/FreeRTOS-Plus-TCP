@@ -13,7 +13,7 @@
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--unwindset FreeRTOS_freeaddrinfo.0:2,__CPROVER_file_local_FreeRTOS_DNS_c_prvReadDNSCache.0:2,__CPROVER_file_local_FreeRTOS_DNS_c_prvGetHostByName.1:{DNS_REQUEST_ATTEMPTS},__CPROVER_file_local_FreeRTOS_DNS_c_prvProcessDNSCache.0:{DNS_CACHE_ENTRIES_UNWIND},prvCreateDNSMessage.0:{HOSTNAME_UNWIND},prvCreateDNSMessage.1:{HOSTNAME_UNWIND},__CPROVER_file_local_FreeRTOS_DNS_c_prvGetHostByName.0:{HOSTNAME_UNWIND},prvProcessDNSCache.0:5,strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},strcmp.0:{HOSTNAME_UNWIND},xTaskResumeAll.0:{HOSTNAME_UNWIND},xTaskResumeAll.1:{HOSTNAME_UNWIND},strcpy.0:{HOSTNAME_UNWIND},strncpy.0:255",
+    "--unwindset FreeRTOS_freeaddrinfo.0:2,__CPROVER_file_local_FreeRTOS_DNS_c_prvReadDNSCache.0:2,__CPROVER_file_local_FreeRTOS_DNS_c_prvGetHostByName.1:{DNS_REQUEST_ATTEMPTS},__CPROVER_file_local_FreeRTOS_DNS_c_prvProcessDNSCache.0:{DNS_CACHE_ENTRIES_UNWIND},prvCreateDNSMessage.0:{HOSTNAME_UNWIND},prvCreateDNSMessage.1:{HOSTNAME_UNWIND},__CPROVER_file_local_FreeRTOS_DNS_c_prvGetHostByName.0:{HOSTNAME_UNWIND},prvProcessDNSCache.0:5,strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},strcmp.0:{HOSTNAME_UNWIND},xTaskResumeAll.0:{HOSTNAME_UNWIND},xTaskResumeAll.1:{HOSTNAME_UNWIND},strcpy.0:{HOSTNAME_UNWIND},strncpy.0:255,strchr.0:{MAX_HOSTNAME_LEN}",
     "--nondet-static"
   ],
   "OBJS":
