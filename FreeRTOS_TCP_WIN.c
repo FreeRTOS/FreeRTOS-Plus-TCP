@@ -50,11 +50,12 @@
 #if ( ipconfigUSE_TCP == 1 )
 
 /* Constants used for Smoothed Round Trip Time (SRTT). */
-    #define winSRTT_INCREMENT_NEW        2  /**< New increment for the smoothed RTT. */
-    #define winSRTT_INCREMENT_CURRENT    6  /**< Current increment for the smoothed RTT. */
-    #define winSRTT_DECREMENT_NEW        1  /**< New decrement for the smoothed RTT. */
-    #define winSRTT_DECREMENT_CURRENT    7  /**< Current decrement for the smoothed RTT. */
-    #define winSRTT_CAP_mS               50 /**< Cap in milliseconds. */
+    #define winSRTT_INCREMENT_NEW        2                                     /**< New increment for the smoothed RTT. */
+    #define winSRTT_INCREMENT_CURRENT    6                                     /**< Current increment for the smoothed RTT. */
+    #define winSRTT_DECREMENT_NEW        1                                     /**< New decrement for the smoothed RTT. */
+    #define winSRTT_DECREMENT_CURRENT    7                                     /**< Current decrement for the smoothed RTT. */
+    #define winSRTT_CAP_mS               ( ipconfigTCP_SRTT_MINIMUM_VALUE_MS ) /**< Cap in milliseconds. */
+
 
 /**
  * @brief Utility function to cast pointer of a type to pointer of type TCPSegment_t.
