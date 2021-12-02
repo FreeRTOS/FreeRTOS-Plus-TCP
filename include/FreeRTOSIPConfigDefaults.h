@@ -380,7 +380,7 @@
  * The default has always been 50, but a value of 1000
  * is recommended (see RFC6298) because hosts often delay the
  * sending of ACK packets with 200 ms. */
-    #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS    50
+    #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS    50U
 #endif
 
 #ifndef ipconfigUDP_MAX_RX_PACKETS
