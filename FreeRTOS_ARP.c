@@ -462,7 +462,7 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
 void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
                                const uint32_t ulIPAddress )
 {
-    BaseType_t x, xMatchingMAC;
+    BaseType_t x;
 
     if( pxMACAddress != NULL )
     {
