@@ -2203,14 +2203,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     }
                     else
                     {
-                        /* IP address is not on the same subnet, ARP table can be updated.
-                         * Refresh the ARP cache with the IP/MAC-address of the received
-                         *  packet. For UDP packets, this will be done later in
-                         *  xProcessReceivedUDPPacket(), as soon as it's know that the message
-                         *  will be handled.  This will prevent the ARP cache getting
-                         *  overwritten with the IP address of useless broadcast packets.
-                         */
-                        vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress );
+                        /* Refresh the age of this cache entry since a packet was received. */
+                        vARPRefreshCacheEntryAge( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress );
                     }
                 }
 
@@ -3113,9 +3107,6 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                            BaseType_t xReleaseAfterSend )
 {
     EthernetHeader_t * pxEthernetHeader;
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-    const void * pvCopySource;
-    void * pvCopyDest;
 
     #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
         NetworkBufferDescriptor_t * pxNewBuffer;
@@ -3157,16 +3148,52 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         if( pxNetworkBuffer != NULL )
     #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
     {
+        /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+        const void * pvCopySource;
+        void * pvCopyDest;
+        MACAddress_t xMACAddress;
+        IPPacket_t * pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+        IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+        uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+        eARPLookupResult_t eResult;
+
         /* Map the Buffer to Ethernet Header struct for easy access to fields. */
         pxEthernetHeader = ipCAST_PTR_TO_TYPE_PTR( EthernetHeader_t, pxNetworkBuffer->pucEthernetBuffer );
+
+        /* Interpret the Ethernet packet being sent. */
+        switch( pxEthernetHeader->usFrameType )
+        {
+            case ipIPv4_FRAME_TYPE:
+
+                /* Try to find a MAC address corresponding to the destination IP
+                 * address. */
+                eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress );
+
+                if( eResult == eARPCacheHit )
+                {
+                    /* Best case scenario - an address is found, use it. */
+                    pvCopySource = &xMACAddress;
+                }
+                else
+                {
+                    /* If an address is not found, just swap the source and destination MAC addresses. */
+                    pvCopySource = &pxEthernetHeader->xSourceAddress;
+                }
+
+                break;
+
+            case ipARP_FRAME_TYPE:
+            default:
+                /* In case of ARP frame, just swap the source and destination MAC addresses. */
+                pvCopySource = &pxEthernetHeader->xSourceAddress;
+                break;
+        }
 
         /*
          * Use helper variables for memcpy() to remain
          * compliant with MISRA Rule 21.15.  These should be
          * optimized away.
          */
-        /* Swap source and destination MAC addresses. */
-        pvCopySource = &pxEthernetHeader->xSourceAddress;
         pvCopyDest = &pxEthernetHeader->xDestinationAddress;
         ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxEthernetHeader->xDestinationAddress ) );
 
