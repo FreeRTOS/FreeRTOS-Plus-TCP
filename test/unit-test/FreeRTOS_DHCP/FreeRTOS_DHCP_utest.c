@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 #include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_UDP_IP.h"
@@ -271,7 +272,6 @@ void test_eGetDHCPState( void )
 void test_vDHCPProcess_NotResetAndIncorrectState( void )
 {
     xDHCPData.eDHCPState = eSendDHCPRequest;
-    /*vIPReloadDHCPTimer_Ignore(); */
     vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
 
     /* Since the expected state is incorrect, the state
@@ -313,7 +313,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketCreationFail( v
         /* return an invalid socket. */
         FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, FREERTOS_INVALID_SOCKET );
         /* See if the timer is reloaded. */
-        vIPReloadDHCPTimer_Expect( dhcpINITIAL_TIMER_PERIOD );
+        vDHCPTimerReload_Expect( dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
         vDHCPProcess( pdTRUE, i );
 
@@ -360,7 +360,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void 
         /* Then expect the socket to be closed. */
         vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
         /* See if the timer is reloaded. */
-        vIPReloadDHCPTimer_Expect( dhcpINITIAL_TIMER_PERIOD );
+        vDHCPTimerReload_Expect( dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
         vDHCPProcess( pdTRUE, i );
 
@@ -405,7 +405,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketSuccess( void )
         /* Make sure that binding fails. Return anything except zero. */
         vSocketBind_ExpectAnyArgsAndReturn( 0 );
         /* See if the timer is reloaded. */
-        vIPReloadDHCPTimer_Expect( dhcpINITIAL_TIMER_PERIOD );
+        vDHCPTimerReload_Expect( dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
         vDHCPProcess( pdTRUE, i );
 
@@ -444,7 +444,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithSocketAlreadyCreated( void )
         /* Make random number generation pass. */
         xApplicationGetRandomNumber_ExpectAndReturn( &( xDHCPData.ulTransactionId ), pdTRUE );
         /* See if the timer is reloaded. */
-        vIPReloadDHCPTimer_Expect( dhcpINITIAL_TIMER_PERIOD );
+        vDHCPTimerReload_Expect( dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
         vDHCPProcess( pdTRUE, i );
 
@@ -2356,7 +2356,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vIPReloadDHCPTimer_Expect( dhcpDEFAULT_LEASE_TIME );
+    vDHCPTimerReload_Expect( dhcpDEFAULT_LEASE_TIME );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -2449,7 +2449,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeLessTh
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vIPReloadDHCPTimer_Expect( dhcpMINIMUM_LEASE_TIME );
+    vDHCPTimerReload_Expect( dhcpMINIMUM_LEASE_TIME );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -2541,7 +2541,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_CorrectServer_AptLeaseTime
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vIPReloadDHCPTimer_Expect( dhcpMINIMUM_LEASE_TIME + 10 );
+    vDHCPTimerReload_Expect( dhcpMINIMUM_LEASE_TIME + 10 );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -2764,7 +2764,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vIPReloadDHCPTimer_Expect( configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ) );
+    vDHCPTimerReload_Expect( configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ) );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -2904,7 +2904,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vIPReloadDHCPTimer_Expect( configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ) );
+    vDHCPTimerReload_Expect( configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ) );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -3016,7 +3016,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IPv4ServerIncorrectLength( void )
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vIPReloadDHCPTimer_Ignore(); /*_Expect(configTICK_RATE_HZ*(FreeRTOS_ntohl(ulLeaseTime)>>1)); */
+    vDHCPTimerReload_Ignore();
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -3127,7 +3127,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_SubnetMaskIncorrectLength( void )
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vIPReloadDHCPTimer_Ignore(); /*_Expect(configTICK_RATE_HZ*(FreeRTOS_ntohl(ulLeaseTime)>>1)); */
+    vDHCPTimerReload_Ignore();
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -3245,7 +3245,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_GatewayIncorrectLength( void )
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vIPReloadDHCPTimer_Ignore(); /*_Expect(configTICK_RATE_HZ*(FreeRTOS_ntohl(ulLeaseTime)>>1)); */
+    vDHCPTimerReload_Ignore();
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -3373,7 +3373,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength( void )
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vIPReloadDHCPTimer_Ignore(); /*_Expect(configTICK_RATE_HZ*(FreeRTOS_ntohl(ulLeaseTime)>>1)); */
+    vDHCPTimerReload_Ignore();
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -3550,7 +3550,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkDown( void )
     /* The network is not up. */
     FreeRTOS_IsNetworkUp_ExpectAndReturn( 0 );
     /* Expect the DHCP timer to be reloaded. */
-    vIPReloadDHCPTimer_Expect( pdMS_TO_TICKS( 5000U ) );
+    vDHCPTimerReload_Expect( pdMS_TO_TICKS( 5000U ) );
 
     vDHCPProcess( pdFALSE, eLeasedAddress );
 
@@ -3580,7 +3580,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGPass_GNBfail( v
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     /* Expect the timer to be set. */
-    vIPReloadDHCPTimer_Expect( dhcpINITIAL_TIMER_PERIOD );
+    vDHCPTimerReload_Expect( dhcpINITIAL_TIMER_PERIOD );
 
     vDHCPProcess( pdFALSE, eLeasedAddress );
 
@@ -3615,7 +3615,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGFail( void )
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
     /* Expect the timer to be set. */
-    vIPReloadDHCPTimer_Expect( dhcpINITIAL_TIMER_PERIOD );
+    vDHCPTimerReload_Expect( dhcpINITIAL_TIMER_PERIOD );
 
     vDHCPProcess( pdFALSE, eLeasedAddress );
 

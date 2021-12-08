@@ -42,6 +42,7 @@
 #include "mock_event_groups.h"
 
 #include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IP_Utils.h"
 #include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_ARP.h"

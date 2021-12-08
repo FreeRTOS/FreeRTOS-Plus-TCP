@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP V2.3.3
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -38,13 +38,32 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-volatile BaseType_t xInsideInterrupt = pdFALSE;
 
-QueueHandle_t xNetworkEventQueue;
+const BaseType_t xBufferAllocFixedSize = pdTRUE;
 
-/** @brief The expected IP version and header length coded into the IP header itself. */
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+    return ( UDPPacket_t * ) pvArgument;
+}
+
+portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+    return ( const UDPPacket_t * ) pvArgument;
+}
+
+void vPortEnterCritical( void )
+{
+}
+
+void vPortExitCritical( void )
+{
+}
+
+BaseType_t xApplicationDNSQueryHook( const char * pcName )
+{
+}
+
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
-
 UDPPacketHeader_t xDefaultPartUDPPacketHeader =
 {
     /* .ucBytes : */
@@ -63,49 +82,3 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
     }
 };
 
-ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
-{
-    return ( FreeRTOS_Socket_t * ) pvArgument;
-}
-
-ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
-{
-    return ( FreeRTOS_Socket_t * ) pvArgument;
-}
-
-ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t )
-{
-    return ( SocketSelect_t * ) pvArgument;
-}
-
-ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-{
-    return ( const UDPPacket_t * ) pvArgument;
-}
-
-ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
-{
-    return ( NetworkBufferDescriptor_t * ) pvArgument;
-}
-
-ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t )
-{
-    return ( const ListItem_t * ) pvArgument;
-}
-
-void vPortEnterCritical( void )
-{
-}
-void vPortExitCritical( void )
-{
-}
-
-void * pvPortMalloc( size_t xNeeded )
-{
-    return malloc( xNeeded );
-}
-
-void vPortFree( void * ptr )
-{
-    free( ptr );
-}
