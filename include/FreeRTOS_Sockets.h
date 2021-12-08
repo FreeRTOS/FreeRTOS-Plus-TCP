@@ -480,6 +480,20 @@
                                           socklen_t uxSize );
     #endif /* ipconfigUSE_IPv6 */
 
+/** @brief This function converts a 48-bit MAC address to a human readable string. */
+
+    void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
+                              char * pcTarget,
+                              char cTen,
+                              char cSeparator );
+
+/** @brief This function converts a human readable string, representing an 48-bit MAC address,
+ * into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba". */
+
+    BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
+                                    uint8_t * pucTarget );
+
+
 /*
  * For the web server: borrow the circular Rx buffer for inspection
  * HTML driver wants to see if a sequence of 13/10/13/10 is available

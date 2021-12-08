@@ -119,7 +119,8 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
 uint32_t __CPROVER_file_local_FreeRTOS_DNS_c_prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                                                                size_t xBufferLength,
                                                                struct freertos_addrinfo ** ppxAddressInfo,
-                                                               BaseType_t xExpected )
+                                                               BaseType_t xExpected,
+                                                               uint16_t usPort )
 {
     uint32_t size;
 
