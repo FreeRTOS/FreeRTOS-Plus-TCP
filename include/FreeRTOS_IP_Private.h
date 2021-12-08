@@ -45,6 +45,12 @@
 
     #include "event_groups.h"
 
+    #ifdef TEST
+        int ipFOREVER( void );
+    #else
+        #define ipFOREVER()    1
+    #endif
+
 /*-----------------------------------------------------------*/
 /* Utility macros for marking casts as recognized during     */
 /* static analysis.                                          */
@@ -915,21 +921,6 @@
         extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t );
 
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
-
-    #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) || ( ipconfigUSE_TCP == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
-        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t );
-        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t );
-    #endif
-
-    extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t );
-
-    void vIPSetDHCPTimerEnableState( BaseType_t xEnableState );
-    void vIPReloadDHCPTimer( uint32_t ulLeaseTime );
-    #if ( ipconfigDNS_USE_CALLBACKS != 0 )
-        void vIPReloadDNSTimer( uint32_t ulCheckTime );
-        void vIPSetDnsTimerEnableState( BaseType_t xEnableState );
-    #endif
-
 
 /* Send the network-up event and start the ARP timer. */
     void vIPNetworkUpCalls( void );

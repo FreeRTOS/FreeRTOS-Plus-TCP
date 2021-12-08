@@ -119,6 +119,43 @@
     #define ipFIRST_LOOPBACK_IPv4    0x7F000000UL            /**< Lowest IPv4 loopback address (including). */
     #define ipLAST_LOOPBACK_IPv4     0x80000000UL            /**< Highest IPv4 loopback address (excluding). */
 
+    #if ( ipconfigUSE_TCP != 0 )
+
+/** @brief Set to a non-zero value if one or more TCP message have been processed
+ * within the last round. */
+        BaseType_t xProcessedTCPMessage;
+    #endif
+
+
+/** @brief Returned to indicate a valid checksum. */
+    #define ipCORRECT_CRC           0xffffU
+
+/** @brief Returned to indicate incorrect checksum. */
+    #define ipWRONG_CRC             0x0000U
+
+/** @brief Returned as the (invalid) checksum when the length of the data being checked
+ * had an invalid length. */
+    #define ipINVALID_LENGTH        0x1234U
+
+/** @brief Returned as the (invalid) checksum when the protocol being checked is not
+ * handled.  The value is chosen simply to be easy to spot when debugging. */
+    #define ipUNHANDLED_PROTOCOL    0x4321U
+
+/** @brief The maximum time the IP task is allowed to remain in the Blocked state if no
+ * events are posted to the network event queue. */
+    #ifndef ipconfigMAX_IP_TASK_SLEEP_TIME
+        #define ipconfigMAX_IP_TASK_SLEEP_TIME    ( pdMS_TO_TICKS( 10000UL ) )
+    #endif
+
+/* Trace macros to aid in debugging, disabled if ipconfigHAS_PRINTF != 1 */
+    #if ( ipconfigHAS_PRINTF == 1 )
+        #define DEBUG_DECLARE_TRACE_VARIABLE( type, var, init )    type var = ( init ) /**< Trace macro to set "type var = init". */
+        #define DEBUG_SET_TRACE_VARIABLE( var, value )             var = ( value )     /**< Trace macro to set var = value. */
+    #else
+        #define DEBUG_DECLARE_TRACE_VARIABLE( type, var, init )                        /**< Empty definition since ipconfigHAS_PRINTF != 1. */
+        #define DEBUG_SET_TRACE_VARIABLE( var, value )                                 /**< Empty definition since ipconfigHAS_PRINTF != 1. */
+    #endif
+
 /**
  * The structure used to store buffers and pass them around the network stack.
  * Buffers can be in use by the stack, in use by the network interface hardware
@@ -299,7 +336,6 @@
     uint32_t FreeRTOS_GetGatewayAddress( void );
     uint32_t FreeRTOS_GetDNSServerAddress( void );
     uint32_t FreeRTOS_GetNetmask( void );
-    void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
     BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
                                    TickType_t uxTicksToWait );
     void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
@@ -309,11 +345,7 @@
         UBaseType_t uxGetMinimumIPQueueSpace( void );
     #endif
 
-    #if ( ipconfigHAS_PRINTF != 0 )
-        extern void vPrintResourceStats( void );
-    #else
-        #define vPrintResourceStats()    do {} while( ipFALSE_BOOL )
-    #endif
+    BaseType_t xIsNetworkDownEventPending( void );
 
 /*
  * Defined in FreeRTOS_Sockets.c
