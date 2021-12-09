@@ -508,7 +508,7 @@
  * order of priorities:
  * Highest : network interface, handling transmission and reception.
  * Medium  : the IP-task handling API calls from the application.
- * Lower   : the tasks thaat make use of the IP-stack.
+ * Lower   : the tasks that make use of the IP-stack.
  * For other tasks any priority can be chosen.
  */
 #ifndef ipconfigIP_TASK_PRIORITY

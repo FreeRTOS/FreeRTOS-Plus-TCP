@@ -192,6 +192,7 @@ eapplicationprocesscustomframehook
 earpcachehit
 earpcachemiss
 earpgetcacheentry
+earpgetcacheentrybymac
 earptimerevent
 ec
 ecantsendpacket
@@ -595,6 +596,7 @@ pcdata
 pcdestination
 pce
 pcf
+pcformat
 pcfrom
 pchostname
 pcipaddress
@@ -640,6 +642,7 @@ pme
 pmecr
 pmt
 pointee
+portinline
 posix
 pparam
 ppkt
@@ -1256,6 +1259,7 @@ uxenoughspace
 uxentrycount
 uxflags
 uxfront
+uxgetminimumipqueuespace
 uxhead
 uxheaderlength
 uxidentifier
@@ -1475,6 +1479,7 @@ xpeek
 xphyfixedvalue
 xphypreferences
 xphystartautonegotiation
+xport
 xporthasudpsocket
 xpqueue
 xpriorityqueue
