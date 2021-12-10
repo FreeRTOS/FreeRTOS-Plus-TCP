@@ -1174,6 +1174,7 @@
  * @param[in] ulSequenceNumber: The sequence number of the packet received.
  * @param[in] ulLength: The number of bytes received.
  * @param[in] ulSpace: The available space in the RX stream buffer.
+ * @param[out] pulSkipCount: the number of bytes to skip in the receive buffer.
  *
  * @return 0 or positive value indicating the offset at which the packet is to
  *         be stored, -1 if the packet is to be ignored.
