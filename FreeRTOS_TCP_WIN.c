@@ -607,7 +607,7 @@
                 /* Rx data has been stored while earlier packets were missing. */
                 xReturn = pdFALSE;
             }
-            else if( xSequenceGreaterThanOrEqual( pxWindow->rx.ulCurrentSequenceNumber, pxWindow->rx.ulHighestSequenceNumber ) != pdFALSE )
+            else if( xSequenceGreaterThanOrEqual( pxWindow->rx.ulCurrentSequenceNumber + 1U, pxWindow->rx.ulHighestSequenceNumber ) != pdFALSE )
             {
                 /* No Rx packets are being stored and the highest sequence number
                  * that has been received has been ACKed. */
@@ -1181,11 +1181,13 @@
         int32_t lTCPWindowRxCheck( TCPWindow_t * pxWindow,
                                    uint32_t ulSequenceNumber,
                                    uint32_t ulLength,
-                                   uint32_t ulSpace )
+                                   uint32_t ulSpace,
+                                   uint32_t * pulSkipCount )
         {
-            uint32_t ulCurrentSequenceNumber, ulIntermediateResult = 0;
+            uint32_t ulCurrentSequenceNumber, ulIntermediateResult;
             int32_t lReturn = -1;
-            int32_t lDistance;
+            int32_t lStartDistance, lLastDistance;
+            uint32_t ulLast;
 
             /* If lTCPWindowRxCheck( ) returns == 0, the packet will be passed
              * directly to user (segment is expected).  If it returns a positive
@@ -1196,7 +1198,36 @@
              * As a side-effect, pxWindow->ulUserDataLength will get set to non-zero,
              * if more Rx data may be passed to the user after this packet. */
 
+            /* Only in an exceptional case, where a packet starts before
+             * ulCurrentSequenceNumber, and ends after it, the skip-count
+             * will be set. See below. */
+
+            *( pulSkipCount ) = 0U;
+
             ulCurrentSequenceNumber = pxWindow->rx.ulCurrentSequenceNumber;
+
+            ulLast = ulSequenceNumber + ulLength;
+            ulIntermediateResult = ulLast - ulCurrentSequenceNumber;
+            /* The cast from unsigned long to signed long is on purpose. */
+            lLastDistance = ( int32_t ) ulIntermediateResult;
+
+            ulIntermediateResult = ulSequenceNumber - ulCurrentSequenceNumber;
+            lStartDistance = ( int32_t ) ulIntermediateResult;
+
+            if( ( lStartDistance < 0 ) && ( lLastDistance > 0 ) )
+            {
+                FreeRTOS_debug_printf( ( "lTCPWindowRxCheck: Received +%u bytes for %u, only using %d\n",
+                                         ( unsigned ) ulLength,
+                                         ( unsigned ) ( ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
+                                         ( int ) lLastDistance ) );
+                /* Increase the sequence number, decrease the length. */
+                ulSequenceNumber += ( uint32_t ) ( -lStartDistance );
+                ulLength += ( uint32_t ) lStartDistance;
+
+                /* Tell the caller that the first 'pulSkipCount' bytes don't
+                 * need to be stored. */
+                *( pulSkipCount ) = ( uint32_t ) ( -lStartDistance );
+            }
 
             /* For Selective Ack (SACK), used when out-of-sequence data come in. */
             pxWindow->ucOptionLength = 0U;
@@ -1232,24 +1263,19 @@
 
                 /*  An "out-of-sequence" segment was received, must have missed one.
                  * Prepare a SACK (Selective ACK). */
-                uint32_t ulLast = ulSequenceNumber + ulLength;
 
-                ulIntermediateResult = ulLast - ulCurrentSequenceNumber;
-                /* The cast from unsigned long to signed long is on purpose. */
-                lDistance = ( int32_t ) ulIntermediateResult;
-
-                if( lDistance <= 0 )
+                if( lLastDistance <= 0 )
                 {
-                    /* An earlier has been received, must be a retransmission of a
+                    /* An earlier packet has been received, must be a retransmission of a
                      * packet that has been accepted already.  No need to send out a
                      * Selective ACK (SACK). */
                 }
-                else if( lDistance > ( int32_t ) ulSpace )
+                else if( lLastDistance > ( int32_t ) ulSpace )
                 {
                     /* The new segment is ahead of rx.ulCurrentSequenceNumber.  The
                      * sequence number of this packet is too far ahead, ignore it. */
                     FreeRTOS_debug_printf( ( "lTCPWindowRxCheck: Refuse %d+%u bytes, due to lack of space (%u)\n",
-                                             ( int ) lDistance,
+                                             ( int ) lLastDistance,
                                              ( unsigned ) ulLength,
                                              ( unsigned ) ulSpace ) );
                 }

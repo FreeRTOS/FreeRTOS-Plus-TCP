@@ -677,7 +677,7 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
 {
     #if ( ipconfigUSE_LINKED_RX_MESSAGES == 0 )
         {
-            /* When ipconfigUSE_LINKED_RX_MESSAGES is not set to 0 then only one
+            /* When ipconfigUSE_LINKED_RX_MESSAGES is set to 0 then only one
              * buffer will be sent at a time.  This is the default way for +TCP to pass
              * messages from the MAC to the TCP/IP stack. */
             prvProcessEthernetPacket( pxBuffer );
@@ -1169,6 +1169,29 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 {
     vReleaseNetworkBufferAndDescriptor( pxUDPPayloadBuffer_to_NetworkBuffer( pvBuffer ) );
 }
+/*-----------------------------------------------------------*/
+
+#if( ipconfigUSE_TCP == 1 )
+    void FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
+    								       void const * pvBuffer,
+								           BaseType_t xByteCount )
+    {
+        BaseType_t xByteCountReleased;
+    	uint8_t * pucData;
+    	size_t uxBytesAvailable = uxStreamBufferGetPtr( xSocket->u.xTCP.rxStream, &( pucData ) );
+
+    	/* Make sure the pointer is correct. */
+    	configASSERT( pucData == ( uint8_t * ) pvBuffer );
+
+    	/* Avoid releasing more bytes than available. */
+    	configASSERT( uxBytesAvailable >= ( size_t ) xByteCount );
+
+        /* Call recv with NULL pointer to advance the circular buffer. */
+        xByteCountReleased = FreeRTOS_recv( xSocket, NULL, xByteCount, FREERTOS_MSG_DONTWAIT );
+
+        configASSERT( xByteCountReleased == xByteCount );
+    }
+#endif /* ( ipconfigUSE_TCP == 1 ) */
 /*-----------------------------------------------------------*/
 
 /*_RB_ Should we add an error or assert if the task priorities are set such that the servers won't function as expected? */
