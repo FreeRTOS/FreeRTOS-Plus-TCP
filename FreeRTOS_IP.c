@@ -1172,6 +1172,15 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_TCP == 1 )
+
+/**
+ * @brief Release the memory that was previously obtained by calling FreeRTOS_recv()
+ *        with the flag 'FREERTOS_ZERO_COPY'.
+ *
+ * @param[in] xSocket: The socket that was read from.
+ * @param[in] pvBuffer: The buffer returned in the call to FreeRTOS_recv().
+ * @param[in] xByteCount: The number of bytes that have been used.
+ */
     void FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
                                            void const * pvBuffer,
                                            BaseType_t xByteCount )
