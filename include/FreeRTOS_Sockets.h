@@ -287,10 +287,11 @@
         BaseType_t FreeRTOS_shutdown( Socket_t xSocket,
                                       BaseType_t xHow );
 
-        #if( ipconfigUSE_TCP == 1 )
-            /* Release a TCP payload buffer that was obtained by
-             * calling FreeRTOS_recv() with the FREERTOS_ZERO_COPY flag,
-             * and a pointer to a void pointer. */
+        #if ( ipconfigUSE_TCP == 1 )
+
+/* Release a TCP payload buffer that was obtained by
+ * calling FreeRTOS_recv() with the FREERTOS_ZERO_COPY flag,
+ * and a pointer to a void pointer. */
             void FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
                                                    void const * pvBuffer,
                                                    BaseType_t xByteCount );

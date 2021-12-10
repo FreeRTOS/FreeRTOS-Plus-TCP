@@ -1171,20 +1171,20 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 }
 /*-----------------------------------------------------------*/
 
-#if( ipconfigUSE_TCP == 1 )
+#if ( ipconfigUSE_TCP == 1 )
     void FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
-    								       void const * pvBuffer,
-								           BaseType_t xByteCount )
+                                           void const * pvBuffer,
+                                           BaseType_t xByteCount )
     {
         BaseType_t xByteCountReleased;
-    	uint8_t * pucData;
-    	size_t uxBytesAvailable = uxStreamBufferGetPtr( xSocket->u.xTCP.rxStream, &( pucData ) );
+        uint8_t * pucData;
+        size_t uxBytesAvailable = uxStreamBufferGetPtr( xSocket->u.xTCP.rxStream, &( pucData ) );
 
-    	/* Make sure the pointer is correct. */
-    	configASSERT( pucData == ( uint8_t * ) pvBuffer );
+        /* Make sure the pointer is correct. */
+        configASSERT( pucData == ( uint8_t * ) pvBuffer );
 
-    	/* Avoid releasing more bytes than available. */
-    	configASSERT( uxBytesAvailable >= ( size_t ) xByteCount );
+        /* Avoid releasing more bytes than available. */
+        configASSERT( uxBytesAvailable >= ( size_t ) xByteCount );
 
         /* Call recv with NULL pointer to advance the circular buffer. */
         xByteCountReleased = FreeRTOS_recv( xSocket, NULL, xByteCount, FREERTOS_MSG_DONTWAIT );
