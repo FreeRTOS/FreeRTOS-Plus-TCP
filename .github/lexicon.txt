@@ -743,6 +743,7 @@ pulipaddress
 pullups
 pulnetmask
 pulnumber
+pulskipcount
 pulvalue
 pvargument
 pvbuffer
