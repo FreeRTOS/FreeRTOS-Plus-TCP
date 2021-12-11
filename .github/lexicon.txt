@@ -1160,6 +1160,7 @@ ulrxwindowlength
 ulsenderprotocoladdress
 ulsequencenumber
 ulsize
+ulskipcount
 ulsourceipaddress
 ulspace
 ulsrtt
