@@ -1339,7 +1339,7 @@ void test_vPrintResourceStats_BufferCountMore( void )
 {
     uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 2 );
     xPortGetMinimumEverFreeHeapSize_ExpectAndReturn( 2 );
-    
+
     vPrintResourceStats();
 }
 
@@ -1347,7 +1347,7 @@ void test_vPrintResourceStats_BufferCountLess( void )
 {
     uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2 );
     xPortGetMinimumEverFreeHeapSize_ExpectAndReturn( 2 );
-    
+
     vPrintResourceStats();
 }
 
