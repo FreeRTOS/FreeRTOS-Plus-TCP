@@ -1,4 +1,30 @@
 /*
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://aws.amazon.com/freertos
+ * http://www.FreeRTOS.org
+ */
+
+/**
+ * @brief
  * Handling of Ethernet PHY's
  * PHY's communicate with an EMAC either through
  * a Media-Independent Interface (MII), or a Reduced Media-Independent Interface (RMII).
@@ -35,27 +61,27 @@
 
 /* Check if the LinkStatus in the PHY is still high after 15 seconds of not
  * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000UL
+    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
 #endif
 
 #ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
     /* Check if the LinkStatus in the PHY is still low every second. */
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000UL
+    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
 #endif
 
 /* As the following 3 macro's are OK in most situations, and so they're not
  * included in 'FreeRTOSIPConfigDefaults.h'.
  * Users can change their values in the project's 'FreeRTOSIPConfig.h'. */
 #ifndef phyPHY_MAX_RESET_TIME_MS
-    #define phyPHY_MAX_RESET_TIME_MS    1000UL
+    #define phyPHY_MAX_RESET_TIME_MS    1000U
 #endif
 
 #ifndef phyPHY_MAX_NEGOTIATE_TIME_MS
-    #define phyPHY_MAX_NEGOTIATE_TIME_MS    3000UL
+    #define phyPHY_MAX_NEGOTIATE_TIME_MS    3000U
 #endif
 
 #ifndef phySHORT_DELAY_MS
-    #define phySHORT_DELAY_MS    50UL
+    #define phySHORT_DELAY_MS    50U
 #endif
 
 /* Naming and numbering of basic PHY registers. */
@@ -122,7 +148,7 @@ static uint32_t xPhyReset( EthernetPhy_t * pxPhyObject,
 
 static BaseType_t xHas_1F_PHYSPCS( uint32_t ulPhyID )
 {
-    BaseType_t xResult;
+    BaseType_t xResult = pdFALSE;
 
     switch( ulPhyID )
     {
@@ -143,7 +169,9 @@ static BaseType_t xHas_1F_PHYSPCS( uint32_t ulPhyID )
             break;
 
         case PHY_ID_DP83848I:
-            xResult = pdFALSE;
+        case PHY_ID_DP83TC811S:
+        case PHY_ID_MV88E6071:
+            /* Has no 0x1F register "PHY Special Control Status". */
             break;
     }
 
@@ -153,7 +181,7 @@ static BaseType_t xHas_1F_PHYSPCS( uint32_t ulPhyID )
 
 static BaseType_t xHas_19_PHYCR( uint32_t ulPhyID )
 {
-    BaseType_t xResult;
+    BaseType_t xResult = pdFALSE;
 
     switch( ulPhyID )
     {
@@ -162,9 +190,9 @@ static BaseType_t xHas_19_PHYCR( uint32_t ulPhyID )
             xResult = pdTRUE;
             break;
 
+        case PHY_ID_MV88E6071: /* Marvell 88E6071 */
         default:
             /* Most PHY's do not have a 19_PHYCR */
-            xResult = pdFALSE;
             break;
     }
 
@@ -193,7 +221,7 @@ BaseType_t xPhyDiscover( EthernetPhy_t * pxPhyObject )
 
     for( xPhyAddress = phyMIN_PHY_ADDRESS; xPhyAddress <= phyMAX_PHY_ADDRESS; xPhyAddress++ )
     {
-        uint32_t ulLowerID = 0;
+        uint32_t ulLowerID = 0U;
 
         pxPhyObject->fnPhyRead( xPhyAddress, phyREG_03_PHYSID2, &ulLowerID );
 
@@ -204,7 +232,7 @@ BaseType_t xPhyDiscover( EthernetPhy_t * pxPhyObject )
             uint32_t ulPhyID;
 
             pxPhyObject->fnPhyRead( xPhyAddress, phyREG_02_PHYSID1, &ulUpperID );
-            ulPhyID = ( ( ( uint32_t ) ulUpperID ) << 16 ) | ( ulLowerID & 0xFFF0 );
+            ulPhyID = ( ( ( uint32_t ) ulUpperID ) << 16 ) | ( ulLowerID & 0xFFF0U );
 
             pxPhyObject->ucPhyIndexes[ pxPhyObject->xPortCount ] = xPhyAddress;
             pxPhyObject->ulPhyIDs[ pxPhyObject->xPortCount ] = ulPhyID;
@@ -238,7 +266,7 @@ static uint32_t xPhyReset( EthernetPhy_t * pxPhyObject,
     BaseType_t xPhyIndex;
 
     /* A bit-mask of PHY ports that are ready. */
-    ulDoneMask = 0UL;
+    ulDoneMask = 0U;
 
     /* Set the RESET bits high. */
     for( xPhyIndex = 0; xPhyIndex < pxPhyObject->xPortCount; xPhyIndex++ )
@@ -265,7 +293,7 @@ static uint32_t xPhyReset( EthernetPhy_t * pxPhyObject,
             if( ( ulConfig & phyBMCR_RESET ) == 0 )
             {
                 FreeRTOS_printf( ( "xPhyReset: phyBMCR_RESET %d ready\n", ( int ) xPhyIndex ) );
-                ulDoneMask |= ( 1UL << xPhyIndex );
+                ulDoneMask |= ( 1U << xPhyIndex );
             }
         }
 
@@ -287,7 +315,7 @@ static uint32_t xPhyReset( EthernetPhy_t * pxPhyObject,
     /* Clear the reset bits. */
     for( xPhyIndex = 0; xPhyIndex < pxPhyObject->xPortCount; xPhyIndex++ )
     {
-        if( ( ulDoneMask & ( 1UL << xPhyIndex ) ) == 0UL )
+        if( ( ulDoneMask & ( 1U << xPhyIndex ) ) == 0U )
         {
             BaseType_t xPhyAddress = pxPhyObject->ucPhyIndexes[ xPhyIndex ];
 
@@ -565,7 +593,7 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
 
         if( xTaskCheckForTimeOut( &xTimer, &xRemainingTime ) != pdFALSE )
         {
-            FreeRTOS_printf( ( "xPhyStartAutoNegotiation: phyBMCR_RESET timed out ( done 0x%02lX )\n", ulDoneMask ) );
+            FreeRTOS_printf( ( "xPhyStartAutoNegotiation: phyBMSR_AN_COMPLETE timed out ( done 0x%02lX )\n", ulDoneMask ) );
             break;
         }
 

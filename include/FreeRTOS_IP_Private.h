@@ -48,7 +48,7 @@
     #ifdef TEST
         int ipFOREVER( void );
     #else
-        #define ipFOREVER()   1
+        #define ipFOREVER()    1
     #endif
 
 /*-----------------------------------------------------------*/

@@ -51,7 +51,8 @@
 #include "FreeRTOS_DNS.h"
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. */
-extern NetworkBufferDescriptor_t* pxARPWaitingNetworkBuffer;
+extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
+
 
 /*
  * Utility functions for the light weight IP timers.
@@ -291,10 +292,12 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
 }
 /*-----------------------------------------------------------*/
 
-void vTCPTimerReload( TickType_t xTime )
-{
-    prvIPTimerReload( &xTCPTimer, xTime );
-}
+#if ( ipconfigUSE_TCP == 1 )
+    void vTCPTimerReload( TickType_t xTime )
+    {
+        prvIPTimerReload( &xTCPTimer, xTime );
+    }
+#endif
 /*-----------------------------------------------------------*/
 
 void vARPTimerReload( TickType_t xTime )
@@ -323,9 +326,9 @@ void vARPTimerReload( TickType_t xTime )
  *
  * @param[in] ulCheckTime: The reload value.
  */
-    void vDNSTimerReload(uint32_t ulCheckTime)
+    void vDNSTimerReload( uint32_t ulCheckTime )
     {
-        prvIPTimerReload(&xDNSTimer, ulCheckTime);
+        prvIPTimerReload( &xDNSTimer, ulCheckTime );
     }
 #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
 /*-----------------------------------------------------------*/
@@ -373,23 +376,26 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_TCP == 1 )
+
 /**
  * @brief Enable/disable the TCP timer.
  *
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
-void vIPSetTCPTimerEnableState(BaseType_t xEnableState)
-{
-    if (xEnableState != pdFALSE)
+    void vIPSetTCPTimerEnableState( BaseType_t xEnableState )
     {
-        xTCPTimer.bActive = pdTRUE_UNSIGNED;
+        if( xEnableState != pdFALSE )
+        {
+            xTCPTimer.bActive = pdTRUE_UNSIGNED;
+        }
+        else
+        {
+            xTCPTimer.bActive = pdFALSE_UNSIGNED;
+        }
     }
-    else
-    {
-        xTCPTimer.bActive = pdFALSE_UNSIGNED;
-    }
-}
 /*-----------------------------------------------------------*/
+#endif /* if ( ipconfigUSE_TCP == 1 ) */
 
 /**
  * @brief Enable/disable the ARP timer.
