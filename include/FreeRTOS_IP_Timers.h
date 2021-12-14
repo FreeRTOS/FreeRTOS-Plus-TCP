@@ -71,6 +71,7 @@ void vIPSetARPTimerEnableState( BaseType_t xEnableState );
 void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
 
 #if ( ipconfigUSE_DHCP != 0 )
+
 /**
  * @brief Enable/disable the DHCP timer.
  *

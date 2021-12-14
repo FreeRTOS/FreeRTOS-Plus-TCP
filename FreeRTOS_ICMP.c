@@ -259,4 +259,3 @@ ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_t )
     return ( ICMPPacket_t * ) pvArgument;
 }
 /*-----------------------------------------------------------*/
-

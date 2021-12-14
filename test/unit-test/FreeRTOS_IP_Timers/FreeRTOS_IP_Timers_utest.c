@@ -82,110 +82,110 @@ extern IPTimer_t xARPResolutionTimer;
 void test_xCalculateSleepTime_AllTimersInactive( void )
 {
     TickType_t uxTicks;
-    
+
     xARPTimer.bActive = pdFALSE;
     xDHCPTimer.bActive = pdFALSE;
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
-    
+
     uxTicks = xCalculateSleepTime();
-    
+
     TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME, uxTicks );
 }
 
 void test_xCalculateSleepTime_AllTimersActive_AllTimesGreater( void )
 {
     TickType_t uxTicks;
-    
+
     xARPTimer.bActive = pdTRUE;
     xDHCPTimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdTRUE;
     xTCPTimer.bActive = pdTRUE;
-    
+
     xARPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xDHCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    
+
     uxTicks = xCalculateSleepTime();
-    
+
     TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME, uxTicks );
 }
 
 void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptOne( void )
 {
     TickType_t uxTicks;
-    
+
     xARPTimer.bActive = pdTRUE;
     xDHCPTimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdTRUE;
     xTCPTimer.bActive = pdTRUE;
-    
+
     xARPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME - 10;
     xDHCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    
+
     uxTicks = xCalculateSleepTime();
-    
-    TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME-10, uxTicks );
+
+    TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME - 10, uxTicks );
 }
 
 void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptOne1( void )
 {
     TickType_t uxTicks;
-    
+
     xARPTimer.bActive = pdTRUE;
     xDHCPTimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdTRUE;
     xTCPTimer.bActive = pdTRUE;
-    
+
     xARPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    xDHCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME-10;
+    xDHCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME - 10;
     xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    
+
     uxTicks = xCalculateSleepTime();
-    
-    TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME-10, uxTicks );
+
+    TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME - 10, uxTicks );
 }
 
 void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptOne2( void )
 {
     TickType_t uxTicks;
-    
+
     xARPTimer.bActive = pdTRUE;
     xDHCPTimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdTRUE;
     xTCPTimer.bActive = pdTRUE;
-    
+
     xARPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xDHCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME-10;
+    xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME - 10;
     xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    
+
     uxTicks = xCalculateSleepTime();
-    
-    TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME-10, uxTicks );
+
+    TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME - 10, uxTicks );
 }
 
 void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptOne3( void )
 {
     TickType_t uxTicks;
-    
+
     xARPTimer.bActive = pdTRUE;
     xDHCPTimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdTRUE;
     xTCPTimer.bActive = pdTRUE;
-    
+
     xARPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xDHCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME-10;
-    
+    xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME - 10;
+
     uxTicks = xCalculateSleepTime();
-    
-    TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME-10, uxTicks );
+
+    TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME - 10, uxTicks );
 }
 
 void test_vCheckNetworkTimers_AllTimersDisabled( void )
@@ -194,11 +194,11 @@ void test_vCheckNetworkTimers_AllTimersDisabled( void )
     xDHCPTimer.bActive = pdFALSE;
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
-    
+
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
-    
+
     vSocketCloseNextTime_Expect( NULL );
-    
+
     vCheckNetworkTimers();
 }
 
@@ -208,17 +208,17 @@ void test_vCheckNetworkTimers_ARPTimerActiveAndExpired( void )
     xDHCPTimer.bActive = pdFALSE;
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
-    
+
     xARPTimer.bExpired = pdTRUE;
-    
+
     vTaskSetTimeOutState_Expect( &( xARPTimer.xTimeOut ) );
-    
+
     xSendEventToIPTask_ExpectAndReturn( eARPTimerEvent, pdTRUE );
-    
+
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
-    
+
     vSocketCloseNextTime_Expect( NULL );
-    
+
     vCheckNetworkTimers();
 }
 
@@ -229,17 +229,17 @@ void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired( void )
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdTRUE;
-    
+
     xARPResolutionTimer.bExpired = pdTRUE;
-    
+
     pxARPWaitingNetworkBuffer = NULL;
-    
+
     vTaskSetTimeOutState_Expect( &( xARPResolutionTimer.xTimeOut ) );
-    
+
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
-    
+
     vSocketCloseNextTime_Expect( NULL );
-    
+
     vCheckNetworkTimers();
 }
 
@@ -250,21 +250,21 @@ void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired2( void )
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdTRUE;
-    
+
     xARPResolutionTimer.bExpired = pdTRUE;
-    
+
     pxARPWaitingNetworkBuffer = ( NetworkBufferDescriptor_t * ) 0x1234ABCD;
-    
+
     vTaskSetTimeOutState_Expect( &( xARPResolutionTimer.xTimeOut ) );
-    
+
     vReleaseNetworkBufferAndDescriptor_Expect( pxARPWaitingNetworkBuffer );
-    
+
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
-    
+
     vSocketCloseNextTime_Expect( NULL );
-    
+
     vCheckNetworkTimers();
-    
+
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xARPResolutionTimer.bActive );
     TEST_ASSERT_EQUAL_PTR( NULL, pxARPWaitingNetworkBuffer );
 }
@@ -276,17 +276,17 @@ void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
-    
+
     xDHCPTimer.bExpired = pdTRUE;
-    
+
     vTaskSetTimeOutState_Expect( &( xDHCPTimer.xTimeOut ) );
-    
+
     xSendDHCPEvent_ExpectAndReturn( pdTRUE );
-    
+
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
-    
+
     vSocketCloseNextTime_Expect( NULL );
-    
+
     vCheckNetworkTimers();
 }
 
@@ -297,17 +297,17 @@ void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
     xDNSTimer.bActive = pdTRUE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
-    
+
     xDNSTimer.bExpired = pdTRUE;
-    
+
     vTaskSetTimeOutState_Expect( &( xDHCPTimer.xTimeOut ) );
-    
+
     vDNSCheckCallBack_Expect( NULL );
-    
+
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
-    
+
     vSocketCloseNextTime_Expect( NULL );
-    
+
     vCheckNetworkTimers();
 }
 
@@ -318,13 +318,13 @@ void test_vCheckNetworkTimers_AllTimersInactive_1( void )
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
-    
+
     xProcessedTCPMessage = pdTRUE;
-    
+
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
-    
+
     vSocketCloseNextTime_Expect( NULL );
-    
+
     vCheckNetworkTimers();
 }
 
@@ -335,19 +335,19 @@ void test_vCheckNetworkTimers_AllTimersInactive_2( void )
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
-    
+
     xProcessedTCPMessage = pdTRUE;
-    
+
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdFALSE );
-    
+
     xTCPTimerCheck_ExpectAndReturn( pdTRUE, 0x123 );
-    
+
     vTaskSetTimeOutState_Expect( &( xTCPTimer.xTimeOut ) );
-    
+
     vSocketCloseNextTime_Expect( NULL );
-    
+
     vCheckNetworkTimers();
-    
+
     TEST_ASSERT_EQUAL( 0, xProcessedTCPMessage );
     TEST_ASSERT_EQUAL( 0x123, xTCPTimer.ulRemainingTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xTCPTimer.bExpired );
@@ -358,11 +358,11 @@ void test_prvIPTimerStart_NonZeroTime( void )
 {
     IPTimer_t xTimer;
     TickType_t xTime = 0xABCD;
-    
+
     vTaskSetTimeOutState_Expect( &xTimer.xTimeOut );
-    
+
     prvIPTimerStart( &xTimer, xTime );
-    
+
     TEST_ASSERT_EQUAL( xTime, xTimer.ulRemainingTime );
     TEST_ASSERT_EQUAL( pdTRUE, xTimer.bActive );
     TEST_ASSERT_EQUAL( pdFALSE, xTimer.bExpired );
@@ -372,11 +372,11 @@ void test_prvIPTimerStart_ZeroTime( void )
 {
     IPTimer_t xTimer;
     TickType_t xTime = 0x00;
-    
+
     vTaskSetTimeOutState_Expect( &xTimer.xTimeOut );
-    
+
     prvIPTimerStart( &xTimer, xTime );
-    
+
     TEST_ASSERT_EQUAL( xTime, xTimer.ulRemainingTime );
     TEST_ASSERT_EQUAL( pdTRUE, xTimer.bActive );
     TEST_ASSERT_EQUAL( pdTRUE, xTimer.bExpired );
@@ -385,11 +385,11 @@ void test_prvIPTimerStart_ZeroTime( void )
 void test_vIPTimerStartARPResolution( void )
 {
     TickType_t xTime = 0x00;
-    
+
     vTaskSetTimeOutState_Expect( &xARPResolutionTimer.xTimeOut );
-    
+
     vIPTimerStartARPResolution( xTime );
-    
+
     TEST_ASSERT_EQUAL( xTime, xARPResolutionTimer.ulRemainingTime );
     TEST_ASSERT_EQUAL( pdTRUE, xARPResolutionTimer.bActive );
     TEST_ASSERT_EQUAL( pdTRUE, xARPResolutionTimer.bExpired );
@@ -398,11 +398,11 @@ void test_vIPTimerStartARPResolution( void )
 void test_vTCPTimerReload( void )
 {
     TickType_t xTime = 0x12A;
-    
+
     vTaskSetTimeOutState_Expect( &xTCPTimer.xTimeOut );
-    
+
     vTCPTimerReload( xTime );
-    
+
     TEST_ASSERT_EQUAL( 0x12A, xTCPTimer.ulReloadTime );
     TEST_ASSERT_EQUAL( xTime, xTCPTimer.ulRemainingTime );
     TEST_ASSERT_EQUAL( pdTRUE, xTCPTimer.bActive );
@@ -412,11 +412,11 @@ void test_vTCPTimerReload( void )
 void test_vARPTimerReload( void )
 {
     TickType_t xTime = 0x12A;
-    
+
     vTaskSetTimeOutState_Expect( &xARPTimer.xTimeOut );
-    
+
     vARPTimerReload( xTime );
-    
+
     TEST_ASSERT_EQUAL( 0x12A, xARPTimer.ulReloadTime );
     TEST_ASSERT_EQUAL( xTime, xARPTimer.ulRemainingTime );
     TEST_ASSERT_EQUAL( pdTRUE, xARPTimer.bActive );
@@ -426,11 +426,11 @@ void test_vARPTimerReload( void )
 void test_vDHCPTimerReload( void )
 {
     TickType_t xTime = 0x12A;
-    
+
     vTaskSetTimeOutState_Expect( &xDHCPTimer.xTimeOut );
-    
+
     vDHCPTimerReload( xTime );
-    
+
     TEST_ASSERT_EQUAL( 0x12A, xDHCPTimer.ulReloadTime );
     TEST_ASSERT_EQUAL( xTime, xDHCPTimer.ulRemainingTime );
     TEST_ASSERT_EQUAL( pdTRUE, xDHCPTimer.bActive );
@@ -440,11 +440,11 @@ void test_vDHCPTimerReload( void )
 void test_vDNSTimerReload( void )
 {
     TickType_t xTime = 0x12A;
-    
+
     vTaskSetTimeOutState_Expect( &xDNSTimer.xTimeOut );
-    
+
     vDNSTimerReload( xTime );
-    
+
     TEST_ASSERT_EQUAL( 0x12A, xDNSTimer.ulReloadTime );
     TEST_ASSERT_EQUAL( xTime, xDNSTimer.ulRemainingTime );
     TEST_ASSERT_EQUAL( pdTRUE, xDNSTimer.bActive );
@@ -455,11 +455,11 @@ void test_prvIPTimerCheck_TimerDisabled( void )
 {
     BaseType_t xResult;
     IPTimer_t xTimer;
-    
+
     xTimer.bActive = pdFALSE;
-    
+
     xResult = prvIPTimerCheck( &xTimer );
-    
+
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
@@ -467,15 +467,15 @@ void test_prvIPTimerCheck_TimerExpired( void )
 {
     BaseType_t xResult;
     IPTimer_t xTimer;
-    
+
     xTimer.bActive = pdTRUE;
     xTimer.bExpired = pdTRUE;
     xTimer.ulReloadTime = 0xAA;
-    
+
     vTaskSetTimeOutState_Expect( &xTimer.xTimeOut );
-    
+
     xResult = prvIPTimerCheck( &xTimer );
-    
+
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
     TEST_ASSERT_EQUAL( 0xAA, xTimer.ulReloadTime );
     TEST_ASSERT_EQUAL( 0xAA, xTimer.ulRemainingTime );
@@ -487,15 +487,15 @@ void test_prvIPTimerCheck_TimerNotExpired( void )
 {
     BaseType_t xResult;
     IPTimer_t xTimer;
-    
+
     xTimer.bActive = pdTRUE;
     xTimer.bExpired = pdFALSE;
     xTimer.ulReloadTime = 0xAA;
-    
+
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
-    
+
     xResult = prvIPTimerCheck( &xTimer );
-    
+
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
@@ -503,17 +503,17 @@ void test_prvIPTimerCheck_TimerNotExpired1( void )
 {
     BaseType_t xResult;
     IPTimer_t xTimer;
-    
+
     xTimer.bActive = pdTRUE;
     xTimer.bExpired = pdFALSE;
     xTimer.ulReloadTime = 0xAA;
-    
+
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
-    
+
     vTaskSetTimeOutState_Expect( &xTimer.xTimeOut );
-    
+
     xResult = prvIPTimerCheck( &xTimer );
-    
+
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
     TEST_ASSERT_EQUAL( 0xAA, xTimer.ulReloadTime );
     TEST_ASSERT_EQUAL( 0xAA, xTimer.ulRemainingTime );
@@ -524,90 +524,89 @@ void test_prvIPTimerCheck_TimerNotExpired1( void )
 void test_vIPSetTCPTimerEnableState_False( void )
 {
     BaseType_t xEnableState = pdFALSE;
-    
-    vIPSetTCPTimerEnableState(xEnableState);
-    
+
+    vIPSetTCPTimerEnableState( xEnableState );
+
     TEST_ASSERT_EQUAL( xEnableState, xTCPTimer.bActive );
 }
 
 void test_vIPSetTCPTimerEnableState_True( void )
 {
     BaseType_t xEnableState = pdTRUE;
-    
-    vIPSetTCPTimerEnableState(xEnableState);
-    
+
+    vIPSetTCPTimerEnableState( xEnableState );
+
     TEST_ASSERT_EQUAL( xEnableState, xTCPTimer.bActive );
 }
 
 void test_vIPSetARPTimerEnableState_False( void )
 {
     BaseType_t xEnableState = pdFALSE;
-    
-    vIPSetARPTimerEnableState(xEnableState);
-    
+
+    vIPSetARPTimerEnableState( xEnableState );
+
     TEST_ASSERT_EQUAL( xEnableState, xARPTimer.bActive );
 }
 
 void test_vIPSetARPTimerEnableState_True( void )
 {
     BaseType_t xEnableState = pdTRUE;
-    
-    vIPSetARPTimerEnableState(xEnableState);
-    
+
+    vIPSetARPTimerEnableState( xEnableState );
+
     TEST_ASSERT_EQUAL( xEnableState, xARPTimer.bActive );
 }
 
 void test_vIPSetARPResolutionTimerEnableState_False( void )
 {
     BaseType_t xEnableState = pdFALSE;
-    
-    vIPSetARPResolutionTimerEnableState(xEnableState);
-    
+
+    vIPSetARPResolutionTimerEnableState( xEnableState );
+
     TEST_ASSERT_EQUAL( xEnableState, xARPResolutionTimer.bActive );
 }
 
 void test_vIPSetARPResolutionTimerEnableState_True( void )
 {
     BaseType_t xEnableState = pdTRUE;
-    
-    vIPSetARPResolutionTimerEnableState(xEnableState);
-    
+
+    vIPSetARPResolutionTimerEnableState( xEnableState );
+
     TEST_ASSERT_EQUAL( xEnableState, xARPResolutionTimer.bActive );
 }
 
 void test_vIPSetDHCPTimerEnableState_False( void )
 {
     BaseType_t xEnableState = pdFALSE;
-    
-    vIPSetDHCPTimerEnableState(xEnableState);
-    
+
+    vIPSetDHCPTimerEnableState( xEnableState );
+
     TEST_ASSERT_EQUAL( xEnableState, xDHCPTimer.bActive );
 }
 
 void test_vIPSetDHCPTimerEnableState_True( void )
 {
     BaseType_t xEnableState = pdTRUE;
-    
-    vIPSetDHCPTimerEnableState(xEnableState);
-    
+
+    vIPSetDHCPTimerEnableState( xEnableState );
+
     TEST_ASSERT_EQUAL( xEnableState, xDHCPTimer.bActive );
 }
 
 void test_vIPSetDNSTimerEnableState_False( void )
 {
     BaseType_t xEnableState = pdFALSE;
-    
-    vIPSetDNSTimerEnableState(xEnableState);
-    
+
+    vIPSetDNSTimerEnableState( xEnableState );
+
     TEST_ASSERT_EQUAL( xEnableState, xDNSTimer.bActive );
 }
 
 void test_vIPSetDNSTimerEnableState_True( void )
 {
     BaseType_t xEnableState = pdTRUE;
-    
-    vIPSetDNSTimerEnableState(xEnableState);
-    
+
+    vIPSetDNSTimerEnableState( xEnableState );
+
     TEST_ASSERT_EQUAL( xEnableState, xDNSTimer.bActive );
 }
-

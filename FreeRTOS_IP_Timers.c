@@ -321,6 +321,7 @@ void vARPTimerReload( TickType_t xTime )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
+
 /**
  * @brief Reload the DNS timer.
  *

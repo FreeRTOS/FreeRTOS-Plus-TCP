@@ -55,7 +55,7 @@
 #define ipICMP_ECHO_REPLY      ( ( uint8_t ) 0 )              /**< ICMP echo reply. */
 
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-    
+
 /*
  * Process incoming ICMP packets.
  */

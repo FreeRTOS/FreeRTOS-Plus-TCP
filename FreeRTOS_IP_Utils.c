@@ -71,7 +71,7 @@
 
 extern QueueHandle_t xNetworkEventQueue;
 
-#if( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
+#if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     static BaseType_t xCallEventHook = pdFALSE;
 #endif
 
@@ -298,7 +298,7 @@ void prvProcessNetworkDownEvent( void )
     /* Stop the ARP timer while there is no network. */
     vIPSetARPTimerEnableState( pdFALSE );
 
-    #if( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
+    #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
         {
             static BaseType_t xCallEventHook = pdFALSE;
 
@@ -445,14 +445,14 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 
         usLength = pxIPPacket->xIPHeader.usLength;
         usLength = FreeRTOS_ntohs( usLength );
-        
+
         if( usLength < uxIPHeaderLength )
         {
             usChecksum = ipINVALID_LENGTH;
             DEBUG_SET_TRACE_VARIABLE( xLocation, 3 );
             break;
         }
-        
+
         if( uxBufferLength < ( size_t ) ( ipSIZE_OF_ETH_HEADER + ( size_t ) usLength ) )
         {
             usChecksum = ipINVALID_LENGTH;
@@ -1182,12 +1182,12 @@ uint32_t FreeRTOS_round_up( uint32_t a,
                             uint32_t d )
 {
     uint32_t ulResult = 0;
-    
+
     if( d != 0 )
     {
         ulResult = d * ( ( a + d - 1U ) / d );
     }
-    
+
     return ulResult;
 }
 /*-----------------------------------------------------------*/
@@ -1202,12 +1202,12 @@ uint32_t FreeRTOS_round_down( uint32_t a,
                               uint32_t d )
 {
     uint32_t ulResult = 0;
-    
+
     if( d != 0 )
     {
         ulResult = d * ( a / d );
     }
-    
+
     return ulResult;
 }
 /*-----------------------------------------------------------*/
