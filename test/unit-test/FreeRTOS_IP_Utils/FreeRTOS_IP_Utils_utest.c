@@ -270,6 +270,8 @@ void test_xIsCallingFromIPTask_IsCallingFromIPTask( void )
 
 void test_prvProcessNetworkDownEvent_Pass( void )
 {
+    xCallEventHook = pdFALSE;
+
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
     FreeRTOS_ClearARP_Expect();
@@ -1333,6 +1335,23 @@ void test_usGenerateChecksum_FourByteAllignedSumOverflow2( void )
     TEST_ASSERT_EQUAL( 21759, usResult );
 }
 
+void test_vPrintResourceStats_BufferCountMore( void )
+{
+    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 2 );
+    xPortGetMinimumEverFreeHeapSize_ExpectAndReturn( 2 );
+    
+    vPrintResourceStats();
+}
+
+void test_vPrintResourceStats_BufferCountLess( void )
+{
+    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2 );
+    xPortGetMinimumEverFreeHeapSize_ExpectAndReturn( 2 );
+    
+    vPrintResourceStats();
+}
+
+
 void test_FreeRTOS_strerror_r_Invalid( void )
 {
     const char * pucResult;
@@ -1634,6 +1653,29 @@ void test_FreeRTOS_max_uint32( void )
     }
 }
 
+void test_FreeRTOS_max_size_t( void )
+{
+    uint32_t smaller, bigger, lResult;
+
+    for( uint32_t i = 0; i < 100; i++ )
+    {
+        for( uint32_t j = 0; j <= i; j++ )
+        {
+            lResult = FreeRTOS_max_size_t( i, j );
+            TEST_ASSERT_EQUAL( i, lResult );
+        }
+    }
+
+    for( uint32_t i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
+    {
+        for( uint32_t j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
+        {
+            lResult = FreeRTOS_max_size_t( i, j );
+            TEST_ASSERT_EQUAL( i, lResult );
+        }
+    }
+}
+
 void test_FreeRTOS_min_int32( void )
 {
     int32_t smaller, bigger, lResult;
@@ -1675,6 +1717,29 @@ void test_FreeRTOS_min_uint32( void )
         for( uint32_t j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
         {
             lResult = FreeRTOS_min_uint32( i, j );
+            TEST_ASSERT_EQUAL( j, lResult );
+        }
+    }
+}
+
+void test_FreeRTOS_min_size_t( void )
+{
+    uint32_t smaller, bigger, lResult;
+
+    for( uint32_t i = 0; i < 100; i++ )
+    {
+        for( uint32_t j = 0; j <= i; j++ )
+        {
+            lResult = FreeRTOS_min_size_t( i, j );
+            TEST_ASSERT_EQUAL( j, lResult );
+        }
+    }
+
+    for( uint32_t i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
+    {
+        for( uint32_t j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
+        {
+            lResult = FreeRTOS_min_size_t( i, j );
             TEST_ASSERT_EQUAL( j, lResult );
         }
     }
