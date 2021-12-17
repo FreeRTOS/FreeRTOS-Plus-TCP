@@ -1180,7 +1180,9 @@ size_t FreeRTOS_min_size_t( size_t a,
 uint32_t FreeRTOS_round_up( uint32_t a,
                             uint32_t d )
 {
-    uint32_t ulResult = 0;
+    uint32_t ulResult = a;
+
+    configASSERT( d != 0 );
 
     if( d != 0 )
     {
@@ -1201,6 +1203,8 @@ uint32_t FreeRTOS_round_down( uint32_t a,
                               uint32_t d )
 {
     uint32_t ulResult = 0;
+
+    configASSERT( d != 0 );
 
     if( d != 0 )
     {

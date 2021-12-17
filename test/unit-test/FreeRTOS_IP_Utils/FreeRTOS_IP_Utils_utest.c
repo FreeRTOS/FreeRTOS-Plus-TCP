@@ -1752,8 +1752,7 @@ void test_FreeRTOS_round_up( void )
 
     a = 0;
     d = 0;
-    ulResult = FreeRTOS_round_up( a, d );
-    TEST_ASSERT_EQUAL( 0, ulResult );
+    catch_assert( FreeRTOS_round_up( a, d ) );
 
     a = 32;
     d = 5;
@@ -1783,8 +1782,7 @@ void test_FreeRTOS_round_down( void )
 
     a = 0;
     d = 0;
-    ulResult = FreeRTOS_round_down( a, d );
-    TEST_ASSERT_EQUAL( 0, ulResult );
+    catch_assert( FreeRTOS_round_down( a, d ) );
 
     a = 32;
     d = 5;
