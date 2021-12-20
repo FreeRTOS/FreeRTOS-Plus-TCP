@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP V2.4.0
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -371,6 +371,16 @@
 #ifndef ipconfigICMP_TIME_TO_LIVE
     /* Set the default value suggested in RFC 1700. */
     #define ipconfigICMP_TIME_TO_LIVE    64
+#endif
+
+#ifndef ipconfigTCP_SRTT_MINIMUM_VALUE_MS
+
+/* TCP only: when measuring the Smoothed Round Trip Time (SRTT),
+ * the result will be rounded up to a minimum value.
+ * The default has always been 50, but a value of 1000
+ * is recommended (see RFC6298) because hosts often delay the
+ * sending of ACK packets with 200 ms. */
+    #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS    50U
 #endif
 
 #ifndef ipconfigUDP_MAX_RX_PACKETS

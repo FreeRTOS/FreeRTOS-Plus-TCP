@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP V2.4.0
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -40,7 +40,7 @@
 
 /* Constants defining the current version of the FreeRTOS+TCP
  * network stack. */
-    #define ipFR_TCP_VERSION_NUMBER    "V2.3.4"
+    #define ipFR_TCP_VERSION_NUMBER    "V2.4.0"
     #define ipFR_TCP_VERSION_MAJOR     2
     #define ipFR_TCP_VERSION_MINOR     3
     #define ipFR_TCP_VERSION_BUILD     4
