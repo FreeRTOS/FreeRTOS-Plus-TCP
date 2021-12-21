@@ -81,6 +81,7 @@ void vPreCheckConfigs( void );
     #define vPrintResourceStats()    do {} while( ipFALSE_BOOL )   /**< ipconfigHAS_PRINTF is not defined. Define vPrintResourceStats to a do-while( 0 ). */
 #endif
 
+
 /*
  * Called to create a network connection when the stack is first started, or
  * when the network connection is lost.

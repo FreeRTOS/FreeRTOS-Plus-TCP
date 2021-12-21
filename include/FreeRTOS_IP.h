@@ -119,6 +119,7 @@
     #define ipFIRST_LOOPBACK_IPv4    0x7F000000UL            /**< Lowest IPv4 loopback address (including). */
     #define ipLAST_LOOPBACK_IPv4     0x80000000UL            /**< Highest IPv4 loopback address (excluding). */
 
+
     #if ( ipconfigUSE_TCP != 0 )
 
 /** @brief Set to a non-zero value if one or more TCP message have been processed
@@ -155,6 +156,7 @@
         #define DEBUG_DECLARE_TRACE_VARIABLE( type, var, init )                        /**< Empty definition since ipconfigHAS_PRINTF != 1. */
         #define DEBUG_SET_TRACE_VARIABLE( var, value )                                 /**< Empty definition since ipconfigHAS_PRINTF != 1. */
     #endif
+
 
 /**
  * The structure used to store buffers and pass them around the network stack.

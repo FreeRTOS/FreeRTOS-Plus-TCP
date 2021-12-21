@@ -37,7 +37,7 @@
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF    0
+#define ipconfigHAS_DEBUG_PRINTF    1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
     #define FreeRTOS_debug_printf( X )    configPRINTF( X )
 #endif
@@ -320,5 +320,7 @@ extern uint32_t ulRand();
 #define ipconfigUDP_MAX_RX_PACKETS               ( 1 )
 
 #define ipconfigSUPPORT_SIGNALS                  ( 1 )
+
+#define ipconfigBUFFER_PADDING                   ( 14 )
 
 #endif /* FREERTOS_IP_CONFIG_H */

@@ -41,6 +41,8 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Timers.h"
+#include "FreeRTOS_IP_Utils.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
@@ -52,6 +54,7 @@
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. */
 extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
+
 
 /*
  * Utility functions for the light weight IP timers.
@@ -96,17 +99,17 @@ static IPTimer_t xARPTimer;
  */
 TickType_t xCalculateSleepTime( void )
 {
-    TickType_t xMaximumSleepTime;
+    TickType_t uxMaximumSleepTime;
 
     /* Start with the maximum sleep time, then check this against the remaining
      * time in any other timers that are active. */
-    xMaximumSleepTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
+    uxMaximumSleepTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
 
     if( xARPTimer.bActive != pdFALSE_UNSIGNED )
     {
-        if( xARPTimer.ulRemainingTime < xMaximumSleepTime )
+        if( xARPTimer.ulRemainingTime < uxMaximumSleepTime )
         {
-            xMaximumSleepTime = xARPTimer.ulRemainingTime;
+            uxMaximumSleepTime = xARPTimer.ulRemainingTime;
         }
     }
 
@@ -114,9 +117,9 @@ TickType_t xCalculateSleepTime( void )
         {
             if( xDHCPTimer.bActive != pdFALSE_UNSIGNED )
             {
-                if( xDHCPTimer.ulRemainingTime < xMaximumSleepTime )
+                if( xDHCPTimer.ulRemainingTime < uxMaximumSleepTime )
                 {
-                    xMaximumSleepTime = xDHCPTimer.ulRemainingTime;
+                    uxMaximumSleepTime = xDHCPTimer.ulRemainingTime;
                 }
             }
         }
@@ -124,9 +127,12 @@ TickType_t xCalculateSleepTime( void )
 
     #if ( ipconfigUSE_TCP == 1 )
         {
-            if( xTCPTimer.ulRemainingTime < xMaximumSleepTime )
+            if( xTCPTimer.bActive != pdFALSE_UNSIGNED )
             {
-                xMaximumSleepTime = xTCPTimer.ulRemainingTime;
+                if( xTCPTimer.ulRemainingTime < uxMaximumSleepTime )
+                {
+                    uxMaximumSleepTime = xTCPTimer.ulRemainingTime;
+                }
             }
         }
     #endif
@@ -135,15 +141,15 @@ TickType_t xCalculateSleepTime( void )
         {
             if( xDNSTimer.bActive != pdFALSE_UNSIGNED )
             {
-                if( xDNSTimer.ulRemainingTime < xMaximumSleepTime )
+                if( xDNSTimer.ulRemainingTime < uxMaximumSleepTime )
                 {
-                    xMaximumSleepTime = xDNSTimer.ulRemainingTime;
+                    uxMaximumSleepTime = xDNSTimer.ulRemainingTime;
                 }
             }
         }
     #endif
 
-    return xMaximumSleepTime;
+    return uxMaximumSleepTime;
 }
 /*-----------------------------------------------------------*/
 

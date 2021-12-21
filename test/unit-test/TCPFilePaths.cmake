@@ -10,6 +10,7 @@ set( TCP_SOURCES
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_ICMP.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_IP.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_IP_Utils.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_IP_Timers.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_Sockets.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_Stream_Buffer.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_TCP_IP.c"
