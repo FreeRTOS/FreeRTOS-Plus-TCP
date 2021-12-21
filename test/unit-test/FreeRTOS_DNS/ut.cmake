@@ -19,7 +19,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Cache.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Callback.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS/DNS_Callback.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Networking.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Parser.h"
         )
@@ -34,6 +34,8 @@ list(APPEND mock_include_list
 #list the definitions of your mocks to control what to be included
 list(APPEND mock_define_list
 #-DportUSING_MPU_WRAPPERS=0
+        -DipconfigDNS_USE_CALLBACKS=1
+        -DipconfigUSE_DNS=1 
        )
 
 # ================= Create the library under test here (edit) ==================

@@ -21,11 +21,8 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Cache.h"
-#            "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Callback.h"
-#"${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Networking.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Parser.h"
             "${MODULE_ROOT_DIR}/test/unit-test/FreeRTOS_Sockets/Sockets_list_macros.h"
-#"${MODULE_ROOT_DIR}/test/unit-test/${project_name}/Sockets_list_macros.h"
         )
 # list the directories your mocks need
 list(APPEND mock_include_list
@@ -53,7 +50,6 @@ list(APPEND real_source_files
 list(APPEND real_include_directories
             .
             ${TCP_INCLUDE_DIRS}
-            ${TCP_INCLUDE_DIRS}/DNS
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${CMOCK_DIR}/vendor/unity/src

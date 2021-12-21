@@ -48,7 +48,6 @@ list(APPEND real_source_files
 list(APPEND real_include_directories
             .
             ${TCP_INCLUDE_DIRS}
-            ${TCP_INCLUDE_DIRS}/DNS
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${CMOCK_DIR}/vendor/unity/src

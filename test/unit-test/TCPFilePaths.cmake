@@ -23,10 +23,11 @@ set( TCP_SOURCES
 
 # TCP library Include directories.
 set( TCP_INCLUDE_DIRS
-     "${CMAKE_CURRENT_LIST_DIR}/../../include"
-     "${CMAKE_CURRENT_LIST_DIR}/../../portable/Buffermanagement"
-     "${CMAKE_CURRENT_LIST_DIR}/../../portable/Compiler/MSVC"
-     "${CMAKE_CURRENT_LIST_DIR}/stubs" )
+     ${CMAKE_CURRENT_LIST_DIR}/../../include
+     ${CMAKE_CURRENT_LIST_DIR}/../../include/DNS
+     ${CMAKE_CURRENT_LIST_DIR}/../../portable/Buffermanagement
+     ${CMAKE_CURRENT_LIST_DIR}/../../portable/Compiler/MSVC
+     ${CMAKE_CURRENT_LIST_DIR}/stubs )
 
 set( KERNEL_SOURCES
      "${CMAKE_CURRENT_LIST_DIR}/../FreeRTOS-Kernel/croutine.c"

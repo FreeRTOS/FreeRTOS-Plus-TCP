@@ -28,6 +28,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Callback.h"
             "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/IP_Timers_list_macros.h"
         )
 
@@ -74,8 +75,8 @@ set(test_include_directories "")
 # list the directories your test needs to include
 list(APPEND test_include_directories
             .
-            ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
+            ${CMOCK_DIR}/vendor/unity/src
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources
         )

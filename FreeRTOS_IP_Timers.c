@@ -88,6 +88,11 @@ static IPTimer_t xARPTimer;
     /** @brief DNS timer, to check for timeouts when looking-up a domain. */
     static IPTimer_t xDNSTimer;
 #endif
+#if ( ipconfigUSE_TCP != 0 )
+    /** @brief Set to a non-zero value if one or more TCP message have been processed                                                                                                                                                                                                   
+    *           within the last round. */
+    BaseType_t xProcessedTCPMessage;
+#endif
 
 /**
  * @brief Calculate the maximum sleep time remaining. It will go through all
