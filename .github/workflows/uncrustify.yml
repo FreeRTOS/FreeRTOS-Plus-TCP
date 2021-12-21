@@ -42,8 +42,8 @@ jobs:
           find . -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
       - name: Push changes to upstream repository
         run: |
-          git config --global user.name 'Aniruddha Kanhere'
-          git config --global user.email '60444055+AniruddhaKanhere@users.noreply.github.com'
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
           git add -A
           git commit -m "Uncrustify: triggered by comment."
           git push
