@@ -613,7 +613,7 @@
 /**
  * @brief If LLMNR is being used then determine if the host name includes a '.' -
  *        if not then LLMNR can be used as the lookup method.
- * @param pcHostName[IN] name to search for a dot
+ * @param pcHostName[in] name to search for a dot
  * @return pdTRUE if the name has a dot
  */
         static BaseType_t llmnr_has_dot( const char * pcHostName )
@@ -636,8 +636,8 @@
 
 /**
  * @brief  get a payload buffer
- * @param ppxNetworkBuffer[OUT] a new network descripto
- * @param pchostName[IN] copy to the network buffer
+ * @param ppxNetworkBuffer[out] a new network descripto
+ * @param pchostName[in] copy to the network buffer
  * @returns payload buffer or NULL
  */
     static uint8_t * prvGetPayloadBuffer( NetworkBufferDescriptor_t ** ppxNetworkBuffer,
