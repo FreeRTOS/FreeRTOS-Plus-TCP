@@ -637,7 +637,7 @@
 /**
  * @brief  get a payload buffer
  * @param ppxNetworkBuffer[out] a new network descripto
- * @param pchostName[in] copy to the network buffer
+ * @param pcHostName[in] copy to the network buffer
  * @returns payload buffer or NULL
  */
     static uint8_t * prvGetPayloadBuffer( NetworkBufferDescriptor_t ** ppxNetworkBuffer,
