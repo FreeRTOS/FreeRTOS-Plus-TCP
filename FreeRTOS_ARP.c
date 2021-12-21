@@ -54,11 +54,11 @@
 /** @brief When the age of an entry in the ARP table reaches this value (it counts down
  * to zero, so this is an old entry) an ARP request will be sent to see if the
  * entry is still valid and can therefore be refreshed. */
-#define arpMAX_ARP_AGE_BEFORE_NEW_ARP_REQUEST    ( 3 )
+#define arpMAX_ARP_AGE_BEFORE_NEW_ARP_REQUEST                ( 3 )
 
 /** @brief The time between gratuitous ARPs. */
 #ifndef arpGRATUITOUS_ARP_PERIOD
-    #define arpGRATUITOUS_ARP_PERIOD    ( pdMS_TO_TICKS( 20000U ) )
+    #define arpGRATUITOUS_ARP_PERIOD    ( pdMS_TO_TICKS(20000U ) )
 #endif
 
 /** @brief When there is another device which has the same IP address as the IP address
@@ -79,12 +79,12 @@
 /*
  * Lookup an MAC address in the ARP cache from the IP address.
  */
-static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
+static eARPLookupResult_t prvCacheLookup( uint32_t     ulAddressToLookup,
                                           MACAddress_t * const pxMACAddress );
 
 /*-----------------------------------------------------------*/
 
-static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
+static void vProcessARPPacketReply( ARPPacket_t*pxARPFrame,
                                     uint32_t ulSenderProtocolAddress );
 
 /*-----------------------------------------------------------*/
@@ -94,7 +94,7 @@ _static ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
 
 /** @brief  The time at which the last gratuitous ARP was sent.  Gratuitous ARPs are used
  * to ensure ARP tables are up to date and to detect IP address conflicts. */
-static TickType_t xLastGratuitousARPTime = 0U;
+static TickType_t xLastGratuitousARPTime=0U;
 
 /*
  * IP-clash detection is currently only used internally. When DHCP doesn't respond, the
@@ -103,18 +103,18 @@ static TickType_t xLastGratuitousARPTime = 0U;
  */
 #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
     /* Becomes non-zero if another device responded to a gratuitous ARP message. */
-    BaseType_t xARPHadIPClash;
+    BaseType_t xARPHadIPClash  ;
     /* MAC-address of the other device containing the same IP-address. */
-    MACAddress_t xARPClashMacAddress;
+    MACAddress_t xARPClashMacAddress  ;
 #endif /* ipconfigARP_USE_CLASH_DETECTION */
 
 /** @brief This local variable is used to keep track of number of ARP requests sent and
  * also to limit the requests to arpIP_CLASH_MAX_RETRIES per arpIP_CLASH_RESET_TIMEOUT_MS
  * period. */
-static UBaseType_t uxARPClashCounter = 0U;
+static UBaseType_t uxARPClashCounter=0U;
 
 /** @brief The time at which the last ARP clash was sent. */
-static TimeOut_t xARPClashTimeOut;
+            static TimeOut_t xARPClashTimeOut;
 
 /** @brief Next defensive request must not be sent for arpIP_CLASH_RESET_TIMEOUT_MS
  * period. */
