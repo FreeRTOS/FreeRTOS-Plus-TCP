@@ -220,13 +220,6 @@
                 /*  Also perform a final modulo by the max number of IP addresses    */
                 /*  per DNS cache entry to prevent out-of-bounds access in the event */
                 /*  that ucNumIPAddresses has been corrupted.                        */
-                /*if( xDNSCache[ x ].ucNumIPAddresses == 0 ) */
-                /* { */
-
-                /* Trying lookup before cache is updated with the number of IP
-                 * addressed? Maybe an accident. Break out of the loop. */
-/*                                break; */
-/*          } */
 
                 ucIndex = xDNSCache[ index ].ucCurrentIPAddress % xDNSCache[ index ].ucNumIPAddresses;
                 ucIndex = ucIndex % ( uint8_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;

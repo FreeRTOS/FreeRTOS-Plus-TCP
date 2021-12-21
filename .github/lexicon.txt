@@ -1327,6 +1327,8 @@ vdnsinitialise
 vdnssetcallback
 ve
 vipnetworkupcalls
+vipreloaddhcptimer
+vipsetdhcptimerenablestate
 vl
 vlan
 vlantagcomparison
@@ -1339,6 +1341,7 @@ vportfree
 vprintresourcestats
 vprocessgeneratedudppacket
 vreleasenetworkbufferanddescriptor
+vReturnEthernetFrame
 vrxfaultinjection
 vsocketbind
 vsocketclose
@@ -1412,6 +1415,7 @@ xemacps
 xemacpsif
 xemactaskhandle
 xenablestate
+xend
 xentries
 xerrnum
 xethernetheader

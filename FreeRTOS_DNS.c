@@ -548,7 +548,7 @@
             /* Check the cache before issuing another DNS request. */
             if( ulIPAddress == 0UL )
             {
-                /* If caching is not defined dnslookup will return zero */
+                /* If caching is not defined dns lookup will return zero */
                 ulIPAddress = FreeRTOS_dnslookup( pcHostName );
 
                 if( ulIPAddress != 0UL )

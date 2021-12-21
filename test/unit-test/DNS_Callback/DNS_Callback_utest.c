@@ -184,7 +184,7 @@ void test_vDNSSetCallback_success( void )
 {
     void * pvSearchID = NULL;
 
-    /* Expecations */
+    /* Expectations */
     pvPortMalloc_ExpectAnyArgsAndReturn( &dnsCallback );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
     vTaskSetTimeOutState_ExpectAnyArgs();
@@ -211,7 +211,7 @@ void test_vDNSSetCallback_success_empty_list( void )
 {
     void * pvSearchID = NULL;
 
-    /* Expecations */
+    /* Expectations */
     pvPortMalloc_ExpectAnyArgsAndReturn( &dnsCallback );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 0 );
@@ -240,7 +240,7 @@ void test_vDNSSetCallback_malloc_failed( void )
 {
     void * pvSearchID = NULL;
 
-    /* Expecations */
+    /* Expectations */
     pvPortMalloc_ExpectAnyArgsAndReturn( NULL );
 
     /* API Call */

@@ -93,7 +93,7 @@ void tearDown( void )
 /* =============================  TEST CASES  =============================== */
 
 /**
- * @brief Ensures that the same entry is inserted into the cacche and retreived
+ * @brief Ensures that the same entry is inserted into the cache and retrieved
  */
 void test_processDNS_CACHE_Success( void )
 {

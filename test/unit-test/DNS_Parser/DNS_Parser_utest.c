@@ -130,8 +130,8 @@ void test_DNS_ReadNameField_success_empty_uxRemainingBytes( void )
 }
 
 /**
- * @brief ensures that if the dns name is dnsNAME_IS_OFFSET  and the sourcelen
- *        is les than 2 bytes zero is retuned
+ * @brief ensures that if the dns name is dnsNAME_IS_OFFSET  and the source
+ *        length is less than 2 bytes zero is returned
  */
 void test_DNS_ReadNameField_fail_offset_dns_name( void )
 {
@@ -146,8 +146,8 @@ void test_DNS_ReadNameField_fail_offset_dns_name( void )
 }
 
 /**
- * @brief ensures that if the dns name is dnsNAME_IS_OFFSET  and the sourcelen
- *        is greater than 2 bytes 2 is retuned (sizeof (uint16_t)
+ * @brief ensures that if the dns name is dnsNAME_IS_OFFSET  and the source
+ *        length is greater than 2 bytes 2 is returned (sizeof (uint16_t)
  */
 void test_DNS_ReadNameField_success_fully_coded_gt_uint16( void )
 {
@@ -177,7 +177,7 @@ void test_DNS_ReadNameField_zero_size_walk_over_nothing_to_do( void )
 }
 
 /**
- * @brief ensures when the name is 8 bytes 10 is retuned . + '\0', and the name
+ * @brief ensures when the name is 8 bytes 10 is returned . + '\0', and the name
  *        field is copied to pcName
  */
 void test_DNS_ReadNameField_walk_over_copy_name( void )
@@ -219,7 +219,7 @@ void test_DNS_ReadNameField_walk_over_copy_2_names( void )
 
 /**
  * @brief ensures that when the destination buffer (pcName) is shorter than the
- *        total string namefield, zero is retuned and the string is truncated i
+ *        total string name field, zero is returned and the string is truncated i
  *        pcName
  */
 void test_DNS_ReadNameField_short_destination( void )
@@ -240,7 +240,7 @@ void test_DNS_ReadNameField_short_destination( void )
 
 /**
  * @brief ensures that when the source buffer (pucByte) is shorter than the size
- *        of the name field, zero is retuned, and the resulting string (pcName)
+ *        of the name field, zero is returned, and the resulting string (pcName)
  *        is truncated
  */
 void test_DNS_ReadNameField_short_source( void )
@@ -261,7 +261,7 @@ void test_DNS_ReadNameField_short_source( void )
 
 /**
  * @brief ensures when the second name does not fit the destination zero is
- * retuned and only the first string is returned
+ *        returned and only the first string is returned
  */
 void test_DNS_ReadNameField_fail_name_len_gt_destlen( void )
 {
@@ -282,7 +282,7 @@ void test_DNS_ReadNameField_fail_name_len_gt_destlen( void )
 /* ==================== Testing  DNS_SkipNameField ===========================*/
 
 /**
- * @brief ensures that if pucBytes has a size of zero, zero is returned
+ * @brief ensures that if pucByte has a size of zero, zero is returned
  */
 void test_DNS_SkipNameField_failed_zero_length()
 {
@@ -295,7 +295,7 @@ void test_DNS_SkipNameField_failed_zero_length()
 }
 
 /**
- * @brief ensures that the appropritate size is returned + dot, dot, and \0
+ * @brief ensures that the appropriate size is returned + dot, dot, and \0
  */
 void test_DNS_SkipNameField_failed_()
 {
@@ -383,7 +383,7 @@ void test_DNS_SkipNameField_small_buffer( void )
     TEST_ASSERT_EQUAL( 0, ret );
 }
 
-/* =================== test prepareReplyDNSMessage ========================== */
+/* =================== test prepare Reply DNS Message ======================= */
 
 /**
  * @brief
@@ -461,7 +461,7 @@ void test_DNS_TreatNBNS_success_nbns_mask( void )
 }
 
 /**
- * @brief ensures that when pxNewBuffer is NULL, vReturnEthernetFrame is not
+ * @brief ensures that when new buffer is NULL, vReturnEthernetFrame is not
  *        called
  */
 void test_DNS_TreatNBNS_success_nbns_query_trailing_space( void )
@@ -486,7 +486,7 @@ void test_DNS_TreatNBNS_success_nbns_query_trailing_space( void )
 }
 
 /**
- * @brief ensures that when pxNewBuffer is NULL, vReturnEthernetFrame is not
+ * @brief ensures that when buffer is NULL, vReturnEthernetFrame is not
  *        called
  */
 void test_DNS_TreatNBNS_success_nbns_query( void )
@@ -511,7 +511,7 @@ void test_DNS_TreatNBNS_success_nbns_query( void )
 }
 
 /**
- * @brief ensures that when pxNewBuffer is NULL, vReturnEthernetFrame is not
+ * @brief ensures that when new buffer is NULL, vReturnEthernetFrame is not
  *        called
  */
 void test_DNS_TreatNBNS_success_nbns_query_network_buffer_null( void )
@@ -611,7 +611,7 @@ void test_DNS_ParseDNSReply_fail_small_buffer( void )
 }
 
 /**
- * @brief ensures that whent he buffer is empty false is retunred
+ * @brief ensures that when the buffer is empty false is returned
  */
 void test_DNS_ParseDNSReply_fail_no_namefield( void )
 {
@@ -1082,7 +1082,7 @@ void test_parseDNSAnswer_no_answers( void )
 
 /**
  * @brief ensures that when more records are stored than allowed by
- * ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY true is resured
+ * ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY true is returned
  */
 void test_parseDNSAnswer_recordstored_gt_count( void )
 {
@@ -1109,7 +1109,6 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
 
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
-    /*pxDNSAnswerRecord->usDataLength =  (ipSIZE_OF_IPv4_ADDRESS); */
     pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
 
     ret = parseDNSAnswer( &pxDNSMessageHeader,
@@ -1122,8 +1121,8 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
 }
 
 /**
- * @brief ensures that when the number of entries is larger than the cofigured
- *        cache address entries, not packet is sent over the netork
+ * @brief ensures that when the number of entries is larger than the configured
+ *        cache address entries, not packet is sent over the network
  *
  */
 void test_parseDNSAnswer_dns_nocallback_false( void )
@@ -1161,8 +1160,8 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
 }
 
 /**
- * @brief ensures that when the number of entries is larger than the cofigured
- *        cache address entries, not packet is sent over the netork
+ * @brief ensures that when the number of entries is larger than the configured
+ *        cache address entries, not packet is sent over the network
  *
  */
 void test_parseDNSAnswer_do_store_false( void )
@@ -1200,8 +1199,8 @@ void test_parseDNSAnswer_do_store_false( void )
 }
 
 /**
- * @brief ensures that when the number of entries is larger than the cofigured
- *        cache address entries, not packet is sent over the netork
+ * @brief ensures that when the number of entries is larger than the configured
+ *        cache address entries, not packet is sent over the network
  *
  */
 void test_parseDNSAnswer_dnsanswerrecord_datalength_ne_addresslength( void )
@@ -1237,8 +1236,8 @@ void test_parseDNSAnswer_dnsanswerrecord_datalength_ne_addresslength( void )
 }
 
 /**
- * @brief ensures that when the number of entries is larger than the cofigured
- *        cache address entries, not packet is sent over the netork
+ * @brief ensures that when the number of entries is larger than the configured
+ *        cache address entries, not packet is sent over the network
  *
  */
 void test_parseDNSAnswer_remaining_gt_datalength( void )
@@ -1306,8 +1305,8 @@ void test_parseDNSAnswer_remaining_lt_uint16( void )
 }
 
 /**
- * @brief ensures that when the number of entries is larger than the cofigured
- *        cache address entries, not packet is sent over the netork
+ * @brief ensures that when the number of entries is larger than the configured
+ *        cache address entries, not packet is sent over the network
  *
  */
 void test_parseDNSAnswer_remaining_lt_dnsanswerrecord( void )
