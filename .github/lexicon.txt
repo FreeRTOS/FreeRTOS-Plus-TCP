@@ -1341,7 +1341,7 @@ vportfree
 vprintresourcestats
 vprocessgeneratedudppacket
 vreleasenetworkbufferanddescriptor
-vReturnEthernetFrame
+vreturnethernetframe
 vrxfaultinjection
 vsocketbind
 vsocketclose

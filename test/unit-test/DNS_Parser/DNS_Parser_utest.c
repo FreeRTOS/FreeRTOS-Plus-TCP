@@ -1056,7 +1056,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2( void )
 }
 
 /**
- * @brief ensures that when the number of answers is zero no packet issent over
+ * @brief ensures that when the number of answers is zero no packet is sent over
  *        the network
  */
 void test_parseDNSAnswer_no_answers( void )
