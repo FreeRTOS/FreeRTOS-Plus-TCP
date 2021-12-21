@@ -2812,8 +2812,8 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
                 /* Source IP address is a broadcast address, discard the packet. */
                 eReturn = eReleaseBuffer;
             }
-            else if( ( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
-                               ( void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
+            else if( ( memcmp( ( const void * ) xBroadcastMACAddress.ucBytes,
+                               ( const void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
                                sizeof( MACAddress_t ) ) == 0 ) &&
                      ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
             {
@@ -2982,7 +2982,7 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
 
             /* Update the total length of the IP packet after removing options. */
             usTotalLength = FreeRTOS_ntohs( pxIPHeader->usLength );
-            usTotalLength = usTotalLength - uxOptionsLength;
+            usTotalLength -= ( uint16_t ) uxOptionsLength;
             pxIPHeader->usLength = FreeRTOS_htons( usTotalLength );
 
             eReturn = eProcessBuffer;
@@ -3164,12 +3164,12 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
         size_t xMoveLen = 0U;
         size_t uxRemovedBytes = 0U;
         uint8_t ucCurrentHeader = pxIPPacket_IPv6->xIPHeader.ucNextHeader;
-        BaseType_t xCurrentOrder;
         uint8_t ucNextHeader = 0U;
         BaseType_t xNextOrder = 0;
 
         while( ( uxIndex + 8U ) < uxMaxLength )
         {
+            BaseType_t xCurrentOrder;
             ucNextHeader = pucSource[ uxIndex ];
 
             xCurrentOrder = xGetExtensionOrder( ucCurrentHeader, ucNextHeader );
@@ -3211,7 +3211,6 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
             }
 
             ucCurrentHeader = ucNextHeader;
-            xCurrentOrder = xNextOrder;
         }
 
         if( uxIndex < uxMaxLength )
@@ -3235,7 +3234,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
                 ( void ) memmove( pucTo, pucFrom, xMoveLen );
                 pxNetworkBuffer->xDataLength -= uxRemovedBytes;
 
-                usPayloadLength -= uxRemovedBytes;
+                usPayloadLength -= ( uint16_t ) uxRemovedBytes;
                 pxIPPacket_IPv6->xIPHeader.usPayloadLength = FreeRTOS_htons( usPayloadLength );
                 eResult = eProcessBuffer;
             }

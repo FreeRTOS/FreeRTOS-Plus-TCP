@@ -180,11 +180,14 @@
 
 /* Receive a Neighbour Advertisement. */
 
+        #if ( ipconfigUSE_RA != 0 )
+
 /** @brief A neighbour advertisement has been received. Store its
  *         address in the ND address cache.
  *  @param[in] pxNetworkBuffer The buffer containing the packet.
  */
-        void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+            void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+        #endif
 
 /* Receive a Router Advertisement. */
         #if ( ipconfigUSE_RA != 0 )

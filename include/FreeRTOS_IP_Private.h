@@ -485,6 +485,10 @@
 
     #define ipBROADCAST_IP_ADDRESS    0xffffffffU
 
+/** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
+ *  is defined in FreeRTOS_IP.c.
+ * Note that the variable is private to the library. */
+    extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
 /* Offset into the Ethernet frame that is used to temporarily store information
  * on the fragmentation status of the packet being sent.  The value is important,
@@ -711,7 +715,7 @@
  */
     BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                           uint16_t usPort,
-                                          BaseType_t * xIsWaitingForARPResolution );
+                                          BaseType_t * pxIsWaitingARPResolution );
 
 /*
  * Initialize the socket list data structures for TCP and UDP.
@@ -1173,9 +1177,12 @@
 /* Send the network-up event and start the ARP timer. */
     void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint );
 
+    #if ( ipconfigUSE_IPv6 != 0 )
+
 /* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
  * It handles all ICMP messages except the PING requests. */
-    eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+        eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+    #endif
 
     #ifdef __cplusplus
         } /* extern "C" */

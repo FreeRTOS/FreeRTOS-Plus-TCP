@@ -292,13 +292,13 @@
         } DNSCacheRow_t;
 
         static DNSCacheRow_t xDNSCache[ ipconfigDNS_CACHE_ENTRIES ];
-        static BaseType_t xFreeDNSEntry = 0;
+        static size_t uxFreeDNSEntry = 0U;
 
 /* Utility function: Clear DNS cache by calling this function. */
         void FreeRTOS_dnsclear( void )
         {
             ( void ) memset( xDNSCache, 0x0, sizeof( xDNSCache ) );
-            xFreeDNSEntry = 0;
+            uxFreeDNSEntry = 0U;
         }
     #endif /* ipconfigUSE_DNS_CACHE == 1 */
 
@@ -3431,9 +3431,9 @@
             /* Get the current time in clock-ticks. */
             ulCurrentTimeSeconds = ( uint32_t ) xTaskGetTickCount();
             /* In milliseconds. */
-            ulCurrentTimeSeconds = ulCurrentTimeSeconds / portTICK_PERIOD_MS;
+            ulCurrentTimeSeconds /= portTICK_PERIOD_MS;
             /* In seconds. */
-            ulCurrentTimeSeconds = ulCurrentTimeSeconds / 1000U;
+            ulCurrentTimeSeconds /= 1000U;
 
             configASSERT( ( pcName != NULL ) );
 
@@ -3514,28 +3514,26 @@
                 /* Add or update the item. */
                 if( strlen( pcName ) < ( size_t ) ipconfigDNS_CACHE_NAME_LENGTH )
                 {
-                    ( void ) strcpy( xDNSCache[ xFreeDNSEntry ].pcName, pcName );
-                    ( void ) memcpy( &( xDNSCache[ xFreeDNSEntry ].xAddresses[ 0 ] ), pxIP, sizeof( *pxIP ) );
-                    xDNSCache[ xFreeDNSEntry ].ulTTL = ulTTL;
-                    xDNSCache[ xFreeDNSEntry ].ulTimeWhenAddedInSeconds = ulCurrentTimeSeconds;
+                    ( void ) strcpy( xDNSCache[ uxFreeDNSEntry ].pcName, pcName );
+                    ( void ) memcpy( &( xDNSCache[ uxFreeDNSEntry ].xAddresses[ 0 ] ), pxIP, sizeof( *pxIP ) );
+                    xDNSCache[ uxFreeDNSEntry ].ulTTL = ulTTL;
+                    xDNSCache[ uxFreeDNSEntry ].ulTimeWhenAddedInSeconds = ulCurrentTimeSeconds;
                     #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-                        xDNSCache[ xFreeDNSEntry ].ucNumIPAddresses = 1;
-                        xDNSCache[ xFreeDNSEntry ].ucCurrentIPAddress = 0;
+                        xDNSCache[ uxFreeDNSEntry ].ucNumIPAddresses = 1;
+                        xDNSCache[ uxFreeDNSEntry ].ucCurrentIPAddress = 0;
 
                         /* Initialize all remaining IP addresses in this entry to 0 */
-                        ( void ) memset( &xDNSCache[ xFreeDNSEntry ].xAddresses[ 1 ],
+                        ( void ) memset( &xDNSCache[ uxFreeDNSEntry ].xAddresses[ 1 ],
                                          0,
-                                         sizeof( xDNSCache[ xFreeDNSEntry ].xAddresses[ 1 ] ) *
+                                         sizeof( xDNSCache[ uxFreeDNSEntry ].xAddresses[ 1 ] ) *
                                          ( ( uint32_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY - 1U ) );
                     #endif /* ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 ) */
 
-                    if( xFreeDNSEntry < ( BaseType_t ) ( ipconfigDNS_CACHE_ENTRIES - 1 ) )
+                    uxFreeDNSEntry++;
+
+                    if( uxFreeDNSEntry >= ipconfigDNS_CACHE_ENTRIES )
                     {
-                        xFreeDNSEntry++;
-                    }
-                    else
-                    {
-                        xFreeDNSEntry = 0;
+                        uxFreeDNSEntry = 0U;
                     }
                 }
             }

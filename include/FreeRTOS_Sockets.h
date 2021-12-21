@@ -335,7 +335,7 @@
                 static __inline BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
                 {
                     ( void ) xSocket;
-                    return ipTYPE_IPv4;
+                    return ( BaseType_t ) ipTYPE_IPv4;
                 }
             #endif
 
