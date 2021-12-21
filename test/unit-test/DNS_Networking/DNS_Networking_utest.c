@@ -105,9 +105,9 @@ void test_CreateSocket_fail_socket( void )
                                      NULL );
     xSocketValid_ExpectAndReturn( NULL, pdFALSE );
 
-    s = DNS_CreateSocket(235);
+    s = DNS_CreateSocket( 235 );
 
-    TEST_ASSERT_EQUAL(NULL, s);
+    TEST_ASSERT_EQUAL( NULL, s );
 }
 
 /**
@@ -120,15 +120,15 @@ void test_CreateSocket_success( void )
     FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET,
                                      FREERTOS_SOCK_DGRAM,
                                      FREERTOS_IPPROTO_UDP,
-                                     (Socket_t)235 );
-    xSocketValid_ExpectAndReturn( (Socket_t)235, pdTRUE );
+                                     ( Socket_t ) 235 );
+    xSocketValid_ExpectAndReturn( ( Socket_t ) 235, pdTRUE );
     FreeRTOS_bind_ExpectAnyArgsAndReturn( 0 );
     FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( 0 );
     FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( 0 );
 
-    s = DNS_CreateSocket(235);
+    s = DNS_CreateSocket( 235 );
 
-    TEST_ASSERT_EQUAL((Socket_t)235, s);
+    TEST_ASSERT_EQUAL( ( Socket_t ) 235, s );
 }
 
 /**
@@ -141,14 +141,14 @@ void test_CreateSocket_bind_fail( void )
     FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET,
                                      FREERTOS_SOCK_DGRAM,
                                      FREERTOS_IPPROTO_UDP,
-                                     (Socket_t)235 );
-    xSocketValid_ExpectAndReturn( (Socket_t)235, pdTRUE );
+                                     ( Socket_t ) 235 );
+    xSocketValid_ExpectAndReturn( ( Socket_t ) 235, pdTRUE );
     FreeRTOS_bind_ExpectAnyArgsAndReturn( 1 );
-    FreeRTOS_closesocket_ExpectAndReturn((Socket_t) 235, 0);
+    FreeRTOS_closesocket_ExpectAndReturn( ( Socket_t ) 235, 0 );
 
-    s = DNS_CreateSocket(235);
+    s = DNS_CreateSocket( 235 );
 
-    TEST_ASSERT_EQUAL(NULL, s);
+    TEST_ASSERT_EQUAL( NULL, s );
 }
 
 /**
@@ -156,16 +156,16 @@ void test_CreateSocket_bind_fail( void )
  */
 void test_SendRequest_success( void )
 {
-    Socket_t s = (Socket_t) 123;
+    Socket_t s = ( Socket_t ) 123;
     uint32_t ret;
-    struct freertos_sockaddr  xAddress;
+    struct freertos_sockaddr xAddress;
     struct dns_buffer pxDNSBuf;
 
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( pdTRUE );
 
     ret = DNS_SendRequest( "www.FreeRTOS.org", 1234, s, &xAddress, &pxDNSBuf );
 
-    TEST_ASSERT_EQUAL(pdTRUE, ret);
+    TEST_ASSERT_EQUAL( pdTRUE, ret );
 }
 
 /**
@@ -173,16 +173,16 @@ void test_SendRequest_success( void )
  */
 void test_SendRequest_fail( void )
 {
-    Socket_t s = (Socket_t) 123;
+    Socket_t s = ( Socket_t ) 123;
     uint32_t ret;
-    struct freertos_sockaddr  xAddress;
+    struct freertos_sockaddr xAddress;
     struct dns_buffer pxDNSBuf;
 
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( pdFALSE );
 
     ret = DNS_SendRequest( "www.FreeRTOS.org", 1234, s, &xAddress, &pxDNSBuf );
 
-    TEST_ASSERT_EQUAL(pdFALSE, ret);
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
 /**
@@ -190,13 +190,13 @@ void test_SendRequest_fail( void )
  */
 void test_ReadReply_success( void )
 {
-    Socket_t s = (Socket_t) 123;
-    struct freertos_sockaddr  xAddress;
+    Socket_t s = ( Socket_t ) 123;
+    struct freertos_sockaddr xAddress;
     struct dns_buffer pxDNSBuf;
 
     FreeRTOS_recvfrom_ExpectAnyArgsAndReturn( 600 );
 
-     DNS_ReadReply( s, &xAddress, &pxDNSBuf );
+    DNS_ReadReply( s, &xAddress, &pxDNSBuf );
 
     TEST_ASSERT_EQUAL( 600, pxDNSBuf.uxPayloadLength );
 }
@@ -206,9 +206,9 @@ void test_ReadReply_success( void )
  */
 void test_CloseSocket_success( void )
 {
-    Socket_t s = (Socket_t) 123;
+    Socket_t s = ( Socket_t ) 123;
 
-    FreeRTOS_closesocket_ExpectAndReturn( s , pdTRUE);
+    FreeRTOS_closesocket_ExpectAndReturn( s, pdTRUE );
 
     DNS_CloseSocket( s );
 }

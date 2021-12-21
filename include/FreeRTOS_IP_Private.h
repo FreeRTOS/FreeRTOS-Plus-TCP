@@ -46,11 +46,11 @@
 
 #include "event_groups.h"
 
-    #ifdef TEST
-        int ipFOREVER( void );
-    #else
-        #define ipFOREVER()    1
-    #endif
+#ifdef TEST
+    int ipFOREVER( void );
+#else
+    #define ipFOREVER()    1
+#endif
 
 /*-----------------------------------------------------------*/
 /* Utility macros for marking casts as recognized during     */
@@ -289,35 +289,35 @@ extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t );
 extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t );
 
 /* The maximum UDP payload length. */
-    #define ipMAX_UDP_PAYLOAD_LENGTH    ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
+#define ipMAX_UDP_PAYLOAD_LENGTH    ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
 
-    typedef enum
-    {
-        eReleaseBuffer = 0,   /* Processing the frame did not find anything to do - just release the buffer. */
-        eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */
-        eReturnEthernetFrame, /* The Ethernet frame contains an ARP or ICMP packet that can be returned to its source. */
-        eFrameConsumed,       /* Processing the Ethernet packet contents resulted in the payload being sent to the stack. */
-        eWaitingARPResolution /* Frame is awaiting ARP resolution. */
-    } eFrameProcessingResult_t;
+typedef enum
+{
+    eReleaseBuffer = 0,   /* Processing the frame did not find anything to do - just release the buffer. */
+    eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */
+    eReturnEthernetFrame, /* The Ethernet frame contains an ARP or ICMP packet that can be returned to its source. */
+    eFrameConsumed,       /* Processing the Ethernet packet contents resulted in the payload being sent to the stack. */
+    eWaitingARPResolution /* Frame is awaiting ARP resolution. */
+} eFrameProcessingResult_t;
 
-    typedef enum
-    {
-        eNoEvent = -1,
-        eNetworkDownEvent,     /* 0: The network interface has been lost and/or needs [re]connecting. */
-        eNetworkRxEvent,       /* 1: The network interface has queued a received Ethernet frame. */
-        eNetworkTxEvent,       /* 2: Let the IP-task send a network packet. */
-        eARPTimerEvent,        /* 3: The ARP timer expired. */
-        eStackTxEvent,         /* 4: The software stack has queued a packet to transmit. */
-        eDHCPEvent,            /* 5: Process the DHCP state machine. */
-        eTCPTimerEvent,        /* 6: See if any TCP socket needs attention. */
-        eTCPAcceptEvent,       /* 7: Client API FreeRTOS_accept() waiting for client connections. */
-        eTCPNetStat,           /* 8: IP-task is asked to produce a netstat listing. */
-        eSocketBindEvent,      /* 9: Send a message to the IP-task to bind a socket to a port. */
-        eSocketCloseEvent,     /*10: Send a message to the IP-task to close a socket. */
-        eSocketSelectEvent,    /*11: Send a message to the IP-task for select(). */
-        eSocketSignalEvent,    /*12: A socket must be signalled. */
-        eSocketSetDeleteEvent, /*13: A socket set must be deleted. */
-    } eIPEvent_t;
+typedef enum
+{
+    eNoEvent = -1,
+    eNetworkDownEvent,     /* 0: The network interface has been lost and/or needs [re]connecting. */
+    eNetworkRxEvent,       /* 1: The network interface has queued a received Ethernet frame. */
+    eNetworkTxEvent,       /* 2: Let the IP-task send a network packet. */
+    eARPTimerEvent,        /* 3: The ARP timer expired. */
+    eStackTxEvent,         /* 4: The software stack has queued a packet to transmit. */
+    eDHCPEvent,            /* 5: Process the DHCP state machine. */
+    eTCPTimerEvent,        /* 6: See if any TCP socket needs attention. */
+    eTCPAcceptEvent,       /* 7: Client API FreeRTOS_accept() waiting for client connections. */
+    eTCPNetStat,           /* 8: IP-task is asked to produce a netstat listing. */
+    eSocketBindEvent,      /* 9: Send a message to the IP-task to bind a socket to a port. */
+    eSocketCloseEvent,     /*10: Send a message to the IP-task to close a socket. */
+    eSocketSelectEvent,    /*11: Send a message to the IP-task for select(). */
+    eSocketSignalEvent,    /*12: A socket must be signalled. */
+    eSocketSetDeleteEvent, /*13: A socket set must be deleted. */
+} eIPEvent_t;
 
 /**
  * Structure for the information of the commands issued to the IP task.
@@ -408,7 +408,7 @@ extern uint16_t usPacketIdentifier;
  *         Accesses to this list must be protected by critical sections of
  *         some kind.
  */
-    extern List_t xBoundUDPSocketsList;
+extern List_t xBoundUDPSocketsList;
 
 /**
  * Define a default UDP packet header (declared in FreeRTOS_UDP_IP.c)
@@ -561,8 +561,8 @@ uint16_t usGenerateChecksum( uint16_t usSum,
  * is at least the size of UDPPacket_t.
  */
 BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                        uint16_t usPort,
-                                        BaseType_t * pxIsWaitingForARPResolution );
+                                      uint16_t usPort,
+                                      BaseType_t * pxIsWaitingForARPResolution );
 
 /*
  * Initialize the socket list data structures for TCP and UDP.
@@ -630,43 +630,43 @@ BaseType_t xIPIsNetworkTaskReady( void );
         {
             /* Most compilers do like bit-flags */
             uint32_t
-                bMssChange : 1,            /**< This socket has seen a change in MSS */
-                bPassAccept : 1,           /**< when true, this socket may be returned in a call to accept() */
-                bPassQueued : 1,           /**< when true, this socket is an orphan until it gets connected
-                                            * Why an orphan? Because it may not be returned in a accept() call until it
-                                            * gets the state eESTABLISHED */
-                bReuseSocket : 1,          /**< When a listening socket gets a connection, do not create a new instance but keep on using it */
-                bCloseAfterSend : 1,       /**< As soon as the last byte has been transmitted, finalise the connection
-                                            * Useful in e.g. FTP connections, where the last data bytes are sent along with the FIN flag */
-                    bUserShutdown : 1,     /**< User requesting a graceful shutdown */
-                    bCloseRequested : 1,   /**< Request to finalise the connection */
-                    bLowWater : 1,         /**< high-water level has been reached. Cleared as soon as 'rx-count < lo-water' */
-                    bWinChange : 1,        /**< The value of bLowWater has changed, must send a window update */
-                    bSendKeepAlive : 1,    /**< When this flag is true, a TCP keep-alive message must be send */
-                    bWaitKeepAlive : 1,    /**< When this flag is true, a TCP keep-alive reply is expected */
-                    bConnPrepared : 1,     /**< Connecting socket: Message has been prepared */
-                #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-                    bConnPassed : 1,       /**< Connecting socket: Socket has been passed in a successful select()  */
-                #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
-                bFinAccepted : 1,          /**< This socket has received (or sent) a FIN and accepted it */
-                    bFinSent : 1,          /**< We've sent out a FIN */
-                    bFinRecv : 1,          /**< We've received a FIN from our peer */
-                    bFinAcked : 1,         /**< Our FIN packet has been acked */
-                    bFinLast : 1,          /**< The last ACK (after FIN and FIN+ACK) has been sent or will be sent by the peer */
-                    bRxStopped : 1,        /**< Application asked to temporarily stop reception */
-                    bMallocError : 1,      /**< There was an error allocating a stream */
-                    bWinScaling : 1;       /**< A TCP-Window Scaling option was offered and accepted in the SYN phase. */
-            } bits;                        /**< The bits structure */
-            uint32_t ulHighestRxAllowed;   /**< The highest sequence number that we can receive at any moment */
-            uint16_t usTimeout;            /**< Time (in ticks) after which this socket needs attention */
-            uint16_t usMSS;                /**< Current Maximum Segment Size */
-            uint16_t usChildCount;         /**< In case of a listening socket: number of connections on this port number */
-            uint16_t usBacklog;            /**< In case of a listening socket: maximum number of concurrent connections on this port number */
-            uint8_t ucRepCount;            /**< Send repeat count, for retransmissions
-                                            * This counter is separate from the xmitCount in the
-                                            * TCP win segments */
-        uint8_t ucTCPState;                /**< TCP state: see eTCP_STATE */
-        struct xSOCKET * pxPeerSocket;     /**< for server socket: child, for child socket: parent */
+                bMssChange : 1,        /**< This socket has seen a change in MSS */
+                bPassAccept : 1,       /**< when true, this socket may be returned in a call to accept() */
+                bPassQueued : 1,       /**< when true, this socket is an orphan until it gets connected
+                                        * Why an orphan? Because it may not be returned in a accept() call until it
+                                        * gets the state eESTABLISHED */
+                bReuseSocket : 1,      /**< When a listening socket gets a connection, do not create a new instance but keep on using it */
+                bCloseAfterSend : 1,   /**< As soon as the last byte has been transmitted, finalise the connection
+                                        * Useful in e.g. FTP connections, where the last data bytes are sent along with the FIN flag */
+                bUserShutdown : 1,     /**< User requesting a graceful shutdown */
+                bCloseRequested : 1,   /**< Request to finalise the connection */
+                bLowWater : 1,         /**< high-water level has been reached. Cleared as soon as 'rx-count < lo-water' */
+                bWinChange : 1,        /**< The value of bLowWater has changed, must send a window update */
+                bSendKeepAlive : 1,    /**< When this flag is true, a TCP keep-alive message must be send */
+                bWaitKeepAlive : 1,    /**< When this flag is true, a TCP keep-alive reply is expected */
+                bConnPrepared : 1,     /**< Connecting socket: Message has been prepared */
+            #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+                bConnPassed : 1,       /**< Connecting socket: Socket has been passed in a successful select()  */
+            #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
+            bFinAccepted : 1,          /**< This socket has received (or sent) a FIN and accepted it */
+                bFinSent : 1,          /**< We've sent out a FIN */
+                bFinRecv : 1,          /**< We've received a FIN from our peer */
+                bFinAcked : 1,         /**< Our FIN packet has been acked */
+                bFinLast : 1,          /**< The last ACK (after FIN and FIN+ACK) has been sent or will be sent by the peer */
+                bRxStopped : 1,        /**< Application asked to temporarily stop reception */
+                bMallocError : 1,      /**< There was an error allocating a stream */
+                bWinScaling : 1;       /**< A TCP-Window Scaling option was offered and accepted in the SYN phase. */
+        } bits;                        /**< The bits structure */
+        uint32_t ulHighestRxAllowed;   /**< The highest sequence number that we can receive at any moment */
+        uint16_t usTimeout;            /**< Time (in ticks) after which this socket needs attention */
+        uint16_t usMSS;                /**< Current Maximum Segment Size */
+        uint16_t usChildCount;         /**< In case of a listening socket: number of connections on this port number */
+        uint16_t usBacklog;            /**< In case of a listening socket: maximum number of concurrent connections on this port number */
+        uint8_t ucRepCount;            /**< Send repeat count, for retransmissions
+                                        * This counter is separate from the xmitCount in the
+                                        * TCP win segments */
+        uint8_t ucTCPState;            /**< TCP state: see eTCP_STATE */
+        struct xSOCKET * pxPeerSocket; /**< for server socket: child, for child socket: parent */
         #if ( ipconfigTCP_KEEP_ALIVE == 1 )
             uint8_t ucKeepRepCount;
             TickType_t xLastAliveTime; /**< The last value of keepalive time.*/
@@ -946,10 +946,10 @@ BaseType_t xIsCallingFromIPTask( void );
 
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
-    /*
-void vIPSetDHCPTimerEnableState( BaseType_t xEnableState );
-void vIPReloadDHCPTimer( uint32_t ulLeaseTime );
-*/
+/*
+ * void vIPSetDHCPTimerEnableState( BaseType_t xEnableState );
+ * void vIPReloadDHCPTimer( uint32_t ulLeaseTime );
+ */
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
     void vIPReloadDNSTimer( uint32_t ulCheckTime );
     void vIPSetDnsTimerEnableState( BaseType_t xEnableState );

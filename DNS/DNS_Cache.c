@@ -136,7 +136,7 @@
         x = prvFindEntryIndex( pcName );
 
         if( x != -1 )
-        {   /* Element found */
+        { /* Element found */
             if( xLookUp == pdTRUE )
             {
                 prvGetCacheIPEntry( x,
@@ -170,6 +170,7 @@
         {
             FreeRTOS_debug_printf( ( "prvProcessDNSCache: %s: '%s' @ %lxip\n", ( xLookUp != 0 ) ? "look-up" : "add", pcName, FreeRTOS_ntohl( *pulIP ) ) );
         }
+
         return !!( x + 1 );
     }
 
@@ -256,7 +257,7 @@
 
         #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
             if( xDNSCache[ index ].ucNumIPAddresses <
-                             ( uint8_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY )
+                ( uint8_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY )
             {
                 /* If more answers exist than there are IP address storage
                  * slots they will overwrite entry 0 */

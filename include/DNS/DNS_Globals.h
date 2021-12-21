@@ -211,7 +211,7 @@
         /** @brief The structure to hold information for a DNS callback. */
         typedef struct xDNS_Callback
         {
-            TickType_t uxRemainingTime;     /**< Timeout in ms */
+            TickType_t uxRemainingTime;    /**< Timeout in ms */
             FOnDNSEvent pCallbackFunction; /**< Function to be called when the address has been found or when a timeout has been reached */
             TimeOut_t uxTimeoutState;      /**< Timeout state. */
             void * pvSearchID;             /**< Search ID of the callback function. */

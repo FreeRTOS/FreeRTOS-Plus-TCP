@@ -50,13 +50,6 @@ void vPortExitCritical( void )
 {
 }
 
-/*
-BaseType_t xApplicationDNSQueryHook( const char * pcName )
-{
-    return pdFALSE;
-}
-*/
-
 uint16_t usPacketIdentifier;
 
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
