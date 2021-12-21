@@ -63,6 +63,8 @@
 
 #include "FreeRTOSIPConfig.h"
 
+extern uint32_t xProcessedTCPMessage;
+
 void prvIPTask( void * pvParameters );
 void prvProcessIPEventsAndTimers( void );
 eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,

@@ -119,15 +119,6 @@
     #define ipFIRST_LOOPBACK_IPv4    0x7F000000UL            /**< Lowest IPv4 loopback address (including). */
     #define ipLAST_LOOPBACK_IPv4     0x80000000UL            /**< Highest IPv4 loopback address (excluding). */
 
-
-    #if ( ipconfigUSE_TCP != 0 )
-
-/** @brief Set to a non-zero value if one or more TCP message have been processed
- * within the last round. */
-        BaseType_t xProcessedTCPMessage;
-    #endif
-
-
 /** @brief Returned to indicate a valid checksum. */
     #define ipCORRECT_CRC           0xffffU
 

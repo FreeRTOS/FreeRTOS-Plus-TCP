@@ -562,7 +562,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
  */
 BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                         uint16_t usPort,
-                                        BaseType_t * xIsWaitingForARPResolution );
+                                        BaseType_t * pxIsWaitingForARPResolution );
 
 /*
  * Initialize the socket list data structures for TCP and UDP.
@@ -946,8 +946,10 @@ BaseType_t xIsCallingFromIPTask( void );
 
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
+    /*
 void vIPSetDHCPTimerEnableState( BaseType_t xEnableState );
 void vIPReloadDHCPTimer( uint32_t ulLeaseTime );
+*/
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
     void vIPReloadDNSTimer( uint32_t ulCheckTime );
     void vIPSetDnsTimerEnableState( BaseType_t xEnableState );

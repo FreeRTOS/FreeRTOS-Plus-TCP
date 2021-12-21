@@ -32,6 +32,8 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 
+#include "DNS/DNS_Globals.h"
+
 /* Standard includes. */
 #include <stdint.h>
 #if ( ipconfigUSE_DNS != 0 )

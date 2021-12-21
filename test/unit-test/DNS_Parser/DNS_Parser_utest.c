@@ -37,6 +37,7 @@ typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
 /* ===========================   GLOBAL VARIABLES =========================== */
 static int callback_called = 0;
 static BaseType_t hook_return = pdFALSE;
+static BaseType_t hook_called = pdFALSE;
 
 
 
@@ -55,6 +56,20 @@ static void dns_callback( const char * pcName,
  */
 void setUp( void )
 {
+    xDefaultPartUDPPacketHeader.ucBytes[ 0 ] = 1;
+    xDefaultPartUDPPacketHeader.ucBytes[ 1 ] = 2;
+    xDefaultPartUDPPacketHeader.ucBytes[ 2 ] = 3;
+    xDefaultPartUDPPacketHeader.ucBytes[ 3 ] = 4;
+    xDefaultPartUDPPacketHeader.ucBytes[ 4 ] = 5;
+    xDefaultPartUDPPacketHeader.ulWords[ 0 ] = 6;
+    xDefaultPartUDPPacketHeader.ulWords[ 1 ] = 7;
+    xDefaultPartUDPPacketHeader.ulWords[ 2 ] = 8;
+    xDefaultPartUDPPacketHeader.ulWords[ 3 ] = 9;
+    xDefaultPartUDPPacketHeader.ulWords[ 4 ] = 10;
+    xDefaultPartUDPPacketHeader.ulWords[ 5 ] = 11;
+    xDefaultPartUDPPacketHeader.ulWords[ 6 ] = 12;
+    xDefaultPartUDPPacketHeader.ulWords[ 7 ] = 13;
+    xDefaultPartUDPPacketHeader.ulWords[ 8 ] = 14;
     callback_called = 0;
 }
 
@@ -63,289 +78,297 @@ void setUp( void )
  */
 void tearDown( void )
 {
-    hook_return  = pdFALSE;
+    hook_return = pdFALSE;
+    hook_called = pdFALSE;
 }
+
+/* =============================  TEST MACROS  ============================== */
+#define ASSERT_DNS_QUERY_HOOK_CALLED()            \
+    do {                                          \
+        TEST_ASSERT_EQUAL( pdTRUE, hook_called ); \
+    } while( 0 )
+
 
 /* =============================  TEST CASES  =============================== */
 
 /**
- * @brief 
+ * @brief ensures when there is no empty spots in the  pucByte buffer zero is
+ *        returned
  */
-void test_DNS_ReadNameField_success_empty_buffer( void )
+void test_DNS_ReadNameField_success_empty_uxRemainingBytes( void )
 {
-    uint8_t buffer[300];
+    uint8_t pucByte[ 300 ];
     size_t ret;
 
-    ret = DNS_ReadNameField( buffer, 0, "name", 4);
+    ret = DNS_ReadNameField( pucByte, 0, "name", 4 );
     TEST_ASSERT_EQUAL( 0, ret );
 }
 
 /**
- * @brief 
+ * @brief ensures that if the dns name is dnsNAME_IS_OFFSET  and the sourcelen
+ *        is les than 2 bytes zero is retuned
  */
-void test_DNS_ReadNameField_fail_fully_coded( void )
+void test_DNS_ReadNameField_fail_offset_dns_name( void )
 {
-    uint8_t buffer[300] = { 0 };
+    uint8_t pucByte[ 300 ] = { 0 };
     size_t ret;
 
-    buffer[0] = dnsNAME_IS_OFFSET;
+    pucByte[ 0 ] = dnsNAME_IS_OFFSET;
 
-    ret = DNS_ReadNameField(buffer, 2, "name", 4);
+    ret = DNS_ReadNameField( pucByte, 2, "name", 4 );
+
     TEST_ASSERT_EQUAL( 0, ret );
 }
 
 /**
- * @brief 
+ * @brief ensures that if the dns name is dnsNAME_IS_OFFSET  and the sourcelen
+ *        is greater than 2 bytes 2 is retuned (sizeof (uint16_t)
  */
 void test_DNS_ReadNameField_success_fully_coded_gt_uint16( void )
 {
-    uint8_t buffer[ 300 ] = { 0 };
+    uint8_t pucByte[ 300 ] = { 0 };
     size_t ret;
 
-    buffer[0] = dnsNAME_IS_OFFSET;
+    pucByte[ 0 ] = dnsNAME_IS_OFFSET;
 
-    ret = DNS_ReadNameField( buffer, 8, "name", 234 );
-    TEST_ASSERT_EQUAL( sizeof(uint16_t), ret );
+    ret = DNS_ReadNameField( pucByte, 8, "name", 234 );
+
+    TEST_ASSERT_EQUAL( sizeof( uint16_t ), ret );
 }
 
 /**
- * @brief 
+ * @brief ensures when the next name field size is zero, zero is returned
  */
-void test_DNS_ReadNameField_fail_walk_over_nothing_to_do( void )
+void test_DNS_ReadNameField_zero_size_walk_over_nothing_to_do( void )
 {
-    uint8_t buffer[ 300 ] = { 0 };
+    uint8_t pucByte[ 300 ] = { 0 };
     size_t ret;
 
-    buffer[ 0 ] = 0;
+    pucByte[ 0 ] = 0;
 
-    ret = DNS_ReadNameField( buffer, 1666666, "name", 234 );
+    ret = DNS_ReadNameField( pucByte, 300, "name", 234 );
+
     TEST_ASSERT_EQUAL( 0, ret );
 }
 
 /**
- * @brief 
- */
-void test_DNS_ReadNameField_fail_walk_over( void )
-{
-    uint8_t buffer[ 300 ] = { 0 };
-    char pcName[ 300 ] = { 0 };
-    size_t ret;
-
-    buffer[ 0 ] = 8;
-
-    ret = DNS_ReadNameField( buffer, 300, pcName, 300 );
-    TEST_ASSERT_EQUAL( 10, ret );
-}
-
-/**
- * @brief 
+ * @brief ensures when the name is 8 bytes 10 is retuned . + '\0', and the name
+ *        field is copied to pcName
  */
 void test_DNS_ReadNameField_walk_over_copy_name( void )
 {
-    uint8_t buffer[ 300 ] = { 0 };
+    uint8_t pucByte[ 300 ] = { 0 };
     char pcName[ 300 ] = { 0 };
     size_t ret;
 
-    buffer[ 0 ] = 8;
-    strcpy(buffer + 1, "FreeRTOS");
+    pucByte[ 0 ] = 8;
+    strcpy( pucByte + 1, "FreeRTOS" );
 
-    ret = DNS_ReadNameField( buffer, 300, pcName, 300 );
+    ret = DNS_ReadNameField( pucByte, 300, pcName, 300 );
+
     TEST_ASSERT_EQUAL( 10, ret );
     TEST_ASSERT_EQUAL_STRING( "FreeRTOS", pcName );
 }
+
 /**
- * @brief 
+ * @brief ensures when we have 2 names fields
+ *        their total + 3(dot, dot and, \0) is returned
+ *        and the result string in pcName
  */
 void test_DNS_ReadNameField_walk_over_copy_2_names( void )
 {
-    uint8_t buffer[ 300 ] = { 0 };
+    uint8_t pucByte[ 300 ] = { 0 };
     char pcName[ 300 ] = { 0 };
-    buffer[ 0 ] = 8;
-    strcpy(buffer + 1, "FreeRTOS");
-    buffer[ 9 ] = 7;
-    strcpy(buffer + 10, "PlusTCP");
+
+    pucByte[ 0 ] = 8;
+    strcpy( pucByte + 1, "FreeRTOS" );
+    pucByte[ 9 ] = 7;
+    strcpy( pucByte + 10, "PlusTCP" );
     size_t ret;
 
-    ret = DNS_ReadNameField( buffer, 300, pcName, 300 );
+    ret = DNS_ReadNameField( pucByte, 300, pcName, 300 );
+
     TEST_ASSERT_EQUAL( 18, ret );
     TEST_ASSERT_EQUAL_STRING( "FreeRTOS.PlusTCP", pcName );
 }
 
 /**
- * @brief 
+ * @brief ensures that when the destination buffer (pcName) is shorter than the
+ *        total string namefield, zero is retuned and the string is truncated i
+ *        pcName
  */
 void test_DNS_ReadNameField_short_destination( void )
 {
-    uint8_t buffer[ 300 ] = { 0 };
+    uint8_t pucByte[ 300 ] = { 0 };
     char pcName[ 300 ] = { 0 };
-    buffer[ 0 ] = 8;
-    strcpy(buffer + 1, "FreeRTOS");
-    buffer[ 9 ] = 7;
-    strcpy(buffer + 10, "PlusTCP");
+
+    pucByte[ 0 ] = 8;
+    strcpy( pucByte + 1, "FreeRTOS" );
+    pucByte[ 9 ] = 7;
+    strcpy( pucByte + 10, "PlusTCP" );
     size_t ret;
 
-    ret = DNS_ReadNameField( buffer, 300, pcName, 12 );
+    ret = DNS_ReadNameField( pucByte, 300, pcName, 12 );
     TEST_ASSERT_EQUAL( 0, ret );
     TEST_ASSERT_EQUAL_STRING( "FreeRTOS.Plu", pcName );
 }
 
 /**
- * @brief 
+ * @brief ensures that when the source buffer (pucByte) is shorter than the size
+ *        of the name field, zero is retuned, and the resulting string (pcName)
+ *        is truncated
  */
 void test_DNS_ReadNameField_short_source( void )
 {
-    uint8_t buffer[ 300 ] = { 0 };
+    uint8_t pucByte[ 300 ] = { 0 };
     char pcName[ 300 ] = { 0 };
-    buffer[ 0 ] = 8;
-    strcpy(buffer + 1, "FreeRTOS");
-    buffer[ 9 ] = 7;
-    strcpy(buffer + 10, "PlusTCP");
+
+    pucByte[ 0 ] = 8;
+    strcpy( pucByte + 1, "FreeRTOS" );
+    pucByte[ 9 ] = 7;
+    strcpy( pucByte + 10, "PlusTCP" );
     size_t ret;
 
-    ret = DNS_ReadNameField( buffer, 10, pcName, 300 );
+    ret = DNS_ReadNameField( pucByte, 10, pcName, 300 );
     TEST_ASSERT_EQUAL( 0, ret );
     TEST_ASSERT_EQUAL_STRING( "FreeRTOS.", pcName );
 }
 
 /**
- * @brief 
+ * @brief ensures when the second name does not fit the destination zero is
+ * retuned and only the first string is returned
  */
 void test_DNS_ReadNameField_fail_name_len_gt_destlen( void )
 {
-    uint8_t buffer[ 15 ] = { 0 };
+    uint8_t pucByte[ 15 ] = { 0 };
     char pcName[ 10 ] = { 0 };
-    buffer[ 0 ] = 8;
-    strcpy(buffer + 1, "FreeRTOS");
-    buffer[ 9 ] = 1;
+
+    pucByte[ 0 ] = 8;
+    strcpy( pucByte + 1, "FreeRTOS" );
+    pucByte[ 9 ] = 1;
     size_t ret;
 
-    ret = DNS_ReadNameField( buffer, 15, pcName, 10 );
+    ret = DNS_ReadNameField( pucByte, 15, pcName, 10 );
     TEST_ASSERT_EQUAL( 0, ret );
     TEST_ASSERT_EQUAL_STRING( "FreeRTOS.", pcName );
 }
 
-/**
- * @brief  useless
- */
-/*
-void test_DNS_ReadNameField_end_of_input( void )
-{
-    uint8_t buffer[ 300 ] = { 0 };
-    char pcName[ 300 ] = { 0 };
-    buffer[ 0 ] = 8;
-    strcpy(buffer + 1, "FreeRTOS");
-    buffer[ 9 ] = 1;
-    size_t ret;
-
-    ret = DNS_ReadNameField( buffer, 300, pcName, 300 );
-    TEST_ASSERT_EQUAL( 12, ret );
-    TEST_ASSERT_EQUAL_STRING( "FreeRTOS.", pcName );
-}
-*/
-
 
 /* ==================== Testing  DNS_SkipNameField ===========================*/
+
 /**
- * @brief
+ * @brief ensures that if pucBytes has a size of zero, zero is returned
  */
 void test_DNS_SkipNameField_failed_zero_length()
 {
     size_t ret;
-    uint8_t pucByte[20];
+    uint8_t pucByte[ 20 ];
 
-    ret = DNS_SkipNameField(pucByte, 0);
+    ret = DNS_SkipNameField( pucByte, 0 );
 
-    TEST_ASSERT_EQUAL(0, ret);
+    TEST_ASSERT_EQUAL( 0, ret );
 }
 
 /**
- * @brief
+ * @brief ensures that the appropritate size is returned + dot, dot, and \0
  */
 void test_DNS_SkipNameField_failed_()
 {
-    uint8_t buffer[ 300 ] = { 0 };
+    uint8_t pucByte[ 300 ] = { 0 };
     size_t ret;
 
-    buffer[ 0 ] = 8;
-    strcpy(buffer + 1, "FreeRTOS");
-    buffer[ 9 ] = 7;
-    strcpy(buffer + 10, "PlusTCP");
+    pucByte[ 0 ] = 8;
+    strcpy( pucByte + 1, "FreeRTOS" );
+    pucByte[ 9 ] = 7;
+    strcpy( pucByte + 10, "PlusTCP" );
 
-    ret = DNS_SkipNameField( buffer, 300 );
+    ret = DNS_SkipNameField( pucByte, 300 );
 
     TEST_ASSERT_EQUAL( 18, ret );
 }
 
 
 /**
- * @brief 
+ * @brief ensures that when it is an offset packet and the size is less than 2
+ *        bytes, zero is returned
  */
 void test_DNS_SkipNameField_fail_fully_coded( void )
 {
-    uint8_t buffer[300] = { 0 };
+    uint8_t pucByte[ 2 ] = { 0 };
     size_t ret;
 
-    buffer[0] = dnsNAME_IS_OFFSET;
+    pucByte[ 0 ] = dnsNAME_IS_OFFSET;
 
-    ret = DNS_SkipNameField(buffer, 2);
+    ret = DNS_SkipNameField( pucByte, 2 );
+
     TEST_ASSERT_EQUAL( 0, ret );
 }
 
 /**
- * @brief 
+ * @brief ensures that when it is an offset packet and the size is greater
+ *        than 2, 2 is returned
  */
 void test_DNS_SkipNameField_success_fully_coded_gt_uint16( void )
 {
-    uint8_t buffer[ 300 ] = { 0 };
+    uint8_t pucByte[ 300 ] = { 0 };
     size_t ret;
 
-    buffer[0] = dnsNAME_IS_OFFSET;
+    pucByte[ 0 ] = dnsNAME_IS_OFFSET;
 
-    ret = DNS_SkipNameField( buffer, 84 );
-    TEST_ASSERT_EQUAL( sizeof(uint16_t), ret );
+    ret = DNS_SkipNameField( pucByte, 84 );
+
+    TEST_ASSERT_EQUAL( sizeof( uint16_t ), ret );
 }
 
 /**
- * @brief 
+ * @brief ensures that when the source is shorter than the size markings
+ *        zero is returned
  */
 void test_DNS_SkipNameField_short_source( void )
 {
-    uint8_t buffer[ 300 ] = { 0 };
-    buffer[ 0 ] = 8;
-    strcpy(buffer + 1, "FreeRTOS");
-    buffer[ 9 ] = 7;
-    strcpy(buffer + 10, "PlusTCP");
+    uint8_t pucByte[ 300 ] = { 0 };
+
+    pucByte[ 0 ] = 8;
+    strcpy( pucByte + 1, "FreeRTOS" );
+    pucByte[ 9 ] = 7;
+    strcpy( pucByte + 10, "PlusTCP" );
     size_t ret;
 
-    ret = DNS_SkipNameField( buffer, 10 );
+    ret = DNS_SkipNameField( pucByte, 10 );
+
     TEST_ASSERT_EQUAL( 0, ret );
 }
 
 /**
- * @brief 
+ * @brief ensures that when the last name field is less than the buffer
+ *        remaining size, zero is returned
  */
 void test_DNS_SkipNameField_small_buffer( void )
 {
-    uint8_t buffer[ 300 ] = { 0 };
-    buffer[ 0 ] = 8;
-    strcpy(buffer + 1, "FreeRTOS");
-    buffer[ 9 ] = 7;
-    strcpy(buffer + 10, "PlusTCP");
+    uint8_t pucByte[ 300 ] = { 0 };
+
+    pucByte[ 0 ] = 8;
+    strcpy( pucByte + 1, "FreeRTOS" );
+    pucByte[ 9 ] = 7;
+    strcpy( pucByte + 10, "PlusTCP" );
     size_t ret;
 
-    ret = DNS_SkipNameField( buffer, 6 );
+    ret = DNS_SkipNameField( pucByte, 6 );
+
     TEST_ASSERT_EQUAL( 0, ret );
 }
 
-/* ===================== prepareReplyDNSMessage ============================= */
+/* =================== test prepareReplyDNSMessage ========================== */
+
 /**
- * @brief 
+ * @brief
  */
 void test_prepareReplyDNSMessage_success( void )
 {
     NetworkBufferDescriptor_t pxNetworkBuffer;
     uint8_t ether_buffer[ 300 ];
     size_t uxDataLength;
+
     pxNetworkBuffer.pucEthernetBuffer = ether_buffer;
 
     BaseType_t lNetLength = 50;
@@ -360,25 +383,27 @@ void test_prepareReplyDNSMessage_success( void )
 
     pxIPHeader->ulSourceIPAddress = 1234;
 
-    usGenerateChecksum_ExpectAnyArgsAndReturn(555);
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn(444);
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 555 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 444 );
 
     prepareReplyDNSMessage( &pxNetworkBuffer,
                             lNetLength );
 
-    uxDataLength = ( ( size_t ) lNetLength ) + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER + ipSIZE_OF_ETH_HEADER;
-    TEST_ASSERT_EQUAL( pxNetworkBuffer.xDataLength, uxDataLength );
+    uxDataLength = ( ( size_t ) lNetLength ) + ipSIZE_OF_IPv4_HEADER +
+                   ipSIZE_OF_UDP_HEADER + ipSIZE_OF_ETH_HEADER;
 
+    TEST_ASSERT_EQUAL( pxNetworkBuffer.xDataLength, uxDataLength );
 }
 
 /* =========================== test DNS_TreatNBNS  ========================== */
-/**
- * @brief 
- */
-void test_DNS_TreatNBNS_success (void)
-{
 
-    uint8_t pucPayload[300];
+/**
+ * @brief ensures that when a random payload is passed, vReturnEthernetFrame is
+ *        not called
+ */
+void test_DNS_TreatNBNS_success( void )
+{
+    uint8_t pucPayload[ 300 ];
     size_t uxBufferLength;
     uint32_t ulIPAddress;
 
@@ -393,12 +418,12 @@ void test_DNS_TreatNBNS_success (void)
 }
 
 /**
- * @brief 
+ * @brief ensures that when a random payload is passed, vReturnEthernetFrame is
+ *        not called
  */
-void test_DNS_TreatNBNS_success_nbns_mask (void)
+void test_DNS_TreatNBNS_success_nbns_mask( void )
 {
-
-    uint8_t pucPayload[300];
+    uint8_t pucPayload[ 300 ];
     size_t uxBufferLength;
     uint32_t ulIPAddress;
 
@@ -411,60 +436,62 @@ void test_DNS_TreatNBNS_success_nbns_mask (void)
 }
 
 /**
- * @brief 
+ * @brief ensures that when pxNewBuffer is NULL, vReturnEthernetFrame is not
+ *        called
  */
-void test_DNS_TreatNBNS_success_nbns_query_trailing_space (void)
+void test_DNS_TreatNBNS_success_nbns_query_trailing_space( void )
 {
-
-    uint8_t pucPayload[300];
+    uint8_t pucPayload[ 300 ];
     size_t uxBufferLength;
     uint32_t ulIPAddress;
 
-    NetworkBufferDescriptor_t  pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer;
 
     hook_return = pdTRUE;
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
-    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(NULL);
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     DNS_TreatNBNS( pucPayload,
                    300,
                    1234 );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
 }
 
 /**
- * @brief 
+ * @brief ensures that when pxNewBuffer is NULL, vReturnEthernetFrame is not
+ *        called
  */
-void test_DNS_TreatNBNS_success_nbns_query (void)
+void test_DNS_TreatNBNS_success_nbns_query( void )
 {
-
-    uint8_t pucPayload[300];
+    uint8_t pucPayload[ 300 ];
     size_t uxBufferLength;
     uint32_t ulIPAddress;
 
-    NetworkBufferDescriptor_t  pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer;
 
     hook_return = pdTRUE;
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
-    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(NULL);
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     DNS_TreatNBNS( pucPayload,
                    300,
                    1234 );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
 }
 
 /**
- * @brief 
+ * @brief ensures that when pxNewBuffer is NULL, vReturnEthernetFrame is not
+ *        called
  */
-void test_DNS_TreatNBNS_success_nbns_query_network_buffer_null (void)
+void test_DNS_TreatNBNS_success_nbns_query_network_buffer_null( void )
 {
-
-    uint8_t pucPayload[300];
+    uint8_t pucPayload[ 300 ];
     size_t uxBufferLength;
     uint32_t ulIPAddress;
 
@@ -479,239 +506,243 @@ void test_DNS_TreatNBNS_success_nbns_query_network_buffer_null (void)
     DNS_TreatNBNS( pucPayload,
                    300,
                    1234 );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
 }
 
 /**
- * @brief 
+ * @brief success path, formed packet is sent over the network with
+ *        vReturnEthernetFrame
  */
-void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer (void)
+void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
 {
-
-    uint8_t pucPayload[300];
+    uint8_t pucPayload[ 300 ];
     size_t uxBufferLength;
     uint32_t ulIPAddress;
 
-    NetworkBufferDescriptor_t  pxNetworkBuffer;
-    NetworkBufferDescriptor_t  pxNetworkBuffer_dup;
+    NetworkBufferDescriptor_t pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer_dup;
 
-    uint8_t buffer[300];
-  pxNetworkBuffer_dup.pucEthernetBuffer = buffer;
+    uint8_t buffer[ 300 ];
+
+    pxNetworkBuffer_dup.pucEthernetBuffer = buffer;
 
     hook_return = pdTRUE;
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
+    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usFlags */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );      /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
- //   pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(NULL);
-    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(&pxNetworkBuffer_dup);
-    usGenerateChecksum_ExpectAnyArgsAndReturn(4);
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn(4);
-    vReturnEthernetFrame_ExpectAnyArgs();
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNetworkBuffer_dup );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 4 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 4 );
+    vReturnEthernetFrame_Expect( &pxNetworkBuffer_dup, pdFALSE ); /* goal */
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
 
     DNS_TreatNBNS( pucPayload,
                    300,
                    1234 );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
 }
 
 /**
- * @brief 
+ * @brief ensures that when pucPayload + dnsNBNS_ENCODED_NAME_LENGTH = 41U = 'A'
+ *        we break out of the loop and nothing is sent over the network if the
+ *        whole name if not in capital letters and terminated with '\0'
  */
-void test_DNS_TreatNBNS_success_empty_char_nbns_name (void)
+void test_DNS_TreatNBNS_success_empty_char_nbns_name( void )
 {
+    uint8_t pucPayload[ 300 ];
 
-    uint8_t pucPayload[300];
-    size_t uxBufferLength;
-    uint32_t ulIPAddress;
+    pucPayload[ ( dnsNBNS_ENCODED_NAME_LENGTH - 2 ) +
+                offsetof( NBNSRequest_t, ucName ) ] = 2 + 0x41U;
+    pucPayload[ ( dnsNBNS_ENCODED_NAME_LENGTH - 2 ) +
+                offsetof( NBNSRequest_t, ucName ) + 1 ] = ' ' + 0x41U;
 
-    pucPayload[ (dnsNBNS_ENCODED_NAME_LENGTH -2 ) +
-                         offsetof( NBNSRequest_t, ucName ) ] =  2 + 0x41U;
-    pucPayload[ (dnsNBNS_ENCODED_NAME_LENGTH - 2 ) +
-                        offsetof( NBNSRequest_t, ucName ) + 1] =  ' ' + 0x41U;
-
-    NetworkBufferDescriptor_t  pxNetworkBuffer;
-    NetworkBufferDescriptor_t  pxNetworkBuffer_dup;
-
-    uint8_t buffer[300];
-  pxNetworkBuffer_dup.pucEthernetBuffer = buffer;
-
-    hook_return = pdTRUE;
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY| dnsNBNS_FLAGS_RESPONSE  );
+    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY | dnsNBNS_FLAGS_RESPONSE );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
-    FreeRTOS_dns_update_ExpectAnyArgsAndReturn(1);
+    FreeRTOS_dns_update_ExpectAnyArgsAndReturn( 1 );
 
     DNS_TreatNBNS( pucPayload,
                    300,
                    1234 );
 }
- /* ======================= tes  DNS_ParseDNSReply ========================== */
+/* ======================== test DNS_ParseDNSReply ========================== */
+
 /**
- * @brief 
+ * @brief ensures that when the passed buffer is smaller than DNS_Message_t
+ *        false is returned
  */
-void test_DNS_ParseDNSReply_fail_no_namefield (void)
+void test_DNS_ParseDNSReply_fail_small_buffer( void )
 {
     uint32_t ret;
-    uint8_t  pucUDPPayloadBuffer[300];
+    uint8_t pucUDPPayloadBuffer[ sizeof( DNSMessage_t ) - 2 ];
+    size_t uxBufferLength = sizeof( DNSMessage_t ) - 2;
+    BaseType_t xExpected = pdFALSE;
+
+    ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
+                             uxBufferLength,
+                             xExpected );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+}
+
+/**
+ * @brief ensures that whent he buffer is empty false is retunred
+ */
+void test_DNS_ParseDNSReply_fail_no_namefield( void )
+{
+    uint32_t ret;
+    uint8_t pucUDPPayloadBuffer[ 300 ] = { 0 };
     size_t uxBufferLength = 300;
     BaseType_t xExpected = pdFALSE;
 
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                              uxBufferLength,
-                              xExpected );
-    TEST_ASSERT_EQUAL(pdFALSE, ret);
+                             uxBufferLength,
+                             xExpected );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
-/**
- * @brief 
- */
-void test_DNS_ParseDNSReply_fail_small_buffer (void)
-{
-    uint32_t ret;
-    uint8_t  pucUDPPayloadBuffer[sizeof(DNSMessage_t) - 2];
-    size_t uxBufferLength = sizeof(DNSMessage_t) - 2;
-    BaseType_t xExpected = pdFALSE;
-
-    ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                              uxBufferLength,
-                              xExpected );
-    TEST_ASSERT_EQUAL(pdFALSE, ret);
-}
 
 /**
- * @brief 
+ * @brief
  */
-void test_DNS_ParseDNSReply_fail (void)
+void test_DNS_ParseDNSReply_fail( void )
 {
     uint32_t ret;
-    uint8_t  pucUDPPayloadBuffer[300];
+    uint8_t pucUDPPayloadBuffer[ 300 ];
     size_t uxBufferLength = 300;
     BaseType_t xExpected = pdFALSE;
     int beg = sizeof( DNSMessage_t );
+
     pucUDPPayloadBuffer[ beg++ ] = 8;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOS");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOS" );
+    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usClass */
 
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                              uxBufferLength,
-                              xExpected );
-    TEST_ASSERT_EQUAL(pdFALSE, ret);
+                             uxBufferLength,
+                             xExpected );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
 /**
- * @brief 
+ * @brief
  */
-void test_DNS_ParseDNSReply_fail_empty_namefield (void)
+void test_DNS_ParseDNSReply_fail_empty_namefield( void )
 {
     uint32_t ret;
-    uint8_t  pucUDPPayloadBuffer[300];
+    uint8_t pucUDPPayloadBuffer[ 300 ];
     size_t uxBufferLength = 300;
     BaseType_t xExpected = pdFALSE;
     uint8_t beg = sizeof( DNSMessage_t );
-    pucUDPPayloadBuffer[offsetof( DNSMessage_t, usQuestions)] = 4;
+
+    pucUDPPayloadBuffer[ offsetof( DNSMessage_t, usQuestions ) ] = 4;
 
     pucUDPPayloadBuffer[ beg++ ] = 8;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOS");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOS" );
 
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); // usType
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); // usClass
+    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usClass */
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                              uxBufferLength,
-                              xExpected );
-    TEST_ASSERT_EQUAL(pdFALSE, ret);
+                             uxBufferLength,
+                             xExpected );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
 /**
- * @brief 
+ * @brief
  */
-void test_DNS_ParseDNSReply_fail_not_enough_space_lt_32 (void)
+void test_DNS_ParseDNSReply_fail_not_enough_space_lt_32( void )
 {
     uint32_t ret;
-    uint8_t  pucUDPPayloadBuffer[250];
+    uint8_t pucUDPPayloadBuffer[ 250 ];
     size_t uxBufferLength = 250;
-    char dns[64];
-    memset(dns, 'a', 64);
-    dns[63] = 0;
+    char dns[ 64 ];
+
+    memset( dns, 'a', 64 );
+    dns[ 63 ] = 0;
     BaseType_t xExpected = pdFALSE;
     size_t beg = sizeof( DNSMessage_t );
-    pucUDPPayloadBuffer[offsetof( DNSMessage_t, usQuestions)] = 4;
+    pucUDPPayloadBuffer[ offsetof( DNSMessage_t, usQuestions ) ] = 4;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq" );
     beg += 38;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOS111111111111111111111111111111");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOS111111111111111111111111111111" );
     beg += 38;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOS111111111111111111111111111111");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOS111111111111111111111111111111" );
     beg += 38;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOS111111111111111111111111111111");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOS111111111111111111111111111111" );
     beg += 38;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOS111111111111111111111111111111");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOS111111111111111111111111111111" );
     beg += 38;
 
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                              uxBufferLength,
-                              xExpected );
-    TEST_ASSERT_EQUAL(pdFALSE, ret);
+                             uxBufferLength,
+                             xExpected );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
 /**
- * @brief 
+ * @brief
  */
-void test_DNS_ParseDNSReply_ansswer_record_no_answers (void)
+void test_DNS_ParseDNSReply_ansswer_record_no_answers( void )
 {
     uint32_t ret;
-    uint8_t  pucUDPPayloadBuffer[250];
+    uint8_t pucUDPPayloadBuffer[ 250 ];
     size_t uxBufferLength = 250;
-    char dns[64];
-    memset(dns, 'a', 64);
-    dns[63] = 0;
+    char dns[ 64 ];
+
+    memset( dns, 'a', 64 );
+    dns[ 63 ] = 0;
     BaseType_t xExpected = pdFALSE;
     size_t beg = sizeof( DNSMessage_t );
 
-    pucUDPPayloadBuffer[offsetof( DNSMessage_t, usQuestions)] = 0;
-    pucUDPPayloadBuffer[offsetof( DNSMessage_t, usAnswers)] = 0;
+    pucUDPPayloadBuffer[ offsetof( DNSMessage_t, usQuestions ) ] = 0;
+    pucUDPPayloadBuffer[ offsetof( DNSMessage_t, usAnswers ) ] = 0;
 
-    pucUDPPayloadBuffer[offsetof( DNSMessage_t, usFlags)] =  dnsRX_FLAGS_MASK| dnsEXPECTED_RX_FLAGS;
+    pucUDPPayloadBuffer[ offsetof( DNSMessage_t, usFlags ) ] = dnsRX_FLAGS_MASK | dnsEXPECTED_RX_FLAGS;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                              uxBufferLength,
-                              xExpected );
-    TEST_ASSERT_EQUAL(pdFALSE, ret);
+                             uxBufferLength,
+                             xExpected );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
 /**
- * @brief 
+ * @brief
  */
-void test_DNS_ParseDNSReply_ansswer_record_too_many_answers(void)
+void test_DNS_ParseDNSReply_ansswer_record_too_many_answers( void )
 {
     uint32_t ret;
-    uint8_t  pucUDPPayloadBuffer[250] = {0};
+    uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
     size_t uxBufferLength = 250;
-    char dns[64];
-    memset(dns, 'a', 64);
-    dns[63] = 0;
+    char dns[ 64 ];
+
+    memset( dns, 'a', 64 );
+    dns[ 63 ] = 0;
     BaseType_t xExpected = pdFALSE;
     size_t beg = sizeof( DNSMessage_t );
 
@@ -719,53 +750,58 @@ void test_DNS_ParseDNSReply_ansswer_record_too_many_answers(void)
 
     dns_header = &pucUDPPayloadBuffer;
 
-    dns_header->usQuestions = FreeRTOS_htons(1);
-    dns_header->usAnswers = FreeRTOS_htons(2);
+    dns_header->usQuestions = FreeRTOS_htons( 1 );
+    dns_header->usAnswers = FreeRTOS_htons( 2 );
     dns_header->usFlags = dnsEXPECTED_RX_FLAGS;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
-    beg+= sizeof(uint32_t);
+    beg += sizeof( uint32_t );
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); // usType
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); // usClass
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); // usType
+    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usClass */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usType */
 
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                              uxBufferLength,
-                              xExpected );
-    TEST_ASSERT_EQUAL(pdFALSE, ret);
+                             uxBufferLength,
+                             xExpected );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
 /**
- * @brief 
+ * @brief ensures that the ip set in Setup is passed to the network with
+ *        vReturnEthernetFrame
  */
-void test_DNS_ParseDNSReply_ansswer_lmmnr_reply(void)
+void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
 {
     uint32_t ret;
-    uint8_t  pucUDPPayloadBuffer[250] = {0};
+    uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
+
+    memset( pucUDPPayloadBuffer, 0, 250 );
     size_t uxBufferLength = 250;
 
+
     NetworkBufferDescriptor_t pxNetworkBuffer;
+
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
-    char dns[64];
-    memset(dns, 'a', 64);
-    dns[63] = 0;
+    char dns[ 64 ];
+    memset( dns, 'a', 64 );
+    dns[ 63 ] = 0;
     BaseType_t xExpected = pdFALSE;
     size_t beg = sizeof( DNSMessage_t );
 
@@ -773,58 +809,73 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply(void)
 
     dns_header = &pucUDPPayloadBuffer;
 
-    dns_header->usQuestions = FreeRTOS_htons(1);
-    dns_header->usAnswers = FreeRTOS_htons(2);
+    dns_header->usQuestions = FreeRTOS_htons( 1 );
+    dns_header->usAnswers = FreeRTOS_htons( 2 );
     dns_header->usFlags = dnsDNS_PORT;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
-    beg+= sizeof(uint32_t);
+    beg += sizeof( uint32_t );
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); // usType
-    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN ); // usClass
+    uint8_t * pucNewBuffer = NULL;
+    pucNewBuffer = &( pucUDPPayloadBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+    LLMNRAnswer_t * pxAnswer = &( pucNewBuffer[ 56 ] ); // xOffset1 = 56
+
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
     hook_return = pdTRUE;
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
-    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(&pxNewBuffer);
-    usGenerateChecksum_ExpectAnyArgsAndReturn(1234);
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn(123);
-    vReturnEthernetFrame_ExpectAnyArgs();
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNewBuffer );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 1234 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 123 );
+
+    vReturnEthernetFrame_Expect( &pxNewBuffer, pdFALSE );
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                              uxBufferLength,
-                              xExpected );
-    TEST_ASSERT_EQUAL(pdFALSE, ret);
+                             uxBufferLength,
+                             xExpected );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
+
+    uint8_t value = ( ( uint8_t * ) pxAnswer )[ offsetof( LLMNRAnswer_t, ulIPAddress ) ];
+    TEST_ASSERT_EQUAL( 11, value );
+    TEST_ASSERT_EQUAL( 12, value + 1 );
+    TEST_ASSERT_EQUAL( 13, value + 2 );
+    TEST_ASSERT_EQUAL( 14, value + 3 );
 }
 
 /**
- * @brief 
+ * @brief ensures that when the dns query hook returns pdFALSE, the ip is not
+ *        set and no packet is sent over the network
  */
-void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false(void)
+void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
 {
     uint32_t ret;
-    uint8_t  pucUDPPayloadBuffer[250] = {0};
+    uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
+    memset(pucUDPPayloadBuffer,0x0, 250);
     size_t uxBufferLength = 250;
 
     NetworkBufferDescriptor_t pxNetworkBuffer;
+
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
-    char dns[64];
-    memset(dns, 'a', 64);
-    dns[63] = 0;
+    char dns[ 64 ];
+    memset( dns, 'a', 64 );
+    dns[ 63 ] = 0;
     BaseType_t xExpected = pdFALSE;
     size_t beg = sizeof( DNSMessage_t );
 
@@ -832,52 +883,57 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false(void)
 
     dns_header = &pucUDPPayloadBuffer;
 
-    dns_header->usQuestions = FreeRTOS_htons(1);
-    dns_header->usAnswers = FreeRTOS_htons(2);
+    dns_header->usQuestions = FreeRTOS_htons( 1 );
+    dns_header->usAnswers = FreeRTOS_htons( 2 );
     dns_header->usFlags = dnsDNS_PORT;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
-    beg+= sizeof(uint32_t);
+    beg += sizeof( uint32_t );
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); // usType
-    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN ); // usClass
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
     hook_return = pdFALSE;
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                              uxBufferLength,
-                              xExpected );
-    TEST_ASSERT_EQUAL(pdFALSE, ret);
+                             uxBufferLength,
+                             xExpected );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
+
+
 }
 
 /**
- * @brief 
+ * @brief ensures that when the network buffer is created with a result of null,
+ *        no packet is sent over the network
  */
-void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer(void)
+void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer( void )
 {
     uint32_t ret;
-    uint8_t  pucUDPPayloadBuffer[250] = {0};
+    uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
     size_t uxBufferLength = 250;
 
     NetworkBufferDescriptor_t pxNetworkBuffer;
+
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
-    char dns[64];
-    memset(dns, 'a', 64);
-    dns[63] = 0;
+    char dns[ 64 ];
+    memset( dns, 'a', 64 );
+    dns[ 63 ] = 0;
     BaseType_t xExpected = pdFALSE;
     size_t beg = sizeof( DNSMessage_t );
 
@@ -885,53 +941,56 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer(void)
 
     dns_header = &pucUDPPayloadBuffer;
 
-    dns_header->usQuestions = FreeRTOS_htons(1);
-    dns_header->usAnswers = FreeRTOS_htons(2);
+    dns_header->usQuestions = FreeRTOS_htons( 1 );
+    dns_header->usAnswers = FreeRTOS_htons( 2 );
     dns_header->usFlags = dnsDNS_PORT;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
-    beg+= sizeof(uint32_t);
+    beg += sizeof( uint32_t );
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); // usType
-    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN ); // usClass
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
     hook_return = pdTRUE;
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( NULL );
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                              uxBufferLength,
-                              xExpected );
-    TEST_ASSERT_EQUAL(pdFALSE, ret);
+                             uxBufferLength,
+                             xExpected );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
 }
 
 /**
- * @brief 
+ * @brief ensures that when the duplicated network buffer is null, no packet is
+ *        sent over the network
  */
-void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2(void)
+void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2( void )
 {
     uint32_t ret;
-    uint8_t  pucUDPPayloadBuffer[250] = {0};
+    uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
     size_t uxBufferLength = 250;
 
     NetworkBufferDescriptor_t pxNetworkBuffer;
+
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
-    char dns[64];
-    memset(dns, 'a', 64);
-    dns[63] = 0;
+    char dns[ 64 ];
+    memset( dns, 'a', 64 );
+    dns[ 63 ] = 0;
     BaseType_t xExpected = pdFALSE;
     size_t beg = sizeof( DNSMessage_t );
 
@@ -939,49 +998,51 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2(void)
 
     dns_header = &pucUDPPayloadBuffer;
 
-    dns_header->usQuestions = FreeRTOS_htons(1);
-    dns_header->usAnswers = FreeRTOS_htons(2);
+    dns_header->usQuestions = FreeRTOS_htons( 1 );
+    dns_header->usAnswers = FreeRTOS_htons( 2 );
     dns_header->usFlags = dnsDNS_PORT;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
-    beg+= sizeof(uint32_t);
+    beg += sizeof( uint32_t );
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
-    strcpy(pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); // usType
-    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN ); // usClass
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
     hook_return = pdTRUE;
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
-    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(NULL);
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                              uxBufferLength,
-                              xExpected );
-    TEST_ASSERT_EQUAL(pdFALSE, ret);
+                             uxBufferLength,
+                             xExpected );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
 }
 
 /**
- * @brief 
+ * @brief ensures that when the number of answers is zero no packet issent over
+ *        the network
  */
-void test_parseDNSAnswer_no_answers(void)
+void test_parseDNSAnswer_no_answers( void )
 {
     BaseType_t ret;
-    DNSMessage_t  pxDNSMessageHeader;
-    char pucByte[300];
+    DNSMessage_t pxDNSMessageHeader;
+    char pucByte[ 300 ];
     size_t uxsourceBytesRemaining = 300;
     size_t uxBytesRead = 0;
-    char pcName[300];
+    char pcName[ 300 ];
     BaseType_t xDoStore = pdFALSE;
 
     pxDNSMessageHeader.usAnswers = 0;
@@ -991,7 +1052,7 @@ void test_parseDNSAnswer_no_answers(void)
                           uxsourceBytesRemaining,
                           &uxBytesRead,
                           pcName,
-                          xDoStore);
+                          xDoStore );
     TEST_ASSERT_EQUAL( pdTRUE, ret );
 }
 
@@ -999,123 +1060,266 @@ void test_parseDNSAnswer_no_answers(void)
  * @brief ensures that when more records are stored than allowed by
  * ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY true is resured
  */
-void test_parseDNSAnswer_recordstored_gt_count(void)
+void test_parseDNSAnswer_recordstored_gt_count( void )
 {
     BaseType_t ret;
-    DNSMessage_t  pxDNSMessageHeader;
-    char pucByte[300];
+    DNSMessage_t pxDNSMessageHeader;
+    char pucByte[ 300 ];
     size_t uxsourceBytesRemaining = 300;
     size_t uxBytesRead = 0;
-    char pcName[300];
+    char pcName[ 300 ];
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
 
 
 
     pucByte[ 0 ] = 38;
-    strcpy(pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
-    pxDNSMessageHeader.usAnswers =  ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
+    pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); // usType
-    xDNSDoCallback_ExpectAnyArgsAndReturn(pdTRUE);
-    FreeRTOS_dns_update_ExpectAnyArgsAndReturn(pdTRUE);
-    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn(pdTRUE);
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    xDNSDoCallback_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( pdTRUE );
 
-    pxDNSAnswerRecord = ( DNSAnswerRecord_t *) (pucByte + 40 );
-    pxDNSAnswerRecord->usDataLength =  FreeRTOS_htons(ipSIZE_OF_IPv4_ADDRESS);
-    //pxDNSAnswerRecord->usDataLength =  (ipSIZE_OF_IPv4_ADDRESS);
-    pxDNSAnswerRecord->usType =  (dnsTYPE_A_HOST);
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
+    pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
+    /*pxDNSAnswerRecord->usDataLength =  (ipSIZE_OF_IPv4_ADDRESS); */
+    pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
 
     ret = parseDNSAnswer( &pxDNSMessageHeader,
                           pucByte,
                           uxsourceBytesRemaining,
                           &uxBytesRead,
                           pcName,
-                          xDoStore);
+                          xDoStore );
     TEST_ASSERT_EQUAL( pdTRUE, ret );
 }
 
 /**
- * @brief 
- * 
+ * @brief ensures that when the number of entries is larger than the cofigured
+ *        cache address entries, not packet is sent over the netork
+ *
  */
-void test_parseDNSAnswer_remaining_gt_datalength(void)
+void test_parseDNSAnswer_dns_nocallback_false( void )
 {
     BaseType_t ret;
-    DNSMessage_t  pxDNSMessageHeader;
-    char pucByte[300];
-    size_t uxsourceBytesRemaining = 40 + sizeof(DNSAnswerRecord_t) + 2 ;
+    DNSMessage_t pxDNSMessageHeader;
+    char pucByte[ 300 ];
+    size_t uxsourceBytesRemaining = 300;
     size_t uxBytesRead = 0;
-    char pcName[300];
+    char pcName[ 300 ];
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
 
-
-
     pucByte[ 0 ] = 38;
-    strcpy(pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
-    pxDNSMessageHeader.usAnswers =  ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
+    pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); // usType
-    //xDNSDoCallback_ExpectAnyArgsAndReturn(pdTRUE);
-    //FreeRTOS_dns_update_ExpectAnyArgsAndReturn(pdTRUE);
-    //FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn(pdTRUE);
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    xDNSDoCallback_ExpectAnyArgsAndReturn( pdFALSE );
+    FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( "ignored" );
 
-    pxDNSAnswerRecord = ( DNSAnswerRecord_t *) (pucByte + 40 );
-    pxDNSAnswerRecord->usDataLength =  FreeRTOS_htons(ipSIZE_OF_IPv4_ADDRESS);
-    pxDNSAnswerRecord->usType =  (dnsTYPE_A_HOST);
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
+    pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
+    pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
 
     ret = parseDNSAnswer( &pxDNSMessageHeader,
                           pucByte,
                           uxsourceBytesRemaining,
                           &uxBytesRead,
                           pcName,
-                          xDoStore);
+                          xDoStore );
+    TEST_ASSERT_EQUAL( pdTRUE, ret );
+}
+
+/**
+ * @brief ensures that when the number of entries is larger than the cofigured
+ *        cache address entries, not packet is sent over the netork
+ *
+ */
+void test_parseDNSAnswer_do_store_false( void )
+{
+    BaseType_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    char pucByte[ 300 ];
+    size_t uxsourceBytesRemaining = 300;
+    size_t uxBytesRead = 0;
+    char pcName[ 300 ];
+    BaseType_t xDoStore = pdFALSE;
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+
+    pucByte[ 0 ] = 38;
+    strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+
+    pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
+
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    xDNSDoCallback_ExpectAnyArgsAndReturn( pdFALSE );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( "ignored" );
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
+    pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
+    pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
+
+    ret = parseDNSAnswer( &pxDNSMessageHeader,
+                          pucByte,
+                          uxsourceBytesRemaining,
+                          &uxBytesRead,
+                          pcName,
+                          xDoStore );
+    TEST_ASSERT_EQUAL( pdTRUE, ret );
+}
+
+/**
+ * @brief ensures that when the number of entries is larger than the cofigured
+ *        cache address entries, not packet is sent over the netork
+ *
+ */
+void test_parseDNSAnswer_dnsanswerrecord_datalength_ne_addresslength( void )
+{
+    BaseType_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    char pucByte[ 300 ];
+    size_t uxsourceBytesRemaining = 300;
+    size_t uxBytesRead = 0;
+    char pcName[ 300 ];
+    BaseType_t xDoStore = pdTRUE;
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+
+    pucByte[ 0 ] = 38;
+    strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+
+    pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
+
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
+    pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS + 2 );
+    pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
+
+    ret = parseDNSAnswer( &pxDNSMessageHeader,
+                          pucByte,
+                          uxsourceBytesRemaining,
+                          &uxBytesRead,
+                          pcName,
+                          xDoStore );
+    TEST_ASSERT_EQUAL( pdTRUE, ret );
+}
+
+/**
+ * @brief ensures that when the number of entries is larger than the cofigured
+ *        cache address entries, not packet is sent over the netork
+ *
+ */
+void test_parseDNSAnswer_remaining_gt_datalength( void )
+{
+    BaseType_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    char pucByte[ 300 ];
+    size_t uxsourceBytesRemaining = 40 + sizeof( DNSAnswerRecord_t ) + 2;
+    size_t uxBytesRead = 0;
+    char pcName[ 300 ];
+    BaseType_t xDoStore = pdTRUE;
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+
+    pucByte[ 0 ] = 38;
+    strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+
+    pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
+
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
+    pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
+    pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
+
+    ret = parseDNSAnswer( &pxDNSMessageHeader,
+                          pucByte,
+                          uxsourceBytesRemaining,
+                          &uxBytesRead,
+                          pcName,
+                          xDoStore );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
 /**
- * @brief 
- * 
+ * @brief ensures that when source bytes remaining int pucByte are
+ *        less than 16bytes processing is stopped and false is returned
  */
-void test_parseDNSAnswer_remaining_lt_uint16(void)
+void test_parseDNSAnswer_remaining_lt_uint16( void )
 {
     BaseType_t ret;
-    DNSMessage_t  pxDNSMessageHeader;
-    char pucByte[300];
-    size_t uxsourceBytesRemaining = 40 + 1 ;
+    DNSMessage_t pxDNSMessageHeader;
+    char pucByte[ 300 ];
+    size_t uxsourceBytesRemaining = 40 + 1;
     size_t uxBytesRead = 0;
-    char pcName[300];
+    char pcName[ 300 ];
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
 
-
-
     pucByte[ 0 ] = 38;
-    strcpy(pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
-    pxDNSMessageHeader.usAnswers =  ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
+    pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
-    //usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); // usType
-    //xDNSDoCallback_ExpectAnyArgsAndReturn(pdTRUE);
-    //FreeRTOS_dns_update_ExpectAnyArgsAndReturn(pdTRUE);
-    //FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn(pdTRUE);
-
-    pxDNSAnswerRecord = ( DNSAnswerRecord_t *) (pucByte + 40 );
-    pxDNSAnswerRecord->usDataLength =  FreeRTOS_htons(ipSIZE_OF_IPv4_ADDRESS);
-    pxDNSAnswerRecord->usType =  (dnsTYPE_A_HOST);
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
+    pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
+    pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
 
     ret = parseDNSAnswer( &pxDNSMessageHeader,
                           pucByte,
                           uxsourceBytesRemaining,
                           &uxBytesRead,
                           pcName,
-                          xDoStore);
+                          xDoStore );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
+
+/**
+ * @brief ensures that when the number of entries is larger than the cofigured
+ *        cache address entries, not packet is sent over the netork
+ *
+ */
+void test_parseDNSAnswer_remaining_lt_dnsanswerrecord( void )
+{
+    BaseType_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    char pucByte[ 300 ];
+    size_t uxsourceBytesRemaining = sizeof( DNSAnswerRecord_t ) + 38;
+    size_t uxBytesRead = 0;
+    char pcName[ 300 ];
+    BaseType_t xDoStore = pdTRUE;
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+
+    pucByte[ 0 ] = 38;
+    strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+
+    pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
+
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
+    pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
+    pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST + 1 );
+
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST + 1 );
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
+
+    ret = parseDNSAnswer( &pxDNSMessageHeader,
+                          pucByte,
+                          uxsourceBytesRemaining,
+                          &uxBytesRead,
+                          pcName,
+                          xDoStore );
+    TEST_ASSERT_EQUAL( pdTRUE, ret );
+}
+
 BaseType_t xApplicationDNSQueryHook( const char * pcName )
 {
-    return hook_return;;
+    hook_called = pdTRUE;
+    return hook_return;
 }
