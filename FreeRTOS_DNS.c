@@ -53,6 +53,9 @@
 #if ( ipconfigUSE_DNS != 0 )
 
 
+/*
+ * structure to hold the buffer and its size
+ */
     struct dns_buffer
     {
         uint8_t * pucPayloadBuffer;
