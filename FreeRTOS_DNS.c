@@ -58,8 +58,8 @@
  */
     struct dns_buffer
     {
-        uint8_t * pucPayloadBuffer;
-        size_t uxPayloadLength;
+        uint8_t * pucPayloadBuffer; /*!< buffer to hold data */
+        size_t uxPayloadLength;     /*!< size of the data in buffer */
     };
 
 /*
