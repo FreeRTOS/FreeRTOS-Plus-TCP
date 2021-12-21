@@ -857,7 +857,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
 
     uint8_t * pucNewBuffer = NULL;
     pucNewBuffer = &( pucUDPPayloadBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
-    LLMNRAnswer_t * pxAnswer = &( pucNewBuffer[ 56 ] ); // xOffset1 = 56
+    LLMNRAnswer_t * pxAnswer = &( pucNewBuffer[ 56 ] );  /* xOffset1 = 56 */
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
@@ -890,7 +890,8 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
 {
     uint32_t ret;
     uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
-    memset(pucUDPPayloadBuffer,0x0, 250);
+
+    memset( pucUDPPayloadBuffer, 0x0, 250 );
     size_t uxBufferLength = 250;
 
     NetworkBufferDescriptor_t pxNetworkBuffer;
@@ -937,8 +938,6 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
                              xExpected );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_CALLED();
-
-
 }
 
 /**
