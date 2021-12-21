@@ -99,17 +99,17 @@ static IPTimer_t xARPTimer;
  */
 TickType_t xCalculateSleepTime( void )
 {
-    TickType_t xMaximumSleepTime;
+    TickType_t uxMaximumSleepTime;
 
     /* Start with the maximum sleep time, then check this against the remaining
      * time in any other timers that are active. */
-    xMaximumSleepTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
+    uxMaximumSleepTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
 
     if( xARPTimer.bActive != pdFALSE_UNSIGNED )
     {
-        if( xARPTimer.ulRemainingTime < xMaximumSleepTime )
+        if( xARPTimer.ulRemainingTime < uxMaximumSleepTime )
         {
-            xMaximumSleepTime = xARPTimer.ulRemainingTime;
+            uxMaximumSleepTime = xARPTimer.ulRemainingTime;
         }
     }
 
@@ -117,9 +117,9 @@ TickType_t xCalculateSleepTime( void )
         {
             if( xDHCPTimer.bActive != pdFALSE_UNSIGNED )
             {
-                if( xDHCPTimer.ulRemainingTime < xMaximumSleepTime )
+                if( xDHCPTimer.ulRemainingTime < uxMaximumSleepTime )
                 {
-                    xMaximumSleepTime = xDHCPTimer.ulRemainingTime;
+                    uxMaximumSleepTime = xDHCPTimer.ulRemainingTime;
                 }
             }
         }
@@ -129,9 +129,9 @@ TickType_t xCalculateSleepTime( void )
         {
             if( xTCPTimer.bActive != pdFALSE_UNSIGNED )
             {
-                if( xTCPTimer.ulRemainingTime < xMaximumSleepTime )
+                if( xTCPTimer.ulRemainingTime < uxMaximumSleepTime )
                 {
-                    xMaximumSleepTime = xTCPTimer.ulRemainingTime;
+                    uxMaximumSleepTime = xTCPTimer.ulRemainingTime;
                 }
             }
         }
@@ -141,15 +141,15 @@ TickType_t xCalculateSleepTime( void )
         {
             if( xDNSTimer.bActive != pdFALSE_UNSIGNED )
             {
-                if( xDNSTimer.ulRemainingTime < xMaximumSleepTime )
+                if( xDNSTimer.ulRemainingTime < uxMaximumSleepTime )
                 {
-                    xMaximumSleepTime = xDNSTimer.ulRemainingTime;
+                    uxMaximumSleepTime = xDNSTimer.ulRemainingTime;
                 }
             }
         }
     #endif
 
-    return xMaximumSleepTime;
+    return uxMaximumSleepTime;
 }
 /*-----------------------------------------------------------*/
 
