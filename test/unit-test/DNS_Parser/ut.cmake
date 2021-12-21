@@ -58,8 +58,8 @@ list(APPEND real_include_directories
 # list the directories your test needs to include
 list(APPEND test_include_directories
             .
-            ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
+            ${CMOCK_DIR}/vendor/unity/src
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${MODULE_ROOT_DIR}/include/DNS
         )

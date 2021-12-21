@@ -19,7 +19,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Cache.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS/DNS_Callback.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Callback.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Networking.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Parser.h"
         )
