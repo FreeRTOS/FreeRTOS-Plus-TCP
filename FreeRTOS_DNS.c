@@ -53,8 +53,8 @@
 #if ( ipconfigUSE_DNS != 0 )
 
 
-/*
- * structure to hold the buffer and its size
+/**
+ * @brief structure to hold the buffer and its size
  */
     struct dns_buffer
     {
@@ -610,8 +610,12 @@
 
     #if ( ipconfigUSE_LLMNR == 1 )
 
-/* If LLMNR is being used then determine if the host name includes a '.' -
- * if not then LLMNR can be used as the lookup method. */
+/**
+ * @brief If LLMNR is being used then determine if the host name includes a '.' -
+ *        if not then LLMNR can be used as the lookup method.
+ * @param pcHostName[IN] name to search for a dot
+ * @return pdTRUE if the name has a dot
+ */
         static BaseType_t llmnr_has_dot( const char * pcHostName )
         {
             BaseType_t bHasDot = pdFALSE;
@@ -630,6 +634,12 @@
         }
     #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
 
+/**
+ * @brief  get a payload buffer
+ * @param ppxNetworkBuffer[OUT] a new network descripto
+ * @param pchostName[IN] copy to the network buffer
+ * @returns payload buffer or NULL
+ */
     static uint8_t * prvGetPayloadBuffer( NetworkBufferDescriptor_t ** ppxNetworkBuffer,
                                           const char * pcHostName )
     {
@@ -661,6 +671,10 @@
         return pucUDPPayloadBuffer;
     }
 
+/**
+ * @brief fill the address
+ *
+ */
     static void prvFillSockAddress( struct freertos_sockaddr * xAddress,
                                     uint8_t * pucUDPPayloadBuffer,
                                     const char * pcHostName )
@@ -691,6 +705,10 @@
         }
     }
 
+/**
+ * @brief  sends the dns request
+ *
+ */
     static uint32_t prvDNSRequest( const char * pcHostName,
                                    TickType_t uxIdentifier,
                                    Socket_t xDNSSocket,
@@ -721,6 +739,10 @@
         return xReturn;
     }
 
+/**
+ * @brief  parse the dns reply
+ *
+ */
     static uint32_t prvDNSReply( struct dns_buffer * pxReceiveBuffer,
                                  TickType_t uxIdentifier )
     {
@@ -758,6 +780,10 @@
         return ulIPAddress;
     }
 
+/**
+ * @brief read dns reply from the network
+ *
+ */
     static void prvReadDNSReply( Socket_t xDNSSocket,
                                  struct freertos_sockaddr * xAddress,
                                  struct dns_buffer * pxReceiveBuffer )
@@ -775,7 +801,11 @@
                                                               &ulAddressLength );
     }
 
-/* main dns operation description function */
+
+/**
+ * @brief main dns operation description function
+ *
+ */
     static uint32_t prvGetHostByNameOp( const char * pcHostName,
                                         TickType_t uxIdentifier,
                                         Socket_t xDNSSocket,
@@ -829,6 +859,10 @@
         return ulIPAddress;
     }
 
+/**
+ * @brief  get host by name with configured retires
+ *
+ */
     static uint32_t prvGetHostByNameOp_WithRetry( const char * pcHostName,
                                                   TickType_t uxIdentifier,
                                                   Socket_t xDNSSocket,
