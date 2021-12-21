@@ -105,6 +105,7 @@ foreach( file ${TCP_INCLUDES} )
                                                    -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
                                                    -I ${UNIT_TEST_DIR}/ConfigFiles
                                                    -I ${MODULE_ROOT_DIR}/include
+                                                   -I ${MODULE_ROOT_DIR}/include/DNS
                                                    -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
                                                    ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
