@@ -636,7 +636,7 @@
 
 /**
  * @brief  get a payload buffer
- * @param[out] ppxNetworkBuffer a new network descripto
+ * @param[out] ppxNetworkBuffer a new network descriptor
  * @param[in] pcHostName copy to the network buffer
  * @returns payload buffer or NULL
  */

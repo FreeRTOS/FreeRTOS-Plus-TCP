@@ -730,6 +730,7 @@ pucnewbuffer
 pucnextdata
 pucoptionsarray
 pucpayload
+pucpayloadbuffer
 pucptr
 pucrecvdata
 pucsource
@@ -1286,6 +1287,7 @@ uxnumberofbytestosend
 uxoffset
 uxoptionlength
 uxoptionslength
+uxpayloadlength
 uxremainingbytes
 uxremainingtime
 uxremaningtime
