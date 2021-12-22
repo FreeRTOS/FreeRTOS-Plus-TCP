@@ -760,7 +760,6 @@
  * @param[in] pxNetworkBuffer: The network buffer descriptor with the DNS message.
  * @param[in] lNetLength: The length of the DNS message.
  */
-        #include <stdio.h>
         void prepareReplyDNSMessage( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                      BaseType_t lNetLength )
         {

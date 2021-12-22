@@ -398,6 +398,8 @@ void test_prepareReplyDNSMessage_success( void )
     size_t uxDataLength;
 
     pxNetworkBuffer.pucEthernetBuffer = ether_buffer;
+    pxNetworkBuffer.xDataLength = 300;
+
 
     BaseType_t lNetLength = 50;
     UDPPacket_t * pxUDPPacket;
@@ -520,7 +522,7 @@ void test_DNS_TreatNBNS_success_nbns_query( void )
 void test_DNS_TreatNBNS_success_nbns_query_network_buffer_null( void )
 {
     uint8_t pucPayload[ 300 ];
-    size_t uxBufferLength;
+    size_t uxBufferLength = 300;
     uint32_t ulIPAddress;
 
 
@@ -532,7 +534,7 @@ void test_DNS_TreatNBNS_success_nbns_query_network_buffer_null( void )
 
 
     DNS_TreatNBNS( pucPayload,
-                   300,
+                   uxBufferLength,
                    1234 );
     ASSERT_DNS_QUERY_HOOK_CALLED();
 }
@@ -544,7 +546,7 @@ void test_DNS_TreatNBNS_success_nbns_query_network_buffer_null( void )
 void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
 {
     uint8_t pucPayload[ 300 ];
-    size_t uxBufferLength;
+    size_t uxBufferLength = 300;
     uint32_t ulIPAddress;
 
     NetworkBufferDescriptor_t pxNetworkBuffer;
@@ -553,6 +555,7 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
     uint8_t buffer[ 300 ];
 
     pxNetworkBuffer_dup.pucEthernetBuffer = buffer;
+    pxNetworkBuffer_dup.xDataLength = 300;
 
     hook_return = pdTRUE;
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usFlags */
@@ -566,7 +569,7 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
 
     DNS_TreatNBNS( pucPayload,
-                   300,
+                   uxBufferLength,
                    1234 );
     ASSERT_DNS_QUERY_HOOK_CALLED();
 }
@@ -663,6 +666,7 @@ void test_DNS_ParseDNSReply_fail_empty_namefield( void )
     BaseType_t xExpected = pdFALSE;
     uint8_t beg = sizeof( DNSMessage_t );
 
+    memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
     pucUDPPayloadBuffer[ offsetof( DNSMessage_t, usQuestions ) ] = 4;
 
     pucUDPPayloadBuffer[ beg++ ] = 8;
@@ -686,10 +690,12 @@ void test_DNS_ParseDNSReply_fail_not_enough_space_lt_32( void )
     size_t uxBufferLength = 250;
     char dns[ 64 ];
 
+    memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
     memset( dns, 'a', 64 );
     dns[ 63 ] = 0;
     BaseType_t xExpected = pdFALSE;
     size_t beg = sizeof( DNSMessage_t );
+
     pucUDPPayloadBuffer[ offsetof( DNSMessage_t, usQuestions ) ] = 4;
 
     pucUDPPayloadBuffer[ beg ] = 38;
@@ -739,6 +745,7 @@ void test_DNS_ParseDNSReply_ansswer_record_no_answers( void )
     char dns[ 64 ];
 
     memset( dns, 'a', 64 );
+    memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
     dns[ 63 ] = 0;
     BaseType_t xExpected = pdFALSE;
     size_t beg = sizeof( DNSMessage_t );
@@ -770,6 +777,7 @@ void test_DNS_ParseDNSReply_ansswer_record_too_many_answers( void )
     char dns[ 64 ];
 
     memset( dns, 'a', 64 );
+    memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
     dns[ 63 ] = 0;
     BaseType_t xExpected = pdFALSE;
     size_t beg = sizeof( DNSMessage_t );
@@ -817,16 +825,18 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
 {
     uint32_t ret;
     uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
-
-    memset( pucUDPPayloadBuffer, 0, 250 );
     size_t uxBufferLength = 250;
 
+    memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
     NetworkBufferDescriptor_t pxNetworkBuffer;
-
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNetworkBuffer.xDataLength = uxBufferLength;
+
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNewBuffer.xDataLength = uxBufferLength;
+
     char dns[ 64 ];
     memset( dns, 'a', 64 );
     dns[ 63 ] = 0;
@@ -898,10 +908,13 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
     size_t uxBufferLength = 250;
 
     NetworkBufferDescriptor_t pxNetworkBuffer;
-
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNetworkBuffer.xDataLength = uxBufferLength;
+
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNewBuffer.xDataLength = uxBufferLength;
+
     char dns[ 64 ];
     memset( dns, 'a', 64 );
     dns[ 63 ] = 0;
@@ -956,10 +969,15 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer( void )
     NetworkBufferDescriptor_t pxNetworkBuffer;
 
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNetworkBuffer.xDataLength = uxBufferLength;
+
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNewBuffer.xDataLength = uxBufferLength;
+
     char dns[ 64 ];
     memset( dns, 'a', 64 );
+    memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
     dns[ 63 ] = 0;
     BaseType_t xExpected = pdFALSE;
     size_t beg = sizeof( DNSMessage_t );
@@ -1010,11 +1028,16 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2( void )
     uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
     size_t uxBufferLength = 250;
 
-    NetworkBufferDescriptor_t pxNetworkBuffer;
+    memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
+    NetworkBufferDescriptor_t pxNetworkBuffer;
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNetworkBuffer.xDataLength = uxBufferLength;
+
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNewBuffer.xDataLength = uxBufferLength;
+
     char dns[ 64 ];
     memset( dns, 'a', 64 );
     dns[ 63 ] = 0;
