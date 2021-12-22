@@ -80,6 +80,7 @@ jobs:
             exit 0
           else
             echo "To have the code uncrustified for you, please comment '/bot run uncrustify' on the Pull Request."
+            exit 1
           fi
       - name: Check For Trailing Whitespace
         run: |
