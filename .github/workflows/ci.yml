@@ -79,7 +79,8 @@ jobs:
           if [ "$?" = "0" ]; then
             exit 0
           else
-            echo "To have the code uncrustified for you, please comment '/bot run uncrustify' on the Pull Request."
+            echo -e "\033[31;1;43mFormatting check (using Uncrustify) failed...\033[0m"
+            echo -e "\033[32;3mTo have the code uncrustified for you, please comment '/bot run uncrustify' (without the quotes) on the Pull Request.\033[0m"
             exit 1
           fi
       - name: Check For Trailing Whitespace
