@@ -35,7 +35,7 @@ list(APPEND mock_include_list
 list(APPEND mock_define_list
 #-DportUSING_MPU_WRAPPERS=0
         -DipconfigDNS_USE_CALLBACKS=1
-        -DipconfigUSE_DNS=1 
+        -DipconfigUSE_DNS=1
        )
 
 # ================= Create the library under test here (edit) ==================
