@@ -113,7 +113,10 @@ void tearDown( void )
         TEST_ASSERT_EQUAL( pdTRUE, hook_called ); \
     } while( 0 )
 
-
+portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+{
+    return ( UDPPacket_t * ) pvArgument;
+}
 /* =============================  TEST CASES  =============================== */
 
 /**

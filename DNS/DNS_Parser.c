@@ -59,16 +59,6 @@
     }
 
 /**
- * @brief Utility function to cast pointer of a type to pointer of type UDPPacket_t.
- *
- * @return The casted pointer.
- */
-    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-    {
-        return ( UDPPacket_t * ) pvArgument;
-    }
-
-/**
  * @brief Utility function to cast pointer of a type to pointer of type DNSMessage_t.
  *
  * @return The casted pointer.
