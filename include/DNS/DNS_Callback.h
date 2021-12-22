@@ -30,15 +30,15 @@
 #if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
 /* FreeRTOS includes. */
-#include "FreeRTOS.h"
+    #include "FreeRTOS.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
+    #include "FreeRTOS_IP.h"
 
-#include "DNS_Globals.h"
+    #include "DNS_Globals.h"
 
 /* Standard includes. */
-#include <stdint.h>
+    #include <stdint.h>
 
 
     BaseType_t xDNSDoCallback( TickType_t uxIdentifier,

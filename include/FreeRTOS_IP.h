@@ -120,18 +120,18 @@
     #define ipLAST_LOOPBACK_IPv4     0x80000000UL            /**< Highest IPv4 loopback address (excluding). */
 
 /** @brief Returned to indicate a valid checksum. */
-    #define ipCORRECT_CRC           0xffffU
+    #define ipCORRECT_CRC            0xffffU
 
 /** @brief Returned to indicate incorrect checksum. */
-    #define ipWRONG_CRC             0x0000U
+    #define ipWRONG_CRC              0x0000U
 
 /** @brief Returned as the (invalid) checksum when the length of the data being checked
  * had an invalid length. */
-    #define ipINVALID_LENGTH        0x1234U
+    #define ipINVALID_LENGTH         0x1234U
 
 /** @brief Returned as the (invalid) checksum when the protocol being checked is not
  * handled.  The value is chosen simply to be easy to spot when debugging. */
-    #define ipUNHANDLED_PROTOCOL    0x4321U
+    #define ipUNHANDLED_PROTOCOL     0x4321U
 
 /** @brief The maximum time the IP task is allowed to remain in the Blocked state if no
  * events are posted to the network event queue. */

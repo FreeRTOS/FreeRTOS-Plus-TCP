@@ -328,13 +328,13 @@ typedef struct IP_TASK_COMMANDS
     void * pvData;         /**< The data in the event */
 } IPStackEvent_t;
 
-    extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t );
-    extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t );
+extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t );
+extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t );
 
-    extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t );
-    extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t );
+extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t );
+extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t );
 
-    #define ipBROADCAST_IP_ADDRESS    0xffffffffU
+#define ipBROADCAST_IP_ADDRESS               0xffffffffU
 
 /* Offset into the Ethernet frame that is used to temporarily store information
  * on the fragmentation status of the packet being sent.  The value is important,
