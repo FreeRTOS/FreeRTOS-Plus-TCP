@@ -76,6 +76,11 @@ jobs:
         run: |
           uncrustify --version
           find . -not -path '.*catch_assert.h' -iname "*.[hc]" -exec uncrustify --check -c tools/uncrustify.cfg {} +
+          if [ "$?" = "0" ]; then
+            exit 0
+          else
+            echo "To have the code uncrustified for you, please comment '/bot run uncrustify' on the Pull Request."
+          fi
       - name: Check For Trailing Whitespace
         run: |
           set +e

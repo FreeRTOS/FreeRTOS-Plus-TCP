@@ -40,6 +40,8 @@ jobs:
         run: |
           uncrustify --version
           find . -not -path '.*catch_assert.h' -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
+          # Run it a second time - sometimes all the deviations are not fixed in just one run.
+          find . -not -path '.*catch_assert.h' -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
       - name: Push changes to upstream repository
         run: |
           git config --global user.name 'GitHub Action'
