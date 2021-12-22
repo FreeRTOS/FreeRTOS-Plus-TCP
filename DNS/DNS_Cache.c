@@ -54,8 +54,6 @@
         #endif
     } DNSCacheRow_t;
 
-    #define dnsNAME_IS_OFFSET    ( ( uint8_t ) 0xc0 )
-
     static DNSCacheRow_t xDNSCache[ ipconfigDNS_CACHE_ENTRIES ] = { 0x0 };
     static BaseType_t xFreeEntry = 0;
 

@@ -52,6 +52,10 @@
 #endif /* ipconfigBYTE_ORDER */
 #if ( ipconfigUSE_DNS != 0 )
 
+/** @brief If the top two bits in the first character of a name field are set then the
+ * name field is an offset to the string, rather than the string itself. */
+    #define dnsNAME_IS_OFFSET    ( ( uint8_t ) 0xc0 )
+
 /** @brief The maximum number of times a DNS request should be sent out if a response
  * is not received, before giving up. */
     #ifndef ipconfigDNS_REQUEST_ATTEMPTS
@@ -220,6 +224,9 @@
         } DNSCallback_t;
     #endif /* if ( ipconfigDNS_USE_CALLBACKS != 0 ) */
 
+/**
+ * @brief structure to hold the buffer and its size
+ */
     struct dns_buffer
     {
         uint8_t * pucPayloadBuffer;

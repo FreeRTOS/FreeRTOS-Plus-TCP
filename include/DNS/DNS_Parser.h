@@ -38,10 +38,6 @@
 #include <stdint.h>
 #if ( ipconfigUSE_DNS != 0 )
 
-/** @brief If the top two bits in the first character of a name field are set then the
- * name field is an offset to the string, rather than the string itself. */
-    #define dnsNAME_IS_OFFSET    ( ( uint8_t ) 0xc0 )
-
 /** @brief Flag DNS parsing errors in situations where an IPv4 address is the return
  * type. */
 

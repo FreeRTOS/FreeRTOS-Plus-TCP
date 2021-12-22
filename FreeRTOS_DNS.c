@@ -52,16 +52,6 @@
 /* Exclude the entire file if DNS is not enabled. */
 #if ( ipconfigUSE_DNS != 0 )
 
-
-/**
- * @brief structure to hold the buffer and its size
- */
-    struct dns_buffer
-    {
-        uint8_t * pucPayloadBuffer; /*!< buffer to hold data */
-        size_t uxPayloadLength;     /*!< size of the data in buffer */
-    };
-
 /*
  * Create a socket and bind it to the standard DNS port number.  Return the
  * the created socket - or NULL if the socket could not be created or bound.
@@ -1042,12 +1032,6 @@
          * the last written byte to the beginning of the buffer. */
         return uxIndex + sizeof( DNSTail_t ) + 1U;
     }
-    /*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
-
-    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
-    /*-----------------------------------------------------------*/
 
 /**
  * @brief Simple routine that jumps over the NAME field of a resource record.
