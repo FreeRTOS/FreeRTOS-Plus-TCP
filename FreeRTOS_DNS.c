@@ -47,6 +47,7 @@
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
+#include "DNS/DNS_Globals.h"
 #include "DNS/DNS_Cache.h"
 #include "DNS/DNS_Parser.h"
 #include "DNS/DNS_Networking.h"

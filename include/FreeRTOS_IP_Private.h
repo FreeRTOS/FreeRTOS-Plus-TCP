@@ -37,6 +37,7 @@
 #include "FreeRTOS_Sockets.h"
 #include "IPTraceMacroDefaults.h"
 #include "FreeRTOS_Stream_Buffer.h"
+
 #if ( ipconfigUSE_TCP == 1 )
     #include "FreeRTOS_TCP_WIN.h"
     #include "FreeRTOS_TCP_IP.h"
@@ -896,16 +897,6 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
  * payload buffer.
  */
 NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer );
-
-#if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-
-/*
- * For the case where the network driver passes a buffer directly to a DMA
- * descriptor, this function can be used to translate a 'network buffer' to
- * a 'network buffer descriptor'.
- */
-    NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void * pvBuffer );
-#endif
 
 /*
  * Internal: Sets a new state for a TCP socket and performs the necessary

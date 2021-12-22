@@ -33,8 +33,8 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
-#include "DNS/DNS_Globals.h"
 
+#include "DNS/DNS_Globals.h"
 #include "DNS/DNS_Parser.h"
 #include "DNS/DNS_Cache.h"
 #include "DNS/DNS_Callback.h"
@@ -45,22 +45,8 @@
 
 #if ( ipconfigUSE_DNS != 0 )
 
-    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-    {
-        return ( UDPPacket_t * ) pvArgument;
-    }
-
 /** @brief The list of all callback structures. */
 
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSCallback_t.
- *
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSCallback_t )
-    {
-        return ( DNSCallback_t * ) pvArgument;
-    }
 
 /**
  * @brief Utility function to cast pointer of a type to pointer of type DNSAnswerRecord_t.
@@ -70,6 +56,16 @@
     static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSAnswerRecord_t )
     {
         return ( DNSAnswerRecord_t * ) pvArgument;
+    }
+
+/**
+ * @brief Utility function to cast pointer of a type to pointer of type UDPPacket_t.
+ *
+ * @return The casted pointer.
+ */
+    portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
+    {
+        return ( UDPPacket_t * ) pvArgument;
     }
 
 /**

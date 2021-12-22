@@ -40,7 +40,6 @@
 /* Standard includes. */
     #include <stdint.h>
 
-
     BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
                                const char * pcName,
                                uint32_t ulIPAddress );
