@@ -27,6 +27,8 @@
 #ifndef DNS_CALLBACK_H
 #define DNS_CALLBACK_H
 
+#if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
+
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 
@@ -38,7 +40,7 @@
 /* Standard includes. */
 #include <stdint.h>
 
-#if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
+
     BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
                                const char * pcName,
                                uint32_t ulIPAddress );
@@ -54,7 +56,7 @@
 
     void vDNSCallbackInitialise();
 
-#endif /* ipconfigDNS_USE_CALLBACKS */
+#endif /* ipconfigDNS_USE_CALLBACKS  && ipconfigUSE_DNS */
 
 
 #endif /* ifndef DNS_CALLBACK_H */
