@@ -644,10 +644,10 @@ void test_DNS_ParseDNSReply_fail( void )
     BaseType_t xExpected = pdFALSE;
     int beg = sizeof( DNSMessage_t );
 
+    memset( pucUDPPayloadBuffer, 0x00, 300 );
+
     pucUDPPayloadBuffer[ beg++ ] = 8;
     strcpy( pucUDPPayloadBuffer + beg, "FreeRTOS" );
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usType */
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usClass */
 
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
                              uxBufferLength,
@@ -1201,15 +1201,17 @@ void test_parseDNSAnswer_do_store_false( void )
     BaseType_t xDoStore = pdFALSE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
 
+    memset( pucByte, 0x00, 300 );
+    memset( pcName, 0x00, 300 );
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
+    memset( &pxDNSMessageHeader, 0x00, sizeof( DNSMessage_t ) );
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     xDNSDoCallback_ExpectAnyArgsAndReturn( pdFALSE );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( "ignored" );
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
 
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
@@ -1221,7 +1223,7 @@ void test_parseDNSAnswer_do_store_false( void )
                           &uxBytesRead,
                           pcName,
                           xDoStore );
-    TEST_ASSERT_EQUAL( pdTRUE, ret );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
 /**
@@ -1246,7 +1248,6 @@ void test_parseDNSAnswer_dnsanswerrecord_datalength_ne_addresslength( void )
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
 
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS + 2 );
@@ -1258,7 +1259,7 @@ void test_parseDNSAnswer_dnsanswerrecord_datalength_ne_addresslength( void )
                           &uxBytesRead,
                           pcName,
                           xDoStore );
-    TEST_ASSERT_EQUAL( pdTRUE, ret );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
 /**
