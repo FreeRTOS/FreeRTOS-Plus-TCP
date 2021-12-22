@@ -585,7 +585,7 @@
                            &xReceiveBuffer );
 
             if( ( xReceiveBuffer.pucPayloadBuffer == NULL ) ||
-                ( xReceivedBuffer.uxPayloadLength > sizeof( DNSMessage_t ) ) )
+                ( xReceiveBuffer.uxPayloadLength > sizeof( DNSMessage_t ) ) )
             {
                 break;
             }
