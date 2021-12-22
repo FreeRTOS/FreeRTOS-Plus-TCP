@@ -26,7 +26,7 @@
 ****************************************************************/
 
 size_t DNS_SkipNameField( const uint8_t * pucByte,
-                           size_t uxLength );
+                          size_t uxLength );
 
 /****************************************************************
 * Proof of DNS_SkipNameField function contract
