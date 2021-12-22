@@ -151,7 +151,6 @@ void test_vProcessGeneratedUDPPacket_CacheMiss_PacketNotSmaller( void )
     uint32_t ulIPAddr = 0x1234ABCD, ulLocalIPAddress = 0xAABBCCDD;
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
-    /*xLocalNetworkBuffer.xDataLength =  ipconfigTCP_MSS; */
     xLocalNetworkBuffer.xDataLength = sizeof( UDPPacket_t );
 
     xLocalNetworkBuffer.ulIPAddress = ulIPAddr;
