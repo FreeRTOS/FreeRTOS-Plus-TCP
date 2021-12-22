@@ -47,7 +47,7 @@
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
-#include "DNS_Cache.h"
+#include "DNS/DNS_Cache.h"
 
 /* Exclude the entire file if DNS is not enabled. */
 #if ( ipconfigUSE_DNS != 0 )
