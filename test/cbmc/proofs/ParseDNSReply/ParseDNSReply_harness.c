@@ -14,6 +14,7 @@
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DNS.h"
+#include "DNS/DNS_Parser.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 #include "IPTraceMacroDefaults.h"
@@ -29,10 +30,10 @@ uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                            BaseType_t xExpected );
 
 /****************************************************************
-* Abstraction of prvReadNameField proved in ReadNameField
+* Abstraction of DNS_ReadNameField proved in ReadNameField
 ****************************************************************/
 
-size_t prvReadNameField( const uint8_t * pucByte,
+size_t DNS_ReadNameField( const uint8_t * pucByte,
                          size_t uxRemainingBytes,
                          char * pcName,
                          size_t uxDestLen )
