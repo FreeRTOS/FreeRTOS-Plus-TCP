@@ -19,6 +19,21 @@
 
 #include "cbmc.h"
 
+uint32_t FreeRTOS_dnslookup( cost char * pcHostName );
+Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks );
+void DNS_CloseSocket( Socket_t xDNSSocket );
+void DNS_ReadReply( Socket_t xDNSSocket,
+                    struct freertos_sockaddr * xAddress,
+                    struct dns_buffer * pxDNSBuf );
+uint32_t DNS_SendRequest( const char * hostname,
+                          TickType_t uxIdentifier,
+                          Socket_t xDNSSocket,
+                          struct freertos_sockaddr * xAddress,
+                          struct dns_buffer * pxDNSBuf );
+uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+                            size_t xBufferLength,
+                            BaseType_t xExpected );
+
 /****************************************************************
 * We abstract:
 *
@@ -60,7 +75,7 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
 /****************************************************************
 * Abstract  DNS_SendRequest
 *
-* We stub out this function with return constraint of true or flase
+* We stub out this function with return constraint of true or false
 *
 ****************************************************************/
 uint32_t DNS_SendRequest( const char * hostname,
@@ -96,6 +111,25 @@ void DNS_ReadReply( Socket_t xDNSSocket,
     __CPROVER_assume( pxDNSBuf->pucPayloadBuffer != NULL );
 
     __CPROVER_havoc_slice( pxDNSBuf->pucUDPPayloadBuffer, pxDNSBuf->ulSize );
+}
+
+
+void DNS_CloseSocket( Socket_t xDNSSocket )
+{
+}
+
+Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
+{
+    Socket_t sock;
+
+    return sock;
+}
+
+uint32_t FreeRTOS_dnslookup( cost char * pcHostName )
+{
+    int ret;
+
+    return ret;
 }
 
 
