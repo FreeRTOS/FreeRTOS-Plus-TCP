@@ -49,7 +49,7 @@
 #define configTOTAL_HEAP_SIZE                      ( ( size_t ) ( 2048U * 1024U ) )
 #define configMAX_TASK_NAME_LEN                    ( 15 )
 #ifndef configUSE_16_BIT_TICKS
-    #define configUSE_16_BIT_TICKS                     0
+    #define configUSE_16_BIT_TICKS                 0
 #endif
 #define configIDLE_SHOULD_YIELD                    1
 #define configUSE_CO_ROUTINES                      0

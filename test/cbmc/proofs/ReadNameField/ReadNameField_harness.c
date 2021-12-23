@@ -25,9 +25,9 @@
 ****************************************************************/
 
 size_t DNS_ReadNameField( const uint8_t * pucByte,
-                         size_t uxRemainingBytes,
-                         char * pcName,
-                         size_t uxDestLen );
+                          size_t uxRemainingBytes,
+                          char * pcName,
+                          size_t uxDestLen );
 
 /****************************************************************
 * The function under test is not defined in all configurations
@@ -42,9 +42,9 @@ size_t DNS_ReadNameField( const uint8_t * pucByte,
 /* prvReadNameField is not defined in this configuration, stub it. */
 
     size_t DNS_ReadNameField( const uint8_t * pucByte,
-                             size_t uxRemainingBytes,
-                             char * pcName,
-                             size_t uxDestLen )
+                              size_t uxRemainingBytes,
+                              char * pcName,
+                              size_t uxDestLen )
     {
         return 0;
     }
@@ -91,9 +91,9 @@ void harness()
     __CPROVER_assume( uxDestLen > 0 );
 
     size_t index = DNS_ReadNameField( pucByte,
-                                     uxRemainingBytes,
-                                     pcName,
-                                     uxDestLen );
+                                      uxRemainingBytes,
+                                      pcName,
+                                      uxDestLen );
 
     /* Postconditions */
 

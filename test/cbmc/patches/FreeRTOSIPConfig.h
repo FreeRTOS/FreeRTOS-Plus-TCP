@@ -233,7 +233,7 @@ extern uint32_t ulRand();
 
 /* USE_WIN: Let TCP use windowing mechanism. */
 #ifndef ipconfigUSE_TCP_WIN
-    #define ipconfigUSE_TCP_WIN                ( 1 )
+    #define ipconfigUSE_TCP_WIN    ( 1 )
 #endif
 
 /* The MTU is the maximum number of bytes the payload of a network frame can
@@ -260,7 +260,7 @@ extern uint32_t ulRand();
 /* If ipconfigSUPPORT_SELECT_FUNCTION is set to 1 then the FreeRTOS_select()
  * (and associated) API function is available. */
 #ifndef ipconfigSUPPORT_SELECT_FUNCTION
-    #define ipconfigSUPPORT_SELECT_FUNCTION                0
+    #define ipconfigSUPPORT_SELECT_FUNCTION    0
 #endif
 
 /* If ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES is set to 1 then Ethernet frames
@@ -306,21 +306,21 @@ extern uint32_t ulRand();
 #define ipconfigIS_VALID_PROG_ADDRESS( x )    ( ( x ) != NULL )
 
 /* Include support for TCP keep-alive messages. */
-#define ipconfigTCP_KEEP_ALIVE                   ( 1 )
-#define ipconfigTCP_KEEP_ALIVE_INTERVAL          ( 20 ) /* Seconds. */
+#define ipconfigTCP_KEEP_ALIVE             ( 1 )
+#define ipconfigTCP_KEEP_ALIVE_INTERVAL    ( 20 )       /* Seconds. */
 
 /* The socket semaphore is used to unblock the MQTT task. */
 #ifndef ipconfigSOCKET_HAS_USER_SEMAPHORE
-    #define ipconfigSOCKET_HAS_USER_SEMAPHORE        ( 0 )
+    #define ipconfigSOCKET_HAS_USER_SEMAPHORE    ( 0 )
 #endif
 
 #ifndef ipconfigSOCKET_HAS_USER_WAKE_CALLBACK
     #define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 1 )
 #endif
-#define ipconfigUSE_CALLBACKS                    ( 0 )
+#define ipconfigUSE_CALLBACKS                        ( 0 )
 
 
-#define portINLINE                               __inline
+#define portINLINE                                   __inline
 
 void vApplicationMQTTGetKeys( const char ** ppcRootCA,
                               const char ** ppcClientCert,

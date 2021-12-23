@@ -10,17 +10,11 @@
   "MAX_HOSTNAME_LEN": 10,
   "HOSTNAME_UNWIND": "__eval {MAX_HOSTNAME_LEN} + 1",
 
-################################################################
-# Loop prvGetHostByNameOp_WithRetry.0:
-# should be min of buffer size and name size
-# but loop must be unwound at least once, so max of this and 1+1
-  "READLOOP0": " FreeRTOS_gethostbyname.0",
-  "READLOOP0_UNWIND": "__eval max(1, min({ipconfigDNS_REQUEST_ATTEMPTS}, 1))",
-
   "CBMCFLAGS":
   [
     "--unwind 1",
     "--unwindset prvProcessDNSCache.0:5,prvGetHostByName.0:{HOSTNAME_UNWIND},prvCreateDNSMessage.0:{HOSTNAME_UNWIND},prvCreateDNSMessage.1:{HOSTNAME_UNWIND},strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},strcmp.0:{HOSTNAME_UNWIND},strcpy.0:{HOSTNAME_UNWIND}",
+    "--unwindset prvGetHostByNameOp_WithRetry.0:1",
     "--nondet-static"
   ],
 

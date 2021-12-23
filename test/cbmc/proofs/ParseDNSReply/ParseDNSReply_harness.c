@@ -34,9 +34,9 @@ uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
 ****************************************************************/
 
 size_t DNS_ReadNameField( const uint8_t * pucByte,
-                         size_t uxRemainingBytes,
-                         char * pcName,
-                         size_t uxDestLen )
+                          size_t uxRemainingBytes,
+                          char * pcName,
+                          size_t uxDestLen )
 {
     __CPROVER_assert( NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE,
                       "NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE" );

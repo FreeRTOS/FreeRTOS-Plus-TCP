@@ -48,8 +48,8 @@
 ****************************************************************/
 
 uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                           size_t xBufferLength,
-                           BaseType_t xExpected )
+                            size_t xBufferLength,
+                            BaseType_t xExpected )
 {
     uint32_t size;
 
