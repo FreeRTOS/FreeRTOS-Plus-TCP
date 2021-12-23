@@ -584,8 +584,7 @@
                            &xAddress,
                            &xReceiveBuffer );
 
-            if( ( xReceiveBuffer.pucPayloadBuffer == NULL ) ||
-                ( xReceiveBuffer.uxPayloadLength > sizeof( DNSMessage_t ) ) )
+            if( xReceiveBuffer.pucPayloadBuffer == NULL )
             {
                 break;
             }
