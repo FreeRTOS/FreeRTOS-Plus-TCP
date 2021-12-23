@@ -465,14 +465,14 @@
     }
 
 /*!
- * @brief  fill  xAddress from pucUDPPayloadBuffer
+ * @brief  fill  pxAddress from pucUDPPayloadBuffer
  *
- * @param [out]  xAddress
+ * @param [out]  pxAddress
  * @param [in] pucUDPPayloadBuffer
  * @param [in] pcHostName hostname to get its length
  *
  */
-    static void prvFillSockAddress( struct freertos_sockaddr * xAddress,
+    static void prvFillSockAddress( struct freertos_sockaddr * pxAddress,
                                     uint8_t * pucUDPPayloadBuffer,
                                     const char * pcHostName )
     {
@@ -489,16 +489,16 @@
             {
                 /* Use LLMNR addressing. */
                 ( ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucUDPPayloadBuffer ) )->usFlags = 0;
-                xAddress->sin_addr = ipLLMNR_IP_ADDR; /* Is in network byte order. */
-                xAddress->sin_port = ipLLMNR_PORT;
-                xAddress->sin_port = FreeRTOS_ntohs( xAddress->sin_port );
+                pxAddress->sin_addr = ipLLMNR_IP_ADDR; /* Is in network byte order. */
+                pxAddress->sin_port = ipLLMNR_PORT;
+                pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
             }
             else
         #endif
         {
             /* Use DNS server. */
-            xAddress->sin_addr = ulIPAddress;
-            xAddress->sin_port = dnsDNS_PORT;
+            pxAddress->sin_addr = ulIPAddress;
+            pxAddress->sin_port = dnsDNS_PORT;
         }
     }
 
