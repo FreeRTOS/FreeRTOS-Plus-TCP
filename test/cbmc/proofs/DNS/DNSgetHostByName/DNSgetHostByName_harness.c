@@ -19,7 +19,7 @@
 
 #include "cbmc.h"
 
-uint32_t FreeRTOS_dnslookup( cost char * pcHostName );
+uint32_t FreeRTOS_dnslookup( const char * pcHostName );
 Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks );
 void DNS_CloseSocket( Socket_t xDNSSocket );
 void DNS_ReadReply( Socket_t xDNSSocket,
