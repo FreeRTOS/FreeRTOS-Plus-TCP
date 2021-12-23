@@ -28,7 +28,7 @@
 *
 *   Many methods in the FreeRTOS TCP API in stubs/freertos_api.c
 *
-*   prvParseDNSReply proved memory safe elsewhere
+*   DNS_ParseDNSReply proved memory safe elsewhere
 *
 *   prvCreateDNSMessage
 *
@@ -38,7 +38,7 @@
 ****************************************************************/
 
 /****************************************************************
-* Abstract prvParseDNSReply proved memory save in ParseDNSReply.
+* Abstract DNS_ParseDNSReply proved memory save in ParseDNSReply.
 *
 * We stub out his function to fill the payload buffer with
 * unconstrained data and return an unconstrained size.
@@ -47,7 +47,7 @@
 * function.
 ****************************************************************/
 
-uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                            size_t xBufferLength,
                            BaseType_t xExpected )
 {
