@@ -103,7 +103,8 @@ void DNS_ReadReply( Socket_t xDNSSocket,
                     struct dns_buffer * pxDNSBuf )
 {
     int len;
-    pxDNSBuf->pucPayloadBuffer = malloc( len );
+
+    pxDNSBuf->pucPayloadBuffer = safeMalloc( len );
 
     pxDNSBuf->uxPayloadLength = len;
 
@@ -125,7 +126,7 @@ Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
     return sock;
 }
 
-uint32_t FreeRTOS_dnslookup( cost char * pcHostName )
+uint32_t FreeRTOS_dnslookup( const char * pcHostName )
 {
     int ret;
 
