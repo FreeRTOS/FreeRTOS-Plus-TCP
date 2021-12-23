@@ -124,6 +124,7 @@
                                                               FREERTOS_ZERO_COPY,
                                                               xAddress,
                                                               &ulAddressLength );
+        pxReceiveBuffer->uxPayloadSize = pxReceiveBuffer->uxPayloadLength;
     }
 
     void DNS_CloseSocket( Socket_t xDNSSocket )

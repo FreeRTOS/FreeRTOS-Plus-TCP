@@ -60,9 +60,7 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
 /****************************************************************
 * Abstract  DNS_SendRequest
 *
-* We stup out this function with return constraint of true or flase
-*
-*
+* We stub out this function with return constraint of true or flase
 *
 ****************************************************************/
 uint32_t DNS_SendRequest( const char * hostname,
@@ -79,6 +77,26 @@ uint32_t DNS_SendRequest( const char * hostname,
     return ret;
 }
 
+/****************************************************************
+* Abstract DNS_ReadReply
+*
+* We stub out this function which returned a dns_buffer filled with random data
+*
+****************************************************************/
+void DNS_ReadReply( Socket_t xDNSSocket,
+                    struct freertos_sockaddr * xAddress,
+                    struct dns_buffer * pxDNSBuf )
+{
+    int len
+    pxDNSBuf->pucPayloadBuffer = malloc( len );
+
+    pxDNSBuf->uxPayloadLength = len;
+
+    __CPROVER_assume( len < CBMC_MAX_OBJECT_SIZE );
+    __CPROVER_assume( pxDNSBuf->pucPayloadBuffer != NULL );
+
+    __CPROVER_havoc_slice( pxDNSBuf->pucUDPPayloadBuffer, pxDNSBuf->ulSize );
+}
 
 
 /****************************************************************
@@ -114,5 +132,6 @@ void harness()
     __CPROVER_assume( len > 0 ); /* prvProcessDNSCache strcmp */
     __CPROVER_assume( pcHostName != NULL );
     pcHostName[ len - 1 ] = NULL;
+
     FreeRTOS_gethostbyname( pcHostName );
 }

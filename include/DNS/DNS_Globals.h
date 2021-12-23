@@ -231,6 +231,7 @@
     {
         uint8_t * pucPayloadBuffer;
         size_t uxPayloadLength;
+        size_t uxPayloadSize;
     };
 
     #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
