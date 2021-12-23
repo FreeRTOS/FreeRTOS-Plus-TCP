@@ -83,7 +83,7 @@ size_t prvReadNameField( const uint8_t * pucByte,
 ****************************************************************/
 
 size_t DNS_SkipNameField( const uint8_t * pucByte,
-                         size_t uxLength )
+                          size_t uxLength )
 {
     __CPROVER_assert( NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE,
                       "NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE" );
