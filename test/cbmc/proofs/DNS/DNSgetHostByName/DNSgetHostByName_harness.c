@@ -111,7 +111,7 @@ void DNS_ReadReply( Socket_t xDNSSocket,
     __CPROVER_assume( len < CBMC_MAX_OBJECT_SIZE );
     __CPROVER_assume( pxDNSBuf->pucPayloadBuffer != NULL );
 
-    __CPROVER_havoc_slice( pxDNSBuf->pucPayloadBuffer, pxDNSBuf->ulSize );
+    __CPROVER_havoc_slice( pxDNSBuf->pucPayloadBuffer, pxDNSBuf->uxPayloadSize );
 }
 
 
