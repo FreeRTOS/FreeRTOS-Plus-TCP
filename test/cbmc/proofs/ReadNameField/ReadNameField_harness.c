@@ -35,11 +35,11 @@ size_t DNS_ReadNameField( const uint8_t * pucByte,
 
 #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
 
-/* prvReadNameField is defined in this configuration */
+/*  DNS_ReadNameField is defined in this configuration */
 
 #else
 
-/* prvReadNameField is not defined in this configuration, stub it. */
+/*  DNS_ReadNameField is not defined in this configuration, stub it. */
 
     size_t DNS_ReadNameField( const uint8_t * pucByte,
                               size_t uxRemainingBytes,
@@ -53,7 +53,7 @@ size_t DNS_ReadNameField( const uint8_t * pucByte,
 
 
 /****************************************************************
-* Proof of prvReadNameField function contract
+* Proof of  DNS_ReadNameField function contract
 ****************************************************************/
 
 void harness()
@@ -98,5 +98,5 @@ void harness()
     /* Postconditions */
 
     __CPROVER_assert( index <= uxDestLen + 1 && index <= uxRemainingBytes,
-                      "prvReadNamefield: index <= uxDestLen+1" );
+                      "DNS_ReadNameField : index <= uxDestLen+1" );
 }

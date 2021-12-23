@@ -57,6 +57,29 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
     return size;
 }
 
+/****************************************************************
+* Abstract  DNS_SendRequest
+*
+* We stup out this function with return constraint of true or flase
+*
+*
+*
+****************************************************************/
+uint32_t DNS_SendRequest( const char * hostname,
+                          TickType_t uxIdentifier,
+                          Socket_t xDNSSocket,
+                          struct freertos_sockaddr * xAddress,
+                          struct dns_buffer * pxDNSBuf )
+{
+    uint32_t ret;
+
+    __CPROVER_assume( ret >= 0 );
+    __CPROVER_assume( ret <= 1 );
+
+    return ret;
+}
+
+
 
 /****************************************************************
 * Abstract prvCreateDNSMessage
