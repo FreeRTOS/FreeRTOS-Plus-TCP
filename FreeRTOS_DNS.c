@@ -518,24 +518,21 @@
         const DNSMessage_t * pxDNSMessageHeader =
             ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( DNSMessage_t,
                                                 pxReceiveBuffer->pucPayloadBuffer );
-        if ( pxDNSMessageHeader != NULL )
+
+        /* See if the identifiers match. */
+        xExpected = ( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier );
+
+        /* The reply was received.  Process it. */
+        #if ( ipconfigDNS_USE_CALLBACKS == 0 )
+
+            /* It is useless to analyse the unexpected reply
+             * unless asynchronous look-ups are enabled. */
+            if( xExpected != pdFALSE )
+        #endif /* ipconfigDNS_USE_CALLBACKS == 0 */
         {
-
-            /* See if the identifiers match. */
-            xExpected = ( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier );
-
-            /* The reply was received.  Process it. */
-            #if ( ipconfigDNS_USE_CALLBACKS == 0 )
-
-                /* It is useless to analyse the unexpected reply
-                * unless asynchronous look-ups are enabled. */
-                if( xExpected != pdFALSE )
-            #endif /* ipconfigDNS_USE_CALLBACKS == 0 */
-            {
-                ulIPAddress = DNS_ParseDNSReply( pxReceiveBuffer->pucPayloadBuffer,
-                                                pxReceiveBuffer->uxPayloadLength,
-                                                xExpected );
-            }
+            ulIPAddress = DNS_ParseDNSReply( pxReceiveBuffer->pucPayloadBuffer,
+                                             pxReceiveBuffer->uxPayloadLength,
+                                             xExpected );
         }
 
         return ulIPAddress;

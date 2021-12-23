@@ -38,7 +38,7 @@
 ****************************************************************/
 
 /****************************************************************
-* Abstract DNS_ParseDNSReply proved memory save in ParseDNSReply.
+* Abstract DNS_ParseDNSReply proved memory safe in ParseDNSReply.
 *
 * We stub out his function to fill the payload buffer with
 * unconstrained data and return an unconstrained size.
