@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP V2.4.0
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -380,7 +380,7 @@
  * The default has always been 50, but a value of 1000
  * is recommended (see RFC6298) because hosts often delay the
  * sending of ACK packets with 200 ms. */
-    #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS    50U
+    #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS    50
 #endif
 
 #ifndef ipconfigUDP_MAX_RX_PACKETS
