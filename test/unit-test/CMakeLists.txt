@@ -55,7 +55,7 @@ if( NOT EXISTS ${CMOCK_DIR}/vendor/unity/docs )
                      WORKING_DIRECTORY ${MODULE_ROOT_DIR} )
 endif()
 
-# Find 'unifdef' utility
+# Find 'unifdef' utility.
 find_program( UNIFDEF_found unifdef )
 
 if( NOT UNIFDEF_found )
@@ -67,7 +67,7 @@ if( NOT UNIFDEF_found )
     message( STATUS "unifdef installed at location ${UNIFDEF_found}" )
 endif()
 
-# Find 'lcov' utility
+# Find 'lcov' utility.
 find_program( LCOV_found lcov )
 
 if( NOT LCOV_found )
