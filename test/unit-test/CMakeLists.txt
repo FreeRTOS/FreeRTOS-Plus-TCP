@@ -30,7 +30,7 @@ set( KERNEL_DIRECTORY ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel )
 # See if FreRTOS-Kernel is submoduled
 if( NOT EXISTS ${KERNEL_DIRECTORY}/include )
     # Inform the user of the actions
-    message( STATUS "FreeRTOS-Kernel is required for this build. Submoduling it..." )
+    message( WARNING "FreeRTOS-Kernel is required for this build. Submoduling it..." )
     execute_process( COMMAND git submodule update --init --checkout ${KERNEL_DIRECTORY}
                      WORKING_DIRECTORY ${MODULE_ROOT_DIR} )
 endif()
@@ -42,17 +42,53 @@ set( CMOCK_DIR ${MODULE_ROOT_DIR}/tools/CMock CACHE INTERNAL "CMock library sour
 # if BUILD_CLONE_SUBMODULES configuration is enabled.
 if( NOT EXISTS ${CMOCK_DIR}/src )
     # Attempt to clone CMock and inform the user of the actions.
-    message( STATUS "CMock is required for this build. Submoduling it..." )
-    execute_process( COMMAND git submodule update --init --checkout ${CMOCK_DIR}
+    message( WARNING "CMock is required for this build. Submoduling it..." )
+    execute_process( COMMAND git submodule update --init --checkout --recursive ${CMOCK_DIR}
                      WORKING_DIRECTORY ${MODULE_ROOT_DIR} )
 endif()
 
 
 if( NOT EXISTS ${CMOCK_DIR}/vendor/unity/docs )
     # Attempt to clone Unity and inform the user of the actions.
-    message( STATUS "Unity is required for this build. Submoduling it..." )
-    execute_process( COMMAND git submodule update --init --checkout ${CMOCK_DIR}/vendor/unity
+    message( WARNING "Unity is required for this build. Submoduling it..." )
+    execute_process( COMMAND git submodule update --init --checkout --recursive ${CMOCK_DIR}
                      WORKING_DIRECTORY ${MODULE_ROOT_DIR} )
+endif()
+
+# Find 'unifdef' utility
+find_program( UNIFDEF_found unifdef )
+
+if( NOT UNIFDEF_found )
+    # unifdef was not found, install it and inform the user of the location of installation.
+    message( WARNING "unifdef utility not found. Installing it." )
+    execute_process( COMMAND apt-get install unifdef )
+
+    find_program( UNIFDEF_found unifdef )
+    message( STATUS "unifdef installed at location ${UNIFDEF_found}" )
+endif()
+
+# Find 'lcov' utility
+find_program( LCOV_found lcov )
+
+if( NOT LCOV_found )
+    # lcov was not found, install it and inform the user of the location of installation.
+    message( WARNING "lcov utility not found. Installing it." )
+    execute_process( COMMAND apt-get install -y lcov )
+
+    find_program( LCOV_found unifdef )
+    message( STATUS "lcov installed at location ${LCOV_found}" )
+endif()
+
+# Find whether ruby is installed.
+find_program( RUBY_found ruby )
+
+if( NOT RUBY_found )
+    # Ruby was not found, install it and inform the user of the location of installation.
+    message( WARNING "Ruby (required by CMock) not found. Installing it." )
+    execute_process( COMMAND apt-get install ruby )
+
+    find_program( RUBY_found ruby )
+    message( STATUS "ruby installed at location ${RUBY_found}" )
 endif()
 
 # Set the include directories
