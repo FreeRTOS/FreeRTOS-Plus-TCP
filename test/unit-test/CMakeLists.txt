@@ -35,6 +35,26 @@ if( NOT EXISTS ${KERNEL_DIRECTORY}/include )
                      WORKING_DIRECTORY ${MODULE_ROOT_DIR} )
 endif()
 
+# Define a CMock resource path.
+set( CMOCK_DIR ${MODULE_ROOT_DIR}/tools/CMock CACHE INTERNAL "CMock library source directory." )
+
+# Check if the CMock source directory exists, and if not present, clone the submodule
+# if BUILD_CLONE_SUBMODULES configuration is enabled.
+if( NOT EXISTS ${CMOCK_DIR}/src )
+    # Attempt to clone CMock and inform the user of the actions.
+    message( STATUS "CMock is required for this build. Submoduling it..." )
+    execute_process( COMMAND git submodule update --init --checkout ${CMOCK_DIR}
+                     WORKING_DIRECTORY ${MODULE_ROOT_DIR} )
+endif()
+
+
+if( NOT EXISTS ${CMOCK_DIR}/vendor/unity/docs )
+    # Attempt to clone Unity and inform the user of the actions.
+    message( STATUS "Unity is required for this build. Submoduling it..." )
+    execute_process( COMMAND git submodule update --init --checkout ${CMOCK_DIR}/vendor/unity
+                     WORKING_DIRECTORY ${MODULE_ROOT_DIR} )
+endif()
+
 # Set the include directories
 string( APPEND GLOBAL_INCLUDES "-I ${MODULE_ROOT_DIR}/include ")
 string( APPEND GLOBAL_INCLUDES "-I ${UNIT_TEST_DIR}/ConfigFiles " )
@@ -121,23 +141,8 @@ include( ${UNIT_TEST_DIR}/TCPFilePaths.cmake )
 
 #  ==================================== Test Configuration ========================================
 
-# Define a CMock resource path.
-set( CMOCK_DIR ${MODULE_ROOT_DIR}/tools/CMock CACHE INTERNAL "CMock library source directory." )
-
 # Include CMock build configuration.
 include( cmock_build.cmake )
-
-# Check if the CMock source directory exists, and if not present, clone the submodule
-# if BUILD_CLONE_SUBMODULES configuration is enabled.
-if( NOT EXISTS ${CMOCK_DIR}/src )
-    # Attempt to clone CMock.
-    if( ${BUILD_CLONE_SUBMODULES} )
-        clone_cmock()
-    else()
-        message( FATAL_ERROR "The required submodule CMock does not exist. Either clone it manually, or set BUILD_CLONE_SUBMODULES to 'ON' to automatically clone it during build." )
-    endif()
-endif()
-
 
 # Add unit test and coverage configuration.
 
