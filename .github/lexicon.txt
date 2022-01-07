@@ -1105,6 +1105,8 @@ ulcount
 ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
+ulcurrenttimeseconds
+ultimewhenaddedinseconds
 uldefaultipaddress
 uldelayms
 uldestinationaddress
@@ -1257,6 +1259,7 @@ uxblocktimeticks
 uxborn
 uxbufferlength
 uxbytecount
+uxbytesread
 uxcount
 uxdatalength
 uxdatalengthbytes
@@ -1297,6 +1300,7 @@ uxright
 uxrxstreamsize
 uxrxwinsize
 uxsize
+uxsourcebytesremaining
 uxsourcelen
 uxstreambufferadd
 uxstreambufferget
@@ -1395,6 +1399,7 @@ xbufferlength
 xbufferlistitem
 xbytecount
 xbytesleft
+xcallbacklist
 xcheckloopback
 xclearonexit
 xclientsocket
@@ -1409,9 +1414,11 @@ xdhcpdata
 xdhcptxperiod
 xdhcptxtime
 xdmarxdescriptors
+xdnscache
 xdnsmessage
 xdnssocket
 xdomain
+xdostore
 xdumpingready
 xemacps
 xemacpsif
