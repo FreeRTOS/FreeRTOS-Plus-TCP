@@ -25,7 +25,7 @@
 
 /**
  * @file DNS_Parser.c
- * @brief Implements the Domain Name System for the FreeRTOS+TCP network stack.
+ * @brief Implements the DNS message parser
  */
 
 /* FreeRTOS includes. */
@@ -575,6 +575,14 @@
         return ulIPAddress;
     }
 
+/**
+ * @brief perform a dns lookup in the local cache
+ * @param[in] pxDNSMessageHeader  DNS header
+ * @param pucByte buffer
+ * @param uxSourceBytesRemaining remaining bytes in pucByte
+ * @param[out] uxBytesRead total bytes consumed by the function
+ * @return  @ctrue if the frame is correct or @cfalse otherwise
+ */
     BaseType_t parseDNSAnswer( DNSMessage_t * pxDNSMessageHeader,
                                uint8_t * pucByte,
                                size_t uxSourceBytesRemaining,

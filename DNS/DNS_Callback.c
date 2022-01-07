@@ -22,6 +22,12 @@
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
+
+/**
+ * @file DNS_Callback.c
+ * @brief File that handles the DNS Callback option
+ */
+
 #include "DNS/DNS_Callback.h"
 
 #include "FreeRTOS_IP.h"

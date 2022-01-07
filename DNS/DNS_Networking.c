@@ -81,6 +81,17 @@
         return xSocket;
     }
 
+/**
+ * @brief perform a DNS network request
+ * @param pcHostName the lookup name
+ * @param uxIdentifier ignored
+ * @param xDNSSocket socket
+ * @param xAddress address structure
+ * @param pxDNSBuf buffer to send
+ * @return xReturn: true if the message could be sent
+ *                  false otherwise
+ *
+ */
     uint32_t DNS_SendRequest( const char * pcHostName,
                               TickType_t uxIdentifier,
                               Socket_t xDNSSocket,
@@ -88,6 +99,8 @@
                               struct dns_buffer * pxDNSBuf )
     {
         BaseType_t xReturn = pdFALSE;
+
+        ( void ) uxIdentifier;
 
         iptraceSENDING_DNS_REQUEST();
 
@@ -111,6 +124,12 @@
         return xReturn;
     }
 
+/**
+ * @brief perform a DNS network read
+ * @param xDNSSocket socket
+ * @param xAddress address to read from
+ * @param pxReceiveBuffer buffer to fill with received data
+ */
     void DNS_ReadReply( Socket_t xDNSSocket,
                         struct freertos_sockaddr * xAddress,
                         struct dns_buffer * pxReceiveBuffer )
@@ -127,6 +146,10 @@
         pxReceiveBuffer->uxPayloadSize = pxReceiveBuffer->uxPayloadLength;
     }
 
+/**
+ * @brief perform a DNS network close
+ * @param xDNSSocket
+ */
     void DNS_CloseSocket( Socket_t xDNSSocket )
     {
         ( void ) FreeRTOS_closesocket( xDNSSocket );

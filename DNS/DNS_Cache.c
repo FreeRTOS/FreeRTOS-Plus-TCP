@@ -23,6 +23,11 @@
  * http://www.FreeRTOS.org
  */
 
+/**
+ * @file DNS_Cache.c
+ * @brief File that handles the DNS caching option
+ */
+
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
@@ -76,6 +81,12 @@
                                      uint32_t ulCurrentTimeSeconds );
 
 
+/**
+ * @brief perform a dns lookup in the local cache
+ * @param pcHostName the lookup name
+ * @return ulIPAddress with the value from the cache else returns a zero if the
+ *         cache is not enabled or the lookup is not successful
+ */
     uint32_t FreeRTOS_dnslookup( const char * pcHostName )
     {
         uint32_t ulIPAddress = 0UL;
@@ -89,6 +100,12 @@
         return ulIPAddress;
     }
 
+/**
+ * @brief perform a dns update in the local cache
+ * @param pcName the lookup name
+ * @param pulIP the ip value to insert/replace
+ * @param ulTTL ignored
+ */
     BaseType_t FreeRTOS_dns_update( const char * pcName,
                                     uint32_t * pulIP,
                                     uint32_t ulTTL )
@@ -99,6 +116,9 @@
                                            pdFALSE );
     }
 
+/**
+ * @brief perform a dns clear in the local cache
+ */
     void FreeRTOS_dnsclear( void )
     {
         ( void ) memset( xDNSCache, 0x0, sizeof( xDNSCache ) );
@@ -106,7 +126,7 @@
     }
 
 /**
- * @brief Send a DNS message to be used in NBNS or LLMNR
+ * @brief process a DNS Cache request (get, update, or insert)
  *
  * @param[in] pcName: the name of the host
  * @param[in,out] pulIP: when doing a lookup, will be set, when doing an update,
@@ -114,8 +134,7 @@
  * @param[in] ulTTL: Time To Live
  * @param[in] xLookUp: pdTRUE if a look-up is expected, pdFALSE, when the DNS cache must
  *                     be updated.
- *
- * @return
+ * @return whether the operation was successful
  */
     BaseType_t FreeRTOS_ProcessDNSCache( const char * pcName,
                                          uint32_t * pulIP,
@@ -169,7 +188,15 @@
             FreeRTOS_debug_printf( ( "prvProcessDNSCache: %s: '%s' @ %lxip\n", ( xLookUp != 0 ) ? "look-up" : "add", pcName, FreeRTOS_ntohl( *pulIP ) ) );
         }
 
-        return !!( x + 1 );
+        if( x == -1 )
+        {
+            x = 0;
+        }
+        else
+        {
+            x = 1;
+        }
+        return x;
     }
 
 /**
