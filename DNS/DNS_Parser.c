@@ -581,7 +581,9 @@
  * @param pucByte buffer
  * @param uxSourceBytesRemaining remaining bytes in pucByte
  * @param[out] uxBytesRead total bytes consumed by the function
- * @return  @ctrue if the frame is correct or @cfalse otherwise
+ * @param pcName update the cache and /or send to callback
+ * @param xDoStore whether to update the cache
+ * @return  \c pdTRUE if the frame is correct or \c pdFALSE otherwise
  */
     BaseType_t parseDNSAnswer( DNSMessage_t * pxDNSMessageHeader,
                                uint8_t * pucByte,

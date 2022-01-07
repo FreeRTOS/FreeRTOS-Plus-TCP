@@ -36,6 +36,9 @@
 
 #if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
+/**
+ * @brief list of callbacks to send
+ */
     static List_t xCallbackList;
 
 /**
@@ -196,6 +199,10 @@
         }
     }
 
+/**
+ * @brief initialize the cache
+ * @post will modify global list xCallbackList
+ */
     void vDNSCallbackInitialise()
     {
         vListInitialise( &xCallbackList );

@@ -47,19 +47,30 @@
 #if ( ipconfigUSE_DNS != 0 )
 
 
+/**
+ * @brief cache entry format structure
+ */
     typedef struct xDNS_CACHE_TABLE_ROW
     {
         uint32_t ulIPAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ]; /* The IP address(es) of an ARP cache entry. */
         char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                    /* The name of the host */
         uint32_t ulTTL;                                                  /* Time-to-Live (in seconds) from the DNS server. */
-        uint32_t ulTimeWhenAddedInSeconds;
+        uint32_t ulTimeWhenAddedInSeconds;                               /* time at which the entry was added */
         #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-            uint8_t ucNumIPAddresses;
-            uint8_t ucCurrentIPAddress;
+            uint8_t ucNumIPAddresses;                                    /* number of ip addresses for the same entry */
+            uint8_t ucCurrentIPAddress;                                  /* current ip address index */
         #endif
     } DNSCacheRow_t;
 
+/*!
+ * @brief DNS cache structure instantiation
+ */
     static DNSCacheRow_t xDNSCache[ ipconfigDNS_CACHE_ENTRIES ] = { 0x0 };
+
+/*!
+ * @brief indicates the index of a free entry in the cache structure
+ *        \a  DNSCacheRow_t
+ */
     static BaseType_t xFreeEntry = 0;
 
 
@@ -86,6 +97,7 @@
  * @param pcHostName the lookup name
  * @return ulIPAddress with the value from the cache else returns a zero if the
  *         cache is not enabled or the lookup is not successful
+ * @post the global structure \a xDNSCache might be modified
  */
     uint32_t FreeRTOS_dnslookup( const char * pcHostName )
     {
@@ -105,6 +117,7 @@
  * @param pcName the lookup name
  * @param pulIP the ip value to insert/replace
  * @param ulTTL ignored
+ * @post the global structure \a xDNSCache might be modified
  */
     BaseType_t FreeRTOS_dns_update( const char * pcName,
                                     uint32_t * pulIP,
@@ -118,6 +131,7 @@
 
 /**
  * @brief perform a dns clear in the local cache
+ * @post the global structure \a xDNSCache is modified
  */
     void FreeRTOS_dnsclear( void )
     {
@@ -135,6 +149,7 @@
  * @param[in] xLookUp: pdTRUE if a look-up is expected, pdFALSE, when the DNS cache must
  *                     be updated.
  * @return whether the operation was successful
+ * @post the global structure \a xDNSCache might be modified
  */
     BaseType_t FreeRTOS_ProcessDNSCache( const char * pcName,
                                          uint32_t * pulIP,
@@ -196,11 +211,13 @@
         {
             x = 1;
         }
+
         return x;
     }
 
 /**
  * @brief returns the index of the hostname entry in the dns cache.
+ * @param[in] pcName find it in the cache
  * @returns index number or -1 if not found
  */
     static BaseType_t prvFindEntryIndex( const char * pcName )
@@ -226,6 +243,15 @@
         return index;
     }
 
+/**
+ * @brief get entry at \p index from the cache
+ * @param[in]  index in the cache
+ * @param[out] pulIP fill it with the result
+ * @param[in]  ulCurrentTimeSeconds current time
+ * @returns    \c pdTRUE if the value is valid \c pdFALSE otherwise
+ * @post the global structure \a xDNSCache might be modified
+ *
+ */
     static BaseType_t prvGetCacheIPEntry( BaseType_t index,
                                           uint32_t * pulIP,
                                           uint32_t ulCurrentTimeSeconds )
@@ -266,6 +292,15 @@
         return isRead;
     }
 
+/**
+ * @brief update entry at \p index in the cache
+ * @param[in]  index index in the cache
+ * @param[in]  ulTTL time to live
+ * @param[in] pulIP ip to update the cache with
+ * @param[in]  ulCurrentTimeSeconds current time
+ * @post the global structure \a xDNSCache is modified
+ *
+ */
     static void prvUpdateCacheEntry( int index,
                                      int ulTTL,
                                      int32_t * pulIP,
@@ -288,6 +323,14 @@
         xDNSCache[ index ].ulTimeWhenAddedInSeconds = ulCurrentTimeSeconds;
     }
 
+/**
+ * @brief insert entry in the cache
+ * @param[in] pcName cache entry key
+ * @param[in] ulTTL time to live
+ * @param[in] pulIP ip address
+ * @param[in] ulCurrentTimeSeconds current time
+ * @post the global structure \a xDNSCache is modified
+ */
     static void prvInsertCacheEntry( const char * pcName,
                                      int32_t ulTTL,
                                      int32_t * pulIP,
