@@ -420,7 +420,7 @@
 #endif
 
 /* Related to the macro 'ipconfigEVENT_QUEUE_LENGTH' here above:
- * when developing a new networking application, it can be good
+ * when developing a new networking application, it can be helpful
  * to monitor the length of the message queue of the IP-task.
  * This code is only enabled when 'ipconfigCHECK_IP_QUEUE_SPACE'
  * is set to 1.  See also the function 'uxGetMinimumIPQueueSpace()'.
