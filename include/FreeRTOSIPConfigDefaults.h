@@ -50,7 +50,7 @@
     #define _static    static
 #endif
 
-/* Through time it has happens that some macro names have changed.  This always
+/* Through time some macro names have changed. This always
  * happened for a good reason: clarity of consistency.
  * Here below there are some ifdef's that will issue an error if any of the
  * deprecated macros is still defined. */
