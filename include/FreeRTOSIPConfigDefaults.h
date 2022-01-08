@@ -51,7 +51,7 @@
 #endif
 
 /* Through time some macro names have changed. This always
- * happened for a good reason: clarity of consistency.
+ * happened for a good reason: clarity or consistency.
  * Here below there are some ifdef's that will issue an error if any of the
  * deprecated macros is still defined. */
 
