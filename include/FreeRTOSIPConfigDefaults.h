@@ -493,7 +493,7 @@
  * is recommended ( see RFC6298 ) because hosts often delay the
  * sending of ACK packets with 200 ms. */
 #ifndef ipconfigTCP_SRTT_MINIMUM_VALUE_MS
-    #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS    50U
+    #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS    50
 #endif
 
 /* Make positive to define the maximum number of packets which will be buffered
