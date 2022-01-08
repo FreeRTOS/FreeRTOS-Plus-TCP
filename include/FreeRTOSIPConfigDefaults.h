@@ -26,7 +26,7 @@
 #ifndef FREERTOS_DEFAULT_IP_CONFIG_H
 #define FREERTOS_DEFAULT_IP_CONFIG_H
 
-/* When this file is included, the configuration files FreeRTOSConfig.h and
+/* This file should be included only after the configuration files FreeRTOSConfig.h and
  * FreeRTOSIPConfig.h have been included already.
  * Mentioned header files are private to the project, whereas this header
  * file is part of FreeRTOS+TCP.
