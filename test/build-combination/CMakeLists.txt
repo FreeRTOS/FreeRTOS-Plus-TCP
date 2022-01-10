@@ -54,7 +54,9 @@ endif()
 
 
 file(GLOB KERNEL_SOURCES "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/*.c")
-file(GLOB TCP_SOURCES "${MODULE_ROOT_DIR}/*.c")
+file(GLOB TCP_SOURCES "${MODULE_ROOT_DIR}/*.c"
+                      "${MODULE_ROOT_DIR}/DNS/*.c"
+        )
 
 message(STATUS "${KERNEL_SOURCES}")
 message(STATUS "${TCP_SOURCES}")

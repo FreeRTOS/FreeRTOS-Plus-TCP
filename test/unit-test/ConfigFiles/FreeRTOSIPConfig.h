@@ -75,10 +75,10 @@
  * a socket.
  */
 #define ipconfigUSE_DNS_CACHE                      ( 1 )
-#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 6 )
+#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 1 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
-#define ipconfigDNS_CACHE_NAME_LENGTH              ( 100 )
+#define ipconfigDNS_CACHE_NAME_LENGTH              ( 254 )
 
 /* The IP stack executes it its own task (although any application task can make
  * use of its services through the published sockets API). ipconfigUDP_TASK_PRIORITY
@@ -320,6 +320,7 @@ extern uint32_t ulRand();
 #define ipconfigUDP_MAX_RX_PACKETS               ( 1 )
 
 #define ipconfigSUPPORT_SIGNALS                  ( 1 )
+#define ipconfigDNS_CACHE_ENTRIES                ( 2 )
 
 #define ipconfigBUFFER_PADDING                   ( 14 )
 

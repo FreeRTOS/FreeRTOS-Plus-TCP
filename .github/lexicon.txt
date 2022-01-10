@@ -664,9 +664,13 @@ prvcheckrxdata
 prvcopydatatoqueue
 prvcreatednsmessage
 prvdeterminesocketsize
+prvdnsreply
 prvemacdeferredinterrupthandlertask
 prvemachandlertask
+prvfillsockaddress
 prvgethostbyname
+prvgethostbynameop
+prvgetpayloadbuffer
 prvhandleestablished
 prvhandlelisten
 prvhandlesynreceived
@@ -726,6 +730,7 @@ pucnewbuffer
 pucnextdata
 pucoptionsarray
 pucpayload
+pucpayloadbuffer
 pucptr
 pucrecvdata
 pucsource
@@ -770,6 +775,7 @@ pxdescriptor
 pxdestinationaddress
 pxdhcpmessage
 pxdnsmessageheader
+pxdnsbuf
 pxduplicatenetworkbufferwithdescriptor
 pxevent
 pxgetnetworkbuffer
@@ -808,6 +814,7 @@ pxphyobject
 pxprops
 pxprotocolheaders
 pxprotpack
+pxreceivebuffer
 pxsegment
 pxsocket
 pxsocketset
@@ -946,6 +953,7 @@ sof
 sourceaddrfilter
 spi
 sprintf
+squestions
 sram
 src
 srdbl
@@ -1097,6 +1105,8 @@ ulcount
 ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
+ulcurrenttimeseconds
+ultimewhenaddedinseconds
 uldefaultipaddress
 uldelayms
 uldestinationaddress
@@ -1249,6 +1259,7 @@ uxblocktimeticks
 uxborn
 uxbufferlength
 uxbytecount
+uxbytesread
 uxcount
 uxdatalength
 uxdatalengthbytes
@@ -1279,6 +1290,7 @@ uxnumberofbytestosend
 uxoffset
 uxoptionlength
 uxoptionslength
+uxpayloadlength
 uxremainingbytes
 uxremainingtime
 uxremaningtime
@@ -1288,6 +1300,7 @@ uxright
 uxrxstreamsize
 uxrxwinsize
 uxsize
+uxsourcebytesremaining
 uxsourcelen
 uxstreambufferadd
 uxstreambufferget
@@ -1315,10 +1328,13 @@ vcastconstptrto
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
+vdnscheckcallback
 vdnsinitialise
 vdnssetcallback
 ve
 vipnetworkupcalls
+vipreloaddhcptimer
+vipsetdhcptimerenablestate
 vl
 vlan
 vlantagcomparison
@@ -1331,6 +1347,7 @@ vportfree
 vprintresourcestats
 vprocessgeneratedudppacket
 vreleasenetworkbufferanddescriptor
+vreturnethernetframe
 vrxfaultinjection
 vsocketbind
 vsocketclose
@@ -1382,6 +1399,7 @@ xbufferlength
 xbufferlistitem
 xbytecount
 xbytesleft
+xcallbacklist
 xcheckloopback
 xclearonexit
 xclientsocket
@@ -1396,14 +1414,17 @@ xdhcpdata
 xdhcptxperiod
 xdhcptxtime
 xdmarxdescriptors
+xdnscache
 xdnsmessage
 xdnssocket
 xdomain
+xdostore
 xdumpingready
 xemacps
 xemacpsif
 xemactaskhandle
 xenablestate
+xend
 xentries
 xerrnum
 xethernetheader

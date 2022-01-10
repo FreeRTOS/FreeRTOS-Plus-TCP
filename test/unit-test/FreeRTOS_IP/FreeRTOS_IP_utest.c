@@ -63,6 +63,8 @@
 
 #include "FreeRTOSIPConfig.h"
 
+extern uint32_t xProcessedTCPMessage;
+
 void prvIPTask( void * pvParameters );
 void prvProcessIPEventsAndTimers( void );
 eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
@@ -1165,7 +1167,7 @@ void test_FreeRTOS_SendPingRequest_NetworkBufferFailure( void )
 void test_xSendEventToIPTask( void )
 {
     BaseType_t xReturn;
-    eIPEvent_t eEvent;
+    eIPEvent_t eEvent = eNetworkRxEvent;
 
     xIPTaskInitialised = pdFALSE;
 
@@ -2325,6 +2327,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_InvalidProt( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -2364,6 +2367,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMP( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -2408,6 +2412,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMP2( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -2451,6 +2456,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
