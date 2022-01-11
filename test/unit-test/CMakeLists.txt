@@ -66,7 +66,9 @@ set( TCP_INCLUDES "${MODULE_ROOT_DIR}/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_Stream_Buffer.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_WIN.h"
                   "${MODULE_ROOT_DIR}/include/NetworkBufferManagement.h"
-                  "${MODULE_ROOT_DIR}/include/NetworkInterface.h" )
+                  "${MODULE_ROOT_DIR}/include/NetworkInterface.h"
+                  "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/portable.h" )
+
 
 # Create a directory for the modified files
 file( MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/Annexed_TCP )
@@ -135,6 +137,12 @@ foreach( file ${TCP_SOURCES} )
 
     get_filename_component( MODIFIED_FILE ${file} NAME_WLE )
 
+    if(${MODIFIED_FILE} STREQUAL "FreeRTOS_Sockets" )
+        execute_process( COMMAND sed "/#include \"task.h\"/ a \#include \"Sockets_list_macros.h\" " ${file}
+                         OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp2.c  )
+        set( file ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp2.c )
+    endif()
+
     # Strip static constraints so unit tests may call internal functions
     execute_process( COMMAND sed "s/^[ ]*static //"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -182,12 +190,12 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 
 #include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
 #include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
-#include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
 #include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
 #include( ${UNIT_TEST_DIR}/FreeRTOS_IP/ut.cmake )
 #include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP/ut.cmake )
 #include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
+#include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
 #include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================

@@ -37,7 +37,7 @@
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF    0
+#define ipconfigHAS_DEBUG_PRINTF    1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
     #define FreeRTOS_debug_printf( X )    configPRINTF( X )
 #endif
@@ -46,7 +46,7 @@
  * FreeRTOS_netstat() command, and ping replies.  If ipconfigHAS_PRINTF is set to 1
  * then FreeRTOS_printf should be set to the function used to print out the
  * messages. */
-#define ipconfigHAS_PRINTF    0
+#define ipconfigHAS_PRINTF    1
 #if ( ipconfigHAS_PRINTF == 1 )
     #define FreeRTOS_printf( X )    configPRINTF( X )
 #endif

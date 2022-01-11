@@ -322,6 +322,11 @@
         void * pvData;         /**< The data in the event */
     } IPStackEvent_t;
 
+    extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t );
+    extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t );
+
+    extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t );
+
     #define ipBROADCAST_IP_ADDRESS    0xffffffffU
 
 

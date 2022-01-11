@@ -1297,6 +1297,9 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
         struct freertos_sockaddr xAddress;
     #endif /* ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND */
 
+    configASSERT( pxSocket != NULL );
+    configASSERT( pxSocket != FREERTOS_INVALID_SOCKET );
+
     #if ( ipconfigUSE_TCP == 1 )
         if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
         {
@@ -1311,9 +1314,6 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
     /* The function prototype is designed to maintain the expected Berkeley
      * sockets standard, but this implementation does not use all the parameters. */
     ( void ) uxAddressLength;
-
-    configASSERT( pxSocket != NULL );
-    configASSERT( pxSocket != FREERTOS_INVALID_SOCKET );
 
     #if ( ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND == 1 )
         {
@@ -1965,14 +1965,9 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                            break; /* will return -pdFREERTOS_ERRNO_EINVAL */
                        }
 
-                       if( ( pxTCP->txStream != NULL ) || ( pxTCP->rxStream != NULL ) )
-                       {
-                           FreeRTOS_debug_printf( ( "Set SO_WIN_PROP: buffer already created\n" ) );
-                           break; /* will return -pdFREERTOS_ERRNO_EINVAL */
-                       }
-
                        pxProps = ipPOINTER_CAST( const WinProperties_t *, pvOptionValue );
 
+                       /* Validity of txStream will be checked by the function below. */
                        xReturn = prvSockopt_so_buffer( pxSocket, FREERTOS_SO_SNDBUF, &( pxProps->lTxBufSize ) );
 
                        if( xReturn != 0 )
@@ -1980,6 +1975,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                            break; /* will return an error. */
                        }
 
+                       /* Validity of rxStream will be checked by the function below. */
                        xReturn = prvSockopt_so_buffer( pxSocket, FREERTOS_SO_RCVBUF, &( pxProps->lRxBufSize ) );
 
                        if( xReturn != 0 )
@@ -2067,7 +2063,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
                        if( ( pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize == pdFALSE_UNSIGNED ) &&
                            ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) &&
-                           ( FreeRTOS_outstanding( pxSocket ) != 0 ) )
+                           ( FreeRTOS_outstanding( pxSocket ) > 0 ) )
                        {
                            pxSocket->u.xTCP.usTimeout = 1U; /* to set/clear bSendFullSize */
                            ( void ) xSendEventToIPTask( eTCPTimerEvent );
@@ -2258,8 +2254,8 @@ FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
  *                      stored if all checks pass. The buffer must be at least 16
  *                      bytes long.
  *
- * @return If all checks pass, then the pointer returned will be same as pcBuffer
- *         and will have the address stored in the location. Else, NULL is returned.
+ * @return The pointer returned will be same as pcBuffer and will have the address
+ *         stored in the location.
  */
 const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
                                  char * pcBuffer )
@@ -2275,7 +2271,6 @@ const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
         uint8_t pucDigits[ sockDIGIT_COUNT ];
         uint8_t ucValue = pucAddress[ uxNibble ];
         socklen_t uxSource = ( socklen_t ) sockDIGIT_COUNT - ( socklen_t ) 1U;
-        socklen_t uxNeeded;
 
         for( ; ; )
         {
@@ -2299,16 +2294,6 @@ const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
             {
                 break;
             }
-        }
-
-        /* Write e.g. "192.", which is 3 digits and a dot. */
-        uxNeeded = ( ( socklen_t ) sockDIGIT_COUNT - uxSource ) + 1U;
-
-        if( ( uxIndex + uxNeeded ) > uxSize )
-        {
-            /* The result won't fit. */
-            pcResult = NULL;
-            break;
         }
 
         for( ; uxSource < ( socklen_t ) sockDIGIT_COUNT; uxSource++ )
@@ -3066,13 +3051,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
                 /* Did it get connected while sleeping ? */
                 xResult = FreeRTOS_issocketconnected( pxSocket );
-
-                /* Returns positive when connected, negative means an error */
-                if( xResult < 0 )
-                {
-                    /* Return the error */
-                    break;
-                }
 
                 if( xResult > 0 )
                 {
