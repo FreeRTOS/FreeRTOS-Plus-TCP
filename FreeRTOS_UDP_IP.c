@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.4.0
+ * FreeRTOS+TCP V2.3.4
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -331,8 +331,12 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
             }
             else
             {
-                /* Update the age of this cache entry since a packet was received. */
-                vARPRefreshCacheEntryAge( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
+                /* IP address is not on the same subnet, ARP table can be updated.
+                 * When refreshing the ARP cache with received UDP packets we must be
+                 * careful;  hundreds of broadcast messages may pass and if we're not
+                 * handling them, no use to fill the ARP cache with those IP addresses.
+                 */
+                vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
             }
 
             #if ( ipconfigUSE_CALLBACKS == 1 )

@@ -113,3 +113,7 @@ create_test(${utest_name}
             "${utest_dep_list}"
             "${test_include_directories}"
         )
+
+target_compile_options(${real_name} PUBLIC
+            -include list_macros.h
+        )

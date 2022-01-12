@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.4.0
+ * FreeRTOS+TCP V2.3.4
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -1038,27 +1038,10 @@
                 }
             #endif
 
-            {
-                MACAddress_t xMACAddress;
-                uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
-                eARPLookupResult_t eResult;
-
-                eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress );
-
-                if( eResult == eARPCacheHit )
-                {
-                    pvCopySource = &xMACAddress;
-                }
-                else
-                {
-                    pvCopySource = &pxEthernetHeader->xSourceAddress;
-                }
-
-                /* Fill in the destination MAC addresses. */
-                ( void ) memcpy( ( void * ) ( &( pxEthernetHeader->xDestinationAddress ) ),
-                                 pvCopySource,
-                                 sizeof( pxEthernetHeader->xDestinationAddress ) );
-            }
+            /* Fill in the destination MAC addresses. */
+            ( void ) memcpy( ( void * ) ( &( pxEthernetHeader->xDestinationAddress ) ),
+                             ( const void * ) ( &( pxEthernetHeader->xSourceAddress ) ),
+                             sizeof( pxEthernetHeader->xDestinationAddress ) );
 
             /*
              * Use helper variables for memcpy() to remain

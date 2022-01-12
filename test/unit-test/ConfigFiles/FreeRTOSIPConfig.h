@@ -278,7 +278,7 @@ extern uint32_t ulRand();
  * TCP socket will use up to 2 x 6 descriptors, meaning that it can have 2 x 6
  * outstanding packets (for Rx and Tx).  When using up to 10 TP sockets
  * simultaneously, one could define TCP_WIN_SEG_COUNT as 120. */
-#define ipconfigTCP_WIN_SEG_COUNT                      240
+#define ipconfigTCP_WIN_SEG_COUNT                      2
 
 /* Each TCP socket has a circular buffers for Rx and Tx, which have a fixed
  * maximum size.  Define the size of Rx buffer for TCP sockets. */
@@ -324,5 +324,6 @@ extern uint32_t ulRand();
 #define ipconfigDNS_CACHE_ENTRIES                ( 2 )
 
 #define ipconfigBUFFER_PADDING                   ( 14 )
+#define ipconfigTCP_SRTT_MINIMUM_VALUE_MS        ( 34 )
 
 #endif /* FREERTOS_IP_CONFIG_H */

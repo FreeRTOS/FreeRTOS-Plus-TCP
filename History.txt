@@ -1,10 +1,3 @@
-Changes between V2.3.4 and V2.4.0 releases:
-        + Updated the maximum limit on the number of bytes which can be requested
-          when using BufferAllocation2.c
-        + Improved MISRA compliance.
-        + Added minor bug fixes to various network interfaces.
-        + Improved RFC Compliance.
-
 Changes between V2.3.3 and V2.3.4 releases:
         + Added a check in BufferAllocation_2.c to ensure adding (2 +
           ipBUFFER_PADDING) bytes to the requested allocation size does

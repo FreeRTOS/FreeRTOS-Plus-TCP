@@ -73,8 +73,7 @@ add_definitions(
             -I${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             -I${MODULE_ROOT_DIR}/test/unit-test/FreeRTOS_Sockets/
             -I${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
-            -include Sockets_list_macros.h
-            )
+        )
 
 # =============================  (end edit)  ===================================
 
@@ -112,4 +111,8 @@ create_test(${utest_name}
             "${utest_link_list}"
             "${utest_dep_list}"
             "${test_include_directories}"
+        )
+
+target_compile_options(${real_name} PUBLIC
+            -include Sockets_list_macros.h
         )

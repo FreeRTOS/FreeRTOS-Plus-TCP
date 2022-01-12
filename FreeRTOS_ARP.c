@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.4.0
+ * FreeRTOS+TCP V2.3.4
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -451,40 +451,6 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
     }
 
 #endif /* ipconfigUSE_ARP_REMOVE_ENTRY != 0 */
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Look for an IP-MAC couple in ARP cache and reset the 'age' field. If no match
- *        is found then no action will be taken.
- *
- * @param[in] pxMACAddress: Pointer to the MAC address whose entry needs to be updated.
- * @param[in] ulIPAddress: the IP address whose corresponding entry needs to be updated.
- */
-void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
-                               const uint32_t ulIPAddress )
-{
-    BaseType_t x;
-
-    if( pxMACAddress != NULL )
-    {
-        /* Loop through each entry in the ARP cache. */
-        for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
-        {
-            /* Does this line in the cache table hold an entry for the IP
-             * address being queried? */
-            if( xARPCache[ x ].ulIPAddress == ulIPAddress )
-            {
-                /* Does this cache entry have the same MAC address? */
-                if( memcmp( xARPCache[ x ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( pxMACAddress->ucBytes ) ) == 0 )
-                {
-                    /* The IP address and the MAC matched, update this entry age. */
-                    xARPCache[ x ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
-                    break;
-                }
-            }
-        }
-    }
-}
 /*-----------------------------------------------------------*/
 
 /**

@@ -1,11 +1,11 @@
 name : "FreeRTOS-Plus-TCP"
-version: "V2.4.0"
+version: "V2.3.4"
 description: |-
   "Thread safe FreeRTOS TCP/IP stack working on top of the FreeRTOS-Kernel to implement the TCP/IP protocol. Suitable for microcontrollers."
 
 dependencies:
   - name: "FreeRTOS-Kernel"
-    version: "V10.4.6"
+    version: "V10.4.5"
     repository:
       type: "git"
       url: "https://github.com/FreeRTOS/FreeRTOS-Kernel"

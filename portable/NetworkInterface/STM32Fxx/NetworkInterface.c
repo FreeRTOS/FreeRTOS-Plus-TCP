@@ -4,7 +4,7 @@
  */
 
 /*
- * FreeRTOS+TCP V2.4.0
+ * FreeRTOS+TCP V2.3.4
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -73,11 +73,10 @@
 #define EMAC_IF_ERR_EVENT    4UL
 #define EMAC_IF_ALL_EVENT    ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
 
-#define ETH_DMA_ALL_INTS                                                  \
-    ( ETH_DMA_IT_TST | ETH_DMA_IT_PMT | ETH_DMA_IT_MMC | ETH_DMA_IT_NIS | \
-      ETH_DMA_IT_AIS | ETH_DMA_IT_ER | ETH_DMA_IT_FBE | ETH_DMA_IT_RWT |  \
-      ETH_DMA_IT_RPS | ETH_DMA_IT_RBU | ETH_DMA_IT_R | ETH_DMA_IT_TU |    \
-      ETH_DMA_IT_RO | ETH_DMA_IT_TJT | ETH_DMA_IT_TPS | ETH_DMA_IT_T )
+#define ETH_DMA_ALL_INTS                                                                  \
+    ( ETH_DMA_IT_TST | ETH_DMA_IT_PMT | ETH_DMA_IT_MMC | ETH_DMA_IT_NIS | ETH_DMA_IT_ER | \
+      ETH_DMA_IT_FBE | ETH_DMA_IT_RWT | ETH_DMA_IT_RPS | ETH_DMA_IT_RBU | ETH_DMA_IT_R |  \
+      ETH_DMA_IT_TU | ETH_DMA_IT_RO | ETH_DMA_IT_TJT | ETH_DMA_IT_TPS | ETH_DMA_IT_T )
 
 #ifndef NETWORK_BUFFER_HEADER_SIZE
     #define NETWORK_BUFFER_HEADER_SIZE    ( ipBUFFER_PADDING )
