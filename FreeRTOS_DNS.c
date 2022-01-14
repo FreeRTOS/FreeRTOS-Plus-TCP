@@ -1502,7 +1502,10 @@
                                                  const char * pcHostName )
     {
         NetworkEndPoint_t * pxEndPoint = NULL;
-        BaseType_t xNeed_Endpoint = pdFALSE;
+
+        #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
+            BaseType_t xNeed_Endpoint = pdFALSE;
+        #endif
 
         /* Make sure all fields of the 'sockaddr' are cleared. */
         ( void ) memset( ( void * ) pxAddress, 0, sizeof( *pxAddress ) );
@@ -1589,33 +1592,35 @@
                 }
             #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
 
-            if( xNeed_Endpoint == pdTRUE )
-            {
-                for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-                     pxEndPoint != NULL;
-                     pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+            #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
+                if( xNeed_Endpoint == pdTRUE )
                 {
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        if( xDNS_IP_Preference == xPreferenceIPv6 )
-                        {
-                            if( ENDPOINT_IS_IPv6( pxEndPoint ) )
+                    for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+                         pxEndPoint != NULL;
+                         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+                    {
+                        #if ( ipconfigUSE_IPv6 != 0 )
+                            if( xDNS_IP_Preference == xPreferenceIPv6 )
                             {
-                                break;
+                                if( ENDPOINT_IS_IPv6( pxEndPoint ) )
+                                {
+                                    break;
+                                }
                             }
-                        }
-                        else
-                        {
-                            if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                            else
                             {
-                                break;
+                                if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                                {
+                                    break;
+                                }
                             }
-                        }
-                    #else /* if ( ipconfigUSE_IPv6 != 0 ) */
-                        /* IPv6 is not included, so all end-points are IPv4. */
-                        break;
-                    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+                        #else /* if ( ipconfigUSE_IPv6 != 0 ) */
+                            /* IPv6 is not included, so all end-points are IPv4. */
+                            break;
+                        #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+                    }
                 }
-            }
+            #endif /* if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
         }
         else
         {
@@ -1886,7 +1891,6 @@
 
                     /* The reply was received.  Process it. */
                     #if ( ipconfigDNS_USE_CALLBACKS == 0 )
-
                         /* It is useless to analyse the unexpected reply
                          * unless asynchronous look-ups are enabled. */
                         if( xExpected != pdFALSE )
