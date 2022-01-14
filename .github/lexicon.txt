@@ -1293,7 +1293,7 @@ uxoffset
 uxoptionlength
 uxoptionslength
 uxpayloadlength
-uspayloadsize
+uxpayloadsize
 uxremainingbytes
 uxremainingtime
 uxremaningtime
