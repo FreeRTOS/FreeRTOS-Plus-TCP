@@ -73,7 +73,10 @@
 
 /** @brief If the top two bits in the first character of a name field are set then the
  * name field is an offset to the string, rather than the string itself. */
-    #define dnsNAME_IS_OFFSET    ( ( uint8_t ) 0xc0 )
+    #define dnsLABEL_IS_POINTER    ( ( uint8_t ) 0xc0 )
+
+/** @brief A zero length label equals the root domain. */
+    #define dnsLABEL_IS_ROOT       ( ( uint8_t ) 0x00 )
 
 /* NBNS flags. */
     #if ( ipconfigUSE_NBNS == 1 )
@@ -220,10 +223,8 @@
     #endif /* ipconfigUSE_NBNS */
 
 
-    #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
-        _static size_t prvReadNameField( ParseSet_t * pxSet,
-                                         size_t uxDestLen );
-    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
+    _static size_t prvReadNameField( ParseSet_t * pxSet,
+                                     size_t uxDestLen );
 
     #if ( ipconfigUSE_DNS_CACHE == 1 )
         /** @brief Copy DNS cache entries at xIndex to a linked struct addrinfo. */
@@ -979,8 +980,10 @@
             pxAddrInfo = ( struct freertos_addrinfo * ) pvBuffer;
 
             ( void ) memset( pxAddrInfo, 0, sizeof( *pxAddrInfo ) );
-            pxAddrInfo->ai_canonname = pxAddrInfo->xPrivateStorage.ucName;
-            ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName, pcName, sizeof( pxAddrInfo->xPrivateStorage.ucName ) );
+            #if ( ipconfigUSE_DNS_CACHE != 0 )
+                pxAddrInfo->ai_canonname = pxAddrInfo->xPrivateStorage.ucName;
+                ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName, pcName, sizeof( pxAddrInfo->xPrivateStorage.ucName ) );
+            #endif
 
             #if ( ipconfigUSE_IPv6 == 0 )
                 pxAddrInfo->ai_addr = &( pxAddrInfo->xPrivateStorage.sockaddr4 );
@@ -2037,8 +2040,6 @@
     }
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
-
 /**
  * @brief Read the Name field out of a DNS response packet.
  *
@@ -2047,146 +2048,125 @@
  *
  * @return If a fully formed name was found, then return the number of bytes processed in pucByte.
  */
-        _static size_t prvReadNameField( ParseSet_t * pxSet,
-                                         size_t uxDestLen )
-        {
-            /* 'uxNameLen' counts characters written to 'pxSet->pcName'. */
+    _static size_t prvReadNameField( ParseSet_t * pxSet,
+                                     size_t uxDestLen )
+    {
+        size_t uxSourceLen = pxSet->uxSourceBytesRemaining;
+        size_t uxLabelLen;
+        size_t uxIndex = 0U;
+        size_t uxReturnIndex = 0U;
+        size_t uxLabelOffset;
+        const uint8_t * pucByte = pxSet->pucByte;
+
+        #if ( configDNS_CACHE_ENABE != 0 )
             size_t uxNameLen = 0U;
-            /* The index within .pxSet->pcName'. */
-            size_t uxIndex = 0U;
-            size_t uxReturnIndex = 0U;
-            size_t uxSourceLen = pxSet->uxSourceBytesRemaining;
-            size_t uxOffset;
-            const uint8_t * pucByte = pxSet->pucByte;
+        #endif
 
-            /* uxCount gets the values from pucByte and counts down to 0.
-             * No need to have a different type than that of pucByte */
-            size_t uxCount;
+        /* 'uxIndex' points to the full name. Walk over the string. */
+        while( uxIndex < uxSourceLen )
+        {
+            /* Process the first/next sub-string. */
+            uxLabelLen = ( size_t ) pucByte[ uxIndex ];
 
-            if( uxSourceLen == ( size_t ) 0U )
+            /* Check for root domain label */
+            if( uxLabelLen == dnsLABEL_IS_ROOT )
             {
-                /* Return 0 value in case of error. */
-                uxIndex = 0U;
-            }
+                uxIndex++;
 
-            else
-            {
-                /* 'uxIndex' points to the full name. Walk over the string. */
-                while( ( uxIndex < uxSourceLen ) && ( pucByte[ uxIndex ] != ( uint8_t ) 0x00U ) )
+                /* The domain pointer is finished */
+                if( uxReturnIndex != 0 )
                 {
-                    /* If this is not the first time through the loop, then add a
-                     * separator in the output. */
-                    if( ( uxNameLen > 0U ) )
+                    uxIndex = uxReturnIndex;
+                }
+
+                #if ( configDNS_CACHE_ENABE != 0 )
+                    /* Also return the root domain as name '.' */
+                    if( uxNameLen == 0 )
                     {
-                        if( uxNameLen >= uxDestLen )
+                        if( uxNameLen + 1 < uxDestLen )
                         {
-                            uxIndex = 0U;
-                            /* coverity[break_stmt] : Break statement terminating the loop */
-                            break;
-                        }
-
-                        pxSet->pcName[ uxNameLen ] = '.';
-                        uxNameLen++;
-                    }
-
-                    /* Process the first/next sub-string. */
-                    uxCount = ( size_t ) pucByte[ uxIndex ];
-
-                    /* uxIndex should point to the first character now, unless uxCount
-                     * is an offset field. */
-                    uxIndex++;
-
-                    /* Determine if the name is the fully coded name, or an offset to the name
-                     * elsewhere in the message. */
-                    if( ( uxCount & dnsNAME_IS_OFFSET ) == dnsNAME_IS_OFFSET )
-                    {
-                        /* Check if there are enough bytes left. */
-                        if( ( uxIndex + 2U ) < uxSourceLen )
-                        {
-                            /* Only accept a single offset command. */
-                            if( uxReturnIndex != 0U )
-                            {
-                                /* There was a 0xC0 sequence already. */
-                                uxIndex = 0U;
-                                break;
-                            }
-
-                            /* Remember the offset to return. */
-                            uxReturnIndex = uxIndex + 1U;
-                            /* The offset byte 0xC0 is followed by an offset in the DNS record. */
-                            uxOffset = ( size_t ) pucByte[ uxIndex ];
-
-                            if( ( uxOffset + 2U ) > pxSet->uxBufferLength )
-                            {
-                                uxIndex = 0U;
-                                break;
-                            }
-
-                            uxSourceLen = pxSet->uxBufferLength - uxOffset;
-
-                            if( ( ( uxOffset + 2U ) < uxSourceLen ) && ( uxOffset >= sizeof( DNSMessage_t ) ) )
-                            {
-                                /* Process the first/next sub-string. */
-                                pucByte = &( pxSet->pucUDPPayloadBuffer[ uxOffset ] );
-                                uxCount = ( size_t ) pucByte[ 0 ];
-                                uxIndex = 1U;
-                            }
-                            else
-                            {
-                                uxIndex = 0U;
-                                break;
-                            }
+                            pxSet->pcName[ uxNameLen ] = '.';
+                            pxSet->pcName[ uxNameLen + 1 ] = '\0';
                         }
                         else
                         {
-                            uxIndex = 0U;
-                            break;
+                            return 0U;
                         }
                     }
+                #endif /* if ( configDNS_CACHE_ENABE != 0 ) */
 
-                    if( ( uxIndex + uxCount ) > uxSourceLen )
-                    {
-                        uxIndex = 0U;
-                        break;
-                    }
-
-                    if( ( uxNameLen + uxCount ) >= uxDestLen )
-                    {
-                        uxIndex = 0U;
-                        break;
-                    }
-
-                    while( ( uxCount-- != 0U ) && ( uxIndex < uxSourceLen ) )
-                    {
-                        pxSet->pcName[ uxNameLen ] = ( char ) pucByte[ uxIndex ];
-                        uxNameLen++;
-                        uxIndex++;
-                    }
-                } /* while( ( uxIndex < uxSourceLen ) && ( pucByte[ uxIndex ] != ( uint8_t ) 0x00U ) ) */
-
-                /* Confirm that a fully formed name was found. */
-                if( uxIndex > 0U )
+                /* Successfully paresed a name */
+                return uxIndex;
+            }
+            /* Check if the label length field encodes a pointer */
+            else if( ( uxLabelLen & dnsLABEL_IS_POINTER ) == dnsLABEL_IS_POINTER )
+            {
+                /* Check if its the first offset and if there are enough bytes left. */
+                if( ( uxReturnIndex == 0U ) && ( uxIndex + 1 < uxSourceLen ) )
                 {
-                    if( ( uxNameLen < uxDestLen ) && ( uxIndex < uxSourceLen ) && ( pucByte[ uxIndex ] == 0U ) )
+                    /* Remember the offset to return. */
+                    uxReturnIndex = uxIndex + 2U;
+                    /* Calculate the offset */
+                    uxLabelOffset = ( size_t ) ( ( ( pucByte[ uxIndex ] & ~dnsLABEL_IS_POINTER ) << 8 ) | pucByte[ uxIndex + 1 ] );
+
+                    if( ( uxLabelOffset < pxSet->uxBufferLength ) && ( uxLabelOffset >= sizeof( DNSMessage_t ) ) )
                     {
-                        pxSet->pcName[ uxNameLen ] = 0;
-                        uxIndex++;
+                        pucByte = &( pxSet->pucUDPPayloadBuffer[ uxLabelOffset ] );
+                        uxIndex = 0U;
+                        uxSourceLen = pxSet->uxBufferLength - uxLabelOffset;
                     }
                     else
                     {
-                        uxIndex = 0U;
+                        return 0U;
                     }
                 }
+                else
+                {
+                    uxIndex = 0U;
+                    break;
+                }
             }
-
-            if( ( uxReturnIndex != 0U ) && ( uxIndex != 0U ) )
+            else
             {
-                uxIndex = uxReturnIndex;
-            }
+                uxIndex++;
 
-            return uxIndex;
-        }
-    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
+                if( ( uxIndex + uxLabelLen <= uxSourceLen ) )
+                {
+                    #if ( ipconfigUSE_DNS_CACHE != 0 )
+                        /* Check for dot insertion */
+                        if( ( uxNameLen != 0 ) && ( uxNameLen < uxDestLen ) )
+                        {
+                            pxSet->pcName[ uxNameLen ] = '.';
+                            uxNameLen++;
+                        }
+                        else
+                        {
+                            return 0U;
+                        }
+
+                        /* Move the label */
+                        if( ( uxNameLen + uxCount ) <= uxDestLen )
+                        {
+                            memcpy( &pxSet->pcName[ uxNameLen ], &pucByte[ uxIndex ], uxCount );
+                            uxNameLen += uxCount;
+                        }
+                        else
+                        {
+                            return 0U;
+                        }
+                    #endif /* if ( ipconfigUSE_DNS_CACHE != 0 ) */
+
+                    uxIndex += uxLabelLen;
+                }
+                else
+                {
+                    return 0U;
+                }
+            }
+        } /* while( ( uxIndex < uxSourceLen ) ) */
+
+        return uxIndex;
+    }
 /*-----------------------------------------------------------*/
 
     void show_single_addressinfo( const char * pcFormat,
@@ -2382,8 +2362,12 @@
             #endif /* ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
 
             {
-                uxResult = prvReadNameField( pxSet,
-                                             sizeof( pxSet->pcName ) );
+                #if ( ipconfigUSE_DNS_CACHE != 0 )
+                    uxResult = prvReadNameField( pxSet,
+                                                 sizeof( pxSet->pcName ) );
+                #else
+                    uxResult = prvReadNameField( pxSet, 0 );
+                #endif
 
                 /* Check for a malformed response. */
                 if( uxResult == 0U )
@@ -2519,7 +2503,11 @@
             {
                 uint8_t * ucBytes = ( uint8_t * ) &( pxSet->ulIPAddress );
 
-                pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET4, ucBytes );
+                #if ( ipconfigUSE_DNS_CACHE != 0 )
+                    pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET4, ucBytes );
+                #else
+                    pxNewAddress = pxNew_AddrInfo( NULL, FREERTOS_AF_INET4, ucBytes );
+                #endif
             }
 
             pxIP_Address->ulIPAddress = pxSet->ulIPAddress;
@@ -2571,8 +2559,12 @@
                 break;
             }
 
-            uxResult = prvReadNameField( pxSet,
-                                         sizeof( pxSet->pcName ) );
+            #if ( ipconfigUSE_DNS_CACHE != 0 )
+                uxResult = prvReadNameField( pxSet,
+                                             sizeof( pxSet->pcName ) );
+            #else
+                uxResult = prvReadNameField( pxSet, 0 );
+            #endif
 
             /* Check for a malformed response. */
             if( uxResult == 0U )
@@ -2829,7 +2821,7 @@
                 vSetField16( pucNewBuffer, DNSMessage_t, usAuthorityRRs, 0 );                          /* No authority */
                 vSetField16( pucNewBuffer, DNSMessage_t, usAdditionalRRs, 0 );                         /* No additional info */
 
-                pxAnswer->ucNameCode = dnsNAME_IS_OFFSET;
+                pxAnswer->ucNameCode = dnsLABEL_IS_POINTER;
                 pxAnswer->ucNameOffset = ( uint8_t ) ( pxSet->pcRequestedName - ( char * ) pucNewBuffer );
 
                 vSetField16( pxSet->pucByte, LLMNRAnswer_t, usType, pxSet->usType );     /* Type A: host */
