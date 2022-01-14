@@ -521,9 +521,7 @@
     }
 
 /*!
- * @brief
- *
- * @param prepare the buffer before sending
+ * @brief prepare the buffer before sending
  * @param [in] pcHostName
  * @param [in] uxIdentifier identifier
  * @param [in] xDNSSocket a valid socket

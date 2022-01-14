@@ -56,6 +56,7 @@ bfinacked
 bfinlast
 bfinrecv
 bfinsent
+bhasdot
 bhasinit
 bisforrx
 bist
@@ -1292,6 +1293,7 @@ uxoffset
 uxoptionlength
 uxoptionslength
 uxpayloadlength
+uspayloadsize
 uxremainingbytes
 uxremainingtime
 uxremaningtime
