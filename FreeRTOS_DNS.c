@@ -453,17 +453,16 @@
  *
  * @param [out]  pxAddress
  * @param [in] pcHostName hostname to get its length
- *
  */
-    static BaseType_t prvFillSockAddress( struct freertos_sockaddr * pxAddress,
-                                          const char * pcHostName )
+    static void prvFillSockAddress( struct freertos_sockaddr * pxAddress,
+                                    const char * pcHostName )
     {
         uint32_t ulIPAddress = 0UL;
-        BaseType_t bHasDot = pdFALSE;
 
         /* Obtain the DNS server address. */
         FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, &ulIPAddress );
         #if ( ipconfigUSE_LLMNR == 1 )
+            BaseType_t bHasDot = pdFALSE;
             bHasDot = llmnr_has_dot( pcHostName );
 
             if( bHasDot == pdFALSE )
@@ -480,8 +479,6 @@
             pxAddress->sin_addr = ulIPAddress;
             pxAddress->sin_port = dnsDNS_PORT;
         }
-
-        return bHasDot;
     }
 
 /*!
@@ -526,14 +523,12 @@
  * @param [in] uxIdentifier identifier
  * @param [in] xDNSSocket a valid socket
  * @param [in] xAddress address structure
- * @param [in] bHasDot hostname has dot
  * @returns whether sending the data was successful
  */
     static BaseType_t prvSendBuffer( const char * pcHostName,
                                      TickType_t uxIdentifier,
                                      Socket_t xDNSSocket,
-                                     struct freertos_sockaddr * xAddress,
-                                     BaseType_t bHasDot )
+                                     struct freertos_sockaddr * pxAddress )
     {
         BaseType_t xReturn = pdFAIL;
         struct xDNSBuffer xDNSBuf = { 0 };
@@ -548,15 +543,11 @@
             xDNSBuf.uxPayloadLength = pxNetworkBuffer->xDataLength;
             xDNSBuf.uxPayloadSize = pxNetworkBuffer->xDataLength;
 
-            #if ( ipconfigUSE_LLMNR == 1 )
-                if( bHasDot == pdFALSE )
-                {
-                    /* Use LLMNR addressing. */
-                    ( ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, xDNSBuf.pucPayloadBuffer ) )->usFlags = 0;
-                }
-            #else
-                ( void ) bHasDot;
-            #endif
+            if( pxAddress->sin_port == ipLLMNR_PORT )
+            {
+                ( ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, xDNSBuf.pucPayloadBuffer ) )->usFlags = 0;
+            }
+
             xDNSBuf.uxPayloadLength = prvCreateDNSMessage( xDNSBuf.pucPayloadBuffer,
                                                            pcHostName,
                                                            uxIdentifier );
@@ -565,7 +556,7 @@
             xReturn = DNS_SendRequest( pcHostName,
                                        uxIdentifier,
                                        xDNSSocket,
-                                       xAddress,
+                                       pxAddress,
                                        &xDNSBuf );
 
             if( xReturn == pdFAIL )
@@ -593,18 +584,16 @@
 
         struct freertos_sockaddr xAddress;
         struct xDNSBuffer xReceiveBuffer = { 0 };
-        BaseType_t bHasDot;
         BaseType_t xReturn = pdFAIL;
 
-        bHasDot = prvFillSockAddress( &xAddress, pcHostName );
+        prvFillSockAddress( &xAddress, pcHostName );
 
         do
         {
             xReturn = prvSendBuffer( pcHostName,
                                      uxIdentifier,
                                      xDNSSocket,
-                                     &xAddress,
-                                     bHasDot );
+                                     &xAddress );
 
             if( xReturn == pdFAIL )
             {
