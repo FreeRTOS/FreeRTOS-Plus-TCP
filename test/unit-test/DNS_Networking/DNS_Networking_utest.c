@@ -159,7 +159,7 @@ void test_SendRequest_success( void )
     Socket_t s = ( Socket_t ) 123;
     uint32_t ret;
     struct freertos_sockaddr xAddress;
-    struct dns_buffer pxDNSBuf;
+    struct xDNSBuffer pxDNSBuf;
 
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( pdTRUE );
 
@@ -176,7 +176,7 @@ void test_SendRequest_fail( void )
     Socket_t s = ( Socket_t ) 123;
     uint32_t ret;
     struct freertos_sockaddr xAddress;
-    struct dns_buffer pxDNSBuf;
+    struct xDNSBuffer pxDNSBuf;
 
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( pdFALSE );
 
@@ -192,7 +192,7 @@ void test_ReadReply_success( void )
 {
     Socket_t s = ( Socket_t ) 123;
     struct freertos_sockaddr xAddress;
-    struct dns_buffer pxDNSBuf;
+    struct xDNSBuffer pxDNSBuf;
 
     FreeRTOS_recvfrom_ExpectAnyArgsAndReturn( 600 );
 

@@ -49,6 +49,7 @@
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_DHCP.h"
+#include "FreeRTOS_IP_Utils.h"
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 

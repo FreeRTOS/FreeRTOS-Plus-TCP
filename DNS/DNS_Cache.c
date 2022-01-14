@@ -81,14 +81,14 @@
                                           uint32_t * pulIP,
                                           uint32_t ulCurrentTimeSeconds );
 
-    static void prvUpdateCacheEntry( int index,
-                                     int ulTTL,
-                                     int32_t * pulIP,
+    static void prvUpdateCacheEntry( BaseType_t index,
+                                     uint32_t ulTTL,
+                                     uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds );
 
     static void prvInsertCacheEntry( const char * pcName,
-                                     int32_t ulTTL,
-                                     int32_t * pulIP,
+                                     uint32_t ulTTL,
+                                     uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds );
 
 
@@ -123,10 +123,12 @@
                                     uint32_t * pulIP,
                                     uint32_t ulTTL )
     {
+        ( void ) ulTTL;
         ( void ) FreeRTOS_ProcessDNSCache( pcName,
                                            pulIP,
                                            0,
                                            pdFALSE );
+        return pdTRUE;
     }
 
 /**
@@ -157,10 +159,8 @@
                                          BaseType_t xLookUp )
     {
         BaseType_t x;
-        BaseType_t xFound = pdFALSE;
         TickType_t xCurrentTickCount = xTaskGetTickCount();
         uint32_t ulCurrentTimeSeconds;
-        uint32_t ulIPAddressIndex = 0;
 
         configASSERT( ( pcName != NULL ) );
 
@@ -301,9 +301,9 @@
  * @post the global structure \a xDNSCache is modified
  *
  */
-    static void prvUpdateCacheEntry( int index,
-                                     int ulTTL,
-                                     int32_t * pulIP,
+    static void prvUpdateCacheEntry( BaseType_t index,
+                                     uint32_t ulTTL,
+                                     uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
         uint32_t ulIPAddressIndex = 0;
@@ -332,12 +332,10 @@
  * @post the global structure \a xDNSCache is modified
  */
     static void prvInsertCacheEntry( const char * pcName,
-                                     int32_t ulTTL,
-                                     int32_t * pulIP,
+                                     uint32_t ulTTL,
+                                     uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
-        int ulIPAddressIndex = 0;
-
         /* Add or update the item. */
         if( strlen( pcName ) < ( size_t ) ipconfigDNS_CACHE_NAME_LENGTH )
         {

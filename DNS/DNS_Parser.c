@@ -313,8 +313,6 @@
                                 BaseType_t xExpected )
     {
         DNSMessage_t * pxDNSMessageHeader;
-        /* This pointer is not used to modify anything */
-        const DNSAnswerRecord_t * pxDNSAnswerRecord;
         uint32_t ulIPAddress = 0UL;
 
         #if ( ipconfigUSE_LLMNR == 1 )
@@ -322,12 +320,10 @@
         #endif
         uint8_t * pucByte;
         size_t uxSourceBytesRemaining;
-        uint16_t x, usDataLength, usQuestions;
+        uint16_t x;
+        uint16_t usQuestions;
         uint16_t usType = 0U;
         BaseType_t xReturn = pdTRUE;
-        /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-        const void * pvCopySource;
-        void * pvCopyDest;
 
         #if ( ipconfigUSE_LLMNR == 1 )
             uint16_t usClass = 0U;
@@ -336,7 +332,6 @@
             BaseType_t xDoStore = xExpected;
             char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ] = "";
         #endif
-        const size_t uxAddressLength = ipSIZE_OF_IPv4_ADDRESS;
 
         /* Ensure that the buffer is of at least minimal DNS message length. */
         if( uxBufferLength < sizeof( DNSMessage_t ) )
@@ -438,10 +433,6 @@
                 if( ( pxDNSMessageHeader->usFlags & dnsRX_FLAGS_MASK )
                     == dnsEXPECTED_RX_FLAGS )
                 {
-                    const uint16_t usCount = ( uint16_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
-                    uint16_t usNumARecordsStored = 0;
-
-
                     xReturn = parseDNSAnswer( pxDNSMessageHeader,
                                               pucByte,
                                               uxSourceBytesRemaining,

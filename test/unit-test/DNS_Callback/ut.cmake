@@ -22,6 +22,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Cache.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Parser.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Timers.h"
             "${MODULE_ROOT_DIR}/test/unit-test/FreeRTOS_Sockets/Sockets_list_macros.h"
         )
 # list the directories your mocks need

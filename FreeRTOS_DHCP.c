@@ -43,6 +43,7 @@
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_IP_Timers.h"
 
 
 /* Exclude the entire file if DHCP is not enabled. */

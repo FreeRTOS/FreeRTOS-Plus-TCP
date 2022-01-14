@@ -96,7 +96,7 @@
                               TickType_t uxIdentifier,
                               Socket_t xDNSSocket,
                               struct freertos_sockaddr * xAddress,
-                              struct dns_buffer * pxDNSBuf )
+                              struct xDNSBuffer * pxDNSBuf )
     {
         BaseType_t xReturn = pdFALSE;
 
@@ -132,7 +132,7 @@
  */
     void DNS_ReadReply( Socket_t xDNSSocket,
                         struct freertos_sockaddr * xAddress,
-                        struct dns_buffer * pxReceiveBuffer )
+                        struct xDNSBuffer * pxReceiveBuffer )
     {
         uint32_t ulAddressLength = sizeof( struct freertos_sockaddr );
 
