@@ -83,22 +83,18 @@
 
 /**
  * @brief perform a DNS network request
- * @param uxIdentifier ignored
- * @param xDNSSocket socket
- * @param xAddress address structure
+ * @param xDNSSocket Created socket
+ * @param xAddress address structure (ip, port etc)
  * @param pxDNSBuf buffer to send
  * @return xReturn: true if the message could be sent
  *                  false otherwise
  *
  */
-    uint32_t DNS_SendRequest( TickType_t uxIdentifier,
-                              Socket_t xDNSSocket,
+    uint32_t DNS_SendRequest( Socket_t xDNSSocket,
                               struct freertos_sockaddr * xAddress,
                               struct xDNSBuffer * pxDNSBuf )
     {
         BaseType_t xReturn = pdFALSE;
-
-        ( void ) uxIdentifier;
 
         iptraceSENDING_DNS_REQUEST();
 
