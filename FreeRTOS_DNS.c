@@ -694,7 +694,7 @@
  * @brief Create the DNS message in the zero copy buffer passed in the first parameter.
  * @param[in,out] pucUDPPayloadBuffer The zero copy buffer where the DNS message will be created.
  * @param[in] pcHostName Hostname to be looked up.
- * @param[in] uxIdentifier Identifier to match sent and receeved packets
+ * @param[in] uxIdentifier Identifier to match sent and received packets
  * @return Total size of the generated message, which is the space from the last written byte
  *         to the beginning of the buffer.
  */
