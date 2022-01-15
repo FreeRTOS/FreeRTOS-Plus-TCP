@@ -216,7 +216,7 @@ void test_vDNSSetCallback_success_empty_list( void )
     pvPortMalloc_ExpectAnyArgsAndReturn( &dnsCallback );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 0 );
-    vIPReloadDNSTimer_ExpectAnyArgs();
+    vDNSTimerReload_ExpectAnyArgs();
     vTaskSetTimeOutState_ExpectAnyArgs();
     listSET_LIST_ITEM_OWNER_ExpectAnyArgs();
     listSET_LIST_ITEM_VALUE_ExpectAnyArgs();

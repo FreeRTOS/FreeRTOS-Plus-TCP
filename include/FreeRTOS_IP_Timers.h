@@ -80,13 +80,6 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
 #endif
 
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
-
-/**
- * @brief Reload DNS timer
- * @param[in] ulCheckTime  timer reload time
- */
-    void vIPReloadDNSTimer( uint32_t ulCheckTime );
-
 /**
  * @brief Enable/disable the DNS timer.
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.

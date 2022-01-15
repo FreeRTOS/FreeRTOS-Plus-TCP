@@ -36,8 +36,7 @@
  */
     Socket_t DNS_CreateSocket( TickType_t uxReadTimeOut_ticks );
 
-    uint32_t DNS_SendRequest( const char * pcHostName,
-                              TickType_t uxIdentifier,
+    uint32_t DNS_SendRequest( TickType_t uxIdentifier,
                               Socket_t xDNSSocket,
                               struct freertos_sockaddr * xAddress,
                               struct xDNSBuffer * pxDNSBuf );

@@ -485,16 +485,3 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 #endif /* ipconfigUSE_DHCP */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigDNS_USE_CALLBACKS != 0 )
-
-/**
- * @brief Reload the DNS timer.
- *
- * @param[in] ulCheckTime: The reload value.
- */
-    void vIPReloadDNSTimer( uint32_t ulCheckTime )
-    {
-        prvIPTimerReload( &xDNSTimer, ulCheckTime );
-    }
-#endif /* ipconfigDNS_USE_CALLBACKS != 0 */
-/*-----------------------------------------------------------*/

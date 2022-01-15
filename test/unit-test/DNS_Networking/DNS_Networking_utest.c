@@ -163,7 +163,7 @@ void test_SendRequest_success( void )
 
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( pdTRUE );
 
-    ret = DNS_SendRequest( "www.FreeRTOS.org", 1234, s, &xAddress, &pxDNSBuf );
+    ret = DNS_SendRequest( 1234, s, &xAddress, &pxDNSBuf );
 
     TEST_ASSERT_EQUAL( pdTRUE, ret );
 }
@@ -180,7 +180,7 @@ void test_SendRequest_fail( void )
 
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( pdFALSE );
 
-    ret = DNS_SendRequest( "www.FreeRTOS.org", 1234, s, &xAddress, &pxDNSBuf );
+    ret = DNS_SendRequest( 1234, s, &xAddress, &pxDNSBuf );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }

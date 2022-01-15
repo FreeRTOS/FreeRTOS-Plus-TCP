@@ -83,7 +83,6 @@
 
 /**
  * @brief perform a DNS network request
- * @param pcHostName the lookup name
  * @param uxIdentifier ignored
  * @param xDNSSocket socket
  * @param xAddress address structure
@@ -92,8 +91,7 @@
  *                  false otherwise
  *
  */
-    uint32_t DNS_SendRequest( const char * pcHostName,
-                              TickType_t uxIdentifier,
+    uint32_t DNS_SendRequest( TickType_t uxIdentifier,
                               Socket_t xDNSSocket,
                               struct freertos_sockaddr * xAddress,
                               struct xDNSBuffer * pxDNSBuf )

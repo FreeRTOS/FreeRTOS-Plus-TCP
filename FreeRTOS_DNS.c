@@ -240,7 +240,6 @@
 
 /**
  * @brief Get the IP-address corresponding to the given hostname.
- *
  * @param[in] pcHostName: The hostname whose IP address is being queried.
  * @param[in] pCallback: The callback function which will be called upon DNS response.
  * @param[in] pvSearchID: Search ID for the callback function.
@@ -411,7 +410,6 @@
 
 /*!
  * @brief create a payload buffer and return it through the parameter
- *
  * @param [out] ppxNetworkBuffer network buffer to create
  * @param [in] pcHostName hostname to get its length
  * @returns pointer address to the payload buffer
@@ -449,10 +447,9 @@
     }
 
 /*!
- * @brief  fill  pxAddress from pucUDPPayloadBuffer
- *
- * @param [out]  pxAddress
- * @param [in] pcHostName hostname to get its length
+ * @brief fill  pxAddress from pucUDPPayloadBuffer
+ * @param [out] pxAddress ip address and port ... structure
+ * @param [in]  pcHostName hostname to get its length
  */
     static void prvFillSockAddress( struct freertos_sockaddr * pxAddress,
                                     const char * pcHostName )
@@ -483,9 +480,8 @@
 
 /*!
  * @brief return ip address from the dns reply message
- *
- * @param [in] pxReceiveBuffer
- * @param [in] uxIdentifier
+ * @param [in] pxReceiveBuffer received buffer from the DNS server
+ * @param [in] uxIdentifier matches sent and received packets
  * @returns ip address or zero on error
  *
  */
@@ -520,9 +516,9 @@
 /*!
  * @brief prepare the buffer before sending
  * @param [in] pcHostName
- * @param [in] uxIdentifier identifier
+ * @param [in] uxIdentifier  matches sent and received packets
  * @param [in] xDNSSocket a valid socket
- * @param [in] xAddress address structure
+ * @param [in] pxAddress address structure
  * @returns whether sending the data was successful
  */
     static BaseType_t prvSendBuffer( const char * pcHostName,
@@ -553,8 +549,7 @@
                                                            uxIdentifier );
 
             /* send the dns message */
-            xReturn = DNS_SendRequest( pcHostName,
-                                       uxIdentifier,
+            xReturn = DNS_SendRequest( uxIdentifier,
                                        xDNSSocket,
                                        pxAddress,
                                        &xDNSBuf );
@@ -570,9 +565,8 @@
 
 /*!
  * @brief main dns operation description function
- *
  * @param [in] pcHostName hostname to get its ip address
- * @param [in] uxIdentifier identifier
+ * @param [in] uxIdentifier: Identifier to match sent and recieved packets
  * @param [in] xDNSSocket socket
  * @returns ip address or zero on error
  */
@@ -628,7 +622,7 @@
  *        ipconfigDNS_REQUEST_ATTEMPTS
  *
  * @param [in] pcHostName hostname to get its ip address
- * @param [in] uxIdentifier
+ * @param [in] uxIdentifier matches sent and recieved packets
  * @param [in] xDNSSocket socket
  * @returns ip address or zero on error
  *
@@ -658,13 +652,11 @@
 
 /**
  * @brief Prepare and send a message to a DNS server.  'uxReadTimeOut_ticks' will be passed as
- * zero, in case the user has supplied a call-back function.
- *
+ *        zero, in case the user has supplied a call-back function.
  * @param[in] pcHostName: The hostname for which an IP address is required.
- * @param[in] uxIdentifier: Identifier to send in the DNS message.
+ * @param[in] uxIdentifier: Identifier to match sent and recieved packets
  * @param[in] uxReadTimeOut_ticks: The timeout in ticks for waiting. In case the user has supplied
  *                                 a call-back function, this value should be zero.
- *
  * @return The IPv4 IP address for the hostname being queried. It will be zero if there is no reply.
  */
     static uint32_t prvGetHostByName( const char * pcHostName,
@@ -701,11 +693,9 @@
 
 /**
  * @brief Create the DNS message in the zero copy buffer passed in the first parameter.
- *
  * @param[in,out] pucUDPPayloadBuffer: The zero copy buffer where the DNS message will be created.
  * @param[in] pcHostName: Hostname to be looked up.
- * @param[in] uxIdentifier: The identifier to be added to the DNS message.
- *
+ * @param[in] uxIdentifier: Identifier to match sent and recieved packets
  * @return Total size of the generated message, which is the space from the last written byte
  *         to the beginning of the buffer.
  */

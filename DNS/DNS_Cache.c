@@ -77,11 +77,11 @@
 
     static BaseType_t prvFindEntryIndex( const char * pcName );
 
-    static BaseType_t prvGetCacheIPEntry( BaseType_t index,
+    static BaseType_t prvGetCacheIPEntry( UBaseType_t index,
                                           uint32_t * pulIP,
                                           uint32_t ulCurrentTimeSeconds );
 
-    static void prvUpdateCacheEntry( BaseType_t index,
+    static void prvUpdateCacheEntry( UBaseType_t index,
                                      uint32_t ulTTL,
                                      uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds );
@@ -117,6 +117,8 @@
  * @param pcName the lookup name
  * @param pulIP the ip value to insert/replace
  * @param ulTTL ignored
+ * @return this is a dummy return, we are actually ignoring the return value
+ *         from this function
  * @post the global structure \a xDNSCache might be modified
  */
     BaseType_t FreeRTOS_dns_update( const char * pcName,
@@ -252,7 +254,7 @@
  * @post the global structure \a xDNSCache might be modified
  *
  */
-    static BaseType_t prvGetCacheIPEntry( BaseType_t index,
+    static BaseType_t prvGetCacheIPEntry( UBaseType_t index,
                                           uint32_t * pulIP,
                                           uint32_t ulCurrentTimeSeconds )
     {
@@ -301,7 +303,7 @@
  * @post the global structure \a xDNSCache is modified
  *
  */
-    static void prvUpdateCacheEntry( BaseType_t index,
+    static void prvUpdateCacheEntry( UBaseType_t index,
                                      uint32_t ulTTL,
                                      uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds )
