@@ -7368,66 +7368,221 @@ void test_vSocketSelect_TCPSocketsOnly( void )
 {
     SocketSelect_t xSocketSet;
     ListItem_t xLocalListItem;
-    FreeRTOS_Socket_t xSocket, xSocket2, xSocket3, xSocket4;
+    uint8_t ucStream[20];
+    FreeRTOS_Socket_t xSocket[9], xPeerSocket, xPeerSocket1;
     
-    memset( &xSocket, 0, sizeof( xSocket ) );
-    memset( &xSocket2, 0, sizeof( xSocket2 ) );
-    memset( &xSocket3, 0, sizeof( xSocket3 ) );
-    memset( &xSocket4, 0, sizeof( xSocket4 ) );
+    for( int i =1;i <9; i++ )
+    {
+        memset( &xSocket[i], 0, sizeof( xSocket[i] ) );
+        xSocket[i].pxSocketSet = &xSocketSet;
+        xSocket[i].ucProtocol = FREERTOS_IPPROTO_TCP;
+    }
+    memset( &xPeerSocket, 0, sizeof( xPeerSocket ) );
+    memset( &xPeerSocket1, 0, sizeof( xPeerSocket1 ) );
+    memset( &xSocket[0], 0, sizeof( xSocket[0] ) );
     
-    xSocket2.pxSocketSet = &xSocketSet;
-    xSocket3.pxSocketSet = &xSocketSet;
-    xSocket4.pxSocketSet = &xSocketSet;
-    
-    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket2.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket3.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket4.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket[0].ucProtocol = FREERTOS_IPPROTO_TCP;
     
     /* Last item. Nothing in UDP. */
     listGET_NEXT_ExpectAndReturn( &( xBoundUDPSocketsList.xListEnd ), &( xBoundUDPSocketsList.xListEnd ) );
     
     /* Round 0. Not same socket set. */
     listGET_NEXT_ExpectAndReturn(&( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );
-    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[0] );
     
     /* Round 1. Same socket set. No bits Set. */
     listGET_NEXT_ExpectAndReturn(&xLocalListItem, &xLocalListItem );
-    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket2 );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[1] );
     
     /* Round 2. Same socket set. All bits Set. */
-    xSocket3.xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
-    
+    xSocket[2].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
     listGET_NEXT_ExpectAndReturn(&xLocalListItem, &xLocalListItem );
-    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket3 );
-        
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[2] );
+    
+    /* Round 3. */
+    xSocket[3].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
+    xSocket[3].u.xTCP.bits.bPassAccept = pdTRUE;
+    xSocket[3].u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocket[3].u.xTCP.pxPeerSocket = &xPeerSocket;
+    xSocket[3].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
+    listGET_NEXT_ExpectAndReturn(&xLocalListItem, &xLocalListItem );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[3] );
+    
+    /* Round 4. */
+    xSocket[4].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
+    xSocket[4].u.xTCP.bits.bPassAccept = pdTRUE;
+    xSocket[4].u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocket[4].u.xTCP.pxPeerSocket = &xPeerSocket1;
+    xSocket[4].u.xTCP.pxPeerSocket->u.xTCP.bits.bPassAccept = pdTRUE;
+    xSocket[4].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
+    listGET_NEXT_ExpectAndReturn(&xLocalListItem, &xLocalListItem );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[4] );
+    
+    /* Round 5. */
+    xSocket[5].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
+    xSocket[5].u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocket[5].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
+    xSocket[5].u.xTCP.txStream = ucStream;
+    listGET_NEXT_ExpectAndReturn(&xLocalListItem, &xLocalListItem );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[5] );
+    uxStreamBufferGetSpace_ExpectAndReturn( ucStream, 0xABCD );
+    
+    /* Round 5. */
+    xSocket[6].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
+    xSocket[6].u.xTCP.ucTCPState = ( uint8_t ) eCLOSE_WAIT;
+    xSocket[6].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
+    xSocket[6].u.xTCP.txStream = ucStream;
+    xSocket[6].u.xTCP.rxStream = ucStream;
+    listGET_NEXT_ExpectAndReturn(&xLocalListItem, &xLocalListItem );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[6] );
+    uxStreamBufferGetSize_ExpectAndReturn( ucStream, 0xAB );
+    uxStreamBufferGetSpace_ExpectAndReturn( ucStream, 0xABCD );
+    
+    /* Round 6. */
+    xSocket[7].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
+    xSocket[7].u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket[7].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
+    xSocket[7].u.xTCP.bits.bPassQueued = pdTRUE;
+    xSocket[7].u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+    listGET_NEXT_ExpectAndReturn(&xLocalListItem, &xLocalListItem );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[7] );
+    
+    /* Round 7. */
+    xSocket[8].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
+    xSocket[8].u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket[8].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
+    xSocket[8].u.xTCP.bits.bPassQueued = pdTRUE;
+    xSocket[8].u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+    xSocket[8].u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
+    xSocket[8].u.xTCP.bits.bConnPassed = pdTRUE_UNSIGNED;
+    listGET_NEXT_ExpectAndReturn(&xLocalListItem, &xLocalListItem );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[8] );
     
     /* Last item. */
     listGET_NEXT_ExpectAndReturn(&xLocalListItem, &( xBoundTCPSocketsList.xListEnd ) );
     
-    xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup, 0, 0 );
+    xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup, 0, eSELECT_READ );
     
-    xEventGroupSetBits_ExpectAndReturn( xSocketSet.xSelectGroup, eSELECT_READ | eSELECT_CALL_IP, pdPASS );
+    xEventGroupSetBits_ExpectAnyArgsAndReturn( pdPASS ); //AndReturn( xSocketSet.xSelectGroup, eSELECT_READ | eSELECT_CALL_IP, pdPASS );
+    
+    //xEventGroupClearBits_ExpectAnyArgsAndReturn( pdPASS );
     
     vSocketSelect( &xSocketSet );
     
-    TEST_ASSERT_EQUAL( 0, xSocket.xSocketBits );
-    TEST_ASSERT_EQUAL( 0, xSocket2.xSocketBits );
-    TEST_ASSERT_EQUAL( 0, xSocket3.xSocketBits );
-    TEST_ASSERT_EQUAL( eSELECT_READ, xSocket4.xSocketBits );
+    TEST_ASSERT_EQUAL( 0, xSocket[0].xSocketBits );
+    TEST_ASSERT_EQUAL( 0, xSocket[1].xSocketBits );
+    TEST_ASSERT_EQUAL( eSELECT_EXCEPT, xSocket[2].xSocketBits );
+    TEST_ASSERT_EQUAL( pdFALSE, xSocket[2].u.xTCP.bits.bConnPassed );
+    TEST_ASSERT_EQUAL( 0, xSocket[3].xSocketBits );
+    TEST_ASSERT_EQUAL( eSELECT_READ, xSocket[4].xSocketBits );
+    TEST_ASSERT_EQUAL( eSELECT_WRITE, xSocket[5].xSocketBits );
+    TEST_ASSERT_EQUAL( eSELECT_WRITE|eSELECT_READ|eSELECT_EXCEPT, xSocket[6].xSocketBits );
+    TEST_ASSERT_EQUAL( eSELECT_WRITE, xSocket[7].xSocketBits );
+    TEST_ASSERT_EQUAL( eSELECT_READ, xSocket[8].xSocketBits );
 }
 
+void test_vSocketSelect_NoSocketsAtAll( void )
+{
+    SocketSelect_t xSocketSet;
+    ListItem_t xLocalListItem;
+    uint8_t ucStream[20];
+    
+    /* Last item. Nothing in UDP. */
+    listGET_NEXT_ExpectAndReturn( &( xBoundUDPSocketsList.xListEnd ), &( xBoundUDPSocketsList.xListEnd ) );
+    
+    /* Last item. Nothing in TCP. */
+    listGET_NEXT_ExpectAndReturn(&( xBoundTCPSocketsList.xListEnd ), &( xBoundTCPSocketsList.xListEnd ) );
+     
+    xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup, 0, eSELECT_READ );
+    xEventGroupClearBits_ExpectAnyArgsAndReturn( pdPASS );
+    xEventGroupSetBits_ExpectAndReturn( xSocketSet.xSelectGroup, eSELECT_CALL_IP, pdPASS );
+    
+    vSocketSelect( &xSocketSet );
+}
 
+void test_FreeRTOS_SignalSocket_InvalidSocket( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    
+    xReturn = FreeRTOS_SignalSocket( NULL );
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+    
+    xReturn = FreeRTOS_SignalSocket( &xSocket );
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+}
 
+void test_FreeRTOS_SignalSocket_NonNULLEventGroup( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    SocketSelect_t xSocketSet;
+    uint8_t xEventGroup[sizeof( size_t )];
+    
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xSocketSet, 0, sizeof( xSocketSet ) );
+    
+    xSocket.pxSocketSet = &xSocketSet;
+    xSocket.xEventGroup = xEventGroup;
+    
+    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_INTR, pdFALSE );
+    
+    xReturn = FreeRTOS_SignalSocket( &xSocket );
+    TEST_ASSERT_EQUAL( 0, xReturn );
+}
 
+void test_FreeRTOS_SignalSocket_NonNULLSelectGroup( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    SocketSelect_t xSocketSet;
+    uint8_t xSelectGroup[sizeof( size_t )];
+    
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xSocketSet, 0, sizeof( xSocketSet ) );
+    
+    xSocket.pxSocketSet = &xSocketSet;
+    xSocket.pxSocketSet->xSelectGroup = xSelectGroup;
+    
+    xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup, eSELECT_INTR, pdFALSE );
+    
+    xReturn = FreeRTOS_SignalSocket( &xSocket );
+    TEST_ASSERT_EQUAL( 0, xReturn );
+}
 
+void test_FreeRTOS_SignalSocketFromISR_catchAsserts( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t xHigherPriorityTaskWoken;
+    
+    catch_assert( FreeRTOS_SignalSocketFromISR( NULL, &xHigherPriorityTaskWoken ) );
+    
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    catch_assert( FreeRTOS_SignalSocketFromISR( &xSocket, &xHigherPriorityTaskWoken ) );
+    
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    catch_assert( FreeRTOS_SignalSocketFromISR( &xSocket, &xHigherPriorityTaskWoken ) );
+}
 
-
-
-
-
-
-
+void test_FreeRTOS_SignalSocketFromISR_HappyPath( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t xHigherPriorityTaskWoken;
+    uint8_t xEventGroup[sizeof( size_t )];
+    
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket.xEventGroup = xEventGroup;
+    
+    xQueueGenericSendFromISR_ExpectAnyArgsAndReturn( 0xABC );
+    
+    xReturn = FreeRTOS_SignalSocketFromISR( &xSocket, &xHigherPriorityTaskWoken );
+    TEST_ASSERT_EQUAL( 0xABC, xReturn );
+}
 
 
 
