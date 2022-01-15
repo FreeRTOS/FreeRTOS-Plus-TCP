@@ -40,7 +40,7 @@
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
-NetworkBufferDescriptor_t* pxARPWaitingNetworkBuffer;
+NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
 /** @brief The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
@@ -98,4 +98,3 @@ void vPortFree( void * ptr )
 {
     free( ptr );
 }
-

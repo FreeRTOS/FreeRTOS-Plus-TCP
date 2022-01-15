@@ -23,12 +23,12 @@
  * http://www.FreeRTOS.org
  */
 
- /**
-  * @file FreeRTOS_ICMP.c
-  * @brief Implements the Internet Control Message Protocol for the FreeRTOS+TCP network stack.
-  */
+/**
+ * @file FreeRTOS_ICMP.c
+ * @brief Implements the Internet Control Message Protocol for the FreeRTOS+TCP network stack.
+ */
 
-  /* Standard includes. */
+/* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -55,8 +55,9 @@
 #define ipICMP_ECHO_REPLY      ( ( uint8_t ) 0 )              /**< ICMP echo reply. */
 
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-    /*
-     * Process incoming ICMP packets.
-     */
-    eFrameProcessingResult_t ProcessICMPPacket( NetworkBufferDescriptor_t* const pxNetworkBuffer );
+
+/*
+ * Process incoming ICMP packets.
+ */
+    eFrameProcessingResult_t ProcessICMPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
