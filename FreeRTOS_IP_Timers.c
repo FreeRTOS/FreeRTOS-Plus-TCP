@@ -484,4 +484,3 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 
 #endif /* ipconfigUSE_DHCP */
 /*-----------------------------------------------------------*/
-
