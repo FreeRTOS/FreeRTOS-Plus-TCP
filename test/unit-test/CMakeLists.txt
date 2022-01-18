@@ -74,12 +74,16 @@ if( ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
     elseif( ${UT_PLATFORM} STREQUAL "MacOS" )
         set( SYSTEM_PKG_MNGR "brew" )
         set( SYSTEM_INSTALL_CMD "install" )
+    # Or the platform is rpm based system.
+    elseif( ${UT_PLATFORM} STREQUAL "RPMSystem" )
+        set( SYSTEM_PKG_MNGR "yum" )
+        set( SYSTEM_INSTALL_CMD "install" )
     else()
         # Otherwise, check whether user has given any system package manager and
         # corresponding command.
         if( ( "${SYSTEM_PKG_MNGR}" STREQUAL "" ) OR ( "${SYSTEM_INSTALL_CMD}" STREQUAL "" ) )
             message( FATAL_ERROR "Wrong platform specified. While invoking the cmake command, you can choose the platform as shown below\n"
-                                 "Only 'Ubuntu' and 'MacOS' are valid options.\n"
+                                 "Only 'Ubuntu', 'RPMSystem' and 'MacOS' are valid options.\n"
                                  "    cmake -S. -B build <Additional commands/options> -DUT_PLATFORM=Ubuntu\n"
                                  "Otherwise, you can set the package manager and the install command. Example for Red Hat Enterprise Linux:\n"
                                  "    cmake -S. -B build <Additional commands/options> -DSYSTEM_PKG_MNGR=yum -DSYSTEM_INSTALL_CMD=install" )
