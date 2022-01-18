@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP V2.4.0
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -1202,21 +1202,38 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
     configASSERT( xNetworkEventQueue == NULL );
     configASSERT( xIPTaskHandle == NULL );
 
-    /* This is a 64-bit platform, make sure there is enough space in
-     * pucEthernetBuffer to store a pointer. */
-    configASSERT( ( sizeof( uintptr_t ) != 8U ) || ( ipconfigBUFFER_PADDING >= 14 ) );
+    #if ( configASSERT_DEFINED == 1 )
+        {
+            volatile size_t xSize = sizeof( uintptr_t );
 
-    /* But it must have this strange alignment: */
-    configASSERT( ( sizeof( uintptr_t ) != 8U ) || ( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 ) );
+            /* This is a 64-bit platform, make sure there is enough space in
+             * pucEthernetBuffer to store a pointer. */
+            configASSERT( ( xSize != 8U ) || ( ipconfigBUFFER_PADDING >= 14 ) );
 
-    /* Check if MTU is big enough. */
-    configASSERT( ( ( size_t ) ipconfigNETWORK_MTU ) >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
-    /* Check structure packing is correct. */
-    configASSERT( sizeof( EthernetHeader_t ) == ipEXPECTED_EthernetHeader_t_SIZE );
-    configASSERT( sizeof( ARPHeader_t ) == ipEXPECTED_ARPHeader_t_SIZE );
-    configASSERT( sizeof( IPHeader_t ) == ipEXPECTED_IPHeader_t_SIZE );
-    configASSERT( sizeof( ICMPHeader_t ) == ipEXPECTED_ICMPHeader_t_SIZE );
-    configASSERT( sizeof( UDPHeader_t ) == ipEXPECTED_UDPHeader_t_SIZE );
+            /* But it must have this strange alignment: */
+            configASSERT( ( xSize != 8U ) || ( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 ) );
+
+            xSize = ( size_t ) ipconfigNETWORK_MTU;
+            /* Check if MTU is big enough. */
+            configASSERT( xSize >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
+
+            xSize = sizeof( EthernetHeader_t );
+            /* Check structure packing is correct. */
+            configASSERT( xSize == ipEXPECTED_EthernetHeader_t_SIZE );
+
+            xSize = sizeof( ARPHeader_t );
+            configASSERT( xSize == ipEXPECTED_ARPHeader_t_SIZE );
+
+            xSize = sizeof( IPHeader_t );
+            configASSERT( xSize == ipEXPECTED_IPHeader_t_SIZE );
+
+            xSize = sizeof( ICMPHeader_t );
+            configASSERT( xSize == ipEXPECTED_ICMPHeader_t_SIZE );
+
+            xSize = sizeof( UDPHeader_t );
+            configASSERT( xSize == ipEXPECTED_UDPHeader_t_SIZE );
+        }
+    #endif /* if ( configASSERT_DEFINED == 1 ) */
 
     /* Attempt to create the queue used to communicate with the IP task. */
     #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
@@ -2203,18 +2220,12 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     }
                     else
                     {
-                        /* IP address is not on the same subnet, ARP table can be updated.
-                         * Refresh the ARP cache with the IP/MAC-address of the received
-                         *  packet. For UDP packets, this will be done later in
-                         *  xProcessReceivedUDPPacket(), as soon as it's know that the message
-                         *  will be handled.  This will prevent the ARP cache getting
-                         *  overwritten with the IP address of useless broadcast packets.
-                         */
-                        vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress );
+                        /* Refresh the age of this cache entry since a packet was received. */
+                        vARPRefreshCacheEntryAge( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress );
                     }
                 }
 
-                if( ( eReturn != eReleaseBuffer ) && ( eReturn != eWaitingARPResolution ) )
+                if( eReturn != eWaitingARPResolution )
                 {
                     switch( ucProtocol )
                     {
@@ -2323,6 +2334,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                             #endif /* if ipconfigUSE_TCP == 1 */
                         default:
                             /* Not a supported frame type. */
+                            eReturn = eReleaseBuffer;
                             break;
                     }
                 }
@@ -3112,9 +3124,6 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                            BaseType_t xReleaseAfterSend )
 {
     EthernetHeader_t * pxEthernetHeader;
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-    const void * pvCopySource;
-    void * pvCopyDest;
 
     #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
         NetworkBufferDescriptor_t * pxNewBuffer;
@@ -3156,16 +3165,52 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         if( pxNetworkBuffer != NULL )
     #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
     {
+        /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+        const void * pvCopySource;
+        void * pvCopyDest;
+        MACAddress_t xMACAddress;
+        IPPacket_t * pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+        IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+        uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+        eARPLookupResult_t eResult;
+
         /* Map the Buffer to Ethernet Header struct for easy access to fields. */
         pxEthernetHeader = ipCAST_PTR_TO_TYPE_PTR( EthernetHeader_t, pxNetworkBuffer->pucEthernetBuffer );
+
+        /* Interpret the Ethernet packet being sent. */
+        switch( pxEthernetHeader->usFrameType )
+        {
+            case ipIPv4_FRAME_TYPE:
+
+                /* Try to find a MAC address corresponding to the destination IP
+                 * address. */
+                eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress );
+
+                if( eResult == eARPCacheHit )
+                {
+                    /* Best case scenario - an address is found, use it. */
+                    pvCopySource = &xMACAddress;
+                }
+                else
+                {
+                    /* If an address is not found, just swap the source and destination MAC addresses. */
+                    pvCopySource = &pxEthernetHeader->xSourceAddress;
+                }
+
+                break;
+
+            case ipARP_FRAME_TYPE:
+            default:
+                /* In case of ARP frame, just swap the source and destination MAC addresses. */
+                pvCopySource = &pxEthernetHeader->xSourceAddress;
+                break;
+        }
 
         /*
          * Use helper variables for memcpy() to remain
          * compliant with MISRA Rule 21.15.  These should be
          * optimized away.
          */
-        /* Swap source and destination MAC addresses. */
-        pvCopySource = &pxEthernetHeader->xSourceAddress;
         pvCopyDest = &pxEthernetHeader->xDestinationAddress;
         ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxEthernetHeader->xDestinationAddress ) );
 
