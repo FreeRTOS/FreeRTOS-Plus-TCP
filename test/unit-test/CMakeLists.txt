@@ -13,6 +13,8 @@ set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 set( CMAKE_C_STANDARD 99 )
 set( CMAKE_C_STANDARD_REQUIRED ON )
 
+set( ALLOW_CMAKE_TO_INSTALL_TOOLS "0" CACHE STRING "Option which user can set to enable installation of certain tools required for running the unit-tests." )
+
 # Do not allow in-source build.
 if( ${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR} )
     message( FATAL_ERROR "In-source build is not allowed. Please build in a separate directory, such as ${PROJECT_SOURCE_DIR}/build." )
@@ -59,36 +61,58 @@ endif()
 find_program( UNIFDEF_found unifdef )
 
 if( NOT UNIFDEF_found )
-    # unifdef was not found, install it and inform the user of the location of installation.
-    message( WARNING "unifdef utility not found. Installing it." )
-    execute_process( COMMAND apt-get install unifdef )
+    if( ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
+        # unifdef was not found, install it and inform the user of the location of installation.
+        message( WARNING "unifdef utility not found. Installing it." )
+        execute_process( COMMAND apt-get install unifdef )
 
-    find_program( UNIFDEF_found unifdef )
-    message( STATUS "unifdef installed at location ${UNIFDEF_found}" )
+        find_program( UNIFDEF_found unifdef )
+        message( STATUS "unifdef installed at location ${UNIFDEF_found}" )
+    else()
+        message( FATAL_ERROR "unifdef utility was not found in the system path.\n"
+                             "You may choose to install it yourself, or set ALLOW_CMAKE_TO_INSTALL_TOOLS to 1 while\n"
+                             "invoking CMake to let the script install unifdef, lcov and ruby. You can set the macro as shown below\n"
+                             "    cmake <all your options go here> -DALLOW_CMAKE_TO_INSTALL_TOOLS=1" )
+    endif()
 endif()
 
 # Find 'lcov' utility.
 find_program( LCOV_found lcov )
 
 if( NOT LCOV_found )
-    # lcov was not found, install it and inform the user of the location of installation.
-    message( WARNING "lcov utility not found. Installing it." )
-    execute_process( COMMAND apt-get install -y lcov )
+    if( ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
+        # lcov was not found, install it and inform the user of the location of installation.
+        message( WARNING "lcov utility not found. Installing it." )
+        execute_process( COMMAND apt-get install -y lcov )
 
-    find_program( LCOV_found unifdef )
-    message( STATUS "lcov installed at location ${LCOV_found}" )
+        find_program( LCOV_found unifdef )
+        message( STATUS "lcov installed at location ${LCOV_found}" )
+    else()
+        message( FATAL_ERROR "lcov utility was not found in the system path.\n"
+                             "You may choose to install it yourself, or set ALLOW_CMAKE_TO_INSTALL_TOOLS to 1 while\n"
+                             "invoking CMake to let the script install unifdef, lcov and ruby. You can set the macro as shown below\n"
+                             "    cmake <all your options go here> -DALLOW_CMAKE_TO_INSTALL_TOOLS=1" )
+    endif()
 endif()
 
 # Find whether ruby is installed.
 find_program( RUBY_found ruby )
 
 if( NOT RUBY_found )
-    # Ruby was not found, install it and inform the user of the location of installation.
-    message( WARNING "Ruby (required by CMock) not found. Installing it." )
-    execute_process( COMMAND apt-get install ruby )
+    if( ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
+        # Ruby was not found, install it and inform the user of the location of installation.
+        message( WARNING "Ruby (required by CMock) not found. Installing it." )
+        execute_process( COMMAND apt-get install ruby )
 
-    find_program( RUBY_found ruby )
-    message( STATUS "ruby installed at location ${RUBY_found}" )
+        find_program( RUBY_found ruby )
+        message( STATUS "ruby installed at location ${RUBY_found}" )
+    else()
+        message( FATAL_ERROR "Ruby was not found in the system path.\n"
+                             "You may choose to install it yourself, or set ALLOW_CMAKE_TO_INSTALL_TOOLS to 1 while\n"
+                             "invoking CMake to let the script install unifdef, lcov and ruby. You can set the macro as shown below\n"
+                             "    cmake <all your options go here> -DALLOW_CMAKE_TO_INSTALL_TOOLS=1" )
+    endif()
+
 endif()
 
 # Set the include directories
