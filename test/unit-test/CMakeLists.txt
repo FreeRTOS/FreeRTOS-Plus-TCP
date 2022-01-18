@@ -13,6 +13,12 @@ set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 set( CMAKE_C_STANDARD 99 )
 set( CMAKE_C_STANDARD_REQUIRED ON )
 
+# Set the platform specific variables to default value.
+set( UT_PLATFORM "Ubuntu" CACHE STRING "The platform on which the unit tests are compiled and executed." )
+set( SYSTEM_PKG_MNGR "" CACHE STRING "The package manager on the underlying OS." )
+set( SYSTEM_INSTALL_CMD "" CACHE STRING "The command to install a package." )
+
+# Flag to allow cmake to install tools required for running unit-tests.
 set( ALLOW_CMAKE_TO_INSTALL_TOOLS "0" CACHE STRING "Option which user can set to enable installation of certain tools required for running the unit-tests." )
 
 # Do not allow in-source build.
@@ -57,6 +63,30 @@ if( NOT EXISTS ${CMOCK_DIR}/vendor/unity/docs )
                      WORKING_DIRECTORY ${MODULE_ROOT_DIR} )
 endif()
 
+# Check for the platform/OS specific details only if user has allowed the Cmake to
+# install tools.
+if( ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
+    # If the platform is Ubuntu.
+    if( ${UT_PLATFORM} STREQUAL "Ubuntu" )
+        set( SYSTEM_PKG_MNGR "apt-get" )
+        set( SYSTEM_INSTALL_CMD "install" )
+    # Or the platform is MacOS.
+    elseif( ${UT_PLATFORM} STREQUAL "MacOS" )
+        set( SYSTEM_PKG_MNGR "brew" )
+        set( SYSTEM_INSTALL_CMD "install" )
+    else()
+        # Otherwise, check whether user has given any system package manager and
+        # corresponding command.
+        if( ( "${SYSTEM_PKG_MNGR}" STREQUAL "" ) OR ( "${SYSTEM_INSTALL_CMD}" STREQUAL "" ) )
+            message( FATAL_ERROR "Wrong platform specified. While invoking the cmake command, you can choose the platform as shown below\n"
+                                 "Only 'Ubuntu' and 'MacOS' are valid options.\n"
+                                 "    cmake -S. -B build <Additional commands/options> -DUT_PLATFORM=Ubuntu\n"
+                                 "Otherwise, you can set the package manager and the install command. Example for Red Hat Enterprise Linux:\n"
+                                 "    cmake -S. -B build <Additional commands/options> -DSYSTEM_PKG_MNGR=yum -DSYSTEM_INSTALL_CMD=install" )
+        endif()
+    endif()
+endif()
+
 # Find 'unifdef' utility.
 find_program( UNIFDEF_found unifdef )
 
@@ -64,9 +94,12 @@ if( NOT UNIFDEF_found )
     if( ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
         # unifdef was not found, install it and inform the user of the location of installation.
         message( WARNING "unifdef utility not found. Installing it." )
-        execute_process( COMMAND apt-get install unifdef )
+        execute_process( COMMAND ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} unifdef )
 
         find_program( UNIFDEF_found unifdef )
+        if( NOT UNIFDEF_found )
+            message( FATAL_ERROR "Could not install unifdef. Stopping. Please install the tool manually." )
+        endif()
         message( STATUS "unifdef installed at location ${UNIFDEF_found}" )
     else()
         message( FATAL_ERROR "unifdef utility was not found in the system path.\n"
@@ -83,9 +116,12 @@ if( NOT LCOV_found )
     if( ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
         # lcov was not found, install it and inform the user of the location of installation.
         message( WARNING "lcov utility not found. Installing it." )
-        execute_process( COMMAND apt-get install -y lcov )
+        execute_process( COMMAND ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} lcov )
 
-        find_program( LCOV_found unifdef )
+        find_program( LCOV_found lcov )
+        if( NOT LCOV_found )
+            message( FATAL_ERROR "Could not install lcov. Stopping. Please install the tool manually." )
+        endif()
         message( STATUS "lcov installed at location ${LCOV_found}" )
     else()
         message( FATAL_ERROR "lcov utility was not found in the system path.\n"
@@ -102,9 +138,12 @@ if( NOT RUBY_found )
     if( ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
         # Ruby was not found, install it and inform the user of the location of installation.
         message( WARNING "Ruby (required by CMock) not found. Installing it." )
-        execute_process( COMMAND apt-get install ruby )
+        execute_process( COMMAND ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} ruby )
 
         find_program( RUBY_found ruby )
+        if( NOT RUBY_found )
+            message( FATAL_ERROR "Could not install Ruby. Stopping. Please install Ruby manually." )
+        endif()
         message( STATUS "ruby installed at location ${RUBY_found}" )
     else()
         message( FATAL_ERROR "Ruby was not found in the system path.\n"
