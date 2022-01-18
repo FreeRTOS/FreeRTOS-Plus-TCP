@@ -5660,7 +5660,7 @@ void test_prvTCPSendCheck_InvalidValues( void )
     lReturn = prvTCPSendCheck( &xSocket, uxDataLength );
     TEST_ASSERT_EQUAL( 0, lReturn );
 
-    /* Couldn't allocate a stream. */
+    /* Could not allocate a stream. */
     xSocket.u.xTCP.ucTCPState = eESTABLISHED;
     xSocket.u.xTCP.bits.bFinSent = pdFALSE_UNSIGNED;
     uxDataLength = 10;
@@ -6927,10 +6927,6 @@ void test_lTCPAddRxdata_HasValidHandler_NonZeroOffset( void )
 
     uxStreamBufferAdd_ExpectAndReturn( ucStream, uxOffset, pcData, ulByteCount, ulByteCount - 10 );
 
-    /*uxStreamBufferGet_ExpectAndReturn( ucStream, 0U, NULL, ulByteCount, pdFALSE, pdTRUE ); */
-
-    /*uxStreamBufferGetPtr_ExpectAnyArgsAndReturn( 0U ); */
-
     lReturn = lTCPAddRxdata( &xSocket, uxOffset, pcData, ulByteCount );
 
     TEST_ASSERT_EQUAL( ulByteCount - 10, lReturn );
@@ -7467,9 +7463,7 @@ void test_vSocketSelect_TCPSocketsOnly( void )
 
     xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup, 0, eSELECT_READ );
 
-    xEventGroupSetBits_ExpectAnyArgsAndReturn( pdPASS ); /*AndReturn( xSocketSet.xSelectGroup, eSELECT_READ | eSELECT_CALL_IP, pdPASS ); */
-
-    /*xEventGroupClearBits_ExpectAnyArgsAndReturn( pdPASS ); */
+    xEventGroupSetBits_ExpectAnyArgsAndReturn( pdPASS );
 
     vSocketSelect( &xSocketSet );
 
