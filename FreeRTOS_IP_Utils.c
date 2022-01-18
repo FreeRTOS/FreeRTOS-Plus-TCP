@@ -42,6 +42,7 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Utils.h"
+#include "FreeRTOS_IP_Timers.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
@@ -1119,6 +1120,19 @@ uint32_t FreeRTOS_max_uint32( uint32_t a,
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Get the highest value of two size_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The highest of the two values.
+ */
+size_t FreeRTOS_max_size_t( size_t a,
+                            size_t b )
+{
+    return ( a >= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Get the lowest value of two int32_t's.
  * @param[in] a: the first value.
  * @param[in] b: the second value.
@@ -1145,6 +1159,19 @@ uint32_t FreeRTOS_min_uint32( uint32_t a,
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Get the lowest value of two size_t's.
+ * @param[in] a: the first value.
+ * @param[in] b: the second value.
+ * @return The lowest of the two values.
+ */
+size_t FreeRTOS_min_size_t( size_t a,
+                            size_t b )
+{
+    return ( a <= b ) ? a : b;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Round-up a number to a multiple of 'd'.
  * @param[in] a: the first value.
  * @param[in] d: the second value.
@@ -1153,7 +1180,9 @@ uint32_t FreeRTOS_min_uint32( uint32_t a,
 uint32_t FreeRTOS_round_up( uint32_t a,
                             uint32_t d )
 {
-    uint32_t ulResult = 0;
+    uint32_t ulResult = a;
+
+    configASSERT( d != 0 );
 
     if( d != 0 )
     {
@@ -1174,6 +1203,8 @@ uint32_t FreeRTOS_round_down( uint32_t a,
                               uint32_t d )
 {
     uint32_t ulResult = 0;
+
+    configASSERT( d != 0 );
 
     if( d != 0 )
     {
