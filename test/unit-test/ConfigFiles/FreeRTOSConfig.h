@@ -19,10 +19,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * http://www.FreeRTOS.org
- * http://aws.amazon.com/freertos
+ * https://www.FreeRTOS.org
+ * https://github.com/FreeRTOS
  *
- * 1 tab == 4 spaces!
  */
 
 
@@ -75,6 +74,7 @@
 #define configTIMER_TASK_STACK_DEPTH                     ( configMINIMAL_STACK_SIZE * 2 )
 
 #define configMAX_PRIORITIES                             ( 7 )
+#define configENABLE_MPU                                 0
 
 /* Run time stats gathering configuration options. */
 

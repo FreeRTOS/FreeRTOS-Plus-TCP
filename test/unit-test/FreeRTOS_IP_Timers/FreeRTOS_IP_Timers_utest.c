@@ -55,6 +55,7 @@
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_FreeRTOS_UDP_IP.h"
+#include "mock_DNS_Callback.h"
 
 #include "FreeRTOS_IP_Timers.h"
 
@@ -75,6 +76,13 @@ extern IPTimer_t xARPTimer;
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
     /** @brief DNS timer, to check for timeouts when looking-up a domain. */
     extern IPTimer_t xDNSTimer;
+#endif
+
+#if ( ipconfigUSE_TCP != 0 )
+
+/** @brief Set to a non-zero value if one or more TCP message have been processed
+ *           within the last round. */
+    BaseType_t xProcessedTCPMessage;
 #endif
 
 extern IPTimer_t xARPResolutionTimer;

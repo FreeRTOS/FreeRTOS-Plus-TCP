@@ -26,9 +26,9 @@
 #ifndef LIST_MACRO_H
 #define LIST_MACRO_H
 
-#include <FreeRTOS.h>
-#include <portmacro.h>
-#include <list.h>
+#include "FreeRTOS.h"
+#include "portmacro.h"
+#include "list.h"
 
 #undef listSET_LIST_ITEM_OWNER
 void listSET_LIST_ITEM_OWNER( ListItem_t * pxListItem,

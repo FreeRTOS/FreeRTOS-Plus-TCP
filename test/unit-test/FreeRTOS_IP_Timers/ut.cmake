@@ -28,6 +28,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Callback.h"
             "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/IP_Timers_list_macros.h"
         )
 
