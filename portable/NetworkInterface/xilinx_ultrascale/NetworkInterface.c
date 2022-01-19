@@ -70,12 +70,21 @@
     #define PHY_LS_LOW_CHECK_TIME_MS    1000
 #endif
 
+#if ( ipconfigNETWORK_MTU > 1526 )
+    #warning the use of Jumbo Frames has not been tested sufficiently yet.
+    #define USE_JUMBO_FRAMES    1
+#endif
+
 /* The size of each buffer when BufferAllocation_1 is used:
  * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
-#define niBUFFER_1_PACKET_SIZE    1536
+#if ( USE_JUMBO_FRAMES == 1 )
+    #define niBUFFER_1_PACKET_SIZE    10240
+#else
+    #define niBUFFER_1_PACKET_SIZE    1536
+#endif
 
 /* Naming and numbering of PHY registers. */
-#define PHY_REG_01_BMSR           0x01  /* Basic mode status register */
+#define PHY_REG_01_BMSR    0x01         /* Basic mode status register */
 
 #ifndef iptraceEMAC_TASK_STARTING
     #define iptraceEMAC_TASK_STARTING()    do {} while( 0 )
@@ -177,15 +186,16 @@ BaseType_t xNetworkInterfaceInitialise( void )
             FreeRTOS_printf( ( "xEMACInit: EmacPs Configuration Failed....\n" ) );
         }
 
-/* _HT_ : disabled. the use of jumbo frames has not been tested yet. */
+/* _HT_ : the use of jumbo frames has not been tested sufficiently yet. */
 
-/*
- *      if (pxEMAC_PS->Version > 2 )
- *      {
- *          // Enable jumbo frames for zynqmp
- *          XEmacPs_SetOptions(pxEMAC_PS, XEMACPS_JUMBO_ENABLE_OPTION);
- *      }
- */
+        if( pxEMAC_PS->Version > 2 )
+        {
+            #if ( USE_JUMBO_FRAMES == 1 )
+                /* Enable jumbo frames for zynqmp */
+                XEmacPs_SetOptions( pxEMAC_PS, XEMACPS_JUMBO_ENABLE_OPTION );
+            #endif
+        }
+
         /* Initialize the mac and set the MAC address. */
         XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) ipLOCAL_MAC_ADDRESS, 1 );
 
