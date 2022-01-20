@@ -5674,7 +5674,7 @@ void test_FreeRTOS_connect_InvalidValues( void )
 }
 
 /*
- * @brief 
+ * @brief Non blocking connect.
  */
 void test_FreeRTOS_connect_NonBlocking( void )
 {
@@ -5697,7 +5697,7 @@ void test_FreeRTOS_connect_NonBlocking( void )
 }
 
 /*
- * @brief 
+ * @brief Timeout in connection.
  */
 void test_FreeRTOS_connect_Timeout( void )
 {
@@ -5733,7 +5733,7 @@ void test_FreeRTOS_connect_Timeout( void )
 }
 
 /*
- * @brief 
+ * @brief Connection successful.
  */
 void test_FreeRTOS_connect_Connected( void )
 {
@@ -5764,7 +5764,7 @@ void test_FreeRTOS_connect_Connected( void )
 }
 
 /*
- * @brief 
+ * @brief Invalid parameters.
  */
 void test_FreeRTOS_accept_InvalidParams( void )
 {
@@ -5798,7 +5798,7 @@ void test_FreeRTOS_accept_InvalidParams( void )
 }
 
 /*
- * @brief 
+ * @brief Client socket is already taken.
  */
 void test_FreeRTOS_accept_ClientSocketTaken( void )
 {
@@ -5825,7 +5825,7 @@ void test_FreeRTOS_accept_ClientSocketTaken( void )
 }
 
 /*
- * @brief 
+ * @brief Peer socket is NULL.
  */
 void test_FreeRTOS_accept_PeerSocketNULL( void )
 {
@@ -5851,7 +5851,7 @@ void test_FreeRTOS_accept_PeerSocketNULL( void )
 }
 
 /*
- * @brief 
+ * @brief Cannot reuse the socket.
  */
 void test_FreeRTOS_accept_NotReuseSocket( void )
 {
@@ -5887,7 +5887,7 @@ void test_FreeRTOS_accept_NotReuseSocket( void )
 }
 
 /*
- * @brief 
+ * @brief Can reuse socket.
  */
 void test_FreeRTOS_accept_ReuseSocket( void )
 {
@@ -5920,7 +5920,7 @@ void test_FreeRTOS_accept_ReuseSocket( void )
 }
 
 /*
- * @brief 
+ * @brief Accept while passing NULL in address.
  */
 void test_FreeRTOS_accept_ReuseSocket_NULLAddress( void )
 {
@@ -5950,7 +5950,7 @@ void test_FreeRTOS_accept_ReuseSocket_NULLAddress( void )
 }
 
 /*
- * @brief 
+ * @brief Can reuse socket. Timeout happens.
  */
 void test_FreeRTOS_accept_ReuseSocket_Timeout( void )
 {
@@ -5993,7 +5993,7 @@ void test_FreeRTOS_accept_ReuseSocket_Timeout( void )
 }
 
 /*
- * @brief 
+ * @brief Invalid values.
  */
 void test_FreeRTOS_recv_InvalidValues( void )
 {
@@ -6028,7 +6028,7 @@ void test_FreeRTOS_recv_InvalidValues( void )
 }
 
 /*
- * @brief 
+ * @brief Not connected socket and there is no memory in the system.
  */
 void test_FreeRTOS_recv_NotConnectedAndNoMemory( void )
 {
@@ -6055,7 +6055,7 @@ void test_FreeRTOS_recv_NotConnectedAndNoMemory( void )
 }
 
 /*
- * @brief 
+ * @brief No wait in an established connection.
  */
 void test_FreeRTOS_recv_EstablishedConnection_NoWait( void )
 {
@@ -6079,7 +6079,7 @@ void test_FreeRTOS_recv_EstablishedConnection_NoWait( void )
 }
 
 /*
- * @brief 
+ * @brief Timeout occurs.
  */
 void test_FreeRTOS_recv_TimeOut( void )
 {
@@ -6106,7 +6106,7 @@ void test_FreeRTOS_recv_TimeOut( void )
 }
 
 /*
- * @brief 
+ * @brief Receive interrupted.
  */
 void test_FreeRTOS_recv_Interrupted( void )
 {
@@ -6135,7 +6135,7 @@ void test_FreeRTOS_recv_Interrupted( void )
 }
 
 /*
- * @brief 
+ * @brief Receive interrupted.
  */
 void test_FreeRTOS_recv_Interrupted1( void )
 {
@@ -6166,7 +6166,7 @@ void test_FreeRTOS_recv_Interrupted1( void )
 }
 
 /*
- * @brief 
+ * @brief Receive stream is NULl for the socket.
  */
 void test_FreeRTOS_recv_RxStreamNULL( void )
 {
@@ -6197,7 +6197,7 @@ void test_FreeRTOS_recv_RxStreamNULL( void )
 }
 
 /*
- * @brief 
+ * @brief 12 bytes are present in the Buffer when receive is called.
  */
 void test_FreeRTOS_recv_12BytesAlreadyInBuffer( void )
 {
@@ -6225,7 +6225,7 @@ void test_FreeRTOS_recv_12BytesAlreadyInBuffer( void )
 }
 
 /*
- * @brief 
+ * @brief Low water mark reached when receive is called.
  */
 void test_FreeRTOS_recv_LowWaterReached( void )
 {
@@ -6261,7 +6261,7 @@ void test_FreeRTOS_recv_LowWaterReached( void )
 }
 
 /*
- * @brief 
+ * @brief Low water mark reached when receive is called.
  */
 void test_FreeRTOS_recv_LowWaterReached2( void )
 {
@@ -6293,7 +6293,7 @@ void test_FreeRTOS_recv_LowWaterReached2( void )
 }
 
 /*
- * @brief 
+ * @brief 12 bytes arrive to the socket after a call to receive is made.
  */
 void test_FreeRTOS_recv_12BytesArriveLater( void )
 {
@@ -6329,7 +6329,7 @@ void test_FreeRTOS_recv_12BytesArriveLater( void )
 }
 
 /*
- * @brief 
+ * @brief 12 bytes arrive to the socket after a call to receive is made and a timoeut occurs.
  */
 void test_FreeRTOS_recv_12BytesArriveLater_Timeout( void )
 {
@@ -6355,7 +6355,7 @@ void test_FreeRTOS_recv_12BytesArriveLater_Timeout( void )
 }
 
 /*
- * @brief 
+ * @brief invalid values.
  */
 void test_prvTCPSendCheck_InvalidValues( void )
 {
@@ -6450,7 +6450,7 @@ void test_prvTCPSendCheck_InvalidValues( void )
 }
 
 /*
- * @brief 
+ * @brief Invalid parameters passed to the function.
  */
 void test_FreeRTOS_get_tx_head_InvalidParams( void )
 {
@@ -6475,7 +6475,7 @@ void test_FreeRTOS_get_tx_head_InvalidParams( void )
 }
 
 /*
- * @brief 
+ * @brief All fields of the socket are NULL.
  */
 void test_FreeRTOS_get_tx_head_AllNULL( void )
 {
@@ -6498,7 +6498,7 @@ void test_FreeRTOS_get_tx_head_AllNULL( void )
 }
 
 /*
- * @brief 
+ * @brief Less space in the head than total length.
  */
 void test_FreeRTOS_get_tx_head_LessSpace( void )
 {
@@ -6524,7 +6524,7 @@ void test_FreeRTOS_get_tx_head_LessSpace( void )
 }
 
 /*
- * @brief 
+ * @brief More space in the head than total length.
  */
 void test_FreeRTOS_get_tx_head_MoreSpace( void )
 {
@@ -6550,7 +6550,7 @@ void test_FreeRTOS_get_tx_head_MoreSpace( void )
 }
 
 /*
- * @brief 
+ * @brief Invalid inputs to the function.
  */
 void test_FreeRTOS_send_InvalidInput( void )
 {
@@ -6597,7 +6597,7 @@ void test_FreeRTOS_send_InvalidInput( void )
 }
 
 /*
- * @brief 
+ * @brief There is exact amount of space in stream buffer as the length of data we want to send.
  */
 void test_FreeRTOS_send_ExactSpaceInStreamBuffer( void )
 {
@@ -6649,7 +6649,7 @@ void test_FreeRTOS_send_ExactSpaceInStreamBuffer( void )
 }
 
 /*
- * @brief 
+ * @brief There is more space in stream buffer than the length of data we want to send.
  */
 void test_FreeRTOS_send_MoreSpaceInStreamBuffer( void )
 {
@@ -6684,7 +6684,7 @@ void test_FreeRTOS_send_MoreSpaceInStreamBuffer( void )
 }
 
 /*
- * @brief 
+ * @brief There is less space in stream buffer than the length of data we want to send, also a timeout happens.
  */
 void test_FreeRTOS_send_LessSpaceInStreamBuffer_Timeout( void )
 {
@@ -6726,7 +6726,8 @@ void test_FreeRTOS_send_LessSpaceInStreamBuffer_Timeout( void )
 }
 
 /*
- * @brief 
+ * @brief There is less space in stream buffer than the length of data we want to send. However,
+ *        over time, space becomes available.
  */
 void test_FreeRTOS_send_LessSpaceInStreamBuffer_EventuallySpaceAvailable( void )
 {
@@ -6768,7 +6769,7 @@ void test_FreeRTOS_send_LessSpaceInStreamBuffer_EventuallySpaceAvailable( void )
 }
 
 /*
- * @brief 
+ * @brief There is no space in stream buffer for multiple iterations.
  */
 void test_FreeRTOS_send_MultipleIterationsAndNoSuccess( void )
 {
@@ -6819,7 +6820,8 @@ void test_FreeRTOS_send_MultipleIterationsAndNoSuccess( void )
 }
 
 /*
- * @brief 
+ * @brief IP task is calling send function with a NULL buffer. Also there are 20 bytes worth of space
+ *        less in the stream buffer as the data length.
  */
 void test_FreeRTOS_send_IPTaskWithNULLBuffer( void )
 {
@@ -6854,7 +6856,7 @@ void test_FreeRTOS_send_IPTaskWithNULLBuffer( void )
 }
 
 /*
- * @brief 
+ * @brief Send called with a don't wait flag when there is space in buffer.
  */
 void test_FreeRTOS_send_DontWaitFlag( void )
 {
@@ -6888,7 +6890,7 @@ void test_FreeRTOS_send_DontWaitFlag( void )
 }
 
 /*
- * @brief 
+ * @brief Invalid values passed to listen.
  */
 void test_FreeRTOS_listen_InvalidValues( void )
 {
@@ -6921,7 +6923,7 @@ void test_FreeRTOS_listen_InvalidValues( void )
 }
 
 /*
- * @brief 
+ * @brief Listen call successful.
  */
 void test_FreeRTOS_listen_Success( void )
 {
@@ -6955,7 +6957,7 @@ void test_FreeRTOS_listen_Success( void )
 }
 
 /*
- * @brief 
+ * @brief Listen call successful when socekt is set to be reused.
  */
 void test_FreeRTOS_listen_Success_WithReuseSocket( void )
 {
@@ -6986,7 +6988,7 @@ void test_FreeRTOS_listen_Success_WithReuseSocket( void )
 }
 
 /*
- * @brief 
+ * @brief Listen call successful when socekt is set to be reused and the streams are non NULL.
  */
 void test_FreeRTOS_listen_Success_WithReuseSocket_StreamsNonNULL( void )
 {
@@ -7022,7 +7024,7 @@ void test_FreeRTOS_listen_Success_WithReuseSocket_StreamsNonNULL( void )
 }
 
 /*
- * @brief 
+ * @brief Invalid values passed to shutdown.
  */
 void test_FreeRTOS_shutdown_Invalid( void )
 {
@@ -7061,7 +7063,7 @@ void test_FreeRTOS_shutdown_Invalid( void )
 }
 
 /*
- * @brief 
+ * @brief Call to shutdown successful.
  */
 void test_FreeRTOS_shutdown_Success( void )
 {
@@ -7084,12 +7086,12 @@ void test_FreeRTOS_shutdown_Success( void )
 }
 
 /*
- * @brief 
+ * @brief Bound TCP socket list is empty.
  */
 void test_xTCPTimerCheck_EmptyList( void )
 {
     TickType_t xReturn;
-    BaseType_t xWillSleep;
+    BaseType_t xWillSleep=pdFALSE;
 
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
@@ -7101,12 +7103,12 @@ void test_xTCPTimerCheck_EmptyList( void )
 }
 
 /*
- * @brief 
+ * @brief Socket checking results in an error.
  */
 void test_xTCPTimerCheck_NonEmptyList_SocketCheckError( void )
 {
     TickType_t xReturn;
-    BaseType_t xWillSleep;
+    BaseType_t xWillSleep=pdFALSE;
     ListItem_t xLocalListItem;
     FreeRTOS_Socket_t xSocket;
 
@@ -7129,12 +7131,12 @@ void test_xTCPTimerCheck_NonEmptyList_SocketCheckError( void )
 }
 
 /*
- * @brief 
+ * @brief Socket checking successful.
  */
 void test_xTCPTimerCheck_NonEmptyList_NoError( void )
 {
     TickType_t xReturn;
-    BaseType_t xWillSleep;
+    BaseType_t xWillSleep=pdFALSE;
     ListItem_t xLocalListItem;
     FreeRTOS_Socket_t xSocket;
 
@@ -7158,7 +7160,7 @@ void test_xTCPTimerCheck_NonEmptyList_NoError( void )
 }
 
 /*
- * @brief 
+ * @brief Delta of times is less than the timeout value.
  */
 void test_xTCPTimerCheck_NonEmptyList_DeltaLessThanTimeout( void )
 {
@@ -7191,7 +7193,7 @@ void test_xTCPTimerCheck_NonEmptyList_DeltaLessThanTimeout( void )
 }
 
 /*
- * @brief 
+ * @brief Delta of times is less than the timeout value.
  */
 void test_xTCPTimerCheck_NonEmptyList_DeltaLessThanTimeout1( void )
 {
@@ -7224,7 +7226,7 @@ void test_xTCPTimerCheck_NonEmptyList_DeltaLessThanTimeout1( void )
 }
 
 /*
- * @brief 
+ * @brief Event bits are non-zero and will sleep flag is reset.
  */
 void test_xTCPTimerCheck_EventBitsNonZeroWontSleep( void )
 {
@@ -7258,7 +7260,7 @@ void test_xTCPTimerCheck_EventBitsNonZeroWontSleep( void )
 }
 
 /*
- * @brief 
+ * @brief Event bits are non-zero and will sleep flag is set.
  */
 void test_xTCPTimerCheck_EventBitsNonZeroWillSleep( void )
 {
@@ -7292,7 +7294,7 @@ void test_xTCPTimerCheck_EventBitsNonZeroWillSleep( void )
 }
 
 /*
- * @brief 
+ * @brief Found a matching socket in lookup.
  */
 void test_pxTCPSocketLookup_FoundAMatch( void )
 {
@@ -7324,7 +7326,7 @@ void test_pxTCPSocketLookup_FoundAMatch( void )
 }
 
 /*
- * @brief 
+ * @brief No match found while looking up a socket. IP doesn't match.
  */
 void test_pxTCPSocketLookup_NoMatch( void )
 {
@@ -7359,7 +7361,7 @@ void test_pxTCPSocketLookup_NoMatch( void )
 }
 
 /*
- * @brief 
+ * @brief No match found while looking up a socket. IP and port number doesn't match.
  */
 void test_pxTCPSocketLookup_NoMatch2( void )
 {
@@ -7394,7 +7396,7 @@ void test_pxTCPSocketLookup_NoMatch2( void )
 }
 
 /*
- * @brief 
+ * @brief Found a partial match based on IP.
  */
 void test_pxTCPSocketLookup_FoundAPartialMatch( void )
 {
@@ -7430,7 +7432,7 @@ void test_pxTCPSocketLookup_FoundAPartialMatch( void )
 }
 
 /*
- * @brief 
+ * @brief Invalid inputs.
  */
 void test_FreeRTOS_get_rx_buf_InvalidInput( void )
 {
@@ -7449,7 +7451,7 @@ void test_FreeRTOS_get_rx_buf_InvalidInput( void )
 }
 
 /*
- * @brief 
+ * @brief Happy path.
  */
 void test_FreeRTOS_get_rx_buf_ValidInput( void )
 {
@@ -7467,7 +7469,7 @@ void test_FreeRTOS_get_rx_buf_ValidInput( void )
 }
 
 /*
- * @brief 
+ * @brief Low and high space fields zero.
  */
 void test_prvTCPCreateStream( void )
 {
@@ -7491,7 +7493,7 @@ void test_prvTCPCreateStream( void )
 }
 
 /*
- * @brief 
+ * @brief Low and high space fields non-zero.
  */
 void test_prvTCPCreateStream_LowAndHighFieldsDefined( void )
 {
@@ -7518,7 +7520,7 @@ void test_prvTCPCreateStream_LowAndHighFieldsDefined( void )
 }
 
 /*
- * @brief 
+ * @brief Failed to allocate the stream.
  */
 void test_lTCPAddRxdata_StreamCannotBeAllocated( void )
 {
@@ -7548,7 +7550,7 @@ void test_lTCPAddRxdata_StreamCannotBeAllocated( void )
 }
 
 /*
- * @brief 
+ * @brief Sucessfully added all bytes in the stream.
  */
 void test_lTCPAddRxdata_SteamCreationSuccessful_AllBytesAdded( void )
 {
@@ -7582,7 +7584,7 @@ void test_lTCPAddRxdata_SteamCreationSuccessful_AllBytesAdded( void )
 }
 
 /*
- * @brief 
+ * @brief Only able to add few bytes.
  */
 void test_lTCPAddRxdata_SteamCreationSuccessful_AllBytesNotAdded( void )
 {
@@ -7616,7 +7618,7 @@ void test_lTCPAddRxdata_SteamCreationSuccessful_AllBytesNotAdded( void )
 }
 
 /*
- * @brief 
+ * @brief Space in the front of the stream buffer is less than the low space value.
  */
 void test_lTCPAddRxdata_FrontSpaceLessThanLowMark( void )
 {
@@ -7656,7 +7658,7 @@ void test_lTCPAddRxdata_FrontSpaceLessThanLowMark( void )
 }
 
 /*
- * @brief 
+ * @brief the low water bit is set.
  */
 void test_lTCPAddRxdata_LowWaterTrue( void )
 {
@@ -7687,7 +7689,7 @@ void test_lTCPAddRxdata_LowWaterTrue( void )
 }
 
 /*
- * @brief 
+ * @brief Receive callback is added.
  */
 void test_lTCPAddRxdata_HasValidHandler( void )
 {
@@ -7732,7 +7734,7 @@ void test_lTCPAddRxdata_HasValidHandler( void )
 }
 
 /*
- * @brief 
+ * @brief Call back added but the data to be added is NULL meaning peeking mode.
  */
 void test_lTCPAddRxdata_HasValidHandler_DataNULL( void )
 {
@@ -7774,7 +7776,7 @@ void test_lTCPAddRxdata_HasValidHandler_DataNULL( void )
 }
 
 /*
- * @brief 
+ * @brief Has a callback and the offset is non-zero unlike previous cases.
  */
 void test_lTCPAddRxdata_HasValidHandler_NonZeroOffset( void )
 {
@@ -7815,7 +7817,7 @@ void test_lTCPAddRxdata_HasValidHandler_NonZeroOffset( void )
 }
 
 /*
- * @brief 
+ * @brief Buffer size is non-zero.
  */
 void test_lTCPAddRxdata_HasValidHandlerWithNonZeroSize( void )
 {
@@ -7858,7 +7860,7 @@ void test_lTCPAddRxdata_HasValidHandlerWithNonZeroSize( void )
 }
 
 /*
- * @brief 
+ * @brief Invalid protocol.
  */
 void test_FreeRTOS_GetRemoteAddress_InvalidProtocol( void )
 {
@@ -7875,7 +7877,7 @@ void test_FreeRTOS_GetRemoteAddress_InvalidProtocol( void )
 }
 
 /*
- * @brief 
+ * @brief happy path.
  */
 void test_FreeRTOS_GetRemoteAddress_HappyPath( void )
 {
@@ -7898,7 +7900,7 @@ void test_FreeRTOS_GetRemoteAddress_HappyPath( void )
 }
 
 /*
- * @brief 
+ * @brief Invalid values.
  */
 void test_FreeRTOS_maywrite_InvalidValues( void )
 {
@@ -7911,7 +7913,7 @@ void test_FreeRTOS_maywrite_InvalidValues( void )
     xReturn = FreeRTOS_maywrite( &xSocket );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 
-    /* Invalid State. */
+    /* Invalid States. */
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.u.xTCP.ucTCPState = eCONNECT_SYN - 1;
     xReturn = FreeRTOS_maywrite( &xSocket );
@@ -7937,7 +7939,7 @@ void test_FreeRTOS_maywrite_InvalidValues( void )
 }
 
 /*
- * @brief 
+ * @brief Happy path.
  */
 void test_FreeRTOS_maywrite_HappyPath( void )
 {
@@ -7958,7 +7960,7 @@ void test_FreeRTOS_maywrite_HappyPath( void )
 }
 
 /*
- * @brief 
+ * @brief Invalid protocol passed to the function.
  */
 void test_FreeRTOS_tx_space_InvalidProtocol( void )
 {
@@ -7972,7 +7974,7 @@ void test_FreeRTOS_tx_space_InvalidProtocol( void )
 }
 
 /*
- * @brief 
+ * @brief The stream is NULL in this case.
  */
 void test_FreeRTOS_tx_space_NULLStream( void )
 {
@@ -7988,7 +7990,7 @@ void test_FreeRTOS_tx_space_NULLStream( void )
 }
 
 /*
- * @brief 
+ * @brief Stream is valid. Happy path.
  */
 void test_FreeRTOS_tx_space_ValidStream( void )
 {
@@ -8008,7 +8010,7 @@ void test_FreeRTOS_tx_space_ValidStream( void )
 }
 
 /*
- * @brief 
+ * @brief All combination of inputs. See below comments.
  */
 void test_FreeRTOS_tx_size( void )
 {
@@ -8036,7 +8038,7 @@ void test_FreeRTOS_tx_size( void )
 }
 
 /*
- * @brief 
+ * @brief All combination of inputs. See below comments.
  */
 void test_FreeRTOS_issocketconnected( void )
 {
@@ -8069,7 +8071,7 @@ void test_FreeRTOS_issocketconnected( void )
 }
 
 /*
- * @brief 
+ * @brief All combination of inputs. See below comments.
  */
 void test_FreeRTOS_mss( void )
 {
@@ -8090,7 +8092,7 @@ void test_FreeRTOS_mss( void )
 }
 
 /*
- * @brief 
+ * @brief All combination of inputs. See below comments.
  */
 void test_FreeRTOS_connstatus( void )
 {
@@ -8114,7 +8116,7 @@ void test_FreeRTOS_connstatus( void )
 }
 
 /*
- * @brief 
+ * @brief All combination of inputs. See below comments.
  */
 void test_FreeRTOS_rx_size( void )
 {
@@ -8142,7 +8144,7 @@ void test_FreeRTOS_rx_size( void )
 }
 
 /*
- * @brief 
+ * @brief All combination of inputs. See below comments.
  */
 void test_xSocketValid( void )
 {
@@ -8163,7 +8165,8 @@ void test_xSocketValid( void )
 }
 
 /*
- * @brief 
+ * @brief This function just prints out some data. It is expected to make call to the
+ *        below function. Nothing more.
  */
 void test_FreeRTOS_netstat( void )
 {
@@ -8173,7 +8176,8 @@ void test_FreeRTOS_netstat( void )
 }
 
 /*
- * @brief 
+ * @brief This function just prints out some data. It is expected to make calls to the
+ *        below functions when IP stack is not initialised.
  */
 void test_vTCPNetStat_IPStackNotInit( void )
 {
@@ -8186,7 +8190,9 @@ void test_vTCPNetStat_IPStackNotInit( void )
 }
 
 /*
- * @brief 
+ * @brief This function just prints out some data. It is expected to make calls to the
+ *        below functions when IP stack is initialised. It is expected to go through the
+ *        list of TCP and UDP sockets which are bound and print them out.
  */
 void test_vTCPNetStat_IPStackInit( void )
 {
@@ -8236,7 +8242,7 @@ void test_vTCPNetStat_IPStackInit( void )
 }
 
 /*
- * @brief 
+ * @brief Socket select function when only UDP sockets are bound.
  */
 void test_vSocketSelect_UDPSocketsOnly( void )
 {
@@ -8294,7 +8300,7 @@ void test_vSocketSelect_UDPSocketsOnly( void )
 }
 
 /*
- * @brief 
+ * @brief Socket select function when only TCP sockets are bound.
  */
 void test_vSocketSelect_TCPSocketsOnly( void )
 {
@@ -8413,7 +8419,7 @@ void test_vSocketSelect_TCPSocketsOnly( void )
 }
 
 /*
- * @brief 
+ * @brief Socket select function when no sockets are bound.
  */
 void test_vSocketSelect_NoSocketsAtAll( void )
 {
@@ -8435,7 +8441,7 @@ void test_vSocketSelect_NoSocketsAtAll( void )
 }
 
 /*
- * @brief 
+ * @brief Signalling socket with invalid values given for socket.
  */
 void test_FreeRTOS_SignalSocket_InvalidSocket( void )
 {
@@ -8452,7 +8458,7 @@ void test_FreeRTOS_SignalSocket_InvalidSocket( void )
 }
 
 /*
- * @brief 
+ * @brief Event group is present for the socket being signalled.
  */
 void test_FreeRTOS_SignalSocket_NonNULLEventGroup( void )
 {
@@ -8474,7 +8480,7 @@ void test_FreeRTOS_SignalSocket_NonNULLEventGroup( void )
 }
 
 /*
- * @brief 
+ * @brief Select group is present for the socket being called.
  */
 void test_FreeRTOS_SignalSocket_NonNULLSelectGroup( void )
 {
@@ -8496,25 +8502,28 @@ void test_FreeRTOS_SignalSocket_NonNULLSelectGroup( void )
 }
 
 /*
- * @brief 
+ * @brief Catch various asserts.
  */
 void test_FreeRTOS_SignalSocketFromISR_catchAsserts( void )
 {
     FreeRTOS_Socket_t xSocket;
     BaseType_t xHigherPriorityTaskWoken;
 
+    /* Socket cannot be NULL. */
     catch_assert( FreeRTOS_SignalSocketFromISR( NULL, &xHigherPriorityTaskWoken ) );
 
     memset( &xSocket, 0, sizeof( xSocket ) );
+    /* Socket must have TCP protocol. */
     catch_assert( FreeRTOS_SignalSocketFromISR( &xSocket, &xHigherPriorityTaskWoken ) );
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    /* Event group must be non-NULL. */
     catch_assert( FreeRTOS_SignalSocketFromISR( &xSocket, &xHigherPriorityTaskWoken ) );
 }
 
 /*
- * @brief 
+ * @brief happy path of the function.
  */
 void test_FreeRTOS_SignalSocketFromISR_HappyPath( void )
 {
