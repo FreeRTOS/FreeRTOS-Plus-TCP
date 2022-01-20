@@ -6329,7 +6329,7 @@ void test_FreeRTOS_recv_12BytesArriveLater( void )
 }
 
 /*
- * @brief 12 bytes arrive to the socket after a call to receive is made and a timoeut occurs.
+ * @brief 12 bytes arrive to the socket after a call to receive is made and a timeout occurs.
  */
 void test_FreeRTOS_recv_12BytesArriveLater_Timeout( void )
 {
@@ -6957,7 +6957,7 @@ void test_FreeRTOS_listen_Success( void )
 }
 
 /*
- * @brief Listen call successful when socekt is set to be reused.
+ * @brief Listen call successful when socket is set to be reused.
  */
 void test_FreeRTOS_listen_Success_WithReuseSocket( void )
 {
@@ -6988,7 +6988,7 @@ void test_FreeRTOS_listen_Success_WithReuseSocket( void )
 }
 
 /*
- * @brief Listen call successful when socekt is set to be reused and the streams are non NULL.
+ * @brief Listen call successful when socket is set to be reused and the streams are non NULL.
  */
 void test_FreeRTOS_listen_Success_WithReuseSocket_StreamsNonNULL( void )
 {
