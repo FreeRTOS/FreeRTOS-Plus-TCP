@@ -246,7 +246,7 @@ void test_prvValidSocket_SocketBoundSetButNotBound( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
-    BaseType_t xProtocol=FREERTOS_IPPROTO_UDP, xIsBound = pdTRUE;
+    BaseType_t xProtocol = FREERTOS_IPPROTO_UDP, xIsBound = pdTRUE;
 
     memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
 
@@ -264,7 +264,7 @@ void test_prvValidSocket_SocketBoundResetButBound( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
-    BaseType_t xProtocol=FREERTOS_IPPROTO_UDP, xIsBound = pdFALSE;
+    BaseType_t xProtocol = FREERTOS_IPPROTO_UDP, xIsBound = pdFALSE;
 
     memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
 
@@ -282,7 +282,7 @@ void test_prvValidSocket_InvalidProtocol( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
-    BaseType_t xProtocol=FREERTOS_IPPROTO_UDP, xIsBound = pdTRUE;
+    BaseType_t xProtocol = FREERTOS_IPPROTO_UDP, xIsBound = pdTRUE;
 
     memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
 
@@ -312,7 +312,7 @@ void test_vNetworkSocketsInit( void )
 void test_prvDetermineSocketSize_IPTaskNotInit( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain=FREERTOS_AF_INET, xType=FREERTOS_SOCK_DGRAM, xProtocol=FREERTOS_IPPROTO_UDP;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_IPPROTO_UDP;
     size_t xSocketSize;
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdFALSE );
@@ -328,7 +328,7 @@ void test_prvDetermineSocketSize_IPTaskNotInit( void )
 void test_prvDetermineSocketSize_CatchAssert( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain = FREERTOS_AF_INET + 1, xType=FREERTOS_SOCK_DGRAM, xProtocol=FREERTOS_IPPROTO_UDP;
+    BaseType_t xDomain = FREERTOS_AF_INET + 1, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_IPPROTO_UDP;
     size_t xSocketSize;
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
@@ -343,7 +343,7 @@ void test_prvDetermineSocketSize_CatchAssert( void )
 void test_prvDetermineSocketSize_CatchAssert2( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain = FREERTOS_AF_INET, xType=FREERTOS_SOCK_DGRAM, xProtocol=FREERTOS_IPPROTO_UDP;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_IPPROTO_UDP;
     size_t xSocketSize;
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
@@ -362,7 +362,7 @@ void test_prvDetermineSocketSize_CatchAssert2( void )
 void test_prvDetermineSocketSize_CatchAssert3( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain = FREERTOS_AF_INET, xType=FREERTOS_SOCK_DGRAM, xProtocol=FREERTOS_IPPROTO_UDP;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_IPPROTO_UDP;
     size_t xSocketSize;
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
@@ -386,7 +386,7 @@ void test_prvDetermineSocketSize_CatchAssert3( void )
 void test_prvDetermineSocketSize_CatchAssert4( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain = FREERTOS_AF_INET, xType=FREERTOS_SOCK_DGRAM, xProtocol = ~( FREERTOS_IPPROTO_UDP | FREERTOS_IPPROTO_TCP );
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM, xProtocol = ~( FREERTOS_IPPROTO_UDP | FREERTOS_IPPROTO_TCP );
     size_t xSocketSize;
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
@@ -1077,7 +1077,7 @@ void test_FreeRTOS_recvfrom_NullSocket( void )
     Socket_t xSocket = NULL;
     void * pvBuffer;
     size_t uxBufferLength;
-    BaseType_t xFlags=0;
+    BaseType_t xFlags = 0;
     struct freertos_sockaddr * pxSourceAddress;
     socklen_t * pxSourceAddressLength;
 
@@ -1096,9 +1096,9 @@ void test_FreeRTOS_recvfrom_TCPSocket( void )
     Socket_t xSocket = ( Socket_t ) ucSocket;
     void * pvBuffer;
     size_t uxBufferLength;
-    BaseType_t xFlags=0;
-    struct freertos_sockaddr * pxSourceAddress=NULL;
-    socklen_t * pxSourceAddressLength=NULL;
+    BaseType_t xFlags = 0;
+    struct freertos_sockaddr * pxSourceAddress = NULL;
+    socklen_t * pxSourceAddressLength = NULL;
 
     memset( xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
 
@@ -1121,7 +1121,7 @@ void test_FreeRTOS_recvfrom_NonBlockingInterrupted( void )
     Socket_t xSocket = ( Socket_t ) ucSocket;
     void * pvBuffer;
     size_t uxBufferLength;
-    BaseType_t xFlags=0;
+    BaseType_t xFlags = 0;
     struct freertos_sockaddr * pxSourceAddress;
     socklen_t * pxSourceAddressLength;
 
@@ -1150,7 +1150,7 @@ void test_FreeRTOS_recvfrom_NonBlocking( void )
     Socket_t xSocket = ( Socket_t ) ucSocket;
     void * pvBuffer;
     size_t uxBufferLength;
-    BaseType_t xFlags=0;
+    BaseType_t xFlags = 0;
     struct freertos_sockaddr * pxSourceAddress;
     socklen_t * pxSourceAddressLength;
 
@@ -1822,8 +1822,8 @@ void test_FreeRTOS_sendto_CatchAssert( void )
     int32_t lResult;
     Socket_t xSocket;
     char * pvBuffer = NULL;
-    size_t uxTotalDataLength=0;
-    BaseType_t xFlags=0;
+    size_t uxTotalDataLength = 0;
+    BaseType_t xFlags = 0;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
 
@@ -2286,7 +2286,7 @@ void test_FreeRTOS_bind_catchAssert( void )
     BaseType_t xReturn;
     Socket_t xSocket;
     struct freertos_sockaddr xAddress;
-    socklen_t xAddressLength=0;
+    socklen_t xAddressLength = 0;
 
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
@@ -2301,7 +2301,7 @@ void test_FreeRTOS_bind_SocketIsNULL( void )
     BaseType_t xReturn;
     Socket_t xSocket = NULL;
     struct freertos_sockaddr xAddress;
-    socklen_t xAddressLength=0;
+    socklen_t xAddressLength = 0;
 
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
@@ -2318,7 +2318,7 @@ void test_FreeRTOS_bind_SocketIsInvalid( void )
     BaseType_t xReturn;
     Socket_t xSocket = FREERTOS_INVALID_SOCKET;
     struct freertos_sockaddr xAddress;
-    socklen_t xAddressLength=0;
+    socklen_t xAddressLength = 0;
 
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
@@ -2428,7 +2428,7 @@ void test_vSocketBind_CatchAssert1( void )
     BaseType_t xReturn;
     struct freertos_sockaddr xBindAddress;
     size_t uxAddressLength = 0;
-    BaseType_t xInternal=0;
+    BaseType_t xInternal = 0;
 
     catch_assert( vSocketBind( NULL, &xBindAddress, uxAddressLength, xInternal ) );
 }
@@ -3548,7 +3548,7 @@ void test_FreeRTOS_setsockopt_InvalidSocket( void )
 }
 
 /*
- * @brief 
+ * @brief
  */
 void test_FreeRTOS_setsockopt_RecvTimeOut( void )
 {
@@ -3765,7 +3765,7 @@ void test_FreeRTOS_setsockopt_TCPConnSuccess( void )
 }
 
 /*
- * @brief 
+ * @brief
  */
 void test_FreeRTOS_setsockopt_TCPRecvInvalidProtocol( void )
 {
@@ -5010,7 +5010,7 @@ void test_FreeRTOS_inet_ntop_IncorrectAddrFamily( void )
     BaseType_t xAddressFamily = FREERTOS_AF_INET + 1;
     uint32_t ulSource;
     char * pcDestination;
-    socklen_t uxSize=100;
+    socklen_t uxSize = 100;
 
     pucReturn = FreeRTOS_inet_ntop( xAddressFamily, &ulSource, pcDestination, uxSize );
 
@@ -7091,7 +7091,7 @@ void test_FreeRTOS_shutdown_Success( void )
 void test_xTCPTimerCheck_EmptyList( void )
 {
     TickType_t xReturn;
-    BaseType_t xWillSleep=pdFALSE;
+    BaseType_t xWillSleep = pdFALSE;
 
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
@@ -7108,7 +7108,7 @@ void test_xTCPTimerCheck_EmptyList( void )
 void test_xTCPTimerCheck_NonEmptyList_SocketCheckError( void )
 {
     TickType_t xReturn;
-    BaseType_t xWillSleep=pdFALSE;
+    BaseType_t xWillSleep = pdFALSE;
     ListItem_t xLocalListItem;
     FreeRTOS_Socket_t xSocket;
 
@@ -7136,7 +7136,7 @@ void test_xTCPTimerCheck_NonEmptyList_SocketCheckError( void )
 void test_xTCPTimerCheck_NonEmptyList_NoError( void )
 {
     TickType_t xReturn;
-    BaseType_t xWillSleep=pdFALSE;
+    BaseType_t xWillSleep = pdFALSE;
     ListItem_t xLocalListItem;
     FreeRTOS_Socket_t xSocket;
 
