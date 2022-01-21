@@ -1887,8 +1887,8 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                                pxSocket->u.xUDP.pxHandleSent = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( F_TCP_UDP_Handler_t, pvOptionValue )->pxOnUDPSent;
                                break;
 
-                           default: /* LCOV_EXCL_LINE The default case is required by MISRA but control flow will never ever reach
-                                     * here since the switch statement enclosing this switch prevents that. */
+                           default:   /* LCOV_EXCL_LINE The default case is required by MISRA but control flow will never ever reach
+                                       * here since the switch statement enclosing this switch prevents that. */
                                /* Should it throw an error here? */
                                break; /* LCOV_EXCL_LINE. Since the default case will never reach, this break statement will not execute as well. */
                        }
@@ -4715,7 +4715,7 @@ BaseType_t xSocketValid( Socket_t xSocket )
                                                          pxSocket->u.xTCP.usBacklog );
                     ( void ) copied_len;
                     /* These should never evaluate to false since the buffers are both shorter than 5-6 characters (<=65535) */
-                    configASSERT( copied_len >= 0 ); /* LCOV_EXCL_BR_LINE the 'taken' branch will never execute. See the above comment. */
+                    configASSERT( copied_len >= 0 );                                /* LCOV_EXCL_BR_LINE the 'taken' branch will never execute. See the above comment. */
                     configASSERT( copied_len < ( int32_t ) sizeof( ucChildText ) ); /* LCOV_EXCL_BR_LINE the 'taken' branch will never execute. See the above comment. */
                 }
 

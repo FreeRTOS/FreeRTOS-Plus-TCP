@@ -1240,4 +1240,3 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy_SendingToIPTaskFails( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.ulIPAddress, xDestinationAddress.sin_addr );
     TEST_ASSERT_EQUAL( 0, ulCalled );
 }
-

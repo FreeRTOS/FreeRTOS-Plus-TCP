@@ -1036,6 +1036,7 @@ ucarray
 ucasciitohex
 ucbootfilename
 ucbytes
+ucchildtext
 ucclienthardwareaddress
 uccurrentipaddress
 ucdifferentiatedservicescode

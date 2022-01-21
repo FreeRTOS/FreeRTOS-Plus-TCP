@@ -2673,7 +2673,7 @@ void test_lTCPAddRxdata_StreamCannotBeAllocated( void )
 }
 
 /*
- * @brief Sucessfully added all bytes in the stream.
+ * @brief Successfully added all bytes in the stream.
  */
 void test_lTCPAddRxdata_SteamCreationSuccessful_AllBytesAdded( void )
 {
@@ -3013,5 +3013,3 @@ void test_FreeRTOS_netstat( void )
     xSendEventStructToIPTask_IgnoreArg_pxEvent();
     FreeRTOS_netstat();
 }
-
-

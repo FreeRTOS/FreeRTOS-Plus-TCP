@@ -1575,5 +1575,3 @@ void test_FreeRTOS_rx_size( void )
     xReturn = FreeRTOS_rx_size( &xSocket );
     TEST_ASSERT_EQUAL( 0xAB, xReturn );
 }
-
-
