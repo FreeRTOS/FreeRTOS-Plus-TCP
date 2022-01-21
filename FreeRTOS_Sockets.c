@@ -333,7 +333,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
             if( xType != FREERTOS_SOCK_DGRAM )
             {
                 xReturn = pdFAIL;
-                configASSERT( xReturn == pdPASS );
+                configASSERT( xReturn == pdPASS ); /* LCOV_EXCL_BR_LINE Exclude this line from branch coverage as the not-taken condition will never happen. */
             }
 
             /* In case a UDP socket is created, do not allocate space for TCP data. */
@@ -346,7 +346,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
                 if( xType != FREERTOS_SOCK_STREAM )
                 {
                     xReturn = pdFAIL;
-                    configASSERT( xReturn == pdPASS );
+                    configASSERT( xReturn == pdPASS ); /* LCOV_EXCL_BR_LINE Exclude this line from branch coverage as the not-taken condition will never happen. */
                 }
 
                 *pxSocketSize = ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP );
@@ -355,7 +355,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
         else
         {
             xReturn = pdFAIL;
-            configASSERT( xReturn == pdPASS );
+            configASSERT( xReturn == pdPASS ); /* LCOV_EXCL_BR_LINE Exclude this line from branch coverage as the not-taken condition will never happen. */
         }
     }
 
@@ -1887,9 +1887,10 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                                pxSocket->u.xUDP.pxHandleSent = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( F_TCP_UDP_Handler_t, pvOptionValue )->pxOnUDPSent;
                                break;
 
-                           default:
+                           default: /* LCOV_EXCL_LINE The default case is required by MISRA but control flow will never ever reach
+                                     * here since the switch statement enclosing this switch prevents that. */
                                /* Should it throw an error here? */
-                               break;
+                               break; /* LCOV_EXCL_LINE. Since the default case will never reach, this break statement will not execute as well. */
                        }
                    }
 
@@ -3592,8 +3593,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* xByteCount is number of bytes that can be sent now. */
             xByteCount = ( BaseType_t ) uxStreamBufferGetSpace( pxSocket->u.xTCP.txStream );
 
-            /* While there are still bytes to be sent. */
-            while( xBytesLeft > 0 )
+            /* Try sending till there is a timeout or all bytes have been sent. */
+            while( pdTRUE )
             {
                 /* If txStream has space. */
                 if( xByteCount > 0 )
@@ -4714,8 +4715,8 @@ BaseType_t xSocketValid( Socket_t xSocket )
                                                          pxSocket->u.xTCP.usBacklog );
                     ( void ) copied_len;
                     /* These should never evaluate to false since the buffers are both shorter than 5-6 characters (<=65535) */
-                    configASSERT( copied_len >= 0 );
-                    configASSERT( copied_len < ( int32_t ) sizeof( ucChildText ) );
+                    configASSERT( copied_len >= 0 ); /* LCOV_EXCL_BR_LINE the 'taken' branch will never execute. See the above comment. */
+                    configASSERT( copied_len < ( int32_t ) sizeof( ucChildText ) ); /* LCOV_EXCL_BR_LINE the 'taken' branch will never execute. See the above comment. */
                 }
 
                 FreeRTOS_printf( ( "TCP %5u %-16xip:%5u %d/%d %-13.13s %6u %6u%s\n",
