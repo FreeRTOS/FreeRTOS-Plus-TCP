@@ -77,11 +77,11 @@
 
     static BaseType_t prvFindEntryIndex( const char * pcName );
 
-    static BaseType_t prvGetCacheIPEntry( UBaseType_t index,
+    static BaseType_t prvGetCacheIPEntry( UBaseType_t uxIndex,
                                           uint32_t * pulIP,
                                           uint32_t ulCurrentTimeSeconds );
 
-    static void prvUpdateCacheEntry( UBaseType_t index,
+    static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
                                      uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds );
@@ -125,10 +125,9 @@
                                     uint32_t * pulIP,
                                     uint32_t ulTTL )
     {
-        ( void ) ulTTL;
         ( void ) FreeRTOS_ProcessDNSCache( pcName,
                                            pulIP,
-                                           0,
+                                           ulTTL,
                                            pdFALSE );
         return pdTRUE;
     }
@@ -202,7 +201,11 @@
 
         if( ( xLookUp == pdFALSE ) || ( *pulIP != 0UL ) )
         {
-            FreeRTOS_debug_printf( ( "prvProcessDNSCache: %s: '%s' @ %lxip\n", ( xLookUp != 0 ) ? "look-up" : "add", pcName, FreeRTOS_ntohl( *pulIP ) ) );
+            FreeRTOS_debug_printf( ( "FreeRTOS_ProcessDNSCache: %s: '%s' @ %xip (TTL %u)\n",
+                                     ( xLookUp != 0 ) ? "look-up" : "add",
+                                     pcName,
+                                     ( unsigned ) FreeRTOS_ntohl( *pulIP ),
+                                     ( unsigned ) FreeRTOS_ntohl( ulTTL ) ) );
         }
 
         if( x == -1 )
@@ -228,7 +231,7 @@
         int x;
 
         /* For each entry in the DNS cache table. */
-        for( x = 0; x < ipconfigDNS_CACHE_ENTRIES; x++ )
+        for( x = 0; x < ( int ) ipconfigDNS_CACHE_ENTRIES; x++ )
         {
             if( xDNSCache[ x ].pcName[ 0 ] == ( char ) 0 )
             { /* empty slot */
@@ -247,23 +250,24 @@
 
 /**
  * @brief get entry at \p index from the cache
- * @param[in]  index in the cache
+ * @param[in]  uxIndex : index in the cache
  * @param[out] pulIP fill it with the result
  * @param[in]  ulCurrentTimeSeconds current time
  * @returns    \c pdTRUE if the value is valid \c pdFALSE otherwise
  * @post the global structure \a xDNSCache might be modified
  *
  */
-    static BaseType_t prvGetCacheIPEntry( UBaseType_t index,
+    static BaseType_t prvGetCacheIPEntry( UBaseType_t uxIndex,
                                           uint32_t * pulIP,
                                           uint32_t ulCurrentTimeSeconds )
     {
         BaseType_t isRead;
         uint32_t ulIPAddressIndex = 0;
+        uint32_t ulAge = ulCurrentTimeSeconds - xDNSCache[ uxIndex ].ulTimeWhenAddedInSeconds;
 
-        /* Confirm that the record is still fresh. */
-        if( ulCurrentTimeSeconds < ( xDNSCache[ index ].ulTimeWhenAddedInSeconds +
-                                     FreeRTOS_ntohl( xDNSCache[ index ].ulTTL ) ) )
+        /* Confirm that the record is still fresh.
+         * The field ulTTL was stored as network-endian. */
+        if( ulAge < FreeRTOS_ntohl( xDNSCache[ uxIndex ].ulTTL ) )
         {
             #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
                 uint8_t ucIndex;
@@ -274,20 +278,20 @@
                 /*  per DNS cache entry to prevent out-of-bounds access in the event */
                 /*  that ucNumIPAddresses has been corrupted.                        */
 
-                ucIndex = xDNSCache[ index ].ucCurrentIPAddress % xDNSCache[ index ].ucNumIPAddresses;
+                ucIndex = xDNSCache[ uxIndex ].ucCurrentIPAddress % xDNSCache[ uxIndex ].ucNumIPAddresses;
                 ucIndex = ucIndex % ( uint8_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
                 ulIPAddressIndex = ucIndex;
 
-                xDNSCache[ index ].ucCurrentIPAddress++;
+                xDNSCache[ uxIndex ].ucCurrentIPAddress++;
             #endif /* if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 ) */
 
-            *pulIP = xDNSCache[ index ].ulIPAddresses[ ulIPAddressIndex ];
+            *pulIP = xDNSCache[ uxIndex ].ulIPAddresses[ ulIPAddressIndex ];
             isRead = pdTRUE;
         }
         else
         {
             /* Age out the old cached record. */
-            xDNSCache[ index ].pcName[ 0 ] = ( char ) 0;
+            xDNSCache[ uxIndex ].pcName[ 0 ] = ( char ) 0;
             isRead = pdFALSE;
         }
 
@@ -296,14 +300,14 @@
 
 /**
  * @brief update entry at \p index in the cache
- * @param[in]  index index in the cache
- * @param[in]  ulTTL time to live
+ * @param[in] uxIndex : index in the cache
+ * @param[in] ulTTL time to live
  * @param[in] pulIP ip to update the cache with
- * @param[in]  ulCurrentTimeSeconds current time
+ * @param[in] ulCurrentTimeSeconds current time
  * @post the global structure \a xDNSCache is modified
  *
  */
-    static void prvUpdateCacheEntry( UBaseType_t index,
+    static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
                                      uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds )
@@ -311,18 +315,18 @@
         uint32_t ulIPAddressIndex = 0;
 
         #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-            if( xDNSCache[ index ].ucNumIPAddresses <
+            if( xDNSCache[ uxIndex ].ucNumIPAddresses <
                 ( uint8_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY )
             {
                 /* If more answers exist than there are IP address storage
                  * slots they will overwrite entry 0 */
-                ulIPAddressIndex = xDNSCache[ index ].ucNumIPAddresses;
-                xDNSCache[ index ].ucNumIPAddresses++;
+                ulIPAddressIndex = xDNSCache[ uxIndex ].ucNumIPAddresses;
+                xDNSCache[ uxIndex ].ucNumIPAddresses++;
             }
         #endif
-        xDNSCache[ index ].ulIPAddresses[ ulIPAddressIndex ] = *pulIP;
-        xDNSCache[ index ].ulTTL = ulTTL;
-        xDNSCache[ index ].ulTimeWhenAddedInSeconds = ulCurrentTimeSeconds;
+        xDNSCache[ uxIndex ].ulIPAddresses[ ulIPAddressIndex ] = *pulIP;
+        xDNSCache[ uxIndex ].ulTTL = ulTTL;
+        xDNSCache[ uxIndex ].ulTimeWhenAddedInSeconds = ulCurrentTimeSeconds;
     }
 
 /**
@@ -364,4 +368,34 @@
             }
         }
     }
+
+    #if 0
+        void dns_show_cache()
+        {
+            BaseType_t x;
+
+            for( x = 0; x < ( BaseType_t ) ipconfigDNS_CACHE_ENTRIES; x++ )
+            {
+                if( xDNSCache[ x ].pcName[ 0 ] == ( char ) 0 )
+                {
+                    continue;
+                }
+
+                TickType_t xCurrentTickCount = xTaskGetTickCount();
+                uint32_t ulCurrentTimeSeconds;
+
+                ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000UL;
+                uint32_t ulAge = ulCurrentTimeSeconds - xDNSCache[ x ].ulTimeWhenAddedInSeconds;
+                FreeRTOS_debug_printf( ( "Entry[%u] %xip Count %u/%u Age %u/%u (%s)\n",
+                                         ( int ) x,
+                                         ( unsigned ) FreeRTOS_ntohl( xDNSCache[ x ].ulIPAddresses[ 0 ] ),
+                                         xDNSCache[ x ].ucCurrentIPAddress,
+                                         xDNSCache[ x ].ucNumIPAddresses,
+                                         ( unsigned ) ulAge,
+                                         ( unsigned ) FreeRTOS_ntohl( xDNSCache[ x ].ulTTL ),
+                                         xDNSCache[ x ].pcName ) );
+            }
+        }
+    #endif /* if 0 */
+
 #endif /* if ( ipconfigUSE_DNS != 0 ) */

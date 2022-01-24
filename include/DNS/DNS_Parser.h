@@ -77,7 +77,7 @@
                             uint32_t ulIPAddress );
     #endif
 
-    BaseType_t parseDNSAnswer( DNSMessage_t * pxDNSMessageHeader,
+    uint32_t parseDNSAnswer( DNSMessage_t * pxDNSMessageHeader,
                                uint8_t * pucByte,
                                size_t uxSourceBytesRemaining,
                                size_t * uxBytesRead

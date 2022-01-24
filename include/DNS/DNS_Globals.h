@@ -76,7 +76,7 @@
 
     #ifndef _lint
         /* LLMNR constants. */
-        #define dnsLLMNR_TTL_VALUE           300000UL /**< LLMNR time to live value. */
+        #define dnsLLMNR_TTL_VALUE           300U     /**< LLMNR time to live value of 5 minutes. */
         #define dnsLLMNR_FLAGS_IS_REPONSE    0x8000U  /**< LLMNR flag value for response. */
     #endif /* _lint */
 

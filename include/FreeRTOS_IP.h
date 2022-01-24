@@ -433,6 +433,8 @@
         #define vPrintResourceStats()    do {} while( ipFALSE_BOOL ) /**< ipconfigHAS_PRINTF is not defined. Define vPrintResourceStats to a do-while( 0 ). */
     #endif
 
+    #include "FreeRTOS_IP_Utils.h"
+
     #ifdef __cplusplus
         } /* extern "C" */
     #endif

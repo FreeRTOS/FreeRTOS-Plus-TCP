@@ -100,14 +100,14 @@ void test_processDNS_CACHE_Success( void )
     BaseType_t x;
     uint32_t pulIP = 1234;
 
-    xTaskGetTickCount_ExpectAndReturn( 3000 );
+    xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
 
     FreeRTOS_dns_update( "hello",
                          &pulIP,
-                         400 );
+                         FreeRTOS_htonl( 3 ) ); /* lives 3 seconds */
 
+    xTaskGetTickCount_ExpectAndReturn( 5000 );  /* 5 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 12 );
     x = FreeRTOS_dnslookup( "hello" );
 
     TEST_ASSERT_EQUAL( pulIP, x );
@@ -182,13 +182,13 @@ void test_processDNS_CACHE_expired_entry( void )
     BaseType_t x;
     uint32_t pulIP = 1234;
 
-    xTaskGetTickCount_ExpectAndReturn( 3000 );
+    xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
 
     FreeRTOS_dns_update( "world",
                          &pulIP,
-                         400 );
+                         FreeRTOS_htonl( 20 ) ); /* lives 20 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 50000 );
+    xTaskGetTickCount_ExpectAndReturn( 50000 );  /* 50 Seconds */
     x = FreeRTOS_dnslookup( "world" );
 
     TEST_ASSERT_EQUAL( 0, x );
@@ -218,9 +218,9 @@ void test_processDNS_CACHE_exceed_IP_entry_limit( void )
 
     FreeRTOS_dns_update( "world",
                          &pulIP,
-                         400 );
+                         FreeRTOS_htonl( 400 ) ); /* lives 400 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 300 );
+    xTaskGetTickCount_ExpectAndReturn( 3000 );
     x = FreeRTOS_dnslookup( "world" );
 
     TEST_ASSERT_EQUAL( 789, x );
@@ -246,7 +246,7 @@ void test_processDNS_CACHE_exceed_host_entry_limit( void )
 
         FreeRTOS_dns_update( hosts,
                              &pulIP_arr[ i ],
-                             400 );
+                             FreeRTOS_htonl( 400 ) ); /* lives 400 seconds */
     }
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
@@ -255,7 +255,7 @@ void test_processDNS_CACHE_exceed_host_entry_limit( void )
                          &pulIP,
                          400 );
 
-    xTaskGetTickCount_ExpectAndReturn( 30 );
+    xTaskGetTickCount_ExpectAndReturn( 3000 );
     x = FreeRTOS_dnslookup( "world" );
 
     TEST_ASSERT_EQUAL( 456, x );

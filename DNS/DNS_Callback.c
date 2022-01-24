@@ -146,8 +146,8 @@
         }
         else
         {
-            FreeRTOS_debug_printf( ( " vDNSSetCallBack : Could not allocate memory: %lu bytes",
-                                     sizeof( *pxCallback ) + lLength ) );
+            FreeRTOS_debug_printf( ( " vDNSSetCallBack : Could not allocate memory: %u bytes",
+                                     ( unsigned ) ( sizeof( *pxCallback ) + lLength ) ) );
         }
     }
 

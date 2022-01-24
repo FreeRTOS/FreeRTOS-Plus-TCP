@@ -433,16 +433,16 @@
                 if( ( pxDNSMessageHeader->usFlags & dnsRX_FLAGS_MASK )
                     == dnsEXPECTED_RX_FLAGS )
                 {
-                    xReturn = parseDNSAnswer( pxDNSMessageHeader,
-                                              pucByte,
-                                              uxSourceBytesRemaining,
-                                              &uxBytesRead
-                                              #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
-                                                  ,
-                                                  pcName,
-                                                  xDoStore
-                                              #endif
-                                              );
+                    ulIPAddress = parseDNSAnswer( pxDNSMessageHeader,
+                                                  pucByte,
+                                                  uxSourceBytesRemaining,
+                                                  &uxBytesRead
+                                                  #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+                                                      ,
+                                                      pcName,
+                                                      xDoStore
+                                                  #endif
+                                                  );
                 }
 
                 #if ( ipconfigUSE_LLMNR == 1 )
@@ -465,36 +465,44 @@
                             LLMNRAnswer_t * pxAnswer;
                             uint8_t * pucNewBuffer = NULL;
 
-                            if( ( xBufferAllocFixedSize == pdFALSE ) &&
-                                ( pxNetworkBuffer != NULL ) )
+                            if( pxNetworkBuffer != NULL )
                             {
-                                size_t uxDataLength = uxBufferLength + sizeof( UDPHeader_t ) +
-                                                      sizeof( EthernetHeader_t ) +
-                                                      sizeof( IPHeader_t );
-
-                                /* Set the size of the outgoing packet. */
-                                pxNetworkBuffer->xDataLength = uxDataLength;
-                                pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
-                                                                                      uxDataLength + sizeof( LLMNRAnswer_t ) );
-
-                                if( pxNewBuffer != NULL )
+                                if( xBufferAllocFixedSize == pdFALSE )
                                 {
-                                    BaseType_t xOffset1, xOffset2;
+                                    size_t uxDataLength = uxBufferLength +
+                                                          sizeof( UDPHeader_t ) +
+                                                          sizeof( EthernetHeader_t ) +
+                                                          sizeof( IPHeader_t );
 
-                                    xOffset1 = ( BaseType_t ) ( pucByte - pucUDPPayloadBuffer );
-                                    xOffset2 = ( BaseType_t ) ( ( ( uint8_t * ) pcRequestedName ) - pucUDPPayloadBuffer );
+                                    /* Set the size of the outgoing packet. */
+                                    pxNetworkBuffer->xDataLength = uxDataLength;
+                                    pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
+                                                                                          uxDataLength +
+                                                                                          sizeof( LLMNRAnswer_t ) );
 
-                                    pxNetworkBuffer = pxNewBuffer;
-                                    pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+                                    if( pxNewBuffer != NULL )
+                                    {
+                                        BaseType_t xOffset1, xOffset2;
 
-                                    pucByte = &( pucNewBuffer[ xOffset1 ] );
-                                    pcRequestedName = ( char * ) &( pucNewBuffer[ xOffset2 ] );
-                                    pxDNSMessageHeader = ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucNewBuffer );
+                                        xOffset1 = ( BaseType_t ) ( pucByte - pucUDPPayloadBuffer );
+                                        xOffset2 = ( BaseType_t ) ( ( ( uint8_t * ) pcRequestedName ) - pucUDPPayloadBuffer );
+
+                                        pxNetworkBuffer = pxNewBuffer;
+                                        pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+
+                                        pucByte = &( pucNewBuffer[ xOffset1 ] );
+                                        pcRequestedName = ( char * ) &( pucNewBuffer[ xOffset2 ] );
+                                        pxDNSMessageHeader = ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucNewBuffer );
+                                    }
+                                    else
+                                    {
+                                        /* Just to indicate that the message may not be answered. */
+                                        pxNetworkBuffer = NULL;
+                                    }
                                 }
                                 else
                                 {
-                                    /* Just to indicate that the message may not be answered. */
-                                    pxNetworkBuffer = NULL;
+                                    pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
                                 }
                             }
 
@@ -576,16 +584,16 @@
  * @param xDoStore whether to update the cache
  * @return  \c pdTRUE if the frame is correct or \c pdFALSE otherwise
  */
-    BaseType_t parseDNSAnswer( DNSMessage_t * pxDNSMessageHeader,
-                               uint8_t * pucByte,
-                               size_t uxSourceBytesRemaining,
-                               size_t * uxBytesRead
+    uint32_t parseDNSAnswer( DNSMessage_t * pxDNSMessageHeader,
+                             uint8_t * pucByte,
+                             size_t uxSourceBytesRemaining,
+                             size_t * uxBytesRead
     #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
-                                   ,
-                                   char * pcName,
-                                   BaseType_t xDoStore
+                                 ,
+                                 char * pcName,
+                                 BaseType_t xDoStore
     #endif
-                               )
+                             )
     {
         uint16_t x;
         size_t uxResult;
@@ -597,7 +605,8 @@
         const void * pvCopySource;
         void * pvCopyDest;
         const size_t uxAddressLength = ipSIZE_OF_IPv4_ADDRESS;
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = 0U;
+        uint32_t ulReturnIPAddress = 0U;
         uint16_t usDataLength;
 
         for( x = 0U; x < pxDNSMessageHeader->usAnswers; x++ )
@@ -713,6 +722,12 @@
                                                ( xDoStore != 0 ) ? "" : " NOT" ) );
                         }
                     #endif /* ipconfigUSE_DNS_CACHE */
+
+                    if( ( ulReturnIPAddress == 0U ) && ( ulIPAddress != 0U ) )
+                    {
+                        /* Remember the first IP-address that is found. */
+                        ulReturnIPAddress = ulIPAddress;
+                    }
                 }
 
                 pucByte = &( pucByte[ sizeof( DNSAnswerRecord_t ) + uxAddressLength ] );
@@ -750,7 +765,7 @@
             }
         }
 
-        return xReturn;
+        return ( xReturn != 0 ) ? ulReturnIPAddress : 0U;
     }
 
     #if ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) )
@@ -887,7 +902,6 @@
                         {
                             /* If this is a response from another device,
                              * add the name to the DNS cache */
-                            /*( void ) prvProcessDNSCache( ( char * ) ucNBNSName, &( ulIPAddress ), 0, pdFALSE ); */
                             ( void ) FreeRTOS_dns_update( ( char * ) ucNBNSName, &( ulIPAddress ), 0 );
                         }
                     }

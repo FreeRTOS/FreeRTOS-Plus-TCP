@@ -459,8 +459,7 @@
         /* Obtain the DNS server address. */
         FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, &ulIPAddress );
         #if ( ipconfigUSE_LLMNR == 1 )
-            BaseType_t bHasDot = pdFALSE;
-            bHasDot = llmnr_has_dot( pcHostName );
+            BaseType_t bHasDot = llmnr_has_dot( pcHostName );
 
             if( bHasDot == pdFALSE )
             {
@@ -539,10 +538,14 @@
             xDNSBuf.uxPayloadLength = pxNetworkBuffer->xDataLength;
             xDNSBuf.uxPayloadSize = pxNetworkBuffer->xDataLength;
 
-            if( pxAddress->sin_port == ipLLMNR_PORT )
-            {
-                ( ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, xDNSBuf.pucPayloadBuffer ) )->usFlags = 0;
-            }
+            #if ( ipconfigUSE_LLMNR == 1 )
+                {
+                    if( FreeRTOS_ntohs( pxAddress->sin_port ) == ipLLMNR_PORT )
+                    {
+                        ( ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, xDNSBuf.pucPayloadBuffer ) )->usFlags = 0;
+                    }
+                }
+            #endif
 
             xDNSBuf.uxPayloadLength = prvCreateDNSMessage( xDNSBuf.pucPayloadBuffer,
                                                            pcHostName,
