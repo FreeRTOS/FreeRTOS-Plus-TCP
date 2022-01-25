@@ -141,6 +141,12 @@ foreach( file ${TCP_SOURCES} )
 
     get_filename_component( MODIFIED_FILE ${file} NAME_WLE )
 
+    if(${MODIFIED_FILE} STREQUAL "FreeRTOS_Sockets" )
+        execute_process( COMMAND sed "/#include \"task.h\"/ a \#include \"Sockets_list_macros.h\" " ${file}
+                         OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp2.c  )
+        set( file ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp2.c )
+    endif()
+
     # Strip static constraints so unit tests may call internal functions
     execute_process( COMMAND sed "s/^[ ]*static //"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -188,23 +194,24 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 
 include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_IP/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DNS/ut.cmake )
 include( ${UNIT_TEST_DIR}/DNS_Cache/ut.cmake )
 include( ${UNIT_TEST_DIR}/DNS_Networking/ut.cmake )
 include( ${UNIT_TEST_DIR}/DNS_Callback/ut.cmake )
 include( ${UNIT_TEST_DIR}/DNS_Parser/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 # Add a target for running coverage on tests.
 add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
-    DEPENDS cmock unity FreeRTOS_ARP_utest FreeRTOS_DHCP_utest FreeRTOS_UDP_IP_utest FreeRTOS_IP_utest FreeRTOS_ICMP_utest FreeRTOS_IP_Utils_utest FreeRTOS_IP_Timers_utest FreeRTOS_Stream_Buffer_utest FreeRTOS_Sockets_utest FreeRTOS_DNS_utest
+    DEPENDS cmock unity FreeRTOS_ARP_utest FreeRTOS_DHCP_utest FreeRTOS_UDP_IP_utest FreeRTOS_IP_utest FreeRTOS_ICMP_utest FreeRTOS_IP_Utils_utest FreeRTOS_IP_Timers_utest FreeRTOS_Stream_Buffer_utest FreeRTOS_DNS_utest
+
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )

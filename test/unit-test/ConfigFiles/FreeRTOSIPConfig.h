@@ -320,6 +320,7 @@ extern uint32_t ulRand();
 #define ipconfigUDP_MAX_RX_PACKETS               ( 1 )
 
 #define ipconfigSUPPORT_SIGNALS                  ( 1 )
+
 #define ipconfigDNS_CACHE_ENTRIES                ( 2 )
 
 #define ipconfigBUFFER_PADDING                   ( 14 )

@@ -1351,7 +1351,6 @@ void test_vPrintResourceStats_BufferCountLess( void )
     vPrintResourceStats();
 }
 
-
 void test_FreeRTOS_strerror_r_Invalid( void )
 {
     const char * pucResult;

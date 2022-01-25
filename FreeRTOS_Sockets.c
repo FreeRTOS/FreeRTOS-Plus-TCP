@@ -333,7 +333,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
             if( xType != FREERTOS_SOCK_DGRAM )
             {
                 xReturn = pdFAIL;
-                configASSERT( xReturn == pdPASS );
+                configASSERT( xReturn == pdPASS ); /* LCOV_EXCL_BR_LINE Exclude this line from branch coverage as the not-taken condition will never happen. */
             }
 
             /* In case a UDP socket is created, do not allocate space for TCP data. */
@@ -346,7 +346,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
                 if( xType != FREERTOS_SOCK_STREAM )
                 {
                     xReturn = pdFAIL;
-                    configASSERT( xReturn == pdPASS );
+                    configASSERT( xReturn == pdPASS ); /* LCOV_EXCL_BR_LINE Exclude this line from branch coverage as the not-taken condition will never happen. */
                 }
 
                 *pxSocketSize = ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP );
@@ -355,7 +355,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
         else
         {
             xReturn = pdFAIL;
-            configASSERT( xReturn == pdPASS );
+            configASSERT( xReturn == pdPASS ); /* LCOV_EXCL_BR_LINE Exclude this line from branch coverage as the not-taken condition will never happen. */
         }
     }
 
@@ -1297,6 +1297,9 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
         struct freertos_sockaddr xAddress;
     #endif /* ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND */
 
+    configASSERT( pxSocket != NULL );
+    configASSERT( pxSocket != FREERTOS_INVALID_SOCKET );
+
     #if ( ipconfigUSE_TCP == 1 )
         if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
         {
@@ -1311,9 +1314,6 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
     /* The function prototype is designed to maintain the expected Berkeley
      * sockets standard, but this implementation does not use all the parameters. */
     ( void ) uxAddressLength;
-
-    configASSERT( pxSocket != NULL );
-    configASSERT( pxSocket != FREERTOS_INVALID_SOCKET );
 
     #if ( ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND == 1 )
         {
@@ -1887,9 +1887,10 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                                pxSocket->u.xUDP.pxHandleSent = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( F_TCP_UDP_Handler_t, pvOptionValue )->pxOnUDPSent;
                                break;
 
-                           default:
+                           default:   /* LCOV_EXCL_LINE The default case is required by MISRA but control flow will never ever reach
+                                       * here since the switch statement enclosing this switch prevents that. */
                                /* Should it throw an error here? */
-                               break;
+                               break; /* LCOV_EXCL_LINE. Since the default case will never reach, this break statement will not execute as well. */
                        }
                    }
 
@@ -1965,14 +1966,9 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                            break; /* will return -pdFREERTOS_ERRNO_EINVAL */
                        }
 
-                       if( ( pxTCP->txStream != NULL ) || ( pxTCP->rxStream != NULL ) )
-                       {
-                           FreeRTOS_debug_printf( ( "Set SO_WIN_PROP: buffer already created\n" ) );
-                           break; /* will return -pdFREERTOS_ERRNO_EINVAL */
-                       }
-
                        pxProps = ipPOINTER_CAST( const WinProperties_t *, pvOptionValue );
 
+                       /* Validity of txStream will be checked by the function below. */
                        xReturn = prvSockopt_so_buffer( pxSocket, FREERTOS_SO_SNDBUF, &( pxProps->lTxBufSize ) );
 
                        if( xReturn != 0 )
@@ -1980,6 +1976,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                            break; /* will return an error. */
                        }
 
+                       /* Validity of rxStream will be checked by the function below. */
                        xReturn = prvSockopt_so_buffer( pxSocket, FREERTOS_SO_RCVBUF, &( pxProps->lRxBufSize ) );
 
                        if( xReturn != 0 )
@@ -2067,7 +2064,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
                        if( ( pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize == pdFALSE_UNSIGNED ) &&
                            ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) &&
-                           ( FreeRTOS_outstanding( pxSocket ) != 0 ) )
+                           ( FreeRTOS_outstanding( pxSocket ) > 0 ) )
                        {
                            pxSocket->u.xTCP.usTimeout = 1U; /* to set/clear bSendFullSize */
                            ( void ) xSendEventToIPTask( eTCPTimerEvent );
@@ -2258,8 +2255,8 @@ FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
  *                      stored if all checks pass. The buffer must be at least 16
  *                      bytes long.
  *
- * @return If all checks pass, then the pointer returned will be same as pcBuffer
- *         and will have the address stored in the location. Else, NULL is returned.
+ * @return The pointer returned will be same as pcBuffer and will have the address
+ *         stored in the location.
  */
 const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
                                  char * pcBuffer )
@@ -2275,7 +2272,6 @@ const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
         uint8_t pucDigits[ sockDIGIT_COUNT ];
         uint8_t ucValue = pucAddress[ uxNibble ];
         socklen_t uxSource = ( socklen_t ) sockDIGIT_COUNT - ( socklen_t ) 1U;
-        socklen_t uxNeeded;
 
         for( ; ; )
         {
@@ -2299,16 +2295,6 @@ const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
             {
                 break;
             }
-        }
-
-        /* Write e.g. "192.", which is 3 digits and a dot. */
-        uxNeeded = ( ( socklen_t ) sockDIGIT_COUNT - uxSource ) + 1U;
-
-        if( ( uxIndex + uxNeeded ) > uxSize )
-        {
-            /* The result won't fit. */
-            pcResult = NULL;
-            break;
         }
 
         for( ; uxSource < ( socklen_t ) sockDIGIT_COUNT; uxSource++ )
@@ -3067,13 +3053,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 /* Did it get connected while sleeping ? */
                 xResult = FreeRTOS_issocketconnected( pxSocket );
 
-                /* Returns positive when connected, negative means an error */
-                if( xResult < 0 )
-                {
-                    /* Return the error */
-                    break;
-                }
-
                 if( xResult > 0 )
                 {
                     /* Socket now connected, return a zero */
@@ -3614,8 +3593,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* xByteCount is number of bytes that can be sent now. */
             xByteCount = ( BaseType_t ) uxStreamBufferGetSpace( pxSocket->u.xTCP.txStream );
 
-            /* While there are still bytes to be sent. */
-            while( xBytesLeft > 0 )
+            /* Try sending till there is a timeout or all bytes have been sent. */
+            while( pdTRUE )
             {
                 /* If txStream has space. */
                 if( xByteCount > 0 )
@@ -4736,8 +4715,8 @@ BaseType_t xSocketValid( Socket_t xSocket )
                                                          pxSocket->u.xTCP.usBacklog );
                     ( void ) copied_len;
                     /* These should never evaluate to false since the buffers are both shorter than 5-6 characters (<=65535) */
-                    configASSERT( copied_len >= 0 );
-                    configASSERT( copied_len < ( int32_t ) sizeof( ucChildText ) );
+                    configASSERT( copied_len >= 0 );                                /* LCOV_EXCL_BR_LINE the 'taken' branch will never execute. See the above comment. */
+                    configASSERT( copied_len < ( int32_t ) sizeof( ucChildText ) ); /* LCOV_EXCL_BR_LINE the 'taken' branch will never execute. See the above comment. */
                 }
 
                 FreeRTOS_printf( ( "TCP %5u %-16xip:%5u %d/%d %-13.13s %6u %6u%s\n",

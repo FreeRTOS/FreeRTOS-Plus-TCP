@@ -75,8 +75,8 @@ set(test_include_directories "")
 # list the directories your test needs to include
 list(APPEND test_include_directories
             .
-            ${TCP_INCLUDE_DIRS}
             ${CMOCK_DIR}/vendor/unity/src
+            ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources
         )
