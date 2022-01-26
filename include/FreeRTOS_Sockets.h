@@ -110,9 +110,10 @@
     #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE == 1 )
         #define FREERTOS_SO_SET_SEMAPHORE         ( 3 ) /* Used to set a user's semaphore */
     #endif
-    #define FREERTOS_SO_SNDBUF                    ( 4 ) /* Set the size of the send buffer (TCP only) */
-    #define FREERTOS_SO_RCVBUF                    ( 5 ) /* Set the size of the receive buffer (TCP only) */
-
+    #if ( ipconfigUSE_TCP == 1 )
+        #define FREERTOS_SO_SNDBUF                ( 4 ) /* Set the size of the send buffer (TCP only) */
+        #define FREERTOS_SO_RCVBUF                ( 5 ) /* Set the size of the receive buffer (TCP only) */
+    #endif
     #if ipconfigUSE_CALLBACKS == 1
         #define FREERTOS_SO_TCP_CONN_HANDLER      ( 6 )  /* Install a callback for (dis) connection events. Supply pointer to 'F_TCP_UDP_Handler_t' (see below) */
         #define FREERTOS_SO_TCP_RECV_HANDLER      ( 7 )  /* Install a callback for receiving TCP data. Supply pointer to 'F_TCP_UDP_Handler_t' (see below) */
@@ -120,14 +121,13 @@
         #define FREERTOS_SO_UDP_RECV_HANDLER      ( 9 )  /* Install a callback for receiving UDP data. Supply pointer to 'F_TCP_UDP_Handler_t' (see below) */
         #define FREERTOS_SO_UDP_SENT_HANDLER      ( 10 ) /* Install a callback for sending UDP data. Supply pointer to 'F_TCP_UDP_Handler_t' (see below) */
     #endif /* ipconfigUSE_CALLBACKS */
-
-    #define FREERTOS_SO_REUSE_LISTEN_SOCKET       ( 11 ) /* When a listening socket gets connected, do not create a new one but re-use it */
-    #define FREERTOS_SO_CLOSE_AFTER_SEND          ( 12 ) /* As soon as the last byte has been transmitted, finalise the connection */
-    #define FREERTOS_SO_WIN_PROPERTIES            ( 13 ) /* Set all buffer and window properties in one call, parameter is pointer to WinProperties_t */
-    #define FREERTOS_SO_SET_FULL_SIZE             ( 14 ) /* Refuse to send packets smaller than MSS  */
-
-    #define FREERTOS_SO_STOP_RX                   ( 15 ) /* Temporarily hold up reception, used by streaming client */
-
+    #if ( ipconfigUSE_TCP == 1 )
+        #define FREERTOS_SO_REUSE_LISTEN_SOCKET       ( 11 ) /* When a listening socket gets connected, do not create a new one but re-use it */
+        #define FREERTOS_SO_CLOSE_AFTER_SEND          ( 12 ) /* As soon as the last byte has been transmitted, finalise the connection */
+        #define FREERTOS_SO_WIN_PROPERTIES            ( 13 ) /* Set all buffer and window properties in one call, parameter is pointer to WinProperties_t */
+        #define FREERTOS_SO_SET_FULL_SIZE             ( 14 ) /* Refuse to send packets smaller than MSS  */
+        #define FREERTOS_SO_STOP_RX                   ( 15 ) /* Temporarily hold up reception, used by streaming client */
+    #endif /* ipconfigUSE_TCP == 1 */
     #if ( ipconfigUDP_MAX_RX_PACKETS > 0 )
         #define FREERTOS_SO_UDP_MAX_RX_PACKETS    ( 16 ) /* This option helps to limit the maximum number of packets a UDP socket will buffer */
     #endif
@@ -135,46 +135,24 @@
     #if ( ipconfigSOCKET_HAS_USER_WAKE_CALLBACK == 1 )
         #define FREERTOS_SO_WAKEUP_CALLBACK           ( 17 )
     #endif
-
-    #define FREERTOS_SO_SET_LOW_HIGH_WATER            ( 18 )
+    #if ( ipconfigUSE_TCP == 1 )
+        #define FREERTOS_SO_SET_LOW_HIGH_WATER            ( 18 )
+    #endif /* ipconfigUSE_TCP == 1 */
 
     #define FREERTOS_NOT_LAST_IN_FRAGMENTED_PACKET    ( 0x80 ) /* For internal use only, but also part of an 8-bit bitwise value. */
     #define FREERTOS_FRAGMENTED_PACKET                ( 0x40 ) /* For internal use only, but also part of an 8-bit bitwise value. */
-
+    #if ( ipconfigUSE_TCP == 1 )
 /* Values for flag for FreeRTOS_shutdown(). */
-    #define FREERTOS_SHUT_RD                          ( 0 ) /* Not really at this moment, just for compatibility of the interface */
-    #define FREERTOS_SHUT_WR                          ( 1 )
-    #define FREERTOS_SHUT_RDWR                        ( 2 )
+        #define FREERTOS_SHUT_RD                          ( 0 ) /* Not really at this moment, just for compatibility of the interface */
+        #define FREERTOS_SHUT_WR                          ( 1 )
+        #define FREERTOS_SHUT_RDWR                        ( 2 )
+    #endif /* ipconfigUSE_TCP == 1 */
 
 /* Values for flag for FreeRTOS_recv(). */
     #define FREERTOS_MSG_OOB                          ( 2 )  /* process out-of-band data */
     #define FREERTOS_MSG_PEEK                         ( 4 )  /* peek at incoming message */
     #define FREERTOS_MSG_DONTROUTE                    ( 8 )  /* send without using routing tables */
     #define FREERTOS_MSG_DONTWAIT                     ( 16 ) /* Can be used with recvfrom(), sendto(), recv(), and send(). */
-
-
-/**
- * Structure to hold the properties of Tx/Rx buffers and windows.
- */
-    typedef struct xWIN_PROPS
-    {
-        /* Properties of the Tx buffer and Tx window */
-        int32_t lTxBufSize; /**< Unit: bytes */
-        int32_t lTxWinSize; /**< Unit: MSS */
-
-        /* Properties of the Rx buffer and Rx window */
-        int32_t lRxBufSize; /**< Unit: bytes */
-        int32_t lRxWinSize; /**< Unit: MSS */
-    } WinProperties_t;
-
-/**
- * Structure to pass for the 'FREERTOS_SO_SET_LOW_HIGH_WATER' option
- */
-    typedef struct xLOW_HIGH_WATER
-    {
-        size_t uxLittleSpace; /**< Send a STOP when buffer space drops below X bytes */
-        size_t uxEnoughSpace; /**< Send a GO when buffer space grows above X bytes */
-    } LowHighWater_t;
 
 /* For compatibility with the expected Berkeley sockets naming. */
     #define socklen_t    uint32_t
@@ -225,14 +203,6 @@
 
     extern BaseType_t xSocketValid( Socket_t xSocket );
 
-    #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-
-/* The SocketSet_t type is the equivalent to the fd_set type used by the
- * Berkeley API. */
-        struct xSOCKET_SET;
-        typedef struct xSOCKET_SET * SocketSet_t;
-    #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
-
 /**
  * FULL, UP-TO-DATE AND MAINTAINED REFERENCE DOCUMENTATION FOR ALL THESE
  * FUNCTIONS IS AVAILABLE ON THE FOLLOWING URL:
@@ -277,6 +247,25 @@
 
     #if ipconfigUSE_TCP == 1
 
+/* Structure to hold the properties of Tx/Rx buffers and windows. */
+        typedef struct xWIN_PROPS
+        {
+            /* Properties of the Tx buffer and Tx window */
+            int32_t lTxBufSize; /**< Unit: bytes */
+            int32_t lTxWinSize; /**< Unit: MSS */
+
+            /* Properties of the Rx buffer and Rx window */
+            int32_t lRxBufSize; /**< Unit: bytes */
+            int32_t lRxWinSize; /**< Unit: MSS */
+        } WinProperties_t;
+
+/* Structure to pass for the 'FREERTOS_SO_SET_LOW_HIGH_WATER' option */
+        typedef struct xLOW_HIGH_WATER
+        {
+            size_t uxLittleSpace; /**< Send a STOP when buffer space drops below X bytes */
+            size_t uxEnoughSpace; /**< Send a GO when buffer space grows above X bytes */
+        } LowHighWater_t;
+
         BaseType_t FreeRTOS_connect( Socket_t xClientSocket,
                                      struct freertos_sockaddr * pxAddress,
                                      socklen_t xAddressLength );
@@ -300,15 +289,13 @@
         BaseType_t FreeRTOS_GetRemoteAddress( ConstSocket_t xSocket,
                                               struct freertos_sockaddr * pxAddress );
 
-        #if ( ipconfigUSE_TCP == 1 )
 
 /* Returns pdTRUE if TCP socket is connected. */
-            BaseType_t FreeRTOS_issocketconnected( ConstSocket_t xSocket );
+        BaseType_t FreeRTOS_issocketconnected( ConstSocket_t xSocket );
 
 /* Returns the actual size of MSS being used. */
-            BaseType_t FreeRTOS_mss( ConstSocket_t xSocket );
+        BaseType_t FreeRTOS_mss( ConstSocket_t xSocket );
 
-        #endif /* ( ipconfigUSE_TCP == 1 ) */
 
 /* For internal use only: return the connection status. */
         BaseType_t FreeRTOS_connstatus( ConstSocket_t xSocket );
@@ -321,11 +308,9 @@
  * rx_size returns the number of bytes available in the Rx buffer
  * tx_space returns the free space in the Tx buffer
  */
-        #if ( ipconfigUSE_TCP == 1 )
-            BaseType_t FreeRTOS_rx_size( ConstSocket_t xSocket );
-            BaseType_t FreeRTOS_tx_space( ConstSocket_t xSocket );
-            BaseType_t FreeRTOS_tx_size( ConstSocket_t xSocket );
-        #endif
+        BaseType_t FreeRTOS_rx_size( ConstSocket_t xSocket );
+        BaseType_t FreeRTOS_tx_space( ConstSocket_t xSocket );
+        BaseType_t FreeRTOS_tx_size( ConstSocket_t xSocket );
 
 /* Returns the number of outstanding bytes in txStream. */
 
@@ -346,6 +331,14 @@
  */
         uint8_t * FreeRTOS_get_tx_head( ConstSocket_t xSocket,
                                         BaseType_t * pxLength );
+
+/*
+ * For the web server: borrow the circular Rx buffer for inspection
+ * HTML driver wants to see if a sequence of 13/10/13/10 is available
+ */
+    const struct xSTREAM_BUFFER * FreeRTOS_get_rx_buf( ConstSocket_t xSocket );
+
+    void FreeRTOS_netstat( void );
 
     #endif /* ipconfigUSE_TCP */
 
@@ -472,16 +465,11 @@
     BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
                                     uint8_t * pucTarget );
 
-
-/*
- * For the web server: borrow the circular Rx buffer for inspection
- * HTML driver wants to see if a sequence of 13/10/13/10 is available
- */
-    const struct xSTREAM_BUFFER * FreeRTOS_get_rx_buf( ConstSocket_t xSocket );
-
-    void FreeRTOS_netstat( void );
-
     #if ipconfigSUPPORT_SELECT_FUNCTION == 1
+
+/* The SocketSet_t type is the equivalent to the fd_set type used by the Berkeley API. */
+        struct xSOCKET_SET;
+        typedef struct xSOCKET_SET * SocketSet_t;
 
 /* For FD_SET and FD_CLR, a combination of the following bits can be used: */
 
