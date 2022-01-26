@@ -266,6 +266,15 @@
         BaseType_t xPortHasUDPSocket( uint16_t usPortNr );
     #endif
 
+    #if ( ipconfigSUPPORT_SIGNALS != 0 )
+/* Send a signal to the task which is waiting for a given socket. */
+        BaseType_t FreeRTOS_SignalSocket( Socket_t xSocket );
+
+/* Send a signal to the task which reads from this socket (FromISR version). */
+        BaseType_t FreeRTOS_SignalSocketFromISR( Socket_t xSocket,
+                                                 BaseType_t * pxHigherPriorityTaskWoken );
+    #endif /* ipconfigSUPPORT_SIGNALS */
+
     #if ipconfigUSE_TCP == 1
 
         BaseType_t FreeRTOS_connect( Socket_t xClientSocket,
@@ -286,16 +295,6 @@
                                   socklen_t * pxAddressLength );
         BaseType_t FreeRTOS_shutdown( Socket_t xSocket,
                                       BaseType_t xHow );
-
-        #if ( ipconfigSUPPORT_SIGNALS != 0 )
-            /* Send a signal to the task which is waiting for a given socket. */
-            BaseType_t FreeRTOS_SignalSocket( Socket_t xSocket );
-
-/* Send a signal to the task which reads from this socket (FromISR
- * version). */
-            BaseType_t FreeRTOS_SignalSocketFromISR( Socket_t xSocket,
-                                                     BaseType_t * pxHigherPriorityTaskWoken );
-        #endif /* ipconfigSUPPORT_SIGNALS */
 
 /* Return the remote address and IP port. */
         BaseType_t FreeRTOS_GetRemoteAddress( ConstSocket_t xSocket,
