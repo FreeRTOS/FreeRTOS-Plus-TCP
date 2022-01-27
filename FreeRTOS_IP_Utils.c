@@ -358,24 +358,40 @@ void vPreCheckConfigs( void )
     configASSERT( xNetworkEventQueue == NULL );
     configASSERT( FreeRTOS_GetIPTaskHandle() == NULL );
 
-    if( sizeof( uintptr_t ) == 8 )
-    {
-        /* This is a 64-bit platform, make sure there is enough space in
-         * pucEthernetBuffer to store a pointer. */
-        configASSERT( ipconfigBUFFER_PADDING >= 14 );
+    #if ( configASSERT_DEFINED == 1 )
+        {
+            volatile size_t uxSize = sizeof( uintptr_t );
 
-        /* But it must have this strange alignment: */
-        configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
-    }
+            if( uxSize == 8 )
+            {
+                /* This is a 64-bit platform, make sure there is enough space in
+                 * pucEthernetBuffer to store a pointer. */
+                configASSERT( ipconfigBUFFER_PADDING >= 14 );
 
-    /* Check if MTU is big enough. */
-    configASSERT( ( ( size_t ) ipconfigNETWORK_MTU ) >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
-    /* Check structure packing is correct. */
-    configASSERT( sizeof( EthernetHeader_t ) == ipEXPECTED_EthernetHeader_t_SIZE );
-    configASSERT( sizeof( ARPHeader_t ) == ipEXPECTED_ARPHeader_t_SIZE );
-    configASSERT( sizeof( IPHeader_t ) == ipEXPECTED_IPHeader_t_SIZE );
-    configASSERT( sizeof( ICMPHeader_t ) == ipEXPECTED_ICMPHeader_t_SIZE );
-    configASSERT( sizeof( UDPHeader_t ) == ipEXPECTED_UDPHeader_t_SIZE );
+                /* But it must have this strange alignment: */
+                configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
+            }
+
+            uxSize = ipconfigNETWORK_MTU;
+            /* Check if MTU is big enough. */
+            configASSERT( uxSize >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
+
+            uxSize = sizeof( EthernetHeader_t );
+            /* Check structure packing is correct. */
+            configASSERT( uxSize == ipEXPECTED_EthernetHeader_t_SIZE );
+
+            uxSize = sizeof( ARPHeader_t );
+            configASSERT( uxSize == ipEXPECTED_ARPHeader_t_SIZE );
+
+            uxSize = sizeof( IPHeader_t );
+            configASSERT( uxSize == ipEXPECTED_IPHeader_t_SIZE );
+
+            uxSize = sizeof( ICMPHeader_t );
+            configASSERT( uxSize == ipEXPECTED_ICMPHeader_t_SIZE );
+
+            uxSize = sizeof( UDPHeader_t );
+            configASSERT( uxSize == ipEXPECTED_UDPHeader_t_SIZE );
+        }
 }
 
 /**
@@ -907,21 +923,21 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigHAS_PRINTF != 0 )
+    #if ( ipconfigHAS_PRINTF != 0 )
 
-    #ifndef ipMONITOR_MAX_HEAP
+        #ifndef ipMONITOR_MAX_HEAP
 
 /* As long as the heap has more space than e.g. 1 MB, there
  * will be no messages. */
-        #define ipMONITOR_MAX_HEAP    ( 1024U * 1024U )
-    #endif /* ipMONITOR_MAX_HEAP */
+            #define ipMONITOR_MAX_HEAP    ( 1024U * 1024U )
+        #endif /* ipMONITOR_MAX_HEAP */
 
-    #ifndef ipMONITOR_PERCENTAGE_90
+        #ifndef ipMONITOR_PERCENTAGE_90
         /* Make this number lower to get less logging messages. */
-        #define ipMONITOR_PERCENTAGE_90    ( 90U )
-    #endif
+            #define ipMONITOR_PERCENTAGE_90    ( 90U )
+        #endif
 
-    #define ipMONITOR_PERCENTAGE_100       ( 100U )
+        #define ipMONITOR_PERCENTAGE_100       ( 100U )
 
 /**
  * @brief A function that monitors a three resources: the heap, the space in the message
@@ -990,7 +1006,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
             }
         #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
     }
-#endif /* ( ipconfigHAS_PRINTF != 0 ) */
+    #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 /*-----------------------------------------------------------*/
 
 /**
