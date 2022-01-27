@@ -392,6 +392,7 @@ void vPreCheckConfigs( void )
             uxSize = sizeof( UDPHeader_t );
             configASSERT( uxSize == ipEXPECTED_UDPHeader_t_SIZE );
         }
+    #endif /* if ( configASSERT_DEFINED == 1 ) */
 }
 
 /**
@@ -923,21 +924,21 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 }
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigHAS_PRINTF != 0 )
+#if ( ipconfigHAS_PRINTF != 0 )
 
-        #ifndef ipMONITOR_MAX_HEAP
+    #ifndef ipMONITOR_MAX_HEAP
 
 /* As long as the heap has more space than e.g. 1 MB, there
  * will be no messages. */
-            #define ipMONITOR_MAX_HEAP    ( 1024U * 1024U )
-        #endif /* ipMONITOR_MAX_HEAP */
+        #define ipMONITOR_MAX_HEAP    ( 1024U * 1024U )
+    #endif /* ipMONITOR_MAX_HEAP */
 
-        #ifndef ipMONITOR_PERCENTAGE_90
+    #ifndef ipMONITOR_PERCENTAGE_90
         /* Make this number lower to get less logging messages. */
-            #define ipMONITOR_PERCENTAGE_90    ( 90U )
-        #endif
+        #define ipMONITOR_PERCENTAGE_90    ( 90U )
+    #endif
 
-        #define ipMONITOR_PERCENTAGE_100       ( 100U )
+    #define ipMONITOR_PERCENTAGE_100       ( 100U )
 
 /**
  * @brief A function that monitors a three resources: the heap, the space in the message
@@ -1006,7 +1007,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
             }
         #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
     }
-    #endif /* ( ipconfigHAS_PRINTF != 0 ) */
+#endif /* ( ipconfigHAS_PRINTF != 0 ) */
 /*-----------------------------------------------------------*/
 
 /**
