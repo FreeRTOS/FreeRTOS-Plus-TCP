@@ -104,6 +104,8 @@
 /* Supply pointer to 'F_TCP_UDP_Handler_t' for pvOptionValue parameter in
  * FreeRTOS_setsockopt() */
         #define FREERTOS_SO_TCP_CONN_HANDLER    ( 6 )  /* Install a callback for (dis) connection events. */
+        #define FREERTOS_SO_TCP_RECV_HANDLER    ( 7 )  /* Install a callback for receiving TCP data. */
+        #define FREERTOS_SO_TCP_SENT_HANDLER    ( 8 )  /* Install a callback for sending TCP data. */
         #define FREERTOS_SO_UDP_RECV_HANDLER    ( 9 )  /* Install a callback for receiving UDP data. */
         #define FREERTOS_SO_UDP_SENT_HANDLER    ( 10 ) /* Install a callback for sending UDP data. */
     #endif
