@@ -45,17 +45,17 @@
 
 /* Assigned to an Socket_t variable when the socket is not valid, probably
  * because it could not be created. */
-    #define FREERTOS_INVALID_SOCKET    ( ( Socket_t ) ~0U )
+    #define FREERTOS_INVALID_SOCKET          ( ( Socket_t ) ~0U )
 
 /* API function error values.  As errno is supported, the FreeRTOS sockets
-* functions return error codes rather than just a pass or fail indication.
-*
-* Like in errno.h, the error codes are defined as positive numbers.
-* However, in case of an error, API 's will still negative values, e.g.
-* return -pdFREERTOS_ERRNO_EWOULDBLOCK;
-* in case an operation would block.
-*
-* The following defines are obsolete, please use -pdFREERTOS_ERRNO_Exxx. */
+ * functions return error codes rather than just a pass or fail indication.
+ *
+ * Like in errno.h, the error codes are defined as positive numbers.
+ * However, in case of an error, API 's will still negative values, e.g.
+ * return -pdFREERTOS_ERRNO_EWOULDBLOCK;
+ * in case an operation would block.
+ *
+ * The following defines are obsolete, please use -pdFREERTOS_ERRNO_Exxx. */
     #define FREERTOS_SOCKET_ERROR            ( -1 )
     #define FREERTOS_EWOULDBLOCK             ( -pdFREERTOS_ERRNO_EWOULDBLOCK )
     #define FREERTOS_EINVAL                  ( -pdFREERTOS_ERRNO_EINVAL )
@@ -75,13 +75,13 @@
     #define FREERTOS_IPPROTO_TCP             ( 6 )
 
 /* Values for xFlags parameter of Receive/Send functions. */
-    #define FREERTOS_ZERO_COPY        ( 1 ) /* Can be used with recvfrom(), sendto() and recv(),
-                                             * Indicates that the zero copy interface is being used.
-                                             * See the documentation for FreeRTOS_sockets() for more information. */
-    #define FREERTOS_MSG_OOB          ( 2 ) /* Not used. */
-    #define FREERTOS_MSG_PEEK         ( 4 ) /* Can be used with recvfrom() and recv(). */
-    #define FREERTOS_MSG_DONTROUTE    ( 8 ) /* Not used. */
-    #define FREERTOS_MSG_DONTWAIT     ( 16 ) /* Can be used with recvfrom(), sendto(), recv() and send(). */
+    #define FREERTOS_ZERO_COPY               ( 1 )  /* Can be used with recvfrom(), sendto() and recv(),
+                                                     * Indicates that the zero copy interface is being used.
+                                                     * See the documentation for FreeRTOS_sockets() for more information. */
+    #define FREERTOS_MSG_OOB                 ( 2 )  /* Not used. */
+    #define FREERTOS_MSG_PEEK                ( 4 )  /* Can be used with recvfrom() and recv(). */
+    #define FREERTOS_MSG_DONTROUTE           ( 8 )  /* Not used. */
+    #define FREERTOS_MSG_DONTWAIT            ( 16 ) /* Can be used with recvfrom(), sendto(), recv() and send(). */
 
 /* Values that can be passed in the option name parameter of calls to
  * FreeRTOS_setsockopt(). */
@@ -100,10 +100,11 @@
     #endif
 
     #if ( ipconfigUSE_CALLBACKS == 1 )
+
 /* Supply pointer to 'F_TCP_UDP_Handler_t' for pvOptionValue parameter in
  * FreeRTOS_setsockopt() */
-        #define FREERTOS_SO_TCP_CONN_HANDLER    ( 6 ) /* Install a callback for (dis) connection events. */
-        #define FREERTOS_SO_UDP_RECV_HANDLER    ( 9 ) /* Install a callback for receiving UDP data. */
+        #define FREERTOS_SO_TCP_CONN_HANDLER    ( 6 )  /* Install a callback for (dis) connection events. */
+        #define FREERTOS_SO_UDP_RECV_HANDLER    ( 9 )  /* Install a callback for receiving UDP data. */
         #define FREERTOS_SO_UDP_SENT_HANDLER    ( 10 ) /* Install a callback for sending UDP data. */
     #endif
 
@@ -124,7 +125,7 @@
     #endif
 
     #if ( ipconfigUSE_TCP == 1 )
-        #define FREERTOS_SO_SET_LOW_HIGH_WATER        ( 18 )
+        #define FREERTOS_SO_SET_LOW_HIGH_WATER    ( 18 )
     #endif
 
     #if ( 0 ) /* Not Used */
@@ -140,7 +141,7 @@
     #endif
 
 /* For compatibility with the expected Berkeley sockets naming. */
-    #define socklen_t                 uint32_t
+    #define socklen_t    uint32_t
 
 /**
  * For this limited implementation, only two members are required in the
@@ -160,8 +161,8 @@
 
 /* The socket type itself. */
     struct xSOCKET;
-    typedef struct xSOCKET       * Socket_t;
-    typedef struct xSOCKET const * ConstSocket_t;
+    typedef struct xSOCKET         * Socket_t;
+    typedef struct xSOCKET const   * ConstSocket_t;
 
     extern BaseType_t xSocketValid( Socket_t xSocket );
 
@@ -297,12 +298,12 @@
 /* Returns the number of bytes available in the Rx buffer. */
         BaseType_t FreeRTOS_rx_size( ConstSocket_t xSocket );
 
-        #define FreeRTOS_recvcount( xSocket ) FreeRTOS_rx_size( xSocket )
+        #define FreeRTOS_recvcount( xSocket )    FreeRTOS_rx_size( xSocket )
 
 /* Returns the free space in the Tx buffer. */
         BaseType_t FreeRTOS_tx_space( ConstSocket_t xSocket );
 
-        #define FreeRTOS_outstanding( xSocket ) FreeRTOS_tx_size( xSocket )
+        #define FreeRTOS_outstanding( xSocket )    FreeRTOS_tx_size( xSocket )
 
 /* Returns the number of bytes stored in the Tx buffer. */
         BaseType_t FreeRTOS_tx_size( ConstSocket_t xSocket );
@@ -421,17 +422,17 @@
 /* Converts an IP address expressed as four separate numeric octets into an
  * IP address expressed as a 32-bit number in network byte order */
         #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24UL ) | \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16UL ) | \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8UL ) |  \
+    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24UL ) |                                  \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16UL ) |                                  \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8UL ) |                                   \
       ( ( uint32_t ) ( ucOctet0 ) ) )
 
     #else /* ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN ) */
 
         #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24UL ) | \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16UL ) | \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8UL ) |  \
+    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24UL ) |                                  \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16UL ) |                                  \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8UL ) |                                   \
       ( ( uint32_t ) ( ucOctet3 ) ) )
 
     #endif /* ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
@@ -523,4 +524,3 @@
     #endif
 
 #endif /* FREERTOS_SOCKETS_H */
-
