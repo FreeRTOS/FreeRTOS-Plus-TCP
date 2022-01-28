@@ -405,13 +405,6 @@
 
     #endif /* ( ipconfigUSE_CALLBACKS == 1 ) */
 
-/* FreeRTOS_gethostbyname should be placed in FreeRTOS_DNS.h.
- * It is kept here because some applications expect it in FreeRTOS_Sockets.h.
- *
- * Performs a Domain Name System (DNS) lookup on a host name,
- * returning the hosts IP address. */
-    uint32_t FreeRTOS_gethostbyname( const char * pcHostName );
-
 /* Conversion Functions */
 
 /* Converts an IP address expressed as a 32-bit number in network byte order
