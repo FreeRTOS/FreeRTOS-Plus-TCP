@@ -1468,6 +1468,7 @@ xnetworkeventqueue
 xnetworkinterfaceinitialise
 xnetworkinterfaceoutput
 xnetworkparams
+xontcpconnect
 xontcpreceive
 xontcpsent
 xonudpreceive
