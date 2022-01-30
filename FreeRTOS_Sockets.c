@@ -1439,9 +1439,9 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
 {
     BaseType_t xResult;
 
-    #if ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_CALLBACKS == 1 )
+    #if ( ipconfigUSE_CALLBACKS == 1 )
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
-    #endif
+    #endif /* ipconfigUSE_CALLBACKS == 1 */
     IPStackEvent_t xCloseEvent;
     xCloseEvent.eEventType = eSocketCloseEvent;
     xCloseEvent.pvData = xSocket;
@@ -1463,7 +1463,7 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
                         pxSocket->u.xTCP.pxHandleSent = NULL;
                     }
                     else
-                #endif
+                #endif /* ipconfigUSE_TCP == 1 */
 
                 if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_UDP )
                 {
@@ -1472,7 +1472,7 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
                     pxSocket->u.xUDP.pxHandleSent = NULL;
                 }
             }
-        #endif /* ( ipconfigUSE_CALLBACKS == 1 ) */
+        #endif /* ipconfigUSE_CALLBACKS == 1 */
 
         /* Let the IP task close the socket to keep it synchronised with the
          * packet handling. */
