@@ -40,8 +40,22 @@
 /* Application level configuration options. */
     #include "FreeRTOSIPConfig.h"
 
+    #ifndef FREERTOS_IP_CONFIG_H
+        #error FreeRTOSIPConfig.h has not been included yet
+    #endif
+
 /* Event bit definitions are required by the select functions. */
     #include "event_groups.h"
+
+    #ifndef INC_FREERTOS_H
+        #error FreeRTOS.h must be included before FreeRTOS_Sockets.h.
+    #endif
+
+    #ifndef INC_TASK_H
+        #ifndef TASK_H /* For compatibility with older FreeRTOS versions. */
+            #error The FreeRTOS header file task.h must be included before FreeRTOS_Sockets.h.
+        #endif
+    #endif
 
 /* Assigned to an Socket_t variable when the socket is not valid, probably
  * because it could not be created. */
