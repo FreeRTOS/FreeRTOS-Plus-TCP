@@ -15,8 +15,8 @@ set( CMAKE_C_STANDARD_REQUIRED ON )
 
 # Set the platform specific variables to default value.
 set( UT_PLATFORM "Ubuntu" CACHE STRING "The platform on which the unit tests are compiled and executed." )
-set( SYSTEM_PKG_MNGR "" CACHE STRING "The package manager on the underlying OS." )
-set( SYSTEM_INSTALL_CMD "" CACHE STRING "The command to install a package." )
+set( SYSTEM_PKG_MNGR "DEFAULT" CACHE STRING "The package manager on the underlying OS." )
+set( SYSTEM_INSTALL_CMD "DEFAULT" CACHE STRING "The command to install a package." )
 
 # Flag to allow cmake to install tools required for running unit-tests.
 set( ALLOW_CMAKE_TO_INSTALL_TOOLS "0" CACHE STRING "Option which user can set to enable installation of certain tools required for running the unit-tests." )
@@ -128,7 +128,7 @@ function( find_and_install
     endif()
 endfunction()
 
-# FInd and install the tools required for running the unit-tests of the user allows it.
+# Find and install the tools required for running the unit-tests if the user allows it.
 find_and_install( unifdef ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
 find_and_install( lcov    ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
 find_and_install( ruby    ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
