@@ -373,6 +373,16 @@
     #define ipconfigICMP_TIME_TO_LIVE    64
 #endif
 
+#ifndef ipconfigTCP_SRTT_MINIMUM_VALUE_MS
+
+/* TCP only: when measuring the Smoothed Round Trip Time (SRTT),
+ * the result will be rounded up to a minimum value.
+ * The default has always been 50, but a value of 1000
+ * is recommended (see RFC6298) because hosts often delay the
+ * sending of ACK packets with 200 ms. */
+    #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS    50
+#endif
+
 #ifndef ipconfigUDP_MAX_RX_PACKETS
 
 /* Make positive to define the maximum number of packets which will be buffered
