@@ -767,11 +767,13 @@ pxbindaddress
 pxbuffer
 pxbufferdescriptor
 pxdescriptor
+pxdest
 pxdestinationaddress
 pxdhcpmessage
 pxdnsmessageheader
 pxduplicatenetworkbufferwithdescriptor
 pxevent
+pxfrom
 pxgetnetworkbuffer
 pxgetnetworkbufferwithdescriptor
 pxhandleconnected
@@ -941,6 +943,7 @@ snd
 snprintf
 sockaddr
 socketset
+sockopt
 sof
 sourceaddrfilter
 spi
@@ -1465,7 +1468,11 @@ xnetworkeventqueue
 xnetworkinterfaceinitialise
 xnetworkinterfaceoutput
 xnetworkparams
+xontcpconnect
 xontcpreceive
+xontcpsent
+xonudpreceive
+xonudpsent
 xopcode
 xoutgoingpacket
 xpacket

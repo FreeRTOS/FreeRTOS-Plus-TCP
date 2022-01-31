@@ -59,122 +59,102 @@
 
 /* Assigned to an Socket_t variable when the socket is not valid, probably
  * because it could not be created. */
-    #define FREERTOS_INVALID_SOCKET    ( ( Socket_t ) ~0U )
+    #define FREERTOS_INVALID_SOCKET          ( ( Socket_t ) ~0U )
 
 /* API function error values.  As errno is supported, the FreeRTOS sockets
- * functions return error codes rather than just a pass or fail indication. */
-
-/* HT: Extended the number of error codes, gave them positive values and if possible
- * the corresponding found in errno.h
- * In case of an error, API's will still return negative numbers, e.g.
+ * functions return error codes rather than just a pass or fail indication.
+ *
+ * Like in errno.h, the error codes are defined as positive numbers.
+ * However, in case of an error, API 's will still negative values, e.g.
  * return -pdFREERTOS_ERRNO_EWOULDBLOCK;
- * in case an operation would block */
-
-/* The following defines are obsolete, please use -pdFREERTOS_ERRNO_Exxx */
-
-    #define FREERTOS_SOCKET_ERROR                 ( -1 )
-    #define FREERTOS_EWOULDBLOCK                  ( -pdFREERTOS_ERRNO_EWOULDBLOCK )
-    #define FREERTOS_EINVAL                       ( -pdFREERTOS_ERRNO_EINVAL )
-    #define FREERTOS_EADDRNOTAVAIL                ( -pdFREERTOS_ERRNO_EADDRNOTAVAIL )
-    #define FREERTOS_EADDRINUSE                   ( -pdFREERTOS_ERRNO_EADDRINUSE )
-    #define FREERTOS_ENOBUFS                      ( -pdFREERTOS_ERRNO_ENOBUFS )
-    #define FREERTOS_ENOPROTOOPT                  ( -pdFREERTOS_ERRNO_ENOPROTOOPT )
-    #define FREERTOS_ECLOSED                      ( -pdFREERTOS_ERRNO_ENOTCONN )
+ * in case an operation would block.
+ *
+ * The following defines are obsolete, please use -pdFREERTOS_ERRNO_Exxx. */
+    #define FREERTOS_SOCKET_ERROR            ( -1 )
+    #define FREERTOS_EWOULDBLOCK             ( -pdFREERTOS_ERRNO_EWOULDBLOCK )
+    #define FREERTOS_EINVAL                  ( -pdFREERTOS_ERRNO_EINVAL )
+    #define FREERTOS_EADDRNOTAVAIL           ( -pdFREERTOS_ERRNO_EADDRNOTAVAIL )
+    #define FREERTOS_EADDRINUSE              ( -pdFREERTOS_ERRNO_EADDRINUSE )
+    #define FREERTOS_ENOBUFS                 ( -pdFREERTOS_ERRNO_ENOBUFS )
+    #define FREERTOS_ENOPROTOOPT             ( -pdFREERTOS_ERRNO_ENOPROTOOPT )
+    #define FREERTOS_ECLOSED                 ( -pdFREERTOS_ERRNO_ENOTCONN )
 
 /* Values for the parameters to FreeRTOS_socket(), inline with the Berkeley
  * standard.  See the documentation of FreeRTOS_socket() for more information. */
-    #define FREERTOS_AF_INET                      ( 2 )
-    #define FREERTOS_AF_INET6                     ( 10 )
-    #define FREERTOS_SOCK_DGRAM                   ( 2 )
-    #define FREERTOS_IPPROTO_UDP                  ( 17 )
+    #define FREERTOS_AF_INET                 ( 2 )
+    #define FREERTOS_AF_INET6                ( 10 )
+    #define FREERTOS_SOCK_DGRAM              ( 2 )
+    #define FREERTOS_IPPROTO_UDP             ( 17 )
+    #define FREERTOS_SOCK_STREAM             ( 1 )
+    #define FREERTOS_IPPROTO_TCP             ( 6 )
 
-    #define FREERTOS_SOCK_STREAM                  ( 1 )
-    #define FREERTOS_IPPROTO_TCP                  ( 6 )
-
-/* IP packet of type "Any local network"
- * can be used in stead of TCP for testing with sockets in raw mode
- */
-    #define FREERTOS_IPPROTO_USR_LAN              ( 63 )
-
-/* A bit value that can be passed into the FreeRTOS_sendto() function as part of
- * the flags parameter.  Setting the FREERTOS_ZERO_COPY in the flags parameter
- * indicates that the zero copy interface is being used.  See the documentation for
- * FreeRTOS_sockets() for more information. */
-    #define FREERTOS_ZERO_COPY                    ( 1 )
+/* Values for xFlags parameter of Receive/Send functions. */
+    #define FREERTOS_ZERO_COPY               ( 1 )  /* Can be used with recvfrom(), sendto() and recv(),
+                                                     * Indicates that the zero copy interface is being used.
+                                                     * See the documentation for FreeRTOS_sockets() for more information. */
+    #define FREERTOS_MSG_OOB                 ( 2 )  /* Not used. */
+    #define FREERTOS_MSG_PEEK                ( 4 )  /* Can be used with recvfrom() and recv(). */
+    #define FREERTOS_MSG_DONTROUTE           ( 8 )  /* Not used. */
+    #define FREERTOS_MSG_DONTWAIT            ( 16 ) /* Can be used with recvfrom(), sendto(), recv() and send(). */
 
 /* Values that can be passed in the option name parameter of calls to
  * FreeRTOS_setsockopt(). */
-    #define FREERTOS_SO_RCVTIMEO                  ( 0 ) /* Used to set the receive time out. */
-    #define FREERTOS_SO_SNDTIMEO                  ( 1 ) /* Used to set the send time out. */
-    #define FREERTOS_SO_UDPCKSUM_OUT              ( 2 ) /* Used to turn the use of the UDP checksum by a socket on or off.  This also doubles as part of an 8-bit bitwise socket option. */
+    #define FREERTOS_SO_RCVTIMEO             ( 0 ) /* Used to set the receive time out. */
+    #define FREERTOS_SO_SNDTIMEO             ( 1 ) /* Used to set the send time out. */
+    #define FREERTOS_SO_UDPCKSUM_OUT         ( 2 ) /* Used to turn the use of the UDP checksum
+                                                    * by a socket on or off.  This also doubles
+                                                    * as part of an 8-bit bitwise socket option. */
     #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE == 1 )
-        #define FREERTOS_SO_SET_SEMAPHORE         ( 3 ) /* Used to set a user's semaphore */
+        #define FREERTOS_SO_SET_SEMAPHORE    ( 3 ) /* Used to set a user's semaphore. */
     #endif
-    #define FREERTOS_SO_SNDBUF                    ( 4 ) /* Set the size of the send buffer (TCP only) */
-    #define FREERTOS_SO_RCVBUF                    ( 5 ) /* Set the size of the receive buffer (TCP only) */
 
-    #if ipconfigUSE_CALLBACKS == 1
-        #define FREERTOS_SO_TCP_CONN_HANDLER      ( 6 )  /* Install a callback for (dis) connection events. Supply pointer to 'F_TCP_UDP_Handler_t' (see below) */
-        #define FREERTOS_SO_TCP_RECV_HANDLER      ( 7 )  /* Install a callback for receiving TCP data. Supply pointer to 'F_TCP_UDP_Handler_t' (see below) */
-        #define FREERTOS_SO_TCP_SENT_HANDLER      ( 8 )  /* Install a callback for sending TCP data. Supply pointer to 'F_TCP_UDP_Handler_t' (see below) */
-        #define FREERTOS_SO_UDP_RECV_HANDLER      ( 9 )  /* Install a callback for receiving UDP data. Supply pointer to 'F_TCP_UDP_Handler_t' (see below) */
-        #define FREERTOS_SO_UDP_SENT_HANDLER      ( 10 ) /* Install a callback for sending UDP data. Supply pointer to 'F_TCP_UDP_Handler_t' (see below) */
-    #endif /* ipconfigUSE_CALLBACKS */
+    #if ( ipconfigUSE_TCP == 1 )
+        #define FREERTOS_SO_SNDBUF    ( 4 ) /* Set the size of the send buffer (TCP only). */
+        #define FREERTOS_SO_RCVBUF    ( 5 ) /* Set the size of the receive buffer (TCP only). */
+    #endif
 
-    #define FREERTOS_SO_REUSE_LISTEN_SOCKET       ( 11 ) /* When a listening socket gets connected, do not create a new one but re-use it */
-    #define FREERTOS_SO_CLOSE_AFTER_SEND          ( 12 ) /* As soon as the last byte has been transmitted, finalise the connection */
-    #define FREERTOS_SO_WIN_PROPERTIES            ( 13 ) /* Set all buffer and window properties in one call, parameter is pointer to WinProperties_t */
-    #define FREERTOS_SO_SET_FULL_SIZE             ( 14 ) /* Refuse to send packets smaller than MSS  */
+    #if ( ipconfigUSE_CALLBACKS == 1 )
 
-    #define FREERTOS_SO_STOP_RX                   ( 15 ) /* Temporarily hold up reception, used by streaming client */
+/* Supply pointer to 'F_TCP_UDP_Handler_t' for pvOptionValue parameter in
+ * FreeRTOS_setsockopt() */
+        #define FREERTOS_SO_TCP_CONN_HANDLER    ( 6 )  /* Install a callback for (dis) connection events. */
+        #define FREERTOS_SO_TCP_RECV_HANDLER    ( 7 )  /* Install a callback for receiving TCP data. */
+        #define FREERTOS_SO_TCP_SENT_HANDLER    ( 8 )  /* Install a callback for sending TCP data. */
+        #define FREERTOS_SO_UDP_RECV_HANDLER    ( 9 )  /* Install a callback for receiving UDP data. */
+        #define FREERTOS_SO_UDP_SENT_HANDLER    ( 10 ) /* Install a callback for sending UDP data. */
+    #endif
+
+    #if ( ipconfigUSE_TCP == 1 )
+        #define FREERTOS_SO_REUSE_LISTEN_SOCKET    ( 11 ) /* When a listening socket gets connected, do not create a new one but re-use it. */
+        #define FREERTOS_SO_CLOSE_AFTER_SEND       ( 12 ) /* As soon as the last byte has been transmitted, finalise the connection. */
+        #define FREERTOS_SO_WIN_PROPERTIES         ( 13 ) /* Set all buffer and window properties in one call, parameter is pointer to WinProperties_t. */
+        #define FREERTOS_SO_SET_FULL_SIZE          ( 14 ) /* Refuse to send packets smaller than MSS. */
+        #define FREERTOS_SO_STOP_RX                ( 15 ) /* Temporarily hold up reception, used by streaming client. */
+    #endif
 
     #if ( ipconfigUDP_MAX_RX_PACKETS > 0 )
-        #define FREERTOS_SO_UDP_MAX_RX_PACKETS    ( 16 ) /* This option helps to limit the maximum number of packets a UDP socket will buffer */
+        #define FREERTOS_SO_UDP_MAX_RX_PACKETS    ( 16 ) /* This option helps to limit the maximum number of packets a UDP socket will buffer. */
     #endif
 
     #if ( ipconfigSOCKET_HAS_USER_WAKE_CALLBACK == 1 )
-        #define FREERTOS_SO_WAKEUP_CALLBACK           ( 17 )
+        #define FREERTOS_SO_WAKEUP_CALLBACK    ( 17 )
     #endif
 
-    #define FREERTOS_SO_SET_LOW_HIGH_WATER            ( 18 )
+    #if ( ipconfigUSE_TCP == 1 )
+        #define FREERTOS_SO_SET_LOW_HIGH_WATER    ( 18 )
+    #endif
 
-    #define FREERTOS_NOT_LAST_IN_FRAGMENTED_PACKET    ( 0x80 ) /* For internal use only, but also part of an 8-bit bitwise value. */
-    #define FREERTOS_FRAGMENTED_PACKET                ( 0x40 ) /* For internal use only, but also part of an 8-bit bitwise value. */
+    #if ( 0 ) /* Not Used */
+        #define FREERTOS_NOT_LAST_IN_FRAGMENTED_PACKET    ( 0x80 )
+        #define FREERTOS_FRAGMENTED_PACKET                ( 0x40 )
+    #endif
 
-/* Values for flag for FreeRTOS_shutdown(). */
-    #define FREERTOS_SHUT_RD                          ( 0 ) /* Not really at this moment, just for compatibility of the interface */
-    #define FREERTOS_SHUT_WR                          ( 1 )
-    #define FREERTOS_SHUT_RDWR                        ( 2 )
-
-/* Values for flag for FreeRTOS_recv(). */
-    #define FREERTOS_MSG_OOB                          ( 2 )  /* process out-of-band data */
-    #define FREERTOS_MSG_PEEK                         ( 4 )  /* peek at incoming message */
-    #define FREERTOS_MSG_DONTROUTE                    ( 8 )  /* send without using routing tables */
-    #define FREERTOS_MSG_DONTWAIT                     ( 16 ) /* Can be used with recvfrom(), sendto(), recv(), and send(). */
-
-
-/**
- * Structure to hold the properties of Tx/Rx buffers and windows.
- */
-    typedef struct xWIN_PROPS
-    {
-        /* Properties of the Tx buffer and Tx window */
-        int32_t lTxBufSize; /**< Unit: bytes */
-        int32_t lTxWinSize; /**< Unit: MSS */
-
-        /* Properties of the Rx buffer and Rx window */
-        int32_t lRxBufSize; /**< Unit: bytes */
-        int32_t lRxWinSize; /**< Unit: MSS */
-    } WinProperties_t;
-
-/**
- * Structure to pass for the 'FREERTOS_SO_SET_LOW_HIGH_WATER' option
- */
-    typedef struct xLOW_HIGH_WATER
-    {
-        size_t uxLittleSpace; /**< Send a STOP when buffer space drops below X bytes */
-        size_t uxEnoughSpace; /**< Send a GO when buffer space grows above X bytes */
-    } LowHighWater_t;
+    #if ( ipconfigUSE_TCP == 1 )
+/* Values for 'xHow' flag of FreeRTOS_shutdown(), currently ignored. */
+        #define FREERTOS_SHUT_RD      ( 0 )
+        #define FREERTOS_SHUT_WR      ( 1 )
+        #define FREERTOS_SHUT_RDWR    ( 2 )
+    #endif
 
 /* For compatibility with the expected Berkeley sockets naming. */
     #define socklen_t    uint32_t
@@ -185,38 +165,15 @@
  */
     struct freertos_sockaddr
     {
-        /* _HT_ On 32- and 64-bit architectures, the addition of the two uint8_t
-         * fields doesn't make the structure bigger, due to alignment.
-         * The fields are inserted as a preparation for IPv6. */
-
-        /* sin_len and sin_family not used in the IPv4-only release. */
+/* _HT_ On 32- and 64-bit architectures, the addition of the two uint8_t
+ * fields sin_len and sin_family doesn't make the structure bigger, due to alignment.
+ * These fields are only inserted as a preparation for IPv6
+ * and are not used in the IPv4-only release. */
         uint8_t sin_len;    /**< length of this structure. */
         uint8_t sin_family; /**< FREERTOS_AF_INET. */
-        uint16_t sin_port;  /**< The port */
-        uint32_t sin_addr;  /**< The IP address */
+        uint16_t sin_port;  /**< The port. */
+        uint32_t sin_addr;  /**< The IP address. */
     };
-
-
-    extern const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
-                                            char * pcBuffer );
-
-    #if ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN
-
-        #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8UL ) |                                   \
-      ( ( uint32_t ) ( ucOctet0 ) ) )
-
-    #else /* ipconfigBYTE_ORDER */
-
-        #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8UL ) |                                   \
-      ( ( uint32_t ) ( ucOctet3 ) ) )
-
-    #endif /* ipconfigBYTE_ORDER */
 
 /* The socket type itself. */
     struct xSOCKET;
@@ -225,202 +182,233 @@
 
     extern BaseType_t xSocketValid( Socket_t xSocket );
 
-    #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-
-/* The SocketSet_t type is the equivalent to the fd_set type used by the
- * Berkeley API. */
-        struct xSOCKET_SET;
-        typedef struct xSOCKET_SET * SocketSet_t;
-    #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
-
 /**
  * FULL, UP-TO-DATE AND MAINTAINED REFERENCE DOCUMENTATION FOR ALL THESE
  * FUNCTIONS IS AVAILABLE ON THE FOLLOWING URL:
  * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/FreeRTOS_TCP_API_Functions.html
  */
+
+/* Common Socket Attributes. */
+
+/* Create a TCP or UDP socket. */
     Socket_t FreeRTOS_socket( BaseType_t xDomain,
                               BaseType_t xType,
                               BaseType_t xProtocol );
-    int32_t FreeRTOS_recvfrom( Socket_t xSocket,
-                               void * pvBuffer,
-                               size_t uxBufferLength,
-                               BaseType_t xFlags,
-                               struct freertos_sockaddr * pxSourceAddress,
-                               socklen_t * pxSourceAddressLength );
+
+/* Binds a socket to a local port number. */
+    BaseType_t FreeRTOS_bind( Socket_t xSocket,
+                              struct freertos_sockaddr const * pxAddress,
+                              socklen_t xAddressLength );
+
+/* Sets a socket option. */
+    BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
+                                    int32_t lLevel,
+                                    int32_t lOptionName,
+                                    const void * pvOptionValue,
+                                    size_t uxOptionLength );
+
+/* Close a socket. */
+    BaseType_t FreeRTOS_closesocket( Socket_t xSocket );
+
+    #if ( ipconfigSUPPORT_SIGNALS == 1 )
+/* Send a signal to the task which is waiting for a given socket. */
+        BaseType_t FreeRTOS_SignalSocket( Socket_t xSocket );
+
+/* Send a signal to the task which reads from this socket (FromISR version). */
+        BaseType_t FreeRTOS_SignalSocketFromISR( Socket_t xSocket,
+                                                 BaseType_t * pxHigherPriorityTaskWoken );
+    #endif
+
+/* End Common Socket Attributes */
+
+
+/* UDP Socket Attributes. */
+
+/* Send data to a UDP socket. */
     int32_t FreeRTOS_sendto( Socket_t xSocket,
                              const void * pvBuffer,
                              size_t uxTotalDataLength,
                              BaseType_t xFlags,
                              const struct freertos_sockaddr * pxDestinationAddress,
                              socklen_t xDestinationAddressLength );
-    BaseType_t FreeRTOS_bind( Socket_t xSocket,
-                              struct freertos_sockaddr const * pxAddress,
-                              socklen_t xAddressLength );
 
-/* function to get the local address and IP port */
+/* Receive data from a UDP socket */
+    int32_t FreeRTOS_recvfrom( Socket_t xSocket,
+                               void * pvBuffer,
+                               size_t uxBufferLength,
+                               BaseType_t xFlags,
+                               struct freertos_sockaddr * pxSourceAddress,
+                               socklen_t * pxSourceAddressLength );
+
+
+/* Function to get the local address and IP port. */
     size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
                                      struct freertos_sockaddr * pxAddress );
 
     #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 1 )
-        /* Returns true if an UDP socket exists bound to mentioned port number. */
+/* Returns true if an UDP socket exists bound to mentioned port number. */
         BaseType_t xPortHasUDPSocket( uint16_t usPortNr );
     #endif
 
-    #if ipconfigUSE_TCP == 1
+/* End UDP Socket Attributes */
 
+
+    #if ( ipconfigUSE_TCP == 1 )
+
+/* TCP Socket Attributes. */
+
+/**
+ * Structure to hold the properties of Tx/Rx buffers and windows.
+ */
+        typedef struct xWIN_PROPS
+        {
+            /* Properties of the Tx buffer and Tx window. */
+            int32_t lTxBufSize; /**< Unit: bytes. */
+            int32_t lTxWinSize; /**< Unit: MSS. */
+
+            /* Properties of the Rx buffer and Rx window. */
+            int32_t lRxBufSize; /**< Unit: bytes. */
+            int32_t lRxWinSize; /**< Unit: MSS. */
+        } WinProperties_t;
+
+/**
+ * Structure to pass for the 'FREERTOS_SO_SET_LOW_HIGH_WATER' option.
+ */
+        typedef struct xLOW_HIGH_WATER
+        {
+            size_t uxLittleSpace; /**< Send a STOP when buffer space drops below X bytes */
+            size_t uxEnoughSpace; /**< Send a GO when buffer space grows above X bytes */
+        } LowHighWater_t;
+
+/* Connect a TCP socket to a remote socket. */
         BaseType_t FreeRTOS_connect( Socket_t xClientSocket,
                                      struct freertos_sockaddr * pxAddress,
                                      socklen_t xAddressLength );
+
+/* Places a TCP socket into a state where it is listening for and can accept
+ * incoming connection requests from remote sockets. */
         BaseType_t FreeRTOS_listen( Socket_t xSocket,
                                     BaseType_t xBacklog );
-        BaseType_t FreeRTOS_recv( Socket_t xSocket,
-                                  void * pvBuffer,
-                                  size_t uxBufferLength,
-                                  BaseType_t xFlags );
+
+/* Accept a connection on a TCP socket. */
+        Socket_t FreeRTOS_accept( Socket_t xServerSocket,
+                                  struct freertos_sockaddr * pxAddress,
+                                  socklen_t * pxAddressLength );
+
+/* Send data to a TCP socket. */
         BaseType_t FreeRTOS_send( Socket_t xSocket,
                                   const void * pvBuffer,
                                   size_t uxDataLength,
                                   BaseType_t xFlags );
-        Socket_t FreeRTOS_accept( Socket_t xServerSocket,
-                                  struct freertos_sockaddr * pxAddress,
-                                  socklen_t * pxAddressLength );
+
+/* Receive data from a TCP socket */
+        BaseType_t FreeRTOS_recv( Socket_t xSocket,
+                                  void * pvBuffer,
+                                  size_t uxBufferLength,
+                                  BaseType_t xFlags );
+
+/* Disable reads and writes on a connected TCP socket. */
         BaseType_t FreeRTOS_shutdown( Socket_t xSocket,
                                       BaseType_t xHow );
 
-        #if ( ipconfigSUPPORT_SIGNALS != 0 )
-            /* Send a signal to the task which is waiting for a given socket. */
-            BaseType_t FreeRTOS_SignalSocket( Socket_t xSocket );
+/* Returns the number of bytes available in the Rx buffer. */
+        BaseType_t FreeRTOS_rx_size( ConstSocket_t xSocket );
 
-/* Send a signal to the task which reads from this socket (FromISR
- * version). */
-            BaseType_t FreeRTOS_SignalSocketFromISR( Socket_t xSocket,
-                                                     BaseType_t * pxHigherPriorityTaskWoken );
-        #endif /* ipconfigSUPPORT_SIGNALS */
+        #define FreeRTOS_recvcount( xSocket )    FreeRTOS_rx_size( xSocket )
 
-/* Return the remote address and IP port. */
+/* Returns the free space in the Tx buffer. */
+        BaseType_t FreeRTOS_tx_space( ConstSocket_t xSocket );
+
+        #define FreeRTOS_outstanding( xSocket )    FreeRTOS_tx_size( xSocket )
+
+/* Returns the number of bytes stored in the Tx buffer. */
+        BaseType_t FreeRTOS_tx_size( ConstSocket_t xSocket );
+
+/* Returns pdTRUE if TCP socket is connected. */
+        BaseType_t FreeRTOS_issocketconnected( ConstSocket_t xSocket );
+
+/* Return the remote address and IP port of a connected TCP Socket. */
         BaseType_t FreeRTOS_GetRemoteAddress( ConstSocket_t xSocket,
                                               struct freertos_sockaddr * pxAddress );
 
-        #if ( ipconfigUSE_TCP == 1 )
-
-/* Returns pdTRUE if TCP socket is connected. */
-            BaseType_t FreeRTOS_issocketconnected( ConstSocket_t xSocket );
+/* Returns the number of bytes that may be added to txStream. */
+        BaseType_t FreeRTOS_maywrite( ConstSocket_t xSocket );
 
 /* Returns the actual size of MSS being used. */
-            BaseType_t FreeRTOS_mss( ConstSocket_t xSocket );
-
-        #endif /* ( ipconfigUSE_TCP == 1 ) */
+        BaseType_t FreeRTOS_mss( ConstSocket_t xSocket );
 
 /* For internal use only: return the connection status. */
         BaseType_t FreeRTOS_connstatus( ConstSocket_t xSocket );
 
-/* Returns the number of bytes that may be added to txStream */
-        BaseType_t FreeRTOS_maywrite( ConstSocket_t xSocket );
-
-/*
- * Two helper functions, mostly for testing
- * rx_size returns the number of bytes available in the Rx buffer
- * tx_space returns the free space in the Tx buffer
- */
-        #if ( ipconfigUSE_TCP == 1 )
-            BaseType_t FreeRTOS_rx_size( ConstSocket_t xSocket );
-            BaseType_t FreeRTOS_tx_space( ConstSocket_t xSocket );
-            BaseType_t FreeRTOS_tx_size( ConstSocket_t xSocket );
-        #endif
-
-/* Returns the number of outstanding bytes in txStream. */
-
-/* The function FreeRTOS_outstanding() was already implemented
- * FreeRTOS_tx_size(). */
-        #define FreeRTOS_outstanding( xSocket )    FreeRTOS_tx_size( xSocket )
-
-/* Returns the number of bytes in the socket's rxStream. */
-
-/* The function FreeRTOS_recvcount() was already implemented
- * FreeRTOS_rx_size(). */
-        #define FreeRTOS_recvcount( xSocket )    FreeRTOS_rx_size( xSocket )
-
-/*
- * For advanced applications only:
+/* For advanced applications only:
  * Get a direct pointer to the circular transmit buffer.
- * '*pxLength' will contain the number of bytes that may be written.
- */
+ * '*pxLength' will contain the number of bytes that may be written. */
         uint8_t * FreeRTOS_get_tx_head( ConstSocket_t xSocket,
                                         BaseType_t * pxLength );
 
-    #endif /* ipconfigUSE_TCP */
+/* For the web server: borrow the circular Rx buffer for inspection
+ * HTML driver wants to see if a sequence of 13/10/13/10 is available. */
+        const struct xSTREAM_BUFFER * FreeRTOS_get_rx_buf( ConstSocket_t xSocket );
 
-    #if ( ipconfigUSE_CALLBACKS != 0 )
+        void FreeRTOS_netstat( void );
+
+/* End TCP Socket Attributes. */
+
+    #endif /* ( ipconfigUSE_TCP == 1 ) */
+
+    #if ( ipconfigUSE_CALLBACKS == 1 )
 
 /*
- * Connect / disconnect handler for a TCP socket
+ * Callback handlers for a socket
+ * User-provided functions will be called for each sockopt callback defined
  * For example:
- *       static void vMyConnectHandler (Socket_t xSocket, BaseType_t ulConnected)
- *       {
- *       }
- *       F_TCP_UDP_Handler_t xHnd = { vMyConnectHandler };
- *       FreeRTOS_setsockopt( sock, 0, FREERTOS_SO_TCP_CONN_HANDLER, ( void * ) &xHnd, sizeof( xHnd ) );
+ * static void xOnTCPConnect( Socket_t xSocket, BaseType_t ulConnected ) {}
+ * static BaseType_t xOnTCPReceive( Socket_t xSocket, void * pData, size_t uxLength )
+ * {
+ *     // handle the message
+ *     return pdFALSE; // Not Used
+ * }
+ * static void xOnTCPSent( Socket_t xSocket, size_t xLength ) {}
+ * static BaseType_t xOnUDPReceive( Socket_t xSocket, void * pData, size_t xLength, const struct freertos_sockaddr * pxFrom, const struct freertos_sockaddr * pxDest )
+ * {
+ *     // handle the message
+ *     return pdTRUE; // message processing is finished, don't store
+ * }
+ * static void xOnUDPSent( Socket_t xSocket, size_t xLength ) {}
+ * F_TCP_UDP_Handler_t xHand = { xOnTCPConnect, xOnTCPReceive, xOnTCPSent, xOnUDPReceive, xOnUDPSent };
+ * FreeRTOS_setsockopt( sock, 0, FREERTOS_SO_TCP_CONN_HANDLER, ( void * ) &xHand, 0 );
  */
 
-        #ifdef __COVERITY__
-            typedef void (* FOnConnected_t )( Socket_t xSocket,
-                                              BaseType_t ulConnected );
-        #else
-            typedef void (* FOnConnected_t )( Socket_t,
-                                              BaseType_t );
-        #endif
+/* Connected callback handler for a TCP Socket. */
+        typedef void (* FOnConnected_t )( Socket_t xSocket,
+                                          BaseType_t ulConnected );
 
-/*
- * Reception handler for a TCP socket
- * A user-proved function will be called on reception of a message
- * If the handler returns a positive number, the messages will not be stored
- * For example:
- *    static BaseType_t xOnTCPReceive( Socket_t xSocket, void * pData, size_t uxLength )
- *    {
- *        // handle the message
- *        return 1;
- *    }
- *    F_TCP_UDP_Handler_t xHand = { xOnTCPReceive };
- *    FreeRTOS_setsockopt( sock, 0, FREERTOS_SO_TCP_RECV_HANDLER, ( void * ) &xHand, sizeof( xHand ) );
- */
-        #ifdef __COVERITY__
-            typedef BaseType_t (* FOnTCPReceive_t )( Socket_t xSocket,
-                                                     void * pData,
-                                                     size_t xLength );
-            typedef void (* FOnTCPSent_t )( Socket_t xSocket,
-                                            size_t xLength );
-        #else
-            typedef BaseType_t (* FOnTCPReceive_t )( Socket_t,
-                                                     void *,
-                                                     size_t );
-            typedef void (* FOnTCPSent_t )( Socket_t,
-                                            size_t );
-        #endif /* ifdef __COVERITY__ */
+/* Received callback handler for a TCP Socket.
+ * Return value is not currently used. */
+        typedef BaseType_t (* FOnTCPReceive_t )( Socket_t xSocket,
+                                                 void * pData,
+                                                 size_t xLength );
 
-/*
- * Reception handler for a UDP socket
- * A user-proved function will be called on reception of a message
- * If the handler returns a positive number, the messages will not be stored
- */
-        #ifdef __COVERITY__
-            typedef BaseType_t (* FOnUDPReceive_t ) ( Socket_t xSocket,
-                                                      void * pData,
-                                                      size_t xLength,
-                                                      const struct freertos_sockaddr * pxFrom,
-                                                      const struct freertos_sockaddr * pxDest );
-            typedef void (* FOnUDPSent_t )( Socket_t xSocket,
-                                            size_t xLength );
-        #else
-            typedef BaseType_t (* FOnUDPReceive_t ) ( Socket_t,
-                                                      void *,
-                                                      size_t,
-                                                      const struct freertos_sockaddr *,
-                                                      const struct freertos_sockaddr * );
-            typedef void (* FOnUDPSent_t )( Socket_t,
-                                            size_t );
-        #endif /* ifdef __COVERITY__ */
+/* Sent callback handler for a TCP Socket. */
+        typedef void (* FOnTCPSent_t )( Socket_t xSocket,
+                                        size_t xLength );
 
-        typedef union xTCP_UDP_HANDLER
+/* Received callback handler for a UDP Socket.
+ * If a positive number is returned, the messages will not be stored in
+ * xWaitingPacketsList for later processing by recvfrom(). */
+        typedef BaseType_t (* FOnUDPReceive_t ) ( Socket_t xSocket,
+                                                  void * pData,
+                                                  size_t xLength,
+                                                  const struct freertos_sockaddr * pxFrom,
+                                                  const struct freertos_sockaddr * pxDest );
+
+/* Sent callback handler for a UDP Socket */
+        typedef void (* FOnUDPSent_t )( Socket_t xSocket,
+                                        size_t xLength );
+
+/* The following values are used in the lOptionName parameter of setsockopt()
+ * to set the callback handlers options. */
+        typedef struct xTCP_UDP_HANDLER
         {
             FOnConnected_t pxOnTCPConnected; /* FREERTOS_SO_TCP_CONN_HANDLER */
             FOnTCPReceive_t pxOnTCPReceive;  /* FREERTOS_SO_TCP_RECV_HANDLER */
@@ -428,64 +416,87 @@
             FOnUDPReceive_t pxOnUDPReceive;  /* FREERTOS_SO_UDP_RECV_HANDLER */
             FOnUDPSent_t pxOnUDPSent;        /* FREERTOS_SO_UDP_SENT_HANDLER */
         } F_TCP_UDP_Handler_t;
-    #endif /* ( ipconfigUSE_CALLBACKS != 0 ) */
 
-    BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
-                                    int32_t lLevel,
-                                    int32_t lOptionName,
-                                    const void * pvOptionValue,
-                                    size_t uxOptionLength );
-    BaseType_t FreeRTOS_closesocket( Socket_t xSocket );
+    #endif /* ( ipconfigUSE_CALLBACKS == 1 ) */
 
-/* The following function header should be placed in FreeRTOS_DNS.h.
- * It is kept here because some applications  expect it in FreeRTOS_Sockets.h.*/
-    #ifndef __COVERITY__
-        uint32_t FreeRTOS_gethostbyname( const char * pcHostName );
-    #endif
+/* Conversion Functions */
+
+/* Converts an IP address expressed as a 32-bit number in network byte order
+ * to a string in decimal dot notation. */
+    extern const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
+                                            char * pcBuffer );
+
+    #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
+
+/* Converts an IP address expressed as four separate numeric octets into an
+ * IP address expressed as a 32-bit number in network byte order */
+        #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
+    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24UL ) |                                  \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16UL ) |                                  \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8UL ) |                                   \
+      ( ( uint32_t ) ( ucOctet0 ) ) )
+
+    #else /* ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN ) */
+
+        #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
+    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24UL ) |                                  \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16UL ) |                                  \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8UL ) |                                   \
+      ( ( uint32_t ) ( ucOctet3 ) ) )
+
+    #endif /* ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
+
+/* Convert a null-terminated string in dot-decimal-notation (d.d.d.d)
+ * to a 32-bit unsigned integer. */
+    uint32_t FreeRTOS_inet_addr( const char * pcIPAddress );
 
     BaseType_t FreeRTOS_inet_pton( BaseType_t xAddressFamily,
                                    const char * pcSource,
                                    void * pvDestination );
+
     const char * FreeRTOS_inet_ntop( BaseType_t xAddressFamily,
                                      const void * pvSource,
                                      char * pcDestination,
                                      socklen_t uxSize );
 
-/* Convert a null-terminated string in dot-decimal-notation (d.d.d.d) to a 32-bit unsigned integer. */
-    uint32_t FreeRTOS_inet_addr( const char * pcIPAddress );
-
     BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
                                     void * pvDestination );
+
     const char * FreeRTOS_inet_ntop4( const void * pvSource,
                                       char * pcDestination,
                                       socklen_t uxSize );
 
-/** @brief This function converts a 48-bit MAC address to a human readable string. */
+/** @brief This function converts a human readable string, representing an 48-bit MAC address,
+ * into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba". */
+    BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
+                                    uint8_t * pucTarget );
 
+/** @brief This function converts a 48-bit MAC address to a human readable string. */
     void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
                               char * pcTarget,
                               char cTen,
                               char cSeparator );
 
-/** @brief This function converts a human readable string, representing an 48-bit MAC address,
- * into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba". */
+/* End Conversion Functions */
 
-    BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
-                                    uint8_t * pucTarget );
+    #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
+/* The SocketSet_t type is the equivalent to the fd_set type used by the
+ * Berkeley API. */
+        struct xSOCKET_SET;
+        typedef struct xSOCKET_SET * SocketSet_t;
 
-/*
- * For the web server: borrow the circular Rx buffer for inspection
- * HTML driver wants to see if a sequence of 13/10/13/10 is available
- */
-    const struct xSTREAM_BUFFER * FreeRTOS_get_rx_buf( ConstSocket_t xSocket );
+/* Create a socket set for use with the FreeRTOS_select() function */
+        SocketSet_t FreeRTOS_CreateSocketSet( void );
 
-    void FreeRTOS_netstat( void );
+        void FreeRTOS_DeleteSocketSet( SocketSet_t xSocketSet );
 
-    #if ipconfigSUPPORT_SELECT_FUNCTION == 1
+/* Block on a "socket set" until an event of interest occurs on a
+ * socket within the set. */
+        BaseType_t FreeRTOS_select( SocketSet_t xSocketSet,
+                                    TickType_t xBlockTimeTicks );
 
 /* For FD_SET and FD_CLR, a combination of the following bits can be used: */
-
         typedef enum eSELECT_EVENT
         {
             eSELECT_READ = 0x0001,
@@ -498,20 +509,24 @@
             /* end */
         } eSelectEvent_t;
 
-        SocketSet_t FreeRTOS_CreateSocketSet( void );
-        void FreeRTOS_DeleteSocketSet( SocketSet_t xSocketSet );
+/* Add a socket to a socket set, and set the event bits of interest
+ * for the added socket. */
         void FreeRTOS_FD_SET( Socket_t xSocket,
                               SocketSet_t xSocketSet,
                               EventBits_t xBitsToSet );
+
+/* Clear a set event bit of interest for a socket of the socket set.
+ * If all the event bits are clear then the socket will be removed
+ * from the socket set. */
         void FreeRTOS_FD_CLR( Socket_t xSocket,
                               SocketSet_t xSocketSet,
                               EventBits_t xBitsToClear );
+
+/* Check if a socket in a socket set has an event bit set. */
         EventBits_t FreeRTOS_FD_ISSET( Socket_t xSocket,
                                        SocketSet_t xSocketSet );
-        BaseType_t FreeRTOS_select( SocketSet_t xSocketSet,
-                                    TickType_t xBlockTimeTicks );
 
-    #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
+    #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
 
     #ifdef __cplusplus
         } /* extern "C" */
