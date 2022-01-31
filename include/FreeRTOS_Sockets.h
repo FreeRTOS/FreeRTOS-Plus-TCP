@@ -408,7 +408,7 @@
 
 /* The following values are used in the lOptionName parameter of setsockopt()
  * to set the callback handlers options. */
-        typedef union xTCP_UDP_HANDLER
+        typedef struct xTCP_UDP_HANDLER
         {
             FOnConnected_t pxOnTCPConnected; /* FREERTOS_SO_TCP_CONN_HANDLER */
             FOnTCPReceive_t pxOnTCPReceive;  /* FREERTOS_SO_TCP_RECV_HANDLER */
