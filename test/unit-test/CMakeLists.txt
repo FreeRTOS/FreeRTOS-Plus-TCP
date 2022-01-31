@@ -13,6 +13,14 @@ set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 set( CMAKE_C_STANDARD 99 )
 set( CMAKE_C_STANDARD_REQUIRED ON )
 
+# Set the platform specific variables to default value.
+set( UT_PLATFORM "Ubuntu" CACHE STRING "The platform on which the unit tests are compiled and executed." )
+set( SYSTEM_PKG_MNGR "DEFAULT" CACHE STRING "The package manager on the underlying OS." )
+set( SYSTEM_INSTALL_CMD "DEFAULT" CACHE STRING "The command to install a package." )
+
+# Flag to allow cmake to install tools required for running unit-tests.
+set( ALLOW_CMAKE_TO_INSTALL_TOOLS "0" CACHE STRING "Option which user can set to enable installation of certain tools required for running the unit-tests." )
+
 # Do not allow in-source build.
 if( ${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR} )
     message( FATAL_ERROR "In-source build is not allowed. Please build in a separate directory, such as ${PROJECT_SOURCE_DIR}/build." )
@@ -30,10 +38,100 @@ set( KERNEL_DIRECTORY ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel )
 # See if FreRTOS-Kernel is submoduled
 if( NOT EXISTS ${KERNEL_DIRECTORY}/include )
     # Inform the user of the actions
-    message( STATUS "FreeRTOS-Kernel is required for this build. Submoduling it..." )
+    message( WARNING "FreeRTOS-Kernel is required for this build. Submoduling it..." )
     execute_process( COMMAND git submodule update --init --checkout ${KERNEL_DIRECTORY}
                      WORKING_DIRECTORY ${MODULE_ROOT_DIR} )
 endif()
+
+# Define a CMock resource path.
+set( CMOCK_DIR ${MODULE_ROOT_DIR}/tools/CMock CACHE INTERNAL "CMock library source directory." )
+
+# Check if the CMock source directory exists, and if not present, clone the submodule
+# if BUILD_CLONE_SUBMODULES configuration is enabled.
+if( NOT EXISTS ${CMOCK_DIR}/src )
+    # Attempt to clone CMock and inform the user of the actions.
+    message( WARNING "CMock is required for this build. Submoduling it..." )
+    execute_process( COMMAND git submodule update --init --checkout --recursive ${CMOCK_DIR}
+                     WORKING_DIRECTORY ${MODULE_ROOT_DIR} )
+endif()
+
+
+if( NOT EXISTS ${CMOCK_DIR}/vendor/unity/docs )
+    # Attempt to clone Unity and inform the user of the actions.
+    message( WARNING "Unity is required for this build. Submoduling it..." )
+    execute_process( COMMAND git submodule update --init --checkout --recursive ${CMOCK_DIR}
+                     WORKING_DIRECTORY ${MODULE_ROOT_DIR} )
+endif()
+
+# Check for the platform/OS specific details only if user has allowed the Cmake to
+# install tools.
+if( ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
+    # If the platform is Ubuntu.
+    if( ${UT_PLATFORM} STREQUAL "Ubuntu" )
+        set( SYSTEM_PKG_MNGR "apt-get" )
+        set( SYSTEM_INSTALL_CMD "install" )
+    # Or the platform is MacOS.
+    elseif( ${UT_PLATFORM} STREQUAL "MacOS" )
+        set( SYSTEM_PKG_MNGR "brew" )
+        set( SYSTEM_INSTALL_CMD "install" )
+    # Or the platform is rpm based system.
+    elseif( ${UT_PLATFORM} STREQUAL "RPMSystem" )
+        set( SYSTEM_PKG_MNGR "yum" )
+        set( SYSTEM_INSTALL_CMD "install" )
+    else()
+        # Otherwise, check whether user has given any system package manager and
+        # corresponding command.
+        if( ( "${SYSTEM_PKG_MNGR}" STREQUAL "" ) OR ( "${SYSTEM_INSTALL_CMD}" STREQUAL "" ) )
+            message( FATAL_ERROR "Wrong platform specified. While invoking the cmake command, you can choose the platform as shown below\n"
+                                 "Only 'Ubuntu', 'RPMSystem' and 'MacOS' are valid options.\n"
+                                 "    cmake -S. -B build <Additional commands/options> -DUT_PLATFORM=Ubuntu\n"
+                                 "Otherwise, you can set the package manager and the install command. Example for Red Hat Enterprise Linux:\n"
+                                 "    cmake -S. -B build <Additional commands/options> -DSYSTEM_PKG_MNGR=yum -DSYSTEM_INSTALL_CMD=install" )
+        endif()
+    endif()
+endif()
+
+function( find_and_install
+              UTILITY
+              PKG_MNGR
+              INSTALL_CMD
+              ALLOW_CMAKE_TO_INSTALL )
+
+    # Clear the cache
+    unset( TOOL_found CACHE )
+
+    # Find the utility.
+    find_program( TOOL_found ${UTILITY} NO_CACHE )
+
+    message( "Found - ${TOOL_found}" )
+
+    if( NOT TOOL_found )
+        message( WARNING "${UTILITY} not found..." )
+
+        if( ${ALLOW_CMAKE_TO_INSTALL} )
+            # The utility was not found, install it and inform the user of the location of installation.
+            message( WARNING "${UTILITY} utility was not found. Installing it." )
+            execute_process( COMMAND ${PKG_MNGR} ${INSTALL_CMD} ${UTILITY} )
+
+            find_program( TOOL_found ${UTILITY} )
+
+            if( NOT TOOL_found )
+                message( FATAL_ERROR "Could not install ${UTILITY}. Stopping. Please install the tool manually." )
+            endif()
+            message( STATUS "${UTILITY} installed at location ${TOOL_found}" )
+        else()
+            message( FATAL_ERROR "${UTILITY} utility was not found in the system path.\n"
+                                 "You may choose to install it yourself, or set ALLOW_CMAKE_TO_INSTALL_TOOLS to 1 while\n"
+                                 "invoking CMake to let the script install unifdef, lcov and ruby. You can set the macro as shown below\n"
+                                 "    cmake <all your options go here> -DALLOW_CMAKE_TO_INSTALL_TOOLS=1" )
+        endif()
+    endif()
+endfunction()
+
+# Find and install the tools required for running the unit-tests if the user allows it.
+find_and_install( unifdef ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
+find_and_install( lcov    ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
+find_and_install( ruby    ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
 
 # Set the include directories
 string( APPEND GLOBAL_INCLUDES "-I ${MODULE_ROOT_DIR}/include ")
@@ -121,23 +219,8 @@ include( ${UNIT_TEST_DIR}/TCPFilePaths.cmake )
 
 #  ==================================== Test Configuration ========================================
 
-# Define a CMock resource path.
-set( CMOCK_DIR ${MODULE_ROOT_DIR}/tools/CMock CACHE INTERNAL "CMock library source directory." )
-
 # Include CMock build configuration.
 include( cmock_build.cmake )
-
-# Check if the CMock source directory exists, and if not present, clone the submodule
-# if BUILD_CLONE_SUBMODULES configuration is enabled.
-if( NOT EXISTS ${CMOCK_DIR}/src )
-    # Attempt to clone CMock.
-    if( ${BUILD_CLONE_SUBMODULES} )
-        clone_cmock()
-    else()
-        message( FATAL_ERROR "The required submodule CMock does not exist. Either clone it manually, or set BUILD_CLONE_SUBMODULES to 'ON' to automatically clone it during build." )
-    endif()
-endif()
-
 
 # Add unit test and coverage configuration.
 
