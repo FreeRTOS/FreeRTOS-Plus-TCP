@@ -91,72 +91,47 @@ if( ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
     endif()
 endif()
 
-# Find 'unifdef' utility.
-find_program( UNIFDEF_found unifdef )
+function( find_and_install
+              UTILITY
+              PKG_MNGR
+              INSTALL_CMD
+              ALLOW_CMAKE_TO_INSTALL )
 
-if( NOT UNIFDEF_found )
-    if( ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
-        # unifdef was not found, install it and inform the user of the location of installation.
-        message( WARNING "unifdef utility not found. Installing it." )
-        execute_process( COMMAND ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} unifdef )
+    # Clear the cache
+    unset( TOOL_found CACHE )
 
-        find_program( UNIFDEF_found unifdef )
-        if( NOT UNIFDEF_found )
-            message( FATAL_ERROR "Could not install unifdef. Stopping. Please install the tool manually." )
+    # Find the utility.
+    find_program( TOOL_found ${UTILITY} NO_CACHE )
+
+    message( "Found - ${TOOL_found}" )
+
+    if( NOT TOOL_found )
+        message( WARNING "${UTILITY} not found..." )
+
+        if( ${ALLOW_CMAKE_TO_INSTALL} )
+            # The utility was not found, install it and inform the user of the location of installation.
+            message( WARNING "${UTILITY} utility was not found. Installing it." )
+            execute_process( COMMAND ${PKG_MNGR} ${INSTALL_CMD} ${UTILITY} )
+
+            find_program( TOOL_found ${UTILITY} )
+
+            if( NOT TOOL_found )
+                message( FATAL_ERROR "Could not install ${UTILITY}. Stopping. Please install the tool manually." )
+            endif()
+            message( STATUS "${UTILITY} installed at location ${TOOL_found}" )
+        else()
+            message( FATAL_ERROR "${UTILITY} utility was not found in the system path.\n"
+                                 "You may choose to install it yourself, or set ALLOW_CMAKE_TO_INSTALL_TOOLS to 1 while\n"
+                                 "invoking CMake to let the script install unifdef, lcov and ruby. You can set the macro as shown below\n"
+                                 "    cmake <all your options go here> -DALLOW_CMAKE_TO_INSTALL_TOOLS=1" )
         endif()
-        message( STATUS "unifdef installed at location ${UNIFDEF_found}" )
-    else()
-        message( FATAL_ERROR "unifdef utility was not found in the system path.\n"
-                             "You may choose to install it yourself, or set ALLOW_CMAKE_TO_INSTALL_TOOLS to 1 while\n"
-                             "invoking CMake to let the script install unifdef, lcov and ruby. You can set the macro as shown below\n"
-                             "    cmake <all your options go here> -DALLOW_CMAKE_TO_INSTALL_TOOLS=1" )
     endif()
-endif()
+endfunction()
 
-# Find 'lcov' utility.
-find_program( LCOV_found lcov )
-
-if( NOT LCOV_found )
-    if( ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
-        # lcov was not found, install it and inform the user of the location of installation.
-        message( WARNING "lcov utility not found. Installing it." )
-        execute_process( COMMAND ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} lcov )
-
-        find_program( LCOV_found lcov )
-        if( NOT LCOV_found )
-            message( FATAL_ERROR "Could not install lcov. Stopping. Please install the tool manually." )
-        endif()
-        message( STATUS "lcov installed at location ${LCOV_found}" )
-    else()
-        message( FATAL_ERROR "lcov utility was not found in the system path.\n"
-                             "You may choose to install it yourself, or set ALLOW_CMAKE_TO_INSTALL_TOOLS to 1 while\n"
-                             "invoking CMake to let the script install unifdef, lcov and ruby. You can set the macro as shown below\n"
-                             "    cmake <all your options go here> -DALLOW_CMAKE_TO_INSTALL_TOOLS=1" )
-    endif()
-endif()
-
-# Find whether ruby is installed.
-find_program( RUBY_found ruby )
-
-if( NOT RUBY_found )
-    if( ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
-        # Ruby was not found, install it and inform the user of the location of installation.
-        message( WARNING "Ruby (required by CMock) not found. Installing it." )
-        execute_process( COMMAND ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} ruby )
-
-        find_program( RUBY_found ruby )
-        if( NOT RUBY_found )
-            message( FATAL_ERROR "Could not install Ruby. Stopping. Please install Ruby manually." )
-        endif()
-        message( STATUS "ruby installed at location ${RUBY_found}" )
-    else()
-        message( FATAL_ERROR "Ruby was not found in the system path.\n"
-                             "You may choose to install it yourself, or set ALLOW_CMAKE_TO_INSTALL_TOOLS to 1 while\n"
-                             "invoking CMake to let the script install unifdef, lcov and ruby. You can set the macro as shown below\n"
-                             "    cmake <all your options go here> -DALLOW_CMAKE_TO_INSTALL_TOOLS=1" )
-    endif()
-
-endif()
+# FInd and install the tools required for running the unit-tests of the user allows it.
+find_and_install( unifdef ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
+find_and_install( lcov    ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
+find_and_install( ruby    ${SYSTEM_PKG_MNGR} ${SYSTEM_INSTALL_CMD} ${ALLOW_CMAKE_TO_INSTALL_TOOLS} )
 
 # Set the include directories
 string( APPEND GLOBAL_INCLUDES "-I ${MODULE_ROOT_DIR}/include ")
