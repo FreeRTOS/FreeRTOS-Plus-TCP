@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP V2.4.0
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -1234,21 +1234,38 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
     configASSERT( xNetworkEventQueue == NULL );
     configASSERT( xIPTaskHandle == NULL );
 
-    /* This is a 64-bit platform, make sure there is enough space in
-     * pucEthernetBuffer to store a pointer. */
-    configASSERT( ( sizeof( uintptr_t ) != 8U ) || ( ipconfigBUFFER_PADDING >= 14 ) );
+    #if ( configASSERT_DEFINED == 1 )
+        {
+            volatile size_t xSize = sizeof( uintptr_t );
 
-    /* But it must have this strange alignment: */
-    configASSERT( ( sizeof( uintptr_t ) != 8U ) || ( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 ) );
+            /* This is a 64-bit platform, make sure there is enough space in
+             * pucEthernetBuffer to store a pointer. */
+            configASSERT( ( xSize != 8U ) || ( ipconfigBUFFER_PADDING >= 14 ) );
 
-    /* Check if MTU is big enough. */
-    configASSERT( ( ( size_t ) ipconfigNETWORK_MTU ) >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
-    /* Check structure packing is correct. */
-    configASSERT( sizeof( EthernetHeader_t ) == ipEXPECTED_EthernetHeader_t_SIZE );
-    configASSERT( sizeof( ARPHeader_t ) == ipEXPECTED_ARPHeader_t_SIZE );
-    configASSERT( sizeof( IPHeader_t ) == ipEXPECTED_IPHeader_t_SIZE );
-    configASSERT( sizeof( ICMPHeader_t ) == ipEXPECTED_ICMPHeader_t_SIZE );
-    configASSERT( sizeof( UDPHeader_t ) == ipEXPECTED_UDPHeader_t_SIZE );
+            /* But it must have this strange alignment: */
+            configASSERT( ( xSize != 8U ) || ( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 ) );
+
+            xSize = ( size_t ) ipconfigNETWORK_MTU;
+            /* Check if MTU is big enough. */
+            configASSERT( xSize >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
+
+            xSize = sizeof( EthernetHeader_t );
+            /* Check structure packing is correct. */
+            configASSERT( xSize == ipEXPECTED_EthernetHeader_t_SIZE );
+
+            xSize = sizeof( ARPHeader_t );
+            configASSERT( xSize == ipEXPECTED_ARPHeader_t_SIZE );
+
+            xSize = sizeof( IPHeader_t );
+            configASSERT( xSize == ipEXPECTED_IPHeader_t_SIZE );
+
+            xSize = sizeof( ICMPHeader_t );
+            configASSERT( xSize == ipEXPECTED_ICMPHeader_t_SIZE );
+
+            xSize = sizeof( UDPHeader_t );
+            configASSERT( xSize == ipEXPECTED_UDPHeader_t_SIZE );
+        }
+    #endif /* if ( configASSERT_DEFINED == 1 ) */
 
     /* Attempt to create the queue used to communicate with the IP task. */
     #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
