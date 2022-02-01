@@ -610,7 +610,9 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
         }
 
         /* Writing for debug - can look at it in RX processing */
-        xemacpsif->rxSegments[ iIndex ].reserved = iIndex;
+        #ifdef __aarch64__
+            xemacpsif->rxSegments[ iIndex ].reserved = iIndex;
+        #endif
 
         pxDMA_rx_buffers[ iIndex ] = pxBuffer;
 
