@@ -429,6 +429,26 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
             heth->gState = HAL_ETH_STATE_READY;
             heth->RxState = HAL_ETH_STATE_READY;
 
+            /*
+             * Disable the interrupts that are related to the MMC counters.
+             * These interrupts are enabled by default. The interrupt can
+             * only be acknowledged by reading the corresponding counter.
+             */
+
+            heth->Instance->MMCRIMR =
+                ETH_MMCRIMR_RXLPITRCIM |  /* RXLPITRC */
+                ETH_MMCRIMR_RXLPIUSCIM |  /* RXLPIUSC */
+                ETH_MMCRIMR_RXUCGPIM |    /* RXUCASTG */
+                ETH_MMCRIMR_RXALGNERPIM | /* RXALGNERR */
+                ETH_MMCRIMR_RXCRCERPIM;   /* RXCRCERR */
+
+            heth->Instance->MMCTIMR =
+                ETH_MMCTIMR_TXLPITRCIM | /* TXLPITRC */
+                ETH_MMCTIMR_TXLPIUSCIM | /* TXLPIUSC */
+                ETH_MMCTIMR_TXGPKTIM |   /* TXPKTG */
+                ETH_MMCTIMR_TXMCOLGPIM | /* TXMULTCOLG */
+                ETH_MMCTIMR_TXSCOLGPIM;  /* TXSNGLCOLG */
+
             return HAL_OK;
         }
 

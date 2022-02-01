@@ -126,6 +126,15 @@
     #define ipICMP_NEIGHBOR_SOLICITATION_IPv6          ( ( uint8_t ) 135U )
     #define ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6         ( ( uint8_t ) 136U )
 
+    #define ipIPv6_EXT_HEADER_HOP_BY_HOP               0U
+    #define ipIPv6_EXT_HEADER_DESTINATION_OPTIONS      60U
+    #define ipIPv6_EXT_HEADER_ROUTING_HEADER           43U
+    #define ipIPv6_EXT_HEADER_FRAGMENT_HEADER          44U
+    #define ipIPv6_EXT_HEADER_AUTHEN_HEADER            51U
+    #define ipIPv6_EXT_HEADER_SECURE_PAYLOAD           50U
+    /* Destination options may follow here in case there are no routing options. */
+    #define ipIPv6_EXT_HEADER_MOBILITY_HEADER          135U
+
 /* The character used to fill ICMP echo requests, and therefore also the
  * character expected to fill ICMP echo replies. */
     #define ipECHO_DATA_FILL_BYTE                      'x'
@@ -324,8 +333,6 @@
                                     const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                                     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 
-        TaskHandle_t FreeRTOS_GetIPTaskHandle( void );
-
 /* The following 2 functions also assume that there is only 1 network interface.
  * The new function are called: FreeRTOS_GetEndPointConfiguration() and
  * FreeRTOS_SetEndPointConfiguration(), see below. */
@@ -339,6 +346,8 @@
                                                const uint32_t * pulGatewayAddress,
                                                const uint32_t * pulDNSServerAddress );
     #endif /* if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+
+    TaskHandle_t FreeRTOS_GetIPTaskHandle( void );
 
     #if ( ipconfigUSE_IPv6 != 0 )
         /* The last parameter is either ipTYPE_IPv4 or ipTYPE_IPv6. */
@@ -417,6 +426,8 @@
  *  uint32_t FreeRTOS_GetDNSServerAddress( void );
  *  uint32_t FreeRTOS_GetNetmask( void );
  */
+
+    void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
 
 /* xARPWaitResolution checks if an IPv4 address is already known. If not
  * it may send an ARP request and wait for a reply.  This function will

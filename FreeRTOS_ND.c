@@ -465,7 +465,6 @@
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
         ICMPPacket_IPv6_t * pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
-        ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 );
 
         configASSERT( pxEndPoint != NULL );
         configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
@@ -486,7 +485,7 @@
             {
                 /* Many EMAC peripherals will only calculate the ICMP checksum
                  * correctly if the field is nulled beforehand. */
-                pxICMPHeader_IPv6->usChecksum = 0;
+                pxICMPPacket->xICMPHeaderIPv6.usChecksum = 0;
             }
         #endif
 

@@ -41,6 +41,7 @@ atmel
 automaticpadcrcstrip
 autonegotiation
 aws
+ba
 backoff
 backofflimit
 backpressure
@@ -144,10 +145,13 @@ cpu
 cpus
 cr
 crc
+cresult
 crs
+cseparator
 csn
 csr
 csv
+cten
 ctrl
 curtok
 cwd
@@ -311,6 +315,7 @@ etype
 eunknown
 eventbits
 ewaitingacknowledge
+ewaitingarpresolution
 ewaitingoffer
 ewaitingsendfirstdiscover
 ewouldblock
@@ -583,6 +588,7 @@ mtu
 multicastframesfilter
 mutex
 mutexes
+mydevice
 na
 nack
 nanosec
@@ -674,6 +680,7 @@ pcs
 pcservername
 pcservice
 pcsource
+pctarget
 pcto
 pctype
 pd
@@ -824,6 +831,7 @@ pucpayload
 pucptr
 pucrecvdata
 pucreturn
+pucsource
 pucstart
 puctarget
 pucudppayload
@@ -894,6 +902,7 @@ pxip
 pxipaddress
 pxipheader
 pxippacket
+pxiswaitingarpresolution
 pxiterator
 pxlastaddress
 pxlength
@@ -1388,6 +1397,7 @@ usclass
 uscurmss
 usdatalength
 usdestinationport
+usdnstype
 usduidtype
 uselapsedtime
 userdaata
@@ -1418,6 +1428,7 @@ uspayloadlength
 uspeerportnumber
 usport
 usportnr
+usportnumber
 usprotocolbytes
 usprotocoltype
 usquestions
@@ -1503,8 +1514,8 @@ uxrxwinsize
 uxschedulersuspended
 uxsecs
 uxsize
-uxsourcebytesremaining
 uxsocketsize
+uxsourcebytesremaining
 uxsourcelen
 uxstart
 uxstreambufferadd
@@ -1648,6 +1659,7 @@ xdocheck
 xdolog
 xdomain
 xdorandom
+xdoremove
 xdoreset
 xdostore
 xdumpingready
@@ -1708,6 +1720,7 @@ xipversion
 xisbound
 xisforrx
 xisinputstream
+xiswaitingarpresolution
 xitemvalue
 xlastacttime
 xlastalivetime
@@ -1779,6 +1792,7 @@ xrandomtaskhandle
 xrasolicitationrequest
 xready
 xreceiveblocktime
+xrecvaddress
 xregister
 xreleaseaftersend
 xremainingtime

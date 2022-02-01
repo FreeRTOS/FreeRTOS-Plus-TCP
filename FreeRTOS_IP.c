@@ -99,6 +99,12 @@
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
 #endif
 
+/** @brief Maximum time to wait for an ARP resolution while holding a packet. */
+#ifndef ipARP_RESOLUTION_MAX_DELAY
+    #define ipARP_RESOLUTION_MAX_DELAY    ( pdMS_TO_TICKS( 2000U ) )
+#endif
+
+
 /** @brief Defines how often the ARP timer callback function is executed.  The time is
  * shorter in the Windows simulator as simulated time is not real time. */
 #ifndef ipARP_TIMER_PERIOD_MS
@@ -170,6 +176,9 @@
     #define DEBUG_DECLARE_TRACE_VARIABLE( type, var, init )                        /**< Empty definition since ipconfigHAS_PRINTF != 1. */
     #define DEBUG_SET_TRACE_VARIABLE( var, value )                                 /**< Empty definition since ipconfigHAS_PRINTF != 1. */
 #endif
+
+/** @brief The pointer to buffer with packet waiting for ARP resolution. */
+NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
 
 /**
  * @brief Helper function to do a cast to a NetworkInterface_t pointer.
@@ -387,6 +396,10 @@ static IPTimer_t xNetworkTimer;
  * regular basis
  */
 
+/** @brief Timer to limit the maximum time a packet should be stored while
+ *         awaiting an ARP resolution. */
+static IPTimer_t xARPResolutionTimer;
+
 /** @brief ARP timer, to check its table entries. */
 static IPTimer_t xARPTimer;
 #if ( ipconfigUSE_TCP != 0 )
@@ -404,6 +417,12 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
 #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
     /** @brief Keep track of the lowest amount of space in 'xNetworkEventQueue'. */
     static UBaseType_t uxQueueMinimumSpace = ipconfigEVENT_QUEUE_LENGTH;
+#endif
+
+#if ( ipconfigUSE_IPv6 != 0 )
+    /** @brief Handle the IPv6 extension headers. */
+    static eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                                 BaseType_t xDoRemove );
 #endif
 
 /*-----------------------------------------------------------*/
@@ -587,6 +606,9 @@ static void prvIPTask_Initialise( void )
      * send this message if a previously connected network is disconnected. */
 
     prvIPTimerReload( &( xNetworkTimer ), pdMS_TO_TICKS( ipINITIALISATION_RETRY_DELAY ) );
+
+    /* Mark the timer as inactive since we are not waiting on any ARP resolution as of now. */
+    vIPSetARPResolutionTimerEnableState( pdFALSE );
 
     for( pxInterface = pxNetworkInterfaces; pxInterface != NULL; pxInterface = pxInterface->pxNext )
     {
@@ -947,7 +969,7 @@ static TickType_t prvCalculateSleepTime( void )
     {
         if( xARPTimer.ulRemainingTime < xMaximumSleepTime )
         {
-            xMaximumSleepTime = xARPTimer.ulReloadTime;
+            xMaximumSleepTime = xARPTimer.ulRemainingTime;
         }
     }
 
@@ -1007,6 +1029,25 @@ static void prvCheckNetworkTimers( void )
     if( prvIPTimerCheck( &xARPTimer ) != pdFALSE )
     {
         ( void ) xSendEventToIPTask( eARPTimerEvent );
+    }
+
+    /* Is the ARP resolution timer expired? */
+    if( prvIPTimerCheck( &xARPResolutionTimer ) != pdFALSE )
+    {
+        if( pxARPWaitingNetworkBuffer != NULL )
+        {
+            /* Disable the ARP resolution timer. */
+            vIPSetARPResolutionTimerEnableState( pdFALSE );
+
+            /* We have waited long enough for the ARP response. Now, free the network
+             * buffer. */
+            vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
+
+            /* Clear the pointer. */
+            pxARPWaitingNetworkBuffer = NULL;
+
+            iptraceDELAYED_ARP_TIMER_EXPIRED();
+        }
     }
 
     #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
@@ -2146,6 +2187,14 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         }
         else
     #endif /* ipconfigUSE_LLMNR */
+    #if ( ipconfigUSE_MDNS == 1 )
+        if( memcmp( xMDNS_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* The packet is a request for MDNS - process it. */
+            eReturn = eProcessBuffer;
+        }
+        else
+    #endif /* ipconfigUSE_MDNS */
 
     #if ( ipconfigUSE_IPv6 != 0 )
         if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
@@ -2424,6 +2473,25 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
             /* The frame is in use somewhere, don't release the buffer
              * yet. */
+            break;
+
+        case eWaitingARPResolution:
+
+            if( pxARPWaitingNetworkBuffer == NULL )
+            {
+                pxARPWaitingNetworkBuffer = pxNetworkBuffer;
+                prvIPTimerStart( &( xARPResolutionTimer ), ipARP_RESOLUTION_MAX_DELAY );
+
+                iptraceDELAYED_ARP_REQUEST_STARTED();
+            }
+            else
+            {
+                /* We are already waiting on one ARP resolution. This frame will be dropped. */
+                vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+
+                iptraceDELAYED_ARP_BUFFER_FULL();
+            }
+
             break;
 
         case eReleaseBuffer:
@@ -2744,8 +2812,8 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
                 /* Source IP address is a broadcast address, discard the packet. */
                 eReturn = eReleaseBuffer;
             }
-            else if( ( memcmp( ( void * ) xBroadcastMACAddress.ucBytes,
-                               ( void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
+            else if( ( memcmp( ( const void * ) xBroadcastMACAddress.ucBytes,
+                               ( const void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
                                sizeof( MACAddress_t ) ) == 0 ) &&
                      ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
             {
@@ -2914,7 +2982,7 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
 
             /* Update the total length of the IP packet after removing options. */
             usTotalLength = FreeRTOS_ntohs( pxIPHeader->usLength );
-            usTotalLength = usTotalLength - uxOptionsLength;
+            usTotalLength -= ( uint16_t ) uxOptionsLength;
             pxIPHeader->usLength = FreeRTOS_htons( usTotalLength );
 
             eReturn = eProcessBuffer;
@@ -2941,7 +3009,7 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
 static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t eReturn = eReleaseBuffer;
-
+    BaseType_t xIsWaitingARPResolution = pdFALSE;
     /* The IP packet contained a UDP frame. */
     UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
     UDPHeader_t * pxUDPHeader = &( pxUDPPacket->xUDPHeader );
@@ -2997,9 +3065,18 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
         /* Pass the packet payload to the UDP sockets
          * implementation. */
         if( xProcessReceivedUDPPacket( pxNetworkBuffer,
-                                       pxUDPHeader->usDestinationPort ) == pdPASS )
+                                       pxUDPHeader->usDestinationPort,
+                                       &( xIsWaitingARPResolution ) ) == pdPASS )
         {
             eReturn = eFrameConsumed;
+        }
+        else
+        {
+            /* Is this packet to be set aside for ARP resolution. */
+            if( xIsWaitingARPResolution == pdTRUE )
+            {
+                eReturn = eWaitingARPResolution;
+            }
         }
     }
     else
@@ -3009,6 +3086,175 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 
     return eReturn;
 }
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv6 != 0 )
+    static BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
+                                          uint8_t ucNextHeader )
+    {
+        BaseType_t xReturn;
+
+        switch( ucProtocol )
+        {
+            case ipIPv6_EXT_HEADER_HOP_BY_HOP:
+                xReturn = 1;
+                break;
+
+            case ipIPv6_EXT_HEADER_DESTINATION_OPTIONS:
+                xReturn = 7;
+
+                if( ucNextHeader == ipIPv6_EXT_HEADER_ROUTING_HEADER )
+                {
+                    xReturn = 2;
+                }
+
+                break;
+
+            case ipIPv6_EXT_HEADER_ROUTING_HEADER:
+                xReturn = 3;
+                break;
+
+            case ipIPv6_EXT_HEADER_FRAGMENT_HEADER:
+                xReturn = 4;
+                break;
+
+            case ipIPv6_EXT_HEADER_AUTHEN_HEADER:
+                xReturn = 5;
+                break;
+
+            case ipIPv6_EXT_HEADER_SECURE_PAYLOAD:
+                xReturn = 6;
+                break;
+
+            /* Destination options may follow here in case there are no routing options. */
+            case ipIPv6_EXT_HEADER_MOBILITY_HEADER:
+                xReturn = 8;
+                break;
+
+            default:
+                xReturn = -1;
+                break;
+        }
+
+        return xReturn;
+    }
+
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv6 != 0 )
+
+/**
+ * @brief Handle the IPv6 extension headers.
+ *
+ * @param[in,out] pxNetworkBuffer: The received packet that contains IPv6 extension headers.
+ *
+ * @return eProcessBuffer in case the options are removed successfully, otherwise
+ *         eReleaseBuffer.
+ */
+    static eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                                 BaseType_t xDoRemove )
+    {
+        eFrameProcessingResult_t eResult = eReleaseBuffer;
+        const size_t uxMaxLength = pxNetworkBuffer->xDataLength;
+        const uint8_t * pucSource = pxNetworkBuffer->pucEthernetBuffer;
+        IPPacket_IPv6_t * pxIPPacket_IPv6 = ipCAST_PTR_TO_TYPE_PTR( IPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
+        size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+        size_t uxHopSize = 0U;
+        size_t xMoveLen = 0U;
+        size_t uxRemovedBytes = 0U;
+        uint8_t ucCurrentHeader = pxIPPacket_IPv6->xIPHeader.ucNextHeader;
+        uint8_t ucNextHeader = 0U;
+        BaseType_t xNextOrder = 0;
+
+        while( ( uxIndex + 8U ) < uxMaxLength )
+        {
+            BaseType_t xCurrentOrder;
+            ucNextHeader = pucSource[ uxIndex ];
+
+            xCurrentOrder = xGetExtensionOrder( ucCurrentHeader, ucNextHeader );
+
+            /* Read the length expressed in number of octets. */
+            uxHopSize = ( size_t ) pucSource[ uxIndex + 1U ];
+            /* And multiply by 8 and add the minimum size of 8. */
+            uxHopSize = ( uxHopSize * 8U ) + 8U;
+
+            if( ( uxIndex + uxHopSize ) >= uxMaxLength )
+            {
+                uxIndex = uxMaxLength;
+                break;
+            }
+
+            uxIndex = uxIndex + uxHopSize;
+
+            if( ( ucNextHeader == ipPROTOCOL_TCP ) ||
+                ( ucNextHeader == ipPROTOCOL_UDP ) ||
+                ( ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
+            {
+                FreeRTOS_debug_printf( ( "Stop at header %u\n", ucNextHeader ) );
+                break;
+            }
+
+            xNextOrder = xGetExtensionOrder( ucNextHeader, pucSource[ uxIndex ] );
+
+            FreeRTOS_debug_printf( ( "Going from header %2u (%d) to %2u (%d)\n",
+                                     ucCurrentHeader,
+                                     ( int ) xCurrentOrder,
+                                     ucNextHeader,
+                                     ( int ) xNextOrder ) );
+
+            if( xNextOrder <= xCurrentOrder )
+            {
+                FreeRTOS_printf( ( "Wrong order\n" ) );
+                uxIndex = uxMaxLength;
+                break;
+            }
+
+            ucCurrentHeader = ucNextHeader;
+        }
+
+        if( uxIndex < uxMaxLength )
+        {
+            uint8_t * pucTo;
+            const uint8_t * pucFrom;
+            uint16_t usPayloadLength = FreeRTOS_ntohs( pxIPPacket_IPv6->xIPHeader.usPayloadLength );
+
+            uxRemovedBytes = uxIndex - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+
+            if( uxRemovedBytes >= ( size_t ) usPayloadLength )
+            {
+                /* Can not remove more bytes than the payload length. */
+            }
+            else if( xDoRemove == pdTRUE )
+            {
+                pxIPPacket_IPv6->xIPHeader.ucNextHeader = ucNextHeader;
+                pucTo = &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] );
+                pucFrom = &( pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] );
+                xMoveLen = uxMaxLength - uxIndex;
+                ( void ) memmove( pucTo, pucFrom, xMoveLen );
+                pxNetworkBuffer->xDataLength -= uxRemovedBytes;
+
+                usPayloadLength -= ( uint16_t ) uxRemovedBytes;
+                pxIPPacket_IPv6->xIPHeader.usPayloadLength = FreeRTOS_htons( usPayloadLength );
+                eResult = eProcessBuffer;
+            }
+            else
+            {
+                /* xDoRemove is false, so the function is not supposed to
+                 * remove extension headers. */
+            }
+        }
+
+        FreeRTOS_printf( ( "Extension headers : %s Truncated %u bytes. Removed %u, Payload %u xDataLength now %u\n",
+                           ( eResult == eProcessBuffer ) ? "good" : "bad",
+                           xMoveLen,
+                           uxRemovedBytes,
+                           FreeRTOS_ntohs( pxIPPacket_IPv6->xIPHeader.usPayloadLength ),
+                           pxNetworkBuffer->xDataLength ) );
+        return eResult;
+    }
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
 /*-----------------------------------------------------------*/
 
 /**
@@ -3076,6 +3322,19 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             eReturn = prvCheckIP4HeaderOptions( pxNetworkBuffer );
         }
 
+        #if ( ipconfigUSE_IPv6 != 0 )
+            if( ( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
+                ( xGetExtensionOrder( ucProtocol, 0U ) > 0 ) )
+            {
+                eReturn = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
+
+                if( eReturn != eReleaseBuffer )
+                {
+                    ucProtocol = pxIPHeader_IPv6->ucNextHeader;
+                }
+            }
+        #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+
         /* If the packet can be processed. */
         if( eReturn != eReleaseBuffer )
         {
@@ -3097,45 +3356,56 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     else
                 #endif /* ipconfigUSE_IPv6 */
                 {
-                    vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+                    if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
+                    {
+                        eReturn = eWaitingARPResolution;
+                    }
+                    else
+                    {
+                        /* IP address is not on the same subnet, ARP table can be updated. */
+                        vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+                    }
                 }
             }
 
-            switch( ucProtocol )
+            if( ( eReturn != eReleaseBuffer ) && ( eReturn != eWaitingARPResolution ) )
             {
-                #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                    case ipPROTOCOL_ICMP:
-                        /* As for now, only ICMP/ping messages are recognised. */
-                        eReturn = prvProcessICMPPacket( pxNetworkBuffer );
-                        break;
-                #endif
-
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    case ipPROTOCOL_ICMP_IPv6:
-                        eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
-                        break;
-                #endif
-
-                case ipPROTOCOL_UDP:
-                    eReturn = prvProcessUDPPacket( pxNetworkBuffer );
-                    break;
-
-                    #if ipconfigUSE_TCP == 1
-                        case ipPROTOCOL_TCP:
-
-                            if( xProcessReceivedTCPPacket( pxNetworkBuffer ) == pdPASS )
-                            {
-                                eReturn = eFrameConsumed;
-                            }
-
-                            /* Setting this variable will cause xTCPTimerCheck()
-                             * to be called just before the IP-task blocks. */
-                            xProcessedTCPMessage++;
+                switch( ucProtocol )
+                {
+                    #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+                        case ipPROTOCOL_ICMP:
+                            /* As for now, only ICMP/ping messages are recognised. */
+                            eReturn = prvProcessICMPPacket( pxNetworkBuffer );
                             break;
-                    #endif /* if ipconfigUSE_TCP == 1 */
-                default:
-                    /* Not a supported protocol type. */
-                    break;
+                    #endif
+
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                        case ipPROTOCOL_ICMP_IPv6:
+                            eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+                            break;
+                    #endif
+
+                    case ipPROTOCOL_UDP:
+                        eReturn = prvProcessUDPPacket( pxNetworkBuffer );
+                        break;
+
+                        #if ipconfigUSE_TCP == 1
+                            case ipPROTOCOL_TCP:
+
+                                if( xProcessReceivedTCPPacket( pxNetworkBuffer ) == pdPASS )
+                                {
+                                    eReturn = eFrameConsumed;
+                                }
+
+                                /* Setting this variable will cause xTCPTimerCheck()
+                                 * to be called just before the IP-task blocks. */
+                                xProcessedTCPMessage++;
+                                break;
+                        #endif /* if ipconfigUSE_TCP == 1 */
+                    default:
+                        /* Not a supported protocol type. */
+                        break;
+                }
             }
         }
     }
@@ -4395,6 +4665,23 @@ uint32_t FreeRTOS_GetIPAddress( void )
     }
 /*-----------------------------------------------------------*/
 #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+
+/**
+ * @brief Enable or disable the ARP resolution timer.
+ *
+ * @param[in] xEnableState: pdTRUE if the timer must be enabled, pdFALSE otherwise.
+ */
+void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
+{
+    if( xEnableState != pdFALSE )
+    {
+        xARPResolutionTimer.bActive = pdTRUE_UNSIGNED;
+    }
+    else
+    {
+        xARPResolutionTimer.bActive = pdFALSE_UNSIGNED;
+    }
+}
 
 #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 )
 

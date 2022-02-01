@@ -471,7 +471,7 @@
 
         if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )
         {
-            vSocketClose( xPreviousSocket );
+            ( void ) vSocketClose( xPreviousSocket );
         }
 
         xPreviousSocket = pxSocket;
@@ -1264,7 +1264,7 @@
                             uxIPHeaderSize = ipSIZE_OF_IPv6_HEADER;
                         }
                     }
-                    else if( pxSocket != NULL )
+                    else /* pxSocket is not equal to NULL. */
                     {
                         /* Coverity will complain here:
                          * Condition "pxSocket != NULL", taking true branch. Now the value of "pxSocket" is not "NULL". */
@@ -1273,12 +1273,6 @@
                             xIsIPv6 = pdTRUE;
                             uxIPHeaderSize = ipSIZE_OF_IPv6_HEADER;
                         }
-                    }
-                    else
-                    {
-                        /* This function must be called with either a network buffer, and/or a socket. */
-                        /* Break in case configASSERT is not operational. */
-                        break;
                     }
                 }
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -1599,8 +1593,15 @@
 
         if( xReturn != pdFALSE )
         {
+            uint32_t ulIPAddress = 0U;
+            #if ( ipconfigUSE_IPv6 != 0 )
+                if( pxEndPoint != NULL )
+                {
+                    ulIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
+                }
+            #endif
             /* Get a difficult-to-predict initial sequence number for this 4-tuple. */
-            ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( ( pxEndPoint != NULL ) ? pxEndPoint->ipv4_settings.ulIPAddress : 0U,
+            ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( ulIPAddress,
                                                                           pxSocket->usLocalPort,
                                                                           pxSocket->u.xTCP.ulRemoteIP,
                                                                           pxSocket->u.xTCP.usRemotePort );
@@ -2567,6 +2568,10 @@
                     pxSocket->u.xTCP.usTimeout = ( ( uint16_t ) pdMS_TO_TICKS( 2500U ) );
                     pxSocket->u.xTCP.ucKeepRepCount++;
                 }
+            }
+            else
+            {
+                /* No need to send an alive message. */
             }
 
             return lReturn;
@@ -4552,7 +4557,7 @@
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )
         {
             FreeRTOS_debug_printf( ( "TCP: Listen: new socket bind error\n" ) );
-            vSocketClose( pxNewSocket );
+            ( void ) vSocketClose( pxNewSocket );
             xResult = pdFALSE;
         }
         else

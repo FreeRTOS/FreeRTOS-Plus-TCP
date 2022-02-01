@@ -452,7 +452,8 @@
         eReleaseBuffer = 0,   /* Processing the frame did not find anything to do - just release the buffer. */
         eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */
         eReturnEthernetFrame, /* The Ethernet frame contains an ARP or ICMP packet that can be returned to its source. */
-        eFrameConsumed        /* Processing the Ethernet packet contents resulted in the payload being sent to the stack. */
+        eFrameConsumed,       /* Processing the Ethernet packet contents resulted in the payload being sent to the stack. */
+        eWaitingARPResolution /* Frame is awaiting ARP resolution. */
     } eFrameProcessingResult_t;
 
     typedef enum
@@ -484,6 +485,10 @@
 
     #define ipBROADCAST_IP_ADDRESS    0xffffffffU
 
+/** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
+ *  is defined in FreeRTOS_IP.c.
+ * Note that the variable is private to the library. */
+    extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
 /* Offset into the Ethernet frame that is used to temporarily store information
  * on the fragmentation status of the packet being sent.  The value is important,
@@ -709,7 +714,8 @@
  * is at least the size of UDPPacket_t.
  */
     BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                          uint16_t usPort );
+                                          uint16_t usPort,
+                                          BaseType_t * pxIsWaitingARPResolution );
 
 /*
  * Initialize the socket list data structures for TCP and UDP.
@@ -1171,9 +1177,12 @@
 /* Send the network-up event and start the ARP timer. */
     void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint );
 
+    #if ( ipconfigUSE_IPv6 != 0 )
+
 /* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
  * It handles all ICMP messages except the PING requests. */
-    eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+        eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+    #endif
 
     #ifdef __cplusplus
         } /* extern "C" */
