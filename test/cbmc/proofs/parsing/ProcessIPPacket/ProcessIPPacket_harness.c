@@ -94,6 +94,9 @@ void harness()
 
     pxNetworkBuffer->xDataLength = xLocalDatalength;
 
+    /* We need to allocate endpoint since the local netmask will be used. */
+    pxNetworkBuffer->pxEndPoint = malloc( sizeof( struct xNetworkEndPoint ) );
+
     /* Pointer to the start of the Ethernet frame. It should be able to access the whole Ethernet frame.*/
     pxNetworkBuffer->pucEthernetBuffer = nondet_bool() ? NULL : malloc( xLocalDatalength );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );

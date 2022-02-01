@@ -186,7 +186,7 @@
         uint16_t sin_port;                                /**< The port number in network-endian format. */
         uint32_t sin_addr;                                /**< The IP-address in network-endian format. */
         #if ( ipconfigUSE_IPv6 != 0 )
-            uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ]; /**< Make sure that the IPv4 and IPv6 socket addresses have en equal size. */
+            uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ]; /**< Make sure that the IPv4 and IPv6 socket addresses have an equal size. */
         #endif
     };
 
@@ -335,7 +335,7 @@
                 static __inline BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
                 {
                     ( void ) xSocket;
-                    return ipTYPE_IPv4;
+                    return ( BaseType_t ) ipTYPE_IPv4;
                 }
             #endif
 
@@ -479,6 +479,20 @@
                                           char * pcDestination,
                                           socklen_t uxSize );
     #endif /* ipconfigUSE_IPv6 */
+
+/** @brief This function converts a 48-bit MAC address to a human readable string. */
+
+    void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
+                              char * pcTarget,
+                              char cTen,
+                              char cSeparator );
+
+/** @brief This function converts a human readable string, representing an 48-bit MAC address,
+ * into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba". */
+
+    BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
+                                    uint8_t * pucTarget );
+
 
 /*
  * For the web server: borrow the circular Rx buffer for inspection
