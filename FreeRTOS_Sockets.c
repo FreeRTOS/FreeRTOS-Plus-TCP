@@ -4101,16 +4101,38 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
          * creation, it could still be changed with setsockopt(). */
         if( xIsInputStream != pdFALSE )
         {
+            size_t uxLittlePerc = sock20_PERCENT;
+            size_t uxEnoughPerc = sock80_PERCENT;
+            size_t uxSegmentCount = pxSocket->u.xTCP.uxRxStreamSize / pxSocket->u.xTCP.usMSS;
+            static const struct xPercTable
+            {
+                size_t uxPercLittle, uxPercEnough;
+            }
+            xPercTable[] =
+            {
+                { 0U,  100U }, /* 1 segment. */
+                { 50U, 100U }, /* 2 segments. */
+                { 34U, 100U }, /* 3 segments. */
+                { 25U, 100U }, /* 4 segments. */
+            };
+
+            if( ( uxSegmentCount > 0 ) &&
+                ( uxSegmentCount <= ARRAY_SIZE( xPercTable ) ) )
+            {
+                uxLittlePerc = xPercTable[ uxSegmentCount - 1U ].uxPercLittle;
+                uxEnoughPerc = xPercTable[ uxSegmentCount - 1U ].uxPercEnough;
+            }
+
             uxLength = pxSocket->u.xTCP.uxRxStreamSize;
 
             if( pxSocket->u.xTCP.uxLittleSpace == 0U )
             {
-                pxSocket->u.xTCP.uxLittleSpace = ( sock20_PERCENT * pxSocket->u.xTCP.uxRxStreamSize ) / sock100_PERCENT;
+                pxSocket->u.xTCP.uxLittleSpace = ( uxLittlePerc * pxSocket->u.xTCP.uxRxStreamSize ) / sock100_PERCENT;
             }
 
             if( pxSocket->u.xTCP.uxEnoughSpace == 0U )
             {
-                pxSocket->u.xTCP.uxEnoughSpace = ( sock80_PERCENT * pxSocket->u.xTCP.uxRxStreamSize ) / sock100_PERCENT;
+                pxSocket->u.xTCP.uxEnoughSpace = ( uxEnoughPerc * pxSocket->u.xTCP.uxRxStreamSize ) / sock100_PERCENT;
             }
         }
         else
