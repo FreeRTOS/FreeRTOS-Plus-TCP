@@ -116,7 +116,7 @@
  * @brief perform a dns update in the local cache
  * @param pcName the lookup name
  * @param pulIP the ip value to insert/replace
- * @param ulTTL Time To live in seconds insidet eh dns cache
+ * @param ulTTL Time To live (in seconds)
  * @return this is a dummy return, we are actually ignoring the return value
  *         from this function
  * @post the global structure \a xDNSCache might be modified
@@ -148,7 +148,7 @@
  * @param[in] pcName: the name of the host
  * @param[in,out] pulIP: when doing a lookup, will be set, when doing an update,
  *                       will be read.
- * @param[in] ulTTL: Time To Live
+ * @param[in] ulTTL: Time To Live (in seconds)
  * @param[in] xLookUp: pdTRUE if a look-up is expected, pdFALSE, when the DNS cache must
  *                     be updated.
  * @return whether the operation was successful
@@ -301,7 +301,7 @@
 /**
  * @brief update entry at \p index in the cache
  * @param[in] uxIndex : index in the cache
- * @param[in] ulTTL time to live
+ * @param[in] ulTTL time to live (in seconds)
  * @param[in] pulIP ip to update the cache with
  * @param[in] ulCurrentTimeSeconds current time
  * @post the global structure \a xDNSCache is modified
@@ -332,7 +332,7 @@
 /**
  * @brief insert entry in the cache
  * @param[in] pcName cache entry key
- * @param[in] ulTTL time to live
+ * @param[in] ulTTL time to live (in seconds)
  * @param[in] pulIP ip address
  * @param[in] ulCurrentTimeSeconds current time
  * @post the global structure \a xDNSCache is modified
