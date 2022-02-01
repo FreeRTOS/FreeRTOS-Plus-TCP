@@ -1891,6 +1891,7 @@
 
                     /* The reply was received.  Process it. */
                     #if ( ipconfigDNS_USE_CALLBACKS == 0 )
+
                         /* It is useless to analyse the unexpected reply
                          * unless asynchronous look-ups are enabled. */
                         if( xExpected != pdFALSE )
@@ -2062,7 +2063,7 @@
         size_t uxLabelOffset;
         const uint8_t * pucByte = pxSet->pucByte;
 
-        #if ( configDNS_CACHE_ENABE != 0 )
+        #if ( ipconfigUSE_DNS_CACHE != 0 )
             size_t uxNameLen = 0U;
         #endif
 
@@ -2083,7 +2084,7 @@
                     uxIndex = uxReturnIndex;
                 }
 
-                #if ( configDNS_CACHE_ENABE != 0 )
+                #if ( ipconfigUSE_DNS_CACHE != 0 )
                     /* Also return the root domain as name '.' */
                     if( uxNameLen == 0 )
                     {
@@ -2097,9 +2098,9 @@
                             return 0U;
                         }
                     }
-                #endif /* if ( configDNS_CACHE_ENABE != 0 ) */
+                #endif /* if ( ipconfigUSE_DNS_CACHE != 0 ) */
 
-                /* Successfully paresed a name */
+                /* Successfully parsed a name */
                 return uxIndex;
             }
             /* Check if the label length field encodes a pointer */
@@ -2149,10 +2150,10 @@
                         }
 
                         /* Move the label */
-                        if( ( uxNameLen + uxCount ) <= uxDestLen )
+                        if( ( uxNameLen + uxLabelLen ) <= uxDestLen )
                         {
-                            memcpy( &pxSet->pcName[ uxNameLen ], &pucByte[ uxIndex ], uxCount );
-                            uxNameLen += uxCount;
+                            memcpy( &pxSet->pcName[ uxNameLen ], &pucByte[ uxIndex ], uxLabelLen );
+                            uxNameLen += uxLabelLen;
                         }
                         else
                         {
