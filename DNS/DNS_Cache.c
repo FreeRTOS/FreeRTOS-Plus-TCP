@@ -116,7 +116,7 @@
  * @brief perform a dns update in the local cache
  * @param pcName the lookup name
  * @param pulIP the ip value to insert/replace
- * @param ulTTL ignored
+ * @param ulTTL Time To live in seconds insidet eh dns cache
  * @return this is a dummy return, we are actually ignoring the return value
  *         from this function
  * @post the global structure \a xDNSCache might be modified
@@ -227,8 +227,8 @@
  */
     static BaseType_t prvFindEntryIndex( const char * pcName )
     {
-        int index = -1;
-        int x;
+        BaseType_t index = -1;
+        BaseType_t x;
 
         /* For each entry in the DNS cache table. */
         for( x = 0; x < ( int ) ipconfigDNS_CACHE_ENTRIES; x++ )
@@ -368,34 +368,5 @@
             }
         }
     }
-
-    #if 0
-        void dns_show_cache()
-        {
-            BaseType_t x;
-
-            for( x = 0; x < ( BaseType_t ) ipconfigDNS_CACHE_ENTRIES; x++ )
-            {
-                if( xDNSCache[ x ].pcName[ 0 ] == ( char ) 0 )
-                {
-                    continue;
-                }
-
-                TickType_t xCurrentTickCount = xTaskGetTickCount();
-                uint32_t ulCurrentTimeSeconds;
-
-                ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000UL;
-                uint32_t ulAge = ulCurrentTimeSeconds - xDNSCache[ x ].ulTimeWhenAddedInSeconds;
-                FreeRTOS_debug_printf( ( "Entry[%u] %xip Count %u/%u Age %u/%u (%s)\n",
-                                         ( int ) x,
-                                         ( unsigned ) FreeRTOS_ntohl( xDNSCache[ x ].ulIPAddresses[ 0 ] ),
-                                         xDNSCache[ x ].ucCurrentIPAddress,
-                                         xDNSCache[ x ].ucNumIPAddresses,
-                                         ( unsigned ) ulAge,
-                                         ( unsigned ) FreeRTOS_ntohl( xDNSCache[ x ].ulTTL ),
-                                         xDNSCache[ x ].pcName ) );
-            }
-        }
-    #endif /* if 0 */
 
 #endif /* if ( ipconfigUSE_DNS != 0 ) */

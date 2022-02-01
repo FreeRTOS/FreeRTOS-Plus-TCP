@@ -582,7 +582,7 @@
  * @param[out] uxBytesRead total bytes consumed by the function
  * @param pcName update the cache and /or send to callback
  * @param xDoStore whether to update the cache
- * @return  \c pdTRUE if the frame is correct or \c pdFALSE otherwise
+ * @return ip address extracted from the frame or zero if not found
  */
     uint32_t parseDNSAnswer( DNSMessage_t * pxDNSMessageHeader,
                              uint8_t * pucByte,
