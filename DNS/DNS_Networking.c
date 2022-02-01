@@ -83,24 +83,18 @@
 
 /**
  * @brief perform a DNS network request
- * @param pcHostName the lookup name
- * @param uxIdentifier ignored
- * @param xDNSSocket socket
- * @param xAddress address structure
+ * @param xDNSSocket Created socket
+ * @param xAddress address structure (ip, port etc)
  * @param pxDNSBuf buffer to send
  * @return xReturn: true if the message could be sent
  *                  false otherwise
  *
  */
-    uint32_t DNS_SendRequest( const char * pcHostName,
-                              TickType_t uxIdentifier,
-                              Socket_t xDNSSocket,
+    uint32_t DNS_SendRequest( Socket_t xDNSSocket,
                               struct freertos_sockaddr * xAddress,
-                              struct dns_buffer * pxDNSBuf )
+                              struct xDNSBuffer * pxDNSBuf )
     {
         BaseType_t xReturn = pdFALSE;
-
-        ( void ) uxIdentifier;
 
         iptraceSENDING_DNS_REQUEST();
 
@@ -132,7 +126,7 @@
  */
     void DNS_ReadReply( Socket_t xDNSSocket,
                         struct freertos_sockaddr * xAddress,
-                        struct dns_buffer * pxReceiveBuffer )
+                        struct xDNSBuffer * pxReceiveBuffer )
     {
         uint32_t ulAddressLength = sizeof( struct freertos_sockaddr );
 

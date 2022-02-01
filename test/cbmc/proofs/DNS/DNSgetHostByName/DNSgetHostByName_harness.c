@@ -24,12 +24,10 @@ Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks );
 void DNS_CloseSocket( Socket_t xDNSSocket );
 void DNS_ReadReply( Socket_t xDNSSocket,
                     struct freertos_sockaddr * xAddress,
-                    struct dns_buffer * pxDNSBuf );
-uint32_t DNS_SendRequest( const char * hostname,
-                          TickType_t uxIdentifier,
-                          Socket_t xDNSSocket,
+                    struct xDNSBuffer * pxDNSBuf );
+uint32_t DNS_SendRequest( Socket_t xDNSSocket,
                           struct freertos_sockaddr * xAddress,
-                          struct dns_buffer * pxDNSBuf );
+                          struct xDNSBuffer * pxDNSBuf );
 uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                             size_t xBufferLength,
                             BaseType_t xExpected );
@@ -78,11 +76,9 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
 * We stub out this function with return constraint of true or false
 *
 ****************************************************************/
-uint32_t DNS_SendRequest( const char * hostname,
-                          TickType_t uxIdentifier,
-                          Socket_t xDNSSocket,
+uint32_t DNS_SendRequest( Socket_t xDNSSocket,
                           struct freertos_sockaddr * xAddress,
-                          struct dns_buffer * pxDNSBuf )
+                          struct xDNSBuffer * pxDNSBuf )
 {
     uint32_t ret;
 
@@ -100,7 +96,7 @@ uint32_t DNS_SendRequest( const char * hostname,
 ****************************************************************/
 void DNS_ReadReply( Socket_t xDNSSocket,
                     struct freertos_sockaddr * xAddress,
-                    struct dns_buffer * pxDNSBuf )
+                    struct xDNSBuffer * pxDNSBuf )
 {
     int len;
 

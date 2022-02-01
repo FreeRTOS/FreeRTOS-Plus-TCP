@@ -33,6 +33,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 #include "DNS/DNS_Globals.h"
+#include "FreeRTOS_IP_Timers.h"
 
 #if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
@@ -88,7 +89,7 @@
                     if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
                     {
                         /* The list of outstanding requests is empty. No need for periodic polling. */
-                        vIPSetDnsTimerEnableState( pdFALSE );
+                        vIPSetDNSTimerEnableState( pdFALSE );
                     }
 
                     xResult = pdTRUE;
@@ -127,7 +128,7 @@
             if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
             {
                 /* This is the first one, start the DNS timer to check for timeouts */
-                vIPReloadDNSTimer( FreeRTOS_min_uint32( 1000U, uxTimeout ) );
+                vDNSTimerReload( FreeRTOS_min_uint32( 1000U, uxTimeout ) );
             }
 
             ( void ) strcpy( pxCallback->pcName, pcHostName );
@@ -145,8 +146,8 @@
         }
         else
         {
-            FreeRTOS_debug_printf( ( " vDNSSetCallBack : Could not allocate memory: %lu bytes",
-                                     sizeof( *pxCallback ) + lLength ) );
+            FreeRTOS_debug_printf( ( " vDNSSetCallBack : Could not allocate memory: %u bytes",
+                                     ( unsigned ) ( sizeof( *pxCallback ) + lLength ) ) );
         }
     }
 
@@ -195,7 +196,7 @@
 
         if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
         {
-            vIPSetDnsTimerEnableState( pdFALSE );
+            vIPSetDNSTimerEnableState( pdFALSE );
         }
     }
 

@@ -1103,7 +1103,7 @@ void test_parseDNSAnswer_no_answers( void )
                           &uxBytesRead,
                           pcName,
                           xDoStore );
-    TEST_ASSERT_EQUAL( pdTRUE, ret );
+    TEST_ASSERT_FALSE( ret );
 }
 
 /**
@@ -1120,6 +1120,7 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
     char pcName[ 300 ];
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
+    uint32_t ip_address = 1234;
 
 
 
@@ -1131,6 +1132,7 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     xDNSDoCallback_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_dns_update_ReturnThruPtr_pulIP( &ip_address );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( pdTRUE );
 
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
@@ -1143,7 +1145,7 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
                           &uxBytesRead,
                           pcName,
                           xDoStore );
-    TEST_ASSERT_EQUAL( pdTRUE, ret );
+    TEST_ASSERT_EQUAL( ip_address, ret );
 }
 
 /**
@@ -1161,6 +1163,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
     char pcName[ 300 ];
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
+    uint32_t ip_address = 5678;
 
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
@@ -1170,6 +1173,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     xDNSDoCallback_ExpectAnyArgsAndReturn( pdFALSE );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_dns_update_ReturnThruPtr_pulIP( &ip_address );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( "ignored" );
 
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
@@ -1182,7 +1186,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
                           &uxBytesRead,
                           pcName,
                           xDoStore );
-    TEST_ASSERT_EQUAL( pdTRUE, ret );
+    TEST_ASSERT_EQUAL( ip_address, ret );
 }
 
 /**
@@ -1365,7 +1369,7 @@ void test_parseDNSAnswer_remaining_lt_dnsanswerrecord( void )
                           &uxBytesRead,
                           pcName,
                           xDoStore );
-    TEST_ASSERT_EQUAL( pdTRUE, ret );
+    TEST_ASSERT_FALSE( ret );
 }
 
 BaseType_t xApplicationDNSQueryHook( const char * pcName )

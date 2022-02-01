@@ -427,6 +427,14 @@
         #define FOnTcpSent                    FOnTCPSent_t
     #endif /* ipconfigENABLE_BACKWARD_COMPATIBILITY */
 
+    #if ( ipconfigHAS_PRINTF != 0 )
+        extern void vPrintResourceStats( void );
+    #else
+        #define vPrintResourceStats()    do {} while( ipFALSE_BOOL ) /**< ipconfigHAS_PRINTF is not defined. Define vPrintResourceStats to a do-while( 0 ). */
+    #endif
+
+    #include "FreeRTOS_IP_Utils.h"
+
     #ifdef __cplusplus
         } /* extern "C" */
     #endif

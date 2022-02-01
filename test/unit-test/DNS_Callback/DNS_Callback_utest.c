@@ -33,6 +33,7 @@
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_IP_Private.h"
+#include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_task.h"
 #include "mock_queue.h"
 #include "mock_portable.h"
@@ -166,7 +167,7 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
     vPortFree_ExpectAnyArgs();
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
 
-    vIPSetDnsTimerEnableState_ExpectAnyArgs();
+    vIPSetDNSTimerEnableState_ExpectAnyArgs();
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     /* API Call */
@@ -215,7 +216,7 @@ void test_vDNSSetCallback_success_empty_list( void )
     pvPortMalloc_ExpectAnyArgsAndReturn( &dnsCallback );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 0 );
-    vIPReloadDNSTimer_ExpectAnyArgs();
+    vDNSTimerReload_ExpectAnyArgs();
     vTaskSetTimeOutState_ExpectAnyArgs();
     listSET_LIST_ITEM_OWNER_ExpectAnyArgs();
     listSET_LIST_ITEM_VALUE_ExpectAnyArgs();
@@ -266,7 +267,7 @@ void test_vDNSCheckCallback_success_search_id_not_null( void )
     vPortFree_ExpectAnyArgs();
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
-    vIPSetDnsTimerEnableState_ExpectAnyArgs();
+    vIPSetDNSTimerEnableState_ExpectAnyArgs();
 
     /* API Call */
     vDNSCheckCallBack( pvSearchID );
@@ -293,7 +294,7 @@ void test_vDNSCheckCallback_success_search_id_null( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
-    vIPSetDnsTimerEnableState_ExpectAnyArgs();
+    vIPSetDNSTimerEnableState_ExpectAnyArgs();
 
     /* API Call */
     vDNSCheckCallBack( NULL );
@@ -324,7 +325,7 @@ void test_vDNSCheckCallback_success_search_id_null_timeout( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
-    vIPSetDnsTimerEnableState_ExpectAnyArgs();
+    vIPSetDNSTimerEnableState_ExpectAnyArgs();
 
     /* API Call */
     vDNSCheckCallBack( NULL );
@@ -357,7 +358,7 @@ void test_vDNSCheckCallback_success_search_id_null_timeout2( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
-    vIPSetDnsTimerEnableState_ExpectAnyArgs();
+    vIPSetDNSTimerEnableState_ExpectAnyArgs();
 
     /* API Call */
     vDNSCheckCallBack( pvSearchID );

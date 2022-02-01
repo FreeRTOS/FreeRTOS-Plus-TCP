@@ -36,15 +36,13 @@
  */
     Socket_t DNS_CreateSocket( TickType_t uxReadTimeOut_ticks );
 
-    uint32_t DNS_SendRequest( const char * pcHostName,
-                              TickType_t uxIdentifier,
-                              Socket_t xDNSSocket,
+    uint32_t DNS_SendRequest( Socket_t xDNSSocket,
                               struct freertos_sockaddr * xAddress,
-                              struct dns_buffer * pxDNSBuf );
+                              struct xDNSBuffer * pxDNSBuf );
 
     void DNS_ReadReply( Socket_t xDNSSocket,
                         struct freertos_sockaddr * xAddress,
-                        struct dns_buffer * pxReceiveBuffer );
+                        struct xDNSBuffer * pxReceiveBuffer );
 
     void DNS_CloseSocket( Socket_t xDNSSocket );
 #endif /* if ( ipconfigUSE_DNS != 0 ) */

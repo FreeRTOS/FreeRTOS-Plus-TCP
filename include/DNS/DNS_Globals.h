@@ -76,7 +76,7 @@
 
     #ifndef _lint
         /* LLMNR constants. */
-        #define dnsLLMNR_TTL_VALUE           300000UL /**< LLMNR time to live value. */
+        #define dnsLLMNR_TTL_VALUE           300U     /**< LLMNR time to live value of 5 minutes. */
         #define dnsLLMNR_FLAGS_IS_REPONSE    0x8000U  /**< LLMNR flag value for response. */
     #endif /* _lint */
 
@@ -225,14 +225,14 @@
     #endif /* if ( ipconfigDNS_USE_CALLBACKS != 0 ) */
 
 /**
- * @brief structure to hold the buffer and its size
+ * @brief structure to hold the buffer, its size and the data length
  */
-    struct dns_buffer
+    typedef struct xDNSBuffer
     {
-        uint8_t * pucPayloadBuffer;
-        size_t uxPayloadLength;
-        size_t uxPayloadSize;
-    };
+        uint8_t * pucPayloadBuffer; /**< Buffer pointer */
+        size_t uxPayloadLength;     /**< Payload size */
+        size_t uxPayloadSize;       /**< Total buffer size */
+    } DNSBuffer_t;
 
     #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
 

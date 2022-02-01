@@ -159,11 +159,11 @@ void test_SendRequest_success( void )
     Socket_t s = ( Socket_t ) 123;
     uint32_t ret;
     struct freertos_sockaddr xAddress;
-    struct dns_buffer pxDNSBuf;
+    struct xDNSBuffer pxDNSBuf;
 
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( pdTRUE );
 
-    ret = DNS_SendRequest( "www.FreeRTOS.org", 1234, s, &xAddress, &pxDNSBuf );
+    ret = DNS_SendRequest( s, &xAddress, &pxDNSBuf );
 
     TEST_ASSERT_EQUAL( pdTRUE, ret );
 }
@@ -176,11 +176,11 @@ void test_SendRequest_fail( void )
     Socket_t s = ( Socket_t ) 123;
     uint32_t ret;
     struct freertos_sockaddr xAddress;
-    struct dns_buffer pxDNSBuf;
+    struct xDNSBuffer pxDNSBuf;
 
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( pdFALSE );
 
-    ret = DNS_SendRequest( "www.FreeRTOS.org", 1234, s, &xAddress, &pxDNSBuf );
+    ret = DNS_SendRequest( s, &xAddress, &pxDNSBuf );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
@@ -192,7 +192,7 @@ void test_ReadReply_success( void )
 {
     Socket_t s = ( Socket_t ) 123;
     struct freertos_sockaddr xAddress;
-    struct dns_buffer pxDNSBuf;
+    struct xDNSBuffer pxDNSBuf;
 
     FreeRTOS_recvfrom_ExpectAnyArgsAndReturn( 600 );
 
