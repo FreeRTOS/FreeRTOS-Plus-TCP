@@ -223,7 +223,7 @@
 
 /**< List of free TCP segments. */
     #if ( ipconfigUSE_TCP_WIN == 1 )
-        static List_t xSegmentList;
+        _static List_t xSegmentList;
     #endif
 
 /** @brief Logging verbosity level. */
