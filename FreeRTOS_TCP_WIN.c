@@ -218,12 +218,12 @@
 
 /**< TCP segment pool. */
     #if ( ipconfigUSE_TCP_WIN == 1 )
-        _static TCPSegment_t * xTCPSegments = NULL;
+        static TCPSegment_t * xTCPSegments = NULL;
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 
 /**< List of free TCP segments. */
     #if ( ipconfigUSE_TCP_WIN == 1 )
-        _static List_t xSegmentList;
+        static List_t xSegmentList;
     #endif
 
 /** @brief Logging verbosity level. */

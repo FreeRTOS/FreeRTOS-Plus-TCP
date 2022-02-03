@@ -326,4 +326,6 @@ extern uint32_t ulRand();
 #define ipconfigBUFFER_PADDING                   ( 14 )
 #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS        ( 34 )
 
+#define portINLINE
+
 #endif /* FREERTOS_IP_CONFIG_H */
