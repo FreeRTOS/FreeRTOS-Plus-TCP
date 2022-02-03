@@ -98,9 +98,9 @@ size_t xPortGetMinimumEverFreeHeapSize( void )
     return 0;
 }
 
-
 BaseType_t xApplicationDNSQueryHook( const char * pcName )
 {
+    return 0;
 }
 
 StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
@@ -108,6 +108,7 @@ StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
                                      TaskFunction_t pxCode,
                                      void * pvParameters )
 {
+    return 0;
 }
 
 uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
@@ -115,72 +116,80 @@ uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
                                              uint32_t ulDestinationAddress,
                                              uint16_t usDestinationPort )
 {
+    return 0;
 }
+
 BaseType_t xNetworkInterfaceInitialise( void )
 {
+    return 0;
 }
+
 void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 {
 }
+
 void vApplicationDaemonTaskStartupHook( void )
 {
 }
+
 void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
                                      StackType_t ** ppxTimerTaskStackBuffer,
                                      uint32_t * pulTimerTaskStackSize )
 {
 }
+
 void vPortDeleteThread( void * pvTaskToDelete )
 {
 }
+
 void vApplicationIdleHook( void )
 {
 }
+
 void vApplicationTickHook( void )
 {
 }
+
 unsigned long ulGetRunTimeCounterValue( void )
 {
+    return 0;
 }
+
 void vPortEndScheduler( void )
 {
 }
+
 BaseType_t xPortStartScheduler( void )
 {
+    return 0;
 }
+
 void vPortEnterCritical( void )
 {
 }
+
 void vPortExitCritical( void )
 {
 }
 
-/*void * pvPortMalloc( size_t xWantedSize ) */
-/*{ */
-/*   return malloc( xWantedSize ); */
-/*} */
-
-/*void vPortFree( void * pv ) */
-/*{ */
-/*   free( pv ); */
-/*} */
-
 void vPortGenerateSimulatedInterrupt( uint32_t ulInterruptNumber )
 {
 }
+
 void vPortCloseRunningThread( void * pvTaskToDelete,
                               volatile BaseType_t * pxPendYield )
 {
 }
+
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                     StackType_t ** ppxIdleTaskStackBuffer,
                                     uint32_t * pulIdleTaskStackSize )
 {
 }
+
 void vConfigureTimerForRunTimeStats( void )
 {
 }
-
 
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     BaseType_t bReleaseAfterSend )
