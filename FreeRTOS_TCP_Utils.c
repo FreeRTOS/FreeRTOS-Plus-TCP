@@ -42,14 +42,9 @@
 /*
  * Set the initial value for MSS (Maximum Segment Size) to be used.
  */
-    static void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket );
+    void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket );
 
-/*
- * After a listening socket receives a new connection, it may duplicate itself.
- * The copying takes place in prvTCPSocketCopy.
- */
-    static BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
-                                        FreeRTOS_Socket_t * pxSocket );
+
 
 
 
@@ -102,3 +97,37 @@
         /*-----------------------------------------------------------*/
 
     #endif /* ipconfigHAS_DEBUG_PRINTF */
+
+/**
+ * @brief Set the MSS (Maximum segment size) associated with the given socket.
+ *
+ * @param[in] pxSocket: The socket whose MSS is to be set.
+ */
+    static void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket )
+    {
+        uint32_t ulMSS;
+
+        /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
+        #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
+            {
+                ulMSS = ipconfigTCP_MSS;
+            }
+        #else
+            {
+                ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
+            }
+        #endif
+
+        if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.ulRemoteIP ) ^ *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) != 0U )
+        {
+            /* Data for this peer will pass through a router, and maybe through
+             * the internet.  Limit the MSS to 1400 bytes or less. */
+            ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
+        }
+
+        FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %xip:%u\n", ( unsigned ) ulMSS, ( unsigned ) pxSocket->u.xTCP.ulRemoteIP, pxSocket->u.xTCP.usRemotePort ) );
+
+        pxSocket->u.xTCP.usMSS = ( uint16_t ) ulMSS;
+    }
+    /*-----------------------------------------------------------*/
+

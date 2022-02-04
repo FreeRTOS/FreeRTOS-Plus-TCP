@@ -33,6 +33,26 @@
  * host byte-order, except fields in the IP-packets
  */
 
+/* Standard includes. */
+#include <stdint.h>
+#include <stdio.h>
+
+/* FreeRTOS includes. */
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
+
+/* FreeRTOS+TCP includes. */
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_UDP_IP.h"
+#include "FreeRTOS_DHCP.h"
+#include "NetworkInterface.h"
+#include "NetworkBufferManagement.h"
+#include "FreeRTOS_ARP.h"
+
 /*
  * Parse the TCP option(s) received, if present.
  */
@@ -412,3 +432,176 @@
     #endif /* ( ipconfigUSE_TCP_WIN != 0 ) */
     /*-----------------------------------------------------------*/
 
+/**
+ * @brief prvCheckRxData(): called from prvTCPHandleState(). The
+ *        first thing that will be done is find the TCP payload data
+ *        and check the length of this data.
+ *
+ * @param[in] pxNetworkBuffer: The network buffer holding the received data.
+ * @param[out] ppucRecvData: It will point to first byte of the TCP payload.
+ *
+ * @return Length of the received buffer.
+ */
+    static BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                      uint8_t ** ppucRecvData )
+    {
+        /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+        const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                              &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+        const TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+        int32_t lLength, lTCPHeaderLength, lReceiveLength, lUrgentLength;
+
+        /* Map the buffer onto an IPHeader_t struct for easy access to fields. */
+        const IPHeader_t * pxIPHeader = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPHeader_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+        const size_t xIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
+        uint16_t usLength;
+        uint8_t ucIntermediateResult = 0;
+
+        /* Determine the length and the offset of the user-data sent to this
+         * node.
+         *
+         * The size of the TCP header is given in a multiple of 4-byte words (single
+         * byte, needs no ntoh() translation).  A shift-right 2: is the same as
+         * (offset >> 4) * 4. */
+        ucIntermediateResult = ( pxTCPHeader->ucTCPOffset & tcpVALID_BITS_IN_TCP_OFFSET_BYTE ) >> 2;
+        lTCPHeaderLength = ( int32_t ) ucIntermediateResult;
+
+        /* Let pucRecvData point to the first byte received. */
+        *ppucRecvData = &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderLength + ( size_t ) lTCPHeaderLength ] );
+
+        /* Calculate lReceiveLength - the length of the TCP data received.  This is
+         * equal to the total packet length minus:
+         * ( LinkLayer length (14) + IP header length (20) + size of TCP header(20 +) ).*/
+        lReceiveLength = ( int32_t ) pxNetworkBuffer->xDataLength;
+        lReceiveLength -= ( int32_t ) ipSIZE_OF_ETH_HEADER;
+
+        usLength = FreeRTOS_htons( pxIPHeader->usLength );
+        lLength = ( int32_t ) usLength;
+
+        if( lReceiveLength > lLength )
+        {
+            /* More bytes were received than the reported length, often because of
+             * padding bytes at the end. */
+            lReceiveLength = lLength;
+        }
+
+        /* Subtract the size of the TCP and IP headers and the actual data size is
+         * known. */
+        if( lReceiveLength > ( lTCPHeaderLength + ( int32_t ) xIPHeaderLength ) )
+        {
+            lReceiveLength -= ( lTCPHeaderLength + ( int32_t ) xIPHeaderLength );
+        }
+        else
+        {
+            lReceiveLength = 0;
+        }
+
+        /* Urgent Pointer:
+         * This field communicates the current value of the urgent pointer as a
+         * positive offset from the sequence number in this segment.  The urgent
+         * pointer points to the sequence number of the octet following the urgent
+         * data.  This field is only be interpreted in segments with the URG control
+         * bit set. */
+        if( ( pxTCPHeader->ucTCPFlags & tcpTCP_FLAG_URG ) != 0U )
+        {
+            /* Although we ignore the urgent data, we have to skip it. */
+            lUrgentLength = ( int32_t ) FreeRTOS_htons( pxTCPHeader->usUrgent );
+            *ppucRecvData += lUrgentLength;
+            lReceiveLength -= FreeRTOS_min_int32( lReceiveLength, lUrgentLength );
+        }
+
+        return ( BaseType_t ) lReceiveLength;
+    }
+    /*-----------------------------------------------------------*/
+
+/**
+ * @brief prvStoreRxData(): called from prvTCPHandleState().
+ *        The second thing is to do is check if the payload data may
+ *        be accepted. If so, they will be added to the reception queue.
+ *
+ * @param[in] pxSocket: The socket owning the connection.
+ * @param[in] pucRecvData: Pointer to received data.
+ * @param[in] pxNetworkBuffer: The network buffer descriptor.
+ * @param[in] ulReceiveLength: The length of the received data.
+ *
+ * @return 0 on success, -1 on failure of storing data.
+ */
+    static BaseType_t prvStoreRxData( FreeRTOS_Socket_t * pxSocket,
+                                      const uint8_t * pucRecvData,
+                                      NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                      uint32_t ulReceiveLength )
+    {
+        /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+        const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t,
+                                                                                          &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+        const TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+        TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+        uint32_t ulSequenceNumber, ulSpace;
+        int32_t lOffset, lStored;
+        BaseType_t xResult = 0;
+
+        ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
+
+        if( ( ulReceiveLength > 0U ) && ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eSYN_RECEIVED ) )
+        {
+            /* See if way may accept the data contents and forward it to the socket
+             * owner.
+             *
+             * If it can't be "accept"ed it may have to be stored and send a selective
+             * ack (SACK) option to confirm it.  In that case, lTCPAddRxdata() will be
+             * called later to store an out-of-order packet (in case lOffset is
+             * negative). */
+            if( pxSocket->u.xTCP.rxStream != NULL )
+            {
+                ulSpace = ( uint32_t ) uxStreamBufferGetSpace( pxSocket->u.xTCP.rxStream );
+            }
+            else
+            {
+                ulSpace = ( uint32_t ) pxSocket->u.xTCP.uxRxStreamSize;
+            }
+
+            lOffset = lTCPWindowRxCheck( pxTCPWindow, ulSequenceNumber, ulReceiveLength, ulSpace );
+
+            if( lOffset >= 0 )
+            {
+                /* New data has arrived and may be made available to the user.  See
+                 * if the head marker in rxStream may be advanced, only if lOffset == 0.
+                 * In case the low-water mark is reached, bLowWater will be set
+                 * "low-water" here stands for "little space". */
+                lStored = lTCPAddRxdata( pxSocket, ( uint32_t ) lOffset, pucRecvData, ulReceiveLength );
+
+                if( lStored != ( int32_t ) ulReceiveLength )
+                {
+                    FreeRTOS_debug_printf( ( "lTCPAddRxdata: stored %d / %u bytes? ?\n", ( int ) lStored, ( unsigned ) ulReceiveLength ) );
+
+                    /* Received data could not be stored.  The socket's flag
+                     * bMallocError has been set.  The socket now has the status
+                     * eCLOSE_WAIT and a RST packet will be sent back. */
+                    ( void ) prvTCPSendReset( pxNetworkBuffer );
+                    xResult = -1;
+                }
+            }
+
+            /* After a missing packet has come in, higher packets may be passed to
+             * the user. */
+            #if ( ipconfigUSE_TCP_WIN == 1 )
+                {
+                    /* Now lTCPAddRxdata() will move the rxHead pointer forward
+                     * so data becomes available to the user immediately
+                     * In case the low-water mark is reached, bLowWater will be set. */
+                    if( ( xResult == 0 ) && ( pxTCPWindow->ulUserDataLength > 0U ) )
+                    {
+                        ( void ) lTCPAddRxdata( pxSocket, 0U, NULL, pxTCPWindow->ulUserDataLength );
+                        pxTCPWindow->ulUserDataLength = 0;
+                    }
+                }
+            #endif /* ipconfigUSE_TCP_WIN */
+        }
+        else
+        {
+            pxTCPWindow->ucOptionLength = 0U;
+        }
+
+        return xResult;
+    }
+    /*-----------------------------------------------------------*/
