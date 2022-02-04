@@ -226,8 +226,10 @@
         _static List_t xSegmentList;
     #endif
 
+    #if ( ipconfigUSE_TCP_WIN == 1 )
 /** @brief Logging verbosity level. */
-    BaseType_t xTCPWindowLoggingLevel = 0;
+        BaseType_t xTCPWindowLoggingLevel = 0;
+    #endif
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
         /* Some 32-bit arithmetic: comparing sequence numbers */
@@ -320,7 +322,6 @@
  *
  * @return pdTRUE if a>=b, else pdFALSE.
  */
-
     static portINLINE BaseType_t xSequenceGreaterThanOrEqual( uint32_t a,
                                                               uint32_t b )
     {
