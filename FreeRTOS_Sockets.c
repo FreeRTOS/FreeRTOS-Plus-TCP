@@ -1897,6 +1897,16 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                     break;
             #endif /* ipconfigUSE_CALLBACKS */
 
+            #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE != 0 )
+                case FREERTOS_SO_SET_SEMAPHORE:
+
+                    /* Each socket has a semaphore on which the using task normally
+                     * sleeps. */
+                    pxSocket->pxUserSemaphore = *( ipPOINTER_CAST( SemaphoreHandle_t *, pvOptionValue ) );
+                    xReturn = 0;
+                    break;
+            #endif /* ipconfigSOCKET_HAS_USER_SEMAPHORE */
+
             #if ( ipconfigSOCKET_HAS_USER_WAKE_CALLBACK != 0 )
                 case FREERTOS_SO_WAKEUP_CALLBACK:
 
@@ -1908,16 +1918,6 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                     xReturn = 0;
                     break;
             #endif /* ipconfigSOCKET_HAS_USER_WAKE_CALLBACK */
-
-            #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE != 0 )
-                case FREERTOS_SO_SET_SEMAPHORE:
-
-                    /* Each socket has a semaphore on which the using task normally
-                     * sleeps. */
-                    pxSocket->pxUserSemaphore = *( ipPOINTER_CAST( SemaphoreHandle_t *, pvOptionValue ) );
-                    xReturn = 0;
-                    break;
-            #endif /* ipconfigSOCKET_HAS_USER_SEMAPHORE */
 
             #if ( ipconfigUSE_TCP != 0 )
                 case FREERTOS_SO_SET_LOW_HIGH_WATER:
