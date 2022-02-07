@@ -75,7 +75,7 @@ jobs:
       - name: Run Uncrustify
         run: |
           uncrustify --version
-          find . -not -path '.*catch_assert.h' -iname "*.[hc]" -exec uncrustify --check -c tools/uncrustify.cfg {} +
+          find . -iname "*.[hc]" -exec uncrustify --check -c tools/uncrustify.cfg {} +
           if [ "$?" = "0" ]; then
             exit 0
           else
