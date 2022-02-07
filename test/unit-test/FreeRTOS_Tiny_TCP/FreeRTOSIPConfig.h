@@ -224,7 +224,7 @@ extern uint32_t ulRand();
 #define ipconfigUSE_TCP                                ( 1 )
 
 /* USE_WIN: Let TCP use windowing mechanism. */
-#define ipconfigUSE_TCP_WIN                            ( 1 )
+#define ipconfigUSE_TCP_WIN                            ( 0 )
 
 /* The MTU is the maximum number of bytes the payload of a network frame can
  * contain.  For normal Ethernet V2 frames the maximum MTU is 1500.  Setting a
@@ -320,12 +320,8 @@ extern uint32_t ulRand();
 #define ipconfigUDP_MAX_RX_PACKETS               ( 1 )
 
 #define ipconfigSUPPORT_SIGNALS                  ( 1 )
-
 #define ipconfigDNS_CACHE_ENTRIES                ( 2 )
 
 #define ipconfigBUFFER_PADDING                   ( 14 )
-#define ipconfigTCP_SRTT_MINIMUM_VALUE_MS        ( 34 )
-
-#define portINLINE
 
 #endif /* FREERTOS_IP_CONFIG_H */
