@@ -23,6 +23,7 @@ set( TCP_SOURCES
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_TCP_State_Handling.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_TCP_Utils.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_TCP_WIN.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_Tiny_TCP.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_UDP_IP.c" )
 
 # TCP library Include directories.

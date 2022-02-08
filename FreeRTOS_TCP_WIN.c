@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP V2.4.0
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -50,11 +50,12 @@
 #if ( ipconfigUSE_TCP == 1 )
 
 /* Constants used for Smoothed Round Trip Time (SRTT). */
-    #define winSRTT_INCREMENT_NEW        2  /**< New increment for the smoothed RTT. */
-    #define winSRTT_INCREMENT_CURRENT    6  /**< Current increment for the smoothed RTT. */
-    #define winSRTT_DECREMENT_NEW        1  /**< New decrement for the smoothed RTT. */
-    #define winSRTT_DECREMENT_CURRENT    7  /**< Current decrement for the smoothed RTT. */
-    #define winSRTT_CAP_mS               50 /**< Cap in milliseconds. */
+    #define winSRTT_INCREMENT_NEW        2                                     /**< New increment for the smoothed RTT. */
+    #define winSRTT_INCREMENT_CURRENT    6                                     /**< Current increment for the smoothed RTT. */
+    #define winSRTT_DECREMENT_NEW        1                                     /**< New decrement for the smoothed RTT. */
+    #define winSRTT_DECREMENT_CURRENT    7                                     /**< Current decrement for the smoothed RTT. */
+    #define winSRTT_CAP_mS               ( ipconfigTCP_SRTT_MINIMUM_VALUE_MS ) /**< Cap in milliseconds. */
+
 
 /**
  * @brief Utility function to cast pointer of a type to pointer of type TCPSegment_t.
@@ -225,8 +226,10 @@
         _static List_t xSegmentList;
     #endif
 
+    #if ( ipconfigUSE_TCP_WIN == 1 )
 /** @brief Logging verbosity level. */
-    BaseType_t xTCPWindowLoggingLevel = 0;
+        BaseType_t xTCPWindowLoggingLevel = 0;
+    #endif
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
         /* Some 32-bit arithmetic: comparing sequence numbers */
@@ -319,7 +322,6 @@
  *
  * @return pdTRUE if a>=b, else pdFALSE.
  */
-
     static portINLINE BaseType_t xSequenceGreaterThanOrEqual( uint32_t a,
                                                               uint32_t b )
     {
@@ -420,7 +422,8 @@
  */
         static BaseType_t prvCreateSectors( void )
         {
-            BaseType_t xIndex, xReturn;
+            BaseType_t xIndex;
+            BaseType_t xReturn;
 
             /* Allocate space for 'xTCPSegments' and store them in 'xSegmentList'. */
 
@@ -443,6 +446,14 @@
                 {
                     /* Could call vListInitialiseItem here but all data has been
                     * nulled already.  Set the owner to a segment descriptor. */
+
+                    #if ( configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES == 1 )
+                        {
+                            vListInitialiseItem( &( xTCPSegments[ xIndex ].xSegmentItem ) );
+                            vListInitialiseItem( &( xTCPSegments[ xIndex ].xQueueItem ) );
+                        }
+                    #endif
+
                     listSET_LIST_ITEM_OWNER( &( xTCPSegments[ xIndex ].xSegmentItem ), ( void * ) &( xTCPSegments[ xIndex ] ) );
                     listSET_LIST_ITEM_OWNER( &( xTCPSegments[ xIndex ].xQueueItem ), ( void * ) &( xTCPSegments[ xIndex ] ) );
 
@@ -455,7 +466,6 @@
 
             return xReturn;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -495,7 +505,6 @@
 
             return pxReturn;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -574,8 +583,6 @@
 
             return pxSegment;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -618,8 +625,6 @@
 
             return xReturn;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -652,7 +657,6 @@
 
             return pxSegment;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -683,7 +687,6 @@
 
             return pxReturn;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -718,8 +721,6 @@
             /* Return it to xSegmentList */
             vListInsertFifo( &xSegmentList, &( pxSegment->xSegmentItem ) );
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -761,8 +762,6 @@
                 }
             }
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -895,8 +894,6 @@
                 xTCPSegments = NULL;
             }
         }
-
-
     #endif /* ipconfgiUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1188,7 +1185,8 @@
                                    uint32_t ulLength,
                                    uint32_t ulSpace )
         {
-            uint32_t ulCurrentSequenceNumber, ulIntermediateResult = 0;
+            uint32_t ulCurrentSequenceNumber;
+            uint32_t ulIntermediateResult = 0;
             int32_t lReturn = -1;
             int32_t lDistance;
 
@@ -1266,8 +1264,6 @@
 
             return lReturn;
         }
-
-
     #endif /* ipconfgiUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1316,7 +1312,6 @@
 
             return lReturn;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1365,8 +1360,6 @@
 
             return lToWrite;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1388,7 +1381,8 @@
                                  int32_t lPosition,
                                  int32_t lMax )
         {
-            int32_t lBytesLeft = ( int32_t ) ulLength, lToWrite;
+            int32_t lBytesLeft = ( int32_t ) ulLength;
+            int32_t lToWrite;
             int32_t lDone = 0;
             int32_t lBufferIndex = lPosition;
             TCPSegment_t * pxSegment = pxWindow->pxHeadSegment;
@@ -1458,8 +1452,6 @@
 
             return lDone;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1476,7 +1468,6 @@
         {
             return listLIST_IS_EMPTY( ( &pxWindow->xTxSegments ) );
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1537,7 +1528,9 @@
                  * more new segment of size MSS.  xSize.ulTxWindowLength is the self-imposed
                  * limitation of the transmission window (in case of many resends it
                  * may be decreased). */
-                if( ( ulTxOutstanding != 0U ) && ( pxWindow->xSize.ulTxWindowLength < ( ulTxOutstanding + ( ( uint32_t ) pxSegment->lDataLength ) ) ) )
+                if( ( ulTxOutstanding != 0U ) &&
+                    ( pxWindow->xSize.ulTxWindowLength <
+                      ( ulTxOutstanding + ( ( uint32_t ) pxSegment->lDataLength ) ) ) )
                 {
                     xHasSpace = pdFALSE;
                 }
@@ -1545,8 +1538,6 @@
 
             return xHasSpace;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1620,7 +1611,8 @@
                         /* Too many outstanding messages. */
                         xReturn = pdFALSE;
                     }
-                    else if( ( pxWindow->u.bits.bSendFullSize != pdFALSE_UNSIGNED ) && ( pxSegment->lDataLength < pxSegment->lMaxLength ) )
+                    else if( ( pxWindow->u.bits.bSendFullSize != pdFALSE_UNSIGNED ) &&
+                             ( pxSegment->lDataLength < pxSegment->lMaxLength ) )
                     {
                         /* 'bSendFullSize' is a special optimisation.  If true, the
                          * driver will only sent completely filled packets (of MSS
@@ -1636,8 +1628,6 @@
 
             return xReturn;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1712,7 +1702,8 @@
             {
                 /* No segments queued. */
             }
-            else if( ( pxWindow->u.bits.bSendFullSize != pdFALSE_UNSIGNED ) && ( pxSegment->lDataLength < pxSegment->lMaxLength ) )
+            else if( ( pxWindow->u.bits.bSendFullSize != pdFALSE_UNSIGNED ) &&
+                     ( pxSegment->lDataLength < pxSegment->lMaxLength ) )
             {
                 /* A segment has been queued but the driver waits until it
                  * has a full size of MSS. */
@@ -1858,8 +1849,6 @@
 
             return ulReturn;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1895,7 +1884,6 @@
                 pxWindow->lSRTT = winSRTT_CAP_mS;
             }
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -1918,7 +1906,8 @@
                                                 uint32_t ulLast )
         {
             uint32_t ulBytesConfirmed = 0U;
-            uint32_t ulSequenceNumber = ulFirst, ulDataLength;
+            uint32_t ulSequenceNumber = ulFirst;
+            uint32_t ulDataLength;
             const ListItem_t * pxIterator;
             const ListItem_t * pxEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( pxWindow->xTxSegments.xListEnd ) );
             BaseType_t xDoUnlink;
@@ -1992,6 +1981,7 @@
                                                          ( unsigned ) ( ulFirstSeq + ulDataLength ) ) );
                             }
                         #endif /* ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
+
                         break;
                     }
 
@@ -2000,7 +1990,8 @@
 
                     /* Calculate the RTT only if the segment was sent-out for the
                      * first time and if this is the last ACK'd segment in a range. */
-                    if( ( pxSegment->u.bits.ucTransmitCount == 1U ) && ( ( pxSegment->ulSequenceNumber + ulDataLength ) == ulLast ) )
+                    if( ( pxSegment->u.bits.ucTransmitCount == 1U ) &&
+                        ( ( pxSegment->ulSequenceNumber + ulDataLength ) == ulLast ) )
                     {
                         prvTCPWindowTxCheckAck_CalcSRTT( pxWindow, pxSegment );
                     }
@@ -2046,7 +2037,6 @@
 
             return ulBytesConfirmed;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -2121,7 +2111,6 @@
 
             return ulCount;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -2138,7 +2127,8 @@
         uint32_t ulTCPWindowTxAck( TCPWindow_t * pxWindow,
                                    uint32_t ulSequenceNumber )
         {
-            uint32_t ulFirstSequence, ulReturn;
+            uint32_t ulFirstSequence;
+            uint32_t ulReturn;
 
             /* Receive a normal ACK. */
 
@@ -2155,7 +2145,6 @@
 
             return ulReturn;
         }
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
@@ -2195,410 +2184,7 @@
 
             return ulAckCount;
         }
-
-
     #endif /* ipconfigUSE_TCP_WIN == 1 */
-/*-----------------------------------------------------------*/
-
-/*=============================================================================
- *
- *       #####   #                      #####   ####  ######
- *       # # #   #                      # # #  #    #  #    #
- *         #                              #   #     #  #    #
- *         #   ###   #####  #    #        #   #        #    #
- *         #     #   #    # #    #        #   #        #####
- *         #     #   #    # #    # ####   #   #        #
- *         #     #   #    # #    #        #   #     #  #
- *         #     #   #    #  ####         #    #    #  #
- *        #### ##### #    #     #        ####   ####  ####
- *                             #
- *                          ###
- * Tiny-TCP: TCP without sliding windows.
- *
- *=============================================================================*/
-    #if ( ipconfigUSE_TCP_WIN == 0 )
-
-/**
- * @brief Data was received at 'ulSequenceNumber'. See if it was expected
- *        and if there is enough space to store the new data.
- *
- * @param[in] pxWindow: The window to be checked.
- * @param[in] ulSequenceNumber: Sequence number of the data received.
- * @param[in] ulLength: Length of the data received.
- * @param[in] ulSpace: Space in the buffer.
- *
- * @return A 0 is returned if there is enough space and the sequence number is correct,
- *         if not then a -1 is returned.
- *
- * @note if true may be passed directly to user (segment expected and window is empty).
- *        But pxWindow->ackno should always be used to set "BUF->ackno".
- */
-        int32_t lTCPWindowRxCheck( TCPWindow_t * pxWindow,
-                                   uint32_t ulSequenceNumber,
-                                   uint32_t ulLength,
-                                   uint32_t ulSpace )
-        {
-            int32_t iReturn;
-
-            /* Data was received at 'ulSequenceNumber'.  See if it was expected
-             * and if there is enough space to store the new data. */
-            if( ( pxWindow->rx.ulCurrentSequenceNumber != ulSequenceNumber ) || ( ulSpace < ulLength ) )
-            {
-                iReturn = -1;
-            }
-            else
-            {
-                pxWindow->rx.ulCurrentSequenceNumber += ( uint32_t ) ulLength;
-                iReturn = 0;
-            }
-
-            return iReturn;
-        }
-
-
-    #endif /* ipconfigUSE_TCP_WIN == 0 */
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_TCP_WIN == 0 )
-
-/**
- * @brief Add data to the Tx Window.
- *
- * @param[in] pxWindow: The window to which the data is to be added.
- * @param[in] ulLength: The length of the data to be added.
- * @param[in] lPosition: Position in the stream.
- * @param[in] lMax: Size of the Tx stream.
- *
- * @return The data actually added.
- */
-        int32_t lTCPWindowTxAdd( TCPWindow_t * pxWindow,
-                                 uint32_t ulLength,
-                                 int32_t lPosition,
-                                 int32_t lMax )
-        {
-            TCPSegment_t * pxSegment = &( pxWindow->xTxSegment );
-            int32_t lResult;
-
-            /* Data is being scheduled for transmission. */
-
-            /* lMax would indicate the size of the txStream. */
-            ( void ) lMax;
-
-            /* This is tiny TCP: there is only 1 segment for outgoing data.
-             * As long as 'lDataLength' is unequal to zero, the segment is still occupied. */
-            if( pxSegment->lDataLength > 0 )
-            {
-                lResult = 0L;
-            }
-            else
-            {
-                if( ulLength > ( uint32_t ) pxSegment->lMaxLength )
-                {
-                    if( ( xTCPWindowLoggingLevel != 0 ) && ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) != pdFALSE ) )
-                    {
-                        FreeRTOS_debug_printf( ( "lTCPWindowTxAdd: can only store %u / %d bytes\n", ( unsigned ) ulLength, ( int ) pxSegment->lMaxLength ) );
-                    }
-
-                    ulLength = ( uint32_t ) pxSegment->lMaxLength;
-                }
-
-                if( ( xTCPWindowLoggingLevel != 0 ) && ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) != pdFALSE ) )
-                {
-                    FreeRTOS_debug_printf( ( "lTCPWindowTxAdd: SeqNr %u (%u) Len %u\n",
-                                             ( unsigned ) ( pxWindow->ulNextTxSequenceNumber - pxWindow->tx.ulFirstSequenceNumber ),
-                                             ( unsigned ) ( pxWindow->tx.ulCurrentSequenceNumber - pxWindow->tx.ulFirstSequenceNumber ),
-                                             ( unsigned ) ulLength ) );
-                }
-
-                /* The sequence number of the first byte in this packet. */
-                pxSegment->ulSequenceNumber = pxWindow->ulNextTxSequenceNumber;
-                pxSegment->lDataLength = ( int32_t ) ulLength;
-                pxSegment->lStreamPos = lPosition;
-                pxSegment->u.ulFlags = 0U;
-                vTCPTimerSet( &( pxSegment->xTransmitTimer ) );
-
-                /* Increase the sequence number of the next data to be stored for
-                 * transmission. */
-                pxWindow->ulNextTxSequenceNumber += ulLength;
-                lResult = ( int32_t ) ulLength;
-            }
-
-            return lResult;
-        }
-
-
-    #endif /* ipconfigUSE_TCP_WIN == 0 */
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_TCP_WIN == 0 )
-
-/**
- * @brief Fetches data to be sent.
- *
- * @param[in] pxWindow: The window for the connection.
- * @param[in] ulWindowSize: The size of the window.
- * @param[out] plPosition: plPosition will point to a location with the circular data buffer: txStream.
- *
- * @return return the amount of data which may be sent along with the position in the txStream.
- */
-        uint32_t ulTCPWindowTxGet( TCPWindow_t * pxWindow,
-                                   uint32_t ulWindowSize,
-                                   int32_t * plPosition )
-        {
-            TCPSegment_t * pxSegment = &( pxWindow->xTxSegment );
-            uint32_t ulLength = ( uint32_t ) pxSegment->lDataLength;
-            uint32_t ulMaxTime;
-
-            if( ulLength != 0U )
-            {
-                /* _HT_ Still under investigation */
-                ( void ) ulWindowSize;
-
-                if( pxSegment->u.bits.bOutstanding != pdFALSE_UNSIGNED )
-                {
-                    /* As 'ucTransmitCount' has a minimum of 1, take 2 * RTT */
-                    ulMaxTime = ( ( uint32_t ) 1U ) << pxSegment->u.bits.ucTransmitCount;
-                    ulMaxTime *= ( uint32_t ) pxWindow->lSRTT;
-
-                    if( ulTimerGetAge( &( pxSegment->xTransmitTimer ) ) < ulMaxTime )
-                    {
-                        ulLength = 0U;
-                    }
-                }
-
-                if( ulLength != 0U )
-                {
-                    pxSegment->u.bits.bOutstanding = pdTRUE_UNSIGNED;
-                    pxSegment->u.bits.ucTransmitCount++;
-                    vTCPTimerSet( &pxSegment->xTransmitTimer );
-                    pxWindow->ulOurSequenceNumber = pxSegment->ulSequenceNumber;
-                    *plPosition = pxSegment->lStreamPos;
-                }
-            }
-
-            return ulLength;
-        }
-
-
-    #endif /* ipconfigUSE_TCP_WIN == 0 */
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_TCP_WIN == 0 )
-
-/**
- * @brief Has the transmission completed.
- *
- * @param[in] pxWindow: The window whose transmission window is to be checked.
- *
- * @return If there is no outstanding data then pdTRUE is returned,
- *         else pdFALSE.
- */
-        BaseType_t xTCPWindowTxDone( const TCPWindow_t * pxWindow )
-        {
-            BaseType_t xReturn;
-
-            /* Has the outstanding data been sent because user wants to shutdown? */
-            if( pxWindow->xTxSegment.lDataLength == 0 )
-            {
-                xReturn = pdTRUE;
-            }
-            else
-            {
-                xReturn = pdFALSE;
-            }
-
-            return xReturn;
-        }
-
-    #endif /* ipconfigUSE_TCP_WIN == 0 */
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_TCP_WIN == 0 )
-
-        static BaseType_t prvTCPWindowTxHasSpace( TCPWindow_t const * pxWindow,
-                                                  uint32_t ulWindowSize );
-
-/**
- * @brief Check if the window has space for one message.
- *
- * @param[in] pxWindow: The window to be checked.
- * @param[in] ulWindowSize: Size of the window.
- *
- * @return pdTRUE if the window has space, pdFALSE otherwise.
- */
-        static BaseType_t prvTCPWindowTxHasSpace( TCPWindow_t const * pxWindow,
-                                                  uint32_t ulWindowSize )
-        {
-            BaseType_t xReturn;
-
-            if( ulWindowSize >= pxWindow->usMSSInit )
-            {
-                xReturn = pdTRUE;
-            }
-            else
-            {
-                xReturn = pdFALSE;
-            }
-
-            return xReturn;
-        }
-
-    #endif /* ipconfigUSE_TCP_WIN == 0 */
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_TCP_WIN == 0 )
-
-/**
- * @brief Check data to be sent and calculate the time period the process may sleep.
- *
- * @param[in] pxWindow: The window to be checked.
- * @param[in] ulWindowSize: Size of the window.
- * @param[out] pulDelay: The time period (in ticks) that the process may sleep.
- *
- * @return pdTRUE if the process should sleep or pdFALSE.
- */
-        BaseType_t xTCPWindowTxHasData( TCPWindow_t const * pxWindow,
-                                        uint32_t ulWindowSize,
-                                        TickType_t * pulDelay )
-        {
-            TCPSegment_t const * pxSegment = &( pxWindow->xTxSegment );
-            BaseType_t xReturn;
-            TickType_t ulAge, ulMaxAge;
-
-            /* Check data to be sent. */
-            *pulDelay = ( TickType_t ) 0;
-
-            if( pxSegment->lDataLength == 0 )
-            {
-                /* Got nothing to send right now. */
-                xReturn = pdFALSE;
-            }
-            else
-            {
-                if( pxSegment->u.bits.bOutstanding != pdFALSE_UNSIGNED )
-                {
-                    ulAge = ulTimerGetAge( &pxSegment->xTransmitTimer );
-                    ulMaxAge = ( ( TickType_t ) 1U << pxSegment->u.bits.ucTransmitCount ) * ( ( uint32_t ) pxWindow->lSRTT );
-
-                    if( ulMaxAge > ulAge )
-                    {
-                        *pulDelay = ulMaxAge - ulAge;
-                    }
-
-                    xReturn = pdTRUE;
-                }
-                else if( prvTCPWindowTxHasSpace( pxWindow, ulWindowSize ) == pdFALSE )
-                {
-                    /* Too many outstanding messages. */
-                    xReturn = pdFALSE;
-                }
-                else
-                {
-                    xReturn = pdTRUE;
-                }
-            }
-
-            return xReturn;
-        }
-
-
-    #endif /* ipconfigUSE_TCP_WIN == 0 */
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_TCP_WIN == 0 )
-
-/**
- * @brief Receive a normal ACK.
- *
- * @param[in] pxWindow: The window for this particular connection.
- * @param[in] ulSequenceNumber: The sequence number of the packet.
- *
- * @return Number of bytes to send.
- */
-        uint32_t ulTCPWindowTxAck( TCPWindow_t * pxWindow,
-                                   uint32_t ulSequenceNumber )
-        {
-            TCPSegment_t * pxSegment = &( pxWindow->xTxSegment );
-            uint32_t ulDataLength = ( uint32_t ) pxSegment->lDataLength;
-
-            /* Receive a normal ACK */
-
-            if( ulDataLength != 0U )
-            {
-                if( ulSequenceNumber < ( pxWindow->tx.ulCurrentSequenceNumber + ulDataLength ) )
-                {
-                    if( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) != pdFALSE )
-                    {
-                        FreeRTOS_debug_printf( ( "win_tx_ack: acked %u expc %u len %u\n",
-                                                 ( unsigned ) ( ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber ),
-                                                 ( unsigned ) ( pxWindow->tx.ulCurrentSequenceNumber - pxWindow->tx.ulFirstSequenceNumber ),
-                                                 ( unsigned ) ulDataLength ) );
-                    }
-
-                    /* Nothing to send right now. */
-                    ulDataLength = 0U;
-                }
-                else
-                {
-                    pxWindow->tx.ulCurrentSequenceNumber += ulDataLength;
-
-                    if( ( xTCPWindowLoggingLevel != 0 ) && ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) != pdFALSE ) )
-                    {
-                        FreeRTOS_debug_printf( ( "win_tx_ack: acked seqnr %u len %u\n",
-                                                 ( unsigned ) ( ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber ),
-                                                 ( unsigned ) ulDataLength ) );
-                    }
-
-                    pxSegment->lDataLength = 0;
-                }
-            }
-
-            return ulDataLength;
-        }
-
-
-    #endif /* ipconfigUSE_TCP_WIN == 0 */
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_TCP_WIN == 0 )
-
-/**
- * @brief This function will be called as soon as a FIN is received to check
- *        whether all transmit queues are empty or not.
- *
- * @param[in] pxWindow: The window to be checked.
- *
- * @return It will return true if there are no 'open' reception segments.
- */
-        BaseType_t xTCPWindowRxEmpty( const TCPWindow_t * pxWindow )
-        {
-            /* Return true if 'ulCurrentSequenceNumber >= ulHighestSequenceNumber'
-             * 'ulCurrentSequenceNumber' is the highest sequence number stored,
-             * 'ulHighestSequenceNumber' is the highest sequence number seen. */
-            return xSequenceGreaterThanOrEqual( pxWindow->rx.ulCurrentSequenceNumber, pxWindow->rx.ulHighestSequenceNumber );
-        }
-
-    #endif /* ipconfigUSE_TCP_WIN == 0 */
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_TCP_WIN == 0 )
-
-/**
- * @brief Destroy a window.
- *
- * @param[in] pxWindow: Pointer to the window to be destroyed.
- *
- * @return Always returns a NULL.
- */
-        void vTCPWindowDestroy( const TCPWindow_t * pxWindow )
-        {
-            /* As in tiny TCP there are no shared segments descriptors, there is
-             * nothing to release. */
-            ( void ) pxWindow;
-        }
-
-
-    #endif /* ipconfigUSE_TCP_WIN == 0 */
 /*-----------------------------------------------------------*/
 
 #endif /* ipconfigUSE_TCP == 1 */

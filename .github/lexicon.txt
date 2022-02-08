@@ -664,6 +664,7 @@ prvcheckoptions
 prvcheckrxdata
 prvcopydatatoqueue
 prvcreatednsmessage
+prvcreatesectors
 prvdeterminesocketsize
 prvdnsreply
 prvemacdeferredinterrupthandlertask
@@ -707,6 +708,9 @@ prvtcpsendspecialpackethelper
 prvtcpsocketcopy
 prvtcpsocketisactive
 prvtcpstatusagecheck
+prvtcpwindowfastretransmit
+prvtcpwindowtxcheckack
+prvtcpwindowtxhasspace
 prvtxcallback
 prvvalidsocket
 prvwinpcaprecvthread
@@ -750,6 +754,7 @@ pullups
 pulnetmask
 pulnumber
 pulvalue
+pv
 pvargument
 pvbuffer
 pvdata
@@ -789,6 +794,7 @@ pxheadsegment
 pxhigherprioritytaskwoken
 pxicmpheader
 pxicmppacket
+pxindex
 pxipheader
 pxippacket
 pxiswaitingforarpresolution
@@ -801,6 +807,7 @@ pxmessage
 pxnetworkbuffer
 pxnewlistitem
 pxnewsocket
+pxnext
 pxnextbuffer
 pxnextnetworkbufferdescriptor
 pxontcpconnected
@@ -812,6 +819,7 @@ pxopenedinterfacehandle
 pxoptionsarraysize
 pxpeersocket
 pxphyobject
+pxprevious
 pxprops
 pxprotocolheaders
 pxprotpack
@@ -1108,6 +1116,7 @@ ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
 ulcurrenttimeseconds
+ultimergetage
 ultimewhenaddedinseconds
 uldefaultipaddress
 uldelayms
@@ -1361,7 +1370,10 @@ vtasklist
 vtasknotifygivefromisr
 vtcpnetstat
 vtcpstatechange
+vtcptimergetage
+vtcptimerset
 vtcpwindowdestroy
+vtcpwindowfree
 vtcpwindowinit
 wasn
 wcast
@@ -1391,6 +1403,7 @@ xarphadipclash
 xarpheader
 xarppacket
 xbacklog
+xbest
 xbitstoclear
 xbitstoset
 xblocktimeticks
@@ -1557,8 +1570,13 @@ xtcpsocketcheck
 xtcptimer
 xtcptimercheck
 xtcpwindow
+xtcpwindowgethead
+xtcpwindownew
+xtcpwindowpeekhead
 xtcpwindowrxconfirm
+xtcpwindowrxfind
 xtcpwindowtxdone
+xtcpwindowtxnew
 xtime
 xtimeout
 xtotallength
@@ -1579,6 +1597,7 @@ xwaitqueue
 xwanteditemvalue
 xwantedsize
 xwillsleep
+xwindow
 xxx
 yyyy
 zeroquantapause
