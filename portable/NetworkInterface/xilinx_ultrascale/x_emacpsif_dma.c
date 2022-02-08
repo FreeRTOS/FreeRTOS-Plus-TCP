@@ -72,9 +72,18 @@
 #if ( ipconfigPACKET_FILLER_SIZE != 2 )
     #error Please define ipconfigPACKET_FILLER_SIZE as the value '2'
 #endif
-#define TX_OFFSET               ipconfigPACKET_FILLER_SIZE
+#define TX_OFFSET    ipconfigPACKET_FILLER_SIZE
 
-#define dmaRX_TX_BUFFER_SIZE    1536
+#if ( ipconfigNETWORK_MTU > 1526 )
+    #warning the use of Jumbo Frames has not been tested sufficiently yet.
+    #define USE_JUMBO_FRAMES    1
+#endif
+
+#if ( USE_JUMBO_FRAMES == 1 )
+    #define dmaRX_TX_BUFFER_SIZE    10240
+#else
+    #define dmaRX_TX_BUFFER_SIZE    1536
+#endif
 
 #if ( ipconfigULTRASCALE == 1 )
     extern XScuGic xInterruptController;
