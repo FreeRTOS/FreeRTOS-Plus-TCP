@@ -32,41 +32,28 @@
  * Endianness: in this module all ports and IP addresses are stored in
  * host byte-order, except fields in the IP-packets
  */
+/* Standard includes. */
+#include <stdint.h>
+#include <stdio.h>
+
+/* FreeRTOS includes. */
+#include "FreeRTOS.h"
+
+/* FreeRTOS+TCP includes. */
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+
+
+#if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
 /*
- * Calculate when this socket needs to be checked to do (re-)transmissions.
- */
-    static TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket );
+* For logging and debugging: make a string showing the TCP flags.
+*/
+    static const char * prvTCPFlagMeaning( UBaseType_t xFlags );
+#endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
 
 
-/*
- * Set the initial value for MSS (Maximum Segment Size) to be used.
- */
-    void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket );
-
-
-
-
-
-    static NetworkBufferDescriptor_t * prvTCPBufferResize( const FreeRTOS_Socket_t * pxSocket,
-                                                           NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                           int32_t lDataLen,
-                                                           UBaseType_t uxOptionsLength );
-
-    #if ( ipconfigUSE_TCP_WIN != 0 )
-        static uint8_t prvWinScaleFactor( const FreeRTOS_Socket_t * pxSocket );
-    #endif
-
-   #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-
-/*
- * For logging and debugging: make a string showing the TCP flags.
- */
-        static const char * prvTCPFlagMeaning( UBaseType_t xFlags );
-    #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
-
-
-    /* For logging and debugging: make a string showing the TCP flags
+/* For logging and debugging: make a string showing the TCP flags
  */
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
@@ -103,7 +90,7 @@
  *
  * @param[in] pxSocket: The socket whose MSS is to be set.
  */
-    static void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket )
+    void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket )
     {
         uint32_t ulMSS;
 

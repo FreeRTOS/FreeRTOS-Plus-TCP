@@ -47,8 +47,6 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_UDP_IP.h"
-#include "FreeRTOS_DHCP.h"
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
@@ -58,7 +56,7 @@
  * If ipconfigUSE_TCP_WIN is defined, and if only an ACK must be sent, it will
  * be checked if it would better be postponed for efficiency.
  */
-    static BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
+    BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
                                    NetworkBufferDescriptor_t ** ppxNetworkBuffer,
                                    uint32_t ulReceiveLength,
                                    BaseType_t xByteCount );
@@ -66,18 +64,14 @@
 /*
  * Prepare an outgoing message, if anything has to be sent.
  */
-    static int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
+    int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
                                       NetworkBufferDescriptor_t ** ppxNetworkBuffer,
                                       UBaseType_t uxOptionsLength );
-/*
- * Either sends a SYN or calls prvTCPSendRepeated (for regular messages).
- */
-    static int32_t prvTCPSendPacket( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Try to send a series of messages.
  */
-    static int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
+    int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
                                        NetworkBufferDescriptor_t ** ppxNetworkBuffer );
 
 /*
@@ -88,21 +82,9 @@
                                                      uint8_t ucTCPFlags );
 
 /*
- * A "challenge ACK" is as per https://tools.ietf.org/html/rfc5961#section-3.2,
- * case #3. In summary, an RST was received with a sequence number that is
- * unexpected but still within the window.
- */
-    static BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-/*
- * Reply to a peer with the RST flag on, in case a packet can not be handled.
- */
-    static BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-/*
  * Return or send a packet to the other party.
  */
-    static void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
+    void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
                                     NetworkBufferDescriptor_t * pxDescriptor,
                                     uint32_t ulLen,
                                     BaseType_t xReleaseAfterSend );
@@ -110,7 +92,7 @@
 /*
  * Initialise the data structures which keep track of the TCP windowing system.
  */
-    static void prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket );
+    void prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Let ARP look-up the MAC-address of the peer and initialise the first SYN
@@ -122,12 +104,12 @@
  * The API FreeRTOS_send() adds data to the TX stream.  Add
  * this data to the windowing system to it can be transmitted.
  */
-    static void prvTCPAddTxData( FreeRTOS_Socket_t * pxSocket );
+    void prvTCPAddTxData( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Set the TCP options (if any) for the outgoing packet.
  */
-    static UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
+    UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
                                       const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
@@ -135,8 +117,13 @@
  * value of MSS and whether SACK allowed.  Will be transmitted in the state
  * 'eCONNECT_SYN'.
  */
-    static UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t * pxSocket,
+    UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t * pxSocket,
                                             TCPHeader_t * pxTCPHeader );
+
+/*
+ * Set the initial value for MSS (Maximum Segment Size) to be used.
+ */
+    void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket );
 
 /*------------------------------------------------------------------------*/
 
@@ -172,7 +159,7 @@
  *
  * @note It is only called by xTCPSocketCheck().
  */
-    static int32_t prvTCPSendPacket( FreeRTOS_Socket_t * pxSocket )
+    int32_t prvTCPSendPacket( FreeRTOS_Socket_t * pxSocket )
     {
         int32_t lResult = 0;
         UBaseType_t uxOptionsLength, uxIntermediateResult = 0;
@@ -260,7 +247,7 @@
  *
  * @return Total number of bytes sent.
  */
-    static int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
+    int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
                                        NetworkBufferDescriptor_t ** ppxNetworkBuffer )
     {
         UBaseType_t uxIndex;
@@ -308,7 +295,7 @@
  * @param[in] xReleaseAfterSend: pdTRUE if the ownership of the descriptor is
  *                               transferred to the network interface.
  */
-    static void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
+    void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
                                     NetworkBufferDescriptor_t * pxDescriptor,
                                     uint32_t ulLen,
                                     BaseType_t xReleaseAfterSend )
@@ -595,7 +582,7 @@
  *       (in FreeRTOS_TCP_WIN.c) needs to know them, along with the Maximum Segment
  *       Size (MSS).
  */
-    static void prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket )
+    void prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket )
     {
         uint32_t ulRxWindowSize = ( uint32_t ) pxSocket->u.xTCP.uxRxWinSize;
         uint32_t ulTxWindowSize = ( uint32_t ) pxSocket->u.xTCP.uxTxWinSize;
@@ -820,7 +807,7 @@
  *
  * @note MSS is the net size of the payload, an is always smaller than MTU.
  */
-    static UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t * pxSocket,
+    UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t * pxSocket,
                                             TCPHeader_t * pxTCPHeader )
     {
         uint16_t usMSS = pxSocket->u.xTCP.usMSS;
@@ -978,7 +965,7 @@
  * @return Length of the data to be sent if everything is correct. Else, -1
  *         is returned in case of any error.
  */
-    static int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
+    int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
                                       NetworkBufferDescriptor_t ** ppxNetworkBuffer,
                                       UBaseType_t uxOptionsLength )
     {
@@ -1187,7 +1174,7 @@
  *
  * @param[in] pxSocket: The socket owning the connection.
  */
-    static void prvTCPAddTxData( FreeRTOS_Socket_t * pxSocket )
+    void prvTCPAddTxData( FreeRTOS_Socket_t * pxSocket )
     {
         int32_t lCount, lLength;
 
@@ -1230,7 +1217,7 @@
  *
  * @return Length of the TCP options after they are set.
  */
-    static UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
+    UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
                                       const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
@@ -1314,7 +1301,7 @@
  *
  * @return The number of bytes actually sent.
  */
-    static BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
+    BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
                                    NetworkBufferDescriptor_t ** ppxNetworkBuffer,
                                    uint32_t ulReceiveLength,
                                    BaseType_t xByteCount )
@@ -1498,7 +1485,7 @@
  *
  * @return Returns the value back from #prvTCPSendSpecialPacketHelper.
  */
-    static BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer )
+    BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         return prvTCPSendSpecialPacketHelper( pxNetworkBuffer, tcpTCP_FLAG_ACK );
     }
@@ -1511,7 +1498,7 @@
  *
  * @return Returns the value back from #prvTCPSendSpecialPacketHelper.
  */
-    static BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer )
+    BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         return prvTCPSendSpecialPacketHelper( pxNetworkBuffer,
                                               ( uint8_t ) tcpTCP_FLAG_ACK | ( uint8_t ) tcpTCP_FLAG_RST );

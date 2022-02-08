@@ -53,11 +53,6 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
 
-/*
- * Parse the TCP option(s) received, if present.
- */
-    static BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                       const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Identify and deal with a single TCP header option, advancing the pointer to
@@ -80,24 +75,10 @@
                                         FreeRTOS_Socket_t * const pxSocket );
     #endif /* ( ipconfigUSE_TCP_WIN == 1 ) */
 
-
 /*
- * Called from prvTCPHandleState().  Find the TCP payload data and check and
- * return its length.
+ * Reply to a peer with the RST flag on, in case a packet can not be handled.
  */
-    static BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint8_t ** ppucRecvData );
-
-/*
- * Called from prvTCPHandleState().  Check if the payload data may be accepted.
- * If so, it will be added to the socket's reception queue.
- */
-    static BaseType_t prvStoreRxData( FreeRTOS_Socket_t * pxSocket,
-                                      const uint8_t * pucRecvData,
-                                      NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint32_t ulReceiveLength );
-
-
+    BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /**
  * @brief Parse the TCP option(s) received, if present.
@@ -113,7 +94,7 @@
  *       ((pxTCPHeader->ucTCPOffset & 0xf0) > 0x50), meaning that
  *       the TP header is longer than the usual 20 (5 x 4) bytes.
  */
-    static BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+    BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
                                        const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
@@ -219,7 +200,7 @@
         UBaseType_t uxNewMSS;
         size_t uxRemainingOptionsBytes = uxTotalLength;
         uint8_t ucLen;
-        int32_t lIndex;
+        int32_t lIndex = 0;
         TCPWindow_t * pxTCPWindow = &( pxSocket->u.xTCP.xTCPWindow );
         BaseType_t xReturn = pdFALSE;
 
@@ -442,7 +423,7 @@
  *
  * @return Length of the received buffer.
  */
-    static BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+    BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t * pxNetworkBuffer,
                                       uint8_t ** ppucRecvData )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
@@ -526,7 +507,7 @@
  *
  * @return 0 on success, -1 on failure of storing data.
  */
-    static BaseType_t prvStoreRxData( FreeRTOS_Socket_t * pxSocket,
+    BaseType_t prvStoreRxData( FreeRTOS_Socket_t * pxSocket,
                                       const uint8_t * pucRecvData,
                                       NetworkBufferDescriptor_t * pxNetworkBuffer,
                                       uint32_t ulReceiveLength )

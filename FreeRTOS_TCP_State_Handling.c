@@ -54,34 +54,11 @@
 #include "FreeRTOS_ARP.h"
 
 /*
- * The heart of all: check incoming packet for valid data and acks and do what
- * is necessary in each state.
- */
-    static BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
-                                         NetworkBufferDescriptor_t ** ppxNetworkBuffer );
-
-
-/*
  * For anti-hang protection and TCP keep-alive messages.  Called in two places:
  * after receiving a packet and after a state change.  The socket's alive timer
  * may be reset.
  */
     static void prvTCPTouchSocket( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * Returns true if the socket must be checked.  Non-active sockets are waiting
- * for user action, either connect() or close().
- */
-    static BaseType_t prvTCPSocketIsActive( uint8_t ucStatus );
-
-/*
- * prvTCPStatusAgeCheck() will see if the socket has been in a non-connected
- * state for too long.  If so, the socket will be closed, and -1 will be
- * returned.
- */
-    #if ( ipconfigTCP_HANG_PROTECTION == 1 )
-        static BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket );
-    #endif
 
 /*
  *  Called to handle the closure of a TCP connection.
@@ -107,18 +84,79 @@
                                             UBaseType_t uxOptionsLength );
 
 /*
- * Return either a newly created socket, or the current socket in a connected
- * state (depends on the 'bReuseSocket' flag).
- */
-    static FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
-                                                NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-/*
  * After a listening socket receives a new connection, it may duplicate itself.
  * The copying takes place in prvTCPSocketCopy.
  */
     static BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
                                         FreeRTOS_Socket_t * pxSocket );
+
+/*
+ * The API FreeRTOS_send() adds data to the TX stream.  Add
+ * this data to the windowing system to it can be transmitted.
+ */
+    void prvTCPAddTxData( FreeRTOS_Socket_t * pxSocket );
+
+/*
+ * Initialise the data structures which keep track of the TCP windowing system.
+ */
+    void prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket );
+
+/*
+ * Prepare an outgoing message, if anything has to be sent.
+ */
+    int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
+                                      NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                                      UBaseType_t uxOptionsLength );
+
+/*
+ * Called from prvTCPHandleState().  Find the TCP payload data and check and
+ * return its length.
+ */
+    BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                      uint8_t ** ppucRecvData );
+
+/*
+ * Called from prvTCPHandleState().  Check if the payload data may be accepted.
+ * If so, it will be added to the socket's reception queue.
+ */
+    BaseType_t prvStoreRxData( FreeRTOS_Socket_t * pxSocket,
+                                      const uint8_t * pucRecvData,
+                                      NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                      uint32_t ulReceiveLength );
+
+/*
+ * Set the TCP options (if any) for the outgoing packet.
+ */
+    UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
+                                      const NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+/*
+ * Set the initial properties in the options fields, like the preferred
+ * value of MSS and whether SACK allowed.  Will be transmitted in the state
+ * 'eCONNECT_SYN'.
+ */
+    UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t * pxSocket,
+                                            TCPHeader_t * pxTCPHeader );
+
+/*
+ * Reply to a peer with the RST flag on, in case a packet can not be handled.
+ */
+    BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+/*
+ * Called from prvTCPHandleState().  There is data to be sent.
+ * If ipconfigUSE_TCP_WIN is defined, and if only an ACK must be sent, it will
+ * be checked if it would better be postponed for efficiency.
+ */
+    BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
+                                   NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                                   uint32_t ulReceiveLength,
+                                   BaseType_t xByteCount );
+
+/*
+ * Set the initial value for MSS (Maximum Segment Size) to be used.
+ */
+    void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket );
 
 /**
  * @brief Check whether the socket is active or not.
@@ -128,7 +166,7 @@
  * @return pdTRUE if the socket must be checked. Non-active sockets
  *         are waiting for user action, either connect() or close().
  */
-    static BaseType_t prvTCPSocketIsActive( uint8_t ucStatus )
+    BaseType_t prvTCPSocketIsActive( uint8_t ucStatus )
     {
         BaseType_t xResult;
         eIPTCPState_t eStatus = ucStatus;
@@ -174,7 +212,7 @@
  *         in case the socket has reached a critical time-out. The socket will go to
  *         the eCLOSE_WAIT state.
  */
-        static BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket )
+        BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket )
         {
             BaseType_t xResult;
             eIPTCPState_t eState = pxSocket->u.xTCP.ucTCPState;
@@ -711,7 +749,7 @@
  * As these functions are declared static, and they're called from one location
  * only, most compilers will inline them, thus avoiding a call and return.
  */
-    static BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
+    BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
                                          NetworkBufferDescriptor_t ** ppxNetworkBuffer )
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
@@ -910,7 +948,7 @@
  * @return If a new socket/duplicate socket is created, then the pointer to
  *         that socket is returned or else, a NULL pointer is returned.
  */
-    static FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
+    FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
                                                 NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
