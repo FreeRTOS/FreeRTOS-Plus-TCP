@@ -319,19 +319,27 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     {
         if( pxSocket != NULL )
         {
-            if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
+            if( *ipLOCAL_IP_ADDRESS_POINTER != 0U )
             {
-                /* Mark this packet as waiting for ARP resolution. */
-                *pxIsWaitingForARPResolution = pdTRUE;
+                if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
+                {
+                    /* Mark this packet as waiting for ARP resolution. */
+                    *pxIsWaitingForARPResolution = pdTRUE;
 
-                /* Return a fail to show that the frame will not be processed right now. */
-                xReturn = pdFAIL;
-                break;
+                    /* Return a fail to show that the frame will not be processed right now. */
+                    xReturn = pdFAIL;
+                    break;
+                }
+                else
+                {
+                    /* Update the age of this cache entry since a packet was received. */
+                    vARPRefreshCacheEntryAge( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
+                }
             }
             else
             {
-                /* Update the age of this cache entry since a packet was received. */
-                vARPRefreshCacheEntryAge( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
+                /* During DHCP negotiating, the IP address equals zero,
+                 * and therefor ARP verification is not possible. */
             }
 
             #if ( ipconfigUSE_CALLBACKS == 1 )
