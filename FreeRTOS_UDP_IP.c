@@ -320,6 +320,8 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     {
         if( pxSocket != NULL )
         {
+            if( *ipLOCAL_IP_ADDRESS_POINTER != 0 )
+            {
             if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
             {
                 /* Mark this packet as waiting for ARP resolution. */
@@ -338,7 +340,12 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
                  */
                 vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
             }
-
+            }
+            else
+            {
+                /* During DHCP, IP address is not assigned and therefore ARP verification
+                 * is not possible. */
+            }
             #if ( ipconfigUSE_CALLBACKS == 1 )
                 {
                     /* Did the owner of this socket register a reception handler ? */

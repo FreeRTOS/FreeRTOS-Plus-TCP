@@ -1898,7 +1898,6 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                     break;
             #endif /* ipconfigUSE_CALLBACKS */
 
-            #if ( ipconfigUSE_TCP != 0 )
                 #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE != 0 )
 
                     /* Each socket has a semaphore on which the using task normally
@@ -1923,6 +1922,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         break;
                 #endif /* ipconfigSOCKET_HAS_USER_WAKE_CALLBACK */
 
+            #if ( ipconfigUSE_TCP != 0 )
                 case FREERTOS_SO_SET_LOW_HIGH_WATER:
                    {
                        const LowHighWater_t * pxLowHighWater = ipPOINTER_CAST( const LowHighWater_t *, pvOptionValue );
@@ -4080,16 +4080,38 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
          * creation, it could still be changed with setsockopt(). */
         if( xIsInputStream != pdFALSE )
         {
+            size_t uxLittlePerc = sock20_PERCENT;
+            size_t uxEnoughPerc = sock80_PERCENT;
+            size_t uxSegmentCount = pxSocket->u.xTCP.uxRxStreamSize / pxSocket->u.xTCP.usMSS;
+            static const struct xPercTable
+            {
+                size_t uxPercLittle, uxPercEnough;
+            }
+            xPercTable[] =
+            {
+                { 0U,  100U }, /* 1 segment. */
+                { 50U, 100U }, /* 2 segments. */
+                { 34U, 100U }, /* 3 segments. */
+                { 25U, 100U }, /* 4 segments. */
+            };
+
+            if( ( uxSegmentCount > 0 ) &&
+                ( uxSegmentCount <= ARRAY_SIZE( xPercTable ) ) )
+            {
+                uxLittlePerc = xPercTable[ uxSegmentCount - 1U ].uxPercLittle;
+                uxEnoughPerc = xPercTable[ uxSegmentCount - 1U ].uxPercEnough;
+            }
+
             uxLength = pxSocket->u.xTCP.uxRxStreamSize;
 
             if( pxSocket->u.xTCP.uxLittleSpace == 0U )
             {
-                pxSocket->u.xTCP.uxLittleSpace = ( sock20_PERCENT * pxSocket->u.xTCP.uxRxStreamSize ) / sock100_PERCENT;
+                pxSocket->u.xTCP.uxLittleSpace = ( uxLittlePerc * pxSocket->u.xTCP.uxRxStreamSize ) / sock100_PERCENT;
             }
 
             if( pxSocket->u.xTCP.uxEnoughSpace == 0U )
             {
-                pxSocket->u.xTCP.uxEnoughSpace = ( sock80_PERCENT * pxSocket->u.xTCP.uxRxStreamSize ) / sock100_PERCENT;
+                pxSocket->u.xTCP.uxEnoughSpace = ( uxEnoughPerc * pxSocket->u.xTCP.uxRxStreamSize ) / sock100_PERCENT;
             }
         }
         else
