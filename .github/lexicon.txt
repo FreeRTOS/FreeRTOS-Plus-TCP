@@ -193,6 +193,7 @@ eapplicationprocesscustomframehook
 earpcachehit
 earpcachemiss
 earpgetcacheentry
+earpgetcacheentrybymac
 earptimerevent
 ec
 ecantsendpacket
@@ -596,6 +597,7 @@ pcdata
 pcdestination
 pce
 pcf
+pcformat
 pcfrom
 pchostname
 pcipaddress
@@ -641,6 +643,7 @@ pme
 pmecr
 pmt
 pointee
+portinline
 posix
 pparam
 ppkt
@@ -753,6 +756,7 @@ pulipaddress
 pullups
 pulnetmask
 pulnumber
+pulskipcount
 pulvalue
 pv
 pvargument
@@ -778,12 +782,14 @@ pxbindaddress
 pxbuffer
 pxbufferdescriptor
 pxdescriptor
+pxdest
 pxdestinationaddress
 pxdhcpmessage
 pxdnsmessageheader
 pxdnsbuf
 pxduplicatenetworkbufferwithdescriptor
 pxevent
+pxfrom
 pxgetnetworkbuffer
 pxgetnetworkbufferwithdescriptor
 pxhandleconnected
@@ -958,6 +964,7 @@ snd
 snprintf
 sockaddr
 socketset
+sockopt
 sof
 sourceaddrfilter
 spi
@@ -1181,6 +1188,7 @@ ulrxwindowlength
 ulsenderprotocoladdress
 ulsequencenumber
 ulsize
+ulskipcount
 ulsourceipaddress
 ulspace
 ulsrtt
@@ -1279,6 +1287,7 @@ uxenoughspace
 uxentrycount
 uxflags
 uxfront
+uxgetminimumipqueuespace
 uxhead
 uxheaderlength
 uxidentifier
@@ -1504,7 +1513,11 @@ xnetworkeventqueue
 xnetworkinterfaceinitialise
 xnetworkinterfaceoutput
 xnetworkparams
+xontcpconnect
 xontcpreceive
+xontcpsent
+xonudpreceive
+xonudpsent
 xopcode
 xoutgoingpacket
 xpacket
@@ -1514,6 +1527,7 @@ xpeek
 xphyfixedvalue
 xphypreferences
 xphystartautonegotiation
+xport
 xporthasudpsocket
 xpqueue
 xpriorityqueue
