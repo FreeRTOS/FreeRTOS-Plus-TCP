@@ -150,7 +150,7 @@
                                    uint32_t * pulSkipCount )
         {
             int32_t lReturn = -1;
-            
+
             *pulSkipCount = 0;
 
             /* Data was received at 'ulSequenceNumber'.  See if it was expected

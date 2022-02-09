@@ -1898,29 +1898,29 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                     break;
             #endif /* ipconfigUSE_CALLBACKS */
 
-                #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE != 0 )
+            #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE != 0 )
 
-                    /* Each socket has a semaphore on which the using task normally
-                     * sleeps. */
-                    case FREERTOS_SO_SET_SEMAPHORE:
-                       {
-                           pxSocket->pxUserSemaphore = *( ipPOINTER_CAST( SemaphoreHandle_t *, pvOptionValue ) );
-                       }
-                        xReturn = 0;
-                        break;
-                #endif /* ipconfigSOCKET_HAS_USER_SEMAPHORE */
+                /* Each socket has a semaphore on which the using task normally
+                 * sleeps. */
+                case FREERTOS_SO_SET_SEMAPHORE:
+                   {
+                       pxSocket->pxUserSemaphore = *( ipPOINTER_CAST( SemaphoreHandle_t *, pvOptionValue ) );
+                   }
+                    xReturn = 0;
+                    break;
+            #endif /* ipconfigSOCKET_HAS_USER_SEMAPHORE */
 
-                #if ( ipconfigSOCKET_HAS_USER_WAKE_CALLBACK != 0 )
-                    case FREERTOS_SO_WAKEUP_CALLBACK:
+            #if ( ipconfigSOCKET_HAS_USER_WAKE_CALLBACK != 0 )
+                case FREERTOS_SO_WAKEUP_CALLBACK:
 
-                        /* Each socket can have a callback function that is executed
-                         * when there is an event the socket's owner might want to
-                         * process. */
-                        /* The type cast of the pointer expression "A" to type "B" removes const qualifier from the pointed to type. */
-                        pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
-                        xReturn = 0;
-                        break;
-                #endif /* ipconfigSOCKET_HAS_USER_WAKE_CALLBACK */
+                    /* Each socket can have a callback function that is executed
+                     * when there is an event the socket's owner might want to
+                     * process. */
+                    /* The type cast of the pointer expression "A" to type "B" removes const qualifier from the pointed to type. */
+                    pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
+                    xReturn = 0;
+                    break;
+            #endif /* ipconfigSOCKET_HAS_USER_WAKE_CALLBACK */
 
             #if ( ipconfigUSE_TCP != 0 )
                 case FREERTOS_SO_SET_LOW_HIGH_WATER:
