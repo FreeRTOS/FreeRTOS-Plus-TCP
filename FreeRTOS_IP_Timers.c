@@ -482,5 +482,5 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
         }
     }
 
-#endif /* ipconfigUSE_DHCP */
+#endif /* ipconfigDNS_USE_CALLBACKS == 1 */
 /*-----------------------------------------------------------*/
