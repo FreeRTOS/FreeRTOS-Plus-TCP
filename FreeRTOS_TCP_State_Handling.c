@@ -24,10 +24,8 @@
  */
 
 /**
- * @file FreeRTOS_TCP_IP.c
- * @brief Module which handles the TCP connections for FreeRTOS+TCP.
- * It depends on  FreeRTOS_TCP_WIN.c, which handles the TCP windowing
- * schemes.
+ * @file FreeRTOS_TCP_State_Handling.c
+ * @brief Module which handles the TCP protocol state transition for FreeRTOS+TCP.
  *
  * Endianness: in this module all ports and IP addresses are stored in
  * host byte-order, except fields in the IP-packets

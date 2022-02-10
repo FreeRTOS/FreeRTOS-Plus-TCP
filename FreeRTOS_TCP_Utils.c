@@ -24,10 +24,8 @@
  */
 
 /**
- * @file FreeRTOS_TCP_IP.c
- * @brief Module which handles the TCP connections for FreeRTOS+TCP.
- * It depends on  FreeRTOS_TCP_WIN.c, which handles the TCP windowing
- * schemes.
+ * @file FreeRTOS_TCP_Utils.c
+ * @brief Module contains utility functions used by FreeRTOS+TCP module.
  *
  * Endianness: in this module all ports and IP addresses are stored in
  * host byte-order, except fields in the IP-packets
@@ -46,14 +44,6 @@
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
-    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-
-/*
- * For logging and debugging: make a string showing the TCP flags.
- */
-        static const char * prvTCPFlagMeaning( UBaseType_t xFlags );
-    #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
-
 
 /* For logging and debugging: make a string showing the TCP flags
  */
@@ -66,7 +56,7 @@
  *
  * @return The string containing the flags.
  */
-        static const char * prvTCPFlagMeaning( UBaseType_t xFlags )
+        const char * prvTCPFlagMeaning( UBaseType_t xFlags )
         {
             static char retString[ 10 ];
             size_t uxFlags = ( size_t ) xFlags;

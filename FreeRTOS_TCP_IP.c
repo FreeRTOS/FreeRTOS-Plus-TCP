@@ -149,6 +149,14 @@
         BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket );
     #endif
 
+    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+
+/*
+ * For logging and debugging: make a string showing the TCP flags.
+ */
+        const char * prvTCPFlagMeaning( UBaseType_t xFlags );
+    #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+
 
 /*-----------------------------------------------------------*/
 

@@ -24,8 +24,9 @@
  */
 
 /**
- * @file FreeRTOS_TCP_IP.c
- * @brief Module which handles the TCP connections for FreeRTOS+TCP.
+ * @file FreeRTOS_TCP_Transmission.c
+ * @brief Module which prepares the packet to be sent through
+ * a socket for FreeRTOS+TCP.
  * It depends on  FreeRTOS_TCP_WIN.c, which handles the TCP windowing
  * schemes.
  *
