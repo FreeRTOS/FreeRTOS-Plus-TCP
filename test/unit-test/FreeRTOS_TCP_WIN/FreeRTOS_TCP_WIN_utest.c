@@ -415,7 +415,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal( void )
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX( void )
@@ -446,7 +446,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX( void 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_2( void )
@@ -483,7 +483,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_2( voi
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_3( void )
@@ -523,7 +523,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_3( voi
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_4( void )
@@ -562,7 +562,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_4( voi
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_5( void )
@@ -598,7 +598,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_5( voi
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_6( void )
@@ -638,7 +638,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_6( voi
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_7( void )
@@ -678,7 +678,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_7( voi
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_8( void )
@@ -721,7 +721,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_8( voi
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_9( void )
@@ -771,7 +771,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_9( voi
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( 500UL + ulLength + ulSequenceNumber ),
                        xWindow.rx.ulCurrentSequenceNumber );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_10( void )
@@ -811,7 +811,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_10( vo
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_length_gt_space( void )
@@ -832,7 +832,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_length_gt_space( void )
                                  &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_plus_1( void )
@@ -853,7 +853,7 @@ void test_lTCPWindowRxCheck_sequence_nums_plus_1( void )
                                  &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_current_sequence_lt_sequence( void )
@@ -874,7 +874,7 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence( void )
                                  &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX( void )
@@ -910,7 +910,7 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX( void )
                                  &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX_2( void )
@@ -954,7 +954,7 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX_2( void 
                                  &ulSkipCount );
 
     TEST_ASSERT_EQUAL( 2, lReturn );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX_3( void )
@@ -990,7 +990,7 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX_3( void 
                                  &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_distance_eq_zero( void )
@@ -1012,7 +1012,7 @@ void test_lTCPWindowRxCheck_distance_eq_zero( void )
                                  &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
-    TEST_ASSERT_EQUAL(0, ulSkipCount);
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_distance_gt_space( void )
@@ -1034,7 +1034,7 @@ void test_lTCPWindowRxCheck_distance_gt_space( void )
                                  &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
-    TEST_ASSERT_EQUAL(2, ulSkipCount);
+    TEST_ASSERT_EQUAL( 2, ulSkipCount );
 }
 
 void test_lTCPWindowTxAdd_nothing_to_do( void )
