@@ -51,28 +51,31 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
 
+/* Just make sure the contents doesn't get compiled if TCP is not enabled. */
+#if ipconfigUSE_TCP == 1
+
 /*
  * Called from prvTCPHandleState().  There is data to be sent.
  * If ipconfigUSE_TCP_WIN is defined, and if only an ACK must be sent, it will
  * be checked if it would better be postponed for efficiency.
  */
     BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
-                                   NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                   uint32_t ulReceiveLength,
-                                   BaseType_t xByteCount );
+                            NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                            uint32_t ulReceiveLength,
+                            BaseType_t xByteCount );
 
 /*
  * Prepare an outgoing message, if anything has to be sent.
  */
     int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
-                                      NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                      UBaseType_t uxOptionsLength );
+                               NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                               UBaseType_t uxOptionsLength );
 
 /*
  * Try to send a series of messages.
  */
     int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
-                                       NetworkBufferDescriptor_t ** ppxNetworkBuffer );
+                                NetworkBufferDescriptor_t ** ppxNetworkBuffer );
 
 /*
  * Common code for sending a TCP protocol control packet (i.e. no options, no
@@ -85,9 +88,9 @@
  * Return or send a packet to the other party.
  */
     void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
-                                    NetworkBufferDescriptor_t * pxDescriptor,
-                                    uint32_t ulLen,
-                                    BaseType_t xReleaseAfterSend );
+                             NetworkBufferDescriptor_t * pxDescriptor,
+                             uint32_t ulLen,
+                             BaseType_t xReleaseAfterSend );
 
 /*
  * Initialise the data structures which keep track of the TCP windowing system.
@@ -110,7 +113,7 @@
  * Set the TCP options (if any) for the outgoing packet.
  */
     UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
-                                      const NetworkBufferDescriptor_t * pxNetworkBuffer );
+                               const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Set the initial properties in the options fields, like the preferred
@@ -118,7 +121,7 @@
  * 'eCONNECT_SYN'.
  */
     UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t * pxSocket,
-                                            TCPHeader_t * pxTCPHeader );
+                                     TCPHeader_t * pxTCPHeader );
 
 /*
  * Set the initial value for MSS (Maximum Segment Size) to be used.
@@ -248,7 +251,7 @@
  * @return Total number of bytes sent.
  */
     int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
-                                       NetworkBufferDescriptor_t ** ppxNetworkBuffer )
+                                NetworkBufferDescriptor_t ** ppxNetworkBuffer )
     {
         UBaseType_t uxIndex;
         int32_t lResult = 0;
@@ -296,9 +299,9 @@
  *                               transferred to the network interface.
  */
     void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
-                                    NetworkBufferDescriptor_t * pxDescriptor,
-                                    uint32_t ulLen,
-                                    BaseType_t xReleaseAfterSend )
+                             NetworkBufferDescriptor_t * pxDescriptor,
+                             uint32_t ulLen,
+                             BaseType_t xReleaseAfterSend )
     {
         TCPPacket_t * pxTCPPacket;
         IPHeader_t * pxIPHeader;
@@ -755,7 +758,7 @@
     }
     /*-----------------------------------------------------------*/
 
-   #if ( ipconfigUSE_TCP_WIN != 0 )
+    #if ( ipconfigUSE_TCP_WIN != 0 )
 
 /**
  * @brief Get the window scaling factor for the TCP connection.
@@ -808,7 +811,7 @@
  * @note MSS is the net size of the payload, an is always smaller than MTU.
  */
     UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t * pxSocket,
-                                            TCPHeader_t * pxTCPHeader )
+                                     TCPHeader_t * pxTCPHeader )
     {
         uint16_t usMSS = pxSocket->u.xTCP.usMSS;
         UBaseType_t uxOptionsLength;
@@ -966,8 +969,8 @@
  *         is returned in case of any error.
  */
     int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
-                                      NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                      UBaseType_t uxOptionsLength )
+                               NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                               UBaseType_t uxOptionsLength )
     {
         int32_t lDataLen;
         uint8_t * pucEthernetBuffer, * pucSendData;
@@ -1218,7 +1221,7 @@
  * @return Length of the TCP options after they are set.
  */
     UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
-                                      const NetworkBufferDescriptor_t * pxNetworkBuffer )
+                               const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -1302,9 +1305,9 @@
  * @return The number of bytes actually sent.
  */
     BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
-                                   NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                   uint32_t ulReceiveLength,
-                                   BaseType_t xByteCount )
+                            NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                            uint32_t ulReceiveLength,
+                            BaseType_t xByteCount )
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -1441,6 +1444,7 @@
         return xSendLength;
     }
     /*-----------------------------------------------------------*/
+
 /**
  * @brief Common code for sending a TCP protocol control packet (i.e. no options, no
  *        payload, just flags).
@@ -1505,3 +1509,4 @@
     }
     /*-----------------------------------------------------------*/
 
+#endif /* ipconfigUSE_TCP == 1 */

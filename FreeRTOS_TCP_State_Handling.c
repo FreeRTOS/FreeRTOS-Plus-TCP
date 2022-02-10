@@ -53,6 +53,9 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
 
+/* Just make sure the contents doesn't get compiled if TCP is not enabled. */
+#if ipconfigUSE_TCP == 1
+
 /*
  * For anti-hang protection and TCP keep-alive messages.  Called in two places:
  * after receiving a packet and after a state change.  The socket's alive timer
@@ -105,30 +108,30 @@
  * Prepare an outgoing message, if anything has to be sent.
  */
     int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
-                                      NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                      UBaseType_t uxOptionsLength );
+                               NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                               UBaseType_t uxOptionsLength );
 
 /*
  * Called from prvTCPHandleState().  Find the TCP payload data and check and
  * return its length.
  */
     BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint8_t ** ppucRecvData );
+                               uint8_t ** ppucRecvData );
 
 /*
  * Called from prvTCPHandleState().  Check if the payload data may be accepted.
  * If so, it will be added to the socket's reception queue.
  */
     BaseType_t prvStoreRxData( FreeRTOS_Socket_t * pxSocket,
-                                      const uint8_t * pucRecvData,
-                                      NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint32_t ulReceiveLength );
+                               const uint8_t * pucRecvData,
+                               NetworkBufferDescriptor_t * pxNetworkBuffer,
+                               uint32_t ulReceiveLength );
 
 /*
  * Set the TCP options (if any) for the outgoing packet.
  */
     UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
-                                      const NetworkBufferDescriptor_t * pxNetworkBuffer );
+                               const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Set the initial properties in the options fields, like the preferred
@@ -136,7 +139,7 @@
  * 'eCONNECT_SYN'.
  */
     UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t * pxSocket,
-                                            TCPHeader_t * pxTCPHeader );
+                                     TCPHeader_t * pxTCPHeader );
 
 /*
  * Reply to a peer with the RST flag on, in case a packet can not be handled.
@@ -149,9 +152,9 @@
  * be checked if it would better be postponed for efficiency.
  */
     BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
-                                   NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                   uint32_t ulReceiveLength,
-                                   BaseType_t xByteCount );
+                            NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                            uint32_t ulReceiveLength,
+                            BaseType_t xByteCount );
 
 /*
  * Set the initial value for MSS (Maximum Segment Size) to be used.
@@ -290,7 +293,7 @@
 
     #endif /* if ( ipconfigTCP_HANG_PROTECTION == 1 ) */
 
-    /**
+/**
  * @brief prvTCPHandleFin() will be called to handle connection closure. The
  *        closure starts when either a FIN has been received and accepted,
  *        or when the socket has sent a FIN flag to the peer. Before being
@@ -750,7 +753,7 @@
  * only, most compilers will inline them, thus avoiding a call and return.
  */
     BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
-                                         NetworkBufferDescriptor_t ** ppxNetworkBuffer )
+                                  NetworkBufferDescriptor_t ** ppxNetworkBuffer )
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -949,7 +952,7 @@
  *         that socket is returned or else, a NULL pointer is returned.
  */
     FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
-                                                NetworkBufferDescriptor_t * pxNetworkBuffer )
+                                         NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
         const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
@@ -1198,3 +1201,4 @@
     #endif /* ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) ) */
     /*-----------------------------------------------------------*/
 
+#endif /* ipconfigUSE_TCP == 1 */

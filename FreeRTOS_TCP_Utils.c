@@ -43,14 +43,16 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* Just make sure the contents doesn't get compiled if TCP is not enabled. */
+#if ipconfigUSE_TCP == 1
 
-#if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
 /*
-* For logging and debugging: make a string showing the TCP flags.
-*/
-    static const char * prvTCPFlagMeaning( UBaseType_t xFlags );
-#endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+ * For logging and debugging: make a string showing the TCP flags.
+ */
+        static const char * prvTCPFlagMeaning( UBaseType_t xFlags );
+    #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
 
 
 /* For logging and debugging: make a string showing the TCP flags
@@ -118,3 +120,4 @@
     }
     /*-----------------------------------------------------------*/
 
+#endif /* ipconfigUSE_TCP == 1 */

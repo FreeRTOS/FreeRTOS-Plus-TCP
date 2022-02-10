@@ -73,22 +73,22 @@
  * Try to send a series of messages.
  */
     int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
-                                       NetworkBufferDescriptor_t ** ppxNetworkBuffer );
+                                NetworkBufferDescriptor_t ** ppxNetworkBuffer );
 
 /*
  * Return or send a packet to the other party.
  */
     void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
-                                    NetworkBufferDescriptor_t * pxDescriptor,
-                                    uint32_t ulLen,
-                                    BaseType_t xReleaseAfterSend );
+                             NetworkBufferDescriptor_t * pxDescriptor,
+                             uint32_t ulLen,
+                             BaseType_t xReleaseAfterSend );
 
 
 /*
  * Parse the TCP option(s) received, if present.
  */
     BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                       const NetworkBufferDescriptor_t * pxNetworkBuffer );
+                                const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 
 /*
@@ -116,7 +116,7 @@
  * is necessary in each state.
  */
     BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
-                                         NetworkBufferDescriptor_t ** ppxNetworkBuffer );
+                                  NetworkBufferDescriptor_t ** ppxNetworkBuffer );
 
 
 /*
@@ -137,7 +137,7 @@
  * state (depends on the 'bReuseSocket' flag).
  */
     FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
-                                                NetworkBufferDescriptor_t * pxNetworkBuffer );
+                                         NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 
 /*

@@ -54,6 +54,9 @@
 #include "FreeRTOS_ARP.h"
 
 
+/* Just make sure the contents doesn't get compiled if TCP is not enabled. */
+#if ipconfigUSE_TCP == 1
+
 /*
  * Identify and deal with a single TCP header option, advancing the pointer to
  * the header. This function returns pdTRUE or pdFALSE depending on whether the
@@ -95,7 +98,7 @@
  *       the TP header is longer than the usual 20 (5 x 4) bytes.
  */
     BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                       const NetworkBufferDescriptor_t * pxNetworkBuffer )
+                                const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
         const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -424,7 +427,7 @@
  * @return Length of the received buffer.
  */
     BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint8_t ** ppucRecvData )
+                               uint8_t ** ppucRecvData )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
@@ -508,9 +511,9 @@
  * @return 0 on success, -1 on failure of storing data.
  */
     BaseType_t prvStoreRxData( FreeRTOS_Socket_t * pxSocket,
-                                      const uint8_t * pucRecvData,
-                                      NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint32_t ulReceiveLength )
+                               const uint8_t * pucRecvData,
+                               NetworkBufferDescriptor_t * pxNetworkBuffer,
+                               uint32_t ulReceiveLength )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t,
@@ -586,3 +589,5 @@
         return xResult;
     }
     /*-----------------------------------------------------------*/
+
+#endif /* ipconfigUSE_TCP == 1 */
