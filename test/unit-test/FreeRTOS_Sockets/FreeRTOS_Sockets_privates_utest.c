@@ -2729,7 +2729,7 @@ void test_lTCPAddRxdata_SteamCreationSuccessful_AllBytesNotAdded( void )
     xSocket.u.xTCP.uxLittleSpace = 3;
     xSocket.u.xTCP.uxEnoughSpace = 17;
     xSocket.u.xTCP.usMSS = 10;
-    
+
     size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xStreamBuffer ) ) - sizeof( xStreamBuffer.ucArray );
 
     pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ucStream );
@@ -2841,7 +2841,7 @@ void test_lTCPAddRxdata_HasValidHandler( void )
     xSocket.xSelectBits = eSELECT_READ;
     xSocket.u.xTCP.pxHandleReceive = xLocalReceiveCallback;
     xSocket.u.xTCP.usMSS = 10;
-    
+
     size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xStreamBuffer ) ) - sizeof( xStreamBuffer.ucArray );
 
     pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ucStream );
@@ -2887,7 +2887,7 @@ void test_lTCPAddRxdata_HasValidHandler_DataNULL( void )
     xSocket.xSelectBits = eSELECT_READ;
     xSocket.u.xTCP.pxHandleReceive = xLocalReceiveCallback;
     xSocket.u.xTCP.usMSS = 10;
-    
+
     size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xStreamBuffer ) ) - sizeof( xStreamBuffer.ucArray );
 
     pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ucStream );
@@ -2932,7 +2932,7 @@ void test_lTCPAddRxdata_HasValidHandler_NonZeroOffset( void )
     xSocket.xSelectBits = eSELECT_READ;
     xSocket.u.xTCP.pxHandleReceive = xLocalReceiveCallback;
     xSocket.u.xTCP.usMSS = 10;
-    
+
     size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xStreamBuffer ) ) - sizeof( xStreamBuffer.ucArray );
 
     pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ucStream );
@@ -2975,7 +2975,7 @@ void test_lTCPAddRxdata_HasValidHandlerWithNonZeroSize( void )
     xSocket.xSelectBits = eSELECT_READ;
     xSocket.u.xTCP.pxHandleReceive = xLocalReceiveCallback;
     xSocket.u.xTCP.usMSS = 10;
-    
+
     size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xStreamBuffer ) ) - sizeof( xStreamBuffer.ucArray );
 
     pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ucStream );
