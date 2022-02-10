@@ -55,13 +55,6 @@
 #if ipconfigUSE_TCP == 1
 
 /*
- * For anti-hang protection and TCP keep-alive messages.  Called in two places:
- * after receiving a packet and after a state change.  The socket's alive timer
- * may be reset.
- */
-    static void prvTCPTouchSocket( FreeRTOS_Socket_t * pxSocket );
-
-/*
  *  Called to handle the closure of a TCP connection.
  */
     static BaseType_t prvTCPHandleFin( FreeRTOS_Socket_t * pxSocket,
