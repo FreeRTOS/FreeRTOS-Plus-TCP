@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP V2.4.0
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -1038,10 +1038,27 @@
                 }
             #endif
 
-            /* Fill in the destination MAC addresses. */
-            ( void ) memcpy( ( void * ) ( &( pxEthernetHeader->xDestinationAddress ) ),
-                             ( const void * ) ( &( pxEthernetHeader->xSourceAddress ) ),
-                             sizeof( pxEthernetHeader->xDestinationAddress ) );
+            {
+                MACAddress_t xMACAddress;
+                uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+                eARPLookupResult_t eResult;
+
+                eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress );
+
+                if( eResult == eARPCacheHit )
+                {
+                    pvCopySource = &xMACAddress;
+                }
+                else
+                {
+                    pvCopySource = &pxEthernetHeader->xSourceAddress;
+                }
+
+                /* Fill in the destination MAC addresses. */
+                ( void ) memcpy( ( void * ) ( &( pxEthernetHeader->xDestinationAddress ) ),
+                                 pvCopySource,
+                                 sizeof( pxEthernetHeader->xDestinationAddress ) );
+            }
 
             /*
              * Use helper variables for memcpy() to remain
@@ -1517,7 +1534,6 @@
                             /* The peer advertises a smaller MSS than this socket was
                              * using.  Use that as well. */
                             FreeRTOS_debug_printf( ( "Change mss %d => %u\n", pxSocket->u.xTCP.usMSS, ( unsigned ) uxNewMSS ) );
-                            pxSocket->u.xTCP.usMSS = ( uint16_t ) uxNewMSS;
                         }
 
                         pxTCPWindow->xSize.ulRxWindowLength = ( ( uint32_t ) uxNewMSS ) * ( pxTCPWindow->xSize.ulRxWindowLength / ( ( uint32_t ) uxNewMSS ) );
@@ -2602,6 +2618,8 @@
 
         if( ( ulReceiveLength > 0U ) && ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eSYN_RECEIVED ) )
         {
+            uint32_t ulSkipCount = 0;
+
             /* See if way may accept the data contents and forward it to the socket
              * owner.
              *
@@ -2618,7 +2636,7 @@
                 ulSpace = ( uint32_t ) pxSocket->u.xTCP.uxRxStreamSize;
             }
 
-            lOffset = lTCPWindowRxCheck( pxTCPWindow, ulSequenceNumber, ulReceiveLength, ulSpace );
+            lOffset = lTCPWindowRxCheck( pxTCPWindow, ulSequenceNumber, ulReceiveLength, ulSpace, &( ulSkipCount ) );
 
             if( lOffset >= 0 )
             {
@@ -2626,6 +2644,15 @@
                  * if the head marker in rxStream may be advanced, only if lOffset == 0.
                  * In case the low-water mark is reached, bLowWater will be set
                  * "low-water" here stands for "little space". */
+                if( ulSkipCount != 0U )
+                {
+                    /* A packet was received that starts before 'ulCurrentSequenceNumber',
+                     * and that ends after it.  The first 'ulSkipCount' bytes shall be
+                     * skipped. */
+                    ulReceiveLength -= ulSkipCount;
+                    pucRecvData = &( pucRecvData[ ulSkipCount ] );
+                }
+
                 lStored = lTCPAddRxdata( pxSocket, ( uint32_t ) lOffset, pucRecvData, ulReceiveLength );
 
                 if( lStored != ( int32_t ) ulReceiveLength )

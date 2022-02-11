@@ -142,7 +142,7 @@ void test_xTCPWindowRxEmpty_greater_sequence( void )
     TCPWindow_t xWindow = { 0 };
 
     xWindow.rx.ulCurrentSequenceNumber = 1;
-    xWindow.rx.ulHighestSequenceNumber = 2;
+    xWindow.rx.ulHighestSequenceNumber = 3;
 
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
 
@@ -286,14 +286,6 @@ void test_vTCPWindowCreate_tcp_segment_null( void )
     vListInitialise_ExpectAnyArgs();
     pvPortMalloc_ExpectAnyArgsAndReturn( NULL );
 
-/*    pvPortMallocLarge_ExpectAnyArgsAndReturn(NULL); */
-    /*listSET_LIST_ITEM_OWNER_ExpectAnyArgs(); */
-    /*listSET_LIST_ITEM_OWNER_ExpectAnyArgs(); */
-
-    /*listSET_LIST_ITEM_OWNER_ExpectAnyArgs(); */
-    /*listSET_LIST_ITEM_OWNER_ExpectAnyArgs(); */
-
-    /* back */
     vListInitialise_ExpectAnyArgs();
     vListInitialise_ExpectAnyArgs();
     vListInitialise_ExpectAnyArgs();
@@ -408,6 +400,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal( void )
     uint32_t ulSequenceNumber = 34;
     uint32_t ulLength = 34;
     uint32_t ulSpace = ulLength + 3U; /* space > length */
+    uint32_t ulSkipCount = 0;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
 
@@ -416,11 +409,13 @@ void test_lTCPWindowRxCheck_sequence_nums_equal( void )
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX( void )
@@ -430,6 +425,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX( void 
     uint32_t ulSequenceNumber = 34;
     uint32_t ulLength = 34;
     uint32_t ulSpace = ulLength + 3U; /* space > length */
+    uint32_t ulSkipCount = 0;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
 
@@ -444,11 +440,13 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX( void 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_2( void )
@@ -460,6 +458,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_2( voi
     uint32_t ulSpace = ulLength + 3U; /* space > length */
     TCPSegment_t xSegment = { 0 };
     ListItem_t xIterator;
+    uint32_t ulSkipCount = 0;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
     xSegment.ulSequenceNumber = 23;
@@ -478,11 +477,13 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_2( voi
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_3( void )
@@ -494,6 +495,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_3( voi
     uint32_t ulSpace = ulLength + 3U; /* space > length */
     TCPSegment_t xSegment = { 0 };
     ListItem_t xIterator;
+    uint32_t ulSkipCount = 0;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
     xSegment.ulSequenceNumber = 39;
@@ -505,9 +507,6 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_3( voi
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* ->prvTCPWindowRX_ExpectedRX */
-    /* -->vTCPWindowFree */
-    /*uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
-    /*uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
     /* <-prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
@@ -518,11 +517,13 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_3( voi
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_4( void )
@@ -534,6 +535,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_4( voi
     uint32_t ulSpace = ulLength + 3U; /* space > length */
     TCPSegment_t xSegment = { 0 };
     ListItem_t xIterator;
+    uint32_t ulSkipCount = 0;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
     xSegment.ulSequenceNumber = 39;
@@ -545,10 +547,6 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_4( voi
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* ->prvTCPWindowRX_ExpectedRX */
-    /* -->vTCPWindowFree */
-    /*uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
-    /*uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
-    /* ->prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
@@ -558,11 +556,13 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_4( voi
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_5( void )
@@ -574,6 +574,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_5( voi
     uint32_t ulSpace = ulLength + 3U; /* space > length */
     TCPSegment_t xSegment = { 0 };
     ListItem_t xIterator;
+    uint32_t ulSkipCount = 0;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
     xSegment.ulSequenceNumber = 39;
@@ -591,11 +592,13 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_5( voi
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_6( void )
@@ -607,6 +610,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_6( voi
     uint32_t ulSpace = ulLength + 3U; /* space > length */
     TCPSegment_t xSegment = { 0 };
     ListItem_t xIterator;
+    uint32_t ulSkipCount = 0;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
     xSegment.ulSequenceNumber = 39;
@@ -618,11 +622,6 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_6( voi
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
-    /*listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * )&xWindow.xRxSegments.xListEnd ); */
-    /* ->prvTCPWindowRX_ExpectedRX */
-    /* -->vTCPWindowFree */
-/*    uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
-/*   uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
     /* ->prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
@@ -633,11 +632,13 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_6( voi
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_7( void )
@@ -648,6 +649,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_7( voi
     uint32_t ulLength = 34;
     uint32_t ulSpace = ulLength + 3U; /* space > length */
     TCPSegment_t xSegment = { 0 };
+    uint32_t ulSkipCount = 0;
     ListItem_t xIterator;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
@@ -660,11 +662,6 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_7( voi
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
-    /*listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * )&xWindow.xRxSegments.xListEnd ); */
-    /* ->prvTCPWindowRX_ExpectedRX */
-    /* -->vTCPWindowFree */
-    /*  uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
-    /* uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
     /* ->prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
@@ -675,11 +672,13 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_7( voi
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_8( void )
@@ -692,6 +691,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_8( voi
     TCPSegment_t xSegment = { 0 };
     /*TCPSegment_t xBest; */
     ListItem_t xIterator;
+    uint32_t ulSkipCount = 0;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
     xSegment.ulSequenceNumber = 34;
@@ -706,10 +706,6 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_8( voi
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
-    /* -->vTCPWindowFree */
-    /*uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
-    /*uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
-    /* <-prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
@@ -719,11 +715,13 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_8( voi
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_9( void )
@@ -737,6 +735,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_9( voi
     TCPSegment_t xSegment2 = { 0 };
     TCPSegment_t xBest = { 0 };
     ListItem_t xIterator;
+    uint32_t ulSkipCount = 0;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
     xSegment.ulSequenceNumber = 35;
@@ -755,27 +754,24 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_9( voi
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xBest );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
-    /* -->vTCPWindowFree */
-    /*uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
-    /*uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
-    /* <-prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRxFind */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment2 );
-    /*uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( 500UL + ulLength + ulSequenceNumber ),
                        xWindow.rx.ulCurrentSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_10( void )
@@ -787,6 +783,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_10( vo
     uint32_t ulSpace = ulLength + 3U; /* space > length */
     TCPSegment_t xSegment = { 0 };
     ListItem_t xIterator;
+    uint32_t ulSkipCount = 0;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
     xSegment.ulSequenceNumber = 34;
@@ -798,12 +795,7 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_10( vo
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
-    /*listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * )&xWindow.xRxSegments.xListEnd ); */
     /* ->prvTCPWindowRX_ExpectedRX */
-    /* -->vTCPWindowFree */
-    /*uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
-    /*uxListRemove_ExpectAnyArgsAndReturn( pdTRUE ); */
-    /* <-prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
@@ -813,11 +805,13 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_10( vo
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( ( ulSequenceNumber + ulLength ),
                        xWindow.rx.ulCurrentSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal_length_gt_space( void )
@@ -827,15 +821,18 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_length_gt_space( void )
     uint32_t ulSequenceNumber = 34;
     uint32_t ulLength = 34;
     uint32_t ulSpace = ulLength - 3U; /* space < length */
+    uint32_t ulSkipCount = 0;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_plus_1( void )
@@ -843,17 +840,20 @@ void test_lTCPWindowRxCheck_sequence_nums_plus_1( void )
     int32_t lReturn;
     TCPWindow_t xWindow;
     uint32_t ulSequenceNumber = 34;
-    uint32_t ulLength = 34;
+    uint32_t ulLength = 0;
     uint32_t ulSpace = ulLength + 3U; /* space > length */
+    uint32_t ulSkipCount = 0;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber + 1U;
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_current_sequence_lt_sequence( void )
@@ -862,23 +862,19 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence( void )
     TCPWindow_t xWindow = { 0 };
     uint32_t ulSequenceNumber = 34;
     uint32_t ulLength = 34;
-    uint32_t ulSpace = ulLength + 3U; /* space > length */
+    uint32_t ulSpace = ulLength - 9U; /* space > length */
+    uint32_t ulSkipCount = 0;
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber - 2U;
-
-    /* ->prvTCPWindowRX_UnexpectedRX */
-    /* -->xTCPWindowRxFind */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
-    /* --> xTCPWindowNew */
-    listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX( void )
@@ -890,6 +886,7 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX( void )
     uint32_t ulSpace = ulLength + 3U; /* space > length */
     ListItem_t xIterator;
     TCPSegment_t xSegment;
+    uint32_t ulSkipCount = 0;
 
     initializeListItem( &xIterator );
 
@@ -909,9 +906,11 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX( void )
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX_2( void )
@@ -923,6 +922,7 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX_2( void 
     uint32_t ulSpace = ulLength + 3U; /* space > length */
     ListItem_t xIterator;
     TCPSegment_t xSegment;
+    uint32_t ulSkipCount = 0;
 
     initializeListItem( &xIterator );
     initializeList( &xWindow.xRxSegments );
@@ -950,9 +950,11 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX_2( void 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( 2, lReturn );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX_3( void )
@@ -964,6 +966,7 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX_3( void 
     uint32_t ulSpace = ulLength + 3U; /* space > length */
     ListItem_t xIterator;
     TCPSegment_t xSegment;
+    uint32_t ulSkipCount = 0;
 
     initializeListItem( &xIterator );
 
@@ -979,16 +982,15 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX_3( void 
     /* -->xTCPWindowRxFind */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
-    /*listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd ); */
-    /* --> xTCPWindowNew */
-    /*listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE ); */
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_distance_eq_zero( void )
@@ -998,6 +1000,7 @@ void test_lTCPWindowRxCheck_distance_eq_zero( void )
     uint32_t ulSequenceNumber = 34;
     uint32_t ulLength = 34;
     uint32_t ulSpace = ulLength + 3U; /* space > length */
+    uint32_t ulSkipCount = 0;
 
     /* make ldistance <= 0 */
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber + ulLength;
@@ -1005,9 +1008,11 @@ void test_lTCPWindowRxCheck_distance_eq_zero( void )
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
+    TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
 void test_lTCPWindowRxCheck_distance_gt_space( void )
@@ -1017,6 +1022,7 @@ void test_lTCPWindowRxCheck_distance_gt_space( void )
     uint32_t ulSequenceNumber = 15;
     uint32_t ulLength = 64;
     uint32_t ulSpace = 3U; /* space > length */
+    uint32_t ulSkipCount = 0;
 
     /* make ldistance >= ulSpace */
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber + 2U;
@@ -1024,9 +1030,11 @@ void test_lTCPWindowRxCheck_distance_gt_space( void )
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
                                  ulLength,
-                                 ulSpace );
+                                 ulSpace,
+                                 &ulSkipCount );
 
     TEST_ASSERT_EQUAL( -1, lReturn );
+    TEST_ASSERT_EQUAL( 2, ulSkipCount );
 }
 
 void test_lTCPWindowTxAdd_nothing_to_do( void )
@@ -2346,7 +2354,6 @@ void ignore_test_ulTCPWindowTxAck_curr_seq_lt_seq_7_acked_false( void )
     /* ->prvTCPWindowTxCheckAck */
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     /* -->vTCPWindowFree */
-    /*uxListRemove_ExpectAnyArgsAndReturn(pdTRUE); */
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
     /* ->prvTCPWindowTxCheckAck */
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );

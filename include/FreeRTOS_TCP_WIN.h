@@ -175,7 +175,8 @@
     int32_t lTCPWindowRxCheck( TCPWindow_t * pxWindow,
                                uint32_t ulSequenceNumber,
                                uint32_t ulLength,
-                               uint32_t ulSpace );
+                               uint32_t ulSpace,
+                               uint32_t * pulSkipCount );
 
 /* This function will be called as soon as a FIN is received. It will return true
  * if there are no 'open' reception segments */
