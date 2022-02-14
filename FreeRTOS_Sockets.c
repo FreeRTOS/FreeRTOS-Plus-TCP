@@ -387,6 +387,24 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     EventGroupHandle_t xEventGroup;
     Socket_t xReturn;
 
+    /* A protocol of 0 indicates to the socket layer that it should pick a 
+     * sensible default protocol based off the given socket type. If we can't,
+     * prvDetermineSocketSize will catch it as an invalid type/protocol combo.
+     */
+    if( xProtocol == 0 )
+    {
+        switch( xType )
+        {
+            case FREERTOS_SOCK_DGRAM:
+                xProtocol = FREERTOS_IPPROTO_UDP;
+                break;
+
+            case FREERTOS_SOCK_STREAM:
+                xProtocol = FREERTOS_IPPROTO_TCP;
+                break;
+        }
+    }
+
     if( prvDetermineSocketSize( xDomain, xType, xProtocol, &uxSocketSize ) == pdFAIL )
     {
         xReturn = FREERTOS_INVALID_SOCKET;
