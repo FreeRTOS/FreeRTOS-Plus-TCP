@@ -387,7 +387,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     EventGroupHandle_t xEventGroup;
     Socket_t xReturn;
 
-    /* A protocol of 0 indicates to the socket layer that it should pick a 
+    /* A protocol of 0 indicates to the socket layer that it should pick a
      * sensible default protocol based off the given socket type. If we can't,
      * prvDetermineSocketSize will catch it as an invalid type/protocol combo.
      */
