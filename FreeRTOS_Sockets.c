@@ -386,6 +386,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     size_t uxSocketSize = 1;
     EventGroupHandle_t xEventGroup;
     Socket_t xReturn;
+    BaseType_t xProtocolOrDefault;
 
     /* A protocol of 0 indicates to the socket layer that it should pick a
      * sensible default protocol based off the given socket type. If we can't,
@@ -396,16 +397,20 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
         switch( xType )
         {
             case FREERTOS_SOCK_DGRAM:
-                xProtocol = FREERTOS_IPPROTO_UDP;
+                xProtocolOrDefault = FREERTOS_IPPROTO_UDP;
                 break;
 
             case FREERTOS_SOCK_STREAM:
-                xProtocol = FREERTOS_IPPROTO_TCP;
+                xProtocolOrDefault = FREERTOS_IPPROTO_TCP;
                 break;
         }
     }
+    else
+    {
+        xProtocolOrDefault = xProtocol;
+    }
 
-    if( prvDetermineSocketSize( xDomain, xType, xProtocol, &uxSocketSize ) == pdFAIL )
+    if( prvDetermineSocketSize( xDomain, xType, xProtocolOrDefault, &uxSocketSize ) == pdFAIL )
     {
         xReturn = FREERTOS_INVALID_SOCKET;
     }
@@ -434,7 +439,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             }
             else
             {
-                if( xProtocol == FREERTOS_IPPROTO_UDP )
+                if( xProtocolOrDefault == FREERTOS_IPPROTO_UDP )
                 {
                     iptraceMEM_STATS_CREATE( tcpSOCKET_UDP, pxSocket, uxSocketSize + sizeof( StaticEventGroup_t ) );
                 }
@@ -452,7 +457,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                 /* Initialise the socket's members.  The semaphore will be created
                  * if the socket is bound to an address, for now the pointer to the
                  * semaphore is just set to NULL to show it has not been created. */
-                if( xProtocol == FREERTOS_IPPROTO_UDP )
+                if( xProtocolOrDefault == FREERTOS_IPPROTO_UDP )
                 {
                     vListInitialise( &( pxSocket->u.xUDP.xWaitingPacketsList ) );
 
@@ -469,11 +474,11 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                 pxSocket->xReceiveBlockTime = ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME;
                 pxSocket->xSendBlockTime = ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME;
                 pxSocket->ucSocketOptions = ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT;
-                pxSocket->ucProtocol = ( uint8_t ) xProtocol; /* protocol: UDP or TCP */
+                pxSocket->ucProtocol = ( uint8_t ) xProtocolOrDefault; /* protocol: UDP or TCP */
 
                 #if ( ipconfigUSE_TCP == 1 )
                     {
-                        if( xProtocol == FREERTOS_IPPROTO_TCP )
+                        if( xProtocolOrDefault == FREERTOS_IPPROTO_TCP )
                         {
                             /* StreamSize is expressed in number of bytes */
                             /* Round up buffer sizes to nearest multiple of MSS */
