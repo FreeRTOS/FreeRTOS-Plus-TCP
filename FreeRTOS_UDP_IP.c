@@ -320,23 +320,31 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     {
         if( pxSocket != NULL )
         {
-            if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
+            if( *ipLOCAL_IP_ADDRESS_POINTER != 0 )
             {
-                /* Mark this packet as waiting for ARP resolution. */
-                *pxIsWaitingForARPResolution = pdTRUE;
+                if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
+                {
+                    /* Mark this packet as waiting for ARP resolution. */
+                    *pxIsWaitingForARPResolution = pdTRUE;
 
-                /* Return a fail to show that the frame will not be processed right now. */
-                xReturn = pdFAIL;
-                break;
+                    /* Return a fail to show that the frame will not be processed right now. */
+                    xReturn = pdFAIL;
+                    break;
+                }
+                else
+                {
+                    /* IP address is not on the same subnet, ARP table can be updated.
+                     * When refreshing the ARP cache with received UDP packets we must be
+                     * careful;  hundreds of broadcast messages may pass and if we're not
+                     * handling them, no use to fill the ARP cache with those IP addresses.
+                     */
+                    vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
+                }
             }
             else
             {
-                /* IP address is not on the same subnet, ARP table can be updated.
-                 * When refreshing the ARP cache with received UDP packets we must be
-                 * careful;  hundreds of broadcast messages may pass and if we're not
-                 * handling them, no use to fill the ARP cache with those IP addresses.
-                 */
-                vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
+                /* During DHCP, IP address is not assigned and therefore ARP verification
+                 * is not possible. */
             }
 
             #if ( ipconfigUSE_CALLBACKS == 1 )
