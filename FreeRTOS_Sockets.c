@@ -405,6 +405,12 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             case FREERTOS_SOCK_STREAM:
                 xProtocolCpy = FREERTOS_IPPROTO_TCP;
                 break;
+
+            default:
+                /* incorrect xType. this will be caught by
+                 * prvDetermineSocketSize.
+                 */
+                break;
         }
     }
 
