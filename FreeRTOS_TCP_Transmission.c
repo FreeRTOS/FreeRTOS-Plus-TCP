@@ -525,7 +525,7 @@
                 }
             #endif
 
-            
+
             {
                 MACAddress_t xMACAddress;
                 uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;

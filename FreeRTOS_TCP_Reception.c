@@ -559,7 +559,7 @@
                     ulReceiveLength -= ulSkipCount;
                     pucRecvData = &( pucRecvData[ ulSkipCount ] );
                 }
-                
+
                 lStored = lTCPAddRxdata( pxSocket, ( uint32_t ) lOffset, pucRecvData, ulReceiveLength );
 
                 if( lStored != ( int32_t ) ulReceiveLength )
