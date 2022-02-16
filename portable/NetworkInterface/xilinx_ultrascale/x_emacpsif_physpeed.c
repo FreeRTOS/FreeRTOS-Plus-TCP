@@ -361,7 +361,7 @@ static uint32_t get_TI_phy_speed( XEmacPs * xemacpsp,
 
     if( RetStatus != XST_SUCCESS )
     {
-        xil_printf( "Error during sw reset \n\r" );
+        FreeRTOS_printf( ( "Error during sw reset \n\r" ) );
         return XST_FAILURE;
     }
 
@@ -380,7 +380,7 @@ static uint32_t get_TI_phy_speed( XEmacPs * xemacpsp,
 
     if( RetStatus != XST_SUCCESS )
     {
-        xil_printf( "Error during reset \n\r" );
+        FreeRTOS_printf( ( "Error during reset \n\r" ) );
         return XST_FAILURE;
     }
 
@@ -390,7 +390,7 @@ static uint32_t get_TI_phy_speed( XEmacPs * xemacpsp,
 
     if( RetStatus != XST_SUCCESS )
     {
-        xil_printf( "Error writing to 0x10 \n\r" );
+        FreeRTOS_printf( ( "Error writing to 0x10 \n\r" ) );
         return XST_FAILURE;
     }
 
@@ -403,7 +403,7 @@ static uint32_t get_TI_phy_speed( XEmacPs * xemacpsp,
 
     if( RetStatus != XST_SUCCESS )
     {
-        xil_printf( "Error in tuning" );
+        FreeRTOS_printf( ( "Error in tuning" ) );
         return XST_FAILURE;
     }
 
@@ -415,7 +415,7 @@ static uint32_t get_TI_phy_speed( XEmacPs * xemacpsp,
 
     if( RetStatus != XST_SUCCESS )
     {
-        xil_printf( "Error in tuning" );
+        FreeRTOS_printf( ( "Error in tuning" ) );
         return XST_FAILURE;
     }
 
@@ -427,7 +427,7 @@ static uint32_t get_TI_phy_speed( XEmacPs * xemacpsp,
 
     if( RetStatus != XST_SUCCESS )
     {
-        xil_printf( "Error in tuning" );
+        FreeRTOS_printf( ( "Error in tuning" ) );
         return XST_FAILURE;
     }
 
@@ -439,7 +439,7 @@ static uint32_t get_TI_phy_speed( XEmacPs * xemacpsp,
 
     if( RetStatus != XST_SUCCESS )
     {
-        xil_printf( "Error in tuning" );
+        FreeRTOS_printf( ( "Error in tuning" ) );
         return XST_FAILURE;
     }
 
@@ -475,7 +475,7 @@ static uint32_t get_TI_phy_speed( XEmacPs * xemacpsp,
     XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET, &control );
     XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_STATUS_REG_OFFSET, &status );
 
-    xil_printf( "Waiting for PHY to complete autonegotiation.\n" );
+    FreeRTOS_printf( ( "Waiting for PHY to complete autonegotiation.\n" ) );
 
     while( !( status & IEEE_STAT_AUTONEGOTIATE_COMPLETE ) )
     {
@@ -484,14 +484,14 @@ static uint32_t get_TI_phy_speed( XEmacPs * xemacpsp,
 
         if( timeout_counter == 30 )
         {
-            xil_printf( "Auto negotiation error \n" );
+            FreeRTOS_printf( ( "Auto negotiation error \n" ) );
             return XST_FAILURE;
         }
 
         XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_STATUS_REG_OFFSET, &status );
     }
 
-    xil_printf( "autonegotiation complete \n" );
+    FreeRTOS_printf( ( "autonegotiation complete \n" ) );
 
     XEmacPs_PhyRead( xemacpsp, phy_addr, PHY_STS, &status_speed );
 
@@ -573,7 +573,7 @@ static uint32_t get_Marvell_phy_speed( XEmacPs * xemacpsp,
 
     XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_STATUS_REG_OFFSET, &status );
 
-    xil_printf( "Waiting for PHY to complete autonegotiation.\n" );
+    FreeRTOS_printf( ( "Waiting for PHY to complete autonegotiation.\n" ) );
 
     while( !( status & IEEE_STAT_AUTONEGOTIATE_COMPLETE ) )
     {
@@ -584,14 +584,14 @@ static uint32_t get_Marvell_phy_speed( XEmacPs * xemacpsp,
 
         if( timeout_counter == 30 )
         {
-            xil_printf( "Auto negotiation error \n" );
+            FreeRTOS_printf( ( "Auto negotiation error \n" ) );
             return XST_FAILURE;
         }
 
         XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_STATUS_REG_OFFSET, &status );
     }
 
-    xil_printf( "autonegotiation complete \n" );
+    FreeRTOS_printf( ( "autonegotiation complete \n" ) );
 
     XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_SPECIFIC_STATUS_REG,
                      &status_speed );
@@ -664,7 +664,7 @@ static uint32_t get_Realtek_phy_speed( XEmacPs * xemacpsp,
 
     XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_STATUS_REG_OFFSET, &status );
 
-    xil_printf( "Waiting for PHY to complete autonegotiation.\n" );
+    FreeRTOS_printf( ( "Waiting for PHY to complete autonegotiation.\n" ) );
 
     while( !( status & IEEE_STAT_AUTONEGOTIATE_COMPLETE ) )
     {
@@ -673,14 +673,14 @@ static uint32_t get_Realtek_phy_speed( XEmacPs * xemacpsp,
 
         if( timeout_counter == 30 )
         {
-            xil_printf( "Auto negotiation error \n" );
+            FreeRTOS_printf( ( "Auto negotiation error \n" ) );
             return XST_FAILURE;
         }
 
         XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_STATUS_REG_OFFSET, &status );
     }
 
-    xil_printf( "autonegotiation complete \n" );
+    FreeRTOS_printf( ( "autonegotiation complete \n" ) );
 
     XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_SPECIFIC_STATUS_REG,
                      &status_speed );
@@ -815,7 +815,7 @@ static uint32_t get_AR8035_phy_speed( XEmacPs * xemacpsp,
 
         if( timeout_counter == 30 )
         {
-            xil_printf( "Auto negotiation error \n" );
+            FreeRTOS_printf( ( "Auto negotiation error \n" ) );
             return XST_FAILURE;
         }
 
@@ -1012,7 +1012,7 @@ static uint32_t get_IEEE_phy_speed_US( XEmacPs * xemacpsp,
     XEmacPs_PhyRead( xemacpsp, phy_addr, PHY_IDENTIFIER_1_REG,
                      &phy_identity );
 
-    xil_printf( "Start %s PHY autonegotiation. ID = 0x%04X\n", pcGetPHIName( phy_identity ), phy_identity );
+    FreeRTOS_printf( ( "Start %s PHY autonegotiation. ID = 0x%04X\n", pcGetPHIName( phy_identity ), phy_identity ) );
 
     switch( phy_identity )
     {
@@ -1141,7 +1141,7 @@ static void SetUpSLCRDivisors( u32 mac_baseaddr,
         }
         else
         {
-            xil_printf( "Clock Divisors incorrect - Please check\n" );
+            FreeRTOS_printf( ( "Clock Divisors incorrect - Please check\n" ) );
         }
     }
     else if( gigeversion == GEM_VERSION_ZYNQMP )
@@ -1287,7 +1287,7 @@ static void SetUpSLCRDivisors( u32 mac_baseaddr,
         }
         else
         {
-            xil_printf( "Clock Divisors incorrect - Please check\n" );
+            FreeRTOS_printf( ( "Clock Divisors incorrect - Please check\n" ) );
         }
     }
     else if( gigeversion == GEM_VERSION_VERSAL )
@@ -1368,7 +1368,7 @@ static void SetUpSLCRDivisors( u32 mac_baseaddr,
         }
         else
         {
-            xil_printf( "Clock Divisors incorrect - Please check\n" );
+            FreeRTOS_printf( ( "Clock Divisors incorrect - Please check\n" ) );
         }
     }
 }
@@ -1411,7 +1411,7 @@ u32 Phy_Setup_US( XEmacPs * xemacpsp,
         }
         else
         {
-            xil_printf( "Phy setup error \n" );
+            FreeRTOS_printf( ( "Phy setup error \n" ) );
             return XST_FAILURE;
         }
     #elif   defined( ipconfigNIC_LINKSPEED1000 )
@@ -1440,6 +1440,6 @@ u32 Phy_Setup_US( XEmacPs * xemacpsp,
                           XEMACPS_GMII2RGMII_REG_NUM, convspeeddupsetting );
     }
 
-    xil_printf( "link speed: %d\n", link_speed );
+    FreeRTOS_printf( ( "link speed: %d\n", link_speed ) );
     return link_speed;
 }

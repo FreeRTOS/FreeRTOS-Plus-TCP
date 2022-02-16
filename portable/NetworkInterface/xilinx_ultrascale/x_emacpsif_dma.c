@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP V2.4.0
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -72,9 +72,18 @@
 #if ( ipconfigPACKET_FILLER_SIZE != 2 )
     #error Please define ipconfigPACKET_FILLER_SIZE as the value '2'
 #endif
-#define TX_OFFSET               ipconfigPACKET_FILLER_SIZE
+#define TX_OFFSET    ipconfigPACKET_FILLER_SIZE
 
-#define dmaRX_TX_BUFFER_SIZE    1536
+#if ( ipconfigNETWORK_MTU > 1526 )
+    #warning the use of Jumbo Frames has not been tested sufficiently yet.
+    #define USE_JUMBO_FRAMES    1
+#endif
+
+#if ( USE_JUMBO_FRAMES == 1 )
+    #define dmaRX_TX_BUFFER_SIZE    10240
+#else
+    #define dmaRX_TX_BUFFER_SIZE    1536
+#endif
 
 #if ( ipconfigULTRASCALE == 1 )
     extern XScuGic xInterruptController;
@@ -610,7 +619,9 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
         }
 
         /* Writing for debug - can look at it in RX processing */
-        xemacpsif->rxSegments[ iIndex ].reserved = iIndex;
+        #ifdef __aarch64__
+            xemacpsif->rxSegments[ iIndex ].reserved = iIndex;
+        #endif
 
         pxDMA_rx_buffers[ iIndex ] = pxBuffer;
 

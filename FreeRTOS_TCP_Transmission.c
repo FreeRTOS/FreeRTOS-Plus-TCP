@@ -525,10 +525,28 @@
                 }
             #endif
 
-            /* Fill in the destination MAC addresses. */
-            ( void ) memcpy( ( void * ) ( &( pxEthernetHeader->xDestinationAddress ) ),
-                             ( const void * ) ( &( pxEthernetHeader->xSourceAddress ) ),
-                             sizeof( pxEthernetHeader->xDestinationAddress ) );
+
+            {
+                MACAddress_t xMACAddress;
+                uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+                eARPLookupResult_t eResult;
+
+                eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress );
+
+                if( eResult == eARPCacheHit )
+                {
+                    pvCopySource = &xMACAddress;
+                }
+                else
+                {
+                    pvCopySource = &pxEthernetHeader->xSourceAddress;
+                }
+
+                /* Fill in the destination MAC addresses. */
+                ( void ) memcpy( ( void * ) ( &( pxEthernetHeader->xDestinationAddress ) ),
+                                 pvCopySource,
+                                 sizeof( pxEthernetHeader->xDestinationAddress ) );
+            }
 
             /*
              * Use helper variables for memcpy() to remain
