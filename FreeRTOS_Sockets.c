@@ -407,6 +407,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                 break;
 
             default:
+
                 /* incorrect xType. this will be caught by
                  * prvDetermineSocketSize.
                  */
