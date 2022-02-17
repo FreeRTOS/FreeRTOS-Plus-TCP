@@ -1495,6 +1495,7 @@ xpriorityqueue
 xprocessreceivedtcppacket
 xprocessreceivedudppacket
 xprotocol
+xprotocolcpy
 xqueuecreateset
 xqueuegenericsend
 xqueueitem

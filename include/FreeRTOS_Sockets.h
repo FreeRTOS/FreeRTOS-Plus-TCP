@@ -87,6 +87,7 @@
     #define FREERTOS_IPPROTO_UDP             ( 17 )
     #define FREERTOS_SOCK_STREAM             ( 1 )
     #define FREERTOS_IPPROTO_TCP             ( 6 )
+    #define FREERTOS_SOCK_DEPENDENT_PROTO    ( 0 )
 
 /* Values for xFlags parameter of Receive/Send functions. */
     #define FREERTOS_ZERO_COPY               ( 1 )  /* Can be used with recvfrom(), sendto() and recv(),
