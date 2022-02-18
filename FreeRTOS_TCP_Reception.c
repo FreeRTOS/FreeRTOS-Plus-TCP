@@ -129,8 +129,7 @@
             if( pxNetworkBuffer->xDataLength > uxOptionOffset )
             {
                 /* Validate options size calculation. */
-                if( ( pxNetworkBuffer->xDataLength > uxOptionOffset ) &&
-                    ( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) ) )
+                if( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) )
                 {
                     if( ( pxTCPHeader->ucTCPFlags & tcpTCP_FLAG_SYN ) != ( uint8_t ) 0U )
                     {
