@@ -352,7 +352,7 @@ void test_prvSingleStepTCPHeaderOptions_TS( void )
     pxNetworkBuffer->xDataLength = 0x50;
     uint8_t ucTCPOptions_good_SACK[ ipSIZE_TCP_OPTIONS ] = 
     {
-        0x08, 0x0A, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22
+        0x08, 0x01, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22
     };
     memcpy( (void*)pxTCPHeader->ucOptdata, (void*)ucTCPOptions_good_SACK, sizeof(ucTCPOptions_good_SACK));
     
@@ -363,7 +363,7 @@ void test_prvSingleStepTCPHeaderOptions_TS( void )
         pxSocket, 
         pdTRUE);
 
-    TEST_ASSERT_EQUAL( 10, result );
+    TEST_ASSERT_EQUAL( -1, result );
 }
 
 /* Test for prvSingleStepTCPHeaderOptions function. */
@@ -456,6 +456,68 @@ void test_prvSingleStepTCPHeaderOptions_br_invalidlength_MSS( void )
 }
 
 /* Test for prvSingleStepTCPHeaderOptions function. */
+void test_prvSingleStepTCPHeaderOptions_br_zerolength_MSS( void )
+{
+    int32_t result;
+
+    /* Setup TCP option for tests */
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+
+    ProtocolHeaders_t *pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                              &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
+
+    pxTCPHeader->ucTCPOffset = 0x80;
+    pxNetworkBuffer->xDataLength = 0x50;
+    uint8_t ucTCPOptions[] = {0x02, 0x04, 0x0, 0x0};
+    memcpy( (void*)pxTCPHeader->ucOptdata, (void*)&ucTCPOptions, sizeof(ucTCPOptions));
+    usChar2u16_ExpectAnyArgsAndReturn(0);
+    
+    result = prvSingleStepTCPHeaderOptions( 
+        pxTCPHeader->ucOptdata,
+        4,
+        pxSocket, 
+        pdTRUE);
+
+    TEST_ASSERT_EQUAL( -1, result );
+}
+
+/* Test for prvSingleStepTCPHeaderOptions function. */
+void test_prvSingleStepTCPHeaderOptions_br_same_MSS( void )
+{
+    int32_t result;
+
+    /* Setup TCP option for tests */
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+
+    ProtocolHeaders_t *pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                              &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
+
+    pxTCPHeader->ucTCPOffset = 0x80;
+    pxNetworkBuffer->xDataLength = 0x50;
+    uint8_t ucTCPOptions[] = {0x02, 0x04, 0x0, 0x0};
+    memcpy( (void*)pxTCPHeader->ucOptdata, (void*)&ucTCPOptions, sizeof(ucTCPOptions));
+
+    TCPWindow_t tcpWindow;
+    tcpWindow.usMSS = 536;
+    pxSocket->u.xTCP.usMSS = 536;
+    usChar2u16_ExpectAnyArgsAndReturn(536);
+    
+    result = prvSingleStepTCPHeaderOptions( 
+        pxTCPHeader->ucOptdata,
+        4,
+        pxSocket, 
+        pdTRUE);
+
+    TEST_ASSERT_EQUAL( 4, result );
+}
+
+/* Test for prvSingleStepTCPHeaderOptions function. */
 void test_prvSingleStepTCPHeaderOptions_br_invalidlength_WS( void )
 {
     int32_t result;
@@ -471,18 +533,20 @@ void test_prvSingleStepTCPHeaderOptions_br_invalidlength_WS( void )
 
     pxTCPHeader->ucTCPOffset = 0x80;
     pxNetworkBuffer->xDataLength = 0x50;
-    uint8_t ucTCPOptions[] = {0x02, 0x04, 0x12, 0x34};
+    uint8_t ucTCPOptions[] = {0x03, 0x03, 0x10};
     memcpy( (void*)pxTCPHeader->ucOptdata, (void*)&ucTCPOptions, sizeof(ucTCPOptions));
     
     
     result = prvSingleStepTCPHeaderOptions( 
         pxTCPHeader->ucOptdata,
-        1,
+        2,
         pxSocket, 
         pdTRUE);
 
     TEST_ASSERT_EQUAL( -1, result );
 
+    ucTCPOptions[1] = 0x02;
+    memcpy( (void*)pxTCPHeader->ucOptdata, (void*)&ucTCPOptions, sizeof(ucTCPOptions));
     result = prvSingleStepTCPHeaderOptions( 
         pxTCPHeader->ucOptdata,
         3,
@@ -490,56 +554,114 @@ void test_prvSingleStepTCPHeaderOptions_br_invalidlength_WS( void )
         pdTRUE);
 
     TEST_ASSERT_EQUAL( -1, result );
-
-    ucTCPOptions[1] = 0x03;
-    memcpy( (void*)pxTCPHeader->ucOptdata, (void*)&ucTCPOptions, sizeof(ucTCPOptions));
-    result = prvSingleStepTCPHeaderOptions( 
-        pxTCPHeader->ucOptdata,
-        4,
-        pxSocket, 
-        pdTRUE);
-
-    TEST_ASSERT_EQUAL( -1, result );
-
 }
 
-
-/* Test for prvCheckRxData function. */
-void test_prvCheckRxData( void )
+static uint32_t ulCalled = 0;
+static void xLocalFunctionPointer( Socket_t xSocket,
+                                   size_t xLength )
 {
-    int32_t result;
+    ulCalled++;
+}
 
-    /* Setup TCP option for tests */
-    pxNetworkBuffer = &xNetworkBuffer;
-    //memset(pxNetworkBuffer->pucEthernetBuffer, 0, sizeof(ucEthernetBuffer));
-    // memcpy(pxNetworkBuffer->pucEthernetBuffer, ucEthernetBuffer, sizeof(ucEthernetBuffer));
-    uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ] =
+/* Test for prvReadSackOption function */
+void test_prvReadSackOption( void )
+{
+    pxSocket = &xSocket;
+    ulCalled = 0;
+
+    pxSocket->u.xTCP.txStream = 0x12345678;
+    ulChar2u32_ExpectAnyArgsAndReturn(0x12345678);
+    ulChar2u32_ExpectAnyArgsAndReturn(0x12346678);
+    ulTCPWindowTxSack_ExpectAnyArgsAndReturn(0x1000);
+    uxStreamBufferGet_ExpectAnyArgsAndReturn(0x1000);
+    pxSocket->xSelectBits |= eSELECT_WRITE;
+    pxSocket->u.xTCP.pxHandleSent = xLocalFunctionPointer;
+
+    uint8_t ucTCPOptions[] = 
     {
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x00, 0x45, 0x00,
-        0x00, 0x34, 0x15, 0xc2, 0x40, 0x00, 0x40, 0x06, 0xa8, 0x8e, 0xc0, 0xa8, 0x00, 0x08, 0xac, 0xd9,
-        0x0e, 0xea, 0xea, 0xfe, 0x01, 0xbb, 0x8b, 0xaf, 0x8a, 0x24, 0xdc, 0x96, 0x95, 0x7a, 0x80, 0x10,
-        0x01, 0xf5, 0x7c, 0x9a, 0x00, 0x00, 0x01, 0x01, 0x08, 0x0a, 0xb8, 0x53, 0x57, 0x27, 0xb2, 0xce,
-        0xc3, 0x17                                       
+        0x05, 0x0A, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22
     };
+    
+    prvReadSackOption( &ucTCPOptions, 2, pxSocket);
 
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
-    uint8_t * pData;
-        
-    result = prvCheckRxData( pxNetworkBuffer, &pData);
-
-    TEST_ASSERT_EQUAL( 0, result );
+    TEST_ASSERT_NOT_EQUAL(pxSocket->xEventBits & (( ( EventBits_t ) eSELECT_WRITE ) << SOCKET_EVENT_BIT_COUNT), 0);
+    TEST_ASSERT_EQUAL(1, ulCalled);
 }
 
-/* Test for prvStorexData function. */
-void test_prvStoreRxData( void )
+/* Test for prvReadSackOption function */
+void test_prvReadSackOption_br_zeroblock( void )
 {
-    int32_t result;
+    pxSocket = &xSocket;
 
-    /* Setup TCP option for tests */
-    pxNetworkBuffer = &xNetworkBuffer;
-    //memset(pxNetworkBuffer->pucEthernetBuffer, 0, sizeof(ucEthernetBuffer));
-    // memcpy(pxNetworkBuffer->pucEthernetBuffer, ucEthernetBuffer, sizeof(ucEthernetBuffer));
-    uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ] =
+    pxSocket->u.xTCP.txStream = 0x12345678;
+    ulChar2u32_ExpectAnyArgsAndReturn(0x12345678);
+    ulChar2u32_ExpectAnyArgsAndReturn(0x12346678);
+    ulTCPWindowTxSack_ExpectAnyArgsAndReturn(0);
+    pxSocket->xEventBits = 0;
+
+    uint8_t ucTCPOptions[] = 
+    {
+        0x05, 0x0A, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22
+    };
+    
+    prvReadSackOption( &ucTCPOptions, 2, pxSocket);
+
+    TEST_ASSERT_NOT_EQUAL(0, pxSocket->xEventBits ^ (EventBits_t ) eSOCKET_SEND);
+}
+
+/* Test for prvReadSackOption function */
+void test_prvReadSackOption_br_selectbits( void )
+{
+    pxSocket = &xSocket;
+    ulCalled = 0;
+
+    pxSocket->u.xTCP.txStream = 0x12345678;
+    ulChar2u32_ExpectAnyArgsAndReturn(0x12345678);
+    ulChar2u32_ExpectAnyArgsAndReturn(0x12346678);
+    ulTCPWindowTxSack_ExpectAnyArgsAndReturn(0x1000);
+    uxStreamBufferGet_ExpectAnyArgsAndReturn(0x1000);
+    pxSocket->xEventBits = 0;
+    pxSocket->xSelectBits = 0;
+    pxSocket->u.xTCP.pxHandleSent = pxSocket->u.xTCP.pxHandleSent = xLocalFunctionPointer;
+
+
+    uint8_t ucTCPOptions[] = 
+    {
+        0x05, 0x0A, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22
+    };
+    
+    prvReadSackOption( &ucTCPOptions, 2, pxSocket);
+
+    TEST_ASSERT_EQUAL(0, pxSocket->xEventBits & (( ( EventBits_t ) eSELECT_WRITE ) << SOCKET_EVENT_BIT_COUNT));
+}
+
+
+/* Test for prvReadSackOption function */
+void test_prvReadSackOption_br_nohandler( void )
+{
+    pxSocket = &xSocket;
+    ulCalled = 0;
+
+    pxSocket->u.xTCP.txStream = 0x12345678;
+    ulChar2u32_ExpectAnyArgsAndReturn(0x12345678);
+    ulChar2u32_ExpectAnyArgsAndReturn(0x12346678);
+    ulTCPWindowTxSack_ExpectAnyArgsAndReturn(0x1000);
+    uxStreamBufferGet_ExpectAnyArgsAndReturn(0x1000);
+    pxSocket->xSelectBits = 0;
+    pxSocket->u.xTCP.pxHandleSent = NULL;
+    
+    uint8_t ucTCPOptions[] = 
+    {
+        0x05, 0x0A, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22
+    };
+    
+    prvReadSackOption( &ucTCPOptions, 2, pxSocket);
+
+    TEST_ASSERT_EQUAL(0, pxSocket->xEventBits & (( ( EventBits_t ) eSELECT_WRITE ) << SOCKET_EVENT_BIT_COUNT));
+    TEST_ASSERT_EQUAL(0, ulCalled);
+}
+
+uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ] =
     {
         0x8c, 0xdc, 0xd4, 0x4a, 0xea, 0x02, 0xa0, 0x40, 0xa0, 0x3a, 0x21, 0xea, 0x08, 0x00, 0x45, 0x20,
         0x00, 0x5b, 0xd2, 0xe9, 0x00, 0x00, 0x39, 0x06, 0x32, 0x47, 0xac, 0xd9, 0x0e, 0xc3, 0xc0, 0xa8,
@@ -550,6 +672,60 @@ void test_prvStoreRxData( void )
         0x81, 0xe7, 0x65, 0x1e, 0xb1, 0x77, 0xcc, 0x72, 0x11
     };
 
+/* Test for prvCheckRxData function. */
+void test_prvCheckRxData( void )
+{
+    int32_t result;
+
+    /* Setup TCP option for tests */
+    pxNetworkBuffer = &xNetworkBuffer;
+    
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    uint8_t * pData;
+        
+    result = prvCheckRxData( pxNetworkBuffer, &pData);
+
+    TEST_ASSERT_EQUAL( 14, result );
+}
+
+/* Test for prvCheckRxData function. */
+void test_prvCheckRxData_br_URG( void )
+{
+    int32_t result;
+
+    /* Setup TCP option for tests */
+    pxNetworkBuffer = &xNetworkBuffer;
+    /* Set TCP Flag URG */
+    uint8_t EthernetBuffer_urg[ ipconfigNETWORK_MTU ] =
+    {
+        0x8c, 0xdc, 0xd4, 0x4a, 0xea, 0x02, 0xa0, 0x40, 0xa0, 0x3a, 0x21, 0xea, 0x08, 0x00, 0x45, 0x20,
+        0x00, 0x5b, 0xd2, 0xe9, 0x00, 0x00, 0x39, 0x06, 0x32, 0x47, 0xac, 0xd9, 0x0e, 0xc3, 0xc0, 0xa8,
+        0x00, 0x08, 0x01, 0xbb, 0xdc, 0x44, 0xe2, 0x34, 0xd4, 0x84, 0xa7, 0xa9, 0xc1, 0xd8, 0x80, 0x38,
+        0x01, 0x15, 0x2c, 0xed, 0x00, 0x10, 0x01, 0x01, 0x08, 0x0a, 0x7c, 0x17, 0x05, 0xb6, 0x9e, 0x62,
+        0x6f, 0x27, 0x17, 0x03, 0x03, 0x00, 0x22, 0x1c, 0xeb, 0x68, 0x29, 0xea, 0x20, 0x2d, 0xb2, 0x6f,
+        0x97, 0xdf, 0x26, 0xf5, 0x70, 0x9c, 0x09, 0xe0, 0x0d, 0xda, 0xf5, 0xf9, 0xd5, 0x37, 0x92, 0x4f,
+        0x81, 0xe7, 0x65, 0x1e, 0xb1, 0x77, 0xcc, 0x72, 0x11
+    };
+
+    
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer_urg;
+    uint8_t * pData;
+    FreeRTOS_min_int32_ExpectAnyArgsAndReturn(10);
+
+        
+    result = prvCheckRxData( pxNetworkBuffer, &pData);
+
+    TEST_ASSERT_EQUAL( 4, result );
+}
+
+/* Test for prvStorexData function. */
+void test_prvStoreRxData( void )
+{
+    int32_t result;
+
+    /* Setup TCP option for tests */
+    pxNetworkBuffer = &xNetworkBuffer;
+    
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     uint8_t * pData;
         
@@ -574,8 +750,103 @@ void test_prvStoreRxData( void )
                                 105);
 
     TEST_ASSERT_EQUAL( -1, xResult);
+}
 
+/* Test for prvStorexData function. */
+void test_prvStoreRxData_br_WrongState( void )
+{
+    int32_t result;
+
+    /* Setup TCP option for tests */
+    pxNetworkBuffer = &xNetworkBuffer;
+    
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    uint8_t * pData;
+        
+    result = prvCheckRxData( pxNetworkBuffer, &pData);
+
+    TEST_ASSERT_EQUAL( 14, result );
+
+    BaseType_t xResult = 0;
+    xSocket.u.xTCP.ucTCPState = (uint8_t ) eCONNECT_SYN;
+    pxSocket = &xSocket;
+
+    xResult = prvStoreRxData( pxSocket, 
+                                pData,
+                                pxNetworkBuffer,
+                                105);
+
+    TEST_ASSERT_EQUAL( 0, xResult);
+}
+
+/* Test for prvStorexData function. */
+void test_prvStoreRxData_br_ZeroLength( void )
+{
+    int32_t result;
+
+    /* Setup TCP option for tests */
+    pxNetworkBuffer = &xNetworkBuffer;
+    /* zero-length packet */
+    uint8_t EthernetBuffer_zl[ ipconfigNETWORK_MTU ] =
+    {
+        0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x00, 0x45, 0x00,
+        0x00, 0x34, 0x15, 0xc2, 0x40, 0x00, 0x40, 0x06, 0xa8, 0x8e, 0xc0, 0xa8, 0x00, 0x08, 0xac, 0xd9,
+        0x0e, 0xea, 0xea, 0xfe, 0x01, 0xbb, 0x8b, 0xaf, 0x8a, 0x24, 0xdc, 0x96, 0x95, 0x7a, 0x80, 0x10,
+        0x01, 0xf5, 0x7c, 0x9a, 0x00, 0x00, 0x01, 0x01, 0x08, 0x0a, 0xb8, 0x53, 0x57, 0x27, 0xb2, 0xce,
+        0xc3, 0x17                                       
+    };
+    
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer_zl;
+    uint8_t * pData;
+        
+    result = prvCheckRxData( pxNetworkBuffer, &pData);
+
+    TEST_ASSERT_EQUAL( 0, result );
+
+    BaseType_t xResult = 0;
+    xSocket.u.xTCP.ucTCPState = (uint8_t ) eESTABLISHED;
+    pxSocket = &xSocket;
+
+    xResult = prvStoreRxData( pxSocket, 
+                                pData,
+                                pxNetworkBuffer,
+                                0);
+
+    TEST_ASSERT_EQUAL( 0, xResult);
 }
 
 
+/* Test for prvStorexData function. */
+void test_prvStoreRxData_br_NullRxStream( void )
+{
+    int32_t result;
 
+    /* Setup TCP option for tests */
+    pxNetworkBuffer = &xNetworkBuffer;
+    
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    uint8_t * pData;
+        
+    result = prvCheckRxData( pxNetworkBuffer, &pData);
+
+    TEST_ASSERT_EQUAL( 14, result );
+
+    BaseType_t xResult = 0;
+    xSocket.u.xTCP.uxRxStreamSize = 39;
+    xSocket.u.xTCP.ucTCPState = (uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.rxStream = NULL;
+    pxSocket = &xSocket;
+
+    //uxStreamBufferGetSpace_ExpectAnyArgsAndReturn(100);
+    lTCPWindowRxCheck_ExpectAnyArgsAndReturn(20);
+    lTCPWindowRxCheck_ReturnMemThruPtr_pxWindow()
+    lTCPAddRxdata_ExpectAnyArgsAndReturn(14);
+    prvTCPSendReset_IgnoreAndReturn(pdTRUE);
+
+    xResult = prvStoreRxData( pxSocket, 
+                                pData,
+                                pxNetworkBuffer,
+                                105);
+
+    TEST_ASSERT_EQUAL( -1, xResult);
+}
