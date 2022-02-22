@@ -233,67 +233,74 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
         /* Only for inspection by debugger. */
         ( void ) xHalEthInitStatus;
-
-        /* Configuration for HAL_ETH_Transmit(_IT). */
-        memset( &( xTxConfig ), 0, sizeof( ETH_TxPacketConfig ) );
-        xTxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD;
-
-        #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
-            {
-                /*xTxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC; */
-                xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_CSUM;
-                xTxConfig.ChecksumCtrl = ETH_DMATXNDESCRF_CIC_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
-            }
-        #else
-            {
-                xTxConfig.ChecksumCtrl = ETH_CHECKSUM_DISABLE;
-            }
-        #endif
-        xTxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
-
-        /* This counting semaphore will count the number of free TX DMA descriptors. */
-        xTXDescriptorSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) ETH_TX_DESC_CNT, ( UBaseType_t ) ETH_TX_DESC_CNT );
-        configASSERT( xTXDescriptorSemaphore );
-
-        xTransmissionMutex = xSemaphoreCreateMutex();
-        configASSERT( xTransmissionMutex );
-
-        /* Assign Rx memory buffers to a DMA Rx descriptor */
-        for( uxIndex = 0; uxIndex < ETH_RX_DESC_CNT; uxIndex++ )
+        
+        if( xHalEthInitStatus == HAL_OK )
         {
-            uint8_t * pucBuffer;
+            /* Configuration for HAL_ETH_Transmit(_IT). */
+            memset( &( xTxConfig ), 0, sizeof( ETH_TxPacketConfig ) );
+            xTxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD;
 
-            #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
+            #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
                 {
-                    pucBuffer = pucGetRXBuffer( ETH_RX_BUF_SIZE );
-                    configASSERT( pucBuffer != NULL );
+                    /*xTxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC; */
+                    xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_CSUM;
+                    xTxConfig.ChecksumCtrl = ETH_DMATXNDESCRF_CIC_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
                 }
             #else
                 {
-                    pucBuffer = Rx_Buff[ uxIndex ];
+                    xTxConfig.ChecksumCtrl = ETH_CHECKSUM_DISABLE;
                 }
             #endif
+            xTxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
 
-            HAL_ETH_DescAssignMemory( &( xEthHandle ), uxIndex, pucBuffer, NULL );
-        }
+            /* This counting semaphore will count the number of free TX DMA descriptors. */
+            xTXDescriptorSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) ETH_TX_DESC_CNT, ( UBaseType_t ) ETH_TX_DESC_CNT );
+            configASSERT( xTXDescriptorSemaphore );
 
-        /* Configure the MDIO Clock */
-        HAL_ETH_SetMDIOClockRange( &( xEthHandle ) );
+            xTransmissionMutex = xSemaphoreCreateMutex();
+            configASSERT( xTransmissionMutex );
 
-        /* Initialize the MACB and set all PHY properties */
-        prvMACBProbePhy();
+            /* Assign Rx memory buffers to a DMA Rx descriptor */
+            for( uxIndex = 0; uxIndex < ETH_RX_DESC_CNT; uxIndex++ )
+            {
+                uint8_t * pucBuffer;
 
-        /* Force a negotiation with the Switch or Router and wait for LS. */
-        prvEthernetUpdateConfig( pdTRUE );
+                #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
+                    {
+                        pucBuffer = pucGetRXBuffer( ETH_RX_BUF_SIZE );
+                        configASSERT( pucBuffer != NULL );
+                    }
+                #else
+                    {
+                        pucBuffer = Rx_Buff[ uxIndex ];
+                    }
+                #endif
 
-        /* The deferred interrupt handler task is created at the highest
-         *  possible priority to ensure the interrupt handler can return directly
-         *  to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
-         *  notify the task when there is something to process. */
-        if( xTaskCreate( prvEMACHandlerTask, niEMAC_HANDLER_TASK_NAME, niEMAC_HANDLER_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &( xEMACTaskHandle ) ) == pdPASS )
-        {
-            /* The task was created successfully. */
-            xMacInitStatus = eMACPass;
+                HAL_ETH_DescAssignMemory( &( xEthHandle ), uxIndex, pucBuffer, NULL );
+            }
+
+            /* Configure the MDIO Clock */
+            HAL_ETH_SetMDIOClockRange( &( xEthHandle ) );
+
+            /* Initialize the MACB and set all PHY properties */
+            prvMACBProbePhy();
+
+            /* Force a negotiation with the Switch or Router and wait for LS. */
+            prvEthernetUpdateConfig( pdTRUE );
+
+            /* The deferred interrupt handler task is created at the highest
+             *  possible priority to ensure the interrupt handler can return directly
+             *  to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
+             *  notify the task when there is something to process. */
+            if( xTaskCreate( prvEMACHandlerTask, niEMAC_HANDLER_TASK_NAME, niEMAC_HANDLER_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &( xEMACTaskHandle ) ) == pdPASS )
+            {
+                /* The task was created successfully. */
+                xMacInitStatus = eMACPass;
+            }
+            else
+            {
+                xMacInitStatus = eMACFailed;
+            }
         }
         else
         {
