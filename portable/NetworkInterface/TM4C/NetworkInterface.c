@@ -308,6 +308,9 @@ BaseType_t xNetworkInterfaceOutput(NetworkBufferDescriptor_t * const pxNetworkBu
     }
     else
     {
+        // Release the stack descriptor and buffer to prevent memory leaks.
+        vReleaseNetworkBufferAndDescriptor(pxNetworkBuffer);
+
         success = pdFALSE;
     }
 
