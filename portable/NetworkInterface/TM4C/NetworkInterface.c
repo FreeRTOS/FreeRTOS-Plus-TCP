@@ -72,6 +72,15 @@ typedef struct {
     uint32_t read;
 } tDescriptorList;
 
+typedef enum
+{
+    eMACInitQueue = 0, /* Queue must be initialized. */
+    eMACInitTask,      /* Task must be initialized. */
+    eMACInitHw,        /* Must initialize MAC. */
+    eMACInitComplete,  /* Initialization was successful. */
+} eMAC_INIT_STATUS_TYPE;
+static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInitQueue;
+
 static tEMACDMADescriptor _tx_descriptors[SYSCONFIG_FREERTOS_TCP_TX_DESC_COUNT];
 static tEMACDMADescriptor _rx_descriptors[SYSCONFIG_FREERTOS_TCP_RX_DESC_COUNT];
 
@@ -82,6 +91,17 @@ static uint8_t _network_buffers[ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS][BUFFER_S
 #pragma DATA_ALIGN(_network_buffers, 4)
 
 static QueueHandle_t _received_packets_queue = NULL;
+
+/* Default the size of the stack used by the EMAC deferred handler task to twice
+ * the size of the stack used by the idle task - but allow this to be overridden in
+ * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
+#ifndef configEMAC_TASK_STACK_SIZE
+    #define configEMAC_TASK_STACK_SIZE    ( 2 * configMINIMAL_STACK_SIZE )
+#endif
+
+#ifndef niEMAC_HANDLER_TASK_PRIORITY
+    #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
+#endif
 
 /**
  * Reads the Ethernet MAC from user Flash.
@@ -119,27 +139,38 @@ static void _packet_received_thread(void *parameters);
 BaseType_t xNetworkInterfaceInitialise(void)
 {
     uint8_t mac_address_bytes[6];
-    BaseType_t success;
     uint16_t ui16Val;
+    BaseType_t xResult = pdPASS;
 
-    _received_packets_queue = xQueueCreate(SYSCONFIG_FREERTOS_TCP_MAX_PENDING_RX_PACKETS, sizeof(NetworkBufferDescriptor_t*));
+    switch (xMacInitStatus)
+    {
+    case eMACInitQueue:
+        // Create the RX packet forwarding queue
+        _received_packets_queue = xQueueCreate(SYSCONFIG_FREERTOS_TCP_MAX_PENDING_RX_PACKETS, sizeof(NetworkBufferDescriptor_t*));
 
-    if (NULL == _received_packets_queue)
-    {
-        success = pdFAIL;
-    }
-    else
-    {
-        success = xTaskCreate(_packet_received_thread, "tcprx", 512, NULL, tskIDLE_PRIORITY + 5, NULL);
-    }
+        if (NULL == _received_packets_queue)
+        {
+            break;
+        }
 
-    if (pdPASS == success)
-    {
-        success = _ethernet_mac_get(&mac_address_bytes[0]);
-    }
+        xMacInitStatus = eMACInitTask;
 
-    if (pdPASS == success)
-    {
+    case eMACInitTask:
+        // Create the RX packet forwarding task
+        if (pdFAIL == xTaskCreate(_packet_received_thread, "tcprx", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, NULL))
+        {
+            break;
+        }
+
+        xMacInitStatus = eMACInitHw;
+
+    case eMACInitHw:
+        // Read the MAC from user Flash
+        if (pdPASS != _ethernet_mac_get(&mac_address_bytes[0]))
+        {
+            break;
+        }
+
         MAP_SysCtlPeripheralReset(SYSCTL_PERIPH_EMAC0);
         MAP_SysCtlPeripheralReset(SYSCTL_PERIPH_EPHY0);
 
@@ -225,9 +256,16 @@ BaseType_t xNetworkInterfaceInitialise(void)
         // Tell the PHY to start an auto-negotiation cycle.
         MAP_EMACPHYWrite(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_BMCR, (EPHY_BMCR_ANEN |
                 EPHY_BMCR_RESTARTAN));
+
+        xMacInitStatus = eMACInitComplete;
     }
 
-    return success;
+    if (eMACInitComplete != xMacInitStatus)
+    {
+        xResult = pdFAIL;
+    }
+
+    return xResult;
 }
 
 BaseType_t xNetworkInterfaceOutput(NetworkBufferDescriptor_t * const pxNetworkBuffer, BaseType_t xReleaseAfterSend)
