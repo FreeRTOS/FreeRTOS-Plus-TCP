@@ -55,6 +55,7 @@
 #include "FreeRTOS_IP_Private.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
+#include "phyHandling.h"
 
 #define BUFFER_SIZE                             (ipTOTAL_ETHERNET_FRAME_SIZE + ipBUFFER_PADDING)
 #define BUFFER_SIZE_ROUNDED_UP                  ((BUFFER_SIZE + 7) & ~0x7UL)
@@ -65,6 +66,37 @@
 #define SYSCONFIG_FREERTOS_TCP_TX_DESC_COUNT            8
 #define SYSCONFIG_FREERTOS_TCP_RX_DESC_COUNT            8
 #define SYSCONFIG_FREERTOS_TCP_MAX_PENDING_RX_PACKETS   SYSCONFIG_FREERTOS_TCP_RX_DESC_COUNT
+
+/* Default the size of the stack used by the EMAC deferred handler task to twice
+ * the size of the stack used by the idle task - but allow this to be overridden in
+ * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
+#ifndef configEMAC_TASK_STACK_SIZE
+    #define configEMAC_TASK_STACK_SIZE    ( 2 * configMINIMAL_STACK_SIZE )
+#endif
+
+#ifndef niEMAC_HANDLER_TASK_PRIORITY
+    #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
+#endif
+
+/*
+ * Most users will want a PHY that negotiates about
+ * the connection properties: speed, dmix and duplex.
+ * On some rare cases, you want to select what is being
+ * advertised, properties like MDIX and duplex.
+ */
+
+#if !defined( ipconfigETHERNET_AN_ENABLE )
+    /* Enable auto-negotiation */
+    #define ipconfigETHERNET_AN_ENABLE    1
+#endif
+
+#if !defined( ipconfigETHERNET_USE_100MB )
+    #define ipconfigETHERNET_USE_100MB    1
+#endif
+
+#if !defined( ipconfigETHERNET_USE_FULL_DUPLEX )
+    #define ipconfigETHERNET_USE_FULL_DUPLEX    1
+#endif
 
 typedef struct {
     uint32_t number_descriptors;
@@ -92,16 +124,27 @@ static uint8_t _network_buffers[ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS][BUFFER_S
 
 static QueueHandle_t _received_packets_queue = NULL;
 
-/* Default the size of the stack used by the EMAC deferred handler task to twice
- * the size of the stack used by the idle task - but allow this to be overridden in
- * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
-#ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 2 * configMINIMAL_STACK_SIZE )
+static EthernetPhy_t xPhyObject;
+
+const PhyProperties_t xPHYProperties =
+{
+#if ( ipconfigETHERNET_AN_ENABLE != 0 )
+    .ucSpeed      = PHY_SPEED_AUTO,
+    .ucDuplex     = PHY_DUPLEX_AUTO,
+#else
+#if ( ipconfigETHERNET_USE_100MB != 0 )
+    .ucSpeed  = PHY_SPEED_100,
+#else
+    .ucSpeed  = PHY_SPEED_10,
 #endif
 
-#ifndef niEMAC_HANDLER_TASK_PRIORITY
-    #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
+#if ( ipconfigETHERNET_USE_FULL_DUPLEX != 0 )
+    .ucDuplex = PHY_DUPLEX_FULL,
+#else
+    .ucDuplex = PHY_DUPLEX_HALF,
 #endif
+#endif
+};
 
 /**
  * Reads the Ethernet MAC from user Flash.
@@ -135,6 +178,29 @@ static void _process_phy_interrupt(void);
  * @param parameters Not used
  */
 static void _packet_received_thread(void *parameters);
+
+/**
+ * Phy read implementation for the TM4C
+ * @param xAddress
+ * @param xRegister
+ * @param pulValue
+ * @return
+ */
+static BaseType_t xTM4C_PhyRead(BaseType_t xAddress, BaseType_t xRegister, uint32_t *pulValue);
+
+/**
+ * Phy write implementation for the TM4C
+ * @param xAddress
+ * @param xRegister
+ * @param ulValue
+ * @return
+ */
+static BaseType_t xTM4C_PhyWrite( BaseType_t xAddress, BaseType_t xRegister, uint32_t ulValue );
+
+/**
+ * Probe the PHY
+ */
+static void vMACBProbePhy( void );
 
 BaseType_t xNetworkInterfaceInitialise(void)
 {
@@ -252,6 +318,8 @@ BaseType_t xNetworkInterfaceInitialise(void)
 
         // Enable all processor interrupts.
         MAP_IntMasterEnable();
+
+        vMACBProbePhy();
 
         // Tell the PHY to start an auto-negotiation cycle.
         MAP_EMACPHYWrite(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_BMCR, (EPHY_BMCR_ANEN |
@@ -637,4 +705,25 @@ static void _packet_received_thread(void *parameters)
             }
         }
     }
+}
+
+static void vMACBProbePhy( void )
+{
+    vPhyInitialise( &xPhyObject, xTM4C_PhyRead, xTM4C_PhyWrite );
+    xPhyDiscover( &xPhyObject );
+    xPhyConfigure( &xPhyObject, &xPHYProperties );
+}
+
+static BaseType_t xTM4C_PhyRead(BaseType_t xAddress, BaseType_t xRegister, uint32_t *pulValue)
+{
+    *pulValue = MAP_EMACPHYRead(EMAC0_BASE, ( uint8_t ) xAddress, ( uint8_t ) xRegister);
+
+    return 0;
+}
+
+static BaseType_t xTM4C_PhyWrite( BaseType_t xAddress, BaseType_t xRegister, uint32_t ulValue )
+{
+    MAP_EMACPHYWrite(EMAC0_BASE, ( uint8_t ) xAddress, ( uint8_t ) xRegister, ulValue);
+
+    return 0;
 }
