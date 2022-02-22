@@ -60,12 +60,22 @@
 #define BUFFER_SIZE                             (ipTOTAL_ETHERNET_FRAME_SIZE + ipBUFFER_PADDING)
 #define BUFFER_SIZE_ROUNDED_UP                  ((BUFFER_SIZE + 7) & ~0x7UL)
 #define PHY_PHYS_ADDR                           0
-#define ETH_DEFERRED_INT_TASK_STACK_SIZE        512
 
-#define SYSCONFIG_SYSFREQ_HZ                            120000000
-#define SYSCONFIG_FREERTOS_TCP_TX_DESC_COUNT            8
-#define SYSCONFIG_FREERTOS_TCP_RX_DESC_COUNT            8
-#define SYSCONFIG_FREERTOS_TCP_MAX_PENDING_RX_PACKETS   SYSCONFIG_FREERTOS_TCP_RX_DESC_COUNT
+#ifndef niEMAC_SYSCONFIG_HZ
+#define niEMAC_SYSCONFIG_HZ                     configCPU_CLOCK_HZ
+#endif
+
+#ifndef niEMAC_TX_DMA_DESC_COUNT
+#define niEMAC_TX_DMA_DESC_COUNT                8
+#endif
+
+#ifndef niEMAC_RX_DMA_DESC_COUNT
+#define niEMAC_RX_DMA_DESC_COUNT                8
+#endif
+
+#if ipconfigUSE_LINKED_RX_MESSAGES
+#error Linked RX Messages are not supported by this driver
+#endif
 
 /* Default the size of the stack used by the EMAC deferred handler task to twice
  * the size of the stack used by the idle task - but allow this to be overridden in
@@ -106,25 +116,36 @@ typedef struct {
 
 typedef enum
 {
-    eMACInitQueue = 0, /* Queue must be initialized. */
     eMACInitTask,      /* Task must be initialized. */
     eMACInitHw,        /* Must initialize MAC. */
     eMACInitComplete,  /* Initialization was successful. */
 } eMAC_INIT_STATUS_TYPE;
-static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInitQueue;
 
-static tEMACDMADescriptor _tx_descriptors[SYSCONFIG_FREERTOS_TCP_TX_DESC_COUNT];
-static tEMACDMADescriptor _rx_descriptors[SYSCONFIG_FREERTOS_TCP_RX_DESC_COUNT];
+typedef enum
+{
+    eMACInterruptNone   =  0,
+    eMACInterruptRx     = (1 << 0),
+    eMACInterruptTx     = (1 << 1),
+    eMACInterruptPhy    = (1 << 2),
+    eMACInterruptAny    = (eMACInterruptRx | eMACInterruptTx | eMACInterruptPhy)
+} eMAC_INTERRUPT_STATUS_TYPE;
 
-static tDescriptorList _tx_descriptor_list = { .number_descriptors = SYSCONFIG_FREERTOS_TCP_TX_DESC_COUNT, 0 };
-static tDescriptorList _rx_descriptor_list = { .number_descriptors = SYSCONFIG_FREERTOS_TCP_RX_DESC_COUNT, 0 };
+static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInitTask;
+
+static volatile eMAC_INTERRUPT_STATUS_TYPE xMacInterruptStatus = eMACInterruptNone;
+
+static tEMACDMADescriptor _tx_descriptors[niEMAC_TX_DMA_DESC_COUNT];
+static tEMACDMADescriptor _rx_descriptors[niEMAC_RX_DMA_DESC_COUNT];
+
+static tDescriptorList _tx_descriptor_list = { .number_descriptors = niEMAC_TX_DMA_DESC_COUNT, 0 };
+static tDescriptorList _rx_descriptor_list = { .number_descriptors = niEMAC_RX_DMA_DESC_COUNT, 0 };
 
 static uint8_t _network_buffers[ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS][BUFFER_SIZE_ROUNDED_UP];
 #pragma DATA_ALIGN(_network_buffers, 4)
 
-static QueueHandle_t _received_packets_queue = NULL;
-
 static EthernetPhy_t xPhyObject;
+
+static TaskHandle_t _deferred_task_handle = NULL;
 
 const PhyProperties_t xPHYProperties =
 {
@@ -166,18 +187,18 @@ static void _process_transmit_complete(void);
 /**
  * Processes received packets and forwards those acceptable to the network stack
  */
-static void _process_received_packet(void);
+static BaseType_t _process_received_packet(void);
 
 /**
  * Processes PHY interrupts.
  */
-static void _process_phy_interrupt(void);
+static void _process_phy_interrupts(void);
 
 /**
  * Thread to forward received packets from the ISR to the network stack
  * @param parameters Not used
  */
-static void _packet_received_thread(void *parameters);
+static void _deferred_task(void *parameters);
 
 /**
  * Phy read implementation for the TM4C
@@ -210,20 +231,9 @@ BaseType_t xNetworkInterfaceInitialise(void)
 
     switch (xMacInitStatus)
     {
-    case eMACInitQueue:
-        // Create the RX packet forwarding queue
-        _received_packets_queue = xQueueCreate(SYSCONFIG_FREERTOS_TCP_MAX_PENDING_RX_PACKETS, sizeof(NetworkBufferDescriptor_t*));
-
-        if (NULL == _received_packets_queue)
-        {
-            break;
-        }
-
-        xMacInitStatus = eMACInitTask;
-
     case eMACInitTask:
         // Create the RX packet forwarding task
-        if (pdFAIL == xTaskCreate(_packet_received_thread, "tcprx", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, NULL))
+        if (pdFAIL == xTaskCreate(_deferred_task, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &_deferred_task_handle))
         {
             break;
         }
@@ -249,7 +259,7 @@ BaseType_t xNetworkInterfaceInitialise(void)
                 EMAC_PHY_TYPE_INTERNAL | EMAC_PHY_INT_MDIX_EN
                         | EMAC_PHY_AN_100B_T_FULL_DUPLEX);
 
-        MAP_EMACInit(EMAC0_BASE, SYSCONFIG_SYSFREQ_HZ,
+        MAP_EMACInit(EMAC0_BASE, niEMAC_SYSCONFIG_HZ,
                      EMAC_BCONFIG_MIXED_BURST | EMAC_BCONFIG_PRIORITY_FIXED, 4,
                      4, 0);
 
@@ -308,22 +318,7 @@ BaseType_t xNetworkInterfaceInitialise(void)
         // Set the interrupt to a lower priority than the OS scheduler interrupts
         MAP_IntPrioritySet(INT_EMAC0,  (6 << (8 - configPRIO_BITS)));
 
-        // Enable the Ethernet RX and TX interrupt source.
-        MAP_EMACIntEnable(EMAC0_BASE, (EMAC_INT_RECEIVE | EMAC_INT_TRANSMIT |
-                      EMAC_INT_TX_STOPPED | EMAC_INT_RX_NO_BUFFER |
-                      EMAC_INT_RX_STOPPED | EMAC_INT_PHY));
-
-        // Enable EMAC interrupts
-        MAP_IntEnable(INT_EMAC0);
-
-        // Enable all processor interrupts.
-        MAP_IntMasterEnable();
-
         vMACBProbePhy();
-
-        // Tell the PHY to start an auto-negotiation cycle.
-        MAP_EMACPHYWrite(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_BMCR, (EPHY_BMCR_ANEN |
-                EPHY_BMCR_RESTARTAN));
 
         xMacInitStatus = eMACInitComplete;
     }
@@ -331,6 +326,24 @@ BaseType_t xNetworkInterfaceInitialise(void)
     if (eMACInitComplete != xMacInitStatus)
     {
         xResult = pdFAIL;
+    }
+    else
+    {
+        // Wait for the link status to come up before enabling interrupts
+        if (xPhyObject.ulLinkStatusMask != 0U)
+        {
+            // Enable the Ethernet RX and TX interrupt source.
+            MAP_EMACIntEnable(EMAC0_BASE, (EMAC_INT_RECEIVE | EMAC_INT_TRANSMIT |
+                          EMAC_INT_TX_STOPPED | EMAC_INT_RX_NO_BUFFER |
+                          EMAC_INT_RX_STOPPED | EMAC_INT_PHY));
+
+            // Enable EMAC interrupts
+            MAP_IntEnable(INT_EMAC0);
+        }
+        else
+        {
+            xResult = pdFAIL;
+        }
     }
 
     return xResult;
@@ -340,6 +353,10 @@ BaseType_t xNetworkInterfaceOutput(NetworkBufferDescriptor_t * const pxNetworkBu
 {
     BaseType_t success = pdTRUE;
     tEMACDMADescriptor *dma_descriptor;
+
+    // As this driver is strictly zero-copy, assert that the stack does not call this function with
+    // xReleaseAfterSend as false
+    configASSERT(0 != xReleaseAfterSend);
 
     dma_descriptor = &_tx_descriptors[_tx_descriptor_list.write];
 
@@ -361,7 +378,7 @@ BaseType_t xNetworkInterfaceOutput(NetworkBufferDescriptor_t * const pxNetworkBu
         _tx_descriptor_list.write++;
 
         // Wrap around if required
-        if (_tx_descriptor_list.write == SYSCONFIG_FREERTOS_TCP_TX_DESC_COUNT)
+        if (_tx_descriptor_list.write == niEMAC_TX_DMA_DESC_COUNT)
         {
             _tx_descriptor_list.write = 0;
         }
@@ -373,6 +390,7 @@ BaseType_t xNetworkInterfaceOutput(NetworkBufferDescriptor_t * const pxNetworkBu
         MAP_EMACTxDMAPollDemand(EMAC0_BASE);
 
         iptraceNETWORK_INTERFACE_TRANSMIT();
+
     }
     else
     {
@@ -435,7 +453,7 @@ static void _dma_descriptors_init(void)
     NetworkBufferDescriptor_t *stack_descriptor;
 
     // Initialize the TX DMA descriptors
-    for (i = 0; i < SYSCONFIG_FREERTOS_TCP_TX_DESC_COUNT; i++)
+    for (i = 0; i < niEMAC_TX_DMA_DESC_COUNT; i++)
     {
         // Clear the length of the packet
         _tx_descriptors[i].ui32Count = 0;
@@ -446,7 +464,7 @@ static void _dma_descriptors_init(void)
         // Set the next link in the DMA descriptor chain, either the next in the chain or the first descriptor in the event
         // that this is the last descriptor
         _tx_descriptors[i].DES3.pLink = (
-                (i == (SYSCONFIG_FREERTOS_TCP_TX_DESC_COUNT - 1)) ?
+                (i == (niEMAC_TX_DMA_DESC_COUNT - 1)) ?
                         &_tx_descriptors[0] : &_tx_descriptors[i + 1]);
         _tx_descriptors[i].ui32CtrlStatus = DES0_TX_CTRL_INTERRUPT | DES0_TX_CTRL_CHAINED
                 | DES0_TX_CTRL_IP_ALL_CKHSUMS;
@@ -456,7 +474,7 @@ static void _dma_descriptors_init(void)
     _tx_descriptor_list.write = 0;
     _tx_descriptor_list.read = 0;
 
-    for (i = 0; i < SYSCONFIG_FREERTOS_TCP_RX_DESC_COUNT; i++)
+    for (i = 0; i < niEMAC_RX_DMA_DESC_COUNT; i++)
     {
         stack_descriptor = pxGetNetworkBufferWithDescriptor(ipTOTAL_ETHERNET_FRAME_SIZE, 0);
 
@@ -472,7 +490,7 @@ static void _dma_descriptors_init(void)
         _rx_descriptors[i].ui32CtrlStatus = DES0_RX_CTRL_OWN;
 
         // Set the next link the DMA descriptor chain
-        _rx_descriptors[i].DES3.pLink = ((i == (SYSCONFIG_FREERTOS_TCP_RX_DESC_COUNT - 1)) ? &_rx_descriptors[0] : &_rx_descriptors[i + 1]);
+        _rx_descriptors[i].DES3.pLink = ((i == (niEMAC_RX_DMA_DESC_COUNT - 1)) ? &_rx_descriptors[0] : &_rx_descriptors[i + 1]);
     }
 
     // Set the RX descriptor index
@@ -486,6 +504,7 @@ static void _dma_descriptors_init(void)
 void freertos_tcp_ethernet_int(void)
 {
     uint32_t status;
+    BaseType_t higher_priority_task_woken = pdFALSE;
 
     // Read the interrupt status
     status = EMACIntStatus(EMAC0_BASE, true);
@@ -509,19 +528,29 @@ void freertos_tcp_ethernet_int(void)
     // Handle PHY interrupts
     if (EMAC_INT_PHY & status)
     {
-        _process_phy_interrupt();
+        xMacInterruptStatus |= eMACInterruptPhy;
+
+        _process_phy_interrupts();
     }
 
     // Handle Transmit Complete interrupts
     if (EMAC_INT_TRANSMIT & status)
     {
-        _process_transmit_complete();
+        xMacInterruptStatus |= eMACInterruptTx;
     }
 
     // Handle Receive interrupts
     if ((EMAC_INT_RECEIVE | EMAC_INT_RX_NO_BUFFER | EMAC_INT_RX_STOPPED) & status)
     {
-        _process_received_packet();
+        xMacInterruptStatus |= eMACInterruptRx;
+    }
+
+    // If interrupts of concern were found, wake the task if present
+    if ((0 != xMacInterruptStatus) && (NULL != _deferred_task_handle))
+    {
+        vTaskNotifyGiveFromISR(_deferred_task_handle, &higher_priority_task_woken);
+
+        portYIELD_FROM_ISR(higher_priority_task_woken);
     }
 }
 
@@ -543,10 +572,12 @@ static void _process_transmit_complete(void)
         }
 
         // Get the 'hidden' reference to the stack descriptor from the buffer
-        stack_descriptor = *((NetworkBufferDescriptor_t **) (((uint8_t *) dma_descriptor->pvBuffer1) - ipBUFFER_PADDING));
+        stack_descriptor = pxPacketBuffer_to_NetworkBuffer(dma_descriptor->pvBuffer1);
+
+        configASSERT(NULL != stack_descriptor);
 
         // Release the stack descriptor
-        vNetworkBufferReleaseFromISR(stack_descriptor);
+        vReleaseNetworkBufferAndDescriptor(stack_descriptor);
 
         _tx_descriptor_list.read++;
 
@@ -557,16 +588,18 @@ static void _process_transmit_complete(void)
     }
 }
 
-static void _process_received_packet(void)
+static BaseType_t _process_received_packet(void)
 {
     NetworkBufferDescriptor_t *new_stack_descriptor;
     NetworkBufferDescriptor_t *cur_stack_descriptor;
     tEMACDMADescriptor *dma_descriptor;
-    BaseType_t higher_priority_task_woken = pdFALSE;
     uint32_t i;
+    IPStackEvent_t event;
+    BaseType_t result = pdTRUE;
+    const TickType_t max_block_time = pdMS_TO_MIN_TICKS(50);
 
     // Go through the list of RX DMA descriptors
-    for (i = 0; i < SYSCONFIG_FREERTOS_TCP_RX_DESC_COUNT; i++)
+    for (i = 0; i < niEMAC_RX_DMA_DESC_COUNT; i++)
     {
         // Get a reference to the descriptor
         dma_descriptor = &_rx_descriptors[_rx_descriptor_list.write];
@@ -584,13 +617,13 @@ static void _process_received_packet(void)
         if (0 == (dma_descriptor->ui32CtrlStatus & DES0_RX_STAT_ERR))
         {
             // Get a new empty descriptor
-            new_stack_descriptor = pxNetworkBufferGetFromISR(ipTOTAL_ETHERNET_FRAME_SIZE);
+            new_stack_descriptor = pxGetNetworkBufferWithDescriptor(ipTOTAL_ETHERNET_FRAME_SIZE, max_block_time);
 
-            // If a descriptor was provided
+            // If a descriptor was provided, else this packet is dropped
             if (NULL != new_stack_descriptor)
             {
                 // Get a reference to the current stack descriptor held by the DMA descriptor
-                cur_stack_descriptor = *((NetworkBufferDescriptor_t **) (((uint8_t*) dma_descriptor->pvBuffer1) - ipBUFFER_PADDING));
+                cur_stack_descriptor = pxPacketBuffer_to_NetworkBuffer(dma_descriptor->pvBuffer1);
 
                 // Set the length of the buffer on the current descriptor
                 cur_stack_descriptor->xDataLength = (dma_descriptor->ui32CtrlStatus & DES0_RX_STAT_FRAME_LENGTH_M) >> DES0_RX_STAT_FRAME_LENGTH_S;
@@ -601,16 +634,40 @@ static void _process_received_packet(void)
                 // Ask the stack if it wants to process the frame.
                 if (eProcessBuffer == eConsiderFrameForProcessing(cur_stack_descriptor->pucEthernetBuffer))
                 {
-                    // Send the stack descriptor to the forwarding thread
-                    xQueueSendFromISR(_received_packets_queue, &cur_stack_descriptor, &higher_priority_task_woken);
+                    // Setup the event
+                    event.eEventType = eNetworkRxEvent;
+                    event.pvData = cur_stack_descriptor;
+
+                    // Forward the event
+                    if (pdFALSE == xSendEventStructToIPTask(&event, 0))
+                    {
+                        // Release the buffer if an error was encountered
+                        vReleaseNetworkBufferAndDescriptor(cur_stack_descriptor);
+
+                        iptraceETHERNET_RX_EVENT_LOST();
+                    }
+                    else
+                    {
+                        iptraceNETWORK_INTERFACE_RECEIVE();
+
+                        result = pdTRUE;
+                    }
                 }
                 else
                 {
                     // Free the descriptor
-                    vNetworkBufferReleaseFromISR(cur_stack_descriptor);
+                    vReleaseNetworkBufferAndDescriptor(cur_stack_descriptor);
                 }
             } // end if descriptor is available
-        } // end if frame had error
+            else
+            {
+                // No stack descriptor was available for the next RX DMA descriptor so this packet
+                // is dropped
+
+                // Mark the RX event as lost
+                iptraceETHERNET_RX_EVENT_LOST();
+            }
+        } // end if frame had error. In this case, give the buffer back to the DMA for the next RX
 
         // Set up the DMA descriptor for the next receive transaction
         dma_descriptor->ui32Count = DES1_RX_CTRL_CHAINED | ipTOTAL_ETHERNET_FRAME_SIZE;
@@ -624,10 +681,14 @@ static void _process_received_packet(void)
         }
     }
 
-    portEND_SWITCHING_ISR(higher_priority_task_woken);
+    return result;
 }
 
-static void _process_phy_interrupt(void)
+/**
+ * This deferred interrupt handler process changes from the PHY auto-negotiation to configure the
+ * MAC as appropriate.
+ */
+static void _process_phy_interrupts(void)
 {
     uint16_t value;
     uint16_t status;
@@ -639,20 +700,10 @@ static void _process_phy_interrupt(void)
     value = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1);
     status = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_STS);
 
-    // If status has changed
-    if (value & EPHY_MISR1_LINKSTAT)
-    {
-        // If the link is down
-        if (0 == (status & EPHY_STS_LINK))
-        {
-            // We could inform the stack that the Ethernet link is down, but we'd need to do so
-            // from a thread, not an interrupt.
-        }
-    }
-
-    // If the speed or duplex has changed
     if (value & (EPHY_MISR1_SPEED | EPHY_MISR1_SPEED | EPHY_MISR1_ANC))
     {
+        // If the speed or duplex has changed
+
         MAP_EMACConfigGet(EMAC0_BASE, &configuration, &mode, &max_frame_size);
 
         if (status & EPHY_STS_SPEED)
@@ -677,31 +728,44 @@ static void _process_phy_interrupt(void)
     }
 }
 
-static void _packet_received_thread(void *parameters)
+static void _deferred_task(void *parameters)
 {
-    NetworkBufferDescriptor_t* stack_descriptor;
-    IPStackEvent_t event;
+    BaseType_t had_reception;
+    IPStackEvent_t link_down_event;
+    const TickType_t max_block_time = pdMS_TO_TICKS(100);
+
+    // Ignore parameters
+    (void) parameters;
 
     for (;;)
     {
-        // Wait for a recevied stack descriptor
-        if (pdTRUE == xQueueReceive(_received_packets_queue, &stack_descriptor, portMAX_DELAY))
+        had_reception = pdFALSE;
+
+        ulTaskNotifyTake(pdTRUE, max_block_time);
+
+        if (eMACInterruptTx == (xMacInterruptStatus & eMACInterruptTx))
         {
-            // Setup the event
-            event.eEventType = eNetworkRxEvent;
-            event.pvData = stack_descriptor;
+            xMacInterruptStatus &= ~(eMACInterruptTx);
 
-            // Forward the event
-            if (pdFALSE == xSendEventStructToIPTask(&event, 0))
-            {
-                // Release the buffer if an error was encountered
-                vReleaseNetworkBufferAndDescriptor(stack_descriptor);
+            _process_transmit_complete();
+        }
 
-                iptraceETHERNET_RX_EVENT_LOST();
-            }
-            else
+        if (eMACInterruptRx == (xMacInterruptStatus & eMACInterruptRx))
+        {
+            xMacInterruptStatus &= ~(eMACInterruptRx);
+
+            had_reception = _process_received_packet();
+        }
+
+        if (pdTRUE == xPhyCheckLinkStatus(&xPhyObject, had_reception))
+        {
+            // The link has gone done
+            if (0 == xPhyObject.ulLinkStatusMask)
             {
-                iptraceNETWORK_INTERFACE_RECEIVE();
+                link_down_event.eEventType = eNetworkDownEvent;
+                link_down_event.pvData = NULL;
+
+                xSendEventStructToIPTask(&link_down_event, 0);
             }
         }
     }
