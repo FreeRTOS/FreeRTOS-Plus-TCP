@@ -88,13 +88,6 @@
     #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
 #endif
 
-/*
- * Most users will want a PHY that negotiates about
- * the connection properties: speed, dmix and duplex.
- * On some rare cases, you want to select what is being
- * advertised, properties like MDIX and duplex.
- */
-
 #if !defined( ipconfigETHERNET_AN_ENABLE )
     /* Enable auto-negotiation */
     #define ipconfigETHERNET_AN_ENABLE    1
@@ -123,11 +116,9 @@ typedef enum
 
 typedef enum
 {
-    eMACInterruptNone   =  0,
-    eMACInterruptRx     = (1 << 0),
-    eMACInterruptTx     = (1 << 1),
-    eMACInterruptPhy    = (1 << 2),
-    eMACInterruptAny    = (eMACInterruptRx | eMACInterruptTx | eMACInterruptPhy)
+    eMACInterruptNone   =  0,       // No interrupts need servicing
+    eMACInterruptRx     = (1 << 0), // Service RX interrupt
+    eMACInterruptTx     = (1 << 1), // Service TX interrupt
 } eMAC_INTERRUPT_STATUS_TYPE;
 
 static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInitTask;
@@ -248,21 +239,22 @@ BaseType_t xNetworkInterfaceInitialise(void)
         }
 
         MAP_SysCtlPeripheralReset(SYSCTL_PERIPH_EMAC0);
-        MAP_SysCtlPeripheralReset(SYSCTL_PERIPH_EPHY0);
 
         while (!MAP_SysCtlPeripheralReady(SYSCTL_PERIPH_EMAC0))
         {
         }
 
-        MAP_EMACPHYConfigSet(
-                EMAC0_BASE,
-                EMAC_PHY_TYPE_INTERNAL | EMAC_PHY_INT_MDIX_EN
-                        | EMAC_PHY_AN_100B_T_FULL_DUPLEX);
+        MAP_SysCtlPeripheralReset(SYSCTL_PERIPH_EPHY0);
+
+        while (!MAP_SysCtlPeripheralReady(SYSCTL_PERIPH_EPHY0))
+        {
+        }
 
         MAP_EMACInit(EMAC0_BASE, niEMAC_SYSCONFIG_HZ,
                      EMAC_BCONFIG_MIXED_BURST | EMAC_BCONFIG_PRIORITY_FIXED, 4,
                      4, 0);
 
+        // EMAC_CONFIG_STRIP_CRC
         MAP_EMACConfigSet(
                 EMAC0_BASE,
                 (
@@ -287,12 +279,10 @@ BaseType_t xNetworkInterfaceInitialise(void)
         ui16Val = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1);
         ui16Val = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR2);
 
-        // Configure and enable the link status change interrupt in the PHY.
+        // Configure and enable PHY interrupts
         ui16Val = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_SCR);
         ui16Val |= (EPHY_SCR_INTEN_EXT | EPHY_SCR_INTOE_EXT);
         MAP_EMACPHYWrite(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_SCR, ui16Val);
-        MAP_EMACPHYWrite(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1, (EPHY_MISR1_LINKSTATEN |
-                     EPHY_MISR1_SPEEDEN | EPHY_MISR1_DUPLEXMEN | EPHY_MISR1_ANCEN));
 
         // Read the PHY interrupt status to clear any stray events.
         ui16Val = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1);
@@ -318,6 +308,7 @@ BaseType_t xNetworkInterfaceInitialise(void)
         // Set the interrupt to a lower priority than the OS scheduler interrupts
         MAP_IntPrioritySet(INT_EMAC0,  (6 << (8 - configPRIO_BITS)));
 
+        // Probe the PHY with the stack driver
         vMACBProbePhy();
 
         xMacInitStatus = eMACInitComplete;
@@ -528,8 +519,6 @@ void freertos_tcp_ethernet_int(void)
     // Handle PHY interrupts
     if (EMAC_INT_PHY & status)
     {
-        xMacInterruptStatus |= eMACInterruptPhy;
-
         _process_phy_interrupts();
     }
 
