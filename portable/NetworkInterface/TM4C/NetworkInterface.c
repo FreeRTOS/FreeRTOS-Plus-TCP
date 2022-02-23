@@ -254,7 +254,6 @@ BaseType_t xNetworkInterfaceInitialise(void)
                      EMAC_BCONFIG_MIXED_BURST | EMAC_BCONFIG_PRIORITY_FIXED, 4,
                      4, 0);
 
-        // EMAC_CONFIG_STRIP_CRC
         MAP_EMACConfigSet(
                 EMAC0_BASE,
                 (
@@ -265,7 +264,8 @@ BaseType_t xNetworkInterfaceInitialise(void)
                     EMAC_CONFIG_IF_GAP_96BITS |
                     EMAC_CONFIG_USE_MACADDR0 |
                     EMAC_CONFIG_SA_FROM_DESCRIPTOR |
-                    EMAC_CONFIG_BO_LIMIT_1024
+                    EMAC_CONFIG_BO_LIMIT_1024 |
+                    EMAC_CONFIG_STRIP_CRC
                 ),
                 (
                     EMAC_MODE_RX_STORE_FORWARD |
@@ -362,8 +362,8 @@ BaseType_t xNetworkInterfaceOutput(NetworkBufferDescriptor_t * const pxNetworkBu
 
         // Inform the DMA that this is the first and last segment of the packet, calculate the checksums, the descriptors are
         // chained, and to use interrupts
-        dma_descriptor->ui32CtrlStatus = DES0_TX_CTRL_FIRST_SEG | /*DES0_TX_CTRL_IP_ALL_CKHSUMS |*/ DES0_TX_CTRL_CHAINED
-                | DES0_TX_CTRL_LAST_SEG | DES0_TX_CTRL_INTERRUPT;// | DES0_TX_CTRL_REPLACE_CRC;
+        dma_descriptor->ui32CtrlStatus = DES0_TX_CTRL_FIRST_SEG | DES0_TX_CTRL_IP_ALL_CKHSUMS | DES0_TX_CTRL_CHAINED
+                | DES0_TX_CTRL_LAST_SEG | DES0_TX_CTRL_INTERRUPT | DES0_TX_CTRL_REPLACE_CRC;
 
         // Advance the index in the list
         _tx_descriptor_list.write++;
