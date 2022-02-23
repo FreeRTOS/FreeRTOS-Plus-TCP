@@ -419,8 +419,6 @@ static BaseType_t _ethernet_mac_get(uint8_t *mac_address_bytes)
     // If the MAC is not set, fail
     if (0xFFFFFFFF == mac_address_words[0] || 0xFFFFFFFF == mac_address_words[1])
     {
-        terminal_printf("MAC Address not set\r\n");
-
         success = pdFAIL;
     }
     else
