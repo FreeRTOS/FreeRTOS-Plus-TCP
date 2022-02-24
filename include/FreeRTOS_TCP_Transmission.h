@@ -24,11 +24,11 @@
  */
 
 #ifndef FREERTOS_TCP_TRANSMISSION_H
-#define FREERTOS_TCP_TRANSMISSION_H
+    #define FREERTOS_TCP_TRANSMISSION_H
 
-#ifdef __cplusplus
-    extern "C" {
-#endif
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
 /*
  * Either sends a SYN or calls prvTCPSendRepeated (for regular messages).
@@ -105,8 +105,8 @@
 
 
 
-#ifdef __cplusplus
-    } /* extern "C" */
-#endif
+    #ifdef __cplusplus
+        } /* extern "C" */
+    #endif
 
 #endif /* FREERTOS_TCP_TRANSMISSION_H */

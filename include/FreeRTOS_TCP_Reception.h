@@ -24,11 +24,11 @@
  */
 
 #ifndef FREERTOS_TCP_RECEPTION_H
-#define FREERTOS_TCP_RECEPTION_H
+    #define FREERTOS_TCP_RECEPTION_H
 
-#ifdef __cplusplus
-    extern "C" {
-#endif
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
 /*
  * A "challenge ACK" is as per https://tools.ietf.org/html/rfc5961#section-3.2,
@@ -36,6 +36,31 @@
  * unexpected but still within the window.
  */
     BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+/*
+ * Identify and deal with a single TCP header option, advancing the pointer to
+ * the header. This function returns pdTRUE or pdFALSE depending on whether the
+ * caller should continue to parse more header options or break the loop.
+ */
+    int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                           size_t uxTotalLength,
+                                           FreeRTOS_Socket_t * const pxSocket,
+                                           BaseType_t xHasSYNFlag );
+
+/*
+ * Skip past TCP header options when doing Selective ACK, until there are no
+ * more options left.
+ */
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+        void prvReadSackOption( const uint8_t * const pucPtr,
+                                size_t uxIndex,
+                                FreeRTOS_Socket_t * const pxSocket );
+    #endif /* ( ipconfigUSE_TCP_WIN == 1 ) */
+
+/*
+ * Reply to a peer with the RST flag on, in case a packet can not be handled.
+ */
+    BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Called from prvTCPHandleState().  Find the TCP payload data and check and
@@ -53,8 +78,8 @@
                                NetworkBufferDescriptor_t * pxNetworkBuffer,
                                uint32_t ulReceiveLength );
 
-#ifdef __cplusplus
-    } /* extern "C" */
-#endif
+    #ifdef __cplusplus
+        } /* extern "C" */
+    #endif
 
 #endif /* FREERTOS_TCP_RECEPTION_H */
