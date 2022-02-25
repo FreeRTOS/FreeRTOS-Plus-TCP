@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.2 LTS Patch 1
+ * FreeRTOS+TCP V2.3.2 LTS Patch 2
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -213,7 +213,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     NetworkBufferDescriptor_t * pxReturn = NULL;
     size_t uxCount;
 
-    if( ( xRequestedSizeBytes <= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) ) && ( xNetworkBufferSemaphore != NULL ) )
+    if( ( xRequestedSizeBytes <= ( SIZE_MAX >> 1 ) ) && ( xNetworkBufferSemaphore != NULL ) )
     {
         if( ( xRequestedSizeBytes != 0U ) && ( xRequestedSizeBytes < ( size_t ) baMINIMAL_BUFFER_SIZE ) )
         {

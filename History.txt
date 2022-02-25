@@ -1,3 +1,7 @@
+Changes between V2.3.2 LTS Patch 1 and V2.3.2 LTS Patch 2
+        + Updated the maximum limit on the number of bytes which can be requested
+          when using BufferAllocation2.c
+
 Changes between V2.3.2 and V2.3.2 LTS Patch 1
         + In BufferAllocation_2.c
           (https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/portable/BufferManagement/BufferAllocation_2.c),
