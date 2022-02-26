@@ -43,15 +43,9 @@
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_IP_Utils.h"
-#include "mock_FreeRTOS_IP_Timers.h"
-/*#include "mock_FreeRTOS_TCP_IP.h" */
-/*#include "mock_FreeRTOS_ICMP.h" */
-/*#include "mock_FreeRTOS_ARP.h" */
 #include "mock_NetworkBufferManagement.h"
 #include "mock_NetworkInterface.h"
-/*#include "mock_FreeRTOS_DHCP.h" */
 #include "mock_FreeRTOS_Sockets.h"
-#include "mock_FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_FreeRTOS_UDP_IP.h"
@@ -84,7 +78,7 @@ uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
 };
 
 
-uint8_t ucTCPOptions_good_MSS_WSF[ ipSIZE_TCP_OPTIONS ] =
+const uint8_t ucTCPOptions_good_MSS_WSF[ ipSIZE_TCP_OPTIONS ] =
 {
     0x02, 0x04, 0x12, 0x34, /* MSS */
     0x01,                   /* noop */
@@ -94,7 +88,7 @@ uint8_t ucTCPOptions_good_MSS_WSF[ ipSIZE_TCP_OPTIONS ] =
     0x00                    /* EOL */
 };
 
-uint8_t ucTCPOptions_bad_MSS_WSF[ ipSIZE_TCP_OPTIONS ] =
+const uint8_t ucTCPOptions_bad_MSS_WSF[ ipSIZE_TCP_OPTIONS ] =
 {
     0x02, 0x04, 0x12, 0x34, /* MSS */
     0x01,                   /* noop */
@@ -103,7 +97,7 @@ uint8_t ucTCPOptions_bad_MSS_WSF[ ipSIZE_TCP_OPTIONS ] =
     0x08, 0x0a, 0x01        /* bad TS */
 };
 
-uint8_t ucTCPOptions_good_MSS_WSF_woEND[ ipSIZE_TCP_OPTIONS ] =
+const uint8_t ucTCPOptions_good_MSS_WSF_woEND[ ipSIZE_TCP_OPTIONS ] =
 {
     0x02, 0x04, 0x12, 0x34, /* MSS */
     0x01,                   /* noop */
@@ -113,14 +107,14 @@ uint8_t ucTCPOptions_good_MSS_WSF_woEND[ ipSIZE_TCP_OPTIONS ] =
     0x01                    /* noop */
 };
 
-uint8_t ucTCPOptions_good_SACK[ ipSIZE_TCP_OPTIONS ] =
+const uint8_t ucTCPOptions_good_SACK[ ipSIZE_TCP_OPTIONS ] =
 {
     0x05, 0x0A, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22,
     0x00,
     0x00
 };
 
-uint8_t ucTCPOptions_good_TS[ ipSIZE_TCP_OPTIONS ] =
+const uint8_t ucTCPOptions_good_TS[ ipSIZE_TCP_OPTIONS ] =
 {
     0x08, 0x0A, 0x12, 0x34, 0x56, 0x78, 0x11, 0x22, 0x33, 0x44,
     0x00,
@@ -317,7 +311,7 @@ void test_prvSingleStepTCPHeaderOptions_SACK( void )
 
     pxTCPHeader->ucTCPOffset = 0x80;
     pxNetworkBuffer->xDataLength = 0x50;
-    uint8_t ucTCPOptions_good_SACK[ ipSIZE_TCP_OPTIONS ] =
+    const uint8_t ucTCPOptions_good_SACK[ ipSIZE_TCP_OPTIONS ] =
     {
         0x05, 0x0A, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22
     };
@@ -351,7 +345,7 @@ void test_prvSingleStepTCPHeaderOptions_TS( void )
 
     pxTCPHeader->ucTCPOffset = 0x80;
     pxNetworkBuffer->xDataLength = 0x50;
-    uint8_t ucTCPOptions_good_SACK[ ipSIZE_TCP_OPTIONS ] =
+    const uint8_t ucTCPOptions_good_SACK[ ipSIZE_TCP_OPTIONS ] =
     {
         0x08, 0x01, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22
     };
@@ -388,7 +382,7 @@ void test_prvSingleStepTCPHeaderOptions_END_NOOP( void )
 
 
     result = prvSingleStepTCPHeaderOptions(
-        pxTCPHeader->ucOptdata,
+        (const uint8_t * const)pxTCPHeader->ucOptdata,
         1,
         pxSocket,
         pdTRUE );
@@ -400,7 +394,7 @@ void test_prvSingleStepTCPHeaderOptions_END_NOOP( void )
 
 
     result = prvSingleStepTCPHeaderOptions(
-        pxTCPHeader->ucOptdata,
+        (const uint8_t * const)pxTCPHeader->ucOptdata,
         1,
         pxSocket,
         pdTRUE );
@@ -447,7 +441,7 @@ void test_prvSingleStepTCPHeaderOptions_MSS_Invalid_Length( void )
     ucTCPOptions[ 1 ] = 0x03;
     memcpy( ( void * ) pxTCPHeader->ucOptdata, ( void * ) &ucTCPOptions, sizeof( ucTCPOptions ) );
     result = prvSingleStepTCPHeaderOptions(
-        pxTCPHeader->ucOptdata,
+        (const uint8_t * const)pxTCPHeader->ucOptdata,
         4,
         pxSocket,
         pdTRUE );
@@ -471,7 +465,7 @@ void test_prvSingleStepTCPHeaderOptions_Zero_Length_MSS( void )
 
     pxTCPHeader->ucTCPOffset = 0x80;
     pxNetworkBuffer->xDataLength = 0x50;
-    uint8_t ucTCPOptions[] = { 0x02, 0x04, 0x0, 0x0 };
+    const uint8_t ucTCPOptions[] = { 0x02, 0x04, 0x0, 0x0 };
     memcpy( ( void * ) pxTCPHeader->ucOptdata, ( void * ) &ucTCPOptions, sizeof( ucTCPOptions ) );
     usChar2u16_ExpectAnyArgsAndReturn( 0 );
 
@@ -500,7 +494,7 @@ void test_prvSingleStepTCPHeaderOptions_Same_MSS( void )
 
     pxTCPHeader->ucTCPOffset = 0x80;
     pxNetworkBuffer->xDataLength = 0x50;
-    uint8_t ucTCPOptions[] = { 0x02, 0x04, 0x0, 0x0 };
+    const uint8_t ucTCPOptions[] = { 0x02, 0x04, 0x0, 0x0 };
     memcpy( ( void * ) pxTCPHeader->ucOptdata, ( void * ) &ucTCPOptions, sizeof( ucTCPOptions ) );
 
     TCPWindow_t tcpWindow;
@@ -548,7 +542,7 @@ void test_prvSingleStepTCPHeaderOptions_Invalid_Length_WS( void )
     ucTCPOptions[ 1 ] = 0x02;
     memcpy( ( void * ) pxTCPHeader->ucOptdata, ( void * ) &ucTCPOptions, sizeof( ucTCPOptions ) );
     result = prvSingleStepTCPHeaderOptions(
-        pxTCPHeader->ucOptdata,
+        (const uint8_t * const)pxTCPHeader->ucOptdata,
         3,
         pxSocket,
         pdTRUE );
@@ -577,12 +571,12 @@ void test_prvReadSackOption( void )
     pxSocket->xSelectBits |= eSELECT_WRITE;
     pxSocket->u.xTCP.pxHandleSent = xLocalFunctionPointer;
 
-    uint8_t ucTCPOptions[] =
+    const uint8_t ucTCPOptions[] =
     {
         0x05, 0x0A, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22
     };
 
-    prvReadSackOption( &ucTCPOptions, 2, pxSocket );
+    prvReadSackOption( (const uint8_t * const)&ucTCPOptions, 2, pxSocket );
 
     TEST_ASSERT_NOT_EQUAL( pxSocket->xEventBits & ( ( ( EventBits_t ) eSELECT_WRITE ) << SOCKET_EVENT_BIT_COUNT ), 0 );
     TEST_ASSERT_EQUAL( 1, ulCalled );
@@ -599,12 +593,12 @@ void test_prvReadSackOption_Zero_Length_Block( void )
     ulTCPWindowTxSack_ExpectAnyArgsAndReturn( 0 );
     pxSocket->xEventBits = 0;
 
-    uint8_t ucTCPOptions[] =
+    const uint8_t ucTCPOptions[] =
     {
         0x05, 0x0A, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22
     };
 
-    prvReadSackOption( &ucTCPOptions, 2, pxSocket );
+    prvReadSackOption( (const uint8_t * const)&ucTCPOptions, 2, pxSocket );
 
     TEST_ASSERT_NOT_EQUAL( 0, pxSocket->xEventBits ^ ( EventBits_t ) eSOCKET_SEND );
 }
@@ -625,12 +619,12 @@ void test_prvReadSackOption_Selectbits_On( void )
     pxSocket->u.xTCP.pxHandleSent = pxSocket->u.xTCP.pxHandleSent = xLocalFunctionPointer;
 
 
-    uint8_t ucTCPOptions[] =
+    const uint8_t ucTCPOptions[] =
     {
         0x05, 0x0A, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22
     };
 
-    prvReadSackOption( &ucTCPOptions, 2, pxSocket );
+    prvReadSackOption( (const uint8_t * const)&ucTCPOptions, 2, pxSocket );
 
     TEST_ASSERT_EQUAL( 0, pxSocket->xEventBits & ( ( ( EventBits_t ) eSELECT_WRITE ) << SOCKET_EVENT_BIT_COUNT ) );
 }
@@ -650,12 +644,12 @@ void test_prvReadSackOption_No_Handler( void )
     pxSocket->xSelectBits = 0;
     pxSocket->u.xTCP.pxHandleSent = NULL;
 
-    uint8_t ucTCPOptions[] =
+    const uint8_t ucTCPOptions[] =
     {
         0x05, 0x0A, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22
     };
 
-    prvReadSackOption( &ucTCPOptions, 2, pxSocket );
+    prvReadSackOption( (const uint8_t * const)&ucTCPOptions, 2, pxSocket );
 
     TEST_ASSERT_EQUAL( 0, pxSocket->xEventBits & ( ( ( EventBits_t ) eSELECT_WRITE ) << SOCKET_EVENT_BIT_COUNT ) );
     TEST_ASSERT_EQUAL( 0, ulCalled );

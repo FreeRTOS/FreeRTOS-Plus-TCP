@@ -10,26 +10,15 @@ set(mock_list "")
 
 # list the files to mock here
 list(APPEND mock_list
-            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
-            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
-            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
-            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Timers.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Utils.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ICMP.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Stream_Buffer.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_WIN.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_IP.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Transmission.h"
-             #"${MODULE_ROOT_DIR}/test/unit-test/${project_name}/IP_list_macros.h"
         )
 
 set(mock_include_list "")
