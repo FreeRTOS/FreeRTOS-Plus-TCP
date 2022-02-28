@@ -31,13 +31,6 @@
     #endif
 
 /*
- * A "challenge ACK" is as per https://tools.ietf.org/html/rfc5961#section-3.2,
- * case #3. In summary, an RST was received with a sequence number that is
- * unexpected but still within the window.
- */
-    BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-/*
  * Identify and deal with a single TCP header option, advancing the pointer to
  * the header. This function returns pdTRUE or pdFALSE depending on whether the
  * caller should continue to parse more header options or break the loop.
@@ -56,11 +49,6 @@
                                 size_t uxIndex,
                                 FreeRTOS_Socket_t * const pxSocket );
     #endif /* ( ipconfigUSE_TCP_WIN == 1 ) */
-
-/*
- * Reply to a peer with the RST flag on, in case a packet can not be handled.
- */
-    BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Called from prvTCPHandleState().  Find the TCP payload data and check and

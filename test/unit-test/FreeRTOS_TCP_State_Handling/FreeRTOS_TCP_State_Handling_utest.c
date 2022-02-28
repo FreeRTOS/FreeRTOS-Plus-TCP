@@ -1,0 +1,596 @@
+/*
+ * FreeRTOS+TCP V2.3.4
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://aws.amazon.com/freertos
+ * http://www.FreeRTOS.org
+ */
+
+
+/* Include Unity header */
+#include "unity.h"
+
+/* Include standard libraries */
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+
+/*#include "mock_task.h" */
+#include "mock_list.h"
+
+/* This must come after list.h is included (in this case, indirectly
+ * by mock_list.h). */
+#include "mock_queue.h"
+#include "mock_event_groups.h"
+#include "mock_task.h"
+
+#include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IP_Private.h"
+#include "mock_FreeRTOS_IP_Utils.h"
+#include "mock_FreeRTOS_IP_Timers.h"
+#include "mock_NetworkBufferManagement.h"
+#include "mock_NetworkInterface.h"
+#include "mock_FreeRTOS_Sockets.h"
+#include "mock_FreeRTOS_Stream_Buffer.h"
+#include "mock_FreeRTOS_TCP_WIN.h"
+#include "mock_FreeRTOS_UDP_IP.h"
+#include "mock_FreeRTOS_TCP_Transmission.h"
+#include "mock_FreeRTOS_TCP_Reception.h"
+#include "mock_FreeRTOS_TCP_Utils.h"
+
+#include "FreeRTOS_TCP_IP.h"
+
+#include "catch_assert.h"
+
+#include "FreeRTOSIPConfig.h"
+
+#include "FreeRTOS_TCP_State_Handling_stubs.c"
+#include "FreeRTOS_TCP_State_Handling.h"
+
+
+
+BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+                            const NetworkBufferDescriptor_t * pxNetworkBuffer );
+BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+FreeRTOS_Socket_t xSocket, * pxSocket;
+NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
+{
+    0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x00, 0x45, 0x00,
+    0x00, 0x34, 0x15, 0xc2, 0x40, 0x00, 0x40, 0x06, 0xa8, 0x8e, 0xc0, 0xa8, 0x00, 0x08, 0xac, 0xd9,
+    0x0e, 0xea, 0xea, 0xfe, 0x01, 0xbb, 0x8b, 0xaf, 0x8a, 0x24, 0xdc, 0x96, 0x95, 0x7a, 0x80, 0x10,
+    0x01, 0xf5, 0x7c, 0x9a, 0x00, 0x00, 0x01, 0x01, 0x08, 0x0a, 0xb8, 0x53, 0x57, 0x27, 0xb2, 0xce,
+    0xc3, 0x17
+};
+
+
+uint8_t ucTCPOptions_good_MSS_WSF[ ipSIZE_TCP_OPTIONS ] =
+{
+    0x02, 0x04, 0x12, 0x34, /* MSS */
+    0x01,                   /* noop */
+    0x03, 0x03, 0x10,       /* WSF */
+    0x01,                   /* noop */
+    0x04, 0x02,             /* SACKP */
+    0x00                    /* EOL */
+};
+
+uint8_t ucTCPOptions_bad_MSS_WSF[ ipSIZE_TCP_OPTIONS ] =
+{
+    0x02, 0x04, 0x12, 0x34, /* MSS */
+    0x01,                   /* noop */
+    0x03, 0x03, 0x10,       /* WSF */
+    0x01,                   /* noop */
+    0x08, 0x0a, 0x01        /* bad TS */
+};
+
+uint8_t ucTCPOptions_good_MSS_WSF_woEND[ ipSIZE_TCP_OPTIONS ] =
+{
+    0x02, 0x04, 0x12, 0x34, /* MSS */
+    0x01,                   /* noop */
+    0x03, 0x03, 0x10,       /* WSF */
+    0x01,                   /* noop */
+    0x04, 0x02,             /* SACKP */
+    0x01                    /* noop */
+};
+
+uint8_t ucTCPOptions_good_SACK[ ipSIZE_TCP_OPTIONS ] =
+{
+    0x05, 0x0A, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22,
+    0x00,
+    0x00
+};
+
+uint8_t ucTCPOptions_good_TS[ ipSIZE_TCP_OPTIONS ] =
+{
+    0x08, 0x0A, 0x12, 0x34, 0x56, 0x78, 0x11, 0x22, 0x33, 0x44,
+    0x00,
+    0x00
+};
+
+/* Test for prvTCPSocketIsActive function. */
+void test_prvTCPSocketIsActive( void )
+{
+    BaseType_t xResult;
+
+    /* Setup TCP option for tests */
+    uint8_t Status;
+
+    Status = eCLOSED;
+    xResult = prvTCPSocketIsActive( Status);
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+
+    Status = eCLOSE_WAIT;
+    xResult = prvTCPSocketIsActive( Status);
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+
+    Status = eFIN_WAIT_2;
+    xResult = prvTCPSocketIsActive( Status);
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+
+    Status = eCLOSING;
+    xResult = prvTCPSocketIsActive( Status);
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+
+    Status = eTIME_WAIT;
+    xResult = prvTCPSocketIsActive( Status);
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+
+    Status = eTCP_LISTEN;
+    xResult = prvTCPSocketIsActive( Status);
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+
+    Status = eCONNECT_SYN;
+    xResult = prvTCPSocketIsActive( Status);
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+
+    Status = eSYN_FIRST;
+    xResult = prvTCPSocketIsActive( Status);
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+
+    Status = eSYN_RECEIVED;
+    xResult = prvTCPSocketIsActive( Status);
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+
+    Status = eESTABLISHED;
+    xResult = prvTCPSocketIsActive( Status);
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+
+    Status = eFIN_WAIT_1;
+    xResult = prvTCPSocketIsActive( Status);
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+
+    Status = eLAST_ACK;
+    xResult = prvTCPSocketIsActive( Status);
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+}
+
+#if ( ipconfigTCP_HANG_PROTECTION == 1 )
+/* test for prvTCPStatusAgeCheck function */
+void test_prvTCPStatusAgeCheck_No_Checks_Needed(void)
+{
+    BaseType_t xResult = pdTRUE;
+    pxSocket = &xSocket;
+
+    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    xResult = prvTCPStatusAgeCheck(pxSocket);
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+
+    pxSocket->u.xTCP.ucTCPState = eCLOSED;
+    xResult = prvTCPStatusAgeCheck(pxSocket);
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+
+    pxSocket->u.xTCP.ucTCPState = eTCP_LISTEN;
+    xResult = prvTCPStatusAgeCheck(pxSocket);
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+
+    pxSocket->u.xTCP.ucTCPState = eCLOSE_WAIT;
+    xResult = prvTCPStatusAgeCheck(pxSocket);
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+}
+
+/* test for prvTCPStatusAgeCheck function */
+void test_prvTCPStatusAgeCheck_Checks_Done_Age_LE_Protectiontime(void)
+{
+    BaseType_t xResult = pdTRUE;
+    pxSocket = &xSocket;
+
+    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.xLastAliveTime = 1000;
+
+    xTaskGetTickCount_ExpectAndReturn(2000);
+    xResult = prvTCPStatusAgeCheck(pxSocket);
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+}
+
+/* test for prvTCPStatusAgeCheck function */
+void test_prvTCPStatusAgeCheck_Checks_Done_Age_GT_Protectiontime(void)
+{
+    BaseType_t xResult = pdTRUE;
+    pxSocket = &xSocket;
+
+    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.xLastAliveTime = 1000;
+
+    xTaskGetTickCount_ExpectAndReturn(32000);
+    vTCPStateChange_ExpectAnyArgs();
+    xResult = prvTCPStatusAgeCheck(pxSocket);
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+}
+
+/* test for prvTCPStatusAgeCheck function */
+void test_prvTCPStatusAgeCheck_Checks_Done_PassQueueBit_True(void)
+{
+    BaseType_t xResult = pdTRUE;
+    pxSocket = &xSocket;
+
+    pxSocket->u.xTCP.ucTCPState = eSYN_FIRST;
+    pxSocket->u.xTCP.xLastAliveTime = 1000;
+    pxSocket->u.xTCP.bits.bPassQueued = pdTRUE;
+
+    xTaskGetTickCount_ExpectAndReturn(32000);
+    vTCPStateChange_ExpectAnyArgs();
+    xResult = prvTCPStatusAgeCheck(pxSocket);
+    TEST_ASSERT_EQUAL( -1, xResult );
+}
+
+#endif /* if ( ipconfigTCP_HANG_PROTECTION == 1 ) */
+
+/* test for prvTCPHandleFin function */
+
+void test_prvTCPHandleFin_Recv_No_FIN_Not_Sent_FINACK_Not_Sent(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+    uint32_t ulAckNr = FreeRTOS_ntohl( pxTCPHeader->ulAckNr );
+
+    pxTCPHeader->ucTCPFlags = 0;
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
+    pxTCPWindow->tx.ulCurrentSequenceNumber = 2000;
+    pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinAcked = pdFALSE;
+    pxTCPHeader->ulAckNr = 2000;
+
+    vTCPStateChange_ExpectAnyArgs();
+
+    xSendLength = prvTCPHandleFin(pxSocket, (const NetworkBufferDescriptor_t * )pxNetworkBuffer);
+    TEST_ASSERT_EQUAL( 40, xSendLength );
+    TEST_ASSERT_EQUAL( 2000, pxTCPWindow->tx.ulFINSequenceNumber );
+}
+/* test for prvTCPHandleFin function */
+void test_prvTCPHandleFin_Recv_FIN_FIN_Sent_FINACK_Sent_Recv_No_FIN(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+    uint32_t ulAckNr = FreeRTOS_ntohl( pxTCPHeader->ulAckNr );
+
+    pxTCPHeader->ucTCPFlags |= tcpTCP_FLAG_FIN;
+    pxTCPHeader->ulAckNr = FreeRTOS_htonl(2001);
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
+    pxTCPWindow->tx.ulCurrentSequenceNumber = 2000;
+    pxTCPWindow->tx.ulFINSequenceNumber = 2000;
+    pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinAcked = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdFALSE;
+    
+    xSendLength = prvTCPHandleFin(pxSocket, (const NetworkBufferDescriptor_t * )pxNetworkBuffer);
+    TEST_ASSERT_EQUAL( 0, xSendLength );
+    TEST_ASSERT_EQUAL( 2000, pxTCPWindow->tx.ulFINSequenceNumber );
+}
+
+/* test for prvTCPHandleFin function */
+void test_prvTCPHandleFin_Recv_FIN_FIN_Sent_FINACK_Sent_Recv_FIN_Not_Last(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+    uint32_t ulAckNr = FreeRTOS_ntohl( pxTCPHeader->ulAckNr );
+
+    pxTCPHeader->ucTCPFlags |= tcpTCP_FLAG_FIN;
+    pxTCPHeader->ulAckNr = FreeRTOS_htonl(2001);
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
+    pxTCPWindow->tx.ulCurrentSequenceNumber = 2000;
+    pxTCPWindow->tx.ulFINSequenceNumber = 2000;
+    pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinAcked = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinLast = pdFALSE;
+    
+    vTCPStateChange_ExpectAnyArgs();
+
+    xSendLength = prvTCPHandleFin(pxSocket, (const NetworkBufferDescriptor_t * )pxNetworkBuffer);
+    TEST_ASSERT_EQUAL( 40, xSendLength );
+    TEST_ASSERT_EQUAL( 2000, pxTCPWindow->tx.ulFINSequenceNumber );
+}
+
+/* test for prvTCPHandleFin function */
+void test_prvTCPHandleFin_Recv_FIN_FIN_Sent_FINACK_Sent_Recv_FIN_Last(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+    uint32_t ulAckNr = FreeRTOS_ntohl( pxTCPHeader->ulAckNr );
+
+    pxTCPHeader->ucTCPFlags |= tcpTCP_FLAG_FIN;
+    pxTCPHeader->ulAckNr = 2001;
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
+    pxTCPWindow->tx.ulCurrentSequenceNumber = 2000;
+    pxTCPWindow->tx.ulFINSequenceNumber = 2000;
+    pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinAcked = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinLast = pdTRUE;
+    
+    vTCPStateChange_ExpectAnyArgs();
+
+    xSendLength = prvTCPHandleFin(pxSocket, (const NetworkBufferDescriptor_t * )pxNetworkBuffer);
+    TEST_ASSERT_EQUAL( 0, xSendLength );
+    TEST_ASSERT_EQUAL( 2000, pxTCPWindow->tx.ulFINSequenceNumber );
+}
+
+/* test for prvHandleSynReceived function */
+void test_prvHandleSynReceived_Exp_SYN_State_ConnectSyn(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+    
+    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_SYN | tcpTCP_FLAG_ACK;
+    pxTCPHeader->ulSequenceNumber = 0;
+    
+    vTCPWindowInit_ExpectAnyArgs();
+    vTCPStateChange_ExpectAnyArgs();
+
+    xSendLength = prvHandleSynReceived(pxSocket, 
+        ( const NetworkBufferDescriptor_t * )pxNetworkBuffer,
+        0,
+        0);
+    TEST_ASSERT_EQUAL( 40, xSendLength );
+}
+
+/* test for prvHandleSynReceived function */
+void test_prvHandleSynReceived_Not_Exp_SYN_State_ConnectSyn(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+    
+    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
+    pxTCPHeader->ulAckNr = 1;
+    pxTCPHeader->ulSequenceNumber = 0;
+    
+    vTCPStateChange_ExpectAnyArgs();
+
+    xSendLength = prvHandleSynReceived(pxSocket, 
+        ( const NetworkBufferDescriptor_t * )pxNetworkBuffer,
+        0,
+        0);
+    TEST_ASSERT_EQUAL( 40, xSendLength );
+}
+
+/* test for prvHandleSynReceived function */
+void test_prvHandleSynReceived_Not_Exp_SYN_State_Synreceived(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+    
+    pxSocket->u.xTCP.ucTCPState = eSYN_RECEIVED;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_SYN;
+    pxTCPHeader->ulAckNr = 1;
+    pxTCPHeader->ulSequenceNumber = 0;
+    
+    vTCPStateChange_ExpectAnyArgs();
+    
+    xSendLength = prvHandleSynReceived(pxSocket, 
+        ( const NetworkBufferDescriptor_t * )pxNetworkBuffer,
+        0,
+        0);
+    TEST_ASSERT_EQUAL( 40, xSendLength );
+}
+
+/* test for prvHandleSynReceived function */
+void test_prvHandleSynReceived_Exp_ACK_State_Synreceived_Zero_Data(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+    
+    pxSocket->u.xTCP.ucTCPState = eSYN_RECEIVED;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
+    pxTCPHeader->ulSequenceNumber = 0;
+    
+    vTCPStateChange_ExpectAnyArgs();
+    
+    xSendLength = prvHandleSynReceived(pxSocket, 
+        ( const NetworkBufferDescriptor_t * )pxNetworkBuffer,
+        0,
+        0);
+    TEST_ASSERT_EQUAL( 0, xSendLength );
+}
+
+
+/* test for prvHandleSynReceived function */
+void test_prvHandleSynReceived_Exp_ACK_State_Synreceived_Non_Zero_Data_WinScaling(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+    
+    pxSocket->u.xTCP.ucTCPState = eSYN_RECEIVED;
+    pxSocket->u.xTCP.bits.bWinScaling = pdTRUE;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
+    pxTCPHeader->ulSequenceNumber = 0;
+    
+    vTCPStateChange_ExpectAnyArgs();
+    
+    xSendLength = prvHandleSynReceived(pxSocket, 
+        ( const NetworkBufferDescriptor_t * )pxNetworkBuffer,
+        20,
+        0);
+    TEST_ASSERT_EQUAL( 40, xSendLength );
+}
+
+static uint32_t ulCalled = 0;
+static void xLocalFunctionPointer( Socket_t xSocket,
+                                   size_t xLength )
+{
+    ulCalled++;
+}
+
+/* test for prvHandleEstablished function */
+void test_prvHandleEstablished_ACK_(void)
+{
+
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+    
+    ulCalled = 0;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
+    pxTCPHeader->usWindow = 1000;
+    pxSocket->u.xTCP.txStream = 0x12345678;
+    pxSocket->u.xTCP.pxHandleSent = xLocalFunctionPointer;
+
+
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn(1000);
+    uxStreamBufferGet_ExpectAnyArgsAndReturn(1000);
+    prvTCPAddTxData_ExpectAnyArgs();
+    prvTCPPrepareSend_ExpectAnyArgsAndReturn(1040);
+
+    xSendLength = prvHandleEstablished( pxSocket,
+        &pxNetworkBuffer,
+        1000,
+        0);
+    TEST_ASSERT_EQUAL( 1040, xSendLength );
+}
+
+
+
+uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ] =
+{
+    0x8c, 0xdc, 0xd4, 0x4a, 0xea, 0x02, 0xa0, 0x40, 0xa0, 0x3a, 0x21, 0xea, 0x08, 0x00, 0x45, 0x20,
+    0x00, 0x5b, 0xd2, 0xe9, 0x00, 0x00, 0x39, 0x06, 0x32, 0x47, 0xac, 0xd9, 0x0e, 0xc3, 0xc0, 0xa8,
+    0x00, 0x08, 0x01, 0xbb, 0xdc, 0x44, 0xe2, 0x34, 0xd4, 0x84, 0xa7, 0xa9, 0xc1, 0xd8, 0x80, 0x18,
+    0x01, 0x15, 0x2c, 0xed, 0x00, 0x00, 0x01, 0x01, 0x08, 0x0a, 0x7c, 0x17, 0x05, 0xb6, 0x9e, 0x62,
+    0x6f, 0x27, 0x17, 0x03, 0x03, 0x00, 0x22, 0x1c, 0xeb, 0x68, 0x29, 0xea, 0x20, 0x2d, 0xb2, 0x6f,
+    0x97, 0xdf, 0x26, 0xf5, 0x70, 0x9c, 0x09, 0xe0, 0x0d, 0xda, 0xf5, 0xf9, 0xd5, 0x37, 0x92, 0x4f,
+    0x81, 0xe7, 0x65, 0x1e, 0xb1, 0x77, 0xcc, 0x72, 0x11
+};
+
+
+    /* Set TCP Flag URG */
+    uint8_t EthernetBuffer_urg[ ipconfigNETWORK_MTU ] =
+    {
+        0x8c, 0xdc, 0xd4, 0x4a, 0xea, 0x02, 0xa0, 0x40, 0xa0, 0x3a, 0x21, 0xea, 0x08, 0x00, 0x45, 0x20,
+        0x00, 0x5b, 0xd2, 0xe9, 0x00, 0x00, 0x39, 0x06, 0x32, 0x47, 0xac, 0xd9, 0x0e, 0xc3, 0xc0, 0xa8,
+        0x00, 0x08, 0x01, 0xbb, 0xdc, 0x44, 0xe2, 0x34, 0xd4, 0x84, 0xa7, 0xa9, 0xc1, 0xd8, 0x80, 0x38,
+        0x01, 0x15, 0x2c, 0xed, 0x00, 0x10, 0x01, 0x01, 0x08, 0x0a, 0x7c, 0x17, 0x05, 0xb6, 0x9e, 0x62,
+        0x6f, 0x27, 0x17, 0x03, 0x03, 0x00, 0x22, 0x1c, 0xeb, 0x68, 0x29, 0xea, 0x20, 0x2d, 0xb2, 0x6f,
+        0x97, 0xdf, 0x26, 0xf5, 0x70, 0x9c, 0x09, 0xe0, 0x0d, 0xda, 0xf5, 0xf9, 0xd5, 0x37, 0x92, 0x4f,
+        0x81, 0xe7, 0x65, 0x1e, 0xb1, 0x77, 0xcc, 0x72, 0x11
+    };
+
+
+   
+    uint8_t EthernetBuffer_zl[ ipconfigNETWORK_MTU ] =
+    {
+        0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x00, 0x45, 0x00,
+        0x00, 0x34, 0x15, 0xc2, 0x40, 0x00, 0x40, 0x06, 0xa8, 0x8e, 0xc0, 0xa8, 0x00, 0x08, 0xac, 0xd9,
+        0x0e, 0xea, 0xea, 0xfe, 0x01, 0xbb, 0x8b, 0xaf, 0x8a, 0x24, 0xdc, 0x96, 0x95, 0x7a, 0x80, 0x10,
+        0x01, 0xf5, 0x7c, 0x9a, 0x00, 0x00, 0x01, 0x01, 0x08, 0x0a, 0xb8, 0x53, 0x57, 0x27, 0xb2, 0xce,
+        0xc3, 0x17
+    };
+
+    

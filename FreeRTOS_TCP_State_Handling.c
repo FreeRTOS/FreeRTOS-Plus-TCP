@@ -51,6 +51,11 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
 
+#include "FreeRTOS_TCP_Reception.h"
+#include "FreeRTOS_TCP_Transmission.h"
+#include "FreeRTOS_TCP_State_Handling.h"
+#include "FreeRTOS_TCP_Utils.h"
+
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
@@ -83,74 +88,6 @@
  */
     static BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
                                         FreeRTOS_Socket_t * pxSocket );
-
-/*
- * The API FreeRTOS_send() adds data to the TX stream.  Add
- * this data to the windowing system to it can be transmitted.
- */
-    void prvTCPAddTxData( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * Initialise the data structures which keep track of the TCP windowing system.
- */
-    void prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * Prepare an outgoing message, if anything has to be sent.
- */
-    int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
-                               NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                               UBaseType_t uxOptionsLength );
-
-/*
- * Called from prvTCPHandleState().  Find the TCP payload data and check and
- * return its length.
- */
-    BaseType_t prvCheckRxData( const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                               uint8_t ** ppucRecvData );
-
-/*
- * Called from prvTCPHandleState().  Check if the payload data may be accepted.
- * If so, it will be added to the socket's reception queue.
- */
-    BaseType_t prvStoreRxData( FreeRTOS_Socket_t * pxSocket,
-                               const uint8_t * pucRecvData,
-                               NetworkBufferDescriptor_t * pxNetworkBuffer,
-                               uint32_t ulReceiveLength );
-
-/*
- * Set the TCP options (if any) for the outgoing packet.
- */
-    UBaseType_t prvSetOptions( FreeRTOS_Socket_t * pxSocket,
-                               const NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-/*
- * Set the initial properties in the options fields, like the preferred
- * value of MSS and whether SACK allowed.  Will be transmitted in the state
- * 'eCONNECT_SYN'.
- */
-    UBaseType_t prvSetSynAckOptions( FreeRTOS_Socket_t * pxSocket,
-                                     TCPHeader_t * pxTCPHeader );
-
-/*
- * Reply to a peer with the RST flag on, in case a packet can not be handled.
- */
-    BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-/*
- * Called from prvTCPHandleState().  There is data to be sent.
- * If ipconfigUSE_TCP_WIN is defined, and if only an ACK must be sent, it will
- * be checked if it would better be postponed for efficiency.
- */
-    BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
-                            NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                            uint32_t ulReceiveLength,
-                            BaseType_t xByteCount );
-
-/*
- * Set the initial value for MSS (Maximum Segment Size) to be used.
- */
-    void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket );
 
 /**
  * @brief Check whether the socket is active or not.

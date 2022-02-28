@@ -616,7 +616,7 @@ void test_prvReadSackOption_Selectbits_On( void )
     uxStreamBufferGet_ExpectAnyArgsAndReturn( 0x1000 );
     pxSocket->xEventBits = 0;
     pxSocket->xSelectBits = 0;
-    pxSocket->u.xTCP.pxHandleSent = pxSocket->u.xTCP.pxHandleSent = xLocalFunctionPointer;
+    pxSocket->u.xTCP.pxHandleSent = xLocalFunctionPointer;
 
 
     const uint8_t ucTCPOptions[] =
