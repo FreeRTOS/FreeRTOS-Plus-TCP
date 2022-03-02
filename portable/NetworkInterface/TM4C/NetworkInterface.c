@@ -109,9 +109,9 @@ typedef struct {
 
 typedef enum
 {
-    eMACInitTask,      /* Task must be initialized. */
-    eMACInitHw,        /* Must initialize MAC. */
-    eMACInitComplete,  /* Initialization was successful. */
+    eMACInit,   /* Must initialise MAC. */
+    eMACPass,   /* Initialisation was successful. */
+    eMACFailed, /* Initialisation failed. */
 } eMAC_INIT_STATUS_TYPE;
 
 typedef enum
@@ -121,7 +121,7 @@ typedef enum
     eMACInterruptTx     = (1 << 1), // Service TX interrupt
 } eMAC_INTERRUPT_STATUS_TYPE;
 
-static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInitTask;
+static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInit;
 
 static volatile eMAC_INTERRUPT_STATUS_TYPE xMacInterruptStatus = eMACInterruptNone;
 
@@ -220,24 +220,25 @@ BaseType_t xNetworkInterfaceInitialise(void)
     uint16_t ui16Val;
     BaseType_t xResult = pdPASS;
 
-    switch (xMacInitStatus)
+    if (eMACInit == xMacInitStatus)
     {
-    case eMACInitTask:
         // Create the RX packet forwarding task
         if (pdFAIL == xTaskCreate(_deferred_task, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &_deferred_task_handle))
         {
-            break;
+            xMacInitStatus = eMACFailed;
         }
-
-        xMacInitStatus = eMACInitHw;
-
-    case eMACInitHw:
-        // Read the MAC from user Flash
-        if (pdPASS != _ethernet_mac_get(&mac_address_bytes[0]))
+        else
         {
-            break;
+            // Read the MAC from user Flash
+            if (pdPASS != _ethernet_mac_get(&mac_address_bytes[0]))
+            {
+                xMacInitStatus = eMACFailed;
+            }
         }
+    }
 
+    if (eMACInit == xMacInitStatus)
+    {
         MAP_SysCtlPeripheralReset(SYSCTL_PERIPH_EMAC0);
 
         while (!MAP_SysCtlPeripheralReady(SYSCTL_PERIPH_EMAC0))
@@ -311,14 +312,10 @@ BaseType_t xNetworkInterfaceInitialise(void)
         // Probe the PHY with the stack driver
         vMACBProbePhy();
 
-        xMacInitStatus = eMACInitComplete;
+        xMacInitStatus = eMACPass;
     }
 
-    if (eMACInitComplete != xMacInitStatus)
-    {
-        xResult = pdFAIL;
-    }
-    else
+    if (eMACPass == xMacInitStatus)
     {
         // Wait for the link status to come up before enabling interrupts
         if (xPhyObject.ulLinkStatusMask != 0U)
