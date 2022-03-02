@@ -218,7 +218,7 @@ BaseType_t xNetworkInterfaceInitialise(void)
 {
     uint8_t mac_address_bytes[6];
     uint16_t ui16Val;
-    BaseType_t xResult = pdPASS;
+    BaseType_t xResult = pdFAIL;
 
     if (eMACInit == xMacInitStatus)
     {
@@ -327,10 +327,8 @@ BaseType_t xNetworkInterfaceInitialise(void)
 
             // Enable EMAC interrupts
             MAP_IntEnable(INT_EMAC0);
-        }
-        else
-        {
-            xResult = pdFAIL;
+
+            xResult = pdPASS;
         }
     }
 
