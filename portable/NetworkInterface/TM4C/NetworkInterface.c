@@ -347,7 +347,7 @@ BaseType_t xNetworkInterfaceOutput(NetworkBufferDescriptor_t * const pxNetworkBu
     dma_descriptor = &_tx_descriptors[_tx_descriptor_list.write];
 
     // If the DMA controller still owns the descriptor, all DMA descriptors are in use, bail out
-    if (0 == (dma_descriptor->ui32CtrlStatus & DES0_RX_CTRL_OWN))
+    if (0U == (dma_descriptor->ui32CtrlStatus & DES0_RX_CTRL_OWN))
     {
         // Assign the buffer to the DMA descriptor
         dma_descriptor->pvBuffer1 = pxNetworkBuffer->pucEthernetBuffer;
@@ -596,7 +596,7 @@ static BaseType_t _process_received_packet(void)
         }
 
         // If there is NOT an error in the frame
-        if (0 == (dma_descriptor->ui32CtrlStatus & DES0_RX_STAT_ERR))
+        if (0U == (dma_descriptor->ui32CtrlStatus & DES0_RX_STAT_ERR))
         {
             // Get a new empty descriptor
             new_stack_descriptor = pxGetNetworkBufferWithDescriptor(ipTOTAL_ETHERNET_FRAME_SIZE, max_block_time);
