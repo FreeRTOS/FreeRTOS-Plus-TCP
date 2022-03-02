@@ -234,85 +234,84 @@ BaseType_t xNetworkInterfaceInitialise(void)
             {
                 xMacInitStatus = eMACFailed;
             }
+            else
+            {
+                MAP_SysCtlPeripheralReset(SYSCTL_PERIPH_EMAC0);
+
+                while (!MAP_SysCtlPeripheralReady(SYSCTL_PERIPH_EMAC0))
+                {
+                }
+
+                MAP_SysCtlPeripheralReset(SYSCTL_PERIPH_EPHY0);
+
+                while (!MAP_SysCtlPeripheralReady(SYSCTL_PERIPH_EPHY0))
+                {
+                }
+
+                MAP_EMACInit(EMAC0_BASE, niEMAC_SYSCONFIG_HZ,
+                             EMAC_BCONFIG_MIXED_BURST | EMAC_BCONFIG_PRIORITY_FIXED, 4,
+                             4, 0);
+
+                MAP_EMACConfigSet(
+                        EMAC0_BASE,
+                        (
+                            EMAC_CONFIG_100MBPS |
+                            EMAC_CONFIG_FULL_DUPLEX |
+                            EMAC_CONFIG_CHECKSUM_OFFLOAD |
+                            EMAC_CONFIG_7BYTE_PREAMBLE |
+                            EMAC_CONFIG_IF_GAP_96BITS |
+                            EMAC_CONFIG_USE_MACADDR0 |
+                            EMAC_CONFIG_SA_FROM_DESCRIPTOR |
+                            EMAC_CONFIG_BO_LIMIT_1024 |
+                            EMAC_CONFIG_STRIP_CRC
+                        ),
+                        (
+                            EMAC_MODE_RX_STORE_FORWARD |
+                            EMAC_MODE_TX_STORE_FORWARD |
+                            EMAC_MODE_RX_THRESHOLD_64_BYTES |
+                            EMAC_MODE_TX_THRESHOLD_64_BYTES),
+                        0);
+
+
+                // Clear any stray PHY interrupts that may be set.
+                ui16Val = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1);
+                ui16Val = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR2);
+
+                // Configure and enable PHY interrupts
+                ui16Val = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_SCR);
+                ui16Val |= (EPHY_SCR_INTEN_EXT | EPHY_SCR_INTOE_EXT);
+                MAP_EMACPHYWrite(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_SCR, ui16Val);
+
+                // Read the PHY interrupt status to clear any stray events.
+                ui16Val = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1);
+
+                // Set MAC filtering options.  We receive all broadcast and mui32ticast
+                // packets along with those addressed specifically for us.
+                MAP_EMACFrameFilterSet(EMAC0_BASE, (EMAC_FRMFILTER_HASH_AND_PERFECT |
+                                   EMAC_FRMFILTER_PASS_MULTICAST));
+
+                // Set the MAC address
+                MAP_EMACAddrSet(EMAC0_BASE, 0, &mac_address_bytes[0]);
+
+                // Clears any previously asserted interrupts
+                MAP_EMACIntClear(EMAC0_BASE, EMACIntStatus(EMAC0_BASE, false));
+
+                // Initialize the DMA descriptors
+                _dma_descriptors_init();
+
+                // Enable TX/RX
+                MAP_EMACTxEnable(EMAC0_BASE);
+                MAP_EMACRxEnable(EMAC0_BASE);
+
+                // Set the interrupt to a lower priority than the OS scheduler interrupts
+                MAP_IntPrioritySet(INT_EMAC0,  (6 << (8 - configPRIO_BITS)));
+
+                // Probe the PHY with the stack driver
+                vMACBProbePhy();
+
+                xMacInitStatus = eMACPass;
+            }
         }
-    }
-
-    if (eMACInit == xMacInitStatus)
-    {
-        MAP_SysCtlPeripheralReset(SYSCTL_PERIPH_EMAC0);
-
-        while (!MAP_SysCtlPeripheralReady(SYSCTL_PERIPH_EMAC0))
-        {
-        }
-
-        MAP_SysCtlPeripheralReset(SYSCTL_PERIPH_EPHY0);
-
-        while (!MAP_SysCtlPeripheralReady(SYSCTL_PERIPH_EPHY0))
-        {
-        }
-
-        MAP_EMACInit(EMAC0_BASE, niEMAC_SYSCONFIG_HZ,
-                     EMAC_BCONFIG_MIXED_BURST | EMAC_BCONFIG_PRIORITY_FIXED, 4,
-                     4, 0);
-
-        MAP_EMACConfigSet(
-                EMAC0_BASE,
-                (
-                    EMAC_CONFIG_100MBPS |
-                    EMAC_CONFIG_FULL_DUPLEX |
-                    EMAC_CONFIG_CHECKSUM_OFFLOAD |
-                    EMAC_CONFIG_7BYTE_PREAMBLE |
-                    EMAC_CONFIG_IF_GAP_96BITS |
-                    EMAC_CONFIG_USE_MACADDR0 |
-                    EMAC_CONFIG_SA_FROM_DESCRIPTOR |
-                    EMAC_CONFIG_BO_LIMIT_1024 |
-                    EMAC_CONFIG_STRIP_CRC
-                ),
-                (
-                    EMAC_MODE_RX_STORE_FORWARD |
-                    EMAC_MODE_TX_STORE_FORWARD |
-                    EMAC_MODE_RX_THRESHOLD_64_BYTES |
-                    EMAC_MODE_TX_THRESHOLD_64_BYTES),
-                0);
-
-
-        // Clear any stray PHY interrupts that may be set.
-        ui16Val = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1);
-        ui16Val = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR2);
-
-        // Configure and enable PHY interrupts
-        ui16Val = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_SCR);
-        ui16Val |= (EPHY_SCR_INTEN_EXT | EPHY_SCR_INTOE_EXT);
-        MAP_EMACPHYWrite(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_SCR, ui16Val);
-
-        // Read the PHY interrupt status to clear any stray events.
-        ui16Val = MAP_EMACPHYRead(EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1);
-
-        // Set MAC filtering options.  We receive all broadcast and mui32ticast
-        // packets along with those addressed specifically for us.
-        MAP_EMACFrameFilterSet(EMAC0_BASE, (EMAC_FRMFILTER_HASH_AND_PERFECT |
-                           EMAC_FRMFILTER_PASS_MULTICAST));
-
-        // Set the MAC address
-        MAP_EMACAddrSet(EMAC0_BASE, 0, &mac_address_bytes[0]);
-
-        // Clears any previously asserted interrupts
-        MAP_EMACIntClear(EMAC0_BASE, EMACIntStatus(EMAC0_BASE, false));
-
-        // Initialize the DMA descriptors
-        _dma_descriptors_init();
-
-        // Enable TX/RX
-        MAP_EMACTxEnable(EMAC0_BASE);
-        MAP_EMACRxEnable(EMAC0_BASE);
-
-        // Set the interrupt to a lower priority than the OS scheduler interrupts
-        MAP_IntPrioritySet(INT_EMAC0,  (6 << (8 - configPRIO_BITS)));
-
-        // Probe the PHY with the stack driver
-        vMACBProbePhy();
-
-        xMacInitStatus = eMACPass;
     }
 
     if (eMACPass == xMacInitStatus)
