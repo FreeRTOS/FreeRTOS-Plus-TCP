@@ -952,6 +952,7 @@ void test_prvTCPHandleState_Closed(void)
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1001;
     pxTCPWindow->rx.ulHighestSequenceNumber = 1500;
@@ -987,6 +988,7 @@ void test_prvTCPHandleState_TCP_Listen(void)
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1001;
     pxTCPWindow->rx.ulHighestSequenceNumber = 1500;
@@ -1022,6 +1024,7 @@ void test_prvTCPHandleState_SYN_First(void)
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1001;
     pxTCPWindow->rx.ulHighestSequenceNumber = 1500;
@@ -1062,6 +1065,7 @@ void test_prvTCPHandleState_Connect_Syn(void)
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1001;
     pxTCPWindow->rx.ulHighestSequenceNumber = 1500;
@@ -1099,6 +1103,7 @@ void test_prvTCPHandleState_Syn_Received(void)
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1001;
     pxTCPWindow->rx.ulHighestSequenceNumber = 1500;
@@ -1137,6 +1142,7 @@ void test_prvTCPHandleState_Syn_Received_Flag_Not_Syn(void)
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1001;
     pxTCPWindow->rx.ulHighestSequenceNumber = 1500;
@@ -1154,7 +1160,7 @@ void test_prvTCPHandleState_Syn_Received_Flag_Not_Syn(void)
     TEST_ASSERT_EQUAL( 60, xSendLength );
 }
 /* test for prvTCPHandleState function */
-void test_prvTCPHandleState_Established(void)
+void test_prvTCPHandleState_Established_Data_Ack(void)
 {
     BaseType_t xSendLength = 0;
     pxSocket = &xSocket;
@@ -1173,6 +1179,7 @@ void test_prvTCPHandleState_Established(void)
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1001;
     pxTCPWindow->rx.ulHighestSequenceNumber = 1500;
@@ -1191,3 +1198,536 @@ void test_prvTCPHandleState_Established(void)
     TEST_ASSERT_EQUAL( 1000, xSendLength );
 }
 
+/* test for prvTCPHandleState function */
+void test_prvTCPHandleState_Established_First_Fin_From_Peer(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    ulCalled = 0;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
+    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.txStream = 0x12345678;
+    pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinAcked = pdFALSE;
+    pxSocket->u.xTCP.pxHandleSent = xLocalFunctionPointer;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
+    pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1001;
+    pxTCPWindow->rx.ulHighestSequenceNumber = 1000;
+
+    prvCheckRxData_ExpectAnyArgsAndReturn(0);
+    prvStoreRxData_ExpectAnyArgsAndReturn(0);
+    prvSetOptions_ExpectAnyArgsAndReturn(0);
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn(1500);
+    uxStreamBufferGet_ExpectAnyArgsAndReturn(1000);
+    prvTCPAddTxData_ExpectAnyArgs();
+    xTCPWindowRxEmpty_ExpectAnyArgsAndReturn(pdTRUE);
+    xTCPWindowTxDone_ExpectAnyArgsAndReturn(pdTRUE);
+    vTCPStateChange_ExpectAnyArgs();
+    prvSendData_ExpectAnyArgsAndReturn(40);
+        
+    xSendLength = prvTCPHandleState(pxSocket, &pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( pdTRUE, pxSocket->u.xTCP.bits.bWinChange );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulHighestSequenceNumber );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulFINSequenceNumber );
+    TEST_ASSERT_EQUAL( 1, ulCalled);
+    TEST_ASSERT_EQUAL( 40, xSendLength );
+}
+
+/* test for prvTCPHandleState function */
+void test_prvTCPHandleState_Last_Ack(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
+    pxSocket->u.xTCP.ucTCPState = eLAST_ACK;
+    pxSocket->u.xTCP.txStream = 0x12345678;
+    pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinAcked = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinLast = pdTRUE;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
+    pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1001;
+    pxTCPWindow->rx.ulHighestSequenceNumber = 1000;
+
+    prvCheckRxData_ExpectAnyArgsAndReturn(0);
+    prvStoreRxData_ExpectAnyArgsAndReturn(0);
+    prvSetOptions_ExpectAnyArgsAndReturn(0);
+    vTCPStateChange_ExpectAnyArgs();
+
+    xSendLength = prvTCPHandleState(pxSocket, &pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( pdTRUE, pxSocket->u.xTCP.bits.bWinChange );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulHighestSequenceNumber );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulFINSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, xSendLength );
+}
+
+/* test for prvTCPHandleState function */
+void test_prvTCPHandleState_Fin_Wait_1_Fin_From_Peer(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    ulCalled = 0;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
+    pxSocket->u.xTCP.ucTCPState = eFIN_WAIT_1;
+    pxSocket->u.xTCP.txStream = 0x12345678;
+    pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinAcked = pdFALSE;
+    pxSocket->u.xTCP.pxHandleSent = xLocalFunctionPointer;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
+    pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1001;
+    pxTCPWindow->rx.ulHighestSequenceNumber = 1000;
+
+    prvCheckRxData_ExpectAnyArgsAndReturn(0);
+    prvStoreRxData_ExpectAnyArgsAndReturn(0);
+    prvSetOptions_ExpectAnyArgsAndReturn(0);
+    vTCPStateChange_ExpectAnyArgs();
+    prvSendData_ExpectAnyArgsAndReturn(40);
+        
+    xSendLength = prvTCPHandleState(pxSocket, &pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( pdTRUE, pxSocket->u.xTCP.bits.bWinChange );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulHighestSequenceNumber );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulFINSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, ulCalled);
+    TEST_ASSERT_EQUAL( 40, xSendLength );
+}
+
+/* test for prvTCPHandleState function */
+void test_prvTCPHandleState_Close_Wait(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
+    pxSocket->u.xTCP.ucTCPState = eCLOSE_WAIT;
+    pxSocket->u.xTCP.txStream = 0x12345678;
+    pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdTRUE;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
+    pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1001;
+    pxTCPWindow->rx.ulHighestSequenceNumber = 1000;
+
+    prvCheckRxData_ExpectAnyArgsAndReturn(0);
+    prvStoreRxData_ExpectAnyArgsAndReturn(0);
+    prvSetOptions_ExpectAnyArgsAndReturn(0);
+    
+    xSendLength = prvTCPHandleState(pxSocket, &pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( pdTRUE, pxSocket->u.xTCP.bits.bWinChange );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulHighestSequenceNumber );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulFINSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, xSendLength );
+}
+
+/* test for prvTCPHandleState function */
+void test_prvTCPHandleState_Closing_Keep_Alive(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
+    pxSocket->u.xTCP.ucTCPState = eCLOSING;
+    pxSocket->u.xTCP.txStream = 0x12345678;
+    pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdTRUE;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
+    pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
+    pxTCPWindow->rx.ulHighestSequenceNumber = 1000;
+
+    prvCheckRxData_ExpectAnyArgsAndReturn(0);
+    prvStoreRxData_ExpectAnyArgsAndReturn(0);
+    prvSetOptions_ExpectAnyArgsAndReturn(0);
+    
+    xSendLength = prvTCPHandleState(pxSocket, &pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( pdFALSE, pxSocket->u.xTCP.bits.bWinChange );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulHighestSequenceNumber );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulFINSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, xSendLength );
+}
+
+/* test for prvTCPHandleState function */
+void test_prvTCPHandleState_Time_Wait(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
+    pxSocket->u.xTCP.ucTCPState = eTIME_WAIT;
+    pxSocket->u.xTCP.txStream = 0x12345678;
+    pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinAccepted = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdTRUE;
+    pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1001;
+    pxTCPWindow->rx.ulHighestSequenceNumber = 1000;
+
+    prvCheckRxData_ExpectAnyArgsAndReturn(0);
+    prvStoreRxData_ExpectAnyArgsAndReturn(0);
+    prvSetOptions_ExpectAnyArgsAndReturn(0);
+    
+    xSendLength = prvTCPHandleState(pxSocket, &pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( pdTRUE, pxSocket->u.xTCP.bits.bWinChange );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulHighestSequenceNumber );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulFINSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, xSendLength );
+}
+
+/* test for prvTCPHandleState function */
+void test_prvTCPHandleState_State_Unknown(void)
+{
+    BaseType_t xSendLength = 0;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
+    pxSocket->u.xTCP.ucTCPState = 12;
+    pxSocket->u.xTCP.txStream = 0x12345678;
+    pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinAccepted = pdTRUE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdTRUE;
+    pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1000 );
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1001;
+    pxTCPWindow->rx.ulHighestSequenceNumber = 1000;
+
+    prvCheckRxData_ExpectAnyArgsAndReturn(0);
+    prvStoreRxData_ExpectAnyArgsAndReturn(0);
+    prvSetOptions_ExpectAnyArgsAndReturn(0);
+    
+    xSendLength = prvTCPHandleState(pxSocket, &pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( pdTRUE, pxSocket->u.xTCP.bits.bWinChange );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulHighestSequenceNumber );
+    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulFINSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, xSendLength );
+}
+
+/* test for prvHandleListen function */
+void test_prvHandleListen_Not_For_Me(void)
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0700a8c0;
+
+    pxSocket = prvHandleListen(pxSocket, pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( NULL, pxSocket);
+}
+
+/* test for prvHandleListen function */
+void test_prvHandleListen_Reuse_Socket(void)
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0800a8c0;
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdTRUE;
+    
+    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn(1000);
+    prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgs();
+    vTCPStateChange_ExpectAnyArgs();
+    
+    pxReturn = prvHandleListen(pxSocket, pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( pxSocket, pxReturn);
+    TEST_ASSERT_EQUAL( 1000, pxReturn->u.xTCP.xTCPWindow.ulOurSequenceNumber);
+}
+
+/* test for prvHandleListen function */
+void test_prvHandleListen_New_Socket_Exceed_Limit(void)
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0800a8c0;
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
+    pxSocket->u.xTCP.usChildCount = 10;
+    pxSocket->u.xTCP.usBacklog = 9;
+    
+    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn(1000);
+    prvTCPSendReset_ExpectAnyArgsAndReturn(pdTRUE);
+    
+    pxReturn = prvHandleListen(pxSocket, pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( NULL, pxReturn);
+}
+
+/* test for prvHandleListen function */
+void test_prvHandleListen_New_Socket_Good(void)
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+    FreeRTOS_Socket_t MockReturnSocket;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0800a8c0;
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
+    pxSocket->u.xTCP.usChildCount = 1;
+    pxSocket->u.xTCP.usBacklog = 9;
+    
+    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn(1000);
+    FreeRTOS_socket_ExpectAnyArgsAndReturn(&MockReturnSocket);
+    vSocketBind_ExpectAnyArgsAndReturn(0);
+    prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgs();
+    vTCPStateChange_ExpectAnyArgs();
+    
+    pxReturn = prvHandleListen(pxSocket, pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( &MockReturnSocket, pxReturn);
+    TEST_ASSERT_EQUAL( 1000, pxReturn->u.xTCP.xTCPWindow.ulOurSequenceNumber);
+}
+
+/* test for prvHandleListen function */
+void test_prvHandleListen_New_Socket_NULL_Socket(void)
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+    FreeRTOS_Socket_t MockReturnSocket;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0800a8c0;
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
+    pxSocket->u.xTCP.usChildCount = 1;
+    pxSocket->u.xTCP.usBacklog = 9;
+    
+    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn(1000);
+    FreeRTOS_socket_ExpectAnyArgsAndReturn(NULL);
+    prvTCPSendReset_ExpectAnyArgsAndReturn(pdTRUE);
+    
+    pxReturn = prvHandleListen(pxSocket, pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( NULL, pxReturn);
+}
+
+/* test for prvHandleListen function */
+void test_prvHandleListen_New_Socket_Invalid_Socket(void)
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+    FreeRTOS_Socket_t MockReturnSocket;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0800a8c0;
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
+    pxSocket->u.xTCP.usChildCount = 1;
+    pxSocket->u.xTCP.usBacklog = 9;
+    
+    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn(1000);
+    FreeRTOS_socket_ExpectAnyArgsAndReturn(FREERTOS_INVALID_SOCKET);
+    prvTCPSendReset_ExpectAnyArgsAndReturn(pdTRUE);
+    
+    pxReturn = prvHandleListen(pxSocket, pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( NULL, pxReturn);
+}
+
+/* test for prvHandleListen function */
+void test_prvHandleListen_New_Socket_Socket_Copy_Failure(void)
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+    FreeRTOS_Socket_t MockReturnSocket;
+    pxSocket = &xSocket;
+    
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    
+    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0800a8c0;
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
+    pxSocket->u.xTCP.usChildCount = 1;
+    pxSocket->u.xTCP.usBacklog = 9;
+    
+    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn(1000);
+    FreeRTOS_socket_ExpectAnyArgsAndReturn(&MockReturnSocket);
+    vSocketBind_ExpectAnyArgsAndReturn(1);
+    vSocketClose_ExpectAnyArgsAndReturn(pdTRUE);
+    
+    pxReturn = prvHandleListen(pxSocket, pxNetworkBuffer);
+
+    TEST_ASSERT_EQUAL( NULL, pxReturn);
+}
+
+/* test for prvTCPSocketCopy function */
+void test_prvTCPSocketCopy_NULL_SocketSet(void)
+{
+    BaseType_t Result = pdFALSE;
+
+    FreeRTOS_Socket_t MockReturnSocket;
+    pxSocket = &xSocket;
+
+    pxSocket->usLocalPort = 22;
+    pxSocket->u.xTCP.uxTxWinSize = 0x123456;
+    pxSocket->pxSocketSet = NULL;
+    pxSocket->xSelectBits = eSELECT_READ;
+
+    vSocketBind_ExpectAnyArgsAndReturn(0);
+
+    Result = prvTCPSocketCopy(&MockReturnSocket, pxSocket);
+    TEST_ASSERT_EQUAL(pdTRUE, Result);
+    TEST_ASSERT_NOT_EQUAL(pxSocket->usLocalPort, MockReturnSocket.usLocalPort);
+    TEST_ASSERT_EQUAL(pxSocket->u.xTCP.uxTxWinSize, MockReturnSocket.u.xTCP.uxTxWinSize);   
+    TEST_ASSERT_NOT_EQUAL((pxSocket->xSelectBits|eSELECT_READ|eSELECT_EXCEPT), MockReturnSocket.xSelectBits);
+}
+
+/* test for prvTCPSocketCopy function */
+void test_prvTCPSocketCopy_Bind_Error(void)
+{
+    BaseType_t Result = pdFALSE;
+
+    FreeRTOS_Socket_t MockReturnSocket;
+    pxSocket = &xSocket;
+
+    pxSocket->usLocalPort = 22;
+    pxSocket->u.xTCP.uxTxWinSize = 0x123456;
+    pxSocket->pxSocketSet = 0x1111111;
+    pxSocket->xSelectBits = eSELECT_READ;
+
+    vSocketBind_ExpectAnyArgsAndReturn(1);
+    vSocketClose_ExpectAnyArgsAndReturn(pdTRUE);
+
+    Result = prvTCPSocketCopy(&MockReturnSocket, pxSocket);
+    TEST_ASSERT_EQUAL(pdFALSE, Result);
+    TEST_ASSERT_NOT_EQUAL(pxSocket->usLocalPort, MockReturnSocket.usLocalPort);
+    TEST_ASSERT_EQUAL(pxSocket->u.xTCP.uxTxWinSize, MockReturnSocket.u.xTCP.uxTxWinSize);
+    TEST_ASSERT_EQUAL((pxSocket->xSelectBits|eSELECT_READ|eSELECT_EXCEPT), MockReturnSocket.xSelectBits);
+}
+
+/* test for FreeRTOS_GetTCPStateName function */
+void test_FreeRTOS_GetTCPStateName(void)
+{
+    char * ReturnStateName;
+
+    ReturnStateName = FreeRTOS_GetTCPStateName( 0 );
+
+    TEST_ASSERT_EQUAL_STRING("eCLOSED", ReturnStateName);
+}
+
+/* test for FreeRTOS_GetTCPStateName function */
+void test_FreeRTOS_GetTCPStateName_Invalid_Index(void)
+{
+    char * ReturnStateName;
+
+    ReturnStateName = FreeRTOS_GetTCPStateName( -1);
+
+    TEST_ASSERT_EQUAL_STRING("eUNKNOWN", ReturnStateName);
+}
+
+/* test for FreeRTOS_GetTCPStateName function */
+void test_FreeRTOS_GetTCPStateName_Wrong_Index(void)
+{
+    char * ReturnStateName;
+
+    ReturnStateName = FreeRTOS_GetTCPStateName( 30 );
+
+    TEST_ASSERT_EQUAL_STRING("eUNKNOWN", ReturnStateName);
+}
