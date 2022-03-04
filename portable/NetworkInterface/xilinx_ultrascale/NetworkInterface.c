@@ -209,6 +209,10 @@ BaseType_t xNetworkInterfaceInitialise( void )
         XEmacPs_SetMdioDivisor( pxEMAC_PS, MDC_DIV_224 );
         ulPHYIndex = ulDetecPHY( pxEMAC_PS );
         ulLinkSpeed = Phy_Setup_US( pxEMAC_PS, ulPHYIndex );
+        if ( ulLinkSpeed == XST_FAILURE )
+        {
+            return pdFALSE;
+        }
         XEmacPs_SetOperatingSpeed( pxEMAC_PS, ulLinkSpeed );
 
         /* Setting the operating speed of the MAC needs a delay. */
