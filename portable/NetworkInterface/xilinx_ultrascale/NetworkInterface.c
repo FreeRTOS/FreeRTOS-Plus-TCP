@@ -184,7 +184,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 {
     uint32_t ulLinkSpeed, ulDMAReg;
     BaseType_t xStatus, xReturn = pdFAIL;
-    XEmacPs * pxEMAC_PS;
+    XEmacPs * pxEMAC_PS = &( xEMACpsif.emacps );
     const TickType_t xWaitLinkDelay = pdMS_TO_TICKS( 1000U );
 
     switch( eEMACState )
@@ -192,7 +192,6 @@ BaseType_t xNetworkInterfaceInitialise( void )
         case xEMAC_Init:
 
             ulPHYLinkStatus = 0U;
-            pxEMAC_PS = &( xEMACpsif.emacps );
             memset( &xEMACpsif, '\0', sizeof( xEMACpsif ) );
 
             xStatus = XEmacPs_CfgInitialize( pxEMAC_PS, &mac_config, mac_config.BaseAddress );
