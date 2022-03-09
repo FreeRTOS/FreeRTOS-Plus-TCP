@@ -31,7 +31,7 @@
 
 #include "FreeRTOS.h"
 
-#include "DNS/DNS_Networking.h"
+#include "DNS_Networking.h"
 
 #if ( ipconfigUSE_DNS != 0 )
 

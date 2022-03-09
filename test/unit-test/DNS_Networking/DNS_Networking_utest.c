@@ -46,7 +46,7 @@
 
 
 #include "catch_assert.h"
-#include "DNS/DNS_Networking.h"
+#include "DNS_Networking.h"
 
 #include "FreeRTOSIPConfig.h"
 

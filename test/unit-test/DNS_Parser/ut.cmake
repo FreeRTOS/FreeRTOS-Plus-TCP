@@ -42,7 +42,7 @@ set(real_source_files ""
         )
 list(APPEND real_source_files
             ${project_name}/FreeRTOS_UDP_IP_stubs.c
-            ${MODULE_ROOT_DIR}/DNS/DNS_Parser.c
+            ${MODULE_ROOT_DIR}/DNS_Parser.c
 	)
 # list the directories the module under test includes
 list(APPEND real_include_directories
@@ -61,7 +61,7 @@ list(APPEND test_include_directories
             ${TCP_INCLUDE_DIRS}
             ${CMOCK_DIR}/vendor/unity/src
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
-            ${MODULE_ROOT_DIR}/include/DNS
+            ${MODULE_ROOT_DIR}/include
         )
 
 # =============================  (end edit)  ===================================

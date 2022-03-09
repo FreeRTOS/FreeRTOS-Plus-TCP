@@ -28,11 +28,11 @@
  * @brief File that handles the DNS Callback option
  */
 
-#include "DNS/DNS_Callback.h"
+#include "DNS_Callback.h"
 
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
-#include "DNS/DNS_Globals.h"
+#include "DNS_Globals.h"
 #include "FreeRTOS_IP_Timers.h"
 
 #if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )

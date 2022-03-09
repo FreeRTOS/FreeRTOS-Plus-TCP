@@ -34,10 +34,10 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-#include "DNS/DNS_Globals.h"
-#include "DNS/DNS_Parser.h"
-#include "DNS/DNS_Cache.h"
-#include "DNS/DNS_Callback.h"
+#include "DNS_Globals.h"
+#include "DNS_Parser.h"
+#include "DNS_Cache.h"
+#include "DNS_Callback.h"
 
 #include "NetworkBufferManagement.h"
 

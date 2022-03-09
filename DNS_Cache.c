@@ -36,8 +36,8 @@
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
-#include "DNS/DNS_Cache.h"
-#include "DNS/DNS_Globals.h"
+#include "DNS_Cache.h"
+#include "DNS_Globals.h"
 
 /* Standard includes. */
 #include <stdint.h>

@@ -33,9 +33,9 @@
 /* *INDENT-ON* */
 
 /* Application level configuration options. */
-#include "DNS/DNS_Globals.h"
-#include "DNS/DNS_Callback.h"
-#include "DNS/DNS_Cache.h"
+#include "DNS_Globals.h"
+#include "DNS_Callback.h"
+#include "DNS_Cache.h"
 
 /*
  * LLMNR is very similar to DNS, so is handled by the DNS routines.

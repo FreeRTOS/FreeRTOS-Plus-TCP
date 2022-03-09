@@ -26,7 +26,7 @@
 #define DNS_NETWORKING_H
 
 #include "FreeRTOS_Sockets.h"
-#include "DNS/DNS_Globals.h"
+#include "DNS_Globals.h"
 
 #if ( ipconfigUSE_DNS != 0 )
 

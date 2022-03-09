@@ -869,10 +869,10 @@ INPUT                  = ./ \
                          ./include \
                          ./portable \
                          ./FreeRTOS_DNS.c \
-                         ./DNS/DNS_Cache.c \
-                         ./DNS/DNS_Callback.c \
-                         ./DNS/DNS_Networking.c \
-                         ./DNS/DNS_Parser.c \
+                         ./DNS_Cache.c \
+                         ./DNS_Callback.c \
+                         ./DNS_Networking.c \
+                         ./DNS_Parser.c \
                          ./FreeRTOS_Stream_Buffer.c \
                          ./FreeRTOS_UDP_IP.c \
                          ./FreeRTOS_ARP.c \
