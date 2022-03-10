@@ -24,15 +24,15 @@
  */
 
 /**
- * @file DNS_Callback.c
+ * @file FreeRTOS_DNS_Callback.c
  * @brief File that handles the DNS Callback option
  */
 
-#include "DNS_Callback.h"
+#include "FreeRTOS_DNS_Callback.h"
 
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
-#include "DNS_Globals.h"
+#include "FreeRTOS_DNS_Globals.h"
 #include "FreeRTOS_IP_Timers.h"
 
 #if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )

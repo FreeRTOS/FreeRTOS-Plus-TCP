@@ -38,9 +38,9 @@
 #include "mock_list.h"
 #include "mock_queue.h"
 
-#include "mock_DNS_Callback.h"
-#include "mock_DNS_Cache.h"
-#include "mock_DNS_Networking.h"
+#include "mock_FreeRTOS_DNS_Callback.h"
+#include "mock_FreeRTOS_DNS_Cache.h"
+#include "mock_FreeRTOS_DNS_Networking.h"
 #include "mock_NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
 
@@ -48,7 +48,7 @@
 
 #include "FreeRTOSIPConfig.h"
 
-#include "DNS_Parser.h"
+#include "FreeRTOS_DNS_Parser.h"
 
 #define LLMNR_ADDRESS     "freertos"
 #define GOOD_ADDRESS      "www.freertos.org"

@@ -23,8 +23,8 @@
  * http://www.FreeRTOS.org
  */
 
-#ifndef DNS_GLOBALS_H
-#define DNS_GLOBALS_H
+#ifndef FREERTOS_DNS_GLOBALS_H
+#define FREERTOS_DNS_GLOBALS_H
 
 #include "FreeRTOS.h"
 
@@ -243,4 +243,4 @@
         extern BaseType_t xApplicationDNSQueryHook( const char * pcName );
     #endif /* ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
 #endif /* ipconfigUSE_DNS */
-#endif /* ifndef DNS_GLOBALS_H */
+#endif /* ifndef FREERTOS_DNS_GLOBALS_H */

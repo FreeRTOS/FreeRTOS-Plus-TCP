@@ -24,7 +24,7 @@
  */
 
 /**
- * @file DNS_Parser.c
+ * @file FreeRTOS_DNS_Parser.c
  * @brief Implements the DNS message parser
  */
 
@@ -34,10 +34,10 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-#include "DNS_Globals.h"
-#include "DNS_Parser.h"
-#include "DNS_Cache.h"
-#include "DNS_Callback.h"
+#include "FreeRTOS_DNS_Globals.h"
+#include "FreeRTOS_DNS_Parser.h"
+#include "FreeRTOS_DNS_Cache.h"
+#include "FreeRTOS_DNS_Callback.h"
 
 #include "NetworkBufferManagement.h"
 

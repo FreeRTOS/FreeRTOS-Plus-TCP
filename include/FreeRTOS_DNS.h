@@ -33,9 +33,9 @@
 /* *INDENT-ON* */
 
 /* Application level configuration options. */
-#include "DNS_Globals.h"
-#include "DNS_Callback.h"
-#include "DNS_Cache.h"
+#include "FreeRTOS_DNS_Globals.h"
+#include "FreeRTOS_DNS_Callback.h"
+#include "FreeRTOS_DNS_Cache.h"
 
 /*
  * LLMNR is very similar to DNS, so is handled by the DNS routines.

@@ -22,11 +22,11 @@
  * https://github.com/FreeRTOS
  * https://www.FreeRTOS.org
  */
-#ifndef DNS_NETWORKING_H
-#define DNS_NETWORKING_H
+#ifndef FREERTOS_DNS_NETWORKING_H
+#define FREERTOS_DNS_NETWORKING_H
 
 #include "FreeRTOS_Sockets.h"
-#include "DNS_Globals.h"
+#include "FreeRTOS_DNS_Globals.h"
 
 #if ( ipconfigUSE_DNS != 0 )
 
@@ -46,4 +46,4 @@
 
     void DNS_CloseSocket( Socket_t xDNSSocket );
 #endif /* if ( ipconfigUSE_DNS != 0 ) */
-#endif /* ifndef DNS_NETWORKING_H */
+#endif /* ifndef FREERTOS_DNS_NETWORKING_H */

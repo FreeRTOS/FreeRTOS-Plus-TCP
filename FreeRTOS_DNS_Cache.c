@@ -24,7 +24,7 @@
  */
 
 /**
- * @file DNS_Cache.c
+ * @file FreeRTOS_DNS_Cache.c
  * @brief File that handles the DNS caching option
  */
 
@@ -36,8 +36,8 @@
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
-#include "DNS_Cache.h"
-#include "DNS_Globals.h"
+#include "FreeRTOS_DNS_Cache.h"
+#include "FreeRTOS_DNS_Globals.h"
 
 /* Standard includes. */
 #include <stdint.h>
