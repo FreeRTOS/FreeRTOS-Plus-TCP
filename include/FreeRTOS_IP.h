@@ -42,8 +42,8 @@
  * network stack. */
     #define ipFR_TCP_VERSION_NUMBER    "V2.4.0"
     #define ipFR_TCP_VERSION_MAJOR     2
-    #define ipFR_TCP_VERSION_MINOR     3
-    #define ipFR_TCP_VERSION_BUILD     4
+    #define ipFR_TCP_VERSION_MINOR     4
+    #define ipFR_TCP_VERSION_BUILD     0
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */
