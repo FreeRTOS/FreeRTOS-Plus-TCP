@@ -22,7 +22,7 @@ When initialising the EMAC, the driver will call the function `HAL_ETH_MspInit()
 - Initialize the related GPIO clocks
 
 - Configure Ethernet pin-out
-    Please check the scheme of your hardware to see which pins are used.
+    Please check the schematic of your hardware to see which pins are used.
     Also check if either MII or RMII is used ( define `ipconfigUSE_RMII`
     as 0 or 1 ).
 
