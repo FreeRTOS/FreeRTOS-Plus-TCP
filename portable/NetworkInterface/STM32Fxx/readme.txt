@@ -11,6 +11,28 @@ These modules should be included:
     portable/NetworkInterface/STM32Fxx/NetworkInterface.c
     portable/NetworkInterface/STM32Fxx/stm32fxx_hal_eth.c
 
+When initialising the EMAC, the driver will call the function `HAL_ETH_MspInit()`, which should do the following:
+
+- Enable the Ethernet interface clock using:
+    __HAL_RCC_ETHMAC_CLK_ENABLE();
+    __HAL_RCC_ETHMACTX_CLK_ENABLE();
+    __HAL_RCC_ETHMACRX_CLK_ENABLE();
+
+- Initialize the related GPIO clocks
+
+- Configure Ethernet pin-out
+    Please check the scheme of your hardware to see which pins are used.
+    Also check if either MII or RMII is used ( define `ipconfigUSE_RMII`
+    as 0 or 1 ).
+
+- Configure Ethernet NVIC interrupt (IT mode)
+    Choose a proper interrupt priority, defined in FreeRTOSIPConfig.h as e.g. :
+~~~c
+   #define ipconfigMAC_INTERRUPT_PRIORITY	( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY )
+~~~
+
+The function `HAL_ETH_MspInit()` must be provided by the application. Make sure that your copy of the function is called, and not a dummy defined as "weak".
+
 It is assumed that one of these macros is defined at the highest level:
 
     STM32F1xx
