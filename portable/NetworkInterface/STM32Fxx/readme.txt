@@ -27,9 +27,9 @@ When initialising the EMAC, the driver will call the function `HAL_ETH_MspInit()
 
 - Configure Ethernet NVIC interrupt (IT mode)
     Choose a proper interrupt priority, defined in FreeRTOSIPConfig.h as e.g. :
-~~~c
+```c
    #define ipconfigMAC_INTERRUPT_PRIORITY	( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY )
-~~~
+```
 
 The function `HAL_ETH_MspInit()` must be provided by the application. Make sure that your copy of the function is called, and not a dummy defined as "weak".
 
