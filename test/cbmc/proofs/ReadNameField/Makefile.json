@@ -42,7 +42,7 @@
   [
     "$(ENTRY)_harness.goto",
     "$(FREERTOS_PLUS_TCP)/FreeRTOS_DNS.goto",
-    "$(FREERTOS_PLUS_TCP)/DNS/DNS_Parser.goto"
+    "$(FREERTOS_PLUS_TCP)/FreeRTOS_DNS_Parser.goto"
   ],
 
   "DEF":

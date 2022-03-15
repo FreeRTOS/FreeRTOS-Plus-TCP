@@ -62,10 +62,10 @@ set( TCP_INCLUDES "${MODULE_ROOT_DIR}/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_UDP_IP.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_DHCP.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS.h"
-                  "${MODULE_ROOT_DIR}/include/DNS/DNS_Cache.h"
-                  "${MODULE_ROOT_DIR}/include/DNS/DNS_Callback.h"
-                  "${MODULE_ROOT_DIR}/include/DNS/DNS_Networking.h"
-                  "${MODULE_ROOT_DIR}/include/DNS/DNS_Parser.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS_Cache.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS_Callback.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS_Networking.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS_Parser.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_IP.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_Stream_Buffer.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_WIN.h"
@@ -197,10 +197,10 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_WIN/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Tiny_TCP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DNS/ut.cmake )
-include( ${UNIT_TEST_DIR}/DNS_Cache/ut.cmake )
-include( ${UNIT_TEST_DIR}/DNS_Networking/ut.cmake )
-include( ${UNIT_TEST_DIR}/DNS_Callback/ut.cmake )
-include( ${UNIT_TEST_DIR}/DNS_Parser/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Cache/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Networking/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Callback/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Parser/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils/ut.cmake )
