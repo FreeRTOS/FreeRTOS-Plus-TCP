@@ -529,14 +529,14 @@
  * FreeRTOSIPConfig.h as ipconfigEMAC_TASK_STACK_SIZE_WORDS is a user definable constant.
  * Note that the macro 'configEMAC_TASK_STACK_SIZE' was used in earlier versions.
  * When defined, it will be used, albeit with a #warning.
- */ 
+ */
 #ifndef ipconfigEMAC_TASK_STACK_SIZE_WORDS
     /* Check if the earlier name of the macro is still defined. */
     #ifdef configEMAC_TASK_STACK_SIZE
         #warning This macro is now called ipconfigEMAC_TASK_STACK_SIZE_WORDS
-        #define ipconfigEMAC_TASK_STACK_SIZE_WORDS   ( configEMAC_TASK_STACK_SIZE )
+        #define ipconfigEMAC_TASK_STACK_SIZE_WORDS    ( configEMAC_TASK_STACK_SIZE )
     #else
-        #define ipconfigEMAC_TASK_STACK_SIZE_WORDS   ( 2U * configMINIMAL_STACK_SIZE )
+        #define ipconfigEMAC_TASK_STACK_SIZE_WORDS    ( 2U * configMINIMAL_STACK_SIZE )
     #endif
 #endif
 
