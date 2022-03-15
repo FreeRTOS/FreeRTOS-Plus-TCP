@@ -65,11 +65,6 @@
 #include "FreeRTOS_TCP_State_Handling.h"
 
 
-
-BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                            const NetworkBufferDescriptor_t * pxNetworkBuffer );
-BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
-
 FreeRTOS_Socket_t xSocket, * pxSocket;
 NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
 uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
@@ -79,50 +74,6 @@ uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
     0x0e, 0xea, 0xea, 0xfe, 0x01, 0xbb, 0x8b, 0xaf, 0x8a, 0x24, 0xdc, 0x96, 0x95, 0x7a, 0x80, 0x10,
     0x01, 0xf5, 0x7c, 0x9a, 0x00, 0x00, 0x01, 0x01, 0x08, 0x0a, 0xb8, 0x53, 0x57, 0x27, 0xb2, 0xce,
     0xc3, 0x17
-};
-
-
-uint8_t ucTCPOptions_good_MSS_WSF[ ipSIZE_TCP_OPTIONS ] =
-{
-    0x02, 0x04, 0x12, 0x34, /* MSS */
-    0x01,                   /* noop */
-    0x03, 0x03, 0x10,       /* WSF */
-    0x01,                   /* noop */
-    0x04, 0x02,             /* SACKP */
-    0x00                    /* EOL */
-};
-
-uint8_t ucTCPOptions_bad_MSS_WSF[ ipSIZE_TCP_OPTIONS ] =
-{
-    0x02, 0x04, 0x12, 0x34, /* MSS */
-    0x01,                   /* noop */
-    0x03, 0x03, 0x10,       /* WSF */
-    0x01,                   /* noop */
-    0x08, 0x0a, 0x01        /* bad TS */
-};
-
-uint8_t ucTCPOptions_good_MSS_WSF_woEND[ ipSIZE_TCP_OPTIONS ] =
-{
-    0x02, 0x04, 0x12, 0x34, /* MSS */
-    0x01,                   /* noop */
-    0x03, 0x03, 0x10,       /* WSF */
-    0x01,                   /* noop */
-    0x04, 0x02,             /* SACKP */
-    0x01                    /* noop */
-};
-
-uint8_t ucTCPOptions_good_SACK[ ipSIZE_TCP_OPTIONS ] =
-{
-    0x05, 0x0A, 0x10, 0x00, 0x05, 0x00, 0x11, 0x11, 0x22, 0x22,
-    0x00,
-    0x00
-};
-
-uint8_t ucTCPOptions_good_TS[ ipSIZE_TCP_OPTIONS ] =
-{
-    0x08, 0x0A, 0x12, 0x34, 0x56, 0x78, 0x11, 0x22, 0x33, 0x44,
-    0x00,
-    0x00
 };
 
 /* Test for prvTCPSocketIsActive function. */
