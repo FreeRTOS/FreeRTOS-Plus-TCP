@@ -45,11 +45,11 @@
     #define __STM32F7xx_HAL_ETH_H
 
     #if defined( STM32F7xx )
-        #include "stm32f7xx_hal_def.h"
+        #include "stm32f7xx_hal.h"
     #elif defined( STM32F407xx ) || defined( STM32F417xx ) || defined( STM32F427xx ) || defined( STM32F437xx ) || defined( STM32F429xx ) || defined( STM32F439xx )
-        #include "stm32f4xx_hal_def.h"
+        #include "stm32f4xx_hal.h"
     #elif defined( STM32F2xx )
-        #include "stm32f2xx_hal_def.h"
+        #include "stm32f2xx_hal.h"
     #endif
 
     #ifdef __cplusplus
