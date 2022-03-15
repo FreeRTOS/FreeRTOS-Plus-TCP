@@ -49,14 +49,6 @@
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
 #endif
 
-/* Default the size of the stack used by the EMAC deferred handler task to twice
- * the size of the stack used by the idle task - but allow this to be overridden in
- * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
-#ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 2 * configMINIMAL_STACK_SIZE )
-#endif
-
-
 static SemaphoreHandle_t xTXMutex = NULL;
 
 /* The handle of the task that processes Rx packets.  The handle is required so
@@ -115,7 +107,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
         /* Rx task */
         if( xRxHanderTask == NULL )
         {
-            xReturn = xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, &xRxHanderTask );
+            xReturn = xTaskCreate( prvEMACHandlerTask, "EMAC", ipconfigEMAC_TASK_STACK_SIZE_WORDS, NULL, configMAX_PRIORITIES - 1, &xRxHanderTask );
             configASSERT( xReturn );
         }
 

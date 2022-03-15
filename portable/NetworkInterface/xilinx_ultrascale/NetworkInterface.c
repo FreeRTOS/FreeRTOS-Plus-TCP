@@ -90,13 +90,6 @@
     #define iptraceEMAC_TASK_STARTING()    do {} while( 0 )
 #endif
 
-/* Default the size of the stack used by the EMAC deferred handler task to twice
- * the size of the stack used by the idle task - but allow this to be overridden in
- * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
-#ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 8 * configMINIMAL_STACK_SIZE )
-#endif
-
 #if ( ipconfigZERO_COPY_RX_DRIVER == 0 || ipconfigZERO_COPY_TX_DRIVER == 0 )
     #error Please define both 'ipconfigZERO_COPY_RX_DRIVER' and 'ipconfigZERO_COPY_TX_DRIVER' as 1
 #endif
@@ -233,7 +226,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
          * possible priority to ensure the interrupt handler can return directly
          * to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
          * notify the task when there is something to process. */
-        xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
+        xTaskCreate( prvEMACHandlerTask, "EMAC", ipconfigEMAC_TASK_STACK_SIZE_WORDS, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
     }
     else
     {

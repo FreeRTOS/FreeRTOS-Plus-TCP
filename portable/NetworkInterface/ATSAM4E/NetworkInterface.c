@@ -83,13 +83,6 @@
     #error Please define GMAC_USES_TX_CALLBACK as 1
 #endif
 
-/* Default the size of the stack used by the EMAC deferred handler task to 4x
- *  the size of the stack used by the idle task - but allow this to be overridden in
- *  FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
-#ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 4 * configMINIMAL_STACK_SIZE )
-#endif
-
 /*-----------------------------------------------------------*/
 
 /*
@@ -218,7 +211,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
         /* The handler task is created at the highest possible priority to
          * ensure the interrupt handler can return directly to it. */
-        xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, &xEMACTaskHandle );
+        xTaskCreate( prvEMACHandlerTask, "EMAC", ipconfigEMAC_TASK_STACK_SIZE_WORDS, NULL, configMAX_PRIORITIES - 1, &xEMACTaskHandle );
         configASSERT( xEMACTaskHandle != NULL );
     }
 

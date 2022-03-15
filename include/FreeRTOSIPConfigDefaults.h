@@ -524,6 +524,22 @@
     #define ipconfigIP_TASK_STACK_SIZE_WORDS    ( configMINIMAL_STACK_SIZE * 5 )
 #endif
 
+/* Default the size of the stack used by the EMAC deferred handler task to twice
+ * the size of the stack used by the idle task - but allow this to be overridden in
+ * FreeRTOSIPConfig.h as ipconfigEMAC_TASK_STACK_SIZE_WORDS is a user definable constant.
+ * Note that the macro 'configEMAC_TASK_STACK_SIZE' was used in earlier versions.
+ * When defined, it will be used, albeit with a #warning.
+ */ 
+#ifndef ipconfigEMAC_TASK_STACK_SIZE_WORDS
+    /* Check if the earlier name of the macro is still defined. */
+    #ifdef configEMAC_TASK_STACK_SIZE
+        #warning This macro is now called ipconfigEMAC_TASK_STACK_SIZE_WORDS
+        #define ipconfigEMAC_TASK_STACK_SIZE_WORDS   ( configEMAC_TASK_STACK_SIZE )
+    #else
+        #define ipconfigEMAC_TASK_STACK_SIZE_WORDS   ( 2U * configMINIMAL_STACK_SIZE )
+    #endif
+#endif
+
 /* When non-zero, the module FreeRTOS_DHCP.c will be included and called.
  * Note that the application can override decide to ignore the outcome
  * of the DHCP negotiation and use a static IP-address. */

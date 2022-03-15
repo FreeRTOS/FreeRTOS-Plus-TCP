@@ -130,13 +130,6 @@
     #endif
 #endif /* ipconfigETHERNET_AN_ENABLE == 0 */
 
-/* Default the size of the stack used by the EMAC deferred handler task to twice
- * the size of the stack used by the idle task - but allow this to be overridden in
- * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
-#ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 2 * configMINIMAL_STACK_SIZE )
-#endif
-
 /* Two choices must be made: RMII versus MII,
  * and the index of the PHY in use ( between 0 and 31 ). */
 #ifndef ipconfigUSE_RMII
@@ -485,7 +478,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
              * possible priority to ensure the interrupt handler can return directly
              * to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
              * notify the task when there is something to process. */
-            if( xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle ) == pdPASS )
+            if( xTaskCreate( prvEMACHandlerTask, "EMAC", ipconfigEMAC_TASK_STACK_SIZE_WORDS, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle ) == pdPASS )
             {
                 /* The xTXDescriptorSemaphore and the task are created successfully. */
                 xMacInitStatus = eMACPass;
