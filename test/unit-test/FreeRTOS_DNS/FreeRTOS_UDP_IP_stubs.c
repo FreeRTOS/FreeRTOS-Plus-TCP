@@ -35,7 +35,7 @@
 #include "list.h"
 
 #include "FreeRTOS_IP.h"
-#include "DNS/DNS_Globals.h"
+#include "FreeRTOS_DNS_Globals.h"
 #include "FreeRTOS_IP_Private.h"
 
 
