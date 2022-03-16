@@ -24,14 +24,14 @@
  */
 
 /**
- * @file DNS_Networking.c
+ * @file FreeRTOS_DNS_Networking.c
  * @brief Implements the Domain Name System Networking
  *        for the FreeRTOS+TCP network stack.
  */
 
 #include "FreeRTOS.h"
 
-#include "DNS/DNS_Networking.h"
+#include "FreeRTOS_DNS_Networking.h"
 
 #if ( ipconfigUSE_DNS != 0 )
 

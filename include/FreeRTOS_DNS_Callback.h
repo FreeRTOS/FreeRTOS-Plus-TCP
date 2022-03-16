@@ -24,8 +24,8 @@
  */
 
 
-#ifndef DNS_CALLBACK_H
-#define DNS_CALLBACK_H
+#ifndef FREERTOS_DNS_CALLBACK_H
+#define FREERTOS_DNS_CALLBACK_H
 
 #if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
@@ -35,7 +35,7 @@
 /* FreeRTOS+TCP includes. */
     #include "FreeRTOS_IP.h"
 
-    #include "DNS_Globals.h"
+    #include "FreeRTOS_DNS_Globals.h"
 
 /* Standard includes. */
     #include <stdint.h>
@@ -58,4 +58,4 @@
 #endif /* ipconfigDNS_USE_CALLBACKS  && ipconfigUSE_DNS */
 
 
-#endif /* ifndef DNS_CALLBACK_H */
+#endif /* ifndef FREERTOS_DNS_CALLBACK_H */

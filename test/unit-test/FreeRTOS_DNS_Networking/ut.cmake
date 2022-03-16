@@ -2,7 +2,7 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "DNS_Cache" )
+set( project_name "FreeRTOS_DNS_Networking" )
 message( STATUS "${project_name}" )
 # =====================  Create your mock here  (edit)  ========================
 
@@ -12,14 +12,15 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
+#"${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/portable.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Callback.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Networking.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/DNS_Parser.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS_Cache.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS_Callback.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS_Parser.h"
         )
 # list the directories your mocks need
 list(APPEND mock_include_list
@@ -42,13 +43,13 @@ set(real_source_files ""
         )
 list(APPEND real_source_files
             ${project_name}/FreeRTOS_UDP_IP_stubs.c
-            ${MODULE_ROOT_DIR}/DNS/DNS_Cache.c
+            ${MODULE_ROOT_DIR}/FreeRTOS_DNS_Networking.c
 	)
 # list the directories the module under test includes
 list(APPEND real_include_directories
             .
             ${TCP_INCLUDE_DIRS}
-            ${TCP_INCLUDE_DIRS}/DNS
+            ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${CMOCK_DIR}/vendor/unity/src
@@ -62,7 +63,7 @@ list(APPEND test_include_directories
             ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
-            ${MODULE_ROOT_DIR}/include/DNS
+            ${MODULE_ROOT_DIR}/include
         )
 
 # =============================  (end edit)  ===================================
