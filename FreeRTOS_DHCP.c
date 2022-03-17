@@ -747,7 +747,7 @@
         if( lBytes > 0 )
         {
             /* Map a DHCP structure onto the received data. */
-            pxDHCPMessage = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( DHCPMessage_IPv4_t, pucUDPPayload );
+            pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayload );
 
             /* Sanity check. */
             if( lBytes < ( int32_t ) sizeof( DHCPMessage_IPv4_t ) )
@@ -1026,7 +1026,7 @@
         {
             /* Leave space for the UDP header. */
             pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
-            pxDHCPMessage = ipCAST_PTR_TO_TYPE_PTR( DHCPMessage_IPv4_t, pucUDPPayloadBuffer );
+            pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayloadBuffer );
 
             /* Most fields need to be zero. */
             ( void ) memset( pxDHCPMessage, 0x00, sizeof( DHCPMessage_IPv4_t ) );

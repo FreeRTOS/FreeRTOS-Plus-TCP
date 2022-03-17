@@ -47,66 +47,6 @@
 
 /** @brief The list of all callback structures. */
 
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSAnswerRecord_t.
- *
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSAnswerRecord_t )
-    {
-        return ( DNSAnswerRecord_t * ) pvArgument;
-    }
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSMessage_t.
- *
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSMessage_t )
-    {
-        return ( DNSMessage_t * ) pvArgument;
-    }
-
-/**
- * @brief Utility function to cast a const pointer of a type to a const pointer of type DNSMessage_t.
- *
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( DNSMessage_t )
-    {
-        return ( const DNSMessage_t * ) pvArgument;
-    }
-
-    #if ( ipconfigUSE_LLMNR == 1 )
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type LLMNRAnswer_t.
- *
- * @return The casted pointer.
- */
-        static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( LLMNRAnswer_t )
-        {
-            return ( LLMNRAnswer_t * ) pvArgument;
-        }
-
-
-    #endif /* ipconfigUSE_LLMNR == 1 */
-
-    #if ( ipconfigUSE_NBNS == 1 )
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type NBNSAnswer_t.
- *
- * @return The casted pointer.
- */
-        static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NBNSAnswer_t )
-        {
-            return ( NBNSAnswer_t * ) pvArgument;
-        }
-
-    #endif /* ipconfigUSE_NBNS == 1 */
-
 /**
  * @brief Read the Name field out of a DNS response packet.
  *
