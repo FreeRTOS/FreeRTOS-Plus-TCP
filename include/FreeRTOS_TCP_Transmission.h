@@ -103,7 +103,15 @@
  */
     BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
-
+/*
+ *  Check if the size of a network buffer is big enough to hold the outgoing message.
+ *  Allocate a new bigger network buffer when necessary.
+ */
+    NetworkBufferDescriptor_t * prvTCPBufferResize( const FreeRTOS_Socket_t * pxSocket,
+                                                           NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                           int32_t lDataLen,
+                                                           UBaseType_t uxOptionsLength );
+                                                           
 
     #ifdef __cplusplus
         } /* extern "C" */

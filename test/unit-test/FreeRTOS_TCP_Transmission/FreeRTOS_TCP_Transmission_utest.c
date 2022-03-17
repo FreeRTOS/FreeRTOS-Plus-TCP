@@ -55,6 +55,7 @@
 #include "mock_FreeRTOS_TCP_State_Handling.h"
 #include "mock_FreeRTOS_TCP_Reception.h"
 #include "mock_FreeRTOS_TCP_Utils.h"
+#include "mock_FreeRTOS_TCP_WIN.h"
 
 #include "FreeRTOS_TCP_IP.h"
 
@@ -271,7 +272,7 @@ void test_prvTCPSendPacket_Other_State_Zero_To_Send(void)
 //     pxSocket->u.xTCP.ucRepCount = 1;
 //     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
 //     pxSocket->u.xTCP.xLastAliveTime = 1000;
-//     pxSocket->u.xTCP.txStream = 0x12345678;
+//     pxSocket->u.xTCP.txStream = (StreamBuffer_t *)0x12345678;
 //     pxSocket->u.xTCP.usMSS = 1000;
 
 //     ulTCPWindowTxGet_ExpectAnyArgsAndReturn(52);
@@ -301,8 +302,130 @@ void test_prvTCPSendRepeated(void)
 
 }
 
+// /* test for prvTCPBufferResize function */
+// void test_prvTCPBufferResize_Fixed_Size_With_Buffer(void)
+// {
+//     NetworkBufferDescriptor_t * pReturn;
+//     pxSocket = &xSocket;
+//     pxNetworkBuffer = &xNetworkBuffer;
+//     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+//     pReturn = prvTCPBufferResize(pxSocket, pxNetworkBuffer, 500, 0);
+//     TEST_ASSERT_EQUAL_PTR( pxNetworkBuffer, pReturn );
+//     TEST_ASSERT_EQUAL(554, pReturn->xDataLength);
+// }
+
+// /* test for prvTCPBufferResize function */
+// void test_prvTCPBufferResize_Fixed_Size_Without_Buffer(void)
+// {
+//     NetworkBufferDescriptor_t * pReturn;
+//     pxSocket = &xSocket;
+//     pxNetworkBuffer = &xNetworkBuffer;
+//     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+//     NetworkBufferDescriptor_t NewNetworkBuffer;
+//     NewNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+
+//     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(&NewNetworkBuffer);
+//     pReturn = prvTCPBufferResize(pxSocket, NULL, 500, 0);
+//     TEST_ASSERT_EQUAL_PTR( &NewNetworkBuffer, pReturn );
+//     TEST_ASSERT_EQUAL(1222, pReturn->xDataLength);
+// }
+
+/* test for prvTCPBufferResize function */
+void test_prvTCPBufferResize_Without_Buffer(void)
+{
+    NetworkBufferDescriptor_t * pReturn;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    NetworkBufferDescriptor_t NewNetworkBuffer;
+    NewNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(&NewNetworkBuffer);
+
+    pReturn = prvTCPBufferResize(pxSocket, NULL, 500, 0);
+    TEST_ASSERT_EQUAL_PTR( &NewNetworkBuffer, pReturn );
+    TEST_ASSERT_EQUAL(554, pReturn->xDataLength);
+}
+
+/* test for prvTCPBufferResize function */
+void test_prvTCPBufferResize_Without_Buffer_Null_New_Buffer(void)
+{
+    NetworkBufferDescriptor_t * pReturn;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    NetworkBufferDescriptor_t NewNetworkBuffer;
+    NewNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(NULL);
+
+    pReturn = prvTCPBufferResize(pxSocket, NULL, 500, 0);
+    TEST_ASSERT_EQUAL_PTR( NULL, pReturn );
+}
+
+/* test for prvTCPBufferResize function */
+void test_prvTCPBufferResize_With_Buffer_LT_Needed_GT_Last_Packet(void)
+{
+    NetworkBufferDescriptor_t * pReturn;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    NetworkBufferDescriptor_t NewNetworkBuffer;
+    NewNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(&NewNetworkBuffer);
+    vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
+
+    pReturn = prvTCPBufferResize(pxSocket, pxNetworkBuffer, 500, 0);
+    TEST_ASSERT_EQUAL_PTR( &NewNetworkBuffer, pReturn );
+    TEST_ASSERT_EQUAL(554, pReturn->xDataLength);
+}
+
+/* test for prvTCPBufferResize function */
+void test_prvTCPBufferResize_With_Buffer_LT_Needed_LT_Last_Packet(void)
+{
+    NetworkBufferDescriptor_t * pReturn;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    NetworkBufferDescriptor_t NewNetworkBuffer;
+    NewNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(&NewNetworkBuffer);
+    vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
+
+    pReturn = prvTCPBufferResize(pxSocket, pxNetworkBuffer, 10, 0);
+    TEST_ASSERT_EQUAL_PTR( &NewNetworkBuffer, pReturn );
+    TEST_ASSERT_EQUAL(70, pReturn->xDataLength);
+}
+
+/* test for prvTCPBufferResize function */
+void test_prvTCPBufferResize_With_Buffer_GT_Needed(void)
+{
+    NetworkBufferDescriptor_t * pReturn;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    NetworkBufferDescriptor_t NewNetworkBuffer;
+    NewNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+
+    pxNetworkBuffer->xDataLength = 200;
+
+    pReturn = prvTCPBufferResize(pxSocket, pxNetworkBuffer, 10, 0);
+    TEST_ASSERT_EQUAL_PTR( pxNetworkBuffer, pReturn );
+    TEST_ASSERT_EQUAL(64, pReturn->xDataLength);
+}
+
+
 /* test for prvTCPPrepareSend function */
-void test_prvTCPPrepareSend(void)
+void test_prvTCPPrepareSend_State_Syn_Zero_Data(void)
 {
     int32_t BytesSent = 0;
     pxSocket = &xSocket;
@@ -310,6 +433,89 @@ void test_prvTCPPrepareSend(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
 
     uint8_t ReturnEthernetBuffer[ ipconfigNETWORK_MTU ];
-    
 
+    pxSocket->u.xTCP.txStream = (StreamBuffer_t *)0x12345678;
+    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.usMSS = 1000;
+
+    ulTCPWindowTxGet_ExpectAnyArgsAndReturn(0); 
+
+
+    BytesSent = prvTCPPrepareSend(pxSocket, &pxNetworkBuffer, 0);
+    TEST_ASSERT_EQUAL( 0, BytesSent );
+}
+
+/* test for prvTCPPrepareSend function */
+void test_prvTCPPrepareSend_State_Syn_Zero_Data_Win_Change(void)
+{
+    int32_t BytesSent = 0;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    uint8_t ReturnEthernetBuffer[ ipconfigNETWORK_MTU ];
+
+    pxSocket->u.xTCP.txStream = (StreamBuffer_t *)0x12345678;
+    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.usMSS = 1000;
+    pxSocket->u.xTCP.bits.bWinChange = pdTRUE;
+
+    ulTCPWindowTxGet_ExpectAnyArgsAndReturn(0); 
+
+    BytesSent = prvTCPPrepareSend(pxSocket, &pxNetworkBuffer, 0);
+    TEST_ASSERT_EQUAL( 40, BytesSent );
+}
+
+/* test for prvTCPPrepareSend function */
+void test_prvTCPPrepareSend_State_Syn_Zero_Data_Keep_Alive(void)
+{
+    int32_t BytesSent = 0;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    uint8_t ReturnEthernetBuffer[ ipconfigNETWORK_MTU ];
+
+    pxSocket->u.xTCP.txStream = (StreamBuffer_t *)0x12345678;
+    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.usMSS = 1000;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
+    pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
+
+    ulTCPWindowTxGet_ExpectAnyArgsAndReturn(0); 
+
+    BytesSent = prvTCPPrepareSend(pxSocket, &pxNetworkBuffer, 0);
+    TEST_ASSERT_EQUAL( 40, BytesSent );
+}
+
+/* test for prvTCPPrepareSend function */
+void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_Not_Close_Not_ShutDown_KLcount1(void)
+{
+    int32_t BytesSent = 0;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    uint8_t ReturnEthernetBuffer[ ipconfigNETWORK_MTU ];
+    NetworkBufferDescriptor_t NewNetworkBuffer;
+    NewNetworkBuffer.pucEthernetBuffer = ReturnEthernetBuffer;
+
+    pxSocket->u.xTCP.txStream = (StreamBuffer_t *)0x12345678;
+    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.usMSS = 1000;
+    pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
+    pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
+    pxSocket->u.xTCP.bits.bCloseRequested = pdFALSE;
+    pxSocket->u.xTCP.bits.bUserShutdown = pdFALSE;
+    pxSocket->u.xTCP.ucKeepRepCount = 1;
+
+
+    ulTCPWindowTxGet_ExpectAnyArgsAndReturn(500); 
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(pxNetworkBuffer);
+    vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
+    uxStreamBufferDistance_ExpectAnyArgsAndReturn(500);
+    uxStreamBufferGet_ExpectAnyArgsAndReturn(20);
+
+    BytesSent = prvTCPPrepareSend(pxSocket, &pxNetworkBuffer, 0);
+    TEST_ASSERT_EQUAL( 40, BytesSent );
 }
