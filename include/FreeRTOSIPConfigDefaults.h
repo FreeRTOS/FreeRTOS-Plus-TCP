@@ -533,7 +533,7 @@
 #ifndef ipconfigEMAC_TASK_STACK_SIZE_WORDS
     /* Check if the earlier name of the macro is still defined. */
     #ifdef configEMAC_TASK_STACK_SIZE
-        #warning This macro is now called ipconfigEMAC_TASK_STACK_SIZE_WORDS
+        #pragma message ("This macro is now called ipconfigEMAC_TASK_STACK_SIZE_WORDS")
         #define ipconfigEMAC_TASK_STACK_SIZE_WORDS    ( configEMAC_TASK_STACK_SIZE )
     #else
         #define ipconfigEMAC_TASK_STACK_SIZE_WORDS    ( 2U * configMINIMAL_STACK_SIZE )
