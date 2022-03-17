@@ -489,7 +489,7 @@
         uint32_t ulIPAddress = 0UL;
         BaseType_t xExpected;
         const DNSMessage_t * pxDNSMessageHeader =
-            ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( DNSMessage_t,
+            ( ( const DNSMessage_t * )
                                                 pxReceiveBuffer->pucPayloadBuffer );
 
         /* See if the identifiers match. */

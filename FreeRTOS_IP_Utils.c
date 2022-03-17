@@ -443,7 +443,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
 
         /* Parse the packet length. */
-        pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pucEthernetBuffer );
+        pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
         /* Per https://tools.ietf.org/html/rfc791, the four-bit Internet Header
          * Length field contains the length of the internet header in 32-bit words. */

@@ -612,7 +612,7 @@
         NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
 
         /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
-        const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t,
+        const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                                                           &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
         FreeRTOS_Socket_t * pxSocket;
         uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
@@ -636,7 +636,7 @@
         else
         {
             /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
-            pxIPHeader = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPHeader_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+            pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
             ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
             ulRemoteIP = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
 
@@ -864,7 +864,7 @@
         const ListItem_t * pxIterator;
         FreeRTOS_Socket_t * pxFound;
         BaseType_t xResult = pdFALSE;
-        const ListItem_t * pxEndTCP = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( xBoundTCPSocketsList.xListEnd ) );
+        const ListItem_t * pxEndTCP = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
         /* Here xBoundTCPSocketsList can be accessed safely IP-task is the only one
          * who has access. */

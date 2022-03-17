@@ -488,7 +488,7 @@
 
             /* Find a segment with a given sequence number in the list of received
              * segments. */
-            pxEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( pxWindow->xRxSegments.xListEnd ) );
+            pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
 
             for( pxIterator = listGET_NEXT( pxEnd );
                  pxIterator != pxEnd;
@@ -930,7 +930,7 @@
             TCPSegment_t * pxBest = NULL;
             const ListItem_t * pxIterator;
             uint32_t ulNextSequenceNumber = ulSequenceNumber + ulLength;
-            const ListItem_t * pxEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( pxWindow->xRxSegments.xListEnd ) );
+            const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
             TCPSegment_t * pxSegment;
 
             /* A segment has been received with sequence number 'ulSequenceNumber',
@@ -1937,7 +1937,7 @@
             uint32_t ulSequenceNumber = ulFirst;
             uint32_t ulDataLength;
             const ListItem_t * pxIterator;
-            const ListItem_t * pxEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( pxWindow->xTxSegments.xListEnd ) );
+            const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xTxSegments.xListEnd ) );
             BaseType_t xDoUnlink;
             TCPSegment_t * pxSegment;
 
@@ -2089,7 +2089,7 @@
             /* A higher Tx block has been acknowledged.  Now iterate through the
              * xWaitQueue to find a possible condition for a FAST retransmission. */
 
-            pxEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( pxWindow->xWaitQueue.xListEnd ) );
+            pxEnd = ( ( const ListItem_t * ) &( pxWindow->xWaitQueue.xListEnd ) );
 
             pxIterator = listGET_NEXT( pxEnd );
 
