@@ -541,7 +541,7 @@
                 {
                     if( FreeRTOS_ntohs( pxAddress->sin_port ) == ipLLMNR_PORT )
                     {
-                        ( ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, xDNSBuf.pucPayloadBuffer ) )->usFlags = 0;
+                        ( ( ( DNSMessage_t * ) xDNSBuf.pucPayloadBuffer ) )->usFlags = 0;
                     }
                 }
             #endif
@@ -735,7 +735,7 @@
 
         /* Write in a unique identifier. Cast the Payload Buffer to DNSMessage_t
          * to easily access fields of the DNS Message. */
-        pxDNSMessageHeader = ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucUDPPayloadBuffer );
+        pxDNSMessageHeader = ( ( DNSMessage_t * ) pucUDPPayloadBuffer );
         pxDNSMessageHeader->usIdentifier = ( uint16_t ) uxIdentifier;
 
         /* Create the resource record at the end of the header.  First
@@ -776,7 +776,7 @@
 
         /* Finish off the record. Cast the record onto DNSTail_t structure to easily
          * access the fields of the DNS Message. */
-        pxTail = ipCAST_PTR_TO_TYPE_PTR( DNSTail_t, &( pucUDPPayloadBuffer[ uxStart + 1U ] ) );
+        pxTail = ( ( DNSTail_t * ) &( pucUDPPayloadBuffer[ uxStart + 1U ] ) );
 
         #if defined( _lint ) || defined( __COVERITY__ )
             ( void ) pxTail;
@@ -845,7 +845,7 @@
  */
         uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
         {
-            UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t,
+            UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * )
                                                                 pxNetworkBuffer->pucEthernetBuffer );
             uint8_t * pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( *pxUDPPacket ) ] );
 

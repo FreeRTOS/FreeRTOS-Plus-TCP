@@ -99,7 +99,7 @@
                                 const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
-        const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+        const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                               &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset ] ) );
         const TCPHeader_t * pxTCPHeader;
         const uint8_t * pucPtr;
@@ -426,7 +426,7 @@
                                uint8_t ** ppucRecvData )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-        const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+        const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                               &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
         const TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
         int32_t lLength, lTCPHeaderLength, lReceiveLength, lUrgentLength;

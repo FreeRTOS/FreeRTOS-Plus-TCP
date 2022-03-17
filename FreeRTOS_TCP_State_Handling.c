@@ -237,7 +237,7 @@
                                        const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-        ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+        ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
         TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
         uint8_t ucIntermediateResult = 0, ucTCPFlags = pxTCPHeader->ucTCPFlags;
@@ -348,7 +348,7 @@
                                             UBaseType_t uxOptionsLength )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-        ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+        ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
         TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
         TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -398,7 +398,7 @@
             if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCONNECT_SYN )
             {
                 /* Map the Last packet onto the ProtocolHeader_t struct for easy access to the fields. */
-                ProtocolHeaders_t * pxLastHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+                ProtocolHeaders_t * pxLastHeaders = ( ( ProtocolHeaders_t * )
                                                                             &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
 
                 /* Clear the SYN flag in lastPacket. */
@@ -488,7 +488,7 @@
                                             UBaseType_t uxOptionsLength )
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-        ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+        ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                         &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
         TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
         TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -684,7 +684,7 @@
                                   NetworkBufferDescriptor_t ** ppxNetworkBuffer )
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-        ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+        ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                         &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
         TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
         BaseType_t xSendLength = 0;

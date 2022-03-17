@@ -107,7 +107,7 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
         {
             /* Map the buffer onto a ICMP-Packet struct to easily access the
              * fields of ICMP packet. */
-            ICMPPacket_t * pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+            ICMPPacket_t * pxICMPPacket = ( ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
             switch( pxICMPPacket->xICMPHeader.ucTypeOfMessage )
             {

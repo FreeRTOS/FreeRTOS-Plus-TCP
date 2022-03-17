@@ -397,7 +397,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
         * size depends on the type of socket: UDP sockets need less space. A
         * define 'pvPortMallocSocket' will used to allocate the necessary space.
         * By default it points to the FreeRTOS function 'pvPortMalloc()'. */
-        pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, pvPortMallocSocket( uxSocketSize ) );
+        pxSocket = ( ( FreeRTOS_Socket_t * ) pvPortMallocSocket( uxSocketSize ) );
 
         if( pxSocket == NULL )
         {
@@ -504,7 +504,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     {
         SocketSelect_t * pxSocketSet;
 
-        pxSocketSet = ipCAST_PTR_TO_TYPE_PTR( SocketSelect_t, pvPortMalloc( sizeof( *pxSocketSet ) ) );
+        pxSocketSet = ( ( SocketSelect_t * ) pvPortMalloc( sizeof( *pxSocketSet ) ) );
 
         if( pxSocketSet != NULL )
         {
@@ -924,7 +924,7 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
             taskENTER_CRITICAL();
             {
                 /* The owner of the list item is the network buffer. */
-                pxNetworkBuffer = ipCAST_PTR_TO_TYPE_PTR( NetworkBufferDescriptor_t, listGET_OWNER_OF_HEAD_ENTRY( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) );
+                pxNetworkBuffer = ( ( NetworkBufferDescriptor_t * ) listGET_OWNER_OF_HEAD_ENTRY( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) );
 
                 if( ( ( UBaseType_t ) xFlags & ( UBaseType_t ) FREERTOS_MSG_PEEK ) == 0U )
                 {
@@ -1572,7 +1572,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
     {
         while( listCURRENT_LIST_LENGTH( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) > 0U )
         {
-            pxNetworkBuffer = ipCAST_PTR_TO_TYPE_PTR( NetworkBufferDescriptor_t, listGET_OWNER_OF_HEAD_ENTRY( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) );
+            pxNetworkBuffer = ( ( NetworkBufferDescriptor_t * ) listGET_OWNER_OF_HEAD_ENTRY( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) );
             ( void ) uxListRemove( &( pxNetworkBuffer->xBufferListItem ) );
             vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
         }
@@ -1628,7 +1628,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
             while( pxIterator != pxEnd )
             {
-                pxOtherSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                pxOtherSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                 /* This needs to be done here, before calling vSocketClose. */
                 pxIterator = listGET_NEXT( pxIterator );
@@ -1648,7 +1648,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                  pxIterator != pxEnd;
                  pxIterator = listGET_NEXT( pxIterator ) )
             {
-                pxOtherSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                pxOtherSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                 if( ( pxOtherSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN ) &&
                     ( pxOtherSocket->usLocalPort == usLocalPort ) &&
@@ -2234,7 +2234,7 @@ FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
     if( pxListItem != NULL )
     {
         /* The owner of the list item is the socket itself. */
-        pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, listGET_LIST_ITEM_OWNER( pxListItem ) );
+        pxSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxListItem ) );
         configASSERT( pxSocket != NULL );
     }
 
@@ -3900,7 +3900,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         while( pxIterator != pxEnd )
         {
-            pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+            pxSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
             pxIterator = ( ListItem_t * ) listGET_NEXT( pxIterator );
 
             /* Sockets with 'timeout == 0' do not need any regular attention. */
@@ -3993,7 +3993,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
              pxIterator != pxEnd;
              pxIterator = listGET_NEXT( pxIterator ) )
         {
-            FreeRTOS_Socket_t * pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+            FreeRTOS_Socket_t * pxSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
             if( pxSocket->usLocalPort == ( uint16_t ) uxLocalPort )
             {
@@ -4127,7 +4127,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         uxSize = ( sizeof( *pxBuffer ) + uxLength ) - sizeof( pxBuffer->ucArray );
 
-        pxBuffer = ipCAST_PTR_TO_TYPE_PTR( StreamBuffer_t, pvPortMallocLarge( uxSize ) );
+        pxBuffer = ( ( StreamBuffer_t * ) pvPortMallocLarge( uxSize ) );
 
         if( pxBuffer == NULL )
         {
@@ -4820,7 +4820,7 @@ BaseType_t xSocketValid( Socket_t xSocket )
                  pxIterator != pxEnd;
                  pxIterator = listGET_NEXT( pxIterator ) )
             {
-                FreeRTOS_Socket_t * pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                FreeRTOS_Socket_t * pxSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                 if( pxSocket->pxSocketSet != pxSocketSet )
                 {

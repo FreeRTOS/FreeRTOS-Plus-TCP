@@ -400,7 +400,7 @@
         /* Insert a new list item into pxList, it does not sort the list,
          * but it puts the item just before xListEnd, so it will be the last item
          * returned by listGET_HEAD_ENTRY() */
-        pxNewListItem->pxNext = ipCAST_PTR_TO_TYPE_PTR( ListItem_t, pxWhere );
+        pxNewListItem->pxNext = ( ( ListItem_t * ) pxWhere );
 
         pxNewListItem->pxPrevious = pxWhere->pxPrevious;
         pxWhere->pxPrevious->pxNext = pxNewListItem;
@@ -428,7 +428,7 @@
             /* Allocate space for 'xTCPSegments' and store them in 'xSegmentList'. */
 
             vListInitialise( &xSegmentList );
-            xTCPSegments = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, pvPortMallocLarge( ( size_t ) ipconfigTCP_WIN_SEG_COUNT * sizeof( xTCPSegments[ 0 ] ) ) );
+            xTCPSegments = ( ( TCPSegment_t * ) pvPortMallocLarge( ( size_t ) ipconfigTCP_WIN_SEG_COUNT * sizeof( xTCPSegments[ 0 ] ) ) );
 
             if( xTCPSegments == NULL )
             {
@@ -494,7 +494,7 @@
                  pxIterator != pxEnd;
                  pxIterator = listGET_NEXT( pxIterator ) )
             {
-                pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                pxSegment = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                 if( pxSegment->ulSequenceNumber == ulSequenceNumber )
                 {
@@ -542,7 +542,7 @@
                 /* Pop the item at the head of the list.  Semaphore protection is
                 * not required as only the IP task will call these functions.  */
                 pxItem = ( ListItem_t * ) listGET_HEAD_ENTRY( &xSegmentList );
-                pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxItem ) );
+                pxSegment = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxItem ) );
 
                 configASSERT( pxItem != NULL );
                 configASSERT( pxSegment != NULL );
@@ -650,7 +650,7 @@
             else
             {
                 pxItem = ( ListItem_t * ) listGET_HEAD_ENTRY( pxList );
-                pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxItem ) );
+                pxSegment = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxItem ) );
 
                 ( void ) uxListRemove( pxItem );
             }
@@ -682,7 +682,7 @@
             else
             {
                 pxItem = ( ListItem_t * ) listGET_HEAD_ENTRY( pxList );
-                pxReturn = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxItem ) );
+                pxReturn = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxItem ) );
             }
 
             return pxReturn;
@@ -756,7 +756,7 @@
                 {
                     while( listCURRENT_LIST_LENGTH( pxSegments ) > 0U )
                     {
-                        pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_OWNER_OF_HEAD_ENTRY( pxSegments ) );
+                        pxSegment = ( ( TCPSegment_t * ) listGET_OWNER_OF_HEAD_ENTRY( pxSegments ) );
                         vTCPWindowFree( pxSegment );
                     }
                 }
@@ -946,7 +946,7 @@
                  pxIterator != pxEnd;
                  pxIterator = listGET_NEXT( pxIterator ) )
             {
-                pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                pxSegment = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                 /* And see if there is a segment for which:
                  * 'ulSequenceNumber' <= 'pxSegment->ulSequenceNumber' < 'ulNextSequenceNumber'
@@ -1967,7 +1967,7 @@
             while( ( pxIterator != pxEnd ) && ( xSequenceLessThan( ulSequenceNumber, ulLast ) != 0 ) )
             {
                 xDoUnlink = pdFALSE;
-                pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                pxSegment = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                 /* Move to the next item because the current item might get
                  * removed. */
@@ -2096,7 +2096,7 @@
             while( pxIterator != pxEnd )
             {
                 /* Get the owner, which is a TCP segment. */
-                pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                pxSegment = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                 /* Hop to the next item before the current gets unlinked. */
                 pxIterator = listGET_NEXT( pxIterator );

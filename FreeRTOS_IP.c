@@ -346,7 +346,7 @@ static void prvProcessIPEventsAndTimers( void )
              * usLocalPort. vSocketBind() will actually bind the socket and the
              * API will unblock as soon as the eSOCKET_BOUND event is
              * triggered. */
-            pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, xReceivedEvent.pvData );
+            pxSocket = ( ( FreeRTOS_Socket_t * ) xReceivedEvent.pvData );
             xAddress.sin_addr = 0U; /* For the moment. */
             xAddress.sin_port = FreeRTOS_ntohs( pxSocket->usLocalPort );
             pxSocket->usLocalPort = 0U;
@@ -365,7 +365,7 @@ static void prvProcessIPEventsAndTimers( void )
              * IP-task to actually close a socket. This is handled in
              * vSocketClose().  As the socket gets closed, there is no way to
              * report back to the API, so the API won't wait for the result */
-            ( void ) vSocketClose( ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, xReceivedEvent.pvData ) );
+            ( void ) vSocketClose( ( ( FreeRTOS_Socket_t * ) xReceivedEvent.pvData ) );
             break;
 
         case eStackTxEvent:
@@ -401,13 +401,13 @@ static void prvProcessIPEventsAndTimers( void )
             #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
                 #if ( ipconfigSELECT_USES_NOTIFY != 0 )
                     {
-                        SocketSelectMessage_t * pxMessage = ipCAST_PTR_TO_TYPE_PTR( SocketSelectMessage_t, xReceivedEvent.pvData );
+                        SocketSelectMessage_t * pxMessage = ( ( SocketSelectMessage_t * ) xReceivedEvent.pvData );
                         vSocketSelect( pxMessage->pxSocketSet );
                         ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
                     }
                 #else
                     {
-                        vSocketSelect( ipCAST_PTR_TO_TYPE_PTR( SocketSelect_t, xReceivedEvent.pvData ) );
+                        vSocketSelect( ( ( SocketSelect_t * ) xReceivedEvent.pvData ) );
                     }
                 #endif /* ( ipconfigSELECT_USES_NOTIFY != 0 ) */
             #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
@@ -437,7 +437,7 @@ static void prvProcessIPEventsAndTimers( void )
              * check if the listening socket (communicated in pvData) actually
              * received a new connection. */
             #if ( ipconfigUSE_TCP == 1 )
-                pxSocket = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, xReceivedEvent.pvData );
+                pxSocket = ( ( FreeRTOS_Socket_t * ) xReceivedEvent.pvData );
 
                 if( xTCPCheckNewClient( pxSocket ) != pdFALSE )
                 {
@@ -983,10 +983,10 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 
             if( pxNetworkBuffer != NULL )
             {
-                pxEthernetHeader = ipCAST_PTR_TO_TYPE_PTR( EthernetHeader_t, pxNetworkBuffer->pucEthernetBuffer );
+                pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
                 pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
 
-                pxICMPHeader = ipCAST_PTR_TO_TYPE_PTR( ICMPHeader_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipIP_PAYLOAD_OFFSET ] ) );
+                pxICMPHeader = ( ( ICMPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipIP_PAYLOAD_OFFSET ] ) );
                 usSequenceNumber++;
 
                 /* Fill in the basic header information. */
@@ -1226,7 +1226,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     /* The Ethernet frame contains an ARP packet. */
                     if( pxNetworkBuffer->xDataLength >= sizeof( ARPPacket_t ) )
                     {
-                        eReturned = eARPProcessPacket( ipCAST_PTR_TO_TYPE_PTR( ARPPacket_t, pxNetworkBuffer->pucEthernetBuffer ) );
+                        eReturned = eARPProcessPacket( ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer ) );
                     }
                     else
                     {
@@ -1240,7 +1240,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     /* The Ethernet frame contains an IP packet. */
                     if( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) )
                     {
-                        eReturned = prvProcessIPPacket( ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer );
+                        eReturned = prvProcessIPPacket( ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer );
                     }
                     else
                     {
@@ -1498,7 +1498,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                             ProtocolPacket_t * pxProtPack;
 
                             /* pxProtPack will point to the offset were the protocols begin. */
-                            pxProtPack = ipCAST_PTR_TO_TYPE_PTR( ProtocolPacket_t, &( pxNetworkBuffer->pucEthernetBuffer[ uxHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
+                            pxProtPack = ( ( ProtocolPacket_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
                             if( pxProtPack->xUDPPacket.xUDPHeader.usChecksum == ( uint16_t ) 0U )
                             {
@@ -1941,7 +1941,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
     #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
     {
         /* Map the Buffer to Ethernet Header struct for easy access to fields. */
-        pxEthernetHeader = ipCAST_PTR_TO_TYPE_PTR( EthernetHeader_t, pxNetworkBuffer->pucEthernetBuffer );
+        pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
         /*
          * Use helper variables for memcpy() to remain

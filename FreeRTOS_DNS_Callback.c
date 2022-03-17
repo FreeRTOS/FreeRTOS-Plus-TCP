@@ -78,7 +78,7 @@
             {
                 if( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier )
                 {
-                    DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t,
+                    DNSCallback_t * pxCallback = ( ( DNSCallback_t * )
                                                                          listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                     pxCallback->pCallbackFunction( pcName, pxCallback->pvSearchID,
@@ -118,7 +118,7 @@
                           TickType_t uxIdentifier )
     {
         size_t lLength = strlen( pcHostName );
-        DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, pvPortMalloc( sizeof( *pxCallback ) + lLength ) );
+        DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) pvPortMalloc( sizeof( *pxCallback ) + lLength ) );
 
         /* Translate from ms to number of clock ticks. */
         uxTimeout /= portTICK_PERIOD_MS;
@@ -171,7 +171,7 @@
             for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
                  pxIterator != xEnd; )
             {
-                DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
                 /* Move to the next item because we might remove this item */
                 pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator );
 
