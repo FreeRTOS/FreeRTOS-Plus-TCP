@@ -56,18 +56,6 @@
     #define winSRTT_DECREMENT_CURRENT    7                                     /**< Current decrement for the smoothed RTT. */
     #define winSRTT_CAP_mS               ( ipconfigTCP_SRTT_MINIMUM_VALUE_MS ) /**< Cap in milliseconds. */
 
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type TCPSegment_t.
- *
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPSegment_t )
-    {
-        return ( TCPSegment_t * ) pvArgument;
-    }
-
-
     #if ( ipconfigUSE_TCP_WIN == 1 )
 
 /** @brief Create a new Rx window. */

@@ -43,16 +43,6 @@
     static List_t xCallbackList;
 
 /**
- * @brief Utility function to cast pointer of a type to pointer of type DNSCallback_t.
- *
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSCallback_t )
-    {
-        return ( DNSCallback_t * ) pvArgument;
-    }
-
-/**
  * @brief A DNS reply was received, see if there is any matching entry and
  *        call the handler.
  *

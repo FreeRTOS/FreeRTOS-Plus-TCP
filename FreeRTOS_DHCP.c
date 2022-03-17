@@ -52,23 +52,6 @@
     #include "NetworkInterface.h"
     #include "NetworkBufferManagement.h"
 
-/**
- * @brief Function to cast pointers to DHCPMessage_IPv4_t.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DHCPMessage_IPv4_t )
-    {
-        return ( DHCPMessage_IPv4_t * ) pvArgument;
-    }
-
-/**
- * @brief Function to cast const pointers to DHCPMessage_IPv4_t.
- */
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( DHCPMessage_IPv4_t )
-    {
-        return ( const DHCPMessage_IPv4_t * ) pvArgument;
-    }
-
-
 /** @brief The UDP socket used for all incoming and outgoing DHCP traffic. */
     _static Socket_t xDHCPSocket;
 

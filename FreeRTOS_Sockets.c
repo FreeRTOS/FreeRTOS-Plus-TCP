@@ -99,25 +99,6 @@
  */
 #define socketINVALID_HEX_CHAR    0xffU
 
-#if ( ipconfigUSE_CALLBACKS != 0 )
-    static ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( F_TCP_UDP_Handler_t )
-    {
-        return ( const F_TCP_UDP_Handler_t * ) pvArgument;
-    }
-    /*-----------------------------------------------------------*/
-#endif /* if ( ipconfigUSE_CALLBACKS != 0 ) */
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type StreamBuffer_t.
- *
- * @return The casted pointer.
- */
-static ipDECL_CAST_PTR_FUNC_FOR_TYPE( StreamBuffer_t )
-{
-    return ( StreamBuffer_t * ) pvArgument;
-}
-/*-----------------------------------------------------------*/
-
 /*
  * Allocate the next port number from the private allocation range.
  * TCP and UDP each have their own series of port numbers
