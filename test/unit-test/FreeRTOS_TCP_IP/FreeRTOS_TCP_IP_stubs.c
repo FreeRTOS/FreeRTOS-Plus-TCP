@@ -38,9 +38,3 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-void vPortEnterCritical( void )
-{
-}
-void vPortExitCritical( void )
-{
-}

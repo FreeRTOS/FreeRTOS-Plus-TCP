@@ -109,7 +109,7 @@ void test_ProcessICMPPacket_EchoRequest( void )
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
     pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    pxICMPHeader = ipCAST_PTR_TO_TYPE_PTR( ICMPHeader_t, &( pxICMPPacket->xICMPHeader ) );
+    pxICMPHeader = ( ( ICMPHeader_t * ) &( pxICMPPacket->xICMPHeader ) );
     pxIPHeader = &( pxICMPPacket->xIPHeader );
 
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REQUEST;
@@ -247,5 +247,5 @@ void test_CastingFunctions( void )
 {
     void * pvTemp;
 
-    const ICMPHeader_t * pxICMPHeader = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ICMPHeader_t, pvTemp );
+    const ICMPHeader_t * pxICMPHeader = ( ( const ICMPHeader_t * ) pvTemp );
 }

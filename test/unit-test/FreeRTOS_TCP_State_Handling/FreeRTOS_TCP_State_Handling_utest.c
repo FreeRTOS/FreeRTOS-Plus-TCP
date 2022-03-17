@@ -214,7 +214,7 @@ void test_prvTCPHandleFin_Recv_No_FIN_Not_Sent_FINACK_Not_Sent(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -242,7 +242,7 @@ void test_prvTCPHandleFin_Recv_FIN_FIN_Sent_FINACK_Sent_Recv_No_FIN(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -271,7 +271,7 @@ void test_prvTCPHandleFin_Recv_FIN_FIN_Sent_FINACK_Sent_Recv_FIN_Not_Last(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -303,7 +303,7 @@ void test_prvTCPHandleFin_Recv_FIN_FIN_Sent_FINACK_Sent_Recv_FIN_Last(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -335,7 +335,7 @@ void test_prvHandleSynReceived_Exp_SYN_State_ConnectSyn(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -363,7 +363,7 @@ void test_prvHandleSynReceived_Not_Exp_SYN_State_ConnectSyn(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -391,7 +391,7 @@ void test_prvHandleSynReceived_Not_Exp_SYN_State_Synreceived(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -419,7 +419,7 @@ void test_prvHandleSynReceived_Exp_ACK_State_Synreceived_Zero_Data(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -447,7 +447,7 @@ void test_prvHandleSynReceived_Exp_ACK_State_Synreceived_Non_Zero_Data_WinScalin
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -483,7 +483,7 @@ void test_prvHandleEstablished_ACK_Happy(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -518,7 +518,7 @@ void test_prvHandleEstablished_ACK_Null_TX_Recv_Zero(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -551,7 +551,7 @@ void test_prvHandleEstablished_ACK_Win_Zero_Recv_Zero_Has_Option(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -584,7 +584,7 @@ void test_prvHandleEstablished_ACK_Buffer_Zero_Prep_False(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -619,7 +619,7 @@ void test_prvHandleEstablished_ACK_Happy_Select_Write_No_Handler(void)
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -664,7 +664,7 @@ void test_prvHandleEstablished_FIN_NotSent_RX_Complete(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer_Fin;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -703,7 +703,7 @@ void test_prvHandleEstablished_FIN_NotSent_RX_Not_Complete(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer_Fin;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -740,7 +740,7 @@ void test_prvHandleEstablished_FIN_NotSent_TX_Win_Not_Complete(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer_Fin;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -777,7 +777,7 @@ void test_prvHandleEstablished_FIN_NotSent_Data_Left(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer_Fin;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -814,7 +814,7 @@ void test_prvHandleEstablished_FIN_Sent(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer_Fin;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -859,7 +859,7 @@ void test_prvTCPHandleState_Closed_malloc_failure(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -893,7 +893,7 @@ void test_prvTCPHandleState_Closed(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -929,7 +929,7 @@ void test_prvTCPHandleState_TCP_Listen(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -965,7 +965,7 @@ void test_prvTCPHandleState_SYN_First(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -1006,7 +1006,7 @@ void test_prvTCPHandleState_Connect_Syn(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -1044,7 +1044,7 @@ void test_prvTCPHandleState_Syn_Received(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -1083,7 +1083,7 @@ void test_prvTCPHandleState_Syn_Received_Flag_Not_Syn(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -1120,7 +1120,7 @@ void test_prvTCPHandleState_Established_Data_Ack(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -1159,7 +1159,7 @@ void test_prvTCPHandleState_Established_First_Fin_From_Peer(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -1208,7 +1208,7 @@ void test_prvTCPHandleState_Last_Ack(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -1249,7 +1249,7 @@ void test_prvTCPHandleState_Fin_Wait_1_Fin_From_Peer(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -1293,7 +1293,7 @@ void test_prvTCPHandleState_Close_Wait(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -1331,7 +1331,7 @@ void test_prvTCPHandleState_Closing_Keep_Alive(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -1369,7 +1369,7 @@ void test_prvTCPHandleState_Time_Wait(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -1406,7 +1406,7 @@ void test_prvTCPHandleState_State_Unknown(void)
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
     /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -1442,7 +1442,7 @@ void test_prvHandleListen_Not_For_Me(void)
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
-    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0700a8c0;
 
     pxSocket = prvHandleListen(pxSocket, pxNetworkBuffer);
@@ -1459,7 +1459,7 @@ void test_prvHandleListen_Reuse_Socket(void)
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
-    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdTRUE;
@@ -1484,7 +1484,7 @@ void test_prvHandleListen_New_Socket_Exceed_Limit(void)
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
-    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
@@ -1509,7 +1509,7 @@ void test_prvHandleListen_New_Socket_Good(void)
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
-    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
@@ -1539,7 +1539,7 @@ void test_prvHandleListen_New_Socket_NULL_Socket(void)
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
-    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
@@ -1565,7 +1565,7 @@ void test_prvHandleListen_New_Socket_Invalid_Socket(void)
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
-    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
@@ -1591,7 +1591,7 @@ void test_prvHandleListen_New_Socket_Socket_Copy_Failure(void)
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     
-    const TCPPacket_t * pxTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     xDefaultPartUDPPacketHeader.ulWords[20/sizeof(uint32_t)] = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;

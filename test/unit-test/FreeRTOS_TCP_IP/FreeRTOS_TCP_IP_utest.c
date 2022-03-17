@@ -25,22 +25,43 @@
 
 
 /* Include Unity header */
-#include <unity.h>
+#include "unity.h"
 
 /* Include standard libraries */
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include "FreeRTOS.h"
-#include "task.h"
-#include "list.h"
 
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Private.h"
+/*#include "mock_task.h" */
+#include "mock_TCP_IP_list_macros.h"
 
-void vPortEnterCritical( void )
+/* This must come after list.h is included (in this case, indirectly
+ * by mock_list.h). */
+#include "mock_queue.h"
+#include "mock_event_groups.h"
+
+#include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IP_Utils.h"
+#include "mock_NetworkBufferManagement.h"
+#include "mock_NetworkInterface.h"
+#include "mock_FreeRTOS_Sockets.h"
+#include "mock_FreeRTOS_Stream_Buffer.h"
+#include "mock_FreeRTOS_TCP_WIN.h"
+#include "mock_FreeRTOS_UDP_IP.h"
+#include "mock_FreeRTOS_TCP_Transmission.h"
+
+#include "catch_assert.h"
+
+#include "FreeRTOSIPConfig.h"
+
+#include "FreeRTOS_TCP_IP_stubs.c"
+#include "FreeRTOS_TCP_IP.h"
+
+void test_vSocketCloseNextTime( void )
 {
-}
-void vPortExitCritical( void )
-{
+    FreeRTOS_Socket_t xSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    vSocketCloseNextTime( &xSocket );
 }

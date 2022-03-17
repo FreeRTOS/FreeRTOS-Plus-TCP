@@ -132,7 +132,7 @@ void test_prvCheckOptions_No_Option( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -153,7 +153,7 @@ void test_prvCheckOptions_Invalid_Data_Length( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -175,7 +175,7 @@ void test_prvCheckOptions_Invalid_Option_Length( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -197,7 +197,7 @@ void test_prvCheckOptions_MSS_WSF( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -224,7 +224,7 @@ void test_prvCheckOptions_MSS_WSF_Bad_Option( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -251,7 +251,7 @@ void test_prvCheckOptions_MSS_WSF_Without_END( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -278,7 +278,7 @@ void test_prvCheckOptions_MSS_WSF_SYN_on( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -305,7 +305,7 @@ void test_prvSingleStepTCPHeaderOptions_SACK( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -339,7 +339,7 @@ void test_prvSingleStepTCPHeaderOptions_TS( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -371,7 +371,7 @@ void test_prvSingleStepTCPHeaderOptions_END_NOOP( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -412,7 +412,7 @@ void test_prvSingleStepTCPHeaderOptions_MSS_Invalid_Length( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -459,7 +459,7 @@ void test_prvSingleStepTCPHeaderOptions_Zero_Length_MSS( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -488,7 +488,7 @@ void test_prvSingleStepTCPHeaderOptions_Same_MSS( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -521,7 +521,7 @@ void test_prvSingleStepTCPHeaderOptions_Invalid_Length_WS( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -888,7 +888,7 @@ void test_prvStoreRxData_None_Zero_Skipcount( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
 
-    ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     uint8_t * pData;

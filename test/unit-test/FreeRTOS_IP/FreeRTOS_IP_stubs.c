@@ -63,11 +63,6 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
     }
 };
 
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
-{
-    return ( ICMPHeader_t * ) pvArgument;
-}
-
 void vPortEnterCritical( void )
 {
 }
