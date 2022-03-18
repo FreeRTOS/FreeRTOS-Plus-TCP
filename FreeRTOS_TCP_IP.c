@@ -145,15 +145,6 @@
                                          NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 
-/*
- * prvTCPStatusAgeCheck() will see if the socket has been in a non-connected
- * state for too long.  If so, the socket will be closed, and -1 will be
- * returned.
- */
-    #if ( ipconfigTCP_HANG_PROTECTION == 1 )
-        BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket );
-    #endif
-
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
 /*

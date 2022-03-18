@@ -38,3 +38,9 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+BaseType_t xTCPWindowLoggingLevel= 0;
+
+/* Defined in FreeRTOS_Sockets.c */
+#if ( ipconfigUSE_TCP == 1 )
+    List_t xBoundTCPSocketsList;
+#endif

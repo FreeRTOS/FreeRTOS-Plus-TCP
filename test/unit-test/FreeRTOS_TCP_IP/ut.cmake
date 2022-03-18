@@ -23,6 +23,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Transmission.h"
             "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/TCP_IP_list_macros.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
         )
 

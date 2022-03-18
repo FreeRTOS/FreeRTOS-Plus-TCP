@@ -90,27 +90,6 @@
     #endif /* ipconfigUSE_LLMNR == 1 */
 
 /*-----------------------------------------------------------*/
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSMessage_t.
- * @return The casted pointer.
- */
-
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSMessage_t )
-    {
-        return ( DNSMessage_t * ) pvArgument;
-    }
-
-
-/**
- * @brief Utility function to cast a const pointer of a type to a const pointer of type DNSMessage_t.
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( DNSMessage_t )
-    {
-        return ( const DNSMessage_t * ) pvArgument;
-    }
-
 /* A DNS query consists of a header, as described in 'struct xDNSMessage'
  * It is followed by 1 or more queries, each one consisting of a name and a tail,
  * with two fields: type and class
@@ -123,68 +102,10 @@
     }
     #include "pack_struct_end.h"
     typedef struct xDNSTail DNSTail_t;
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSTail_t.
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSTail_t )
-    {
-        return ( DNSTail_t * ) pvArgument;
-    }
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSAnswerRecord_t.
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSAnswerRecord_t )
-    {
-        return ( DNSAnswerRecord_t * ) pvArgument;
-    }
-
-
-    #if ( ipconfigUSE_LLMNR == 1 )
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type LLMNRAnswer_t.
- * @return The casted pointer.
- */
-        static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( LLMNRAnswer_t )
-        {
-            return ( LLMNRAnswer_t * ) pvArgument;
-        }
-
-
-    #endif /* ipconfigUSE_LLMNR == 1 */
-
-    #if ( ipconfigUSE_NBNS == 1 )
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type NBNSAnswer_t.
- * @return The casted pointer.
- */
-        static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NBNSAnswer_t )
-        {
-            return ( NBNSAnswer_t * ) pvArgument;
-        }
-
-    #endif /* ipconfigUSE_NBNS == 1 */
-
 /*-----------------------------------------------------------*/
 
 
     #if ( ipconfigDNS_USE_CALLBACKS == 1 )
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSCallback_t.
- * @return The casted pointer.
- */
-        static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSCallback_t )
-        {
-            return ( DNSCallback_t * ) pvArgument;
-        }
-
-
 /**
  * @brief Define FreeRTOS_gethostbyname() as a normal blocking call.
  * @param[in] pcHostName: The hostname whose IP address is being searched for.

@@ -7,12 +7,6 @@
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_TCP_WIN.h"
 
-/* Provide a casting function. */
-ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t )
-{
-    return ( ListItem_t * ) pvArgument;
-}
-
 /* Rx/Tx list items to be used in the proof. */
 TCPSegment_t xRxSegmentListItem;
 TCPSegment_t xTxSegmentListItem;
