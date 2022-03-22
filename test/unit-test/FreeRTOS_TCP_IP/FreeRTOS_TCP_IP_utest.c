@@ -67,3 +67,99 @@ void test_vSocketCloseNextTime( void )
 
     vSocketCloseNextTime( &xSocket );
 }
+
+void test_xTCPSocketCheck_AllInputsZero1( void )
+{
+    BaseType_t xReturn, xToReturn = 0xAABBCCDD;
+    FreeRTOS_Socket_t xSocket;
+    TickType_t xDelayReturn = 0;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xTCPWindowTxHasData_ExpectAnyArgsAndReturn( pdTRUE );
+    xTCPWindowTxHasData_ReturnThruPtr_pulDelay( &xDelayReturn );
+
+    prvTCPStatusAgeCheck_ExpectAnyArgsAndReturn( xToReturn );
+
+    xReturn = xTCPSocketCheck( &xSocket );
+
+    TEST_ASSERT_EQUAL( xToReturn, xReturn );
+}
+
+void test_xTCPSocketCheck_StateEstablished( void )
+{
+    BaseType_t xReturn, xToReturn = 0xAABBCCDD;
+    FreeRTOS_Socket_t xSocket;
+    TickType_t xDelayReturn = 0;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+
+    prvTCPSendPacket_ExpectAndReturn( &xSocket, 0 );
+
+    xTCPWindowTxHasData_ExpectAnyArgsAndReturn( pdTRUE );
+    xTCPWindowTxHasData_ReturnThruPtr_pulDelay( &xDelayReturn );
+
+    prvTCPStatusAgeCheck_ExpectAnyArgsAndReturn( xToReturn );
+
+    xReturn = xTCPSocketCheck( &xSocket );
+
+    TEST_ASSERT_EQUAL( xToReturn, xReturn );
+}
+
+void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull( void )
+{
+    BaseType_t xReturn, xToReturn = 0xAABBCCDD;
+    FreeRTOS_Socket_t xSocket;
+    TickType_t xDelayReturn = 0;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.txStream = ( void * ) &xSocket;
+
+    prvTCPAddTxData_Expect( &xSocket );
+
+    prvTCPSendPacket_ExpectAndReturn( &xSocket, 0 );
+
+    xTCPWindowTxHasData_ExpectAnyArgsAndReturn( pdTRUE );
+    xTCPWindowTxHasData_ReturnThruPtr_pulDelay( &xDelayReturn );
+
+    prvTCPStatusAgeCheck_ExpectAnyArgsAndReturn( xToReturn );
+
+    xReturn = xTCPSocketCheck( &xSocket );
+
+    TEST_ASSERT_EQUAL( xToReturn, xReturn );
+}
+
+void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1( void )
+{
+    BaseType_t xReturn, xToReturn = 0xAABBCCDD;
+    FreeRTOS_Socket_t xSocket;
+    TickType_t xDelayReturn = 0;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.txStream = ( void * ) &xSocket;
+    xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
+
+    prvTCPAddTxData_Expect( &xSocket );
+
+    prvTCPReturnPacket_Expect( &xSocket, xSocket.u.xTCP.pxAckMessage, ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER, ipconfigZERO_COPY_TX_DRIVER );
+
+    vReleaseNetworkBufferAndDescriptor_Expect( xSocket.u.xTCP.pxAckMessage );
+
+    prvTCPSendPacket_ExpectAndReturn( &xSocket, 0 );
+
+    xTCPWindowTxHasData_ExpectAnyArgsAndReturn( pdTRUE );
+    xTCPWindowTxHasData_ReturnThruPtr_pulDelay( &xDelayReturn );
+
+    prvTCPStatusAgeCheck_ExpectAnyArgsAndReturn( xToReturn );
+
+    xReturn = xTCPSocketCheck( &xSocket );
+
+    TEST_ASSERT_EQUAL( xToReturn, xReturn );
+    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxAckMessage );
+}
