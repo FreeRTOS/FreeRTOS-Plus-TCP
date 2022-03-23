@@ -10,6 +10,7 @@ set(mock_list "")
 
 # list the files to mock here
 list(APPEND mock_list
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Utils.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Stream_Buffer.h"

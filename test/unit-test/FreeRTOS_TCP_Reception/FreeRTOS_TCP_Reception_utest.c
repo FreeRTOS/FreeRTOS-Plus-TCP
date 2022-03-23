@@ -32,13 +32,6 @@
 #include <string.h>
 #include <stdint.h>
 
-/*#include "mock_task.h" */
-#include "mock_list.h"
-
-/* This must come after list.h is included (in this case, indirectly
- * by mock_list.h). */
-#include "mock_queue.h"
-#include "mock_event_groups.h"
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
@@ -48,7 +41,6 @@
 #include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
-#include "mock_FreeRTOS_UDP_IP.h"
 #include "mock_FreeRTOS_TCP_Transmission.h"
 
 #include "FreeRTOS_TCP_IP.h"
@@ -303,11 +295,9 @@ void test_prvSingleStepTCPHeaderOptions_SACK( void )
     /* Setup TCP option for tests */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-<<<<<<< HEAD
-    
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
-=======
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
+                                                                   &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
@@ -337,15 +327,10 @@ void test_prvSingleStepTCPHeaderOptions_TS( void )
     /* Setup TCP option for tests */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-<<<<<<< HEAD
-    
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
-=======
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
->>>>>>> e8bfacccf91d4dcba661e753fdba1b87d2944f5f
-                                                                   &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                                                   &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
@@ -414,14 +399,9 @@ void test_prvSingleStepTCPHeaderOptions_MSS_Invalid_Length( void )
     /* Setup TCP option for tests */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-<<<<<<< HEAD
-    
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
-=======
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
->>>>>>> e8bfacccf91d4dcba661e753fdba1b87d2944f5f
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -466,14 +446,9 @@ void test_prvSingleStepTCPHeaderOptions_Zero_Length_MSS( void )
     /* Setup TCP option for tests */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-<<<<<<< HEAD
-    
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
-=======
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
->>>>>>> e8bfacccf91d4dcba661e753fdba1b87d2944f5f
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
@@ -500,19 +475,12 @@ void test_prvSingleStepTCPHeaderOptions_Same_MSS( void )
     /* Setup TCP option for tests */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-<<<<<<< HEAD
-    
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
-=======
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
-
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
->>>>>>> e8bfacccf91d4dcba661e753fdba1b87d2944f5f
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
-    pxNetworkBuffer->xDataLength = 0x50;
     const uint8_t ucTCPOptions[] = { 0x02, 0x04, 0x0, 0x0 };
     memcpy( ( void * ) pxTCPHeader->ucOptdata, ( void * ) &ucTCPOptions, sizeof( ucTCPOptions ) );
 
@@ -538,14 +506,9 @@ void test_prvSingleStepTCPHeaderOptions_Invalid_Length_WS( void )
     /* Setup TCP option for tests */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-<<<<<<< HEAD
-    
-    ProtocolHeaders_t * pxProtocolHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
-=======
     size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
->>>>>>> e8bfacccf91d4dcba661e753fdba1b87d2944f5f
                                                                    &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
