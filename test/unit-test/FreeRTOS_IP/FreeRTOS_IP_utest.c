@@ -2113,7 +2113,7 @@ void test_prvAllowIPPacket_IncorrectChecksum( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
@@ -2544,7 +2544,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
-    pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
@@ -3031,19 +3031,19 @@ void test_CastingFunctions( void )
 {
     void * pvPtr;
 
-    const IPPacket_t * pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pvPtr );
-    const IPHeader_t * pxIPHeader = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPHeader_t, pvPtr );
-    const TCPPacket_t * pxConstTCPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TCPPacket_t, pvPtr );
-    TCPPacket_t * pxTCPPacket = ipCAST_PTR_TO_TYPE_PTR( TCPPacket_t, pvPtr );
-    ProtocolPacket_t * pxProtPacket = ipCAST_PTR_TO_TYPE_PTR( ProtocolPacket_t, pvPtr );
-    const ProtocolPacket_t * pxConstProtPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolPacket_t, pvPtr );
-    const SocketSelect_t * pxSockSelPtr = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( SocketSelect_t, pvPtr );
-    const SocketSelectMessage_t * pxConstSockSelMsgPtr = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( SocketSelectMessage_t, pvPtr );
-    SocketSelectMessage_t * pxSockSelMsgPtr = ipCAST_PTR_TO_TYPE_PTR( SocketSelectMessage_t, pvPtr );
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ipCAST_PTR_TO_TYPE_PTR( NetworkBufferDescriptor_t, pvPtr );
-    ListItem_t * pxList = ipCAST_PTR_TO_TYPE_PTR( ListItem_t, pvPtr );
-    const ListItem_t * pxConstList = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, pvPtr );
-    const FreeRTOS_Socket_t * pxSocket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( FreeRTOS_Socket_t, pvPtr );
-    const ProtocolHeaders_t * pxConstProtHeader = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t, pvPtr );
-    ProtocolHeaders_t * pxProtHeader = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t, pvPtr );
+    const IPPacket_t * pxIPPacket = ( ( const IPPacket_t * ) pvPtr );
+    const IPHeader_t * pxIPHeader = ( ( const IPHeader_t * ) pvPtr );
+    const TCPPacket_t * pxConstTCPPacket = ( ( const TCPPacket_t * ) pvPtr );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pvPtr );
+    ProtocolPacket_t * pxProtPacket = ( ( ProtocolPacket_t * ) pvPtr );
+    const ProtocolPacket_t * pxConstProtPacket = ( ( const ProtocolPacket_t * ) pvPtr );
+    const SocketSelect_t * pxSockSelPtr = ( ( const SocketSelect_t * ) pvPtr );
+    const SocketSelectMessage_t * pxConstSockSelMsgPtr = ( ( const SocketSelectMessage_t * ) pvPtr );
+    SocketSelectMessage_t * pxSockSelMsgPtr = ( ( SocketSelectMessage_t * ) pvPtr );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ( ( NetworkBufferDescriptor_t * ) pvPtr );
+    ListItem_t * pxList = ( ( ListItem_t * ) pvPtr );
+    const ListItem_t * pxConstList = ( ( const ListItem_t * ) pvPtr );
+    const FreeRTOS_Socket_t * pxSocket = ( ( const FreeRTOS_Socket_t * ) pvPtr );
+    const ProtocolHeaders_t * pxConstProtHeader = ( ( const ProtocolHeaders_t * ) pvPtr );
+    ProtocolHeaders_t * pxProtHeader = ( ( ProtocolHeaders_t * ) pvPtr );
 }

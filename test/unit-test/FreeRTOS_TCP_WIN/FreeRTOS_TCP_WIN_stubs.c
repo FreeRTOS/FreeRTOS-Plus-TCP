@@ -49,26 +49,6 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
 #endif /* ipconfigARP_USE_CLASH_DETECTION */
 
 
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t )
-{
-    return ( ARPPacket_t * ) pvArgument;
-}
-
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t )
-{
-    return ( IPPacket_t * ) pvArgument;
-}
-
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t )
-{
-    return ( ListItem_t * ) pvArgument;
-}
-
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t )
-{
-    return ( const ListItem_t * ) pvArgument;
-}
-
 /** @brief For convenience, a MAC address of all 0xffs is defined const for quick
  * reference. */
 const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };

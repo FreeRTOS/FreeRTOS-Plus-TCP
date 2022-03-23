@@ -67,24 +67,6 @@
     static void prvProcessICMPEchoReply( ICMPPacket_t * const pxICMPPacket );
 #endif /* ipconfigSUPPORT_OUTGOING_PINGS */
 
-/**
- * @brief Cast a given pointer to ICMPHeader_t type pointer.
- */
-ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
-{
-    return ( ICMPHeader_t * ) pvArgument;
-}
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Cast a given constant pointer to ICMPHeader_t type pointer.
- */
-ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
-{
-    return ( const ICMPHeader_t * ) pvArgument;
-}
-/*-----------------------------------------------------------*/
-
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
 /**
@@ -107,7 +89,7 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
         {
             /* Map the buffer onto a ICMP-Packet struct to easily access the
              * fields of ICMP packet. */
-            ICMPPacket_t * pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+            ICMPPacket_t * pxICMPPacket = ( ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
             switch( pxICMPPacket->xICMPHeader.ucTypeOfMessage )
             {
@@ -249,13 +231,4 @@ ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t )
     }
 
 #endif /* if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Cast a given pointer to ICMPPacket_t type pointer.
- */
-ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_t )
-{
-    return ( ICMPPacket_t * ) pvArgument;
-}
 /*-----------------------------------------------------------*/

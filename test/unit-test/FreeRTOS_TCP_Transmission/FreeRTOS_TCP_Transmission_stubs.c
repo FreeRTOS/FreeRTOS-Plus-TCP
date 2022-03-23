@@ -61,40 +61,6 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
         0x00, 0x00, 0x00, 0x00               /* Source IP address. */
     }
 };
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
-{
-    return ( ProtocolHeaders_t * ) pvArgument;
-}
-
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
-{
-    return ( const ProtocolHeaders_t * ) pvArgument;
-}
-
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_t )
-{
-    return ( const IPHeader_t * ) pvArgument;
-}
-
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
-{
-    return ( const TCPPacket_t * ) pvArgument;
-}
-
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPPacket_t )
-{
-    return ( TCPPacket_t * ) pvArgument;
-}
-
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-{
-    return ( const UDPPacket_t * ) pvArgument;
-}
-
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-{
-    return ( UDPPacket_t * ) pvArgument;
-}
 
 void vPortEnterCritical( void )
 {

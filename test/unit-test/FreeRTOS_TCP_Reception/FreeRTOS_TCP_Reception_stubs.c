@@ -39,18 +39,3 @@
 #include "FreeRTOS_IP_Private.h"
 
 
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
-{
-    return ( ProtocolHeaders_t * ) pvArgument;
-}
-
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t )
-{
-    return ( const ProtocolHeaders_t * ) pvArgument;
-}
-
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_t )
-{
-    return ( const IPHeader_t * ) pvArgument;
-}
-

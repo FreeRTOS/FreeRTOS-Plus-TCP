@@ -204,14 +204,14 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 # Include unit-test build configuration
 
 # include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
+# include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )#
 # include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_WIN/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_Tiny_TCP/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_DNS/ut.cmake )
-# include( ${UNIT_TEST_DIR}/DNS_Cache/ut.cmake )
-# include( ${UNIT_TEST_DIR}/DNS_Networking/ut.cmake )
-# include( ${UNIT_TEST_DIR}/DNS_Callback/ut.cmake )
-# include( ${UNIT_TEST_DIR}/DNS_Parser/ut.cmake )
+# include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Cache/ut.cmake )
+# include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Networking/ut.cmake )
+# include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Callback/ut.cmake )
+# include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Parser/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_IP/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils/ut.cmake )
@@ -220,8 +220,9 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Reception/ut.cmake )
+ include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_State_Handling/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
+#include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 # Add a target for running coverage on tests.
@@ -233,6 +234,6 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
 
 add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
-    DEPENDS cmock unity FreeRTOS_TCP_Transmission
+    DEPENDS cmock unity #FreeRTOS_TCP_Transmission
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
