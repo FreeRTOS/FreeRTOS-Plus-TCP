@@ -274,26 +274,30 @@ BaseType_t xNetworkInterfaceInitialise( void )
         case xEMAC_WaitPHY:
             prvGMACWaitLS( xWaitLinkDelay );
 
-            if( xGetPhyLinkStatus() != pdFALSE )
+            if( xGetPhyLinkStatus() == pdFALSE )
             {
+                /* The Link Status is not yet high, Stay in 'xEMAC_WaitPHY'. */
+                break;
+            }
+
+            if( xEMACTaskHandle == NULL )
+            {
+                /* The deferred interrupt handler task is created at the highest
+                 * possible priority to ensure the interrupt handler can return directly
+                 * to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
+                 * notify the task when there is something to process. */
+                xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
+
                 if( xEMACTaskHandle == NULL )
                 {
-                    /* The deferred interrupt handler task is created at the highest
-                     * possible priority to ensure the interrupt handler can return directly
-                     * to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
-                     * notify the task when there is something to process. */
-                    xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
+                    eEMACState = xEMAC_Fatal;
+                    break;
                 }
-
-                /* Only return pdTRUE when the Link Status of the PHY is high, otherwise the
-                 * DHCP process and all other communication will fail. */
-
-                xReturn = pdPASS;
             }
 
             eEMACState = xEMAC_Ready;
 
-            break;
+        /* Fall through. */
 
         case xEMAC_Ready:
             /* The network driver is operational. */
