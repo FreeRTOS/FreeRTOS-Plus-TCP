@@ -49,6 +49,8 @@
 #include "NetworkInterface.h"
 #include "phyHandling.h"
 
+#include "stm32fxx_hal_eth.h"
+
 /* ST includes. */
 #if defined( STM32F7xx )
     #include "stm32f7xx_hal.h"
@@ -63,7 +65,6 @@
     #error What part?
 #endif /* if defined( STM32F7xx ) */
 
-#include "stm32fxx_hal_eth.h"
 
 /* Interrupt events to process.  Currently only the Rx event is processed
  * although code for other events is included to allow for possible future
