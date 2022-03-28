@@ -59,19 +59,52 @@
 #include "FreeRTOS_TCP_IP_stubs.c"
 #include "FreeRTOS_TCP_IP.h"
 
-void test_vSocketCloseNextTime( void )
+FreeRTOS_Socket_t xSocket, * pxSocket;
+NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
 {
-    FreeRTOS_Socket_t xSocket;
+    0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x00, 0x45, 0x00,
+    0x00, 0x34, 0x15, 0xc2, 0x40, 0x00, 0x40, 0x06, 0xa8, 0x8e, 0xc0, 0xa8, 0x00, 0x08, 0xac, 0xd9,
+    0x0e, 0xea, 0xea, 0xfe, 0x01, 0xbb, 0x8b, 0xaf, 0x8a, 0x24, 0xdc, 0x96, 0x95, 0x7a, 0x80, 0x10,
+    0x01, 0xf5, 0x7c, 0x9a, 0x00, 0x00, 0x01, 0x01, 0x08, 0x0a, 0xb8, 0x53, 0x57, 0x27, 0xb2, 0xce,
+    0xc3, 0x17
+};
 
+/* test vSocketCloseNextTime function */
+void test_vSocketCloseNextTime_Null_Socket( void )
+{
+    vSocketCloseNextTime( NULL );
+}
+
+/* test vSocketCloseNextTime function */
+void test_vSocketCloseNextTime_Not_Close_Socket( void )
+{
     memset( &xSocket, 0, sizeof( xSocket ) );
 
     vSocketCloseNextTime( &xSocket );
 }
 
+/* test vSocketCloseNextTime function */
+void test_vSocketCloseNextTime_Not_Close_Same_Socket( void )
+{
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    vSocketCloseNextTime( &xSocket );
+}
+
+
+/* test vSocketCloseNextTime function */
+void test_vSocketCloseNextTime_Close_Previous_Socket( void )
+{
+    FreeRTOS_Socket_t NewSocket;
+    vSocketClose_ExpectAnyArgsAndReturn(NULL);
+    vSocketCloseNextTime(&NewSocket);
+}
+
+/* test xTCPSocketCheck function */
 void test_xTCPSocketCheck_AllInputsZero1( void )
 {
     BaseType_t xReturn, xToReturn = 0xAABBCCDD;
-    FreeRTOS_Socket_t xSocket;
     TickType_t xDelayReturn = 0;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
@@ -86,6 +119,7 @@ void test_xTCPSocketCheck_AllInputsZero1( void )
     TEST_ASSERT_EQUAL( xToReturn, xReturn );
 }
 
+/* test xTCPSocketCheck function */
 void test_xTCPSocketCheck_StateEstablished( void )
 {
     BaseType_t xReturn, xToReturn = 0xAABBCCDD;
@@ -108,6 +142,7 @@ void test_xTCPSocketCheck_StateEstablished( void )
     TEST_ASSERT_EQUAL( xToReturn, xReturn );
 }
 
+/* test xTCPSocketCheck function */
 void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull( void )
 {
     BaseType_t xReturn, xToReturn = 0xAABBCCDD;
@@ -133,6 +168,7 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull( void )
     TEST_ASSERT_EQUAL( xToReturn, xReturn );
 }
 
+/* test xTCPSocketCheck function */
 void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1( void )
 {
     BaseType_t xReturn, xToReturn = 0xAABBCCDD;

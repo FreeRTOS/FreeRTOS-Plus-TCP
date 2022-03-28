@@ -64,39 +64,6 @@
 
 
 /*
- * Returns true if the socket must be checked.  Non-active sockets are waiting
- * for user action, either connect() or close().
- */
-    BaseType_t prvTCPSocketIsActive( uint8_t ucStatus );
-
-/*
- * Either sends a SYN or calls prvTCPSendRepeated (for regular messages).
- */
-    int32_t prvTCPSendPacket( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * Try to send a series of messages.
- */
-    int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
-                                NetworkBufferDescriptor_t ** ppxNetworkBuffer );
-
-/*
- * Return or send a packet to the other party.
- */
-    void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
-                             NetworkBufferDescriptor_t * pxDescriptor,
-                             uint32_t ulLen,
-                             BaseType_t xReleaseAfterSend );
-
-
-/*
- * Parse the TCP option(s) received, if present.
- */
-    BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                const NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-
-/*
  * For anti-hang protection and TCP keep-alive messages.  Called in two places:
  * after receiving a packet and after a state change.  The socket's alive timer
  * may be reset.
@@ -108,41 +75,6 @@
  * Calculate when this socket needs to be checked to do (re-)transmissions.
  */
     static TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * The API FreeRTOS_send() adds data to the TX stream.  Add
- * this data to the windowing system to it can be transmitted.
- */
-    void prvTCPAddTxData( FreeRTOS_Socket_t * pxSocket );
-
-
-/*
- * The heart of all: check incoming packet for valid data and acks and do what
- * is necessary in each state.
- */
-    BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
-                                  NetworkBufferDescriptor_t ** ppxNetworkBuffer );
-
-
-/*
- * A "challenge ACK" is as per https://tools.ietf.org/html/rfc5961#section-3.2,
- * case #3. In summary, an RST was received with a sequence number that is
- * unexpected but still within the window.
- */
-    BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-/*
- * Reply to a peer with the RST flag on, in case a packet can not be handled.
- */
-    BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-
-/*
- * Return either a newly created socket, or the current socket in a connected
- * state (depends on the 'bReuseSocket' flag).
- */
-    FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
-                                         NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
@@ -161,11 +93,11 @@
  *
  * @param[in] pxSocket: The socket to be checked.
  */
+    static FreeRTOS_Socket_t * xPreviousSocket = NULL;
+
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
     {
-        static FreeRTOS_Socket_t * xPreviousSocket = NULL;
-
-        if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )
+        if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) ) 
         {
             ( void ) vSocketClose( xPreviousSocket );
         }

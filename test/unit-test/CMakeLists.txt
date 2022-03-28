@@ -74,6 +74,8 @@ set( TCP_INCLUDES "${MODULE_ROOT_DIR}/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_State_Handling.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_Stream_Buffer.h"
                   "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_WIN.h"
+                  "${MODULE_ROOT_DIR}/include/FreeRTOSIPConfigDefaults.h"
+                  "${MODULE_ROOT_DIR}/include/IPTraceMacroDefaults.h"
                   "${MODULE_ROOT_DIR}/include/NetworkBufferManagement.h"
                   "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/portable.h"
                   "${MODULE_ROOT_DIR}/include/NetworkInterface.h" )
@@ -112,7 +114,7 @@ foreach( file ${TCP_INCLUDES} )
     endif()
 
     # Use this tool to process all conditional declarations.
-    execute_process( COMMAND unifdefall -U${Guard} -D__COVERITY__ -DTEST -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
+    execute_process( COMMAND unifdef -U${Guard} -D__COVERITY__ -DTEST -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
                                                    -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
                                                    -I ${UNIT_TEST_DIR}/ConfigFiles
                                                    -I ${MODULE_ROOT_DIR}/include
@@ -222,18 +224,18 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Reception/ut.cmake )
  include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_State_Handling/ut.cmake )
-#include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
+# include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 # Add a target for running coverage on tests.
 # add_custom_target( coverage
 #     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
-#     DEPENDS cmock unity FreeRTOS_ARP_utest FreeRTOS_DHCP_utest FreeRTOS_UDP_IP_utest FreeRTOS_IP_utest FreeRTOS_ICMP_utest FreeRTOS_IP_Utils_utest FreeRTOS_IP_Timers_utest FreeRTOS_Stream_Buffer_utest FreeRTOS_DNS_utest FreeRTOS_TCP_WIN_utest FreeRTOS_Tiny_TCP_utest FreeRTOS_TCP_Reception_utest FreeRTOS_TCP_State_Handling FreeRTOS_TCP_Transmission
+#     DEPENDS cmock unity FreeRTOS_ARP_utest FreeRTOS_DHCP_utest FreeRTOS_UDP_IP_utest FreeRTOS_IP_utest FreeRTOS_ICMP_utest FreeRTOS_IP_Utils_utest FreeRTOS_IP_Timers_utest FreeRTOS_Stream_Buffer_utest FreeRTOS_DNS_utest FreeRTOS_TCP_WIN_utest FreeRTOS_Tiny_TCP_utest FreeRTOS_TCP_Reception_utest FreeRTOS_TCP_State_Handling FreeRTOS_TCP_Transmission FreeRTOS_TCP_IP
 #     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 # )
 
 add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
-    DEPENDS cmock unity #FreeRTOS_TCP_Transmission
+    DEPENDS cmock unity FreeRTOS_TCP_IP
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
