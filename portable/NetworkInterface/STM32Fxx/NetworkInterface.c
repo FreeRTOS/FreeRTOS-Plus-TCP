@@ -4,8 +4,8 @@
  */
 
 /*
- * FreeRTOS+TCP V2.3.1
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP V2.4.0
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -50,6 +50,8 @@
 #include "phyHandling.h"
 #include "FreeRTOS_Routing.h"
 
+#include "stm32fxx_hal_eth.h"
+
 /* ST includes. */
 #if defined( STM32F7xx )
     #include "stm32f7xx_hal.h"
@@ -57,24 +59,28 @@
     #include "stm32f4xx_hal.h"
 #elif defined( STM32F2xx )
     #include "stm32f2xx_hal.h"
+#elif defined( STM32F1xx )
+    #include "stm32f1xx_hal.h"
 #elif !defined( _lint ) /* Lint does not like an #error */
     #error What part?
 #endif
 
-#include "stm32fxx_hal_eth.h"
-
 /* Interrupt events to process.  Currently only the Rx event is processed
  * although code for other events is included to allow for possible future
  * expansion. */
-#define EMAC_IF_RX_EVENT     1UL
-#define EMAC_IF_TX_EVENT     2UL
-#define EMAC_IF_ERR_EVENT    4UL
-#define EMAC_IF_ALL_EVENT    ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
+#define EMAC_IF_RX_EVENT        1UL
+#define EMAC_IF_TX_EVENT        2UL
+#define EMAC_IF_ERR_EVENT       4UL
+#define EMAC_IF_ALL_EVENT       ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
 
-#define ETH_DMA_ALL_INTS                                                                  \
-    ( ETH_DMA_IT_TST | ETH_DMA_IT_PMT | ETH_DMA_IT_MMC | ETH_DMA_IT_NIS | ETH_DMA_IT_ER | \
-      ETH_DMA_IT_FBE | ETH_DMA_IT_RWT | ETH_DMA_IT_RPS | ETH_DMA_IT_RBU | ETH_DMA_IT_R |  \
-      ETH_DMA_IT_TU | ETH_DMA_IT_RO | ETH_DMA_IT_TJT | ETH_DMA_IT_TPS | ETH_DMA_IT_T )
+/* Calculate the maximum packet size that the DMA can receive. */
+#define EMAC_DMA_BUFFER_SIZE    ( ( uint32_t ) ( ETH_MAX_PACKET_SIZE - ipBUFFER_PADDING ) )
+
+#define ETH_DMA_ALL_INTS                                                  \
+    ( ETH_DMA_IT_TST | ETH_DMA_IT_PMT | ETH_DMA_IT_MMC | ETH_DMA_IT_NIS | \
+      ETH_DMA_IT_AIS | ETH_DMA_IT_ER | ETH_DMA_IT_FBE | ETH_DMA_IT_RWT |  \
+      ETH_DMA_IT_RPS | ETH_DMA_IT_RBU | ETH_DMA_IT_R | ETH_DMA_IT_TU |    \
+      ETH_DMA_IT_RO | ETH_DMA_IT_TJT | ETH_DMA_IT_TPS | ETH_DMA_IT_T )
 
 #ifndef niEMAC_HANDLER_TASK_PRIORITY
     #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
@@ -190,9 +196,9 @@ static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
     /*-----------------------------------------------------------*/
 #else /* if defined( STM32F7xx ) */
     #warning Sure there is no caching?
-    #define     cache_clean_invalidate()                        do {} while( 0 )
-    #define     cache_clean_invalidate_by_addr( addr, size )    do {} while( 0 )
-    #define     cache_invalidate_by_addr( addr, size )          do {} while( 0 )
+    #define     cache_clean_invalidate()                        do {} while( ipFALSE_BOOL )
+    #define     cache_clean_invalidate_by_addr( addr, size )    do {} while( ipFALSE_BOOL )
+    #define     cache_invalidate_by_addr( addr, size )          do {} while( ipFALSE_BOOL )
 #endif /* if defined( STM32F7xx ) */
 
 /*-----------------------------------------------------------*/
@@ -212,7 +218,7 @@ static void prvEthernetUpdateConfig( BaseType_t xForce );
  */
 static BaseType_t prvNetworkInterfaceInput( void );
 
-#if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_IPv6 != 0 )
 
 /*
  * For LLMNR, an extra MAC-address must be configured to
@@ -271,6 +277,10 @@ static volatile uint32_t ulISREvents;
 
 #if ( ipconfigUSE_LLMNR == 1 )
     static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
+#endif
+
+#if ( ipconfigUSE_MDNS == 1 )
+    static const uint8_t xMDNS_MACAddressIPv4[] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb };
 #endif
 
 static EthernetPhy_t xPhyObject;
@@ -534,9 +544,22 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
 
             cache_clean_invalidate();
 
-            #if ( ipconfigUSE_LLMNR != 0 )
+            #if ( ipconfigUSE_MDNS == 1 )
                 {
-                    /* Program the LLMNR address at index 1. */
+                    /* Program the MDNS address. */
+                    prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAddressIPv4 );
+                    xMACEntry += 8;
+                }
+            #endif
+            #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+                {
+                    prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
+                    xMACEntry += 8;
+                }
+            #endif /* ipconfigUSE_LLMNR */
+            #if ( ipconfigUSE_LLMNR == 1 )
+                {
+                    /* Program the LLMNR address. */
                     prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xLLMNR_MACAddress );
                     xMACEntry += 8;
                 }
@@ -706,14 +729,14 @@ static void prvDMARxDescListInit()
     for( xIndex = 0; xIndex < ETH_RXBUFNB; xIndex++, pxDMADescriptor++ )
     {
         /* Set Buffer1 size and Second Address Chained bit */
-        pxDMADescriptor->ControlBufferSize = ETH_DMARXDESC_RCH | ( uint32_t ) ETH_RX_BUF_SIZE;
+        pxDMADescriptor->ControlBufferSize = ETH_DMARXDESC_RCH | EMAC_DMA_BUFFER_SIZE;
 
         #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
             {
                 /* Set Buffer1 address pointer */
                 NetworkBufferDescriptor_t * pxBuffer;
 
-                pxBuffer = pxGetNetworkBufferWithDescriptor( ETH_RX_BUF_SIZE, 100ul );
+                pxBuffer = pxGetNetworkBufferWithDescriptor( EMAC_DMA_BUFFER_SIZE, 100ul );
 
                 /* If the assert below fails, make sure that there are at least 'ETH_RXBUFNB'
                  * Network Buffers available during start-up ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ) */
@@ -760,17 +783,21 @@ static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
 
     ( void ) heth;
 
-    /* Calculate the selected MAC address high register. */
-    ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
+    /* Check the multicast bit. */
+    if( ( Addr[ 0 ] & 1U ) == 0U )
+    {
+        /* Calculate the selected MAC address high register. */
+        ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
 
-    /* Load the selected MAC address high register. */
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
+        /* Load the selected MAC address high register. */
+        ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
 
-    /* Calculate the selected MAC address low register. */
-    ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
+        /* Calculate the selected MAC address low register. */
+        ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
 
-    /* Load the selected MAC address low register */
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
+        /* Load the selected MAC address low register */
+        ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
+    }
 }
 /*-----------------------------------------------------------*/
 
@@ -855,9 +882,9 @@ static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
                 /* Get bytes in current buffer. */
                 ulTransmitSize = pxDescriptor->xDataLength;
 
-                if( ulTransmitSize > ETH_TX_BUF_SIZE )
+                if( ulTransmitSize > EMAC_DMA_BUFFER_SIZE )
                 {
-                    ulTransmitSize = ETH_TX_BUF_SIZE;
+                    ulTransmitSize = EMAC_DMA_BUFFER_SIZE;
                 }
 
                 #if ( ipconfigZERO_COPY_TX_DRIVER == 0 )
@@ -963,7 +990,7 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
 
             /* Ensure that the incoming packet is not fragmented (only outgoing packets
              * can be fragmented) as these are the only handled IP frames currently. */
-            if( ( pxIPHeader->usFragmentOffset & FreeRTOS_ntohs( ipFRAGMENT_OFFSET_BIT_MASK ) ) != 0U )
+            if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U )
             {
                 return pdFALSE;
             }
@@ -987,6 +1014,10 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
                     #if ipconfigUSE_LLMNR == 1
                         && ( usDestinationPort != ipLLMNR_PORT ) &&
                         ( usSourcePort != ipLLMNR_PORT )
+                    #endif
+                    #if ipconfigUSE_MDNS == 1
+                        && ( usDestinationPort != ipMDNS_PORT ) &&
+                        ( usSourcePort != ipMDNS_PORT )
                     #endif
                     #if ipconfigUSE_NBNS == 1
                         && ( usDestinationPort != ipNBNS_PORT ) &&
@@ -1170,7 +1201,7 @@ static BaseType_t prvNetworkInterfaceInput( void )
         #endif /* ipconfigZERO_COPY_RX_DRIVER */
 
         /* Set Buffer1 size and Second Address Chained bit */
-        pxDMARxDescriptor->ControlBufferSize = ETH_DMARXDESC_RCH | ( uint32_t ) ETH_RX_BUF_SIZE;
+        pxDMARxDescriptor->ControlBufferSize = ETH_DMARXDESC_RCH | EMAC_DMA_BUFFER_SIZE;
         pxDMARxDescriptor->Status = ETH_DMARXDESC_OWN;
 
         /* Ensure completion of memory access */
@@ -1329,6 +1360,11 @@ static void prvEthernetUpdateConfig( BaseType_t xForce )
 
         /* ETHERNET MAC Re-Configuration */
         HAL_ETH_ConfigMAC( &xETH, ( ETH_MACInitTypeDef * ) NULL );
+
+        /* Optionally, pass all mutlicast */
+        #if 0
+            xETH.Instance->MACFFR |= ETH_MACFFR_PAM;
+        #endif
 
         /* Restart MAC interface */
         HAL_ETH_Start( &xETH );
