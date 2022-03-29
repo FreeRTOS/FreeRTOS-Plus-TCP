@@ -257,17 +257,17 @@
             /* Get hclk frequency value (e.g. 168,000,000) */
             hclk = HAL_RCC_GetHCLKFreq();
             #if !defined( STM32F2xx )
-            /* Set CR bits depending on hclk value */
-            if( ( hclk >= 20000000uL ) && ( hclk < 35000000uL ) )
-            {
-                /* CSR Clock Range between 20-35 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div16;
-            }
-            else if( ( hclk >= 35000000uL ) && ( hclk < 60000000uL ) )
-            {
-                /* CSR Clock Range between 35-60 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div26;
-            }
+                /* Set CR bits depending on hclk value */
+                if( ( hclk >= 20000000uL ) && ( hclk < 35000000uL ) )
+                {
+                    /* CSR Clock Range between 20-35 MHz */
+                    tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div16;
+                }
+                else if( ( hclk >= 35000000uL ) && ( hclk < 60000000uL ) )
+                {
+                    /* CSR Clock Range between 35-60 MHz */
+                    tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div26;
+                }
                 else
                 {
                     #if ( stm_is_F1 != 0 )
@@ -279,20 +279,20 @@
                     #else
                         {
                             if( ( hclk >= 60000000uL ) && ( hclk < 100000000uL ) )
-            {
-                /* CSR Clock Range between 60-100 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div42;
-            }
-            else if( ( hclk >= 100000000uL ) && ( hclk < 150000000uL ) )
-            {
-                /* CSR Clock Range between 100-150 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div62;
-            }
-            else /* ( ( hclk >= 150000000uL ) && ( hclk <= 183000000uL ) ) */
-            {
-                /* CSR Clock Range between 150-183 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div102;
-            }
+                            {
+                                /* CSR Clock Range between 60-100 MHz */
+                                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div42;
+                            }
+                            else if( ( hclk >= 100000000uL ) && ( hclk < 150000000uL ) )
+                            {
+                                /* CSR Clock Range between 100-150 MHz */
+                                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div62;
+                            }
+                            else /* ( ( hclk >= 150000000uL ) && ( hclk <= 183000000uL ) ) */
+                            {
+                                /* CSR Clock Range between 150-183 MHz */
+                                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div102;
+                            }
                         }
                     #endif /* if ( stm_is_F1 != 0 ) */
                 }
