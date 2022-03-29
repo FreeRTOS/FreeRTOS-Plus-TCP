@@ -672,9 +672,9 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
                         break;
                 }
             }
-            else if ( ulPhyID == PHY_ID_KSZ8795 )
+            else if( ulPhyID == PHY_ID_KSZ8795 )
             {
-                /* KSZ8795 has a different mapping for the Port Operation Mode Indication field 
+                /* KSZ8795 has a different mapping for the Port Operation Mode Indication field
                  *   in the phyREG_1F_PHYSPCS than other similar PHYs:
                  *     010 = 10BASE-T half-duplex
                  *     101 = 10BASE-T full-duplex
@@ -684,18 +684,18 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
                 uint32_t ulControlStatus = 0u;
                 uint32_t ulPortOperationMode = 0u;
                 pxPhyObject->fnPhyRead( xPhyAddress, phyREG_1F_PHYSPCS, &ulControlStatus );
-                ulPortOperationMode = (ulControlStatus >> 8u) & 0x07u;
+                ulPortOperationMode = ( ulControlStatus >> 8u ) & 0x07u;
 
                 ulRegValue = 0;
 
                 /* Detect 10baseT operation */
-                if ( (0x02u == ulPortOperationMode) || (0x05u == ulPortOperationMode) )
+                if( ( 0x02u == ulPortOperationMode ) || ( 0x05u == ulPortOperationMode ) )
                 {
                     ulRegValue |= phyPHYSTS_SPEED_STATUS;
                 }
 
                 /* Detect full duplex operation */
-                if ( (0x05u == ulPortOperationMode) || (0x06u == ulPortOperationMode) )
+                if( ( 0x05u == ulPortOperationMode ) || ( 0x06u == ulPortOperationMode ) )
                 {
                     ulRegValue |= phyPHYSTS_DUPLEX_STATUS;
                 }
