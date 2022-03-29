@@ -534,6 +534,9 @@
         /* Function might modify the parameter. */
         NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
 
+        configASSERT( pxNetworkBuffer != NULL );
+        configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
+        
         /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                                                           &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
@@ -547,8 +550,6 @@
         uint32_t ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
         BaseType_t xResult = pdPASS;
 
-        configASSERT( pxNetworkBuffer != NULL );
-        configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
         const IPHeader_t * pxIPHeader;
 
         /* Check for a minimum packet size. */

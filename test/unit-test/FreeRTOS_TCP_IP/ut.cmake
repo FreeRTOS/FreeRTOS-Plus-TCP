@@ -25,6 +25,7 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
         )
 
 set(mock_include_list "")
