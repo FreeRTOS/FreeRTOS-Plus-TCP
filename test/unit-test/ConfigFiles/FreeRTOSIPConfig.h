@@ -330,4 +330,6 @@ extern uint32_t ulRand();
 
 #define portINLINE
 
+#define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
+
 #endif /* FREERTOS_IP_CONFIG_H */

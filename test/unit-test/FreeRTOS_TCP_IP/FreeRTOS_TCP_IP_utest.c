@@ -62,6 +62,9 @@
 
 FreeRTOS_Socket_t xSocket, * pxSocket;
 NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+
+extern BaseType_t xTCPWindowLoggingLevel;
+
 uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
 {
     0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x00, 0x45, 0x00,
@@ -186,19 +189,144 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1( void )
 
     prvTCPReturnPacket_Expect( &xSocket, xSocket.u.xTCP.pxAckMessage, ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER, ipconfigZERO_COPY_TX_DRIVER );
 
+    xTCPWindowTxHasData_ExpectAnyArgsAndReturn( pdTRUE );
+    xTCPWindowTxHasData_ReturnThruPtr_pulDelay( &xDelayReturn );
+
     vReleaseNetworkBufferAndDescriptor_Expect( xSocket.u.xTCP.pxAckMessage );
 
     prvTCPSendPacket_ExpectAndReturn( &xSocket, 0 );
 
-    xTCPWindowTxHasData_ExpectAnyArgsAndReturn( pdTRUE );
-    xTCPWindowTxHasData_ReturnThruPtr_pulDelay( &xDelayReturn );
-
-    prvTCPStatusAgeCheck_ExpectAnyArgsAndReturn( xToReturn );
+    prvTCPStatusAgeCheck_ExpectAndReturn( &xSocket, xToReturn );
 
     xReturn = xTCPSocketCheck( &xSocket );
 
     TEST_ASSERT_EQUAL( xToReturn, xReturn );
     TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxAckMessage );
+    TEST_ASSERT_EQUAL( 1U, xSocket.u.xTCP.usTimeout );
+}
+
+/* @brief Test xTCPSocketCheck function when the stream is non-NULL and the
+ *        time out is non-zero. */
+void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout( void )
+{
+    BaseType_t xReturn, xToReturn = 0;
+    FreeRTOS_Socket_t xSocket;
+    TickType_t xDelayReturn = 0;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.txStream = ( void * ) &xSocket;
+    xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
+    xSocket.u.xTCP.usTimeout = 100;
+
+    prvTCPAddTxData_Expect( &xSocket );
+
+    prvTCPReturnPacket_Expect( &xSocket, xSocket.u.xTCP.pxAckMessage, ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER, ipconfigZERO_COPY_TX_DRIVER );
+
+    vReleaseNetworkBufferAndDescriptor_Expect( xSocket.u.xTCP.pxAckMessage );
+
+    xReturn = xTCPSocketCheck( &xSocket );
+
+    TEST_ASSERT_EQUAL( xToReturn, xReturn );
+    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxAckMessage );
+    TEST_ASSERT_EQUAL( 100U, xSocket.u.xTCP.usTimeout );
+}
+
+/* @brief Test xTCPSocketCheck function when the stream is non-NULL and the
+ *        time out is non-zero. The port number cannot be allowed to issue log
+ *        messages. */
+void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout_NoLogPort( void )
+{
+    BaseType_t xReturn, xToReturn = 0, xBackup;
+    FreeRTOS_Socket_t xSocket;
+    TickType_t xDelayReturn = 0;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.txStream = ( void * ) &xSocket;
+    xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
+    xSocket.u.xTCP.usTimeout = 100;
+    xSocket.usLocalPort = 23U;
+
+    xBackup = xTCPWindowLoggingLevel;
+    xTCPWindowLoggingLevel = 2;
+
+    prvTCPAddTxData_Expect( &xSocket );
+
+    prvTCPReturnPacket_Expect( &xSocket, xSocket.u.xTCP.pxAckMessage, ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER, ipconfigZERO_COPY_TX_DRIVER );
+
+    vReleaseNetworkBufferAndDescriptor_Expect( xSocket.u.xTCP.pxAckMessage );
+
+    xReturn = xTCPSocketCheck( &xSocket );
+
+    TEST_ASSERT_EQUAL( xToReturn, xReturn );
+    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxAckMessage );
+    TEST_ASSERT_EQUAL( 100U, xSocket.u.xTCP.usTimeout );
+
+    xTCPWindowLoggingLevel = xBackup;
+}
+
+/* @brief Test xTCPSocketCheck function when the stream is non-NULL and the
+ *        time out is non-zero. The port number cannot be allowed to issue log
+ *        messages. */
+void test_xTCPSocketCheck_StateCLOSED_TxStreamNonNull1_NonZeroTimeout( void )
+{
+    BaseType_t xReturn, xToReturn = 0;
+    FreeRTOS_Socket_t xSocket;
+    TickType_t xDelayReturn = 0;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eCLOSED;
+    xSocket.u.xTCP.txStream = ( void * ) &xSocket;
+    xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
+    xSocket.u.xTCP.usTimeout = 100;
+    xSocket.usLocalPort = 23U;
+
+    xTCPWindowLoggingLevel = 2;
+
+    vReleaseNetworkBufferAndDescriptor_Expect( xSocket.u.xTCP.pxAckMessage );
+
+    xReturn = xTCPSocketCheck( &xSocket );
+
+    TEST_ASSERT_EQUAL( xToReturn, xReturn );
+    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxAckMessage );
+    TEST_ASSERT_EQUAL( 100U, xSocket.u.xTCP.usTimeout );
+
+    xTCPWindowLoggingLevel = 1;
+}
+
+/* @brief Test xTCPSocketCheck function when the stream is non-NULL and the
+ *        time out is non-zero. Additionally, the user has requested to shutdown
+ *        the socket. */
+void test_xTCPSocketCheck_StateeCONNECT_SYN_TxStreamNonNull_UserShutdown( void )
+{
+    BaseType_t xReturn, xToReturn = 0;
+    FreeRTOS_Socket_t xSocket;
+    TickType_t xDelayReturn = 0;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eCONNECT_SYN;
+    xSocket.u.xTCP.txStream = ( void * ) &xSocket;
+    xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
+    xSocket.u.xTCP.usTimeout = 100;
+    xSocket.u.xTCP.bits.bUserShutdown = pdTRUE_UNSIGNED;
+
+    vReleaseNetworkBufferAndDescriptor_Expect( xSocket.u.xTCP.pxAckMessage );
+
+    prvTCPSendPacket_ExpectAndReturn( &xSocket, 0 );
+
+    prvTCPStatusAgeCheck_ExpectAndReturn( &xSocket, xToReturn );
+
+    xReturn = xTCPSocketCheck( &xSocket );
+
+    TEST_ASSERT_EQUAL( xToReturn, xReturn );
+    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxAckMessage );
+    /* ARP phase. Check every half second. */
+    TEST_ASSERT_EQUAL( 500U, xSocket.u.xTCP.usTimeout );
 }
 
 /* test xProcessReceivedTCPPacket function */
