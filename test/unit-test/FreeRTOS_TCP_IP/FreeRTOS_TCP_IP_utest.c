@@ -321,7 +321,7 @@ void test_xTCPSocketCheck_StateeCONNECT_SYN_TxStreamNonNull_UserShutdown( void )
 
     prvTCPStatusAgeCheck_ExpectAndReturn( &xSocket, xToReturn );
 
-    xReturn = xTCPSocketCheck( &xSocket );
+//     xReturn = xTCPSocketCheck( &xSocket );
 
     TEST_ASSERT_EQUAL( xToReturn, xReturn );
     TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxAckMessage );
@@ -359,7 +359,19 @@ void test_xProcessReceivedTCPPacket_Null_Descriptor(void)
     
     pxNetworkBuffer->xDataLength = 40;
 
-    Return = xProcessReceivedTCPPacket(NULL);
+    catch_assert(xProcessReceivedTCPPacket(NULL));
+}
+
+/* test xProcessReceivedTCPPacket function */
+void test_xProcessReceivedTCPPacket_Null_Buffer(void)
+{
+    BaseType_t Return = pdFALSE;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = NULL;
+    
+    pxNetworkBuffer->xDataLength = 40;
+
+    catch_assert(xProcessReceivedTCPPacket(pxNetworkBuffer));
 }
 
 /* test xProcessReceivedTCPPacket function */
@@ -427,6 +439,47 @@ void test_xProcessReceivedTCPPacket_No_Active_Socket_Send_Reset(void)
 
     pxTCPSocketLookup_ExpectAnyArgsAndReturn(pxSocket);
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn(pdFALSE);
+    prvTCPSendReset_ExpectAnyArgsAndReturn(pdTRUE);
+
+    Return = xProcessReceivedTCPPacket(pxNetworkBuffer);
+    TEST_ASSERT_EQUAL(pdFALSE, Return);
+}
+
+/* test xProcessReceivedTCPPacket function */
+void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_No_Rst(void)
+{
+    BaseType_t Return = pdFALSE;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxSocket = &xSocket;
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )&( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    
+    pxNetworkBuffer->xDataLength = 100;
+    pxSocket->u.xTCP.ucTCPState = eTCP_LISTEN;
+    pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
+
+    pxTCPSocketLookup_ExpectAnyArgsAndReturn(pxSocket);
+    prvTCPSocketIsActive_ExpectAnyArgsAndReturn(pdTRUE);
+    
+    Return = xProcessReceivedTCPPacket(pxNetworkBuffer);
+    TEST_ASSERT_EQUAL(pdFALSE, Return);
+}
+
+/* test xProcessReceivedTCPPacket function */
+void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_Rst(void)
+{
+    BaseType_t Return = pdFALSE;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxSocket = &xSocket;
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )&( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    
+    pxNetworkBuffer->xDataLength = 100;
+    pxSocket->u.xTCP.ucTCPState = eTCP_LISTEN;
+    pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK;
+
+    pxTCPSocketLookup_ExpectAnyArgsAndReturn(pxSocket);
+    prvTCPSocketIsActive_ExpectAnyArgsAndReturn(pdTRUE);
     prvTCPSendReset_ExpectAnyArgsAndReturn(pdTRUE);
 
     Return = xProcessReceivedTCPPacket(pxNetworkBuffer);
