@@ -329,6 +329,27 @@ void test_xTCPSocketCheck_StateeCONNECT_SYN_TxStreamNonNull_UserShutdown( void )
     TEST_ASSERT_EQUAL( 500U, xSocket.u.xTCP.usTimeout );
 }
 
+/* @brief Test prvTCPTouchSocket function. */
+void test_prvTCPTouchSocket( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0xAA, sizeof( xSocket ) );
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    prvTCPTouchSocket( &xSocket );
+
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+}
+
 /* test xProcessReceivedTCPPacket function */
 void test_xProcessReceivedTCPPacket_Null_Descriptor(void)
 {
