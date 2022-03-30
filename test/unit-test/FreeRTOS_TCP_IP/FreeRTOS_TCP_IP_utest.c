@@ -64,6 +64,7 @@ FreeRTOS_Socket_t xSocket, * pxSocket;
 NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
 
 extern BaseType_t xTCPWindowLoggingLevel;
+extern FreeRTOS_Socket_t * xPreviousSocket;
 
 uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
 {
@@ -73,6 +74,14 @@ uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
     0x01, 0xf5, 0x7c, 0x9a, 0x00, 0x00, 0x01, 0x01, 0x08, 0x0a, 0xb8, 0x53, 0x57, 0x27, 0xb2, 0xce,
     0xc3, 0x17
 };
+
+static Socket_t xHandleConnectedSocket;
+static size_t xHandleConnectedLength;
+static void HandleConnected( Socket_t xSocket, size_t xLength )
+{
+    TEST_ASSERT_EQUAL( xHandleConnectedSocket, xSocket );
+    TEST_ASSERT_EQUAL( xHandleConnectedLength, xLength );
+}
 
 /* test vSocketCloseNextTime function */
 void test_vSocketCloseNextTime_Null_Socket( void )
@@ -305,7 +314,6 @@ void test_xTCPSocketCheck_StateeCONNECT_SYN_TxStreamNonNull_UserShutdown( void )
 {
     BaseType_t xReturn, xToReturn = 0;
     FreeRTOS_Socket_t xSocket;
-    TickType_t xDelayReturn = 0;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
@@ -348,6 +356,344 @@ void test_prvTCPTouchSocket( void )
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
     TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
     TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached and the
+ *        current state equal to closed state. */
+void test_vTCPStateChange_ClosedState( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSED;
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached and the
+ *        current state equal to close wait state. */
+void test_vTCPStateChange_ClosedWaitState( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSE_WAIT;
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached and the
+ *        current state equal to close wait state. Additionally, the pass queued
+ *        bit is set and the function is being called from IP task. */
+void test_vTCPStateChange_ClosedWaitState_CallingFromIPTask( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSE_WAIT;
+
+    xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached and the
+ *        current state equal to close wait state. Additionally, the pass queued
+ *        bit is set and the function is not being called from IP task. */
+void test_vTCPStateChange_ClosedWaitState_NotCallingFromIPTask( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSE_WAIT;
+
+    xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+
+    catch_assert( vTCPStateChange( &xSocket,eTCPState ) );    
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached and the
+ *        current state equal to close wait state. Additionally, the pass accept
+ *        bit is set and the function is being called from IP task. */
+void test_vTCPStateChange_ClosedWaitState_CallingFromIPTask1( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSE_WAIT;
+
+    xSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
+
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached and the
+ *        current state equal to close wait state. Additionally, the pass accept
+ *        bit is set and the function is not being called from IP task. */
+void test_vTCPStateChange_ClosedWaitState_NotCallingFromIPTask1( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSE_WAIT;
+
+    xSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
+
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+
+    catch_assert( vTCPStateChange( &xSocket,eTCPState ) );    
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached and the
+ *        current state equal to close wait state. Additionally, the pass accept
+ *        and reuse socket bits are set. */
+void test_vTCPStateChange_ClosedWaitState_ReuseSocket( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSE_WAIT;
+
+    xSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
+    xSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached and the
+ *        current state equal to established state. Additionally, the pass accept
+ *        and reuse socket bits are set. */
+void test_vTCPStateChange_EstablishedState_ReuseSocket( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+    BaseType_t xBackup;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+
+    xSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
+    xSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+
+    xBackup = xTCPWindowLoggingLevel;
+    xTCPWindowLoggingLevel = -1;
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+
+    xTCPWindowLoggingLevel = xBackup;
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is closed and the
+ *        current state is established state. Additionally, the pass accept
+ *        and reuse socket bits are set. */
+void test_vTCPStateChange_EstablishedToClosedState_SocketInactive( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+    BaseType_t xBackup;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSED;
+    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+
+    xSocket.u.xTCP.usTimeout = 100;
+
+    xBackup = xTCPWindowLoggingLevel;
+    xTCPWindowLoggingLevel = 2;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, 0 );
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.usTimeout );
+    TEST_ASSERT_EQUAL( eSOCKET_CLOSED, xSocket.xEventBits );
+
+    xTCPWindowLoggingLevel = xBackup;
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is closed and the
+ *        current state is established state.
+ */
+void test_vTCPStateChange_EstablishedToClosedState_SocketActive( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+    BaseType_t xBackup;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSED;
+    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+
+    xSocket.u.xTCP.usTimeout = 100;
+    xSocket.u.xTCP.pxHandleConnected = HandleConnected;
+
+    xBackup = xTCPWindowLoggingLevel;
+    xTCPWindowLoggingLevel = 2;
+
+    xHandleConnectedSocket = &xSocket;
+    xHandleConnectedLength = 0;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+    TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
+    TEST_ASSERT_EQUAL( eSOCKET_CLOSED, xSocket.xEventBits );
+
+    xTCPWindowLoggingLevel = xBackup;
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is closed and the
+ *        current state is established state. Socket select bit is set to select except. */
+void test_vTCPStateChange_EstablishedToClosedState_SocketActive_SelectExcept( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+    BaseType_t xBackup;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSED;
+    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+
+    xSocket.u.xTCP.usTimeout = 100;
+    xSocket.u.xTCP.pxHandleConnected = HandleConnected;
+    xSocket.xSelectBits = eSELECT_EXCEPT;
+
+    xBackup = xTCPWindowLoggingLevel;
+    xTCPWindowLoggingLevel = 2;
+
+    xHandleConnectedSocket = &xSocket;
+    xHandleConnectedLength = 0;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+    TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
+    TEST_ASSERT_EQUAL( eSOCKET_CLOSED | ( eSELECT_EXCEPT << SOCKET_EVENT_BIT_COUNT ), xSocket.xEventBits );
+
+    xTCPWindowLoggingLevel = xBackup;
 }
 
 /* test xProcessReceivedTCPPacket function */
