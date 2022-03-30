@@ -1193,7 +1193,58 @@ void test_xProcessReceivedTCPPacket_Establish_State_Ack(void)
     TEST_ASSERT_EQUAL(pdTRUE, Return);
 }
 
+static void test_Helper_ListInitialise( List_t * const pxList )
+{
+    /* The list structure contains a list item which is used to mark the
+     * end of the list.  To initialise the list the list end is inserted
+     * as the only list entry. */
+    pxList->pxIndex = ( ListItem_t * ) &( pxList->xListEnd ); /*lint !e826 !e740 !e9087 The mini list structure is used as the list end to save RAM.  This is checked and valid. */
 
+    /* The list end value is the highest possible value in the list to
+     * ensure it remains at the end of the list. */
+    pxList->xListEnd.xItemValue = portMAX_DELAY;
+
+    /* The list end next and previous pointers point to itself so we know
+     * when the list is empty. */
+    pxList->xListEnd.pxNext = ( ListItem_t * ) &( pxList->xListEnd );     /*lint !e826 !e740 !e9087 The mini list structure is used as the list end to save RAM.  This is checked and valid. */
+    pxList->xListEnd.pxPrevious = ( ListItem_t * ) &( pxList->xListEnd ); /*lint !e826 !e740 !e9087 The mini list structure is used as the list end to save RAM.  This is checked and valid. */
+
+    pxList->uxNumberOfItems = ( UBaseType_t ) 0U;
+
+    /* Write known values into the list if
+     * configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES is set to 1. */
+    listSET_LIST_INTEGRITY_CHECK_1_VALUE( pxList );
+    listSET_LIST_INTEGRITY_CHECK_2_VALUE( pxList );
+}
+
+static void test_Helper_ListInsertEnd( List_t * const pxList,
+                     ListItem_t * const pxNewListItem )
+{
+    ListItem_t * const pxIndex = pxList->pxIndex;
+
+    /* Only effective when configASSERT() is also defined, these tests may catch
+     * the list data structures being overwritten in memory.  They will not catch
+     * data errors caused by incorrect configuration or use of FreeRTOS. */
+    listTEST_LIST_INTEGRITY( pxList );
+    listTEST_LIST_ITEM_INTEGRITY( pxNewListItem );
+
+    /* Insert a new list item into pxList, but rather than sort the list,
+     * makes the new list item the last item to be removed by a call to
+     * listGET_OWNER_OF_NEXT_ENTRY(). */
+    pxNewListItem->pxNext = pxIndex;
+    pxNewListItem->pxPrevious = pxIndex->pxPrevious;
+
+    /* Only used during decision coverage testing. */
+    mtCOVERAGE_TEST_DELAY();
+
+    pxIndex->pxPrevious->pxNext = pxNewListItem;
+    pxIndex->pxPrevious = pxNewListItem;
+
+    /* Remember which list the item is in. */
+    pxNewListItem->pxContainer = pxList;
+
+    ( pxList->uxNumberOfItems )++;
+}
 
 /* test xTCPCheckNewClient function */
 void test_xTCPCheckNewClient_Empty_List(void)
@@ -1203,36 +1254,97 @@ void test_xTCPCheckNewClient_Empty_List(void)
     List_t * pSocketList = &xBoundTCPSocketsList;
     MiniListItem_t EndItem;
 
-    pSocketList->xListEnd = EndItem;
-    pSocketList->xListEnd.pxNext = (ListItem_t *) &(pSocketList->xListEnd);
-    pSocketList->xListEnd.pxPrevious = (ListItem_t *) &(pSocketList->xListEnd);
-    pSocketList->uxNumberOfItems = 0;
-    pSocketList->pxIndex = (ListItem_t *) &(pSocketList->xListEnd);
-
+    test_Helper_ListInitialise(pSocketList);
+    
     pxSocket->usLocalPort = 40000;
     Return = xTCPCheckNewClient(pxSocket);
     TEST_ASSERT_EQUAL(pdFALSE, Return);
+    TEST_ASSERT_EQUAL(NULL, pxSocket->u.xTCP.pxPeerSocket);
 }
 
 /* test xTCPCheckNewClient function */
-// void test_xTCPCheckNewClient_Not_Found(void)
-// {
-//     BaseType_t Return = pdFALSE;
-//     pxSocket = &xSocket;
-//     List_t * pSocketList = &xBoundTCPSocketsList;
-//     MiniListItem_t EndItem;
+void test_xTCPCheckNewClient_Not_Found_No_Port(void)
+{
+    BaseType_t Return = pdFALSE;
+    pxSocket = &xSocket;
+    List_t * pSocketList = &xBoundTCPSocketsList;
+    ListItem_t NewEntry;
 
-//     pSocketList->xListEnd = EndItem;
-//     pSocketList->xListEnd.pxNext = (ListItem_t *) &(pSocketList->xListEnd);
-//     pSocketList->xListEnd.pxPrevious = (ListItem_t *) &(pSocketList->xListEnd);
-//     pSocketList->uxNumberOfItems = 0;
-//     pSocketList->pxIndex = (ListItem_t *) &(pSocketList->xListEnd);
+    pxSocket->xBoundSocketListItem.xItemValue = 443;
 
-//     vListInitialiseItem( &( pxSocket->xBoundSocketListItem ) );
-//     pxSocket->xBoundSocketListItem.pxContainer = &( xBoundTCPSocketsList );
-//     vListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
-//     //vListInsertEnd( pSocketList, &( pxSocket->xBoundSocketListItem ) );
-//     pxSocket->usLocalPort = 40000;
-//     Return = xTCPCheckNewClient(pxSocket);
-//     TEST_ASSERT_EQUAL(pdFALSE, Return);
-// }
+    test_Helper_ListInitialise(pSocketList);
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+    
+    pxSocket->usLocalPort = FreeRTOS_ntohs(40000);
+    Return = xTCPCheckNewClient(pxSocket);
+    TEST_ASSERT_EQUAL(pdFALSE, Return);
+    TEST_ASSERT_EQUAL(NULL, pxSocket->u.xTCP.pxPeerSocket);
+}
+
+/* test xTCPCheckNewClient function */
+void test_xTCPCheckNewClient_Not_Found_Not_TCP(void)
+{
+    BaseType_t Return = pdFALSE;
+    pxSocket = &xSocket;
+    List_t * pSocketList = &xBoundTCPSocketsList;
+    ListItem_t NewEntry;
+
+    pxSocket->xBoundSocketListItem.xItemValue = 40000;
+    pxSocket->xBoundSocketListItem.pvOwner = pxSocket;
+    pxSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    pxSocket->u.xTCP.bits.bPassAccept = pdTRUE;
+
+
+    test_Helper_ListInitialise(pSocketList);
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+    
+    pxSocket->usLocalPort = FreeRTOS_ntohs(40000);
+    Return = xTCPCheckNewClient(pxSocket);
+    TEST_ASSERT_EQUAL(pdFALSE, Return);
+    TEST_ASSERT_EQUAL(NULL, pxSocket->u.xTCP.pxPeerSocket);
+}
+
+/* test xTCPCheckNewClient function */
+void test_xTCPCheckNewClient_Not_Found_Not_Aceept(void)
+{
+    BaseType_t Return = pdFALSE;
+    pxSocket = &xSocket;
+    List_t * pSocketList = &xBoundTCPSocketsList;
+    ListItem_t NewEntry;
+
+    pxSocket->xBoundSocketListItem.xItemValue = 40000;
+    pxSocket->xBoundSocketListItem.pvOwner = pxSocket;
+    pxSocket->ucProtocol = FREERTOS_IPPROTO_TCP;
+    pxSocket->u.xTCP.bits.bPassAccept = pdFALSE;
+
+
+    test_Helper_ListInitialise(pSocketList);
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+    
+    pxSocket->usLocalPort = FreeRTOS_ntohs(40000);
+    Return = xTCPCheckNewClient(pxSocket);
+    TEST_ASSERT_EQUAL(pdFALSE, Return);
+    TEST_ASSERT_EQUAL(NULL, pxSocket->u.xTCP.pxPeerSocket);
+}
+
+/* test xTCPCheckNewClient function */
+void test_xTCPCheckNewClient_Found(void)
+{
+    BaseType_t Return = pdFALSE;
+    pxSocket = &xSocket;
+    List_t * pSocketList = &xBoundTCPSocketsList;
+    ListItem_t NewEntry;
+
+    pxSocket->xBoundSocketListItem.xItemValue = 40000;
+    pxSocket->xBoundSocketListItem.pvOwner = pxSocket;
+    pxSocket->ucProtocol = FREERTOS_IPPROTO_TCP;
+    pxSocket->u.xTCP.bits.bPassAccept = pdTRUE;
+
+    test_Helper_ListInitialise(pSocketList);
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+    
+    pxSocket->usLocalPort = FreeRTOS_ntohs(40000);
+    Return = xTCPCheckNewClient(pxSocket);
+    TEST_ASSERT_EQUAL(pdTRUE, Return);
+    TEST_ASSERT_EQUAL_PTR(pxSocket, pxSocket->u.xTCP.pxPeerSocket);
+}
