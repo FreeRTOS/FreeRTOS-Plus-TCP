@@ -703,7 +703,7 @@
                 uint16_t usWindow;
 
                 /* pxSocket is not NULL when xResult != pdFAIL. */
-                configASSERT( pxSocket != NULL );
+                configASSERT( pxSocket != NULL ); /* LCOV_EXCL_LINE ,this branch will not be hit*/
 
                 /* Touch the alive timers because we received a message for this
                  * socket. */
