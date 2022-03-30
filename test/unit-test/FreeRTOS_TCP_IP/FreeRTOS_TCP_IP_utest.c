@@ -696,6 +696,309 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketActive_SelectExcept( vo
     xTCPWindowLoggingLevel = xBackup;
 }
 
+/* @brief Test vTCPStateChange function when the state to be reached is established and the
+ *        current state is closed. Socket select bit is set to select except. */
+void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectExcept( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+    BaseType_t xBackup;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.ucTCPState = eCLOSED;
+
+    xSocket.u.xTCP.usTimeout = 100;
+    xSocket.u.xTCP.pxHandleConnected = HandleConnected;
+    xSocket.xSelectBits = eSELECT_EXCEPT;
+
+    xHandleConnectedSocket = &xSocket;
+    /* Expect the connected field to be set. */
+    xHandleConnectedLength = 1;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+    TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
+    TEST_ASSERT_EQUAL( eSOCKET_CONNECT, xSocket.xEventBits );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is established and the
+ *        current state is closed. Socket select bit is set to select write. */
+void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectWrite( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+    BaseType_t xBackup;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.ucTCPState = eCLOSED;
+
+    xSocket.u.xTCP.usTimeout = 100;
+    xSocket.u.xTCP.pxHandleConnected = HandleConnected;
+    xSocket.xSelectBits = eSELECT_WRITE;
+    
+    xHandleConnectedSocket = &xSocket;
+    /* Expect the connected field to be set. */
+    xHandleConnectedLength = 1;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+    TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
+    TEST_ASSERT_EQUAL( eSOCKET_CONNECT | ( eSELECT_WRITE << SOCKET_EVENT_BIT_COUNT ), xSocket.xEventBits );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is established and the
+ *        current state is closed. Socket select bit is set to select write. Also, this socket
+ *        is an orphan. Since parent socket is NULL and reuse bit is not set, it will hit an
+ *        assertion.*/
+void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+    BaseType_t xBackup;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.ucTCPState = eCLOSED;
+
+    xSocket.u.xTCP.usTimeout = 100;
+    xSocket.xSelectBits = eSELECT_WRITE;
+    /* if bPassQueued is true, this socket is an orphan until it gets connected. */
+    xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+    
+    catch_assert( vTCPStateChange( &xSocket,eTCPState ) );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is established and the
+ *        current state is closed. Socket select bit is set to select write. Also, this socket
+ *        is an orphan. Parent socket is non-NULL and reuse bit is not set. */
+void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet_ParentNonNULL( void )
+{
+    FreeRTOS_Socket_t xSocket, xParentSock;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+    BaseType_t xBackup;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xParentSock, 0, sizeof( xParentSock ) );
+    eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.ucTCPState = eCLOSED;
+
+    xSocket.u.xTCP.usTimeout = 100;
+    xSocket.u.xTCP.pxHandleConnected = HandleConnected;
+    xSocket.xSelectBits = eSELECT_WRITE;
+    /* if bPassQueued is true, this socket is an orphan until it gets connected. */
+    xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+    xSocket.u.xTCP.pxPeerSocket = &xParentSock;
+    
+    xHandleConnectedSocket = &xSocket;
+    /* Expect the connected field to be set. */
+    xHandleConnectedLength = 1;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vSocketWakeUpUser_Expect( &xParentSock );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+    TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
+    TEST_ASSERT_EQUAL( eSOCKET_ACCEPT, xParentSock.xEventBits );
+    TEST_ASSERT_EQUAL( &xSocket, xParentSock.u.xTCP.pxPeerSocket );
+    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxPeerSocket );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bPassQueued );
+    TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xSocket.u.xTCP.bits.bPassAccept );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is established and the
+ *        current state is closed. Socket select bit is set to select write. Also, this socket
+ *        is an orphan. Parent socket is non-NULL and reuse bit is not set. Additionally, the
+ *        parent socket has a connected handler. */
+void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_HasHandler( void )
+{
+    FreeRTOS_Socket_t xSocket, xParentSock;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+    BaseType_t xBackup;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xParentSock, 0, sizeof( xParentSock ) );
+    eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.ucTCPState = eCLOSED;
+
+    xSocket.u.xTCP.usTimeout = 100;
+    xParentSock.u.xTCP.pxHandleConnected = HandleConnected;
+    /* if bPassQueued is true, this socket is an orphan until it gets connected. */
+    xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+    xSocket.u.xTCP.pxPeerSocket = &xParentSock;
+    
+    xHandleConnectedSocket = &xParentSock;
+    /* Expect the connected field to be set. */
+    xHandleConnectedLength = 1;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vSocketWakeUpUser_Expect( &xParentSock );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+    TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
+    TEST_ASSERT_EQUAL( eSOCKET_ACCEPT, xParentSock.xEventBits );
+    TEST_ASSERT_EQUAL( &xSocket, xParentSock.u.xTCP.pxPeerSocket );
+    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxPeerSocket );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bPassQueued );
+    TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xSocket.u.xTCP.bits.bPassAccept );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is established and the
+ *        current state is closed. Socket select bit is set to select write. Also, this socket
+ *        is an orphan. Parent socket is non-NULL and reuse bit is not set. Additionally, the
+ *        parent socket has a connected handler. */
+void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_HasHandler1( void )
+{
+    FreeRTOS_Socket_t xSocket, xParentSock;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+    BaseType_t xBackup;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xParentSock, 0, sizeof( xParentSock ) );
+    eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.ucTCPState = eCLOSED;
+
+    xSocket.u.xTCP.usTimeout = 100;
+    xParentSock.u.xTCP.pxHandleConnected = HandleConnected;
+    xSocket.u.xTCP.pxHandleConnected = HandleConnected;
+    /* if bPassQueued is true, this socket is an orphan until it gets connected. */
+    xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+    xSocket.u.xTCP.pxPeerSocket = &xParentSock;
+    xParentSock.u.xTCP.pxPeerSocket = &xSocket;
+
+    xHandleConnectedSocket = &xParentSock;
+    /* Expect the connected field to be set. */
+    xHandleConnectedLength = 1;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vSocketWakeUpUser_Expect( &xParentSock );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+    TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
+    TEST_ASSERT_EQUAL( eSOCKET_ACCEPT, xParentSock.xEventBits );
+    TEST_ASSERT_EQUAL( &xSocket, xParentSock.u.xTCP.pxPeerSocket );
+    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxPeerSocket );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bPassQueued );
+    TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xSocket.u.xTCP.bits.bPassAccept );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is established and the
+ *        current state is closed. Socket select bit is set to select read. Also, this socket
+ *        is an orphan. Parent socket is NULL and reuse bit is set. */
+void test_vTCPStateChange_ClosedToEstablishedState_SelectRead_QueuedBitSet_ParentNULLReuse( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+    BaseType_t xBackup;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    
+    eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.ucTCPState = eCLOSED;
+
+    xSocket.u.xTCP.usTimeout = 100;
+    xSocket.u.xTCP.pxHandleConnected = HandleConnected;
+    xSocket.xSelectBits = eSELECT_READ;
+    /* if bPassQueued is true, this socket is an orphan until it gets connected. */
+    xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+    xSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+    
+    xHandleConnectedSocket = &xSocket;
+    /* Expect the connected field to be set. */
+    xHandleConnectedLength = 1;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vSocketWakeUpUser_Expect( &xSocket );
+
+    vTCPStateChange( &xSocket,eTCPState );
+
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+    TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
+    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxPeerSocket );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bPassQueued );
+    TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xSocket.u.xTCP.bits.bPassAccept );
+    TEST_ASSERT_EQUAL( eSOCKET_ACCEPT | ( eSELECT_READ << SOCKET_EVENT_BIT_COUNT ), xSocket.xEventBits );
+}
+
 /* test xProcessReceivedTCPPacket function */
 void test_xProcessReceivedTCPPacket_Null_Descriptor(void)
 {
