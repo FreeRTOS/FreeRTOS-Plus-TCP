@@ -350,6 +350,130 @@ void test_prvTCPTouchSocket( void )
     TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
 }
 
+/* test prvTCPNextTimeout function */
+void test_prvTCPNextTimeout_ConnSyn_State_Not_Active(void)
+{
+    TickType_t Return = 0;
+    pxSocket = &xSocket;
+
+    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
+    pxSocket->u.xTCP.ucRepCount = 0;
+
+    Return = prvTCPNextTimeout(pxSocket);
+    TEST_ASSERT_EQUAL(500, Return);
+}
+
+/* test prvTCPNextTimeout function */
+void test_prvTCPNextTimeout_ConnSyn_State_Active_Rep0(void)
+{
+    TickType_t Return = 0;
+    pxSocket = &xSocket;
+
+    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
+    pxSocket->u.xTCP.ucRepCount = 0;
+
+    Return = prvTCPNextTimeout(pxSocket);
+    TEST_ASSERT_EQUAL(1, Return);
+}
+
+/* test prvTCPNextTimeout function */
+void test_prvTCPNextTimeout_ConnSyn_State_Active_Rep1(void)
+{
+    TickType_t Return = 0;
+    pxSocket = &xSocket;
+
+    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
+    pxSocket->u.xTCP.ucRepCount = 1;
+
+    Return = prvTCPNextTimeout(pxSocket);
+    TEST_ASSERT_EQUAL(3000, Return);
+}
+
+/* test prvTCPNextTimeout function */
+void test_prvTCPNextTimeout_ConnSyn_State_Active_Rep3(void)
+{
+    TickType_t Return = 0;
+    pxSocket = &xSocket;
+
+    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
+    pxSocket->u.xTCP.ucRepCount = 3;
+
+    Return = prvTCPNextTimeout(pxSocket);
+    TEST_ASSERT_EQUAL(11000, Return);
+}
+
+/* test prvTCPNextTimeout function */
+void test_prvTCPNextTimeout_Established_State_Active_Timeout_Set(void)
+{
+    TickType_t Return = 0;
+    pxSocket = &xSocket;
+
+    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.usTimeout = 5000;
+    pxSocket->u.xTCP.ucRepCount = 3;
+
+    Return = prvTCPNextTimeout(pxSocket);
+    TEST_ASSERT_EQUAL(5000, Return);
+}
+
+/* test prvTCPNextTimeout function */
+void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_With_Delay(void)
+{
+    TickType_t Return = 0;
+    pxSocket = &xSocket;
+    TickType_t TxWinReturn = 1000;
+
+    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.usTimeout = 0;
+    pxSocket->u.xTCP.ucRepCount = 3;
+
+    xTCPWindowTxHasData_ExpectAnyArgsAndReturn(pdTRUE);
+    xTCPWindowTxHasData_ReturnThruPtr_pulDelay(&TxWinReturn);
+
+    Return = prvTCPNextTimeout(pxSocket);
+    TEST_ASSERT_EQUAL(1000, Return);
+}
+
+/* test prvTCPNextTimeout function */
+void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_Without_Delay(void)
+{
+    TickType_t Return = 0;
+    pxSocket = &xSocket;
+    TickType_t TxWinReturn = 0;
+
+    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.usTimeout = 0;
+    pxSocket->u.xTCP.ucRepCount = 3;
+
+    xTCPWindowTxHasData_ExpectAnyArgsAndReturn(pdTRUE);
+    xTCPWindowTxHasData_ReturnThruPtr_pulDelay(&TxWinReturn);
+
+    Return = prvTCPNextTimeout(pxSocket);
+    TEST_ASSERT_EQUAL(1, Return);
+}
+
+/* test prvTCPNextTimeout function */
+void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_No_Data_Without_Delay(void)
+{
+    TickType_t Return = 0;
+    pxSocket = &xSocket;
+    TickType_t TxWinReturn = 0;
+
+    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.usTimeout = 0;
+    pxSocket->u.xTCP.ucRepCount = 3;
+
+    xTCPWindowTxHasData_ExpectAnyArgsAndReturn(pdFALSE);
+    xTCPWindowTxHasData_ReturnThruPtr_pulDelay(&TxWinReturn);
+
+    Return = prvTCPNextTimeout(pxSocket);
+    TEST_ASSERT_EQUAL(tcpMAXIMUM_TCP_WAKEUP_TIME_MS, Return);
+}
+
 /* test xProcessReceivedTCPPacket function */
 void test_xProcessReceivedTCPPacket_Null_Descriptor(void)
 {

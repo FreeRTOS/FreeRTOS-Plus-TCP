@@ -498,7 +498,7 @@
                 /* ulDelayMs contains the time to wait before a re-transmission. */
             }
 
-            pxSocket->u.xTCP.usTimeout = ( uint16_t ) ipMS_TO_MIN_TICKS( ulDelayMs );
+            pxSocket->u.xTCP.usTimeout = ( uint16_t ) ipMS_TO_MIN_TICKS( ulDelayMs ); /* LCOV_EXCL_BR_LINE ulDelayMs will not be smaller than 1 */
         }
         else
         {
