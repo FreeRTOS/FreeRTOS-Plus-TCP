@@ -1105,9 +1105,9 @@ static BaseType_t prvNetworkInterfaceInput( void )
 
         /* In order to make the code easier and faster, only packets in a single buffer
          * will be accepted.  This can be done by making the buffers large enough to
-         * hold a complete Ethernet packet (1536 bytes).
+         * hold a complete Ethernet packet, minus ipBUFFER_PADDING.
          * Therefore, two sanity checks: */
-        configASSERT( xReceivedLength <= ETH_RX_BUF_SIZE );
+        configASSERT( xReceivedLength <= EMAC_DMA_BUFFER_SIZE );
 
         if( ( pxDMARxDescriptor->Status & ( ETH_DMARXDESC_CE | ETH_DMARXDESC_IPV4HCE | ETH_DMARXDESC_FT ) ) != ETH_DMARXDESC_FT )
         {
@@ -1124,7 +1124,7 @@ static BaseType_t prvNetworkInterfaceInput( void )
         {
             /* The packet will be accepted, but check first if a new Network Buffer can
              * be obtained. If not, the packet will still be dropped. */
-            pxNewDescriptor = pxGetNetworkBufferWithDescriptor( ETH_RX_BUF_SIZE, xDescriptorWaitTime );
+            pxNewDescriptor = pxGetNetworkBufferWithDescriptor( EMAC_DMA_BUFFER_SIZE, xDescriptorWaitTime );
 
             if( pxNewDescriptor == NULL )
             {
