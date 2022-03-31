@@ -257,6 +257,7 @@ enhanceddescriptorformat
 enotusingleasedaddress
 enum
 eof
+eol
 eprocessbuffer
 ereleasebuffer
 ereturn
@@ -555,6 +556,7 @@ nobroadcast
 noevent
 nondet
 noninfringement
+noop
 nop
 ntoh
 nulling
@@ -694,16 +696,25 @@ prvrxcallback
 prvsenddata
 prvsenddhcpdiscover
 prvsenddhcprequest
+prvsetaynackoptions
 prvsetoptions
 prvsetsynackoptions
 prvsinglesteptcpheaderoptions
 prvskipnamefield
+prvsocketsetmss
 prvstorerxdata
+prvstorexdata
+prvtcpaddtxdata
+prvtcpbufferresize
+prvtcpflagmeaning
 prvtcphandlefin
 prvtcphandlestate
+prvtcpmakesureprepared
+prvtcpnexttimeout
 prvtcpprepareconnect
 prvtcppreparesend
 prvtcpreturnpacket
+prvtcpsendchallengeack
 prvtcpsendpacket
 prvtcpsendrepeated
 prvtcpsendreset
@@ -711,6 +722,7 @@ prvtcpsendspecialpackethelper
 prvtcpsocketcopy
 prvtcpsocketisactive
 prvtcpstatusagecheck
+prvtcptouchsocket
 prvtcpwindowfastretransmit
 prvtcpwindowtxcheckack
 prvtcpwindowtxhasspace
@@ -718,6 +730,7 @@ prvtxcallback
 prvvalidsocket
 prvwinpcaprecvthread
 prvwinpcapsendthread
+prvwinscalefactor
 prvwritepackets
 ps
 pt
@@ -785,8 +798,8 @@ pxdescriptor
 pxdest
 pxdestinationaddress
 pxdhcpmessage
-pxdnsmessageheader
 pxdnsbuf
+pxdnsmessageheader
 pxduplicatenetworkbufferwithdescriptor
 pxevent
 pxfrom
@@ -934,6 +947,7 @@ rxstream
 rxtail
 rxubr
 sa
+sackp
 saf
 safemalloc
 safemallocsaif
@@ -1123,8 +1137,6 @@ ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
 ulcurrenttimeseconds
-ultimergetage
-ultimewhenaddedinseconds
 uldefaultipaddress
 uldelayms
 uldestinationaddress
@@ -1199,6 +1211,8 @@ ultargetprotocoladdress
 ultcpwindowtxack
 ultcpwindowtxget
 ultcpwindowtxsack
+ultimergetage
+ultimewhenaddedinseconds
 ultransactionid
 ulttl
 ultxwindowlength
@@ -1396,6 +1410,7 @@ wol
 woreg
 wrdata
 wrxsize
+wsf
 wsopt
 wtxsize
 www
@@ -1577,6 +1592,7 @@ xtaskgettickcount
 xtaskhandle
 xtaskresumeall
 xtcp
+xtcpchecknewclient
 xtcpheader
 xtcppacket
 xtcpsegments

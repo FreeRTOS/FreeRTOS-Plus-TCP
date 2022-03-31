@@ -1338,7 +1338,7 @@
 
                         if( pxSocket->u.xTCP.usTimeout < 1U ) /* LCOV_EXCL_BR_LINE, the second branche will never be hit */
                         {
-                            pxSocket->u.xTCP.usTimeout = 1U; /* LCOV_EXCL_LINE, this line will not be reached */
+                            pxSocket->u.xTCP.usTimeout = 1U;  /* LCOV_EXCL_LINE, this line will not be reached */
                         }
                     }
 

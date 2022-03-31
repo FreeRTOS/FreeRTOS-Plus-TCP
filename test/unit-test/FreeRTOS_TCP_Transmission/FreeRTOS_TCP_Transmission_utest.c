@@ -225,6 +225,7 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
 {
     int32_t BytesSent = 0;
     UBaseType_t RepeatCount = 0;
+
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
@@ -247,31 +248,33 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
     pxSocket->u.xTCP.ucKeepRepCount = 0;
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
     pxSocket->u.xTCP.ucRepCount = 0;
-    
-    ulTCPWindowTxGet_ExpectAnyArgsAndReturn(20);
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(&NewNetworkBuffer);
-    //vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
-    uxStreamBufferDistance_ExpectAnyArgsAndReturn(500);
-    uxStreamBufferGet_ExpectAnyArgsAndReturn(20);
-    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn(1000);
-    usGenerateChecksum_ExpectAnyArgsAndReturn(0x1234);
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn(0x2345);
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn(eARPCacheHit);
-    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn(pdTRUE);
-    for( RepeatCount = 1; RepeatCount < SEND_REPEATED_COUNT; RepeatCount++)
+
+    ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 20 );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &NewNetworkBuffer );
+    /*vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs(); */
+    uxStreamBufferDistance_ExpectAnyArgsAndReturn( 500 );
+    uxStreamBufferGet_ExpectAnyArgsAndReturn( 20 );
+    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1000 );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1234 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2345 );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn( pdTRUE );
+
+    for( RepeatCount = 1; RepeatCount < SEND_REPEATED_COUNT; RepeatCount++ )
     {
-        ulTCPWindowTxGet_ExpectAnyArgsAndReturn(20);   /* data length may sent */
-        uxStreamBufferDistance_ExpectAnyArgsAndReturn(500);
-        uxStreamBufferGet_ExpectAnyArgsAndReturn(20);
-        FreeRTOS_min_uint32_ExpectAnyArgsAndReturn(1000);
-        usGenerateChecksum_ExpectAnyArgsAndReturn(0x1234);
-        usGenerateProtocolChecksum_ExpectAnyArgsAndReturn(0x2345);
-        eARPGetCacheEntry_ExpectAnyArgsAndReturn(eARPCacheHit);
-        xNetworkInterfaceOutput_ExpectAnyArgsAndReturn(pdTRUE);
+        ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 20 ); /* data length may sent */
+        uxStreamBufferDistance_ExpectAnyArgsAndReturn( 500 );
+        uxStreamBufferGet_ExpectAnyArgsAndReturn( 20 );
+        FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1000 );
+        usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1234 );
+        usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2345 );
+        eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+        xNetworkInterfaceOutput_ExpectAnyArgsAndReturn( pdTRUE );
     }
+
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
 
-    BytesSent = prvTCPSendPacket(pxSocket);
+    BytesSent = prvTCPSendPacket( pxSocket );
     TEST_ASSERT_EQUAL( 480, BytesSent );
 }
 
@@ -286,7 +289,7 @@ void test_prvTCPSendRepeated_Zero_To_Send( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
 
     xBufferAllocFixedSize = pdFALSE;
-    pxSocket->u.xTCP.txStream = (StreamBuffer_t *)0x12345678;
+    pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) 0x12345678;
     pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
@@ -390,21 +393,21 @@ void test_prvTCPReturnPacket_Null_Socket( void )
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
     xNetworkInterfaceOutput_ExpectAnyArgsAndReturn( pdTRUE );
 
-    prvTCPReturnPacket(NULL, pxNetworkBuffer, 40, pdFALSE);
+    prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdFALSE );
 
     /* with ReleaseAfterSend set to FALSE, IP address not flipped */
-    TEST_ASSERT_EQUAL(OldSourceAddress, pxIPHeader->ulSourceIPAddress);
-    TEST_ASSERT_EQUAL(RxSequenceNumber, pxTCPPacket->xTCPHeader.ulAckNr);
+    TEST_ASSERT_EQUAL( OldSourceAddress, pxIPHeader->ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( RxSequenceNumber, pxTCPPacket->xTCPHeader.ulAckNr );
 }
 
 /* test for prvTCPReturnPacket function */
-void test_prvTCPReturnPacket_Null_Socket_Relase_True(void)
+void test_prvTCPReturnPacket_Null_Socket_Relase_True( void )
 {
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    IPHeader_t * pxIPHeader = &pxTCPPacket->xIPHeader;     
+    IPHeader_t * pxIPHeader = &pxTCPPacket->xIPHeader;
 
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
@@ -413,16 +416,16 @@ void test_prvTCPReturnPacket_Null_Socket_Relase_True(void)
     uint32_t RxSequenceNumber = pxTCPPacket->xTCPHeader.ulSequenceNumber;
     uint32_t OurSequenceNumber = pxTCPPacket->xTCPHeader.ulAckNr;
 
-    usGenerateChecksum_ExpectAnyArgsAndReturn(0x1111);
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn(0x2222);
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn(eARPCacheHit);
-    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn(pdTRUE);
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn( pdTRUE );
 
-    prvTCPReturnPacket(NULL, pxNetworkBuffer, 40, pdTRUE);
+    prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdTRUE );
 
     /* with ReleaseAfterSend set to TRUE, IP address flipped */
-    TEST_ASSERT_EQUAL(OldDestinationAddress, pxIPHeader->ulSourceIPAddress);
-    TEST_ASSERT_EQUAL(RxSequenceNumber, pxTCPPacket->xTCPHeader.ulAckNr);
+    TEST_ASSERT_EQUAL( OldDestinationAddress, pxIPHeader->ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( RxSequenceNumber, pxTCPPacket->xTCPHeader.ulAckNr );
 }
 
 /* test for prvTCPReturnPacket function */
@@ -461,7 +464,7 @@ void test_prvTCPReturnPacket_No_KL( void )
 }
 
 /* test for prvTCPReturnPacket function */
-void test_prvTCPReturnPacket_No_KL_LocalIP(void)
+void test_prvTCPReturnPacket_No_KL_LocalIP( void )
 {
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
@@ -469,9 +472,9 @@ void test_prvTCPReturnPacket_No_KL_LocalIP(void)
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    MACAddress_t NewSourceMacAddr = {{ 0x11, 0x22, 0x33, 0x44, 0x55, 0x66}};
+    MACAddress_t NewSourceMacAddr = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
 
-    pxSocket->u.xTCP.rxStream = (StreamBuffer_t *)0x12345678;
+    pxSocket->u.xTCP.rxStream = ( StreamBuffer_t * ) 0x12345678;
     pxSocket->u.xTCP.uxRxStreamSize = 1500;
     pxSocket->u.xTCP.bits.bLowWater = pdFALSE;
     pxSocket->u.xTCP.bits.bRxStopped = pdFALSE;
@@ -484,27 +487,27 @@ void test_prvTCPReturnPacket_No_KL_LocalIP(void)
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     *ipLOCAL_IP_ADDRESS_POINTER = 0xC0C0C0C0;
 
-    uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn(1000);
-    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn(500);
-    usGenerateChecksum_ExpectAnyArgsAndReturn(0x1111);
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn(0x2222);
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn(eARPCacheHit);
-    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn(pdTRUE);
+    uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
+    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn( pdTRUE );
 
-    prvTCPReturnPacket(pxSocket, pxNetworkBuffer, 40, pdTRUE);
-    TEST_ASSERT_EQUAL(1050, pxSocket->u.xTCP.ulHighestRxAllowed);
-    TEST_ASSERT_EQUAL(FreeRTOS_htonl(100), pxTCPPacket->xTCPHeader.ulSequenceNumber);
-    TEST_ASSERT_EQUAL(FreeRTOS_htonl(50), pxTCPPacket->xTCPHeader.ulAckNr);
-    TEST_ASSERT_EQUAL(0xC0C0C0C0, pxTCPPacket->xIPHeader.ulSourceIPAddress);
-    TEST_ASSERT_EQUAL_INT8_ARRAY(NewSourceMacAddr.ucBytes, 
-                                pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes,
-                                6);
-    TEST_ASSERT_EQUAL(ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength);
+    prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdTRUE );
+    TEST_ASSERT_EQUAL( 1050, pxSocket->u.xTCP.ulHighestRxAllowed );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 100 ), pxTCPPacket->xTCPHeader.ulSequenceNumber );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 50 ), pxTCPPacket->xTCPHeader.ulAckNr );
+    TEST_ASSERT_EQUAL( 0xC0C0C0C0, pxTCPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL_INT8_ARRAY( NewSourceMacAddr.ucBytes,
+                                  pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes,
+                                  6 );
+    TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
 }
 
 
 /* test for prvTCPReturnPacket function */
-void test_prvTCPReturnPacket_No_KL_LocalIP_GT_Eth_Packet_Length(void)
+void test_prvTCPReturnPacket_No_KL_LocalIP_GT_Eth_Packet_Length( void )
 {
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
@@ -512,9 +515,9 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_GT_Eth_Packet_Length(void)
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    MACAddress_t NewSourceMacAddr = {{ 0x11, 0x22, 0x33, 0x44, 0x55, 0x66}};
+    MACAddress_t NewSourceMacAddr = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
 
-    pxSocket->u.xTCP.rxStream = (StreamBuffer_t *)0x12345678;
+    pxSocket->u.xTCP.rxStream = ( StreamBuffer_t * ) 0x12345678;
     pxSocket->u.xTCP.uxRxStreamSize = 1500;
     pxSocket->u.xTCP.bits.bLowWater = pdFALSE;
     pxSocket->u.xTCP.bits.bRxStopped = pdFALSE;
@@ -526,27 +529,27 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_GT_Eth_Packet_Length(void)
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     *ipLOCAL_IP_ADDRESS_POINTER = 0xC0C0C0C0;
-    
-    uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn(1000);
-    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn(500);
-    usGenerateChecksum_ExpectAnyArgsAndReturn(0x1111);
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn(0x2222);
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn(eARPCacheHit);
-    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn(pdTRUE);
 
-    prvTCPReturnPacket(pxSocket, pxNetworkBuffer, 1000, pdTRUE);
-    TEST_ASSERT_EQUAL(1050, pxSocket->u.xTCP.ulHighestRxAllowed);
-    TEST_ASSERT_EQUAL(FreeRTOS_htonl(100), pxTCPPacket->xTCPHeader.ulSequenceNumber);
-    TEST_ASSERT_EQUAL(FreeRTOS_htonl(50), pxTCPPacket->xTCPHeader.ulAckNr);
-    TEST_ASSERT_EQUAL(0xC0C0C0C0, pxTCPPacket->xIPHeader.ulSourceIPAddress);
-    TEST_ASSERT_EQUAL_INT8_ARRAY(NewSourceMacAddr.ucBytes, 
-                                pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes,
-                                6);
-    TEST_ASSERT_EQUAL(1000+ipSIZE_OF_ETH_HEADER, pxNetworkBuffer->xDataLength);
+    uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
+    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn( pdTRUE );
+
+    prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 1000, pdTRUE );
+    TEST_ASSERT_EQUAL( 1050, pxSocket->u.xTCP.ulHighestRxAllowed );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 100 ), pxTCPPacket->xTCPHeader.ulSequenceNumber );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 50 ), pxTCPPacket->xTCPHeader.ulAckNr );
+    TEST_ASSERT_EQUAL( 0xC0C0C0C0, pxTCPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL_INT8_ARRAY( NewSourceMacAddr.ucBytes,
+                                  pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes,
+                                  6 );
+    TEST_ASSERT_EQUAL( 1000 + ipSIZE_OF_ETH_HEADER, pxNetworkBuffer->xDataLength );
 }
 
 /* test for prvTCPReturnPacket function */
-void test_prvTCPReturnPacket_No_KL_LocalIP_ARP_Not_Hit(void)
+void test_prvTCPReturnPacket_No_KL_LocalIP_ARP_Not_Hit( void )
 {
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
@@ -554,9 +557,9 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_ARP_Not_Hit(void)
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    MACAddress_t NewDestMacAddr = {{ 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC}};
-    
-    pxSocket->u.xTCP.rxStream = (StreamBuffer_t *)0x12345678;
+    MACAddress_t NewDestMacAddr = { { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC } };
+
+    pxSocket->u.xTCP.rxStream = ( StreamBuffer_t * ) 0x12345678;
     pxSocket->u.xTCP.uxRxStreamSize = 1500;
     pxSocket->u.xTCP.bits.bLowWater = pdFALSE;
     pxSocket->u.xTCP.bits.bRxStopped = pdFALSE;
@@ -567,43 +570,43 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_ARP_Not_Hit(void)
     pxTCPWindow->xSize.ulRxWindowLength = 500;
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
-    pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes[0] = 0x12;
-    pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes[1] = 0x34;
-    pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes[2] = 0x56;
-    pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes[3] = 0x78;
-    pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes[4] = 0x9A;
-    pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes[5] = 0xBC;
+    pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes[ 0 ] = 0x12;
+    pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes[ 1 ] = 0x34;
+    pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes[ 2 ] = 0x56;
+    pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes[ 3 ] = 0x78;
+    pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes[ 4 ] = 0x9A;
+    pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes[ 5 ] = 0xBC;
     *ipLOCAL_IP_ADDRESS_POINTER = 0xC0C0C0C0;
 
-    uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn(1000);
-    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn(500);
-    usGenerateChecksum_ExpectAnyArgsAndReturn(0x1111);
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn(0x2222);
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn(eARPCacheMiss);
-    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn(pdTRUE);
+    uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
+    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
+    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn( pdTRUE );
 
-    prvTCPReturnPacket(pxSocket, pxNetworkBuffer, 40, pdTRUE);
-    TEST_ASSERT_EQUAL(1050, pxSocket->u.xTCP.ulHighestRxAllowed);
-    TEST_ASSERT_EQUAL(FreeRTOS_htonl(100), pxTCPPacket->xTCPHeader.ulSequenceNumber);
-    TEST_ASSERT_EQUAL(FreeRTOS_htonl(50), pxTCPPacket->xTCPHeader.ulAckNr);
-    TEST_ASSERT_EQUAL(0xC0C0C0C0, pxTCPPacket->xIPHeader.ulSourceIPAddress);
-    TEST_ASSERT_EQUAL_INT8_ARRAY(NewDestMacAddr.ucBytes, 
-                                pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
-                                6);
+    prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdTRUE );
+    TEST_ASSERT_EQUAL( 1050, pxSocket->u.xTCP.ulHighestRxAllowed );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 100 ), pxTCPPacket->xTCPHeader.ulSequenceNumber );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 50 ), pxTCPPacket->xTCPHeader.ulAckNr );
+    TEST_ASSERT_EQUAL( 0xC0C0C0C0, pxTCPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL_INT8_ARRAY( NewDestMacAddr.ucBytes,
+                                  pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+                                  6 );
 }
 
 /* test for prvTCPReturnPacket function */
-void test_prvTCPReturnPacket_No_KL_Fin_Suppress_Rx_Stop(void)
+void test_prvTCPReturnPacket_No_KL_Fin_Suppress_Rx_Stop( void )
 {
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-            
+
 
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.rxStream = (StreamBuffer_t *)0x12345678;
+    pxSocket->u.xTCP.rxStream = ( StreamBuffer_t * ) 0x12345678;
     pxSocket->u.xTCP.uxRxStreamSize = 1500;
     pxSocket->u.xTCP.bits.bLowWater = pdFALSE;
     pxSocket->u.xTCP.bits.bRxStopped = pdTRUE;
@@ -632,7 +635,7 @@ void test_prvTCPReturnPacket_No_KL_Fin_Suppress_Rx_Stop(void)
 }
 
 /* test for prvTCPReturnPacket function */
-void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Low_Water(void)
+void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Low_Water( void )
 {
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
@@ -656,32 +659,32 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Low_Water(void)
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxTCPPacket->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_FIN;
 
-    uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn(1000);
-    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn(500);
-    usGenerateChecksum_ExpectAnyArgsAndReturn(0x1111);
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn(0x2222);
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn(eARPCacheHit);
-    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn(pdTRUE);
+    uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
+    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn( pdTRUE );
 
-    prvTCPReturnPacket(pxSocket, pxNetworkBuffer, 40, pdFALSE);
-    TEST_ASSERT_EQUAL(1050, pxSocket->u.xTCP.ulHighestRxAllowed);
-    TEST_ASSERT_EQUAL(FreeRTOS_htonl(100), pxTCPPacket->xTCPHeader.ulSequenceNumber);
-    TEST_ASSERT_EQUAL(FreeRTOS_htonl(50), pxTCPPacket->xTCPHeader.ulAckNr);
-    TEST_ASSERT_EQUAL(1, pxTCPPacket->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_FIN);
+    prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdFALSE );
+    TEST_ASSERT_EQUAL( 1050, pxSocket->u.xTCP.ulHighestRxAllowed );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 100 ), pxTCPPacket->xTCPHeader.ulSequenceNumber );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 50 ), pxTCPPacket->xTCPHeader.ulAckNr );
+    TEST_ASSERT_EQUAL( 1, pxTCPPacket->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_FIN );
 }
 
 /* test for prvTCPReturnPacket function */
-void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Big_Win(void)
+void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Big_Win( void )
 {
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-            
+
 
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.rxStream = (StreamBuffer_t *)0x12345678;
+    pxSocket->u.xTCP.rxStream = ( StreamBuffer_t * ) 0x12345678;
     pxSocket->u.xTCP.uxRxStreamSize = 1500;
     pxSocket->u.xTCP.bits.bLowWater = pdFALSE;
     pxSocket->u.xTCP.bits.bRxStopped = pdFALSE;
@@ -695,18 +698,18 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Big_Win(void)
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxTCPPacket->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_FIN;
 
-    uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn(0x10000);
-    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn(0x10000);
-    usGenerateChecksum_ExpectAnyArgsAndReturn(0x1111);
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn(0x2222);
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn(eARPCacheHit);
-    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn(pdTRUE);
+    uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 0x10000 );
+    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 0x10000 );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn( pdTRUE );
 
-    prvTCPReturnPacket(pxSocket, pxNetworkBuffer, 40, pdFALSE);
-    TEST_ASSERT_EQUAL(0x10032, pxSocket->u.xTCP.ulHighestRxAllowed);
-    TEST_ASSERT_EQUAL(FreeRTOS_htonl(100), pxTCPPacket->xTCPHeader.ulSequenceNumber);
-    TEST_ASSERT_EQUAL(FreeRTOS_htonl(50), pxTCPPacket->xTCPHeader.ulAckNr);
-    TEST_ASSERT_NOT_EQUAL(0, pxTCPPacket->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_FIN);
+    prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdFALSE );
+    TEST_ASSERT_EQUAL( 0x10032, pxSocket->u.xTCP.ulHighestRxAllowed );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 100 ), pxTCPPacket->xTCPHeader.ulSequenceNumber );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 50 ), pxTCPPacket->xTCPHeader.ulAckNr );
+    TEST_ASSERT_NOT_EQUAL( 0, pxTCPPacket->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_FIN );
 }
 
 /* test for prvTCPPrepareConnect function */
@@ -1051,12 +1054,13 @@ void test_prvTCPPrepareSend_State_Established_Zero_Data_KLCount1_Age_GT_Max( voi
 }
 
 /* test for prvTCPPrepareSend function */
-void test_prvTCPPrepareSend_State_Established_Null_Buffer_Zero_Data_KLCount0_Age_LT_Max(void)
+void test_prvTCPPrepareSend_State_Established_Null_Buffer_Zero_Data_KLCount0_Age_LT_Max( void )
 {
     int32_t BytesSent = 0;
+
     pxSocket = &xSocket;
     pxNetworkBuffer = NULL;
-    
+
     xBufferAllocFixedSize = pdFALSE;
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
@@ -1067,16 +1071,16 @@ void test_prvTCPPrepareSend_State_Established_Null_Buffer_Zero_Data_KLCount0_Age
     pxSocket->u.xTCP.ucKeepRepCount = 0;
     pxSocket->u.xTCP.xLastAliveTime = 1000;
 
-    xTaskGetTickCount_ExpectAndReturn(5000);
-    
-    BytesSent = prvTCPPrepareSend(pxSocket, &pxNetworkBuffer, 0);
+    xTaskGetTickCount_ExpectAndReturn( 5000 );
+
+    BytesSent = prvTCPPrepareSend( pxSocket, &pxNetworkBuffer, 0 );
     TEST_ASSERT_EQUAL( 40, BytesSent );
-    TEST_ASSERT_EQUAL(0, pxSocket->u.xTCP.ucKeepRepCount);
-    TEST_ASSERT_EQUAL(1000, pxSocket->u.xTCP.xLastAliveTime);
+    TEST_ASSERT_EQUAL( 0, pxSocket->u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( 1000, pxSocket->u.xTCP.xLastAliveTime );
 }
 
 /* test for prvTCPPrepareSend function */
-void test_prvTCPPrepareSend_State_Established_Null_Buffer_Zero_Data_KLCount1_Age_GT_Max(void)
+void test_prvTCPPrepareSend_State_Established_Null_Buffer_Zero_Data_KLCount1_Age_GT_Max( void )
 {
     int32_t BytesSent = 0;
 
@@ -1304,7 +1308,7 @@ void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_Req_Close_Req_ShutDo
 }
 
 /* test for prvTCPPrepareSend function */
-void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_Req_Close_Req_ShutDown_Tx_Not_Done_Not_Last_Packet_KLcount1(void)
+void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_Req_Close_Req_ShutDown_Tx_Not_Done_Not_Last_Packet_KLcount1( void )
 {
     int32_t BytesSent = 0;
 
