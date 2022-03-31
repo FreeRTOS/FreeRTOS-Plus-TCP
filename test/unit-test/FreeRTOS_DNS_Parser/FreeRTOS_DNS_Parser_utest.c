@@ -403,7 +403,7 @@ void test_prepareReplyDNSMessage_success( void )
     UDPHeader_t * pxUDPHeader;
 
     pxUDPPacket = ( ( UDPPacket_t * )
-                                          &pxNetworkBuffer.pucEthernetBuffer );
+                    &pxNetworkBuffer.pucEthernetBuffer );
     pxIPHeader = &pxUDPPacket->xIPHeader;
     pxUDPHeader = &pxUDPPacket->xUDPHeader;
 

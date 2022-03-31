@@ -29,7 +29,7 @@
     #ifdef __cplusplus
         extern "C" {
     #endif
-  
+
 
 /*
  * For logging and debugging: make a string showing the TCP flags.

@@ -63,25 +63,23 @@ uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
 
 
 /* Test for prvTCPFlagMeaning function */
-void test_prvTCPFlagMeaning_FlagGroup1(void)
+void test_prvTCPFlagMeaning_FlagGroup1( void )
 {
-    char ReturnString[10];
+    char ReturnString[ 10 ];
     size_t Flags = tcpTCP_FLAG_FIN | tcpTCP_FLAG_RST | tcpTCP_FLAG_ACK | tcpTCP_FLAG_ECN;
 
-    strncpy(ReturnString, prvTCPFlagMeaning(Flags), sizeof(ReturnString));
-    TEST_ASSERT_EQUAL_STRING("F.R.A.E.", ReturnString);
-
+    strncpy( ReturnString, prvTCPFlagMeaning( Flags ), sizeof( ReturnString ) );
+    TEST_ASSERT_EQUAL_STRING( "F.R.A.E.", ReturnString );
 }
 
 /* Test for prvTCPFlagMeaning function */
-void test_prvTCPFlagMeaning_FlagGroup2(void)
+void test_prvTCPFlagMeaning_FlagGroup2( void )
 {
-    char ReturnString[10];
+    char ReturnString[ 10 ];
     size_t Flags = tcpTCP_FLAG_SYN | tcpTCP_FLAG_PSH | tcpTCP_FLAG_URG | tcpTCP_FLAG_CWR;
 
-    strncpy(ReturnString, prvTCPFlagMeaning(Flags), sizeof(ReturnString));
-    TEST_ASSERT_EQUAL_STRING(".S.P.U.C", ReturnString);
-
+    strncpy( ReturnString, prvTCPFlagMeaning( Flags ), sizeof( ReturnString ) );
+    TEST_ASSERT_EQUAL_STRING( ".S.P.U.C", ReturnString );
 }
 
 /* Test for prvSocketSetMSS function. */
@@ -90,9 +88,9 @@ void test_prvSocketSetMSS_Reduced( void )
     pxSocket = &xSocket;
 
     pxSocket->u.xTCP.ulRemoteIP = 0xC0C0C0C0;
-    
+
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1400 );
-    prvSocketSetMSS( pxSocket);
+    prvSocketSetMSS( pxSocket );
     TEST_ASSERT_EQUAL( 1400, pxSocket->u.xTCP.usMSS );
 }
 
@@ -102,8 +100,7 @@ void test_prvSocketSetMSS_Normal( void )
     pxSocket = &xSocket;
 
     pxSocket->u.xTCP.ulRemoteIP = 0x0;
-    
-    prvSocketSetMSS( pxSocket);
+
+    prvSocketSetMSS( pxSocket );
     TEST_ASSERT_EQUAL( 1160, pxSocket->u.xTCP.usMSS );
 }
-

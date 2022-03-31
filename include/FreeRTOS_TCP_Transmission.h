@@ -108,10 +108,10 @@
  *  Allocate a new bigger network buffer when necessary.
  */
     NetworkBufferDescriptor_t * prvTCPBufferResize( const FreeRTOS_Socket_t * pxSocket,
-                                                           NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                           int32_t lDataLen,
-                                                           UBaseType_t uxOptionsLength );
-                                                           
+                                                    NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                    int32_t lDataLen,
+                                                    UBaseType_t uxOptionsLength );
+
 
     #ifdef __cplusplus
         } /* extern "C" */

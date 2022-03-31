@@ -285,7 +285,7 @@
             /* Parse the DNS message header. Map the byte stream onto a structure
              * for easier access. */
             pxDNSMessageHeader = ( ( DNSMessage_t * )
-                                                         pucUDPPayloadBuffer );
+                                   pucUDPPayloadBuffer );
 
             /* Introduce a do {} while (0) to allow the use of breaks. */
             do
@@ -607,7 +607,7 @@
                 /* Mapping pucByte to a DNSAnswerRecord allows easy access of the
                  * fields of the structure. */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * )
-                                                            pucByte );
+                                      pucByte );
 
                 /* Sanity check the data length of an IPv4 answer. */
                 if( FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ) ==
@@ -725,7 +725,7 @@
             size_t uxDataLength;
 
             pxUDPPacket = ( ( UDPPacket_t * )
-                                                  pxNetworkBuffer->pucEthernetBuffer );
+                            pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxUDPPacket->xIPHeader;
             pxUDPHeader = &pxUDPPacket->xUDPHeader;
             /* HT: started using defines like 'ipSIZE_OF_xxx' */

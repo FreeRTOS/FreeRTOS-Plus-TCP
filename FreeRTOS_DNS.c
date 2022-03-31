@@ -90,6 +90,7 @@
     #endif /* ipconfigUSE_LLMNR == 1 */
 
 /*-----------------------------------------------------------*/
+
 /* A DNS query consists of a header, as described in 'struct xDNSMessage'
  * It is followed by 1 or more queries, each one consisting of a name and a tail,
  * with two fields: type and class
@@ -106,6 +107,7 @@
 
 
     #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+
 /**
  * @brief Define FreeRTOS_gethostbyname() as a normal blocking call.
  * @param[in] pcHostName: The hostname whose IP address is being searched for.
@@ -411,7 +413,7 @@
         BaseType_t xExpected;
         const DNSMessage_t * pxDNSMessageHeader =
             ( ( const DNSMessage_t * )
-                                                pxReceiveBuffer->pucPayloadBuffer );
+              pxReceiveBuffer->pucPayloadBuffer );
 
         /* See if the identifiers match. */
         xExpected = ( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier );
@@ -767,7 +769,7 @@
         uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
         {
             UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * )
-                                                                pxNetworkBuffer->pucEthernetBuffer );
+                                          pxNetworkBuffer->pucEthernetBuffer );
             uint8_t * pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( *pxUDPPacket ) ] );
 
             size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );

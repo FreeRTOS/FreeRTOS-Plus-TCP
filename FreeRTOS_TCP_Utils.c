@@ -59,10 +59,9 @@
  * @return The string containing the flags.
  */
 
-static char retString[ 10 ];
+        static char retString[ 10 ];
         const char * prvTCPFlagMeaning( UBaseType_t xFlags )
         {
-            
             size_t uxFlags = ( size_t ) xFlags;
 
             ( void ) snprintf( retString,

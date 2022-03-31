@@ -62,8 +62,8 @@
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
-/* @brief Socket which needs to be closed in next iteration. */
-static FreeRTOS_Socket_t * xPreviousSocket = NULL;
+/** @brief Socket which needs to be closed in next iteration. */
+    static FreeRTOS_Socket_t * xPreviousSocket = NULL;
 
 /*
  * For anti-hang protection and TCP keep-alive messages.  Called in two places:
@@ -97,7 +97,7 @@ static FreeRTOS_Socket_t * xPreviousSocket = NULL;
  */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
     {
-        if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) ) 
+        if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )
         {
             ( void ) vSocketClose( xPreviousSocket );
         }
@@ -536,10 +536,10 @@ static FreeRTOS_Socket_t * xPreviousSocket = NULL;
 
         configASSERT( pxNetworkBuffer != NULL );
         configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
-        
+
         /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
-                                                                                          &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
         FreeRTOS_Socket_t * pxSocket;
         uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
         uint32_t ulLocalIP;

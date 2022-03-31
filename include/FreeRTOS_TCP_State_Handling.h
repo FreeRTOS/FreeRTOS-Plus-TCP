@@ -45,7 +45,7 @@
         BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket );
     #endif
 
- /*
+/*
  * The heart of all: check incoming packet for valid data and acks and do what
  * is necessary in each state.
  */
