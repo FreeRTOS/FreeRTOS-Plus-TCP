@@ -62,7 +62,7 @@
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
-/* @brief Socket which needs to be closed in next iteration. */
+/** @brief Socket which needs to be closed in next iteration. */
     static FreeRTOS_Socket_t * xPreviousSocket = NULL;
 
 /*

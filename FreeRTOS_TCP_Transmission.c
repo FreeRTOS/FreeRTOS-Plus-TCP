@@ -53,7 +53,7 @@
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOSIPConfigDefaults.h"
 
-#inclide "FreeRTOS_TCP_IP.h"
+#include "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_TCP_Reception.h"
 #include "FreeRTOS_TCP_Transmission.h"
 #include "FreeRTOS_TCP_State_Handling.h"
