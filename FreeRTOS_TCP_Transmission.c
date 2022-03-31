@@ -1336,7 +1336,7 @@
                          * for full-size message. */
                         pxSocket->u.xTCP.usTimeout = ( uint16_t ) pdMS_TO_TICKS( tcpDELAYED_ACK_LONGER_DELAY_MS );
 
-                        if( pxSocket->u.xTCP.usTimeout < 1U ) /* LCOV_EXCL_BR_LINE, the second branche will never be hit */
+                        if( pxSocket->u.xTCP.usTimeout < 1U ) /* LCOV_EXCL_BR_LINE, the second branch will never be hit */
                         {
                             pxSocket->u.xTCP.usTimeout = 1U;  /* LCOV_EXCL_LINE, this line will not be reached */
                         }
