@@ -205,37 +205,33 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 
 # Include unit-test build configuration
 
-# include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )#
-# include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_WIN/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_Tiny_TCP/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_DNS/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Cache/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Networking/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Callback/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Parser/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_IP/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Reception/ut.cmake )
- include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_State_Handling/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )#
+include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_WIN/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Tiny_TCP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_DNS/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Cache/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Networking/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Callback/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Parser/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Reception/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_State_Handling/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 # Add a target for running coverage on tests.
-# add_custom_target( coverage
-#     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
-#     DEPENDS cmock unity FreeRTOS_ARP_utest FreeRTOS_DHCP_utest FreeRTOS_UDP_IP_utest FreeRTOS_IP_utest FreeRTOS_ICMP_utest FreeRTOS_IP_Utils_utest FreeRTOS_IP_Timers_utest FreeRTOS_Stream_Buffer_utest FreeRTOS_DNS_utest FreeRTOS_TCP_WIN_utest FreeRTOS_Tiny_TCP_utest FreeRTOS_TCP_Reception_utest FreeRTOS_TCP_State_Handling FreeRTOS_TCP_Transmission FreeRTOS_TCP_IP
-#     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-# )
-
 add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
-    DEPENDS cmock unity FreeRTOS_TCP_IP
+    DEPENDS cmock unity FreeRTOS_ARP_utest FreeRTOS_DHCP_utest FreeRTOS_UDP_IP_utest FreeRTOS_IP_utest FreeRTOS_ICMP_utest FreeRTOS_IP_Utils_utest FreeRTOS_IP_Timers_utest FreeRTOS_Stream_Buffer_utest FreeRTOS_DNS_utest FreeRTOS_TCP_WIN_utest FreeRTOS_Tiny_TCP_utest FreeRTOS_TCP_Reception_utest FreeRTOS_TCP_State_Handling FreeRTOS_TCP_Transmission FreeRTOS_TCP_IP FreeRTOS_TCP_Utils
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+
