@@ -831,7 +831,7 @@
  * @note The old network buffer will be released if the resizing is successful and
  *       cannot be used any longer.
  */
-    static NetworkBufferDescriptor_t * prvTCPBufferResize( const FreeRTOS_Socket_t * pxSocket,
+    NetworkBufferDescriptor_t * prvTCPBufferResize( const FreeRTOS_Socket_t * pxSocket,
                                                            NetworkBufferDescriptor_t * pxNetworkBuffer,
                                                            int32_t lDataLen,
                                                            UBaseType_t uxOptionsLength )
