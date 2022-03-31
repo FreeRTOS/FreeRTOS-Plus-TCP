@@ -297,7 +297,7 @@
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
         #ifndef __COVERITY__
-            if( pxNetworkBuffer != NULL )
+            if( pxNetworkBuffer != NULL ) /* LCOV_EXCL_BR_LINE the 2nd branch will never be reached */
         #endif
         {
             /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
@@ -912,7 +912,7 @@
         else
         {
             /* xResize is false, the network buffer provided was big enough. */
-            configASSERT( pxNetworkBuffer != NULL ); /* to tell lint: when xResize is false, pxNetworkBuffer is not NULL. */
+            configASSERT( pxNetworkBuffer != NULL ); /* LCOV_EXCL_BR_LINE this branch will not be covered, since it would never be NULL. to tell lint: when xResize is false, pxNetworkBuffer is not NULL. */
             pxReturn = pxNetworkBuffer;
 
             pxNetworkBuffer->xDataLength = ( size_t ) ( ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength ) + ( size_t ) lDataLen;
@@ -1335,9 +1335,9 @@
                          * for full-size message. */
                         pxSocket->u.xTCP.usTimeout = ( uint16_t ) pdMS_TO_TICKS( tcpDELAYED_ACK_LONGER_DELAY_MS );
 
-                        if( pxSocket->u.xTCP.usTimeout < 1U )
+                        if( pxSocket->u.xTCP.usTimeout < 1U ) /* LCOV_EXCL_BR_LINE, the second branche will never be hit */
                         {
-                            pxSocket->u.xTCP.usTimeout = 1U;
+                            pxSocket->u.xTCP.usTimeout = 1U; /* LCOV_EXCL_LINE, this line will not be reached */
                         }
                     }
 
