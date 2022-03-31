@@ -69,7 +69,7 @@
                 if( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier )
                 {
                     DNSCallback_t * pxCallback = ( ( DNSCallback_t * )
-                                                                         listGET_LIST_ITEM_OWNER( pxIterator ) );
+                                                   listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                     pxCallback->pCallbackFunction( pcName, pxCallback->pvSearchID,
                                                    ulIPAddress );

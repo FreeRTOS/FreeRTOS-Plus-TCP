@@ -53,6 +53,7 @@
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOSIPConfigDefaults.h"
 
+#inclide "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_TCP_Reception.h"
 #include "FreeRTOS_TCP_Transmission.h"
 #include "FreeRTOS_TCP_State_Handling.h"
@@ -832,9 +833,9 @@
  *       cannot be used any longer.
  */
     NetworkBufferDescriptor_t * prvTCPBufferResize( const FreeRTOS_Socket_t * pxSocket,
-                                                           NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                           int32_t lDataLen,
-                                                           UBaseType_t uxOptionsLength )
+                                                    NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                    int32_t lDataLen,
+                                                    UBaseType_t uxOptionsLength )
     {
         NetworkBufferDescriptor_t * pxReturn;
         size_t uxNeeded;
@@ -1189,7 +1190,7 @@
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                                  &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
         TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
         const TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
         UBaseType_t uxOptionsLength = pxTCPWindow->ucOptionLength;
@@ -1275,7 +1276,7 @@
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                                                                              &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
+                                                        &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
         const TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
         const TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
         /* Find out what window size we may advertised. */

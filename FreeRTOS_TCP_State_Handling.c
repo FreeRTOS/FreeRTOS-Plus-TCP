@@ -238,7 +238,7 @@
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                                  &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
         TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
         uint8_t ucIntermediateResult = 0, ucTCPFlags = pxTCPHeader->ucTCPFlags;
         TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -349,7 +349,7 @@
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
+                                                  &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
         TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
         TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
         uint8_t ucTCPFlags = pxTCPHeader->ucTCPFlags;
@@ -399,7 +399,7 @@
             {
                 /* Map the Last packet onto the ProtocolHeader_t struct for easy access to the fields. */
                 ProtocolHeaders_t * pxLastHeaders = ( ( ProtocolHeaders_t * )
-                                                                            &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
+                                                      &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
 
                 /* Clear the SYN flag in lastPacket. */
                 pxLastHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK;
@@ -489,7 +489,7 @@
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                                                                        &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
+                                                  &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
         TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
         TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
         uint8_t ucTCPFlags = pxTCPHeader->ucTCPFlags;
@@ -685,7 +685,7 @@
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                                                                        &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
+                                                  &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
         TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
         BaseType_t xSendLength = 0;
         uint32_t ulReceiveLength; /* Number of bytes contained in the TCP message. */
@@ -960,7 +960,7 @@
         {
             /* Map the byte stream onto the ProtocolHeaders_t for easy access to the fields. */
             const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
-                                                                                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                                            &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
             pxReturn->u.xTCP.usRemotePort = FreeRTOS_htons( pxTCPPacket->xTCPHeader.usSourcePort );
             pxReturn->u.xTCP.ulRemoteIP = FreeRTOS_htonl( pxTCPPacket->xIPHeader.ulSourceIPAddress );

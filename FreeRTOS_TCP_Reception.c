@@ -100,7 +100,7 @@
     {
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                                                                              &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset ] ) );
+                                                        &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset ] ) );
         const TCPHeader_t * pxTCPHeader;
         const uint8_t * pucPtr;
         BaseType_t xHasSYNFlag;
@@ -427,7 +427,7 @@
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                                                                              &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
         const TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
         int32_t lLength, lTCPHeaderLength, lReceiveLength, lUrgentLength;
 
@@ -513,7 +513,7 @@
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
-                                                                                          &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
         const TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
         TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
         uint32_t ulSequenceNumber, ulSpace;

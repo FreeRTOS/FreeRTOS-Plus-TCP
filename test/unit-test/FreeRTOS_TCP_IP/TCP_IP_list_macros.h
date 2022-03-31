@@ -81,15 +81,15 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket );
  * Lookup a TCP socket, using a multiple matching: both port numbers and
  * return IP address.
  */
-    FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
-                                           UBaseType_t uxLocalPort,
-                                           uint32_t ulRemoteIP,
-                                           UBaseType_t uxRemotePort );
+FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
+                                       UBaseType_t uxLocalPort,
+                                       uint32_t ulRemoteIP,
+                                       UBaseType_t uxRemotePort );
 
 /*
  * Parse the TCP option(s) received, if present.
  */
-    BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                const NetworkBufferDescriptor_t * pxNetworkBuffer );
+BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+                            const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 #endif /* ifndef LIST_MACRO_H */
