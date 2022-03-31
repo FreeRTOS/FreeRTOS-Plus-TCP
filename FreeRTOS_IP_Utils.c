@@ -443,7 +443,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
 
         /* Parse the packet length. */
-        pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pucEthernetBuffer );
+        pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
         /* Per https://tools.ietf.org/html/rfc791, the four-bit Internet Header
          * Length field contains the length of the internet header in 32-bit words. */
@@ -484,7 +484,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
          * and IP headers incorrectly aligned. However, either way, the "third"
          * protocol (Layer 3 or 4) header will be aligned, which is the convenience
          * of this calculation. */
-        pxProtPack = ipCAST_PTR_TO_TYPE_PTR( ProtocolPacket_t, &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
+        pxProtPack = ( ( ProtocolPacket_t * ) &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
         /* Switch on the Layer 3/4 protocol. */
         if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )

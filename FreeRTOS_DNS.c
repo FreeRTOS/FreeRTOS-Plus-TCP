@@ -91,26 +91,6 @@
 
 /*-----------------------------------------------------------*/
 
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSMessage_t.
- * @return The casted pointer.
- */
-
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSMessage_t )
-    {
-        return ( DNSMessage_t * ) pvArgument;
-    }
-
-
-/**
- * @brief Utility function to cast a const pointer of a type to a const pointer of type DNSMessage_t.
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( DNSMessage_t )
-    {
-        return ( const DNSMessage_t * ) pvArgument;
-    }
-
 /* A DNS query consists of a header, as described in 'struct xDNSMessage'
  * It is followed by 1 or more queries, each one consisting of a name and a tail,
  * with two fields: type and class
@@ -123,67 +103,10 @@
     }
     #include "pack_struct_end.h"
     typedef struct xDNSTail DNSTail_t;
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSTail_t.
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSTail_t )
-    {
-        return ( DNSTail_t * ) pvArgument;
-    }
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSAnswerRecord_t.
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSAnswerRecord_t )
-    {
-        return ( DNSAnswerRecord_t * ) pvArgument;
-    }
-
-
-    #if ( ipconfigUSE_LLMNR == 1 )
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type LLMNRAnswer_t.
- * @return The casted pointer.
- */
-        static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( LLMNRAnswer_t )
-        {
-            return ( LLMNRAnswer_t * ) pvArgument;
-        }
-
-
-    #endif /* ipconfigUSE_LLMNR == 1 */
-
-    #if ( ipconfigUSE_NBNS == 1 )
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type NBNSAnswer_t.
- * @return The casted pointer.
- */
-        static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NBNSAnswer_t )
-        {
-            return ( NBNSAnswer_t * ) pvArgument;
-        }
-
-    #endif /* ipconfigUSE_NBNS == 1 */
-
 /*-----------------------------------------------------------*/
 
 
     #if ( ipconfigDNS_USE_CALLBACKS == 1 )
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSCallback_t.
- * @return The casted pointer.
- */
-        static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSCallback_t )
-        {
-            return ( DNSCallback_t * ) pvArgument;
-        }
-
 
 /**
  * @brief Define FreeRTOS_gethostbyname() as a normal blocking call.
@@ -489,8 +412,8 @@
         uint32_t ulIPAddress = 0UL;
         BaseType_t xExpected;
         const DNSMessage_t * pxDNSMessageHeader =
-            ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( DNSMessage_t,
-                                                pxReceiveBuffer->pucPayloadBuffer );
+            ( ( const DNSMessage_t * )
+              pxReceiveBuffer->pucPayloadBuffer );
 
         /* See if the identifiers match. */
         xExpected = ( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier );
@@ -541,7 +464,7 @@
                 {
                     if( FreeRTOS_ntohs( pxAddress->sin_port ) == ipLLMNR_PORT )
                     {
-                        ( ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, xDNSBuf.pucPayloadBuffer ) )->usFlags = 0;
+                        ( ( ( DNSMessage_t * ) xDNSBuf.pucPayloadBuffer ) )->usFlags = 0;
                     }
                 }
             #endif
@@ -735,7 +658,7 @@
 
         /* Write in a unique identifier. Cast the Payload Buffer to DNSMessage_t
          * to easily access fields of the DNS Message. */
-        pxDNSMessageHeader = ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucUDPPayloadBuffer );
+        pxDNSMessageHeader = ( ( DNSMessage_t * ) pucUDPPayloadBuffer );
         pxDNSMessageHeader->usIdentifier = ( uint16_t ) uxIdentifier;
 
         /* Create the resource record at the end of the header.  First
@@ -776,7 +699,7 @@
 
         /* Finish off the record. Cast the record onto DNSTail_t structure to easily
          * access the fields of the DNS Message. */
-        pxTail = ipCAST_PTR_TO_TYPE_PTR( DNSTail_t, &( pucUDPPayloadBuffer[ uxStart + 1U ] ) );
+        pxTail = ( ( DNSTail_t * ) &( pucUDPPayloadBuffer[ uxStart + 1U ] ) );
 
         #if defined( _lint ) || defined( __COVERITY__ )
             ( void ) pxTail;
@@ -845,8 +768,8 @@
  */
         uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
         {
-            UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t,
-                                                                pxNetworkBuffer->pucEthernetBuffer );
+            UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * )
+                                          pxNetworkBuffer->pucEthernetBuffer );
             uint8_t * pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( *pxUDPPacket ) ] );
 
             size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );

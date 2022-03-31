@@ -327,7 +327,7 @@ static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
 
     if( pxARPWaitingNetworkBuffer != NULL )
     {
-        IPPacket_t * pxARPWaitingIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxARPWaitingNetworkBuffer->pucEthernetBuffer );
+        IPPacket_t * pxARPWaitingIPPacket = ( ( IPPacket_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
         IPHeader_t * pxARPWaitingIPHeader = &( pxARPWaitingIPPacket->xIPHeader );
 
         if( ulSenderProtocolAddress == pxARPWaitingIPHeader->ulSourceIPAddress )
@@ -400,7 +400,7 @@ BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup )
 BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xNeedsARPResolution = pdFALSE;
-    IPPacket_t * pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
     if( ( pxIPHeader->ulSourceIPAddress & xNetworkAddressing.ulNetMask ) == ( *ipLOCAL_IP_ADDRESS_POINTER & xNetworkAddressing.ulNetMask ) )
@@ -1070,7 +1070,7 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->xDataLength >= sizeof( ARPPacket_t ) );
 
-    pxARPPacket = ipCAST_PTR_TO_TYPE_PTR( ARPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    pxARPPacket = ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     /* memcpy the const part of the header information into the correct
      * location in the packet.  This copies:
@@ -1140,7 +1140,7 @@ void FreeRTOS_ClearARP( void )
     {
         BaseType_t xResult = pdFALSE;
         NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
-        const IPPacket_t * pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxUseDescriptor->pucEthernetBuffer );
+        const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxUseDescriptor->pucEthernetBuffer );
 
         if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
         {

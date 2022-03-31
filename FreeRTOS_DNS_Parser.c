@@ -47,66 +47,6 @@
 
 /** @brief The list of all callback structures. */
 
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSAnswerRecord_t.
- *
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSAnswerRecord_t )
-    {
-        return ( DNSAnswerRecord_t * ) pvArgument;
-    }
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSMessage_t.
- *
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSMessage_t )
-    {
-        return ( DNSMessage_t * ) pvArgument;
-    }
-
-/**
- * @brief Utility function to cast a const pointer of a type to a const pointer of type DNSMessage_t.
- *
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( DNSMessage_t )
-    {
-        return ( const DNSMessage_t * ) pvArgument;
-    }
-
-    #if ( ipconfigUSE_LLMNR == 1 )
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type LLMNRAnswer_t.
- *
- * @return The casted pointer.
- */
-        static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( LLMNRAnswer_t )
-        {
-            return ( LLMNRAnswer_t * ) pvArgument;
-        }
-
-
-    #endif /* ipconfigUSE_LLMNR == 1 */
-
-    #if ( ipconfigUSE_NBNS == 1 )
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type NBNSAnswer_t.
- *
- * @return The casted pointer.
- */
-        static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( NBNSAnswer_t )
-        {
-            return ( NBNSAnswer_t * ) pvArgument;
-        }
-
-    #endif /* ipconfigUSE_NBNS == 1 */
-
 /**
  * @brief Read the Name field out of a DNS response packet.
  *
@@ -344,8 +284,8 @@
 
             /* Parse the DNS message header. Map the byte stream onto a structure
              * for easier access. */
-            pxDNSMessageHeader = ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t,
-                                                         pucUDPPayloadBuffer );
+            pxDNSMessageHeader = ( ( DNSMessage_t * )
+                                   pucUDPPayloadBuffer );
 
             /* Introduce a do {} while (0) to allow the use of breaks. */
             do
@@ -492,7 +432,7 @@
 
                                         pucByte = &( pucNewBuffer[ xOffset1 ] );
                                         pcRequestedName = ( char * ) &( pucNewBuffer[ xOffset2 ] );
-                                        pxDNSMessageHeader = ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucNewBuffer );
+                                        pxDNSMessageHeader = ( ( DNSMessage_t * ) pucNewBuffer );
                                     }
                                     else
                                     {
@@ -509,7 +449,7 @@
                             /* The test on 'pucNewBuffer' is only to satisfy lint. */
                             if( ( pxNetworkBuffer != NULL ) && ( pucNewBuffer != NULL ) )
                             {
-                                pxAnswer = ipCAST_PTR_TO_TYPE_PTR( LLMNRAnswer_t, pucByte );
+                                pxAnswer = ( ( LLMNRAnswer_t * ) pucByte );
                                 /* We leave 'usIdentifier' and 'usQuestions' untouched */
                                 #ifndef _lint
                                     vSetField16( pxDNSMessageHeader, DNSMessage_t, usFlags, dnsLLMNR_FLAGS_IS_REPONSE ); /* Set the response flag */
@@ -666,8 +606,8 @@
 
                 /* Mapping pucByte to a DNSAnswerRecord allows easy access of the
                  * fields of the structure. */
-                pxDNSAnswerRecord = ipCAST_PTR_TO_TYPE_PTR( DNSAnswerRecord_t,
-                                                            pucByte );
+                pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * )
+                                      pucByte );
 
                 /* Sanity check the data length of an IPv4 answer. */
                 if( FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ) ==
@@ -738,7 +678,7 @@
                 /* It's not an A record, so skip it. Get the header location
                  * and then jump over the header. */
                 /* Cast the response to DNSAnswerRecord for easy access to fields of the DNS response. */
-                pxDNSAnswerRecord = ipCAST_PTR_TO_TYPE_PTR( DNSAnswerRecord_t, pucByte );
+                pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucByte );
 
                 pucByte = &( pucByte[ sizeof( DNSAnswerRecord_t ) ] );
                 uxSourceBytesRemaining -= sizeof( DNSAnswerRecord_t );
@@ -784,8 +724,8 @@
             UDPHeader_t * pxUDPHeader;
             size_t uxDataLength;
 
-            pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t,
-                                                  pxNetworkBuffer->pucEthernetBuffer );
+            pxUDPPacket = ( ( UDPPacket_t * )
+                            pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxUDPPacket->xIPHeader;
             pxUDPHeader = &pxUDPPacket->xUDPHeader;
             /* HT: started using defines like 'ipSIZE_OF_xxx' */
@@ -947,7 +887,7 @@
                     /* Should not occur: pucUDPPayloadBuffer is part of a xNetworkBufferDescriptor */
                     if( pxNetworkBuffer != NULL )
                     {
-                        pxMessage = ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucUDPPayloadBuffer );
+                        pxMessage = ( ( DNSMessage_t * ) pucUDPPayloadBuffer );
 
                         /* As the fields in the structures are not word-aligned, we have to
                          * copy the values byte-by-byte using macro's vSetField16() and vSetField32() */
@@ -961,7 +901,7 @@
                             ( void ) pxMessage;
                         #endif
 
-                        pxAnswer = ipCAST_PTR_TO_TYPE_PTR( NBNSAnswer_t, &( pucUDPPayloadBuffer[ offsetof( NBNSRequest_t, usType ) ] ) );
+                        pxAnswer = ( ( NBNSAnswer_t * ) &( pucUDPPayloadBuffer[ offsetof( NBNSRequest_t, usType ) ] ) );
 
                         #ifndef _lint
                             vSetField16( pxAnswer, NBNSAnswer_t, usType, usType );            /* Type */

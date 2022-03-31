@@ -113,10 +113,6 @@ void tearDown( void )
         TEST_ASSERT_EQUAL( pdTRUE, hook_called ); \
     } while( 0 )
 
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-{
-    return ( UDPPacket_t * ) pvArgument;
-}
 /* =============================  TEST CASES  =============================== */
 
 /**
@@ -406,8 +402,8 @@ void test_prepareReplyDNSMessage_success( void )
     IPHeader_t * pxIPHeader;
     UDPHeader_t * pxUDPHeader;
 
-    pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t,
-                                          &pxNetworkBuffer.pucEthernetBuffer );
+    pxUDPPacket = ( ( UDPPacket_t * )
+                    &pxNetworkBuffer.pucEthernetBuffer );
     pxIPHeader = &pxUDPPacket->xIPHeader;
     pxUDPHeader = &pxUDPPacket->xUDPHeader;
 

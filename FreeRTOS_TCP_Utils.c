@@ -41,6 +41,8 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+#include "FreeRTOS_TCP_Utils.h"
+
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
@@ -56,9 +58,10 @@
  *
  * @return The string containing the flags.
  */
+
+        static char retString[ 10 ];
         const char * prvTCPFlagMeaning( UBaseType_t xFlags )
         {
-            static char retString[ 10 ];
             size_t uxFlags = ( size_t ) xFlags;
 
             ( void ) snprintf( retString,

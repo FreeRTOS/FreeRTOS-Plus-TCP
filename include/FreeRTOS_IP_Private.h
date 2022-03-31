@@ -53,26 +53,6 @@
     #define ipFOREVER()    1
 #endif
 
-/*-----------------------------------------------------------*/
-/* Utility macros for marking casts as recognized during     */
-/* static analysis.                                          */
-/* Changed 'vCastConstPointerTo' to the shorter              */
-/* vCastConstPtrTo to limit the length of the function name. */
-/*-----------------------------------------------------------*/
-#define ipCAST_PTR_TO_TYPE_PTR( TYPE, pointer ) \
-    ( vCastPointerTo_ ## TYPE( ( void * ) ( pointer ) ) )
-#define ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( TYPE, pointer ) \
-    ( vCastConstPointerTo_ ## TYPE( ( const void * ) ( pointer ) ) )
-
-/*-----------------------------------------------------------*/
-/* Utility macros for declaring cast utility functions in    */
-/* order to centralize typecasting for static analysis.      */
-/*-----------------------------------------------------------*/
-#define ipDECL_CAST_PTR_FUNC_FOR_TYPE( TYPE ) \
-    TYPE * vCastPointerTo_ ## TYPE( void * pvArgument )
-#define ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TYPE ) \
-    const TYPE * vCastConstPointerTo_ ## TYPE( const void * pvArgument )
-
 /**
  * Structure to hold the information about the Network parameters.
  */
@@ -101,10 +81,6 @@ struct xETH_HEADER
 }
 #include "pack_struct_end.h"
 typedef struct xETH_HEADER EthernetHeader_t;
-
-extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( EthernetHeader_t );
-extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( EthernetHeader_t );
-
 
 #include "pack_struct_start.h"
 struct xARP_HEADER
@@ -139,10 +115,6 @@ struct xIP_HEADER
 #include "pack_struct_end.h"
 typedef struct xIP_HEADER IPHeader_t;
 
-extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPHeader_t );
-extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPHeader_t );
-
-
 #include "pack_struct_start.h"
 struct xICMP_HEADER
 {
@@ -154,10 +126,6 @@ struct xICMP_HEADER
 }
 #include "pack_struct_end.h"
 typedef struct xICMP_HEADER ICMPHeader_t;
-
-extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_t );
-extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_t );
-
 
 #include "pack_struct_start.h"
 struct xUDP_HEADER
@@ -203,10 +171,6 @@ struct xARP_PACKET
 #include "pack_struct_end.h"
 typedef struct xARP_PACKET ARPPacket_t;
 
-extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ARPPacket_t );
-extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ARPPacket_t );
-
-
 #include "pack_struct_start.h"
 struct xIP_PACKET
 {
@@ -215,10 +179,6 @@ struct xIP_PACKET
 }
 #include "pack_struct_end.h"
 typedef struct xIP_PACKET IPPacket_t;
-
-extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( IPPacket_t );
-extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( IPPacket_t );
-
 
 #include "pack_struct_start.h"
 struct xICMP_PACKET
@@ -230,9 +190,6 @@ struct xICMP_PACKET
 #include "pack_struct_end.h"
 typedef struct xICMP_PACKET ICMPPacket_t;
 
-extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_t );
-extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPPacket_t );
-
 #include "pack_struct_start.h"
 struct xUDP_PACKET
 {
@@ -243,9 +200,6 @@ struct xUDP_PACKET
 #include "pack_struct_end.h"
 typedef struct xUDP_PACKET UDPPacket_t;
 
-extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t );
-extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t );
-
 #include "pack_struct_start.h"
 struct xTCP_PACKET
 {
@@ -255,10 +209,6 @@ struct xTCP_PACKET
 }
 #include "pack_struct_end.h"
 typedef struct xTCP_PACKET TCPPacket_t;
-
-extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPPacket_t );
-extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( TCPPacket_t );
-
 
 /**
  * Union for the protocol packet to save space. Any packet cannot have more than one
@@ -272,9 +222,6 @@ typedef union XPROT_PACKET
     ICMPPacket_t xICMPPacket; /**< Union member: ICMP packet struct */
 } ProtocolPacket_t;
 
-extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t );
-extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolPacket_t );
-
 /**
  * Union for protocol headers to save space (RAM). Any packet cannot have more than one of
  * the below protocols.
@@ -285,9 +232,6 @@ typedef union xPROT_HEADERS
     UDPHeader_t xUDPHeader;   /**< Union member: UDP header */
     TCPHeader_t xTCPHeader;   /**< Union member: TCP header */
 } ProtocolHeaders_t;
-
-extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t );
-extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ProtocolHeaders_t );
 
 /* The maximum UDP payload length. */
 #define ipMAX_UDP_PAYLOAD_LENGTH    ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
@@ -328,12 +272,6 @@ typedef struct IP_TASK_COMMANDS
     eIPEvent_t eEventType; /**< The event-type enum */
     void * pvData;         /**< The data in the event */
 } IPStackEvent_t;
-
-extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t );
-extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ListItem_t );
-
-extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t );
-extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t );
 
 #define ipBROADCAST_IP_ADDRESS               0xffffffffU
 
@@ -784,9 +722,6 @@ typedef struct xSOCKET
     } u;                              /**< Union of TCP/UDP socket */
 } FreeRTOS_Socket_t;
 
-extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t );
-extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t );
-
 #if ( ipconfigUSE_TCP == 1 )
 
 /*
@@ -920,9 +855,6 @@ BaseType_t xIsCallingFromIPTask( void );
         EventGroupHandle_t xSelectGroup;
     } SocketSelect_t;
 
-    extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelect_t );
-    extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelect_t );
-
     extern void vSocketSelect( SocketSelect_t * pxSocketSet );
 
 /** @brief Define the data that must be passed for a 'eSocketSelectEvent'. */
@@ -931,9 +863,6 @@ BaseType_t xIsCallingFromIPTask( void );
         TaskHandle_t xTaskhandle;     /**< Task handle for use in the socket select functionality. */
         SocketSelect_t * pxSocketSet; /**< The event group for the socket select functionality. */
     } SocketSelectMessage_t;
-
-    extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t );
-    extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( SocketSelectMessage_t );
 
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 

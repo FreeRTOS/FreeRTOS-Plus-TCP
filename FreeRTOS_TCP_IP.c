@@ -53,43 +53,17 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
 
+#include "FreeRTOS_TCP_Reception.h"
+#include "FreeRTOS_TCP_Transmission.h"
+#include "FreeRTOS_TCP_State_Handling.h"
+#include "FreeRTOS_TCP_Utils.h"
+
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
-
-/*
- * Returns true if the socket must be checked.  Non-active sockets are waiting
- * for user action, either connect() or close().
- */
-    BaseType_t prvTCPSocketIsActive( uint8_t ucStatus );
-
-/*
- * Either sends a SYN or calls prvTCPSendRepeated (for regular messages).
- */
-    int32_t prvTCPSendPacket( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * Try to send a series of messages.
- */
-    int32_t prvTCPSendRepeated( FreeRTOS_Socket_t * pxSocket,
-                                NetworkBufferDescriptor_t ** ppxNetworkBuffer );
-
-/*
- * Return or send a packet to the other party.
- */
-    void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
-                             NetworkBufferDescriptor_t * pxDescriptor,
-                             uint32_t ulLen,
-                             BaseType_t xReleaseAfterSend );
-
-
-/*
- * Parse the TCP option(s) received, if present.
- */
-    BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                const NetworkBufferDescriptor_t * pxNetworkBuffer );
-
+/** @brief Socket which needs to be closed in next iteration. */
+    static FreeRTOS_Socket_t * xPreviousSocket = NULL;
 
 /*
  * For anti-hang protection and TCP keep-alive messages.  Called in two places:
@@ -104,50 +78,6 @@
  */
     static TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket );
 
-/*
- * The API FreeRTOS_send() adds data to the TX stream.  Add
- * this data to the windowing system to it can be transmitted.
- */
-    void prvTCPAddTxData( FreeRTOS_Socket_t * pxSocket );
-
-
-/*
- * The heart of all: check incoming packet for valid data and acks and do what
- * is necessary in each state.
- */
-    BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
-                                  NetworkBufferDescriptor_t ** ppxNetworkBuffer );
-
-
-/*
- * A "challenge ACK" is as per https://tools.ietf.org/html/rfc5961#section-3.2,
- * case #3. In summary, an RST was received with a sequence number that is
- * unexpected but still within the window.
- */
-    BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-/*
- * Reply to a peer with the RST flag on, in case a packet can not be handled.
- */
-    BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-
-/*
- * Return either a newly created socket, or the current socket in a connected
- * state (depends on the 'bReuseSocket' flag).
- */
-    FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
-                                         NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-
-/*
- * prvTCPStatusAgeCheck() will see if the socket has been in a non-connected
- * state for too long.  If so, the socket will be closed, and -1 will be
- * returned.
- */
-    #if ( ipconfigTCP_HANG_PROTECTION == 1 )
-        BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket );
-    #endif
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
@@ -167,8 +97,6 @@
  */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
     {
-        static FreeRTOS_Socket_t * xPreviousSocket = NULL;
-
         if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )
         {
             ( void ) vSocketClose( xPreviousSocket );
@@ -570,7 +498,7 @@
                 /* ulDelayMs contains the time to wait before a re-transmission. */
             }
 
-            pxSocket->u.xTCP.usTimeout = ( uint16_t ) ipMS_TO_MIN_TICKS( ulDelayMs );
+            pxSocket->u.xTCP.usTimeout = ( uint16_t ) ipMS_TO_MIN_TICKS( ulDelayMs ); /* LCOV_EXCL_BR_LINE ulDelayMs will not be smaller than 1 */
         }
         else
         {
@@ -606,9 +534,12 @@
         /* Function might modify the parameter. */
         NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
 
+        configASSERT( pxNetworkBuffer != NULL );
+        configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
         /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
-        const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t,
-                                                                                          &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+        const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
+                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
         FreeRTOS_Socket_t * pxSocket;
         uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
         uint32_t ulLocalIP;
@@ -619,8 +550,6 @@
         uint32_t ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
         BaseType_t xResult = pdPASS;
 
-        configASSERT( pxNetworkBuffer != NULL );
-        configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
         const IPHeader_t * pxIPHeader;
 
         /* Check for a minimum packet size. */
@@ -631,7 +560,7 @@
         else
         {
             /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
-            pxIPHeader = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPHeader_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+            pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
             ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
             ulRemoteIP = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
 
@@ -774,7 +703,7 @@
                 uint16_t usWindow;
 
                 /* pxSocket is not NULL when xResult != pdFAIL. */
-                configASSERT( pxSocket != NULL );
+                configASSERT( pxSocket != NULL ); /* LCOV_EXCL_LINE ,this branch will not be hit*/
 
                 /* Touch the alive timers because we received a message for this
                  * socket. */
@@ -859,7 +788,7 @@
         const ListItem_t * pxIterator;
         FreeRTOS_Socket_t * pxFound;
         BaseType_t xResult = pdFALSE;
-        const ListItem_t * pxEndTCP = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( xBoundTCPSocketsList.xListEnd ) );
+        const ListItem_t * pxEndTCP = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
         /* Here xBoundTCPSocketsList can be accessed safely IP-task is the only one
          * who has access. */
@@ -869,7 +798,7 @@
         {
             if( listGET_LIST_ITEM_VALUE( pxIterator ) == ( configLIST_VOLATILE TickType_t ) uxLocalPort )
             {
-                pxFound = ipCAST_PTR_TO_TYPE_PTR( FreeRTOS_Socket_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                pxFound = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                 if( ( pxFound->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP ) && ( pxFound->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
                 {

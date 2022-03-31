@@ -43,16 +43,6 @@
     static List_t xCallbackList;
 
 /**
- * @brief Utility function to cast pointer of a type to pointer of type DNSCallback_t.
- *
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSCallback_t )
-    {
-        return ( DNSCallback_t * ) pvArgument;
-    }
-
-/**
  * @brief A DNS reply was received, see if there is any matching entry and
  *        call the handler.
  *
@@ -78,8 +68,8 @@
             {
                 if( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier )
                 {
-                    DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t,
-                                                                         listGET_LIST_ITEM_OWNER( pxIterator ) );
+                    DNSCallback_t * pxCallback = ( ( DNSCallback_t * )
+                                                   listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                     pxCallback->pCallbackFunction( pcName, pxCallback->pvSearchID,
                                                    ulIPAddress );
@@ -118,7 +108,7 @@
                           TickType_t uxIdentifier )
     {
         size_t lLength = strlen( pcHostName );
-        DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, pvPortMalloc( sizeof( *pxCallback ) + lLength ) );
+        DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) pvPortMalloc( sizeof( *pxCallback ) + lLength ) );
 
         /* Translate from ms to number of clock ticks. */
         uxTimeout /= portTICK_PERIOD_MS;
@@ -171,7 +161,7 @@
             for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
                  pxIterator != xEnd; )
             {
-                DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
                 /* Move to the next item because we might remove this item */
                 pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator );
 
