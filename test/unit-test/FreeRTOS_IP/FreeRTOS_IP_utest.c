@@ -565,6 +565,84 @@ void test_FreeRTOS_ReleaseUDPPayloadBuffer( void )
     FreeRTOS_ReleaseUDPPayloadBuffer( pvBuffer );
 }
 
+static uint8_t ReleaseTCPPayloadBuffer[1500];
+static BaseType_t ReleaseTCPPayloadBufferxByteCount = 100;
+static size_t StubuxStreamBufferGetPtr_ReturnBadAddress( StreamBuffer_t * pxBuffer,
+                                 uint8_t ** ppucData, int lCounter )
+{
+    *ppucData = &ReleaseTCPPayloadBuffer[150];
+
+    return 0xFFFFFF;
+}
+
+static size_t StubuxStreamBufferGetPtr_ReturnIncorrectSize( StreamBuffer_t * pxBuffer,
+                                 uint8_t ** ppucData, int lCounter )
+{
+    *ppucData = &ReleaseTCPPayloadBuffer[0];
+
+    return (ReleaseTCPPayloadBufferxByteCount >> 1);
+}
+
+static size_t StubuxStreamBufferGetPtr_ReturnCorrectVals( StreamBuffer_t * pxBuffer,
+                                 uint8_t ** ppucData, int lCounter )
+{
+    *ppucData = &ReleaseTCPPayloadBuffer[0];
+
+    return ReleaseTCPPayloadBufferxByteCount;
+}
+
+void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBufferAssert( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t xByteCount = 100;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    uxStreamBufferGetPtr_Stub( StubuxStreamBufferGetPtr_ReturnBadAddress );
+
+    catch_assert( FreeRTOS_ReleaseTCPPayloadBuffer( &xSocket, ReleaseTCPPayloadBuffer, xByteCount ) );
+}
+
+void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectSizeAssert( void )
+{
+    FreeRTOS_Socket_t xSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    uxStreamBufferGetPtr_Stub( StubuxStreamBufferGetPtr_ReturnIncorrectSize );
+
+    catch_assert( FreeRTOS_ReleaseTCPPayloadBuffer( &xSocket, ReleaseTCPPayloadBuffer, ReleaseTCPPayloadBufferxByteCount ) );
+}
+
+void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBytesReleasedAssert( void )
+{
+    FreeRTOS_Socket_t xSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    uxStreamBufferGetPtr_Stub( StubuxStreamBufferGetPtr_ReturnCorrectVals );
+
+    FreeRTOS_recv_ExpectAndReturn( &xSocket, NULL, ReleaseTCPPayloadBufferxByteCount, FREERTOS_MSG_DONTWAIT, (ReleaseTCPPayloadBufferxByteCount>>1) );
+
+    catch_assert( FreeRTOS_ReleaseTCPPayloadBuffer( &xSocket, ReleaseTCPPayloadBuffer, ReleaseTCPPayloadBufferxByteCount ) );
+}
+
+void test_FreeRTOS_ReleaseTCPPayloadBuffer_HappyPath( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t xReturn;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    uxStreamBufferGetPtr_Stub( StubuxStreamBufferGetPtr_ReturnCorrectVals );
+
+    FreeRTOS_recv_ExpectAndReturn( &xSocket, NULL, ReleaseTCPPayloadBufferxByteCount, FREERTOS_MSG_DONTWAIT, ReleaseTCPPayloadBufferxByteCount );
+
+    xReturn = FreeRTOS_ReleaseTCPPayloadBuffer( &xSocket, ReleaseTCPPayloadBuffer, ReleaseTCPPayloadBufferxByteCount );
+
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
+}
+
 void test_prvIPTask( void )
 {
     /* Reset the static variable. */

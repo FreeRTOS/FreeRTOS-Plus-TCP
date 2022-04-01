@@ -916,12 +916,14 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
  * @param[in] xSocket: The socket that was read from.
  * @param[in] pvBuffer: The buffer returned in the call to FreeRTOS_recv().
  * @param[in] xByteCount: The number of bytes that have been used.
+ * 
+ * @return pdPASS if the buffer was released successfully, otherwise pdFAIL is returned.
  */
-    void FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
+    BaseType_t FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
                                            void const * pvBuffer,
                                            BaseType_t xByteCount )
     {
-        BaseType_t xByteCountReleased;
+        BaseType_t xByteCountReleased, xReturn = pdFAIL;
         uint8_t * pucData;
         size_t uxBytesAvailable = uxStreamBufferGetPtr( xSocket->u.xTCP.rxStream, &( pucData ) );
 
@@ -931,10 +933,19 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
         /* Avoid releasing more bytes than available. */
         configASSERT( uxBytesAvailable >= ( size_t ) xByteCount );
 
-        /* Call recv with NULL pointer to advance the circular buffer. */
-        xByteCountReleased = FreeRTOS_recv( xSocket, NULL, xByteCount, FREERTOS_MSG_DONTWAIT );
+        if( ( pucData == pvBuffer ) && ( uxBytesAvailable >= ( size_t ) xByteCount ) )
+        {
+            /* Call recv with NULL pointer to advance the circular buffer. */
+            xByteCountReleased = FreeRTOS_recv( xSocket, NULL, xByteCount, FREERTOS_MSG_DONTWAIT );
 
-        configASSERT( xByteCountReleased == xByteCount );
+            configASSERT( xByteCountReleased == xByteCount );
+            if( xByteCountReleased == xByteCount )
+            {
+                xReturn = pdPASS;
+            }
+        }
+
+        return xReturn;
     }
 #endif /* ( ipconfigUSE_TCP == 1 ) */
 /*-----------------------------------------------------------*/
