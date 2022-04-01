@@ -15,6 +15,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Timers.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/FreeRTOS_DHCP_mock.h"
         )
