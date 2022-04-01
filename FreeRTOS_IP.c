@@ -564,7 +564,9 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
              * the IP task in one go.  The packets are chained using the pxNextBuffer
              * member.  The loop below walks through the chain processing each packet
              * in the chain in turn. */
-            do
+
+            /* While there is another packet in the chain. */
+            while( pxBuffer != NULL )
             {
                 /* Store a pointer to the buffer after pxBuffer for use later on. */
                 pxNextBuffer = pxBuffer->pxNextBuffer;
@@ -574,9 +576,7 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
 
                 prvProcessEthernetPacket( pxBuffer );
                 pxBuffer = pxNextBuffer;
-
-                /* While there is another packet in the chain. */
-            } while( pxBuffer != NULL );
+            }
         }
     #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
 }

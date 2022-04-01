@@ -78,6 +78,32 @@ extern BaseType_t xIPTaskInitialised;
 extern BaseType_t xNetworkDownEventPending;
 extern BaseType_t xNetworkUp;
 
+static uint8_t ReleaseTCPPayloadBuffer[1500];
+static BaseType_t ReleaseTCPPayloadBufferxByteCount = 100;
+static size_t StubuxStreamBufferGetPtr_ReturnBadAddress( StreamBuffer_t * pxBuffer,
+                                 uint8_t ** ppucData, int lCounter )
+{
+    *ppucData = &ReleaseTCPPayloadBuffer[150];
+
+    return 0xFFFFFF;
+}
+
+static size_t StubuxStreamBufferGetPtr_ReturnIncorrectSize( StreamBuffer_t * pxBuffer,
+                                 uint8_t ** ppucData, int lCounter )
+{
+    *ppucData = &ReleaseTCPPayloadBuffer[0];
+
+    return (ReleaseTCPPayloadBufferxByteCount >> 1);
+}
+
+static size_t StubuxStreamBufferGetPtr_ReturnCorrectVals( StreamBuffer_t * pxBuffer,
+                                 uint8_t ** ppucData, int lCounter )
+{
+    *ppucData = &ReleaseTCPPayloadBuffer[0];
+
+    return ReleaseTCPPayloadBufferxByteCount;
+}
+
 static void vSetIPTaskHandle( TaskHandle_t xTaskHandleToSet )
 {
     const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
@@ -563,32 +589,6 @@ void test_FreeRTOS_ReleaseUDPPayloadBuffer( void )
     vReleaseNetworkBufferAndDescriptor_Expect( ( NetworkBufferDescriptor_t * ) 0x12123434 );
 
     FreeRTOS_ReleaseUDPPayloadBuffer( pvBuffer );
-}
-
-static uint8_t ReleaseTCPPayloadBuffer[1500];
-static BaseType_t ReleaseTCPPayloadBufferxByteCount = 100;
-static size_t StubuxStreamBufferGetPtr_ReturnBadAddress( StreamBuffer_t * pxBuffer,
-                                 uint8_t ** ppucData, int lCounter )
-{
-    *ppucData = &ReleaseTCPPayloadBuffer[150];
-
-    return 0xFFFFFF;
-}
-
-static size_t StubuxStreamBufferGetPtr_ReturnIncorrectSize( StreamBuffer_t * pxBuffer,
-                                 uint8_t ** ppucData, int lCounter )
-{
-    *ppucData = &ReleaseTCPPayloadBuffer[0];
-
-    return (ReleaseTCPPayloadBufferxByteCount >> 1);
-}
-
-static size_t StubuxStreamBufferGetPtr_ReturnCorrectVals( StreamBuffer_t * pxBuffer,
-                                 uint8_t ** ppucData, int lCounter )
-{
-    *ppucData = &ReleaseTCPPayloadBuffer[0];
-
-    return ReleaseTCPPayloadBufferxByteCount;
 }
 
 void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBufferAssert( void )
