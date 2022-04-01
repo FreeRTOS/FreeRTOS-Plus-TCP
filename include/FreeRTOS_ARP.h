@@ -144,6 +144,8 @@
     BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
                                BaseType_t bReleaseAfterSend );
 
+    void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
+
     #ifdef __cplusplus
         } /* extern "C" */
     #endif

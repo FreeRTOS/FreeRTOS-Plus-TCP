@@ -1222,7 +1222,7 @@ void test_vARPRefreshCacheEntry_IPAndMACInDifferentLocations1( void )
     TEST_ASSERT_EQUAL( ( uint8_t ) pdTRUE, xARPCache[ xUseEntry + 1 ].ucValid );
 }
 
-void test_eARPGetCacheEntryByMac_NoMatchingEntries( void )
+void test_eARPGetCacheEntryByMac_catchAssert( void )
 {
     uint32_t ulIPAddress = 0x12345678, ulEntryToTest;
     eARPLookupResult_t eResult;
@@ -1232,6 +1232,14 @@ void test_eARPGetCacheEntryByMac_NoMatchingEntries( void )
     /* Hit some asserts */
     catch_assert( eARPGetCacheEntryByMac( NULL, &ulIPAddress ) );
     catch_assert( eARPGetCacheEntryByMac( &xMACAddress, NULL ) );
+}
+
+void test_eARPGetCacheEntryByMac_NoMatchingEntries( void )
+{
+    uint32_t ulIPAddress = 0x12345678, ulEntryToTest;
+    eARPLookupResult_t eResult;
+    MACAddress_t xMACAddress = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
+    int i;
 
     /* =================================================== */
     /* Make sure no entry matches. */
@@ -1269,6 +1277,15 @@ void test_eARPGetCacheEntryByMac_OneMatchingEntry( void )
     TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
     TEST_ASSERT_EQUAL( xARPCache[ ulEntryToTest ].ulIPAddress, ulIPAddress );
     /* =================================================== */
+}
+
+void test_eARPGetCacheEntry_CatchAssert( void )
+{
+    uint32_t ulIPAddress;
+    MACAddress_t xMACAddress;
+    
+    catch_assert( eARPGetCacheEntry( NULL, &xMACAddress ) );
+    catch_assert( eARPGetCacheEntry( &ulIPAddress, NULL ) );
 }
 
 void test_eARPGetCacheEntry_IPMatchesBroadcastAddr( void )
