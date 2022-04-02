@@ -1006,3 +1006,118 @@ void test_xCheckSizeFields_UDP_LengthMore(void)
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
+
+void test_vReturnEthernetFrame_DuplicationFailed(void)
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    BaseType_t xReleaseAfterSend = pdFALSE;
+
+    xNetworkBuffer.xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( &xNetworkBuffer, xNetworkBuffer.xDataLength, NULL );
+    vReturnEthernetFrame( &xNetworkBuffer, xReleaseAfterSend );
+}
+
+void test_vReturnEthernetFrame_DuplicationSuccess(void)
+{
+    NetworkBufferDescriptor_t xDuplicateNetworkBuffer;
+    BaseType_t xReleaseAfterSend = pdFALSE;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset(&xDuplicateNetworkBuffer, 0, sizeof(xDuplicateNetworkBuffer));
+    
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
+
+    xDuplicateNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+    
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
+    memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
+
+    pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( &xNetworkBuffer, xNetworkBuffer.xDataLength, &xDuplicateNetworkBuffer );
+
+    xNetworkInterfaceOutput_ExpectAndReturn( &xDuplicateNetworkBuffer, pdTRUE, pdTRUE );
+
+    vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
+
+    TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, xDuplicateNetworkBuffer.xDataLength );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0x22, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
+    TEST_ASSERT_EQUAL_MEMORY( ipLOCAL_MAC_ADDRESS, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
+}
+
+void test_vReturnEthernetFrame( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    BaseType_t xReleaseAfterSend = pdTRUE;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
+
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
+    memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
+
+    pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10;
+
+    xNetworkInterfaceOutput_ExpectAndReturn( pxNetworkBuffer, xReleaseAfterSend, pdTRUE );
+
+    vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
+
+    TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ], 10 );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0x22, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
+    TEST_ASSERT_EQUAL_MEMORY( ipLOCAL_MAC_ADDRESS, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
+}
+
+void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    BaseType_t xReleaseAfterSend = pdTRUE;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
+
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
+    memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
+
+    pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+
+    xNetworkInterfaceOutput_ExpectAndReturn( pxNetworkBuffer, xReleaseAfterSend, pdTRUE );
+
+    vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
+
+    TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0xAA, &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ], 10 );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0x22, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
+    TEST_ASSERT_EQUAL_MEMORY( ipLOCAL_MAC_ADDRESS, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
+}
+
+void test_uxGetMinimumIPQueueSpace(void)
+{
+    UBaseType_t uxReturn;
+
+    uxQueueMinimumSpace = 10;
+    
+    uxReturn = uxGetMinimumIPQueueSpace();
+
+    TEST_ASSERT_EQUAL( 10, uxReturn );
+}
