@@ -381,6 +381,37 @@ void test_FreeRTOS_ReleaseTCPPayloadBuffer_HappyPath( void )
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
+void test_prvAllowIPPacket_BroadcastSourceIP( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
+
+    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
 void test_prvAllowIPPacket_IncorrectSizeFields( void )
 {
     eFrameProcessingResult_t eResult;
@@ -443,11 +474,535 @@ void test_prvAllowIPPacket_UDPCheckSumZero( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    //usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC );
-
-    //usGenerateProtocolChecksum_ExpectAndReturn( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
-
     eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+void test_prvAllowIPPacket_UDP_HappyPath( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+    ProtocolPacket_t * pxProtPack;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    /* Set correct length. */
+    pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t );
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    /* Correct protocol. */
+    pxIPHeader->ucProtocol = ipPROTOCOL_UDP;
+    pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof(UDPHeader_t) );
+
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    uxHeaderLength = ipSIZE_OF_IPv4_HEADER;
+    pxProtPack = ( ( ProtocolPacket_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
+
+    /* Non-zero checksum. */
+    pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0xFF12;
+
+    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+void test_prvAllowIPPacket_TCP_HappyPath( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = ipSIZE_OF_IPv4_HEADER;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+    ProtocolPacket_t * pxProtPack;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    /* Set correct length. */
+    pxNetworkBuffer->xDataLength = sizeof( TCPPacket_t );
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    /* Correct protocol. */
+    pxIPHeader->ucProtocol = ipPROTOCOL_TCP;
+    pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof(UDPHeader_t) );
+
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    
+    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+void test_prvProcessIPPacket_( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    pxIPHeader->ucVersionHeaderLength = 0x46;
+    pxIPHeader->ucProtocol = ipPROTOCOL_TCP;
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof(TCPHeader_t) );
+
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+void test_xCheckSizeFields_BufferLengthLess(void)
+{
+    BaseType_t xReturn;
+    size_t uxBufferLength = 0;
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxIPPacket = ( IPPacket_t * ) ucEthBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    pxIPHeader->ucVersionHeaderLength = 0x46;
+    pxIPHeader->ucProtocol = ipPROTOCOL_TCP;
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof(TCPHeader_t) );
+
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    for( uint32_t i =0;i<sizeof(IPPacket_t ); i++ )
+    {
+        uxBufferLength = i;
+        xReturn = xCheckSizeFields( ucEthBuffer,uxBufferLength );
+
+        TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+    }
+}
+
+void test_xCheckSizeFields_HeaderLengthLess(void)
+{
+    BaseType_t xReturn;
+    size_t uxBufferLength = sizeof(IPPacket_t);
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxIPPacket = ( IPPacket_t * ) ucEthBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    /* Value less than 0x45. */
+    pxIPHeader->ucVersionHeaderLength = 0x45  - 2;
+    pxIPHeader->ucProtocol = ipPROTOCOL_TCP;
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof(TCPHeader_t) );
+
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    xReturn = xCheckSizeFields( ucEthBuffer,uxBufferLength );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+}
+
+void test_xCheckSizeFields_HeaderLengthMore(void)
+{
+    BaseType_t xReturn;
+    size_t uxBufferLength = sizeof(IPPacket_t);
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxIPPacket = ( IPPacket_t * ) ucEthBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    /* Value more than 4F. */
+    pxIPHeader->ucVersionHeaderLength = 0x4F   + 2;
+    pxIPHeader->ucProtocol = ipPROTOCOL_TCP;
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof(TCPHeader_t) );
+
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    xReturn = xCheckSizeFields( ucEthBuffer,uxBufferLength );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+}
+
+void test_xCheckSizeFields_HeaderLengthMoreThanTotalLength(void)
+{
+    BaseType_t xReturn;
+    size_t uxBufferLength;
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxIPPacket = ( IPPacket_t * ) ucEthBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    /* Value more than 4F. */
+    pxIPHeader->ucVersionHeaderLength = 0x4F;
+    pxIPHeader->ucProtocol = ipPROTOCOL_TCP;
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof(TCPHeader_t) );
+    
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    uxBufferLength = ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 );
+
+    xReturn = xCheckSizeFields( ucEthBuffer,uxBufferLength );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+}
+
+void test_xCheckSizeFields_IPPacketLengthMoreThanTotalLength(void)
+{
+    BaseType_t xReturn;
+    size_t uxBufferLength;
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxIPPacket = ( IPPacket_t * ) ucEthBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    /* Value more than 4F. */
+    pxIPHeader->ucVersionHeaderLength = 0x4F;
+    pxIPHeader->ucProtocol = ipPROTOCOL_TCP;
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof(TCPHeader_t) );
+    
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    uxBufferLength = FreeRTOS_ntohs( pxIPHeader->usLength ) - 1;
+
+    xReturn = xCheckSizeFields( ucEthBuffer,uxBufferLength );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+}
+
+void test_xCheckSizeFields_UDP_IncorrectPacketLen(void)
+{
+    BaseType_t xReturn;
+    size_t uxBufferLength;
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxIPPacket = ( IPPacket_t * ) ucEthBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    /* Value more than 4F. */
+    pxIPHeader->ucVersionHeaderLength = 0x4F;
+    pxIPHeader->ucProtocol = ipPROTOCOL_UDP;
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+
+    uxBufferLength = ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER - 1;
+
+    pxIPHeader->usLength = FreeRTOS_htons( uxBufferLength - ipSIZE_OF_ETH_HEADER );
+    
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    xReturn = xCheckSizeFields( ucEthBuffer,uxBufferLength );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+}
+
+void test_xCheckSizeFields_TCP_IncorrectPacketLen(void)
+{
+    BaseType_t xReturn;
+    size_t uxBufferLength;
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxIPPacket = ( IPPacket_t * ) ucEthBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    /* Value more than 4F. */
+    pxIPHeader->ucVersionHeaderLength = 0x4F;
+    pxIPHeader->ucProtocol = ipPROTOCOL_TCP;
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+
+    uxBufferLength = ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_TCP_HEADER - 1;
+
+    pxIPHeader->usLength = FreeRTOS_htons( uxBufferLength - ipSIZE_OF_ETH_HEADER );
+    
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    xReturn = xCheckSizeFields( ucEthBuffer,uxBufferLength );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+}
+
+void test_xCheckSizeFields_ICMP_IncorrectPacketLen(void)
+{
+    BaseType_t xReturn;
+    size_t uxBufferLength;
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxIPPacket = ( IPPacket_t * ) ucEthBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    /* Value more than 4F. */
+    pxIPHeader->ucVersionHeaderLength = 0x4F;
+    pxIPHeader->ucProtocol = ipPROTOCOL_ICMP;
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+
+    uxBufferLength = ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMP_HEADER - 1;
+
+    pxIPHeader->usLength = FreeRTOS_htons( uxBufferLength - ipSIZE_OF_ETH_HEADER );
+    
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    xReturn = xCheckSizeFields( ucEthBuffer,uxBufferLength );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+}
+
+void test_xCheckSizeFields_IGMP_IncorrectPacketLen(void)
+{
+    BaseType_t xReturn;
+    size_t uxBufferLength;
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxIPPacket = ( IPPacket_t * ) ucEthBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    /* Value more than 4F. */
+    pxIPHeader->ucVersionHeaderLength = 0x4F;
+    pxIPHeader->ucProtocol = ipPROTOCOL_IGMP;
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+
+    uxBufferLength = ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMP_HEADER - 1;
+
+    pxIPHeader->usLength = FreeRTOS_htons( uxBufferLength - ipSIZE_OF_ETH_HEADER );
+    
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    xReturn = xCheckSizeFields( ucEthBuffer,uxBufferLength );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+}
+
+void test_xCheckSizeFields_NoProt(void)
+{
+    BaseType_t xReturn;
+    size_t uxBufferLength;
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxIPPacket = ( IPPacket_t * ) ucEthBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    /* Value more than 4F. */
+    pxIPHeader->ucVersionHeaderLength = 0x4F;
+    pxIPHeader->ucProtocol = 0;
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+
+    uxBufferLength = ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMP_HEADER - 1;
+
+    pxIPHeader->usLength = FreeRTOS_htons( uxBufferLength - ipSIZE_OF_ETH_HEADER );
+    
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    xReturn = xCheckSizeFields( ucEthBuffer,uxBufferLength );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+}
+
+void test_xCheckSizeFields_UDP_LengthLess(void)
+{
+    BaseType_t xReturn;
+    size_t uxBufferLength;
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+    ProtocolPacket_t * pxProtPack;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxIPPacket = ( IPPacket_t * ) ucEthBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    /* Value more than 4F. */
+    pxIPHeader->ucVersionHeaderLength = 0x4F;
+    pxIPHeader->ucProtocol = ipPROTOCOL_UDP;
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+
+    uxBufferLength = ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER;
+
+    pxIPHeader->usLength = FreeRTOS_ntohs( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof( pxProtPack->xUDPPacket.xUDPHeader ) - 1 );
+    
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    xReturn = xCheckSizeFields( ucEthBuffer,uxBufferLength );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+}
+
+void test_xCheckSizeFields_UDP_LengthMore(void)
+{
+    BaseType_t xReturn;
+    size_t uxBufferLength;
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+    ProtocolPacket_t * pxProtPack;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxIPPacket = ( IPPacket_t * ) ucEthBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    /* Value more than 4F. */
+    pxIPHeader->ucVersionHeaderLength = 0x4F;
+    pxIPHeader->ucProtocol = ipPROTOCOL_UDP;
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+
+    uxBufferLength = ipconfigNETWORK_MTU + 20;
+
+    pxIPHeader->usLength = FreeRTOS_ntohs( ipconfigNETWORK_MTU + 1 );
+    
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    xReturn = xCheckSizeFields( ucEthBuffer,uxBufferLength );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
