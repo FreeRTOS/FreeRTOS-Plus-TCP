@@ -2590,7 +2590,6 @@ void test_pxTCPSocketLookup_FoundAPartialMatch( void )
     TEST_ASSERT_EQUAL_UINT32( &xMatchingSocket, pxReturn );
 }
 
-
 /*
  * @brief Low and high space fields zero.
  */
@@ -2613,6 +2612,31 @@ void test_prvTCPCreateStream( void )
 
     TEST_ASSERT_EQUAL( 4, xSocket.u.xTCP.uxLittleSpace );
     TEST_ASSERT_EQUAL( 16, xSocket.u.xTCP.uxEnoughSpace );
+    TEST_ASSERT_EQUAL( ucStream, xSocket.u.xTCP.rxStream );
+}
+
+/*
+ * @brief Low and high space fields zero.
+ */
+void test_prvTCPCreateStream1( void )
+{
+    StreamBuffer_t * pxReturn;
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t xIsInputStream = pdTRUE;
+    uint8_t ucStream[ ipconfigTCP_MSS ];
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.u.xTCP.uxRxStreamSize = 0;
+    xSocket.u.xTCP.usMSS = 2;
+    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( *pxReturn ) ) - sizeof( pxReturn->ucArray );
+
+    pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ucStream );
+
+    pxReturn = prvTCPCreateStream( &xSocket, xIsInputStream );
+
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.uxLittleSpace );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.uxEnoughSpace );
     TEST_ASSERT_EQUAL( ucStream, xSocket.u.xTCP.rxStream );
 }
 
