@@ -76,6 +76,12 @@ extern QueueHandle_t xNetworkEventQueue;
     static BaseType_t xCallEventHook = pdFALSE;
 #endif
 
+static UBaseType_t uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
+static size_t uxMinLastSize = 0u;
+#if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
+    static UBaseType_t uxLastMinQueueSpace = 0;
+#endif
+
 /**
  * Used in checksum calculation.
  */
@@ -946,8 +952,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
  */
     void vPrintResourceStats( void )
     {
-        static UBaseType_t uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
-        static size_t uxMinLastSize = 0u;
         UBaseType_t uxCurrentBufferCount;
         size_t uxMinSize;
 
@@ -992,7 +996,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
         #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
             {
-                static UBaseType_t uxLastMinQueueSpace = 0;
                 UBaseType_t uxCurrentCount = 0u;
 
                 uxCurrentCount = uxGetMinimumIPQueueSpace();
