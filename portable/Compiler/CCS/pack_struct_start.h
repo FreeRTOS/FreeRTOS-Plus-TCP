@@ -22,5 +22,10 @@
  *      CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  *      @brief: The leading compiler directive to pack the following structure to 1 byte
+ *
+ *      Also suppress an incorrect warning from the CCS compiler:
+ *          error #1916-D: definition at end of file not followed by a semicolon or a declarator
  */
+#pragma diag_push
+#pragma diag_suppress=1916
 #pragma pack(1)
