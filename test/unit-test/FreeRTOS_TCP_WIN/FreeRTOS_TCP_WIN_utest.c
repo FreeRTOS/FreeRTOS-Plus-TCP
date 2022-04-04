@@ -52,6 +52,7 @@ static void initializeList( List_t * const pxList );
 
 extern TCPSegment_t * xTCPSegments;
 extern List_t xSegmentList;
+extern BaseType_t xTCPWindowLoggingLevel;
 
 /**
  * @brief calls at the beginning of each test case
@@ -1044,10 +1045,12 @@ void test_lTCPWindowTxAdd_nothing_to_do( void )
     uint32_t ulLength = 0;
     int32_t lPosition = 0;
     int32_t lMax = 0;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
 
     /* in real code, this points to a list of segments */
     xWindow.pxHeadSegment = malloc( sizeof( TCPSegment_t ) );
 
+    xTCPWindowLoggingLevel = 3;
 
     lDone = lTCPWindowTxAdd( &xWindow,
                              ulLength,
@@ -1055,6 +1058,8 @@ void test_lTCPWindowTxAdd_nothing_to_do( void )
                              lMax );
 
     TEST_ASSERT_EQUAL( 0, lDone );
+
+    xTCPWindowLoggingLevel = xBackup;
     free( xWindow.pxHeadSegment );
 }
 
@@ -1132,6 +1137,7 @@ void test_lTCPWindowTxAdd_bytes_left_gt_zero( void )
     uint32_t ulLength = 0;
     int32_t lPosition = 0;
     int32_t lMax = 0;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
 
     /* in real code, this points to a list of segments */
     xWindow.pxHeadSegment = malloc( sizeof( TCPSegment_t ) );
@@ -1139,6 +1145,7 @@ void test_lTCPWindowTxAdd_bytes_left_gt_zero( void )
     xWindow.pxHeadSegment->lDataLength = 200;
     xWindow.pxHeadSegment->u.bits.bOutstanding = pdFALSE_UNSIGNED;
 
+    xTCPWindowLoggingLevel  = 2;
 
     FreeRTOS_min_int32_ExpectAnyArgsAndReturn( 20 );
     lDone = lTCPWindowTxAdd( &xWindow,
@@ -1149,6 +1156,8 @@ void test_lTCPWindowTxAdd_bytes_left_gt_zero( void )
     TEST_ASSERT_EQUAL( 20, lDone );
     TEST_ASSERT_NOT_NULL( xWindow.pxHeadSegment );
     free( xWindow.pxHeadSegment );
+
+    xTCPWindowLoggingLevel = xBackup;
 }
 
 void test_lTCPWindowTxAdd_len_gt_max_len( void )
@@ -1159,7 +1168,9 @@ void test_lTCPWindowTxAdd_len_gt_max_len( void )
     int32_t lPosition = 0;
     int32_t lMax = 300;
     void * xHeadSegmentSave;
-
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
+    
+    xTCPWindowLoggingLevel = 0;
     /* in real code, this points to a list of segments */
     xWindow.pxHeadSegment = malloc( sizeof( TCPSegment_t ) );
     xHeadSegmentSave = xWindow.pxHeadSegment;
@@ -1177,6 +1188,7 @@ void test_lTCPWindowTxAdd_len_gt_max_len( void )
     TEST_ASSERT_EQUAL( 200, lDone );
     TEST_ASSERT_NULL( xWindow.pxHeadSegment );
     free( xHeadSegmentSave );
+    xTCPWindowLoggingLevel = xBackup;
 }
 
 void test_lTCPWindowTxAdd_lBytsLeft_gt_zero_pxSegment_NULL( void )
@@ -1564,7 +1576,9 @@ void test_ulTCPWindowTxGet_config_assert( void )
     TCPSegment_t mockSegment = { 0 };
     TCPSegment_t mockSegment2 = { 0 };
     ListItem_t mockListItem;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
 
+    xTCPWindowLoggingLevel = 2;
     xWindow.tx.ulHighestSequenceNumber = 45;
     xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber + 3U;
     mockSegment.lDataLength = 360;
@@ -1609,6 +1623,8 @@ void test_ulTCPWindowTxGet_config_assert( void )
     catch_assert( ulTCPWindowTxGet( &xWindow,
                                     ulWindowSize,
                                     &lPosition ) );
+
+    xTCPWindowLoggingLevel = xBackup;
 }
 
 void test_ulTCPWindowTxGet_empty_segment_list( void )
@@ -1806,6 +1822,9 @@ void test_ulTCPWindowTxGet_empty_wait_queue_5( void )
     TCPSegment_t mockSegment = { 0 };
     TCPSegment_t mockSegment2 = { 0 };
     ListItem_t mockListItem;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
+
+    xTCPWindowLoggingLevel = 0;
 
     xWindow.tx.ulHighestSequenceNumber = 45;
     xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber + 3U;
@@ -1853,6 +1872,7 @@ void test_ulTCPWindowTxGet_empty_wait_queue_5( void )
                                  &lPosition );
     TEST_ASSERT_EQUAL( 567, ulReturn );
     TEST_ASSERT_NULL( xWindow.pxHeadSegment );
+    xTCPWindowLoggingLevel = xBackup;
 }
 
 void test_ulTCPWindowTxGet_empty_wait_queue_6( void )
@@ -2012,6 +2032,7 @@ void test_ulTCPWindowTxGet_segment_not_null_2( void )
     TCPWindow_t xWindow = { 0 };
     uint32_t ulWindowSize = 23;
     int32_t lPosition = 0;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
 
     TCPSegment_t mockSegment = { 0 };
     ListItem_t mockListItem;
@@ -2019,6 +2040,8 @@ void test_ulTCPWindowTxGet_segment_not_null_2( void )
 
     initializeList( &xWindow.xWaitQueue );
     initializeListItem( &mockListItem );
+
+    xTCPWindowLoggingLevel = 2;
 
     mockSegment.xQueueItem.pvContainer = NULL;
 
@@ -2057,6 +2080,8 @@ void test_ulTCPWindowTxGet_segment_not_null_2( void )
                                  &lPosition );
     TEST_ASSERT_EQUAL( 0, ulReturn );
     TEST_ASSERT_EQUAL( 32, mockSegment.xTransmitTimer.uxBorn );
+
+    xTCPWindowLoggingLevel = xBackup;
 }
 
 /* covering more cases in ulTCPWindowTxGet */
@@ -2066,10 +2091,13 @@ void test_ulTCPWindowTxGet_segment_not_null_3( void )
     TCPWindow_t xWindow = { 0 };
     uint32_t ulWindowSize = 23;
     int32_t lPosition = 0;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
 
     TCPSegment_t mockSegment = { 0 };
     ListItem_t mockListItem;
     List_t xQueueList;
+
+    xTCPWindowLoggingLevel = 0;
 
     mockSegment.xQueueItem.pvContainer = NULL;
 
@@ -2111,6 +2139,7 @@ void test_ulTCPWindowTxGet_segment_not_null_3( void )
                                  &lPosition );
     TEST_ASSERT_EQUAL( 0, ulReturn );
     TEST_ASSERT_EQUAL( 32, mockSegment.xTransmitTimer.uxBorn );
+    xTCPWindowLoggingLevel = xBackup;
 }
 
 /* covering more cases in ulTCPWindowTxGet */
@@ -2236,7 +2265,9 @@ void test_ulTCPWindowTxAck_curr_seq_lt_seq_4( void )
     TCPSegment_t mockSegment = { 0 };
     ListItem_t mockListItem;
     ListItem_t mockNextListItem;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
 
+    xTCPWindowLoggingLevel = 2;
     xWindow.tx.ulCurrentSequenceNumber = 32;
     mockSegment.ulSequenceNumber = 32;
     mockSegment.u.bits.bAcked = pdTRUE_UNSIGNED;
@@ -2249,6 +2280,8 @@ void test_ulTCPWindowTxAck_curr_seq_lt_seq_4( void )
     ulReturn = ulTCPWindowTxAck( &xWindow, ulSequenceNumber );
 
     TEST_ASSERT_EQUAL( 2000, ulReturn );
+
+    xTCPWindowLoggingLevel = xBackup;
 }
 
 /* covering code inside prvTCPWindowTxCheckAck */
@@ -2306,11 +2339,13 @@ void test_ulTCPWindowTxAck_curr_seq_lt_seq_6_acked_false( void )
     TCPWindow_t xWindow = { 0 };
     TCPSegment_t mockSegment = { 0 };
     ListItem_t mockListItem;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
 
     xWindow.tx.ulCurrentSequenceNumber = 32;
     mockSegment.ulSequenceNumber = 32;
     mockSegment.u.bits.bAcked = pdFALSE_UNSIGNED;
     mockSegment.lDataLength = 20;
+    xTCPWindowLoggingLevel = 0;
 
     mockSegment.u.bits.ucTransmitCount = 1U;
     /* ->prvTCPWindowTxCheckAck */
@@ -2321,6 +2356,8 @@ void test_ulTCPWindowTxAck_curr_seq_lt_seq_6_acked_false( void )
     ulReturn = ulTCPWindowTxAck( &xWindow, ulSequenceNumber );
 
     TEST_ASSERT_EQUAL( 20, ulReturn );
+
+    xTCPWindowLoggingLevel = xBackup;
 }
 
 /* covering code inside prvTCPWindowTxCheckAck */
@@ -2498,9 +2535,11 @@ void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_3( void )
     uint32_t ulLast = 63;
     TCPSegment_t mockSegment;
     ListItem_t mockListItem;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
 
     initializeListItem( &mockListItem );
 
+    xTCPWindowLoggingLevel = 3;
     xWindow.tx.ulCurrentSequenceNumber = 32;
     mockSegment.u.bits.bAcked = pdFALSE_UNSIGNED;
     mockSegment.lDataLength = 30;
@@ -2525,9 +2564,11 @@ void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_3( void )
                                     ulFirst,
                                     ulLast );
     TEST_ASSERT_EQUAL( 0, ulAckCount );
+
+    xTCPWindowLoggingLevel = xBackup;
 }
 
-void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_4( void )
+void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_LoggingGTZero( void )
 {
     uint32_t ulAckCount;
     TCPWindow_t xWindow;
@@ -2535,6 +2576,52 @@ void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_4( void )
     uint32_t ulLast = 63;
     TCPSegment_t mockSegment;
     ListItem_t mockListItem;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
+
+    initializeListItem( &mockListItem );
+    initializeList( &xWindow.xPriorityQueue );
+
+    xTCPWindowLoggingLevel = 0;
+    xWindow.tx.ulCurrentSequenceNumber = 32;
+    mockSegment.u.bits.bAcked = pdFALSE_UNSIGNED;
+    mockSegment.lDataLength = 30;
+
+    mockSegment.u.bits.ucTransmitCount = 1U;
+    mockSegment.ulSequenceNumber = 31;
+    mockListItem.pxContainer = &xWindow.xPriorityQueue;
+    mockSegment.xQueueItem = mockListItem;
+    mockSegment.xQueueItem.pxContainer = NULL;
+    mockSegment.u.bits.ucDupAckCount = 2U;
+
+    /* ->prvTCPWindowTxCheckAck */
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
+    /* ulTCPWindowTxSack */
+    /* ->prvTCPWindowFastRetransmit */
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
+    /* exit the loop */
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
+    uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
+
+    ulAckCount = ulTCPWindowTxSack( &xWindow,
+                                    ulFirst,
+                                    ulLast );
+    TEST_ASSERT_EQUAL( 0, ulAckCount );
+
+    xTCPWindowLoggingLevel = xBackup;
+}
+
+void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_4_LoggingLTZero( void )
+{
+    uint32_t ulAckCount;
+    TCPWindow_t xWindow;
+    uint32_t ulFirst = 33;
+    uint32_t ulLast = 63;
+    TCPSegment_t mockSegment;
+    ListItem_t mockListItem;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
+
+    xTCPWindowLoggingLevel = -1;
 
     initializeListItem( &mockListItem );
     initializeList( &xWindow.xPriorityQueue );
@@ -2564,4 +2651,6 @@ void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_4( void )
                                     ulFirst,
                                     ulLast );
     TEST_ASSERT_EQUAL( 0, ulAckCount );
+
+    xTCPWindowLoggingLevel = xBackup;
 }
