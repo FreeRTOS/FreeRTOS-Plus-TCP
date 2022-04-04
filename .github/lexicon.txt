@@ -693,6 +693,7 @@ prvprocessnetworkdownevent
 prvreadnamefield
 prvreadsackoption
 prvrxcallback
+prvsendbuffer
 prvsenddata
 prvsenddhcpdiscover
 prvsenddhcprequest
