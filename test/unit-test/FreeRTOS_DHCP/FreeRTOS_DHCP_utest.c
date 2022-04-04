@@ -236,12 +236,12 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccessCorrectTxID( Socket
 }
 
 static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrType( Socket_t xSocket,
-                                                                          void * pvBuffer,
-                                                                          size_t uxBufferLength,
-                                                                          BaseType_t xFlags,
-                                                                          struct freertos_sockaddr * pxSourceAddress,
-                                                                          socklen_t * pxSourceAddressLength,
-                                                                          int callbacks )
+                                                                               void * pvBuffer,
+                                                                               size_t uxBufferLength,
+                                                                               BaseType_t xFlags,
+                                                                               struct freertos_sockaddr * pxSourceAddress,
+                                                                               socklen_t * pxSourceAddressLength,
+                                                                               int callbacks )
 {
     if( xFlags == FREERTOS_ZERO_COPY )
     {
@@ -262,12 +262,12 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrType( S
 }
 
 static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrLen( Socket_t xSocket,
-                                                                          void * pvBuffer,
-                                                                          size_t uxBufferLength,
-                                                                          BaseType_t xFlags,
-                                                                          struct freertos_sockaddr * pxSourceAddress,
-                                                                          socklen_t * pxSourceAddressLength,
-                                                                          int callbacks )
+                                                                              void * pvBuffer,
+                                                                              size_t uxBufferLength,
+                                                                              BaseType_t xFlags,
+                                                                              struct freertos_sockaddr * pxSourceAddress,
+                                                                              socklen_t * pxSourceAddressLength,
+                                                                              int callbacks )
 {
     if( xFlags == FREERTOS_ZERO_COPY )
     {
@@ -291,12 +291,12 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrLen( So
 }
 
 static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalHostAddr( Socket_t xSocket,
-                                                                          void * pvBuffer,
-                                                                          size_t uxBufferLength,
-                                                                          BaseType_t xFlags,
-                                                                          struct freertos_sockaddr * pxSourceAddress,
-                                                                          socklen_t * pxSourceAddressLength,
-                                                                          int callbacks )
+                                                                             void * pvBuffer,
+                                                                             size_t uxBufferLength,
+                                                                             BaseType_t xFlags,
+                                                                             struct freertos_sockaddr * pxSourceAddress,
+                                                                             socklen_t * pxSourceAddressLength,
+                                                                             int callbacks )
 {
     if( xFlags == FREERTOS_ZERO_COPY )
     {
@@ -321,12 +321,12 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalHostAddr( Soc
 }
 
 static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_NonLocalHostAddr( Socket_t xSocket,
-                                                                          void * pvBuffer,
-                                                                          size_t uxBufferLength,
-                                                                          BaseType_t xFlags,
-                                                                          struct freertos_sockaddr * pxSourceAddress,
-                                                                          socklen_t * pxSourceAddressLength,
-                                                                          int callbacks )
+                                                                                void * pvBuffer,
+                                                                                size_t uxBufferLength,
+                                                                                BaseType_t xFlags,
+                                                                                struct freertos_sockaddr * pxSourceAddress,
+                                                                                socklen_t * pxSourceAddressLength,
+                                                                                int callbacks )
 {
     if( xFlags == FREERTOS_ZERO_COPY )
     {
@@ -351,12 +351,12 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_NonLocalHostAddr( 
 }
 
 static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalMACAddrNotMatching( Socket_t xSocket,
-                                                                          void * pvBuffer,
-                                                                          size_t uxBufferLength,
-                                                                          BaseType_t xFlags,
-                                                                          struct freertos_sockaddr * pxSourceAddress,
-                                                                          socklen_t * pxSourceAddressLength,
-                                                                          int callbacks )
+                                                                                       void * pvBuffer,
+                                                                                       size_t uxBufferLength,
+                                                                                       BaseType_t xFlags,
+                                                                                       struct freertos_sockaddr * pxSourceAddress,
+                                                                                       socklen_t * pxSourceAddressLength,
+                                                                                       int callbacks )
 {
     if( xFlags == FREERTOS_ZERO_COPY )
     {
@@ -405,7 +405,7 @@ void test_vDHCPSetPreferredIPAddress( void )
     uint32_t ulSecondIP = 0xAABBCCDD;
 
     xDHCPData.ulPreferredIPAddress = ulSecondIP;
-    
+
     ulReturn = vDHCPSetPreferredIPAddress( ulIPAddress );
     TEST_ASSERT_EQUAL( ulSecondIP, ulReturn );
 
@@ -1503,7 +1503,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSuccess_CorrectAddrLen_LocalMACNotma
     /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );    
+    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageWithoutOptionsNoTimeout( void )

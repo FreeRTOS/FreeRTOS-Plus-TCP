@@ -1283,7 +1283,7 @@ void test_eARPGetCacheEntry_CatchAssert( void )
 {
     uint32_t ulIPAddress;
     MACAddress_t xMACAddress;
-    
+
     catch_assert( eARPGetCacheEntry( NULL, &xMACAddress ) );
     catch_assert( eARPGetCacheEntry( &ulIPAddress, NULL ) );
 }

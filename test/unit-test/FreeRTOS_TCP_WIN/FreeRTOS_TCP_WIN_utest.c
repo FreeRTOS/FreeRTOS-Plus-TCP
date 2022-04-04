@@ -1145,7 +1145,7 @@ void test_lTCPWindowTxAdd_bytes_left_gt_zero( void )
     xWindow.pxHeadSegment->lDataLength = 200;
     xWindow.pxHeadSegment->u.bits.bOutstanding = pdFALSE_UNSIGNED;
 
-    xTCPWindowLoggingLevel  = 2;
+    xTCPWindowLoggingLevel = 2;
 
     FreeRTOS_min_int32_ExpectAnyArgsAndReturn( 20 );
     lDone = lTCPWindowTxAdd( &xWindow,
@@ -1169,7 +1169,7 @@ void test_lTCPWindowTxAdd_len_gt_max_len( void )
     int32_t lMax = 300;
     void * xHeadSegmentSave;
     BaseType_t xBackup = xTCPWindowLoggingLevel;
-    
+
     xTCPWindowLoggingLevel = 0;
     /* in real code, this points to a list of segments */
     xWindow.pxHeadSegment = malloc( sizeof( TCPSegment_t ) );

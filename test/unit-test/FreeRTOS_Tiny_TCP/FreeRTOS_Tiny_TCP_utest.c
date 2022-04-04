@@ -321,7 +321,7 @@ void test_ulTCPWindowTxGet_length_ne_zero_bit_outstanding_eq_true_timer_ne_expir
 
     /* ->ulTimerGetAge */
     xTaskGetTickCount_ExpectAndReturn( 10 );
-    
+
     ulLength = ulTCPWindowTxGet( &xWindow,
                                  ulWindowSize,
                                  &plPosition );

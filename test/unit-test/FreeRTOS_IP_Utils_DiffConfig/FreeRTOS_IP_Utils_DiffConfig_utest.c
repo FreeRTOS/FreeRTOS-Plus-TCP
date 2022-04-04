@@ -73,7 +73,7 @@ extern UBaseType_t uxLastMinQueueSpace;
 void test_pxPacketBuffer_to_NetworkBuffer( void )
 {
     NetworkBufferDescriptor_t * pxReturn;
-    
+
     pxReturn = pxPacketBuffer_to_NetworkBuffer( NULL );
 
     TEST_ASSERT_EQUAL( NULL, pxReturn );
@@ -94,21 +94,21 @@ void test_prvProcessNetworkDownEvent_Pass( void )
     prvProcessNetworkDownEvent();
 }
 
-void test_FreeRTOS_round_up(void)
+void test_FreeRTOS_round_up( void )
 {
     uint32_t ulReturn;
     uint32_t a = 10;
-    
+
     ulReturn = FreeRTOS_round_up( a, 0 );
 
     TEST_ASSERT_EQUAL( 10, ulReturn );
 }
 
-void test_FreeRTOS_round_down(void)
+void test_FreeRTOS_round_down( void )
 {
     uint32_t ulReturn;
     uint32_t a = 10;
-    
+
     ulReturn = FreeRTOS_round_down( a, 0 );
 
     TEST_ASSERT_EQUAL( 0, ulReturn );

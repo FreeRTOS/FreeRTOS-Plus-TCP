@@ -34,19 +34,4 @@ void test_FreeRTOS_OutputARPRequest_MinimumPacketSizeLessThanARPPacket( void )
     xNetworkInterfaceOutput_ExpectAndReturn( &xNetworkBuffer, pdTRUE, pdPASS );
     FreeRTOS_OutputARPRequest( ulIPAddress );
     /* =================================================== */
-
-    /* =================================================== */
-    // pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
-    // xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
-    // xSendEventStructToIPTask_IgnoreAndReturn( pdFALSE );
-    // vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
-    // FreeRTOS_OutputARPRequest( ulIPAddress );
-    // /* =================================================== */
-
-    // /* =================================================== */
-    // pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
-    // xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
-    // xSendEventStructToIPTask_IgnoreAndReturn( pdPASS );
-    // FreeRTOS_OutputARPRequest( ulIPAddress );
-    /* =================================================== */
 }

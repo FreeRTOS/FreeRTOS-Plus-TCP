@@ -332,7 +332,7 @@ extern uint32_t ulRand();
 
 #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
 
-#define ipconfigCHECK_IP_QUEUE_SPACE             (1)
-#define ipconfigZERO_COPY_TX_DRIVER              (1)
+#define ipconfigCHECK_IP_QUEUE_SPACE    ( 1 )
+#define ipconfigZERO_COPY_TX_DRIVER     ( 1 )
 
 #endif /* FREERTOS_IP_CONFIG_H */

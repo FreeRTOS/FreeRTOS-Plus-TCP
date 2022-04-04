@@ -76,8 +76,14 @@ extern QueueHandle_t xNetworkEventQueue;
     static BaseType_t xCallEventHook = pdFALSE;
 #endif
 
-static UBaseType_t uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
-static size_t uxMinLastSize = 0u;
+#if ( ipconfigHAS_PRINTF != 0 )
+    /** @brief Last value of minimum buffer count. */
+    static UBaseType_t uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
+
+/** @brief Last value of minimum size. Used in printing resource stats. */
+    static size_t uxMinLastSize = 0u;
+#endif
+
 #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
     static UBaseType_t uxLastMinQueueSpace = 0;
 #endif

@@ -331,7 +331,7 @@
     uint32_t FreeRTOS_GetNetmask( void );
     BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
                                    TickType_t uxTicksToWait );
-    
+
     BaseType_t FreeRTOS_IsNetworkUp( void );
 
     #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )

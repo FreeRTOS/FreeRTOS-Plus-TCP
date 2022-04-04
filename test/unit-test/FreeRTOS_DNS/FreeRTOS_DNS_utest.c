@@ -577,7 +577,7 @@ void test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
     FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
     xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
     vDNSSetCallBack_ExpectAnyArgs();
-    
+
     /* in prvGetHostByName */
     DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
     /* prvGetHostByNameOp */
@@ -599,7 +599,7 @@ void test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
 
     /* back in prvGetHostByName */
     DNS_CloseSocket_ExpectAnyArgs();
-    
+
     ret = FreeRTOS_gethostbyname_a( GOOD_ADDRESS,
                                     dns_callback,
                                     &pvSearchID,

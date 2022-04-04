@@ -916,12 +916,12 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
  * @param[in] xSocket: The socket that was read from.
  * @param[in] pvBuffer: The buffer returned in the call to FreeRTOS_recv().
  * @param[in] xByteCount: The number of bytes that have been used.
- * 
+ *
  * @return pdPASS if the buffer was released successfully, otherwise pdFAIL is returned.
  */
     BaseType_t FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
-                                           void const * pvBuffer,
-                                           BaseType_t xByteCount )
+                                                 void const * pvBuffer,
+                                                 BaseType_t xByteCount )
     {
         BaseType_t xByteCountReleased, xReturn = pdFAIL;
         uint8_t * pucData;
@@ -939,6 +939,7 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
             xByteCountReleased = FreeRTOS_recv( xSocket, NULL, xByteCount, FREERTOS_MSG_DONTWAIT );
 
             configASSERT( xByteCountReleased == xByteCount );
+
             if( xByteCountReleased == xByteCount )
             {
                 xReturn = pdPASS;

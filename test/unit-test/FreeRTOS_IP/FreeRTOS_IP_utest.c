@@ -78,28 +78,31 @@ extern BaseType_t xIPTaskInitialised;
 extern BaseType_t xNetworkDownEventPending;
 extern BaseType_t xNetworkUp;
 
-static uint8_t ReleaseTCPPayloadBuffer[1500];
+static uint8_t ReleaseTCPPayloadBuffer[ 1500 ];
 static BaseType_t ReleaseTCPPayloadBufferxByteCount = 100;
 static size_t StubuxStreamBufferGetPtr_ReturnBadAddress( StreamBuffer_t * pxBuffer,
-                                 uint8_t ** ppucData, int lCounter )
+                                                         uint8_t ** ppucData,
+                                                         int lCounter )
 {
-    *ppucData = &ReleaseTCPPayloadBuffer[150];
+    *ppucData = &ReleaseTCPPayloadBuffer[ 150 ];
 
     return 0xFFFFFF;
 }
 
 static size_t StubuxStreamBufferGetPtr_ReturnIncorrectSize( StreamBuffer_t * pxBuffer,
-                                 uint8_t ** ppucData, int lCounter )
+                                                            uint8_t ** ppucData,
+                                                            int lCounter )
 {
-    *ppucData = &ReleaseTCPPayloadBuffer[0];
+    *ppucData = &ReleaseTCPPayloadBuffer[ 0 ];
 
-    return (ReleaseTCPPayloadBufferxByteCount >> 1);
+    return( ReleaseTCPPayloadBufferxByteCount >> 1 );
 }
 
 static size_t StubuxStreamBufferGetPtr_ReturnCorrectVals( StreamBuffer_t * pxBuffer,
-                                 uint8_t ** ppucData, int lCounter )
+                                                          uint8_t ** ppucData,
+                                                          int lCounter )
 {
-    *ppucData = &ReleaseTCPPayloadBuffer[0];
+    *ppucData = &ReleaseTCPPayloadBuffer[ 0 ];
 
     return ReleaseTCPPayloadBufferxByteCount;
 }
@@ -622,7 +625,7 @@ void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBytesReleasedAssert( void )
 
     uxStreamBufferGetPtr_Stub( StubuxStreamBufferGetPtr_ReturnCorrectVals );
 
-    FreeRTOS_recv_ExpectAndReturn( &xSocket, NULL, ReleaseTCPPayloadBufferxByteCount, FREERTOS_MSG_DONTWAIT, (ReleaseTCPPayloadBufferxByteCount>>1) );
+    FreeRTOS_recv_ExpectAndReturn( &xSocket, NULL, ReleaseTCPPayloadBufferxByteCount, FREERTOS_MSG_DONTWAIT, ( ReleaseTCPPayloadBufferxByteCount >> 1 ) );
 
     catch_assert( FreeRTOS_ReleaseTCPPayloadBuffer( &xSocket, ReleaseTCPPayloadBuffer, ReleaseTCPPayloadBufferxByteCount ) );
 }

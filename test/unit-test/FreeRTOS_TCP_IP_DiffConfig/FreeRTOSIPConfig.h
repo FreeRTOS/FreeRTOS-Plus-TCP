@@ -330,7 +330,7 @@ extern uint32_t ulRand();
 
 #define portINLINE
 
-#define ipconfigZERO_COPY_TX_DRIVER               (1)
+#define ipconfigZERO_COPY_TX_DRIVER    ( 1 )
 
 #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
 

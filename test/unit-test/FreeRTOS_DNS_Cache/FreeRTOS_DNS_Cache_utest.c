@@ -99,9 +99,9 @@ void test_processDNS_CACHE_CatchAssert( void )
     BaseType_t x;
     uint32_t pulIP = 1234;
 
-    xTaskGetTickCount_ExpectAndReturn( 5000 );  /* 5 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 5000 ); /* 5 seconds */
 
-    catch_assert(FreeRTOS_dnslookup( NULL ) );
+    catch_assert( FreeRTOS_dnslookup( NULL ) );
 }
 
 /**
