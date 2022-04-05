@@ -23,6 +23,8 @@
  *
  *      @brief: TI's Code Generation Tools do not add a trailing directive for packing structures
  *
- *      Contains only a semicolon to end the wrapped structure
+ *      Contains a semicolon to end the wrapped structure,
+ *      and resets warnings that were supressed in pack_struct_start.h.
  */
 ;
+#pragma diag_pop
