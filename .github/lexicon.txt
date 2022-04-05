@@ -1445,6 +1445,7 @@ xcallbacklist
 xcheckloopback
 xclearonexit
 xclientsocket
+xcount
 xdatalength
 xdatalengthbytes
 xdefaultaddressing
