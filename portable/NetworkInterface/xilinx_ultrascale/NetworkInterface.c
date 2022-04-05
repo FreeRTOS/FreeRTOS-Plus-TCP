@@ -165,87 +165,153 @@ static u32 ulPHYIndex;
 
 /*-----------------------------------------------------------*/
 
+/* The function xNetworkInterfaceInitialise() will be called as
+ * long as it returns the value pdFAIL.
+ * It will go through several stages as described in 'eEMACState'.
+ */
+typedef enum xEMAC_STATE
+{
+    xEMAC_Init,
+    xEMAC_SetupPHY,
+    xEMAC_WaitPHY,
+    xEMAC_Ready,
+    xEMAC_Fatal,
+} EMACState_t;
+
+static EMACState_t eEMACState = xEMAC_Init;
+
 BaseType_t xNetworkInterfaceInitialise( void )
 {
     uint32_t ulLinkSpeed, ulDMAReg;
-    BaseType_t xStatus, xLinkStatus;
-    XEmacPs * pxEMAC_PS;
-    const TickType_t xWaitLinkDelay = pdMS_TO_TICKS( 7000UL );
-    const TickType_t xWaitRelinkDelay = pdMS_TO_TICKS( 1000UL );
+    BaseType_t xStatus, xReturn = pdFAIL;
+    XEmacPs * pxEMAC_PS = &( xEMACpsif.emacps );
+    const TickType_t xWaitLinkDelay = pdMS_TO_TICKS( 1000U );
 
-    /* Guard against the init function being called more than once. */
-    if( xEMACTaskHandle == NULL )
+    switch( eEMACState )
     {
-        pxEMAC_PS = &( xEMACpsif.emacps );
-        memset( &xEMACpsif, '\0', sizeof( xEMACpsif ) );
+        case xEMAC_Init:
 
-        xStatus = XEmacPs_CfgInitialize( pxEMAC_PS, &mac_config, mac_config.BaseAddress );
+            ulPHYLinkStatus = 0U;
+            memset( &xEMACpsif, '\0', sizeof( xEMACpsif ) );
 
-        if( xStatus != XST_SUCCESS )
-        {
-            FreeRTOS_printf( ( "xEMACInit: EmacPs Configuration Failed....\n" ) );
-        }
+            xStatus = XEmacPs_CfgInitialize( pxEMAC_PS, &mac_config, mac_config.BaseAddress );
+
+            if( xStatus != XST_SUCCESS )
+            {
+                FreeRTOS_printf( ( "xEMACInit: EmacPs Configuration Failed....\n" ) );
+                eEMACState = xEMAC_Fatal;
+                break;
+            }
 
 /* _HT_ : the use of jumbo frames has not been tested sufficiently yet. */
 
-        if( pxEMAC_PS->Version > 2 )
-        {
-            #if ( USE_JUMBO_FRAMES == 1 )
-                /* Enable jumbo frames for zynqmp */
-                XEmacPs_SetOptions( pxEMAC_PS, XEMACPS_JUMBO_ENABLE_OPTION );
-            #endif
-        }
-
-        /* Initialize the mac and set the MAC address. */
-        XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) ipLOCAL_MAC_ADDRESS, 1 );
-
-        #if ( ipconfigUSE_LLMNR == 1 )
+            if( pxEMAC_PS->Version > 2 )
             {
-                /* Also add LLMNR multicast MAC address. */
-                XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) xLLMNR_MACAddress, 2 );
+                #if ( USE_JUMBO_FRAMES == 1 )
+                    /* Enable jumbo frames for zynqmp */
+                    XEmacPs_SetOptions( pxEMAC_PS, XEMACPS_JUMBO_ENABLE_OPTION );
+                #endif
             }
-        #endif /* ipconfigUSE_LLMNR == 1 */
 
-        XEmacPs_SetMdioDivisor( pxEMAC_PS, MDC_DIV_224 );
-        ulPHYIndex = ulDetecPHY( pxEMAC_PS );
-        ulLinkSpeed = Phy_Setup_US( pxEMAC_PS, ulPHYIndex );
-        XEmacPs_SetOperatingSpeed( pxEMAC_PS, ulLinkSpeed );
+            /* Initialize the mac and set the MAC address. */
+            XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) ipLOCAL_MAC_ADDRESS, 1 );
 
-        /* Setting the operating speed of the MAC needs a delay. */
-        vTaskDelay( pdMS_TO_TICKS( 25UL ) );
+            #if ( ipconfigUSE_LLMNR == 1 )
+                {
+                    /* Also add LLMNR multicast MAC address. */
+                    XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) xLLMNR_MACAddress, 2 );
+                }
+            #endif /* ipconfigUSE_LLMNR == 1 */
 
-        ulDMAReg = XEmacPs_ReadReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_DMACR_OFFSET );
-        /* Enable 16-bytes AHB bursts */
-        ulDMAReg = ulDMAReg | XEMACPS_DMACR_INCR16_AHB_BURST;
+            XEmacPs_SetMdioDivisor( pxEMAC_PS, MDC_DIV_224 );
+            ulPHYIndex = ulDetecPHY( pxEMAC_PS );
 
-        /* DISC_WHEN_NO_AHB: when set, the GEM DMA will automatically discard receive
-         * packets from the receiver packet buffer memory when no AHB resource is available. */
-        XEmacPs_WriteReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_DMACR_OFFSET,
-                          ulDMAReg /*| XEMACPS_DMACR_DISC_WHEN_NO_AHB_MASK*/ );
+            if( ulPHYIndex == ~0U )
+            {
+                FreeRTOS_printf( ( "xEMACInit: No valid PHY was found\n" ) );
+                eEMACState = xEMAC_Fatal;
+                break;
+            }
 
-        setup_isr( &xEMACpsif );
-        init_dma( &xEMACpsif );
-        start_emacps( &xEMACpsif );
+            eEMACState = xEMAC_SetupPHY;
 
-        prvGMACWaitLS( xWaitLinkDelay );
+        /* Fall through. */
 
-        /* The deferred interrupt handler task is created at the highest
-         * possible priority to ensure the interrupt handler can return directly
-         * to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
-         * notify the task when there is something to process. */
-        xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
-    }
-    else
-    {
-        /* Initialisation was already performed, just wait for the link. */
-        prvGMACWaitLS( xWaitRelinkDelay );
-    }
+        case xEMAC_SetupPHY:
+            ulLinkSpeed = Phy_Setup_US( pxEMAC_PS, ulPHYIndex );
 
-    /* Only return pdTRUE when the Link Status of the PHY is high, otherwise the
-     * DHCP process and all other communication will fail. */
-    xLinkStatus = xGetPhyLinkStatus();
+            if( ulLinkSpeed == XST_FAILURE )
+            {
+                /* The speed could not be determined yet.
+                 * This is not a fatal error.
+                 * xNetworkInterfaceInitialise() will be called again
+                 * by the IP-task.
+                 */
+                break;
+            }
 
-    return( xLinkStatus != pdFALSE );
+            XEmacPs_SetOperatingSpeed( pxEMAC_PS, ulLinkSpeed );
+
+            /* Setting the operating speed of the MAC needs a delay. */
+            vTaskDelay( pdMS_TO_TICKS( 25UL ) );
+
+            ulDMAReg = XEmacPs_ReadReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_DMACR_OFFSET );
+            /* Enable 16-bytes AHB bursts */
+            ulDMAReg = ulDMAReg | XEMACPS_DMACR_INCR16_AHB_BURST;
+
+            /* DISC_WHEN_NO_AHB: when set, the GEM DMA will automatically discard receive
+             * packets from the receiver packet buffer memory when no AHB resource is available. */
+            XEmacPs_WriteReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_DMACR_OFFSET,
+                              ulDMAReg /*| XEMACPS_DMACR_DISC_WHEN_NO_AHB_MASK*/ );
+
+            setup_isr( &xEMACpsif );
+            init_dma( &xEMACpsif );
+            start_emacps( &xEMACpsif );
+            eEMACState = xEMAC_WaitPHY;
+
+        /* Fall through. */
+
+        case xEMAC_WaitPHY:
+            prvGMACWaitLS( xWaitLinkDelay );
+
+            if( xGetPhyLinkStatus() == pdFALSE )
+            {
+                /* The Link Status is not yet high, Stay in 'xEMAC_WaitPHY'. */
+                break;
+            }
+
+            if( xEMACTaskHandle == NULL )
+            {
+                /* The deferred interrupt handler task is created at the highest
+                 * possible priority to ensure the interrupt handler can return directly
+                 * to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
+                 * notify the task when there is something to process. */
+                xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
+
+                if( xEMACTaskHandle == NULL )
+                {
+                    eEMACState = xEMAC_Fatal;
+                    break;
+                }
+            }
+
+            eEMACState = xEMAC_Ready;
+
+        /* Fall through. */
+
+        case xEMAC_Ready:
+            /* The network driver is operational. */
+            xReturn = pdPASS;
+            break;
+
+        case xEMAC_Fatal:
+
+            /* A fatal error has occurred, and the driver
+             * can not start. */
+            break;
+    } /* switch( eEMACState ) */
+
+    return xReturn;
 }
 /*-----------------------------------------------------------*/
 
