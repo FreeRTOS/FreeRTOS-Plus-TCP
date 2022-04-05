@@ -450,17 +450,19 @@
 
 #ifndef ipconfigTCP_MSS
 
-/* _HT_ the default value of ipconfigTCP_MSS should somehow
- * depend on the IP version in use. */
-    #if ( ipconfigUSE_DHCPv6 != 0 )
+/* The default value of ipconfigTCP_MSS depends
+ * on the IP version in use: an IPv6 header is
+ * 20 bytes longer than an IPv4 header. */
+    #if ( ipconfigUSE_IPv6 != 0 )
         #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) )
     #else
         #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) )
     #endif
 #endif
 
-#if ( ipconfigUSE_DHCPv6 != 0 )
-    #if ( ( ipconfigTCP_MSS + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) > ipconfigNETWORK_MTU )
+#if ( ipconfigUSE_IPv6 != 0 )
+    /* Check if 'ipconfigTCP_MSS' is not too large. */
+    #if ( ( ipconfigTCP_MSS + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) > ipconfigNETWORK_MTU )
         #error The ipconfigTCP_MSS setting in FreeRTOSIPConfig.h is too large.
     #endif
 #endif
