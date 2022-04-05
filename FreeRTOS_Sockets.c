@@ -2539,7 +2539,11 @@ BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
     uint8_t ucHex;
     char cChar;
 
+    /* Ignore the following line from branch coverage since the exits from this loop are
+     * covered by break statements. The loop is kept as is to future proof the code against
+     * any changes. LCOV_EXCL_BR_START */
     for( uxSourceIndex = 0U; uxSourceIndex <= uxLength; uxSourceIndex++ )
+    /* LCOV_EXCL_BR_STOP */
     {
         cChar = pcSource[ uxSourceIndex ];
         ucHex = ucASCIIToHex( cChar );
