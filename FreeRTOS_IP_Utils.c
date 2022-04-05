@@ -384,6 +384,7 @@ void vPreCheckConfigs( void )
                 configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
             }
 
+            /* LCOV_EXCL_BR_START */
             uxSize = ipconfigNETWORK_MTU;
             /* Check if MTU is big enough. */
             configASSERT( uxSize >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
@@ -403,6 +404,7 @@ void vPreCheckConfigs( void )
 
             uxSize = sizeof( UDPHeader_t );
             configASSERT( uxSize == ipEXPECTED_UDPHeader_t_SIZE );
+            /* LCOV_EXCL_BR_STOP */
         }
     #endif /* if ( configASSERT_DEFINED == 1 ) */
 }
@@ -607,7 +609,8 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                         {
                             static BaseType_t xCount = 0;
 
-                            if( xCount < 5 )
+                            /* Exclude this from branch coverage as this is only used for debugging. */
+                            if( xCount < 5 ) /* LCOV_EXCL_BR_LINE */
                             {
                                 FreeRTOS_printf( ( "usGenerateProtocolChecksum: UDP packet from %xip without CRC dropped\n",
                                                    FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
