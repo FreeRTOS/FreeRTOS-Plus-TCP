@@ -560,7 +560,7 @@ void test_FreeRTOS_gethostbyname_a_callback( void )
  *        asynchronous mode, and only one retry is performed by calling
  *        prvGetHostByNameOp instead of prvGetHostByNameOp_WithRetry
  */
-void ignore_test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
+void test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
 {
     uint32_t ret;
     int pvSearchID = 32;
@@ -577,16 +577,20 @@ void ignore_test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
     FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
     xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
     vDNSSetCallBack_ExpectAnyArgs();
+
     /* in prvGetHostByName */
-    /* in prvGetPayloadBuffer */
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
-    /* back in prvGetHostByName */
     DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
     /* prvGetHostByNameOp */
     /* prvFillSockAddress */
     FreeRTOS_GetAddressConfiguration_ExpectAnyArgs();
-    /* back prvGetHostByNameOp */
+    /* in prvSendBuffer */
+    /* in prvGetPayloadBuffer */
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+
+    /* back in prvSendBuffer */
     DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );
+
+    /* back in prvGetHostByNameOp */
     DNS_ReadReply_ExpectAnyArgs();
     DNS_ReadReply_ReturnThruPtr_pxReceiveBuffer( &xReceiveBuffer );
     /* prvDNSReply */
@@ -595,7 +599,6 @@ void ignore_test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
 
     /* back in prvGetHostByName */
     DNS_CloseSocket_ExpectAnyArgs();
-    vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
 
     ret = FreeRTOS_gethostbyname_a( GOOD_ADDRESS,
                                     dns_callback,

@@ -553,6 +553,7 @@ void test_vTCPStateChange_ClosedWaitState_CallingFromIPTask( void )
     BaseType_t xTickCountAlive = 0xAABBEFDD;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.u.xTCP.ucTCPState = eCLOSE_WAIT;
     eTCPState = eCLOSE_WAIT;
 
     xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;

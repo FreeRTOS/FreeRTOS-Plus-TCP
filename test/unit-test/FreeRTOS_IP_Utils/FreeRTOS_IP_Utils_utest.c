@@ -68,6 +68,9 @@
     extern BaseType_t xCallEventHook;
 #endif
 
+extern UBaseType_t uxLastMinBufferCount;
+extern size_t uxMinLastSize;
+
 void test_xSendDHCPEvent( void )
 {
     BaseType_t xReturn, xResult = 0x123;
@@ -1349,6 +1352,32 @@ void test_vPrintResourceStats_BufferCountLess( void )
     xPortGetMinimumEverFreeHeapSize_ExpectAndReturn( 2 );
 
     vPrintResourceStats();
+}
+
+void test_vPrintResourceStats_LastBuffer_NE_0( void )
+{
+    uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
+    uxMinLastSize = 10u;
+
+    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2 );
+    xPortGetMinimumEverFreeHeapSize_ExpectAndReturn( 2 );
+
+    vPrintResourceStats();
+
+    TEST_ASSERT_EQUAL( 2, uxMinLastSize );
+}
+
+void test_vPrintResourceStats_MinSizeIsBigger( void )
+{
+    uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
+    uxMinLastSize = 10u;
+
+    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2 );
+    xPortGetMinimumEverFreeHeapSize_ExpectAndReturn( 1024U * 1025U );
+
+    vPrintResourceStats();
+
+    TEST_ASSERT_EQUAL( 10, uxMinLastSize );
 }
 
 void test_FreeRTOS_strerror_r_Invalid( void )

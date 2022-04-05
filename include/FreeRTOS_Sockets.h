@@ -316,9 +316,9 @@
 /* Release a TCP payload buffer that was obtained by
  * calling FreeRTOS_recv() with the FREERTOS_ZERO_COPY flag,
  * and a pointer to a void pointer. */
-            void FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
-                                                   void const * pvBuffer,
-                                                   BaseType_t xByteCount );
+            BaseType_t FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
+                                                         void const * pvBuffer,
+                                                         BaseType_t xByteCount );
         #endif /* ( ipconfigUSE_TCP == 1 ) */
 
 /* Returns the number of bytes available in the Rx buffer. */
@@ -361,6 +361,7 @@
         const struct xSTREAM_BUFFER * FreeRTOS_get_rx_buf( ConstSocket_t xSocket );
 
         void FreeRTOS_netstat( void );
+
 
 /* End TCP Socket Attributes. */
 

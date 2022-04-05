@@ -693,6 +693,7 @@ prvprocessnetworkdownevent
 prvreadnamefield
 prvreadsackoption
 prvrxcallback
+prvsendbuffer
 prvsenddata
 prvsenddhcpdiscover
 prvsenddhcprequest
@@ -1444,6 +1445,7 @@ xcallbacklist
 xcheckloopback
 xclearonexit
 xclientsocket
+xcount
 xdatalength
 xdatalengthbytes
 xdefaultaddressing

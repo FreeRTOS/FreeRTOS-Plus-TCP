@@ -2,7 +2,7 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "FreeRTOS_DHCP" )
+set( project_name "FreeRTOS_ARP_DataLenLessThanMinPacket" )
 message( STATUS "${project_name}" )
 # =====================  Create your mock here  (edit)  ========================
 
@@ -11,15 +11,13 @@ set(mock_list "")
 list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Timers.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
-            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/FreeRTOS_DHCP_mock.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
         )
 # list the directories your mocks need
+set(mock_include_list "")
 list(APPEND mock_include_list
             .
             ${TCP_INCLUDE_DIRS}
@@ -28,18 +26,22 @@ list(APPEND mock_include_list
         )
 
 #list the definitions of your mocks to control what to be included
+set (mock_define_list "")
 list(APPEND mock_define_list
-            ""
-       )
+        ""
+        )
 
 # ================= Create the library under test here (edit) ==================
-
 # list the files you would like to test here
+set(real_source_files "")
 list(APPEND real_source_files
-            ${MODULE_ROOT_DIR}/FreeRTOS_DHCP.c
+            ${project_name}/${project_name}_stubs.c
+            ${MODULE_ROOT_DIR}/FreeRTOS_ARP.c
 	)
 # list the directories the module under test includes
+set(real_include_directories "")
 list(APPEND real_include_directories
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             .
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
@@ -50,13 +52,13 @@ list(APPEND real_include_directories
 # =====================  Create UnitTest Code here (edit)  =====================
 
 # list the directories your test needs to include
+set(test_include_directories "")
 list(APPEND test_include_directories
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             .
             ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
         )
-
 # =============================  (end edit)  ===================================
 
 set(mock_name "${project_name}_mock")
@@ -75,11 +77,13 @@ create_real_library(${real_name}
                     "${mock_name}"
         )
 
+set (utest_link_list "")
 list(APPEND utest_link_list
             -l${mock_name}
             lib${real_name}.a
         )
 
+set(utest_dep_list "")
 list(APPEND utest_dep_list
             ${real_name}
         )

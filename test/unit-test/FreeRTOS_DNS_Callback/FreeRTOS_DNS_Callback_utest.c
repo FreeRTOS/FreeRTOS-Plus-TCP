@@ -273,6 +273,31 @@ void test_vDNSCheckCallback_success_search_id_not_null( void )
 }
 
 /**
+ * @brief Happy path with list non-empty at end.
+ */
+void test_vDNSCheckCallback_success_search_id_not_null_list_empty( void )
+{
+    void * pvSearchID = ( void * ) 456;
+
+    dnsCallback.pvSearchID = pvSearchID;
+
+    listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+    vTaskSuspendAll_Expect();
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 ); /* end marker */
+    uxListRemove_ExpectAnyArgsAndReturn( pdFALSE );
+    vPortFree_ExpectAnyArgs();
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+    listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
+
+    /* API Call */
+    vDNSCheckCallBack( pvSearchID );
+
+    /* Validations */
+}
+
+/**
  * @brief search id null
  */
 void test_vDNSCheckCallback_success_search_id_null( void )

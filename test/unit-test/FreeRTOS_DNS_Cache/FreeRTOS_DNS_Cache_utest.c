@@ -92,6 +92,19 @@ void tearDown( void )
 /* =============================  TEST CASES  =============================== */
 
 /**
+ * @brief catch assertion on name being non-NULL.
+ */
+void test_processDNS_CACHE_CatchAssert( void )
+{
+    BaseType_t x;
+    uint32_t pulIP = 1234;
+
+    xTaskGetTickCount_ExpectAndReturn( 5000 ); /* 5 seconds */
+
+    catch_assert( FreeRTOS_dnslookup( NULL ) );
+}
+
+/**
  * @brief Ensures that the same entry is inserted into the cache and retrieved
  */
 void test_processDNS_CACHE_Success( void )

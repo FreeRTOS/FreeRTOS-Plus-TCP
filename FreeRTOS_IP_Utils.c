@@ -76,6 +76,18 @@ extern QueueHandle_t xNetworkEventQueue;
     static BaseType_t xCallEventHook = pdFALSE;
 #endif
 
+#if ( ipconfigHAS_PRINTF != 0 )
+    /** @brief Last value of minimum buffer count. */
+    static UBaseType_t uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
+
+/** @brief Last value of minimum size. Used in printing resource stats. */
+    static size_t uxMinLastSize = 0u;
+#endif
+
+#if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
+    static UBaseType_t uxLastMinQueueSpace = 0;
+#endif
+
 /**
  * Used in checksum calculation.
  */
@@ -372,6 +384,7 @@ void vPreCheckConfigs( void )
                 configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
             }
 
+            /* LCOV_EXCL_BR_START */
             uxSize = ipconfigNETWORK_MTU;
             /* Check if MTU is big enough. */
             configASSERT( uxSize >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
@@ -391,6 +404,7 @@ void vPreCheckConfigs( void )
 
             uxSize = sizeof( UDPHeader_t );
             configASSERT( uxSize == ipEXPECTED_UDPHeader_t_SIZE );
+            /* LCOV_EXCL_BR_STOP */
         }
     #endif /* if ( configASSERT_DEFINED == 1 ) */
 }
@@ -595,7 +609,8 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                         {
                             static BaseType_t xCount = 0;
 
-                            if( xCount < 5 )
+                            /* Exclude this from branch coverage as this is only used for debugging. */
+                            if( xCount < 5 ) /* LCOV_EXCL_BR_LINE */
                             {
                                 FreeRTOS_printf( ( "usGenerateProtocolChecksum: UDP packet from %xip without CRC dropped\n",
                                                    FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
@@ -946,8 +961,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
  */
     void vPrintResourceStats( void )
     {
-        static UBaseType_t uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
-        static size_t uxMinLastSize = 0u;
         UBaseType_t uxCurrentBufferCount;
         size_t uxMinSize;
 
@@ -992,7 +1005,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
         #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
             {
-                static UBaseType_t uxLastMinQueueSpace = 0;
                 UBaseType_t uxCurrentCount = 0u;
 
                 uxCurrentCount = uxGetMinimumIPQueueSpace();

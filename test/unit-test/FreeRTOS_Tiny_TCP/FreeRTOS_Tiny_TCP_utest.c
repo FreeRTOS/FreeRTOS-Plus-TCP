@@ -44,6 +44,8 @@
 #include "mock_FreeRTOS_IP.h"
 #include "mock_task.h"
 
+extern BaseType_t xTCPWindowLoggingLevel;
+
 /**
  * @brief calls at the beginning of each test case
  */
@@ -161,6 +163,34 @@ void test_lTCPWindowTxAdd_length_eq_zero( void )
     TEST_ASSERT_EQUAL( 0, lResult );
 }
 
+void test_lTCPWindowTxAdd_length_eq_zero_with_logging( void )
+{
+    int32_t lResult;
+    TCPWindow_t xWindow = { 0 };
+    TCPSegment_t xSegment = { 0 };
+    uint32_t ulLength = 200;
+    int32_t lPosition = 2;
+    int32_t lMax = 300;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
+
+    xSegment.lDataLength = 0;
+    xWindow.xTxSegment = xSegment;
+
+    xTCPWindowLoggingLevel = 2;
+
+    /* ->vTCPTimerSet */
+    xTaskGetTickCount_ExpectAndReturn( 0 );
+
+    lResult = lTCPWindowTxAdd( &xWindow,
+                               ulLength,
+                               lPosition,
+                               lMax );
+
+    xTCPWindowLoggingLevel = xBackup;
+
+    TEST_ASSERT_EQUAL( 0, lResult );
+}
+
 void test_lTCPWindowTxAdd_length_gt_maxlen( void )
 {
     int32_t lResult;
@@ -181,6 +211,35 @@ void test_lTCPWindowTxAdd_length_gt_maxlen( void )
                                ulLength,
                                lPosition,
                                lMax );
+
+    TEST_ASSERT_EQUAL( 200, lResult );
+}
+
+void test_lTCPWindowTxAdd_length_gt_maxlen_with_logging( void )
+{
+    int32_t lResult;
+    TCPWindow_t xWindow = { 0 };
+    TCPSegment_t xSegment = { 0 };
+    uint32_t ulLength = 200;
+    int32_t lPosition = 2;
+    int32_t lMax = 300;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
+
+    xSegment.lDataLength = 0;
+    xSegment.lMaxLength = 300;
+    xWindow.xTxSegment = xSegment;
+
+    xTCPWindowLoggingLevel = 2;
+
+    /* ->vTCPTimerSet */
+    xTaskGetTickCount_ExpectAndReturn( 0 );
+
+    lResult = lTCPWindowTxAdd( &xWindow,
+                               ulLength,
+                               lPosition,
+                               lMax );
+
+    xTCPWindowLoggingLevel = xBackup;
 
     TEST_ASSERT_EQUAL( 200, lResult );
 }
@@ -244,6 +303,29 @@ void test_ulTCPWindowTxGet_length_ne_zero_bit_outstanding_eq_true( void )
                                  ulWindowSize,
                                  &plPosition );
     TEST_ASSERT_EQUAL( 3, ulLength );
+}
+
+void test_ulTCPWindowTxGet_length_ne_zero_bit_outstanding_eq_true_timer_ne_expired( void )
+{
+    uint32_t ulLength;
+    TCPWindow_t xWindow = { 0 };
+    TCPSegment_t xSegment = { 0 };
+    uint32_t ulWindowSize = 20;
+    int32_t plPosition = 3;
+
+    xSegment.lDataLength = 3;
+    xSegment.u.bits.bOutstanding = pdTRUE_UNSIGNED;
+    xSegment.u.bits.ucTransmitCount = 3;
+    xWindow.xTxSegment = xSegment;
+    xWindow.lSRTT = 2;
+
+    /* ->ulTimerGetAge */
+    xTaskGetTickCount_ExpectAndReturn( 10 );
+
+    ulLength = ulTCPWindowTxGet( &xWindow,
+                                 ulWindowSize,
+                                 &plPosition );
+    TEST_ASSERT_EQUAL( 0, ulLength );
 }
 
 void test_xTCPWindowTxDone_seg_datalength_eq_zero( void )
@@ -416,6 +498,27 @@ void test_ulTCPWindowTxAck_seq_gt_current_plus_length( void )
 
     ulDataLength = ulTCPWindowTxAck( &xWindow,
                                      ulSequenceNumber );
+    TEST_ASSERT_EQUAL( 20, ulDataLength );
+    TEST_ASSERT_EQUAL( 0, xWindow.xTxSegment.lDataLength );
+}
+
+void test_ulTCPWindowTxAck_seq_gt_current_plus_length_w_logging( void )
+{
+    uint32_t ulDataLength;
+    TCPWindow_t xWindow = { 0 };
+    uint32_t ulSequenceNumber = 40;
+    BaseType_t xBackup = xTCPWindowLoggingLevel;
+
+    xWindow.xTxSegment.lDataLength = 20;
+    xWindow.tx.ulCurrentSequenceNumber = 10;
+
+    xTCPWindowLoggingLevel = 2;
+
+    ulDataLength = ulTCPWindowTxAck( &xWindow,
+                                     ulSequenceNumber );
+
+    xTCPWindowLoggingLevel = xBackup;
+
     TEST_ASSERT_EQUAL( 20, ulDataLength );
     TEST_ASSERT_EQUAL( 0, xWindow.xTxSegment.lDataLength );
 }
