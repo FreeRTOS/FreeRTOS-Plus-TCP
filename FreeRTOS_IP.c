@@ -2618,12 +2618,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             /* Identify the next protocol. */
             ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
 
-            /* If this IP packet header includes Options, then the following
-             * assignment results in a pointer into the protocol packet with the Ethernet
-             * and IP headers incorrectly aligned. However, either way, the "third"
-             * protocol (Layer 3 or 4) header will be aligned, which is the convenience
-             * of this calculation. */
-
             /* Switch on the Layer 3/4 protocol. */
             if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
             {
