@@ -2563,7 +2563,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         size_t uxLength;
         const IPPacket_t * pxIPPacket;
         UBaseType_t uxIPHeaderLength;
-        const ProtocolPacket_t * pxProtPack;
         uint8_t ucProtocol;
         uint16_t usLength;
         uint16_t ucVersionHeaderLength;
@@ -2619,16 +2618,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             /* Identify the next protocol. */
             ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
 
-            /* If this IP packet header includes Options, then the following
-             * assignment results in a pointer into the protocol packet with the Ethernet
-             * and IP headers incorrectly aligned. However, either way, the "third"
-             * protocol (Layer 3 or 4) header will be aligned, which is the convenience
-             * of this calculation. */
-
-            /* Map the Buffer onto the Protocol Packet struct for easy access to the
-             * struct fields. */
-            pxProtPack = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolPacket_t, &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
-
             /* Switch on the Layer 3/4 protocol. */
             if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
             {
@@ -2660,7 +2649,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             uxLength = ( size_t ) usLength;
             uxLength -= ( ( uint16_t ) uxIPHeaderLength ); /* normally, minus 20. */
 
-            if( ( uxLength < ( ( size_t ) sizeof( pxProtPack->xUDPPacket.xUDPHeader ) ) ) ||
+            if( ( uxLength < ( ( size_t ) sizeof( UDPHeader_t ) ) ) ||
                 ( uxLength > ( ( size_t ) ipconfigNETWORK_MTU - ( size_t ) uxIPHeaderLength ) ) )
             {
                 /* For incoming packets, the length is out of bound: either
