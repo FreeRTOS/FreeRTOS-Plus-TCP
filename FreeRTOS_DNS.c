@@ -239,21 +239,23 @@
                 }
             #endif /* ipconfigINCLUDE_FULL_INET_ADDR == 1 */
 
-            /* Check the cache before issuing another DNS request. */
-            if( ulIPAddress == 0UL )
-            {
-                /* If caching is not defined dns lookup will return zero */
-                ulIPAddress = FreeRTOS_dnslookup( pcHostName );
+            #if ( ipconfigUSE_DNS_CACHE == 1 )
+                /* Check the cache before issuing another DNS request. */
+                if( ulIPAddress == 0UL )
+                {
+                    /* If caching is not defined dns lookup will return zero */
+                    ulIPAddress = FreeRTOS_dnslookup( pcHostName );
 
-                if( ulIPAddress != 0UL )
-                {
-                    FreeRTOS_debug_printf( ( "FreeRTOS_gethostbyname: found '%s' in cache: %lxip\n", pcHostName, ulIPAddress ) );
+                    if( ulIPAddress != 0UL )
+                    {
+                        FreeRTOS_debug_printf( ( "FreeRTOS_gethostbyname: found '%s' in cache: %lxip\n", pcHostName, ulIPAddress ) );
+                    }
+                    else
+                    {
+                        /* prvGetHostByName will be called to start a DNS lookup. */
+                    }
                 }
-                else
-                {
-                    /* prvGetHostByName will be called to start a DNS lookup. */
-                }
-            }
+            #endif /* if ( ipconfigUSE_DNS_CACHE == 1 ) */
 
             /* Generate a unique identifier. */
             if( ulIPAddress == 0UL )
