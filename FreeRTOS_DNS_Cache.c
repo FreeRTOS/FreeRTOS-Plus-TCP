@@ -101,7 +101,6 @@
     {
         uint32_t ulIPAddress = 0UL;
 
-
         ( void ) FreeRTOS_ProcessDNSCache( pcHostName,
                                            &ulIPAddress,
                                            0,

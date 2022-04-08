@@ -152,7 +152,8 @@
 /**
  * @brief Get the IP-address corresponding to the given hostname.
  * @param[in] pcHostName: The hostname whose IP address is being queried.
- * @return The IP-address corresponding to the hostname.
+ * @return The IP-address corresponding to the hostname. 0 is returned in
+ *         case of failure.
  */
         uint32_t FreeRTOS_gethostbyname( const char * pcHostName )
         {
@@ -166,7 +167,8 @@
  * @param[in] pCallback: The callback function which will be called upon DNS response.
  * @param[in] pvSearchID: Search ID for the callback function.
  * @param[in] uxTimeout: Timeout for the callback function.
- * @return The IP-address corresponding to the hostname.
+ * @return The IP-address corresponding to the hostname. 0 is returned in case of
+ *         failure.
  */
         uint32_t FreeRTOS_gethostbyname_a( const char * pcHostName,
                                            FOnDNSEvent pCallback,
@@ -243,7 +245,6 @@
                 /* Check the cache before issuing another DNS request. */
                 if( ulIPAddress == 0UL )
                 {
-                    /* If caching is not defined dns lookup will return zero */
                     ulIPAddress = FreeRTOS_dnslookup( pcHostName );
 
                     if( ulIPAddress != 0UL )
