@@ -44,8 +44,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#if ( ipconfigUSE_DNS != 0 )
-
+#if ( ( ipconfigUSE_DNS != 0 ) && ( ipconfigUSE_DNS_CACHE == 1 ) )
 
 /**
  * @brief cache entry format structure
@@ -91,8 +90,6 @@
                                      uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds );
 
-    #if ( ipconfigUSE_DNS_CACHE == 1 )
-
 /**
  * @brief perform a dns lookup in the local cache
  * @param pcHostName the lookup name
@@ -100,19 +97,18 @@
  *         cache is not enabled or the lookup is not successful
  * @post the global structure \a xDNSCache might be modified
  */
-        uint32_t FreeRTOS_dnslookup( const char * pcHostName )
-        {
-            uint32_t ulIPAddress = 0UL;
+    uint32_t FreeRTOS_dnslookup( const char * pcHostName )
+    {
+        uint32_t ulIPAddress = 0UL;
 
 
-            ( void ) FreeRTOS_ProcessDNSCache( pcHostName,
-                                               &ulIPAddress,
-                                               0,
-                                               pdTRUE );
+        ( void ) FreeRTOS_ProcessDNSCache( pcHostName,
+                                           &ulIPAddress,
+                                           0,
+                                           pdTRUE );
 
-            return ulIPAddress;
-        }
-
+        return ulIPAddress;
+    }
 
 /**
  * @brief perform a dns update in the local cache
@@ -123,26 +119,26 @@
  *         from this function
  * @post the global structure \a xDNSCache might be modified
  */
-        BaseType_t FreeRTOS_dns_update( const char * pcName,
-                                        uint32_t * pulIP,
-                                        uint32_t ulTTL )
-        {
-            ( void ) FreeRTOS_ProcessDNSCache( pcName,
-                                               pulIP,
-                                               ulTTL,
-                                               pdFALSE );
-            return pdTRUE;
-        }
+    BaseType_t FreeRTOS_dns_update( const char * pcName,
+                                    uint32_t * pulIP,
+                                    uint32_t ulTTL )
+    {
+        ( void ) FreeRTOS_ProcessDNSCache( pcName,
+                                           pulIP,
+                                           ulTTL,
+                                           pdFALSE );
+        return pdTRUE;
+    }
 
 /**
  * @brief perform a dns clear in the local cache
  * @post the global structure \a xDNSCache is modified
  */
-        void FreeRTOS_dnsclear( void )
-        {
-            ( void ) memset( xDNSCache, 0x0, sizeof( xDNSCache ) );
-            xFreeEntry = 0;
-        }
+    void FreeRTOS_dnsclear( void )
+    {
+        ( void ) memset( xDNSCache, 0x0, sizeof( xDNSCache ) );
+        xFreeEntry = 0;
+    }
 
 /**
  * @brief process a DNS Cache request (get, update, or insert)
@@ -156,72 +152,71 @@
  * @return whether the operation was successful
  * @post the global structure \a xDNSCache might be modified
  */
-        BaseType_t FreeRTOS_ProcessDNSCache( const char * pcName,
-                                             uint32_t * pulIP,
-                                             uint32_t ulTTL,
-                                             BaseType_t xLookUp )
-        {
-            BaseType_t x;
-            TickType_t xCurrentTickCount = xTaskGetTickCount();
-            uint32_t ulCurrentTimeSeconds;
+    BaseType_t FreeRTOS_ProcessDNSCache( const char * pcName,
+                                         uint32_t * pulIP,
+                                         uint32_t ulTTL,
+                                         BaseType_t xLookUp )
+    {
+        BaseType_t x;
+        TickType_t xCurrentTickCount = xTaskGetTickCount();
+        uint32_t ulCurrentTimeSeconds;
 
-            configASSERT( ( pcName != NULL ) );
+        configASSERT( ( pcName != NULL ) );
 
-            ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000UL;
-            x = prvFindEntryIndex( pcName );
+        ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000UL;
+        x = prvFindEntryIndex( pcName );
 
-            if( x != -1 )
-            { /* Element found */
-                if( xLookUp == pdTRUE )
-                {
-                    prvGetCacheIPEntry( x,
-                                        pulIP,
-                                        ulCurrentTimeSeconds );
-                }
-                else
-                {
-                    prvUpdateCacheEntry( x,
-                                         ulTTL,
-                                         pulIP,
-                                         ulCurrentTimeSeconds );
-                }
-            }
-            else /* Element not Found */
+        if( x != -1 )
+        { /* Element found */
+            if( xLookUp == pdTRUE )
             {
-                if( xLookUp == pdTRUE )
-                {
-                    *pulIP = 0UL;
-                }
-                else
-                {
-                    prvInsertCacheEntry( pcName,
-                                         ulTTL,
-                                         pulIP,
-                                         ulCurrentTimeSeconds );
-                }
-            }
-
-            if( ( xLookUp == pdFALSE ) || ( *pulIP != 0UL ) )
-            {
-                FreeRTOS_debug_printf( ( "FreeRTOS_ProcessDNSCache: %s: '%s' @ %xip (TTL %u)\n",
-                                         ( xLookUp != 0 ) ? "look-up" : "add",
-                                         pcName,
-                                         ( unsigned ) FreeRTOS_ntohl( *pulIP ),
-                                         ( unsigned ) FreeRTOS_ntohl( ulTTL ) ) );
-            }
-
-            if( x == -1 )
-            {
-                x = 0;
+                prvGetCacheIPEntry( x,
+                                    pulIP,
+                                    ulCurrentTimeSeconds );
             }
             else
             {
-                x = 1;
+                prvUpdateCacheEntry( x,
+                                     ulTTL,
+                                     pulIP,
+                                     ulCurrentTimeSeconds );
             }
-
-            return x;
         }
-    #endif /* if ( ipconfigUSE_DNS_CACHE == 1 ) */
+        else /* Element not Found */
+        {
+            if( xLookUp == pdTRUE )
+            {
+                *pulIP = 0UL;
+            }
+            else
+            {
+                prvInsertCacheEntry( pcName,
+                                     ulTTL,
+                                     pulIP,
+                                     ulCurrentTimeSeconds );
+            }
+        }
+
+        if( ( xLookUp == pdFALSE ) || ( *pulIP != 0UL ) )
+        {
+            FreeRTOS_debug_printf( ( "FreeRTOS_ProcessDNSCache: %s: '%s' @ %xip (TTL %u)\n",
+                                     ( xLookUp != 0 ) ? "look-up" : "add",
+                                     pcName,
+                                     ( unsigned ) FreeRTOS_ntohl( *pulIP ),
+                                     ( unsigned ) FreeRTOS_ntohl( ulTTL ) ) );
+        }
+
+        if( x == -1 )
+        {
+            x = 0;
+        }
+        else
+        {
+            x = 1;
+        }
+
+        return x;
+    }
 
 /**
  * @brief returns the index of the hostname entry in the dns cache.
@@ -372,4 +367,4 @@
         }
     }
 
-#endif /* if ( ipconfigUSE_DNS != 0 ) */
+#endif /* if ( ( ipconfigUSE_DNS != 0 ) && ( ipconfigUSE_DNS_CACHE == 1 ) ) */
