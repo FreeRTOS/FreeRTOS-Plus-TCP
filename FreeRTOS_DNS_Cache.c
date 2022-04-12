@@ -44,8 +44,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#if ( ipconfigUSE_DNS != 0 )
-
+#if ( ( ipconfigUSE_DNS != 0 ) && ( ipconfigUSE_DNS_CACHE == 1 ) )
 
 /**
  * @brief cache entry format structure
@@ -91,7 +90,6 @@
                                      uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds );
 
-
 /**
  * @brief perform a dns lookup in the local cache
  * @param pcHostName the lookup name
@@ -103,12 +101,11 @@
     {
         uint32_t ulIPAddress = 0UL;
 
-        #if ( ipconfigUSE_DNS_CACHE == 1 )
-            ( void ) FreeRTOS_ProcessDNSCache( pcHostName,
-                                               &ulIPAddress,
-                                               0,
-                                               pdTRUE );
-        #endif
+        ( void ) FreeRTOS_ProcessDNSCache( pcHostName,
+                                           &ulIPAddress,
+                                           0,
+                                           pdTRUE );
+
         return ulIPAddress;
     }
 
@@ -369,4 +366,4 @@
         }
     }
 
-#endif /* if ( ipconfigUSE_DNS != 0 ) */
+#endif /* if ( ( ipconfigUSE_DNS != 0 ) && ( ipconfigUSE_DNS_CACHE == 1 ) ) */

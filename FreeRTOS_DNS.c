@@ -152,7 +152,8 @@
 /**
  * @brief Get the IP-address corresponding to the given hostname.
  * @param[in] pcHostName: The hostname whose IP address is being queried.
- * @return The IP-address corresponding to the hostname.
+ * @return The IP-address corresponding to the hostname. 0 is returned in
+ *         case of failure.
  */
         uint32_t FreeRTOS_gethostbyname( const char * pcHostName )
         {
@@ -166,7 +167,8 @@
  * @param[in] pCallback: The callback function which will be called upon DNS response.
  * @param[in] pvSearchID: Search ID for the callback function.
  * @param[in] uxTimeout: Timeout for the callback function.
- * @return The IP-address corresponding to the hostname.
+ * @return The IP-address corresponding to the hostname. 0 is returned in case of
+ *         failure.
  */
         uint32_t FreeRTOS_gethostbyname_a( const char * pcHostName,
                                            FOnDNSEvent pCallback,
@@ -239,21 +241,22 @@
                 }
             #endif /* ipconfigINCLUDE_FULL_INET_ADDR == 1 */
 
-            /* Check the cache before issuing another DNS request. */
-            if( ulIPAddress == 0UL )
-            {
-                /* If caching is not defined dns lookup will return zero */
-                ulIPAddress = FreeRTOS_dnslookup( pcHostName );
+            #if ( ipconfigUSE_DNS_CACHE == 1 )
+                /* Check the cache before issuing another DNS request. */
+                if( ulIPAddress == 0UL )
+                {
+                    ulIPAddress = FreeRTOS_dnslookup( pcHostName );
 
-                if( ulIPAddress != 0UL )
-                {
-                    FreeRTOS_debug_printf( ( "FreeRTOS_gethostbyname: found '%s' in cache: %lxip\n", pcHostName, ulIPAddress ) );
+                    if( ulIPAddress != 0UL )
+                    {
+                        FreeRTOS_debug_printf( ( "FreeRTOS_gethostbyname: found '%s' in cache: %lxip\n", pcHostName, ulIPAddress ) );
+                    }
+                    else
+                    {
+                        /* prvGetHostByName will be called to start a DNS lookup. */
+                    }
                 }
-                else
-                {
-                    /* prvGetHostByName will be called to start a DNS lookup. */
-                }
-            }
+            #endif /* if ( ipconfigUSE_DNS_CACHE == 1 ) */
 
             /* Generate a unique identifier. */
             if( ulIPAddress == 0UL )
