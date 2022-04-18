@@ -33,23 +33,20 @@
 
 #include "FreeRTOS.h"
 #include "FreeRTOS_IP.h"
-/*#include "mock_FreeRTOS_IP.h" */
+
 #include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_task.h"
 #include "mock_list.h"
 #include "mock_queue.h"
-
 #include "mock_FreeRTOS_DNS_Callback.h"
 #include "mock_FreeRTOS_DNS_Cache.h"
 #include "mock_FreeRTOS_DNS_Networking.h"
 #include "mock_NetworkBufferManagement.h"
+
 #include "FreeRTOS_DNS.h"
-
 #include "catch_assert.h"
-
 #include "FreeRTOSIPConfig.h"
-
 #include "FreeRTOS_DNS_Parser.h"
 
 #define LLMNR_ADDRESS     "freertos"
