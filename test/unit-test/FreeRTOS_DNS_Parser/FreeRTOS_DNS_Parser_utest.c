@@ -324,6 +324,7 @@ void test_DNS_SkipNameField_failed_zero_length()
 {
     size_t ret;
     uint8_t pucByte[ 20 ];
+
     memset( pucByte, 0x00, 20 );
 
     ret = DNS_SkipNameField( pucByte, 0 );
@@ -1498,7 +1499,7 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
                           xDoStore );
 
     TEST_ASSERT_EQUAL( 0, ret );
-    TEST_ASSERT_EQUAL( 40, uxBytesRead);
+    TEST_ASSERT_EQUAL( 40, uxBytesRead );
 }
 
 /**

@@ -664,6 +664,7 @@
                                                ( xDoStore != 0 ) ? "" : " NOT" ) );
                         }
                     #endif /* ipconfigUSE_DNS_CACHE */
+
                     if( ( ulReturnIPAddress == 0U ) && ( ulIPAddress != 0U ) )
                     {
                         /* Remember the first IP-address that is found. */
