@@ -10,7 +10,7 @@ assignees: ''
 ---
 
 **Describe the bug**
-A concise description of what the bug is.
+A concise description of what the bug is. If possible, that is the code is not proprietary, please upload the code in a [GitHub fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) such that we can reproduce the bug.
 
 **Target**
 - Development board: [e.g. HiFive11 RevB]
