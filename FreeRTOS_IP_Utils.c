@@ -714,7 +714,10 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                     break;
 
                 case ipPROTOCOL_ICMP:
-                case ipPROTOCOL_IGMP:
+                    pxProtPack->xICMPPacket.xICMPHeader.usChecksum = usChecksum;
+                    break;
+
+                default: /*  ipPROTOCOL_IGMP */
                     pxProtPack->xICMPPacket.xICMPHeader.usChecksum = usChecksum;
                     break;
             }
