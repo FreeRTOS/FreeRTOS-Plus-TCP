@@ -446,7 +446,6 @@
                                 }
                             }
 
-                            /* The test on 'pucNewBuffer' is only to satisfy lint. */
                             if( ( pxNetworkBuffer != NULL ) )
                             {
                                 pxAnswer = ( ( LLMNRAnswer_t * ) pucByte );
