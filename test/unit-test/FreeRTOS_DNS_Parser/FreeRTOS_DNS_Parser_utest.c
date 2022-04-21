@@ -221,9 +221,9 @@ void test_DNS_ReadNameField_walk_over_exact_source_length( void )
 
     TEST_ASSERT_EQUAL( 0, ret );
     TEST_ASSERT_EQUAL_STRING( "FreeRTOS", pcName );
-    TEST_ASSERT_EQUAL(0, pcName[8]);
-    TEST_ASSERT_EQUAL(0, pcName[9]);
-    TEST_ASSERT_EQUAL(0, pcName[10]);
+    TEST_ASSERT_EQUAL( 0, pcName[ 8 ] );
+    TEST_ASSERT_EQUAL( 0, pcName[ 9 ] );
+    TEST_ASSERT_EQUAL( 0, pcName[ 10 ] );
 }
 
 /**
