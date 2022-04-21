@@ -204,8 +204,8 @@ void test_DNS_ReadNameField_walk_over_copy_name( void )
 }
 
 /**
- * @brief ensures when the name is 8 bytes 10 is returned . + '\0', and the name
- *        field is copied to pcName
+ * @brief ensures when the name is 8 bytes and the size passed is smaller
+ *        zero is returned and field id copied to pcName
  */
 void test_DNS_ReadNameField_walk_over_exact_source_length( void )
 {
@@ -221,12 +221,14 @@ void test_DNS_ReadNameField_walk_over_exact_source_length( void )
 
     TEST_ASSERT_EQUAL( 0, ret );
     TEST_ASSERT_EQUAL_STRING( "FreeRTOS", pcName );
+    TEST_ASSERT_EQUAL(0, pcName[8]);
+    TEST_ASSERT_EQUAL(0, pcName[9]);
+    TEST_ASSERT_EQUAL(0, pcName[10]);
 }
-
 
 /**
  * @brief ensures when we have 2 names fields
- *        their total + 3(dot, dot and, \0) is returned
+ *        their total + 2(dot, and \0) are returned
  *        and the result string in pcName
  */
 void test_DNS_ReadNameField_walk_over_copy_2_names( void )
