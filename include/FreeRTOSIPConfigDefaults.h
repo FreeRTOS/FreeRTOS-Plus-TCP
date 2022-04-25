@@ -131,26 +131,26 @@
     #error ipconfigDHCP_USES_USER_HOOK and its associated callback have been superseded - see http: /*www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK */
 #endif
 
- /* The IP stack executes it its own task (although any application task can make
-  * use of its services through the published sockets API). ipconfigUDP_TASK_PRIORITY
-  * sets the priority of the task that executes the IP stack.  The priority is a
-  * standard FreeRTOS task priority so can take any value from 0 (the lowest
-  * priority) to (configMAX_PRIORITIES - 1) (the highest priority).
-  * configMAX_PRIORITIES is a standard FreeRTOS configuration parameter defined in
-  * FreeRTOSConfig.h, not FreeRTOSIPConfig.h. Consideration needs to be given as to
-  * the priority assigned to the task executing the IP stack relative to the
-  * priority assigned to tasks that use the IP stack. */
+/* The IP stack executes it its own task (although any application task can make
+ * use of its services through the published sockets API). ipconfigUDP_TASK_PRIORITY
+ * sets the priority of the task that executes the IP stack.  The priority is a
+ * standard FreeRTOS task priority so can take any value from 0 (the lowest
+ * priority) to (configMAX_PRIORITIES - 1) (the highest priority).
+ * configMAX_PRIORITIES is a standard FreeRTOS configuration parameter defined in
+ * FreeRTOSConfig.h, not FreeRTOSIPConfig.h. Consideration needs to be given as to
+ * the priority assigned to the task executing the IP stack relative to the
+ * priority assigned to tasks that use the IP stack. */
 #ifndef ipconfigIP_TASK_PRIORITY
-    #define ipconfigIP_TASK_PRIORITY                   ( configMAX_PRIORITIES - 2 )
+    #define ipconfigIP_TASK_PRIORITY    ( configMAX_PRIORITIES - 2 )
 #endif
 
-  /* The size, in words (not bytes), of the stack allocated to the FreeRTOS+TCP
-   * task.  This setting is less important when the FreeRTOS Win32 simulator is used
-   * as the Win32 simulator only stores a fixed amount of information on the task
-   * stack.  FreeRTOS includes optional stack overflow detection, see:
-   * http://www.freertos.org/Stacks-and-stack-overflow-checking.html */
+/* The size, in words (not bytes), of the stack allocated to the FreeRTOS+TCP
+ * task.  This setting is less important when the FreeRTOS Win32 simulator is used
+ * as the Win32 simulator only stores a fixed amount of information on the task
+ * stack.  FreeRTOS includes optional stack overflow detection, see:
+ * http://www.freertos.org/Stacks-and-stack-overflow-checking.html */
 #ifndef ipconfigIP_TASK_STACK_SIZE_WORDS
-    #define ipconfigIP_TASK_STACK_SIZE_WORDS           ( configMINIMAL_STACK_SIZE * 5 )
+    #define ipconfigIP_TASK_STACK_SIZE_WORDS    ( configMINIMAL_STACK_SIZE * 5 )
 #endif
 
 #ifndef ipconfigUSE_TCP
