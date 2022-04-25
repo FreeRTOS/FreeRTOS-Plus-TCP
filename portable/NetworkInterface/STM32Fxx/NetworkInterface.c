@@ -215,11 +215,6 @@ static void vClearTXBuffers( void );
 
 /*-----------------------------------------------------------*/
 
-/* Bit map of outstanding ETH interrupt events for processing.  Currently only
- * the Rx interrupt is handled, although code is included for other events to
- * enable future expansion. */
-static volatile uint32_t ulISREvents;
-
 #if ( ipconfigUSE_LLMNR == 1 )
     static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 #endif
@@ -323,13 +318,10 @@ void HAL_ETH_RxCpltCallback( ETH_HandleTypeDef * heth )
 
     ( void ) heth;
 
-    /* Ethernet RX-Complete callback function, elsewhere declared as weak. */
-    ulISREvents |= EMAC_IF_RX_EVENT;
-
-    /* Wakeup the prvEMACHandlerTask. */
+    /* Pass an RX-event and wakeup the prvEMACHandlerTask. */
     if( xEMACTaskHandle != NULL )
     {
-        vTaskNotifyGiveFromISR( xEMACTaskHandle, &xHigherPriorityTaskWoken );
+        xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_RX_EVENT, eSetBits, &( xHigherPriorityTaskWoken ) );
         portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
     }
 }
@@ -341,15 +333,10 @@ void HAL_ETH_TxCpltCallback( ETH_HandleTypeDef * heth )
 
     ( void ) heth;
 
-    /* This call-back is only useful in case packets are being sent
-     * zero-copy.  Once they're sent, the buffers will be released
-     * by the function vClearTXBuffers(). */
-    ulISREvents |= EMAC_IF_TX_EVENT;
-
-    /* Wakeup the prvEMACHandlerTask. */
+    /* Pass a TX-event and wakeup the prvEMACHandlerTask. */
     if( xEMACTaskHandle != NULL )
     {
-        vTaskNotifyGiveFromISR( xEMACTaskHandle, &xHigherPriorityTaskWoken );
+        xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_TX_EVENT, eSetBits, &( xHigherPriorityTaskWoken ) );
         portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
     }
 }
@@ -1258,6 +1245,7 @@ static void prvEMACHandlerTask( void * pvParameters )
     UBaseType_t uxCurrentCount;
     BaseType_t xResult;
     const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
+    uint32_t ulISREvents = 0U;
 
     /* Remove compiler warnings about unused parameters. */
     ( void ) pvParameters;
@@ -1288,23 +1276,20 @@ static void prvEMACHandlerTask( void * pvParameters )
             }
         }
 
-        if( ( ulISREvents & EMAC_IF_ALL_EVENT ) == 0 )
-        {
-            /* No events to process now, wait for the next. */
-            ulTaskNotifyTake( pdFALSE, ulMaxBlockTime );
-        }
+        /* Wait for a new event or a time-out. */
+        xTaskNotifyWait( 0U,                /* ulBitsToClearOnEntry */
+                         EMAC_IF_ALL_EVENT, /* ulBitsToClearOnExit */
+                         &( ulISREvents ),  /* pulNotificationValue */
+                         ulMaxBlockTime );
 
         if( ( ulISREvents & EMAC_IF_RX_EVENT ) != 0 )
         {
-            ulISREvents &= ~EMAC_IF_RX_EVENT;
-
             xResult = prvNetworkInterfaceInput();
         }
 
         if( ( ulISREvents & EMAC_IF_TX_EVENT ) != 0 )
         {
-            /* Code to release TX buffers if zero-copy is used. */
-            ulISREvents &= ~EMAC_IF_TX_EVENT;
+            /* Code to release TX buffers in case zero-copy is used. */
             /* Check if DMA packets have been delivered. */
             vClearTXBuffers();
         }
@@ -1312,7 +1297,6 @@ static void prvEMACHandlerTask( void * pvParameters )
         if( ( ulISREvents & EMAC_IF_ERR_EVENT ) != 0 )
         {
             /* Future extension: logging about errors that occurred. */
-            ulISREvents &= ~EMAC_IF_ERR_EVENT;
         }
 
         if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != 0 )
