@@ -157,16 +157,16 @@
  * the priority assigned to the task executing the IP stack relative to the
  * priority assigned to tasks that use the IP stack. */
 #ifndef ipconfigIP_TASK_PRIORITY
-    #define ipconfigIP_TASK_PRIORITY                   ( configMAX_PRIORITIES - 2 )
+    #define ipconfigIP_TASK_PRIORITY    ( configMAX_PRIORITIES - 2 )
 #endif
 
- /* The size, in words (not bytes), of the stack allocated to the FreeRTOS+TCP
-  * task.  This setting is less important when the FreeRTOS Win32 simulator is used
-  * as the Win32 simulator only stores a fixed amount of information on the task
-  * stack.  FreeRTOS includes optional stack overflow detection, see:
-  * http://www.freertos.org/Stacks-and-stack-overflow-checking.html */
+/* The size, in words (not bytes), of the stack allocated to the FreeRTOS+TCP
+ * task.  This setting is less important when the FreeRTOS Win32 simulator is used
+ * as the Win32 simulator only stores a fixed amount of information on the task
+ * stack.  FreeRTOS includes optional stack overflow detection, see:
+ * http://www.freertos.org/Stacks-and-stack-overflow-checking.html */
 #ifndef ipconfigIP_TASK_STACK_SIZE_WORDS
-    #define ipconfigIP_TASK_STACK_SIZE_WORDS           ( configMINIMAL_STACK_SIZE * 5 )
+    #define ipconfigIP_TASK_STACK_SIZE_WORDS    ( configMINIMAL_STACK_SIZE * 5 )
 #endif
 
 /* Include all API's and code that is needed for the TCP protocol.
