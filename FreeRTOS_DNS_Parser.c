@@ -446,8 +446,7 @@
                                 }
                             }
 
-                            /* The test on 'pucNewBuffer' is only to satisfy lint. */
-                            if( ( pxNetworkBuffer != NULL ) && ( pucNewBuffer != NULL ) )
+                            if( ( pxNetworkBuffer != NULL ) )
                             {
                                 pxAnswer = ( ( LLMNRAnswer_t * ) pucByte );
                                 /* We leave 'usIdentifier' and 'usQuestions' untouched */
@@ -606,8 +605,7 @@
 
                 /* Mapping pucByte to a DNSAnswerRecord allows easy access of the
                  * fields of the structure. */
-                pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * )
-                                      pucByte );
+                pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucByte );
 
                 /* Sanity check the data length of an IPv4 answer. */
                 if( FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ) ==
@@ -653,7 +651,10 @@
                                 usNumARecordsStored++; /* Track # of A records stored */
                             }
 
-                            ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET, ( const void * ) &( ulIPAddress ), cBuffer, sizeof( cBuffer ) );
+                            ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET,
+                                                         ( const void * ) &( ulIPAddress ),
+                                                         cBuffer,
+                                                         sizeof( cBuffer ) );
                             /* Show what has happened. */
                             FreeRTOS_printf( ( "DNS[0x%04lX]: The answer to '%s' (%s) will%s be stored\n",
                                                ( UBaseType_t ) pxDNSMessageHeader->usIdentifier,
@@ -785,8 +786,11 @@
                             size_t uxBufferLength,
                             uint32_t ulIPAddress )
         {
-            uint16_t usFlags, usType, usClass;
-            uint8_t * pucSource, * pucTarget;
+            uint16_t usFlags;
+            uint16_t usType;
+            uint16_t usClass;
+            uint8_t * pucSource;
+            uint8_t * pucTarget;
             uint8_t ucByte;
             uint8_t ucNBNSName[ 17 ];
             uint8_t * pucUDPPayloadBuffer = pucPayload;
