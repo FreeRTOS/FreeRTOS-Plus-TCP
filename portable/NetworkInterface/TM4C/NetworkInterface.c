@@ -278,8 +278,18 @@ BaseType_t xNetworkInterfaceInitialise( void )
                     0 );
 
 
-                /* Clear any stray PHY interrupts that may be set. */
+                /* Clear any stray MISR1 PHY interrupts that may be set. */
                 ui16Val = MAP_EMACPHYRead( EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1 );
+                /* Enable link status change interrupts */
+                ui16Val |= 
+                    (   EPHY_MISR1_LINKSTATEN |
+                        EPHY_MISR1_SPEEDEN |
+                        EPHY_MISR1_DUPLEXMEN |
+                        EPHY_MISR1_ANCEN 
+                    );
+                MAP_EMACPHYWrite( EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1, ui16Val );
+
+                /* Clear any stray MISR2 PHY interrupts that may be set. */
                 ui16Val = MAP_EMACPHYRead( EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR2 );
 
                 /* Configure and enable PHY interrupts */
@@ -686,7 +696,7 @@ static void _process_phy_interrupts( void )
     value = MAP_EMACPHYRead( EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1 );
     status = MAP_EMACPHYRead( EMAC0_BASE, PHY_PHYS_ADDR, EPHY_STS );
 
-    if( value & ( EPHY_MISR1_SPEED | EPHY_MISR1_SPEED | EPHY_MISR1_ANC ) )
+    if( value & ( EPHY_MISR1_SPEED | EPHY_MISR1_DUPLEXM | EPHY_MISR1_ANC ) )
     {
         /* If the speed or duplex has changed */
 
