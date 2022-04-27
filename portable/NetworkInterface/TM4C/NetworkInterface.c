@@ -281,11 +281,11 @@ BaseType_t xNetworkInterfaceInitialise( void )
                 /* Clear any stray MISR1 PHY interrupts that may be set. */
                 ui16Val = MAP_EMACPHYRead( EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1 );
                 /* Enable link status change interrupts */
-                ui16Val |= 
-                    (   EPHY_MISR1_LINKSTATEN |
-                        EPHY_MISR1_SPEEDEN |
-                        EPHY_MISR1_DUPLEXMEN |
-                        EPHY_MISR1_ANCEN 
+                ui16Val |=
+                    ( EPHY_MISR1_LINKSTATEN |
+                      EPHY_MISR1_SPEEDEN |
+                      EPHY_MISR1_DUPLEXMEN |
+                      EPHY_MISR1_ANCEN
                     );
                 MAP_EMACPHYWrite( EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1, ui16Val );
 
