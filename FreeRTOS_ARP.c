@@ -251,13 +251,11 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                      * address of the node running this code? */
                     if( ulTargetProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER )
                     {
-                        /* The packet contained an ARP request.  Was it for the IP
-                         * address of the node running this code? And does the MAC
-                         * address claim that it is coming from this device itself? */
-                        if( ( ulTargetProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER ) &&
-                            ( memcmp( ( void * ) ipLOCAL_MAC_ADDRESS,
-                                      ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
-                                      ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
+                        /* Does the MAC address claim that it is coming
+                         * from this device itself? */
+                        if( memcmp( ( void * ) ipLOCAL_MAC_ADDRESS,
+                                    ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
+                                    ipMAC_ADDRESS_LENGTH_BYTES ) != 0 )
                         {
                             iptraceSENDING_ARP_REPLY( ulSenderProtocolAddress );
 
