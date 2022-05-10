@@ -961,7 +961,7 @@
  * start sending a keep-alive packet to the TCP peer.  The default is 20 seconds.
  */
 #ifndef ipconfigTCP_KEEP_ALIVE_INTERVAL
-    #define     20U
+    #define ipconfigTCP_KEEP_ALIVE_INTERVAL    20U
 #endif
 
 /* Another less used option: signals.  This macro makes it possible to interrupt
