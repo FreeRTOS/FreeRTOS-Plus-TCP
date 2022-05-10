@@ -239,6 +239,23 @@ void test_FreeRTOS_socket_SockSizeFailure( void )
 }
 
 /*
+ * @brief Creation of socket when socket size determination fails as IP task is not ready.
+ */
+void test_FreeRTOS_socket_SockSizeFailure_SockDependent( void )
+{
+    Socket_t xSocket;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_STREAM | FREERTOS_SOCK_DGRAM;
+    BaseType_t xProtocol = FREERTOS_SOCK_DEPENDENT_PROTO;
+    FreeRTOS_Socket_t const * pxSocket = NULL;
+
+    xIPIsNetworkTaskReady_ExpectAndReturn( pdFALSE );
+
+    xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
+
+    TEST_ASSERT_EQUAL( FREERTOS_INVALID_SOCKET, xSocket );
+}
+
+/*
  * @brief Creation of socket when no memory could be allocated.
  */
 void test_FreeRTOS_socket_NoMemory( void )
@@ -283,6 +300,51 @@ void test_FreeRTOS_socket_EventGroupCreationFailed( void )
     xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
 
     TEST_ASSERT_EQUAL( FREERTOS_INVALID_SOCKET, xSocket );
+}
+
+/*
+ * @brief Creation of socket when the protocol is TCP.
+ */
+void test_FreeRTOS_socket_TCPSocket_ProtocolDependent( void )
+{
+    Socket_t xSocket;
+    FreeRTOS_Socket_t * pxSocket;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_STREAM, xProtocol = FREERTOS_SOCK_DEPENDENT_PROTO;
+    uint8_t ucSocket[ ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ) ];
+    uint8_t xEventGroup[ sizeof( uintptr_t ) ];
+
+    pxSocket = ( FreeRTOS_Socket_t * ) ucSocket;
+
+    xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
+
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+
+    pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), ( void * ) ucSocket );
+
+    xEventGroupCreate_ExpectAndReturn( xEventGroup );
+
+    vListInitialiseItem_Expect( &( pxSocket->xBoundSocketListItem ) );
+
+    listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xBoundSocketListItem ), pxSocket );
+
+    FreeRTOS_round_up_ExpectAndReturn( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS, 0xAABB );
+    FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( ipconfigTCP_RX_BUFFER_LENGTH / 2U ) / ipconfigTCP_MSS, 0x1234 );
+    FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( 0xAABB / 2U ) / ipconfigTCP_MSS, 0x3456 );
+
+    xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
+
+    TEST_ASSERT_EQUAL( ucSocket, xSocket );
+    TEST_ASSERT_EQUAL( xSocket->xEventGroup, xEventGroup );
+    TEST_ASSERT_EQUAL( xSocket->xReceiveBlockTime, ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME );
+    TEST_ASSERT_EQUAL( xSocket->xSendBlockTime, ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME );
+    TEST_ASSERT_EQUAL( xSocket->ucSocketOptions, ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT );
+    TEST_ASSERT_EQUAL( xSocket->ucProtocol, ( uint8_t ) FREERTOS_IPPROTO_TCP );
+    TEST_ASSERT_EQUAL( xSocket->u.xTCP.usMSS, ( uint16_t ) ipconfigTCP_MSS );
+    TEST_ASSERT_EQUAL( xSocket->u.xTCP.uxRxStreamSize, ( size_t ) ipconfigTCP_RX_BUFFER_LENGTH );
+    TEST_ASSERT_EQUAL( xSocket->u.xTCP.uxTxStreamSize, 0xAABB );
+    TEST_ASSERT_EQUAL( 0x1234, pxSocket->u.xTCP.uxRxWinSize );
+    TEST_ASSERT_EQUAL( 0x3456, pxSocket->u.xTCP.uxTxWinSize );
 }
 
 /*
@@ -366,6 +428,45 @@ void test_FreeRTOS_socket_UDPSocket( void )
     TEST_ASSERT_EQUAL( xSocket->xSendBlockTime, ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME );
     TEST_ASSERT_EQUAL( xSocket->ucSocketOptions, ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT );
     TEST_ASSERT_EQUAL( xSocket->ucProtocol, ( uint8_t ) xProtocol );
+    TEST_ASSERT_EQUAL( xSocket->u.xUDP.uxMaxPackets, ( UBaseType_t ) ipconfigUDP_MAX_RX_PACKETS );
+}
+
+/*
+ * @brief Creation of socket when the protocol is UDP.
+ */
+void test_FreeRTOS_socket_UDPSocket_ProtocolDependent( void )
+{
+    Socket_t xSocket;
+    FreeRTOS_Socket_t * pxSocket;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_SOCK_DEPENDENT_PROTO;
+    uint8_t ucSocket[ ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xUDP ) ];
+    uint8_t xEventGroup[ sizeof( uintptr_t ) ];
+
+    pxSocket = ( FreeRTOS_Socket_t * ) ucSocket;
+
+    xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
+
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+
+    pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xUDP ), ( void * ) ucSocket );
+
+    xEventGroupCreate_ExpectAndReturn( xEventGroup );
+
+    vListInitialise_Expect( &( pxSocket->u.xUDP.xWaitingPacketsList ) );
+
+    vListInitialiseItem_Expect( &( pxSocket->xBoundSocketListItem ) );
+
+    listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xBoundSocketListItem ), pxSocket );
+
+    xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
+
+    TEST_ASSERT_EQUAL( ucSocket, xSocket );
+    TEST_ASSERT_EQUAL( xSocket->xEventGroup, xEventGroup );
+    TEST_ASSERT_EQUAL( xSocket->xReceiveBlockTime, ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME );
+    TEST_ASSERT_EQUAL( xSocket->xSendBlockTime, ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME );
+    TEST_ASSERT_EQUAL( xSocket->ucSocketOptions, ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT );
+    TEST_ASSERT_EQUAL( xSocket->ucProtocol, ( uint8_t ) FREERTOS_IPPROTO_UDP );
     TEST_ASSERT_EQUAL( xSocket->u.xUDP.uxMaxPackets, ( UBaseType_t ) ipconfigUDP_MAX_RX_PACKETS );
 }
 
