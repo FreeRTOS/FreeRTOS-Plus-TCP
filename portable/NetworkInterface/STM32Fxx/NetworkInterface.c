@@ -654,21 +654,17 @@ static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
 
     ( void ) heth;
 
-    /* Check the multicast bit. */
-    if( ( Addr[ 0 ] & 1U ) == 0U )
-    {
-        /* Calculate the selected MAC address high register. */
-        ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
+    /* Calculate the selected MAC address high register. */
+    ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
 
-        /* Load the selected MAC address high register. */
-        ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
+    /* Load the selected MAC address high register. */
+    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
 
-        /* Calculate the selected MAC address low register. */
-        ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
+    /* Calculate the selected MAC address low register. */
+    ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
 
-        /* Load the selected MAC address low register */
-        ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
-    }
+    /* Load the selected MAC address low register */
+    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
 }
 /*-----------------------------------------------------------*/
 
