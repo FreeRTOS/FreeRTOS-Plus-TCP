@@ -112,6 +112,7 @@
     #define PHY_ID_KSZ8081         0x000010A1
 
     #define PHY_ID_KSZ8863         0x00221430
+    #define PHY_ID_KSZ8795         0x00221550
     #define PHY_ID_KSZ8081MNXIA    0x00221560
 
     #define PHY_ID_DP83848I        0x20005C90
