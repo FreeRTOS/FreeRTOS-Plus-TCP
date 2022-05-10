@@ -369,7 +369,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     Socket_t xReturn;
     BaseType_t xProtocolCpy = xProtocol;
 
-     /* The special protocol FREERTOS_SOCK_DEPENDENT_PROTO, which is equivalent
+    /* The special protocol FREERTOS_SOCK_DEPENDENT_PROTO, which is equivalent
      * to passing 0 as defined by POSIX, indicates to the socket layer that it
      * should pick a sensible default protocol based off the given socket type.
      * If we can't, prvDetermineSocketSize will catch it as an invalid
