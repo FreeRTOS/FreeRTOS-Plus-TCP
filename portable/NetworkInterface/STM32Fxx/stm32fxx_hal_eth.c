@@ -99,6 +99,7 @@
  */
 
 /* Includes ------------------------------------------------------------------*/
+#include "stm32fxx_hal_eth.h"
 
 #if defined( STM32F7xx )
     #include "stm32f7xx_hal.h"
@@ -115,8 +116,6 @@
 #else /* if defined( STM32F7xx ) */
     #error For what part should this be compiled?
 #endif /* if defined( STM32F7xx ) */
-
-#include "stm32fxx_hal_eth.h"
 
 /** @addtogroup STM32F4xx_HAL_Driver
  * @{

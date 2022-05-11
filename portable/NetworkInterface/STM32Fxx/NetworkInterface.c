@@ -4,7 +4,7 @@
  */
 
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP V2.4.0
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -49,6 +49,8 @@
 #include "NetworkInterface.h"
 #include "phyHandling.h"
 
+#include "stm32fxx_hal_eth.h"
+
 /* ST includes. */
 #if defined( STM32F7xx )
     #include "stm32f7xx_hal.h"
@@ -63,20 +65,23 @@
     #error What part?
 #endif /* if defined( STM32F7xx ) */
 
-#include "stm32fxx_hal_eth.h"
 
 /* Interrupt events to process.  Currently only the Rx event is processed
  * although code for other events is included to allow for possible future
  * expansion. */
-#define EMAC_IF_RX_EVENT     1UL
-#define EMAC_IF_TX_EVENT     2UL
-#define EMAC_IF_ERR_EVENT    4UL
-#define EMAC_IF_ALL_EVENT    ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
+#define EMAC_IF_RX_EVENT        1UL
+#define EMAC_IF_TX_EVENT        2UL
+#define EMAC_IF_ERR_EVENT       4UL
+#define EMAC_IF_ALL_EVENT       ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
 
-#define ETH_DMA_ALL_INTS                                                                  \
-    ( ETH_DMA_IT_TST | ETH_DMA_IT_PMT | ETH_DMA_IT_MMC | ETH_DMA_IT_NIS | ETH_DMA_IT_ER | \
-      ETH_DMA_IT_FBE | ETH_DMA_IT_RWT | ETH_DMA_IT_RPS | ETH_DMA_IT_RBU | ETH_DMA_IT_R |  \
-      ETH_DMA_IT_TU | ETH_DMA_IT_RO | ETH_DMA_IT_TJT | ETH_DMA_IT_TPS | ETH_DMA_IT_T )
+/* Calculate the maximum packet size that the DMA can receive. */
+#define EMAC_DMA_BUFFER_SIZE    ( ( uint32_t ) ( ETH_MAX_PACKET_SIZE - ipBUFFER_PADDING ) )
+
+#define ETH_DMA_ALL_INTS                                                  \
+    ( ETH_DMA_IT_TST | ETH_DMA_IT_PMT | ETH_DMA_IT_MMC | ETH_DMA_IT_NIS | \
+      ETH_DMA_IT_AIS | ETH_DMA_IT_ER | ETH_DMA_IT_FBE | ETH_DMA_IT_RWT |  \
+      ETH_DMA_IT_RPS | ETH_DMA_IT_RBU | ETH_DMA_IT_R | ETH_DMA_IT_TU |    \
+      ETH_DMA_IT_RO | ETH_DMA_IT_TJT | ETH_DMA_IT_TPS | ETH_DMA_IT_T )
 
 #ifndef NETWORK_BUFFER_HEADER_SIZE
     #define NETWORK_BUFFER_HEADER_SIZE    ( ipBUFFER_PADDING )
@@ -178,7 +183,7 @@ static void prvEthernetUpdateConfig( BaseType_t xForce );
  */
 static BaseType_t prvNetworkInterfaceInput( void );
 
-#if ( ipconfigUSE_LLMNR != 0 )
+#if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 )
 
 /*
  * For LLMNR, an extra MAC-address must be configured to
@@ -209,11 +214,6 @@ static void prvDMARxDescListInit( void );
 static void vClearTXBuffers( void );
 
 /*-----------------------------------------------------------*/
-
-/* Bit map of outstanding ETH interrupt events for processing.  Currently only
- * the Rx interrupt is handled, although code is included for other events to
- * enable future expansion. */
-static volatile uint32_t ulISREvents;
 
 #if ( ipconfigUSE_LLMNR == 1 )
     static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
@@ -318,13 +318,10 @@ void HAL_ETH_RxCpltCallback( ETH_HandleTypeDef * heth )
 
     ( void ) heth;
 
-    /* Ethernet RX-Complete callback function, elsewhere declared as weak. */
-    ulISREvents |= EMAC_IF_RX_EVENT;
-
-    /* Wakeup the prvEMACHandlerTask. */
+    /* Pass an RX-event and wakeup the prvEMACHandlerTask. */
     if( xEMACTaskHandle != NULL )
     {
-        vTaskNotifyGiveFromISR( xEMACTaskHandle, &xHigherPriorityTaskWoken );
+        xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_RX_EVENT, eSetBits, &( xHigherPriorityTaskWoken ) );
         portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
     }
 }
@@ -336,15 +333,10 @@ void HAL_ETH_TxCpltCallback( ETH_HandleTypeDef * heth )
 
     ( void ) heth;
 
-    /* This call-back is only useful in case packets are being sent
-     * zero-copy.  Once they're sent, the buffers will be released
-     * by the function vClearTXBuffers(). */
-    ulISREvents |= EMAC_IF_TX_EVENT;
-
-    /* Wakeup the prvEMACHandlerTask. */
+    /* Pass a TX-event and wakeup the prvEMACHandlerTask. */
     if( xEMACTaskHandle != NULL )
     {
-        vTaskNotifyGiveFromISR( xEMACTaskHandle, &xHigherPriorityTaskWoken );
+        xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_TX_EVENT, eSetBits, &( xHigherPriorityTaskWoken ) );
         portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
     }
 }
@@ -402,6 +394,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 {
     HAL_StatusTypeDef hal_eth_init_status;
     BaseType_t xResult;
+    BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
 
     if( xMacInitStatus == eMACInit )
     {
@@ -470,10 +463,18 @@ BaseType_t xNetworkInterfaceInitialise( void )
             /* Initialise RX-descriptors. */
             prvDMARxDescListInit();
 
-            #if ( ipconfigUSE_LLMNR != 0 )
+            #if ( ipconfigUSE_MDNS == 1 )
                 {
-                    /* Program the LLMNR address at index 1. */
-                    prvMACAddressConfig( &xETH, ETH_MAC_ADDRESS1, ( uint8_t * ) xLLMNR_MACAddress );
+                    /* Program the MDNS address. */
+                    prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAddressIPv4 );
+                    xMACEntry += 8;
+                }
+            #endif
+            #if ( ipconfigUSE_LLMNR == 1 )
+                {
+                    /* Program the LLMNR address. */
+                    prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xLLMNR_MACAddress );
+                    xMACEntry += 8;
                 }
             #endif
 
@@ -588,14 +589,14 @@ static void prvDMARxDescListInit()
     for( xIndex = 0; xIndex < ETH_RXBUFNB; xIndex++, pxDMADescriptor++ )
     {
         /* Set Buffer1 size and Second Address Chained bit */
-        pxDMADescriptor->ControlBufferSize = ETH_DMARXDESC_RCH | ( uint32_t ) ETH_RX_BUF_SIZE;
+        pxDMADescriptor->ControlBufferSize = ETH_DMARXDESC_RCH | EMAC_DMA_BUFFER_SIZE;
 
         #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
             {
                 /* Set Buffer1 address pointer */
                 NetworkBufferDescriptor_t * pxBuffer;
 
-                pxBuffer = pxGetNetworkBufferWithDescriptor( ETH_RX_BUF_SIZE, 100ul );
+                pxBuffer = pxGetNetworkBufferWithDescriptor( EMAC_DMA_BUFFER_SIZE, 100ul );
 
                 /* If the assert below fails, make sure that there are at least 'ETH_RXBUFNB'
                  * Network Buffers available during start-up ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ) */
@@ -703,9 +704,9 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
                 /* Get bytes in current buffer. */
                 ulTransmitSize = pxDescriptor->xDataLength;
 
-                if( ulTransmitSize > ETH_TX_BUF_SIZE )
+                if( ulTransmitSize > EMAC_DMA_BUFFER_SIZE )
                 {
-                    ulTransmitSize = ETH_TX_BUF_SIZE;
+                    ulTransmitSize = EMAC_DMA_BUFFER_SIZE;
                 }
 
                 #if ( ipconfigZERO_COPY_TX_DRIVER == 0 )
@@ -848,6 +849,10 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
                         && ( usDestinationPort != ipLLMNR_PORT ) &&
                         ( usSourcePort != ipLLMNR_PORT )
                     #endif
+                    #if ipconfigUSE_MDNS == 1
+                        && ( usDestinationPort != ipMDNS_PORT ) &&
+                        ( usSourcePort != ipMDNS_PORT )
+                    #endif
                     #if ipconfigUSE_NBNS == 1
                         && ( usDestinationPort != ipNBNS_PORT ) &&
                         ( usSourcePort != ipNBNS_PORT )
@@ -934,9 +939,9 @@ static BaseType_t prvNetworkInterfaceInput( void )
 
         /* In order to make the code easier and faster, only packets in a single buffer
          * will be accepted.  This can be done by making the buffers large enough to
-         * hold a complete Ethernet packet (1536 bytes).
+         * hold a complete Ethernet packet, minus ipBUFFER_PADDING.
          * Therefore, two sanity checks: */
-        configASSERT( xReceivedLength <= ETH_RX_BUF_SIZE );
+        configASSERT( xReceivedLength <= EMAC_DMA_BUFFER_SIZE );
 
         if( ( pxDMARxDescriptor->Status & ( ETH_DMARXDESC_CE | ETH_DMARXDESC_IPV4HCE | ETH_DMARXDESC_FT ) ) != ETH_DMARXDESC_FT )
         {
@@ -953,7 +958,7 @@ static BaseType_t prvNetworkInterfaceInput( void )
         {
             /* The packet will be accepted, but check first if a new Network Buffer can
              * be obtained. If not, the packet will still be dropped. */
-            pxNewDescriptor = pxGetNetworkBufferWithDescriptor( ETH_RX_BUF_SIZE, xDescriptorWaitTime );
+            pxNewDescriptor = pxGetNetworkBufferWithDescriptor( EMAC_DMA_BUFFER_SIZE, xDescriptorWaitTime );
 
             if( pxNewDescriptor == NULL )
             {
@@ -1026,7 +1031,7 @@ static BaseType_t prvNetworkInterfaceInput( void )
         #endif /* ipconfigZERO_COPY_RX_DRIVER */
 
         /* Set Buffer1 size and Second Address Chained bit */
-        pxDMARxDescriptor->ControlBufferSize = ETH_DMARXDESC_RCH | ( uint32_t ) ETH_RX_BUF_SIZE;
+        pxDMARxDescriptor->ControlBufferSize = ETH_DMARXDESC_RCH | EMAC_DMA_BUFFER_SIZE;
         pxDMARxDescriptor->Status = ETH_DMARXDESC_OWN;
 
         /* Ensure completion of memory access */
@@ -1240,6 +1245,7 @@ static void prvEMACHandlerTask( void * pvParameters )
     UBaseType_t uxCurrentCount;
     BaseType_t xResult;
     const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
+    uint32_t ulISREvents = 0U;
 
     /* Remove compiler warnings about unused parameters. */
     ( void ) pvParameters;
@@ -1270,23 +1276,20 @@ static void prvEMACHandlerTask( void * pvParameters )
             }
         }
 
-        if( ( ulISREvents & EMAC_IF_ALL_EVENT ) == 0 )
-        {
-            /* No events to process now, wait for the next. */
-            ulTaskNotifyTake( pdFALSE, ulMaxBlockTime );
-        }
+        /* Wait for a new event or a time-out. */
+        xTaskNotifyWait( 0U,                /* ulBitsToClearOnEntry */
+                         EMAC_IF_ALL_EVENT, /* ulBitsToClearOnExit */
+                         &( ulISREvents ),  /* pulNotificationValue */
+                         ulMaxBlockTime );
 
         if( ( ulISREvents & EMAC_IF_RX_EVENT ) != 0 )
         {
-            ulISREvents &= ~EMAC_IF_RX_EVENT;
-
             xResult = prvNetworkInterfaceInput();
         }
 
         if( ( ulISREvents & EMAC_IF_TX_EVENT ) != 0 )
         {
-            /* Code to release TX buffers if zero-copy is used. */
-            ulISREvents &= ~EMAC_IF_TX_EVENT;
+            /* Code to release TX buffers in case zero-copy is used. */
             /* Check if DMA packets have been delivered. */
             vClearTXBuffers();
         }
@@ -1294,7 +1297,6 @@ static void prvEMACHandlerTask( void * pvParameters )
         if( ( ulISREvents & EMAC_IF_ERR_EVENT ) != 0 )
         {
             /* Future extension: logging about errors that occurred. */
-            ulISREvents &= ~EMAC_IF_ERR_EVENT;
         }
 
         if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != 0 )

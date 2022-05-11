@@ -100,7 +100,7 @@
     BaseType_t prvTCPSocketIsActive( uint8_t ucStatus )
     {
         BaseType_t xResult;
-        eIPTCPState_t eStatus = ucStatus;
+        eIPTCPState_t eStatus = ( eIPTCPState_t ) ucStatus;
 
         switch( eStatus )
         {
@@ -146,7 +146,7 @@
         BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket )
         {
             BaseType_t xResult;
-            eIPTCPState_t eState = pxSocket->u.xTCP.ucTCPState;
+            eIPTCPState_t eState = ( eIPTCPState_t ) pxSocket->u.xTCP.ucTCPState;
 
             switch( eState )
             {
@@ -764,7 +764,7 @@
                 }
             }
 
-            eState = pxSocket->u.xTCP.ucTCPState;
+            eState = ( eIPTCPState_t ) pxSocket->u.xTCP.ucTCPState;
 
             switch( eState )
             {

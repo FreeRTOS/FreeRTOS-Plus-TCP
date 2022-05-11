@@ -170,6 +170,7 @@ static BaseType_t xHas_1F_PHYSPCS( uint32_t ulPhyID )
 
         case PHY_ID_DP83848I:
         case PHY_ID_DP83TC811S:
+        case PHY_ID_TM4C129X:
         case PHY_ID_MV88E6071:
             /* Has no 0x1F register "PHY Special Control Status". */
             break;
@@ -187,6 +188,7 @@ static BaseType_t xHas_19_PHYCR( uint32_t ulPhyID )
     {
         case PHY_ID_LAN8742A:
         case PHY_ID_DP83848I:
+        case PHY_ID_TM4C129X:
             xResult = pdTRUE;
             break;
 
@@ -668,6 +670,34 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
 /*	[001] = 10BASE-T half-duplex */
 /*	[010] = 100BASE-TX half-duplex */
                         break;
+                }
+            }
+            else if( ulPhyID == PHY_ID_KSZ8795 )
+            {
+                /* KSZ8795 has a different mapping for the Port Operation Mode Indication field
+                 *   in the phyREG_1F_PHYSPCS than other similar PHYs:
+                 *     010 = 10BASE-T half-duplex
+                 *     101 = 10BASE-T full-duplex
+                 *     011 = 100BASE-TX half-duplex
+                 *     110 = 100BASE-TX full-duplex
+                 */
+                uint32_t ulControlStatus = 0u;
+                uint32_t ulPortOperationMode = 0u;
+                pxPhyObject->fnPhyRead( xPhyAddress, phyREG_1F_PHYSPCS, &ulControlStatus );
+                ulPortOperationMode = ( ulControlStatus >> 8u ) & 0x07u;
+
+                ulRegValue = 0;
+
+                /* Detect 10baseT operation */
+                if( ( 0x02u == ulPortOperationMode ) || ( 0x05u == ulPortOperationMode ) )
+                {
+                    ulRegValue |= phyPHYSTS_SPEED_STATUS;
+                }
+
+                /* Detect full duplex operation */
+                if( ( 0x05u == ulPortOperationMode ) || ( 0x06u == ulPortOperationMode ) )
+                {
+                    ulRegValue |= phyPHYSTS_DUPLEX_STATUS;
                 }
             }
             else if( xHas_1F_PHYSPCS( ulPhyID ) )

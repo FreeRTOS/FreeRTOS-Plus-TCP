@@ -73,6 +73,9 @@
 
 #define NOP()    asm ( "nop" );
 
+#define phyMIN_PHY_ADDRESS    0
+#define phyMAX_PHY_ADDRESS    31
+
 void test_sleep( uint32_t uxTicks )
 {
     for( uint32_t j = 0U; j < uxTicks; j++ )
@@ -264,7 +267,7 @@ uint32_t ulDetecPHY( XEmacPs * xemacpsp )
     u32 phy_addr;
     u32 Status;
 
-    for( phy_addr = 0; phy_addr <= 31; phy_addr++ )
+    for( phy_addr = phyMIN_PHY_ADDRESS; phy_addr <= phyMAX_PHY_ADDRESS; phy_addr++ )
     {
         Status = XEmacPs_PhyRead( xemacpsp, phy_addr, PHY_IDENTIFIER_1_REG, &PhyReg1 );
         Status |= XEmacPs_PhyRead( xemacpsp, phy_addr, PHY_IDENTIFIER_2_REG, &PhyReg2 );
@@ -274,11 +277,11 @@ uint32_t ulDetecPHY( XEmacPs * xemacpsp )
             ( PhyReg2 > 0x0000 ) && ( PhyReg2 < 0xffff ) )
         {
             /* Found a valid PHY address */
-            return phy_addr;
+            break;
         }
     }
 
-    return 0;
+    return ( phy_addr <= phyMAX_PHY_ADDRESS ) ? phy_addr : ~0U;
 }
 
 
