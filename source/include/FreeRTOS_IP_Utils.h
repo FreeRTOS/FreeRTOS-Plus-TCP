@@ -73,14 +73,28 @@
     NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void * pvBuffer );
 #endif
 
+/**
+ * @brief Check the values of configuration options and assert on it. Also verify that the IP-task
+ *        has not already been initialized.
+ */
 void vPreCheckConfigs( void );
 
-/*
- * Called to create a network connection when the stack is first started, or
- * when the network connection is lost.
+/**
+ * @brief Called to create a network connection when the stack is first
+ *        started, or when the network connection is lost.
  */
 void prvProcessNetworkDownEvent( void );
 
+/**
+ * @brief Utility function: Convert error number to a human readable
+ *        string. Declaration in FreeRTOS_errno_TCP.h.
+ *
+ * @param[in] xErrnum: The error number.
+ * @param[in] pcBuffer: Buffer big enough to be filled with the human readable message.
+ * @param[in] uxLength: Maximum length of the buffer.
+ *
+ * @return The buffer filled with human readable error string.
+ */
 const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
                                   char * pcBuffer,
                                   size_t uxLength );

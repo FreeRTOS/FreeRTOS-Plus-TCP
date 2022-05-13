@@ -24,8 +24,8 @@
  */
 
 /**
- * @file FreeRTOS_ICMP.c
- * @brief Implements the Internet Control Message Protocol for the FreeRTOS+TCP network stack.
+ * @file FreeRTOS_IP_Timers.h
+ * @brief Header file for IP Timers on FreeRTOS+TCP network stack.
  */
 
 /* Standard includes. */

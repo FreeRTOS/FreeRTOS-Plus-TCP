@@ -24,8 +24,8 @@
  */
 
 /**
- * @file FreeRTOS_ICMP.c
- * @brief Implements the Internet Control Message Protocol for the FreeRTOS+TCP network stack.
+ * @file FreeRTOS_ICMP.h
+ * @brief Header file for Internet Control Message Protocol for the FreeRTOS+TCP network stack.
  */
 
 /* Standard includes. */
