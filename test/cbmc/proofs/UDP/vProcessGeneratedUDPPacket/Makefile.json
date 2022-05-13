@@ -6,8 +6,8 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS_PLUS_TCP)/FreeRTOS_IP.goto",
-    "$(FREERTOS_PLUS_TCP)/FreeRTOS_UDP_IP.goto"
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_UDP_IP.goto"
   ],
   "INSTFLAGS":
   [
