@@ -94,7 +94,7 @@ jobs:
       - name: Run doxygen build
         uses: FreeRTOS/CI-CD-Github-Actions/doxygen@main
         with:
-          path: ./source/
+          path: ./
 
   build-checks:
     runs-on: ubuntu-latest
