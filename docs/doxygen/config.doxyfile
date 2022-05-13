@@ -865,9 +865,6 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = ./ \
-                         ./docs/doxygen \
-                         ./source/include \
-                         ./source/portable \
                          ./source/FreeRTOS_DNS.c \
                          ./source/FreeRTOS_DNS_Cache.c \
                          ./source/FreeRTOS_DNS_Callback.c \
