@@ -45,7 +45,7 @@ set(real_source_files ""
         )
 list(APPEND real_source_files
             ${project_name}/FreeRTOS_UDP_IP_stubs.c
-            ${MODULE_ROOT_DIR}/FreeRTOS_DNS_Callback.c
+            ${MODULE_ROOT_DIR}/source/FreeRTOS_DNS_Callback.c
 	)
 # list the directories the module under test includes
 list(APPEND real_include_directories
@@ -64,7 +64,7 @@ list(APPEND test_include_directories
             ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
-            ${MODULE_ROOT_DIR}/include/
+            ${MODULE_ROOT_DIR}/source/include/
             ${MODULE_ROOT_DIR}/test/unit-test/FreeRTOS_Sockets
         )
 # To prevent the file under test from using the list macros and instead use our
