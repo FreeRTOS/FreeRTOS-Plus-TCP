@@ -91,9 +91,10 @@
 
 /*-----------------------------------------------------------*/
 
-/* A DNS query consists of a header, as described in 'struct xDNSMessage'
- * It is followed by 1 or more queries, each one consisting of a name and a tail,
- * with two fields: type and class
+/**
+ * @brief A DNS query consists of a header, as described in 'struct xDNSMessage'
+ *        It is followed by 1 or more queries, each one consisting of a name and a tail,
+ *        with two fields: type and class
  */
     #include "pack_struct_start.h"
     struct xDNSTail
