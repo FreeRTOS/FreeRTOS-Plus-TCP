@@ -714,7 +714,7 @@ void test_prvHandleEstablished_FIN_NotSent_RX_Complete( void )
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxTCPWindow->rx.ulCurrentSequenceNumber = 2501;
 
-    ulTCPWindowTxAck_ExpectAnyArgsAndReturn(0);
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
     prvTCPAddTxData_ExpectAnyArgs();
     xTCPWindowRxEmpty_ExpectAnyArgsAndReturn( pdTRUE );
     xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdTRUE );
@@ -752,7 +752,7 @@ void test_prvHandleEstablished_FIN_NotSent_RX_Not_Complete( void )
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxTCPWindow->rx.ulCurrentSequenceNumber = 2501;
 
-    ulTCPWindowTxAck_ExpectAnyArgsAndReturn(0);
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
     prvTCPAddTxData_ExpectAnyArgs();
     xTCPWindowRxEmpty_ExpectAnyArgsAndReturn( pdFALSE );
     xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdTRUE );
@@ -790,7 +790,7 @@ void test_prvHandleEstablished_FIN_NotSent_TX_Win_Not_Complete( void )
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxTCPWindow->rx.ulCurrentSequenceNumber = 2501;
 
-    ulTCPWindowTxAck_ExpectAnyArgsAndReturn(0);
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
     prvTCPAddTxData_ExpectAnyArgs();
     xTCPWindowRxEmpty_ExpectAnyArgsAndReturn( pdTRUE );
     xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdFALSE );
@@ -828,7 +828,7 @@ void test_prvHandleEstablished_FIN_NotSent_Data_Left( void )
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxTCPWindow->rx.ulCurrentSequenceNumber = 2200;
 
-    ulTCPWindowTxAck_ExpectAnyArgsAndReturn(0);
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
     prvTCPAddTxData_ExpectAnyArgs();
     xTCPWindowRxEmpty_ExpectAnyArgsAndReturn( pdTRUE );
     xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdTRUE );
@@ -866,7 +866,7 @@ void test_prvHandleEstablished_FIN_Sent( void )
     pxSocket->u.xTCP.pxHandleSent = NULL;
     pxTCPWindow->rx.ulCurrentSequenceNumber = 2501;
 
-    ulTCPWindowTxAck_ExpectAnyArgsAndReturn(0);
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
     prvTCPAddTxData_ExpectAnyArgs();
     vTCPStateChange_ExpectAnyArgs();
 
