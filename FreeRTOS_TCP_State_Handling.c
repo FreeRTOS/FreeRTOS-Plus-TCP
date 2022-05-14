@@ -553,10 +553,9 @@
                     #endif /* ipconfigUSE_CALLBACKS == 1  */
                 }
             }
-        
 
             /* If this socket has a stream for transmission, add the data to the
-            * outgoing segment(s). */
+             * outgoing segment(s). */
             if( pxSocket->u.xTCP.txStream != NULL )
             {
                 prvTCPAddTxData( pxSocket );
@@ -580,10 +579,10 @@
                     {
                         /* Refusing FIN: Rx incomplete 1 optlen 4 tx done 1. */
                         FreeRTOS_debug_printf( ( "Refusing FIN[%u,%u]: RxCompl %d tx done %d\n",
-                                                pxSocket->usLocalPort,
-                                                pxSocket->u.xTCP.usRemotePort,
-                                                ( int ) bRxComplete,
-                                                ( int ) bTxDone ) );
+                                                 pxSocket->usLocalPort,
+                                                 pxSocket->u.xTCP.usRemotePort,
+                                                 ( int ) bRxComplete,
+                                                 ( int ) bTxDone ) );
                         xMayClose = pdFALSE;
                     }
                     else
@@ -594,9 +593,9 @@
                         if( lDistance > 1 )
                         {
                             FreeRTOS_debug_printf( ( "Refusing FIN: Rx not complete %d (cur %u high %u)\n",
-                                                    ( int ) lDistance,
-                                                    ( unsigned ) ( pxTCPWindow->rx.ulCurrentSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ),
-                                                    ( unsigned ) ( pxTCPWindow->rx.ulHighestSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ) ) );
+                                                     ( int ) lDistance,
+                                                     ( unsigned ) ( pxTCPWindow->rx.ulCurrentSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ),
+                                                     ( unsigned ) ( pxTCPWindow->rx.ulHighestSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ) ) );
 
                             xMayClose = pdFALSE;
                         }
@@ -606,10 +605,10 @@
                 if( xTCPWindowLoggingLevel > 0 )
                 {
                     FreeRTOS_debug_printf( ( "TCP: FIN received, mayClose = %d (Rx %u Len %d, Tx %u)\n",
-                                            ( int ) xMayClose,
-                                            ( unsigned ) ( ulSequenceNumber - pxSocket->u.xTCP.xTCPWindow.rx.ulFirstSequenceNumber ),
-                                            ( unsigned ) ulReceiveLength,
-                                            ( unsigned ) ( pxTCPWindow->tx.ulCurrentSequenceNumber - pxSocket->u.xTCP.xTCPWindow.tx.ulFirstSequenceNumber ) ) );
+                                             ( int ) xMayClose,
+                                             ( unsigned ) ( ulSequenceNumber - pxSocket->u.xTCP.xTCPWindow.rx.ulFirstSequenceNumber ),
+                                             ( unsigned ) ulReceiveLength,
+                                             ( unsigned ) ( pxTCPWindow->tx.ulCurrentSequenceNumber - pxSocket->u.xTCP.xTCPWindow.tx.ulFirstSequenceNumber ) ) );
                 }
 
                 if( xMayClose != pdFALSE )
@@ -639,13 +638,13 @@
                 /* Now get data to be transmitted. */
 
                 /* _HT_ patch: since the MTU has be fixed at 1500 in stead of 1526, TCP
-                * can not send-out both TCP options and also a full packet. Sending
-                * options (SACK) is always more urgent than sending data, which can be
-                * sent later. */
+                 * can not send-out both TCP options and also a full packet. Sending
+                 * options (SACK) is always more urgent than sending data, which can be
+                 * sent later. */
                 if( uxOptionsLength == 0U )
                 {
                     /* prvTCPPrepareSend might allocate a bigger network buffer, if
-                    * necessary. */
+                     * necessary. */
                     lSendResult = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
 
                     if( lSendResult > 0 )
