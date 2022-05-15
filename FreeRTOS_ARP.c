@@ -291,6 +291,8 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                     }
                     else if( ulSenderProtocolAddress == ulTargetProtocolAddress ) /* Gratuitous ARP request? */
                     {
+                        MACAddress_t xHardwareAddress;
+
                         /* The request is a Gratuitous ARP message.
                          * Refresh the entry if it already exists. */
                         /* Determine the ARP cache status for the requested IP address. */
