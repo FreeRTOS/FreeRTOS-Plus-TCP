@@ -1,3 +1,13 @@
+# Prerequisits: Python 3 or greater.
+#
+# To run this script, go to the root of the FreeRTOS+TCP directory; that is the
+# directory in which this script is present. And then invoke it with:
+# `python3 GenerateOriginalFiles.py`
+#
+# After running this script, you will have 9 source files in the root directory
+# and two additional folders namely `include` and `portable``.
+
+
 # Import the shutil library to aid in copying of files and folders to different
 # location.
 import shutil
@@ -201,7 +211,7 @@ def GenerateOriginalModules():
                         for line in f.readlines():
                             if ready_to_write:
                                 file_to_write.write(f'{line}')
-                            elif line.lstrip().startswith('#') and not line.lstrip().startswith('#include') and not line.lstrip().startswith(('*', '/*', '*/')):
+                            elif not line.lstrip().startswith('#include') and not line.lstrip().startswith(('*', '/*', '*/')):
                                 file_to_write.write(f'{line}')
                                 ready_to_write = True
                         f.close()
