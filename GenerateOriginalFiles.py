@@ -46,7 +46,7 @@ FreeRTOS_TCP_Includes = [ 'FreeRTOS_IP.h',
                           'FreeRTOS_TCP_WIN.h',
                           'FreeRTOS_UDP_IP.h',
                           'FreeRTOS_errno_TCP.h',
-                          'IPTraceMacroDefaults.h',    
+                          'IPTraceMacroDefaults.h',
                           'NetworkInterface.h',
                           'NetworkBufferManagement.h' ]
 
@@ -222,7 +222,7 @@ def GenerateOriginalModules():
             shutil.copy2( Dictionary[module][0] ,module )
 
 # Function to copy the portable and include directories into the root of the
-# folder.         
+# folder.
 def CopyIncludeAndPortableDirs():
     # Copy the include directory to the root of the folder.
     shutil.copytree('source/include', 'include')
