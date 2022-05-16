@@ -36,7 +36,7 @@ if( NOT EXISTS ${KERNEL_DIRECTORY}/include )
 endif()
 
 # Set the include directories
-string( APPEND GLOBAL_INCLUDES "-I ${MODULE_ROOT_DIR}/include ")
+string( APPEND GLOBAL_INCLUDES "-I ${MODULE_ROOT_DIR}/source/include ")
 string( APPEND GLOBAL_INCLUDES "-I ${UNIT_TEST_DIR}/ConfigFiles " )
 string( APPEND GLOBAL_INCLUDES "-I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include " )
 
@@ -52,33 +52,33 @@ set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 
 
 # Set TCP includes.
-set( TCP_INCLUDES "${MODULE_ROOT_DIR}/include/FreeRTOS_IP.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_ARP.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_ICMP.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_IP_Timers.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_IP_Utils.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_Sockets.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_IP_Private.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_UDP_IP.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_DHCP.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS_Cache.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS_Globals.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS_Callback.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS_Networking.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_DNS_Parser.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_IP.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_Transmission.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_Reception.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_Utils.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_State_Handling.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_Stream_Buffer.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOS_TCP_WIN.h"
-                  "${MODULE_ROOT_DIR}/include/FreeRTOSIPConfigDefaults.h"
-                  "${MODULE_ROOT_DIR}/include/IPTraceMacroDefaults.h"
-                  "${MODULE_ROOT_DIR}/include/NetworkBufferManagement.h"
+set( TCP_INCLUDES "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ICMP.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Timers.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Utils.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_Sockets.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Private.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_UDP_IP.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DHCP.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Cache.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Globals.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Callback.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Networking.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Parser.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_TCP_IP.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_TCP_Transmission.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_TCP_Reception.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_TCP_Utils.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_TCP_State_Handling.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_Stream_Buffer.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_TCP_WIN.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOSIPConfigDefaults.h"
+                  "${MODULE_ROOT_DIR}/source/include/IPTraceMacroDefaults.h"
+                  "${MODULE_ROOT_DIR}/source/include/NetworkBufferManagement.h"
                   "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/portable.h"
-                  "${MODULE_ROOT_DIR}/include/NetworkInterface.h" )
+                  "${MODULE_ROOT_DIR}/source/include/NetworkInterface.h" )
 
 # Create a directory for the modified files
 file( MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/Annexed_TCP )
@@ -117,8 +117,7 @@ foreach( file ${TCP_INCLUDES} )
     execute_process( COMMAND unifdefall -U${Guard} -USEND_REPEATED_COUNT -UpdTRUE_SIGNED -UFreeRTOS_htonl -D__COVERITY__ -DTEST -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
                                                    -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
                                                    -I ${UNIT_TEST_DIR}/ConfigFiles
-                                                   -I ${MODULE_ROOT_DIR}/include
-                                                   -I ${MODULE_ROOT_DIR}/include/DNS
+                                                   -I ${MODULE_ROOT_DIR}/source/include
                                                    -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
                                                    ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

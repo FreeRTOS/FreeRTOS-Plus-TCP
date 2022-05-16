@@ -865,23 +865,20 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = ./ \
-                         ./docs/doxygen \
-                         ./include \
-                         ./portable \
-                         ./FreeRTOS_DNS.c \
-                         ./FreeRTOS_DNS_Cache.c \
-                         ./FreeRTOS_DNS_Callback.c \
-                         ./FreeRTOS_DNS_Networking.c \
-                         ./FreeRTOS_DNS_Parser.c \
-                         ./FreeRTOS_Stream_Buffer.c \
-                         ./FreeRTOS_UDP_IP.c \
-                         ./FreeRTOS_ARP.c \
-                         ./FreeRTOS_IP.c \
-                         ./FreeRTOS_TCP_IP.c \
-                         ./FreeRTOS_DHCP.c \
-                         ./FreeRTOS_Sockets.c \
-                         ./FreeRTOS_TCP_WIN.c \
-                         ./FreeRTOS_Tiny_TCP.c
+                         ./source/FreeRTOS_DNS.c \
+                         ./source/FreeRTOS_DNS_Cache.c \
+                         ./source/FreeRTOS_DNS_Callback.c \
+                         ./source/FreeRTOS_DNS_Networking.c \
+                         ./source/FreeRTOS_DNS_Parser.c \
+                         ./source/FreeRTOS_Stream_Buffer.c \
+                         ./source/FreeRTOS_UDP_IP.c \
+                         ./source/FreeRTOS_ARP.c \
+                         ./source/FreeRTOS_IP.c \
+                         ./source/FreeRTOS_TCP_IP.c \
+                         ./source/FreeRTOS_DHCP.c \
+                         ./source/FreeRTOS_Sockets.c \
+                         ./source/FreeRTOS_TCP_WIN.c \
+                         ./source/FreeRTOS_Tiny_TCP.c
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -960,7 +957,7 @@ EXCLUDE_SYMBOLS        =
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           = include
+EXAMPLE_PATH           = source/include
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and

@@ -40,7 +40,7 @@ set(real_source_files ""
         )
 list(APPEND real_source_files
             ${project_name}/FreeRTOS_DNS_Parser_stubs.c
-            ${MODULE_ROOT_DIR}/FreeRTOS_DNS_Parser.c
+            ${MODULE_ROOT_DIR}/source/FreeRTOS_DNS_Parser.c
 	)
 # list the directories the module under test includes
 set ( real_include_directories ""

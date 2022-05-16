@@ -32,7 +32,6 @@ list(APPEND mock_include_list
 
 #list the definitions of your mocks to control what to be included
 list(APPEND mock_define_list
-#-DportUSING_MPU_WRAPPERS=0
         -DipconfigDNS_USE_CALLBACKS=1
         -DipconfigUSE_DNS=1
        )
@@ -45,7 +44,7 @@ set(real_source_files ""
         )
 list(APPEND real_source_files
             ${project_name}/FreeRTOS_UDP_IP_stubs.c
-            ${MODULE_ROOT_DIR}/FreeRTOS_DNS.c
+            ${MODULE_ROOT_DIR}/source/FreeRTOS_DNS.c
 	)
 # list the directories the module under test includes
 list(APPEND real_include_directories
@@ -64,7 +63,7 @@ list(APPEND test_include_directories
             ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
-            ${MODULE_ROOT_DIR}/include
+            ${MODULE_ROOT_DIR}/source/include
         )
 
 # =============================  (end edit)  ===================================

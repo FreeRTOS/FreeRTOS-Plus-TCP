@@ -34,7 +34,7 @@ add_compile_options(-Wno-pedantic -Wno-div-by-zero -O0 -ggdb3)
 set(real_source_files "")
 list(APPEND real_source_files
             ${project_name}/FreeRTOS_Tiny_TCP_stubs.c
-            ${MODULE_ROOT_DIR}/FreeRTOS_Tiny_TCP.c
+            ${MODULE_ROOT_DIR}/source/FreeRTOS_Tiny_TCP.c
 	)
 # list the directories the module under test includes
 set(real_include_directories "")

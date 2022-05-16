@@ -36,7 +36,7 @@ list(APPEND mock_define_list
 set(real_source_files "")
 list(APPEND real_source_files
             ${project_name}/${project_name}_stubs.c
-            ${MODULE_ROOT_DIR}/FreeRTOS_ARP.c
+            ${MODULE_ROOT_DIR}/source/FreeRTOS_ARP.c
 	)
 # list the directories the module under test includes
 set(real_include_directories "")

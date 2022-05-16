@@ -37,9 +37,9 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS_PLUS_TCP)/FreeRTOS_Stream_Buffer.goto",
-    "$(FREERTOS_PLUS_TCP)/FreeRTOS_IP.goto",
-    "$(FREERTOS_PLUS_TCP)/FreeRTOS_TCP_IP.goto"
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_Stream_Buffer.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_IP.goto"
   ],
   "DEF":
   [

@@ -12,7 +12,6 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
-#"${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/portable.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
@@ -32,7 +31,6 @@ list(APPEND mock_include_list
 
 #list the definitions of your mocks to control what to be included
 list(APPEND mock_define_list
-#-DportUSING_MPU_WRAPPERS=0
        )
 
 # ================= Create the library under test here (edit) ==================
@@ -43,7 +41,7 @@ set(real_source_files ""
         )
 list(APPEND real_source_files
             ${project_name}/FreeRTOS_UDP_IP_stubs.c
-            ${MODULE_ROOT_DIR}/FreeRTOS_DNS_Networking.c
+            ${MODULE_ROOT_DIR}/source/FreeRTOS_DNS_Networking.c
 	)
 # list the directories the module under test includes
 list(APPEND real_include_directories
