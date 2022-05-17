@@ -509,7 +509,13 @@
             }
         #endif /* ipconfigUSE_TCP_WIN */
 
-        if( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_ACK ) != 0U )
+        if( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_ACK ) == 0U )
+        {
+            /* RFC793: If ACK bit is not set at this state, the segment should
+             * be dropped
+             */
+        }
+        else
         {
             ulCount = ulTCPWindowTxAck( pxTCPWindow, FreeRTOS_ntohl( pxTCPHeader->ulAckNr ) );
 
@@ -547,104 +553,104 @@
                     #endif /* ipconfigUSE_CALLBACKS == 1  */
                 }
             }
-        }
 
-        /* If this socket has a stream for transmission, add the data to the
-         * outgoing segment(s). */
-        if( pxSocket->u.xTCP.txStream != NULL )
-        {
-            prvTCPAddTxData( pxSocket );
-        }
-
-        pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber = pxTCPWindow->tx.ulCurrentSequenceNumber;
-
-        if( ( pxSocket->u.xTCP.bits.bFinAccepted != pdFALSE_UNSIGNED ) || ( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_FIN ) != 0U ) )
-        {
-            /* Peer is requesting to stop, see if we're really finished. */
-            xMayClose = pdTRUE;
-
-            /* Checks are only necessary if we haven't sent a FIN yet. */
-            if( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED )
+            /* If this socket has a stream for transmission, add the data to the
+             * outgoing segment(s). */
+            if( pxSocket->u.xTCP.txStream != NULL )
             {
-                /* xTCPWindowTxDone returns true when all Tx queues are empty. */
-                bRxComplete = xTCPWindowRxEmpty( pxTCPWindow );
-                bTxDone = xTCPWindowTxDone( pxTCPWindow );
+                prvTCPAddTxData( pxSocket );
+            }
 
-                if( ( bRxComplete == 0 ) || ( bTxDone == 0 ) )
-                {
-                    /* Refusing FIN: Rx incomplete 1 optlen 4 tx done 1. */
-                    FreeRTOS_debug_printf( ( "Refusing FIN[%u,%u]: RxCompl %d tx done %d\n",
-                                             pxSocket->usLocalPort,
-                                             pxSocket->u.xTCP.usRemotePort,
-                                             ( int ) bRxComplete,
-                                             ( int ) bTxDone ) );
-                    xMayClose = pdFALSE;
-                }
-                else
-                {
-                    ulIntermediateResult = ulSequenceNumber + ulReceiveLength - pxTCPWindow->rx.ulCurrentSequenceNumber;
-                    lDistance = ( int32_t ) ulIntermediateResult;
+            pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber = pxTCPWindow->tx.ulCurrentSequenceNumber;
 
-                    if( lDistance > 1 )
+            if( ( pxSocket->u.xTCP.bits.bFinAccepted != pdFALSE_UNSIGNED ) || ( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_FIN ) != 0U ) )
+            {
+                /* Peer is requesting to stop, see if we're really finished. */
+                xMayClose = pdTRUE;
+
+                /* Checks are only necessary if we haven't sent a FIN yet. */
+                if( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED )
+                {
+                    /* xTCPWindowTxDone returns true when all Tx queues are empty. */
+                    bRxComplete = xTCPWindowRxEmpty( pxTCPWindow );
+                    bTxDone = xTCPWindowTxDone( pxTCPWindow );
+
+                    if( ( bRxComplete == 0 ) || ( bTxDone == 0 ) )
                     {
-                        FreeRTOS_debug_printf( ( "Refusing FIN: Rx not complete %d (cur %u high %u)\n",
-                                                 ( int ) lDistance,
-                                                 ( unsigned ) ( pxTCPWindow->rx.ulCurrentSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ),
-                                                 ( unsigned ) ( pxTCPWindow->rx.ulHighestSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ) ) );
-
+                        /* Refusing FIN: Rx incomplete 1 optlen 4 tx done 1. */
+                        FreeRTOS_debug_printf( ( "Refusing FIN[%u,%u]: RxCompl %d tx done %d\n",
+                                                 pxSocket->usLocalPort,
+                                                 pxSocket->u.xTCP.usRemotePort,
+                                                 ( int ) bRxComplete,
+                                                 ( int ) bTxDone ) );
                         xMayClose = pdFALSE;
                     }
+                    else
+                    {
+                        ulIntermediateResult = ulSequenceNumber + ulReceiveLength - pxTCPWindow->rx.ulCurrentSequenceNumber;
+                        lDistance = ( int32_t ) ulIntermediateResult;
+
+                        if( lDistance > 1 )
+                        {
+                            FreeRTOS_debug_printf( ( "Refusing FIN: Rx not complete %d (cur %u high %u)\n",
+                                                     ( int ) lDistance,
+                                                     ( unsigned ) ( pxTCPWindow->rx.ulCurrentSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ),
+                                                     ( unsigned ) ( pxTCPWindow->rx.ulHighestSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ) ) );
+
+                            xMayClose = pdFALSE;
+                        }
+                    }
+                }
+
+                if( xTCPWindowLoggingLevel > 0 )
+                {
+                    FreeRTOS_debug_printf( ( "TCP: FIN received, mayClose = %d (Rx %u Len %d, Tx %u)\n",
+                                             ( int ) xMayClose,
+                                             ( unsigned ) ( ulSequenceNumber - pxSocket->u.xTCP.xTCPWindow.rx.ulFirstSequenceNumber ),
+                                             ( unsigned ) ulReceiveLength,
+                                             ( unsigned ) ( pxTCPWindow->tx.ulCurrentSequenceNumber - pxSocket->u.xTCP.xTCPWindow.tx.ulFirstSequenceNumber ) ) );
+                }
+
+                if( xMayClose != pdFALSE )
+                {
+                    pxSocket->u.xTCP.bits.bFinAccepted = pdTRUE_UNSIGNED;
+                    xSendLength = prvTCPHandleFin( pxSocket, *ppxNetworkBuffer );
                 }
             }
 
-            if( xTCPWindowLoggingLevel > 0 )
+            if( xMayClose == pdFALSE )
             {
-                FreeRTOS_debug_printf( ( "TCP: FIN received, mayClose = %d (Rx %u Len %d, Tx %u)\n",
-                                         ( int ) xMayClose,
-                                         ( unsigned ) ( ulSequenceNumber - pxSocket->u.xTCP.xTCPWindow.rx.ulFirstSequenceNumber ),
-                                         ( unsigned ) ulReceiveLength,
-                                         ( unsigned ) ( pxTCPWindow->tx.ulCurrentSequenceNumber - pxSocket->u.xTCP.xTCPWindow.tx.ulFirstSequenceNumber ) ) );
-            }
+                pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
 
-            if( xMayClose != pdFALSE )
-            {
-                pxSocket->u.xTCP.bits.bFinAccepted = pdTRUE_UNSIGNED;
-                xSendLength = prvTCPHandleFin( pxSocket, *ppxNetworkBuffer );
-            }
-        }
-
-        if( xMayClose == pdFALSE )
-        {
-            pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
-
-            if( ulReceiveLength != 0U )
-            {
-                uxIntermediateResult = uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
-                xSendLength = ( BaseType_t ) uxIntermediateResult;
-                /* TCP-offset equals '( ( length / 4 ) << 4 )', resulting in a shift-left 2 */
-                pxTCPHeader->ucTCPOffset = ( uint8_t ) ( ( ipSIZE_OF_TCP_HEADER + uxOptionsLength ) << 2 );
-
-                if( pxSocket->u.xTCP.bits.bFinSent != pdFALSE_UNSIGNED )
+                if( ulReceiveLength != 0U )
                 {
-                    pxTCPWindow->tx.ulCurrentSequenceNumber = pxTCPWindow->tx.ulFINSequenceNumber;
+                    uxIntermediateResult = uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
+                    xSendLength = ( BaseType_t ) uxIntermediateResult;
+                    /* TCP-offset equals '( ( length / 4 ) << 4 )', resulting in a shift-left 2 */
+                    pxTCPHeader->ucTCPOffset = ( uint8_t ) ( ( ipSIZE_OF_TCP_HEADER + uxOptionsLength ) << 2 );
+
+                    if( pxSocket->u.xTCP.bits.bFinSent != pdFALSE_UNSIGNED )
+                    {
+                        pxTCPWindow->tx.ulCurrentSequenceNumber = pxTCPWindow->tx.ulFINSequenceNumber;
+                    }
                 }
-            }
 
-            /* Now get data to be transmitted. */
+                /* Now get data to be transmitted. */
 
-            /* _HT_ patch: since the MTU has be fixed at 1500 in stead of 1526, TCP
-             * can not send-out both TCP options and also a full packet. Sending
-             * options (SACK) is always more urgent than sending data, which can be
-             * sent later. */
-            if( uxOptionsLength == 0U )
-            {
-                /* prvTCPPrepareSend might allocate a bigger network buffer, if
-                 * necessary. */
-                lSendResult = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
-
-                if( lSendResult > 0 )
+                /* _HT_ patch: since the MTU has be fixed at 1500 in stead of 1526, TCP
+                 * can not send-out both TCP options and also a full packet. Sending
+                 * options (SACK) is always more urgent than sending data, which can be
+                 * sent later. */
+                if( uxOptionsLength == 0U )
                 {
-                    xSendLength = ( BaseType_t ) lSendResult;
+                    /* prvTCPPrepareSend might allocate a bigger network buffer, if
+                     * necessary. */
+                    lSendResult = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
+
+                    if( lSendResult > 0 )
+                    {
+                        xSendLength = ( BaseType_t ) lSendResult;
+                    }
                 }
             }
         }

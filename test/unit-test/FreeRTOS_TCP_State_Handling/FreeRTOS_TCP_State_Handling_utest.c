@@ -487,6 +487,29 @@ static void xLocalFunctionPointer( Socket_t xSocket,
 }
 
 /* test for prvHandleEstablished function */
+void test_prvHandleEstablished_No_ACK( void )
+{
+    BaseType_t xSendLength = 0;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+
+    pxTCPHeader->ucTCPFlags = 0;
+
+    xSendLength = prvHandleEstablished( pxSocket,
+                                        &pxNetworkBuffer,
+                                        1000,
+                                        0 );
+    TEST_ASSERT_EQUAL( 0, xSendLength );
+}
+
+/* test for prvHandleEstablished function */
 void test_prvHandleEstablished_ACK_Happy( void )
 {
     BaseType_t xSendLength = 0;
@@ -683,7 +706,7 @@ void test_prvHandleEstablished_FIN_NotSent_RX_Complete( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     ulCalled = 0;
-    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN | tcpTCP_FLAG_ACK;
     pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1500 );
     pxTCPHeader->usWindow = 1000;
     pxSocket->u.xTCP.txStream = 0x12345678;
@@ -691,8 +714,7 @@ void test_prvHandleEstablished_FIN_NotSent_RX_Complete( void )
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxTCPWindow->rx.ulCurrentSequenceNumber = 2501;
 
-
-
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
     prvTCPAddTxData_ExpectAnyArgs();
     xTCPWindowRxEmpty_ExpectAnyArgsAndReturn( pdTRUE );
     xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdTRUE );
@@ -722,7 +744,7 @@ void test_prvHandleEstablished_FIN_NotSent_RX_Not_Complete( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     ulCalled = 0;
-    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN | tcpTCP_FLAG_ACK;
     pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1500 );
     pxTCPHeader->usWindow = 1000;
     pxSocket->u.xTCP.txStream = 0x12345678;
@@ -730,6 +752,7 @@ void test_prvHandleEstablished_FIN_NotSent_RX_Not_Complete( void )
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxTCPWindow->rx.ulCurrentSequenceNumber = 2501;
 
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
     prvTCPAddTxData_ExpectAnyArgs();
     xTCPWindowRxEmpty_ExpectAnyArgsAndReturn( pdFALSE );
     xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdTRUE );
@@ -759,7 +782,7 @@ void test_prvHandleEstablished_FIN_NotSent_TX_Win_Not_Complete( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     ulCalled = 0;
-    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN | tcpTCP_FLAG_ACK;
     pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1500 );
     pxTCPHeader->usWindow = 1000;
     pxSocket->u.xTCP.txStream = 0x12345678;
@@ -767,6 +790,7 @@ void test_prvHandleEstablished_FIN_NotSent_TX_Win_Not_Complete( void )
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxTCPWindow->rx.ulCurrentSequenceNumber = 2501;
 
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
     prvTCPAddTxData_ExpectAnyArgs();
     xTCPWindowRxEmpty_ExpectAnyArgsAndReturn( pdTRUE );
     xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdFALSE );
@@ -796,7 +820,7 @@ void test_prvHandleEstablished_FIN_NotSent_Data_Left( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     ulCalled = 0;
-    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN | tcpTCP_FLAG_ACK;
     pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1500 );
     pxTCPHeader->usWindow = 1000;
     pxSocket->u.xTCP.txStream = 0x12345678;
@@ -804,6 +828,7 @@ void test_prvHandleEstablished_FIN_NotSent_Data_Left( void )
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxTCPWindow->rx.ulCurrentSequenceNumber = 2200;
 
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
     prvTCPAddTxData_ExpectAnyArgs();
     xTCPWindowRxEmpty_ExpectAnyArgsAndReturn( pdTRUE );
     xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdTRUE );
@@ -833,7 +858,7 @@ void test_prvHandleEstablished_FIN_Sent( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     ulCalled = 0;
-    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN | tcpTCP_FLAG_ACK;
     pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1500 );
     pxTCPHeader->usWindow = 1000;
     pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
@@ -841,6 +866,7 @@ void test_prvHandleEstablished_FIN_Sent( void )
     pxSocket->u.xTCP.pxHandleSent = NULL;
     pxTCPWindow->rx.ulCurrentSequenceNumber = 2501;
 
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
     prvTCPAddTxData_ExpectAnyArgs();
     vTCPStateChange_ExpectAnyArgs();
 
