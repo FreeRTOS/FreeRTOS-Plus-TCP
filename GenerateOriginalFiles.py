@@ -232,7 +232,7 @@ def CopyIncludeAndPortableDirs():
     shutil.copytree('source/portable', 'portable')
 
 if __name__ == "__main__":
-    # Move the working directory to the root of repository.
+    # Change the working directory to the root of repository.
     os.chdir(os.path.dirname(sys.argv[0]))
 
     GenerateOriginalModules()
