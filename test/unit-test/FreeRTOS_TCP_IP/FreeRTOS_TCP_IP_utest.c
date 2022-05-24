@@ -1425,6 +1425,8 @@ void test_xProcessReceivedTCPPacket_Establish_State_Syn( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
@@ -1433,6 +1435,10 @@ void test_xProcessReceivedTCPPacket_Establish_State_Syn( void )
 
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
+    prvTCPSendReset_ExpectAnyArgsAndReturn( pdTRUE );
+    prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
     Return = xProcessReceivedTCPPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdFALSE, Return );
