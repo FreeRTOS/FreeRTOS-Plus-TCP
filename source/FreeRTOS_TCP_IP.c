@@ -675,7 +675,7 @@
                         xResult = pdFAIL;
                     }
 
-                    /* RFC793 (page 71), SYN received at ESTABLISED state is an error.
+                    /* RFC793 (page 71), SYN received at ESTABLISHED state is an error.
                      * ACK bit is set or not, the handling should send RST back and the
                      * state should be moved to CLOSED state. */
                     else if( ( ( ucTCPFlags & tcpTCP_FLAG_SYN ) != 0 ) && ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) )
