@@ -30,7 +30,9 @@ git submodule update --checkout --init --recursive tools/CMock test/FreeRTOS-Ker
 
 ## Generating pre V3.0.0 folder structure
 In versions >= 3.0.0, the folder structure of FreeRTOS-Plus-TCP has changed and the files have been broken down into smaller logically separated modules. Additionally, the source files have been moved to `source` directory. This change makes existing projects non-compilable and requires modification of project(s) to include the modified source files and include the modified directories.
+
 In case project modification is difficult and/or unwarrented, a script is provided to generate the folder structure similar to [this](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/f118c8415b4373e3d6e6dbd2d5a116f7eaf27b63).
+
 **Note:** After running the script, while the .c files will have same names as the pre V3.0.0 source, the files in the `include` directory will have different names and the number of files will differ as well. This should, however, not pose any problems to most projects as projects generally include all files in a given directory.
 
 ### Running the script to generate pre V3.0.0 folder structure.
