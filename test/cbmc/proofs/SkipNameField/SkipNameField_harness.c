@@ -17,6 +17,7 @@
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 #include "IPTraceMacroDefaults.h"
+#include "FreeRTOS_DNS_Parser.h"
 
 #include "cbmc.h"
 
@@ -24,11 +25,11 @@
 * Signature of function under test
 ****************************************************************/
 
-size_t prvSkipNameField( const uint8_t * pucByte,
-                         size_t uxLength );
+size_t DNS_SkipNameField( const uint8_t * pucByte,
+                          size_t uxLength );
 
 /****************************************************************
-* Proof of prvSkipNameField function contract
+* Proof of DNS_SkipNameField function contract
 ****************************************************************/
 
 void harness()
@@ -45,10 +46,10 @@ void harness()
     __CPROVER_assume( uxLength <= NETWORK_BUFFER_SIZE );
     __CPROVER_assume( pucByte != NULL );
 
-    size_t index = prvSkipNameField( pucByte, uxLength );
+    size_t index = DNS_SkipNameField( pucByte, uxLength );
 
     /* Postconditions */
 
     __CPROVER_assert( index <= uxLength,
-                      "prvSkipNameField: index <= uxLength" );
+                      "DNS_SkipNameField: index <= uxLength" );
 }

@@ -17,7 +17,6 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
-#            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/list_macros.h"
         )
 
 set(mock_include_list "")
@@ -45,7 +44,7 @@ set(real_source_files "")
 
 # list the files you would like to test here
 list(APPEND real_source_files
-            ${MODULE_ROOT_DIR}/${project_name}.c
+            ${MODULE_ROOT_DIR}/source/${project_name}.c
 	)
 
 set(real_include_directories "")

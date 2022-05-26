@@ -1,6 +1,8 @@
 /*
- * FreeRTOS+TCP V2.4.0
+ * FreeRTOS+TCP V2.3.4
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * SPDX-License-Identifier: MIT
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -37,16 +39,6 @@
 
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
-
-portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-{
-    return ( UDPPacket_t * ) pvArgument;
-}
-
-portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( UDPPacket_t )
-{
-    return ( const UDPPacket_t * ) pvArgument;
-}
 
 void vPortEnterCritical( void )
 {

@@ -133,7 +133,7 @@ jobs:
           COMPLEXITY_PARAMS="--scores --threshold=10 --horrid-threshold=283"
           TEMP_DIR=./temp
           mkdir -p ${TEMP_DIR}
-          for SOURCE_FILE in portable/BufferManagement/*.c *.c
+          for SOURCE_FILE in source/portable/BufferManagement/*.c source/*.c
           do
               TARGET_DIR=${TEMP_DIR}/`dirname ${SOURCE_FILE}`
               TARGET_FILE=${TARGET_DIR}/`basename ${SOURCE_FILE}`

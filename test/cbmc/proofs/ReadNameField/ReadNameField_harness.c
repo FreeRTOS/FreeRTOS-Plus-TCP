@@ -24,10 +24,10 @@
 * Signature of function under test
 ****************************************************************/
 
-size_t prvReadNameField( const uint8_t * pucByte,
-                         size_t uxRemainingBytes,
-                         char * pcName,
-                         size_t uxDestLen );
+size_t DNS_ReadNameField( const uint8_t * pucByte,
+                          size_t uxRemainingBytes,
+                          char * pcName,
+                          size_t uxDestLen );
 
 /****************************************************************
 * The function under test is not defined in all configurations
@@ -35,16 +35,16 @@ size_t prvReadNameField( const uint8_t * pucByte,
 
 #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
 
-/* prvReadNameField is defined in this configuration */
+/*  DNS_ReadNameField is defined in this configuration */
 
 #else
 
-/* prvReadNameField is not defined in this configuration, stub it. */
+/*  DNS_ReadNameField is not defined in this configuration, stub it. */
 
-    size_t prvReadNameField( const uint8_t * pucByte,
-                             size_t uxRemainingBytes,
-                             char * pcName,
-                             size_t uxDestLen )
+    size_t DNS_ReadNameField( const uint8_t * pucByte,
+                              size_t uxRemainingBytes,
+                              char * pcName,
+                              size_t uxDestLen )
     {
         return 0;
     }
@@ -53,7 +53,7 @@ size_t prvReadNameField( const uint8_t * pucByte,
 
 
 /****************************************************************
-* Proof of prvReadNameField function contract
+* Proof of  DNS_ReadNameField function contract
 ****************************************************************/
 
 void harness()
@@ -90,13 +90,13 @@ void harness()
     /* Avoid overflow on uxDestLen - 1U */
     __CPROVER_assume( uxDestLen > 0 );
 
-    size_t index = prvReadNameField( pucByte,
-                                     uxRemainingBytes,
-                                     pcName,
-                                     uxDestLen );
+    size_t index = DNS_ReadNameField( pucByte,
+                                      uxRemainingBytes,
+                                      pcName,
+                                      uxDestLen );
 
     /* Postconditions */
 
     __CPROVER_assert( index <= uxDestLen + 1 && index <= uxRemainingBytes,
-                      "prvReadNamefield: index <= uxDestLen+1" );
+                      "DNS_ReadNameField : index <= uxDestLen+1" );
 }

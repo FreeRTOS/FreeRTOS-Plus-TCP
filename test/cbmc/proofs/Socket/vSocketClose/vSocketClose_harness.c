@@ -14,22 +14,6 @@
 #include "freertos_api.c"
 #include "memory_assignments.c"
 
-/* Provide definition of casting functions. */
-ipDECL_CAST_PTR_FUNC_FOR_TYPE( FreeRTOS_Socket_t )
-{
-    return ( FreeRTOS_Socket_t * ) pvArgument;
-}
-
-ipDECL_CAST_PTR_FUNC_FOR_TYPE( NetworkBufferDescriptor_t )
-{
-    return ( NetworkBufferDescriptor_t * ) pvArgument;
-}
-
-ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ListItem_t )
-{
-    return ( ListItem_t * ) pvArgument;
-}
-
 /* The memory safety of vTCPWindowDestroy has already been proved in
  * proofs/TCPWin/vTCPWindowDestroy. */
 void vTCPWindowDestroy( TCPWindow_t const * xWindow )

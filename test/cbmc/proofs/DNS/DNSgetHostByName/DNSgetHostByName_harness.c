@@ -19,6 +19,19 @@
 
 #include "cbmc.h"
 
+uint32_t FreeRTOS_dnslookup( const char * pcHostName );
+Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks );
+void DNS_CloseSocket( Socket_t xDNSSocket );
+void DNS_ReadReply( Socket_t xDNSSocket,
+                    struct freertos_sockaddr * xAddress,
+                    struct xDNSBuffer * pxDNSBuf );
+uint32_t DNS_SendRequest( Socket_t xDNSSocket,
+                          struct freertos_sockaddr * xAddress,
+                          struct xDNSBuffer * pxDNSBuf );
+uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+                            size_t xBufferLength,
+                            BaseType_t xExpected );
+
 /****************************************************************
 * We abstract:
 *
@@ -28,7 +41,7 @@
 *
 *   Many methods in the FreeRTOS TCP API in stubs/freertos_api.c
 *
-*   prvParseDNSReply proved memory safe elsewhere
+*   DNS_ParseDNSReply proved memory safe elsewhere
 *
 *   prvCreateDNSMessage
 *
@@ -38,7 +51,7 @@
 ****************************************************************/
 
 /****************************************************************
-* Abstract prvParseDNSReply proved memory save in ParseDNSReply.
+* Abstract DNS_ParseDNSReply proved memory safe in ParseDNSReply.
 *
 * We stub out his function to fill the payload buffer with
 * unconstrained data and return an unconstrained size.
@@ -47,14 +60,76 @@
 * function.
 ****************************************************************/
 
-uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                           size_t xBufferLength,
-                           BaseType_t xExpected )
+uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+                            size_t xBufferLength,
+                            BaseType_t xExpected )
 {
     uint32_t size;
 
     __CPROVER_havoc_object( pucUDPPayloadBuffer );
     return size;
+}
+
+/****************************************************************
+* Abstract  DNS_SendRequest
+*
+* We stub out this function with return constraint of true or false
+*
+****************************************************************/
+uint32_t DNS_SendRequest( Socket_t xDNSSocket,
+                          struct freertos_sockaddr * xAddress,
+                          struct xDNSBuffer * pxDNSBuf )
+{
+    uint32_t ret;
+
+    __CPROVER_assume( ret >= 0 );
+    __CPROVER_assume( ret <= 1 );
+
+    return ret;
+}
+
+/****************************************************************
+* Abstract DNS_ReadReply
+*
+* We stub out this function which returned a dns_buffer filled with random data
+*
+****************************************************************/
+void DNS_ReadReply( Socket_t xDNSSocket,
+                    struct freertos_sockaddr * xAddress,
+                    struct xDNSBuffer * pxDNSBuf )
+{
+    int len;
+
+    pxDNSBuf->pucPayloadBuffer = safeMalloc( len );
+
+    pxDNSBuf->uxPayloadLength = len;
+
+    __CPROVER_assume( len < CBMC_MAX_OBJECT_SIZE );
+    __CPROVER_assume( pxDNSBuf->pucPayloadBuffer != NULL );
+
+    __CPROVER_havoc_slice( pxDNSBuf->pucPayloadBuffer, pxDNSBuf->uxPayloadSize );
+}
+
+
+void DNS_CloseSocket( Socket_t xDNSSocket )
+{
+}
+
+Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
+{
+    Socket_t sock;
+
+    return sock;
+}
+
+uint32_t FreeRTOS_dnslookup( const char * pcHostName )
+{
+    int ret;
+
+    __CPROVER_assume( ret < 0xFFFF );
+    __CPROVER_assume( ret > 0 );
+
+    return ret;
 }
 
 
@@ -91,5 +166,6 @@ void harness()
     __CPROVER_assume( len > 0 ); /* prvProcessDNSCache strcmp */
     __CPROVER_assume( pcHostName != NULL );
     pcHostName[ len - 1 ] = NULL;
+
     FreeRTOS_gethostbyname( pcHostName );
 }

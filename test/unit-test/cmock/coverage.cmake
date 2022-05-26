@@ -73,7 +73,7 @@ execute_process(
                          --rc lcov_branch_coverage=1
         )
 
-if(0)
+if(1)
 # Remove kernel coverage
 execute_process(
            COMMAND lcov --rc lcov_branch_coverage=1
@@ -105,3 +105,4 @@ execute_process(
                             --output-directory ${CMAKE_BINARY_DIR}/coverage
                                 ${CMAKE_BINARY_DIR}/coverage.info
         )
+

@@ -9,8 +9,14 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS_PLUS_TCP)/FreeRTOS_IP.goto",
-    "$(FREERTOS_PLUS_TCP)/FreeRTOS_TCP_IP.goto"
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Utils.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Timers.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_IP.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_State_Handling.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Utils.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Reception.goto"
   ],
   "INSTFLAGS":
   [

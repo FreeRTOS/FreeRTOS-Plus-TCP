@@ -38,8 +38,8 @@ set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 set( FREERTOS_KERNEL_DIR ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel )
 set( TEST_DIR ${MODULE_ROOT_DIR}/test/build-combination )
 
-include_directories( ${MODULE_ROOT_DIR}/include )
-include_directories( ${MODULE_ROOT_DIR}/portable/Compiler/MSVC )
+include_directories( ${MODULE_ROOT_DIR}/source/include )
+include_directories( ${MODULE_ROOT_DIR}/source/portable/Compiler/MSVC )
 include_directories( ${FREERTOS_KERNEL_DIR}/include )
 include_directories( ${FREERTOS_KERNEL_DIR}/portable/MSVC-MingW )
 include_directories( ${FREERTOS_KERNEL_DIR}/portable/MemMang )
@@ -54,7 +54,8 @@ endif()
 
 
 file(GLOB KERNEL_SOURCES "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/*.c")
-file(GLOB TCP_SOURCES "${MODULE_ROOT_DIR}/*.c")
+file(GLOB TCP_SOURCES "${MODULE_ROOT_DIR}/source/*.c"
+        )
 
 message(STATUS "${KERNEL_SOURCES}")
 message(STATUS "${TCP_SOURCES}")
@@ -63,5 +64,5 @@ message(STATUS "${TCP_SOURCES}")
 add_executable(project ${KERNEL_SOURCES}
 		       ${TCP_SOURCES}
 		       ${FREERTOS_KERNEL_DIR}/portable/MemMang/heap_4.c
-		       ${MODULE_ROOT_DIR}/portable/BufferManagement/BufferAllocation_2.c
+		       ${MODULE_ROOT_DIR}/source/portable/BufferManagement/BufferAllocation_2.c
 		       ${TEST_DIR}/Common/main.c )

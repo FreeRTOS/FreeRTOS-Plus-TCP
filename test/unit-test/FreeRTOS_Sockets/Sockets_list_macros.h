@@ -1,6 +1,8 @@
 /*
- * FreeRTOS+TCP V2.4.0
+ * FreeRTOS+TCP V2.3.4
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * SPDX-License-Identifier: MIT
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,13 +28,16 @@
 #ifndef LIST_MACRO_H
 #define LIST_MACRO_H
 
-#include <FreeRTOS.h>
-#include <portmacro.h>
-#include <list.h>
+#include "FreeRTOS.h"
+#include "portmacro.h"
+#include "list.h"
 
 #undef listSET_LIST_ITEM_OWNER
 void listSET_LIST_ITEM_OWNER( ListItem_t * pxListItem,
                               void * owner );
+
+#undef listGET_HEAD_ENTRY
+ListItem_t * listGET_HEAD_ENTRY( List_t * pxList );
 
 #undef listGET_END_MARKER
 ListItem_t * listGET_END_MARKER( List_t * pxList );
@@ -69,5 +74,8 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
+
+#undef listLIST_IS_INITIALISED
+BaseType_t listLIST_IS_INITIALISED( List_t * pxList );
 
 #endif /* ifndef LIST_MACRO_H */

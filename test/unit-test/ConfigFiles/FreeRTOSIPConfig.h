@@ -32,10 +32,12 @@
 
 #define _static
 
+#define TEST                        1
+
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF    0
+#define ipconfigHAS_DEBUG_PRINTF    1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
     #define FreeRTOS_debug_printf( X )    configPRINTF( X )
 #endif
@@ -51,12 +53,14 @@
 
 /* Define the byte order of the target MCU (the MCU FreeRTOS+TCP is executing
  * on).  Valid options are pdFREERTOS_BIG_ENDIAN and pdFREERTOS_LITTLE_ENDIAN. */
-#define ipconfigBYTE_ORDER                         pdFREERTOS_LITTLE_ENDIAN
+#define ipconfigBYTE_ORDER    pdFREERTOS_LITTLE_ENDIAN
+
+#define FreeRTOS_htons( usIn )    ( ( uint16_t ) ( ( ( usIn ) << 8U ) | ( ( usIn ) >> 8U ) ) )
 
 /* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
  * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
  * stack repeating the checksum calculations. */
-#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     1
+#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     0
 
 /* Several API's will block until the result is known, or the action has been
  * performed, for example FreeRTOS_send() and FreeRTOS_recv().  The timeouts can be
@@ -73,10 +77,10 @@
  * a socket.
  */
 #define ipconfigUSE_DNS_CACHE                      ( 1 )
-#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 6 )
+#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 2 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
-#define ipconfigDNS_CACHE_NAME_LENGTH              ( 100 )
+#define ipconfigDNS_CACHE_NAME_LENGTH              ( 254 )
 
 /* The IP stack executes it its own task (although any application task can make
  * use of its services through the published sockets API). ipconfigUDP_TASK_PRIORITY
@@ -276,7 +280,7 @@ extern uint32_t ulRand();
  * TCP socket will use up to 2 x 6 descriptors, meaning that it can have 2 x 6
  * outstanding packets (for Rx and Tx).  When using up to 10 TP sockets
  * simultaneously, one could define TCP_WIN_SEG_COUNT as 120. */
-#define ipconfigTCP_WIN_SEG_COUNT                      240
+#define ipconfigTCP_WIN_SEG_COUNT                      2
 
 /* Each TCP socket has a circular buffers for Rx and Tx, which have a fixed
  * maximum size.  Define the size of Rx buffer for TCP sockets. */
@@ -316,5 +320,18 @@ extern uint32_t ulRand();
 #define ipconfigDHCP_FALL_BACK_AUTO_IP           ( 1 )
 
 #define ipconfigUDP_MAX_RX_PACKETS               ( 1 )
+
+#define ipconfigSUPPORT_SIGNALS                  ( 1 )
+
+#define ipconfigDNS_CACHE_ENTRIES                ( 2 )
+
+#define ipconfigBUFFER_PADDING                   ( 14 )
+#define ipconfigTCP_SRTT_MINIMUM_VALUE_MS        ( 34 )
+
+#define ipconfigTCP_HANG_PROTECTION              ( 1 )
+
+#define portINLINE
+
+#define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
 
 #endif /* FREERTOS_IP_CONFIG_H */

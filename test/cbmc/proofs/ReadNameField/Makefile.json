@@ -20,14 +20,14 @@
 # Loop prvReadNameField.0:
 # should be min of buffer size and name size
 # but loop must be unwound at least once, so max of this and 1+1
-  "READLOOP0": "prvReadNameField.0",
+  "READLOOP0": "DNS_ReadNameField.0",
   "READLOOP0_UNWIND": "__eval max(2, min({NETWORK_BUFFER_SIZE}, {NAME_SIZE}+1))",
 
 ################################################################
 # Loop prvReadNameField.1:
 # should be min of buffer size and name size
 # but loop must be unwound at least twice, so max of this and 2+1
-  "READLOOP1": "prvReadNameField.1",
+  "READLOOP1": "DNS_ReadNameField.1",
   "READLOOP1_UNWIND": "__eval max(3, min({NETWORK_BUFFER_SIZE}, {NAME_SIZE}))",
 
 ################################################################
@@ -41,7 +41,8 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS_PLUS_TCP)/FreeRTOS_DNS.goto"
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS_Parser.goto"
   ],
 
   "DEF":

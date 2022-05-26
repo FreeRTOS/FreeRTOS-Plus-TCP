@@ -12,6 +12,7 @@ message( STATUS "${project_name}" )
 list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Timers.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
         )
@@ -33,7 +34,7 @@ list(APPEND mock_define_list
 
 # list the files you would like to test here
 list(APPEND real_source_files
-            ${MODULE_ROOT_DIR}/FreeRTOS_ARP.c
+            ${MODULE_ROOT_DIR}/source/FreeRTOS_ARP.c
 	)
 # list the directories the module under test includes
 list(APPEND real_include_directories

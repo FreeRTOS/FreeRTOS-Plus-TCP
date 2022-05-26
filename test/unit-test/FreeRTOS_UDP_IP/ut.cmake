@@ -15,6 +15,7 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Utils.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
@@ -50,7 +51,7 @@ set(real_source_files "")
 
 # list the files you would like to test here
 list(APPEND real_source_files
-            ${MODULE_ROOT_DIR}/${project_name}.c
+            ${MODULE_ROOT_DIR}/source/${project_name}.c
 	)
 
 #set(real_include_directories "")
@@ -111,4 +112,8 @@ create_test(${utest_name}
             "${utest_link_list}"
             "${utest_dep_list}"
             "${test_include_directories}"
+        )
+
+target_compile_options(${real_name} PUBLIC
+            -include list_macros.h
         )
