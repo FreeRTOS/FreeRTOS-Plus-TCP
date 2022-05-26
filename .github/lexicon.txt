@@ -523,6 +523,7 @@ mii
 miiar
 min
 misra
+mit
 mmc
 mo
 mqtt
@@ -983,6 +984,7 @@ socketset
 sockopt
 sof
 sourceaddrfilter
+spdx
 spi
 sprintf
 squestions
