@@ -30,6 +30,13 @@
  * @brief Header file for IP Timers on FreeRTOS+TCP network stack.
  */
 
+#ifndef FREERTOS_IP_TIMERS_H
+    #define FREERTOS_IP_TIMERS_H
+
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
+
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
@@ -99,3 +106,10 @@ void vTCPTimerReload( TickType_t xTime );
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
     void vDNSTimerReload( uint32_t ulCheckTime );
 #endif
+
+    #ifdef __cplusplus
+        } /* extern "C" */
+    #endif
+
+#endif /* FREERTOS_IP_TIMERS_H */
+

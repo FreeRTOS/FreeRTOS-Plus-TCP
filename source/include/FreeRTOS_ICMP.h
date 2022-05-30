@@ -30,6 +30,13 @@
  * @brief Header file for Internet Control Message Protocol for the FreeRTOS+TCP network stack.
  */
 
+#ifndef FREERTOS_ICMP_H
+    #define FREERTOS_ICMP_H
+
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
+
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
@@ -63,3 +70,9 @@
  */
     eFrameProcessingResult_t ProcessICMPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
+
+    #ifdef __cplusplus
+        } /* extern "C" */
+    #endif
+
+#endif /* FREERTOS_ICMP_H */

@@ -29,18 +29,24 @@
 #ifndef FREERTOS_DNS_CALLBACK_H
 #define FREERTOS_DNS_CALLBACK_H
 
-#if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
 /* FreeRTOS includes. */
     #include "FreeRTOS.h"
 
 /* FreeRTOS+TCP includes. */
     #include "FreeRTOS_IP.h"
+    #include "FreeRTOSIPConfigDefaults.h"
 
     #include "FreeRTOS_DNS_Globals.h"
 
 /* Standard includes. */
     #include <stdint.h>
+    /* Application level configuration options. */
+    
+#if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
     BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
                                const char * pcName,
@@ -59,5 +65,8 @@
 
 #endif /* ipconfigDNS_USE_CALLBACKS  && ipconfigUSE_DNS */
 
+    #ifdef __cplusplus
+        } /* extern "C" */
+    #endif
 
 #endif /* ifndef FREERTOS_DNS_CALLBACK_H */

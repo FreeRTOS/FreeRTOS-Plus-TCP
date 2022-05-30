@@ -53,6 +53,13 @@
     #endif /* ( ipconfigUSE_TCP_WIN == 1 ) */
 
 /*
+ * Called from xProcessReceivedTCPPacket. Parse the TCP option(s) received, 
+ * if present. This function returns pdFALSE if the options are not well formed.
+ */
+    BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+                                const NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+/*
  * Called from prvTCPHandleState().  Find the TCP payload data and check and
  * return its length.
  */

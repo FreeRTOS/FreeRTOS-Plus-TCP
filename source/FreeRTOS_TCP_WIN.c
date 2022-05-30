@@ -1183,6 +1183,8 @@
             int32_t lStartDistance;
             int32_t lLastDistance;
             uint32_t ulLast;
+            uint32_t ulRxSequenceNumber = ulSequenceNumber;
+            uint32_t ulRxLength = ulLength;
 
             /* If lTCPWindowRxCheck( ) returns == 0, the packet will be passed
              * directly to user (segment is expected).  If it returns a positive
@@ -1201,23 +1203,23 @@
 
             ulCurrentSequenceNumber = pxWindow->rx.ulCurrentSequenceNumber;
 
-            ulLast = ulSequenceNumber + ulLength;
+            ulLast = ulRxSequenceNumber + ulRxLength;
             ulIntermediateResult = ulLast - ulCurrentSequenceNumber;
             /* The cast from unsigned long to signed long is on purpose. */
             lLastDistance = ( int32_t ) ulIntermediateResult;
 
-            ulIntermediateResult = ulSequenceNumber - ulCurrentSequenceNumber;
+            ulIntermediateResult = ulRxSequenceNumber - ulCurrentSequenceNumber;
             lStartDistance = ( int32_t ) ulIntermediateResult;
 
             if( ( lStartDistance < 0 ) && ( lLastDistance > 0 ) )
             {
                 FreeRTOS_debug_printf( ( "lTCPWindowRxCheck: Received +%u bytes for %u, only using %d\n",
-                                         ( unsigned ) ulLength,
-                                         ( unsigned ) ( ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
+                                         ( unsigned ) ulRxLength,
+                                         ( unsigned ) ( ulRxSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
                                          ( int ) lLastDistance ) );
                 /* Increase the sequence number, decrease the length. */
-                ulSequenceNumber += ( uint32_t ) ( -lStartDistance );
-                ulLength += ( uint32_t ) lStartDistance;
+                ulRxSequenceNumber += ( uint32_t ) ( -lStartDistance );
+                ulRxLength += ( uint32_t ) lStartDistance;
 
                 /* Tell the caller that the first 'pulSkipCount' bytes don't
                  * need to be stored. */
@@ -1230,23 +1232,23 @@
             /* Non-zero if TCP-windows contains data which must be popped. */
             pxWindow->ulUserDataLength = 0U;
 
-            if( ulCurrentSequenceNumber == ulSequenceNumber )
+            if( ulCurrentSequenceNumber == ulRxSequenceNumber )
             {
                 /* This is the packet with the lowest sequence number we're waiting
                  * for.  It can be passed directly to the rx stream. */
-                if( ulLength > ulSpace )
+                if( ulRxLength > ulSpace )
                 {
-                    FreeRTOS_debug_printf( ( "lTCPWindowRxCheck: Refuse %u bytes, due to lack of space (%u)\n", ( unsigned ) ulLength, ( unsigned ) ulSpace ) );
+                    FreeRTOS_debug_printf( ( "lTCPWindowRxCheck: Refuse %u bytes, due to lack of space (%u)\n", ( unsigned ) ulRxLength, ( unsigned ) ulSpace ) );
                 }
                 else
                 {
                     /* Packet was expected, may be passed directly to the socket
                      * buffer or application.  Store the packet at offset 0. */
-                    prvTCPWindowRx_ExpectedRX( pxWindow, ulLength );
+                    prvTCPWindowRx_ExpectedRX( pxWindow, ulRxLength );
                     lReturn = 0;
                 }
             }
-            else if( ulCurrentSequenceNumber == ( ulSequenceNumber + 1U ) )
+            else if( ulCurrentSequenceNumber == ( ulRxSequenceNumber + 1U ) )
             {
                 /* Looks like a TCP keep-alive message.  Do not accept/store Rx data
                  * ulUserDataLength = 0. Not packet out-of-sync.  Just reply to it. */
@@ -1271,12 +1273,12 @@
                      * sequence number of this packet is too far ahead, ignore it. */
                     FreeRTOS_debug_printf( ( "lTCPWindowRxCheck: Refuse %d+%u bytes, due to lack of space (%u)\n",
                                              ( int ) lLastDistance,
-                                             ( unsigned ) ulLength,
+                                             ( unsigned ) ulRxLength,
                                              ( unsigned ) ulSpace ) );
                 }
                 else
                 {
-                    lReturn = prvTCPWindowRx_UnexpectedRX( pxWindow, ulSequenceNumber, ulLength );
+                    lReturn = prvTCPWindowRx_UnexpectedRX( pxWindow, ulRxSequenceNumber, ulRxLength );
                 }
             }
 

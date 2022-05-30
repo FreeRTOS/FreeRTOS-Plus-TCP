@@ -53,35 +53,10 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_TCP_Transmission.h"
+#include "FreeRTOS_TCP_Reception.h"
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
-
-/*
- * Identify and deal with a single TCP header option, advancing the pointer to
- * the header. This function returns pdTRUE or pdFALSE depending on whether the
- * caller should continue to parse more header options or break the loop.
- */
-    static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                                  size_t uxTotalLength,
-                                                  FreeRTOS_Socket_t * const pxSocket,
-                                                  BaseType_t xHasSYNFlag );
-
-    #if ( ipconfigUSE_TCP_WIN == 1 )
-
-/*
- * Skip past TCP header options when doing Selective ACK, until there are no
- * more options left.
- */
-        _static void prvReadSackOption( const uint8_t * const pucPtr,
-                                        size_t uxIndex,
-                                        FreeRTOS_Socket_t * const pxSocket );
-    #endif /* ( ipconfigUSE_TCP_WIN == 1 ) */
-
-/*
- * Reply to a peer with the RST flag on, in case a packet can not be handled.
- */
-    BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /**
  * @brief Parse the TCP option(s) received, if present.
@@ -194,7 +169,7 @@
  *         negative value wherein the calling function should not process this packet any
  *         further and drop it.
  */
-    static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+    int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
                                                   size_t uxTotalLength,
                                                   FreeRTOS_Socket_t * const pxSocket,
                                                   BaseType_t xHasSYNFlag )
@@ -369,7 +344,7 @@
  * @param[in] uxIndex: Index of options in the TCP packet options.
  * @param[in] pxSocket: Socket handling the TCP connection.
  */
-        _static void prvReadSackOption( const uint8_t * const pucPtr,
+        void prvReadSackOption( const uint8_t * const pucPtr,
                                         size_t uxIndex,
                                         FreeRTOS_Socket_t * const pxSocket )
         {
@@ -521,10 +496,12 @@
         uint32_t ulSequenceNumber, ulSpace;
         int32_t lOffset, lStored;
         BaseType_t xResult = 0;
+        uint32_t ulRxLength = ulReceiveLength;
+        uint8_t *pucRxBuffer = &( pucRecvData[ 0 ] );
 
         ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
 
-        if( ( ulReceiveLength > 0U ) && ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eSYN_RECEIVED ) )
+        if( ( ulRxLength > 0U ) && ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eSYN_RECEIVED ) )
         {
             uint32_t ulSkipCount = 0;
 
@@ -544,7 +521,7 @@
                 ulSpace = ( uint32_t ) pxSocket->u.xTCP.uxRxStreamSize;
             }
 
-            lOffset = lTCPWindowRxCheck( pxTCPWindow, ulSequenceNumber, ulReceiveLength, ulSpace, &( ulSkipCount ) );
+            lOffset = lTCPWindowRxCheck( pxTCPWindow, ulSequenceNumber, ulRxLength, ulSpace, &( ulSkipCount ) );
 
             if( lOffset >= 0 )
             {
@@ -557,15 +534,15 @@
                     /* A packet was received that starts before 'ulCurrentSequenceNumber',
                      * and that ends after it.  The first 'ulSkipCount' bytes shall be
                      * skipped. */
-                    ulReceiveLength -= ulSkipCount;
-                    pucRecvData = &( pucRecvData[ ulSkipCount ] );
+                    ulRxLength -= ulSkipCount;
+                    pucRxBuffer = &( pucRecvData[ ulSkipCount ] );
                 }
 
-                lStored = lTCPAddRxdata( pxSocket, ( uint32_t ) lOffset, pucRecvData, ulReceiveLength );
+                lStored = lTCPAddRxdata( pxSocket, ( uint32_t ) lOffset, pucRxBuffer, ulRxLength );
 
-                if( lStored != ( int32_t ) ulReceiveLength )
+                if( lStored != ( int32_t ) ulRxLength )
                 {
-                    FreeRTOS_debug_printf( ( "lTCPAddRxdata: stored %d / %u bytes? ?\n", ( int ) lStored, ( unsigned ) ulReceiveLength ) );
+                    FreeRTOS_debug_printf( ( "lTCPAddRxdata: stored %d / %u bytes? ?\n", ( int ) lStored, ( unsigned ) ulRxLength ) );
 
                     /* Received data could not be stored.  The socket's flag
                      * bMallocError has been set.  The socket now has the status

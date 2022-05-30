@@ -25,6 +25,13 @@
  * http://www.FreeRTOS.org
  */
 
+#ifndef FREERTOS_IP_UTILS_H
+    #define FREERTOS_IP_UTILS_H
+
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
+
 /**
  * @file FreeRTOS_IP_Utils.h
  * @brief Implements the utility functions for FreeRTOS_IP.c
@@ -51,6 +58,7 @@
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
+#include "FreeRTOSIPConfigDefaults.h"
 
 #if ( ipconfigUSE_DHCP != 0 )
 
@@ -87,16 +95,9 @@ void vPreCheckConfigs( void );
  */
 void prvProcessNetworkDownEvent( void );
 
-/**
- * @brief Utility function: Convert error number to a human readable
- *        string. Declaration in FreeRTOS_errno_TCP.h.
- *
- * @param[in] xErrnum: The error number.
- * @param[in] pcBuffer: Buffer big enough to be filled with the human readable message.
- * @param[in] uxLength: Maximum length of the buffer.
- *
- * @return The buffer filled with human readable error string.
- */
-const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
-                                  char * pcBuffer,
-                                  size_t uxLength );
+    #ifdef __cplusplus
+        } /* extern "C" */
+    #endif
+
+#endif /* FREERTOS_IP_UTILS_H */
+

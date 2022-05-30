@@ -54,6 +54,7 @@
 #include "mock_FreeRTOS_TCP_State_Handling.h"
 #include "mock_FreeRTOS_UDP_IP.h"
 #include "mock_FreeRTOS_TCP_Transmission.h"
+#include "mock_FreeRTOS_TCP_Reception.h"
 
 #include "catch_assert.h"
 

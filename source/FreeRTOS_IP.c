@@ -1435,8 +1435,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                  * broadcast address. */
                 eReturn = eReleaseBuffer;
             }
-            else if( memcmp( ( void * ) &xBroadcastMACAddress,
-                             ( void * ) &( pxIPPacket->xEthernetHeader.xSourceAddress ),
+            else if( memcmp( ( const void * ) ( xBroadcastMACAddress.ucBytes ),
+                             ( const void * ) ( pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes ),
                              sizeof( MACAddress_t ) ) == 0 )
             {
                 /* Ethernet source is a broadcast address. Drop the packet. */
