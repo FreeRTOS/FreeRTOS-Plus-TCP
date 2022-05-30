@@ -170,9 +170,9 @@
  *         further and drop it.
  */
     int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                                  size_t uxTotalLength,
-                                                  FreeRTOS_Socket_t * const pxSocket,
-                                                  BaseType_t xHasSYNFlag )
+                                           size_t uxTotalLength,
+                                           FreeRTOS_Socket_t * const pxSocket,
+                                           BaseType_t xHasSYNFlag )
     {
         UBaseType_t uxNewMSS;
         size_t uxRemainingOptionsBytes = uxTotalLength;
@@ -345,8 +345,8 @@
  * @param[in] pxSocket: Socket handling the TCP connection.
  */
         void prvReadSackOption( const uint8_t * const pucPtr,
-                                        size_t uxIndex,
-                                        FreeRTOS_Socket_t * const pxSocket )
+                                size_t uxIndex,
+                                FreeRTOS_Socket_t * const pxSocket )
         {
             uint32_t ulFirst = ulChar2u32( &( pucPtr[ uxIndex ] ) );
             uint32_t ulLast = ulChar2u32( &( pucPtr[ uxIndex + 4U ] ) );
@@ -497,7 +497,7 @@
         int32_t lOffset, lStored;
         BaseType_t xResult = 0;
         uint32_t ulRxLength = ulReceiveLength;
-        uint8_t *pucRxBuffer = &( pucRecvData[ 0 ] );
+        uint8_t * pucRxBuffer = &( pucRecvData[ 0 ] );
 
         ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
 

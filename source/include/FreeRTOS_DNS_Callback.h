@@ -27,7 +27,7 @@
 
 
 #ifndef FREERTOS_DNS_CALLBACK_H
-#define FREERTOS_DNS_CALLBACK_H
+    #define FREERTOS_DNS_CALLBACK_H
 
     #ifdef __cplusplus
         extern "C" {
@@ -45,25 +45,25 @@
 /* Standard includes. */
     #include <stdint.h>
     /* Application level configuration options. */
-    
-#if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
-    BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
-                               const char * pcName,
-                               uint32_t ulIPAddress );
+    #if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
-    void vDNSSetCallBack( const char * pcHostName,
-                          void * pvSearchID,
-                          FOnDNSEvent pCallbackFunction,
-                          TickType_t uxTimeout,
-                          TickType_t uxIdentifier );
+        BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
+                                   const char * pcName,
+                                   uint32_t ulIPAddress );
 
-    void vDNSCheckCallBack( void * pvSearchID );
+        void vDNSSetCallBack( const char * pcHostName,
+                              void * pvSearchID,
+                              FOnDNSEvent pCallbackFunction,
+                              TickType_t uxTimeout,
+                              TickType_t uxIdentifier );
+
+        void vDNSCheckCallBack( void * pvSearchID );
 
 
-    void vDNSCallbackInitialise();
+        void vDNSCallbackInitialise();
 
-#endif /* ipconfigDNS_USE_CALLBACKS  && ipconfigUSE_DNS */
+    #endif /* ipconfigDNS_USE_CALLBACKS  && ipconfigUSE_DNS */
 
     #ifdef __cplusplus
         } /* extern "C" */

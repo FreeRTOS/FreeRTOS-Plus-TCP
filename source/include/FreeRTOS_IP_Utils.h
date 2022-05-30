@@ -38,29 +38,29 @@
  */
 
 /* Standard includes. */
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+    #include <stdint.h>
+    #include <stdio.h>
+    #include <string.h>
 
 /* FreeRTOS includes. */
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
+    #include "FreeRTOS.h"
+    #include "task.h"
+    #include "queue.h"
+    #include "semphr.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_ARP.h"
-#include "FreeRTOS_UDP_IP.h"
-#include "FreeRTOS_DHCP.h"
-#include "NetworkInterface.h"
-#include "NetworkBufferManagement.h"
-#include "FreeRTOS_DNS.h"
-#include "FreeRTOSIPConfigDefaults.h"
+    #include "FreeRTOS_IP.h"
+    #include "FreeRTOS_Sockets.h"
+    #include "FreeRTOS_IP_Private.h"
+    #include "FreeRTOS_ARP.h"
+    #include "FreeRTOS_UDP_IP.h"
+    #include "FreeRTOS_DHCP.h"
+    #include "NetworkInterface.h"
+    #include "NetworkBufferManagement.h"
+    #include "FreeRTOS_DNS.h"
+    #include "FreeRTOSIPConfigDefaults.h"
 
-#if ( ipconfigUSE_DHCP != 0 )
+    #if ( ipconfigUSE_DHCP != 0 )
 
 /**
  * @brief Create a DHCP event.
@@ -68,10 +68,10 @@
  * @return pdPASS or pdFAIL, depending on whether xSendEventStructToIPTask()
  *         succeeded.
  */
-    BaseType_t xSendDHCPEvent( void );
-#endif
+        BaseType_t xSendDHCPEvent( void );
+    #endif
 
-#if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )
+    #if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )
 
 /**
  * @brief Get the network buffer from the packet buffer.
@@ -80,24 +80,23 @@
  *
  * @return The network buffer if the alignment is correct. Else a NULL is returned.
  */
-    NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void * pvBuffer );
-#endif
+        NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void * pvBuffer );
+    #endif
 
 /**
  * @brief Check the values of configuration options and assert on it. Also verify that the IP-task
  *        has not already been initialized.
  */
-void vPreCheckConfigs( void );
+    void vPreCheckConfigs( void );
 
 /**
  * @brief Called to create a network connection when the stack is first
  *        started, or when the network connection is lost.
  */
-void prvProcessNetworkDownEvent( void );
+    void prvProcessNetworkDownEvent( void );
 
     #ifdef __cplusplus
         } /* extern "C" */
     #endif
 
 #endif /* FREERTOS_IP_UTILS_H */
-

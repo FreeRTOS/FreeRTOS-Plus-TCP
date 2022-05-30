@@ -437,8 +437,8 @@
 
     #if ( ipconfigUSE_TCP != 0 )
 
-    /** @brief Set to a non-zero value if one or more TCP message have been processed
-     * within the last round. */
+/** @brief Set to a non-zero value if one or more TCP message have been processed
+ * within the last round. */
         extern BaseType_t xProcessedTCPMessage;
     #endif
 
