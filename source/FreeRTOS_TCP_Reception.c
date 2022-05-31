@@ -57,14 +57,27 @@
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
+
+/*
+ * Identify and deal with a single TCP header option, advancing the pointer to
+ * the header. This function returns pdTRUE or pdFALSE depending on whether the
+ * caller should continue to parse more header options or break the loop.
+ */
     static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
                                                   size_t uxTotalLength,
                                                   FreeRTOS_Socket_t * const pxSocket,
                                                   BaseType_t xHasSYNFlag );
 
-    static void prvReadSackOption( const uint8_t * const pucPtr,
-                                   size_t uxIndex,
-                                   FreeRTOS_Socket_t * const pxSocket );
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+
+/*
+ * Skip past TCP header options when doing Selective ACK, until there are no
+ * more options left.
+ */
+        static void prvReadSackOption( const uint8_t * const pucPtr,
+                                       size_t uxIndex,
+                                       FreeRTOS_Socket_t * const pxSocket );
+    #endif /* ( ipconfigUSE_TCP_WIN == 1 ) */
 
 /**
  * @brief Parse the TCP option(s) received, if present.
