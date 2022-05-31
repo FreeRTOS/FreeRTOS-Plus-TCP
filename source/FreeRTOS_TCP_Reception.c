@@ -62,6 +62,10 @@
                                                   FreeRTOS_Socket_t * const pxSocket,
                                                   BaseType_t xHasSYNFlag );
 
+    static void prvReadSackOption( const uint8_t * const pucPtr,
+                                   size_t uxIndex,
+                                   FreeRTOS_Socket_t * const pxSocket );
+
 /**
  * @brief Parse the TCP option(s) received, if present.
  *
