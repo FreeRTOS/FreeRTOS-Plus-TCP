@@ -38,7 +38,6 @@
 
 /* FreeRTOS+TCP includes. */
     #include "FreeRTOS_IP.h"
-    #include "FreeRTOSIPConfigDefaults.h"
 
     #include "FreeRTOS_DNS_Globals.h"
 

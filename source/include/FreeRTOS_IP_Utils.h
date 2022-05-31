@@ -58,7 +58,6 @@
     #include "NetworkInterface.h"
     #include "NetworkBufferManagement.h"
     #include "FreeRTOS_DNS.h"
-    #include "FreeRTOSIPConfigDefaults.h"
 
     #if ( ipconfigUSE_DHCP != 0 )
 
