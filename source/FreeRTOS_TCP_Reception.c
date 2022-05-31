@@ -57,6 +57,10 @@
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
+    static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                                  size_t uxTotalLength,
+                                                  FreeRTOS_Socket_t * const pxSocket,
+                                                  BaseType_t xHasSYNFlag );
 
 /**
  * @brief Parse the TCP option(s) received, if present.
@@ -169,10 +173,10 @@
  *         negative value wherein the calling function should not process this packet any
  *         further and drop it.
  */
-    int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                           size_t uxTotalLength,
-                                           FreeRTOS_Socket_t * const pxSocket,
-                                           BaseType_t xHasSYNFlag )
+    static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                                  size_t uxTotalLength,
+                                                  FreeRTOS_Socket_t * const pxSocket,
+                                                  BaseType_t xHasSYNFlag )
     {
         UBaseType_t uxNewMSS;
         size_t uxRemainingOptionsBytes = uxTotalLength;
@@ -344,9 +348,9 @@
  * @param[in] uxIndex: Index of options in the TCP packet options.
  * @param[in] pxSocket: Socket handling the TCP connection.
  */
-        void prvReadSackOption( const uint8_t * const pucPtr,
-                                size_t uxIndex,
-                                FreeRTOS_Socket_t * const pxSocket )
+        static void prvReadSackOption( const uint8_t * const pucPtr,
+                                       size_t uxIndex,
+                                       FreeRTOS_Socket_t * const pxSocket )
         {
             uint32_t ulFirst = ulChar2u32( &( pucPtr[ uxIndex ] ) );
             uint32_t ulLast = ulChar2u32( &( pucPtr[ uxIndex + 4U ] ) );
