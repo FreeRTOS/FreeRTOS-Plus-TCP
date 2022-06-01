@@ -25,7 +25,7 @@ option( BUILD_CLONE_SUBMODULES
         ON )
 
 
-option(TEST_CONFIGURATION "Configuration All Enable/Disable" ENABLE_ALL)
+option(TEST_CONFIGURATION "Configuration All Enable/Disable or default" ENABLE_ALL)
 
 message( STATUS "Argument: ${TEST_CONFIGURATION}")
 
@@ -47,8 +47,10 @@ include_directories( ${TEST_DIR}/Common )
 
 if( ${TEST_CONFIGURATION} STREQUAL "ENABLE_ALL" )
 	include_directories( ${TEST_DIR}/AllEnable )
-else()
+elif( ${TEST_CONFIGURATION} STREQUAL "DISABLE_ALL" )
 	include_directories( ${TEST_DIR}/AllDisable )
+else()
+        include_directories( ${TEST_DIR}/DefaultConf )
 endif()
 
 
@@ -59,7 +61,6 @@ file(GLOB TCP_SOURCES "${MODULE_ROOT_DIR}/source/*.c"
 
 message(STATUS "${KERNEL_SOURCES}")
 message(STATUS "${TCP_SOURCES}")
-
 
 add_executable(project ${KERNEL_SOURCES}
 		       ${TCP_SOURCES}
