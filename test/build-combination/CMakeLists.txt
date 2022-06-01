@@ -47,7 +47,7 @@ include_directories( ${TEST_DIR}/Common )
 
 if( ${TEST_CONFIGURATION} STREQUAL "ENABLE_ALL" )
 	include_directories( ${TEST_DIR}/AllEnable )
-elif( ${TEST_CONFIGURATION} STREQUAL "DISABLE_ALL" )
+elseif( ${TEST_CONFIGURATION} STREQUAL "DISABLE_ALL" )
 	include_directories( ${TEST_DIR}/AllDisable )
 else()
         include_directories( ${TEST_DIR}/DefaultConf )

@@ -38,6 +38,6 @@
 
 /* It is not sensible for this macro to have a default value as it is hardware
  * dependent. */
-#define ipconfigBYTE_ORDER pdFREERTOS_LITTLE_ENDIAN
+#define ipconfigBYTE_ORDER    pdFREERTOS_LITTLE_ENDIAN
 
 #endif
