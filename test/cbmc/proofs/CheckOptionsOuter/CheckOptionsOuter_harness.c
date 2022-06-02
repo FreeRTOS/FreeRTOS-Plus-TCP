@@ -41,9 +41,9 @@ size_t buffer_size;
 * Function contract proved correct by CheckOptionsInner
 ****************************************************************/
 
-void prvReadSackOption( const uint8_t * const pucPtr,
-                        size_t uxIndex,
-                        FreeRTOS_Socket_t * const pxSocket )
+void __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvReadSackOption( const uint8_t * const pucPtr,
+                                                                      size_t uxIndex,
+                                                                      FreeRTOS_Socket_t * const pxSocket )
 {
     /* Preconditions */
     __CPROVER_assert( buffer_size < CBMC_MAX_OBJECT_SIZE,
