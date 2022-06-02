@@ -23,7 +23,6 @@ Deviations from the MISRA standard are listed below:
 | Rule 8.6 | Required | Some functions are declared but not defined since they are to be defined by the user application to provide 'hooks' for certain events. |
 | Rule 2.3 | Advisory |  |
 | Rule 20.10 | Advisory | For casting between pointer types, FreeRTOS-Plus-TCP uses utility inline functions created using the `##` operator to improve readability. |
-| Rule 10.3 | Required | Signed and unsigned variables are used together due to the variables acquired from the portable code. |
 | Rule 10.4 | Required | Signed and unsigned variables are used together due to the variables acquired from the portable code. |
 | Rule 13.5 | Required | In `prvTCPSendPacket` (present in FreeRTOS_TCP_IP.c) persistent side effect of function call as right-hand operators of `||` has been verified to behave as expected. In FreeRTOS_Sockets.c (in function `FreeRTOS_sendto`) the violation noted is false positive. |
 | Rule 15.5 | Advisory | Some FreeRTOS-Plus-TCP functions use multiple `return` statements; These have not been refactored to comply with this rule. |
@@ -35,9 +34,6 @@ Deviations from the MISRA standard are listed below:
 | Rule 2.2 | Required | FreeRTOS+TCP uses unions which can cause false positives of this rule. The false positive occurs once in FreeRTOS_IP.c module in the function usGenerateChecksum. |
 | Rule 5.9 | Advisory | Utility functions are defined in various files to not break various other projects. |
 | Rule 8.9 | Advisory | For ease, configuration parameters are defined at a global scope even when used only once. |
-| Rule 11.6 | Required | Pointer conversions are done to access various data members of a given data packet. |
-| Rule 17.2 | Required | Recursive function call is used to traverse socket list. |
-
 
 
 ### Suppressed with Coverity Comments
