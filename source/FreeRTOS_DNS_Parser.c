@@ -549,7 +549,7 @@
         uint32_t ulIPAddress = 0U;
         uint32_t ulReturnIPAddress = 0U;
         uint16_t usDataLength;
-        uint8_t * pucBuffer = &( pucByte[ 0 ] );
+        uint8_t * pucBuffer = pucByte;
         size_t uxRxSourceByteRemaining = uxSourceBytesRemaining;
 
         for( x = 0U; x < pxDNSMessageHeader->usAnswers; x++ )
