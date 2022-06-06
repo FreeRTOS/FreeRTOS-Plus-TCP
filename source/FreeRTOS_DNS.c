@@ -221,7 +221,11 @@
         {
             size_t xLength = strlen( pcHostName ) + 1U;
 
-            if( xLength <= ipconfigDNS_CACHE_NAME_LENGTH )
+            #if ( ipconfigUSE_DNS_CACHE != 0 )
+                if( xLength <= ipconfigDNS_CACHE_NAME_LENGTH )
+            #else
+                if( xLength <= dnsMAX_HOSTNAME_LENGTH )
+            #endif
             {
                 /* The name is not too long. */
                 xLengthOk = pdTRUE;
