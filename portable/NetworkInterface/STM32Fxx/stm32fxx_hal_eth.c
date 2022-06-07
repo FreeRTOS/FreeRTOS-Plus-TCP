@@ -100,20 +100,23 @@
 
 /* Includes ------------------------------------------------------------------*/
 
+#include "stm32fxx_hal_eth.h"
+
 #if defined( STM32F7xx )
     #include "stm32f7xx_hal.h"
     #define stm_is_F7    1
-#elif defined( STM32F407xx ) || defined( STM32F417xx ) || defined( STM32F427xx ) || defined( STM32F437xx ) || defined( STM32F429xx ) || defined( STM32F439xx )
+#elif defined( STM32F4xx )
     #include "stm32f4xx_hal.h"
     #define stm_is_F4    1
 #elif defined( STM32F2xx )
     #include "stm32f2xx_hal.h"
     #define stm_is_F2    1
-#else
+#elif defined( STM32F1xx )
+    #include "stm32f1xx_hal.h"
+    #define stm_is_F1    1
+#else /* if defined( STM32F7xx ) */
     #error For what part should this be compiled?
-#endif
-
-#include "stm32fxx_hal_eth.h"
+#endif /* if defined( STM32F7xx ) */
 
 /** @addtogroup STM32F4xx_HAL_Driver
  * @{
@@ -130,7 +133,7 @@
 
 #ifdef HAL_ETH_MODULE_ENABLED
 
-    #if ( stm_is_F2 != 0 || stm_is_F4 != 0 || stm_is_F7 )
+    #if ( stm_is_F1 != 0 || stm_is_F2 != 0 || stm_is_F4 != 0 || stm_is_F7 )
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -138,6 +141,12 @@
 /** @defgroup ETH_Private_Constants ETH Private Constants
  * @{
  */
+/* Some macros have been renamed through time. */
+        #ifndef ETH_MACMIIAR_CR_Div16
+            #define ETH_MACMIIAR_CR_Div16    ETH_MACMIIAR_CR_DIV16
+            #define ETH_MACMIIAR_CR_Div26    ETH_MACMIIAR_CR_DIV26
+            #define ETH_MACMIIAR_CR_Div42    ETH_MACMIIAR_CR_DIV42
+        #endif
 
 /**
  * @}
@@ -247,34 +256,70 @@
 
             /* Get hclk frequency value (e.g. 168,000,000) */
             hclk = HAL_RCC_GetHCLKFreq();
-
-            /* Set CR bits depending on hclk value */
-            if( ( hclk >= 20000000uL ) && ( hclk < 35000000uL ) )
-            {
-                /* CSR Clock Range between 20-35 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div16;
-            }
-            else if( ( hclk >= 35000000uL ) && ( hclk < 60000000uL ) )
-            {
-                /* CSR Clock Range between 35-60 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div26;
-            }
-            else if( ( hclk >= 60000000uL ) && ( hclk < 100000000uL ) )
-            {
-                /* CSR Clock Range between 60-100 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div42;
-            }
-            else if( ( hclk >= 100000000uL ) && ( hclk < 150000000uL ) )
-            {
-                /* CSR Clock Range between 100-150 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div62;
-            }
-            else /* ( ( hclk >= 150000000uL ) && ( hclk <= 183000000uL ) ) */
-            {
-                /* CSR Clock Range between 150-183 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div102;
-            }
-
+            #if !defined( STM32F2xx )
+                /* Set CR bits depending on hclk value */
+                if( ( hclk >= 20000000uL ) && ( hclk < 35000000uL ) )
+                {
+                    /* CSR Clock Range between 20-35 MHz */
+                    tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div16;
+                }
+                else if( ( hclk >= 35000000uL ) && ( hclk < 60000000uL ) )
+                {
+                    /* CSR Clock Range between 35-60 MHz */
+                    tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div26;
+                }
+                else
+                {
+                    #if ( stm_is_F1 != 0 )
+                        {
+                            /* The STM32F1xx has a frequency up to 72 MHz. */
+                            /* CSR Clock Range between 60-72 MHz */
+                            tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div42;
+                        }
+                    #else
+                        {
+                            if( ( hclk >= 60000000uL ) && ( hclk < 100000000uL ) )
+                            {
+                                /* CSR Clock Range between 60-100 MHz */
+                                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div42;
+                            }
+                            else if( ( hclk >= 100000000uL ) && ( hclk < 150000000uL ) )
+                            {
+                                /* CSR Clock Range between 100-150 MHz */
+                                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div62;
+                            }
+                            else /* ( ( hclk >= 150000000uL ) && ( hclk <= 183000000uL ) ) */
+                            {
+                                /* CSR Clock Range between 150-183 MHz */
+                                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div102;
+                            }
+                        }
+                    #endif /* if ( stm_is_F1 != 0 ) */
+                }
+            #else /* if !defined( STM32F2xx ) */
+                /* Clock settings for STM32F2 only. */
+                /* Set CR bits depending on hclk value */
+                if( ( hclk >= 20000000U ) && ( hclk < 35000000U ) )
+                {
+                    /* CSR Clock Range between 20-35 MHz */
+                    tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div16;
+                }
+                else if( ( hclk >= 35000000U ) && ( hclk < 60000000U ) )
+                {
+                    /* CSR Clock Range between 35-60 MHz */
+                    tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div26;
+                }
+                else if( ( hclk >= 60000000U ) && ( hclk < 100000000U ) )
+                {
+                    /* CSR Clock Range between 60-100 MHz */
+                    tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div42;
+                }
+                else /* ((hclk >= 100000000)&&(hclk < 120000000)) */
+                {
+                    /* CSR Clock Range between 100-120 MHz */
+                    tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div62;
+                }
+            #endif /* defined(STM32F2xx) */
             /* Write to ETHERNET MAC MIIAR: Configure the ETHERNET CSR Clock Range */
             heth->Instance->MACMIIAR = ( uint32_t ) tmpreg;
 
