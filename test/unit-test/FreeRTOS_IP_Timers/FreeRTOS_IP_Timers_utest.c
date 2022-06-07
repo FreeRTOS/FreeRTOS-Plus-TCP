@@ -84,7 +84,7 @@ extern IPTimer_t xARPTimer;
 
 /** @brief Set to a non-zero value if one or more TCP message have been processed
  *           within the last round. */
-    BaseType_t xProcessedTCPMessage;
+    extern BaseType_t xProcessedTCPMessage;
 #endif
 
 extern IPTimer_t xARPResolutionTimer;

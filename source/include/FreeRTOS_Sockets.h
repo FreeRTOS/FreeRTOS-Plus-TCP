@@ -41,6 +41,7 @@
 
 /* Application level configuration options. */
     #include "FreeRTOSIPConfig.h"
+    #include "FreeRTOSIPConfigDefaults.h"
 
     #ifndef FREERTOS_IP_CONFIG_H
         #error FreeRTOSIPConfig.h has not been included yet

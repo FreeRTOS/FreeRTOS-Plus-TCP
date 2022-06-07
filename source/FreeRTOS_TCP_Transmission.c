@@ -491,9 +491,8 @@
                 }
 
                 /* Fill in the destination MAC addresses. */
-                ( void ) memcpy( ( void * ) ( &( pxEthernetHeader->xDestinationAddress ) ),
-                                 pvCopySource,
-                                 sizeof( pxEthernetHeader->xDestinationAddress ) );
+                pvCopyDest = &pxEthernetHeader->xDestinationAddress;
+                ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxEthernetHeader->xDestinationAddress ) );
             }
 
             /*
