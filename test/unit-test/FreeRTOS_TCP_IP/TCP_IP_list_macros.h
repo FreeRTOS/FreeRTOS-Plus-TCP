@@ -88,10 +88,4 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                        uint32_t ulRemoteIP,
                                        UBaseType_t uxRemotePort );
 
-/*
- * Parse the TCP option(s) received, if present.
- */
-BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                            const NetworkBufferDescriptor_t * pxNetworkBuffer );
-
 #endif /* ifndef LIST_MACRO_H */

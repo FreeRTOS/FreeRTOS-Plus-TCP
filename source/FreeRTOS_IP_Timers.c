@@ -54,10 +54,6 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
 
-/** @brief The pointer to buffer with packet waiting for ARP resolution. */
-extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
-
-
 /*
  * Utility functions for the light weight IP timers.
  */
@@ -89,12 +85,6 @@ static IPTimer_t xARPTimer;
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
     /** @brief DNS timer, to check for timeouts when looking-up a domain. */
     static IPTimer_t xDNSTimer;
-#endif
-#if ( ipconfigUSE_TCP != 0 )
-
-/** @brief Set to a non-zero value if one or more TCP message have been processed
- *           within the last round. */
-    extern BaseType_t xProcessedTCPMessage;
 #endif
 
 /**

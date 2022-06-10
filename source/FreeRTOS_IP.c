@@ -1426,8 +1426,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                  * packet may cause network storms. Drop the packet. */
                 eReturn = eReleaseBuffer;
             }
-            else if( ( memcmp( ( const void * ) xBroadcastMACAddress.ucBytes,
-                               ( const void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
+            else if( ( memcmp( xBroadcastMACAddress.ucBytes,
+                               pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
                                sizeof( MACAddress_t ) ) == 0 ) &&
                      ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
             {
@@ -1435,8 +1435,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                  * broadcast address. */
                 eReturn = eReleaseBuffer;
             }
-            else if( memcmp( ( void * ) &xBroadcastMACAddress,
-                             ( void * ) &( pxIPPacket->xEthernetHeader.xSourceAddress ),
+            else if( memcmp( xBroadcastMACAddress.ucBytes,
+                             pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes,
                              sizeof( MACAddress_t ) ) == 0 )
             {
                 /* Ethernet source is a broadcast address. Drop the packet. */

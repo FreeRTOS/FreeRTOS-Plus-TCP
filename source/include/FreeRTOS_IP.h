@@ -435,6 +435,13 @@
         #define vPrintResourceStats()    do {} while( ipFALSE_BOOL ) /**< ipconfigHAS_PRINTF is not defined. Define vPrintResourceStats to a do-while( 0 ). */
     #endif
 
+    #if ( ipconfigUSE_TCP != 0 )
+
+/** @brief Set to a non-zero value if one or more TCP message have been processed
+ * within the last round. */
+        extern BaseType_t xProcessedTCPMessage;
+    #endif
+
     #include "FreeRTOS_IP_Utils.h"
 
     #ifdef __cplusplus

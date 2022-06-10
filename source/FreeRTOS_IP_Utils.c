@@ -72,8 +72,6 @@
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
 #endif
 
-extern QueueHandle_t xNetworkEventQueue;
-
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     static BaseType_t xCallEventHook = pdFALSE;
 #endif
@@ -291,8 +289,12 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
 BaseType_t xIsCallingFromIPTask( void )
 {
     BaseType_t xReturn;
+    TaskHandle_t xCurrentHandle, xCurrentIPTaskHandle;
 
-    if( xTaskGetCurrentTaskHandle() == FreeRTOS_GetIPTaskHandle() )
+    xCurrentHandle = xTaskGetCurrentTaskHandle();
+    xCurrentIPTaskHandle = FreeRTOS_GetIPTaskHandle();
+
+    if( xCurrentHandle == xCurrentIPTaskHandle )
     {
         xReturn = pdTRUE;
     }

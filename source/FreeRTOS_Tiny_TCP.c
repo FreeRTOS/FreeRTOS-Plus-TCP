@@ -64,8 +64,6 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 
-/*#include "FreeRTOS_TCP_WIN.h" */
-
 #if ( ipconfigUSE_TCP == 1 )
 
     #if ( ipconfigUSE_TCP_WIN == 0 )
