@@ -429,7 +429,7 @@ static void prvProcessIPEventsAndTimers( void )
 
                 /* Simply mark the TCP timer as expired so it gets processed
                  * the next time prvCheckNetworkTimers() is called. */
-                vIPSetTCPTimerEnableState( pdTRUE );
+                vIPSetTCPTimerExpiredState( pdTRUE );
             #endif /* ipconfigUSE_TCP */
             break;
 
@@ -1100,7 +1100,7 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                     /* TCP timer events are sent to wake the timer task when
                      * xTCPTimer has expired, but there is no point sending them if the
                      * IP task is already awake processing other message. */
-                    vIPSetTCPTimerEnableState( pdTRUE );
+                    vIPSetTCPTimerExpiredState( pdTRUE );
 
                     if( uxQueueMessagesWaiting( xNetworkEventQueue ) != 0U )
                     {

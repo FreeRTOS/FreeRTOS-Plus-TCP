@@ -394,15 +394,16 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
  *
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
-    void vIPSetTCPTimerEnableState( BaseType_t xEnableState )
+    void vIPSetTCPTimerExpiredState( BaseType_t xEnableState )
     {
+        xTCPTimer.bActive = pdTRUE_UNSIGNED;
         if( xEnableState != pdFALSE )
         {
-            xTCPTimer.bActive = pdTRUE_UNSIGNED;
+			xTCPTimer.bExpired = pdTRUE_UNSIGNED;
         }
         else
         {
-            xTCPTimer.bActive = pdFALSE_UNSIGNED;
+			xTCPTimer.bExpired = pdFALSE_UNSIGNED;
         }
     }
 /*-----------------------------------------------------------*/
