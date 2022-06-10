@@ -546,7 +546,7 @@ void test_vIPSetTCPTimerExpiredState_True( void )
 
     vIPSetTCPTimerExpiredState( xExpiredState );
 
-    TEST_ASSERT_EQUAL( xExpiredState, xTCPTimer.bActive );
+    TEST_ASSERT_EQUAL( xExpiredState, xTCPTimer.bExpired );
 }
 
 void test_vIPSetARPTimerEnableState_False( void )
