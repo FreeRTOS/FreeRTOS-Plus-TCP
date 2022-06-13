@@ -945,7 +945,7 @@ void test_prvProcessIPEventsAndTimers_eTCPTimerEvent( void )
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
 
-    vIPSetTCPTimerEnableState_Expect( pdTRUE );
+    vIPSetTCPTimerExpiredState_Expect( pdTRUE );
 
     prvProcessIPEventsAndTimers();
 }
@@ -1371,7 +1371,7 @@ void test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEvent( void )
     xIPTaskInitialised = pdTRUE;
     xEvent.eEventType = eTCPTimerEvent;
 
-    vIPSetTCPTimerEnableState_Expect( pdTRUE );
+    vIPSetTCPTimerExpiredState_Expect( pdTRUE );
 
     uxQueueMessagesWaiting_ExpectAndReturn( xNetworkEventQueue, 0 );
 
@@ -1393,7 +1393,7 @@ void test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEvent1( void )
     xIPTaskInitialised = pdTRUE;
     xEvent.eEventType = eTCPTimerEvent;
 
-    vIPSetTCPTimerEnableState_Expect( pdTRUE );
+    vIPSetTCPTimerExpiredState_Expect( pdTRUE );
 
     uxQueueMessagesWaiting_ExpectAndReturn( xNetworkEventQueue, 0 );
 
@@ -1415,7 +1415,7 @@ void test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEvent2( void )
     xIPTaskInitialised = pdTRUE;
     xEvent.eEventType = eTCPTimerEvent;
 
-    vIPSetTCPTimerEnableState_Expect( pdTRUE );
+    vIPSetTCPTimerExpiredState_Expect( pdTRUE );
 
     uxQueueMessagesWaiting_ExpectAndReturn( xNetworkEventQueue, 1 );
 

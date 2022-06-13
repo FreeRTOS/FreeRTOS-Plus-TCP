@@ -531,22 +531,22 @@ void test_prvIPTimerCheck_TimerNotExpired1( void )
     TEST_ASSERT_EQUAL( pdFALSE, xTimer.bExpired );
 }
 
-void test_vIPSetTCPTimerEnableState_False( void )
+void test_vIPSetTCPTimerExpiredState_False( void )
 {
-    BaseType_t xEnableState = pdFALSE;
+    BaseType_t xExpiredState = pdFALSE;
 
-    vIPSetTCPTimerEnableState( xEnableState );
+    vIPSetTCPTimerExpiredState( xExpiredState );
 
-    TEST_ASSERT_EQUAL( xEnableState, xTCPTimer.bActive );
+    TEST_ASSERT_EQUAL( xExpiredState, xTCPTimer.bExpired );
 }
 
-void test_vIPSetTCPTimerEnableState_True( void )
+void test_vIPSetTCPTimerExpiredState_True( void )
 {
-    BaseType_t xEnableState = pdTRUE;
+    BaseType_t xExpiredState = pdTRUE;
 
-    vIPSetTCPTimerEnableState( xEnableState );
+    vIPSetTCPTimerExpiredState( xExpiredState );
 
-    TEST_ASSERT_EQUAL( xEnableState, xTCPTimer.bActive );
+    TEST_ASSERT_EQUAL( xExpiredState, xTCPTimer.bExpired );
 }
 
 void test_vIPSetARPTimerEnableState_False( void )

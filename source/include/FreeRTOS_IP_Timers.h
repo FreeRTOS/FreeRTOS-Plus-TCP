@@ -73,7 +73,7 @@
 
     void vIPTimerStartARPResolution( TickType_t xTime );
 
-    void vIPSetTCPTimerEnableState( BaseType_t xEnableState );
+    void vIPSetTCPTimerExpiredState( BaseType_t xExpiredState );
 
     void vIPSetARPTimerEnableState( BaseType_t xEnableState );
 

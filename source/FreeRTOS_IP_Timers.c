@@ -382,17 +382,19 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
 /**
  * @brief Enable/disable the TCP timer.
  *
- * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
+ * @param[in] xExpiredState: pdTRUE - set as expired; pdFALSE - set as non-expired.
  */
-    void vIPSetTCPTimerEnableState( BaseType_t xEnableState )
+    void vIPSetTCPTimerExpiredState( BaseType_t xExpiredState )
     {
-        if( xEnableState != pdFALSE )
+        xTCPTimer.bActive = pdTRUE_UNSIGNED;
+
+        if( xExpiredState != pdFALSE )
         {
-            xTCPTimer.bActive = pdTRUE_UNSIGNED;
+            xTCPTimer.bExpired = pdTRUE_UNSIGNED;
         }
         else
         {
-            xTCPTimer.bActive = pdFALSE_UNSIGNED;
+            xTCPTimer.bExpired = pdFALSE_UNSIGNED;
         }
     }
 /*-----------------------------------------------------------*/
