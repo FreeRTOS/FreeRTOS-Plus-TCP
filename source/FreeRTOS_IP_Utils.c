@@ -210,7 +210,7 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
 static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void * pvBuffer,
                                                                      size_t uxOffset )
 {
-    uintptr_t uxBuffer;
+    uint8_t * uxBuffer;
     NetworkBufferDescriptor_t * pxResult;
 
     if( pvBuffer == NULL )
@@ -220,7 +220,8 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
     else
     {
         /* Obtain the network buffer from the zero copy pointer. */
-        uxBuffer = ipPOINTER_CAST( uintptr_t, pvBuffer );
+        /* coverity[misra_c_2012_rule_11_6_violation] */
+        uxBuffer = ( uint8_t * ) pvBuffer;
 
         /* The input here is a pointer to a packet buffer plus some offset.  Subtract
          * this offset, and also the size of the header in the network buffer, usually
@@ -229,7 +230,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
 
         /* Here a pointer was placed to the network descriptor.  As a
          * pointer is dereferenced, make sure it is well aligned. */
-        if( ( uxBuffer & ( ( ( uintptr_t ) sizeof( uxBuffer ) ) - 1U ) ) == ( uintptr_t ) 0U )
+        if( ( uxBuffer & ( ( ( uint8_t * ) sizeof( uxBuffer ) ) - 1U ) ) == ( uintptr_t ) 0U )
         {
             /* The following statement may trigger a:
              * warning: cast increases required alignment of target type [-Wcast-align].
@@ -831,12 +832,12 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSum.u32 = ( uint32_t ) usTemp;
     xTerm.u32 = 0U;
 
-    xSource.u8ptr = ipPOINTER_CAST( uint8_t *, pucNextData );
+    xSource.u8ptr = ( uint8_t * ) pucNextData;
 
     /* MISRA Rule 11.4 warns about casting pointer to a different size of pointer.
     * The casting is used here to help checksum calculation.  It is intentional */
     /* coverity[misra_c_2012_rule_11_4_violation] */
-    uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
+    uxAlignBits = ( ( ( uint8_t * ) pucNextData ) & 0x03U );
 
     /*
      * If pucNextData is non-aligned then the checksum is starting at an

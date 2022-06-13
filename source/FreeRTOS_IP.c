@@ -382,11 +382,11 @@ static void prvProcessIPEventsAndTimers( void )
             /* The DHCP state machine needs processing. */
             #if ( ipconfigUSE_DHCP == 1 )
                 {
-                    uintptr_t uxState;
+                    uint8_t * uxState;
                     eDHCPState_t eState;
 
                     /* Cast in two steps to please MISRA. */
-                    uxState = ( uintptr_t ) xReceivedEvent.pvData;
+                    uxState = ( uint8_t * ) xReceivedEvent.pvData;
                     eState = ( eDHCPState_t ) uxState;
 
                     /* Process DHCP messages for a given end-point. */
