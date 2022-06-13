@@ -59,6 +59,14 @@
         eCantSendPacket    /* 2 There is no IP address, or an ARP is still in progress, so the packet cannot be sent. */
     } eARPLookupResult_t;
 
+
+/**
+ * Look for an IP-MAC couple in ARP cache and reset the 'age' field. If no match
+ * is found then no action will be taken.
+ */
+    void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
+                                   const uint32_t ulIPAddress );
+
 /*
  * If ulIPAddress is already in the ARP cache table then reset the age of the
  * entry back to its maximum value.  If ulIPAddress is not already in the ARP
