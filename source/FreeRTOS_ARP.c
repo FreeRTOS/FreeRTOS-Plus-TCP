@@ -251,43 +251,58 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
                 case ipARP_REQUEST:
 
                     /* The packet contained an ARP request.  Was it for the IP
-                     * address of the node running this code? And does the MAC
-                     * address claim that it is coming from this device itself? */
-                    if( ( ulTargetProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER ) &&
-                        ( memcmp( ( void * ) ipLOCAL_MAC_ADDRESS,
-                                  ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
-                                  ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
+                     * address of the node running this code? */
+                    if( ulTargetProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER )
                     {
-                        iptraceSENDING_ARP_REPLY( ulSenderProtocolAddress );
+                        /* Does the MAC address claim that it is coming
+                         * from this device itself? */
+                        if( memcmp( ( void * ) ipLOCAL_MAC_ADDRESS,
+                                    ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
+                                    ipMAC_ADDRESS_LENGTH_BYTES ) != 0 )
+                        {
+                            iptraceSENDING_ARP_REPLY( ulSenderProtocolAddress );
 
-                        /* The request is for the address of this node.  Add the
-                         * entry into the ARP cache, or refresh the entry if it
-                         * already exists. */
-                        vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress );
+                            /* The request is for the address of this node.  Add the
+                             * entry into the ARP cache, or refresh the entry if it
+                             * already exists. */
+                            vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress );
 
-                        /* Generate a reply payload in the same buffer. */
-                        pxARPHeader->usOperation = ( uint16_t ) ipARP_REPLY;
+                            /* Generate a reply payload in the same buffer. */
+                            pxARPHeader->usOperation = ( uint16_t ) ipARP_REPLY;
 
-                        ( void ) memcpy( &( pxARPHeader->xTargetHardwareAddress ),
-                                         &( pxARPHeader->xSenderHardwareAddress ),
-                                         sizeof( MACAddress_t ) );
+                            ( void ) memcpy( &( pxARPHeader->xTargetHardwareAddress ),
+                                             &( pxARPHeader->xSenderHardwareAddress ),
+                                             sizeof( MACAddress_t ) );
 
-                        pxARPHeader->ulTargetProtocolAddress = ulSenderProtocolAddress;
+                            pxARPHeader->ulTargetProtocolAddress = ulSenderProtocolAddress;
 
-                        /*
-                         * Use helper variables for memcpy() to remain
-                         * compliant with MISRA Rule 21.15.  These should be
-                         * optimized away.
-                         */
-                        pvCopySource = ipLOCAL_MAC_ADDRESS;
-                        pvCopyDest = pxARPHeader->xSenderHardwareAddress.ucBytes;
-                        ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( MACAddress_t ) );
+                            /*
+                             * Use helper variables for memcpy() to remain
+                             * compliant with MISRA Rule 21.15.  These should be
+                             * optimized away.
+                             */
+                            pvCopySource = ipLOCAL_MAC_ADDRESS;
+                            pvCopyDest = pxARPHeader->xSenderHardwareAddress.ucBytes;
+                            ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( MACAddress_t ) );
 
-                        pvCopySource = ipLOCAL_IP_ADDRESS_POINTER;
-                        pvCopyDest = pxARPHeader->ucSenderProtocolAddress;
-                        ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxARPHeader->ucSenderProtocolAddress ) );
+                            pvCopySource = ipLOCAL_IP_ADDRESS_POINTER;
+                            pvCopyDest = pxARPHeader->ucSenderProtocolAddress;
+                            ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxARPHeader->ucSenderProtocolAddress ) );
 
-                        eReturn = eReturnEthernetFrame;
+                            eReturn = eReturnEthernetFrame;
+                        }
+                    }
+                    else if( ulSenderProtocolAddress == ulTargetProtocolAddress ) /* Gratuitous ARP request? */
+                    {
+                        MACAddress_t xHardwareAddress;
+
+                        /* The request is a Gratuitous ARP message.
+                         * Refresh the entry if it already exists. */
+                        /* Determine the ARP cache status for the requested IP address. */
+                        if( eARPGetCacheEntry( &( ulSenderProtocolAddress ), &( xHardwareAddress ) ) == eARPCacheHit )
+                        {
+                            vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress );
+                        }
                     }
 
                     break;
