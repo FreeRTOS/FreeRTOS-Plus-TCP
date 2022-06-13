@@ -1939,7 +1939,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         const void * pvCopySource = NULL;
         void * pvCopyDest;
         MACAddress_t xMACAddress;
-        IPPacket_t * pxIPPacket = ( IPPacket_t * )pxNetworkBuffer->pucEthernetBuffer;
+        IPPacket_t * pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
         IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
         uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
         eARPLookupResult_t eResult;
@@ -1975,6 +1975,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                 pvCopySource = &pxEthernetHeader->xSourceAddress;
                 break;
         }
+
         if( pvCopySource != NULL )
         {
             /*
