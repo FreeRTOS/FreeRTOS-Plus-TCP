@@ -210,7 +210,7 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
 static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void * pvBuffer,
                                                                      size_t uxOffset )
 {
-    uint8_t * uxBuffer;
+    uintptr_t uxBuffer;
     NetworkBufferDescriptor_t * pxResult;
 
     if( pvBuffer == NULL )
@@ -220,8 +220,10 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
     else
     {
         /* Obtain the network buffer from the zero copy pointer. */
+        /* the conversion here does not cause a loss of data, as uintptr_t fits a
+        * pointer type on the system */
         /* coverity[misra_c_2012_rule_11_6_violation] */
-        uxBuffer = ( uint8_t * ) pvBuffer;
+        uxBuffer = ( uintptr_t ) pvBuffer;
 
         /* The input here is a pointer to a packet buffer plus some offset.  Subtract
          * this offset, and also the size of the header in the network buffer, usually
@@ -230,7 +232,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
 
         /* Here a pointer was placed to the network descriptor.  As a
          * pointer is dereferenced, make sure it is well aligned. */
-        if( ( uxBuffer & ( ( ( uint8_t * ) sizeof( uxBuffer ) ) - 1U ) ) == ( uintptr_t ) 0U )
+        if( ( uxBuffer & ( ( ( uintptr_t ) sizeof( uxBuffer ) ) - 1U ) ) == ( uintptr_t ) 0U )
         {
             /* The following statement may trigger a:
              * warning: cast increases required alignment of target type [-Wcast-align].
@@ -835,7 +837,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSource.u8ptr = ( uint8_t * ) pucNextData;
 
     /* MISRA Rule 11.4 warns about casting pointer to a different size of pointer.
-    * The casting is used here to help checksum calculation.  It is intentional */
+     * The casting is used here to help checksum calculation.  It is intentional */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     uxAlignBits = ( ( ( uint8_t * ) pucNextData ) & 0x03U );
 
