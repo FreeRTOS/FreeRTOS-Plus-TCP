@@ -128,9 +128,11 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
     const void * pvCopySource;
     void * pvCopyDest;
+
     /* Next defensive request must not be sent for arpIP_CLASH_RESET_TIMEOUT_MS
      * period. */
     static TickType_t uxARPClashTimeoutPeriod = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
+
     /* This local variable is used to keep track of number of ARP requests sent and
      * also to limit the requests to arpIP_CLASH_MAX_RETRIES per arpIP_CLASH_RESET_TIMEOUT_MS
      * period. */
