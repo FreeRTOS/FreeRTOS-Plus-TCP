@@ -625,7 +625,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                     static BaseType_t xCount = 0;
 
                     /* Exclude this from branch coverage as this is only used for debugging. */
-                    if( xCount < 5 )         /* LCOV_EXCL_BR_LINE */
+                    if( xCount < 5 ) /* LCOV_EXCL_BR_LINE */
                     {
                         FreeRTOS_printf( ( "usGenerateProtocolChecksum: UDP packet from %xip without CRC dropped\n",
                                            FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
