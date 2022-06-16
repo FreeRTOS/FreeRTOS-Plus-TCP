@@ -264,7 +264,6 @@
         size_t uxSourceBytesRemaining;
         uint16_t x;
         uint16_t usQuestions;
-        uint16_t usType = 0U;
         BaseType_t xReturn = pdTRUE;
 
         #if ( ipconfigUSE_LLMNR == 1 )
