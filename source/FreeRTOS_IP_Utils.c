@@ -836,7 +836,11 @@ uint16_t usGenerateChecksum( uint16_t usSum,
      * The casting is used here to help checksum calculation.  It is intentional */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     xSource.u8ptr = ( uint8_t * ) pucNextData;
-    uxAlignBits = ( ( ( uint8_t * ) pucNextData ) & 0x03U );
+
+    /* the conversion here does not cause a loss of data, as uintptr_t fits a
+     * pointer type on the system */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
+    uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
 
     /*
      * If pucNextData is non-aligned then the checksum is starting at an
