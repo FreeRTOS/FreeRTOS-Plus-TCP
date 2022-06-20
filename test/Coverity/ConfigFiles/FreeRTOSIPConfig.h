@@ -215,46 +215,46 @@ extern uint32_t ulRand();
  * ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND is set to 0 then calling FreeRTOS_sendto()
  * on a socket that has not yet been bound will result in the send operation being
  * aborted. */
-#define ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND         1
+#define ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND       1
 
 /* Defines the Time To Live (TTL) values used in outgoing UDP packets. */
-#define ipconfigUDP_TIME_TO_LIVE                       128
+#define ipconfigUDP_TIME_TO_LIVE                     128
 /* Also defined in FreeRTOSIPConfigDefaults.h. */
-#define ipconfigTCP_TIME_TO_LIVE                       128
+#define ipconfigTCP_TIME_TO_LIVE                     128
 
 /* USE_TCP: Use TCP and all its features. */
-#define ipconfigUSE_TCP                                ( 1 )
+#define ipconfigUSE_TCP                              ( 1 )
 
 /* USE_WIN: Let TCP use windowing mechanism. */
-#define ipconfigUSE_TCP_WIN                            ( 1 )
+#define ipconfigUSE_TCP_WIN                          ( 1 )
 
 /* The MTU is the maximum number of bytes the payload of a network frame can
  * contain.  For normal Ethernet V2 frames the maximum MTU is 1500.  Setting a
  * lower value can save RAM, depending on the buffer management scheme used.  If
  * ipconfigCAN_FRAGMENT_OUTGOING_PACKETS is 1 then (ipconfigNETWORK_MTU - 28) must
  * be divisible by 8. */
-#define ipconfigNETWORK_MTU                            1200U
+#define ipconfigNETWORK_MTU                          1200U
 
 /* Set ipconfigUSE_DNS to 1 to include a basic DNS client/resolver.  DNS is used
  * through the FreeRTOS_gethostbyname() API function. */
-#define ipconfigUSE_DNS                                1
+#define ipconfigUSE_DNS                              1
 
 /* If ipconfigREPLY_TO_INCOMING_PINGS is set to 1 then the IP stack will
  * generate replies to incoming ICMP echo (ping) requests. */
-#define ipconfigREPLY_TO_INCOMING_PINGS                1
+#define ipconfigREPLY_TO_INCOMING_PINGS              1
 
 /* If ipconfigSUPPORT_OUTGOING_PINGS is set to 1 then the
  * FreeRTOS_SendPingRequest() API function is available. */
-#define ipconfigSUPPORT_OUTGOING_PINGS                 0
+#define ipconfigSUPPORT_OUTGOING_PINGS               0
 
 /* If ipconfigSUPPORT_SELECT_FUNCTION is set to 1 then the FreeRTOS_select()
  * (and associated) API function is available. */
-#define ipconfigSUPPORT_SELECT_FUNCTION                1
+#define ipconfigSUPPORT_SELECT_FUNCTION              1
 
 /* If ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES is set to 1 then Ethernet frames
  * that are not in Ethernet II format will be dropped.  This option is included for
  * potential future IP stack developments. */
-#define ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES      1
+#define ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES    1
 
 /* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1 then it is the
  * responsibility of the Ethernet interface to filter out packets that are of no
