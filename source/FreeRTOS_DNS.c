@@ -387,6 +387,7 @@
                                     const char * pcHostName )
     {
         uint32_t ulIPAddress = 0UL;
+
         #if ( ipconfigUSE_LLMNR != 1 )
             ( void ) pcHostName;
         #endif
