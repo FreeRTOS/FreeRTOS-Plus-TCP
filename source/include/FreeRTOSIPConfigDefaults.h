@@ -802,6 +802,7 @@
  * It should be noted that it is most efficient to drop unwanted packets
  * as early as possible.
  */
+/* coverity[misra_c_2012_rule_5_4_violation] */
 #ifndef ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES
     #define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    1
 #endif
@@ -813,6 +814,7 @@
  * That function checks if there is a UDP socket listening to a
  * given port number.
  */
+/* coverity[misra_c_2012_rule_5_4_violation] */
 #ifndef ipconfigETHERNET_DRIVER_FILTERS_PACKETS
     #define ipconfigETHERNET_DRIVER_FILTERS_PACKETS    ( 0 )
 #endif

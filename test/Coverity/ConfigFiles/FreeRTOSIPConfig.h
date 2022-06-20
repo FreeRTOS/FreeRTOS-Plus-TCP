@@ -264,6 +264,8 @@ extern uint32_t ulRand();
  * because the packet will already have been passed into the stack).  If the
  * Ethernet driver does all the necessary filtering in hardware then software
  * filtering can be removed by using a value other than 1 or 0. */
+
+/* coverity[misra_c_2012_rule_5_4_violation] */
 #define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    1
 
 /* The windows simulator cannot really simulate MAC interrupts, and needs to

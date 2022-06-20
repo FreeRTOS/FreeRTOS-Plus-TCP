@@ -58,10 +58,12 @@
     #define iptraceNETWORK_INTERFACE_OUTPUT( uxDataLength, pucEthernetBuffer )
 #endif
 
+/* coverity[misra_c_2012_rule_5_4_violation] */
 #ifndef iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER
     #define iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER()
 #endif
 
+/* coverity[misra_c_2012_rule_5_4_violation] */
 #ifndef iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER_FROM_ISR
     #define iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER_FROM_ISR()
 #endif
