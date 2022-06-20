@@ -1313,7 +1313,6 @@
                     ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )               /* There are no other flags than an ACK. */
                 {
                     uint32_t ulCurMSS = ( uint32_t ) pxSocket->u.xTCP.usMSS;
-                    int32_t lCurMSS = ( int32_t ) ulCurMSS;
 
                     if( pxSocket->u.xTCP.pxAckMessage != *ppxNetworkBuffer )
                     {
