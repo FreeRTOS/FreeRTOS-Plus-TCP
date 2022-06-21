@@ -386,6 +386,7 @@ static void prvProcessIPEventsAndTimers( void )
                     eDHCPState_t eState;
 
                     /* Cast in two steps to please MISRA. */
+
                     /* conversion between uintptr_t which is is guaranteed to be a pointer
                      * size on the used platform */
                     /* coverity[misra_c_2012_rule_11_6_violation] */
