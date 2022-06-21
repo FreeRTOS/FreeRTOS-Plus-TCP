@@ -129,6 +129,9 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
         uintptr_t uxOption = ( uintptr_t ) eGetDHCPState();
 
         xEventMessage.eEventType = eDHCPEvent;
+        /* conversion between uintptr_t which is is guaranteed to be a pointer
+         * size on the used platform */
+        /* coverity[misra_c_2012_rule_11_6_violation] */
         xEventMessage.pvData = ( void * ) uxOption;
 
         return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );
@@ -220,6 +223,9 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
     else
     {
         /* Obtain the network buffer from the zero copy pointer. */
+        /* copy pointer value to uintptr_t which is guaranteed to fit in a
+         * pointer */
+        /* coverity[misra_c_2012_rule_11_6_violation] */
         uxBuffer = ipPOINTER_CAST( uintptr_t, pvBuffer );
 
         /* The input here is a pointer to a packet buffer plus some offset.  Subtract
