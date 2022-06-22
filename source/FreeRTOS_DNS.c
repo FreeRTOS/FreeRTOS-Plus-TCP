@@ -207,7 +207,7 @@
         static uint32_t prvPrepareLookup( const char * pcHostName )
     #endif
     {
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = ( uint32_t ) 0UL;
         TickType_t uxReadTimeOut_ticks = ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS;
 
         /* Generate a unique identifier for this query. Keep it in a local variable
@@ -368,7 +368,7 @@
          * still needs to be tested. */
         *ppxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxExpectedPayloadLength +
                                                               uxHeaderBytes,
-                                                              0UL );
+                                                              ( TickType_t ) 0UL );
 
         if( *ppxNetworkBuffer != NULL )
         {
@@ -386,7 +386,7 @@
     static void prvFillSockAddress( struct freertos_sockaddr * pxAddress,
                                     const char * pcHostName )
     {
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = ( uint32_t ) 0UL;
 
         /* Obtain the DNS server address. */
         FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, &ulIPAddress );
@@ -419,14 +419,14 @@
     static uint32_t prvDNSReply( struct xDNSBuffer * pxReceiveBuffer,
                                  TickType_t uxIdentifier )
     {
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = ( uint32_t ) 0UL;
         BaseType_t xExpected;
         const DNSMessage_t * pxDNSMessageHeader =
             ( ( const DNSMessage_t * )
               pxReceiveBuffer->pucPayloadBuffer );
 
         /* See if the identifiers match. */
-        xExpected = ( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier );
+        xExpected = ( BaseType_t ) ( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier );
 
         /* The reply was received.  Process it. */
         #if ( ipconfigDNS_USE_CALLBACKS == 0 )
@@ -452,12 +452,12 @@
  * @param [in] pxAddress address structure
  * @returns whether sending the data was successful
  */
-    static BaseType_t prvSendBuffer( const char * pcHostName,
+    static uint32_t prvSendBuffer( const char * pcHostName,
                                      TickType_t uxIdentifier,
                                      Socket_t xDNSSocket,
                                      struct freertos_sockaddr * pxAddress )
     {
-        BaseType_t xReturn = pdFAIL;
+        uint32_t xReturn = pdFAIL;
         struct xDNSBuffer xDNSBuf = { 0 };
         NetworkBufferDescriptor_t * pxNetworkBuffer = NULL;
 
@@ -512,7 +512,7 @@
 
         struct freertos_sockaddr xAddress;
         struct xDNSBuffer xReceiveBuffer = { 0 };
-        BaseType_t xReturn = pdFAIL;
+        uint32_t xReturn = pdFAIL;
 
         prvFillSockAddress( &xAddress, pcHostName );
 
@@ -598,7 +598,7 @@
                                       TickType_t uxReadTimeOut_ticks )
     {
         Socket_t xDNSSocket;
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = ( uint32_t ) 0UL;
 
         xDNSSocket = DNS_CreateSocket( uxReadTimeOut_ticks );
 

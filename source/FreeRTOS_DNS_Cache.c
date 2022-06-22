@@ -76,7 +76,7 @@
 
 
 
-    static BaseType_t prvFindEntryIndex( const char * pcName );
+    static BaseType_t prvFindEntryIndex( const char * pcName, UBaseType_t * xRes );
 
     static BaseType_t prvGetCacheIPEntry( UBaseType_t uxIndex,
                                           uint32_t * pulIP,
@@ -158,16 +158,17 @@
                                          uint32_t ulTTL,
                                          BaseType_t xLookUp )
     {
-        BaseType_t x;
+        UBaseType_t x;
+        BaseType_t xResult;
         TickType_t xCurrentTickCount = xTaskGetTickCount();
         uint32_t ulCurrentTimeSeconds;
 
         configASSERT( ( pcName != NULL ) );
 
         ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000UL;
-        x = prvFindEntryIndex( pcName );
+        xResult = prvFindEntryIndex( pcName, &x );
 
-        if( x != -1 )
+        if( xResult != -1 )
         { /* Element found */
             if( xLookUp == pdTRUE )
             {
@@ -183,11 +184,11 @@
                                      ulCurrentTimeSeconds );
             }
         }
-        else /* Element not Found */
+        else /* Element not Found xResult = -1 */
         {
             if( xLookUp == pdTRUE )
             {
-                *pulIP = 0UL;
+                *pulIP = ( uint32_t ) 0UL;
             }
             else
             {
@@ -207,27 +208,28 @@
                                      ( unsigned ) FreeRTOS_ntohl( ulTTL ) ) );
         }
 
-        if( x == -1 )
+        if( xResult == -1 )
         {
-            x = 0;
+            xResult = 0;
         }
         else
         {
-            x = 1;
+            xResult = 1;
         }
 
-        return x;
+        return xResult;
     }
 
 /**
  * @brief returns the index of the hostname entry in the dns cache.
  * @param[in] pcName find it in the cache
- * @returns index number or -1 if not found
+ * @param [out] xRes index number
+ * @returns res 0 if index in found else -1
  */
-    static BaseType_t prvFindEntryIndex( const char * pcName )
+    static BaseType_t prvFindEntryIndex( const char * pcName, UBaseType_t * xRes)
     {
         BaseType_t index = -1;
-        BaseType_t x;
+        UBaseType_t x;
 
         /* For each entry in the DNS cache table. */
         for( x = 0; x < ( int ) ipconfigDNS_CACHE_ENTRIES; x++ )
@@ -239,7 +241,8 @@
 
             if( strcmp( xDNSCache[ x ].pcName, pcName ) == 0 )
             { /* hostname found */
-                index = x;
+                index = 0;
+                *xRes = x;
                 break;
             }
         }

@@ -62,7 +62,7 @@
         {
             /* Auto bind the port. */
             xAddress.sin_port = 0U;
-            xReturn = FreeRTOS_bind( xSocket, &xAddress, sizeof( xAddress ) );
+            xReturn = FreeRTOS_bind( xSocket, &xAddress, ( socklen_t ) sizeof( xAddress ) );
 
             /* Check the bind was successful, and clean up if not. */
             if( xReturn != 0 )
@@ -96,7 +96,7 @@
                               struct freertos_sockaddr * xAddress,
                               struct xDNSBuffer * pxDNSBuf )
     {
-        BaseType_t xReturn = pdFALSE;
+        uint32_t xReturn = pdFALSE;
 
         iptraceSENDING_DNS_REQUEST();
 
@@ -130,7 +130,7 @@
                         struct freertos_sockaddr * xAddress,
                         struct xDNSBuffer * pxReceiveBuffer )
     {
-        uint32_t ulAddressLength = sizeof( struct freertos_sockaddr );
+        uint32_t ulAddressLength = ( uint32_t ) sizeof( struct freertos_sockaddr );
 
         /* Wait for the reply. */
         pxReceiveBuffer->uxPayloadLength = FreeRTOS_recvfrom( xDNSSocket,

@@ -255,7 +255,7 @@
                                 BaseType_t xExpected )
     {
         DNSMessage_t * pxDNSMessageHeader;
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = ( uint32_t ) 0UL;
 
         #if ( ipconfigUSE_LLMNR == 1 )
             char * pcRequestedName = NULL;
@@ -496,12 +496,12 @@
         if( xReturn == pdFALSE )
         {
             /* There was an error while parsing the DNS response. Return error code. */
-            ulIPAddress = dnsPARSE_ERROR;
+            ulIPAddress = ( uint32_t ) dnsPARSE_ERROR;
         }
         else if( xExpected == pdFALSE )
         {
             /* Do not return a valid IP-address in case the reply was not expected. */
-            ulIPAddress = 0UL;
+            ulIPAddress = ( uint32_t ) 0UL;
         }
         else
         {
