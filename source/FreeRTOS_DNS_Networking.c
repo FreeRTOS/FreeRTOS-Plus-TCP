@@ -92,11 +92,11 @@
  *                  false otherwise
  *
  */
-    uint32_t DNS_SendRequest( Socket_t xDNSSocket,
-                              struct freertos_sockaddr * xAddress,
-                              struct xDNSBuffer * pxDNSBuf )
+    BaseType_t DNS_SendRequest( Socket_t xDNSSocket,
+                                struct freertos_sockaddr * xAddress,
+                                struct xDNSBuffer * pxDNSBuf )
     {
-        uint32_t xReturn = pdFALSE;
+        BaseType_t xReturn = pdFALSE;
 
         iptraceSENDING_DNS_REQUEST();
 

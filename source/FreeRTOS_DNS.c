@@ -460,14 +460,14 @@
  * @param [in] uxIdentifier  matches sent and received packets
  * @param [in] xDNSSocket a valid socket
  * @param [in] pxAddress address structure
- * @returns whether sending the data was successful
+ * @returns pdTRUE if sending the data was successful, pdFALSE otherwise.
  */
-    static uint32_t prvSendBuffer( const char * pcHostName,
-                                   TickType_t uxIdentifier,
-                                   Socket_t xDNSSocket,
-                                   struct freertos_sockaddr * pxAddress )
+    static BaseType_t prvSendBuffer( const char * pcHostName,
+                                     TickType_t uxIdentifier,
+                                     Socket_t xDNSSocket,
+                                     struct freertos_sockaddr * pxAddress )
     {
-        uint32_t uxReturn = pdFAIL;
+        BaseType_t uxReturn = pdFAIL;
         struct xDNSBuffer xDNSBuf = { 0 };
         NetworkBufferDescriptor_t * pxNetworkBuffer = NULL;
 
@@ -522,7 +522,7 @@
 
         struct freertos_sockaddr xAddress;
         struct xDNSBuffer xReceiveBuffer = { 0 };
-        uint32_t uxReturn = pdFAIL;
+        BaseType_t uxReturn = pdFAIL;
 
         prvFillSockAddress( &xAddress, pcHostName );
 

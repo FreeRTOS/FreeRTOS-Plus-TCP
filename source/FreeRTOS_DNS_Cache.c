@@ -169,7 +169,7 @@
         ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000U;
         xResult = prvFindEntryIndex( pcName, &uxIndex );
 
-        if( xResult != -1 )
+        if( xResult == pdTRUE )
         { /* Element found */
             if( xLookUp == pdTRUE )
             {
@@ -185,7 +185,7 @@
                                      ulCurrentTimeSeconds );
             }
         }
-        else /* Element not Found xResult = -1 */
+        else /* Element not Found xResult = pdFALSE */
         {
             if( xLookUp == pdTRUE )
             {
@@ -225,12 +225,12 @@
  * @brief returns the index of the hostname entry in the dns cache.
  * @param[in] pcName find it in the cache
  * @param [out] xResult index number
- * @returns res 0 if index in found else -1
+ * @returns res pdTRUE if index in found else pdFALSE
  */
     static BaseType_t prvFindEntryIndex( const char * pcName,
                                          UBaseType_t * uxResult )
     {
-        BaseType_t xReturn = -1;
+        BaseType_t xReturn = pdFALSE;
         UBaseType_t uxIndex;
 
         /* For each entry in the DNS cache table. */
@@ -243,7 +243,7 @@
 
             if( strcmp( xDNSCache[ uxIndex ].pcName, pcName ) == 0 )
             { /* hostname found */
-                xReturn = 0;
+                xReturn = pdTRUE;
                 *uxResult = uxIndex;
                 break;
             }
