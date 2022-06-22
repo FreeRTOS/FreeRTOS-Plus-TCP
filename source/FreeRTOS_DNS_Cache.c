@@ -209,7 +209,7 @@
                                      ( unsigned ) FreeRTOS_ntohl( ulTTL ) ) );
         }
 
-        if( xResult == -1 )
+        if( xResult == pdFALSE )
         {
             xResult = 0;
         }
