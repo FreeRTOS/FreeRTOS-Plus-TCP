@@ -255,7 +255,7 @@
                                 BaseType_t xExpected )
     {
         DNSMessage_t * pxDNSMessageHeader;
-        uint32_t ulIPAddress = ( uint32_t ) 0UL;
+        uint32_t ulIPAddress = 0U;
 
         #if ( ipconfigUSE_LLMNR == 1 )
             char * pcRequestedName = NULL;
@@ -501,7 +501,7 @@
         else if( xExpected == pdFALSE )
         {
             /* Do not return a valid IP-address in case the reply was not expected. */
-            ulIPAddress = ( uint32_t ) 0UL;
+            ulIPAddress = 0U;
         }
         else
         {

@@ -77,7 +77,7 @@
 
 
     static BaseType_t prvFindEntryIndex( const char * pcName,
-                                         UBaseType_t * xResult );
+                                         UBaseType_t * uxResult );
 
     static BaseType_t prvGetCacheIPEntry( UBaseType_t uxIndex,
                                           uint32_t * pulIP,
@@ -102,7 +102,7 @@
  */
     uint32_t FreeRTOS_dnslookup( const char * pcHostName )
     {
-        uint32_t ulIPAddress = ( uint32_t ) 0UL;
+        uint32_t ulIPAddress = 0U;
 
         ( void ) FreeRTOS_ProcessDNSCache( pcHostName,
                                            &ulIPAddress,
@@ -159,27 +159,27 @@
                                          uint32_t ulTTL,
                                          BaseType_t xLookUp )
     {
-        UBaseType_t x;
+        UBaseType_t uxIndex;
         BaseType_t xResult;
         TickType_t xCurrentTickCount = xTaskGetTickCount();
         uint32_t ulCurrentTimeSeconds;
 
         configASSERT( ( pcName != NULL ) );
 
-        ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / ( uint32_t ) 1000UL;
-        xResult = prvFindEntryIndex( pcName, &x );
+        ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000U;
+        xResult = prvFindEntryIndex( pcName, &uxIndex );
 
         if( xResult != -1 )
         { /* Element found */
             if( xLookUp == pdTRUE )
             {
-                prvGetCacheIPEntry( x,
+                prvGetCacheIPEntry( uxIndex,
                                     pulIP,
                                     ulCurrentTimeSeconds );
             }
             else
             {
-                prvUpdateCacheEntry( x,
+                prvUpdateCacheEntry( uxIndex,
                                      ulTTL,
                                      pulIP,
                                      ulCurrentTimeSeconds );
@@ -189,7 +189,7 @@
         {
             if( xLookUp == pdTRUE )
             {
-                *pulIP = ( uint32_t ) 0UL;
+                *pulIP = 0U;
             }
             else
             {
@@ -200,7 +200,7 @@
             }
         }
 
-        if( ( xLookUp == pdFALSE ) || ( *pulIP != 0UL ) )
+        if( ( xLookUp == pdFALSE ) || ( *pulIP != 0U ) )
         {
             FreeRTOS_debug_printf( ( "FreeRTOS_ProcessDNSCache: %s: '%s' @ %xip (TTL %u)\n",
                                      ( xLookUp != 0 ) ? "look-up" : "add",
@@ -228,7 +228,7 @@
  * @returns res 0 if index in found else -1
  */
     static BaseType_t prvFindEntryIndex( const char * pcName,
-                                         UBaseType_t * xResult )
+                                         UBaseType_t * uxResult )
     {
         BaseType_t index = -1;
         UBaseType_t x;
@@ -244,7 +244,7 @@
             if( strcmp( xDNSCache[ x ].pcName, pcName ) == 0 )
             { /* hostname found */
                 index = 0;
-                *xResult = x;
+                *uxResult = x;
                 break;
             }
         }
