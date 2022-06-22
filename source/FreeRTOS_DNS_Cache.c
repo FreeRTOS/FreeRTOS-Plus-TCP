@@ -77,7 +77,7 @@
 
 
     static BaseType_t prvFindEntryIndex( const char * pcName,
-                                         UBaseType_t * xRes );
+                                         UBaseType_t * xResult );
 
     static BaseType_t prvGetCacheIPEntry( UBaseType_t uxIndex,
                                           uint32_t * pulIP,
@@ -224,11 +224,11 @@
 /**
  * @brief returns the index of the hostname entry in the dns cache.
  * @param[in] pcName find it in the cache
- * @param [out] xRes index number
+ * @param [out] xResult index number
  * @returns res 0 if index in found else -1
  */
     static BaseType_t prvFindEntryIndex( const char * pcName,
-                                         UBaseType_t * xRes )
+                                         UBaseType_t * xResult )
     {
         BaseType_t index = -1;
         UBaseType_t x;
@@ -244,7 +244,7 @@
             if( strcmp( xDNSCache[ x ].pcName, pcName ) == 0 )
             { /* hostname found */
                 index = 0;
-                *xRes = x;
+                *xResult = x;
                 break;
             }
         }
