@@ -303,6 +303,9 @@ void test_FreeRTOS_gethostbyname_fail_send_dns_reply_zero( void )
 
     xReceiveBuffer.pucPayloadBuffer = malloc( 300 );
     xReceiveBuffer.uxPayloadLength = 300;
+    memset( xReceiveBuffer.pucPayloadBuffer, 0x00, 300 );
+    DNSMessage_t * header = ( DNSMessage_t * ) xReceiveBuffer.pucPayloadBuffer;
+    header->usIdentifier = 0;
 
     xNetworkBuffer.xDataLength = 2280;
     xNetworkBuffer.pucEthernetBuffer = malloc( 2280 );
