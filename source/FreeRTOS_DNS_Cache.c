@@ -76,7 +76,8 @@
 
 
 
-    static BaseType_t prvFindEntryIndex( const char * pcName, UBaseType_t * xRes );
+    static BaseType_t prvFindEntryIndex( const char * pcName,
+                                         UBaseType_t * xRes );
 
     static BaseType_t prvGetCacheIPEntry( UBaseType_t uxIndex,
                                           uint32_t * pulIP,
@@ -226,7 +227,8 @@
  * @param [out] xRes index number
  * @returns res 0 if index in found else -1
  */
-    static BaseType_t prvFindEntryIndex( const char * pcName, UBaseType_t * xRes)
+    static BaseType_t prvFindEntryIndex( const char * pcName,
+                                         UBaseType_t * xRes )
     {
         BaseType_t index = -1;
         UBaseType_t x;

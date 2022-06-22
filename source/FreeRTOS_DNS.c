@@ -453,9 +453,9 @@
  * @returns whether sending the data was successful
  */
     static uint32_t prvSendBuffer( const char * pcHostName,
-                                     TickType_t uxIdentifier,
-                                     Socket_t xDNSSocket,
-                                     struct freertos_sockaddr * pxAddress )
+                                   TickType_t uxIdentifier,
+                                   Socket_t xDNSSocket,
+                                   struct freertos_sockaddr * pxAddress )
     {
         uint32_t xReturn = pdFAIL;
         struct xDNSBuffer xDNSBuf = { 0 };

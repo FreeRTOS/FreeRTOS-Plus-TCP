@@ -134,11 +134,11 @@
 
         /* Wait for the reply. */
         pxReceiveBuffer->uxPayloadLength = ( size_t ) FreeRTOS_recvfrom( xDNSSocket,
-                                                              &pxReceiveBuffer->pucPayloadBuffer,
-                                                              0,
-                                                              FREERTOS_ZERO_COPY,
-                                                              xAddress,
-                                                              &ulAddressLength );
+                                                                         &pxReceiveBuffer->pucPayloadBuffer,
+                                                                         0,
+                                                                         FREERTOS_ZERO_COPY,
+                                                                         xAddress,
+                                                                         &ulAddressLength );
         pxReceiveBuffer->uxPayloadSize = pxReceiveBuffer->uxPayloadLength;
     }
 
