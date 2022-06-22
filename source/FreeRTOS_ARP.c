@@ -328,6 +328,9 @@ static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
 
     if( pxARPWaitingNetworkBuffer != NULL )
     {
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         IPPacket_t * pxARPWaitingIPPacket = ( ( IPPacket_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
         IPHeader_t * pxARPWaitingIPHeader = &( pxARPWaitingIPPacket->xIPHeader );
 
@@ -401,6 +404,10 @@ BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup )
 BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xNeedsARPResolution = pdFALSE;
+
+    /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+     * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -1071,6 +1078,9 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->xDataLength >= sizeof( ARPPacket_t ) );
 
+    /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+     * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
     pxARPPacket = ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     /* memcpy the const part of the header information into the correct
@@ -1141,6 +1151,10 @@ void FreeRTOS_ClearARP( void )
     {
         BaseType_t xResult = pdFALSE;
         NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxUseDescriptor->pucEthernetBuffer );
 
         if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )

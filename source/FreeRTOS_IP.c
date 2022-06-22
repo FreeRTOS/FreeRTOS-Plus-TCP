@@ -1155,6 +1155,10 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
     const EthernetHeader_t * pxEthernetHeader;
 
     /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+
+    /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+     * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
     pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
 
     if( memcmp( ipLOCAL_MAC_ADDRESS, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
@@ -1225,6 +1229,10 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
         eReturned = ipCONSIDER_FRAME_FOR_PROCESSING( pxNetworkBuffer->pucEthernetBuffer );
 
         /* Map the buffer onto the Ethernet Header struct for easy access to the fields. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxEthernetHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
         /* The condition "eReturned == eProcessBuffer" must be true. */
@@ -1240,6 +1248,9 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     /* The Ethernet frame contains an ARP packet. */
                     if( pxNetworkBuffer->xDataLength >= sizeof( ARPPacket_t ) )
                     {
+                        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+                        /* coverity[misra_c_2012_rule_11_3_violation] */
                         eReturned = eARPProcessPacket( ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer ) );
                     }
                     else
@@ -1254,6 +1265,9 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     /* The Ethernet frame contains an IP packet. */
                     if( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) )
                     {
+                        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+                        /* coverity[misra_c_2012_rule_11_3_violation] */
                         eReturned = prvProcessIPPacket( ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer );
                     }
                     else
@@ -1512,6 +1526,10 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                             ProtocolPacket_t * pxProtPack;
 
                             /* pxProtPack will point to the offset were the protocols begin. */
+
+                            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                             * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+                            /* coverity[misra_c_2012_rule_11_3_violation] */
                             pxProtPack = ( ( ProtocolPacket_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
                             if( pxProtPack->xUDPPacket.xUDPHeader.usChecksum == ( uint16_t ) 0U )
@@ -1665,6 +1683,10 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
                                /* Map the buffer onto a UDP-Packet struct to easily access the
                                 * fields of UDP packet. */
+
+                               /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                                * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+                               /* coverity[misra_c_2012_rule_11_3_violation] */
                                const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
                                uint16_t usLength;
                                BaseType_t xIsWaitingARPResolution = pdFALSE;
@@ -1796,6 +1818,10 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
             /* Map the buffer onto a IP-Packet struct to easily access the
              * fields of the IP packet. */
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
             ucVersionHeaderLength = pxIPPacket->xIPHeader.ucVersionHeaderLength;
@@ -1945,6 +1971,10 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
     #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
     {
         /* Map the Buffer to Ethernet Header struct for easy access to fields. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
         /*

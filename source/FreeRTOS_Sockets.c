@@ -1629,6 +1629,10 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
     static void prvTCPSetSocketCount( FreeRTOS_Socket_t const * pxSocketToDelete )
     {
         const ListItem_t * pxIterator;
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
         FreeRTOS_Socket_t * pxOtherSocket;
         uint16_t usLocalPort = pxSocketToDelete->usLocalPort;
@@ -2204,6 +2208,10 @@ static const ListItem_t * pxListFindListItemWithValue( const List_t * pxList,
     if( ( xIPIsNetworkTaskReady() != pdFALSE ) && ( pxList != NULL ) )
     {
         const ListItem_t * pxIterator;
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxList->xListEnd ) );
 
         for( pxIterator = listGET_NEXT( pxEnd );
@@ -3906,7 +3914,15 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         TickType_t xNow = xTaskGetTickCount();
         static TickType_t xLastTime = 0U;
         TickType_t xDelta = xNow - xLastTime;
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxIterator = ( const ListItem_t * ) listGET_HEAD_ENTRY( &xBoundTCPSocketsList );
 
         xLastTime = xNow;
@@ -4002,6 +4018,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     {
         const ListItem_t * pxIterator;
         FreeRTOS_Socket_t * pxResult = NULL, * pxListenSocket = NULL;
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
         /* Parameter not yet supported. */
@@ -4824,12 +4844,18 @@ BaseType_t xSocketValid( Socket_t xSocket )
 
             if( xRound == 0 )
             {
+                /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                 * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxEnd = ( ( const ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
             }
 
             #if ipconfigUSE_TCP == 1
                 else
                 {
+                    /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                     * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
                 }
             #endif /* ipconfigUSE_TCP == 1 */

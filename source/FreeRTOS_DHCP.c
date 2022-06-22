@@ -732,6 +732,10 @@
         if( lBytes > 0 )
         {
             /* Map a DHCP structure onto the received data. */
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayload );
 
             /* Sanity check. */
@@ -1011,6 +1015,10 @@
         {
             /* Leave space for the UDP header. */
             pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayloadBuffer );
 
             /* Most fields need to be zero. */

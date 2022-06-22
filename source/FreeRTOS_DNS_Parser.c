@@ -286,6 +286,10 @@
 
             /* Parse the DNS message header. Map the byte stream onto a structure
              * for easier access. */
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDNSMessageHeader = ( ( DNSMessage_t * )
                                    pucUDPPayloadBuffer );
 
@@ -609,6 +613,10 @@
 
                 /* Mapping pucBuffer to a DNSAnswerRecord allows easy access of the
                  * fields of the structure. */
+
+                /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                 * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucBuffer );
 
                 /* Sanity check the data length of an IPv4 answer. */
@@ -683,6 +691,10 @@
                 /* It's not an A record, so skip it. Get the header location
                  * and then jump over the header. */
                 /* Cast the response to DNSAnswerRecord for easy access to fields of the DNS response. */
+
+                /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                 * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucBuffer );
 
                 pucBuffer = &( pucBuffer[ sizeof( DNSAnswerRecord_t ) ] );

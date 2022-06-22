@@ -91,6 +91,10 @@
         {
             /* Map the buffer onto a ICMP-Packet struct to easily access the
              * fields of ICMP packet. */
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             ICMPPacket_t * pxICMPPacket = ( ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
             switch( pxICMPPacket->xICMPHeader.ucTypeOfMessage )

@@ -461,6 +461,10 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
 
         /* Parse the packet length. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
         /* Per https://tools.ietf.org/html/rfc791, the four-bit Internet Header
@@ -502,6 +506,10 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
          * and IP headers incorrectly aligned. However, either way, the "third"
          * protocol (Layer 3 or 4) header will be aligned, which is the convenience
          * of this calculation. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtPack = ( ( ProtocolPacket_t * ) &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
         /* Switch on the Layer 3/4 protocol. */

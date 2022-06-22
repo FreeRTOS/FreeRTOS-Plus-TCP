@@ -152,6 +152,10 @@
                  * now, proceed to send the packet with the SYN flag.
                  * prvTCPPrepareConnect() prepares 'xPacket' and returns pdTRUE if
                  * the Ethernet address of the peer or the gateway is found. */
+
+                /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                 * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxHeaderSize ] ) );
 
                 /* About to send a SYN packet.  Call prvSetSynAckOptions() to set
@@ -304,6 +308,10 @@
         #endif
         {
             /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxTCPPacket->xIPHeader;
             pxEthernetHeader = &pxTCPPacket->xEthernetHeader;
@@ -662,6 +670,10 @@
             /* The MAC-address of the peer (or gateway) has been found,
              * now prepare the initial TCP packet and some fields in the socket. Map
              * the buffer onto the TCPPacket_t struct to easily access it's field. */
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxTCPPacket = ( ( TCPPacket_t * ) pxSocket->u.xTCP.xPacket.u.ucLastPacket );
             pxIPHeader = &pxTCPPacket->xIPHeader;
 
@@ -960,6 +972,10 @@
         }
 
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
         pxTCPWindow = &( pxSocket->u.xTCP.xTCPWindow );
         lDataLen = 0;
@@ -990,6 +1006,10 @@
 
                     /* Map the byte stream onto ProtocolHeaders_t struct for easy
                      * access to the fields. */
+
+                    /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                     * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
 
                     pucSendData = &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength ] );
@@ -1190,6 +1210,10 @@
                                const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                   &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
         TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
@@ -1276,6 +1300,10 @@
                             BaseType_t xByteCount )
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                         &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
         const TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
@@ -1429,6 +1457,10 @@
         #else
             {
                 /* Map the ethernet buffer onto the TCPPacket_t struct for easy access to the fields. */
+
+                /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                 * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
                 const uint32_t ulSendLength =
                     ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */
