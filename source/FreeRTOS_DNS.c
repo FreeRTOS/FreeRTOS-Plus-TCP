@@ -426,12 +426,15 @@
               pxReceiveBuffer->pucPayloadBuffer );
 
         /* See if the identifiers match. */
-        if ( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier )
+        if( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier )
         {
             xExpected = pdTRUE;
         }
         else
+        {
             xExpected = pdFALSE;
+        }
+
         {
         }
 
@@ -492,8 +495,8 @@
 
             /* send the dns message */
             uxReturn = DNS_SendRequest( xDNSSocket,
-                                       pxAddress,
-                                       &xDNSBuf );
+                                        pxAddress,
+                                        &xDNSBuf );
 
             if( uxReturn == pdFAIL )
             {
@@ -526,9 +529,9 @@
         do
         {
             uxReturn = prvSendBuffer( pcHostName,
-                                     uxIdentifier,
-                                     xDNSSocket,
-                                     &xAddress );
+                                      uxIdentifier,
+                                      xDNSSocket,
+                                      &xAddress );
 
             if( uxReturn == pdFAIL )
             {
