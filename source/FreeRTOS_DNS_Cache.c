@@ -101,7 +101,7 @@
  */
     uint32_t FreeRTOS_dnslookup( const char * pcHostName )
     {
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = ( uint32_t ) 0UL;
 
         ( void ) FreeRTOS_ProcessDNSCache( pcHostName,
                                            &ulIPAddress,
@@ -165,7 +165,7 @@
 
         configASSERT( ( pcName != NULL ) );
 
-        ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000UL;
+        ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / ( uint32_t ) 1000UL;
         xResult = prvFindEntryIndex( pcName, &x );
 
         if( xResult != -1 )

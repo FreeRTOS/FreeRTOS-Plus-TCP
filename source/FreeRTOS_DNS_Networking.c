@@ -106,7 +106,7 @@
                              pxDNSBuf->uxPayloadLength,
                              FREERTOS_ZERO_COPY,
                              xAddress,
-                             sizeof( *xAddress ) ) != 0 )
+                             ( socklen_t ) sizeof( *xAddress ) ) != 0 )
         {
             xReturn = pdTRUE;
         }
@@ -133,7 +133,7 @@
         uint32_t ulAddressLength = ( uint32_t ) sizeof( struct freertos_sockaddr );
 
         /* Wait for the reply. */
-        pxReceiveBuffer->uxPayloadLength = FreeRTOS_recvfrom( xDNSSocket,
+        pxReceiveBuffer->uxPayloadLength = ( size_t ) FreeRTOS_recvfrom( xDNSSocket,
                                                               &pxReceiveBuffer->pucPayloadBuffer,
                                                               0,
                                                               FREERTOS_ZERO_COPY,
