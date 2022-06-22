@@ -435,9 +435,6 @@
             xExpected = pdFALSE;
         }
 
-        {
-        }
-
         /* The reply was received.  Process it. */
         #if ( ipconfigDNS_USE_CALLBACKS == 0 )
 
