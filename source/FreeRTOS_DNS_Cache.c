@@ -230,26 +230,26 @@
     static BaseType_t prvFindEntryIndex( const char * pcName,
                                          UBaseType_t * uxResult )
     {
-        BaseType_t index = -1;
-        UBaseType_t x;
+        BaseType_t xReturn = -1;
+        UBaseType_t uxIndex;
 
         /* For each entry in the DNS cache table. */
-        for( x = 0; x < ( int ) ipconfigDNS_CACHE_ENTRIES; x++ )
+        for( uxIndex = 0; uxIndex < ( int ) ipconfigDNS_CACHE_ENTRIES; uxIndex++ )
         {
-            if( xDNSCache[ x ].pcName[ 0 ] == ( char ) 0 )
+            if( xDNSCache[ uxIndex ].pcName[ 0 ] == ( char ) 0 )
             { /* empty slot */
                 continue;
             }
 
-            if( strcmp( xDNSCache[ x ].pcName, pcName ) == 0 )
+            if( strcmp( xDNSCache[ uxIndex ].pcName, pcName ) == 0 )
             { /* hostname found */
-                index = 0;
-                *uxResult = x;
+                xReturn = 0;
+                *uxResult = uxIndex;
                 break;
             }
         }
 
-        return index;
+        return xReturn;
     }
 
 /**
