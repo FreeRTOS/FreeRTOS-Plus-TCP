@@ -385,10 +385,9 @@ static void prvProcessIPEventsAndTimers( void )
                     uintptr_t uxState;
                     eDHCPState_t eState;
 
-                    /* Cast in two steps to please MISRA. */
-
-                    /* conversion between uintptr_t which is is guaranteed to be a pointer
-                     * size on the used platform */
+                    /* Conversion from a uintptr_t to an enum is allowed here as the 'uxState'
+                     * variable is guaranteed to contain a variable of the same enum type as this
+                     * value is generated and passed to this function by the TCP stack itself.  */
                     /* coverity[misra_c_2012_rule_11_6_violation] */
                     uxState = ( uintptr_t ) xReceivedEvent.pvData;
                     eState = ( eDHCPState_t ) uxState;

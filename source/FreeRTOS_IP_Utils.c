@@ -130,8 +130,8 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
 
         xEventMessage.eEventType = eDHCPEvent;
 
-        /* conversion between uintptr_t which is is guaranteed to be a pointer
-         * size on the used platform */
+        /* This conversion between 'uintptr_t' and a void pointer is allowed here as
+         * 'uintptr_t' is guaranteed to be a pointer size on the used platform. */
         /* coverity[misra_c_2012_rule_11_6_violation] */
         xEventMessage.pvData = ( void * ) uxOption;
 
@@ -225,10 +225,11 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
     {
         /* Obtain the network buffer from the zero copy pointer. */
 
-        /* copy pointer value to uintptr_t which is guaranteed to fit in a
-         * pointer */
+        /* This conversion between a pointer to void and 'uintptr_t' is being
+         * suppressed as 'uintptr_t' is guaranteed to be a pointer size on the
+         * used platform.  */
         /* coverity[misra_c_2012_rule_11_6_violation] */
-        uxBuffer = ipPOINTER_CAST( uintptr_t, pvBuffer );
+        uxBuffer = ( uintptr_t ) pvBuffer;
 
         /* The input here is a pointer to a packet buffer plus some offset.  Subtract
          * this offset, and also the size of the header in the network buffer, usually
