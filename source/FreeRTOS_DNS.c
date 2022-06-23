@@ -273,7 +273,6 @@
                 xHasRandom = xApplicationGetRandomNumber( &( ulNumber ) );
                 /* DNS identifiers are 16-bit. */
                 uxIdentifier = ( TickType_t ) ( ulNumber & 0xffffU );
-                printf("setting identifier\n", uxIdentifier );
             }
 
             #if ( ipconfigDNS_USE_CALLBACKS == 1 )
@@ -304,7 +303,6 @@
 
             if( ( ulIPAddress == 0U ) && ( xHasRandom != pdFALSE ) )
             {
-                printf("identifier vgethostbyname %d\n",  uxIdentifier );
                 ulIPAddress = prvGetHostByName( pcHostName,
                                                 uxIdentifier,
                                                 uxReadTimeOut_ticks );
@@ -428,17 +426,13 @@
               pxReceiveBuffer->pucPayloadBuffer );
 
         /* See if the identifiers match. */
-        printf("identifier %d identifier 2 %d\n",
-                uxIdentifier, pxDNSMessageHeader->usIdentifier );
         if( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier )
         {
             xExpected = pdTRUE;
-            printf("first case\n");
         }
         else
         {
             xExpected = pdFALSE;
-            printf("second case\n");
         }
 
         /* The reply was received.  Process it. */
