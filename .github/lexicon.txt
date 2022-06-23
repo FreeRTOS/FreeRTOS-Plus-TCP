@@ -1341,6 +1341,7 @@ uxrxwinsize
 uxsize
 uxsourcebytesremaining
 uxsourcelen
+uxstate
 uxstreambufferadd
 uxstreambufferget
 uxstreambuffermidspace
