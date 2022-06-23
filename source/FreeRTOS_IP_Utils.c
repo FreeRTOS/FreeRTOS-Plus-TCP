@@ -84,7 +84,7 @@
     static size_t uxMinLastSize = 0u;
 #endif
 
-#if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
+#if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 ) && ( ipconfigHAS_PRINTF != 0 )
     static UBaseType_t uxLastMinQueueSpace = 0;
 #endif
 
