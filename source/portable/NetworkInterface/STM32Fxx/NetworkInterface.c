@@ -392,6 +392,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 {
     HAL_StatusTypeDef hal_eth_init_status;
     BaseType_t xResult;
+
     #if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 )
         BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
     #endif
@@ -636,27 +637,27 @@ static void prvDMARxDescListInit()
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 )
-static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
-                                 uint32_t ulIndex,
-                                 uint8_t * Addr )
-{
-    uint32_t ulTempReg;
+    static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
+                                     uint32_t ulIndex,
+                                     uint8_t * Addr )
+    {
+        uint32_t ulTempReg;
 
-    ( void ) heth;
+        ( void ) heth;
 
-    /* Calculate the selected MAC address high register. */
-    ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
+        /* Calculate the selected MAC address high register. */
+        ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
 
-    /* Load the selected MAC address high register. */
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
+        /* Load the selected MAC address high register. */
+        ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
 
-    /* Calculate the selected MAC address low register. */
-    ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
+        /* Calculate the selected MAC address low register. */
+        ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
 
-    /* Load the selected MAC address low register */
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
-}
-#endif
+        /* Load the selected MAC address low register */
+        ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
+    }
+#endif /* if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) */
 /*-----------------------------------------------------------*/
 
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
@@ -843,10 +844,11 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
 
             if( pxIPHeader->ucProtocol == ipPROTOCOL_UDP )
             {
-                #if (ipconfigUSE_LLMNR == 1) || (ipconfigUSE_MDNS == 1) || (ipconfigUSE_NBNS == 1) || (ipconfigUSE_DNS == 1)
+                #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_DNS == 1 )
                     uint16_t usSourcePort = FreeRTOS_ntohs( pxProtPacket->xUDPPacket.xUDPHeader.usSourcePort );
                     uint16_t usDestinationPort = FreeRTOS_ntohs( pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort );
                 #endif
+
                 if( ( xPortHasUDPSocket( pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort ) == pdFALSE )
                     #if ipconfigUSE_LLMNR == 1
                         && ( usDestinationPort != ipLLMNR_PORT ) &&
