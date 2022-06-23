@@ -360,6 +360,7 @@ void test_FreeRTOS_gethostbyname_succes( void )
 
     xNetworkBuffer.xDataLength = 2280;
     xNetworkBuffer.pucEthernetBuffer = malloc( 2280 );
+    memset( xNetworkBuffer.pucEthernetBuffer, 0x00, 2280 );
 
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
     FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
@@ -580,7 +581,8 @@ void test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
     xNetworkBuffer.xDataLength = uxBytesNeeded;
     xReceiveBuffer.pucPayloadBuffer = malloc( 300 );
     xReceiveBuffer.uxPayloadLength = 300;
-    memset( xReceiveBuffer.pucPayloadBuffer, 0x00, 300 );
+    ( void ) memset( xNetworkBuffer.pucEthernetBuffer, 0x00, uxBytesNeeded );
+    ( void ) memset( xReceiveBuffer.pucPayloadBuffer, 0x00, 300 );
     DNSMessage_t * header = ( DNSMessage_t * ) xReceiveBuffer.pucPayloadBuffer;
     header->usIdentifier = 0;
 
