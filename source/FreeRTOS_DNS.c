@@ -426,13 +426,17 @@
               pxReceiveBuffer->pucPayloadBuffer );
 
         /* See if the identifiers match. */
+        printf("identifier %d identifier 2 %d\n",
+                uxIdentifier, pxDNSMessageHeader->usIdentifier );
         if( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier )
         {
             xExpected = pdTRUE;
+            printf("first case\n");
         }
         else
         {
             xExpected = pdFALSE;
+            printf("first case\n");
         }
 
         /* The reply was received.  Process it. */

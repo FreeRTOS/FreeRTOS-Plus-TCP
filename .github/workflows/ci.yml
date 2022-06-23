@@ -25,6 +25,7 @@ jobs:
           sudo apt-get install -y unifdef
           cmake -S test/unit-test -B test/unit-test/build/
           make -C test/unit-test/build/ all
+          ./test/unit-test/build/bin/tests/FreeRTOS_DNS_utest
       - name: Test
         run: |
           cd test/unit-test/build/
