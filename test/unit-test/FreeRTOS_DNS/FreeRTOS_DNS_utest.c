@@ -584,7 +584,7 @@ void test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
     ( void ) memset( xNetworkBuffer.pucEthernetBuffer, 0x00, uxBytesNeeded );
     ( void ) memset( xReceiveBuffer.pucPayloadBuffer, 0x00, 300 );
     DNSMessage_t * header = ( DNSMessage_t * ) xReceiveBuffer.pucPayloadBuffer;
-    header->usIdentifier = 0;
+    header->usIdentifier = 12 ;
 
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
     FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
