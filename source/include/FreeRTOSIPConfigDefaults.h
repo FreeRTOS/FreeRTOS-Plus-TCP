@@ -252,8 +252,7 @@
 #ifdef ipconfigHAS_DEBUG_PRINTF
     #if ( ipconfigHAS_DEBUG_PRINTF == 0 )
         #ifdef FreeRTOS_debug_printf
-            #warning Do not define FreeRTOS_debug_print if ipconfigHAS_DEBUG_PRINTF is set to 0
-            #undef FreeRTOS_debug_printf
+            #error Do not define FreeRTOS_debug_print if ipconfigHAS_DEBUG_PRINTF is set to 0
         #endif /* ifdef FreeRTOS_debug_printf */
     #endif /* ( ipconfigHAS_DEBUG_PRINTF == 0 ) */
 #endif /* ifdef ipconfigHAS_DEBUG_PRINTF */
@@ -276,8 +275,7 @@
 #ifdef ipconfigHAS_PRINTF
     #if ( ipconfigHAS_PRINTF == 0 )
         #ifdef FreeRTOS_printf
-            #warning Do not define FreeRTOS_print if ipconfigHAS_PRINTF is set to 0
-            #undef FreeRTOS_printf
+            #error Do not define FreeRTOS_print if ipconfigHAS_PRINTF is set to 0
         #endif /* ifdef FreeRTOS_debug_printf */
     #endif /* ( ipconfigHAS_PRINTF == 0 ) */
 #endif /* ifdef ipconfigHAS_PRINTF */
