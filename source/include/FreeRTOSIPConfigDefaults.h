@@ -259,6 +259,7 @@
 
 #ifndef FreeRTOS_debug_printf
     #define FreeRTOS_debug_printf( MSG )    do {} while( ipFALSE_BOOL )
+    #undef ipconfigHAS_DEBUG_PRINTF
     #define ipconfigHAS_DEBUG_PRINTF    0
 #endif
 
@@ -281,6 +282,7 @@
 
 #ifndef FreeRTOS_printf
     #define FreeRTOS_printf( MSG )    do {} while( ipFALSE_BOOL )
+    #undef ipconfigHAS_PRINTF
     #define ipconfigHAS_PRINTF    0
 #endif
 
