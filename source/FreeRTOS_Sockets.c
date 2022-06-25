@@ -2276,7 +2276,6 @@ const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
     socklen_t uxIndex = 0;
     const uint8_t * pucAddress = ( const uint8_t * ) &( ulIPAddress );
     const char * pcResult = pcBuffer;
-    const socklen_t uxSize = 16;
 
     for( uxNibble = 0; uxNibble < ipSIZE_OF_IPv4_ADDRESS; uxNibble++ )
     {

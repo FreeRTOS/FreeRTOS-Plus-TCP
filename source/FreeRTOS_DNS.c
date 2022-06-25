@@ -388,6 +388,10 @@
     {
         uint32_t ulIPAddress = 0U;
 
+        #if ( ipconfigUSE_LLMNR != 1 )
+            ( void ) pcHostName;
+        #endif
+
         /* Obtain the DNS server address. */
         FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, &ulIPAddress );
         #if ( ipconfigUSE_LLMNR == 1 )

@@ -148,16 +148,12 @@
 #ifndef ipconfigUSE_RMII
     #ifdef STM32F7xx
         #define ipconfigUSE_RMII    1
+        #warning Using RMII, make sure if this is correct
     #else
         #define ipconfigUSE_RMII    0
+        #warning Using MII, make sure if this is correct
     #endif /* STM32F7xx */
 #endif /* ipconfigUSE_RMII */
-
-#if ( ipconfigUSE_RMII != 0 )
-    #warning Using RMII, make sure if this is correct
-#else
-    #warning Using MII, make sure if this is correct
-#endif
 
 typedef enum
 {
@@ -396,7 +392,10 @@ BaseType_t xNetworkInterfaceInitialise( void )
 {
     HAL_StatusTypeDef hal_eth_init_status;
     BaseType_t xResult;
-    BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
+
+    #if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 )
+        BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
+    #endif
 
     if( xMacInitStatus == eMACInit )
     {
@@ -637,26 +636,28 @@ static void prvDMARxDescListInit()
 }
 /*-----------------------------------------------------------*/
 
-static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
-                                 uint32_t ulIndex,
-                                 uint8_t * Addr )
-{
-    uint32_t ulTempReg;
+#if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 )
+    static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
+                                     uint32_t ulIndex,
+                                     uint8_t * Addr )
+    {
+        uint32_t ulTempReg;
 
-    ( void ) heth;
+        ( void ) heth;
 
-    /* Calculate the selected MAC address high register. */
-    ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
+        /* Calculate the selected MAC address high register. */
+        ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
 
-    /* Load the selected MAC address high register. */
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
+        /* Load the selected MAC address high register. */
+        ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
 
-    /* Calculate the selected MAC address low register. */
-    ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
+        /* Calculate the selected MAC address low register. */
+        ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
 
-    /* Load the selected MAC address low register */
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
-}
+        /* Load the selected MAC address low register */
+        ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
+    }
+#endif /* if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) */
 /*-----------------------------------------------------------*/
 
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
@@ -843,8 +844,10 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
 
             if( pxIPHeader->ucProtocol == ipPROTOCOL_UDP )
             {
-                uint16_t usSourcePort = FreeRTOS_ntohs( pxProtPacket->xUDPPacket.xUDPHeader.usSourcePort );
-                uint16_t usDestinationPort = FreeRTOS_ntohs( pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort );
+                #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_DNS == 1 )
+                    uint16_t usSourcePort = FreeRTOS_ntohs( pxProtPacket->xUDPPacket.xUDPHeader.usSourcePort );
+                    uint16_t usDestinationPort = FreeRTOS_ntohs( pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort );
+                #endif
 
                 if( ( xPortHasUDPSocket( pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort ) == pdFALSE )
                     #if ipconfigUSE_LLMNR == 1
@@ -884,7 +887,7 @@ static void prvPassEthMessages( NetworkBufferDescriptor_t * pxDescriptor )
 
     if( xSendEventStructToIPTask( &xRxEvent, ( TickType_t ) 1000 ) != pdPASS )
     {
-        /* The buffer could not be sent to the stack so	must be released again.
+        /* The buffer could not be sent to the stack so must be released again.
          * This is a deferred handler task, not a real interrupt, so it is ok to
          * use the task level function here. */
         #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
