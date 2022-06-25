@@ -925,7 +925,8 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
                                                  void const * pvBuffer,
                                                  BaseType_t xByteCount )
     {
-        BaseType_t xByteCountReleased, xReturn = pdFAIL;
+        BaseType_t xByteCountReleased;
+        BaseType_t xReturn = pdFAIL;
         uint8_t * pucData;
         size_t uxBytesAvailable = uxStreamBufferGetPtr( xSocket->u.xTCP.rxStream, &( pucData ) );
 
@@ -938,7 +939,10 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
         if( ( pucData == pvBuffer ) && ( uxBytesAvailable >= ( size_t ) xByteCount ) )
         {
             /* Call recv with NULL pointer to advance the circular buffer. */
-            xByteCountReleased = FreeRTOS_recv( xSocket, NULL, xByteCount, FREERTOS_MSG_DONTWAIT );
+            xByteCountReleased = FreeRTOS_recv( xSocket,
+                                                NULL,
+                                                ( size_t ) xByteCount,
+                                                FREERTOS_MSG_DONTWAIT );
 
             configASSERT( xByteCountReleased == xByteCount );
 

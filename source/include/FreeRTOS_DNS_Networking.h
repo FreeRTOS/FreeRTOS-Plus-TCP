@@ -38,9 +38,9 @@
  */
     Socket_t DNS_CreateSocket( TickType_t uxReadTimeOut_ticks );
 
-    uint32_t DNS_SendRequest( Socket_t xDNSSocket,
-                              struct freertos_sockaddr * xAddress,
-                              struct xDNSBuffer * pxDNSBuf );
+    BaseType_t DNS_SendRequest( Socket_t xDNSSocket,
+                                struct freertos_sockaddr * xAddress,
+                                struct xDNSBuffer * pxDNSBuf );
 
     void DNS_ReadReply( Socket_t xDNSSocket,
                         struct freertos_sockaddr * xAddress,

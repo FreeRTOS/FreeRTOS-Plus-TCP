@@ -126,7 +126,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
     {
         IPStackEvent_t xEventMessage;
         const TickType_t uxDontBlock = 0U;
-        uintptr_t uxOption = eGetDHCPState();
+        uintptr_t uxOption = ( uintptr_t ) eGetDHCPState();
 
         xEventMessage.eEventType = eDHCPEvent;
         xEventMessage.pvData = ( void * ) uxOption;
@@ -811,7 +811,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xUnionPtr xSource;
     xUnionPtr xLastSource;
     uintptr_t uxAlignBits;
-    uint32_t ulCarry = 0UL;
+    uint32_t ulCarry = 0U;
     uint16_t usTemp;
     size_t uxDataLengthBytes = uxByteCount;
 
@@ -822,7 +822,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* Swap the input (little endian platform only). */
     usTemp = FreeRTOS_ntohs( usSum );
     xSum.u32 = ( uint32_t ) usTemp;
-    xTerm.u32 = 0UL;
+    xTerm.u32 = 0U;
 
     xSource.u8ptr = ipPOINTER_CAST( uint8_t *, pucNextData );
     uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
