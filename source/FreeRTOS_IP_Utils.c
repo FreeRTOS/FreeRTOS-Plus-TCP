@@ -378,7 +378,7 @@ void vPreCheckConfigs( void )
         {
             volatile size_t uxSize = sizeof( uintptr_t );
 
-            if( uxSize == 8 )
+            if( uxSize == 8U )
             {
                 /* This is a 64-bit platform, make sure there is enough space in
                  * pucEthernetBuffer to store a pointer. */
@@ -1218,9 +1218,9 @@ uint32_t FreeRTOS_round_up( uint32_t a,
 {
     uint32_t ulResult = a;
 
-    configASSERT( d != 0 );
+    configASSERT( d != 0U );
 
-    if( d != 0 )
+    if( d != 0U )
     {
         ulResult = d * ( ( a + d - 1U ) / d );
     }
@@ -1240,9 +1240,9 @@ uint32_t FreeRTOS_round_down( uint32_t a,
 {
     uint32_t ulResult = 0;
 
-    configASSERT( d != 0 );
+    configASSERT( d != 0U );
 
-    if( d != 0 )
+    if( d != 0U )
     {
         ulResult = d * ( a / d );
     }
