@@ -228,13 +228,16 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
         /* This conversion between a pointer to void and 'uintptr_t' is being
          * suppressed as 'uintptr_t' is guaranteed to be a pointer size on the
          * used platform.  */
-        /* coverity[misra_c_2012_rule_11_6_violation] */
+        /* coverity[misra_c_2012_rule_11_1_violation] */
         uxBuffer = ( uintptr_t ) pvBuffer;
 
         /* The input here is a pointer to a packet buffer plus some offset.  Subtract
          * this offset, and also the size of the header in the network buffer, usually
          * 8 + 2 bytes. */
         uxBuffer -= ( uxOffset + ipBUFFER_PADDING );
+
+        uint8_t * pcBufferOffset = ( uint8_t * ) pvBuffer;
+        pcBufferOffset = &( pcBufferOffset [ 0 - ( uxOffset + ipBUFFER_PADDING ) ] );
 
         /* Here a pointer was placed to the network descriptor.  As a
          * pointer is dereferenced, make sure it is well aligned. */
@@ -833,7 +836,10 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSum.u32 = ( uint32_t ) usTemp;
     xTerm.u32 = 0U;
 
-    xSource.u8ptr = ipPOINTER_CAST( uint8_t *, pucNextData );
+    xSource.u8ptr = ( uint8_t * ) pucNextData;
+    /* the conversion here does not cause a loss of data, as uintptr_t fits a
+     * pointer type on the system */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
 
     /*
