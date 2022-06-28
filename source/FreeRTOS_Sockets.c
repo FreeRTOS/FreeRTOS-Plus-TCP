@@ -233,6 +233,9 @@ static BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
 {
     BaseType_t xReturn;
 
+    /* MISRA Rule 11.4 warns about casting pointer to a different type.
+     * The casting here is to use pointer to pass error code. It is intentional. */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket == NULL ) || ( pxSocket == FREERTOS_INVALID_SOCKET ) )
     {
         xReturn = pdFALSE;
@@ -400,6 +403,9 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
     if( prvDetermineSocketSize( xDomain, xType, xProtocolCpy, &uxSocketSize ) == pdFAIL )
     {
+        /* MISRA Rule 11.4 warns about casting pointer to a different type.
+         * The casting here is to use pointer to pass error code. It is intentional. */
+        /* coverity[misra_c_2012_rule_11_4_violation] */
         xReturn = FREERTOS_INVALID_SOCKET;
     }
     else
@@ -412,6 +418,9 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
         if( pxSocket == NULL )
         {
+            /* MISRA Rule 11.4 warns about casting pointer to a different type.
+             * The casting here is to use pointer to pass error code. It is intentional. */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             xReturn = FREERTOS_INVALID_SOCKET;
             iptraceFAILED_TO_CREATE_SOCKET();
         }
@@ -422,6 +431,10 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             if( xEventGroup == NULL )
             {
                 vPortFreeSocket( pxSocket );
+
+                /* MISRA Rule 11.4 warns about casting pointer to a different type.
+                 * The casting here is to use pointer to pass error code. It is intentional. */
+                /* coverity[misra_c_2012_rule_11_4_violation] */
                 xReturn = FREERTOS_INVALID_SOCKET;
                 iptraceFAILED_TO_CREATE_EVENT_GROUP();
             }
@@ -1226,6 +1239,9 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
 
     configASSERT( xIsCallingFromIPTask() == pdFALSE );
 
+    /* MISRA Rule 11.4 warns about casting pointer to a different type.
+     * The casting here is to use pointer to pass error code. It is intentional. */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket == NULL ) || ( pxSocket == FREERTOS_INVALID_SOCKET ) )
     {
         xReturn = -pdFREERTOS_ERRNO_EINVAL;
@@ -1457,6 +1473,9 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
     xCloseEvent.eEventType = eSocketCloseEvent;
     xCloseEvent.pvData = xSocket;
 
+    /* MISRA Rule 11.4 warns about casting pointer to a different type.
+     * The casting here is to use pointer to pass error code. It is intentional. */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( xSocket == NULL ) || ( xSocket == FREERTOS_INVALID_SOCKET ) )
     {
         xResult = 0;
@@ -1776,6 +1795,9 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
     ( void ) lLevel;
     ( void ) uxOptionLength;
 
+    /* MISRA Rule 11.4 warns about casting pointer to a different type.
+     * The casting here is to use pointer to pass error code. It is intentional. */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket == NULL ) || ( pxSocket == FREERTOS_INVALID_SOCKET ) )
     {
         xReturn = -pdFREERTOS_ERRNO_EINVAL;
@@ -3132,12 +3154,20 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         if( prvValidSocket( pxSocket, FREERTOS_IPPROTO_TCP, pdTRUE ) == pdFALSE )
         {
             /* Not a valid socket or wrong type */
+
+            /* MISRA Rule 11.4 warns about casting pointer to a different type.
+             * The casting here is to use pointer to pass error code. It is intentional. */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
         else if( ( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED ) &&
                  ( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eTCP_LISTEN ) )
         {
             /* Parent socket is not in listening mode */
+
+            /* MISRA Rule 11.4 warns about casting pointer to a different type.
+             * The casting here is to use pointer to pass error code. It is intentional. */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
         else

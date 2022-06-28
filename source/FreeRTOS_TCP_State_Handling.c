@@ -967,6 +967,9 @@
                     FreeRTOS_Socket_t * pxNewSocket = ( FreeRTOS_Socket_t * )
                                                       FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_STREAM, FREERTOS_IPPROTO_TCP );
 
+                    /* MISRA Rule 11.4 warns about casting pointer to a different type.
+                     * The casting here is to use pointer to pass error code. It is intentional. */
+                    /* coverity[misra_c_2012_rule_11_4_violation] */
                     if( ( pxNewSocket == NULL ) || ( pxNewSocket == FREERTOS_INVALID_SOCKET ) )
                     {
                         FreeRTOS_debug_printf( ( "TCP: Listen: new socket failed\n" ) );

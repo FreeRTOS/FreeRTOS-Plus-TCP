@@ -234,6 +234,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
             /* The following statement may trigger a:
              * warning: cast increases required alignment of target type [-Wcast-align].
              * It has been confirmed though that the alignment is suitable. */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             pxResult = *( ( NetworkBufferDescriptor_t ** ) uxBuffer );
         }
         else
@@ -833,6 +834,10 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xTerm.u32 = 0UL;
 
     xSource.u8ptr = ipPOINTER_CAST( uint8_t *, pucNextData );
+
+    /* MISRA Rule 11.4 warns about casting pointer to a different size of pointer.
+    * The casting is used here to help checksum calculation.  It is intentional */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
 
     /*

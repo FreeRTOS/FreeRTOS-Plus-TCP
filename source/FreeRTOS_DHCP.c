@@ -616,6 +616,9 @@
         {
             xDHCPSocket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
 
+            /* MISRA Rule 11.4 warns about casting pointer to a different type.
+             * The casting here is to use pointer to pass error code. It is intentional. */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             if( xDHCPSocket != FREERTOS_INVALID_SOCKET )
             {
                 /* Ensure the Rx and Tx timeouts are zero as the DHCP executes in the
