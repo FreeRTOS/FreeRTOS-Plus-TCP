@@ -802,6 +802,8 @@
  * It should be noted that it is most efficient to drop unwanted packets
  * as early as possible.
  */
+/* suppressing misra rule 5.4 as changing the value
+ * could lead to backward incompatibility */
 /* coverity[misra_c_2012_rule_5_4_violation] */
 #ifndef ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES
     #define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    1
