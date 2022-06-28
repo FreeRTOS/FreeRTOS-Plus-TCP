@@ -329,7 +329,9 @@ static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
     if( pxARPWaitingNetworkBuffer != NULL )
     {
         /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+         * The casting is used to map the databuffer to a predefined data structure
+         * so that the data can be easily accessed. The buffer length has been validated to be
+         * at least as big as the size of the data structure to be casted to. */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         IPPacket_t * pxARPWaitingIPPacket = ( ( IPPacket_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
         IPHeader_t * pxARPWaitingIPHeader = &( pxARPWaitingIPPacket->xIPHeader );
@@ -1153,7 +1155,9 @@ void FreeRTOS_ClearARP( void )
         NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
 
         /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+         * The casting is used to map the databuffer to a predefined data structure
+         * so that the data can be easily accessed. The buffer length has been validated to be
+         * at least as big as the size of the data structure to be casted to. */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxUseDescriptor->pucEthernetBuffer );
 

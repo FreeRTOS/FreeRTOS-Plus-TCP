@@ -1231,7 +1231,9 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
         /* Map the buffer onto the Ethernet Header struct for easy access to the fields. */
 
         /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+         * The casting is used to map the databuffer to a predefined data structure
+         * so that the data can be easily accessed. The buffer length has been validated to be
+         * at least as big as the size of the data structure to be casted to. */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxEthernetHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
@@ -1973,7 +1975,9 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         /* Map the Buffer to Ethernet Header struct for easy access to fields. */
 
         /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * To be able to access various predefined fields from a data buffer, this mapping is intentional. */
+         * The casting is used to map the databuffer to a predefined data structure
+         * so that the data can be easily accessed. The buffer length has been validated to be
+         * at least as big as the size of the data structure to be casted to. */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
