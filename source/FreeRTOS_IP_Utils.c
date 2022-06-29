@@ -879,7 +879,8 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
     /* Word (32-bit) aligned, do the most part. */
     xLastSource.u32ptr = ( xSource.u32ptr + ( uxDataLengthBytes / 4U ) ) - 3U;
-    size_t sz2 = ( uxDataLengthBytes / 4U ) - 3U;
+    //size_t sz2 = ( uxDataLengthBytes / 4U ) - 3U;
+    size_t sz2 = ( uxDataLengthBytes / 4U );
     printf( "sz2 = %lu\n", sz2 );
 
     int x;
