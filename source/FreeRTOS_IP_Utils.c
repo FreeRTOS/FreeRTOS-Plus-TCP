@@ -881,6 +881,8 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* In this loop, four 32-bit additions will be done, in total 16 bytes.
      * Indexing with constants (0,1,2,3) gives faster code than using
      * post-increments. */
+    /* comparing two pointers that do not point to the same object */
+    /* coverity[misra_c_2012_rule_18_3_violation] */
     while( xSource.u32ptr < xLastSource.u32ptr )
     {
         /* Use a secondary Sum2, just to see if the addition produced an
@@ -931,6 +933,8 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* Coverity does not like Unions. Warning issued here: "The operator "<"
      * is being applied to the pointers "xSource.u16ptr" and "xLastSource.u16ptr",
      * which do not point into the same object." */
+    /* comparing two pointers that do not point to the same object */
+    /* coverity[misra_c_2012_rule_18_3_violation] */
     while( xSource.u16ptr < xLastSource.u16ptr )
     {
         /* At least one more short. */
