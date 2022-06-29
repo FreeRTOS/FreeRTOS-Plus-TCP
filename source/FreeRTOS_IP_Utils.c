@@ -879,7 +879,15 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
     /* Word (32-bit) aligned, do the most part. */
     xLastSource.u32ptr = ( xSource.u32ptr + ( uxDataLengthBytes / 4U ) ) - 3U;
-    size_t sz2 = ( uxDataLengthBytes / 4U ) - 4U;
+    size_t sz2 = ( uxDataLengthBytes / 4U );
+    if (sz2 < 3U)
+    {
+        sz2 = 0;
+    }
+    else
+    {
+        sz2 -= 3U;
+    }
     //size_t sz2 = ( uxDataLengthBytes / 4U );
     printf( "sz2 = %lu\n", sz2 );
 
@@ -893,6 +901,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* coverity[misra_c_2012_rule_18_3_violation] */
 //    while( xSource.u32ptr < xLastSource.u32ptr )
     {
+        printf("passing once\n");
         /* Use a secondary Sum2, just to see if the addition produced an
          * overflow. */
         xSum2.u32 = xSum.u32 + xSource.u32ptr[ 0 ];
