@@ -552,7 +552,7 @@ void test_usGenerateProtocolChecksum_UDPCorrectCRCOutgoingPacket( void )
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
-    TEST_ASSERT_EQUAL( 0xFFFF, pxProtPack->xUDPPacket.xUDPHeader.usChecksum );
+    TEST_ASSERT_EQUAL( 40703, pxProtPack->xUDPPacket.xUDPHeader.usChecksum );
 }
 
 void test_usGenerateProtocolChecksum_UDPCorrectCRC( void )
@@ -1160,7 +1160,7 @@ void test_usGenerateChecksum_UnallignedAccess( void )
 {
     uint16_t usResult;
     uint16_t usSum = 0;
-    //uint16_t usSum = FreeRTOS_htons( 0xFFFF - 0xAB );
+    /*uint16_t usSum = FreeRTOS_htons( 0xFFFF - 0xAB ); */
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 10;
     size_t uxUnalligned = 0;

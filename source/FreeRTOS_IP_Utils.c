@@ -832,6 +832,8 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     uint32_t ulCarry = 0U;
     uint16_t usTemp;
     size_t uxDataLengthBytes = uxByteCount;
+    size_t ulSize;
+    size_t ulX;
 
     /* Small MCUs often spend up to 30% of the time doing checksum calculations
     * This function is optimised for 32-bit CPUs; Each time it will try to fetch
@@ -879,30 +881,23 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
     /* Word (32-bit) aligned, do the most part. */
     xLastSource.u32ptr = ( xSource.u32ptr + ( uxDataLengthBytes / 4U ) ) - 3U;
-    size_t sz2 = ( uxDataLengthBytes / 4U );
-    if (sz2 < 3U)
+    ulSize = ( uxDataLengthBytes / 4U );
+
+    if( ulSize < 3U )
     {
-        sz2 = 0;
+        ulSize = 0;
     }
     else
     {
-        sz2 -= 3U;
+        ulSize -= 3U;
     }
-    //size_t sz2 = ( uxDataLengthBytes / 4U );
 
-    printf( "sz2 = %lu\n", sz2 );
-
-    int x;
-    for ( x = 0; x < sz2; x += 16 )
-
-    /* In this loop, four 32-bit additions will be done, in total 16 bytes.
-     * Indexing with constants (0,1,2,3) gives faster code than using
-     * post-increments. */
-    /* comparing two pointers that do not point to the same object */
-    /* coverity[misra_c_2012_rule_18_3_violation] */
-//    while( xSource.u32ptr < xLastSource.u32ptr )
+    for( ulX = 0; ulX < ulSize; ulX += 16 )
     {
-        printf("passing once\n");
+        /* In this loop, four 32-bit additions will be done, in total 16 bytes.
+         * Indexing with constants (0,1,2,3) gives faster code than using
+         * post-increments. */
+
         /* Use a secondary Sum2, just to see if the addition produced an
          * overflow. */
         xSum2.u32 = xSum.u32 + xSource.u32ptr[ 0 ];
@@ -946,15 +941,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     uxDataLengthBytes %= 16U;
     xLastSource.u8ptr = xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1U ) );
 
-    size_t sz =  ( ( uxDataLengthBytes & ~( ( size_t ) 1 ) ) );
-    size_t i;
-    /*
-    {
-        xSum.u32 += xSource.u16ptr[ 0 ];
-        xSource.u16ptr = &(xSource.u16ptr[2]);
-    }
-    */
-
+    ulSize = ( ( uxDataLengthBytes & ~( ( size_t ) 1 ) ) );
 
     /* Half-word aligned. */
 
@@ -963,12 +950,11 @@ uint16_t usGenerateChecksum( uint16_t usSum,
      * which do not point into the same object." */
     /* comparing two pointers that do not point to the same object */
     /* coverity[misra_c_2012_rule_18_3_violation] */
-    for( i = 0; i < sz; i += 2 )
-    //while( xSource.u16ptr < xLastSource.u16ptr )
+    for( ulX = 0; ulX < ulSize; ulX += 2 )
     {
         /* At least one more short. */
         xSum.u32 += xSource.u16ptr[ 0 ];
-        xSource.u16ptr++;
+        xSource.u16ptr = &xSource.u16ptr[ 2 ];
     }
 
     if( ( uxDataLengthBytes & ( size_t ) 1 ) != 0U ) /* Maybe one more ? */
