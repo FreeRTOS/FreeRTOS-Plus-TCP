@@ -823,7 +823,9 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 {
 /* MISRA/PC-lint doesn't like the use of unions. Here, they are a great
  * aid though to optimise the calculations. */
-    xUnion32 xSum2, xSum, xTerm;
+    xUnion32 xSum2;
+    xUnion32 xSum;
+    xUnion32 xTerm;
     xUnionPtr xSource;
     xUnionPtr xLastSource;
     uintptr_t uxAlignBits;
@@ -852,13 +854,13 @@ uint16_t usGenerateChecksum( uint16_t usSum,
      * odd position and we need to make sure the usSum value now in xSum is
      * as if it had been "aligned" in the same way.
      */
-    if( ( uxAlignBits & 1UL ) != 0U )
+    if( ( uxAlignBits & 1U ) != 0U )
     {
         xSum.u32 = ( ( xSum.u32 & 0xffU ) << 8 ) | ( ( xSum.u32 & 0xff00U ) >> 8 );
     }
 
     /* If byte (8-bit) aligned... */
-    if( ( ( uxAlignBits & 1UL ) != 0UL ) && ( uxDataLengthBytes >= ( size_t ) 1 ) )
+    if( ( ( uxAlignBits & 1U ) != 0U ) && ( uxDataLengthBytes >= ( size_t ) 1 ) )
     {
         xTerm.u8[ 1 ] = *( xSource.u8ptr );
         xSource.u8ptr++;
@@ -878,16 +880,17 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* Word (32-bit) aligned, do the most part. */
     xLastSource.u32ptr = ( xSource.u32ptr + ( uxDataLengthBytes / 4U ) ) - 3U;
     size_t sz2 = ( uxDataLengthBytes / 4U ) - 3U;
+    printf( "sz2 = %lu\n", sz2 );
 
     int x;
-//    for ( x = 0; x < sz2; x += 16 )
+    for ( x = 0; x < sz2; x += 16 )
 
     /* In this loop, four 32-bit additions will be done, in total 16 bytes.
      * Indexing with constants (0,1,2,3) gives faster code than using
      * post-increments. */
     /* comparing two pointers that do not point to the same object */
     /* coverity[misra_c_2012_rule_18_3_violation] */
-    while( xSource.u32ptr < xLastSource.u32ptr )
+//    while( xSource.u32ptr < xLastSource.u32ptr )
     {
         /* Use a secondary Sum2, just to see if the addition produced an
          * overflow. */
@@ -949,8 +952,8 @@ uint16_t usGenerateChecksum( uint16_t usSum,
      * which do not point into the same object." */
     /* comparing two pointers that do not point to the same object */
     /* coverity[misra_c_2012_rule_18_3_violation] */
-    //for (i = 0; i < sz; i += 4)
-    while( xSource.u16ptr < xLastSource.u16ptr )
+    for( i = 0; i < sz; i += 2 )
+    //while( xSource.u16ptr < xLastSource.u16ptr )
     {
         /* At least one more short. */
         xSum.u32 += xSource.u16ptr[ 0 ];
