@@ -877,13 +877,17 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
     /* Word (32-bit) aligned, do the most part. */
     xLastSource.u32ptr = ( xSource.u32ptr + ( uxDataLengthBytes / 4U ) ) - 3U;
+    size_t sz2 = ( uxDataLengthBytes / 4U ) - 3U;
+
+    int x;
+    for ( x = 0; x < sz2; x += 2 )
 
     /* In this loop, four 32-bit additions will be done, in total 16 bytes.
      * Indexing with constants (0,1,2,3) gives faster code than using
      * post-increments. */
     /* comparing two pointers that do not point to the same object */
     /* coverity[misra_c_2012_rule_18_3_violation] */
-    while( xSource.u32ptr < xLastSource.u32ptr )
+//    while( xSource.u32ptr < xLastSource.u32ptr )
     {
         /* Use a secondary Sum2, just to see if the addition produced an
          * overflow. */
@@ -927,6 +931,15 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
     uxDataLengthBytes %= 16U;
     xLastSource.u8ptr = xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1U ) );
+
+    size_t sz =  ( ( uxDataLengthBytes & ~( ( size_t ) 1 ) ) );
+    size_t i;
+    for (i = 0; i < sz; i += 2)
+    {
+        xSum.u32 += xSource.u16ptr[ 0 ];
+        xSource.u16ptr = &(xSource.u16ptr[2]);
+    }
+
 
     /* Half-word aligned. */
 
