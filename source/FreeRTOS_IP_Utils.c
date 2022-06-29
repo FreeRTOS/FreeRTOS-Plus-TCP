@@ -880,14 +880,14 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     size_t sz2 = ( uxDataLengthBytes / 4U ) - 3U;
 
     int x;
-    for ( x = 0; x < sz2; x += 16 )
+//    for ( x = 0; x < sz2; x += 16 )
 
     /* In this loop, four 32-bit additions will be done, in total 16 bytes.
      * Indexing with constants (0,1,2,3) gives faster code than using
      * post-increments. */
     /* comparing two pointers that do not point to the same object */
     /* coverity[misra_c_2012_rule_18_3_violation] */
-//    while( xSource.u32ptr < xLastSource.u32ptr )
+    while( xSource.u32ptr < xLastSource.u32ptr )
     {
         /* Use a secondary Sum2, just to see if the addition produced an
          * overflow. */
@@ -934,11 +934,12 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
     size_t sz =  ( ( uxDataLengthBytes & ~( ( size_t ) 1 ) ) );
     size_t i;
-    for (i = 0; i < sz; i += 2)
+    /*
     {
         xSum.u32 += xSource.u16ptr[ 0 ];
         xSource.u16ptr = &(xSource.u16ptr[2]);
     }
+    */
 
 
     /* Half-word aligned. */
@@ -948,12 +949,13 @@ uint16_t usGenerateChecksum( uint16_t usSum,
      * which do not point into the same object." */
     /* comparing two pointers that do not point to the same object */
     /* coverity[misra_c_2012_rule_18_3_violation] */
-    //while( xSource.u16ptr < xLastSource.u16ptr )
-   // {
+    //for (i = 0; i < sz; i += 4)
+    while( xSource.u16ptr < xLastSource.u16ptr )
+    {
         /* At least one more short. */
-   //     xSum.u32 += xSource.u16ptr[ 0 ];
-    //    xSource.u16ptr++;
-   // }
+        xSum.u32 += xSource.u16ptr[ 0 ];
+        xSource.u16ptr++;
+    }
 
     if( ( uxDataLengthBytes & ( size_t ) 1 ) != 0U ) /* Maybe one more ? */
     {
