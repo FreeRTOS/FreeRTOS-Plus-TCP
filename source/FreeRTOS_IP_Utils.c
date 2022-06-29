@@ -889,6 +889,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         sz2 -= 3U;
     }
     //size_t sz2 = ( uxDataLengthBytes / 4U );
+
     printf( "sz2 = %lu\n", sz2 );
 
     int x;
