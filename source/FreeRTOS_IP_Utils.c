@@ -880,7 +880,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     size_t sz2 = ( uxDataLengthBytes / 4U ) - 3U;
 
     int x;
-    for ( x = 0; x < sz2; x += 2 )
+    for ( x = 0; x < sz2; x += 16 )
 
     /* In this loop, four 32-bit additions will be done, in total 16 bytes.
      * Indexing with constants (0,1,2,3) gives faster code than using
@@ -948,12 +948,12 @@ uint16_t usGenerateChecksum( uint16_t usSum,
      * which do not point into the same object." */
     /* comparing two pointers that do not point to the same object */
     /* coverity[misra_c_2012_rule_18_3_violation] */
-    while( xSource.u16ptr < xLastSource.u16ptr )
-    {
+    //while( xSource.u16ptr < xLastSource.u16ptr )
+   // {
         /* At least one more short. */
-        xSum.u32 += xSource.u16ptr[ 0 ];
-        xSource.u16ptr++;
-    }
+   //     xSum.u32 += xSource.u16ptr[ 0 ];
+    //    xSource.u16ptr++;
+   // }
 
     if( ( uxDataLengthBytes & ( size_t ) 1 ) != 0U ) /* Maybe one more ? */
     {
