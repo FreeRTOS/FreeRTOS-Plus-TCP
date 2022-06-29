@@ -711,8 +711,10 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
         else
         {
+            printf("before goingin in %d %d\n", usChecksum, ucProtocol);
             if( ( usChecksum == 0U ) && ( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP ) )
             {
+                printf("inside of here\n");
                 /* In case of UDP, a calculated checksum of 0x0000 is transmitted
                  * as 0xffff. A value of zero would mean that the checksum is not used. */
                 usChecksum = ( uint16_t ) 0xffffu;
@@ -892,7 +894,8 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         ulSize -= 3U;
     }
 
-    for( ulX = 0; ulX < ulSize; ulX += 16 )
+    //for( ulX = 0; ulX < ulSize; ulX += 16 )
+    while( xSource.u32ptr < xLastSource.u32ptr )
     {
         /* In this loop, four 32-bit additions will be done, in total 16 bytes.
          * Indexing with constants (0,1,2,3) gives faster code than using
@@ -950,7 +953,8 @@ uint16_t usGenerateChecksum( uint16_t usSum,
      * which do not point into the same object." */
     /* comparing two pointers that do not point to the same object */
     /* coverity[misra_c_2012_rule_18_3_violation] */
-    for( ulX = 0; ulX < ulSize; ulX += 2 )
+    while( xSource.u16ptr < xLastSource.u16ptr )
+    //for( ulX = 0; ulX < ulSize; ulX += 2 )
     {
         /* At least one more short. */
         xSum.u32 += xSource.u16ptr[ 0 ];

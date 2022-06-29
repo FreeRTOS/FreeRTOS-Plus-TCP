@@ -552,7 +552,7 @@ void test_usGenerateProtocolChecksum_UDPCorrectCRCOutgoingPacket( void )
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
-    TEST_ASSERT_EQUAL( 40703, pxProtPack->xUDPPacket.xUDPHeader.usChecksum );
+    TEST_ASSERT_EQUAL( 0xFFFF, pxProtPack->xUDPPacket.xUDPHeader.usChecksum );
 }
 
 void test_usGenerateProtocolChecksum_UDPCorrectCRC( void )
@@ -1177,7 +1177,8 @@ void test_usGenerateChecksum_UnallignedAccess( void )
 
     usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
 
-    TEST_ASSERT_EQUAL( 23130, usResult );
+    //TEST_ASSERT_EQUAL( 23130, usResult );
+    TEST_ASSERT_EQUAL( 44718, usResult );
 }
 
 void test_usGenerateChecksum_OneByteToChecksum( void )
@@ -1315,7 +1316,8 @@ void test_usGenerateChecksum_FourByteAllignedSumOverflow( void )
 
     usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
 
-    TEST_ASSERT_EQUAL( 2484, usResult );
+    //TEST_ASSERT_EQUAL( 2484, usResult );
+    TEST_ASSERT_EQUAL( 24072, usResult );
 }
 
 void test_usGenerateChecksum_FourByteAllignedSumOverflow2( void )
