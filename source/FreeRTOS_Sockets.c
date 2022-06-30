@@ -21,8 +21,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * http://aws.amazon.com/freertos
- * http://www.FreeRTOS.org
+ * https://github.com/FreeRTOS
+ * https://www.FreeRTOS.org
  */
 
 /**
@@ -1962,9 +1962,23 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                 #if ( ipconfigSOCKET_HAS_USER_WAKE_CALLBACK != 0 )
                     case FREERTOS_SO_WAKEUP_CALLBACK:
 
+<<<<<<< HEAD
                         /* Each socket can have a callback function that is executed
                          * when there is an event the socket's owner might want to
                          * process. */
+=======
+                    /* Each socket can have a callback function that is executed
+                     * when there is an event the socket's owner might want to
+                     * process. */
+                    /* The type cast of the pointer expression "A" to type "B" removes const qualifier from the pointed to type. */
+                    /* converting to a function pointer from void, as this
+                     * function follows the standard socket API */
+                    /* coverity[misra_c_2012_rule_11_1_violation] */
+                    pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
+                    xReturn = 0;
+                    break;
+            #endif /* ipconfigSOCKET_HAS_USER_WAKE_CALLBACK */
+>>>>>>> 4a4d60b (MISRA: suppress rule 11.1)
 
                         /* The type cast of the pointer expression "A" to
                          * type "B" removes const qualifier from the pointed to type. */
@@ -2022,7 +2036,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                                break; /* will return -pdFREERTOS_ERRNO_EINVAL */
                            }
 
-                           pxProps = ipPOINTER_CAST( const WinProperties_t *, pvOptionValue );
+                           pxProps = ( const WinProperties_t * ) pvOptionValue;
 
                            /* Validity of txStream will be checked by the function below. */
                            xReturn = prvSockopt_so_buffer( pxSocket, FREERTOS_SO_SNDBUF, &( pxProps->lTxBufSize ) );
