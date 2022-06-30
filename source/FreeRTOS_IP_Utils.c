@@ -891,11 +891,11 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         lSize = 0;
     }
 
+    /* In this loop, four 32-bit additions will be done, in total 16 bytes.
+     * Indexing with constants (0,1,2,3) gives faster code than using
+     * post-increments. */
     for( lX = 0; lX < lSize; lX += 16 ) /* 6 tries fail */
     {
-        /* In this loop, four 32-bit additions will be done, in total 16 bytes.
-         * Indexing with constants (0,1,2,3) gives faster code than using
-         * post-increments. */
 
         /* Use a secondary Sum2, just to see if the addition produced an
          * overflow. */
@@ -940,22 +940,13 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     uxDataLengthBytes %= 16U;
     xLastSource.u8ptr = xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1U ) );
 
-    lSize = ( ( uxDataLengthBytes & ~( ( size_t ) 1 ) ) );
-
     /* Half-word aligned. */
 
-    /* Coverity does not like Unions. Warning issued here: "The operator "<"
-     * is being applied to the pointers "xSource.u16ptr" and "xLastSource.u16ptr",
-     * which do not point into the same object." */
-    /* comparing two pointers that do not point to the same object */
-    /* coverity[misra_c_2012_rule_18_3_violation] */
-    /* while( xSource.u16ptr < xLastSource.u16ptr ) */
     for( lX = 0; lX < lSize; lX += 2 )
     {
         /* At least one more short. */
         xSum.u32 += xSource.u16ptr[ 0 ];
         xSource.u16ptr = &xSource.u16ptr[ 1 ];
-        /*    xSource.u16ptr++; */
     }
 
     if( ( uxDataLengthBytes & ( size_t ) 1 ) != 0U ) /* Maybe one more ? */

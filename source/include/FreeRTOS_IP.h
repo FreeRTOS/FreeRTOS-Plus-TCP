@@ -53,7 +53,7 @@
 
 /* The size of the Ethernet header is 14, meaning that 802.1Q VLAN tags
  * are not ( yet ) supported. */
-    #define ipSIZE_OF_ETH_HEADER      15U
+    #define ipSIZE_OF_ETH_HEADER      14U
     #define ipSIZE_OF_IPv4_HEADER     20U
     #define ipSIZE_OF_IGMP_HEADER     8U
     #define ipSIZE_OF_ICMP_HEADER     8U
