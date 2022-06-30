@@ -1160,7 +1160,6 @@ void test_usGenerateChecksum_UnallignedAccess( void )
 {
     uint16_t usResult;
     uint16_t usSum = 0;
-    /*uint16_t usSum = FreeRTOS_htons( 0xFFFF - 0xAB ); */
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 10;
     size_t uxUnalligned = 0;
@@ -1178,7 +1177,6 @@ void test_usGenerateChecksum_UnallignedAccess( void )
     usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
 
     TEST_ASSERT_EQUAL( 23130, usResult );
-    //TEST_ASSERT_EQUAL( 44718, usResult );
 }
 
 void test_usGenerateChecksum_OneByteToChecksum( void )
@@ -1317,7 +1315,6 @@ void test_usGenerateChecksum_FourByteAllignedSumOverflow( void )
     usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
 
     TEST_ASSERT_EQUAL( 2484, usResult );
-    //TEST_ASSERT_EQUAL( 24072, usResult );
 }
 
 void test_usGenerateChecksum_FourByteAllignedSumOverflow2( void )

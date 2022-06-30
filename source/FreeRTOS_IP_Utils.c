@@ -711,10 +711,8 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
         else
         {
-            printf("before goingin in %d %d\n", usChecksum, ucProtocol);
             if( ( usChecksum == 0U ) && ( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP ) )
             {
-                printf("inside of here\n");
                 /* In case of UDP, a calculated checksum of 0x0000 is transmitted
                  * as 0xffff. A value of zero would mean that the checksum is not used. */
                 usChecksum = ( uint16_t ) 0xffffu;
@@ -834,8 +832,8 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     uint32_t ulCarry = 0U;
     uint16_t usTemp;
     size_t uxDataLengthBytes = uxByteCount;
-    size_t ulSize;
-    size_t ulX;
+    intptr_t lSize;
+    intptr_t lX;
 
     /* Small MCUs often spend up to 30% of the time doing checksum calculations
     * This function is optimised for 32-bit CPUs; Each time it will try to fetch
@@ -883,19 +881,17 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
     /* Word (32-bit) aligned, do the most part. */
     xLastSource.u32ptr = ( xSource.u32ptr + ( uxDataLengthBytes / 4U ) ) - 3U;
-    ulSize = ( uxDataLengthBytes / 4U );
+    lSize = ( ( xSource.u32ptr + ( uxDataLengthBytes / 4U ) ) - 3U ) - xSource.u32ptr;
 
-    if( ulSize < 3U )
+
+    lSize = ( uintptr_t ) xLastSource.u32ptr - ( uintptr_t ) xSource.u32ptr;
+
+    if( lSize < 0 )
     {
-        ulSize = 0;
-    }
-    else
-    {
-        ulSize -= 3U;
+        lSize = 0;
     }
 
-    //for( ulX = 0; ulX < ulSize; ulX += 16 )
-    while( xSource.u32ptr < xLastSource.u32ptr )
+    for( lX = 0; lX < lSize; lX += 16 ) /* 6 tries fail */
     {
         /* In this loop, four 32-bit additions will be done, in total 16 bytes.
          * Indexing with constants (0,1,2,3) gives faster code than using
@@ -944,7 +940,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     uxDataLengthBytes %= 16U;
     xLastSource.u8ptr = xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1U ) );
 
-    ulSize = ( ( uxDataLengthBytes & ~( ( size_t ) 1 ) ) );
+    lSize = ( ( uxDataLengthBytes & ~( ( size_t ) 1 ) ) );
 
     /* Half-word aligned. */
 
@@ -953,13 +949,13 @@ uint16_t usGenerateChecksum( uint16_t usSum,
      * which do not point into the same object." */
     /* comparing two pointers that do not point to the same object */
     /* coverity[misra_c_2012_rule_18_3_violation] */
-    while( xSource.u16ptr < xLastSource.u16ptr )
-    //for( ulX = 0; ulX < ulSize; ulX += 2 )
+    /* while( xSource.u16ptr < xLastSource.u16ptr ) */
+    for( lX = 0; lX < lSize; lX += 2 )
     {
         /* At least one more short. */
         xSum.u32 += xSource.u16ptr[ 0 ];
-        //xSource.u16ptr = &xSource.u16ptr[ 1 ];
-        xSource.u16ptr++;
+        xSource.u16ptr = &xSource.u16ptr[ 1 ];
+        /*    xSource.u16ptr++; */
     }
 
     if( ( uxDataLengthBytes & ( size_t ) 1 ) != 0U ) /* Maybe one more ? */
