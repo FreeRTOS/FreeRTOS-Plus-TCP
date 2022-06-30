@@ -460,6 +460,10 @@ extern const BaseType_t xBufferAllocFixedSize;
     #define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
 #endif
 
+#ifndef ARRAY_USIZE
+    #define ARRAY_USIZE( x )    ( ( UBaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
+#endif
+
 /*
  * Create a message that contains a command to initialise the network interface.
  * This is used during initialisation, and at any time the network interface
