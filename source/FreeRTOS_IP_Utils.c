@@ -832,8 +832,8 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     uint32_t ulCarry = 0U;
     uint16_t usTemp;
     size_t uxDataLengthBytes = uxByteCount;
-    intptr_t lSize;
-    intptr_t lX;
+    uintptr_t ulSize;
+    uintptr_t ulX;
 
     /* Small MCUs often spend up to 30% of the time doing checksum calculations
     * This function is optimised for 32-bit CPUs; Each time it will try to fetch
@@ -862,7 +862,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     }
 
     /* If byte (8-bit) aligned... */
-    if( ( ( uxAlignBits & 1U ) != 0U ) && ( uxDataLengthBytes >= ( size_t ) 1 ) )
+    if( ( ( uxAlignBits & 1U ) != 0U ) && ( uxDataLengthBytes >= ( size_t ) 1U ) )
     {
         xTerm.u8[ 1 ] = *( xSource.u8ptr );
         xSource.u8ptr++;
@@ -881,21 +881,29 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
     /* Word (32-bit) aligned, do the most part. */
     xLastSource.u32ptr = ( xSource.u32ptr + ( uxDataLengthBytes / 4U ) ) - 3U;
-    lSize = ( ( xSource.u32ptr + ( uxDataLengthBytes / 4U ) ) - 3U ) - xSource.u32ptr;
 
+    /*ulSize = ( uintptr_t ) xLastSource.u32ptr - ( uintptr_t ) xSource.u32ptr; */
+    ulSize = ( uintptr_t ) ( ( uxDataLengthBytes / 4U ) * 4U );
 
-    lSize = ( uintptr_t ) xLastSource.u32ptr - ( uintptr_t ) xSource.u32ptr;
-
-    if( lSize < 0 )
+    if( ulSize >= ( 3U * sizeof( uint32_t ) ) )
     {
-        lSize = 0;
+        ulSize -= ( 3U * sizeof( uint32_t ) );
     }
+    else
+    {
+        ulSize = 0U;
+    }
+
+    printf( "uxDataLengthBytes = %lu ulsize = %lu\n", uxDataLengthBytes, ulSize );
+    printf( "difference is %lu\n", ( uintptr_t ) xLastSource.u32ptr - ( uintptr_t ) xSource.u32ptr );
 
     /* In this loop, four 32-bit additions will be done, in total 16 bytes.
      * Indexing with constants (0,1,2,3) gives faster code than using
      * post-increments. */
-    for( lX = 0; lX < lSize; lX += 16 ) /* 6 tries fail */
+    for( ulX = 0; ulX < ulSize; ulX += 16 )
     {
+        printf( " looping ...\n" );
+
         /* Use a secondary Sum2, just to see if the addition produced an
          * overflow. */
         xSum2.u32 = xSum.u32 + xSource.u32ptr[ 0 ];
@@ -937,11 +945,12 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ] + ulCarry;
 
     uxDataLengthBytes %= 16U;
-    xLastSource.u8ptr = xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1U ) );
+    xLastSource.u8ptr = ( uint8_t * ) ( xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1U ) ) );
 
     /* Half-word aligned. */
+    ulSize = ( ( uxDataLengthBytes & ~( ( size_t ) 1U ) ) );
 
-    for( lX = 0; lX < lSize; lX += 2 )
+    for( ulX = 0; ulX < ulSize; ulX += 2 )
     {
         /* At least one more short. */
         xSum.u32 += xSource.u16ptr[ 0 ];
