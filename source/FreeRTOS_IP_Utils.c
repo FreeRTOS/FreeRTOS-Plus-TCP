@@ -894,16 +894,11 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         ulSize = 0U;
     }
 
-    printf( "uxDataLengthBytes = %lu ulsize = %lu\n", uxDataLengthBytes, ulSize );
-    printf( "difference is %lu\n", ( uintptr_t ) xLastSource.u32ptr - ( uintptr_t ) xSource.u32ptr );
-
     /* In this loop, four 32-bit additions will be done, in total 16 bytes.
      * Indexing with constants (0,1,2,3) gives faster code than using
      * post-increments. */
-    for( ulX = 0; ulX < ulSize; ulX += 16 )
+    for( ulX = 0U; ulX < ulSize; ulX += 16U )
     {
-        printf( " looping ...\n" );
-
         /* Use a secondary Sum2, just to see if the addition produced an
          * overflow. */
         xSum2.u32 = xSum.u32 + xSource.u32ptr[ 0 ];
@@ -950,14 +945,14 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* Half-word aligned. */
     ulSize = ( ( uxDataLengthBytes & ~( ( size_t ) 1U ) ) );
 
-    for( ulX = 0; ulX < ulSize; ulX += 2 )
+    for( ulX = 0U; ulX < ulSize; ulX += 2U )
     {
         /* At least one more short. */
         xSum.u32 += xSource.u16ptr[ 0 ];
         xSource.u16ptr = &xSource.u16ptr[ 1 ];
     }
 
-    if( ( uxDataLengthBytes & ( size_t ) 1 ) != 0U ) /* Maybe one more ? */
+    if( ( uxDataLengthBytes & ( size_t ) 1U ) != 0U ) /* Maybe one more ? */
     {
         xTerm.u8[ 0 ] = xSource.u8ptr[ 0 ];
     }
