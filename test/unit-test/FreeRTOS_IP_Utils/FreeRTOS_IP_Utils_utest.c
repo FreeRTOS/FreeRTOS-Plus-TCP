@@ -1177,8 +1177,8 @@ void test_usGenerateChecksum_UnallignedAccess( void )
 
     usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
 
-    //TEST_ASSERT_EQUAL( 23130, usResult );
-    TEST_ASSERT_EQUAL( 44718, usResult );
+    TEST_ASSERT_EQUAL( 23130, usResult );
+    //TEST_ASSERT_EQUAL( 44718, usResult );
 }
 
 void test_usGenerateChecksum_OneByteToChecksum( void )
@@ -1316,8 +1316,8 @@ void test_usGenerateChecksum_FourByteAllignedSumOverflow( void )
 
     usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
 
-    //TEST_ASSERT_EQUAL( 2484, usResult );
-    TEST_ASSERT_EQUAL( 24072, usResult );
+    TEST_ASSERT_EQUAL( 2484, usResult );
+    //TEST_ASSERT_EQUAL( 24072, usResult );
 }
 
 void test_usGenerateChecksum_FourByteAllignedSumOverflow2( void )

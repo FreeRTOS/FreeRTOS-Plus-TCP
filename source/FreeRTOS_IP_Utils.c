@@ -958,7 +958,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     {
         /* At least one more short. */
         xSum.u32 += xSource.u16ptr[ 0 ];
-        //xSource.u16ptr = &xSource.u16ptr[ 2 ];
+        //xSource.u16ptr = &xSource.u16ptr[ 1 ];
         xSource.u16ptr++;
     }
 
