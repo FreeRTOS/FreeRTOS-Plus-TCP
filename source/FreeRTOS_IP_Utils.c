@@ -827,7 +827,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xUnion32 xSum;
     xUnion32 xTerm;
     xUnionPtr xSource;
-    xUnionPtr xLastSource;
     uintptr_t uxAlignBits;
     uint32_t ulCarry = 0U;
     uint16_t usTemp;
@@ -880,9 +879,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     }
 
     /* Word (32-bit) aligned, do the most part. */
-    xLastSource.u32ptr = ( xSource.u32ptr + ( uxDataLengthBytes / 4U ) ) - 3U;
 
-    /*ulSize = ( uintptr_t ) xLastSource.u32ptr - ( uintptr_t ) xSource.u32ptr; */
     ulSize = ( uintptr_t ) ( ( uxDataLengthBytes / 4U ) * 4U );
 
     if( ulSize >= ( 3U * sizeof( uint32_t ) ) )
@@ -940,7 +937,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ] + ulCarry;
 
     uxDataLengthBytes %= 16U;
-    xLastSource.u8ptr = ( uint8_t * ) ( xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1U ) ) );
 
     /* Half-word aligned. */
     ulSize = ( ( uxDataLengthBytes & ~( ( size_t ) 1U ) ) );
