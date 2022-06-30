@@ -228,6 +228,9 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     NetworkBufferDescriptor_t * pxReturn = NULL;
     size_t uxCount;
 
+    /* possibly a false positive as SIZE_MAX is shifted to the right (halved)
+     * which makes it a variant */
+    /* coverity[misra_c_2012_rule_14_3_violation] */
     if( ( xRequestedSizeBytes <= ( SIZE_MAX >> 1 ) ) && ( xNetworkBufferSemaphore != NULL ) )
     {
         /* If there is a semaphore available, there is a network buffer available. */
