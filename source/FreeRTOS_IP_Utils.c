@@ -896,7 +896,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
      * post-increments. */
     for( lX = 0; lX < lSize; lX += 16 ) /* 6 tries fail */
     {
-
         /* Use a secondary Sum2, just to see if the addition produced an
          * overflow. */
         xSum2.u32 = xSum.u32 + xSource.u32ptr[ 0 ];
