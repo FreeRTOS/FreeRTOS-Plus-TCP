@@ -1971,6 +1971,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                      * when there is an event the socket's owner might want to
                      * process. */
                     /* The type cast of the pointer expression "A" to type "B" removes const qualifier from the pointed to type. */
+
                     /* converting to a function pointer from void, as this
                      * function follows the standard socket API */
                     /* coverity[misra_c_2012_rule_11_1_violation] */
