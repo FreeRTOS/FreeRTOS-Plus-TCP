@@ -4100,7 +4100,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             size_t uxLittlePerc = sock20_PERCENT;
             size_t uxEnoughPerc = sock80_PERCENT;
-            size_t uxSegmentCount = pxSocket->u.xTCP.uxRxStreamSize / pxSocket->u.xTCP.usMSS;
+            size_t ulSegmentCount = pxSocket->u.xTCP.uxRxStreamSize / pxSocket->u.xTCP.usMSS;
             static const struct Percent
             {
                 size_t uxPercLittle, uxPercEnough;
@@ -4113,11 +4113,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 { 25U, 100U }, /* 4 segments. */
             };
 
-            if( ( uxSegmentCount > 0U ) &&
-                ( uxSegmentCount <= ( UBaseType_t ) ARRAY_SIZE( xPercTable ) ) )
+            if( ( ulSegmentCount > 0U ) &&
+                ( ulSegmentCount <= ( UBaseType_t ) ARRAY_SIZE( xPercTable ) ) )
             {
-                uxLittlePerc = xPercTable[ uxSegmentCount - 1U ].uxPercLittle;
-                uxEnoughPerc = xPercTable[ uxSegmentCount - 1U ].uxPercEnough;
+                uxLittlePerc = xPercTable[ ulSegmentCount - 1U ].uxPercLittle;
+                uxEnoughPerc = xPercTable[ ulSegmentCount - 1U ].uxPercEnough;
             }
 
             uxLength = pxSocket->u.xTCP.uxRxStreamSize;

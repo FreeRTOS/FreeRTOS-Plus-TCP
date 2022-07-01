@@ -72,7 +72,7 @@
  * @brief indicates the index of a free entry in the cache structure
  *        \a  DNSCacheRow_t
  */
-    static UBaseType_t uxFreeEntry = 0;
+    static UBaseType_t uxFreeEntry = 0U;
 
 
 
@@ -139,7 +139,7 @@
     void FreeRTOS_dnsclear( void )
     {
         ( void ) memset( xDNSCache, 0x0, sizeof( xDNSCache ) );
-        uxFreeEntry = 0;
+        uxFreeEntry = 0U;
     }
 
 /**
