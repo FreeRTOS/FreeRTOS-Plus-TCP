@@ -557,7 +557,7 @@
              * is being used, so the buffer must be freed by the
              * task. */
             FreeRTOS_ReleaseUDPPayloadBuffer( xReceiveBuffer.pucPayloadBuffer );
-        } while( 0 );
+        } while( ipFALSE_BOOL );
 
         return ulIPAddress;
     }
