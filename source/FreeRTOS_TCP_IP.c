@@ -65,6 +65,11 @@
 #if ipconfigUSE_TCP == 1
 
 
+/* Socket which needs to be closed in next iteration. */
+/* used for unit testing */
+/* coverity[misra_c_2012_rule_8_9_violation] */
+    static FreeRTOS_Socket_t * xPreviousSocket = NULL;
+
 /*
  * For anti-hang protection and TCP keep-alive messages.  Called in two places:
  * after receiving a packet and after a state change.  The socket's alive timer
@@ -97,9 +102,6 @@
  */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
     {
-        /* Socket which needs to be closed in next iteration. */
-        static FreeRTOS_Socket_t * xPreviousSocket = NULL;
-
         if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )
         {
             ( void ) vSocketClose( xPreviousSocket );

@@ -184,11 +184,11 @@ const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 /** @brief Structure that stores the netmask, gateway address and DNS server addresses. */
 NetworkAddressingParameters_t xNetworkAddressing = { 0, 0, 0, 0, 0 };
 
-/* used for unit testing */
-/* coverity[misra_c_2012_rule_8_9_violation] */
-
 /** @brief Default values for the above struct in case DHCP
  * does not lead to a confirmed request. */
+
+/* used for unit testing */
+/* coverity[misra_c_2012_rule_8_9_violation] */
 NetworkAddressingParameters_t xDefaultAddressing = { 0, 0, 0, 0, 0 };
 
 /** @brief Used to ensure network down events cannot be missed when they cannot be
