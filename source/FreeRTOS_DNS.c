@@ -478,7 +478,6 @@
 
         if( xDNSBuf.pucPayloadBuffer != NULL )
         {
-            xDNSBuf.uxPayloadLength = pxNetworkBuffer->xDataLength;
             xDNSBuf.uxPayloadSize = pxNetworkBuffer->xDataLength;
 
             #if ( ipconfigUSE_LLMNR == 1 )
