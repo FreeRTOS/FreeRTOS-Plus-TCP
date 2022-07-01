@@ -134,7 +134,7 @@
  * @return If the socket given as parameter is the DHCP socket - return
  *         pdTRUE, else pdFALSE.
  */
-    BaseType_t xIsDHCPSocket( const Socket_t xSocket )
+    BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket )
     {
         BaseType_t xReturn;
 

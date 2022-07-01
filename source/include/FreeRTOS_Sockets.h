@@ -184,7 +184,7 @@
     typedef struct xSOCKET         * Socket_t;
     typedef struct xSOCKET const   * ConstSocket_t;
 
-    extern BaseType_t xSocketValid( const Socket_t xSocket );
+    extern BaseType_t xSocketValid( const ConstSocket_t xSocket );
 
 /**
  * FULL, UP-TO-DATE AND MAINTAINED REFERENCE DOCUMENTATION FOR ALL THESE
@@ -237,7 +237,7 @@
                              socklen_t xDestinationAddressLength );
 
 /* Receive data from a UDP socket */
-    int32_t FreeRTOS_recvfrom( const Socket_t xSocket,
+    int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
                                void * pvBuffer,
                                size_t uxBufferLength,
                                BaseType_t xFlags,
@@ -500,6 +500,7 @@
  * Berkeley API. */
         struct xSOCKET_SET;
         typedef struct xSOCKET_SET * SocketSet_t;
+        typedef struct xSOCKET_SET const * ConstSocketSet_t;
 
 /* Create a socket set for use with the FreeRTOS_select() function */
         SocketSet_t FreeRTOS_CreateSocketSet( void );
@@ -538,8 +539,8 @@
                               EventBits_t xBitsToClear );
 
 /* Check if a socket in a socket set has an event bit set. */
-        EventBits_t FreeRTOS_FD_ISSET( const Socket_t xSocket,
-                                       const SocketSet_t xSocketSet );
+        EventBits_t FreeRTOS_FD_ISSET( const ConstSocket_t xSocket,
+                                       const ConstSocketSet_t xSocketSet );
 
     #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
 

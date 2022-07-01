@@ -218,7 +218,7 @@
                        eDHCPState_t eExpectedState );
 
 /* Internal call: returns true if socket is the current DHCP socket */
-    BaseType_t xIsDHCPSocket( const Socket_t xSocket );
+    BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket );
 
 
 /* The application can indicate a preferred IP address by calling this function

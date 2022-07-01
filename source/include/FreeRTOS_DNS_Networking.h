@@ -42,7 +42,7 @@
                                 const struct freertos_sockaddr * xAddress,
                                 const struct xDNSBuffer * pxDNSBuf );
 
-    void DNS_ReadReply( Socket_t xDNSSocket,
+    void DNS_ReadReply( const ConstSocket_t xDNSSocket,
                         struct freertos_sockaddr * xAddress,
                         struct xDNSBuffer * pxReceiveBuffer );
 

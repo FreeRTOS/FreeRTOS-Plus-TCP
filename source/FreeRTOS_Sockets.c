@@ -653,8 +653,8 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  *
  * @return If the socket belongs to the socket set: the event bits, otherwise zero.
  */
-    EventBits_t FreeRTOS_FD_ISSET( const Socket_t xSocket,
-                                   const SocketSet_t xSocketSet )
+    EventBits_t FreeRTOS_FD_ISSET( const ConstSocket_t xSocket,
+                                   const ConstSocketSet_t xSocketSet )
     {
         EventBits_t xReturn;
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
@@ -829,7 +829,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  *         returns a negative value, the cause can be looked-up in
  *         'FreeRTOS_errno_TCP.h'.
  */
-int32_t FreeRTOS_recvfrom( const Socket_t xSocket,
+int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
                            void * pvBuffer,
                            size_t uxBufferLength,
                            BaseType_t xFlags,
@@ -4641,7 +4641,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  * @return pdTRUE if the socket is valid, else pdFALSE.
  *
  */
-BaseType_t xSocketValid( const Socket_t xSocket )
+BaseType_t xSocketValid( const ConstSocket_t xSocket )
 {
     BaseType_t xReturnValue = pdFALSE;
 
