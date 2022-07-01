@@ -315,7 +315,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
                                     uint32_t ulSenderProtocolAddress )
 {
-    ARPHeader_t * pxARPHeader = &( pxARPFrame->xARPHeader );
+    const ARPHeader_t * pxARPHeader = &( pxARPFrame->xARPHeader );
     uint32_t ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
 
     /* If the packet is meant for this device or if the entry already exists. */
@@ -329,7 +329,7 @@ static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
     if( pxARPWaitingNetworkBuffer != NULL )
     {
         IPPacket_t * pxARPWaitingIPPacket = ( ( IPPacket_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
-        IPHeader_t * pxARPWaitingIPHeader = &( pxARPWaitingIPPacket->xIPHeader );
+        const IPHeader_t * pxARPWaitingIPHeader = &( pxARPWaitingIPPacket->xIPHeader );
 
         if( ulSenderProtocolAddress == pxARPWaitingIPHeader->ulSourceIPAddress )
         {
@@ -398,11 +398,11 @@ BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup )
  *
  * @return pdTRUE if the packet needs ARP resolution, pdFALSE otherwise.
  */
-BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
+BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xNeedsARPResolution = pdFALSE;
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+    const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
     if( ( pxIPHeader->ulSourceIPAddress & xNetworkAddressing.ulNetMask ) == ( *ipLOCAL_IP_ADDRESS_POINTER & xNetworkAddressing.ulNetMask ) )
     {
@@ -644,7 +644,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
  *
  * @return Either eARPCacheMiss or eARPCacheHit.
  */
-    eARPLookupResult_t eARPGetCacheEntryByMac( MACAddress_t * const pxMACAddress,
+    eARPLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
                                                uint32_t * pulIPAddress )
     {
         BaseType_t x;

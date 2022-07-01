@@ -79,13 +79,13 @@
                             uint32_t ulIPAddress );
     #endif
 
-    uint32_t parseDNSAnswer( DNSMessage_t * pxDNSMessageHeader,
+    uint32_t parseDNSAnswer( const DNSMessage_t * pxDNSMessageHeader,
                              uint8_t * pucByte,
                              size_t uxSourceBytesRemaining,
                              size_t * uxBytesRead
     #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
                                  ,
-                                 char * pcName,
+                                 const char * pcName,
                                  BaseType_t xDoStore
     #endif
                              );

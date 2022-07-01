@@ -57,7 +57,7 @@
  * Turns around an incoming ping request to convert it into a ping reply.
  */
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 )
-    static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
+    static eFrameProcessingResult_t prvProcessICMPEchoRequest( const ICMPPacket_t * const pxICMPPacket,
                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer );
 #endif /* ipconfigREPLY_TO_INCOMING_PINGS */
 
@@ -131,7 +131,7 @@
  * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
  */
     static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
-                                                               NetworkBufferDescriptor_t * const pxNetworkBuffer )
+                                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
         ICMPHeader_t * pxICMPHeader;
         IPHeader_t * pxIPHeader;

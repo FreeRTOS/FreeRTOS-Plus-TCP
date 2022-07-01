@@ -93,8 +93,8 @@
  *
  */
     BaseType_t DNS_SendRequest( Socket_t xDNSSocket,
-                                struct freertos_sockaddr * xAddress,
-                                struct xDNSBuffer * pxDNSBuf )
+                                const struct freertos_sockaddr * xAddress,
+                                const struct xDNSBuffer * pxDNSBuf )
     {
         BaseType_t xReturn = pdFALSE;
 

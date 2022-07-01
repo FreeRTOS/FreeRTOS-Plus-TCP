@@ -184,7 +184,7 @@
     typedef struct xSOCKET         * Socket_t;
     typedef struct xSOCKET const   * ConstSocket_t;
 
-    extern BaseType_t xSocketValid( Socket_t xSocket );
+    extern BaseType_t xSocketValid( const Socket_t xSocket );
 
 /**
  * FULL, UP-TO-DATE AND MAINTAINED REFERENCE DOCUMENTATION FOR ALL THESE
@@ -237,12 +237,12 @@
                              socklen_t xDestinationAddressLength );
 
 /* Receive data from a UDP socket */
-    int32_t FreeRTOS_recvfrom( Socket_t xSocket,
+    int32_t FreeRTOS_recvfrom( const Socket_t xSocket,
                                void * pvBuffer,
                                size_t uxBufferLength,
                                BaseType_t xFlags,
                                struct freertos_sockaddr * pxSourceAddress,
-                               socklen_t * pxSourceAddressLength );
+                               const socklen_t * pxSourceAddressLength );
 
 
 /* Function to get the local address and IP port. */
@@ -286,7 +286,7 @@
 
 /* Connect a TCP socket to a remote socket. */
         BaseType_t FreeRTOS_connect( Socket_t xClientSocket,
-                                     struct freertos_sockaddr * pxAddress,
+                                     const struct freertos_sockaddr * pxAddress,
                                      socklen_t xAddressLength );
 
 /* Places a TCP socket into a state where it is listening for and can accept
@@ -538,8 +538,8 @@
                               EventBits_t xBitsToClear );
 
 /* Check if a socket in a socket set has an event bit set. */
-        EventBits_t FreeRTOS_FD_ISSET( Socket_t xSocket,
-                                       SocketSet_t xSocketSet );
+        EventBits_t FreeRTOS_FD_ISSET( const Socket_t xSocket,
+                                       const SocketSet_t xSocketSet );
 
     #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
 

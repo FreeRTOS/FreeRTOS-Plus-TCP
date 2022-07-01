@@ -653,8 +653,8 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  *
  * @return If the socket belongs to the socket set: the event bits, otherwise zero.
  */
-    EventBits_t FreeRTOS_FD_ISSET( Socket_t xSocket,
-                                   SocketSet_t xSocketSet )
+    EventBits_t FreeRTOS_FD_ISSET( const Socket_t xSocket,
+                                   const SocketSet_t xSocketSet )
     {
         EventBits_t xReturn;
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
@@ -829,12 +829,12 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  *         returns a negative value, the cause can be looked-up in
  *         'FreeRTOS_errno_TCP.h'.
  */
-int32_t FreeRTOS_recvfrom( Socket_t xSocket,
+int32_t FreeRTOS_recvfrom( const Socket_t xSocket,
                            void * pvBuffer,
                            size_t uxBufferLength,
                            BaseType_t xFlags,
                            struct freertos_sockaddr * pxSourceAddress,
-                           socklen_t * pxSourceAddressLength )
+                           const socklen_t * pxSourceAddressLength )
 {
     BaseType_t lPacketCount;
     NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -3030,7 +3030,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  *         error code is returned.
  */
     BaseType_t FreeRTOS_connect( Socket_t xClientSocket,
-                                 struct freertos_sockaddr * pxAddress,
+                                 const struct freertos_sockaddr * pxAddress,
                                  socklen_t xAddressLength )
     {
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xClientSocket;
@@ -4641,7 +4641,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  * @return pdTRUE if the socket is valid, else pdFALSE.
  *
  */
-BaseType_t xSocketValid( Socket_t xSocket )
+BaseType_t xSocketValid( const Socket_t xSocket )
 {
     BaseType_t xReturnValue = pdFALSE;
 
@@ -4802,7 +4802,7 @@ BaseType_t xSocketValid( Socket_t xSocket )
  *
  * @param[in] pxSocketSet: The socket-set which is to be waited on for change.
  */
-    void vSocketSelect( SocketSelect_t * pxSocketSet )
+    void vSocketSelect( const SocketSelect_t * pxSocketSet )
     {
         BaseType_t xRound;
         EventBits_t xSocketBits, xBitsToClear;

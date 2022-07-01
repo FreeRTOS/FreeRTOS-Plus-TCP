@@ -289,7 +289,7 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
 BaseType_t xIsCallingFromIPTask( void )
 {
     BaseType_t xReturn;
-    TaskHandle_t xCurrentHandle, xCurrentIPTaskHandle;
+    const TaskHandle_t xCurrentHandle, xCurrentIPTaskHandle;
 
     xCurrentHandle = xTaskGetCurrentTaskHandle();
     xCurrentIPTaskHandle = FreeRTOS_GetIPTaskHandle();

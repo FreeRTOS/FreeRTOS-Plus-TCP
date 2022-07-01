@@ -518,7 +518,7 @@
         int32_t lOffset, lStored;
         BaseType_t xResult = 0;
         uint32_t ulRxLength = ulReceiveLength;
-        uint8_t * pucRxBuffer = &( pucRecvData[ 0 ] );
+        const uint8_t * pucRxBuffer = &( pucRecvData[ 0 ] );
 
         ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
 

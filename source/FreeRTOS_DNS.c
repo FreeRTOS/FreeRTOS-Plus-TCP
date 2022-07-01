@@ -420,7 +420,7 @@
  * @returns ip address or zero on error
  *
  */
-    static uint32_t prvDNSReply( struct xDNSBuffer * pxReceiveBuffer,
+    static uint32_t prvDNSReply( const struct xDNSBuffer * pxReceiveBuffer,
                                  TickType_t uxIdentifier )
     {
         uint32_t ulIPAddress = 0U;

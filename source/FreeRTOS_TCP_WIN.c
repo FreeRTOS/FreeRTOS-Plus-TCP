@@ -1064,7 +1064,7 @@
             int32_t lReturn = -1;
             uint32_t ulLast = ulSequenceNumber + ulLength;
             uint32_t ulCurrentSequenceNumber = pxWindow->rx.ulCurrentSequenceNumber;
-            TCPSegment_t * pxFound;
+            const TCPSegment_t * pxFound;
 
             /* See if there is more data in a contiguous block to make the
              * SACK describe a longer range of data. */
@@ -1659,7 +1659,7 @@
  *        be sent when their timer has expired.
  * @param[in] pxWindow: The descriptor of the TCP sliding windows.
  */
-        static TCPSegment_t * pxTCPWindowTx_GetWaitQueue( TCPWindow_t * pxWindow )
+        static TCPSegment_t * pxTCPWindowTx_GetWaitQueue( const TCPWindow_t * pxWindow )
         {
             TCPSegment_t * pxSegment = xTCPWindowPeekHead( &( pxWindow->xWaitQueue ) );
 
@@ -1883,7 +1883,7 @@
  * @param[in] pxSegment: The segment that was just acknowledged.
  */
         static void prvTCPWindowTxCheckAck_CalcSRTT( TCPWindow_t * pxWindow,
-                                                     TCPSegment_t * pxSegment )
+                                                     const TCPSegment_t * pxSegment )
         {
             int32_t mS = ( int32_t ) ulTimerGetAge( &( pxSegment->xTransmitTimer ) );
 

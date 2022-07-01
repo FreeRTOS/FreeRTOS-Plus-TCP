@@ -104,7 +104,7 @@
     #if ( ipconfigUSE_ARP_REVERSED_LOOKUP != 0 )
 
 /* Lookup an IP-address if only the MAC-address is known */
-        eARPLookupResult_t eARPGetCacheEntryByMac( MACAddress_t * const pxMACAddress,
+        eARPLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
                                                    uint32_t * pulIPAddress );
 
     #endif
