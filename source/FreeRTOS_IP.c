@@ -706,7 +706,7 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
     BaseType_t xReturn = pdFALSE;
 
     /* Default values for the above struct in case DHCP
-    * does not lead to a confirmed request. */
+     * does not lead to a confirmed request. */
     NetworkAddressingParameters_t xDefaultAddressing = { 0, 0, 0, 0, 0 };
 
     /* Check that the configuration values are correct and that the IP-task has not

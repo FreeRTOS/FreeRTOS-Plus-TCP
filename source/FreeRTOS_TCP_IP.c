@@ -99,6 +99,7 @@
     {
         /* Socket which needs to be closed in next iteration. */
         static FreeRTOS_Socket_t * xPreviousSocket = NULL;
+
         if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )
         {
             ( void ) vSocketClose( xPreviousSocket );
