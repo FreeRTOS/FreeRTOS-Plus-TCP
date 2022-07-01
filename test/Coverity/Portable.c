@@ -178,7 +178,6 @@ void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                     StackType_t ** ppxIdleTaskStackBuffer,
                                     uint32_t * pulIdleTaskStackSize )
 {
-
     ( void ) ppxIdleTaskTCBBuffer;
     ( void ) ppxIdleTaskStackBuffer;
     ( void ) pulIdleTaskStackSize;
@@ -194,7 +193,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
                                     BaseType_t bReleaseAfterSend )
 {
     ( void ) pxNetworkBuffer;
-    ( void ) bReleaseAfterSend ;
+    ( void ) bReleaseAfterSend;
 
     return pdFAIL;
 }
@@ -208,6 +207,6 @@ BaseType_t FreeRTOS_SendPingRequest( uint32_t ulIPAddress,
     ( void ) uxNumberOfBytesToSend;
     ( void ) uxBlockTimeTicks;
 
-     return pdFAIL;
+    return pdFAIL;
 }
 /*-----------------------------------------------------------*/
