@@ -72,7 +72,7 @@
  * @brief indicates the index of a free entry in the cache structure
  *        \a  DNSCacheRow_t
  */
-    static BaseType_t xFreeEntry = 0;
+    static UBaseType_t uxFreeEntry = 0;
 
 
 
@@ -139,7 +139,7 @@
     void FreeRTOS_dnsclear( void )
     {
         ( void ) memset( xDNSCache, 0x0, sizeof( xDNSCache ) );
-        xFreeEntry = 0;
+        uxFreeEntry = 0;
     }
 
 /**
@@ -225,7 +225,7 @@
         UBaseType_t uxIndex;
 
         /* For each entry in the DNS cache table. */
-        for( uxIndex = 0; uxIndex < ( int ) ipconfigDNS_CACHE_ENTRIES; uxIndex++ )
+        for( uxIndex = 0; uxIndex < ipconfigDNS_CACHE_ENTRIES; uxIndex++ )
         {
             if( xDNSCache[ uxIndex ].pcName[ 0 ] == ( char ) 0 )
             { /* empty slot */
@@ -340,26 +340,26 @@
         /* Add or update the item. */
         if( strlen( pcName ) < ( size_t ) ipconfigDNS_CACHE_NAME_LENGTH )
         {
-            ( void ) strcpy( xDNSCache[ xFreeEntry ].pcName, pcName );
+            ( void ) strcpy( xDNSCache[ uxFreeEntry ].pcName, pcName );
 
-            xDNSCache[ xFreeEntry ].ulIPAddresses[ 0 ] = *pulIP;
-            xDNSCache[ xFreeEntry ].ulTTL = ulTTL;
-            xDNSCache[ xFreeEntry ].ulTimeWhenAddedInSeconds = ulCurrentTimeSeconds;
+            xDNSCache[ uxFreeEntry ].ulIPAddresses[ 0 ] = *pulIP;
+            xDNSCache[ uxFreeEntry ].ulTTL = ulTTL;
+            xDNSCache[ uxFreeEntry ].ulTimeWhenAddedInSeconds = ulCurrentTimeSeconds;
             #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-                xDNSCache[ xFreeEntry ].ucNumIPAddresses = 1;
-                xDNSCache[ xFreeEntry ].ucCurrentIPAddress = 0;
+                xDNSCache[ uxFreeEntry ].ucNumIPAddresses = 1;
+                xDNSCache[ uxFreeEntry ].ucCurrentIPAddress = 0;
 
                 /* Initialize all remaining IP addresses in this entry to 0 */
-                ( void ) memset( &xDNSCache[ xFreeEntry ].ulIPAddresses[ 1 ],
+                ( void ) memset( &xDNSCache[ uxFreeEntry ].ulIPAddresses[ 1 ],
                                  0,
-                                 sizeof( xDNSCache[ xFreeEntry ].ulIPAddresses[ 1 ] ) *
+                                 sizeof( xDNSCache[ uxFreeEntry ].ulIPAddresses[ 1 ] ) *
                                  ( ( uint32_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY - 1U ) );
             #endif
-            xFreeEntry++;
+            uxFreeEntry++;
 
-            if( xFreeEntry == ipconfigDNS_CACHE_ENTRIES )
+            if( uxFreeEntry == ipconfigDNS_CACHE_ENTRIES )
             {
-                xFreeEntry = 0;
+                uxFreeEntry = 0;
             }
         }
     }
