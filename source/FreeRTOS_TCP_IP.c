@@ -65,9 +65,10 @@
 #if ipconfigUSE_TCP == 1
 
 
-/* Socket which needs to be closed in next iteration. */
 /* used for unit testing */
 /* coverity[misra_c_2012_rule_8_9_violation] */
+
+/** @brief Socket which needs to be closed in next iteration. */
     static FreeRTOS_Socket_t * xPreviousSocket = NULL;
 
 /*
