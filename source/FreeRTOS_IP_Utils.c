@@ -72,9 +72,6 @@
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
 #endif
 
-#if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-    static BaseType_t xCallEventHook = pdFALSE;
-#endif
 
 #if ( ipconfigHAS_PRINTF != 0 )
     /** @brief Last value of minimum buffer count. */
@@ -312,6 +309,9 @@ BaseType_t xIsCallingFromIPTask( void )
  */
 void prvProcessNetworkDownEvent( void )
 {
+    #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
+        static BaseType_t xCallEventHook = pdFALSE;
+    #endif
     /* Stop the ARP timer while there is no network. */
     vIPSetARPTimerEnableState( pdFALSE );
 

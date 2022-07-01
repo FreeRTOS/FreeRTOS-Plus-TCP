@@ -64,8 +64,6 @@
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
-/** @brief Socket which needs to be closed in next iteration. */
-    static FreeRTOS_Socket_t * xPreviousSocket = NULL;
 
 /*
  * For anti-hang protection and TCP keep-alive messages.  Called in two places:
@@ -99,6 +97,8 @@
  */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
     {
+        /* Socket which needs to be closed in next iteration. */
+        static FreeRTOS_Socket_t * xPreviousSocket = NULL;
         if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )
         {
             ( void ) vSocketClose( xPreviousSocket );
