@@ -466,7 +466,7 @@
     static BaseType_t prvSendBuffer( const char * pcHostName,
                                      TickType_t uxIdentifier,
                                      Socket_t xDNSSocket,
-                                     struct freertos_sockaddr * pxAddress )
+                                     const struct freertos_sockaddr * pxAddress )
     {
         BaseType_t uxReturn = pdFAIL;
         struct xDNSBuffer xDNSBuf = { 0 };

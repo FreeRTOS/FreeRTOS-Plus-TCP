@@ -87,7 +87,7 @@ static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
 
 /*-----------------------------------------------------------*/
 
-static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
+static void vProcessARPPacketReply( const ARPPacket_t * pxARPFrame,
                                     uint32_t ulSenderProtocolAddress );
 
 /*-----------------------------------------------------------*/
@@ -312,7 +312,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
  * @param[in] pxARPFrame: The ARP packet received.
  * @param[in] ulSenderProtocolAddress: The IPv4 address involved.
  */
-static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
+static void vProcessARPPacketReply( const ARPPacket_t * pxARPFrame,
                                     uint32_t ulSenderProtocolAddress )
 {
     const ARPHeader_t * pxARPHeader = &( pxARPFrame->xARPHeader );
@@ -328,7 +328,7 @@ static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
 
     if( pxARPWaitingNetworkBuffer != NULL )
     {
-        IPPacket_t * pxARPWaitingIPPacket = ( ( IPPacket_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
+        const IPPacket_t * pxARPWaitingIPPacket = ( ( IPPacket_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
         const IPHeader_t * pxARPWaitingIPHeader = &( pxARPWaitingIPPacket->xIPHeader );
 
         if( ulSenderProtocolAddress == pxARPWaitingIPHeader->ulSourceIPAddress )
@@ -401,7 +401,7 @@ BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup )
 BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xNeedsARPResolution = pdFALSE;
-    IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
     if( ( pxIPHeader->ulSourceIPAddress & xNetworkAddressing.ulNetMask ) == ( *ipLOCAL_IP_ADDRESS_POINTER & xNetworkAddressing.ulNetMask ) )

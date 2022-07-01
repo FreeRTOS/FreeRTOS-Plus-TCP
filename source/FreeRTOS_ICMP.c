@@ -57,8 +57,8 @@
  * Turns around an incoming ping request to convert it into a ping reply.
  */
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 )
-    static eFrameProcessingResult_t prvProcessICMPEchoRequest( const ICMPPacket_t * const pxICMPPacket,
-                                                               NetworkBufferDescriptor_t * const pxNetworkBuffer );
+    static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
+                                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer );
 #endif /* ipconfigREPLY_TO_INCOMING_PINGS */
 
 /*
@@ -79,7 +79,7 @@
  * @return eReleaseBuffer when the message buffer should be released, or eReturnEthernetFrame
  *                        when the packet should be returned.
  */
-    eFrameProcessingResult_t ProcessICMPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+    eFrameProcessingResult_t ProcessICMPPacket( const NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
         eFrameProcessingResult_t eReturn = eReleaseBuffer;
 
