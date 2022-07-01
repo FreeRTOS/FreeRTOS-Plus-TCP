@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -42,7 +42,7 @@
 
 /* Constants defining the current version of the FreeRTOS+TCP
  * network stack. */
-    #define ipFR_TCP_VERSION_NUMBER    "V2.3.4"
+    #define ipFR_TCP_VERSION_NUMBER    "<DEVELOPMENT BRANCH>"
     #define ipFR_TCP_VERSION_MAJOR     2
     #define ipFR_TCP_VERSION_MINOR     3
     #define ipFR_TCP_VERSION_BUILD     4
