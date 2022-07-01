@@ -1788,9 +1788,9 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                 if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_UDP )
                 {
                     /* The send time out is capped for the reason stated in the
-                    * comments where ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS is defined
-                    * in FreeRTOSIPConfig.h (assuming an official configuration file
-                    * is being used. */
+                     * comments where ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS is defined
+                     * in FreeRTOSIPConfig.h (assuming an official configuration file
+                     * is being used. */
                     if( pxSocket->xSendBlockTime > ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS )
                     {
                         pxSocket->xSendBlockTime = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
@@ -1799,8 +1799,8 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                 else
                 {
                     /* For TCP socket, it isn't necessary to limit the blocking time
-                    * because the FreeRTOS_send() function does not wait for a network
-                    * buffer to become available. */
+                     * because the FreeRTOS_send() function does not wait for a network
+                     * buffer to become available. */
                 }
 
                 xReturn = 0;
@@ -1822,7 +1822,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
             case FREERTOS_SO_UDPCKSUM_OUT:
 
                 /* Turn calculating of the UDP checksum on/off for this socket. If pvOptionValue
-                * is anything else than NULL, the checksum generation will be turned on. */
+                 * is anything else than NULL, the checksum generation will be turned on. */
 
                 if( pvOptionValue == NULL )
                 {
@@ -1844,62 +1844,62 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                     #endif /* ipconfigUSE_TCP */
                     case FREERTOS_SO_UDP_RECV_HANDLER:     /* Install a callback for receiving UDP data. Supply pointer to 'F_TCP_UDP_Handler_t' (see below) */
                     case FREERTOS_SO_UDP_SENT_HANDLER:     /* Install a callback for sending UDP data. Supply pointer to 'F_TCP_UDP_Handler_t' (see below) */
-                    {
-                        #if ( ipconfigUSE_TCP == 1 )
-                            {
-                                UBaseType_t uxProtocol;
+                       {
+                           #if ( ipconfigUSE_TCP == 1 )
+                               {
+                                   UBaseType_t uxProtocol;
 
-                                if( ( lOptionName == FREERTOS_SO_UDP_RECV_HANDLER ) ||
-                                    ( lOptionName == FREERTOS_SO_UDP_SENT_HANDLER ) )
-                                {
-                                    uxProtocol = ( UBaseType_t ) FREERTOS_IPPROTO_UDP;
-                                }
-                                else
-                                {
-                                    uxProtocol = ( UBaseType_t ) FREERTOS_IPPROTO_TCP;
-                                }
+                                   if( ( lOptionName == FREERTOS_SO_UDP_RECV_HANDLER ) ||
+                                       ( lOptionName == FREERTOS_SO_UDP_SENT_HANDLER ) )
+                                   {
+                                       uxProtocol = ( UBaseType_t ) FREERTOS_IPPROTO_UDP;
+                                   }
+                                   else
+                                   {
+                                       uxProtocol = ( UBaseType_t ) FREERTOS_IPPROTO_TCP;
+                                   }
 
-                                if( pxSocket->ucProtocol != ( uint8_t ) uxProtocol )
-                                {
-                                    break; /* will return -pdFREERTOS_ERRNO_EINVAL */
-                                }
-                            }
-                        #else /* if ( ipconfigUSE_TCP == 1 ) */
-                            {
-                                /* No need to check if the socket has the right
+                                   if( pxSocket->ucProtocol != ( uint8_t ) uxProtocol )
+                                   {
+                                       break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                                   }
+                               }
+                           #else /* if ( ipconfigUSE_TCP == 1 ) */
+                               {
+                                   /* No need to check if the socket has the right
                                     * protocol, because only UDP socket can be created. */
-                            }
-                        #endif /* ipconfigUSE_TCP */
+                               }
+                           #endif /* ipconfigUSE_TCP */
 
-                        switch( lOptionName )
-                        {
-                            #if ipconfigUSE_TCP == 1
-                                case FREERTOS_SO_TCP_CONN_HANDLER:
-                                    pxSocket->u.xTCP.pxHandleConnected = ( ( const F_TCP_UDP_Handler_t * ) pvOptionValue )->pxOnTCPConnected;
-                                    break;
+                           switch( lOptionName )
+                           {
+                               #if ipconfigUSE_TCP == 1
+                                   case FREERTOS_SO_TCP_CONN_HANDLER:
+                                       pxSocket->u.xTCP.pxHandleConnected = ( ( const F_TCP_UDP_Handler_t * ) pvOptionValue )->pxOnTCPConnected;
+                                       break;
 
-                                case FREERTOS_SO_TCP_RECV_HANDLER:
-                                    pxSocket->u.xTCP.pxHandleReceive = ( ( const F_TCP_UDP_Handler_t * ) pvOptionValue )->pxOnTCPReceive;
-                                    break;
+                                   case FREERTOS_SO_TCP_RECV_HANDLER:
+                                       pxSocket->u.xTCP.pxHandleReceive = ( ( const F_TCP_UDP_Handler_t * ) pvOptionValue )->pxOnTCPReceive;
+                                       break;
 
-                                case FREERTOS_SO_TCP_SENT_HANDLER:
-                                    pxSocket->u.xTCP.pxHandleSent = ( ( const F_TCP_UDP_Handler_t * ) pvOptionValue )->pxOnTCPSent;
-                                    break;
-                            #endif /* ipconfigUSE_TCP */
-                            case FREERTOS_SO_UDP_RECV_HANDLER:
-                                pxSocket->u.xUDP.pxHandleReceive = ( ( const F_TCP_UDP_Handler_t * ) pvOptionValue )->pxOnUDPReceive;
-                                break;
+                                   case FREERTOS_SO_TCP_SENT_HANDLER:
+                                       pxSocket->u.xTCP.pxHandleSent = ( ( const F_TCP_UDP_Handler_t * ) pvOptionValue )->pxOnTCPSent;
+                                       break;
+                               #endif /* ipconfigUSE_TCP */
+                               case FREERTOS_SO_UDP_RECV_HANDLER:
+                                   pxSocket->u.xUDP.pxHandleReceive = ( ( const F_TCP_UDP_Handler_t * ) pvOptionValue )->pxOnUDPReceive;
+                                   break;
 
-                            case FREERTOS_SO_UDP_SENT_HANDLER:
-                                pxSocket->u.xUDP.pxHandleSent = ( ( const F_TCP_UDP_Handler_t * ) pvOptionValue )->pxOnUDPSent;
-                                break;
+                               case FREERTOS_SO_UDP_SENT_HANDLER:
+                                   pxSocket->u.xUDP.pxHandleSent = ( ( const F_TCP_UDP_Handler_t * ) pvOptionValue )->pxOnUDPSent;
+                                   break;
 
-                            default:   /* LCOV_EXCL_LINE The default case is required by MISRA but control flow will never ever reach
-                                        * here since the switch statement enclosing this switch prevents that. */
-                                /* Should it throw an error here? */
-                                break; /* LCOV_EXCL_LINE. Since the default case will never reach, this break statement will not execute as well. */
-                        }
-                    }
+                               default:   /* LCOV_EXCL_LINE The default case is required by MISRA but control flow will never ever reach
+                                           * here since the switch statement enclosing this switch prevents that. */
+                                   /* Should it throw an error here? */
+                                   break; /* LCOV_EXCL_LINE. Since the default case will never reach, this break statement will not execute as well. */
+                           }
+                       }
 
                         xReturn = 0;
                         break;
@@ -1908,11 +1908,11 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                 #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE != 0 )
 
                     /* Each socket has a semaphore on which the using task normally
-                    * sleeps. */
+                     * sleeps. */
                     case FREERTOS_SO_SET_SEMAPHORE:
-                    {
-                        pxSocket->pxUserSemaphore = *( ipPOINTER_CAST( SemaphoreHandle_t *, pvOptionValue ) );
-                    }
+                       {
+                           pxSocket->pxUserSemaphore = *( ipPOINTER_CAST( SemaphoreHandle_t *, pvOptionValue ) );
+                       }
                         xReturn = 0;
                         break;
                 #endif /* ipconfigSOCKET_HAS_USER_SEMAPHORE */
@@ -1921,8 +1921,8 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                     case FREERTOS_SO_WAKEUP_CALLBACK:
 
                         /* Each socket can have a callback function that is executed
-                        * when there is an event the socket's owner might want to
-                        * process. */
+                         * when there is an event the socket's owner might want to
+                         * process. */
                         /* The type cast of the pointer expression "A" to type "B" removes const qualifier from the pointed to type. */
                         pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
                         xReturn = 0;
@@ -1931,31 +1931,31 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
                 #if ( ipconfigUSE_TCP != 0 )
                     case FREERTOS_SO_SET_LOW_HIGH_WATER:
-                    {
-                        const LowHighWater_t * pxLowHighWater = ipPOINTER_CAST( const LowHighWater_t *, pvOptionValue );
+                       {
+                           const LowHighWater_t * pxLowHighWater = ipPOINTER_CAST( const LowHighWater_t *, pvOptionValue );
 
-                        if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
-                        {
-                            /* It is not allowed to access 'pxSocket->u.xTCP'. */
-                            FreeRTOS_debug_printf( ( "FREERTOS_SO_SET_LOW_HIGH_WATER: wrong socket type\n" ) );
-                            break; /* will return -pdFREERTOS_ERRNO_EINVAL */
-                        }
+                           if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                           {
+                               /* It is not allowed to access 'pxSocket->u.xTCP'. */
+                               FreeRTOS_debug_printf( ( "FREERTOS_SO_SET_LOW_HIGH_WATER: wrong socket type\n" ) );
+                               break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                           }
 
-                        if( ( pxLowHighWater->uxLittleSpace >= pxLowHighWater->uxEnoughSpace ) ||
-                            ( pxLowHighWater->uxEnoughSpace > pxSocket->u.xTCP.uxRxStreamSize ) )
-                        {
-                            /* Impossible values. */
-                            FreeRTOS_debug_printf( ( "FREERTOS_SO_SET_LOW_HIGH_WATER: bad values\n" ) );
-                            break; /* will return -pdFREERTOS_ERRNO_EINVAL */
-                        }
+                           if( ( pxLowHighWater->uxLittleSpace >= pxLowHighWater->uxEnoughSpace ) ||
+                               ( pxLowHighWater->uxEnoughSpace > pxSocket->u.xTCP.uxRxStreamSize ) )
+                           {
+                               /* Impossible values. */
+                               FreeRTOS_debug_printf( ( "FREERTOS_SO_SET_LOW_HIGH_WATER: bad values\n" ) );
+                               break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                           }
 
-                        /* Send a STOP when buffer space drops below 'uxLittleSpace' bytes. */
-                        pxSocket->u.xTCP.uxLittleSpace = pxLowHighWater->uxLittleSpace;
-                        /* Send a GO when buffer space grows above 'uxEnoughSpace' bytes. */
-                        pxSocket->u.xTCP.uxEnoughSpace = pxLowHighWater->uxEnoughSpace;
-                        xReturn = 0;
-                    }
-                    break;
+                           /* Send a STOP when buffer space drops below 'uxLittleSpace' bytes. */
+                           pxSocket->u.xTCP.uxLittleSpace = pxLowHighWater->uxLittleSpace;
+                           /* Send a GO when buffer space grows above 'uxEnoughSpace' bytes. */
+                           pxSocket->u.xTCP.uxEnoughSpace = pxLowHighWater->uxEnoughSpace;
+                           xReturn = 0;
+                       }
+                       break;
 
                     case FREERTOS_SO_SNDBUF: /* Set the size of the send buffer, in units of MSS (TCP only) */
                     case FREERTOS_SO_RCVBUF: /* Set the size of the receive buffer, in units of MSS (TCP only) */
@@ -1963,143 +1963,143 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         break;
 
                     case FREERTOS_SO_WIN_PROPERTIES: /* Set all buffer and window properties in one call, parameter is pointer to WinProperties_t */
-                    {
-                        IPTCPSocket_t * pxTCP = &( pxSocket->u.xTCP );
-                        const WinProperties_t * pxProps;
+                       {
+                           IPTCPSocket_t * pxTCP = &( pxSocket->u.xTCP );
+                           const WinProperties_t * pxProps;
 
-                        if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
-                        {
-                            FreeRTOS_debug_printf( ( "Set SO_WIN_PROP: wrong socket type\n" ) );
-                            break; /* will return -pdFREERTOS_ERRNO_EINVAL */
-                        }
+                           if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                           {
+                               FreeRTOS_debug_printf( ( "Set SO_WIN_PROP: wrong socket type\n" ) );
+                               break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                           }
 
-                        pxProps = ipPOINTER_CAST( const WinProperties_t *, pvOptionValue );
+                           pxProps = ipPOINTER_CAST( const WinProperties_t *, pvOptionValue );
 
-                        /* Validity of txStream will be checked by the function below. */
-                        xReturn = prvSockopt_so_buffer( pxSocket, FREERTOS_SO_SNDBUF, &( pxProps->lTxBufSize ) );
+                           /* Validity of txStream will be checked by the function below. */
+                           xReturn = prvSockopt_so_buffer( pxSocket, FREERTOS_SO_SNDBUF, &( pxProps->lTxBufSize ) );
 
-                        if( xReturn != 0 )
-                        {
-                            break; /* will return an error. */
-                        }
+                           if( xReturn != 0 )
+                           {
+                               break; /* will return an error. */
+                           }
 
-                        /* Validity of rxStream will be checked by the function below. */
-                        xReturn = prvSockopt_so_buffer( pxSocket, FREERTOS_SO_RCVBUF, &( pxProps->lRxBufSize ) );
+                           /* Validity of rxStream will be checked by the function below. */
+                           xReturn = prvSockopt_so_buffer( pxSocket, FREERTOS_SO_RCVBUF, &( pxProps->lRxBufSize ) );
 
-                        if( xReturn != 0 )
-                        {
-                            break; /* will return an error. */
-                        }
+                           if( xReturn != 0 )
+                           {
+                               break; /* will return an error. */
+                           }
 
-                        #if ( ipconfigUSE_TCP_WIN == 1 )
-                            {
-                                pxTCP->uxRxWinSize = ( uint32_t ) pxProps->lRxWinSize; /* Fixed value: size of the TCP reception window */
-                                pxTCP->uxTxWinSize = ( uint32_t ) pxProps->lTxWinSize; /* Fixed value: size of the TCP transmit window */
-                            }
-                        #else
-                            {
-                                pxTCP->uxRxWinSize = 1U;
-                                pxTCP->uxTxWinSize = 1U;
-                            }
-                        #endif
+                           #if ( ipconfigUSE_TCP_WIN == 1 )
+                               {
+                                   pxTCP->uxRxWinSize = ( uint32_t ) pxProps->lRxWinSize; /* Fixed value: size of the TCP reception window */
+                                   pxTCP->uxTxWinSize = ( uint32_t ) pxProps->lTxWinSize; /* Fixed value: size of the TCP transmit window */
+                               }
+                           #else
+                               {
+                                   pxTCP->uxRxWinSize = 1U;
+                                   pxTCP->uxTxWinSize = 1U;
+                               }
+                           #endif
 
-                        /* In case the socket has already initialised its tcpWin,
+                           /* In case the socket has already initialised its tcpWin,
                             * adapt the window size parameters */
-                        if( pxTCP->xTCPWindow.u.bits.bHasInit != pdFALSE_UNSIGNED )
-                        {
-                            pxTCP->xTCPWindow.xSize.ulRxWindowLength = ( uint32_t ) ( pxTCP->uxRxWinSize * pxTCP->usMSS );
-                            pxTCP->xTCPWindow.xSize.ulTxWindowLength = ( uint32_t ) ( pxTCP->uxTxWinSize * pxTCP->usMSS );
-                        }
-                    }
+                           if( pxTCP->xTCPWindow.u.bits.bHasInit != pdFALSE_UNSIGNED )
+                           {
+                               pxTCP->xTCPWindow.xSize.ulRxWindowLength = ( uint32_t ) ( pxTCP->uxRxWinSize * pxTCP->usMSS );
+                               pxTCP->xTCPWindow.xSize.ulTxWindowLength = ( uint32_t ) ( pxTCP->uxTxWinSize * pxTCP->usMSS );
+                           }
+                       }
 
                         xReturn = 0;
                         break;
 
                     case FREERTOS_SO_REUSE_LISTEN_SOCKET: /* If true, the server-socket will turn into a connected socket */
-                    {
-                        if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
-                        {
-                            break; /* will return -pdFREERTOS_ERRNO_EINVAL */
-                        }
+                       {
+                           if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                           {
+                               break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                           }
 
-                        if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
-                        {
-                            pxSocket->u.xTCP.bits.bReuseSocket = pdTRUE;
-                        }
-                        else
-                        {
-                            pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
-                        }
-                    }
+                           if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
+                           {
+                               pxSocket->u.xTCP.bits.bReuseSocket = pdTRUE;
+                           }
+                           else
+                           {
+                               pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
+                           }
+                       }
                         xReturn = 0;
                         break;
 
                     case FREERTOS_SO_CLOSE_AFTER_SEND: /* As soon as the last byte has been transmitted, finalise the connection */
-                    {
-                        if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
-                        {
-                            break; /* will return -pdFREERTOS_ERRNO_EINVAL */
-                        }
+                       {
+                           if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                           {
+                               break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                           }
 
-                        if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
-                        {
-                            pxSocket->u.xTCP.bits.bCloseAfterSend = pdTRUE;
-                        }
-                        else
-                        {
-                            pxSocket->u.xTCP.bits.bCloseAfterSend = pdFALSE;
-                        }
-                    }
+                           if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
+                           {
+                               pxSocket->u.xTCP.bits.bCloseAfterSend = pdTRUE;
+                           }
+                           else
+                           {
+                               pxSocket->u.xTCP.bits.bCloseAfterSend = pdFALSE;
+                           }
+                       }
                         xReturn = 0;
                         break;
 
                     case FREERTOS_SO_SET_FULL_SIZE: /* Refuse to send packets smaller than MSS  */
-                    {
-                        if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
-                        {
-                            break; /* will return -pdFREERTOS_ERRNO_EINVAL */
-                        }
+                       {
+                           if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                           {
+                               break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                           }
 
-                        if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
-                        {
-                            pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize = pdTRUE;
-                        }
-                        else
-                        {
-                            pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize = pdFALSE;
-                        }
+                           if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
+                           {
+                               pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize = pdTRUE;
+                           }
+                           else
+                           {
+                               pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize = pdFALSE;
+                           }
 
-                        if( ( pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize == pdFALSE_UNSIGNED ) &&
-                            ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) &&
-                            ( FreeRTOS_outstanding( pxSocket ) > 0 ) )
-                        {
-                            pxSocket->u.xTCP.usTimeout = 1U; /* to set/clear bSendFullSize */
-                            ( void ) xSendEventToIPTask( eTCPTimerEvent );
-                        }
-                    }
+                           if( ( pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize == pdFALSE_UNSIGNED ) &&
+                               ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) &&
+                               ( FreeRTOS_outstanding( pxSocket ) > 0 ) )
+                           {
+                               pxSocket->u.xTCP.usTimeout = 1U; /* to set/clear bSendFullSize */
+                               ( void ) xSendEventToIPTask( eTCPTimerEvent );
+                           }
+                       }
                         xReturn = 0;
                         break;
 
                     case FREERTOS_SO_STOP_RX: /* Refuse to receive more packets. */
-                    {
-                        if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
-                        {
-                            break; /* will return -pdFREERTOS_ERRNO_EINVAL */
-                        }
+                       {
+                           if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                           {
+                               break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                           }
 
-                        if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
-                        {
-                            pxSocket->u.xTCP.bits.bRxStopped = pdTRUE;
-                        }
-                        else
-                        {
-                            pxSocket->u.xTCP.bits.bRxStopped = pdFALSE;
-                        }
+                           if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
+                           {
+                               pxSocket->u.xTCP.bits.bRxStopped = pdTRUE;
+                           }
+                           else
+                           {
+                               pxSocket->u.xTCP.bits.bRxStopped = pdFALSE;
+                           }
 
-                        pxSocket->u.xTCP.bits.bWinChange = pdTRUE;
-                        pxSocket->u.xTCP.usTimeout = 1U; /* to set/clear bRxStopped */
-                        ( void ) xSendEventToIPTask( eTCPTimerEvent );
-                    }
+                           pxSocket->u.xTCP.bits.bWinChange = pdTRUE;
+                           pxSocket->u.xTCP.usTimeout = 1U; /* to set/clear bRxStopped */
+                           ( void ) xSendEventToIPTask( eTCPTimerEvent );
+                       }
                         xReturn = 0;
                         break;
                 #endif /* ipconfigUSE_TCP == 1 */
