@@ -103,9 +103,9 @@ typedef union _xUnion32
  */
 typedef union _xUnionPtr
 {
-    uint32_t * u32ptr; /**< The pointer member to a 32-bit variable. */
-    uint16_t * u16ptr; /**< The pointer member to a 16-bit variable. */
-    uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
+    const uint32_t * u32ptr; /**< The pointer member to a 32-bit variable. */
+    const uint16_t * u16ptr; /**< The pointer member to a 16-bit variable. */
+    const uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
 } xUnionPtr;
 
 /*
@@ -841,11 +841,8 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* MISRA Rule 11.4 warns about casting pointer to a different size of pointer.
     * The casting is used here to help checksum calculation.  It is intentional */
     /* coverity[misra_c_2012_rule_11_4_violation] */
-    xSource.u8ptr = ( uint8_t * ) pucNextData;
+    xSource.u8ptr = ( const uint8_t * ) pucNextData;
 
-    /* the conversion here does not cause a loss of data, as uintptr_t fits a
-     * pointer type on the system */
-    /* coverity[misra_c_2012_rule_11_4_violation] */
     uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
 
     /*
@@ -925,7 +922,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ] + ulCarry;
 
     uxDataLengthBytes %= 16U;
-    xLastSource.u8ptr = ( uint8_t * ) ( xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1 ) ) );
+    xLastSource.u8ptr = ( const uint8_t * ) ( xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1 ) ) );
 
     /* Half-word aligned. */
 
