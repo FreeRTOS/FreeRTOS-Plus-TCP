@@ -499,8 +499,8 @@
 /* The SocketSet_t type is the equivalent to the fd_set type used by the
  * Berkeley API. */
         struct xSOCKET_SET;
-        typedef struct xSOCKET_SET * SocketSet_t;
-        typedef struct xSOCKET_SET const * ConstSocketSet_t;
+        typedef struct xSOCKET_SET         * SocketSet_t;
+        typedef struct xSOCKET_SET const   * ConstSocketSet_t;
 
 /* Create a socket set for use with the FreeRTOS_select() function */
         SocketSet_t FreeRTOS_CreateSocketSet( void );
