@@ -2952,6 +2952,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     static BaseType_t bMayConnect( FreeRTOS_Socket_t const * pxSocket )
     {
         BaseType_t xResult;
+
+        /* coverity[misra_c_2012_rule_10_5_violation] */
         eIPTCPState_t eState = ( eIPTCPState_t ) pxSocket->u.xTCP.ucTCPState;
 
         switch( eState )
@@ -3354,6 +3356,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             while( xByteCount == 0 )
             {
+                /* coverity[misra_c_2012_rule_10_5_violation] */
                 eIPTCPState_t eState = ( eIPTCPState_t ) pxSocket->u.xTCP.ucTCPState;
 
                 switch( eState )

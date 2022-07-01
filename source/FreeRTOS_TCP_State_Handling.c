@@ -102,6 +102,7 @@
     BaseType_t prvTCPSocketIsActive( uint8_t ucStatus )
     {
         BaseType_t xResult;
+        /* coverity[misra_c_2012_rule_10_5_violation] */
         eIPTCPState_t eStatus = ( eIPTCPState_t ) ucStatus;
 
         switch( eStatus )
@@ -148,6 +149,8 @@
         BaseType_t prvTCPStatusAgeCheck( FreeRTOS_Socket_t * pxSocket )
         {
             BaseType_t xResult;
+
+            /* coverity[misra_c_2012_rule_10_5_violation] */
             eIPTCPState_t eState = ( eIPTCPState_t ) pxSocket->u.xTCP.ucTCPState;
 
             switch( eState )
