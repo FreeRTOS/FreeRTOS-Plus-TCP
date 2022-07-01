@@ -429,7 +429,7 @@ static void prvProcessIPEventsAndTimers( void )
 
                 /* Simply mark the TCP timer as expired so it gets processed
                  * the next time prvCheckNetworkTimers() is called. */
-                vIPSetTCPTimerEnableState( pdTRUE );
+                vIPSetTCPTimerExpiredState( pdTRUE );
             #endif /* ipconfigUSE_TCP */
             break;
 
@@ -925,7 +925,8 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
                                                  void const * pvBuffer,
                                                  BaseType_t xByteCount )
     {
-        BaseType_t xByteCountReleased, xReturn = pdFAIL;
+        BaseType_t xByteCountReleased;
+        BaseType_t xReturn = pdFAIL;
         uint8_t * pucData;
         size_t uxBytesAvailable = uxStreamBufferGetPtr( xSocket->u.xTCP.rxStream, &( pucData ) );
 
@@ -938,7 +939,10 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
         if( ( pucData == pvBuffer ) && ( uxBytesAvailable >= ( size_t ) xByteCount ) )
         {
             /* Call recv with NULL pointer to advance the circular buffer. */
-            xByteCountReleased = FreeRTOS_recv( xSocket, NULL, xByteCount, FREERTOS_MSG_DONTWAIT );
+            xByteCountReleased = FreeRTOS_recv( xSocket,
+                                                NULL,
+                                                ( size_t ) xByteCount,
+                                                FREERTOS_MSG_DONTWAIT );
 
             configASSERT( xByteCountReleased == xByteCount );
 
@@ -1100,7 +1104,7 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                     /* TCP timer events are sent to wake the timer task when
                      * xTCPTimer has expired, but there is no point sending them if the
                      * IP task is already awake processing other message. */
-                    vIPSetTCPTimerEnableState( pdTRUE );
+                    vIPSetTCPTimerExpiredState( pdTRUE );
 
                     if( uxQueueMessagesWaiting( xNetworkEventQueue ) != 0U )
                     {
@@ -1426,8 +1430,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                  * packet may cause network storms. Drop the packet. */
                 eReturn = eReleaseBuffer;
             }
-            else if( ( memcmp( ( const void * ) xBroadcastMACAddress.ucBytes,
-                               ( const void * ) ( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes ),
+            else if( ( memcmp( xBroadcastMACAddress.ucBytes,
+                               pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
                                sizeof( MACAddress_t ) ) == 0 ) &&
                      ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
             {
@@ -1435,8 +1439,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                  * broadcast address. */
                 eReturn = eReleaseBuffer;
             }
-            else if( memcmp( ( void * ) &xBroadcastMACAddress,
-                             ( void * ) &( pxIPPacket->xEthernetHeader.xSourceAddress ),
+            else if( memcmp( xBroadcastMACAddress.ucBytes,
+                             pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes,
                              sizeof( MACAddress_t ) ) == 0 )
             {
                 /* Ethernet source is a broadcast address. Drop the packet. */

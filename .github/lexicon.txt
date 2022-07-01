@@ -1478,6 +1478,7 @@ xeventgroup
 xeventgroupwaitbits
 xexpected
 xexpectedmessagetype
+xexpiredstate
 xflags
 xfound
 xfreebufferslist

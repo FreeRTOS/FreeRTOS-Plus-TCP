@@ -54,10 +54,6 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
 
-/** @brief The pointer to buffer with packet waiting for ARP resolution. */
-extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
-
-
 /*
  * Utility functions for the light weight IP timers.
  */
@@ -89,12 +85,6 @@ static IPTimer_t xARPTimer;
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
     /** @brief DNS timer, to check for timeouts when looking-up a domain. */
     static IPTimer_t xDNSTimer;
-#endif
-#if ( ipconfigUSE_TCP != 0 )
-
-/** @brief Set to a non-zero value if one or more TCP message have been processed
- *           within the last round. */
-    extern BaseType_t xProcessedTCPMessage;
 #endif
 
 /**
@@ -392,17 +382,19 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
 /**
  * @brief Enable/disable the TCP timer.
  *
- * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
+ * @param[in] xExpiredState: pdTRUE - set as expired; pdFALSE - set as non-expired.
  */
-    void vIPSetTCPTimerEnableState( BaseType_t xEnableState )
+    void vIPSetTCPTimerExpiredState( BaseType_t xExpiredState )
     {
-        if( xEnableState != pdFALSE )
+        xTCPTimer.bActive = pdTRUE_UNSIGNED;
+
+        if( xExpiredState != pdFALSE )
         {
-            xTCPTimer.bActive = pdTRUE_UNSIGNED;
+            xTCPTimer.bExpired = pdTRUE_UNSIGNED;
         }
         else
         {
-            xTCPTimer.bActive = pdFALSE_UNSIGNED;
+            xTCPTimer.bExpired = pdFALSE_UNSIGNED;
         }
     }
 /*-----------------------------------------------------------*/

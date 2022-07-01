@@ -2276,7 +2276,6 @@ const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
     socklen_t uxIndex = 0;
     const uint8_t * pucAddress = ( const uint8_t * ) &( ulIPAddress );
     const char * pcResult = pcBuffer;
-    const socklen_t uxSize = 16;
 
     for( uxNibble = 0; uxNibble < ipSIZE_OF_IPv4_ADDRESS; uxNibble++ )
     {
@@ -2533,16 +2532,19 @@ void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
                 cResult = cResult + ( ucNibble - 10U );
             }
 
-            pcTarget[ uxTarget++ ] = cResult;
+            pcTarget[ uxTarget ] = cResult;
+            uxTarget++;
         }
 
         if( uxIndex == ( ipMAC_ADDRESS_LENGTH_BYTES - 1U ) )
         {
-            pcTarget[ uxTarget++ ] = ( char ) 0;
+            pcTarget[ uxTarget ] = ( char ) 0;
+            uxTarget++;
         }
         else
         {
-            pcTarget[ uxTarget++ ] = cSeparator;
+            pcTarget[ uxTarget ] = cSeparator;
+            uxTarget++;
         }
     }
 }
@@ -4098,7 +4100,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             size_t uxLittlePerc = sock20_PERCENT;
             size_t uxEnoughPerc = sock80_PERCENT;
             size_t uxSegmentCount = pxSocket->u.xTCP.uxRxStreamSize / pxSocket->u.xTCP.usMSS;
-            static const struct xPercTable
+            static const struct Percent
             {
                 size_t uxPercLittle, uxPercEnough;
             }

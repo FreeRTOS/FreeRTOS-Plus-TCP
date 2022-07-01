@@ -491,9 +491,8 @@
                 }
 
                 /* Fill in the destination MAC addresses. */
-                ( void ) memcpy( ( void * ) ( &( pxEthernetHeader->xDestinationAddress ) ),
-                                 pvCopySource,
-                                 sizeof( pxEthernetHeader->xDestinationAddress ) );
+                pvCopyDest = &pxEthernetHeader->xDestinationAddress;
+                ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxEthernetHeader->xDestinationAddress ) );
             }
 
             /*
@@ -1314,7 +1313,6 @@
                     ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )               /* There are no other flags than an ACK. */
                 {
                     uint32_t ulCurMSS = ( uint32_t ) pxSocket->u.xTCP.usMSS;
-                    int32_t lCurMSS = ( int32_t ) ulCurMSS;
 
                     if( pxSocket->u.xTCP.pxAckMessage != *ppxNetworkBuffer )
                     {

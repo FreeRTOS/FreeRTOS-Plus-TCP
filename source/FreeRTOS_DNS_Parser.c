@@ -255,7 +255,7 @@
                                 BaseType_t xExpected )
     {
         DNSMessage_t * pxDNSMessageHeader;
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = 0U;
 
         #if ( ipconfigUSE_LLMNR == 1 )
             char * pcRequestedName = NULL;
@@ -264,10 +264,10 @@
         size_t uxSourceBytesRemaining;
         uint16_t x;
         uint16_t usQuestions;
-        uint16_t usType = 0U;
         BaseType_t xReturn = pdTRUE;
 
         #if ( ipconfigUSE_LLMNR == 1 )
+            uint16_t usType = 0U;
             uint16_t usClass = 0U;
         #endif
         #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
@@ -496,12 +496,12 @@
         if( xReturn == pdFALSE )
         {
             /* There was an error while parsing the DNS response. Return error code. */
-            ulIPAddress = dnsPARSE_ERROR;
+            ulIPAddress = ( uint32_t ) dnsPARSE_ERROR;
         }
         else if( xExpected == pdFALSE )
         {
             /* Do not return a valid IP-address in case the reply was not expected. */
-            ulIPAddress = 0UL;
+            ulIPAddress = 0U;
         }
         else
         {
@@ -549,6 +549,8 @@
         uint32_t ulIPAddress = 0U;
         uint32_t ulReturnIPAddress = 0U;
         uint16_t usDataLength;
+        uint8_t * pucBuffer = pucByte;
+        size_t uxRxSourceByteRemaining = uxSourceBytesRemaining;
 
         for( x = 0U; x < pxDNSMessageHeader->usAnswers; x++ )
         {
@@ -560,8 +562,8 @@
                 break;
             }
 
-            uxResult = DNS_SkipNameField( pucByte,
-                                          uxSourceBytesRemaining );
+            uxResult = DNS_SkipNameField( pucBuffer,
+                                          uxRxSourceByteRemaining );
 
             /* Check for a malformed response. */
             if( uxResult == 0U )
@@ -571,22 +573,22 @@
             }
 
             *uxBytesRead += uxResult;
-            pucByte = &( pucByte[ uxResult ] );
-            uxSourceBytesRemaining -= uxResult;
+            pucBuffer = &( pucBuffer[ uxResult ] );
+            uxRxSourceByteRemaining -= uxResult;
 
             /* Is there enough data for an IPv4 A record answer and, if so,
              * is this an A record? */
-            if( uxSourceBytesRemaining < sizeof( uint16_t ) )
+            if( uxRxSourceByteRemaining < sizeof( uint16_t ) )
             {
                 xReturn = pdFALSE;
                 break;
             }
 
-            usType = usChar2u16( pucByte );
+            usType = usChar2u16( pucBuffer );
 
             if( usType == ( uint16_t ) dnsTYPE_A_HOST )
             {
-                if( uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + uxAddressLength ) )
+                if( uxRxSourceByteRemaining >= ( sizeof( DNSAnswerRecord_t ) + uxAddressLength ) )
                 {
                     xDoAccept = pdTRUE;
                 }
@@ -605,9 +607,9 @@
             {
                 /* This is the required record type and is of sufficient size. */
 
-                /* Mapping pucByte to a DNSAnswerRecord allows easy access of the
+                /* Mapping pucBuffer to a DNSAnswerRecord allows easy access of the
                  * fields of the structure. */
-                pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucByte );
+                pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucBuffer );
 
                 /* Sanity check the data length of an IPv4 answer. */
                 if( FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ) ==
@@ -621,7 +623,7 @@
                      * compliant with MISRA Rule 21.15.  These should be
                      * optimized away.
                      */
-                    pvCopySource = &pucByte[ sizeof( DNSAnswerRecord_t ) ];
+                    pvCopySource = &pucBuffer[ sizeof( DNSAnswerRecord_t ) ];
                     pvCopyDest = &ulIPAddress;
                     ( void ) memcpy( pvCopyDest, pvCopySource, uxAddressLength );
 
@@ -656,7 +658,7 @@
                             ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET,
                                                          ( const void * ) &( ulIPAddress ),
                                                          cBuffer,
-                                                         sizeof( cBuffer ) );
+                                                         ( socklen_t ) sizeof( cBuffer ) );
                             /* Show what has happened. */
                             FreeRTOS_printf( ( "DNS[0x%04lX]: The answer to '%s' (%s) will%s be stored\n",
                                                ( UBaseType_t ) pxDNSMessageHeader->usIdentifier,
@@ -673,27 +675,27 @@
                     }
                 }
 
-                pucByte = &( pucByte[ sizeof( DNSAnswerRecord_t ) + uxAddressLength ] );
-                uxSourceBytesRemaining -= ( sizeof( DNSAnswerRecord_t ) + uxAddressLength );
+                pucBuffer = &( pucBuffer[ sizeof( DNSAnswerRecord_t ) + uxAddressLength ] );
+                uxRxSourceByteRemaining -= ( sizeof( DNSAnswerRecord_t ) + uxAddressLength );
             }
-            else if( uxSourceBytesRemaining >= sizeof( DNSAnswerRecord_t ) )
+            else if( uxRxSourceByteRemaining >= sizeof( DNSAnswerRecord_t ) )
             {
                 /* It's not an A record, so skip it. Get the header location
                  * and then jump over the header. */
                 /* Cast the response to DNSAnswerRecord for easy access to fields of the DNS response. */
-                pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucByte );
+                pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucBuffer );
 
-                pucByte = &( pucByte[ sizeof( DNSAnswerRecord_t ) ] );
-                uxSourceBytesRemaining -= sizeof( DNSAnswerRecord_t );
+                pucBuffer = &( pucBuffer[ sizeof( DNSAnswerRecord_t ) ] );
+                uxRxSourceByteRemaining -= sizeof( DNSAnswerRecord_t );
 
                 /* Determine the length of the answer data from the header. */
                 usDataLength = FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength );
 
                 /* Jump over the answer. */
-                if( uxSourceBytesRemaining >= usDataLength )
+                if( uxRxSourceByteRemaining >= usDataLength )
                 {
-                    pucByte = &( pucByte[ usDataLength ] );
-                    uxSourceBytesRemaining -= usDataLength;
+                    pucBuffer = &( pucBuffer[ usDataLength ] );
+                    uxRxSourceByteRemaining -= usDataLength;
                 }
                 else
                 {

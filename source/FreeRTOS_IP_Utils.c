@@ -72,8 +72,6 @@
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
 #endif
 
-extern QueueHandle_t xNetworkEventQueue;
-
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     static BaseType_t xCallEventHook = pdFALSE;
 #endif
@@ -86,7 +84,7 @@ extern QueueHandle_t xNetworkEventQueue;
     static size_t uxMinLastSize = 0u;
 #endif
 
-#if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
+#if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 ) && ( ipconfigHAS_PRINTF != 0 )
     static UBaseType_t uxLastMinQueueSpace = 0;
 #endif
 
@@ -128,7 +126,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
     {
         IPStackEvent_t xEventMessage;
         const TickType_t uxDontBlock = 0U;
-        uintptr_t uxOption = eGetDHCPState();
+        uintptr_t uxOption = ( uintptr_t ) eGetDHCPState();
 
         xEventMessage.eEventType = eDHCPEvent;
         xEventMessage.pvData = ( void * ) uxOption;
@@ -291,8 +289,12 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
 BaseType_t xIsCallingFromIPTask( void )
 {
     BaseType_t xReturn;
+    TaskHandle_t xCurrentHandle, xCurrentIPTaskHandle;
 
-    if( xTaskGetCurrentTaskHandle() == FreeRTOS_GetIPTaskHandle() )
+    xCurrentHandle = xTaskGetCurrentTaskHandle();
+    xCurrentIPTaskHandle = FreeRTOS_GetIPTaskHandle();
+
+    if( xCurrentHandle == xCurrentIPTaskHandle )
     {
         xReturn = pdTRUE;
     }
@@ -809,7 +811,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xUnionPtr xSource;
     xUnionPtr xLastSource;
     uintptr_t uxAlignBits;
-    uint32_t ulCarry = 0UL;
+    uint32_t ulCarry = 0U;
     uint16_t usTemp;
     size_t uxDataLengthBytes = uxByteCount;
 
@@ -820,7 +822,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* Swap the input (little endian platform only). */
     usTemp = FreeRTOS_ntohs( usSum );
     xSum.u32 = ( uint32_t ) usTemp;
-    xTerm.u32 = 0UL;
+    xTerm.u32 = 0U;
 
     xSource.u8ptr = ipPOINTER_CAST( uint8_t *, pucNextData );
     uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );

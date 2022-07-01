@@ -33,24 +33,11 @@
     #endif
 
 /*
- * Identify and deal with a single TCP header option, advancing the pointer to
- * the header. This function returns pdTRUE or pdFALSE depending on whether the
- * caller should continue to parse more header options or break the loop.
+ * Called from xProcessReceivedTCPPacket. Parse the TCP option(s) received,
+ * if present. This function returns pdFALSE if the options are not well formed.
  */
-    int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                           size_t uxTotalLength,
-                                           FreeRTOS_Socket_t * const pxSocket,
-                                           BaseType_t xHasSYNFlag );
-
-/*
- * Skip past TCP header options when doing Selective ACK, until there are no
- * more options left.
- */
-    #if ( ipconfigUSE_TCP_WIN == 1 )
-        void prvReadSackOption( const uint8_t * const pucPtr,
-                                size_t uxIndex,
-                                FreeRTOS_Socket_t * const pxSocket );
-    #endif /* ( ipconfigUSE_TCP_WIN == 1 ) */
+    BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+                                const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Called from prvTCPHandleState().  Find the TCP payload data and check and
