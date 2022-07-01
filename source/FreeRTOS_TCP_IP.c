@@ -65,7 +65,7 @@
 #if ipconfigUSE_TCP == 1
 
 
-/* used for unit testing */
+/* declared global for unit testing purposes */
 /* coverity[misra_c_2012_rule_8_9_violation] */
 
 /** @brief Socket which needs to be closed in next iteration. */
