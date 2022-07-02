@@ -584,7 +584,7 @@
                                               uxIdentifier,
                                               xDNSSocket );
 
-            if( ulIPAddress != 0 )
+            if( ulIPAddress != 0U )
             { /* ip found, no need to retry */
                 break;
             }
@@ -614,7 +614,7 @@
 
         if( xDNSSocket != NULL )
         {
-            if( uxReadTimeOut_ticks == 0 )
+            if( uxReadTimeOut_ticks == 0U )
             {
                 ulIPAddress = prvGetHostByNameOp( pcHostName,
                                                   uxIdentifier,
