@@ -718,7 +718,10 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
         {
             static StaticQueue_t xNetworkEventStaticQueue;
             static uint8_t ucNetworkEventQueueStorageArea[ ipconfigEVENT_QUEUE_LENGTH * sizeof( IPStackEvent_t ) ];
-            xNetworkEventQueue = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ), ucNetworkEventQueueStorageArea, &xNetworkEventStaticQueue );
+            xNetworkEventQueue = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
+                                                     sizeof( IPStackEvent_t ),
+                                                     ucNetworkEventQueueStorageArea,
+                                                     &xNetworkEventStaticQueue );
         }
     #else
         {
