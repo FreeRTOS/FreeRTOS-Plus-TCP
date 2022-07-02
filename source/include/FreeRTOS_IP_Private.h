@@ -610,7 +610,7 @@ BaseType_t xIPIsNetworkTaskReady( void );
         uint8_t ucRepCount;            /**< Send repeat count, for retransmissions
                                         * This counter is separate from the xmitCount in the
                                         * TCP win segments */
-        eIPTCPState_t ucTCPState;      /**< TCP state: see eTCP_STATE */
+        eIPTCPState_t eTCPState;       /**< TCP state: see eTCP_STATE */
         struct xSOCKET * pxPeerSocket; /**< for server socket: child, for child socket: parent */
         #if ( ipconfigTCP_KEEP_ALIVE == 1 )
             uint8_t ucKeepRepCount;

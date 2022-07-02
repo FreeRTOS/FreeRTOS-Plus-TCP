@@ -1668,7 +1668,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
         FreeRTOS_Socket_t * pxOtherSocket;
         uint16_t usLocalPort = pxSocketToDelete->usLocalPort;
 
-        if( pxSocketToDelete->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN )
+        if( pxSocketToDelete->u.xTCP.eTCPState == eTCP_LISTEN )
         {
             pxIterator = listGET_NEXT( pxEnd );
 
@@ -1679,7 +1679,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                 /* This needs to be done here, before calling vSocketClose. */
                 pxIterator = listGET_NEXT( pxIterator );
 
-                if( ( pxOtherSocket->u.xTCP.ucTCPState != ( uint8_t ) eTCP_LISTEN ) &&
+                if( ( pxOtherSocket->u.xTCP.eTCPState != eTCP_LISTEN ) &&
                     ( pxOtherSocket->usLocalPort == usLocalPort ) &&
                     ( ( pxOtherSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
                       ( pxOtherSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) ) )
@@ -1698,7 +1698,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
             {
                 pxOtherSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
-                if( ( pxOtherSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN ) &&
+                if( ( pxOtherSocket->u.xTCP.eTCPState == eTCP_LISTEN ) &&
                     ( pxOtherSocket->usLocalPort == usLocalPort ) &&
                     ( pxOtherSocket->u.xTCP.usChildCount != 0U ) )
                 {
@@ -2089,7 +2089,6 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                            {
                                break; /* will return -pdFREERTOS_ERRNO_EINVAL */
                            }
-
                            if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
                            {
                                pxSocket->u.xTCP.bits.bCloseAfterSend = pdTRUE;
@@ -2118,12 +2117,12 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                                pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize = pdFALSE;
                            }
 
-                           if( ( pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize == pdFALSE_UNSIGNED ) &&
-                               ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) &&
-                               ( FreeRTOS_outstanding( pxSocket ) > 0 ) )
-                           {
-                               pxSocket->u.xTCP.usTimeout = 1U; /* to set/clear bSendFullSize */
-                               ( void ) xSendEventToIPTask( eTCPTimerEvent );
+                            if( ( pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize == pdFALSE_UNSIGNED ) &&
+                           ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) &&
+                           ( FreeRTOS_outstanding( pxSocket ) > 0 ) )
+                            {
+                                pxSocket->u.xTCP.usTimeout = 1U; /* to set/clear bSendFullSize */
+                                ( void ) xSendEventToIPTask( eTCPTimerEvent );
                            }
                        }
                         xReturn = 0;
@@ -2953,7 +2952,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     {
         BaseType_t xResult;
 
-        eIPTCPState_t eState = pxSocket->u.xTCP.ucTCPState;
+        eIPTCPState_t eState = pxSocket->u.xTCP.eTCPState;
 
         switch( eState )
         {
@@ -3187,7 +3186,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
         else if( ( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED ) &&
-                 ( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eTCP_LISTEN ) )
+                 ( pxSocket->u.xTCP.eTCPState != eTCP_LISTEN ) )
         {
             /* Parent socket is not in listening mode */
 
@@ -3355,7 +3354,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             while( xByteCount == 0 )
             {
-                eIPTCPState_t eState = pxSocket->u.xTCP.ucTCPState;
+                eIPTCPState_t eState = pxSocket->u.xTCP.eTCPState;
 
                 switch( eState )
                 {
@@ -3544,9 +3543,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             xResult = -pdFREERTOS_ERRNO_ENOMEM;
         }
-        else if( ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCLOSED ) ||
-                 ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCLOSE_WAIT ) ||
-                 ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCLOSING ) )
+        else if( ( pxSocket->u.xTCP.eTCPState == eCLOSED ) ||
+                 ( pxSocket->u.xTCP.eTCPState == eCLOSE_WAIT ) ||
+                 ( pxSocket->u.xTCP.eTCPState == eCLOSING ) )
         {
             xResult = -pdFREERTOS_ERRNO_ENOTCONN;
         }
@@ -3807,7 +3806,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             if( xByteCount == 0 )
             {
-                if( pxSocket->u.xTCP.ucTCPState > ( uint8_t ) eESTABLISHED )
+                if( pxSocket->u.xTCP.eTCPState > eESTABLISHED )
                 {
                     xByteCount = ( BaseType_t ) -pdFREERTOS_ERRNO_ENOTCONN;
                 }
@@ -3858,7 +3857,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             xResult = -pdFREERTOS_ERRNO_EOPNOTSUPP;
         }
-        else if( ( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eCLOSED ) && ( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eCLOSE_WAIT ) )
+        else if( ( pxSocket->u.xTCP.eTCPState != eCLOSED ) && ( pxSocket->u.xTCP.eTCPState != eCLOSE_WAIT ) )
         {
             /* Socket is in a wrong state. */
             xResult = -pdFREERTOS_ERRNO_EOPNOTSUPP;
@@ -3927,7 +3926,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
              * supports the listen() operation. */
             xResult = -pdFREERTOS_ERRNO_EOPNOTSUPP;
         }
-        else if( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eESTABLISHED )
+        else if( pxSocket->u.xTCP.eTCPState != eESTABLISHED )
         {
             /* The socket is not connected. */
             xResult = -pdFREERTOS_ERRNO_ENOTCONN;
@@ -4093,7 +4092,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             if( pxSocket->usLocalPort == ( uint16_t ) uxLocalPort )
             {
-                if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN )
+                if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN )
                 {
                     /* If this is a socket listening to uxLocalPort, remember it
                      * in case there is no perfect match. */
@@ -4472,9 +4471,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             xResult = -pdFREERTOS_ERRNO_EINVAL;
         }
-        else if( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eESTABLISHED )
+        else if( pxSocket->u.xTCP.eTCPState != eESTABLISHED )
         {
-            if( ( pxSocket->u.xTCP.ucTCPState < ( uint8_t ) eCONNECT_SYN ) || ( pxSocket->u.xTCP.ucTCPState > ( EventBits_t ) eESTABLISHED ) )
+            if( ( pxSocket->u.xTCP.eTCPState < eCONNECT_SYN ) || ( pxSocket->u.xTCP.eTCPState > eESTABLISHED ) )
             {
                 xResult = -1;
             }
@@ -4595,9 +4594,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         }
         else
         {
-            if( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED )
+            if( pxSocket->u.xTCP.eTCPState >= eESTABLISHED )
             {
-                if( pxSocket->u.xTCP.ucTCPState < ( uint8_t ) eCLOSE_WAIT )
+                if( pxSocket->u.xTCP.eTCPState < eCLOSE_WAIT )
                 {
                     xReturn = pdTRUE;
                 }
@@ -4668,7 +4667,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         else
         {
             /* Cast it to BaseType_t. */
-            xReturn = ( BaseType_t ) ( pxSocket->u.xTCP.ucTCPState );
+            xReturn = ( BaseType_t ) ( pxSocket->u.xTCP.eTCPState );
         }
 
         return xReturn;
@@ -4825,7 +4824,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 
                 char ucChildText[ 16 ] = "";
 
-                if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN )
+                if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN )
                 {
                     /* Using function "snprintf". */
                     const int32_t copied_len = snprintf( ucChildText, sizeof( ucChildText ), " %d/%d",
@@ -4843,7 +4842,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
                                    pxSocket->u.xTCP.usRemotePort,            /* Port on remote machine */
                                    ( pxSocket->u.xTCP.rxStream != NULL ) ? 1 : 0,
                                    ( pxSocket->u.xTCP.txStream != NULL ) ? 1 : 0,
-                                   FreeRTOS_GetTCPStateName( pxSocket->u.xTCP.ucTCPState ),
+                                   FreeRTOS_GetTCPStateName( pxSocket->u.xTCP.eTCPState ),
                                    ( unsigned ) ( ( age > 999999U ) ? 999999U : age ), /* Format 'age' for printing */
                                    pxSocket->u.xTCP.usTimeout,
                                    ucChildText ) );
@@ -4951,7 +4950,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
                         /* Is the set owner interested in READ events? */
                         if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_READ ) != ( EventBits_t ) 0U )
                         {
-                            if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN )
+                            if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN )
                             {
                                 if( ( pxSocket->u.xTCP.pxPeerSocket != NULL ) && ( pxSocket->u.xTCP.pxPeerSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
                                 {
@@ -4977,7 +4976,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
                         /* Is the set owner interested in EXCEPTION events? */
                         if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_EXCEPT ) != 0U )
                         {
-                            if( ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCLOSE_WAIT ) || ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCLOSED ) )
+                            if( ( pxSocket->u.xTCP.eTCPState == eCLOSE_WAIT ) || ( pxSocket->u.xTCP.eTCPState == eCLOSED ) )
                             {
                                 xSocketBits |= ( EventBits_t ) eSELECT_EXCEPT;
                             }
@@ -4999,7 +4998,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
                             if( bMatch == pdFALSE )
                             {
                                 if( ( pxSocket->u.xTCP.bits.bConnPrepared != pdFALSE_UNSIGNED ) &&
-                                    ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) &&
+                                    ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) &&
                                     ( pxSocket->u.xTCP.bits.bConnPassed == pdFALSE_UNSIGNED ) )
                                 {
                                     pxSocket->u.xTCP.bits.bConnPassed = pdTRUE;

@@ -143,19 +143,19 @@ void test_prvTCPSocketIsActive( void )
 
         pxSocket = &xSocket;
 
-        pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+        pxSocket->u.xTCP.eTCPState = eESTABLISHED;
         xResult = prvTCPStatusAgeCheck( pxSocket );
         TEST_ASSERT_EQUAL( pdFALSE, xResult );
 
-        pxSocket->u.xTCP.ucTCPState = eCLOSED;
+        pxSocket->u.xTCP.eTCPState = eCLOSED;
         xResult = prvTCPStatusAgeCheck( pxSocket );
         TEST_ASSERT_EQUAL( pdFALSE, xResult );
 
-        pxSocket->u.xTCP.ucTCPState = eTCP_LISTEN;
+        pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
         xResult = prvTCPStatusAgeCheck( pxSocket );
         TEST_ASSERT_EQUAL( pdFALSE, xResult );
 
-        pxSocket->u.xTCP.ucTCPState = eCLOSE_WAIT;
+        pxSocket->u.xTCP.eTCPState = eCLOSE_WAIT;
         xResult = prvTCPStatusAgeCheck( pxSocket );
         TEST_ASSERT_EQUAL( pdFALSE, xResult );
     }
@@ -167,7 +167,7 @@ void test_prvTCPSocketIsActive( void )
 
         pxSocket = &xSocket;
 
-        pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+        pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
         pxSocket->u.xTCP.xLastAliveTime = 1000;
 
         xTaskGetTickCount_ExpectAndReturn( 2000 );
@@ -182,7 +182,7 @@ void test_prvTCPSocketIsActive( void )
 
         pxSocket = &xSocket;
 
-        pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+        pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
         pxSocket->u.xTCP.xLastAliveTime = 1000;
 
         xTaskGetTickCount_ExpectAndReturn( 32000 );
@@ -198,7 +198,7 @@ void test_prvTCPSocketIsActive( void )
 
         pxSocket = &xSocket;
 
-        pxSocket->u.xTCP.ucTCPState = eSYN_FIRST;
+        pxSocket->u.xTCP.eTCPState = eSYN_FIRST;
         pxSocket->u.xTCP.xLastAliveTime = 1000;
         pxSocket->u.xTCP.bits.bPassQueued = pdTRUE;
 
@@ -351,7 +351,7 @@ void test_prvHandleSynReceived_Exp_SYN_State_ConnectSyn( void )
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_SYN | tcpTCP_FLAG_ACK;
     pxTCPHeader->ulSequenceNumber = 0;
 
@@ -380,7 +380,7 @@ void test_prvHandleSynReceived_Not_Exp_SYN_State_ConnectSyn( void )
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
     pxTCPHeader->ulAckNr = 1;
     pxTCPHeader->ulSequenceNumber = 0;
@@ -409,7 +409,7 @@ void test_prvHandleSynReceived_Not_Exp_SYN_State_Synreceived( void )
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.ucTCPState = eSYN_RECEIVED;
+    pxSocket->u.xTCP.eTCPState = eSYN_RECEIVED;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_SYN;
     pxTCPHeader->ulAckNr = 1;
     pxTCPHeader->ulSequenceNumber = 0;
@@ -438,7 +438,7 @@ void test_prvHandleSynReceived_Exp_ACK_State_Synreceived_Zero_Data( void )
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.ucTCPState = eSYN_RECEIVED;
+    pxSocket->u.xTCP.eTCPState = eSYN_RECEIVED;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
     pxTCPHeader->ulSequenceNumber = 0;
 
@@ -467,7 +467,7 @@ void test_prvHandleSynReceived_Exp_ACK_State_Synreceived_Non_Zero_Data_WinScalin
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.ucTCPState = eSYN_RECEIVED;
+    pxSocket->u.xTCP.eTCPState = eSYN_RECEIVED;
     pxSocket->u.xTCP.bits.bWinScaling = pdTRUE;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
     pxTCPHeader->ulSequenceNumber = 0;
@@ -907,7 +907,7 @@ void test_prvTCPHandleState_Closed_malloc_failure( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
-    pxSocket->u.xTCP.ucTCPState = eCLOSED;
+    pxSocket->u.xTCP.eTCPState = eCLOSED;
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
@@ -942,7 +942,7 @@ void test_prvTCPHandleState_Closed( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
-    pxSocket->u.xTCP.ucTCPState = eCLOSED;
+    pxSocket->u.xTCP.eTCPState = eCLOSED;
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
@@ -978,7 +978,7 @@ void test_prvTCPHandleState_TCP_Listen( void )
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.ucTCPState = eTCP_LISTEN;
+    pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
@@ -1015,7 +1015,7 @@ void test_prvTCPHandleState_SYN_First( void )
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.ucTCPState = eSYN_FIRST;
+    pxSocket->u.xTCP.eTCPState = eSYN_FIRST;
     pxTCPHeader->ucTCPFlags = 0;
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
@@ -1057,7 +1057,7 @@ void test_prvTCPHandleState_Connect_Syn( void )
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
@@ -1096,7 +1096,7 @@ void test_prvTCPHandleState_Syn_Received( void )
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.ucTCPState = eSYN_RECEIVED;
+    pxSocket->u.xTCP.eTCPState = eSYN_RECEIVED;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_SYN;
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
@@ -1136,7 +1136,7 @@ void test_prvTCPHandleState_Syn_Received_Flag_Not_Syn( void )
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.ucTCPState = eSYN_RECEIVED;
+    pxSocket->u.xTCP.eTCPState = eSYN_RECEIVED;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
@@ -1175,7 +1175,7 @@ void test_prvTCPHandleState_Established_Data_Ack( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.txStream = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
@@ -1216,7 +1216,7 @@ void test_prvTCPHandleState_Established_First_Fin_From_Peer( void )
 
     ulCalled = 0;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.txStream = 0x12345678;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
@@ -1265,7 +1265,7 @@ void test_prvTCPHandleState_Last_Ack( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
-    pxSocket->u.xTCP.ucTCPState = eLAST_ACK;
+    pxSocket->u.xTCP.eTCPState = eLAST_ACK;
     pxSocket->u.xTCP.txStream = 0x12345678;
     pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
@@ -1308,7 +1308,7 @@ void test_prvTCPHandleState_Fin_Wait_1_Fin_From_Peer( void )
 
     ulCalled = 0;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
-    pxSocket->u.xTCP.ucTCPState = eFIN_WAIT_1;
+    pxSocket->u.xTCP.eTCPState = eFIN_WAIT_1;
     pxSocket->u.xTCP.txStream = 0x12345678;
     pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
@@ -1352,7 +1352,7 @@ void test_prvTCPHandleState_Close_Wait( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
-    pxSocket->u.xTCP.ucTCPState = eCLOSE_WAIT;
+    pxSocket->u.xTCP.eTCPState = eCLOSE_WAIT;
     pxSocket->u.xTCP.txStream = 0x12345678;
     pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
@@ -1391,7 +1391,7 @@ void test_prvTCPHandleState_Closing_Keep_Alive( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
-    pxSocket->u.xTCP.ucTCPState = eCLOSING;
+    pxSocket->u.xTCP.eTCPState = eCLOSING;
     pxSocket->u.xTCP.txStream = 0x12345678;
     pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
@@ -1430,7 +1430,7 @@ void test_prvTCPHandleState_Time_Wait( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
-    pxSocket->u.xTCP.ucTCPState = eTIME_WAIT;
+    pxSocket->u.xTCP.eTCPState = eTIME_WAIT;
     pxSocket->u.xTCP.txStream = 0x12345678;
     pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdTRUE;
@@ -1468,7 +1468,7 @@ void test_prvTCPHandleState_State_Unknown( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
-    pxSocket->u.xTCP.ucTCPState = 12;
+    pxSocket->u.xTCP.eTCPState = 12;
     pxSocket->u.xTCP.txStream = 0x12345678;
     pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
     pxSocket->u.xTCP.bits.bFinAccepted = pdTRUE;

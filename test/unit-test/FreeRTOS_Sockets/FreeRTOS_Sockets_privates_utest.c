@@ -116,7 +116,7 @@ static BaseType_t xStubForEventGroupWaitBits( EventGroupHandle_t xEventGroup,
                                               TickType_t xTicksToWait,
                                               int CallbackCount )
 {
-    xGlobalSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xGlobalSocket.u.xTCP.eTCPState = eESTABLISHED;
 }
 
 static BaseType_t xLocalReceiveCallback( Socket_t xSocket,
@@ -1018,7 +1018,7 @@ void test_prvTCPSetSocketCount_ListeningSocketNoChildren( void )
     memset( &xSocketToDelete, 0, sizeof( xSocketToDelete ) );
 
     xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
-    xSocketToDelete.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocketToDelete.u.xTCP.eTCPState = eTCP_LISTEN;
 
     listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &( xBoundTCPSocketsList.xListEnd ) );
 
@@ -1037,9 +1037,9 @@ void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren1( void )
     memset( &xChildSocket, 0, sizeof( xChildSocket ) );
 
     xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
-    xSocketToDelete.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocketToDelete.u.xTCP.eTCPState = eTCP_LISTEN;
 
-    xChildSocket.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xChildSocket.u.xTCP.eTCPState = eTCP_LISTEN;
 
     listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
 
@@ -1063,10 +1063,10 @@ void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren2( void )
     memset( &xChildSocket, 0, sizeof( xChildSocket ) );
 
     xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
-    xSocketToDelete.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocketToDelete.u.xTCP.eTCPState = eTCP_LISTEN;
     xSocketToDelete.usLocalPort = usLocalPort;
 
-    xChildSocket.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN + 1;
+    xChildSocket.u.xTCP.eTCPState = eTCP_LISTEN + 1;
     xChildSocket.usLocalPort = usLocalPort + 1;
 
     listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
@@ -1091,10 +1091,10 @@ void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren3( void )
     memset( &xChildSocket, 0, sizeof( xChildSocket ) );
 
     xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
-    xSocketToDelete.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocketToDelete.u.xTCP.eTCPState = eTCP_LISTEN;
     xSocketToDelete.usLocalPort = usLocalPort;
 
-    xChildSocket.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN + 1;
+    xChildSocket.u.xTCP.eTCPState = eTCP_LISTEN + 1;
     xChildSocket.usLocalPort = usLocalPort;
     xChildSocket.u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
     xChildSocket.u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
@@ -1121,10 +1121,10 @@ void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren4( void )
     memset( &xChildSocket, 0, sizeof( xChildSocket ) );
 
     xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
-    xSocketToDelete.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocketToDelete.u.xTCP.eTCPState = eTCP_LISTEN;
     xSocketToDelete.usLocalPort = usLocalPort;
 
-    xChildSocket.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN + 1;
+    xChildSocket.u.xTCP.eTCPState = eTCP_LISTEN + 1;
     xChildSocket.usLocalPort = usLocalPort;
     xChildSocket.u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
     xChildSocket.u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
@@ -1151,10 +1151,10 @@ void test_prvTCPSetSocketCount_ListeningSock_HappyPath1( void )
     memset( &xChildSocket, 0, sizeof( xChildSocket ) );
 
     xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
-    xSocketToDelete.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocketToDelete.u.xTCP.eTCPState = eTCP_LISTEN;
     xSocketToDelete.usLocalPort = usLocalPort;
 
-    xChildSocket.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN + 1;
+    xChildSocket.u.xTCP.eTCPState = eTCP_LISTEN + 1;
     xChildSocket.usLocalPort = usLocalPort;
     xChildSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
     xChildSocket.u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
@@ -1192,10 +1192,10 @@ void test_prvTCPSetSocketCount_ListeningSock_HappyPath2( void )
     memset( &xChildSocket, 0, sizeof( xChildSocket ) );
 
     xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
-    xSocketToDelete.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocketToDelete.u.xTCP.eTCPState = eTCP_LISTEN;
     xSocketToDelete.usLocalPort = usLocalPort;
 
-    xChildSocket.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN + 1;
+    xChildSocket.u.xTCP.eTCPState = eTCP_LISTEN + 1;
     xChildSocket.usLocalPort = usLocalPort;
     xChildSocket.u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
     xChildSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
@@ -1233,10 +1233,10 @@ void test_prvTCPSetSocketCount_ListeningSock_HappyPath3( void )
     memset( &xChildSocket, 0, sizeof( xChildSocket ) );
 
     xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
-    xSocketToDelete.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocketToDelete.u.xTCP.eTCPState = eTCP_LISTEN;
     xSocketToDelete.usLocalPort = usLocalPort;
 
-    xChildSocket.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN + 1;
+    xChildSocket.u.xTCP.eTCPState = eTCP_LISTEN + 1;
     xChildSocket.usLocalPort = usLocalPort;
     xChildSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
     xChildSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
@@ -1274,10 +1274,10 @@ void test_prvTCPSetSocketCount_NotListeningSock_1( void )
     memset( &xChildSocket, 0, sizeof( xChildSocket ) );
 
     xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
-    xSocketToDelete.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN + 1;
+    xSocketToDelete.u.xTCP.eTCPState = eTCP_LISTEN + 1;
     xSocketToDelete.usLocalPort = usLocalPort;
 
-    xChildSocket.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN + 1;
+    xChildSocket.u.xTCP.eTCPState = eTCP_LISTEN + 1;
     xChildSocket.u.xTCP.usChildCount = 100;
 
     listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
@@ -1304,10 +1304,10 @@ void test_prvTCPSetSocketCount_NotListeningSock_2( void )
     memset( &xChildSocket, 0, sizeof( xChildSocket ) );
 
     xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
-    xSocketToDelete.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN + 1;
+    xSocketToDelete.u.xTCP.eTCPState = eTCP_LISTEN + 1;
     xSocketToDelete.usLocalPort = usLocalPort;
 
-    xChildSocket.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xChildSocket.u.xTCP.eTCPState = eTCP_LISTEN;
     xChildSocket.usLocalPort = usLocalPort + 1;
     xChildSocket.u.xTCP.usChildCount = 100;
 
@@ -1335,10 +1335,10 @@ void test_prvTCPSetSocketCount_NotListeningSock_3( void )
     memset( &xChildSocket, 0, sizeof( xChildSocket ) );
 
     xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
-    xSocketToDelete.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN + 1;
+    xSocketToDelete.u.xTCP.eTCPState = eTCP_LISTEN + 1;
     xSocketToDelete.usLocalPort = usLocalPort;
 
-    xChildSocket.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xChildSocket.u.xTCP.eTCPState = eTCP_LISTEN;
     xChildSocket.usLocalPort = usLocalPort;
     xChildSocket.u.xTCP.usChildCount = 0;
 
@@ -1366,10 +1366,10 @@ void test_prvTCPSetSocketCount_NotListeningSock_HappyPath( void )
     memset( &xChildSocket, 0, sizeof( xChildSocket ) );
 
     xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
-    xSocketToDelete.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN + 1;
+    xSocketToDelete.u.xTCP.eTCPState = eTCP_LISTEN + 1;
     xSocketToDelete.usLocalPort = usLocalPort;
 
-    xChildSocket.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xChildSocket.u.xTCP.eTCPState = eTCP_LISTEN;
     xChildSocket.usLocalPort = usLocalPort;
     xChildSocket.u.xTCP.usChildCount = 100;
 
@@ -1924,51 +1924,51 @@ void test_bMayConnect( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xSocket.u.xTCP.ucTCPState = eCLOSED;
+    xSocket.u.xTCP.eTCPState = eCLOSED;
     xReturn = bMayConnect( &xSocket );
     TEST_ASSERT_EQUAL( 0, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eCLOSE_WAIT;
+    xSocket.u.xTCP.eTCPState = eCLOSE_WAIT;
     xReturn = bMayConnect( &xSocket );
     TEST_ASSERT_EQUAL( 0, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eCONNECT_SYN;
+    xSocket.u.xTCP.eTCPState = eCONNECT_SYN;
     xReturn = bMayConnect( &xSocket );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINPROGRESS, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eTCP_LISTEN;
+    xSocket.u.xTCP.eTCPState = eTCP_LISTEN;
     xReturn = bMayConnect( &xSocket );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EAGAIN, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eSYN_FIRST;
+    xSocket.u.xTCP.eTCPState = eSYN_FIRST;
     xReturn = bMayConnect( &xSocket );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EAGAIN, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eSYN_RECEIVED;
+    xSocket.u.xTCP.eTCPState = eSYN_RECEIVED;
     xReturn = bMayConnect( &xSocket );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EAGAIN, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xReturn = bMayConnect( &xSocket );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EAGAIN, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eFIN_WAIT_1;
+    xSocket.u.xTCP.eTCPState = eFIN_WAIT_1;
     xReturn = bMayConnect( &xSocket );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EAGAIN, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eFIN_WAIT_2;
+    xSocket.u.xTCP.eTCPState = eFIN_WAIT_2;
     xReturn = bMayConnect( &xSocket );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EAGAIN, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eCLOSING;
+    xSocket.u.xTCP.eTCPState = eCLOSING;
     xReturn = bMayConnect( &xSocket );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EAGAIN, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eLAST_ACK;
+    xSocket.u.xTCP.eTCPState = eLAST_ACK;
     xReturn = bMayConnect( &xSocket );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EAGAIN, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eTIME_WAIT;
+    xSocket.u.xTCP.eTCPState = eTIME_WAIT;
     xReturn = bMayConnect( &xSocket );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EAGAIN, xReturn );
 }
@@ -2020,7 +2020,7 @@ void test_prvTCPConnectStart_SocketAlreadyConnected( void )
     memset( &xAddress, 0, sizeof( xAddress ) );
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
 
     xReturn = prvTCPConnectStart( &xSocket, &xAddress );
 
@@ -2110,7 +2110,7 @@ void test_prvTCPConnectStart_SocketNotBound_Failure2( void )
     memset( &xAddress, 0, sizeof( xAddress ) );
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.u.xTCP.ucTCPState = eCONNECT_SYN;
+    xSocket.u.xTCP.eTCPState = eCONNECT_SYN;
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
 
@@ -2142,7 +2142,7 @@ void test_prvTCPConnectStart_SocketBound_Failure( void )
     memset( &xAddress, 0, sizeof( xAddress ) );
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.u.xTCP.ucTCPState = eCONNECT_SYN;
+    xSocket.u.xTCP.eTCPState = eCONNECT_SYN;
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), &xBoundTCPSocketsList );
 
@@ -2189,21 +2189,21 @@ void test_prvTCPSendCheck_InvalidValues( void )
 
     for( int i = 0; i < sizeof( array ); i++ )
     {
-        xSocket.u.xTCP.ucTCPState = array[ i ];
+        xSocket.u.xTCP.eTCPState = array[ i ];
         listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
         lReturn = prvTCPSendCheck( &xSocket, uxDataLength );
         TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOTCONN, lReturn );
     }
 
     /* Closing connection. */
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.bits.bFinSent = pdTRUE_UNSIGNED;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
     lReturn = prvTCPSendCheck( &xSocket, uxDataLength );
     TEST_ASSERT_EQUAL( 0, lReturn );
 
     /* 0 data length. */
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.bits.bFinSent = pdFALSE_UNSIGNED;
     uxDataLength = 0;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
@@ -2211,7 +2211,7 @@ void test_prvTCPSendCheck_InvalidValues( void )
     TEST_ASSERT_EQUAL( 0, lReturn );
 
     /* Could not allocate a stream. */
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.bits.bFinSent = pdFALSE_UNSIGNED;
     uxDataLength = 10;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
@@ -2223,7 +2223,7 @@ void test_prvTCPSendCheck_InvalidValues( void )
     /* Allocate a stream. */
     memset( &xSocket, 0, sizeof( xSocket ) );
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.bits.bFinSent = pdFALSE_UNSIGNED;
     uxDataLength = 10;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
@@ -2237,7 +2237,7 @@ void test_prvTCPSendCheck_InvalidValues( void )
     /* Already allocated a stream. */
     memset( &xSocket, 0, sizeof( xSocket ) );
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.bits.bFinSent = pdFALSE_UNSIGNED;
     xSocket.u.xTCP.txStream = &xLocalStreamBuffer;
     uxDataLength = 10;
@@ -2574,7 +2574,7 @@ void test_pxTCPSocketLookup_FoundAPartialMatch( void )
     xMatchingSocket.usLocalPort = uxLocalPort;
     xMatchingSocket.u.xTCP.usRemotePort = uxRemotePort + 1;
     xMatchingSocket.u.xTCP.ulRemoteIP = ulRemoteIP;
-    xMatchingSocket.u.xTCP.ucTCPState = eTCP_LISTEN;
+    xMatchingSocket.u.xTCP.eTCPState = eTCP_LISTEN;
 
     /* First iteration, no match. */
     listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );

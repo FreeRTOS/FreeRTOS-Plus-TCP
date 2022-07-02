@@ -117,7 +117,7 @@
         UBaseType_t uxOptionsLength, uxIntermediateResult = 0;
         NetworkBufferDescriptor_t * pxNetworkBuffer;
 
-        if( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eCONNECT_SYN )
+        if( pxSocket->u.xTCP.eTCPState != eCONNECT_SYN )
         {
             /* The connection is in a state other than SYN. */
             pxNetworkBuffer = NULL;
@@ -1070,7 +1070,7 @@
             }
         }
 
-        if( ( lDataLen >= 0 ) && ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eESTABLISHED ) )
+        if( ( lDataLen >= 0 ) && ( pxSocket->u.xTCP.eTCPState == eESTABLISHED ) )
         {
             /* See if the socket owner wants to shutdown this connection. */
             if( ( pxSocket->u.xTCP.bits.bUserShutdown != pdFALSE_UNSIGNED ) &&
@@ -1255,7 +1255,7 @@
             else
         #endif /* ipconfigUSE_TCP_WIN */
 
-        if( ( pxSocket->u.xTCP.ucTCPState >= ( EventBits_t ) eESTABLISHED ) && ( pxSocket->u.xTCP.bits.bMssChange != pdFALSE_UNSIGNED ) )
+        if( ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) && ( pxSocket->u.xTCP.bits.bMssChange != pdFALSE_UNSIGNED ) )
         {
             /* TCP options must be sent because the MSS has changed. */
             pxSocket->u.xTCP.bits.bMssChange = pdFALSE_UNSIGNED;
@@ -1333,12 +1333,12 @@
                 /* In case we're receiving data continuously, we might postpone sending
                  * an ACK to gain performance. */
                 /* lint e9007 is OK because 'uxIPHeaderSizeSocket()' has no side-effects. */
-                if( ( ulReceiveLength > 0U ) &&                                    /* Data was sent to this socket. */
-                    ( lRxSpace >= lMinLength ) &&                                  /* There is Rx space for more data. */
-                    ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) &&      /* Not in a closure phase. */
-                    ( xSendLength == xSizeWithoutData ) &&                         /* No Tx data or options to be sent. */
-                    ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eESTABLISHED ) && /* Connection established. */
-                    ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )               /* There are no other flags than an ACK. */
+                if( ( ulReceiveLength > 0U ) &&                               /* Data was sent to this socket. */
+                    ( lRxSpace >= lMinLength ) &&                             /* There is Rx space for more data. */
+                    ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) && /* Not in a closure phase. */
+                    ( xSendLength == xSizeWithoutData ) &&                    /* No Tx data or options to be sent. */
+                    ( pxSocket->u.xTCP.eTCPState == eESTABLISHED ) &&         /* Connection established. */
+                    ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )          /* There are no other flags than an ACK. */
                 {
                     uint32_t ulCurMSS = ( uint32_t ) pxSocket->u.xTCP.usMSS;
 

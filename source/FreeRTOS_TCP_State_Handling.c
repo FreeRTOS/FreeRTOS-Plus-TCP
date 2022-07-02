@@ -148,7 +148,7 @@
         {
             BaseType_t xResult;
 
-            eIPTCPState_t eState = pxSocket->u.xTCP.ucTCPState;
+            eIPTCPState_t eState = pxSocket->u.xTCP.eTCPState;
 
             switch( eState )
             {
@@ -197,7 +197,7 @@
                                                      pxSocket->usLocalPort,
                                                      ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
                                                      pxSocket->u.xTCP.usRemotePort,
-                                                     FreeRTOS_GetTCPStateName( ( UBaseType_t ) pxSocket->u.xTCP.ucTCPState ) ) );
+                                                     FreeRTOS_GetTCPStateName( ( UBaseType_t ) pxSocket->u.xTCP.eTCPState ) ) );
                         }
                     #endif /* ipconfigHAS_DEBUG_PRINTF */
 
@@ -371,7 +371,7 @@
         uint8_t ucExpect = tcpTCP_FLAG_ACK;
         const uint8_t ucFlagsMask = tcpTCP_FLAG_ACK | tcpTCP_FLAG_RST | tcpTCP_FLAG_SYN | tcpTCP_FLAG_FIN;
 
-        if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCONNECT_SYN )
+        if( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eCONNECT_SYN )
         {
             ucExpect |= tcpTCP_FLAG_SYN;
         }
@@ -381,7 +381,7 @@
             /* eSYN_RECEIVED: flags 0010 expected, not 0002. */
             /* eSYN_RECEIVED: flags ACK  expected, not SYN. */
             FreeRTOS_debug_printf( ( "%s: flags %04X expected, not %04X\n",
-                                     ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eSYN_RECEIVED ) ? "eSYN_RECEIVED" : "eCONNECT_SYN",
+                                     ( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eSYN_RECEIVED ) ? "eSYN_RECEIVED" : "eCONNECT_SYN",
                                      ucExpect, ucTCPFlags ) );
 
             /* In case pxSocket is not yet owned by the application, a closure
@@ -405,7 +405,7 @@
             pxTCPWindow->usPeerPortNumber = pxSocket->u.xTCP.usRemotePort;
             pxTCPWindow->usOurPortNumber = pxSocket->usLocalPort;
 
-            if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCONNECT_SYN )
+            if( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eCONNECT_SYN )
             {
                 /* Map the Last packet onto the ProtocolHeader_t struct for easy access to the fields. */
 
@@ -444,7 +444,7 @@
             #if ( ipconfigUSE_TCP_WIN == 1 )
                 {
                     FreeRTOS_debug_printf( ( "TCP: %s %u => %xip:%u set ESTAB (scaling %u)\n",
-                                             ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCONNECT_SYN ) ? "active" : "passive",
+                                             ( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eCONNECT_SYN ) ? "active" : "passive",
                                              pxSocket->usLocalPort,
                                              ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
                                              pxSocket->u.xTCP.usRemotePort,
@@ -452,7 +452,7 @@
                 }
             #endif /* ipconfigUSE_TCP_WIN */
 
-            if( ( pxSocket->u.xTCP.ucTCPState == ( EventBits_t ) eCONNECT_SYN ) || ( ulReceiveLength != 0U ) )
+            if( ( pxSocket->u.xTCP.eTCPState == ( EventBits_t ) eCONNECT_SYN ) || ( ulReceiveLength != 0U ) )
             {
                 pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
 
@@ -735,7 +735,7 @@
          * pucRecvData will point to the first byte of the TCP payload. */
         ulReceiveLength = ( uint32_t ) prvCheckRxData( *ppxNetworkBuffer, &pucRecvData );
 
-        if( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED )
+        if( pxSocket->u.xTCP.eTCPState >= ( uint8_t ) eESTABLISHED )
         {
             if( pxTCPWindow->rx.ulCurrentSequenceNumber == ( ulSequenceNumber + 1U ) )
             {
@@ -766,7 +766,7 @@
 
             uxOptionsLength = prvSetOptions( pxSocket, *ppxNetworkBuffer );
 
-            if( ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eSYN_RECEIVED ) && ( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_CTRL ) == ( uint8_t ) tcpTCP_FLAG_SYN ) )
+            if( ( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eSYN_RECEIVED ) && ( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_CTRL ) == ( uint8_t ) tcpTCP_FLAG_SYN ) )
             {
                 FreeRTOS_debug_printf( ( "eSYN_RECEIVED: ACK expected, not SYN: peer missed our SYN+ACK\n" ) );
 
@@ -792,7 +792,7 @@
                 }
             }
 
-            eState = ( eIPTCPState_t ) pxSocket->u.xTCP.ucTCPState;
+            eState = ( eIPTCPState_t ) pxSocket->u.xTCP.eTCPState;
 
             switch( eState )
             {
