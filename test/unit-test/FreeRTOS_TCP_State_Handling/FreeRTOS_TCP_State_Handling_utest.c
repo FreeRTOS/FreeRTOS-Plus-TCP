@@ -84,7 +84,7 @@ void test_prvTCPSocketIsActive( void )
     BaseType_t xResult;
 
     /* Setup TCP option for tests */
-    uint8_t Status;
+    eIPTCPState_t Status;
 
     Status = eCLOSED;
     xResult = prvTCPSocketIsActive( Status );

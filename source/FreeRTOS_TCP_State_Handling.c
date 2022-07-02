@@ -99,11 +99,9 @@
  * @return pdTRUE if the socket must be checked. Non-active sockets
  *         are waiting for user action, either connect() or close().
  */
-    BaseType_t prvTCPSocketIsActive( uint8_t ucStatus )
+    BaseType_t prvTCPSocketIsActive( eIPTCPState_t eStatus )
     {
         BaseType_t xResult;
-        /* coverity[misra_c_2012_rule_10_5_violation] */
-        eIPTCPState_t eStatus = ( eIPTCPState_t ) ucStatus;
 
         switch( eStatus )
         {
@@ -150,8 +148,7 @@
         {
             BaseType_t xResult;
 
-            /* coverity[misra_c_2012_rule_10_5_violation] */
-            eIPTCPState_t eState = ( eIPTCPState_t ) pxSocket->u.xTCP.ucTCPState;
+            eIPTCPState_t eState = pxSocket->u.xTCP.ucTCPState;
 
             switch( eState )
             {
