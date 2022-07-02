@@ -230,7 +230,7 @@
         BaseType_t x;
 
         /* For each entry in the DNS cache table. */
-        for( x = 0; x < ( int ) ipconfigDNS_CACHE_ENTRIES; x++ )
+        for( x = 0; x < ipconfigDNS_CACHE_ENTRIES; x++ )
         {
             if( xDNSCache[ x ].pcName[ 0 ] == ( char ) 0 )
             { /* empty slot */

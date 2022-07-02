@@ -56,7 +56,7 @@ void vApplicationIdleHook( void )
 void vApplicationTickHook( void )
 {
 }
-unsigned long ulGetRunTimeCounterValue( void )
+uint32_t ulGetRunTimeCounterValue( void )
 {
 }
 void vPortEndScheduler( void )
