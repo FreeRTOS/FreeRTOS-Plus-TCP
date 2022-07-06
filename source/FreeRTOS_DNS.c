@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -478,7 +478,6 @@
 
         if( xDNSBuf.pucPayloadBuffer != NULL )
         {
-            xDNSBuf.uxPayloadLength = pxNetworkBuffer->xDataLength;
             xDNSBuf.uxPayloadSize = pxNetworkBuffer->xDataLength;
 
             #if ( ipconfigUSE_LLMNR == 1 )
@@ -585,7 +584,7 @@
                                               uxIdentifier,
                                               xDNSSocket );
 
-            if( ulIPAddress != 0 )
+            if( ulIPAddress != 0U )
             { /* ip found, no need to retry */
                 break;
             }
@@ -615,7 +614,7 @@
 
         if( xDNSSocket != NULL )
         {
-            if( uxReadTimeOut_ticks == 0 )
+            if( uxReadTimeOut_ticks == 0U )
             {
                 ulIPAddress = prvGetHostByNameOp( pcHostName,
                                                   uxIdentifier,

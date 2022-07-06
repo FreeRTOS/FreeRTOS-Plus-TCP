@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -689,8 +689,8 @@
             ( pxDHCPMessage->ucOpcode != ( uint8_t ) dhcpREPLY_OPCODE ) ||
             ( pxDHCPMessage->ucAddressType != ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET ) ||
             ( pxDHCPMessage->ucAddressLength != ( uint8_t ) dhcpETHERNET_ADDRESS_LENGTH ) ||
-            ( ( FreeRTOS_ntohl( pxDHCPMessage->ulYourIPAddress_yiaddr ) & 0xFFU ) == 0xFF ) ||
-            ( ( ( pxDHCPMessage->ulYourIPAddress_yiaddr & 0x7FU ) ^ 0x7FU ) == 0x00 ) )
+            ( ( FreeRTOS_ntohl( pxDHCPMessage->ulYourIPAddress_yiaddr ) & 0xFFU ) == 0xFFU ) ||
+            ( ( ( pxDHCPMessage->ulYourIPAddress_yiaddr & 0x7FU ) ^ 0x7FU ) == 0x00U ) )
         {
             /* Invalid cookie OR
              * Unexpected opcode OR

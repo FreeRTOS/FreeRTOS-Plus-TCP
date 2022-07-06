@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -422,7 +422,7 @@
  * "reserved" for transmission.
  */
 #ifndef ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS
-    #define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    45
+    #define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    45U
 #endif
 
 /* Every task, and also the network interface can send messages
@@ -434,10 +434,10 @@
  * here below.
  */
 #ifndef ipconfigEVENT_QUEUE_LENGTH
-    #define ipconfigEVENT_QUEUE_LENGTH    ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5 )
+    #define ipconfigEVENT_QUEUE_LENGTH    ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U )
 #endif
 
-#if ( ipconfigEVENT_QUEUE_LENGTH < ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5 ) )
+#if ( ipconfigEVENT_QUEUE_LENGTH < ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U ) )
     #error The ipconfigEVENT_QUEUE_LENGTH parameter must be at least ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5
 #endif
 
@@ -727,7 +727,7 @@
 /* The number of entries in the DNS cache table.
  * The default of 1 is maybe too economic. */
     #ifndef ipconfigDNS_CACHE_ENTRIES
-        #define ipconfigDNS_CACHE_ENTRIES    1
+        #define ipconfigDNS_CACHE_ENTRIES    1U
     #endif
 
 #endif /* ipconfigUSE_DNS_CACHE != 0 */

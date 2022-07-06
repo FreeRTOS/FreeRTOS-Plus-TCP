@@ -30,6 +30,9 @@
 #ifndef FREERTOS_IP_CONFIG_H
 #define FREERTOS_IP_CONFIG_H
 
+/* suppressing the use of _static as it is used for other tools like cbmc */
+/* coverity[misra_c_2012_rule_21_1_violation] */
+/* coverity[misra_c_2012_rule_21_2_violation] */
 #define _static                            static
 
 #define ipconfigUSE_ARP_REMOVE_ENTRY       1
@@ -95,7 +98,7 @@
  * as the Win32 simulator only stores a fixed amount of information on the task
  * stack.  FreeRTOS includes optional stack overflow detection, see:
  * http://www.freertos.org/Stacks-and-stack-overflow-checking.html. */
-#define ipconfigIP_TASK_STACK_SIZE_WORDS           ( configMINIMAL_STACK_SIZE * 5 )
+#define ipconfigIP_TASK_STACK_SIZE_WORDS           ( configMINIMAL_STACK_SIZE * 5U )
 
 /* ipconfigRAND32() is called by the IP stack to generate random numbers for
  * things such as a DHCP transaction number or initial sequence number.  Random
@@ -191,14 +194,14 @@ extern uint32_t ulRand();
  * are available to the IP stack.  The total number of network buffers is limited
  * to ensure the total amount of RAM that can be consumed by the IP stack is capped
  * to a pre-determinable value. */
-#define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    60
+#define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    60U
 
 /* A FreeRTOS queue is used to send events from application tasks to the IP
  * stack.  ipconfigEVENT_QUEUE_LENGTH sets the maximum number of events that can
  * be queued for processing at any one time.  The event queue must be a minimum of
  * 5 greater than the total number of network buffers. */
 #define ipconfigEVENT_QUEUE_LENGTH \
-    ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5 )
+    ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U )
 
 /* The address of a socket is the combination of its IP address and its port
  * number.  FreeRTOS_bind() is used to manually allocate a port number to a socket
