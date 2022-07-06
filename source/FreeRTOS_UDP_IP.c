@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -330,7 +330,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     {
         if( pxSocket != NULL )
         {
-            if( *ipLOCAL_IP_ADDRESS_POINTER != 0 )
+            if( *ipLOCAL_IP_ADDRESS_POINTER != 0U )
             {
                 if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
                 {

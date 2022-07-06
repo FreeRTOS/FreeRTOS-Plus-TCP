@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -718,7 +718,10 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
         {
             static StaticQueue_t xNetworkEventStaticQueue;
             static uint8_t ucNetworkEventQueueStorageArea[ ipconfigEVENT_QUEUE_LENGTH * sizeof( IPStackEvent_t ) ];
-            xNetworkEventQueue = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ), ucNetworkEventQueueStorageArea, &xNetworkEventStaticQueue );
+            xNetworkEventQueue = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
+                                                     sizeof( IPStackEvent_t ),
+                                                     ucNetworkEventQueueStorageArea,
+                                                     &xNetworkEventStaticQueue );
         }
     #else
         {
@@ -925,7 +928,8 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
                                                  void const * pvBuffer,
                                                  BaseType_t xByteCount )
     {
-        BaseType_t xByteCountReleased, xReturn = pdFAIL;
+        BaseType_t xByteCountReleased;
+        BaseType_t xReturn = pdFAIL;
         uint8_t * pucData;
         size_t uxBytesAvailable = uxStreamBufferGetPtr( xSocket->u.xTCP.rxStream, &( pucData ) );
 
@@ -938,7 +942,10 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
         if( ( pucData == pvBuffer ) && ( uxBytesAvailable >= ( size_t ) xByteCount ) )
         {
             /* Call recv with NULL pointer to advance the circular buffer. */
-            xByteCountReleased = FreeRTOS_recv( xSocket, NULL, xByteCount, FREERTOS_MSG_DONTWAIT );
+            xByteCountReleased = FreeRTOS_recv( xSocket,
+                                                NULL,
+                                                ( size_t ) xByteCount,
+                                                FREERTOS_MSG_DONTWAIT );
 
             configASSERT( xByteCountReleased == xByteCount );
 

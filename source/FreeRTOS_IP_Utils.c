@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -84,7 +84,7 @@
     static size_t uxMinLastSize = 0u;
 #endif
 
-#if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
+#if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 ) && ( ipconfigHAS_PRINTF != 0 )
     static UBaseType_t uxLastMinQueueSpace = 0;
 #endif
 
@@ -126,7 +126,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
     {
         IPStackEvent_t xEventMessage;
         const TickType_t uxDontBlock = 0U;
-        uintptr_t uxOption = eGetDHCPState();
+        uintptr_t uxOption = ( uintptr_t ) eGetDHCPState();
 
         xEventMessage.eEventType = eDHCPEvent;
         xEventMessage.pvData = ( void * ) uxOption;
@@ -379,7 +379,7 @@ void vPreCheckConfigs( void )
         {
             volatile size_t uxSize = sizeof( uintptr_t );
 
-            if( uxSize == 8 )
+            if( uxSize == 8U )
             {
                 /* This is a 64-bit platform, make sure there is enough space in
                  * pucEthernetBuffer to store a pointer. */
@@ -820,7 +820,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xUnionPtr xSource;
     xUnionPtr xLastSource;
     uintptr_t uxAlignBits;
-    uint32_t ulCarry = 0UL;
+    uint32_t ulCarry = 0U;
     uint16_t usTemp;
     size_t uxDataLengthBytes = uxByteCount;
 
@@ -831,7 +831,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* Swap the input (little endian platform only). */
     usTemp = FreeRTOS_ntohs( usSum );
     xSum.u32 = ( uint32_t ) usTemp;
-    xTerm.u32 = 0UL;
+    xTerm.u32 = 0U;
 
     xSource.u8ptr = ipPOINTER_CAST( uint8_t *, pucNextData );
 
@@ -936,15 +936,19 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         xTerm.u8[ 0 ] = xSource.u8ptr[ 0 ];
     }
 
+    /* Coverity doesn't understand about union variables. */
+    /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 += xTerm.u32;
 
     /* Now add all carries again. */
 
     /* Assigning value from "xTerm.u32" to "xSum.u32" here, but that stored value is overwritten before it can be used.
      * Coverity doesn't understand about union variables. */
+    /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
     /* coverity[value_overwrite] */
+    /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
     if( ( uxAlignBits & 1U ) != 0U )
@@ -1231,9 +1235,9 @@ uint32_t FreeRTOS_round_up( uint32_t a,
 {
     uint32_t ulResult = a;
 
-    configASSERT( d != 0 );
+    configASSERT( d != 0U );
 
-    if( d != 0 )
+    if( d != 0U )
     {
         ulResult = d * ( ( a + d - 1U ) / d );
     }
@@ -1253,9 +1257,9 @@ uint32_t FreeRTOS_round_down( uint32_t a,
 {
     uint32_t ulResult = 0;
 
-    configASSERT( d != 0 );
+    configASSERT( d != 0U );
 
-    if( d != 0 )
+    if( d != 0U )
     {
         ulResult = d * ( a / d );
     }

@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -255,7 +255,7 @@
                                 BaseType_t xExpected )
     {
         DNSMessage_t * pxDNSMessageHeader;
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = 0U;
 
         #if ( ipconfigUSE_LLMNR == 1 )
             char * pcRequestedName = NULL;
@@ -500,12 +500,12 @@
         if( xReturn == pdFALSE )
         {
             /* There was an error while parsing the DNS response. Return error code. */
-            ulIPAddress = dnsPARSE_ERROR;
+            ulIPAddress = ( uint32_t ) dnsPARSE_ERROR;
         }
         else if( xExpected == pdFALSE )
         {
             /* Do not return a valid IP-address in case the reply was not expected. */
-            ulIPAddress = 0UL;
+            ulIPAddress = 0U;
         }
         else
         {
@@ -666,7 +666,7 @@
                             ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET,
                                                          ( const void * ) &( ulIPAddress ),
                                                          cBuffer,
-                                                         sizeof( cBuffer ) );
+                                                         ( socklen_t ) sizeof( cBuffer ) );
                             /* Show what has happened. */
                             FreeRTOS_printf( ( "DNS[0x%04lX]: The answer to '%s' (%s) will%s be stored\n",
                                                ( UBaseType_t ) pxDNSMessageHeader->usIdentifier,
