@@ -322,7 +322,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     {
         if( pxSocket != NULL )
         {
-            if( *ipLOCAL_IP_ADDRESS_POINTER != 0 )
+            if( *ipLOCAL_IP_ADDRESS_POINTER != 0U )
             {
                 if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
                 {
