@@ -923,15 +923,19 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         xTerm.u8[ 0 ] = xSource.u8ptr[ 0 ];
     }
 
+    /* Coverity doesn't understand about union variables. */
+    /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 += xTerm.u32;
 
     /* Now add all carries again. */
 
     /* Assigning value from "xTerm.u32" to "xSum.u32" here, but that stored value is overwritten before it can be used.
      * Coverity doesn't understand about union variables. */
+    /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
     /* coverity[value_overwrite] */
+    /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
     if( ( uxAlignBits & 1U ) != 0U )
