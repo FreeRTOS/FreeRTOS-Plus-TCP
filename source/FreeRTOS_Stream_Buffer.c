@@ -327,19 +327,19 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
                 /* ( uxOffset == 0 ) means: write at uxHead position */
                 uxNextHead += uxCount;
 
-            if( uxNextHead >= pxBuffer->LENGTH )
-            {
-                uxNextHead -= pxBuffer->LENGTH;
+                if( uxNextHead >= pxBuffer->LENGTH )
+                {
+                    uxNextHead -= pxBuffer->LENGTH;
+                }
+
+                pxBuffer->uxHead = uxNextHead;
             }
 
-            pxBuffer->uxHead = uxNextHead;
-        }
-
-        if( xStreamBufferLessThenEqual( pxBuffer, pxBuffer->uxFront, uxNextHead ) != pdFALSE )
-        {
-            /* Advance the front pointer */
-            pxBuffer->uxFront = uxNextHead;
-        }
+            if( xStreamBufferLessThenEqual( pxBuffer, pxBuffer->uxFront, uxNextHead ) != pdFALSE )
+            {
+                /* Advance the front pointer */
+                pxBuffer->uxFront = uxNextHead;
+            }
         }
         xTaskResumeAll();
     }
