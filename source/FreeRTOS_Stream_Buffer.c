@@ -318,10 +318,14 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
             }
         }
 
-        if( uxOffset == 0U )
+        /* The below update to the stream buffer members must happen
+         * atomically. */
+        vTaskSuspendAll();
         {
-            /* ( uxOffset == 0 ) means: write at uxHead position */
-            uxNextHead += uxCount;
+            if( uxOffset == 0U )
+            {
+                /* ( uxOffset == 0 ) means: write at uxHead position */
+                uxNextHead += uxCount;
 
             if( uxNextHead >= pxBuffer->LENGTH )
             {
@@ -336,6 +340,8 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
             /* Advance the front pointer */
             pxBuffer->uxFront = uxNextHead;
         }
+        }
+        xTaskResumeAll();
     }
 
     return uxCount;
