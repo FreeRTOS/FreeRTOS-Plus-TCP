@@ -894,7 +894,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* In this loop, four 32-bit additions will be done, in total 16 bytes.
      * Indexing with constants (0,1,2,3) gives faster code than using
      * post-increments. */
-    for( ulX = 0U; ulX < ulSize; ulX += 16U )
+    for( ulX = 0U; ulX < ulSize; ulX += 4U * sizeof( uint32_t ) )
     {
         /* Use a secondary Sum2, just to see if the addition produced an
          * overflow. */
@@ -941,7 +941,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* Half-word aligned. */
     ulSize = ( ( uxDataLengthBytes & ~( ( size_t ) 1U ) ) );
 
-    for( ulX = 0U; ulX < ulSize; ulX += 2U )
+    for( ulX = 0U; ulX < ulSize; ulX += 1U * sizeof( uint16_t ) )
     {
         /* At least one more short. */
         xSum.u32 += xSource.u16ptr[ 0 ];
