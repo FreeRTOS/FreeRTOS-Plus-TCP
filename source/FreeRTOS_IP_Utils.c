@@ -1130,7 +1130,9 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
 
         default:
             /* Using function "snprintf". */
-            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int32_t ) xErrnum );
+            /* exception used for logging purposes only */
+            /* coverity[misra_c_2012_rule_21_6_violation] */
+            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int ) xErrnum );
             pcName = NULL;
             break;
     }
@@ -1138,6 +1140,8 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
     if( pcName != NULL )
     {
         /* Using function "snprintf". */
+        /* exception used for logging purposes only */
+        /* coverity[misra_c_2012_rule_21_6_violation] */
         ( void ) snprintf( pcBuffer, uxLength, "%s", pcName );
     }
 
