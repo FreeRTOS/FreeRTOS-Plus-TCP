@@ -2089,6 +2089,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                            {
                                break; /* will return -pdFREERTOS_ERRNO_EINVAL */
                            }
+
                            if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
                            {
                                pxSocket->u.xTCP.bits.bCloseAfterSend = pdTRUE;
@@ -2117,12 +2118,12 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                                pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize = pdFALSE;
                            }
 
-                            if( ( pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize == pdFALSE_UNSIGNED ) &&
-                           ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) &&
-                           ( FreeRTOS_outstanding( pxSocket ) > 0 ) )
-                            {
-                                pxSocket->u.xTCP.usTimeout = 1U; /* to set/clear bSendFullSize */
-                                ( void ) xSendEventToIPTask( eTCPTimerEvent );
+                           if( ( pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize == pdFALSE_UNSIGNED ) &&
+                               ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) &&
+                               ( FreeRTOS_outstanding( pxSocket ) > 0 ) )
+                           {
+                               pxSocket->u.xTCP.usTimeout = 1U; /* to set/clear bSendFullSize */
+                               ( void ) xSendEventToIPTask( eTCPTimerEvent );
                            }
                        }
                         xReturn = 0;
