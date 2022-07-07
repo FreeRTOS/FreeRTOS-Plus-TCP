@@ -79,12 +79,6 @@ static List_t xFreeBuffersList;
 /* Some statistics about the use of buffers. */
 static size_t uxMinimumFreeNetworkBuffers;
 
-/* Declares the pool of NetworkBufferDescriptor_t structures that are available
- * to the system.  All the network buffers referenced from xFreeBuffersList exist
- * in this array.  The array is not accessed directly except during initialisation,
- * when the xFreeBuffersList is filled (as all the buffers are free when the system
- * is booted). */
-
 /* This constant is defined as false to let FreeRTOS_TCP_IP.c know that the
  * network buffers have a variable size: resizing may be necessary */
 const BaseType_t xBufferAllocFixedSize = pdFALSE;
@@ -96,6 +90,11 @@ static SemaphoreHandle_t xNetworkBufferSemaphore = NULL;
 
 BaseType_t xNetworkBuffersInitialise( void )
 {
+    /* Declares the pool of NetworkBufferDescriptor_t structures that are available
+     * to the system.  All the network buffers referenced from xFreeBuffersList exist
+     * in this array.  The array is not accessed directly except during initialisation,
+     * when the xFreeBuffersList is filled (as all the buffers are free when the system
+     * is booted). */
     static NetworkBufferDescriptor_t xNetworkBufferDescriptors[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ];
     BaseType_t xReturn;
     uint32_t x;
