@@ -154,9 +154,7 @@
                  * the Ethernet address of the peer or the gateway is found. */
 
                 /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-                 * The casting is used to map the data buffer to a predefined data structure
-                 * so that the data can be easily accessed. The buffer length has been validated to be
-                 * at least as big as the size of the data structure to be casted to. */
+                 * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxHeaderSize ] ) );
 
@@ -312,10 +310,7 @@
             /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
 
             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The casting is used to map the data buffer to a predefined data structure
-             * so that the data can be easily accessed. The buffer length has been validated to be
-             * at least as big as the size of the data structure to be casted to. */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */   /* coverity[misra_c_2012_rule_11_3_violation] */
             pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxTCPPacket->xIPHeader;
             pxEthernetHeader = &pxTCPPacket->xEthernetHeader;
@@ -676,10 +671,7 @@
              * the buffer onto the TCPPacket_t struct to easily access it's field. */
 
             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The casting is used to map the data buffer to a predefined data structure
-             * so that the data can be easily accessed. The buffer length has been validated to be
-             * at least as big as the size of the data structure to be casted to. */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */   /* coverity[misra_c_2012_rule_11_3_violation] */
             pxTCPPacket = ( ( TCPPacket_t * ) pxSocket->u.xTCP.xPacket.u.ucLastPacket );
             pxIPHeader = &pxTCPPacket->xIPHeader;
 
@@ -980,9 +972,7 @@
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
 
         /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The casting is used to map the data buffer to a predefined data structure
-         * so that the data can be easily accessed. The buffer length has been validated to be
-         * at least as big as the size of the data structure to be casted to. */
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
         pxTCPWindow = &( pxSocket->u.xTCP.xTCPWindow );
@@ -1016,9 +1006,7 @@
                      * access to the fields. */
 
                     /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-                     * The casting is used to map the data buffer to a predefined data structure
-                     * so that the data can be easily accessed. The buffer length has been validated to be
-                     * at least as big as the size of the data structure to be casted to. */
+                     * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
                     /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
 
@@ -1222,9 +1210,7 @@
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
 
         /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The casting is used to map the data buffer to a predefined data structure
-         * so that the data can be easily accessed. The buffer length has been validated to be
-         * at least as big as the size of the data structure to be casted to. */
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                   &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
@@ -1314,9 +1300,7 @@
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
 
         /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The casting is used to map the data buffer to a predefined data structure
-         * so that the data can be easily accessed. The buffer length has been validated to be
-         * at least as big as the size of the data structure to be casted to. */
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                         &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
@@ -1472,9 +1456,7 @@
                 /* Map the ethernet buffer onto the TCPPacket_t struct for easy access to the fields. */
 
                 /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-                 * The casting is used to map the data buffer to a predefined data structure
-                 * so that the data can be easily accessed. The buffer length has been validated to be
-                 * at least as big as the size of the data structure to be casted to. */
+                 * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
                 const uint32_t ulSendLength =

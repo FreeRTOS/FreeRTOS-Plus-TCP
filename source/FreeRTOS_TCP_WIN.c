@@ -392,9 +392,7 @@
          * returned by listGET_HEAD_ENTRY() */
 
         /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The casting is used to map the data buffer to a predefined data structure
-         * so that the data can be easily accessed. The buffer length has been validated to be
-         * at least as big as the size of the data structure to be casted to. */
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxNewListItem->pxNext = ( ( ListItem_t * ) pxWhere );
 
@@ -486,10 +484,7 @@
              * segments. */
 
             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The casting is used to map the data buffer to a predefined data structure
-             * so that the data can be easily accessed. The buffer length has been validated to be
-             * at least as big as the size of the data structure to be casted to. */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */   /* coverity[misra_c_2012_rule_11_3_violation] */
             pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
 
             for( pxIterator = listGET_NEXT( pxEnd );
@@ -934,10 +929,7 @@
             uint32_t ulNextSequenceNumber = ulSequenceNumber + ulLength;
 
             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The casting is used to map the data buffer to a predefined data structure
-             * so that the data can be easily accessed. The buffer length has been validated to be
-             * at least as big as the size of the data structure to be casted to. */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */   /* coverity[misra_c_2012_rule_11_3_violation] */
             const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
             TCPSegment_t * pxSegment;
 
@@ -1949,10 +1941,7 @@
             const ListItem_t * pxIterator;
 
             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The casting is used to map the data buffer to a predefined data structure
-             * so that the data can be easily accessed. The buffer length has been validated to be
-             * at least as big as the size of the data structure to be casted to. */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */   /* coverity[misra_c_2012_rule_11_3_violation] */
             const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xTxSegments.xListEnd ) );
             BaseType_t xDoUnlink;
             TCPSegment_t * pxSegment;
@@ -2106,10 +2095,7 @@
              * xWaitQueue to find a possible condition for a FAST retransmission. */
 
             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The casting is used to map the data buffer to a predefined data structure
-             * so that the data can be easily accessed. The buffer length has been validated to be
-             * at least as big as the size of the data structure to be casted to. */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */   /* coverity[misra_c_2012_rule_11_3_violation] */
             pxEnd = ( ( const ListItem_t * ) &( pxWindow->xWaitQueue.xListEnd ) );
 
             pxIterator = listGET_NEXT( pxEnd );

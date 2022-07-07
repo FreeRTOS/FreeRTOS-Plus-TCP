@@ -542,9 +542,7 @@
         /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
 
         /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The casting is used to map the data buffer to a predefined data structure
-         * so that the data can be easily accessed. The buffer length has been validated to be
-         * at least as big as the size of the data structure to be casted to. */
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
@@ -570,10 +568,7 @@
             /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
 
             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The casting is used to map the data buffer to a predefined data structure
-             * so that the data can be easily accessed. The buffer length has been validated to be
-             * at least as big as the size of the data structure to be casted to. */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */   /* coverity[misra_c_2012_rule_11_3_violation] */
             pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
             ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
             ulRemoteIP = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
@@ -804,9 +799,7 @@
         BaseType_t xResult = pdFALSE;
 
         /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The casting is used to map the data buffer to a predefined data structure
-         * so that the data can be easily accessed. The buffer length has been validated to be
-         * at least as big as the size of the data structure to be casted to. */
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEndTCP = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 

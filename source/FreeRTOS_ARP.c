@@ -329,9 +329,7 @@ static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
     if( pxARPWaitingNetworkBuffer != NULL )
     {
         /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The casting is used to map the data buffer to a predefined data structure
-         * so that the data can be easily accessed. The buffer length has been validated to be
-         * at least as big as the size of the data structure to be casted to. */
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         IPPacket_t * pxARPWaitingIPPacket = ( ( IPPacket_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
         IPHeader_t * pxARPWaitingIPHeader = &( pxARPWaitingIPPacket->xIPHeader );
@@ -408,9 +406,7 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
     BaseType_t xNeedsARPResolution = pdFALSE;
 
     /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-     * The casting is used to map the data buffer to a predefined data structure
-     * so that the data can be easily accessed. The buffer length has been validated to be
-     * at least as big as the size of the data structure to be casted to. */
+     * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
@@ -1083,9 +1079,7 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
     configASSERT( pxNetworkBuffer->xDataLength >= sizeof( ARPPacket_t ) );
 
     /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-     * The casting is used to map the data buffer to a predefined data structure
-     * so that the data can be easily accessed. The buffer length has been validated to be
-     * at least as big as the size of the data structure to be casted to. */
+     * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxARPPacket = ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
@@ -1159,9 +1153,7 @@ void FreeRTOS_ClearARP( void )
         NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
 
         /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The casting is used to map the data buffer to a predefined data structure
-         * so that the data can be easily accessed. The buffer length has been validated to be
-         * at least as big as the size of the data structure to be casted to. */
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxUseDescriptor->pucEthernetBuffer );
 
