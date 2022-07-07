@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -923,15 +923,19 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         xTerm.u8[ 0 ] = xSource.u8ptr[ 0 ];
     }
 
+    /* Coverity doesn't understand about union variables. */
+    /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 += xTerm.u32;
 
     /* Now add all carries again. */
 
     /* Assigning value from "xTerm.u32" to "xSum.u32" here, but that stored value is overwritten before it can be used.
      * Coverity doesn't understand about union variables. */
+    /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
     /* coverity[value_overwrite] */
+    /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
     if( ( uxAlignBits & 1U ) != 0U )
@@ -1109,6 +1113,8 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
 
         default:
             /* Using function "snprintf". */
+            /* exception used for logging purposes only */
+            /* coverity[misra_c_2012_rule_21_6_violation] */
             ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int ) xErrnum );
             pcName = NULL;
             break;
@@ -1117,6 +1123,8 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
     if( pcName != NULL )
     {
         /* Using function "snprintf". */
+        /* exception used for logging purposes only */
+        /* coverity[misra_c_2012_rule_21_6_violation] */
         ( void ) snprintf( pcBuffer, uxLength, "%s", pcName );
     }
 

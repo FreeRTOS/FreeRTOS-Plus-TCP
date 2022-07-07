@@ -30,6 +30,9 @@
 #ifndef FREERTOS_IP_CONFIG_H
 #define FREERTOS_IP_CONFIG_H
 
+/* suppressing the use of _static as it is used for other tools like cbmc */
+/* coverity[misra_c_2012_rule_21_1_violation] */
+/* coverity[misra_c_2012_rule_21_2_violation] */
 #define _static                            static
 
 #define ipconfigUSE_ARP_REMOVE_ENTRY       1
