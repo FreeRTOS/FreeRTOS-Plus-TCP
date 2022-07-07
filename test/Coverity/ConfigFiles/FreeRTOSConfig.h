@@ -74,8 +74,8 @@
 #define configMAX_PRIORITIES                       ( 7 )
 
 /* Run time stats gathering configuration options. */
-uint32_t ulGetRunTimeCounterValue( void ); /* Prototype of function that returns run time counter. */
-void vConfigureTimerForRunTimeStats( void );    /* Prototype of function that initialises the run time counter. */
+uint32_t ulGetRunTimeCounterValue( void );   /* Prototype of function that returns run time counter. */
+void vConfigureTimerForRunTimeStats( void ); /* Prototype of function that initialises the run time counter. */
 #define configGENERATE_RUN_TIME_STATS    1
 #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()    vConfigureTimerForRunTimeStats()
 #define portGET_RUN_TIME_COUNTER_VALUE()            ulGetRunTimeCounterValue()
