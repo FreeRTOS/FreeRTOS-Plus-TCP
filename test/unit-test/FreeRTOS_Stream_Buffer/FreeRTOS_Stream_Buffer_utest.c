@@ -602,6 +602,9 @@ void test_uxStreamBufferAdd_BufferHasMoreSpaceThanData_ZeroOffset_DataWriteCause
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( pdTRUE );
+
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
 
     /* Only these many bytes should be written. */
@@ -654,6 +657,9 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset( void )
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( pdTRUE );
+
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
 
     /* Only 500 bytes should be written. */
@@ -696,6 +702,9 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffset( void )
     pxLocalBuffer->uxFront = 0;
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
+
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( pdTRUE );
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
 
@@ -749,6 +758,9 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffsetCausesRollov
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( pdTRUE );
+
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
 
     /* Only these many bytes should be written. */
@@ -801,6 +813,9 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCause
     pxLocalBuffer->uxFront = 0;
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
+
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( pdTRUE );
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
 
@@ -859,6 +874,9 @@ void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataW
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( pdTRUE );
+
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, NULL, uxByteCount );
 
     /* Nothing should be written but tail will be updated. */
@@ -911,6 +929,9 @@ void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataW
     pxLocalBuffer->uxFront = pxLocalBuffer->uxHead - 2;
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
+
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( pdTRUE );
 
     uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, NULL, uxByteCount );
 
