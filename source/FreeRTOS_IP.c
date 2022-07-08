@@ -122,7 +122,7 @@ static void prvProcessIPEventsAndTimers( void );
  * from the network hardware drivers and tasks that are using sockets.  It also
  * maintains a set of protocol timers.
  */
-static void prvIPTask( void * pvParameters );
+static void prvIPTask( const void * pvParameters );
 
 /*
  * Called when new data is available from the network interface.
@@ -225,7 +225,7 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
  *
  * @param[in] pvParameters: Not used.
  */
-static void prvIPTask( void * pvParameters )
+static void prvIPTask( const void * pvParameters )
 {
     /* Just to prevent compiler warnings about unused parameters. */
     ( void ) pvParameters;
@@ -1516,7 +1516,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                         /* Identify the next protocol. */
                         if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
                         {
-                            ProtocolPacket_t * pxProtPack;
+                            const ProtocolPacket_t * pxProtPack;
 
                             /* pxProtPack will point to the offset were the protocols begin. */
                             pxProtPack = ( ( ProtocolPacket_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
