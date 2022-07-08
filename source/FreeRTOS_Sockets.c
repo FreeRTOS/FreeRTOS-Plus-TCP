@@ -4114,7 +4114,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             };
 
             if( ( uxSegmentCount > 0U ) &&
-                ( uxSegmentCount <= ( UBaseType_t ) ARRAY_SIZE( xPercTable ) ) )
+                ( uxSegmentCount <= ARRAY_USIZE( xPercTable ) ) )
             {
                 uxLittlePerc = xPercTable[ uxSegmentCount - 1U ].uxPercLittle;
                 uxEnoughPerc = xPercTable[ uxSegmentCount - 1U ].uxPercEnough;
