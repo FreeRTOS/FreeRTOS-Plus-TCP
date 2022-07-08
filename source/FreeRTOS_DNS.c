@@ -420,7 +420,7 @@
  * @returns ip address or zero on error
  *
  */
-    static uint32_t prvDNSReply( struct xDNSBuffer * pxReceiveBuffer,
+    static uint32_t prvDNSReply( const struct xDNSBuffer * pxReceiveBuffer,
                                  TickType_t uxIdentifier )
     {
         uint32_t ulIPAddress = 0U;
@@ -470,7 +470,7 @@
     static BaseType_t prvSendBuffer( const char * pcHostName,
                                      TickType_t uxIdentifier,
                                      Socket_t xDNSSocket,
-                                     struct freertos_sockaddr * pxAddress )
+                                     const struct freertos_sockaddr * pxAddress )
     {
         BaseType_t uxReturn = pdFAIL;
         struct xDNSBuffer xDNSBuf = { 0 };

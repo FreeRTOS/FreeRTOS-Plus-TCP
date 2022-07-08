@@ -290,10 +290,8 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
 BaseType_t xIsCallingFromIPTask( void )
 {
     BaseType_t xReturn;
-    TaskHandle_t xCurrentHandle, xCurrentIPTaskHandle;
-
-    xCurrentHandle = xTaskGetCurrentTaskHandle();
-    xCurrentIPTaskHandle = FreeRTOS_GetIPTaskHandle();
+    const struct tskTaskControlBlock * const xCurrentHandle = xTaskGetCurrentTaskHandle();
+    const struct tskTaskControlBlock * const xCurrentIPTaskHandle = FreeRTOS_GetIPTaskHandle();
 
     if( xCurrentHandle == xCurrentIPTaskHandle )
     {
@@ -686,7 +684,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
             usChecksum = ( uint16_t )
                          ( ~usGenerateChecksum( usChecksum,
                                                 ipPOINTER_CAST( const uint8_t *, &( pxIPPacket->xIPHeader.ulSourceIPAddress ) ),
-                                                ( size_t ) ( ( 2U * ipSIZE_OF_IPv4_ADDRESS ) + ulLength ) ) );
+                                                ( size_t ) ( ( 2U * ( size_t ) ipSIZE_OF_IPv4_ADDRESS ) + ulLength ) ) );
             /* Sum TCP header and data. */
         }
 

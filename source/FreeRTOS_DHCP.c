@@ -134,7 +134,7 @@
  * @return If the socket given as parameter is the DHCP socket - return
  *         pdTRUE, else pdFALSE.
  */
-    BaseType_t xIsDHCPSocket( Socket_t xSocket )
+    BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket )
     {
         BaseType_t xReturn;
 
@@ -1179,7 +1179,8 @@
 
         if( pucUDPPayloadBuffer != NULL )
         {
-            void * pvCopySource, * pvCopyDest;
+            const void * pvCopySource;
+            void * pvCopyDest;
 
             FreeRTOS_debug_printf( ( "vDHCPProcess: discover\n" ) );
             iptraceSENDING_DHCP_DISCOVER();
