@@ -255,7 +255,7 @@ static void prvIPTask( const void * pvParameters )
     FreeRTOS_debug_printf( ( "prvIPTask started\n" ) );
 
     /* Loop, processing IP events. */
-    while( ipFOREVER() )
+    while( ipFOREVER() == pdTRUE )
     {
         prvProcessIPEventsAndTimers();
     }

@@ -3612,7 +3612,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             xByteCount = ( BaseType_t ) uxStreamBufferGetSpace( pxSocket->u.xTCP.txStream );
 
             /* Try sending till there is a timeout or all bytes have been sent. */
-            while( pdTRUE )
+            while( ipTRUE_BOOL )
             {
                 /* If txStream has space. */
                 if( xByteCount > 0 )
