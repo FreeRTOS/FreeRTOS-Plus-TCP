@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -88,7 +88,7 @@
 
     BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup );
 
-    BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer );
+    BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Look for ulIPAddress in the ARP cache.  If the IP address exists, copy the
@@ -104,7 +104,7 @@
     #if ( ipconfigUSE_ARP_REVERSED_LOOKUP != 0 )
 
 /* Lookup an IP-address if only the MAC-address is known */
-        eARPLookupResult_t eARPGetCacheEntryByMac( MACAddress_t * const pxMACAddress,
+        eARPLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
                                                    uint32_t * pulIPAddress );
 
     #endif

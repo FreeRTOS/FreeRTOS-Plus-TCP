@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -85,12 +85,12 @@
 
     static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
-                                     uint32_t * pulIP,
+                                     const uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds );
 
     static void prvInsertCacheEntry( const char * pcName,
                                      uint32_t ulTTL,
-                                     uint32_t * pulIP,
+                                     const uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds );
 
 /**
@@ -304,7 +304,7 @@
  */
     static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
-                                     uint32_t * pulIP,
+                                     const uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
         uint32_t ulIPAddressIndex = 0;
@@ -334,7 +334,7 @@
  */
     static void prvInsertCacheEntry( const char * pcName,
                                      uint32_t ulTTL,
-                                     uint32_t * pulIP,
+                                     const uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
         /* Add or update the item. */

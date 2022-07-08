@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -93,8 +93,8 @@
  *
  */
     BaseType_t DNS_SendRequest( Socket_t xDNSSocket,
-                                struct freertos_sockaddr * xAddress,
-                                struct xDNSBuffer * pxDNSBuf )
+                                const struct freertos_sockaddr * xAddress,
+                                const struct xDNSBuffer * pxDNSBuf )
     {
         BaseType_t xReturn = pdFALSE;
 
@@ -126,7 +126,7 @@
  * @param xAddress address to read from
  * @param pxReceiveBuffer buffer to fill with received data
  */
-    void DNS_ReadReply( Socket_t xDNSSocket,
+    void DNS_ReadReply( const ConstSocket_t xDNSSocket,
                         struct freertos_sockaddr * xAddress,
                         struct xDNSBuffer * pxReceiveBuffer )
     {

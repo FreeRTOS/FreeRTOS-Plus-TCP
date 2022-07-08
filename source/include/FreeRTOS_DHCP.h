@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -218,7 +218,7 @@
                        eDHCPState_t eExpectedState );
 
 /* Internal call: returns true if socket is the current DHCP socket */
-    BaseType_t xIsDHCPSocket( Socket_t xSocket );
+    BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket );
 
 
 /* The application can indicate a preferred IP address by calling this function

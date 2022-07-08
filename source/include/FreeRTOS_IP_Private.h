@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -460,6 +460,10 @@ extern const BaseType_t xBufferAllocFixedSize;
     #define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
 #endif
 
+#ifndef ARRAY_USIZE
+    #define ARRAY_USIZE( x )    ( ( UBaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
+#endif
+
 /*
  * Create a message that contains a command to initialise the network interface.
  * This is used during initialisation, and at any time the network interface
@@ -857,7 +861,7 @@ BaseType_t xIsCallingFromIPTask( void );
         EventGroupHandle_t xSelectGroup;
     } SocketSelect_t;
 
-    extern void vSocketSelect( SocketSelect_t * pxSocketSet );
+    extern void vSocketSelect( const SocketSelect_t * pxSocketSet );
 
 /** @brief Define the data that must be passed for a 'eSocketSelectEvent'. */
     typedef struct xSocketSelectMessage

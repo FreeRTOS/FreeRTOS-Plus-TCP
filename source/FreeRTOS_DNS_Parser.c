@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -525,13 +525,13 @@
  * @param xDoStore whether to update the cache
  * @return ip address extracted from the frame or zero if not found
  */
-    uint32_t parseDNSAnswer( DNSMessage_t * pxDNSMessageHeader,
+    uint32_t parseDNSAnswer( const DNSMessage_t * pxDNSMessageHeader,
                              uint8_t * pucByte,
                              size_t uxSourceBytesRemaining,
                              size_t * uxBytesRead
     #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
                                  ,
-                                 char * pcName,
+                                 const char * pcName,
                                  BaseType_t xDoStore
     #endif
                              )

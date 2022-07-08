@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V2.3.4
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -420,7 +420,7 @@
  * @returns ip address or zero on error
  *
  */
-    static uint32_t prvDNSReply( struct xDNSBuffer * pxReceiveBuffer,
+    static uint32_t prvDNSReply( const struct xDNSBuffer * pxReceiveBuffer,
                                  TickType_t uxIdentifier )
     {
         uint32_t ulIPAddress = 0U;
@@ -466,7 +466,7 @@
     static BaseType_t prvSendBuffer( const char * pcHostName,
                                      TickType_t uxIdentifier,
                                      Socket_t xDNSSocket,
-                                     struct freertos_sockaddr * pxAddress )
+                                     const struct freertos_sockaddr * pxAddress )
     {
         BaseType_t uxReturn = pdFAIL;
         struct xDNSBuffer xDNSBuf = { 0 };
@@ -478,7 +478,6 @@
 
         if( xDNSBuf.pucPayloadBuffer != NULL )
         {
-            xDNSBuf.uxPayloadLength = pxNetworkBuffer->xDataLength;
             xDNSBuf.uxPayloadSize = pxNetworkBuffer->xDataLength;
 
             #if ( ipconfigUSE_LLMNR == 1 )
