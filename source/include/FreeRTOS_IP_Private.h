@@ -857,7 +857,7 @@ BaseType_t xIsCallingFromIPTask( void );
         EventGroupHandle_t xSelectGroup;
     } SocketSelect_t;
 
-    extern void vSocketSelect( SocketSelect_t * pxSocketSet );
+    extern void vSocketSelect( const SocketSelect_t * pxSocketSet );
 
 /** @brief Define the data that must be passed for a 'eSocketSelectEvent'. */
     typedef struct xSocketSelectMessage
