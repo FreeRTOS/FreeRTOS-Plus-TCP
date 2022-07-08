@@ -1621,6 +1621,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 #endif /* if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 ) */
             }
 
+            /* false positive as the value might be changed according to the
+             * conditionally compiled code */
+            /* coverity[misra_c_2012_rule_14_3_violation] */
             if( eReturn != eReleaseBuffer )
             {
                 /* Add the IP and MAC addresses to the ARP table if they are not
