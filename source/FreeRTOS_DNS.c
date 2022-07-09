@@ -420,7 +420,7 @@
  * @returns ip address or zero on error
  *
  */
-    static uint32_t prvDNSReply( struct xDNSBuffer * pxReceiveBuffer,
+    static uint32_t prvDNSReply( const struct xDNSBuffer * pxReceiveBuffer,
                                  TickType_t uxIdentifier )
     {
         uint32_t ulIPAddress = 0U;
@@ -466,7 +466,7 @@
     static BaseType_t prvSendBuffer( const char * pcHostName,
                                      TickType_t uxIdentifier,
                                      Socket_t xDNSSocket,
-                                     struct freertos_sockaddr * pxAddress )
+                                     const struct freertos_sockaddr * pxAddress )
     {
         BaseType_t uxReturn = pdFAIL;
         struct xDNSBuffer xDNSBuf = { 0 };
@@ -556,7 +556,7 @@
              * is being used, so the buffer must be freed by the
              * task. */
             FreeRTOS_ReleaseUDPPayloadBuffer( xReceiveBuffer.pucPayloadBuffer );
-        } while( 0 );
+        } while( ipFALSE_BOOL );
 
         return ulIPAddress;
     }
@@ -597,6 +597,7 @@
 /**
  * @brief Prepare and send a message to a DNS server.  'uxReadTimeOut_ticks' will be passed as
  *        zero, in case the user has supplied a call-back function.
+ *
  * @param[in] pcHostName The hostname for which an IP address is required.
  * @param[in] uxIdentifier Identifier to match sent and received packets
  * @param[in] uxReadTimeOut_ticks The timeout in ticks for waiting. In case the user has supplied
