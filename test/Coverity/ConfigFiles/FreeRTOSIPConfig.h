@@ -265,9 +265,6 @@ extern uint32_t ulRand();
  * Ethernet driver does all the necessary filtering in hardware then software
  * filtering can be removed by using a value other than 1 or 0. */
 
-/* in C90 First 31 characters should be different; in C99 first 63 characters
- * should be significant */
-
 #define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    1
 
 /* The windows simulator cannot really simulate MAC interrupts, and needs to
