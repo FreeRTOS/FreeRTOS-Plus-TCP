@@ -58,11 +58,15 @@
     #define iptraceNETWORK_INTERFACE_OUTPUT( uxDataLength, pucEthernetBuffer )
 #endif
 
+/* in C90 First 31 characters should be different; in C99 first 63 characters
+ * should be significant */
 /* coverity[misra_c_2012_rule_5_4_violation] */
 #ifndef iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER
     #define iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER()
 #endif
 
+/* in C90 First 31 characters should be different; in C99 first 63 characters
+ * should be significant */
 /* coverity[misra_c_2012_rule_5_4_violation] */
 #ifndef iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER_FROM_ISR
     #define iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER_FROM_ISR()

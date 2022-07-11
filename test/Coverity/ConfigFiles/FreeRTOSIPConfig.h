@@ -265,6 +265,8 @@ extern uint32_t ulRand();
  * Ethernet driver does all the necessary filtering in hardware then software
  * filtering can be removed by using a value other than 1 or 0. */
 
+/* in C90 First 31 characters should be different; in C99 first 63 characters
+ * should be significant */
 /* suppressing misra rule 5.4 as changing it might cause some backward
  * incompatibility */
 /* coverity[misra_c_2012_rule_5_4_violation] */
