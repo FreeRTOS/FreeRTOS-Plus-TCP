@@ -390,6 +390,8 @@ void vPreCheckConfigs( void )
                 /* This is a 64-bit platform, make sure there is enough space in
                  * pucEthernetBuffer to store a pointer. */
                 configASSERT( ipconfigBUFFER_PADDING >= 14 );
+                /* But it must have this strange alignment: */
+                configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
             }
 
             /* LCOV_EXCL_BR_START */
