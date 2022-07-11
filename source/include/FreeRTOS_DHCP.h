@@ -89,6 +89,8 @@
     #define dhcpCLIENT_IDENTIFIER_OFFSET               ( 6U )  /**< Offset for the client ID option. */
     #define dhcpREQUESTED_IP_ADDRESS_OFFSET            ( 14U ) /**< Offset for the requested IP-address option. */
     #define dhcpDHCP_SERVER_IP_ADDRESS_OFFSET          ( 20U ) /**< Offset for the server IP-address option. */
+    #define dhcpOPTION_50_OFFSET                       ( 12U ) /**< Offset of option-50. */
+    #define dhcpOPTION_50_SIZE                         ( 6U )  /**< Number of bytes included in option-50. */
 
 /* Values used in the DHCP packets. */
     #define dhcpREQUEST_OPCODE                         ( 1U ) /**< DHCP request opcode. */
