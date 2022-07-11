@@ -222,7 +222,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
         /* Obtain the network buffer from the zero copy pointer. */
 
         /* the conversion here does not cause a loss of data, as uintptr_t fits a
-        * pointer type on the system */
+         * pointer type on the system */
         /* coverity[misra_c_2012_rule_11_6_violation] */
         uxBuffer = ( uintptr_t ) pvBuffer;
 
@@ -378,8 +378,8 @@ void vPreCheckConfigs( void )
     configASSERT( FreeRTOS_GetIPTaskHandle() == NULL );
 
     #if ( configASSERT_DEFINED == 1 )
-    {
-        volatile size_t uxSize = sizeof( uintptr_t );
+        {
+            volatile size_t uxSize = sizeof( uintptr_t );
 
             if( uxSize == 8U )
             {
