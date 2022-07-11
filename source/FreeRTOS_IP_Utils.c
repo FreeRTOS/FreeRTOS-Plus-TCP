@@ -129,6 +129,10 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
         uintptr_t uxOption = ( uintptr_t ) eGetDHCPState();
 
         xEventMessage.eEventType = eDHCPEvent;
+
+        /* casting void * to uintptr_t exception; it is guaranteed by the
+         * implementation that uintptr_t fits a pointer size on the platform */
+        /* coverity[misra_c_2012_rule_11_6_violation] */
         xEventMessage.pvData = ( void * ) uxOption;
 
         return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );

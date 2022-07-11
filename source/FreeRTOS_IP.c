@@ -386,6 +386,7 @@ static void prvProcessIPEventsAndTimers( void )
                     eDHCPState_t eState;
 
                     /* Cast in two steps to please MISRA. */
+                    /* coverity[misra_c_2012_rule_11_6_violation] */
                     uxState = ( uintptr_t ) xReceivedEvent.pvData;
                     eState = ( eDHCPState_t ) uxState;
 
