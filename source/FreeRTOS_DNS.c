@@ -560,7 +560,7 @@
              * is being used, so the buffer must be freed by the
              * task. */
             FreeRTOS_ReleaseUDPPayloadBuffer( xReceiveBuffer.pucPayloadBuffer );
-        } while( 0 );
+        } while( ipFALSE_BOOL );
 
         return ulIPAddress;
     }
@@ -601,6 +601,7 @@
 /**
  * @brief Prepare and send a message to a DNS server.  'uxReadTimeOut_ticks' will be passed as
  *        zero, in case the user has supplied a call-back function.
+ *
  * @param[in] pcHostName The hostname for which an IP address is required.
  * @param[in] uxIdentifier Identifier to match sent and received packets
  * @param[in] uxReadTimeOut_ticks The timeout in ticks for waiting. In case the user has supplied
