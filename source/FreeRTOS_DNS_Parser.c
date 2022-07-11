@@ -288,7 +288,8 @@
              * for easier access. */
 
             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */   /* coverity[misra_c_2012_rule_11_3_violation] */
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDNSMessageHeader = ( ( DNSMessage_t * )
                                    pucUDPPayloadBuffer );
 

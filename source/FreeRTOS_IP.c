@@ -1535,7 +1535,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                             /* pxProtPack will point to the offset were the protocols begin. */
 
                             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-                             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */                            /* coverity[misra_c_2012_rule_11_3_violation] */
+                             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                            /* coverity[misra_c_2012_rule_11_3_violation] */
                             pxProtPack = ( ( ProtocolPacket_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
                             if( pxProtPack->xUDPPacket.xUDPHeader.usChecksum == ( uint16_t ) 0U )
@@ -1829,7 +1830,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
              * fields of the IP packet. */
 
             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */   /* coverity[misra_c_2012_rule_11_3_violation] */
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
             ucVersionHeaderLength = pxIPPacket->xIPHeader.ucVersionHeaderLength;

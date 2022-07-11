@@ -484,7 +484,8 @@
              * segments. */
 
             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */   /* coverity[misra_c_2012_rule_11_3_violation] */
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
 
             for( pxIterator = listGET_NEXT( pxEnd );
@@ -929,7 +930,8 @@
             uint32_t ulNextSequenceNumber = ulSequenceNumber + ulLength;
 
             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */   /* coverity[misra_c_2012_rule_11_3_violation] */
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
             TCPSegment_t * pxSegment;
 
@@ -1941,7 +1943,8 @@
             const ListItem_t * pxIterator;
 
             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */   /* coverity[misra_c_2012_rule_11_3_violation] */
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xTxSegments.xListEnd ) );
             BaseType_t xDoUnlink;
             TCPSegment_t * pxSegment;
@@ -2095,7 +2098,8 @@
              * xWaitQueue to find a possible condition for a FAST retransmission. */
 
             /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */   /* coverity[misra_c_2012_rule_11_3_violation] */
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxEnd = ( ( const ListItem_t * ) &( pxWindow->xWaitQueue.xListEnd ) );
 
             pxIterator = listGET_NEXT( pxEnd );
