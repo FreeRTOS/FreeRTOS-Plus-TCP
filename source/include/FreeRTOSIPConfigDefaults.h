@@ -803,11 +803,6 @@
  * as early as possible.
  */
 
-/* in C90 First 31 characters should be different; in C99 first 63 characters
- * should be significant
- * suppressing misra rule 5.4 as changing the value
- * could lead to backward incompatibility */
-/* coverity[misra_c_2012_rule_5_4_violation] */
 #ifndef ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES
     #define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    1
 #endif
@@ -819,9 +814,6 @@
  * That function checks if there is a UDP socket listening to a
  * given port number.
  */
-/* in C90 First 31 characters should be different; in C99 first 63 characters
- * should be significant */
-/* coverity[misra_c_2012_rule_5_4_violation] */
 #ifndef ipconfigETHERNET_DRIVER_FILTERS_PACKETS
     #define ipconfigETHERNET_DRIVER_FILTERS_PACKETS    ( 0 )
 #endif
