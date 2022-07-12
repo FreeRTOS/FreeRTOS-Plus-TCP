@@ -385,7 +385,7 @@ static void prvProcessIPEventsAndTimers( void )
                     uintptr_t uxState;
                     eDHCPState_t eState;
 
-                    /* uintptr_t is guranteed by the implementation to fit a
+                    /* uintptr_t is guaranteed by the implementation to fit a
                      * pointer size of the platform */
                     /* coverity[misra_c_2012_rule_11_6_violation] */
                     uxState = ( uintptr_t ) xReceivedEvent.pvData;
