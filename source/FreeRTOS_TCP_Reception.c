@@ -97,6 +97,10 @@
                                 const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset ] ) );
         const TCPHeader_t * pxTCPHeader;
@@ -424,12 +428,20 @@
                                uint8_t ** ppucRecvData )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
         const TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
         int32_t lLength, lTCPHeaderLength, lReceiveLength, lUrgentLength;
 
         /* Map the buffer onto an IPHeader_t struct for easy access to fields. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPHeader_t * pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
         const size_t xIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
         uint16_t usLength;
@@ -510,6 +522,10 @@
                                uint32_t ulReceiveLength )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
         const TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;

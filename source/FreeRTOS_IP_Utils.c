@@ -234,6 +234,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
             /* The following statement may trigger a:
              * warning: cast increases required alignment of target type [-Wcast-align].
              * It has been confirmed though that the alignment is suitable. */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             pxResult = *( ( NetworkBufferDescriptor_t ** ) uxBuffer );
         }
         else
@@ -459,6 +460,10 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
 
         /* Parse the packet length. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
         /* Per https://tools.ietf.org/html/rfc791, the four-bit Internet Header
@@ -500,6 +505,10 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
          * and IP headers incorrectly aligned. However, either way, the "third"
          * protocol (Layer 3 or 4) header will be aligned, which is the convenience
          * of this calculation. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtPack = ( ( ProtocolPacket_t * ) &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
         /* Switch on the Layer 3/4 protocol. */
@@ -823,6 +832,10 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xTerm.u32 = 0U;
 
     xSource.u8ptr = ipPOINTER_CAST( uint8_t *, pucNextData );
+
+    /* MISRA Rule 11.4 warns about casting pointer to a different size of pointer.
+    * The casting is used here to help checksum calculation.  It is intentional */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
 
     /*
