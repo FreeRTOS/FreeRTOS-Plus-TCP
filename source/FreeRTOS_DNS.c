@@ -525,7 +525,7 @@
         uint32_t ulIPAddress = 0;
 
         struct freertos_sockaddr xAddress;
-        struct xDNSBuffer xReceiveBuffer = { 0 };
+        DNSBuffer_t xReceiveBuffer = { 0 };
         BaseType_t uxReturn = pdFAIL;
 
         prvFillSockAddress( &xAddress, pcHostName );
