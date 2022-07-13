@@ -839,7 +839,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xTerm.u32 = 0U;
 
     /* MISRA Rule 11.4 warns about casting pointer to a different size of pointer.
-     * The casting is used here to help checksum calculation.  It is intentional */
+    * The casting is used here to help checksum calculation.  It is intentional */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     xSource.u8ptr = ( uint8_t * ) pucNextData;
 
