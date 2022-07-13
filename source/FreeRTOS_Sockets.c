@@ -1684,6 +1684,8 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                     ( ( pxOtherSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
                       ( pxOtherSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) ) )
                 {
+                    /* Recursive call: the number of recursions is limited by design. */
+                    /* coverity[misra_c_2012_rule_17_2_violation] */
                     ( void ) vSocketClose( pxOtherSocket );
                 }
             }
