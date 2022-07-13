@@ -922,7 +922,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ] + ulCarry;
 
     uxDataLengthBytes %= 16U;
-    xLastSource.u8ptr = ( const uint8_t * ) ( xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1U ) ) );
+    xLastSource.u8ptr = xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1U ) );
 
     /* Half-word aligned. */
 
