@@ -1965,7 +1965,14 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         /* Each socket can have a callback function that is executed
                          * when there is an event the socket's owner might want to
                          * process. */
-                        /* The type cast of the pointer expression "A" to type "B" removes const qualifier from the pointed to type. */
+
+                        /* The type cast of the pointer expression "A" to
+                         * type "B" removes const qualifier from the pointed to type. */
+
+                        /* we're copying a memory address that points to the
+                         * start of a function. There is no intention to
+                         * change the value of the pointee */
+                        /* coverity[misra_c_2012_rule_11_8_violation] */
                         pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
                         xReturn = 0;
                         break;
