@@ -134,7 +134,7 @@
  * @return If the socket given as parameter is the DHCP socket - return
  *         pdTRUE, else pdFALSE.
  */
-    BaseType_t xIsDHCPSocket( Socket_t xSocket )
+    BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket )
     {
         BaseType_t xReturn;
 
@@ -616,6 +616,11 @@
         {
             xDHCPSocket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
 
+            /* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
+             * The conversion here is to use pointer to pass error code.
+             * The pointer will be checked against the error code value
+             * before any further pointer action. */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             if( xDHCPSocket != FREERTOS_INVALID_SOCKET )
             {
                 /* Ensure the Rx and Tx timeouts are zero as the DHCP executes in the
@@ -732,6 +737,10 @@
         if( lBytes > 0 )
         {
             /* Map a DHCP structure onto the received data. */
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayload );
 
             /* Sanity check. */
@@ -1011,6 +1020,10 @@
         {
             /* Leave space for the UDP header. */
             pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayloadBuffer );
 
             /* Most fields need to be zero. */
@@ -1168,7 +1181,8 @@
 
         if( pucUDPPayloadBuffer != NULL )
         {
-            void * pvCopySource, * pvCopyDest;
+            const void * pvCopySource;
+            void * pvCopyDest;
 
             FreeRTOS_debug_printf( ( "vDHCPProcess: discover\n" ) );
             iptraceSENDING_DHCP_DISCOVER();

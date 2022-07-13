@@ -105,9 +105,9 @@ typedef union _xUnion32
  */
 typedef union _xUnionPtr
 {
-    uint32_t * u32ptr; /**< The pointer member to a 32-bit variable. */
-    uint16_t * u16ptr; /**< The pointer member to a 16-bit variable. */
-    uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
+    const uint32_t * u32ptr; /**< The pointer member to a 32-bit variable. */
+    const uint16_t * u16ptr; /**< The pointer member to a 16-bit variable. */
+    const uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
 } xUnionPtr;
 
 /*
@@ -131,6 +131,10 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
         uintptr_t uxOption = ( uintptr_t ) eGetDHCPState();
 
         xEventMessage.eEventType = eDHCPEvent;
+
+        /* casting void * to uintptr_t exception; it is guaranteed by the
+         * implementation that uintptr_t fits a pointer size on the platform */
+        /* coverity[misra_c_2012_rule_11_6_violation] */
         xEventMessage.pvData = ( void * ) uxOption;
 
         return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );
@@ -222,7 +226,11 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
     else
     {
         /* Obtain the network buffer from the zero copy pointer. */
-        uxBuffer = ipPOINTER_CAST( uintptr_t, pvBuffer );
+
+        /* the conversion here does not cause a loss of data, as uintptr_t fits a
+         * pointer type on the system */
+        /* coverity[misra_c_2012_rule_11_6_violation] */
+        uxBuffer = ( uintptr_t ) pvBuffer;
 
         /* The input here is a pointer to a packet buffer plus some offset.  Subtract
          * this offset, and also the size of the header in the network buffer, usually
@@ -236,6 +244,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
             /* The following statement may trigger a:
              * warning: cast increases required alignment of target type [-Wcast-align].
              * It has been confirmed though that the alignment is suitable. */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             pxResult = *( ( NetworkBufferDescriptor_t ** ) uxBuffer );
         }
         else
@@ -291,10 +300,8 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
 BaseType_t xIsCallingFromIPTask( void )
 {
     BaseType_t xReturn;
-    TaskHandle_t xCurrentHandle, xCurrentIPTaskHandle;
-
-    xCurrentHandle = xTaskGetCurrentTaskHandle();
-    xCurrentIPTaskHandle = FreeRTOS_GetIPTaskHandle();
+    const struct tskTaskControlBlock * const xCurrentHandle = xTaskGetCurrentTaskHandle();
+    const struct tskTaskControlBlock * const xCurrentIPTaskHandle = FreeRTOS_GetIPTaskHandle();
 
     if( xCurrentHandle == xCurrentIPTaskHandle )
     {
@@ -385,7 +392,6 @@ void vPreCheckConfigs( void )
                 /* This is a 64-bit platform, make sure there is enough space in
                  * pucEthernetBuffer to store a pointer. */
                 configASSERT( ipconfigBUFFER_PADDING >= 14 );
-
                 /* But it must have this strange alignment: */
                 configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
             }
@@ -463,6 +469,10 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
 
         /* Parse the packet length. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
         /* Per https://tools.ietf.org/html/rfc791, the four-bit Internet Header
@@ -504,6 +514,10 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
          * and IP headers incorrectly aligned. However, either way, the "third"
          * protocol (Layer 3 or 4) header will be aligned, which is the convenience
          * of this calculation. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtPack = ( ( ProtocolPacket_t * ) &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
         /* Switch on the Layer 3/4 protocol. */
@@ -679,7 +693,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
             usChecksum = ( uint16_t )
                          ( ~usGenerateChecksum( usChecksum,
                                                 ipPOINTER_CAST( const uint8_t *, &( pxIPPacket->xIPHeader.ulSourceIPAddress ) ),
-                                                ( size_t ) ( ( 2U * ipSIZE_OF_IPv4_ADDRESS ) + ulLength ) ) );
+                                                ( size_t ) ( ( 2U * ( size_t ) ipSIZE_OF_IPv4_ADDRESS ) + ulLength ) ) );
             /* Sum TCP header and data. */
         }
 
@@ -826,7 +840,11 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSum.u32 = ( uint32_t ) usTemp;
     xTerm.u32 = 0U;
 
-    xSource.u8ptr = ipPOINTER_CAST( uint8_t *, pucNextData );
+    /* MISRA Rule 11.4 warns about casting pointer to a different size of pointer.
+    * The casting is used here to help checksum calculation.  It is intentional */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
+    xSource.u8ptr = pucNextData;
+
     uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
 
     /*
@@ -906,7 +924,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ] + ulCarry;
 
     uxDataLengthBytes %= 16U;
-    xLastSource.u8ptr = ( uint8_t * ) ( xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1 ) ) );
+    xLastSource.u8ptr = xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1U ) );
 
     /* Half-word aligned. */
 

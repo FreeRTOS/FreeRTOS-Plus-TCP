@@ -233,6 +233,11 @@ static BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
 {
     BaseType_t xReturn;
 
+    /* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
+     * The conversion here is to use pointer to pass error code.
+     * The pointer will be checked against the error code value
+     * before any further pointer action. */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket == NULL ) || ( pxSocket == FREERTOS_INVALID_SOCKET ) )
     {
         xReturn = pdFALSE;
@@ -400,6 +405,11 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
     if( prvDetermineSocketSize( xDomain, xType, xProtocolCpy, &uxSocketSize ) == pdFAIL )
     {
+        /* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
+         * The conversion here is to use pointer to pass error code.
+         * The pointer will be checked against the error code value
+         * before any further pointer action. */
+        /* coverity[misra_c_2012_rule_11_4_violation] */
         xReturn = FREERTOS_INVALID_SOCKET;
     }
     else
@@ -412,6 +422,11 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
         if( pxSocket == NULL )
         {
+            /* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
+             * The conversion here is to use pointer to pass error code.
+             * The pointer will be checked against the error code value
+             * before any further pointer action. */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             xReturn = FREERTOS_INVALID_SOCKET;
             iptraceFAILED_TO_CREATE_SOCKET();
         }
@@ -422,6 +437,12 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             if( xEventGroup == NULL )
             {
                 vPortFreeSocket( pxSocket );
+
+                /* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
+                 * The conversion here is to use pointer to pass error code.
+                 * The pointer will be checked against the error code value
+                 * before any further pointer action. */
+                /* coverity[misra_c_2012_rule_11_4_violation] */
                 xReturn = FREERTOS_INVALID_SOCKET;
                 iptraceFAILED_TO_CREATE_EVENT_GROUP();
             }
@@ -653,8 +674,8 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  *
  * @return If the socket belongs to the socket set: the event bits, otherwise zero.
  */
-    EventBits_t FreeRTOS_FD_ISSET( Socket_t xSocket,
-                                   SocketSet_t xSocketSet )
+    EventBits_t FreeRTOS_FD_ISSET( const ConstSocket_t xSocket,
+                                   const ConstSocketSet_t xSocketSet )
     {
         EventBits_t xReturn;
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
@@ -829,12 +850,12 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  *         returns a negative value, the cause can be looked-up in
  *         'FreeRTOS_errno_TCP.h'.
  */
-int32_t FreeRTOS_recvfrom( Socket_t xSocket,
+int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
                            void * pvBuffer,
                            size_t uxBufferLength,
                            BaseType_t xFlags,
                            struct freertos_sockaddr * pxSourceAddress,
-                           socklen_t * pxSourceAddressLength )
+                           const socklen_t * pxSourceAddressLength )
 {
     BaseType_t lPacketCount;
     NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -1226,6 +1247,11 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
 
     configASSERT( xIsCallingFromIPTask() == pdFALSE );
 
+    /* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
+     * The conversion here is to use pointer to pass error code.
+     * The pointer will be checked against the error code value
+     * before any further pointer action. */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket == NULL ) || ( pxSocket == FREERTOS_INVALID_SOCKET ) )
     {
         xReturn = -pdFREERTOS_ERRNO_EINVAL;
@@ -1457,6 +1483,11 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
     xCloseEvent.eEventType = eSocketCloseEvent;
     xCloseEvent.pvData = xSocket;
 
+    /* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
+     * The conversion here is to use pointer to pass error code.
+     * The pointer will be checked against the error code value
+     * before any further pointer action. */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( xSocket == NULL ) || ( xSocket == FREERTOS_INVALID_SOCKET ) )
     {
         xResult = 0;
@@ -1629,6 +1660,10 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
     static void prvTCPSetSocketCount( FreeRTOS_Socket_t const * pxSocketToDelete )
     {
         const ListItem_t * pxIterator;
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
         FreeRTOS_Socket_t * pxOtherSocket;
         uint16_t usLocalPort = pxSocketToDelete->usLocalPort;
@@ -1649,6 +1684,8 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                     ( ( pxOtherSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
                       ( pxOtherSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) ) )
                 {
+                    /* Recursive call: the number of recursions is limited by design. */
+                    /* coverity[misra_c_2012_rule_17_2_violation] */
                     ( void ) vSocketClose( pxOtherSocket );
                 }
             }
@@ -1772,6 +1809,11 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
     ( void ) lLevel;
     ( void ) uxOptionLength;
 
+    /* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
+     * The conversion here is to use pointer to pass error code.
+     * The pointer will be checked against the error code value
+     * before any further pointer action. */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket != NULL ) && ( pxSocket != FREERTOS_INVALID_SOCKET ) )
     {
         switch( lOptionName )
@@ -1923,7 +1965,14 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         /* Each socket can have a callback function that is executed
                          * when there is an event the socket's owner might want to
                          * process. */
-                        /* The type cast of the pointer expression "A" to type "B" removes const qualifier from the pointed to type. */
+
+                        /* The type cast of the pointer expression "A" to
+                         * type "B" removes const qualifier from the pointed to type. */
+
+                        /* we're copying a memory address that points to the
+                         * start of a function. There is no intention to
+                         * change the value of the pointee */
+                        /* coverity[misra_c_2012_rule_11_8_violation] */
                         pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
                         xReturn = 0;
                         break;
@@ -2205,6 +2254,10 @@ static const ListItem_t * pxListFindListItemWithValue( const List_t * pxList,
     if( ( xIPIsNetworkTaskReady() != pdFALSE ) && ( pxList != NULL ) )
     {
         const ListItem_t * pxIterator;
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxList->xListEnd ) );
 
         for( pxIterator = listGET_NEXT( pxEnd );
@@ -3031,7 +3084,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  *         error code is returned.
  */
     BaseType_t FreeRTOS_connect( Socket_t xClientSocket,
-                                 struct freertos_sockaddr * pxAddress,
+                                 const struct freertos_sockaddr * pxAddress,
                                  socklen_t xAddressLength )
     {
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xClientSocket;
@@ -3124,12 +3177,24 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         if( prvValidSocket( pxSocket, FREERTOS_IPPROTO_TCP, pdTRUE ) == pdFALSE )
         {
             /* Not a valid socket or wrong type */
+
+            /* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
+             * The conversion here is to use pointer to pass error code.
+             * The pointer will be checked against the error code value
+             * before any further pointer action. */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
         else if( ( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED ) &&
                  ( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eTCP_LISTEN ) )
         {
             /* Parent socket is not in listening mode */
+
+            /* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
+             * The conversion here is to use pointer to pass error code.
+             * The pointer will be checked against the error code value
+             * before any further pointer action. */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
         else
@@ -3612,7 +3677,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             xByteCount = ( BaseType_t ) uxStreamBufferGetSpace( pxSocket->u.xTCP.txStream );
 
             /* Try sending till there is a timeout or all bytes have been sent. */
-            while( pdTRUE )
+            while( ipTRUE_BOOL )
             {
                 /* If txStream has space. */
                 if( xByteCount > 0 )
@@ -3906,7 +3971,15 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         TickType_t xNow = xTaskGetTickCount();
         static TickType_t xLastTime = 0U;
         TickType_t xDelta = xNow - xLastTime;
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxIterator = ( const ListItem_t * ) listGET_HEAD_ENTRY( &xBoundTCPSocketsList );
 
         xLastTime = xNow;
@@ -4002,6 +4075,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     {
         const ListItem_t * pxIterator;
         FreeRTOS_Socket_t * pxResult = NULL, * pxListenSocket = NULL;
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
         /* Parameter not yet supported. */
@@ -4114,7 +4191,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             };
 
             if( ( uxSegmentCount > 0U ) &&
-                ( uxSegmentCount <= ( UBaseType_t ) ARRAY_SIZE( xPercTable ) ) )
+                ( uxSegmentCount <= ARRAY_USIZE( xPercTable ) ) )
             {
                 uxLittlePerc = xPercTable[ uxSegmentCount - 1U ].uxPercLittle;
                 uxEnoughPerc = xPercTable[ uxSegmentCount - 1U ].uxPercEnough;
@@ -4642,7 +4719,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  * @return pdTRUE if the socket is valid, else pdFALSE.
  *
  */
-BaseType_t xSocketValid( Socket_t xSocket )
+BaseType_t xSocketValid( const ConstSocket_t xSocket )
 {
     BaseType_t xReturnValue = pdFALSE;
 
@@ -4803,7 +4880,7 @@ BaseType_t xSocketValid( Socket_t xSocket )
  *
  * @param[in] pxSocketSet: The socket-set which is to be waited on for change.
  */
-    void vSocketSelect( SocketSelect_t * pxSocketSet )
+    void vSocketSelect( const SocketSelect_t * pxSocketSet )
     {
         BaseType_t xRound;
         EventBits_t xSocketBits, xBitsToClear;
@@ -4824,12 +4901,18 @@ BaseType_t xSocketValid( Socket_t xSocket )
 
             if( xRound == 0 )
             {
+                /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                 * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxEnd = ( ( const ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
             }
 
             #if ipconfigUSE_TCP == 1
                 else
                 {
+                    /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                     * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
                 }
             #endif /* ipconfigUSE_TCP == 1 */

@@ -390,6 +390,10 @@
         /* Insert a new list item into pxList, it does not sort the list,
          * but it puts the item just before xListEnd, so it will be the last item
          * returned by listGET_HEAD_ENTRY() */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxNewListItem->pxNext = ( ( ListItem_t * ) pxWhere );
 
         pxNewListItem->pxPrevious = pxWhere->pxPrevious;
@@ -478,6 +482,10 @@
 
             /* Find a segment with a given sequence number in the list of received
              * segments. */
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
 
             for( pxIterator = listGET_NEXT( pxEnd );
@@ -920,6 +928,10 @@
             TCPSegment_t * pxBest = NULL;
             const ListItem_t * pxIterator;
             uint32_t ulNextSequenceNumber = ulSequenceNumber + ulLength;
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
             TCPSegment_t * pxSegment;
 
@@ -1064,7 +1076,7 @@
             int32_t lReturn = -1;
             uint32_t ulLast = ulSequenceNumber + ulLength;
             uint32_t ulCurrentSequenceNumber = pxWindow->rx.ulCurrentSequenceNumber;
-            TCPSegment_t * pxFound;
+            const TCPSegment_t * pxFound;
 
             /* See if there is more data in a contiguous block to make the
              * SACK describe a longer range of data. */
@@ -1659,7 +1671,7 @@
  *        be sent when their timer has expired.
  * @param[in] pxWindow: The descriptor of the TCP sliding windows.
  */
-        static TCPSegment_t * pxTCPWindowTx_GetWaitQueue( TCPWindow_t * pxWindow )
+        static TCPSegment_t * pxTCPWindowTx_GetWaitQueue( const TCPWindow_t * pxWindow )
         {
             TCPSegment_t * pxSegment = xTCPWindowPeekHead( &( pxWindow->xWaitQueue ) );
 
@@ -1883,7 +1895,7 @@
  * @param[in] pxSegment: The segment that was just acknowledged.
  */
         static void prvTCPWindowTxCheckAck_CalcSRTT( TCPWindow_t * pxWindow,
-                                                     TCPSegment_t * pxSegment )
+                                                     const TCPSegment_t * pxSegment )
         {
             int32_t mS = ( int32_t ) ulTimerGetAge( &( pxSegment->xTransmitTimer ) );
 
@@ -1929,6 +1941,10 @@
             uint32_t ulSequenceNumber = ulFirst;
             uint32_t ulDataLength;
             const ListItem_t * pxIterator;
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xTxSegments.xListEnd ) );
             BaseType_t xDoUnlink;
             TCPSegment_t * pxSegment;
@@ -2081,6 +2097,9 @@
             /* A higher Tx block has been acknowledged.  Now iterate through the
              * xWaitQueue to find a possible condition for a FAST retransmission. */
 
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxEnd = ( ( const ListItem_t * ) &( pxWindow->xWaitQueue.xListEnd ) );
 
             pxIterator = listGET_NEXT( pxEnd );

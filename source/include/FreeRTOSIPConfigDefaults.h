@@ -802,6 +802,7 @@
  * It should be noted that it is most efficient to drop unwanted packets
  * as early as possible.
  */
+
 #ifndef ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES
     #define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    1
 #endif

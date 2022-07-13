@@ -286,6 +286,10 @@
 
             /* Parse the DNS message header. Map the byte stream onto a structure
              * for easier access. */
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDNSMessageHeader = ( ( DNSMessage_t * )
                                    pucUDPPayloadBuffer );
 
@@ -525,13 +529,13 @@
  * @param xDoStore whether to update the cache
  * @return ip address extracted from the frame or zero if not found
  */
-    uint32_t parseDNSAnswer( DNSMessage_t * pxDNSMessageHeader,
+    uint32_t parseDNSAnswer( const DNSMessage_t * pxDNSMessageHeader,
                              uint8_t * pucByte,
                              size_t uxSourceBytesRemaining,
                              size_t * uxBytesRead
     #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
                                  ,
-                                 char * pcName,
+                                 const char * pcName,
                                  BaseType_t xDoStore
     #endif
                              )
@@ -609,6 +613,10 @@
 
                 /* Mapping pucBuffer to a DNSAnswerRecord allows easy access of the
                  * fields of the structure. */
+
+                /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                 * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucBuffer );
 
                 /* Sanity check the data length of an IPv4 answer. */
@@ -683,6 +691,10 @@
                 /* It's not an A record, so skip it. Get the header location
                  * and then jump over the header. */
                 /* Cast the response to DNSAnswerRecord for easy access to fields of the DNS response. */
+
+                /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                 * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucBuffer );
 
                 pucBuffer = &( pucBuffer[ sizeof( DNSAnswerRecord_t ) ] );

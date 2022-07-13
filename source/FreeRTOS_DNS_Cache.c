@@ -72,7 +72,7 @@
  * @brief indicates the index of a free entry in the cache structure
  *        \a  DNSCacheRow_t
  */
-    static UBaseType_t uxFreeEntry = 0;
+    static UBaseType_t uxFreeEntry = 0U;
 
 
 
@@ -85,12 +85,12 @@
 
     static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
-                                     uint32_t * pulIP,
+                                     const uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds );
 
     static void prvInsertCacheEntry( const char * pcName,
                                      uint32_t ulTTL,
-                                     uint32_t * pulIP,
+                                     const uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds );
 
 /**
@@ -139,7 +139,7 @@
     void FreeRTOS_dnsclear( void )
     {
         ( void ) memset( xDNSCache, 0x0, sizeof( xDNSCache ) );
-        uxFreeEntry = 0;
+        uxFreeEntry = 0U;
     }
 
 /**
@@ -304,7 +304,7 @@
  */
     static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
-                                     uint32_t * pulIP,
+                                     const uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
         uint32_t ulIPAddressIndex = 0;
@@ -334,7 +334,7 @@
  */
     static void prvInsertCacheEntry( const char * pcName,
                                      uint32_t ulTTL,
-                                     uint32_t * pulIP,
+                                     const uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
         /* Add or update the item. */
