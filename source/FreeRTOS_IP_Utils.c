@@ -841,7 +841,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* MISRA Rule 11.4 warns about casting pointer to a different size of pointer.
     * The casting is used here to help checksum calculation.  It is intentional */
     /* coverity[misra_c_2012_rule_11_4_violation] */
-    xSource.u8ptr = ( const uint8_t * ) pucNextData;
+    xSource.u8ptr = pucNextData;
 
     uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
 
