@@ -129,6 +129,10 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
         uintptr_t uxOption = ( uintptr_t ) eGetDHCPState();
 
         xEventMessage.eEventType = eDHCPEvent;
+
+        /* casting void * to uintptr_t exception; it is guaranteed by the
+         * implementation that uintptr_t fits a pointer size on the platform */
+        /* coverity[misra_c_2012_rule_11_6_violation] */
         xEventMessage.pvData = ( void * ) uxOption;
 
         return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );
@@ -220,7 +224,11 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
     else
     {
         /* Obtain the network buffer from the zero copy pointer. */
-        uxBuffer = ipPOINTER_CAST( uintptr_t, pvBuffer );
+
+        /* the conversion here does not cause a loss of data, as uintptr_t fits a
+         * pointer type on the system */
+        /* coverity[misra_c_2012_rule_11_6_violation] */
+        uxBuffer = ( uintptr_t ) pvBuffer;
 
         /* The input here is a pointer to a packet buffer plus some offset.  Subtract
          * this offset, and also the size of the header in the network buffer, usually
@@ -382,7 +390,6 @@ void vPreCheckConfigs( void )
                 /* This is a 64-bit platform, make sure there is enough space in
                  * pucEthernetBuffer to store a pointer. */
                 configASSERT( ipconfigBUFFER_PADDING >= 14 );
-
                 /* But it must have this strange alignment: */
                 configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
             }
@@ -831,10 +838,13 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSum.u32 = ( uint32_t ) usTemp;
     xTerm.u32 = 0U;
 
-    xSource.u8ptr = ipPOINTER_CAST( uint8_t *, pucNextData );
-
     /* MISRA Rule 11.4 warns about casting pointer to a different size of pointer.
     * The casting is used here to help checksum calculation.  It is intentional */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
+    xSource.u8ptr = ( uint8_t * ) pucNextData;
+
+    /* the conversion here does not cause a loss of data, as uintptr_t fits a
+     * pointer type on the system */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
 
