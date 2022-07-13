@@ -425,6 +425,10 @@
     {
         uint32_t ulIPAddress = 0U;
         BaseType_t xExpected;
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const DNSMessage_t * pxDNSMessageHeader =
             ( ( const DNSMessage_t * )
               pxReceiveBuffer->pucPayloadBuffer );
@@ -679,6 +683,10 @@
 
         /* Write in a unique identifier. Cast the Payload Buffer to DNSMessage_t
          * to easily access fields of the DNS Message. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxDNSMessageHeader = ( ( DNSMessage_t * ) pucUDPPayloadBuffer );
         pxDNSMessageHeader->usIdentifier = ( uint16_t ) uxIdentifier;
 
@@ -720,6 +728,10 @@
 
         /* Finish off the record. Cast the record onto DNSTail_t structure to easily
          * access the fields of the DNS Message. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxTail = ( ( DNSTail_t * ) &( pucUDPPayloadBuffer[ uxStart + 1U ] ) );
 
         #if defined( _lint ) || defined( __COVERITY__ )
