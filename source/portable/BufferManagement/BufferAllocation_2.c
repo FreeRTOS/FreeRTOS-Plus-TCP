@@ -64,6 +64,7 @@
 #endif /* ipconfigUSE_TCP == 1 */
 
 /*_RB_ This is too complex not to have an explanation. */
+/* coverity[misra_c_2012_rule_20_10_violation] */
 #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
     #define ASSERT_CONCAT_( a, b )    a ## b
     #define ASSERT_CONCAT( a, b )     ASSERT_CONCAT_( a, b )
