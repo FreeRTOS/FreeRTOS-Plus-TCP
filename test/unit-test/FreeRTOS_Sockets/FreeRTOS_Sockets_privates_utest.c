@@ -2187,7 +2187,7 @@ void test_prvTCPSendCheck_InvalidValues( void )
     xSocket.u.xTCP.bits.bMallocError = pdFALSE;
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
 
-    for( unsigned int i = 0; i < sizeof( array ); i++ )
+    for( unsigned int i = 0; i < sizeof( array ) / sizeof( eIPTCPState_t ); i++ )
     {
         xSocket.u.xTCP.eTCPState = array[ i ];
         listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
