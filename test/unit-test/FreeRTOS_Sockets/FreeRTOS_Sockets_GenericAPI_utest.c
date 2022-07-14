@@ -2826,11 +2826,11 @@ void test_FreeRTOS_maywrite_InvalidValues( void )
 
     /* Invalid States. */
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.u.xTCP.eTCPState = eCONNECT_SYN - 1;
+    xSocket.u.xTCP.eTCPState = eTCP_LISTEN; /* eCONNECT_SYN - 1 */
     xReturn = FreeRTOS_maywrite( &xSocket );
     TEST_ASSERT_EQUAL( -1, xReturn );
 
-    xSocket.u.xTCP.eTCPState = eESTABLISHED + 1;
+    xSocket.u.xTCP.eTCPState = eFIN_WAIT_1; /* eESTABLISHED + 1 */
     xReturn = FreeRTOS_maywrite( &xSocket );
     TEST_ASSERT_EQUAL( -1, xReturn );
 
@@ -2838,7 +2838,7 @@ void test_FreeRTOS_maywrite_InvalidValues( void )
     xReturn = FreeRTOS_maywrite( &xSocket );
     TEST_ASSERT_EQUAL( 0, xReturn );
 
-    xSocket.u.xTCP.eTCPState = eCONNECT_SYN + 1;
+    xSocket.u.xTCP.eTCPState = eSYN_FIRST; /* eCONNECT_SYN + 1 */
     xReturn = FreeRTOS_maywrite( &xSocket );
     TEST_ASSERT_EQUAL( 0, xReturn );
 

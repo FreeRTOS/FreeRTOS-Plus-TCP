@@ -766,7 +766,7 @@
 
             uxOptionsLength = prvSetOptions( pxSocket, *ppxNetworkBuffer );
 
-            if( ( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eSYN_RECEIVED ) && ( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_CTRL ) == ( uint8_t ) tcpTCP_FLAG_SYN ) )
+            if( ( pxSocket->u.xTCP.eTCPState == eSYN_RECEIVED ) && ( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_CTRL ) == ( uint8_t ) tcpTCP_FLAG_SYN ) )
             {
                 FreeRTOS_debug_printf( ( "eSYN_RECEIVED: ACK expected, not SYN: peer missed our SYN+ACK\n" ) );
 
