@@ -1961,6 +1961,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
                 #if ( ipconfigSOCKET_HAS_USER_WAKE_CALLBACK != 0 )
                     case FREERTOS_SO_WAKEUP_CALLBACK:
+
                         /* converting to a function pointer from void, as this
                          * function follows the standard socket API, the user is
                          * responsible to supply an dequate pointer*/
@@ -5132,7 +5133,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 /*-----------------------------------------------------------*/
 
 #if 0
-#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+    #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
         struct pollfd
         {
             Socket_t fd;         /* file descriptor */
@@ -5230,5 +5231,5 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
             return xReturn;
         }
 
-#endif /* ipconfigSUPPORT_SELECT_FUNCTION */
+    #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 #endif /* 0 */
