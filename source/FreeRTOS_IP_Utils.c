@@ -73,6 +73,8 @@
 #endif
 
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
+    /* used for unit testing */
+    /* coverity[misra_c_2012_rule_8_9_violation] */
     static BaseType_t xCallEventHook = pdFALSE;
 #endif
 

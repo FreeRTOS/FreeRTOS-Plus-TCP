@@ -64,6 +64,10 @@
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
+
+/* declared global for unit testing purposes */
+/* coverity[misra_c_2012_rule_8_9_violation] */
+
 /** @brief Socket which needs to be closed in next iteration. */
     static FreeRTOS_Socket_t * xPreviousSocket = NULL;
 
