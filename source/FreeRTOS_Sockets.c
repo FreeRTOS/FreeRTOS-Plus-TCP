@@ -1961,33 +1961,10 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
                 #if ( ipconfigSOCKET_HAS_USER_WAKE_CALLBACK != 0 )
                     case FREERTOS_SO_WAKEUP_CALLBACK:
-
-<<<<<<< HEAD
-                        /* Each socket can have a callback function that is executed
-                         * when there is an event the socket's owner might want to
-                         * process. */
-=======
-                    /* Each socket can have a callback function that is executed
-                     * when there is an event the socket's owner might want to
-                     * process. */
-                    /* The type cast of the pointer expression "A" to type "B" removes const qualifier from the pointed to type. */
-
-                    /* converting to a function pointer from void, as this
-                     * function follows the standard socket API */
-                    /* coverity[misra_c_2012_rule_11_1_violation] */
-                    pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
-                    xReturn = 0;
-                    break;
-            #endif /* ipconfigSOCKET_HAS_USER_WAKE_CALLBACK */
->>>>>>> 4a4d60b (MISRA: suppress rule 11.1)
-
-                        /* The type cast of the pointer expression "A" to
-                         * type "B" removes const qualifier from the pointed to type. */
-
-                        /* we're copying a memory address that points to the
-                         * start of a function. There is no intention to
-                         * change the value of the pointee */
-                        /* coverity[misra_c_2012_rule_11_8_violation] */
+                        /* converting to a function pointer from void, as this
+                         * function follows the standard socket API, the user is
+                         * responsible to supply an dequate pointer*/
+                        /* coverity[misra_c_2012_rule_11_1_violation] */
                         pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
                         xReturn = 0;
                         break;
@@ -5155,7 +5132,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 /*-----------------------------------------------------------*/
 
 #if 0
-    #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
         struct pollfd
         {
             Socket_t fd;         /* file descriptor */
@@ -5253,5 +5230,5 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
             return xReturn;
         }
 
-    #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
+#endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 #endif /* 0 */
