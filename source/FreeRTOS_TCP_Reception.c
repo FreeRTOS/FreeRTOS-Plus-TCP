@@ -98,8 +98,7 @@
     {
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
-        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* MISRA Ref 61 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset ] ) );
@@ -429,8 +428,7 @@
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
 
-        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* MISRA Ref 62 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
@@ -439,8 +437,7 @@
 
         /* Map the buffer onto an IPHeader_t struct for easy access to fields. */
 
-        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* MISRA Ref 63 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPHeader_t * pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
         const size_t xIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
@@ -523,8 +520,7 @@
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
 
-        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* MISRA Ref 64 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );

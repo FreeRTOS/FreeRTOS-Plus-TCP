@@ -92,8 +92,7 @@
             /* Map the buffer onto a ICMP-Packet struct to easily access the
              * fields of ICMP packet. */
 
-            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* MISRA Ref 14 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             ICMPPacket_t * pxICMPPacket = ( ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 

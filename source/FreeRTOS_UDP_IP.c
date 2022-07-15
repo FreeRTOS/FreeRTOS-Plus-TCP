@@ -104,8 +104,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 
     /* Map the UDP packet onto the start of the frame. */
 
-    /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-     * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+    /* MISRA Ref 86 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
@@ -316,8 +315,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 
     /* Map the ethernet buffer to the UDPPacket_t struct for easy access to the fields. */
 
-    /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-     * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+    /* MISRA Ref 87 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 

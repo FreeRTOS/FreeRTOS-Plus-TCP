@@ -63,7 +63,10 @@
     #define baMINIMAL_BUFFER_SIZE    sizeof( ARPPacket_t )
 #endif /* ipconfigUSE_TCP == 1 */
 
-/*_RB_ This is too complex not to have an explanation. */
+/* Compile time assertion with zero runtime effects
+ * it will assert on 'e' not being zero, as it tries to divide by it,
+ * will also print the line where the error occured in case of failure */
+/* MISRA Ref 88 */
 /* coverity[misra_c_2012_rule_20_10_violation] */
 #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
     #define ASSERT_CONCAT_( a, b )    a ## b
@@ -228,8 +231,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     NetworkBufferDescriptor_t * pxReturn = NULL;
     size_t uxCount;
 
-    /* possibly a false positive as SIZE_MAX is shifted to the right (halved)
-     * which makes it a variant */
+    /* MISRA Ref 89 */
     /* coverity[misra_c_2012_rule_14_3_violation] */
     if( ( xRequestedSizeBytes <= ( SIZE_MAX >> 1 ) ) && ( xNetworkBufferSemaphore != NULL ) )
     {
