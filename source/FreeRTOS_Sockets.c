@@ -1964,7 +1964,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
                         /* converting to a function pointer from void, as this
                          * function follows the standard socket API, the user is
-                         * responsible to supply an dequate pointer*/
+                         * responsible to supply an adequate pointer */
                         /* coverity[misra_c_2012_rule_11_1_violation] */
                         pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
                         xReturn = 0;
