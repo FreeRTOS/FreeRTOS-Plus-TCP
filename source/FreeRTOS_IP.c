@@ -1894,7 +1894,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             }
 
             uxLength = ( size_t ) usLength;
-            uxLength -= ( ( uint16_t ) uxIPHeaderLength );     /* normally, minus 20. */
+            uxLength -= ( ( uint16_t ) uxIPHeaderLength ); /* normally, minus 20. */
 
             if( ( uxLength < ( ( size_t ) sizeof( UDPHeader_t ) ) ) ||
                 ( uxLength > ( ( size_t ) ipconfigNETWORK_MTU - ( size_t ) uxIPHeaderLength ) ) )
