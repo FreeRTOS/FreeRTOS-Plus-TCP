@@ -189,7 +189,7 @@ NetworkAddressingParameters_t xNetworkAddressing = { 0, 0, 0, 0, 0 };
 
 /* MISRA 15 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
-static NetworkAddressingParameters_t xDefaultAddressing = { 0, 0, 0, 0, 0 };
+NetworkAddressingParameters_t xDefaultAddressing = { 0, 0, 0, 0, 0 };
 
 /** @brief Used to ensure network down events cannot be missed when they cannot be
  * posted to the network event queue because the network event queue is already
