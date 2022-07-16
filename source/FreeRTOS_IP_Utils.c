@@ -831,7 +831,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     uint32_t ulCarry = 0U;
     uint16_t usTemp;
     size_t uxDataLengthBytes = uxByteCount;
-    uintptr_t ulSize;
+    size_t uxSize;
     uintptr_t ulX;
 
     /* Small MCUs often spend up to 30% of the time doing checksum calculations
@@ -880,21 +880,21 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
     /* Word (32-bit) aligned, do the most part. */
 
-    ulSize = ( uintptr_t ) ( ( uxDataLengthBytes / 4U ) * 4U );
+    uxSize = ( size_t ) ( ( uxDataLengthBytes / 4U ) * 4U );
 
-    if( ulSize >= ( 3U * sizeof( uint32_t ) ) )
+    if( uxSize >= ( 3U * sizeof( uint32_t ) ) )
     {
-        ulSize -= ( 3U * sizeof( uint32_t ) );
+        uxSize -= ( 3U * sizeof( uint32_t ) );
     }
     else
     {
-        ulSize = 0U;
+        uxSize = 0U;
     }
 
     /* In this loop, four 32-bit additions will be done, in total 16 bytes.
      * Indexing with constants (0,1,2,3) gives faster code than using
      * post-increments. */
-    for( ulX = 0U; ulX < ulSize; ulX += 4U * sizeof( uint32_t ) )
+    for( ulX = 0U; ulX < uxSize; ulX += 4U * sizeof( uint32_t ) )
     {
         /* Use a secondary Sum2, just to see if the addition produced an
          * overflow. */
@@ -939,9 +939,9 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     uxDataLengthBytes %= 16U;
 
     /* Half-word aligned. */
-    ulSize = ( ( uxDataLengthBytes & ~( ( size_t ) 1U ) ) );
+    uxSize = ( ( uxDataLengthBytes & ~( ( size_t ) 1U ) ) );
 
-    for( ulX = 0U; ulX < ulSize; ulX += 1U * sizeof( uint16_t ) )
+    for( ulX = 0U; ulX < uxSize; ulX += 1U * sizeof( uint16_t ) )
     {
         /* At least one more short. */
         xSum.u32 += xSource.u16ptr[ 0 ];
