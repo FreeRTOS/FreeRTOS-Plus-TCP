@@ -37,172 +37,82 @@ Deviations from the MISRA standard are listed below:
 
 
 ### Suppressed with Coverity Comments
+To find the violation references in the source files run grep on the source code
+with ( Assuming reference 3 ):
+```
+grep 'MISRA Ref 3' . -rI
+```
 #### Rule 2.2
 
-Ref 32: MISRA C-2012 Rule 2.2 Coverity doesn't understand about union variables.
-Ref 33:
-Ref 34:
+Ref 32, Ref 33, Ref 34
+MISRA C-2012 Rule 2.2 Coverity doesn't understand about union variables.
 
 #### Rule 8.9
-Ref 15: MISRA C-2012 Rule 8.9 Kept Global for unit testing purposes, to give
+Ref 26, Ref 57, Ref 15
+MISRA C-2012 Rule 8.9 Kept Global for unit testing purposes, to give
         the ability to set the value at will.
-Ref 26:
-Ref 57:
 
 #### Rule 11.3
-Ref 1: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+Ref 1, Ref 2, Ref 3, Ref 4, Ref 6, Ref 7, Ref 8, Ref 9, Ref 10, Ref 11, Ref 12,
+Ref 13, Ref 14, Ref 17, Ref 18, Ref 19, Ref 20, Ref 21, Ref 23, Ref 24, Ref 25,
+Ref 30, Ref 44, Ref 48, Ref 51, Ref 52, Ref 53, Ref 55, Ref 56, Ref 58, Ref 59,
+Ref 60, Ref 61, Ref 62, Ref 63, Ref 64, Ref 65, Ref 66, Ref 67, Ref 68, Ref 69,
+Ref 70, Ref 72, Ref 73, Ref 74, Ref 75, Ref 76, Ref 77, Ref 78, Ref 79, Ref 80,
+Ref 81, Ref 82, Ref 83, Ref 84, Ref 85, Ref 86, Ref 87, Ref 89
+MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
        The struct to be casted to is defined as a packed struct.
        The cast won't cause misalignment.
-Ref 2: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-       The struct to be casted to is defined as a packed struct.
-       The cast won't cause misalignment.
-Ref 3: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-       The struct to be casted to is defined as a packed struct.
-       The cast won't cause misalignment.
-Ref 4: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-       The struct to be casted to is defined as a packed struct.
-       The cast won't cause misalignment.
-Ref 6: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-       The struct to be casted to is defined as a packed struct.
-       The cast won't cause misalignment.
-Ref 7: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-       The struct to be casted to is defined as a packed struct.
-       The cast won't cause misalignment.
-Ref 8: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-       The struct to be casted to is defined as a packed struct.
-       The cast won't cause misalignment.
-Ref 9: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-       The struct to be casted to is defined as a packed struct.
-       The cast won't cause misalignment.
-Ref 10: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-       The struct to be casted to is defined as a packed struct.
-       The cast won't cause misalignment.
-Ref 11: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-        The struct to be casted to is defined as a packed struct.
-       The cast won't cause misalignment.
-Ref 12: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-        The struct to be casted to is defined as a packed struct.
-        The cast won't cause misalignment.
-Ref 13: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         The struct to be casted to is defined as a packed struct.
-         The cast won't cause misalignment.
-Ref 14: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-        The struct to be casted to is defined as a packed struct.
-        The cast won't cause misalignment.
-Ref 17: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-        The struct to be casted to is defined as a packed struct.
-        The cast won't cause misalignment.
-Ref 18: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-        The struct to be casted to is defined as a packed struct.
-        The cast won't cause misalignment.
-Ref 19: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-        The struct to be casted to is defined as a packed struct.
-        The cast won't cause misalignment.
-Ref 20: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-        The struct to be casted to is defined as a packed struct.
-        The cast won't cause misalignment.
-Ref 21: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-        The struct to be casted to is defined as a packed struct.
-        The cast won't cause misalignment.
-Ref 23: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-        The struct to be casted to is defined as a packed struct.
-        The cast won't cause misalignment.
-Ref 24: MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-        The struct to be casted to is defined as a packed struct.
-        The cast won't cause misalignment.
-Ref 25:
-Ref 30:
-Ref 44:
-Ref 48:
-Ref 51:
-Ref 52:
-Ref 53:
-Ref 55:
-Ref 56:
-Ref 58:
-Ref 59:
-Ref 60:
-Ref 61:
-Ref 62:
-Ref 63:
-Ref 64:
-Ref 65:
-Ref 66:
-Ref 67:
-Ref 68:
-Ref 69:
-Ref 70:
-Ref 72:
-Ref 73:
-Ref 74:
-Ref 75:
-Ref 76:
-Ref 77:
-Ref 78:
-Ref 79:
-Ref 80:
-Ref 81:
-Ref 82:
-Ref 83:
-Ref 84:
-Ref 85:
-Ref 86:
-Ref 87:
-Ref 89:
 
 #### Rule 11.4
-Ref 5: MISRA Rule 11.4 Warns about conversion between a pointer and an integer.
+Ref 5, Ref 39, Ref 40, Ref 41, Ref 42, Ref 43, Ref 46, Ref 49, Ref 50, Ref 71,
+Ref 38
+MISRA Rule 11.4 Warns about conversion between a pointer and an integer.
        The conversion here is to use pointer to pass error code.
        The pointer will be checked against the error code value
        before any further pointer action.
-Ref 29: MISRA Rule 11.4 The following statement may trigger a:
+Ref 29
+MISRA Rule 11.4 The following statement may trigger a:
         warning: cast increases required alignment of target type [-Wcast-align].
         It has been confirmed though that the alignment is suitable.
-Ref 31: MISRA Rule 11.4 warns about casting pointer to a different size of pointer.
+Ref 31
+MISRA Rule 11.4 warns about casting pointer to a different size of pointer.
         The casting is used here to help checksum calculation.  It is intentional
-Ref 38: MISRA C-2012 Rule 11.4 warns about conversion between a pointer and an integer.
-        The conversion here is to use pointer to pass error code.
-        The pointer will be checked against the error code value
-        before any further pointer action.
-Ref 39:
-Ref 40:
-Ref 41:
-Ref 42:
-Ref 43:
-Ref 46:
-Ref 49:
-Ref 50:
-Ref 71:
-Ref 54: There are two values which can indicate an invalid socket:
+
+Ref 54
+There are two values which can indicate an invalid socket:
         FREERTOS_INVALID_SOCKET and NULL.  In order to compare against
         both values, the code cannot be compliant with rule 11.4,
         hence the Coverity suppression statement below.
 
 #### Rule 11.6
-Ref 16: MISRA Rule 11.6 uintptr\_t is guaranteed by the implementation to fit a
+Ref 16, Ref 27, Ref 28
+MISRA Rule 11.6 uintptr\_t is guaranteed by the implementation to fit a
         pointer size of the platform
-Ref 27:
-Ref 28:
 
 #### Rule 11.8
-Ref 47: MISRA C-2012 Rule 11.8 we're copying a memory address that points to the
+Ref 47
+MISRA C-2012 Rule 11.8 we're copying a memory address that points to the
         start of a function. There is no intention to change the value
         of the pointee
 
 #### Rule 14.3
-Ref 22: MISRA C-2012 Rule 14.3 False positive as the value might be changed
+Ref 22
+MISRA C-2012 Rule 14.3 False positive as the value might be changed
         depending on the conditionally compiled code
-Ref 89: MISRA C-2012 Rule 14.3 Possibly a false positive as SIZE_MAX is shifted
+Ref 89
+MISRA C-2012 Rule 14.3 Possibly a false positive as SIZE_MAX is shifted
         to the right (halved) which makes it a variant
 
 #### Rule 21.6
-Ref 35: MISRA C-2012 Rule 21.6 Exception using function snprintf is for
+Ref 35, Ref 36
+MISRA C-2012 Rule 21.6 Exception using function snprintf is for
         logging purposes only
-Ref 36:
 
 #### Rule 17.2
-Ref 45: MISRA C-2012 Rule 17.2 The number of recursions is limited by design.
+Ref 45
+MISRA C-2012 Rule 17.2 The number of recursions is limited by design.
 
 #### Rule 20.10
-Ref 88: MISRA C-2012 Rule 20.10 Used support compile time assertions if the
+Ref 88
+MISRA C-2012 Rule 20.10 Used support compile time assertions if the
         preprocessor does not suppport sizeof - has no runtime execution
