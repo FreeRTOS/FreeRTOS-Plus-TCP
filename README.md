@@ -68,3 +68,11 @@ At this time it is recommended to use BufferAllocation_2.c in which case it is e
 The FreeRTOS Kernel Source is in [FreeRTOS/FreeRTOS-Kernel repository](https://github.com/FreeRTOS/FreeRTOS-Kernel), and it is consumed by testing/PR checks as a submodule in this repository.
 
 The version of the FreeRTOS Kernel Source in use could be accessed at ```./test/FreeRTOS-Kernel``` directory.
+
+## CBMC
+
+The `test/cbmc/proofs` directory contains CBMC proofs.
+
+To learn more about CBMC and proofs specifically, review the training material [here](https://model-checking.github.io/cbmc-training).
+
+In order to run these proofs you will need to install CBMC and other tools by following the instructions [here](https://model-checking.github.io/cbmc-training/installation.html).
