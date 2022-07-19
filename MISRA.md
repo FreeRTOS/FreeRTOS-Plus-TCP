@@ -64,9 +64,14 @@ Ref 30, Ref 44, Ref 48, Ref 51, Ref 52, Ref 53, Ref 55, Ref 56, Ref 58, Ref 59,
 Ref 60, Ref 61, Ref 62, Ref 63, Ref 64, Ref 65, Ref 66, Ref 67, Ref 68, Ref 69,
 Ref 70, Ref 72, Ref 73, Ref 74, Ref 75, Ref 76, Ref 77, Ref 78, Ref 79, Ref 80,
 Ref 81, Ref 82, Ref 83, Ref 84, Ref 85, Ref 86, Ref 87, Ref 89
-MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-       The struct to be casted to is defined as a packed struct.
-       The cast won't cause misalignment.
+MISRA C-2012 Rule 11.3 The data received/sent by the IP stack is represent as a
+       byte stream. This byte stream needs to be casted to various data
+       structures to access certain feilds of the packet. However, when casting
+       a byte stream to a structure, MISRA warns us that it can lead to
+       unaligned access. But, in case of FreeRTOS+TCP, `packed` structures are
+       used to prevent that. Packed structures force the compiler to access any
+       unaligned data byte by byte and hence mitigates the potential unaligned
+       memory access violation.
 
 #### Rule 11.4
 Ref 5, Ref 39, Ref 40, Ref 41, Ref 42, Ref 43, Ref 46, Ref 49, Ref 50, Ref 71,
