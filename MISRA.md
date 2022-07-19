@@ -45,7 +45,11 @@ grep 'MISRA Ref 3' . -rI
 #### Rule 2.2
 
 Ref 32, Ref 33, Ref 34
-MISRA C-2012 Rule 2.2 Coverity doesn't understand about union variables.
+MISRA C-2012 Rule 2.2 Unions are used for checksum computation to speed up the
+        process by utilizing the full length of registers (32-bits). After this,
+        the 16-bit union members are used to then compute the final checksum.
+        Doing this is considered as 'overwriting the variable' by Coverity.
+        Thus, it marks some statements as dead code. This is a false positive.
 
 #### Rule 8.9
 Ref 26, Ref 57, Ref 15
