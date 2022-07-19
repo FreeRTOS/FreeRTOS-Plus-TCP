@@ -823,13 +823,16 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 {
 /* MISRA/PC-lint doesn't like the use of unions. Here, they are a great
  * aid though to optimise the calculations. */
-    xUnion32 xSum2, xSum, xTerm;
+    xUnion32 xSum2;
+    xUnion32 xSum;
+    xUnion32 xTerm;
     xUnionPtr xSource;
-    xUnionPtr xLastSource;
     uintptr_t uxAlignBits;
     uint32_t ulCarry = 0U;
     uint16_t usTemp;
     size_t uxDataLengthBytes = uxByteCount;
+    size_t uxSize;
+    uintptr_t ulX;
 
     /* Small MCUs often spend up to 30% of the time doing checksum calculations
     * This function is optimised for 32-bit CPUs; Each time it will try to fetch
@@ -852,13 +855,13 @@ uint16_t usGenerateChecksum( uint16_t usSum,
      * odd position and we need to make sure the usSum value now in xSum is
      * as if it had been "aligned" in the same way.
      */
-    if( ( uxAlignBits & 1UL ) != 0U )
+    if( ( uxAlignBits & 1U ) != 0U )
     {
         xSum.u32 = ( ( xSum.u32 & 0xffU ) << 8 ) | ( ( xSum.u32 & 0xff00U ) >> 8 );
     }
 
     /* If byte (8-bit) aligned... */
-    if( ( ( uxAlignBits & 1UL ) != 0UL ) && ( uxDataLengthBytes >= ( size_t ) 1 ) )
+    if( ( ( uxAlignBits & 1U ) != 0U ) && ( uxDataLengthBytes >= ( size_t ) 1U ) )
     {
         xTerm.u8[ 1 ] = *( xSource.u8ptr );
         xSource.u8ptr++;
@@ -876,12 +879,22 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     }
 
     /* Word (32-bit) aligned, do the most part. */
-    xLastSource.u32ptr = ( xSource.u32ptr + ( uxDataLengthBytes / 4U ) ) - 3U;
+
+    uxSize = ( size_t ) ( ( uxDataLengthBytes / 4U ) * 4U );
+
+    if( uxSize >= ( 3U * sizeof( uint32_t ) ) )
+    {
+        uxSize -= ( 3U * sizeof( uint32_t ) );
+    }
+    else
+    {
+        uxSize = 0U;
+    }
 
     /* In this loop, four 32-bit additions will be done, in total 16 bytes.
      * Indexing with constants (0,1,2,3) gives faster code than using
      * post-increments. */
-    while( xSource.u32ptr < xLastSource.u32ptr )
+    for( ulX = 0U; ulX < uxSize; ulX += 4U * sizeof( uint32_t ) )
     {
         /* Use a secondary Sum2, just to see if the addition produced an
          * overflow. */
@@ -924,21 +937,18 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ] + ulCarry;
 
     uxDataLengthBytes %= 16U;
-    xLastSource.u8ptr = xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1U ) );
 
     /* Half-word aligned. */
+    uxSize = ( ( uxDataLengthBytes & ~( ( size_t ) 1U ) ) );
 
-    /* Coverity does not like Unions. Warning issued here: "The operator "<"
-     * is being applied to the pointers "xSource.u16ptr" and "xLastSource.u16ptr",
-     * which do not point into the same object." */
-    while( xSource.u16ptr < xLastSource.u16ptr )
+    for( ulX = 0U; ulX < uxSize; ulX += 1U * sizeof( uint16_t ) )
     {
         /* At least one more short. */
         xSum.u32 += xSource.u16ptr[ 0 ];
-        xSource.u16ptr++;
+        xSource.u16ptr = &xSource.u16ptr[ 1 ];
     }
 
-    if( ( uxDataLengthBytes & ( size_t ) 1 ) != 0U ) /* Maybe one more ? */
+    if( ( uxDataLengthBytes & ( size_t ) 1U ) != 0U ) /* Maybe one more ? */
     {
         xTerm.u8[ 0 ] = xSource.u8ptr[ 0 ];
     }
