@@ -76,10 +76,14 @@ MISRA C-2012 Rule 11.3 The data received/sent by the IP stack is represent as a
 #### Rule 11.4
 Ref 5, Ref 39, Ref 40, Ref 41, Ref 42, Ref 43, Ref 46, Ref 49, Ref 50, Ref 71,
 Ref 38
-MISRA Rule 11.4 Warns about conversion between a pointer and an integer.
-       The conversion here is to use pointer to pass error code.
-       The pointer will be checked against the error code value
-       before any further pointer action.
+MISRA c-2012 Rule 11.4 Warns about conversion between a pointer and an integer.
+       Whenever a socket is created using the `FreeRTOS_Socket` API, either a
+       valid socket (a valid non-NULL pointer) is returned; or
+       `FREERTOS_INVALID_SOCKET` is returned (which is essentially ~0U) to
+       depic an error in the socket creation process. This coversion from ~0U
+       to a pointer is used to convey the error to various functions. If the
+       pointer is equal to `FREERTOS_INVALID_SOCKET`, then it is not
+       dereferenced. Thus, this violation can be safely suppressed.
 Ref 29
 MISRA Rule 11.4 The following statement may trigger a:
         warning: cast increases required alignment of target type [-Wcast-align].
