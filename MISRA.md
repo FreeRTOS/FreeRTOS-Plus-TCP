@@ -87,7 +87,8 @@ MISRA c-2012 Rule 11.4 Warns about conversion between a pointer and an integer.
 Ref 29
 MISRA Rule 11.4 The following statement may trigger a:
         warning: cast increases required alignment of target type [-Wcast-align].
-        It has been confirmed though that the alignment is suitable.
+        It has been programatically checked that the pointer is well aligned
+        before this point.
 Ref 31
 MISRA Rule 11.4 warns about casting pointer to a different size of pointer.
         The casting is used here to help checksum calculation.  It is intentional
