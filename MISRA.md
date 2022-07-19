@@ -90,8 +90,11 @@ MISRA Rule 11.4 The following statement may trigger a:
         It has been programatically checked that the pointer is well aligned
         before this point.
 Ref 31
-MISRA Rule 11.4 warns about casting pointer to a different size of pointer.
-        The casting is used here to help checksum calculation.  It is intentional
+MISRA Rule 11.4 warns about casting pointer to an integer and vice versa.
+        Here, the poiner to the starting byte of the packet is cast to an
+        integer which is then used to see whether the pointer is well
+        aligned or not. It is not used to access any pointer values. Thus, this
+        violation can be safely suppressed. 
 
 Ref 54
 There are two values which can indicate an invalid socket:

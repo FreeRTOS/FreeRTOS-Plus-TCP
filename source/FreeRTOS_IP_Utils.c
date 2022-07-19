@@ -839,10 +839,10 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSum.u32 = ( uint32_t ) usTemp;
     xTerm.u32 = 0U;
 
-    /* MISRA Ref 31 */
-    /* coverity[misra_c_2012_rule_11_4_violation] */
     xSource.u8ptr = pucNextData;
 
+    /* MISRA Ref 31 */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
 
     /*
