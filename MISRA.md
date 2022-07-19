@@ -52,9 +52,10 @@ MISRA C-2012 Rule 2.2 Unions are used for checksum computation to speed up the
         Thus, it marks some statements as dead code. This is a false positive.
 
 #### Rule 8.9
-Ref 26, Ref 57, Ref 15
-MISRA C-2012 Rule 8.9 Kept Global for unit testing purposes, to give
-        the ability to set the value at will.
+Ref 26, Ref 57
+MISRA C-2012 Rule 8.9 For unit-tests to be repeatable and independent of the
+       order of execution, some variables have file scope definitions rather
+       than function scope. The variables are still defined as static.
 
 #### Rule 11.3
 Ref 1, Ref 2, Ref 3, Ref 4, Ref 6, Ref 7, Ref 8, Ref 9, Ref 10, Ref 11, Ref 12,

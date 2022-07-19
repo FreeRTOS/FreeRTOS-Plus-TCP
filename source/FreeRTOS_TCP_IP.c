@@ -68,7 +68,12 @@
 /* MISRA Ref 57 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
 
-/** @brief Socket which needs to be closed in next iteration. */
+/** @brief When closing a socket an event is posted to the Network Event Queue.
+ *         If the queue is full, then the event is not posted and the socket
+ *         can be orphaned. To prevent this, the below variable is used to keep
+ *         track of any socket which needs to be closed. This variable can be
+ *         accessed by the IP task only. Thus, preventing any race condition.
+ */
     static FreeRTOS_Socket_t * xPreviousSocket = NULL;
 
 /*
