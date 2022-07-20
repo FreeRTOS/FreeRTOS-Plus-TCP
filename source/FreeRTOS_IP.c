@@ -388,7 +388,7 @@ static void prvProcessIPEventsAndTimers( void )
                     uintptr_t uxState;
                     eDHCPState_t eState;
 
-                    /* MISRA Ref 16 */
+                    /* MISRA Ref 11.6.1 [DHCP events and conversion to void] */
                     /* coverity[misra_c_2012_rule_11_6_violation] */
                     uxState = ( uintptr_t ) xReceivedEvent.pvData;
                     /* coverity[misra_c_2012_rule_10_5_violation] */
