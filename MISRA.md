@@ -75,7 +75,7 @@ MISRA C-2012 Rule 11.3 The data received/sent by the IP stack is represent as a
 
 #### Rule 11.4
 Ref 5, Ref 39, Ref 40, Ref 41, Ref 42, Ref 43, Ref 46, Ref 49, Ref 50, Ref 71,
-Ref 38
+Ref 38, Ref 54
 MISRA c-2012 Rule 11.4 Warns about conversion between a pointer and an integer.
        Whenever a socket is created using the `FreeRTOS_Socket` API, either a
        valid socket (a valid non-NULL pointer) is returned; or
@@ -95,12 +95,6 @@ MISRA Rule 11.4 warns about casting pointer to an integer and vice versa.
         integer which is then used to see whether the pointer is well
         aligned or not. It is not used to access any pointer values. Thus, this
         violation can be safely suppressed. 
-
-Ref 54
-There are two values which can indicate an invalid socket:
-        FREERTOS_INVALID_SOCKET and NULL.  In order to compare against
-        both values, the code cannot be compliant with rule 11.4,
-        hence the Coverity suppression statement below.
 
 #### Rule 11.6
 Ref 16, Ref 27
@@ -133,12 +127,22 @@ MISRA C-2012 Rule 14.3 Possibly a false positive as SIZE_MAX is shifted
 
 #### Rule 21.6
 Ref 35, Ref 36
-MISRA C-2012 Rule 21.6 Exception using function snprintf is for
-        logging purposes only
+MISRA C-2012 Rule 21.6 warns about the use of standard library input/output
+        functions as they might have implementation defined or undefined
+        behaviour. The function `snprintf` is used to insert information in a
+        logging string. The function is bound by the number of bytes available
+        in the buffer. When used as intended, the function will not overflow
+        the provided buffer. Hence, this violation can be suppressed.
 
 #### Rule 17.2
 Ref 45
-MISRA C-2012 Rule 17.2 The number of recursions is limited by design.
+MISRA C-2012 Rule 17.2 warns about using recursion in software as that can have
+        severe implications on the stack usage and can lead to a serious issue.
+        In this case however, the number of recursions are limited by design.
+        Any socket spawned (child) by a socket in listening state (parent)
+        cannot be in listening state. Thus it is not possible for the child to
+        have a secondary child socket thereby limiting the number of recursive
+        calls to one.
 
 #### Rule 20.10
 Ref 88
