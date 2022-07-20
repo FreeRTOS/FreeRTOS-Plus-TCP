@@ -231,7 +231,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     NetworkBufferDescriptor_t * pxReturn = NULL;
     size_t uxCount;
 
-    /* MISRA Ref 14.3.2 [SIZE_MAX and invarient] */
+    /* MISRA Ref 14.3.2 [SIZE_MAX and invariant] */
     /* coverity[misra_c_2012_rule_14_3_violation] */
     if( ( xRequestedSizeBytes <= ( SIZE_MAX >> 1 ) ) && ( xNetworkBufferSemaphore != NULL ) )
     {
