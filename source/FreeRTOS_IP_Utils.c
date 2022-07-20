@@ -1138,7 +1138,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
             break;
 
         default:
-            /* MISRA Ref 35 */
+            /* MISRA Ref 21.6.1 [snprintf and logging] */
             /* coverity[misra_c_2012_rule_21_6_violation] */
             ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int ) xErrnum );
             pcName = NULL;
@@ -1147,7 +1147,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
 
     if( pcName != NULL )
     {
-        /* MISRA Ref 36 */
+        /* MISRA Ref 21.6.1 [snprintf and logging] */
         /* coverity[misra_c_2012_rule_21_6_violation] */
         ( void ) snprintf( pcBuffer, uxLength, "%s", pcName );
     }

@@ -104,7 +104,7 @@ _Ref 14.3.2_
         to the right (halved) which makes it a variant
 
 #### Rule 21.6
-_Ref 35, Ref 36_
+_Ref 21.6.1_
 
 - MISRA C-2012 Rule 21.6 warns about the use of standard library input/output
         functions as they might have implementation defined or undefined
@@ -114,7 +114,7 @@ _Ref 35, Ref 36_
         the provided buffer. Hence, this violation can be suppressed.
 
 #### Rule 17.2
-_Ref 45_
+_Ref 17.2.1_
 
 - MISRA C-2012 Rule 17.2 warns about using recursion in software as that can have
         severe implications on the stack usage and can lead to a serious issue.
@@ -125,7 +125,7 @@ _Ref 45_
         calls to one.
 
 #### Rule 20.10
-_Ref 88_
+_Ref 20.10.1_
 
 - MISRA C-2012 Rule 20.10 warns against the use of ## concatination operator.
         However, in this case, it must be used to support compile time

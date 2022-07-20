@@ -66,7 +66,7 @@
 /* Compile time assertion with zero runtime effects
  * it will assert on 'e' not being zero, as it tries to divide by it,
  * will also print the line where the error occured in case of failure */
-/* MISRA Ref 88 */
+/* MISRA Ref 20.10.1 [Lack of sizeof operator and compile time error checking] */
 /* coverity[misra_c_2012_rule_20_10_violation] */
 #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
     #define ASSERT_CONCAT_( a, b )    a ## b

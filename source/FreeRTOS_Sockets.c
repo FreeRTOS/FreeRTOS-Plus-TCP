@@ -1665,7 +1665,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                     ( ( pxOtherSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
                       ( pxOtherSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) ) )
                 {
-                    /* MISRA Ref 45 */
+                    /* MISRA Ref 17.2.1 [Sockets and limited recursion] */
                     /* coverity[misra_c_2012_rule_17_2_violation] */
                     ( void ) vSocketClose( pxOtherSocket );
                 }
