@@ -1639,7 +1639,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 #endif /* if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 ) */
             }
 
-            /* MISRA Ref 22 */
+            /* MISRA Ref 14.3.1 [Configuration dependent invarient] */
             /* coverity[misra_c_2012_rule_14_3_violation] */
             if( eReturn != eReleaseBuffer )
             {

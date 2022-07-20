@@ -93,12 +93,12 @@ _Ref 11.8.1_
         safe to suppress.
 
 #### Rule 14.3
-_Ref 22_
+_Ref 14.3.1_
 
 - MISRA C-2012 Rule 14.3 False positive as the value might be changed
         depending on the conditionally compiled code
 
-_Ref 89_
+_Ref 14.3.2_
 
 - MISRA C-2012 Rule 14.3 Possibly a false positive as SIZE_MAX is shifted
         to the right (halved) which makes it a variant
