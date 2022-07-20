@@ -63,7 +63,7 @@ Ref 13, Ref 14, Ref 17, Ref 18, Ref 19, Ref 20, Ref 21, Ref 23, Ref 24, Ref 25,
 Ref 30, Ref 44, Ref 48, Ref 51, Ref 52, Ref 53, Ref 55, Ref 56, Ref 58, Ref 59,
 Ref 60, Ref 61, Ref 62, Ref 63, Ref 64, Ref 65, Ref 66, Ref 67, Ref 68, Ref 69,
 Ref 70, Ref 72, Ref 73, Ref 74, Ref 75, Ref 76, Ref 77, Ref 78, Ref 79, Ref 80,
-Ref 81, Ref 82, Ref 83, Ref 84, Ref 85, Ref 86, Ref 87, Ref 89
+Ref 81, Ref 82, Ref 83, Ref 84, Ref 85, Ref 86, Ref 87, Ref 90
 MISRA C-2012 Rule 11.3 The data received/sent by the IP stack is represent as a
        byte stream. This byte stream needs to be casted to various data
        structures to access certain feilds of the packet. However, when casting
@@ -117,9 +117,11 @@ MISRA Rule 11.6 `uintptr_t` is guaranteed by the implementation to fit a
 
 #### Rule 11.8
 Ref 47
-MISRA C-2012 Rule 11.8 we're copying a memory address that points to the
-        start of a function. There is no intention to change the value
-        of the pointee
+MISRA c-2012 Rule 11.8 warns about removing the `const` qualifier when
+        assigning one value to another. In this case however, a function
+        pointer is being copied. It doesn't make sense in case of function
+        pointers for the pointee to be const or mutable. Thus, this rule is
+        safe to suppress.
 
 #### Rule 14.3
 Ref 22
@@ -140,5 +142,7 @@ MISRA C-2012 Rule 17.2 The number of recursions is limited by design.
 
 #### Rule 20.10
 Ref 88
-MISRA C-2012 Rule 20.10 Used support compile time assertions if the
-        preprocessor does not suppport sizeof - has no runtime execution
+MISRA C-2012 Rule 20.10 warns against the use of ## concatination operator.
+        However, in this case, it must be used to support compile time
+        assertions in case the preprocessor does not suppport sizeof. This
+        operation (assert) has no runtime execution.

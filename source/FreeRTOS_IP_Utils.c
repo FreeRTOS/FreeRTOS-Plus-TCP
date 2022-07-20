@@ -512,7 +512,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
          * protocol (Layer 3 or 4) header will be aligned, which is the convenience
          * of this calculation. */
 
-        /* MISRA Ref 89 */
+        /* MISRA Ref 90 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtPack = ( ( ProtocolPacket_t * ) &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
