@@ -115,7 +115,7 @@ static BaseType_t xStubForEventGroupWaitBits( EventGroupHandle_t xEventGroup,
                                               TickType_t xTicksToWait,
                                               int CallbackCount )
 {
-    xGlobalSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xGlobalSocket.u.xTCP.eTCPState = eESTABLISHED;
 }
 
 static BaseType_t xLocalReceiveCallback( Socket_t xSocket,

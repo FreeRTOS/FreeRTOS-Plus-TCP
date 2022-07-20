@@ -28,6 +28,8 @@
 #ifndef FREERTOS_TCP_STATE_HANDLING_H
 #define FREERTOS_TCP_STATE_HANDLING_H
 
+#include "FreeRTOS_TCP_IP.h"
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
@@ -38,7 +40,7 @@
  * Returns true if the socket must be checked.  Non-active sockets are waiting
  * for user action, either connect() or close().
  */
-BaseType_t prvTCPSocketIsActive( uint8_t ucStatus );
+BaseType_t prvTCPSocketIsActive( eIPTCPState_t eStatus );
 
 /*
  * prvTCPStatusAgeCheck() will see if the socket has been in a non-connected
