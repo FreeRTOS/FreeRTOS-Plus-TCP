@@ -135,7 +135,7 @@
         BaseType_t xResult = 0;
         BaseType_t xReady = pdFALSE;
 
-        if( ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) && ( pxSocket->u.xTCP.txStream != NULL ) )
+        if( ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) && ( pxSocket->u.xTCP.txStream != NULL ) )
         {
             /* The API FreeRTOS_send() might have added data to the TX stream.  Add
              * this data to the windowing system so it can be transmitted. */
@@ -153,7 +153,7 @@
                         /* Earlier data was received but not yet acknowledged.  This
                          * function is called when the TCP timer for the socket expires, the
                          * ACK may be sent now. */
-                        if( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eCLOSED )
+                        if( pxSocket->u.xTCP.eTCPState != eCLOSED )
                         {
                             if( ( xTCPWindowLoggingLevel > 1 ) && ipconfigTCP_MAY_LOG_PORT( pxSocket->usLocalPort ) )
                             {
@@ -201,8 +201,8 @@
         if( xReady == pdFALSE )
         {
             /* The second task of this regular socket check is sending out data. */
-            if( ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) ||
-                ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCONNECT_SYN ) )
+            if( ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) ||
+                ( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN ) )
             {
                 ( void ) prvTCPSendPacket( pxSocket );
             }
@@ -266,11 +266,11 @@
                           enum eTCP_STATE eTCPState )
     {
         FreeRTOS_Socket_t * xParent = NULL;
-        BaseType_t bBefore = tcpNOW_CONNECTED( ( BaseType_t ) pxSocket->u.xTCP.ucTCPState ); /* Was it connected ? */
-        BaseType_t bAfter = tcpNOW_CONNECTED( ( BaseType_t ) eTCPState );                    /* Is it connected now ? */
+        BaseType_t bBefore = tcpNOW_CONNECTED( ( BaseType_t ) pxSocket->u.xTCP.eTCPState ); /* Was it connected ? */
+        BaseType_t bAfter = tcpNOW_CONNECTED( ( BaseType_t ) eTCPState );                   /* Is it connected now ? */
 
         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-            BaseType_t xPreviousState = ( BaseType_t ) pxSocket->u.xTCP.ucTCPState;
+            BaseType_t xPreviousState = ( BaseType_t ) pxSocket->u.xTCP.eTCPState;
         #endif
         #if ( ipconfigUSE_CALLBACKS == 1 )
             FreeRTOS_Socket_t * xConnected = NULL;
@@ -377,7 +377,7 @@
                 }
             #endif /* ipconfigUSE_CALLBACKS */
 
-            if( prvTCPSocketIsActive( pxSocket->u.xTCP.ucTCPState ) == 0 )
+            if( prvTCPSocketIsActive( pxSocket->u.xTCP.eTCPState ) == 0 )
             {
                 /* Now the socket isn't in an active state anymore so it
                  * won't need further attention of the IP-task.
@@ -408,7 +408,7 @@
         }
 
         /* Fill in the new state. */
-        pxSocket->u.xTCP.ucTCPState = ( uint8_t ) eTCPState;
+        pxSocket->u.xTCP.eTCPState = eTCPState;
 
         /* Touch the alive timers because moving to another state. */
         prvTCPTouchSocket( pxSocket );
@@ -456,7 +456,7 @@
     {
         TickType_t ulDelayMs = ( TickType_t ) tcpMAXIMUM_TCP_WAKEUP_TIME_MS;
 
-        if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCONNECT_SYN )
+        if( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN )
         {
             /* The socket is actively connecting to a peer. */
             if( pxSocket->u.xTCP.bits.bConnPrepared != pdFALSE_UNSIGNED )
@@ -582,7 +582,7 @@
              * the destination PORT. */
             pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( ulLocalIP, usLocalPort, ulRemoteIP, usRemotePort );
 
-            if( ( pxSocket == NULL ) || ( prvTCPSocketIsActive( pxSocket->u.xTCP.ucTCPState ) == pdFALSE ) )
+            if( ( pxSocket == NULL ) || ( prvTCPSocketIsActive( pxSocket->u.xTCP.eTCPState ) == pdFALSE ) )
             {
                 /* A TCP messages is received but either there is no socket with the
                  * given port number or the there is a socket, but it is in one of these
@@ -610,7 +610,7 @@
             {
                 pxSocket->u.xTCP.ucRepCount = 0U;
 
-                if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN )
+                if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN )
                 {
                     /* The matching socket is in a listening state.  Test if the peer
                      * has set the SYN flag. */
@@ -645,7 +645,7 @@
                             xResult = pdFAIL;
                         }
                     }
-                } /* if( pxSocket->u.xTCP.ucTCPState == eTCP_LISTEN ). */
+                } /* if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN ). */
                 else
                 {
                     /* This is not a socket in listening mode. Check for the RST
@@ -655,7 +655,7 @@
                         FreeRTOS_debug_printf( ( "TCP: RST received from %xip:%u for %u\n", ( unsigned ) ulRemoteIP, usRemotePort, usLocalPort ) );
 
                         /* Implement https://tools.ietf.org/html/rfc5961#section-3.2. */
-                        if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCONNECT_SYN )
+                        if( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN )
                         {
                             /* Per the above RFC, "In the SYN-SENT state ... the RST is
                              * acceptable if the ACK field acknowledges the SYN." */
@@ -689,7 +689,7 @@
                         xResult = pdFAIL;
                     }
                     /* Check whether there is a pure SYN amongst the TCP flags while the connection is established. */
-                    else if( ( ( ucTCPFlags & tcpTCP_FLAG_CTRL ) == tcpTCP_FLAG_SYN ) && ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) )
+                    else if( ( ( ucTCPFlags & tcpTCP_FLAG_CTRL ) == tcpTCP_FLAG_SYN ) && ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) )
                     {
                         /* SYN flag while this socket is already connected. */
                         FreeRTOS_debug_printf( ( "TCP: SYN unexpected from %xip:%u\n", ( unsigned ) ulRemoteIP, usRemotePort ) );

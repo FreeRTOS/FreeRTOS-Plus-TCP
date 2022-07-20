@@ -538,7 +538,7 @@
 
         ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
 
-        if( ( ulRxLength > 0U ) && ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eSYN_RECEIVED ) )
+        if( ( ulRxLength > 0U ) && ( pxSocket->u.xTCP.eTCPState >= eSYN_RECEIVED ) )
         {
             uint32_t ulSkipCount = 0;
 

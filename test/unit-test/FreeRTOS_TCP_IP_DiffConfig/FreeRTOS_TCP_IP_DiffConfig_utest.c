@@ -94,7 +94,7 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.txStream = ( void * ) &xSocket;
     xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
 
@@ -130,14 +130,14 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet( voi
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     eTCPState = eESTABLISHED;
-    xSocket.u.xTCP.ucTCPState = eCLOSED;
+    xSocket.u.xTCP.eTCPState = eCLOSED;
 
     xSocket.u.xTCP.usTimeout = 100;
     xSocket.xSelectBits = eSELECT_WRITE;
     /* if bPassQueued is true, this socket is an orphan until it gets connected. */
     xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
 
-    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
