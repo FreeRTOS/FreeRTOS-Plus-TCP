@@ -103,9 +103,17 @@ There are two values which can indicate an invalid socket:
         hence the Coverity suppression statement below.
 
 #### Rule 11.6
-Ref 16, Ref 27, Ref 28
-MISRA Rule 11.6 uintptr\_t is guaranteed by the implementation to fit a
-        pointer size of the platform
+Ref 16, Ref 27
+When sending and receiving a DHCP event to the IP-stack, the events are
+        converted to a void pointer and sent to the IP-task. The function used
+        to send the events handles various events for the IP-task and thus only
+        accepts void pointers. The IP-task converts the void pointer back to
+        the event. Thus, this rule can be safely suppressed.
+Ref 28
+MISRA Rule 11.6 `uintptr_t` is guaranteed by the implementation to fit a
+        pointer size of the platform. The conversion is required to move the
+        pointer backward by a constant offset to get to a 'hidden' pointer
+        which is not available for the user to use.
 
 #### Rule 11.8
 Ref 47
