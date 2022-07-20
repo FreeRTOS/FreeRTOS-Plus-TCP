@@ -391,6 +391,7 @@ static void prvProcessIPEventsAndTimers( void )
                     /* MISRA Ref 16 */
                     /* coverity[misra_c_2012_rule_11_6_violation] */
                     uxState = ( uintptr_t ) xReceivedEvent.pvData;
+                    /* coverity[misra_c_2012_rule_10_5_violation] */
                     eState = ( eDHCPState_t ) uxState;
 
                     /* Process DHCP messages for a given end-point. */
