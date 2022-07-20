@@ -241,7 +241,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
          * pointer is dereferenced, make sure it is well aligned. */
         if( ( uxBuffer & ( ( ( uintptr_t ) sizeof( uxBuffer ) ) - 1U ) ) == ( uintptr_t ) 0U )
         {
-            /* MISRA Ref 29 */
+            /* MISRA Ref 11.4.2 [Validation of pointer alignment] */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             pxResult = *( ( NetworkBufferDescriptor_t ** ) uxBuffer );
         }
@@ -841,7 +841,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
     xSource.u8ptr = pucNextData;
 
-    /* MISRA Ref 31 */
+    /* MISRA Ref 11.4.3 [Casting pointer to int for verification] */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
 

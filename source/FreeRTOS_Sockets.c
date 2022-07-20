@@ -233,7 +233,7 @@ static BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
 {
     BaseType_t xReturn;
 
-    /* MISRA Ref 38 */
+    /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket == NULL ) || ( pxSocket == FREERTOS_INVALID_SOCKET ) )
     {
@@ -402,7 +402,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
     if( prvDetermineSocketSize( xDomain, xType, xProtocolCpy, &uxSocketSize ) == pdFAIL )
     {
-        /* MISRA Ref 39 */
+        /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
         /* coverity[misra_c_2012_rule_11_4_violation] */
         xReturn = FREERTOS_INVALID_SOCKET;
     }
@@ -416,7 +416,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
         if( pxSocket == NULL )
         {
-            /* MISRA Ref 40 */
+            /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             xReturn = FREERTOS_INVALID_SOCKET;
             iptraceFAILED_TO_CREATE_SOCKET();
@@ -429,7 +429,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             {
                 vPortFreeSocket( pxSocket );
 
-                /* MISRA Ref 41 */
+                /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
                 /* coverity[misra_c_2012_rule_11_4_violation] */
                 xReturn = FREERTOS_INVALID_SOCKET;
                 iptraceFAILED_TO_CREATE_EVENT_GROUP();
@@ -1235,7 +1235,7 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
 
     configASSERT( xIsCallingFromIPTask() == pdFALSE );
 
-    /* MISRA Ref 42 */
+    /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket == NULL ) || ( pxSocket == FREERTOS_INVALID_SOCKET ) )
     {
@@ -1468,7 +1468,7 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
     xCloseEvent.eEventType = eSocketCloseEvent;
     xCloseEvent.pvData = xSocket;
 
-    /* MISRA Ref 43 */
+    /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( xSocket == NULL ) || ( xSocket == FREERTOS_INVALID_SOCKET ) )
     {
@@ -1790,7 +1790,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
     ( void ) lLevel;
     ( void ) uxOptionLength;
 
-    /* MISRA Ref 46 */
+    /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket != NULL ) && ( pxSocket != FREERTOS_INVALID_SOCKET ) )
     {
@@ -3154,7 +3154,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             /* Not a valid socket or wrong type */
 
-            /* MISRA Ref 49 */
+            /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
@@ -3163,7 +3163,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             /* Parent socket is not in listening mode */
 
-            /* MISRA Ref 50 */
+            /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
@@ -4690,7 +4690,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 {
     BaseType_t xReturnValue = pdFALSE;
 
-    /* MISRA Ref 54 */
+    /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) )
     {
