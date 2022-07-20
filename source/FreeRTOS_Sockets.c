@@ -1947,7 +1947,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         /* The type cast of the pointer expression "A" to
                          * type "B" removes const qualifier from the pointed to type. */
 
-                        /* MISRA Ref 47 */
+                        /* MISRA Ref 11.8.1 [Function pointer and use of const pointer] */
                         /* coverity[misra_c_2012_rule_11_8_violation] */
                         pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
                         xReturn = 0;
