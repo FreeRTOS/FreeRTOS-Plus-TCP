@@ -550,7 +550,7 @@
 
         /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
 
-        /* MISRA Ref 58 */
+        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
@@ -575,7 +575,7 @@
         {
             /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
 
-            /* MISRA Ref 59 */
+            /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
             ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
@@ -806,7 +806,7 @@
         FreeRTOS_Socket_t * pxFound;
         BaseType_t xResult = pdFALSE;
 
-        /* MISRA Ref 60 */
+        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEndTCP = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 

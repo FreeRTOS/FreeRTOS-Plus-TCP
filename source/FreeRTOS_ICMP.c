@@ -92,7 +92,7 @@
             /* Map the buffer onto a ICMP-Packet struct to easily access the
              * fields of ICMP packet. */
 
-            /* MISRA Ref 14 */
+            /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             ICMPPacket_t * pxICMPPacket = ( ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 

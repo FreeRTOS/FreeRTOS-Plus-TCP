@@ -153,7 +153,7 @@
                  * prvTCPPrepareConnect() prepares 'xPacket' and returns pdTRUE if
                  * the Ethernet address of the peer or the gateway is found. */
 
-                /* MISRA Ref 73 */
+                /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxHeaderSize ] ) );
 
@@ -308,7 +308,7 @@
         {
             /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
 
-            /* MISRA Ref 74 */
+            /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxTCPPacket->xIPHeader;
@@ -669,7 +669,7 @@
              * now prepare the initial TCP packet and some fields in the socket. Map
              * the buffer onto the TCPPacket_t struct to easily access it's field. */
 
-            /* MISRA Ref 75 */
+            /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxTCPPacket = ( ( TCPPacket_t * ) pxSocket->u.xTCP.xPacket.u.ucLastPacket );
             pxIPHeader = &pxTCPPacket->xIPHeader;
@@ -970,7 +970,7 @@
 
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
 
-        /* MISRA Ref 76 */
+        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
         pxTCPWindow = &( pxSocket->u.xTCP.xTCPWindow );
@@ -1003,7 +1003,7 @@
                     /* Map the byte stream onto ProtocolHeaders_t struct for easy
                      * access to the fields. */
 
-                    /* MISRA Ref 77 */
+                    /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
                     /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
 
@@ -1206,7 +1206,7 @@
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
 
-        /* MISRA Ref 78 */
+        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                   &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
@@ -1295,7 +1295,7 @@
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
 
-        /* MISRA Ref 79 */
+        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                         &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
@@ -1450,7 +1450,7 @@
             {
                 /* Map the ethernet buffer onto the TCPPacket_t struct for easy access to the fields. */
 
-                /* MISRA Ref 80 */
+                /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
                 const uint32_t ulSendLength =

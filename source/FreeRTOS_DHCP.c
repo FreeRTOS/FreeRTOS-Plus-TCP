@@ -735,7 +735,7 @@
         {
             /* Map a DHCP structure onto the received data. */
 
-            /* MISRA Ref 6 */
+            /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayload );
 
@@ -1017,7 +1017,7 @@
             /* Leave space for the UDP header. */
             pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
 
-            /* MISRA Ref 7 */
+            /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayloadBuffer );
 

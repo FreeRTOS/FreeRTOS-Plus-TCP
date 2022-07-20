@@ -1643,7 +1643,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
     {
         const ListItem_t * pxIterator;
 
-        /* MISRA Ref 44 */
+        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
         FreeRTOS_Socket_t * pxOtherSocket;
@@ -2231,7 +2231,7 @@ static const ListItem_t * pxListFindListItemWithValue( const List_t * pxList,
     {
         const ListItem_t * pxIterator;
 
-        /* MISRA Ref 48 */
+        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxList->xListEnd ) );
 
@@ -3942,11 +3942,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         static TickType_t xLastTime = 0U;
         TickType_t xDelta = xNow - xLastTime;
 
-        /* MISRA Ref 51 */
+        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
-        /* MISRA Ref 52 */
+        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxIterator = ( const ListItem_t * ) listGET_HEAD_ENTRY( &xBoundTCPSocketsList );
 
@@ -4044,7 +4044,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         const ListItem_t * pxIterator;
         FreeRTOS_Socket_t * pxResult = NULL, * pxListenSocket = NULL;
 
-        /* MISRA Ref 53 */
+        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
@@ -4863,7 +4863,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 
             if( xRound == 0 )
             {
-                /* MISRA Ref 55 */
+                /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxEnd = ( ( const ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
             }
@@ -4871,7 +4871,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
             #if ipconfigUSE_TCP == 1
                 else
                 {
-                    /* MISRA Ref 56 */
+                    /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
                     /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
                 }

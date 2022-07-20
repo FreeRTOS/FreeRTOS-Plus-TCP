@@ -391,7 +391,7 @@
          * but it puts the item just before xListEnd, so it will be the last item
          * returned by listGET_HEAD_ENTRY() */
 
-        /* MISRA Ref 81 */
+        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxNewListItem->pxNext = ( ( ListItem_t * ) pxWhere );
 
@@ -482,7 +482,7 @@
             /* Find a segment with a given sequence number in the list of received
              * segments. */
 
-            /* MISRA Ref 82 */
+            /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
 
@@ -927,7 +927,7 @@
             const ListItem_t * pxIterator;
             uint32_t ulNextSequenceNumber = ulSequenceNumber + ulLength;
 
-            /* MISRA Ref 83 */
+            /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
             TCPSegment_t * pxSegment;
@@ -1939,7 +1939,7 @@
             uint32_t ulDataLength;
             const ListItem_t * pxIterator;
 
-            /* MISRA Ref 84 */
+            /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xTxSegments.xListEnd ) );
             BaseType_t xDoUnlink;
@@ -2093,7 +2093,7 @@
             /* A higher Tx block has been acknowledged.  Now iterate through the
              * xWaitQueue to find a possible condition for a FAST retransmission. */
 
-            /* MISRA Ref 85 */
+            /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxEnd = ( ( const ListItem_t * ) &( pxWindow->xWaitQueue.xListEnd ) );
 

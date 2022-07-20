@@ -468,7 +468,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 
         /* Parse the packet length. */
 
-        /* MISRA Ref 30 */
+        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
@@ -512,7 +512,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
          * protocol (Layer 3 or 4) header will be aligned, which is the convenience
          * of this calculation. */
 
-        /* MISRA Ref 90 */
+        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtPack = ( ( ProtocolPacket_t * ) &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
