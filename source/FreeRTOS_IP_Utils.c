@@ -75,7 +75,7 @@
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     /* used for unit testing */
 
-/* MISRA Ref 26 */
+/* MISRA Ref 8.9.1 [File scoped variables] */
 /* coverity[misra_c_2012_rule_8_9_violation] */
     static BaseType_t xCallEventHook = pdFALSE;
 #endif
@@ -948,19 +948,19 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         xTerm.u8[ 0 ] = xSource.u8ptr[ 0 ];
     }
 
-    /* MISRA Ref 32 */
+    /* MISRA Ref 2.2.1 [Unions and dead code] */
     /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 += xTerm.u32;
 
     /* Now add all carries again. */
 
     /* Assigning value from "xTerm.u32" to "xSum.u32" here, but that stored value is overwritten before it can be used.
-     * /* MISRA Ref 33 */
+     * /* MISRA Ref 2.2.1 [Unions and dead code] */
     /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
     /* coverity[value_overwrite] */
-    /* MISRA Ref 34 */
+    /* MISRA Ref 2.2.1 [Unions and dead code] */
     /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 

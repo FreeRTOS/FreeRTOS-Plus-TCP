@@ -65,7 +65,7 @@
 #if ipconfigUSE_TCP == 1
 
 
-/* MISRA Ref 57 */
+/* MISRA Ref 8.9.1 [File scoped variables] */
 /* coverity[misra_c_2012_rule_8_9_violation] */
 
 /** @brief When closing a socket an event is posted to the Network Event Queue.
