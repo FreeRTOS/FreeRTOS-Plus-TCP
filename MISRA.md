@@ -94,7 +94,7 @@ MISRA Rule 11.4 warns about casting pointer to an integer and vice versa.
         Here, the poiner to the starting byte of the packet is cast to an
         integer which is then used to see whether the pointer is well
         aligned or not. It is not used to access any pointer values. Thus, this
-        violation can be safely suppressed. 
+        violation can be safely suppressed.
 
 #### Rule 11.6
 Ref 16, Ref 27
