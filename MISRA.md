@@ -13,7 +13,7 @@ grep 'MISRA Ref 3' . -rI
 ```
 #### Rule 2.2
 
-_Ref 32, Ref 33, Ref 34_
+_Ref 2.2.1_
 
 - MISRA C-2012 Rule 2.2 Unions are used for checksum computation to speed up the
         process by utilizing the full length of registers (32-bits). After this,
@@ -22,19 +22,14 @@ _Ref 32, Ref 33, Ref 34_
         Thus, it marks some statements as dead code. This is a false positive.
 
 #### Rule 8.9
-_Ref 26, Ref 57_
+_Ref 8.9.1_
 
 - MISRA C-2012 Rule 8.9 For unit-tests to be repeatable and independent of the
        order of execution, some variables have file scope definitions rather
        than function scope. The variables are still defined as static.
 
 #### Rule 11.3
-_Ref 1, Ref 2, Ref 3, Ref 4, Ref 6, Ref 7, Ref 8, Ref 9, Ref 10, Ref 11, Ref 12,
-Ref 13, Ref 14, Ref 17, Ref 18, Ref 19, Ref 20, Ref 21, Ref 23, Ref 24, Ref 25,
-Ref 30, Ref 44, Ref 48, Ref 51, Ref 52, Ref 53, Ref 55, Ref 56, Ref 58, Ref 59,
-Ref 60, Ref 61, Ref 62, Ref 63, Ref 64, Ref 65, Ref 66, Ref 67, Ref 68, Ref 69,
-Ref 70, Ref 72, Ref 73, Ref 74, Ref 75, Ref 76, Ref 77, Ref 78, Ref 79, Ref 80,
-Ref 81, Ref 82, Ref 83, Ref 84, Ref 85, Ref 86, Ref 87, Ref 90_
+_Ref 11.3.1_
 
 - MISRA C-2012 Rule 11.3 The data received/sent by the IP stack is represent as a
        byte stream. This byte stream needs to be casted to various data
@@ -46,8 +41,7 @@ Ref 81, Ref 82, Ref 83, Ref 84, Ref 85, Ref 86, Ref 87, Ref 90_
        memory access violation.
 
 #### Rule 11.4
-_Ref 5, Ref 39, Ref 40, Ref 41, Ref 42, Ref 43, Ref 46, Ref 49, Ref 50, Ref 71,
-Ref 38, Ref 54_
+_Ref 11.4.1_
 
 - MISRA c-2012 Rule 11.4 Warns about conversion between a pointer and an integer.
        Whenever a socket is created using the `FreeRTOS_Socket` API, either a
@@ -58,14 +52,14 @@ Ref 38, Ref 54_
        pointer is equal to `FREERTOS_INVALID_SOCKET`, then it is not
        dereferenced. Thus, this violation can be safely suppressed.
 
-_Ref 29_
+_Ref 11.4.2_
 
 - MISRA Rule 11.4 The following statement may trigger a:
         warning: cast increases required alignment of target type [-Wcast-align].
         It has been programatically checked that the pointer is well aligned
         before this point.
 
-_Ref 31_
+_Ref 11.4.3_
 
 - MISRA Rule 11.4 warns about casting pointer to an integer and vice versa.
         Here, the poiner to the starting byte of the packet is cast to an
@@ -74,7 +68,7 @@ _Ref 31_
         violation can be safely suppressed.
 
 #### Rule 11.6
-_Ref 16, Ref 27_
+_Ref 11.6.1_
 
 - When sending and receiving a DHCP event to the IP-stack, the events are
         converted to a void pointer and sent to the IP-task. The function used
@@ -82,7 +76,7 @@ _Ref 16, Ref 27_
         accepts void pointers. The IP-task converts the void pointer back to
         the event. Thus, this rule can be safely suppressed.
 
-_Ref 28_
+_Ref 11.6.2_
 
 - MISRA Rule 11.6 `uintptr_t` is guaranteed by the implementation to fit a
         pointer size of the platform. The conversion is required to move the
@@ -90,7 +84,7 @@ _Ref 28_
         which is not available for the user to use.
 
 #### Rule 11.8
-_Ref 47_
+_Ref 11.8.1_
 
 - MISRA c-2012 Rule 11.8 warns about removing the `const` qualifier when
         assigning one value to another. In this case however, a function
