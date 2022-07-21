@@ -79,7 +79,7 @@ jobs:
         run: |
           cd zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP
           sudo apt-get install -y lcov
-          cmake -S test -B build/ \
+          cmake -S test/unit-test -B build/ \
           -G "Unix Makefiles" \
           -DCMAKE_BUILD_TYPE=Debug \
           -DBUILD_CLONE_SUBMODULES=ON \
