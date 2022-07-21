@@ -377,13 +377,13 @@
         pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
         pxIPHeader = &( pxIPPacket->xIPHeader );
         #if ( ipconfigUSE_IPv6 != 0 )
-            pxIPHeader_IPv6 = ipPOINTER_CAST( const IPHeader_IPv6_t *, &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+            pxIPHeader_IPv6 = ( const IPHeader_IPv6_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
 
             if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
             {
                 uxHeaderLength = ipSIZE_OF_IPv6_HEADER;
                 ucProtocol = pxIPHeader_IPv6->ucNextHeader;
-                pxProtocolHeaders = ipPOINTER_CAST( ProtocolHeaders_t *, &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
+                pxProtocolHeaders = ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] );
             }
             else
         #endif
@@ -395,7 +395,7 @@
              * length in multiples of 4. */
             uxHeaderLength = ( size_t ) ( ( uxLength & 0x0Fu ) << 2 );
             ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
-            pxProtocolHeaders = ipPOINTER_CAST( ProtocolHeaders_t *, &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxHeaderLength ] ) );
+            pxProtocolHeaders = ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxHeaderLength ] );
         }
 
         switch( ucProtocol )
