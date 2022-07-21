@@ -949,6 +949,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     }
 
     /* MISRA Ref 2.2.1 [Unions and dead code] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
     /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 += xTerm.u32;
 
@@ -956,11 +957,13 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
     /* Assigning value from "xTerm.u32" to "xSum.u32" here, but that stored value is overwritten before it can be used.
      * /* MISRA Ref 2.2.1 [Unions and dead code] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
     /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
     /* coverity[value_overwrite] */
     /* MISRA Ref 2.2.1 [Unions and dead code] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
     /* coverity[misra_c_2012_rule_2_2_violation] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 

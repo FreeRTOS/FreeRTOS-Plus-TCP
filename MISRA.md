@@ -7,9 +7,9 @@ Deviations from the MISRA standard are listed below:
 
 ### Suppressed with Coverity Comments
 To find the violation references in the source files run grep on the source code
-with ( Assuming reference 3 ):
+with ( Assuming rule 11.4 violation; with justification in point 2 ):
 ```
-grep 'MISRA Ref 3' . -rI
+grep 'MISRA Ref 11.4.2' . -rI
 ```
 #### Rule 2.2
 
@@ -47,7 +47,7 @@ _Ref 11.4.1_
        Whenever a socket is created using the `FreeRTOS_Socket` API, either a
        valid socket (a valid non-NULL pointer) is returned; or
        `FREERTOS_INVALID_SOCKET` is returned (which is essentially ~0U) to
-       depic an error in the socket creation process. This coversion from ~0U
+       depict an error in the socket creation process. This conversion from ~0U
        to a pointer is used to convey the error to various functions. If the
        pointer is equal to `FREERTOS_INVALID_SOCKET`, then it is not
        dereferenced. Thus, this violation can be safely suppressed.
