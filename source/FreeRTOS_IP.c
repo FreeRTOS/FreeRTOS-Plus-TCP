@@ -188,6 +188,7 @@ NetworkAddressingParameters_t xNetworkAddressing = { 0, 0, 0, 0, 0 };
  * does not lead to a confirmed request. */
 
 /* MISRA Ref 8.9.1 [File scoped variables] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
 NetworkAddressingParameters_t xDefaultAddressing = { 0, 0, 0, 0, 0 };
 

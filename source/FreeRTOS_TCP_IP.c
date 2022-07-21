@@ -66,6 +66,7 @@
 
 
 /* MISRA Ref 8.9.1 [File scoped variables] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
 
 /** @brief When closing a socket an event is posted to the Network Event Queue.
