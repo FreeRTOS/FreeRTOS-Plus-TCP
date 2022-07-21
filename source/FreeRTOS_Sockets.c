@@ -1981,7 +1981,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                 #if ( ipconfigUSE_TCP != 0 )
                     case FREERTOS_SO_SET_LOW_HIGH_WATER:
                        {
-                           const LowHighWater_t * pxLowHighWater = ( const LowHighWater_t *) pvOptionValue;
+                           const LowHighWater_t * pxLowHighWater = ( const LowHighWater_t * ) pvOptionValue;
 
                            if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
                            {
@@ -3503,7 +3503,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 else
                 {
                     /* Zero-copy reception of data: pvBuffer is a pointer to a pointer. */
-                    xByteCount = ( BaseType_t ) uxStreamBufferGetPtr( pxSocket->u.xTCP.rxStream, ( uint8_t * * ) pvBuffer );
+                    xByteCount = ( BaseType_t ) uxStreamBufferGetPtr( pxSocket->u.xTCP.rxStream, ( uint8_t ** ) pvBuffer );
                 }
             }
             else
