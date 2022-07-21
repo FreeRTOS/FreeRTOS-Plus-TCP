@@ -1644,6 +1644,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
         const ListItem_t * pxIterator;
 
         /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
         FreeRTOS_Socket_t * pxOtherSocket;
@@ -2232,6 +2233,7 @@ static const ListItem_t * pxListFindListItemWithValue( const List_t * pxList,
         const ListItem_t * pxIterator;
 
         /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxList->xListEnd ) );
 
@@ -3943,10 +3945,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         TickType_t xDelta = xNow - xLastTime;
 
         /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
         /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxIterator = ( const ListItem_t * ) listGET_HEAD_ENTRY( &xBoundTCPSocketsList );
 
@@ -4045,6 +4049,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         FreeRTOS_Socket_t * pxResult = NULL, * pxListenSocket = NULL;
 
         /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
@@ -4864,6 +4869,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
             if( xRound == 0 )
             {
                 /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxEnd = ( ( const ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
             }
@@ -4872,6 +4878,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
                 else
                 {
                     /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                     /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
                 }

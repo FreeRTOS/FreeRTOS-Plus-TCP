@@ -288,6 +288,7 @@
              * for easier access. */
 
             /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDNSMessageHeader = ( ( DNSMessage_t * )
                                    pucUDPPayloadBuffer );
@@ -614,6 +615,7 @@
                  * fields of the structure. */
 
                 /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucBuffer );
 
@@ -691,6 +693,7 @@
                 /* Cast the response to DNSAnswerRecord for easy access to fields of the DNS response. */
 
                 /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucBuffer );
 

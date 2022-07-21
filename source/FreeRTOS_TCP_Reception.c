@@ -99,6 +99,7 @@
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
 
         /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset ] ) );
@@ -429,6 +430,7 @@
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
@@ -438,6 +440,7 @@
         /* Map the buffer onto an IPHeader_t struct for easy access to fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPHeader_t * pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
         const size_t xIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
@@ -521,6 +524,7 @@
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );

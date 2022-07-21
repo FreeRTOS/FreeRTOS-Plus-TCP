@@ -552,6 +552,7 @@
         /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
@@ -577,6 +578,7 @@
             /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
 
             /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
             ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
@@ -808,6 +810,7 @@
         BaseType_t xResult = pdFALSE;
 
         /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEndTCP = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 

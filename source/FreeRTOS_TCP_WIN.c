@@ -392,6 +392,7 @@
          * returned by listGET_HEAD_ENTRY() */
 
         /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxNewListItem->pxNext = ( ( ListItem_t * ) pxWhere );
 
@@ -483,6 +484,7 @@
              * segments. */
 
             /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
 
@@ -928,6 +930,7 @@
             uint32_t ulNextSequenceNumber = ulSequenceNumber + ulLength;
 
             /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
             TCPSegment_t * pxSegment;
@@ -1940,6 +1943,7 @@
             const ListItem_t * pxIterator;
 
             /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xTxSegments.xListEnd ) );
             BaseType_t xDoUnlink;
@@ -2094,6 +2098,7 @@
              * xWaitQueue to find a possible condition for a FAST retransmission. */
 
             /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxEnd = ( ( const ListItem_t * ) &( pxWindow->xWaitQueue.xListEnd ) );
 
