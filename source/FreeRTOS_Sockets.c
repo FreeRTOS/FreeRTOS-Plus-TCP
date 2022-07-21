@@ -234,6 +234,7 @@ static BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
     BaseType_t xReturn;
 
     /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket == NULL ) || ( pxSocket == FREERTOS_INVALID_SOCKET ) )
     {
@@ -403,6 +404,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     if( prvDetermineSocketSize( xDomain, xType, xProtocolCpy, &uxSocketSize ) == pdFAIL )
     {
         /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
         /* coverity[misra_c_2012_rule_11_4_violation] */
         xReturn = FREERTOS_INVALID_SOCKET;
     }
@@ -417,6 +419,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
         if( pxSocket == NULL )
         {
             /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             xReturn = FREERTOS_INVALID_SOCKET;
             iptraceFAILED_TO_CREATE_SOCKET();
@@ -430,6 +433,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                 vPortFreeSocket( pxSocket );
 
                 /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
                 /* coverity[misra_c_2012_rule_11_4_violation] */
                 xReturn = FREERTOS_INVALID_SOCKET;
                 iptraceFAILED_TO_CREATE_EVENT_GROUP();
@@ -1236,6 +1240,7 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
     configASSERT( xIsCallingFromIPTask() == pdFALSE );
 
     /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket == NULL ) || ( pxSocket == FREERTOS_INVALID_SOCKET ) )
     {
@@ -1469,6 +1474,7 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
     xCloseEvent.pvData = xSocket;
 
     /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( xSocket == NULL ) || ( xSocket == FREERTOS_INVALID_SOCKET ) )
     {
@@ -1792,6 +1798,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
     ( void ) uxOptionLength;
 
     /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket != NULL ) && ( pxSocket != FREERTOS_INVALID_SOCKET ) )
     {
@@ -3157,6 +3164,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* Not a valid socket or wrong type */
 
             /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
@@ -3166,6 +3174,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* Parent socket is not in listening mode */
 
             /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
@@ -4696,6 +4705,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
     BaseType_t xReturnValue = pdFALSE;
 
     /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) )
     {
