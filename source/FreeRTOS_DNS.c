@@ -426,7 +426,7 @@
         uint32_t ulIPAddress = 0U;
         BaseType_t xExpected;
 
-        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const DNSMessage_t * pxDNSMessageHeader =
@@ -684,7 +684,7 @@
         /* Write in a unique identifier. Cast the Payload Buffer to DNSMessage_t
          * to easily access fields of the DNS Message. */
 
-        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxDNSMessageHeader = ( ( DNSMessage_t * ) pucUDPPayloadBuffer );
@@ -729,7 +729,7 @@
         /* Finish off the record. Cast the record onto DNSTail_t structure to easily
          * access the fields of the DNS Message. */
 
-        /* MISRA Ref 11.3.1 [Misaligned access and packed structures] */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxTail = ( ( DNSTail_t * ) &( pucUDPPayloadBuffer[ uxStart + 1U ] ) );
