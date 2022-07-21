@@ -3,7 +3,7 @@
 The FreeRTOS-Plus-TCP library files conform to the [MISRA C:2012](https://www.misra.org.uk/MISRAHome/MISRAC2012/tabid/196/Default.aspx)
 guidelines, with the deviations listed below. Compliance is checked with Coverity static analysis.
 Since the FreeRTOS-Plus-TCP library is designed for small-embedded devices, it needs to have a very small memory footprint and has to
-be efficient. To achieve that and to increse the performace of the IP-stack, it deviates from some MISRA rules.
+be efficient. To achieve that and to increase the performace of the IP-stack, it deviates from some MISRA rules.
 The deviations are listed below.
 
 ### Suppressed with Coverity Comments
@@ -34,7 +34,7 @@ _Ref 11.3.1_
 
 - MISRA C-2012 Rule 11.3 The data received/sent by the IP stack is represent as a
        byte stream. This byte stream needs to be casted to various data
-       structures to access certain feilds of the packet. However, when casting
+       structures to access certain fields of the packet. However, when casting
        a byte stream to a structure, MISRA warns us that it can lead to
        unaligned access. But, in case of FreeRTOS+TCP, `packed` structures are
        used to prevent that. Packed structures force the compiler to access any
