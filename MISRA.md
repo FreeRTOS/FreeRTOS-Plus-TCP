@@ -44,8 +44,7 @@ _Ref 11.3.1_
        which is the sender protocol address in the ARP Header. To combat that,
        the sender protocol address field is declared as an array of 4 bytes
        instead of a `uint32_t`.
-       More details can be found here:
-       https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/pull/512#pullrequestreview-1035211706
+       More details can be found [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/pull/512#pullrequestreview-1035211706).
 
 #### Rule 11.4
 _Ref 11.4.1_
