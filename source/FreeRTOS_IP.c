@@ -390,6 +390,7 @@ static void prvProcessIPEventsAndTimers( void )
                     eDHCPState_t eState;
 
                     /* MISRA Ref 11.6.1 [DHCP events and conversion to void] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
                     /* coverity[misra_c_2012_rule_11_6_violation] */
                     uxState = ( uintptr_t ) xReceivedEvent.pvData;
                     /* coverity[misra_c_2012_rule_10_5_violation] */
@@ -1646,6 +1647,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             }
 
             /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
             /* coverity[misra_c_2012_rule_14_3_violation] */
             if( eReturn != eReleaseBuffer )
             {

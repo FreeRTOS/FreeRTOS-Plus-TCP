@@ -232,6 +232,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     size_t uxCount;
 
     /* MISRA Ref 14.3.2 [SIZE_MAX and invariant] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
     /* coverity[misra_c_2012_rule_14_3_violation] */
     if( ( xRequestedSizeBytes <= ( SIZE_MAX >> 1 ) ) && ( xNetworkBufferSemaphore != NULL ) )
     {

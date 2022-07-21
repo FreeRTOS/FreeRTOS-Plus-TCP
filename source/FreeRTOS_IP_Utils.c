@@ -136,6 +136,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
         xEventMessage.eEventType = eDHCPEvent;
 
         /* MISRA Ref 11.6.1 [DHCP events and conversion to void] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
         /* coverity[misra_c_2012_rule_11_6_violation] */
         xEventMessage.pvData = ( void * ) uxOption;
 
@@ -230,6 +231,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
         /* Obtain the network buffer from the zero copy pointer. */
 
         /* MISRA Ref 11.6.2 [Pointer arithmetic and hidden pointer] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
         /* coverity[misra_c_2012_rule_11_6_violation] */
         uxBuffer = ( uintptr_t ) pvBuffer;
 
