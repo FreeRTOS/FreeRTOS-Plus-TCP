@@ -1673,6 +1673,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                       ( pxOtherSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) ) )
                 {
                     /* MISRA Ref 17.2.1 [Sockets and limited recursion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
                     /* coverity[misra_c_2012_rule_17_2_violation] */
                     ( void ) vSocketClose( pxOtherSocket );
                 }
