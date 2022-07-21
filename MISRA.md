@@ -1,9 +1,10 @@
 # MISRA Compliance
 
 The FreeRTOS-Plus-TCP library files conform to the [MISRA C:2012](https://www.misra.org.uk/MISRAHome/MISRAC2012/tabid/196/Default.aspx)
-guidelines, with some noted exceptions. Compliance is checked with Coverity static analysis.
-Since the FreeRTOS-Plus-TCP library is a low level library and might need to interact with the network hardware directly, some MISRA violations as listed below are not fixed and are suppressed with code comments.
-Deviations from the MISRA standard are listed below:
+guidelines, with the deviations listed below. Compliance is checked with Coverity static analysis.
+Since the FreeRTOS-Plus-TCP library is designed for small-embedded devices, it needs to have a very small memory footprint and has to
+be efficient. To achieve that and to increse the performace of the IP-stack, it deviates from some MISRA rules.
+The deviations are listed below.
 
 ### Suppressed with Coverity Comments
 To find the violation references in the source files run grep on the source code
@@ -26,7 +27,7 @@ _Ref 8.9.1_
 
 - MISRA C-2012 Rule 8.9 For unit-tests to be repeatable and independent of the
        order of execution, some variables have file scope definitions rather
-       than function scope. The variables are still defined as static.
+       than function scope.
 
 #### Rule 11.3
 _Ref 11.3.1_
@@ -74,14 +75,15 @@ _Ref 11.6.1_
         converted to a void pointer and sent to the IP-task. The function used
         to send the events handles various events for the IP-task and thus only
         accepts void pointers. The IP-task converts the void pointer back to
-        the event. Thus, this rule can be safely suppressed.
+        the original event. Thus, this rule can be safely suppressed.
 
 _Ref 11.6.2_
 
 - MISRA Rule 11.6 `uintptr_t` is guaranteed by the implementation to fit a
-        pointer size of the platform. The conversion is required to move the
-        pointer backward by a constant offset to get to a 'hidden' pointer
-        which is not available for the user to use.
+        pointer size of the platform. The pointer has to be moved backward by a
+        constant offset to get to a 'hidden' pointer which is not available for
+        the user to use. This conversion is done to achieve that while avoiding
+        pointer arithmetic.
 
 #### Rule 11.8
 _Ref 11.8.1_
@@ -91,17 +93,12 @@ _Ref 11.8.1_
         pointer is being copied. It doesn't make sense in case of function
         pointers for the pointee to be const or mutable. Thus, this rule is
         safe to suppress.
-
+1
 #### Rule 14.3
 _Ref 14.3.1_
 
 - MISRA C-2012 Rule 14.3 False positive as the value might be changed
         depending on the conditionally compiled code
-
-_Ref 14.3.2_
-
-- MISRA C-2012 Rule 14.3 Possibly a false positive as SIZE_MAX is shifted
-        to the right (halved) which makes it a variant
 
 #### Rule 21.6
 _Ref 21.6.1_
@@ -109,9 +106,9 @@ _Ref 21.6.1_
 - MISRA C-2012 Rule 21.6 warns about the use of standard library input/output
         functions as they might have implementation defined or undefined
         behaviour. The function `snprintf` is used to insert information in a
-        logging string. The function is bound by the number of bytes available
-        in the buffer. When used as intended, the function will not overflow
-        the provided buffer. Hence, this violation can be suppressed.
+        logging string. This is only used in a utility function which aids in
+        debugging and is not part of the 'core' code governing the
+        functionality of the TCP/IP stack.
 
 #### Rule 17.2
 _Ref 17.2.1_
