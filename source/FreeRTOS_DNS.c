@@ -420,11 +420,15 @@
  * @returns ip address or zero on error
  *
  */
-    static uint32_t prvDNSReply( struct xDNSBuffer * pxReceiveBuffer,
+    static uint32_t prvDNSReply( const struct xDNSBuffer * pxReceiveBuffer,
                                  TickType_t uxIdentifier )
     {
         uint32_t ulIPAddress = 0U;
         BaseType_t xExpected;
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const DNSMessage_t * pxDNSMessageHeader =
             ( ( const DNSMessage_t * )
               pxReceiveBuffer->pucPayloadBuffer );
@@ -466,7 +470,7 @@
     static BaseType_t prvSendBuffer( const char * pcHostName,
                                      TickType_t uxIdentifier,
                                      Socket_t xDNSSocket,
-                                     struct freertos_sockaddr * pxAddress )
+                                     const struct freertos_sockaddr * pxAddress )
     {
         BaseType_t uxReturn = pdFAIL;
         struct xDNSBuffer xDNSBuf = { 0 };
@@ -521,7 +525,7 @@
         uint32_t ulIPAddress = 0;
 
         struct freertos_sockaddr xAddress;
-        struct xDNSBuffer xReceiveBuffer = { 0 };
+        DNSBuffer_t xReceiveBuffer = { 0 };
         BaseType_t uxReturn = pdFAIL;
 
         prvFillSockAddress( &xAddress, pcHostName );
@@ -556,7 +560,7 @@
              * is being used, so the buffer must be freed by the
              * task. */
             FreeRTOS_ReleaseUDPPayloadBuffer( xReceiveBuffer.pucPayloadBuffer );
-        } while( 0 );
+        } while( ipFALSE_BOOL );
 
         return ulIPAddress;
     }
@@ -597,6 +601,7 @@
 /**
  * @brief Prepare and send a message to a DNS server.  'uxReadTimeOut_ticks' will be passed as
  *        zero, in case the user has supplied a call-back function.
+ *
  * @param[in] pcHostName The hostname for which an IP address is required.
  * @param[in] uxIdentifier Identifier to match sent and received packets
  * @param[in] uxReadTimeOut_ticks The timeout in ticks for waiting. In case the user has supplied
@@ -678,6 +683,10 @@
 
         /* Write in a unique identifier. Cast the Payload Buffer to DNSMessage_t
          * to easily access fields of the DNS Message. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxDNSMessageHeader = ( ( DNSMessage_t * ) pucUDPPayloadBuffer );
         pxDNSMessageHeader->usIdentifier = ( uint16_t ) uxIdentifier;
 
@@ -719,6 +728,10 @@
 
         /* Finish off the record. Cast the record onto DNSTail_t structure to easily
          * access the fields of the DNS Message. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxTail = ( ( DNSTail_t * ) &( pucUDPPayloadBuffer[ uxStart + 1U ] ) );
 
         #if defined( _lint ) || defined( __COVERITY__ )

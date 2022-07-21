@@ -117,7 +117,7 @@
         UBaseType_t uxOptionsLength, uxIntermediateResult = 0;
         NetworkBufferDescriptor_t * pxNetworkBuffer;
 
-        if( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eCONNECT_SYN )
+        if( pxSocket->u.xTCP.eTCPState != eCONNECT_SYN )
         {
             /* The connection is in a state other than SYN. */
             pxNetworkBuffer = NULL;
@@ -152,6 +152,10 @@
                  * now, proceed to send the packet with the SYN flag.
                  * prvTCPPrepareConnect() prepares 'xPacket' and returns pdTRUE if
                  * the Ethernet address of the peer or the gateway is found. */
+
+                /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                 * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxHeaderSize ] ) );
 
                 /* About to send a SYN packet.  Call prvSetSynAckOptions() to set
@@ -304,6 +308,10 @@
         #endif
         {
             /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxTCPPacket->xIPHeader;
             pxEthernetHeader = &pxTCPPacket->xEthernetHeader;
@@ -662,6 +670,10 @@
             /* The MAC-address of the peer (or gateway) has been found,
              * now prepare the initial TCP packet and some fields in the socket. Map
              * the buffer onto the TCPPacket_t struct to easily access it's field. */
+
+            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxTCPPacket = ( ( TCPPacket_t * ) pxSocket->u.xTCP.xPacket.u.ucLastPacket );
             pxIPHeader = &pxTCPPacket->xIPHeader;
 
@@ -960,6 +972,10 @@
         }
 
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
         pxTCPWindow = &( pxSocket->u.xTCP.xTCPWindow );
         lDataLen = 0;
@@ -990,6 +1006,10 @@
 
                     /* Map the byte stream onto ProtocolHeaders_t struct for easy
                      * access to the fields. */
+
+                    /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                     * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
 
                     pucSendData = &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength ] );
@@ -1050,7 +1070,7 @@
             }
         }
 
-        if( ( lDataLen >= 0 ) && ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eESTABLISHED ) )
+        if( ( lDataLen >= 0 ) && ( pxSocket->u.xTCP.eTCPState == eESTABLISHED ) )
         {
             /* See if the socket owner wants to shutdown this connection. */
             if( ( pxSocket->u.xTCP.bits.bUserShutdown != pdFALSE_UNSIGNED ) &&
@@ -1190,6 +1210,10 @@
                                const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                   &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
         TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
@@ -1231,7 +1255,7 @@
             else
         #endif /* ipconfigUSE_TCP_WIN */
 
-        if( ( pxSocket->u.xTCP.ucTCPState >= ( EventBits_t ) eESTABLISHED ) && ( pxSocket->u.xTCP.bits.bMssChange != pdFALSE_UNSIGNED ) )
+        if( ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) && ( pxSocket->u.xTCP.bits.bMssChange != pdFALSE_UNSIGNED ) )
         {
             /* TCP options must be sent because the MSS has changed. */
             pxSocket->u.xTCP.bits.bMssChange = pdFALSE_UNSIGNED;
@@ -1276,6 +1300,10 @@
                             BaseType_t xByteCount )
     {
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+
+        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                         &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
         const TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
@@ -1305,12 +1333,12 @@
                 /* In case we're receiving data continuously, we might postpone sending
                  * an ACK to gain performance. */
                 /* lint e9007 is OK because 'uxIPHeaderSizeSocket()' has no side-effects. */
-                if( ( ulReceiveLength > 0U ) &&                                    /* Data was sent to this socket. */
-                    ( lRxSpace >= lMinLength ) &&                                  /* There is Rx space for more data. */
-                    ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) &&      /* Not in a closure phase. */
-                    ( xSendLength == xSizeWithoutData ) &&                         /* No Tx data or options to be sent. */
-                    ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eESTABLISHED ) && /* Connection established. */
-                    ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )               /* There are no other flags than an ACK. */
+                if( ( ulReceiveLength > 0U ) &&                               /* Data was sent to this socket. */
+                    ( lRxSpace >= lMinLength ) &&                             /* There is Rx space for more data. */
+                    ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) && /* Not in a closure phase. */
+                    ( xSendLength == xSizeWithoutData ) &&                    /* No Tx data or options to be sent. */
+                    ( pxSocket->u.xTCP.eTCPState == eESTABLISHED ) &&         /* Connection established. */
+                    ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )          /* There are no other flags than an ACK. */
                 {
                     uint32_t ulCurMSS = ( uint32_t ) pxSocket->u.xTCP.usMSS;
 
@@ -1428,6 +1456,10 @@
         #else
             {
                 /* Map the ethernet buffer onto the TCPPacket_t struct for easy access to the fields. */
+
+                /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
+                 * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
                 const uint32_t ulSendLength =
                     ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */

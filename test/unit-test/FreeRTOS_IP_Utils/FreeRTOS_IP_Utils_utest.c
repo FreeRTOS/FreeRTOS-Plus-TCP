@@ -1159,7 +1159,7 @@ void test_usGenerateProtocolChecksum_IGMPIncomingCorrectCRC( void )
 void test_usGenerateChecksum_UnallignedAccess( void )
 {
     uint16_t usResult;
-    uint16_t usSum;
+    uint16_t usSum = 0;
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 10;
     size_t uxUnalligned = 0;
@@ -1182,7 +1182,7 @@ void test_usGenerateChecksum_UnallignedAccess( void )
 void test_usGenerateChecksum_OneByteToChecksum( void )
 {
     uint16_t usResult;
-    uint16_t usSum;
+    uint16_t usSum = 0;
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 1;
     size_t uxUnalligned = 0;
@@ -1205,7 +1205,7 @@ void test_usGenerateChecksum_OneByteToChecksum( void )
 void test_usGenerateChecksum_OneByteAllignedButZeroLength( void )
 {
     uint16_t usResult;
-    uint16_t usSum;
+    uint16_t usSum = 0;
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 0;
     size_t uxUnalligned = 0;
@@ -1228,7 +1228,7 @@ void test_usGenerateChecksum_OneByteAllignedButZeroLength( void )
 void test_usGenerateChecksum_TwoByteAlligned( void )
 {
     uint16_t usResult;
-    uint16_t usSum;
+    uint16_t usSum = 0;
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 1;
     size_t uxUnalligned = 0;
@@ -1251,7 +1251,7 @@ void test_usGenerateChecksum_TwoByteAlligned( void )
 void test_usGenerateChecksum_TwoByteAllignedTwoLength( void )
 {
     uint16_t usResult;
-    uint16_t usSum;
+    uint16_t usSum = 0;
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 2;
     size_t uxUnalligned = 0;
@@ -1274,7 +1274,7 @@ void test_usGenerateChecksum_TwoByteAllignedTwoLength( void )
 void test_usGenerateChecksum_FourByteAlligned( void )
 {
     uint16_t usResult;
-    uint16_t usSum;
+    uint16_t usSum = 0;
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 2;
     size_t uxUnalligned = 0;
