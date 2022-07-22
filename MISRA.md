@@ -4,7 +4,8 @@ The FreeRTOS-Plus-TCP library files conform to the [MISRA C:2012](https://www.mi
 guidelines, with the deviations listed below. Compliance is checked with Coverity static analysis.
 Since the FreeRTOS-Plus-TCP library is designed for small-embedded devices, it needs to have a very small memory footprint and has to
 be efficient. To achieve that and to increase the performace of the IP-stack, it deviates from some MISRA rules.
-The deviations are listed below.
+The project deviations, refer to [MISRA configuration file](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/tools/coverity_misra.config).
+The specific deviations, suppressed inline, are listed below.
 
 ### Suppressed with Coverity Comments
 To find the violation references in the source files run grep on the source code
