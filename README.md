@@ -15,7 +15,7 @@ If you have any questions or need assistance troubleshooting your FreeRTOS proje
 
 Also see the [Submitting a bugs/feature request](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/.github/CONTRIBUTING.md#submitting-a-bugsfeature-request) section of CONTRIBUTING.md for more details.
 
-## Updating to V3.0.0 and above
+## Upgrading to V3.0.0 and above
 In versions >= 3.0.0, the folder structure of FreeRTOS-Plus-TCP has changed and the files have been broken down into smaller logically separated modules. This change makes the code more modular and conducive to unit-tests. Additionally, the source files have been moved to a `source` directory. This change requires modification of any existing project(s) to include the modified source files and directories. There are examples on how to use the new files and directory structure. For a windows simulator based example, refer to this [demo](https://github.com/FreeRTOS/FreeRTOS/tree/TCPRefactorDemo/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_Minimal_Windows_Simulator). For an example based on the Xilinx Zynq-7000, use the code in this [branch](https://github.com/aws/amazon-freertos/tree/TCPRefactorDemo) and follow these [instructions](https://docs.aws.amazon.com/freertos/latest/userguide/getting_started_xilinx.html) to build and run the demo.
 
 ### Generating pre V3.0.0 folder structure for backward compatibility:
