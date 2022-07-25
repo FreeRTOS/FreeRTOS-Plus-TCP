@@ -427,7 +427,7 @@ static void prvProcessIPEventsAndTimers( void )
 
                 /* Some task wants to signal the user of this socket in
                  * order to interrupt a call to recv() or a call to select(). */
-                ( void ) FreeRTOS_SignalSocket( ipPOINTER_CAST( Socket_t, xReceivedEvent.pvData ) );
+                ( void ) FreeRTOS_SignalSocket( ( Socket_t ) xReceivedEvent.pvData );
             #endif /* ipconfigSUPPORT_SIGNALS */
             break;
 
