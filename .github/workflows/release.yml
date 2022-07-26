@@ -86,10 +86,10 @@ jobs:
           -DBUILD_CLONE_SUBMODULES=ON \
           -DCMAKE_C_FLAGS='--coverage -Wall -Wextra -DNDEBUG'
           make -C test/unit-test/build/ all
-          pushd test/unit-test/build/
       - name: Test
         run: |
           cd zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP
+          pushd test/unit-test/build/
           ctest -E system --output-on-failure
           popd
           make -C test/unit-test/build/ coverage
