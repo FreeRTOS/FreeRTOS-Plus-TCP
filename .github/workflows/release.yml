@@ -86,6 +86,11 @@ jobs:
           -DBUILD_CLONE_SUBMODULES=ON \
           -DCMAKE_C_FLAGS='--coverage -Wall -Wextra -DNDEBUG'
           make -C test/unit-test/build/ all
+          make --version
+          ruby --version
+          cmake --version
+          lcov --version
+          unifdef -V
       - name: Test
         run: |
           cd zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP
