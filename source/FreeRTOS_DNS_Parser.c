@@ -287,8 +287,8 @@
             /* Parse the DNS message header. Map the byte stream onto a structure
              * for easier access. */
 
-            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDNSMessageHeader = ( ( DNSMessage_t * )
                                    pucUDPPayloadBuffer );
@@ -614,8 +614,8 @@
                 /* Mapping pucBuffer to a DNSAnswerRecord allows easy access of the
                  * fields of the structure. */
 
-                /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-                 * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucBuffer );
 
@@ -692,8 +692,8 @@
                  * and then jump over the header. */
                 /* Cast the response to DNSAnswerRecord for easy access to fields of the DNS response. */
 
-                /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-                 * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucBuffer );
 

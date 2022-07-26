@@ -31,12 +31,10 @@
 #include "FreeRTOS_TCP_IP.h"
 
 /* *INDENT-OFF* */
-
 #ifdef __cplusplus
     extern "C" {
 #endif
 /* *INDENT-ON* */
-
 
 /*
  * Returns true if the socket must be checked.  Non-active sockets are waiting

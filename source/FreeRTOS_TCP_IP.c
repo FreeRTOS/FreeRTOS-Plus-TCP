@@ -65,10 +65,16 @@
 #if ipconfigUSE_TCP == 1
 
 
-/* declared global for unit testing purposes */
+/* MISRA Ref 8.9.1 [File scoped variables] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
 
-/** @brief Socket which needs to be closed in next iteration. */
+/** @brief When closing a socket an event is posted to the Network Event Queue.
+ *         If the queue is full, then the event is not posted and the socket
+ *         can be orphaned. To prevent this, the below variable is used to keep
+ *         track of any socket which needs to be closed. This variable can be
+ *         accessed by the IP task only. Thus, preventing any race condition.
+ */
     static FreeRTOS_Socket_t * xPreviousSocket = NULL;
 
 /*
@@ -545,8 +551,8 @@
 
         /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
 
-        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
@@ -571,8 +577,8 @@
         {
             /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
 
-            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
             ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
@@ -803,8 +809,8 @@
         FreeRTOS_Socket_t * pxFound;
         BaseType_t xResult = pdFALSE;
 
-        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEndTCP = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 

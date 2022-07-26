@@ -27,45 +27,49 @@
 
 
 #ifndef FREERTOS_DNS_CALLBACK_H
-    #define FREERTOS_DNS_CALLBACK_H
+#define FREERTOS_DNS_CALLBACK_H
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 /* FreeRTOS includes. */
-    #include "FreeRTOS.h"
+#include "FreeRTOS.h"
 
 /* FreeRTOS+TCP includes. */
-    #include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP.h"
 
-    #include "FreeRTOS_DNS_Globals.h"
+#include "FreeRTOS_DNS_Globals.h"
 
 /* Standard includes. */
-    #include <stdint.h>
-    /* Application level configuration options. */
+#include <stdint.h>
+/* Application level configuration options. */
 
-    #if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
+#if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
-        BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
-                                   const char * pcName,
-                                   uint32_t ulIPAddress );
+    BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
+                               const char * pcName,
+                               uint32_t ulIPAddress );
 
-        void vDNSSetCallBack( const char * pcHostName,
-                              void * pvSearchID,
-                              FOnDNSEvent pCallbackFunction,
-                              TickType_t uxTimeout,
-                              TickType_t uxIdentifier );
+    void vDNSSetCallBack( const char * pcHostName,
+                          void * pvSearchID,
+                          FOnDNSEvent pCallbackFunction,
+                          TickType_t uxTimeout,
+                          TickType_t uxIdentifier );
 
-        void vDNSCheckCallBack( void * pvSearchID );
+    void vDNSCheckCallBack( void * pvSearchID );
 
 
-        void vDNSCallbackInitialise();
+    void vDNSCallbackInitialise();
 
-    #endif /* ipconfigDNS_USE_CALLBACKS  && ipconfigUSE_DNS */
+#endif /* ipconfigDNS_USE_CALLBACKS  && ipconfigUSE_DNS */
 
-    #ifdef __cplusplus
-        } /* extern "C" */
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 #endif /* ifndef FREERTOS_DNS_CALLBACK_H */
