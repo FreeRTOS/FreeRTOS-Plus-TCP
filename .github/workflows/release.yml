@@ -80,16 +80,20 @@ jobs:
           cd zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP
           sudo apt-get install -y lcov
           sudo apt-get install unifdef
-          cmake -S test/unit-test -B build/ \
+          cmake -S test/unit-test -B test/unit-test/build/ \
           -G "Unix Makefiles" \
           -DCMAKE_BUILD_TYPE=Debug \
           -DBUILD_CLONE_SUBMODULES=ON \
           -DCMAKE_C_FLAGS='--coverage -Wall -Wextra -DNDEBUG'
-          make -C build/ all
+          make -C test/unit-test/build/ all
+          pushd test/unit-test/build/
       - name: Test
         run: |
           cd zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP/build/
           ctest -E system --output-on-failure
+          popd
+          make -C test/unit-test/build/ coverage
+          lcov --list --rc lcov_branch_coverage=1 test/unit-test/build/coverage.info
           cd ..
       - name: Create artifact of ZIP
         uses: actions/upload-artifact@v2
