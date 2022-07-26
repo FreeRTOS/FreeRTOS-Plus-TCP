@@ -77,16 +77,13 @@ jobs:
           cd ../
       - name: Build
         run: |
-          cd zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP
+          cd zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP/test/unit-test
           sudo apt-get install -y lcov
-          sudo apt-get install make
-          sudo apt-get install ruby
-          cmake --version
-          cmake -S test/unit-test -B build/ \
+          cmake -B build/ \
           -G "Unix Makefiles" \
           -DCMAKE_BUILD_TYPE=Debug \
           -DBUILD_CLONE_SUBMODULES=ON \
-          -DCMAKE_C_FLAGS='--coverage -Wall -Wextra -DNDEBUG'
+          -DCMAKE_C_FLAGS='--coverage -Wall -Wextra -DNDEBUG .'
           make -C build/ all
       - name: Test
         run: |
