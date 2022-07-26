@@ -89,7 +89,7 @@ jobs:
           pushd test/unit-test/build/
       - name: Test
         run: |
-          cd zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP/build/
+          cd zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP
           ctest -E system --output-on-failure
           popd
           make -C test/unit-test/build/ coverage
