@@ -759,6 +759,8 @@ prvemachandlertask
 prvfindcachentry
 prvfindendpointonnetmask
 prvgethostbyname
+prvgethostbynameop
+prvgetpayloadbuffer
 prvhandleestablished
 prvhandlelisten
 prvhandlesynreceived
@@ -773,7 +775,6 @@ prvprocessdhcpreplies
 prvprocessdnscache
 prvprocessippacket
 prvprocessnetworkdownevent
-prvreadnamefield
 prvreadsackoption
 prvrxcallback
 prvsenddata
@@ -828,6 +829,7 @@ pucnewbuffer
 pucnextdata
 pucoptionsarray
 pucpayload
+pucpayloadbuffer
 pucptr
 pucrecvdata
 pucreturn
@@ -879,6 +881,7 @@ pxdescriptor
 pxdest
 pxdestinationaddress
 pxdhcpmessage
+pxdnsbuf
 pxdnsmessageheader
 pxdnsserveraddress
 pxduplicatenetworkbufferwithdescriptor
@@ -935,6 +938,7 @@ pxprefix
 pxprops
 pxprotocolheaders
 pxprotpack
+pxreceivebuffer
 pxreceivedevent
 pxreplyendpoint
 pxresult
@@ -1092,6 +1096,7 @@ sof
 sourceaddrfilter
 spi
 sprintf
+squestions
 sram
 src
 srdbl
@@ -1268,6 +1273,7 @@ ulcount
 ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
+ulcurrenttimeseconds
 uldata
 uldatagot
 uldefaultipaddress
@@ -1359,6 +1365,7 @@ ultcpwindowtxack
 ultcpwindowtxget
 ultcpwindowtxsack
 ultimestamp
+ultimewhenaddedinseconds
 ultransactionid
 ulttl
 ultxwindowlength
@@ -1456,6 +1463,7 @@ uxbuffer
 uxbufferlength
 uxbuffersize
 uxbytecount
+uxbytesread
 uxclockticks
 uxcontents
 uxcount
@@ -1498,13 +1506,13 @@ uxoffset
 uxoptionlength
 uxoptionslength
 uxpayloaddatalength
+uxpayloadlength
 uxpayloadoffset
 uxprefixlength
 uxprotocolheaderlength
 uxptr
 uxremainingbytes
 uxremainingtime
-uxremaningtime
 uxremoteport
 uxrequestedsizebytes
 uxresult
@@ -1549,10 +1557,13 @@ vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
 vdhcpprocessendpoint
+vdnscheckcallback
 vdnsinitialise
 vdnssetcallback
 ve
 vipnetworkupcalls
+vipreloaddhcptimer
+vipsetdhcptimerenablestate
 vl
 vlan
 vlantagcomparison
@@ -1569,6 +1580,7 @@ vprocessgeneratedudppacket
 vraprocess
 vreceivera
 vreleasenetworkbufferanddescriptor
+vreturnethernetframe
 vrxfaultinjection
 vsocketbind
 vsocketclose
@@ -1650,6 +1662,7 @@ xdhcpsocketusercount
 xdhcptxperiod
 xdhcptxtime
 xdmarxdescriptors
+xdnscache
 xdnsmessage
 xdnsserver
 xdnsserveraddresses
@@ -1668,6 +1681,7 @@ xemacps
 xemacpsif
 xemactaskhandle
 xenablestate
+xend
 xentries
 xentryfound
 xerrnum

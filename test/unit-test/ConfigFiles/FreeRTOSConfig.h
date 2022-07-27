@@ -19,10 +19,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * http://www.FreeRTOS.org
- * http://aws.amazon.com/freertos
+ * https://www.FreeRTOS.org
+ * https://github.com/FreeRTOS
  *
- * 1 tab == 4 spaces!
  */
 
 
@@ -117,7 +116,7 @@ void vConfigureTimerForRunTimeStats( void );    /* Prototype of function that in
  * uses the same semantics as the standard C assert() macro. */
 extern void vAssertCalled( unsigned long ulLine,
                            const char * const pcFileName );
-#define configASSERT( x )    if( ( x ) == 0 ) TEST_ABORT()
+#define configASSERT( x )    if( ( x ) == 0 ) TEST_ABORT( )
 
 #define configINCLUDE_MESSAGE_BUFFER_AMP_DEMO    0
 #if ( configINCLUDE_MESSAGE_BUFFER_AMP_DEMO == 1 )

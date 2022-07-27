@@ -15,8 +15,9 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * http://aws.amazon.com/freertos
- * http://www.FreeRTOS.org
+ *
+ * https://www.FreeRTOS.org
+ * https://github.com/FreeRTOS
  */
 
 
@@ -34,6 +35,8 @@
 
 #define ipconfigUSE_ARP_REMOVE_ENTRY       1
 #define ipconfigUSE_ARP_REVERSED_LOOKUP    1
+
+#define ipconfigDNS_CACHE_ENTRIES          ( 2 )
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
@@ -76,8 +79,10 @@
  * a socket.
  */
 #define ipconfigUSE_DNS_CACHE                      ( 1 )
-#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 6 )
+#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 1 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
+
+#define ipconfigDNS_CACHE_NAME_LENGTH              ( 254 )
 
 /* The IP stack executes it its own task (although any application task can make
  * use of its services through the published sockets API). ipconfigUDP_TASK_PRIORITY

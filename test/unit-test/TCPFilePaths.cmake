@@ -7,6 +7,10 @@ set( TCP_SOURCES
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_ARP.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_BitConfig.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_DNS.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../DNS/DNS_Cache.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../DNS/DNS_Parser.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../DNS/DNS_Networking.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../DNS/DNS_Callback.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_DHCP.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_DHCPv6.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_IP.c"
@@ -21,10 +25,11 @@ set( TCP_SOURCES
 
 # TCP library Include directories.
 set( TCP_INCLUDE_DIRS
-     "${CMAKE_CURRENT_LIST_DIR}/../../include"
-     "${CMAKE_CURRENT_LIST_DIR}/../../portable/Buffermanagement"
-     "${CMAKE_CURRENT_LIST_DIR}/../../portable/Compiler/GCC"
-     "${CMAKE_CURRENT_LIST_DIR}/stubs" )
+     ${CMAKE_CURRENT_LIST_DIR}/../../include
+     ${CMAKE_CURRENT_LIST_DIR}/../../include/DNS
+     ${CMAKE_CURRENT_LIST_DIR}/../../portable/Buffermanagement
+     ${CMAKE_CURRENT_LIST_DIR}/../../portable/Compiler/GCC
+     ${CMAKE_CURRENT_LIST_DIR}/stubs )
 
 set( KERNEL_SOURCES
      "${CMAKE_CURRENT_LIST_DIR}/../FreeRTOS-Kernel/croutine.c"
