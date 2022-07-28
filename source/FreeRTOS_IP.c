@@ -1610,6 +1610,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         /* Check if the IP headers are acceptable and if it has our destination. */
         eReturn = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
+        /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
+        /* coverity[misra_c_2012_rule_14_3_violation] */
         if( eReturn == eProcessBuffer )
         {
             /* Are there IP-options. */
@@ -1647,7 +1650,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             }
 
             /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
             /* coverity[misra_c_2012_rule_14_3_violation] */
             if( eReturn != eReleaseBuffer )
             {

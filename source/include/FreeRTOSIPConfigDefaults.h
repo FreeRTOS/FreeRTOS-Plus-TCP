@@ -168,7 +168,7 @@
  * stack.  FreeRTOS includes optional stack overflow detection, see:
  * http://www.freertos.org/Stacks-and-stack-overflow-checking.html */
 #ifndef ipconfigIP_TASK_STACK_SIZE_WORDS
-    #define ipconfigIP_TASK_STACK_SIZE_WORDS    ( configMINIMAL_STACK_SIZE * 5 )
+    #define ipconfigIP_TASK_STACK_SIZE_WORDS    ( configMINIMAL_STACK_SIZE * 5U )
 #endif
 
 /* Include all API's and code that is needed for the TCP protocol.

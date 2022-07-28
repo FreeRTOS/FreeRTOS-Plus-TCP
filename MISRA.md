@@ -31,6 +31,13 @@ _Ref 8.9.1_
        order of execution, some variables have file scope definitions rather
        than function scope.
 
+#### Rule 11.1
+_Ref 11.1.1_
+
+- MISRA C-2012 Rule 11.1 Converting from a void pointer to a function pointer,
+    it is part of the API and the user is responsible of providing that pointer
+    and their responsibility for that pointer to be valid.
+
 #### Rule 11.3
 _Ref 11.3.1_
 

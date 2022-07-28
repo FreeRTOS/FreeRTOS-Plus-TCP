@@ -1533,6 +1533,9 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
  *
  * @return Returns NULL, always.
  */
+/* MISRA Ref 17.2.1 [Sockets and limited recursion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
+/* coverity[misra_c_2012_rule_17_2_violation] */
 void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -1645,12 +1648,15 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
  *
  * @param[in] pxSocketToDelete: The socket being closed.
  */
+    /* MISRA Ref 17.2.1 [Sockets and limited recursion] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
+    /* coverity[misra_c_2012_rule_17_2_violation] */
     static void prvTCPSetSocketCount( FreeRTOS_Socket_t const * pxSocketToDelete )
     {
         const ListItem_t * pxIterator;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
         FreeRTOS_Socket_t * pxOtherSocket;
@@ -1957,8 +1963,13 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                          * type "B" removes const qualifier from the pointed to type. */
 
                         /* MISRA Ref 11.8.1 [Function pointer and use of const pointer] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-118 */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-118 */
                         /* coverity[misra_c_2012_rule_11_8_violation] */
+
+                        /* MISRA Ref _Ref 11.1.1_ [ Conversion betwee pointer to
+                         * a function and another type ] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-111 */
+                        /* coverity[misra_c_2012_rule_11_1_violation] */
                         pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
                         xReturn = 0;
                         break;
