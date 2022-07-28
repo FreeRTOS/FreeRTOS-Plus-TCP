@@ -1,0 +1,140 @@
+name: Release automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_id:
+        description: 'Commit ID to tag and create a release for'
+        required: true
+      version_number:
+        description: 'Release Version Number (Eg, v1.0.0)'
+        required: true
+
+jobs:
+  tag-commit:
+    name: Tag commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.commit_id }}
+      - name: Configure git identity
+        run: |
+          git config --global user.name ${{ github.actor }}
+          git config --global user.email ${{ github.actor }}@users.noreply.github.com
+      - name: create a new branch that references commit id
+        run: git checkout -b ${{ github.event.inputs.version_number }} ${{ github.event.inputs.commit_id }}
+      - name: Generate SBOM
+        uses: FreeRTOS/CI-CD-Github-Actions/sbom-generator@main
+        with:
+          repo_path: ./
+          source_path: ./source
+      - name: commit SBOM file
+        run: |
+          git add .
+          git commit -m 'Update SBOM'
+          git push -u origin ${{ github.event.inputs.version_number }}
+      - name: Tag Commit and Push to remote
+        run: |
+          git tag ${{ github.event.inputs.version_number }} -a -m "FreeRTOS-Plus-TCP Library ${{ github.event.inputs.version_number }}"
+          git push origin --tags
+      - name: Verify tag on remote
+        run: |
+          git tag -d ${{ github.event.inputs.version_number }}
+          git remote update
+          git checkout tags/${{ github.event.inputs.version_number }}
+          git diff ${{ github.event.inputs.commit_id }} tags/${{ github.event.inputs.version_number }}
+  create-zip:
+    needs: tag-commit
+    name: Create ZIP and verify package for release asset.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ZIP tools
+        run: sudo apt-get install zip unzip
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.commit_id }}
+          path: FreeRTOS-Plus-TCP
+          submodules: recursive
+      - name: Checkout disabled submodules
+        run: |
+          cd FreeRTOS-Plus-TCP
+          git submodule update --init --checkout --recursive
+      - name: Create ZIP
+        run: |
+          zip -r FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip FreeRTOS-Plus-TCP -x "*.git*"
+          ls ./
+      - name: Validate created ZIP
+        run: |
+          mkdir zip-check
+          mv FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip zip-check
+          cd zip-check
+          unzip FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip -d FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}
+          ls FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}
+          diff -r -x "*.git*" FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP/ ../FreeRTOS-Plus-TCP/
+          cd ../
+      - name: Build
+        run: |
+          cd zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP
+          sudo apt-get install -y lcov
+          sudo apt-get install unifdef
+          cmake -S test/unit-test -B test/unit-test/build/
+          make -C test/unit-test/build/ all
+      - name: Test
+        run: |
+          cd zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP
+          pushd test/unit-test/build/
+          ctest -E system --output-on-failure
+          popd
+          make -C test/unit-test/build/ coverage
+          lcov --list --rc lcov_branch_coverage=1 test/unit-test/build/coverage.info
+          cd ..
+      - name: Create artifact of ZIP
+        uses: actions/upload-artifact@v2
+        with:
+          name: FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
+          path: zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
+  deploy-doxygen:
+    needs: tag-commit
+    name: Deploy doxygen documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Doxygen generation
+        uses: FreeRTOS/CI-CD-Github-Actions/doxygen-generation@main
+        with:
+          ref: ${{ github.event.inputs.version_number }}
+          add_release: "true"
+  create-release:
+    needs:
+      - create-zip
+      - deploy-doxygen
+    name: Create Release and Upload Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.version_number }}
+          release_name: ${{ github.event.inputs.version_number }}
+          body: Release ${{ github.event.inputs.version_number }} of the FreeRTOS-Plus-TCP Library.
+          draft: false
+          prerelease: false
+      - name: Download ZIP artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
+          asset_name: FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
+          asset_content_type: application/zip

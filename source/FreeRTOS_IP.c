@@ -187,7 +187,8 @@ NetworkAddressingParameters_t xNetworkAddressing = { 0, 0, 0, 0, 0 };
 /** @brief Default values for the above struct in case DHCP
  * does not lead to a confirmed request. */
 
-/* used for unit testing */
+/* MISRA Ref 8.9.1 [File scoped variables] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
 NetworkAddressingParameters_t xDefaultAddressing = { 0, 0, 0, 0, 0 };
 
@@ -388,8 +389,8 @@ static void prvProcessIPEventsAndTimers( void )
                     uintptr_t uxState;
                     eDHCPState_t eState;
 
-                    /* uintptr_t is guaranteed by the implementation to fit a
-                     * pointer size of the platform */
+                    /* MISRA Ref 11.6.1 [DHCP events and conversion to void] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
                     /* coverity[misra_c_2012_rule_11_6_violation] */
                     uxState = ( uintptr_t ) xReceivedEvent.pvData;
                     /* coverity[misra_c_2012_rule_10_5_violation] */
@@ -426,7 +427,7 @@ static void prvProcessIPEventsAndTimers( void )
 
                 /* Some task wants to signal the user of this socket in
                  * order to interrupt a call to recv() or a call to select(). */
-                ( void ) FreeRTOS_SignalSocket( ipPOINTER_CAST( Socket_t, xReceivedEvent.pvData ) );
+                ( void ) FreeRTOS_SignalSocket( ( Socket_t ) xReceivedEvent.pvData );
             #endif /* ipconfigSUPPORT_SIGNALS */
             break;
 
@@ -1169,8 +1170,8 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
 
     /* Map the buffer onto Ethernet Header struct for easy access to fields. */
 
-    /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-     * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+    /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
 
@@ -1243,8 +1244,8 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
         /* Map the buffer onto the Ethernet Header struct for easy access to the fields. */
 
-        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxEthernetHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
@@ -1261,8 +1262,8 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     /* The Ethernet frame contains an ARP packet. */
                     if( pxNetworkBuffer->xDataLength >= sizeof( ARPPacket_t ) )
                     {
-                        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-                         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                        /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                         /* coverity[misra_c_2012_rule_11_3_violation] */
                         eReturned = eARPProcessPacket( ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer ) );
                     }
@@ -1278,8 +1279,8 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     /* The Ethernet frame contains an IP packet. */
                     if( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) )
                     {
-                        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-                         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                        /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                         /* coverity[misra_c_2012_rule_11_3_violation] */
                         eReturned = prvProcessIPPacket( ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer );
                     }
@@ -1540,8 +1541,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
 
                             /* pxProtPack will point to the offset were the protocols begin. */
 
-                            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-                             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                            /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                             /* coverity[misra_c_2012_rule_11_3_violation] */
                             pxProtPack = ( ( ProtocolPacket_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
@@ -1645,8 +1646,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 #endif /* if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 ) */
             }
 
-            /* false positive as the value might be changed according to the
-             * conditionally compiled code */
+            /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
             /* coverity[misra_c_2012_rule_14_3_violation] */
             if( eReturn != eReleaseBuffer )
             {
@@ -1700,8 +1701,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                /* Map the buffer onto a UDP-Packet struct to easily access the
                                 * fields of UDP packet. */
 
-                               /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-                                * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+                               /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                                /* coverity[misra_c_2012_rule_11_3_violation] */
                                const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
                                uint16_t usLength;
@@ -1795,6 +1796,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
     return eReturn;
 }
+
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
@@ -1835,8 +1837,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             /* Map the buffer onto a IP-Packet struct to easily access the
              * fields of the IP packet. */
 
-            /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-             * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
@@ -1988,8 +1990,8 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
     {
         /* Map the Buffer to Ethernet Header struct for easy access to fields. */
 
-        /* MISRA C-2012 Rule 11.3 warns about casting pointer type to a different data type.
-         * The struct to be casted to is defined as a packed struct.  The cast won't cause misalignment. */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 

@@ -63,7 +63,11 @@
     #define baMINIMAL_BUFFER_SIZE    sizeof( ARPPacket_t )
 #endif /* ipconfigUSE_TCP == 1 */
 
-/*_RB_ This is too complex not to have an explanation. */
+/* Compile time assertion with zero runtime effects
+ * it will assert on 'e' not being zero, as it tries to divide by it,
+ * will also print the line where the error occured in case of failure */
+/* MISRA Ref 20.10.1 [Lack of sizeof operator and compile time error checking] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2010 */
 /* coverity[misra_c_2012_rule_20_10_violation] */
 #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
     #define ASSERT_CONCAT_( a, b )    a ## b
@@ -227,11 +231,9 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 {
     NetworkBufferDescriptor_t * pxReturn = NULL;
     size_t uxCount;
+    size_t uxMaxAllowedBytes = ( SIZE_MAX >> 1 );
 
-    /* possibly a false positive as SIZE_MAX is shifted to the right (halved)
-     * which makes it a variant */
-    /* coverity[misra_c_2012_rule_14_3_violation] */
-    if( ( xRequestedSizeBytes <= ( SIZE_MAX >> 1 ) ) && ( xNetworkBufferSemaphore != NULL ) )
+    if( ( xRequestedSizeBytes <= uxMaxAllowedBytes ) && ( xNetworkBufferSemaphore != NULL ) )
     {
         /* If there is a semaphore available, there is a network buffer available. */
         if( xSemaphoreTake( xNetworkBufferSemaphore, xBlockTimeTicks ) == pdPASS )
