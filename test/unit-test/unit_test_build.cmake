@@ -8,7 +8,7 @@ set(project_name "FreeRTOS_TCP_Unit")
 
 # list the files to mock here
 list(APPEND mock_list
-            "${MODULE_ROOT_DIR}/include/FreeRTOS_ARP.h"
+            "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
         )
 # list the directories your mocks need
 list(APPEND mock_include_list
@@ -30,7 +30,7 @@ list(APPEND real_source_files
             ${TCP_SOURCES}
             ${KERNEL_SOURCES}
             ${MODULE_ROOT_DIR}/test/unit-test/stubs/FreeRTOS_ARP_stubs.c
-            ${MODULE_ROOT_DIR}/portable/BufferManagement/BufferAllocation_2.c
+            ${MODULE_ROOT_DIR}/source/portable/BufferManagement/BufferAllocation_2.c
 	)
 # list the directories the module under test includes
 list(APPEND real_include_directories
