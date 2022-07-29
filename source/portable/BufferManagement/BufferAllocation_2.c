@@ -216,6 +216,7 @@ uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
 void vReleaseNetworkBuffer( uint8_t * pucEthernetBuffer )
 {
     uint8_t * pucEthernetBufferCopy = pucEthernetBuffer;
+
     /* There is space before the Ethernet buffer in which a pointer to the
      * network buffer that references this Ethernet buffer is stored.  Remove the
      * space before freeing the buffer. */
@@ -412,7 +413,7 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
     }
     else
     {
-        pxNetworkBuffer->xDataLength = xSizeBytes ;
+        pxNetworkBuffer->xDataLength = xSizeBytes;
 
         if( xSizeBytes > xOriginalLength )
         {
