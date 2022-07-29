@@ -1966,7 +1966,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-118 */
                         /* coverity[misra_c_2012_rule_11_8_violation] */
 
-                        /* MISRA Ref _Ref 11.1.1_ [ Conversion betwee pointer to
+                        /* MISRA Ref _Ref 11.1.1_ [ Conversion between pointer to
                          * a function and another type ] */
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-111 */
                         /* coverity[misra_c_2012_rule_11_1_violation] */
