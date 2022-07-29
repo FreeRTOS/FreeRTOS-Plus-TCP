@@ -105,7 +105,7 @@
  * number generation is performed via this macro to allow applications to use their
  * own random number generation method.  For example, it might be possible to
  * generate a random number by sampling noise on an analogue input. */
-extern uint32_t ulRand();
+extern uint32_t ulRand( void );
 #define ipconfigRAND32()    ulRand()
 
 /* If ipconfigUSE_NETWORK_EVENT_HOOK is set to 1 then FreeRTOS+TCP will call the

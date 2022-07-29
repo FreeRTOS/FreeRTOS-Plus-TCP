@@ -135,6 +135,13 @@ _Ref 17.2.1_
         have a secondary child socket thereby limiting the number of recursive
         calls to one.
 
+#### Rule 20.5
+_Ref 20.5.1_
+
+- MISRA C-2012 Rule 20.10 warns against the use of #undef
+        However, in this case, it must be used to make sure some macros are
+        defined to a certain value
+
 #### Rule 20.10
 _Ref 20.10.1_
 

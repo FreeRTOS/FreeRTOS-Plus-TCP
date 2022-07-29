@@ -1171,7 +1171,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
     /* Map the buffer onto Ethernet Header struct for easy access to fields. */
 
     /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
 
