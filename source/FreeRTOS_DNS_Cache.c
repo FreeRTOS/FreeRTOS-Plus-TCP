@@ -173,9 +173,9 @@
         { /* Element found */
             if( xLookUp == pdTRUE )
             {
-                prvGetCacheIPEntry( uxIndex,
-                                    pulIP,
-                                    ulCurrentTimeSeconds );
+                ( void ) prvGetCacheIPEntry( uxIndex,
+                                             pulIP,
+                                             ulCurrentTimeSeconds );
             }
             else
             {
