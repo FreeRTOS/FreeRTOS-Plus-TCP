@@ -371,7 +371,7 @@
         uint8_t ucExpect = tcpTCP_FLAG_ACK;
         const uint8_t ucFlagsMask = tcpTCP_FLAG_ACK | tcpTCP_FLAG_RST | tcpTCP_FLAG_SYN | tcpTCP_FLAG_FIN;
 
-        if( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eCONNECT_SYN )
+        if( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN )
         {
             ucExpect |= tcpTCP_FLAG_SYN;
         }
@@ -405,7 +405,7 @@
             pxTCPWindow->usPeerPortNumber = pxSocket->u.xTCP.usRemotePort;
             pxTCPWindow->usOurPortNumber = pxSocket->usLocalPort;
 
-            if( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eCONNECT_SYN )
+            if( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN )
             {
                 /* Map the Last packet onto the ProtocolHeader_t struct for easy access to the fields. */
 
@@ -452,7 +452,7 @@
                 }
             #endif /* ipconfigUSE_TCP_WIN */
 
-            if( ( pxSocket->u.xTCP.eTCPState == ( EventBits_t ) eCONNECT_SYN ) || ( ulReceiveLength != 0U ) )
+            if( ( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN ) || ( ulReceiveLength != 0U ) )
             {
                 pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
 
@@ -735,7 +735,7 @@
          * pucRecvData will point to the first byte of the TCP payload. */
         ulReceiveLength = ( uint32_t ) prvCheckRxData( *ppxNetworkBuffer, &pucRecvData );
 
-        if( pxSocket->u.xTCP.eTCPState >= ( uint8_t ) eESTABLISHED )
+        if( pxSocket->u.xTCP.eTCPState >= eESTABLISHED )
         {
             if( pxTCPWindow->rx.ulCurrentSequenceNumber == ( ulSequenceNumber + 1U ) )
             {
