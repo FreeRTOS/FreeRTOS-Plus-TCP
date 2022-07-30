@@ -131,15 +131,21 @@
                         struct xDNSBuffer * pxReceiveBuffer )
     {
         uint32_t ulAddressLength = ( uint32_t ) sizeof( struct freertos_sockaddr );
+        int32_t lResult;
 
         /* Wait for the reply. */
-        pxReceiveBuffer->uxPayloadLength = ( size_t ) FreeRTOS_recvfrom( xDNSSocket,
-                                                                         &pxReceiveBuffer->pucPayloadBuffer,
-                                                                         0,
-                                                                         FREERTOS_ZERO_COPY,
-                                                                         xAddress,
-                                                                         &ulAddressLength );
-        pxReceiveBuffer->uxPayloadSize = pxReceiveBuffer->uxPayloadLength;
+        lResult = FreeRTOS_recvfrom( xDNSSocket,
+                                     &pxReceiveBuffer->pucPayloadBuffer,
+                                     0,
+                                     FREERTOS_ZERO_COPY,
+                                     xAddress,
+                                     &ulAddressLength );
+
+        if( lResult > 0 )
+        {
+            pxReceiveBuffer->uxPayloadLength = ( size_t ) lResult;
+            pxReceiveBuffer->uxPayloadSize = pxReceiveBuffer->uxPayloadLength;
+        }
     }
 
 /**

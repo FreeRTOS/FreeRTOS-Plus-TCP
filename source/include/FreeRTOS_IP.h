@@ -44,11 +44,15 @@
 
 /* Constants defining the current version of the FreeRTOS+TCP
  * network stack. */
-#define ipFR_TCP_VERSION_NUMBER    "V2.3.999"
-#define ipFR_TCP_VERSION_MAJOR     2
-#define ipFR_TCP_VERSION_MINOR     3
+#define ipFR_TCP_VERSION_MAJOR    2
+#define ipFR_TCP_VERSION_MINOR    3
 /* Development builds are always version 999. */
-#define ipFR_TCP_VERSION_BUILD     999
+#define ipFR_TCP_VERSION_BUILD    999
+#define __VERSION( v1, v2, v3 )    # v1 "." # v2 "." # v3
+#define _VERSION( v1, v2, v3 )     __VERSION( v1, v2, v3 )
+/* ipFR_TCP_VERSION_NUMBER makes a string like "2.3.999". */
+#define ipFR_TCP_VERSION_NUMBER \
+    _VERSION( ipFR_TCP_VERSION_MAJOR, ipFR_TCP_VERSION_MINOR, ipFR_TCP_VERSION_BUILD )
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */

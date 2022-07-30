@@ -472,7 +472,7 @@
                                      Socket_t xDNSSocket,
                                      const struct freertos_sockaddr * pxAddress )
     {
-        BaseType_t uxReturn = pdFAIL;
+        BaseType_t xReturn = pdFAIL;
         struct xDNSBuffer xDNSBuf = { 0 };
         NetworkBufferDescriptor_t * pxNetworkBuffer = NULL;
 
@@ -498,17 +498,17 @@
                                                            uxIdentifier );
 
             /* send the dns message */
-            uxReturn = DNS_SendRequest( xDNSSocket,
-                                        pxAddress,
-                                        &xDNSBuf );
+            xReturn = DNS_SendRequest( xDNSSocket,
+                                       pxAddress,
+                                       &xDNSBuf );
 
-            if( uxReturn == pdFAIL )
+            if( xReturn == pdFAIL )
             {
                 vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
             }
         }
 
-        return uxReturn;
+        return xReturn;
     }
 
 /*!
@@ -525,19 +525,21 @@
         uint32_t ulIPAddress = 0;
 
         struct freertos_sockaddr xAddress;
-        DNSBuffer_t xReceiveBuffer = { 0 };
-        BaseType_t uxReturn = pdFAIL;
+        DNSBuffer_t xReceiveBuffer;
+        BaseType_t xReturn = pdFAIL;
+
+        memset( xReceiveBuffer, 0, sizeof( xReceiveBuffer ) );
 
         prvFillSockAddress( &xAddress, pcHostName );
 
         do
         {
-            uxReturn = prvSendBuffer( pcHostName,
-                                      uxIdentifier,
-                                      xDNSSocket,
-                                      &xAddress );
+            xReturn = prvSendBuffer( pcHostName,
+                                     uxIdentifier,
+                                     xDNSSocket,
+                                     &xAddress );
 
-            if( uxReturn == pdFAIL )
+            if( xReturn == pdFAIL )
             {
                 break;
             }
