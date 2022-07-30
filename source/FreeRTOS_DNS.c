@@ -528,7 +528,7 @@
         DNSBuffer_t xReceiveBuffer;
         BaseType_t xReturn = pdFAIL;
 
-        memset( xReceiveBuffer, 0, sizeof( xReceiveBuffer ) );
+        memset( &( xReceiveBuffer ), 0, sizeof( xReceiveBuffer ) );
 
         prvFillSockAddress( &xAddress, pcHostName );
 
