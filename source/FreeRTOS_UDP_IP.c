@@ -94,7 +94,7 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
 {
     eARPLookupResult_t eReturned;
     /* Map the UDP packet onto the start of the frame. */
-    UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
 
     #if ( ipconfigUSE_IPv6 != 0 )
@@ -150,13 +150,13 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
 static void prvSetIPHeaderForICMP( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     #if ( ipconfigUSE_IPv6 != 0 )
-        UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+        UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
         if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
         {
             IPHeader_IPv6_t * pxIPHeader_IPv6;
 
-            pxIPHeader_IPv6 = ipCAST_PTR_TO_TYPE_PTR( IPHeader_IPv6_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+            pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
             pxIPHeader_IPv6->ucVersionTrafficClass = 0x60;
             pxIPHeader_IPv6->ucNextHeader = ipPROTOCOL_ICMP_IPv6;
             pxIPHeader_IPv6->ucHopLimit = 128;
@@ -166,7 +166,7 @@ static void prvSetIPHeaderForICMP( NetworkBufferDescriptor_t * const pxNetworkBu
     {
         IPHeader_t * pxIPHeader;
 
-        pxIPHeader = ipCAST_PTR_TO_TYPE_PTR( IPHeader_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+        pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
         pxIPHeader->ucProtocol = ipPROTOCOL_ICMP;
         pxIPHeader->usLength = ( uint16_t ) ( pxNetworkBuffer->xDataLength - ipSIZE_OF_ETH_HEADER );
         pxIPHeader->usLength = FreeRTOS_htons( pxIPHeader->usLength );
@@ -187,11 +187,11 @@ static void prvSetIPHeaderForUDP( NetworkBufferDescriptor_t * const pxNetworkBuf
     IPHeader_t * pxIPHeader;
 
     #if ( ipconfigUSE_IPv6 != 0 )
-        UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
+        UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
     #endif
 
     /* Map the UDP packet onto the start of the frame. */
-    pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     /* Create short cuts to the data within the packet. */
     pxIPHeader = &( pxUDPPacket->xIPHeader );
@@ -248,7 +248,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
     eARPLookupResult_t eReturned = eARPCacheMiss;
 
     #if ( ipconfigUSE_IPv6 != 0 )
-        UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+        UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
         if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
         {
@@ -306,7 +306,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
 static void prvUDPSendPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
-    EthernetHeader_t * pxEthernetHeader = ipCAST_PTR_TO_TYPE_PTR( EthernetHeader_t, pxNetworkBuffer->pucEthernetBuffer );
+    EthernetHeader_t * pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     ( void ) memcpy( pxEthernetHeader->xSourceAddress.ucBytes, pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
     #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
@@ -373,7 +373,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
     BaseType_t xLostBuffer = pdFALSE;
 
     /* Map the UDP packet onto the start of the frame. */
-    pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     #if ( ipconfigUSE_IPv6 != 0 )
         if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
@@ -442,7 +442,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
             #if ( ipconfigUSE_IPv6 != 0 )
                 if( xIsIPV6 != pdFALSE )
                 {
-                    IPHeader_IPv6_t * pxIPHeader_IPv6 = ipCAST_PTR_TO_TYPE_PTR( IPHeader_IPv6_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                    IPHeader_IPv6_t * pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
                     ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 }
                 else
@@ -528,11 +528,11 @@ static BaseType_t prvHandleUDPPacketWithoutSocket( NetworkBufferDescriptor_t * p
     ProtocolHeaders_t * pxProtocolHeaders;
 
     #if ( ( ( ipconfigUSE_DNS == 1 ) && ( ipconfigDNS_USE_CALLBACKS == 1 ) ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) )
-        UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+        UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     #endif
 
     uxIPLength = uxIPHeaderSizePacket( pxNetworkBuffer );
-    pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t, &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPLength ] ) );
+    pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPLength ] ) );
 
     /* There is no socket listening to the target port, but still it might
      * be for this node. */
@@ -656,7 +656,7 @@ static BaseType_t prvHandleUDPPacketWithoutSocket( NetworkBufferDescriptor_t * p
         destinationAddress.sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
 
         #if ( ipconfigUSE_IPv6 != 0 )
-            pxUDPPacket_IPv6 = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
+            pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
             if( pxUDPPacket_IPv6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
             {
@@ -671,9 +671,9 @@ static BaseType_t prvHandleUDPPacketWithoutSocket( NetworkBufferDescriptor_t * p
             else
         #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
         {
-            struct freertos_sockaddr * xSourceAddress4 = ipCAST_PTR_TO_TYPE_PTR( sockaddr4_t, &( xSourceAddress ) );
-            struct freertos_sockaddr * destinationAddress4 = ipCAST_PTR_TO_TYPE_PTR( sockaddr4_t, &( destinationAddress ) );
-            UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+            struct freertos_sockaddr * xSourceAddress4 = ( ( sockaddr4_t * ) &( xSourceAddress ) );
+            struct freertos_sockaddr * destinationAddress4 = ( ( sockaddr4_t * ) &( destinationAddress ) );
+            UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
             xSourceAddress4->sin_addr = pxNetworkBuffer->ulIPAddress;
             destinationAddress4->sin_addr = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
@@ -686,8 +686,8 @@ static BaseType_t prvHandleUDPPacketWithoutSocket( NetworkBufferDescriptor_t * p
 
         if( xHandler( pxSocket,
                       pcData, ( size_t ) uxPayloadSize,
-                      ipCAST_PTR_TO_TYPE_PTR( sockaddr4_t, &( xSourceAddress ) ),
-                      ipCAST_PTR_TO_TYPE_PTR( sockaddr4_t, &( destinationAddress ) ) ) != pdFALSE )
+                      ( ( sockaddr4_t * ) &( xSourceAddress ) ),
+                      ( ( sockaddr4_t * ) &( destinationAddress ) ) ) != pdFALSE )
         {
             xReturn = pdFAIL; /* xHandler has consumed the data, do not add it to .xWaitingPacketsList'. */
         }
@@ -714,7 +714,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
     ProtocolHeaders_t * pxProtocolHeaders;
-    UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     size_t uxIPLength;
 
     #if ( ipconfigUSE_IPv6 != 0 )
@@ -730,7 +730,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 
     uxIPLength = uxIPHeaderSizePacket( pxNetworkBuffer );
 
-    pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t, &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPLength ] ) );
+    pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPLength ] ) );
 
     /* Introduce a do while ( true ) loop in order to reduce the complexity of the function. */
     do
@@ -747,7 +747,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
          * careful;  hundreds of broadcast messages may pass and if we're not
          * handling them, no use to fill the ARP cache with those IP addresses. */
         #if ( ipconfigUSE_IPv6 != 0 )
-            pxUDPPacket_IPv6 = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
+            pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
             if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
             {

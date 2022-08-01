@@ -279,6 +279,7 @@ enotconn
 enotusingleasedaddress
 enum
 eof
+eol
 eprocessbuffer
 erastateapply
 erastateiptest
@@ -617,6 +618,7 @@ noevent
 nondet
 noninfringement
 nontemporaryaddress
+noop
 nop
 ntoh
 ntp
@@ -778,16 +780,24 @@ prvreadnamefield
 prvreadsackoption
 prvrxcallback
 prvsenddata
+prvsetaynackoptions
 prvsetoptions
 prvsetsynackoptions
 prvsinglesteptcpheaderoptions
 prvskipnamefield
+prvsocketsetmss
 prvstorerxdata
+prvtcpaddtxdata
+prvtcpbufferresize
+prvtcpflagmeaning
 prvtcphandlefin
 prvtcphandlestate
+prvtcpmakesureprepared
+prvtcpnexttimeout
 prvtcpprepareconnect
 prvtcppreparesend
 prvtcpreturnpacket
+prvtcpsendchallengeack
 prvtcpsendloop
 prvtcpsendpacket
 prvtcpsendrepeated
@@ -796,10 +806,12 @@ prvtcpsendspecialpackethelper
 prvtcpsocketcopy
 prvtcpsocketisactive
 prvtcpstatusagecheck
+prvtcptouchsocket
 prvtxcallback
 prvvalidsocket
 prvwinpcaprecvthread
 prvwinpcapsendthread
+prvwinscalefactor
 prvwritepackets
 ps
 pt
@@ -1055,6 +1067,7 @@ rxstream
 rxtail
 rxubr
 sa
+sackp
 saf
 safemalloc
 safemallocsaif
@@ -1359,7 +1372,9 @@ ultargetprotocoladdress
 ultcpwindowtxack
 ultcpwindowtxget
 ultcpwindowtxsack
+ultimergetage
 ultimestamp
+ultimewhenaddedinseconds
 ultransactionid
 ulttl
 ultxwindowlength
@@ -1595,6 +1610,7 @@ wol
 woreg
 wrdata
 wrxsize
+wsf
 wsopt
 wtxsize
 www
@@ -1841,6 +1857,7 @@ xtaskgettickcount
 xtaskhandle
 xtaskresumeall
 xtcp
+xtcpchecknewclient
 xtcpheader
 xtcppacket
 xtcpsegments

@@ -160,8 +160,8 @@
 
         if( pxDescriptor != NULL )
         {
-            pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_IPv6_t, pxDescriptor->pucEthernetBuffer );
-            xRASolicitationRequest = ipCAST_PTR_TO_TYPE_PTR( ICMPRouterSolicitation_IPv6_t, &( pxICMPPacket->xICMPHeaderIPv6 ) );
+            pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer );
+            xRASolicitationRequest = ( ( ICMPRouterSolicitation_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
             pxDescriptor->xDataLength = uxNeededSize;
 
@@ -219,8 +219,8 @@
     {
         NetworkInterface_t * pxInterface = pxNetworkBuffer->pxInterface;
         NetworkEndPoint_t * pxPoint;
-        ICMPPacket_IPv6_t * pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
-        ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ipCAST_PTR_TO_TYPE_PTR( ICMPHeader_IPv6_t, &( pxICMPPacket->xICMPHeaderIPv6 ) );
+        ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
         for( pxPoint = FreeRTOS_FirstEndPoint( pxInterface );
              pxPoint != NULL;
@@ -275,7 +275,7 @@
                     break;
 
                 case ndICMP_PREFIX_INFORMATION: /* 3 */
-                    pxPrefixOption = ipCAST_PTR_TO_TYPE_PTR( ICMPPrefixOption_IPv6_t, &( pucBytes[ uxIndex ] ) );
+                    pxPrefixOption = ( ( ICMPPrefixOption_IPv6_t * ) &( pucBytes[ uxIndex ] ) );
 
                     FreeRTOS_printf( ( "RA: Prefix len %d Life %lu, %lu (%pip)\n",
                                        pxPrefixOption->ucPrefixLength,
@@ -319,7 +319,7 @@
  */
     void vReceiveRA( NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
-        const ICMPPacket_IPv6_t * pxICMPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ICMPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
+        const ICMPPacket_IPv6_t * pxICMPPacket = ( ( const ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
         ICMPPrefixOption_IPv6_t * pxPrefixOption = NULL;
         const size_t uxICMPSize = sizeof( ICMPRouterAdvertisement_IPv6_t );
         const size_t uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
@@ -333,7 +333,7 @@
         {
             #if ( ipconfigHAS_PRINTF == 1 )
                 {
-                    const ICMPRouterAdvertisement_IPv6_t * pxAdvertisement = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ICMPRouterAdvertisement_IPv6_t, &( pxICMPPacket->xICMPHeaderIPv6 ) );
+                    const ICMPRouterAdvertisement_IPv6_t * pxAdvertisement = ( ( const ICMPRouterAdvertisement_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
                     FreeRTOS_printf( ( "RA: Type %02x Srv %02x Checksum %04x Hops %d Flags %02x Life %d\n",
                                        pxAdvertisement->ucTypeOfMessage,
                                        pxAdvertisement->ucTypeOfService,

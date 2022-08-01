@@ -120,7 +120,7 @@ static void prvShowWarnings( void );
         return ( bIsValidNetworkDescriptor( pxDescr ) != 0 ) &&
                ( listIS_CONTAINED_WITHIN( &xFreeBuffersList, &( pxDescr->xBufferListItem ) ) != 0 );
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     static void prvShowWarnings( void )
     {
@@ -132,7 +132,7 @@ static void prvShowWarnings( void );
             FreeRTOS_debug_printf( ( "*** Warning *** %s %lu buffers left\n", cIsLow ? "only" : "now", uxCount ) );
         }
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     UBaseType_t bIsValidNetworkDescriptor( const NetworkBufferDescriptor_t * pxDesc )
     {
@@ -146,7 +146,7 @@ static void prvShowWarnings( void );
 
         return ( UBaseType_t ) ( pxDesc - xNetworkBuffers ) + 1;
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 #else /* if ( ipconfigTCP_IP_SANITY != 0 ) */
     static UBaseType_t bIsValidNetworkDescriptor( const NetworkBufferDescriptor_t * pxDesc )
@@ -154,12 +154,12 @@ static void prvShowWarnings( void );
         ( void ) pxDesc;
         return ( UBaseType_t ) pdTRUE;
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     static void prvShowWarnings( void )
     {
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 #endif /* ipconfigTCP_IP_SANITY */
 

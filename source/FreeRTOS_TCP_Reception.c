@@ -50,35 +50,11 @@
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_TCP_Transmission.h"
+#include "FreeRTOS_TCP_Reception.h"
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
-
-/*
- * Identify and deal with a single TCP header option, advancing the pointer to
- * the header. This function returns pdTRUE or pdFALSE depending on whether the
- * caller should continue to parse more header options or break the loop.
- */
-    static size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                                 size_t uxTotalLength,
-                                                 FreeRTOS_Socket_t * const pxSocket,
-                                                 BaseType_t xHasSYNFlag );
-
-    #if ( ipconfigUSE_TCP_WIN == 1 )
-
-/*
- * Skip past TCP header options when doing Selective ACK, until there are no
- * more options left.
- */
-        static void prvReadSackOption( const uint8_t * const pucPtr,
-                                       size_t uxIndex,
-                                       FreeRTOS_Socket_t * const pxSocket );
-    #endif /* ( ipconfigUSE_TCP_WIN == 1 ) */
-
-/*
- * Reply to a peer with the RST flag on, in case a packet can not be handled.
- */
-    BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*-----------------------------------------------------------*/
 
@@ -97,8 +73,8 @@
                           const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer );
-        const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
-                                                                              &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset ] ) );
+        const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                                                        &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset ] ) );
         const TCPHeader_t * pxTCPHeader;
         const uint8_t * pucPtr;
         BaseType_t xHasSYNFlag;
@@ -126,8 +102,7 @@
             if( pxNetworkBuffer->xDataLength > uxOptionOffset )
             {
                 /* Validate options size calculation. */
-                if( ( pxNetworkBuffer->xDataLength > uxOptionOffset ) &&
-                    ( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) ) )
+                if( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) )
                 {
                     if( ( pxTCPHeader->ucTCPFlags & tcpTCP_FLAG_SYN ) != ( uint8_t ) 0U )
                     {
@@ -176,10 +151,10 @@
  * @return This function returns pdTRUE or pdFALSE depending on whether the caller
  *         should continue to parse more header options or break the loop.
  */
-    static size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                                 size_t uxTotalLength,
-                                                 FreeRTOS_Socket_t * const pxSocket,
-                                                 BaseType_t xHasSYNFlag )
+    size_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                          size_t uxTotalLength,
+                                          FreeRTOS_Socket_t * const pxSocket,
+                                          BaseType_t xHasSYNFlag )
     {
         UBaseType_t uxNewMSS;
         size_t uxRemainingOptionsBytes = uxTotalLength;
@@ -334,9 +309,9 @@
  * @param[in] uxIndex: Index of options in the TCP packet options.
  * @param[in] pxSocket: Socket handling the TCP connection.
  */
-        static void prvReadSackOption( const uint8_t * const pucPtr,
-                                       size_t uxIndex,
-                                       FreeRTOS_Socket_t * const pxSocket )
+        void prvReadSackOption( const uint8_t * const pucPtr,
+                                size_t uxIndex,
+                                FreeRTOS_Socket_t * const pxSocket )
         {
             uint32_t ulFirst = ulChar2u32( &( pucPtr[ uxIndex ] ) );
             uint32_t ulLast = ulChar2u32( &( pucPtr[ uxIndex + 4U ] ) );
@@ -394,8 +369,8 @@
     {
         const size_t uxIPHeaderLength = uxIPHeaderSizePacket( pxNetworkBuffer );
 /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-        const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
-                                                                              &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPHeaderLength ] ) );
+        const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPHeaderLength ] ) );
 
 /* Map the buffer onto an TCPHeader_t struct for easy access to fields. */
         const TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
@@ -420,9 +395,9 @@
         lReceiveLength = ipNUMERIC_CAST( int32_t, pxNetworkBuffer->xDataLength ) - ( int32_t ) ipSIZE_OF_ETH_HEADER;
 
         #if ( ipconfigUSE_IPv6 != 0 )
-            if( ipCAST_PTR_TO_TYPE_PTR( EthernetHeader_t, pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
+            if( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
             {
-                IPHeader_IPv6_t * pxIPHeader = ipCAST_PTR_TO_TYPE_PTR( IPHeader_IPv6_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                IPHeader_IPv6_t * pxIPHeader = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
                 uint16_t usLength;
 
                 /* For Coverity: conversion and cast in 2 steps. */
@@ -434,7 +409,7 @@
             else
         #endif /* ipconfigUSE_IPv6 */
         {
-            IPHeader_t * pxIPHeader = ipCAST_PTR_TO_TYPE_PTR( IPHeader_t, &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+            IPHeader_t * pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
             uint16_t usLength;
 
             usLength = FreeRTOS_ntohs( pxIPHeader->usLength );
@@ -495,8 +470,8 @@
                                uint32_t ulReceiveLength )
     {
 /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-        const ProtocolHeaders_t * pxProtocolHeaders = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ProtocolHeaders_t,
-                                                                                          &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
+        const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
+                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
         const TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
         TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
         uint32_t ulSequenceNumber, ulSpace;
