@@ -397,6 +397,8 @@ static void prvProcessIPEventsAndTimers( void )
                     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
                     /* coverity[misra_c_2012_rule_11_6_violation] */
                     uxState = ( uintptr_t ) xReceivedEvent.pvData;
+                    /* MISRA Ref 10.5.1 [DHCP events Enum] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-105 */
                     /* coverity[misra_c_2012_rule_10_5_violation] */
                     eState = ( eDHCPState_t ) uxState;
 

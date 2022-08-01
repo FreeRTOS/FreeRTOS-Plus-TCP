@@ -31,6 +31,21 @@ _Ref 8.9.1_
        order of execution, some variables have file scope definitions rather
        than function scope.
 
+#### Rule 8.13
+_Ref 8.13.1_
+
+- MISRA C-2012 Rule 8.13 Parameter passed is never used, should be declared as
+    const. This is a preefined API by the FreeRTOS-kernel function xTaskCreate,
+    and it depends on the user if they want to use that parameter, making it
+    const would break the build.
+
+#### Rule 10.5
+_Ref 10.5.1_
+
+- MISRA C-2012 Rule 10.5 Converting from an unsigned to an enum type. The
+    operation is safe to perform in that case, as we are using a generic API
+    to send and receive data, in that case the exact data sent it is received
+
 #### Rule 11.1
 _Ref 11.1.1_
 
