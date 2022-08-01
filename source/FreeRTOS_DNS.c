@@ -365,30 +365,8 @@
             xPreferenceIPv6;
     #else
             xPreferenceIPv4;
-    #endif
+    #endif /* ipconfigUSE_IPv6 != 0 */
 /*-----------------------------------------------------------*/
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSMessage_t.
- *
- * @return The casted pointer.
- */
-        static ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSMessage_t );
-    static ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSMessage_t )
-    {
-        return ( DNSMessage_t * ) pvArgument;
-    }
-
-/**
- * @brief Utility function to cast a const pointer of a type to a const pointer of type DNSMessage_t.
- *
- * @return The casted pointer.
- */
-    static ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( DNSMessage_t );
-    static ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( DNSMessage_t )
-    {
-        return ( const DNSMessage_t * ) pvArgument;
-    }
 
 /* A DNS query consists of a header, as described in 'struct xDNSMessage'
  * It is followed by 1 or more queries, each one consisting of a name and a tail,
@@ -470,17 +448,6 @@
         static NetworkEndPoint_t * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer );
     #endif
 
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSAnswerRecord_t.
- *
- * @return The casted pointer.
- */
-    static ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSAnswerRecord_t );
-    static ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSAnswerRecord_t )
-    {
-        return ( DNSAnswerRecord_t * ) pvArgument;
-    }
-
     #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
 
         #include "pack_struct_start.h"
@@ -496,17 +463,6 @@
         }
         #include "pack_struct_end.h"
         typedef struct xLLMNRAnswer LLMNRAnswer_t;
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type LLMNRAnswer_t.
- *
- * @return The casted pointer.
- */
-        static ipDECL_CAST_PTR_FUNC_FOR_TYPE( LLMNRAnswer_t );
-        static ipDECL_CAST_PTR_FUNC_FOR_TYPE( LLMNRAnswer_t )
-        {
-            return ( LLMNRAnswer_t * ) pvArgument;
-        }
 
 
     #endif /* ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
@@ -543,17 +499,6 @@
         }
         #include "pack_struct_end.h"
         typedef struct xNBNSAnswer NBNSAnswer_t;
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type NBNSAnswer_t.
- *
- * @return The casted pointer.
- */
-        static ipDECL_CAST_PTR_FUNC_FOR_TYPE( NBNSAnswer_t );
-        static ipDECL_CAST_PTR_FUNC_FOR_TYPE( NBNSAnswer_t )
-        {
-            return ( NBNSAnswer_t * ) pvArgument;
-        }
 
     #endif /* ipconfigUSE_NBNS == 1 */
 
@@ -616,18 +561,6 @@
             char pcName[ 1 ]; /**< 1 character name. */
         } DNSCallback_t;
 
-
-/**
- * @brief Utility function to cast pointer of a type to pointer of type DNSCallback_t.
- *
- * @return The casted pointer.
- */
-        static ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSCallback_t );
-        static ipDECL_CAST_PTR_FUNC_FOR_TYPE( DNSCallback_t )
-        {
-            return ( DNSCallback_t * ) pvArgument;
-        }
-
 /** @brief The list of all callback structures. */
         static List_t xCallbackList;
 
@@ -642,7 +575,7 @@
         {
             return FreeRTOS_gethostbyname_a( pcHostName, NULL, ( void * ) NULL, 0U );
         }
-        /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 /** @brief Initialise the list of call-back structures.
  */
@@ -650,7 +583,7 @@
         {
             vListInitialise( &xCallbackList );
         }
-        /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Iterate through the list of call-back structures and remove
@@ -665,7 +598,7 @@
         void vDNSCheckCallBack( void * pvSearchID )
         {
             const ListItem_t * pxIterator;
-            const ListItem_t * xEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( xCallbackList.xListEnd ) );
+            const ListItem_t * xEnd = ( ( const ListItem_t * ) &( xCallbackList.xListEnd ) );
 
             /* When a DNS-search times out, the call-back function shall
              * be called. Store theses item in a temporary list.
@@ -681,7 +614,7 @@
                      pxIterator != xEnd;
                      )
                 {
-                    DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                    DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
                     /* Move to the next item because we might remove this item */
                     pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator );
 
@@ -711,13 +644,13 @@
             if( listLIST_IS_EMPTY( &xTempList ) != pdFALSE )
             {
                 /* There is at least one item in xTempList which must be removed and deleted. */
-                xEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( xTempList.xListEnd ) );
+                xEnd = ( ( const ListItem_t * ) &( xTempList.xListEnd ) );
 
                 for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
                      pxIterator != xEnd;
                      )
                 {
-                    DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                    DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
                     /* Move to the next item because we might remove this item */
                     pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator );
 
@@ -743,7 +676,7 @@
                 vIPSetDnsTimerEnableState( pdFALSE );
             }
         }
-        /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Remove the entry defined by the search ID to cancel a DNS request.
@@ -756,7 +689,7 @@
         {
             vDNSCheckCallBack( pvSearchID );
         }
-        /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
         #if ( ipconfigUSE_IPv6 != 0 )
 
@@ -797,7 +730,7 @@
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         {
             size_t uxLength = strlen( pcHostName );
-            DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, pvPortMalloc( sizeof( *pxCallback ) + uxLength ) );
+            DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) pvPortMalloc( sizeof( *pxCallback ) + uxLength ) );
 
             /* Translate from ms to number of clock ticks. */
             uxTimeout /= portTICK_PERIOD_MS;
@@ -829,7 +762,7 @@
                 ( void ) xTaskResumeAll();
             }
         }
-        /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
         #if ( ipconfigUSE_IPv6 != 0 )
 
@@ -859,7 +792,7 @@
         {
             BaseType_t xResult = pdFALSE;
             const ListItem_t * pxIterator;
-            const ListItem_t * xEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( xCallbackList.xListEnd ) );
+            const ListItem_t * xEnd = ( ( const ListItem_t * ) &( xCallbackList.xListEnd ) );
             TickType_t uxIdentifier = ( TickType_t ) pxSet->pxDNSMessageHeader->usIdentifier;
 
             /* While iterating through the list, the scheduler is suspended.
@@ -875,7 +808,7 @@
                      pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator ) )
                 {
                     BaseType_t xMatching;
-                    DNSCallback_t * pxCallback = ipCAST_PTR_TO_TYPE_PTR( DNSCallback_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                    DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
                     #if ( ipconfigUSE_MDNS == 1 )
                         /* mDNS port 5353. */
                         if( pxSet->usPortNumber == FreeRTOS_htons( ipMDNS_PORT ) )
@@ -985,7 +918,7 @@
             #if ( ipconfigUSE_IPv6 == 0 )
                 pxAddrInfo->ai_addr = &( pxAddrInfo->xPrivateStorage.sockaddr4 );
             #else
-                pxAddrInfo->ai_addr = ipCAST_PTR_TO_TYPE_PTR( sockaddr4_t, &( pxAddrInfo->xPrivateStorage.sockaddr6 ) );
+                pxAddrInfo->ai_addr = ( ( sockaddr4_t * ) &( pxAddrInfo->xPrivateStorage.sockaddr6 ) );
 
                 if( xFamily == ( BaseType_t ) FREERTOS_AF_INET6 )
                 {
@@ -1207,7 +1140,7 @@
                     {
                         if( ( ppxAddressInfo != NULL ) && ( *( ppxAddressInfo ) != NULL ) )
                         {
-                            struct freertos_sockaddr6 * sockaddr6 = ipCAST_PTR_TO_TYPE_PTR( sockaddr6_t, ( *( ppxAddressInfo ) )->ai_addr );
+                            struct freertos_sockaddr6 * sockaddr6 = ( ( sockaddr6_t * ) ( *( ppxAddressInfo ) )->ai_addr );
 
                             ( void ) sockaddr6;
 
@@ -1551,7 +1484,7 @@
                         #if ( ipconfigUSE_IPv6 != 0 )
                             if( xDNS_IP_Preference == xPreferenceIPv6 )
                             {
-                                sockaddr6_t * pxAddressV6 = ipCAST_PTR_TO_TYPE_PTR( sockaddr6_t, pxAddress );
+                                sockaddr6_t * pxAddressV6 = ( ( sockaddr6_t * ) pxAddress );
                                 memcpy( pxAddressV6->sin_addrv6.ucBytes,
                                         ipMDNS_IP_ADDR_IPv6.ucBytes,
                                         ipSIZE_OF_IPv6_ADDRESS );
@@ -1572,7 +1505,7 @@
                         pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
                         xNeed_Endpoint = pdTRUE;
                         #if ( ipconfigUSE_IPv6 != 0 )
-                            sockaddr6_t * pxAddressV6 = ipCAST_PTR_TO_TYPE_PTR( sockaddr6_t, pxAddress );
+                            sockaddr6_t * pxAddressV6 = ( ( sockaddr6_t * ) pxAddress );
 
                             if( xDNS_IP_Preference == xPreferenceIPv6 )
                             {
@@ -1830,7 +1763,7 @@
                 if( ( xAddress.sin_addr == ipLLMNR_IP_ADDR ) || ( xAddress.sin_addr == ipMDNS_IP_ADDRESS ) )
                 {
                     /* Use LLMNR addressing. */
-                    ( ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucUDPPayloadBuffer ) )->usFlags = 0;
+                    ( ( ( DNSMessage_t * ) pucUDPPayloadBuffer ) )->usFlags = 0;
                 }
 
                 ulIPAddress = 0U;
@@ -1866,7 +1799,7 @@
                 else if( lBytes > 0 )
                 {
                     BaseType_t xExpected;
-                    const DNSMessage_t * pxDNSMessageHeader = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( DNSMessage_t, pucReceiveBuffer );
+                    const DNSMessage_t * pxDNSMessageHeader = ( ( const DNSMessage_t * ) pucReceiveBuffer );
 
                     #if ( ipconfigUSE_MDNS == 1 )
                         if( FreeRTOS_ntohs( xRecvAddress.sin_port ) == ipMDNS_PORT ) /* mDNS port 5353. */
@@ -1986,7 +1919,7 @@
 
         /* Write in a unique identifier. Cast the Payload Buffer to DNSMessage_t
          * to easily access fields of the DNS Message. */
-        pxDNSMessageHeader = ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucUDPPayloadBuffer );
+        pxDNSMessageHeader = ( ( DNSMessage_t * ) pucUDPPayloadBuffer );
         pxDNSMessageHeader->usIdentifier = ( uint16_t ) uxIdentifier;
 
         /* Create the resource record at the end of the header.  First
@@ -2204,7 +2137,7 @@
         #if ( ipconfigUSE_IPv6 != 0 )
             if( pxAddress->ai_family == FREERTOS_AF_INET6 )
             {
-                struct freertos_sockaddr6 * sockaddr6 = ipCAST_PTR_TO_TYPE_PTR( sockaddr6_t, pxAddress->ai_addr );
+                struct freertos_sockaddr6 * sockaddr6 = ( ( sockaddr6_t * ) pxAddress->ai_addr );
 
                 pucAddress = ( const uint8_t * ) &( sockaddr6->sin_addrv6 );
             }
@@ -2313,7 +2246,7 @@
  */
         uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
         {
-            UDPPacket_t * pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+            UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
             uint8_t * pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( *pxUDPPacket ) ] );
 
             prvTreatNBNS( pucUDPPayloadBuffer,
@@ -2341,7 +2274,7 @@
             NetworkEndPoint_t * pxEndPoint;
 
             #if ( ipconfigUSE_IPv6 != 0 )
-                IPPacket_IPv6_t * xIPPacket_IPv6 = ipCAST_PTR_TO_TYPE_PTR( IPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
+                IPPacket_IPv6_t * xIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
                 if( xIPPacket_IPv6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                 {
@@ -2350,7 +2283,7 @@
                 else
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
             {
-                IPPacket_t * xIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+                IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
                 pxEndPoint = FreeRTOS_FindEndPointOnNetMask( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
             }
@@ -2632,7 +2565,7 @@
 
                 /* Mapping pucByte to a DNSAnswerRecord allows easy access of the
                  * fields of the structure. */
-                pxDNSAnswerRecord = ipCAST_PTR_TO_TYPE_PTR( DNSAnswerRecord_t, pxSet->pucByte );
+                pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pxSet->pucByte );
 
                 /* Sanity check the data length of an IPv4 answer. */
                 if( FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ) == ( uint16_t ) pxSet->uxAddressLength )
@@ -2685,7 +2618,7 @@
                 /* It's not an A record, so skip it. Get the header location
                  * and then jump over the header. */
                 /* Cast the response to DNSAnswerRecord for easy access to fields of the DNS response. */
-                pxDNSAnswerRecord = ipCAST_PTR_TO_TYPE_PTR( DNSAnswerRecord_t, pxSet->pucByte );
+                pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pxSet->pucByte );
 
                 pxSet->pucByte = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] );
                 pxSet->uxSourceBytesRemaining -= sizeof( DNSAnswerRecord_t );
@@ -2826,7 +2759,7 @@
                 pxSet->pcRequestedName = ( char * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxOffsets[ 1 ] ] );
                 pxSet->pucByte = &( pxNetworkBuffer->pucEthernetBuffer[ uxOffsets[ 2 ] ] );
 
-                pxAnswer = ipCAST_PTR_TO_TYPE_PTR( LLMNRAnswer_t, pxSet->pucByte );
+                pxAnswer = ( ( LLMNRAnswer_t * ) pxSet->pucByte );
 
                 /* Leave 'usIdentifier' and 'usQuestions' untouched. */
 
@@ -2930,7 +2863,7 @@
 
             /* Parse the DNS message header. Map the byte stream onto a structure
              * for easier access. */
-            xSet.pxDNSMessageHeader = ipCAST_PTR_TO_TYPE_PTR( DNSMessage_t, pucUDPPayloadBuffer );
+            xSet.pxDNSMessageHeader = ( ( DNSMessage_t * ) pucUDPPayloadBuffer );
 
             /* Introduce a do {} while (0) to allow the use of breaks. */
             do
@@ -3263,7 +3196,7 @@
             NetworkEndPoint_t * pxEndPoint = prvFindEndPointOnNetMask( pxNetworkBuffer );
             size_t uxDataLength;
 
-            pxUDPPacket = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+            pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxUDPPacket->xIPHeader;
 
             #if ( ipconfigUSE_IPv6 != 0 )
@@ -3272,7 +3205,7 @@
                     UDPPacket_IPv6_t * xUDPPacket_IPv6;
                     IPHeader_IPv6_t * pxIPHeader_IPv6;
 
-                    xUDPPacket_IPv6 = ipCAST_PTR_TO_TYPE_PTR( UDPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
+                    xUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
                     pxIPHeader_IPv6 = &( xUDPPacket_IPv6->xIPHeader );
                     pxUDPHeader = &xUDPPacket_IPv6->xUDPHeader;
 

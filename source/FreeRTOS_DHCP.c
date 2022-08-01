@@ -174,22 +174,6 @@
     #include "pack_struct_end.h"
     typedef struct xDHCPMessage_IPv4 DHCPMessage_IPv4_t;
 
-/**
- * @brief Function to cast pointers to DHCPMessage_IPv4_t.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DHCPMessage_IPv4_t )
-    {
-        return ( DHCPMessage_IPv4_t * ) pvArgument;
-    }
-
-/**
- * @brief Function to cast const pointers to DHCPMessage_IPv4_t.
- */
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( DHCPMessage_IPv4_t )
-    {
-        return ( const DHCPMessage_IPv4_t * ) pvArgument;
-    }
-
 
 /** @brief The UDP socket used for all incoming and outgoing DHCP traffic. */
     _static Socket_t xDHCPv4Socket;
@@ -364,7 +348,7 @@
                 }
 
                 /* Map a DHCP structure onto the received data. */
-                pxDHCPMessage = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( DHCPMessage_IPv4_t, pucUDPPayload );
+                pxDHCPMessage = ( ( const DHCPMessage_IPv4_t * ) pucUDPPayload );
 
                 /* Sanity check. */
                 if( ( pxDHCPMessage->ulDHCPCookie == dhcpCOOKIE ) && ( pxDHCPMessage->ucOpcode == dhcpREPLY_OPCODE ) )
@@ -1303,7 +1287,7 @@
         if( lBytes > 0 )
         {
             /* Map a DHCP structure onto the received data. */
-            pxDHCPMessage = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( DHCPMessage_IPv4_t, pucUDPPayload );
+            pxDHCPMessage = ( ( const DHCPMessage_IPv4_t * ) pucUDPPayload );
 
             /* Sanity check. */
             if( lBytes < ( int32_t ) sizeof( DHCPMessage_IPv4_t ) )
@@ -1416,7 +1400,7 @@
         {
             /* Leave space for the UDP header. */
             pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
-            pxDHCPMessage = ipCAST_PTR_TO_TYPE_PTR( DHCPMessage_IPv4_t, pucUDPPayloadBuffer );
+            pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayloadBuffer );
 
             #if ( ipconfigUSE_IPv6 != 0 )
                 {

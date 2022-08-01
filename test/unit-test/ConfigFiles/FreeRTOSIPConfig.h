@@ -300,8 +300,11 @@ extern uint32_t ulRand();
 #define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 1 )
 #define ipconfigUSE_CALLBACKS                    ( 0 )
 
+#define ipconfigTCP_HANG_PROTECTION              ( 1 )
 
 #define portINLINE
+
+#define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
 
 void vApplicationMQTTGetKeys( const char ** ppcRootCA,
                               const char ** ppcClientCert,

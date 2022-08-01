@@ -122,7 +122,7 @@ static TickType_t xLastGratuitousARPTime = ( TickType_t ) 0;
  */
 eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
-    ARPPacket_t * pxARPFrame = ipCAST_PTR_TO_TYPE_PTR( ARPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    ARPPacket_t * pxARPFrame = ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     eFrameProcessingResult_t eReturn = eReleaseBuffer;
     ARPHeader_t * pxARPHeader = &( pxARPFrame->xARPHeader );
     uint32_t ulTargetProtocolAddress, ulSenderProtocolAddress;
@@ -325,7 +325,7 @@ static void vARPProcessPacketReply( ARPPacket_t * pxARPFrame,
 
     if( pxARPWaitingNetworkBuffer != NULL )
     {
-        IPPacket_t * pxARPWaitingIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxARPWaitingNetworkBuffer->pucEthernetBuffer );
+        IPPacket_t * pxARPWaitingIPPacket = ( ( IPPacket_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
         IPHeader_t * pxIPHeader = &( pxARPWaitingIPPacket->xIPHeader );
 
         if( ulSenderProtocolAddress == pxIPHeader->ulSourceIPAddress )
@@ -877,7 +877,7 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
     BaseType_t xNeedsARPResolution = pdFALSE;
     /* The device's IP-settings. */
     IPV4Parameters_t * pxIPv4Settings = &( pxNetworkBuffer->pxEndPoint->ipv4_settings );
-    IPPacket_t * pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
     if( ( pxIPHeader->ulSourceIPAddress & pxIPv4Settings->ulNetMask ) == ( pxIPv4Settings->ulIPAddress & pxIPv4Settings->ulNetMask ) )
@@ -1248,7 +1248,7 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->xDataLength >= sizeof( ARPPacket_t ) );
 
-    pxARPPacket = ipCAST_PTR_TO_TYPE_PTR( ARPPacket_t, pxNetworkBuffer->pucEthernetBuffer );
+    pxARPPacket = ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     /* memcpy the const part of the header information into the correct
      * location in the packet.  This copies:
@@ -1334,7 +1334,7 @@ BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
 {
     BaseType_t xResult = pdFALSE;
     NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
-    const IPPacket_t * pxIPPacket = ipCAST_PTR_TO_TYPE_PTR( IPPacket_t, pxUseDescriptor->pucEthernetBuffer );
+    const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxUseDescriptor->pucEthernetBuffer );
 
     /* This function will check if the target IP-address belongs to this device.
      * If so, the packet will be passed to the IP-stack, who will answer it.
