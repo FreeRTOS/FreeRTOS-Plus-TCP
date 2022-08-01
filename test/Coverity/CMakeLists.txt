@@ -59,4 +59,4 @@ target_include_directories( StaticAnalysis
                             PUBLIC "${MODULE_ROOT_DIR}/source/include" )
 
 # Uncomment the below line if the desired platform is 32-bit
-#set_target_properties( StaticAnalysis PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32" )
+set_target_properties( StaticAnalysis PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32" )
