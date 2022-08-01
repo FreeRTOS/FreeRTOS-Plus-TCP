@@ -122,7 +122,7 @@ static void prvProcessIPEventsAndTimers( void );
  * from the network hardware drivers and tasks that are using sockets.  It also
  * maintains a set of protocol timers.
  */
-static void prvIPTask( const void * pvParameters );
+static void prvIPTask( void * pvParameters );
 
 /*
  * Called when new data is available from the network interface.
@@ -229,7 +229,7 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
  *
  * @param[in] pvParameters: Not used.
  */
-static void prvIPTask( const void * pvParameters )
+static void prvIPTask( void * pvParameters )
 {
     /* Just to prevent compiler warnings about unused parameters. */
     ( void ) pvParameters;
