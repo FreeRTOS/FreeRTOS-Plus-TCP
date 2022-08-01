@@ -190,7 +190,6 @@ NetworkAddressingParameters_t xNetworkAddressing = { 0, 0, 0, 0, 0 };
 /* MISRA Ref 8.9.1 [File scoped variables] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
-/* coverity[single_use] */
 NetworkAddressingParameters_t xDefaultAddressing = { 0, 0, 0, 0, 0 };
 
 /** @brief Used to ensure network down events cannot be missed when they cannot be
@@ -230,6 +229,10 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
  *
  * @param[in] pvParameters: Not used.
  */
+
+/* MISRA Ref 8.13.1 [DHCP events and conversion to void] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-813 */
+/* coverity[misra_c_2012_rule_8_13_violation] */
 static void prvIPTask( void * pvParameters )
 {
     /* Just to prevent compiler warnings about unused parameters. */
@@ -391,7 +394,7 @@ static void prvProcessIPEventsAndTimers( void )
                     eDHCPState_t eState;
 
                     /* MISRA Ref 11.6.1 [DHCP events and conversion to void] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
                     /* coverity[misra_c_2012_rule_11_6_violation] */
                     uxState = ( uintptr_t ) xReceivedEvent.pvData;
                     /* coverity[misra_c_2012_rule_10_5_violation] */
@@ -709,6 +712,7 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
  * @return pdPASS if the task was successfully created and added to a ready
  * list, otherwise an error code defined in the file projdefs.h
  */
+/* coverity[single_use] */
 BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                             const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ],
                             const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
@@ -1614,7 +1618,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
         /* coverity[misra_c_2012_rule_14_3_violation] */
-        /* coverity[const] */
+        /* coverity[cond_const] */
         if( eReturn == eProcessBuffer )
         {
             /* Are there IP-options. */
@@ -1654,7 +1658,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
             /* coverity[misra_c_2012_rule_14_3_violation] */
-            /* coverity[cond_const] */
+            /* coverity[const] */
             if( eReturn != eReleaseBuffer )
             {
                 /* Add the IP and MAC addresses to the ARP table if they are not

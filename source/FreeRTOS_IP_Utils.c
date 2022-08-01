@@ -975,10 +975,10 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* coverity[value_overwrite] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
-    /* coverity[value_overwrite] */
     /* MISRA Ref 2.2.1 [Unions and dead code] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
     /* coverity[misra_c_2012_rule_2_2_violation] */
+    /* coverity[value_overwrite] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
     if( ( uxAlignBits & 1U ) != 0U )
