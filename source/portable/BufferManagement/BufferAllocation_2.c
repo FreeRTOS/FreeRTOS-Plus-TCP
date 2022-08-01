@@ -400,8 +400,11 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
     size_t xOriginalLength;
     uint8_t * pucBuffer;
     size_t xSizeBytes = xNewSizeBytes;
+    NetworkBufferDescriptor_t * pxNetworkBufferCopy = pxNetworkBuffer;
 
-    xOriginalLength = pxNetworkBuffer->xDataLength + ipBUFFER_PADDING;
+
+
+    xOriginalLength = pxNetworkBufferCopy->xDataLength + ipBUFFER_PADDING;
     xSizeBytes = xSizeBytes + ipBUFFER_PADDING;
 
     pucBuffer = pucGetNetworkBuffer( &( xSizeBytes ) );
@@ -409,21 +412,21 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
     if( pucBuffer == NULL )
     {
         /* In case the allocation fails, return NULL. */
-        pxNetworkBuffer = NULL;
+        pxNetworkBufferCopy = NULL;
     }
     else
     {
-        pxNetworkBuffer->xDataLength = xSizeBytes;
+        pxNetworkBufferCopy->xDataLength = xSizeBytes;
 
         if( xSizeBytes > xOriginalLength )
         {
             xSizeBytes = xOriginalLength;
         }
 
-        ( void ) memcpy( pucBuffer - ipBUFFER_PADDING, pxNetworkBuffer->pucEthernetBuffer - ipBUFFER_PADDING, xNewSizeBytes );
-        vReleaseNetworkBuffer( pxNetworkBuffer->pucEthernetBuffer );
-        pxNetworkBuffer->pucEthernetBuffer = pucBuffer;
+        ( void ) memcpy( pucBuffer - ipBUFFER_PADDING, pxNetworkBufferCopy->pucEthernetBuffer - ipBUFFER_PADDING, xNewSizeBytes );
+        vReleaseNetworkBuffer( pxNetworkBufferCopy->pucEthernetBuffer );
+        pxNetworkBufferCopy->pucEthernetBuffer = pucBuffer;
     }
 
-    return pxNetworkBuffer;
+    return pxNetworkBufferCopy;
 }
