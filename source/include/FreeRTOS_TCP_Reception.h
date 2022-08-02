@@ -32,6 +32,8 @@
 #endif
 /* *INDENT-ON* */
 
+#include "FreeRTOS_IP_Private.h"
+
 /*
  * Identify and deal with a single TCP header option, advancing the pointer to
  * the header. This function returns pdTRUE or pdFALSE depending on whether the

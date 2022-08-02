@@ -106,6 +106,7 @@ bwinscaling
 bytecount
 callbacklist
 calloc
+cambridge
 camen
 carriersense
 castingmacrofunctions
@@ -443,6 +444,7 @@ isnetworkup
 isnumber
 isp
 isr
+isrs
 iss
 itemvalue
 itimezone
@@ -492,6 +494,7 @@ lmaxlength
 lminlength
 lnetlength
 loffset
+longjmp
 loopback
 loopbackmode
 loptionname
@@ -900,6 +903,7 @@ pxevent
 pxeventbits
 pxfrom
 pxgatewayaddress
+pxgetnetworkbuffer
 pxgetnetworkbufferwithdescriptor
 pxhandleconnected
 pxhandlereceive
@@ -1113,6 +1117,7 @@ srtt
 ss
 starttx
 stdarg
+stderr
 stmicroelectronics
 strcasecmp
 strcmp

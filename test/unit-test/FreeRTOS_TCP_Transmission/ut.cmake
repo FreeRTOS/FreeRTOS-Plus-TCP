@@ -2,7 +2,7 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "FreeRTOS_TCP_Reception" )
+set( project_name "FreeRTOS_TCP_Transmission" )
 message( STATUS "${project_name}" )
 
 # =====================  Create your mock here  (edit)  ========================
@@ -10,22 +10,32 @@ set(mock_list "")
 
 # list the files to mock here
 list(APPEND mock_list
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Stream_Buffer.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_WIN.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_IP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Transmission.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_State_Handling.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Reception.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Utils.h"
         )
 
 set(mock_include_list "")
 # list the directories your mocks need
 list(APPEND mock_include_list
             .
-            ${TCP_INCLUDE_DIRS}
+            ${MODULE_ROOT_DIR}/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
@@ -51,7 +61,7 @@ set(real_include_directories "")
 # list the directories the module under test includes
 list(APPEND real_include_directories
             .
-            ${TCP_INCLUDE_DIRS}
+            ${MODULE_ROOT_DIR}/include
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
@@ -65,7 +75,7 @@ set(test_include_directories "")
 list(APPEND test_include_directories
             .
             ${CMOCK_DIR}/vendor/unity/src
-            ${TCP_INCLUDE_DIRS}
+            ${CMAKE_BINARY_DIR}/Annexed_TCP/
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources
         )
