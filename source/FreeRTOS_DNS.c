@@ -373,7 +373,7 @@
  * with two fields: type and class
  */
     #include "pack_struct_start.h"
-    struct xDNSTail
+        struct xDNSTail
     {
         uint16_t usType;  /**< Type of DNS message. */
         uint16_t usClass; /**< Class of DNS message. */
