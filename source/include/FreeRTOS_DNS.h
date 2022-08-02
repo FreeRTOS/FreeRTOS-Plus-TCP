@@ -32,6 +32,7 @@
 
 /* Application level configuration options. */
     #include "FreeRTOSIPConfig.h"
+    #include "FreeRTOSIPConfigDefaults.h"
     #include "IPTraceMacroDefaults.h"
 
 
@@ -306,11 +307,13 @@
  * It will be called "internally", by the IP-task.
  */
         void vDNSInitialise( void );
+
+        void vDNSCheckCallBack( void * pvSearchID );
+
     #endif /* ( ipconfigDNS_USE_CALLBACKS != 0 ) */
 
-
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 #endif /* FREERTOS_DNS_H */

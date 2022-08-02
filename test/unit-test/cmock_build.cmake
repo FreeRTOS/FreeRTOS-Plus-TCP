@@ -54,5 +54,7 @@ macro( add_cmock_targets )
                 ${CMOCK_INCLUDE_DIRS}
                 )
 
+        message( "CMOCK_INCLUDE_DIRS = ${CMOCK_INCLUDE_DIRS}" )
+
         target_link_libraries(cmock unity)
 endmacro()

@@ -29,6 +29,7 @@
 #include <FreeRTOS.h>
 #include <portmacro.h>
 #include <list.h>
+#include <FreeRTOS_IP_Private.h>
 
 #undef listSET_LIST_ITEM_OWNER
 void listSET_LIST_ITEM_OWNER( ListItem_t * pxListItem,
@@ -76,15 +77,6 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket );
 BaseType_t xIsCallingFromIPTask( void );
 
 void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * Lookup a TCP socket, using a multiple matching: both port numbers and
- * return IP address.
- */
-FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
-                                       UBaseType_t uxLocalPort,
-                                       uint32_t ulRemoteIP,
-                                       UBaseType_t uxRemotePort );
 
 /*
  * Parse the TCP option(s) received, if present.

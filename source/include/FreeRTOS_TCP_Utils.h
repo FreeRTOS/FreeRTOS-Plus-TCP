@@ -32,6 +32,8 @@
 #endif
 /* *INDENT-ON* */
 
+#include "FreeRTOS_IP_Private.h"
+
 #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
 /*
