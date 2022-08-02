@@ -615,19 +615,19 @@
             }
 
             #if ( ipconfigUSE_IPv6 != 0 )
-                if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) ->usFrameType == ipIPv6_FRAME_TYPE ) )
-                    {
-                        IPHeader_IPv6_t * pxIPHeader_IPv6;
+                if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
+                {
+                    IPHeader_IPv6_t * pxIPHeader_IPv6;
 
-                        pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-                        pxRemoteAddres = &( pxIPHeader_IPv6->xSourceAddress );
-                        ulRemoteIP = 0;
+                    pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                    pxRemoteAddres = &( pxIPHeader_IPv6->xSourceAddress );
+                    ulRemoteIP = 0;
 
-                        /* Find the destination socket, and if not found: return a socket listing to
-                         * the destination PORT. */
-                        pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( xLocalPort, ulRemoteIP, xRemotePort, pxRemoteAddres );
-                    }
-                    else
+                    /* Find the destination socket, and if not found: return a socket listing to
+                     * the destination PORT. */
+                    pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( xLocalPort, ulRemoteIP, xRemotePort, pxRemoteAddres );
+                }
+                else
             #endif /* ipconfigUSE_IPv6 */
             {
                 IPHeader_t * pxIPHeader;
