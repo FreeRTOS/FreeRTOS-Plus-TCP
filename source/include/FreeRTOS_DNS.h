@@ -24,16 +24,18 @@
  */
 
 #ifndef FREERTOS_DNS_H
-    #define FREERTOS_DNS_H
+#define FREERTOS_DNS_H
 
+/* *INDENT-OFF* */
     #ifdef __cplusplus
         extern "C" {
     #endif
+/* *INDENT-ON* */
 
 /* Application level configuration options. */
-    #include "FreeRTOSIPConfig.h"
-    #include "FreeRTOSIPConfigDefaults.h"
-    #include "IPTraceMacroDefaults.h"
+#include "FreeRTOSIPConfig.h"
+#include "FreeRTOSIPConfigDefaults.h"
+#include "IPTraceMacroDefaults.h"
 
 
 /* The Link-local Multicast Name Resolution (LLMNR)
@@ -43,174 +45,174 @@
  *
  * The target IP address will be 224.0.0.252
  */
-    #if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
-        #define ipLLMNR_IP_ADDR    0xE00000FCUL
-    #else
-        #define ipLLMNR_IP_ADDR    0xFC0000E0UL
-    #endif /* ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN */
+#if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
+    #define ipLLMNR_IP_ADDR    0xE00000FCUL
+#else
+    #define ipLLMNR_IP_ADDR    0xFC0000E0UL
+#endif /* ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN */
 
-    #define ipLLMNR_PORT           5355 /* Standard LLMNR port. */
+#define ipLLMNR_PORT           5355     /* Standard LLMNR port. */
 
 
-    #if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
-        #define ipMDNS_IP_ADDRESS    0xe00000fbU /* 224.0.0.251 */
-    #else
-        #define ipMDNS_IP_ADDRESS    0xfb0000e0U /* 224.0.0.251 */
-    #endif
-    #define ipMDNS_PORT              5353U       /* Standard mDNS port. */
+#if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
+    #define ipMDNS_IP_ADDRESS    0xe00000fbU     /* 224.0.0.251 */
+#else
+    #define ipMDNS_IP_ADDRESS    0xfb0000e0U     /* 224.0.0.251 */
+#endif
+#define ipMDNS_PORT              5353U           /* Standard mDNS port. */
 
-    #define ipDNS_PORT               53          /* Standard DNS port. */
-    #define ipDHCP_CLIENT            67
-    #define ipDHCP_SERVER            68
-    #define ipNBNS_PORT              137 /* NetBIOS Name Service. */
-    #define ipNBDGM_PORT             138 /* Datagram Service, not included. */
+#define ipDNS_PORT               53              /* Standard DNS port. */
+#define ipDHCP_CLIENT            67
+#define ipDHCP_SERVER            68
+#define ipNBNS_PORT              137     /* NetBIOS Name Service. */
+#define ipNBDGM_PORT             138     /* Datagram Service, not included. */
 
 /* Even when a DNS server is contacted through its IPv4 address,
  * it can look-up IPv6 addresses. */
 
-    #define dnsTYPE_A_HOST       0x0001U
-    #define dnsTYPE_AAAA_HOST    0x001CU
-    #define dnsTYPE_ANY_HOST     0x00FFU
+#define dnsTYPE_A_HOST       0x0001U
+#define dnsTYPE_AAAA_HOST    0x001CU
+#define dnsTYPE_ANY_HOST     0x00FFU
 
 /** @brief freertos_addrinfo is the equivalent of 'struct addrinfo'. */
-    struct freertos_addrinfo
+struct freertos_addrinfo
+{
+    BaseType_t ai_flags;                    /**< The field is included for completeness, but it is not used. */
+    BaseType_t ai_family;                   /**< The type of IP-address, either FREERTOS_AF_INET4 or FREERTOS_AF_INET6. */
+    BaseType_t ai_socktype;                 /**< n.a. */
+    BaseType_t ai_protocol;                 /**< n.a. */
+    socklen_t ai_addrlen;                   /**< The length of the address, either ipSIZE_OF_IPv4_ADDRESS or ipSIZE_OF_IPv6_ADDRESS. */
+    struct freertos_sockaddr * ai_addr;     /**< The IP-address. Can be mapped onto 'freertos_sockaddr6' in case of IPv6. */
+    char * ai_canonname;                    /**< The name of the host. */
+    struct freertos_addrinfo * ai_next;     /**< A pointer to the next find result, or NULL. */
+    struct
     {
-        BaseType_t ai_flags;                /**< The field is included for completeness, but it is not used. */
-        BaseType_t ai_family;               /**< The type of IP-address, either FREERTOS_AF_INET4 or FREERTOS_AF_INET6. */
-        BaseType_t ai_socktype;             /**< n.a. */
-        BaseType_t ai_protocol;             /**< n.a. */
-        socklen_t ai_addrlen;               /**< The length of the address, either ipSIZE_OF_IPv4_ADDRESS or ipSIZE_OF_IPv6_ADDRESS. */
-        struct freertos_sockaddr * ai_addr; /**< The IP-address. Can be mapped onto 'freertos_sockaddr6' in case of IPv6. */
-        char * ai_canonname;                /**< The name of the host. */
-        struct freertos_addrinfo * ai_next; /**< A pointer to the next find result, or NULL. */
-        struct
-        {
-            /* In order to avoid allocations, reserve space here for *ai_addr and *ai_canonname. */
-            #if ( ipconfigUSE_IPv6 != 0 )
-                struct freertos_sockaddr6 sockaddr6;
-            #else
-                struct freertos_sockaddr sockaddr4;
-            #endif
+        /* In order to avoid allocations, reserve space here for *ai_addr and *ai_canonname. */
+        #if ( ipconfigUSE_IPv6 != 0 )
+            struct freertos_sockaddr6 sockaddr6;
+        #else
+            struct freertos_sockaddr sockaddr4;
+        #endif
 
-            #if ( ipconfigUSE_DNS_CACHE != 0 )
-                char ucName[ ipconfigDNS_CACHE_NAME_LENGTH ];
-            #endif
-        }
-        xPrivateStorage; /**< In order to avoid extra calls to malloc, the necessary space is reserved 'statically'. */
-    };
+        #if ( ipconfigUSE_DNS_CACHE != 0 )
+            char ucName[ ipconfigDNS_CACHE_NAME_LENGTH ];
+        #endif
+    }
+    xPrivateStorage;     /**< In order to avoid extra calls to malloc, the necessary space is reserved 'statically'. */
+};
 
 /* Below #include just tells the compiler to pack the structure.
  * It is included in to make the code more readable */
-    #include "pack_struct_start.h"
-    struct xDNSMessage
-    {
-        uint16_t usIdentifier;    /**< Query identifier. Used to match up replies to outstanding queries. */
-        uint16_t usFlags;         /**< Flags. */
-        uint16_t usQuestions;     /**< Number of questions asked in this query. */
-        uint16_t usAnswers;       /**< Number of answers being provided in this query. */
-        uint16_t usAuthorityRRs;  /**< Authoritative name server resource records. */
-        uint16_t usAdditionalRRs; /**< Additional resource records.*/
-    }
-    #include "pack_struct_end.h"
-    typedef struct xDNSMessage DNSMessage_t;
+#include "pack_struct_start.h"
+struct xDNSMessage
+{
+    uint16_t usIdentifier;        /**< Query identifier. Used to match up replies to outstanding queries. */
+    uint16_t usFlags;             /**< Flags. */
+    uint16_t usQuestions;         /**< Number of questions asked in this query. */
+    uint16_t usAnswers;           /**< Number of answers being provided in this query. */
+    uint16_t usAuthorityRRs;      /**< Authoritative name server resource records. */
+    uint16_t usAdditionalRRs;     /**< Additional resource records.*/
+}
+#include "pack_struct_end.h"
+typedef struct xDNSMessage DNSMessage_t;
 
 /** @brief A struct with a set of variables that are shared among the helper functions
  *         for the function 'prvParseDNSReply()'. For internal use only.
  */
-    typedef struct xParseSet
-    {
-        DNSMessage_t * pxDNSMessageHeader; /**< A pointer to the UDP payload buffer where the DNS message is stored. */
-        uint16_t usQuestions;              /**< The number of DNS questions that were asked. */
-        uint8_t * pucUDPPayloadBuffer;     /**< A pointer to the original UDP load buffer. */
-        uint8_t * pucByte;                 /**< A pointer that is used while parsing. */
-        size_t uxBufferLength;             /**< The total number of bytes received in the UDP payload. */
-        size_t uxSourceBytesRemaining;     /**< As pucByte is incremented, 'uxSourceBytesRemaining' will be decremented. */
-        uint16_t usType;                   /**< The type of address, recognised are dnsTYPE_A_HOST ( Ipv4 ) and
+typedef struct xParseSet
+{
+    DNSMessage_t * pxDNSMessageHeader;     /**< A pointer to the UDP payload buffer where the DNS message is stored. */
+    uint16_t usQuestions;                  /**< The number of DNS questions that were asked. */
+    uint8_t * pucUDPPayloadBuffer;         /**< A pointer to the original UDP load buffer. */
+    uint8_t * pucByte;                     /**< A pointer that is used while parsing. */
+    size_t uxBufferLength;                 /**< The total number of bytes received in the UDP payload. */
+    size_t uxSourceBytesRemaining;         /**< As pucByte is incremented, 'uxSourceBytesRemaining' will be decremented. */
+    uint16_t usType;                       /**< The type of address, recognised are dnsTYPE_A_HOST ( Ipv4 ) and
                                             *   dnsTYPE_AAAA_HOST ( IPv6 ). */
-        uint32_t ulIPAddress;              /**< The IPv4 address found. In an IPv6 look-up, store a non-zero value when
+    uint32_t ulIPAddress;                  /**< The IPv4 address found. In an IPv6 look-up, store a non-zero value when
                                             *   an IPv6 address was found. */
-        size_t uxAddressLength;            /**< The size of the address, either ipSIZE_OF_IPv4_ADDRESS or
+    size_t uxAddressLength;                /**< The size of the address, either ipSIZE_OF_IPv4_ADDRESS or
                                             *   ipSIZE_OF_IPv6_ADDRESS */
-        uint16_t usNumARecordsStored;      /**< The number of A-records stored during a look-up. */
-        uint16_t usPortNumber;             /**< The port number that belong to the protocol ( DNS, MDNS etc ). */
-        #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 )
-            uint16_t usClass;              /**< Only the value 'dnsCLASS_IN' is recognised, which stands for "Internet". */
-            char * pcRequestedName;        /**< A pointer to the full name of the host being looked up. */
-        #endif
-        #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 ) || ( ipconfigUSE_MDNS == 1 )
-            BaseType_t xDoStore;                          /**< Becomes true when a DNS reply was requested by this device,
+    uint16_t usNumARecordsStored;          /**< The number of A-records stored during a look-up. */
+    uint16_t usPortNumber;                 /**< The port number that belong to the protocol ( DNS, MDNS etc ). */
+    #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 )
+        uint16_t usClass;                  /**< Only the value 'dnsCLASS_IN' is recognised, which stands for "Internet". */
+        char * pcRequestedName;            /**< A pointer to the full name of the host being looked up. */
+    #endif
+    #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 ) || ( ipconfigUSE_MDNS == 1 )
+        BaseType_t xDoStore;                              /**< Becomes true when a DNS reply was requested by this device,
                                                            *   i.e. it has a matching request ID. */
-            char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ]; /**< A copy of the name that is mentioned in the questions. */
-        #endif
-        struct freertos_addrinfo * pxLastAddress;         /**< This variable is used while creating a linked-list of IP-addresses. */
-        struct freertos_addrinfo ** ppxLastAddress;       /**< This variable is also used while creating a linked-list of IP-addresses. */
-    } ParseSet_t;
+        char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];     /**< A copy of the name that is mentioned in the questions. */
+    #endif
+    struct freertos_addrinfo * pxLastAddress;             /**< This variable is used while creating a linked-list of IP-addresses. */
+    struct freertos_addrinfo ** ppxLastAddress;           /**< This variable is also used while creating a linked-list of IP-addresses. */
+} ParseSet_t;
 
 /** @brief Show the first IP-address within the linked struct 'pxAddress'. */
-    extern void show_single_addressinfo( const char * pcFormat,
-                                         const struct freertos_addrinfo * pxAddress );
-    extern void show_addressinfo( const struct freertos_addrinfo * pxAddress );
+extern void show_single_addressinfo( const char * pcFormat,
+                                     const struct freertos_addrinfo * pxAddress );
+extern void show_addressinfo( const struct freertos_addrinfo * pxAddress );
 
 /*
  * The following function should be provided by the user and return true if it
  * matches the domain name.
  */
-    /* Even though the function is defined in main.c, the rule is violated. */
-    /* misra_c_2012_rule_8_6_violation */
-    extern BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
-                                                const char * pcName );
+/* Even though the function is defined in main.c, the rule is violated. */
+/* misra_c_2012_rule_8_6_violation */
+extern BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
+                                            const char * pcName );
 
 /*
  * LLMNR is very similar to DNS, so is handled by the DNS routines.
  */
-    #if ( ipconfigUSE_DNS == 1 ) && ( ( ipconfigDNS_USE_CALLBACKS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) )
-        uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
-    #endif
+#if ( ipconfigUSE_DNS == 1 ) && ( ( ipconfigDNS_USE_CALLBACKS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) )
+    uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+#endif
 
-    #if ( ipconfigUSE_LLMNR == 1 )
-        /* The LLMNR MAC address is 01:00:5e:00:00:fc */
-        extern const MACAddress_t xLLMNR_MacAdress;
-    #endif /* ipconfigUSE_LLMNR */
+#if ( ipconfigUSE_LLMNR == 1 )
+    /* The LLMNR MAC address is 01:00:5e:00:00:fc */
+    extern const MACAddress_t xLLMNR_MacAdress;
+#endif /* ipconfigUSE_LLMNR */
 
-    #if ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 )
 
 /* The LLMNR IPv6 address is ff02::1:3 */
-        extern const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6;
+    extern const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6;
 
 /* The LLMNR IPv6 MAC address is 33:33:00:01:00:03 */
-        extern const MACAddress_t xLLMNR_MacAdressIPv6;
-    #endif /* ipconfigUSE_LLMNR */
+    extern const MACAddress_t xLLMNR_MacAdressIPv6;
+#endif /* ipconfigUSE_LLMNR */
 
-    #if ( ipconfigUSE_MDNS == 1 )
-        /* The MDNS MAC address is 01:00:5e:00:00:fc */
-        extern const MACAddress_t xMDNS_MacAdress;
-    #endif /* ipconfigUSE_MDNS */
+#if ( ipconfigUSE_MDNS == 1 )
+    /* The MDNS MAC address is 01:00:5e:00:00:fc */
+    extern const MACAddress_t xMDNS_MacAdress;
+#endif /* ipconfigUSE_MDNS */
 
-    #if ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 )
 
 /* The MDNS IPv6 address is ff02::1:3 */
-        extern const IPv6_Address_t ipMDNS_IP_ADDR_IPv6;
+    extern const IPv6_Address_t ipMDNS_IP_ADDR_IPv6;
 
 /* The MDNS IPv6 MAC address is 33:33:00:01:00:03 */
-        extern const MACAddress_t xMDNS_MACAdressIPv6;
-    #endif /* ipconfigUSE_MDNS */
+    extern const MACAddress_t xMDNS_MACAdressIPv6;
+#endif /* ipconfigUSE_MDNS */
 
 /** @brief While doing integration tests, it is necessary to influence the choice
  * between DNS/IPv4 and DNS/IPv4.  Depending on this, a DNS server will be
  * addressed via IPv4 or IPv6 messages. */
-    typedef enum xIPPreference
-    {
-        xPreferenceNone,
-        xPreferenceIPv4,
-        #if ( ipconfigUSE_IPv6 != 0 )
-            xPreferenceIPv6,
-        #endif
-    } IPPreference_t;
+typedef enum xIPPreference
+{
+    xPreferenceNone,
+    xPreferenceIPv4,
+    #if ( ipconfigUSE_IPv6 != 0 )
+        xPreferenceIPv6,
+    #endif
+} IPPreference_t;
 
 /** @brief This variable determines he choice of DNS server, either IPv4 or IPv6. */
-    extern IPPreference_t xDNS_IP_Preference;
+extern IPPreference_t xDNS_IP_Preference;
 
-    #if ( ipconfigUSE_NBNS != 0 )
+#if ( ipconfigUSE_NBNS != 0 )
 
 /*
  * Inspect a NetBIOS Names-Service message.  If the name matches with ours
@@ -218,70 +220,70 @@
  * Note that LLMNR is a better protocol for name services on a LAN as it is
  * less polluted
  */
-        uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer );
+    uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
-    #endif /* ipconfigUSE_NBNS */
+#endif /* ipconfigUSE_NBNS */
 
-    #if ( ipconfigUSE_DNS_CACHE != 0 )
+#if ( ipconfigUSE_DNS_CACHE != 0 )
 
 /* Look for the indicated host name in the DNS cache. Returns the IPv4
  * address if present, or 0x0 otherwise. */
-        uint32_t FreeRTOS_dnslookup( const char * pcHostName );
+    uint32_t FreeRTOS_dnslookup( const char * pcHostName );
 
-        #if ( ipconfigUSE_IPv6 != 0 )
-            /* FreeRTOS_dnslookup6() returns pdTRUE when a host has been found. */
-            uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
-                                          IPv6_Address_t * pxAddress_IPv6 );
-        #endif
+    #if ( ipconfigUSE_IPv6 != 0 )
+        /* FreeRTOS_dnslookup6() returns pdTRUE when a host has been found. */
+        uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
+                                      IPv6_Address_t * pxAddress_IPv6 );
+    #endif
 
 /* Remove all entries from the DNS cache. */
-        void FreeRTOS_dnsclear( void );
+    void FreeRTOS_dnsclear( void );
 
-    #endif /* ipconfigUSE_DNS_CACHE != 0 */
+#endif /* ipconfigUSE_DNS_CACHE != 0 */
 
-    #if ( ipconfigDNS_USE_CALLBACKS != 0 )
+#if ( ipconfigDNS_USE_CALLBACKS != 0 )
 
 /*
  * Users may define this type of function as a callback.
  * It will be called when a DNS reply is received or when a timeout has been reached.
  */
-        #if ( ipconfigUSE_IPv6 != 0 )
-            typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
-                                            void * /* pvSearchID */,
-                                            struct freertos_addrinfo * /* pxAddressInfo */ );
-        #else
-            typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
-                                            void * /* pvSearchID */,
-                                            uint32_t /* ulIPAddress */ );
-        #endif
+    #if ( ipconfigUSE_IPv6 != 0 )
+        typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
+                                        void * /* pvSearchID */,
+                                        struct freertos_addrinfo * /* pxAddressInfo */ );
+    #else
+        typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
+                                        void * /* pvSearchID */,
+                                        uint32_t /* ulIPAddress */ );
+    #endif
 
 /*
  * Asynchronous version of gethostbyname()
  * xTimeout is in units of ms.
  */
-        uint32_t FreeRTOS_gethostbyname_a( const char * pcHostName,
-                                           FOnDNSEvent pCallback,
-                                           void * pvSearchID,
-                                           TickType_t uxTimeout );
-        void FreeRTOS_gethostbyname_cancel( void * pvSearchID );
+    uint32_t FreeRTOS_gethostbyname_a( const char * pcHostName,
+                                       FOnDNSEvent pCallback,
+                                       void * pvSearchID,
+                                       TickType_t uxTimeout );
+    void FreeRTOS_gethostbyname_cancel( void * pvSearchID );
 
 /* The asynchronous versions of FreeRTOS_getaddrinfo(). */
-        BaseType_t FreeRTOS_getaddrinfo_a( const char * pcName,                      /* The name of the node or device */
-                                           const char * pcService,                   /* Ignored for now. */
-                                           const struct freertos_addrinfo * pxHints, /* If not NULL: preferences. */
-                                           struct freertos_addrinfo ** ppxResult,    /* An allocated struct, containing the results. */
-                                           FOnDNSEvent pCallback,
-                                           void * pvSearchID,
-                                           TickType_t uxTimeout );
+    BaseType_t FreeRTOS_getaddrinfo_a( const char * pcName,                          /* The name of the node or device */
+                                       const char * pcService,                       /* Ignored for now. */
+                                       const struct freertos_addrinfo * pxHints,     /* If not NULL: preferences. */
+                                       struct freertos_addrinfo ** ppxResult,        /* An allocated struct, containing the results. */
+                                       FOnDNSEvent pCallback,
+                                       void * pvSearchID,
+                                       TickType_t uxTimeout );
 
-    #endif /* if ( ipconfigDNS_USE_CALLBACKS != 0 ) */
+#endif /* if ( ipconfigDNS_USE_CALLBACKS != 0 ) */
 
 /*
  * Lookup a IPv4 node in a blocking-way.
  * It returns a 32-bit IP-address, 0 when not found.
  * gethostbyname() is already deprecated.
  */
-    uint32_t FreeRTOS_gethostbyname( const char * pcHostName );
+uint32_t FreeRTOS_gethostbyname( const char * pcHostName );
 
 /*
  * FreeRTOS_getaddrinfo() replaces FreeRTOS_gethostbyname().
@@ -289,31 +291,33 @@
  * in case pxHints->ai_family equals FREERTOS_AF_INET6.
  * Otherwise, or when pxHints is NULL, only IPv4 addresses will be returned.
  */
-    BaseType_t FreeRTOS_getaddrinfo( const char * pcName,                      /* The name of the node or device */
-                                     const char * pcService,                   /* Ignored for now. */
-                                     const struct freertos_addrinfo * pxHints, /* If not NULL: preferences. */
-                                     struct freertos_addrinfo ** ppxResult );  /* An allocated struct, containing the results. */
+BaseType_t FreeRTOS_getaddrinfo( const char * pcName,                          /* The name of the node or device */
+                                 const char * pcService,                       /* Ignored for now. */
+                                 const struct freertos_addrinfo * pxHints,     /* If not NULL: preferences. */
+                                 struct freertos_addrinfo ** ppxResult );      /* An allocated struct, containing the results. */
 
 /* When FreeRTOS_getaddrinfo() is successful, ppxResult will point to an
  * allocated structure.  This pointer must be released by the user by calling
  * FreeRTOS_freeaddrinfo().
  */
-    void FreeRTOS_freeaddrinfo( struct freertos_addrinfo * pxInfo );
+void FreeRTOS_freeaddrinfo( struct freertos_addrinfo * pxInfo );
 
-    #if ( ipconfigDNS_USE_CALLBACKS != 0 )
+#if ( ipconfigDNS_USE_CALLBACKS != 0 )
 
 /*
  * The function vDNSInitialise() initialises the DNS module.
  * It will be called "internally", by the IP-task.
  */
-        void vDNSInitialise( void );
+    void vDNSInitialise( void );
 
-        void vDNSCheckCallBack( void * pvSearchID );
+    void vDNSCheckCallBack( void * pvSearchID );
 
-    #endif /* ( ipconfigDNS_USE_CALLBACKS != 0 ) */
+#endif /* ( ipconfigDNS_USE_CALLBACKS != 0 ) */
 
-    #ifdef __cplusplus
-}         /* extern "C" */
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 #endif /* FREERTOS_DNS_H */
