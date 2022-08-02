@@ -188,26 +188,26 @@ struct xNetworkInterface;
  *         driver, or free (not in use). */
 typedef struct xNETWORK_BUFFER
 {
-    ListItem_t xBufferListItem;                    /**< Used to reference the buffer form the free buffer list or a socket. */
-    uint32_t ulIPAddress;                          /**< Source or destination IP address, depending on usage scenario. */
-    uint8_t * pucEthernetBuffer;                   /**< Pointer to the start of the Ethernet frame. */
-    size_t xDataLength;                            /**< Starts by holding the total Ethernet frame length, then the UDP/TCP payload length. */
-    struct xNetworkInterface * pxInterface;        /**< The interface on which the packet was received. */
-    struct xNetworkEndPoint * pxEndPoint;          /**< The end-point through which this packet shall be sent. */
-    uint16_t usPort;                               /**< Source or destination port, depending on usage scenario. */
-    uint16_t usBoundPort;                          /**< The port to which a transmitting socket is bound. */
+    ListItem_t xBufferListItem;                /**< Used to reference the buffer form the free buffer list or a socket. */
+    uint32_t ulIPAddress;                      /**< Source or destination IP address, depending on usage scenario. */
+    uint8_t * pucEthernetBuffer;               /**< Pointer to the start of the Ethernet frame. */
+    size_t xDataLength;                        /**< Starts by holding the total Ethernet frame length, then the UDP/TCP payload length. */
+    struct xNetworkInterface * pxInterface;    /**< The interface on which the packet was received. */
+    struct xNetworkEndPoint * pxEndPoint;      /**< The end-point through which this packet shall be sent. */
+    uint16_t usPort;                           /**< Source or destination port, depending on usage scenario. */
+    uint16_t usBoundPort;                      /**< The port to which a transmitting socket is bound. */
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-        struct xNETWORK_BUFFER * pxNextBuffer;     /**< Possible optimisation for expert users - requires network driver support. */
+        struct xNETWORK_BUFFER * pxNextBuffer; /**< Possible optimisation for expert users - requires network driver support. */
     #endif
     #if ( ipconfigUSE_IPv6 != 0 )
-        IPv6_Address_t xIPv6Address;     /**< The IP-address of the unit which sent this packet. */
+        IPv6_Address_t xIPv6Address; /**< The IP-address of the unit which sent this packet. */
     #endif
 } NetworkBufferDescriptor_t;
 
 #include "pack_struct_start.h"
 struct xMAC_ADDRESS
 {
-    uint8_t ucBytes[ ipMAC_ADDRESS_LENGTH_BYTES ];     /**< Size byte that form the MAC-address. */
+    uint8_t ucBytes[ ipMAC_ADDRESS_LENGTH_BYTES ]; /**< Size byte that form the MAC-address. */
 }
 #include "pack_struct_end.h"
 
@@ -215,17 +215,17 @@ typedef struct xMAC_ADDRESS MACAddress_t;
 
 typedef enum eNETWORK_EVENTS
 {
-    eNetworkUp,      /**< The network is configured. */
-    eNetworkDown     /**< The network connection has been lost. */
+    eNetworkUp,  /**< The network is configured. */
+    eNetworkDown /**< The network connection has been lost. */
 } eIPCallbackEvent_t;
 
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 /** @brief Ping status: used as a parameter for the call-back function vApplicationPingReplyHook(). */
     typedef enum ePING_REPLY_STATUS
     {
-        eSuccess = 0,         /**< A correct reply has been received for an outgoing ping. */
-        eInvalidChecksum,     /**< A reply was received for an outgoing ping but the checksum of the reply was incorrect. */
-        eInvalidData          /**< A reply was received to an outgoing ping but the payload of the reply was not correct. */
+        eSuccess = 0,     /**< A correct reply has been received for an outgoing ping. */
+        eInvalidChecksum, /**< A reply was received for an outgoing ping but the checksum of the reply was incorrect. */
+        eInvalidData      /**< A reply was received to an outgoing ping but the payload of the reply was not correct. */
     } ePingReplyStatus_t;
 #endif /* ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
 
@@ -233,11 +233,11 @@ typedef enum eNETWORK_EVENTS
 typedef struct xIP_TIMER
 {
     uint32_t
-        bActive : 1,                /**< This timer is running and must be processed. */
-        bExpired : 1;               /**< Timer has expired and a task must be processed. */
-    TimeOut_t xTimeOut;             /**< Keeps track of the FreeRTOS clock-tick time. */
-    TickType_t ulRemainingTime;     /**< Time remaining until it will expire. */
-    TickType_t ulReloadTime;        /**< As soon as the timer expires, it will re-start automatically using ulReloadTime clock-ticks. */
+        bActive : 1,            /**< This timer is running and must be processed. */
+        bExpired : 1;           /**< Timer has expired and a task must be processed. */
+    TimeOut_t xTimeOut;         /**< Keeps track of the FreeRTOS clock-tick time. */
+    TickType_t ulRemainingTime; /**< Time remaining until it will expire. */
+    TickType_t ulReloadTime;    /**< As soon as the timer expires, it will re-start automatically using ulReloadTime clock-ticks. */
 } IPTimer_t;
 
 /* Endian related definitions. */

@@ -56,7 +56,7 @@
 #endif
 
 #ifndef INC_TASK_H
-    #ifndef TASK_H     /* For compatibility with older FreeRTOS versions. */
+    #ifndef TASK_H /* For compatibility with older FreeRTOS versions. */
         #error The FreeRTOS header file task.h must be included before FreeRTOS_Sockets.h.
     #endif
 #endif
@@ -164,20 +164,20 @@
 typedef struct xWIN_PROPS
 {
     /* Properties of the Tx buffer and Tx window */
-    int32_t lTxBufSize;     /**< The size of the transmit stream buffer ( Unit: bytes ). */
-    int32_t lTxWinSize;     /**< The transmit TCP window size ( units: MSS ). */
+    int32_t lTxBufSize; /**< The size of the transmit stream buffer ( Unit: bytes ). */
+    int32_t lTxWinSize; /**< The transmit TCP window size ( units: MSS ). */
 
     /* Properties of the Rx buffer and Rx window */
-    int32_t lRxBufSize;     /**< The size of the reception stream buffer ( Unit: bytes ). */
-    int32_t lRxWinSize;     /**< The reception TCP window size ( units: MSS ). */
+    int32_t lRxBufSize; /**< The size of the reception stream buffer ( Unit: bytes ). */
+    int32_t lRxWinSize; /**< The reception TCP window size ( units: MSS ). */
 } WinProperties_t;
 
 /** @brief A helper struct to adjust the TCP low- and high-water parameters. */
 typedef struct xLOW_HIGH_WATER
 {
     /* Structure to pass for the 'FREERTOS_SO_SET_LOW_HIGH_WATER' option */
-    size_t uxLittleSpace;     /**< Send a STOP when buffer space drops below X bytes */
-    size_t uxEnoughSpace;     /**< Send a GO when buffer space grows above X bytes */
+    size_t uxLittleSpace; /**< Send a STOP when buffer space drops below X bytes */
+    size_t uxEnoughSpace; /**< Send a GO when buffer space grows above X bytes */
 } LowHighWater_t;
 
 /* For compatibility with the expected Berkeley sockets naming. */
@@ -187,12 +187,12 @@ typedef struct xLOW_HIGH_WATER
  * Berkeley style sockaddr structure. */
 struct freertos_sockaddr
 {
-    uint8_t sin_len;                                      /**< Ignored, still present for backward compatibility. */
-    uint8_t sin_family;                                   /**< Set to FREERTOS_AF_INET. */
-    uint16_t sin_port;                                    /**< The port number in network-endian format. */
-    uint32_t sin_addr;                                    /**< The IP-address in network-endian format. */
+    uint8_t sin_len;                                  /**< Ignored, still present for backward compatibility. */
+    uint8_t sin_family;                               /**< Set to FREERTOS_AF_INET. */
+    uint16_t sin_port;                                /**< The port number in network-endian format. */
+    uint32_t sin_addr;                                /**< The IP-address in network-endian format. */
     #if ( ipconfigUSE_IPv6 != 0 )
-        uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ];     /**< Make sure that the IPv4 and IPv6 socket addresses have an equal size. */
+        uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ]; /**< Make sure that the IPv4 and IPv6 socket addresses have an equal size. */
     #endif
 };
 
@@ -202,11 +202,11 @@ typedef struct freertos_sockaddr sockaddr4_t;
 #if ( ipconfigUSE_IPv6 != 0 )
     struct freertos_sockaddr6
     {
-        uint8_t sin_len;               /**< Ignored, still present for backward compatibility. */
-        uint8_t sin_family;            /**< Set to FREERTOS_AF_INET6. */
-        uint16_t sin_port;             /**< The port number in network-endian format. */
-        uint32_t sin_flowinfo;         /**< IPv6 flow information, not used in this library. */
-        IPv6_Address_t sin_addrv6;     /**< The IPv6 address. */
+        uint8_t sin_len;           /**< Ignored, still present for backward compatibility. */
+        uint8_t sin_family;        /**< Set to FREERTOS_AF_INET6. */
+        uint16_t sin_port;         /**< The port number in network-endian format. */
+        uint32_t sin_flowinfo;     /**< IPv6 flow information, not used in this library. */
+        IPv6_Address_t sin_addrv6; /**< The IPv6 address. */
     };
     /** @brief Introduce a short name to make casting easier. */
     typedef struct freertos_sockaddr6 sockaddr6_t;
@@ -442,11 +442,11 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
 
     typedef union xTCP_UDP_HANDLER
     {
-        FOnConnected_t pxOnTCPConnected;     /* FREERTOS_SO_TCP_CONN_HANDLER */
-        FOnTCPReceive_t pxOnTCPReceive;      /* FREERTOS_SO_TCP_RECV_HANDLER */
-        FOnTCPSent_t pxOnTCPSent;            /* FREERTOS_SO_TCP_SENT_HANDLER */
-        FOnUDPReceive_t pxOnUDPReceive;      /* FREERTOS_SO_UDP_RECV_HANDLER */
-        FOnUDPSent_t pxOnUDPSent;            /* FREERTOS_SO_UDP_SENT_HANDLER */
+        FOnConnected_t pxOnTCPConnected; /* FREERTOS_SO_TCP_CONN_HANDLER */
+        FOnTCPReceive_t pxOnTCPReceive;  /* FREERTOS_SO_TCP_RECV_HANDLER */
+        FOnTCPSent_t pxOnTCPSent;        /* FREERTOS_SO_TCP_SENT_HANDLER */
+        FOnUDPReceive_t pxOnUDPReceive;  /* FREERTOS_SO_UDP_RECV_HANDLER */
+        FOnUDPSent_t pxOnUDPSent;        /* FREERTOS_SO_UDP_SENT_HANDLER */
     } F_TCP_UDP_Handler_t;
 #endif /* ( ipconfigUSE_CALLBACKS != 0 ) */
 
