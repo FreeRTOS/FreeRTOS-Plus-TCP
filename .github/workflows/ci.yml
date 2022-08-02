@@ -73,7 +73,7 @@ jobs:
       - name: Run Uncrustify
         run: |
           uncrustify --version
-          find . -iname "*.[hc]" -not -path '*WinPCap*' -exec uncrustify --check -c tools/uncrustify.cfg {} +
+          find . -iname "*.[hc]" -not -path '*WinPCap*' -not -path '*catch_assert.h*' -exec uncrustify --check -c tools/uncrustify.cfg {} +
       - name: Check For Trailing Whitespace
         run: |
           set +e
