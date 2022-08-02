@@ -173,9 +173,13 @@
         { /* Element found */
             if( xLookUp == pdTRUE )
             {
-                prvGetCacheIPEntry( uxIndex,
-                                    pulIP,
-                                    ulCurrentTimeSeconds );
+                /* This statement can only be reached when xResult is true; which
+                 * implies that the entry is present and a 'get' operation will result
+                 * in success. Therefore, it is safe to ignore the return value of the
+                 * below function. */
+                ( void ) prvGetCacheIPEntry( uxIndex,
+                                             pulIP,
+                                             ulCurrentTimeSeconds );
             }
             else
             {
