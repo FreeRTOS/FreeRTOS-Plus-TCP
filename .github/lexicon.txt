@@ -913,6 +913,7 @@ pxheadsegment
 pxhigherprioritytaskwoken
 pxhints
 pxicmppacket
+pxindex
 pxinfo
 pxinterface
 pxip
@@ -949,6 +950,7 @@ pxparentsocket
 pxpeersocket
 pxphyobject
 pxprefix
+pxprevious
 pxprops
 pxprotocolheaders
 pxprotpack
@@ -1498,6 +1500,7 @@ uxidsize
 uxindex
 uxipheaderlength
 uxipheadersize
+uxipheadersizepacket
 uxipheadersizesocket
 uxlast
 uxleft
