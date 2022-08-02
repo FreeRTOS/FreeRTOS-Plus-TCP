@@ -1,4 +1,4 @@
-# Static code for FreeRTOS-Plus-TCP library using Coverity
+# Static code analysis for FreeRTOS-Plus-TCP library
 This directory is made for the purpose of statically testing the MISRA c-2012 compliance of FreeRTOS+TCP using [Synopsys Coverity](https://www.synopsys.com/software-integrity/security-testing/static-analysis-sast.html) static analysis tool. To that end, this directory provides a [CMake](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/test/Coverity/CMakeLists.txt) file and [configuration files](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/main/test/Coverity/ConfigFiles) required to build an application for the tool to analyze.
 
 For details regarding the suppressed violations in the report (which can be generated using the following instructions), please see the [MISRA.md](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md) file.
