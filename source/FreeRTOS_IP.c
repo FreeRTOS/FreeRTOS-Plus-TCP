@@ -5019,8 +5019,6 @@ uint32_t FreeRTOS_round_up( uint32_t a,
     return d * ( ( a + d - 1U ) / d );
 }
 /*-----------------------------------------------------------*/
-/* Mark the end of this group of functions. */
-/** @} */
 
 /**
  * @brief Convert character array (of size 4) to equivalent 32-bit value.
