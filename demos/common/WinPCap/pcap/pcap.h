@@ -196,15 +196,15 @@
  */
         struct pcap_stat_ex
         {
-            u_long rx_packets;    /* total packets received       */
-            u_long tx_packets;    /* total packets transmitted    */
-            u_long rx_bytes;      /* total bytes received         */
-            u_long tx_bytes;      /* total bytes transmitted      */
-            u_long rx_errors;     /* bad packets received         */
-            u_long tx_errors;     /* packet transmit problems     */
-            u_long rx_dropped;    /* no space in Rx buffers       */
-            u_long tx_dropped;    /* no space available for Tx    */
-            u_long multicast;     /* multicast packets received   */
+            u_long rx_packets; /* total packets received       */
+            u_long tx_packets; /* total packets transmitted    */
+            u_long rx_bytes;   /* total bytes received         */
+            u_long tx_bytes;   /* total bytes transmitted      */
+            u_long rx_errors;  /* bad packets received         */
+            u_long tx_errors;  /* packet transmit problems     */
+            u_long rx_dropped; /* no space in Rx buffers       */
+            u_long tx_dropped; /* no space available for Tx    */
+            u_long multicast;  /* multicast packets received   */
             u_long collisions;
 
             /* detailed rx_errors: */
@@ -236,7 +236,7 @@
         bpf_u_int32 flags;  /* PCAP_IF_ interface flags */
     };
 
-    #define PCAP_IF_LOOPBACK    0x00000001/* interface is loopback */
+    #define PCAP_IF_LOOPBACK    0x00000001 /* interface is loopback */
 
 /*
  * Representation of an interface address.
