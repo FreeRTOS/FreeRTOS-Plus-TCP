@@ -615,8 +615,7 @@
             }
 
             #if ( ipconfigUSE_IPv6 != 0 )
-                if( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )
-                    ->usFrameType == ipIPv6_FRAME_TYPE )
+                if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) ->usFrameType == ipIPv6_FRAME_TYPE ) )
                     {
                         IPHeader_IPv6_t * pxIPHeader_IPv6;
 
