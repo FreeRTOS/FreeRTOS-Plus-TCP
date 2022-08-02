@@ -229,7 +229,7 @@ include( unit_test_build.cmake )
 # Add a target for running coverage on tests.
 add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
-    DEPENDS cmock unity FreeRTOS_Unit_test
+    DEPENDS cmock unity FreeRTOS_TCP_Unit_test
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
