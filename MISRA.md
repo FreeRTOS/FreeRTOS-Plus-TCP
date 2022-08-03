@@ -150,9 +150,13 @@ _Ref 17.2.1_
 #### Rule 20.5
 _Ref 20.5.1_
 
-- MISRA C-2012 Rule 20.5 warns against the use of #undef
-        However, in this case, it must be used to make sure some macros are
-        defined to a certain value
+- MISRA C-2012 Rule 20.5 warns against the use of #undef.
+   FreeRTOS-Plus-TCP allows its users to set some configuration macros
+   to modify the behavior/performance of the library according to their
+   needs. However, the macros values must be within certain bounds.
+   To achieve that, if the macro values lie outside of the bounds, they
+   are undefined using `#undef` before being redefined to a proper
+   value.
 
 #### Rule 20.10
 _Ref 20.10.1_
