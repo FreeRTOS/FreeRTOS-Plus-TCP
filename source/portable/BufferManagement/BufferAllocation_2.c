@@ -395,19 +395,19 @@ UBaseType_t uxGetMinimumFreeNetworkBuffers( void )
 /*-----------------------------------------------------------*/
 
 NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                                 size_t xNewSizeBytes )
+                                                                 size_t uxNewSizeBytes )
 {
     size_t xOriginalLength;
     uint8_t * pucBuffer;
-    size_t uxSizeBytes = xNewSizeBytes;
+    size_t uxSizeBytes = uxNewSizeBytes;
     NetworkBufferDescriptor_t * pxNetworkBufferCopy = pxNetworkBuffer;
 
 
 
     xOriginalLength = pxNetworkBufferCopy->xDataLength + ipBUFFER_PADDING;
-    xSizeBytes = xSizeBytes + ipBUFFER_PADDING;
+    uxSizeBytes = uxSizeBytes + ipBUFFER_PADDING;
 
-    pucBuffer = pucGetNetworkBuffer( &( xSizeBytes ) );
+    pucBuffer = pucGetNetworkBuffer( &( uxSizeBytes ) );
 
     if( pucBuffer == NULL )
     {
@@ -416,11 +416,11 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
     }
     else
     {
-        pxNetworkBufferCopy->xDataLength = xSizeBytes;
+        pxNetworkBufferCopy->xDataLength = uxSizeBytes;
 
-        if( xSizeBytes > xOriginalLength )
+        if( uxSizeBytes > xOriginalLength )
         {
-            xSizeBytes = xOriginalLength;
+            uxSizeBytes = xOriginalLength;
         }
 
         ( void ) memcpy( pucBuffer - ipBUFFER_PADDING, pxNetworkBufferCopy->pucEthernetBuffer - ipBUFFER_PADDING, xNewSizeBytes );
