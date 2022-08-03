@@ -52,9 +52,13 @@ _Ref 10.5.1_
 #### Rule 11.1
 _Ref 11.1.1_
 
-- MISRA C-2012 Rule 11.1 Converting from a void pointer to a function pointer,
-    it is part of the API and the user is responsible of providing that pointer
-    and their responsibility for that pointer to be valid.
+- MISRA C-2012 Rule 11.1 Converting from a void pointer to a function pointer.
+   The `FreeRTOS_setsockopt` API allows users to configure sockets by setting
+   various options. In order to do so, the function must accept one parameter
+   which, based on the option value, can be casted to the corresponding socket
+   field. To that end, that parameter is of `void *` type to accommodate all values.
+   The caller of the API is responsible for providing correct function pointer to the
+   API. Thus, this violation can be safely suppressed.
 
 #### Rule 11.3
 _Ref 11.3.1_
