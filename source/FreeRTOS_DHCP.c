@@ -174,7 +174,6 @@
     #include "pack_struct_end.h"
     typedef struct xDHCPMessage_IPv4 DHCPMessage_IPv4_t;
 
-
 /** @brief The UDP socket used for all incoming and outgoing DHCP traffic. */
     _static Socket_t xDHCPv4Socket;
 
