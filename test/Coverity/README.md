@@ -49,9 +49,9 @@ Go to the root directory of the FreeRTOS-Plus-TCP repo and run the following com
   cd cov-out/
   cov-analyze --dir . --coding-standard-config ../coverity_misra.config --tu-pattern "file('.*/FreeRTOS-Plus-TCP/source/.*')"
   ~~~
-6. (Optional) Format the errors in HTML format so that it is more readable
+6. Format the errors in HTML format so that it is more readable while removing the FreeRTOS-Kernel directory from the report
   ~~~
-  cov-format-errors --dir . --html-output html-output
+  cov-format-errors --dir . --exclude-files '(.*/FreeRTOS-Kernel/.*)' --html-output html-output
   ~~~
 
 You should now have the HTML formatted violations list (ideally not reporting any violations) in a directory named `html-output`.
