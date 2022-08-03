@@ -432,6 +432,7 @@ ip
 ipaddress
 ipc
 ipco
+ipforever
 ipg
 ipif
 ipsec
@@ -576,6 +577,7 @@ mii
 miiar
 min
 misra
+mit
 mmc
 mo
 mqtt
@@ -753,7 +755,6 @@ promiscuousmode
 protcol
 prvallowippacket
 prvcachelookup
-prvchecknetworktimers
 prvcheckoptions
 prvcheckrxdata
 prvcopydatatoqueue
@@ -912,6 +913,7 @@ pxhead
 pxheadsegment
 pxhigherprioritytaskwoken
 pxhints
+pxicmpheader
 pxicmppacket
 pxindex
 pxinfo
@@ -1110,6 +1112,7 @@ sockaddr
 socketset
 sof
 sourceaddrfilter
+spdx
 spi
 sprintf
 sram
@@ -1569,6 +1572,7 @@ varprefreshcacheentry
 varpsendgratuitous
 vcastconstpointerto
 vcastconstptrto
+vchecknetworktimers
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
@@ -1589,6 +1593,7 @@ vndrefreshcacheentry
 vnetworkinterfaceallocateramtobuffers
 vperformaction
 vportfree
+vprintresourcestats
 vprocessgeneratedudppacket
 vraprocess
 vreceivera

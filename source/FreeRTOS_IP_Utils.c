@@ -309,10 +309,17 @@ static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
     uint8_t ucVersion;
     uint16_t usLength;
 
-    usLength = xSet.pxIPPacket->xIPHeader.usLength;
+    usLength = pxSet->pxIPPacket->xIPHeader.usLength;
     usLength = FreeRTOS_ntohs( usLength );
 
-    if( usLength < uxIPHeaderLength )
+    /* IPv4 : the lower nibble in 'ucVersionHeaderLength' indicates the length
+     * of the IP-header, expressed in number of 4-byte words. Usually 5 words.
+     */
+    ucVersion = pxSet->pxIPPacket->xIPHeader.ucVersionHeaderLength & ( uint8_t ) 0x0FU;
+    pxSet->uxIPHeaderLength = ( size_t ) ucVersion;
+    pxSet->uxIPHeaderLength *= 4U;
+
+    if( usLength < pxSet->uxIPHeaderLength )
     {
         pxSet->usChecksum = ipINVALID_LENGTH;
         xReturn = 3;
@@ -330,13 +337,6 @@ static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
 
     if( xReturn == 0 )
     {
-        /* IPv4 : the lower nibble in 'ucVersionHeaderLength' indicates the length
-         * of the IP-header, expressed in number of 4-byte words. Usually 5 words.
-         */
-        ucVersion = pxSet->pxIPPacket->xIPHeader.ucVersionHeaderLength & ( uint8_t ) 0x0FU;
-        pxSet->uxIPHeaderLength = ( size_t ) ucVersion;
-        pxSet->uxIPHeaderLength *= 4U;
-
         /* Check for minimum packet size. */
         if( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength ) )
         {

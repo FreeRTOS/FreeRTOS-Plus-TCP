@@ -185,7 +185,7 @@
 #endif
 
 /** @brief Returned as the (invalid) checksum when the protocol being checked is not
- *         handled.  The value is chosen simply to be easy to spot when debugging. */
+*         handled.  The value is chosen simply to be easy to spot when debugging. */
 #define ipUNHANDLED_PROTOCOL    0x4321U
 
 /** @brief Returned to indicate a valid checksum. */
