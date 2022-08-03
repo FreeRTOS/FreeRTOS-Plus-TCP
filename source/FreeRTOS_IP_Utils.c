@@ -66,6 +66,12 @@
 #endif
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
+    static BaseType_t xCallEventHook = pdFALSE;
+#endif
+
+/*-----------------------------------------------------------*/
+
 /**
  * @brief Returns the network buffer descriptor that owns a given packet buffer.
  */
@@ -301,12 +307,25 @@ static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
 {
     BaseType_t xReturn = 0;
     uint8_t ucVersion;
+    uint16_t usLength;
 
-    /* Check for minimum packet size. */
-    if( uxBufferLength < sizeof( IPPacket_t ) )
+    usLength = xSet.pxIPPacket->xIPHeader.usLength;
+    usLength = FreeRTOS_ntohs( usLength );
+
+    if( usLength < uxIPHeaderLength )
     {
         pxSet->usChecksum = ipINVALID_LENGTH;
         xReturn = 3;
+    }
+
+    /* Check for minimum packet size. */
+    if( xReturn == 0 )
+    {
+        if( uxBufferLength < sizeof( IPPacket_t ) )
+        {
+            pxSet->usChecksum = ipINVALID_LENGTH;
+            xReturn = 4;
+        }
     }
 
     if( xReturn == 0 )
@@ -323,7 +342,7 @@ static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
         {
             /* The packet does not contain the full IP-headers so drop it. */
             pxSet->usChecksum = ipINVALID_LENGTH;
-            xReturn = 4;
+            xReturn = 5;
         }
     }
 
@@ -339,7 +358,7 @@ static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
         {
             /* The payload is longer than the packet appears to contain. */
             pxSet->usChecksum = ipINVALID_LENGTH;
-            xReturn = 5;
+            xReturn = 6;
         }
     }
 
@@ -784,7 +803,7 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
     {
         /* The bit 'bEndPointUp' stays low until vIPNetworkUpCalls() is called. */
         pxEndPoint->bits.bEndPointUp = pdFALSE_UNSIGNED;
-        #if ipconfigUSE_NETWORK_EVENT_HOOK == 1
+        #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
             {
                 if( pxEndPoint->bits.bCallDownHook != pdFALSE_UNSIGNED )
                 {
@@ -1446,7 +1465,16 @@ size_t FreeRTOS_min_size_t( size_t a,
 uint32_t FreeRTOS_round_up( uint32_t a,
                             uint32_t d )
 {
-    return d * ( ( a + d - 1U ) / d );
+    uint32_t ulResult = a;
+
+    configASSERT( d != 0 );
+
+    if( d != 0 )
+    {
+        ulResult = d * ( ( a + d - 1U ) / d );
+    }
+
+    return ulResult;
 }
 /*-----------------------------------------------------------*/
 
