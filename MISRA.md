@@ -35,9 +35,12 @@ _Ref 8.9.1_
 _Ref 8.13.1_
 
 - MISRA C-2012 Rule 8.13 Parameter passed is never used, should be declared as
-    const. This is a preefined API by the FreeRTOS-kernel function xTaskCreate,
-    and it depends on the user if they want to use that parameter, making it
-    const would break the build.
+    const.  The argument passed to the `prvIPTask` function is left unused which is
+    considered as the variable not being used and thus warranting the use of `const`.
+    However, the FreeRTOS-kernel function `xTaskCreate` expects a function signature
+    of type `void vSomeFunction( void * pvArgs )`. To satisfy that requirement, the
+    function signature of `prvIPTask` does not have a `const` qualifier in the
+    parameter signature.
 
 #### Rule 10.5
 _Ref 10.5.1_
