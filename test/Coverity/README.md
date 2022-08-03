@@ -54,4 +54,5 @@ Go to the root directory of the FreeRTOS-Plus-TCP repo and run the following com
   cov-format-errors --dir . --exclude-files '(.*/FreeRTOS-Kernel/.*)' --html-output html-output
   ~~~
 
-You should now have the HTML formatted violations list (ideally not reporting any violations) in a directory named `html-output`.
+You should now have the HTML formatted violations list in a directory named `html-output`.
+With the current configuration and the provided project, you should see only one deviation from advisory rule 8.13 in file FreeRTOS_IP.c [here](https://github.com/alfred2g/FreeRTOS-Plus-TCP/blob/misra_remaining/source/FreeRTOS_IP.c#L236). This deviation has a justification outlined [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-813). With that justification in place, a coverity suppression statement has been added to the code. However, even with that suppression in place, the coverity tool continues to report the deviation. Thus, as an excpetion, we have allowed the deviation to be reported in the HTML formatted report. If you find a way around it, please help us fix this by creating a pull-request in this repository.
