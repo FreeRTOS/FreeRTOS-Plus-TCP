@@ -129,16 +129,6 @@ _Ref 14.3.1_
 - MISRA C-2012 Rule 14.3 False positive as the value might be changed
         depending on the conditionally compiled code
 
-#### Rule 21.6
-_Ref 21.6.1_
-
-- MISRA C-2012 Rule 21.6 warns about the use of standard library input/output
-        functions as they might have implementation defined or undefined
-        behaviour. The function `snprintf` is used to insert information in a
-        logging string. This is only used in a utility function which aids in
-        debugging and is not part of the 'core' code governing the
-        functionality of the TCP/IP stack.
-
 #### Rule 17.2
 _Ref 17.2.1_
 
@@ -153,7 +143,7 @@ _Ref 17.2.1_
 #### Rule 20.5
 _Ref 20.5.1_
 
-- MISRA C-2012 Rule 20.10 warns against the use of #undef
+- MISRA C-2012 Rule 20.5 warns against the use of #undef
         However, in this case, it must be used to make sure some macros are
         defined to a certain value
 
@@ -164,3 +154,14 @@ _Ref 20.10.1_
         However, in this case, it must be used to support compile time
         assertions in case the preprocessor does not suppport sizeof. This
         operation (assert) has no runtime execution.
+
+#### Rule 21.6
+_Ref 21.6.1_
+
+- MISRA C-2012 Rule 21.6 warns about the use of standard library input/output
+        functions as they might have implementation defined or undefined
+        behaviour. The function `snprintf` is used to insert information in a
+        logging string. This is only used in a utility function which aids in
+        debugging and is not part of the 'core' code governing the
+        functionality of the TCP/IP stack.
+
