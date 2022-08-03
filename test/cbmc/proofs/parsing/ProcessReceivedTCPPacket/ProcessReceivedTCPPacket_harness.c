@@ -6,6 +6,10 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_TCP_IP.h"
+#include "FreeRTOS_TCP_Reception.h"
+#include "FreeRTOS_TCP_State_Handling.h"
+#include "FreeRTOS_TCP_Transmission.h"
+#include "FreeRTOS_TCP_Utils.h"
 #include "FreeRTOS_Stream_Buffer.h"
 #include "FreeRTOS_Routing.h"
 
