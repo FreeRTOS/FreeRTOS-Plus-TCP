@@ -527,7 +527,7 @@ static BaseType_t prvHandleUDPPacketWithoutSocket( NetworkBufferDescriptor_t * p
     BaseType_t xReturn = pdPASS;
     ProtocolHeaders_t * pxProtocolHeaders;
 
-    #if ( ( ( ipconfigUSE_DNS == 1 ) && ( ipconfigDNS_USE_CALLBACKS == 1 ) ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) 
+    #if ( ( ( ipconfigUSE_DNS == 1 ) && ( ipconfigDNS_USE_CALLBACKS == 1 ) ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) )
         UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     #endif
 

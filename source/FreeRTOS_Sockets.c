@@ -6573,4 +6573,3 @@ portINLINE BaseType_t xSocketValid( ConstSocket_t xSocket )
 
 #endif /* ipconfigSUPPORT_SIGNALS */
 /*-----------------------------------------------------------*/
-
