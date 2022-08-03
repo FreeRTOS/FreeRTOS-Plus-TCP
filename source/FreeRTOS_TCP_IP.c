@@ -120,7 +120,7 @@
  * @note Sequence of calling (normally) :
  * IP-Task:
  *      prvIPTask()                     // The IP-task
- *      prvCheckNetworkTimers()         // The regular checks
+ *      vCheckNetworkTimers()         // The regular checks
  *      xTCPTimerCheck()                // Check all sockets ( declared in FreeRTOS_Sockets.c )
  *      xTCPSocketCheck()               // Either send a delayed ACK or call prvTCPSendPacket()
  *      prvTCPSendPacket()              // Either send a SYN or call prvTCPSendRepeated ( regular messages )

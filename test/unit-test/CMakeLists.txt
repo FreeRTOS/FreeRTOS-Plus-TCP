@@ -53,6 +53,9 @@ set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 # Set TCP includes.
 set( TCP_INCLUDES "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ICMP.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Timers.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Utils.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_BitConfig.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_Sockets.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Private.h"
@@ -119,6 +122,10 @@ foreach( file ${TCP_INCLUDES} )
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                      OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h
                      OUTPUT_QUIET )
+
+    # Remove the temporary files
+    file( REMOVE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h )
+    file( REMOVE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp1.h )
 
     # Add the guards back to the files
     execute_process( COMMAND sed -i "1 i\#ifndef ${Guard}" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h )
@@ -218,6 +225,8 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 # Include unit-test build configuration
 include( unit_test_build.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
+# include( ${UNIT_TEST_DIR}/FreeRTOS_IP/ut.cmake )
+# include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Reception/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_State_Handling/ut.cmake )

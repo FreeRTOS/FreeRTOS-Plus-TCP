@@ -39,6 +39,7 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Timers.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_UDP_IP.h"
@@ -673,7 +674,7 @@
 
             if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
             {
-                vIPSetDnsTimerEnableState( pdFALSE );
+                vIPSetDNSTimerEnableState( pdFALSE );
             }
         }
 /*-----------------------------------------------------------*/
@@ -740,7 +741,7 @@
                 if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
                 {
                     /* This is the first one, start the DNS timer to check for timeouts */
-                    vIPReloadDNSTimer( FreeRTOS_min_uint32( 1000U, uxTimeout ) );
+                    vDNSTimerReload( FreeRTOS_min_uint32( 1000U, uxTimeout ) );
                 }
 
                 ( void ) strcpy( pxCallback->pcName, pcHostName );
@@ -834,7 +835,7 @@
                         if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
                         {
                             /* The list of outstanding requests is empty. No need for periodic polling. */
-                            vIPSetDnsTimerEnableState( pdFALSE );
+                            vIPSetDNSTimerEnableState( pdFALSE );
                         }
 
                         xResult = pdTRUE;

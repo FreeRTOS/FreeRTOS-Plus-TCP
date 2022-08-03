@@ -177,6 +177,42 @@
 /* The offset of ucTCPFlags within the TCP header. */
 #define ipTCP_FLAGS_OFFSET    13U
 
+#if ( ipconfigUSE_TCP != 0 )
+
+/** @brief Set to a non-zero value if one or more TCP message have been processed
+ *         within the last round. */
+    BaseType_t xProcessedTCPMessage;
+#endif
+
+/** @brief Returned as the (invalid) checksum when the protocol being checked is not
+ *         handled.  The value is chosen simply to be easy to spot when debugging. */
+#define ipUNHANDLED_PROTOCOL    0x4321U
+
+/** @brief Returned to indicate a valid checksum. */
+#define ipCORRECT_CRC           0xffffU
+
+/** @brief Returned to indicate incorrect checksum. */
+#define ipWRONG_CRC             0x0000U
+
+/** @brief Returned as the (invalid) checksum when the length of the data being checked
+ *         had an invalid length. */
+#define ipINVALID_LENGTH        0x1234U
+
+/** @brief The maximum time the IP task is allowed to remain in the Blocked state if no
+ * events are posted to the network event queue. */
+#ifndef ipconfigMAX_IP_TASK_SLEEP_TIME
+    #define ipconfigMAX_IP_TASK_SLEEP_TIME    ( pdMS_TO_TICKS( 10000U ) )
+#endif
+
+/* Trace macros to aid in debugging, disabled if ipconfigHAS_PRINTF != 1 */
+#if ( ipconfigHAS_PRINTF == 1 )
+    #define DEBUG_DECLARE_TRACE_VARIABLE( type, var, init )    type var = ( init ) /**< Trace macro to set "type var = init". */
+    #define DEBUG_SET_TRACE_VARIABLE( var, value )             var = ( value )     /**< Trace macro to set var = value. */
+#else
+    #define DEBUG_DECLARE_TRACE_VARIABLE( type, var, init )                        /**< Empty definition since ipconfigHAS_PRINTF != 1. */
+    #define DEBUG_SET_TRACE_VARIABLE( var, value )                                 /**< Empty definition since ipconfigHAS_PRINTF != 1. */
+#endif /* ipconfigHAS_PRINTF == 1 */
+
 /* A forward declaration of 'struct xNetworkEndPoint' and 'xNetworkInterface'.
  * The actual declaration can be found in FreeRTOS_Routing.h which is included
  * as the last +TCP header file. */
@@ -432,8 +468,6 @@ uint32_t FreeRTOS_GetIPAddress( void );
  *  uint32_t FreeRTOS_GetNetmask( void );
  */
 
-void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
-
 /* xARPWaitResolution checks if an IPv4 address is already known. If not
  * it may send an ARP request and wait for a reply.  This function will
  * only be called from an application. */
@@ -459,11 +493,7 @@ BaseType_t FreeRTOS_IsNetworkUp( void );
     UBaseType_t uxGetMinimumIPQueueSpace( void );
 #endif
 
-#if ( ipconfigHAS_PRINTF != 0 )
-    extern void vPrintResourceStats( void );
-#else
-    #define vPrintResourceStats()    do {} while( ipFALSE_BOOL )
-#endif
+BaseType_t xIsNetworkDownEventPending( void );
 
 /*
  * Defined in FreeRTOS_Sockets.c
@@ -491,16 +521,6 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
 #if ( ipconfigUSE_IPv6 != 0 )
     BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress );
 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
-/* Set the MAC-address that belongs to a given IPv4 multi-cast address. */
-void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
-                                  MACAddress_t * pxMACAddress );
-
-#if ( ipconfigUSE_IPv6 != 0 )
-    /* Set the MAC-address that belongs to a given IPv6 multi-cast address. */
-    void vSetMultiCastIPv6MacAddress( IPv6_Address_t * pxAddress,
-                                      MACAddress_t * pxMACAddress );
-#endif
 
 #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
 
