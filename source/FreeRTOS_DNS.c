@@ -358,8 +358,8 @@
         const MACAddress_t xMDNS_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } };
     #endif /* ipconfigUSE_MDNS == 1 */
 
-/* This global variable is being used to indicate to the driver which IP type
- * is preferred for name service lookup, either IPv6 or IPv4. */
+/** @brief This global variable is being used to indicate to the driver which IP type
+ *         is preferred for name service lookup, either IPv6 or IPv4. */
     IPPreference_t xDNS_IP_Preference =
     #if ( ipconfigUSE_IPv6 != 0 )
             xPreferenceIPv6;
@@ -2189,6 +2189,12 @@
     #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief For testing purposes: print an address of DNS replies.
+ *
+ * @param[in] pcFormat: Print format.
+ * @param[in] pxAddress: The address to print.
+ */
     void show_single_addressinfo( const char * pcFormat,
                                   const struct freertos_addrinfo * pxAddress )
     {

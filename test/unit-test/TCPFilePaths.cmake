@@ -4,26 +4,26 @@
 
 # TCP library source files.
 set( TCP_SOURCES
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_ARP.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_BitConfig.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_DNS.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_DHCP.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_DHCPv6.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_IP.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_ND.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_RA.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_Routing.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_Sockets.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_Stream_Buffer.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_TCP_IP.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_TCP_WIN.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../FreeRTOS_UDP_IP.c" )
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_ARP.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_BitConfig.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_DNS.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_DHCP.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_DHCPv6.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_IP.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_ND.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_RA.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_Routing.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_Sockets.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_Stream_Buffer.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_IP.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_WIN.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_UDP_IP.c" )
 
 # TCP library Include directories.
 set( TCP_INCLUDE_DIRS
-     "${CMAKE_CURRENT_LIST_DIR}/../../include"
-     "${CMAKE_CURRENT_LIST_DIR}/../../portable/Buffermanagement"
-     "${CMAKE_CURRENT_LIST_DIR}/../../portable/Compiler/GCC"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/include"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/portable/Buffermanagement"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/portable/Compiler/GCC"
      "${CMAKE_CURRENT_LIST_DIR}/stubs" )
 
 set( KERNEL_SOURCES
