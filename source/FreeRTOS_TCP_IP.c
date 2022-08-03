@@ -107,7 +107,7 @@
  *
  * @param[in] pxSocket: The socket to be checked.
  */
-    /* coverity [single_use] */
+    /* coverity[single_use] */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
     {
         if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )

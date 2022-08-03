@@ -395,11 +395,11 @@ UBaseType_t uxGetMinimumFreeNetworkBuffers( void )
 /*-----------------------------------------------------------*/
 
 NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                                 size_t uxNewSizeBytes )
+                                                                 size_t xNewSizeBytes )
 {
     size_t xOriginalLength;
     uint8_t * pucBuffer;
-    size_t uxSizeBytes = uxNewSizeBytes;
+    size_t uxSizeBytes = xNewSizeBytes;
     NetworkBufferDescriptor_t * pxNetworkBufferCopy = pxNetworkBuffer;
 
 
