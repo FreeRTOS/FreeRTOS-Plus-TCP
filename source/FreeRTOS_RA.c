@@ -231,7 +231,7 @@
                 if( memcmp( pxPoint->ipv6_settings.xIPAddress.ucBytes, pxICMPHeader_IPv6->xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
                 {
                     pxPoint->xRAData.bits.bIPAddressInUse = pdTRUE_UNSIGNED;
-                    vIPReloadDHCP_RATimer( pxPoint, 100U );
+                    vDHCP_RATimerReload( pxPoint, 100U );
                 }
             }
         }
@@ -662,7 +662,7 @@
         if( uxReloadTime != 0U )
         {
             FreeRTOS_printf( ( "RA: Reload %u seconds\n", ( unsigned ) ( uxReloadTime / 1000U ) ) );
-            vIPReloadDHCP_RATimer( pxEndPoint, uxReloadTime );
+            vDHCP_RATimerReload( pxEndPoint, uxReloadTime );
         }
         else
         {

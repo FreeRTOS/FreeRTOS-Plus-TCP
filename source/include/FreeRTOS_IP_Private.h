@@ -47,6 +47,13 @@
 
 #include "event_groups.h"
 
+#ifdef TEST
+    /* int ipFOREVER( void ); / * Useless because we disable IP unit-tests for now. * / */
+    #define ipFOREVER()    1
+#else
+    #define ipFOREVER()    1
+#endif
+
 extern BaseType_t xTCPWindowLoggingLevel;
 extern QueueHandle_t xNetworkEventQueue;
 
@@ -1019,16 +1026,6 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket );
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-
-/*
- * For the case where the network driver passes a buffer directly to a DMA
- * descriptor, this function can be used to translate a 'network buffer' to
- * a 'network buffer descriptor'.
- */
-    NetworkBufferDescriptor_t * pxPacketBuffer_to_NetworkBuffer( const void * pvBuffer );
-#endif
-
 #if ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) )
     /* prepare a string which describes a socket, just for logging. */
     const char * prvSocketProps( FreeRTOS_Socket_t * pxSocket );
@@ -1066,21 +1063,6 @@ BaseType_t xIsCallingFromIPTask( void );
     } SocketSelectMessage_t;
 
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
-
-#if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
-    void vIPSetDHCP_RATimerEnableState( struct xNetworkEndPoint * pxEndPoint,
-                                        BaseType_t xEnableState );
-#endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
-
-#if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
-    void vIPReloadDHCP_RATimer( struct xNetworkEndPoint * pxEndPoint,
-                                TickType_t uxClockTicks );
-#endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
-
-#if ( ipconfigDNS_USE_CALLBACKS != 0 )
-    void vIPReloadDNSTimer( uint32_t ulCheckTime );
-    void vIPSetDnsTimerEnableState( BaseType_t xEnableState );
-#endif
 
 /* Send the network-up event and start the ARP timer. */
 void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint );

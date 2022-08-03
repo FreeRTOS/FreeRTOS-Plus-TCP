@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 #include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_task.h"
 #include "mock_NetworkBufferManagement.h"

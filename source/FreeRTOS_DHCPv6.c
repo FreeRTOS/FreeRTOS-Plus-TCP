@@ -379,7 +379,7 @@
 
         /* Check for clashes. */
 
-        vIPReloadDHCP_RATimer( ( struct xNetworkEndPoint * ) pxEndPoint, EP_DHCPData.ulLeaseTime );
+        vDHCP_RATimerReload( ( struct xNetworkEndPoint * ) pxEndPoint, EP_DHCPData.ulLeaseTime );
 
         /* DHCP failed, the default configured IP-address will be used
          * Now call vIPNetworkUpCalls() to send the network-up event and
@@ -654,7 +654,7 @@
                     EP_DHCPData.eDHCPState = eWaitingAcknowledge;
 
                     /* From now on, we should be called more often */
-                    vIPReloadDHCP_RATimer( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
+                    vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
                 }
 
                 break;
@@ -852,7 +852,7 @@
         /* Create the DHCP socket if it has not already been created. */
         prvCreateDHCPv6Socket( pxEndPoint );
         FreeRTOS_debug_printf( ( "prvInitialiseDHCPv6: start after %lu ticks\n", dhcpINITIAL_TIMER_PERIOD ) );
-        vIPReloadDHCP_RATimer( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
+        vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
     }
 /*-----------------------------------------------------------*/
 

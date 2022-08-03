@@ -103,14 +103,6 @@
 
     eDHCPState_t eGetDHCPState( struct xNetworkEndPoint * pxEndPoint );
 
-    #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
-
-/*
- * Send a message to the IP-task, which will call vDHCPProcess().
- */
-        BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint );
-    #endif
-
 /*
  * NOT A PUBLIC API FUNCTION.
  * It will be called when the DHCP timer expires, or when
