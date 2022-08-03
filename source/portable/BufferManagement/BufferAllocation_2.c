@@ -399,7 +399,7 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
 {
     size_t xOriginalLength;
     uint8_t * pucBuffer;
-    size_t xSizeBytes = xNewSizeBytes;
+    size_t uxSizeBytes = xNewSizeBytes;
     NetworkBufferDescriptor_t * pxNetworkBufferCopy = pxNetworkBuffer;
 
 
