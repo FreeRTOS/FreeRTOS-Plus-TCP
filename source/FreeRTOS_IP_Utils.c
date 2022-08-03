@@ -84,6 +84,12 @@ static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
                                          size_t uxBufferLength,
                                          struct xPacketSummary * pxSet );
 
+#if ( ipconfigUSE_IPv6 != 0 )
+    static BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
+                                             size_t uxBufferLength,
+                                             struct xPacketSummary * pxSet );
+#endif /* ipconfigUSE_IPv6 != 0 */
+
 static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
                                              struct xPacketSummary * pxSet );
 
@@ -97,6 +103,11 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
                                             const uint8_t * pucEthernetBuffer,
                                             size_t uxBufferLength,
                                             struct xPacketSummary * pxSet );
+
+#if ( ipconfigUSE_IPv6 != 0 )
+    static BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
+                                               struct xPacketSummary * pxSet );
+#endif /* ipconfigUSE_IPv6 != 0 */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
@@ -373,6 +384,55 @@ static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
 
     return xReturn;
 }
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv6 != 0 )
+
+/** @brief Do the first IPv6 length checks at the IP-header level.
+ * @param[in] pucEthernetBuffer: The buffer containing the packet.
+ * @param[in] uxBufferLength: The number of bytes to be sent or received.
+ * @param[in] pxSet: A struct describing this packet.
+ *
+ * @return Non-zero in case of an error.
+ */
+    static BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
+                                             size_t uxBufferLength,
+                                             struct xPacketSummary * pxSet )
+    {
+        BaseType_t xReturn = 0;
+
+        pxSet->xIsIPv6 = pdTRUE;
+
+        pxSet->uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
+
+        /* Check for minimum packet size: ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER (54 bytes) */
+        if( uxBufferLength < sizeof( IPPacket_IPv6_t ) )
+        {
+            pxSet->usChecksum = ipINVALID_LENGTH;
+            xReturn = 1;
+        }
+        else
+        {
+            pxSet->ucProtocol = pxSet->pxIPPacket_IPv6->ucNextHeader;
+            pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
+            pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
+            /* For IPv6, the number of bytes in the protocol is indicated. */
+            pxSet->usProtocolBytes = pxSet->usPayloadLength;
+
+            size_t uxNeeded = ( size_t ) pxSet->usPayloadLength;
+            uxNeeded += ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+
+            if( uxBufferLength < uxNeeded )
+            {
+                /* The packet does not contain a complete IPv6 packet. */
+                pxSet->usChecksum = ipINVALID_LENGTH;
+                xReturn = 2;
+            }
+        }
+
+        return xReturn;
+    }
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 /** @brief Get and check the specific lengths depending on the protocol ( TCP/UDP/ICMP/IGMP ).
@@ -667,6 +727,58 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
         ( void ) pucEthernetBuffer;
     #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
 }
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv6 != 0 )
+
+/**
+ * @brief Check the buffer lengths of an ICMPv6 packet.
+ * @param[in] uxBufferLength: The total length of the packet.
+ * @param[in] pxSet A struct describing this packet.
+ * @return Non-zero in case of an error.
+ */
+    static BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
+                                               struct xPacketSummary * pxSet )
+    {
+        BaseType_t xReturn = 0;
+        size_t xICMPLength;
+
+        switch( pxSet->pxProtocolHeaders->xICMPHeaderIPv6.ucTypeOfMessage )
+        {
+            case ipICMP_PING_REQUEST_IPv6:
+            case ipICMP_PING_REPLY_IPv6:
+                xICMPLength = sizeof( ICMPEcho_IPv6_t );
+                break;
+
+            case ipICMP_ROUTER_SOLICITATION_IPv6:
+                xICMPLength = sizeof( ICMPRouterSolicitation_IPv6_t );
+                break;
+
+            default:
+                xICMPLength = ipSIZE_OF_ICMPv6_HEADER;
+                break;
+        }
+
+        if( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength + xICMPLength ) )
+        {
+            pxSet->usChecksum = ipINVALID_LENGTH;
+            xReturn = 10;
+        }
+
+        if( xReturn == 0 )
+        {
+            pxSet->pusChecksum = ( uint16_t * ) ( &( pxSet->pxProtocolHeaders->xICMPHeader.usChecksum ) );
+            pxSet->uxProtocolHeaderLength = xICMPLength;
+            #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+                {
+                    pxSet->pcType = "ICMP_IPv6";
+                }
+            #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+        }
+
+        return xReturn;
+    }
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )
