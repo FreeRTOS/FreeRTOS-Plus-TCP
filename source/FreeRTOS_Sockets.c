@@ -1967,7 +1967,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         /* MISRA Ref 11.8.1 [Function pointer and use of const pointer] */
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-118 */
 
-                        /* MISRA Ref _Ref 11.1.1_ [ Conversion between pointer to
+                        /* MISRA Ref 11.1.1 [ Conversion between pointer to
                          * a function and another type ] */
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-111 */
                         /* coverity[misra_c_2012_rule_11_8_violation] */
