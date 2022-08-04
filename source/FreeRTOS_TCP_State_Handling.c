@@ -90,6 +90,10 @@
     static BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
                                         FreeRTOS_Socket_t * pxSocket );
 
+/**
+ * Some of the TCP states may only last a certain amount of time.
+ * This function checks if the current state must be limited in time.
+ */
     static BaseType_t prvTCPStatusNeedsCheck( FreeRTOS_Socket_t * pxSocket );
 
 /*-----------------------------------------------------------*/

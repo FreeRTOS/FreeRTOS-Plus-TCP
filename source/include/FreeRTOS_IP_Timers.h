@@ -71,12 +71,24 @@ void vCheckNetworkTimers( void );
  */
 TickType_t xCalculateSleepTime( void );
 
+/*
+ * Start an ARP Resolution timer.
+ */
 void vIPTimerStartARPResolution( TickType_t xTime );
 
+/*
+ * Enable/disable the TCP timer.
+ */
 void vIPSetTCPTimerEnableState( BaseType_t xEnableState );
 
+/*
+ * Enable/disable the ARP timer.
+ */
 void vIPSetARPTimerEnableState( BaseType_t xEnableState );
 
+/*
+ * Enable or disable the ARP resolution timer.
+ */
 void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
 
 #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )

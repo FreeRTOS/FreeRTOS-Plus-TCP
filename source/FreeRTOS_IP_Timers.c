@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_Timers.c
+ * @file FreeRTOS_IP_Timers.c
  * @brief Implements the IP Timers on FreeRTOS+TCP network stack.
  */
 
@@ -68,9 +68,22 @@ static BaseType_t xAllNetworksUp = pdFALSE;
 /*
  * Utility functions for the light weight IP timers.
  */
+
+/**
+ * Start an IP timer. The IP-task has its own implementation of a timer
+ * called 'IPTimer_t', which is based on the FreeRTOS 'TimeOut_t'.
+ */
 static void prvIPTimerStart( IPTimer_t * pxTimer,
                              TickType_t xTime );
+
+/**
+ * Check the IP timer to see whether an IP event should be processed or not.
+ */
 static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer );
+
+/**
+ * Sets the reload time of an IP timer and restarts it.
+ */
 static void prvIPTimerReload( IPTimer_t * pxTimer,
                               TickType_t xTime );
 /*-----------------------------------------------------------*/
@@ -333,6 +346,11 @@ static void prvIPTimerStart( IPTimer_t * pxTimer,
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Start an ARP Resolution timer.
+ *
+ * @param[in] xTime: Time to be loaded into the ARP Resolution timer.
+ */
 void vIPTimerStartARPResolution( TickType_t xTime )
 {
     prvIPTimerStart( &( xARPResolutionTimer ), xTime );

@@ -170,7 +170,7 @@ void harness()
     __CPROVER_assume( pxNetworkInterfaces == NULL );
     __CPROVER_assume( pxNetworkEndPoints == NULL );
 
-    __CPROVER_assume( len > 0 ); /* prvProcessDNSCache strcmp */
+    __CPROVER_assume( len > 0 ); /* FreeRTOS_ProcessDNSCache strcmp */
     __CPROVER_assume( pcHostName != NULL );
     pcHostName[ len - 1 ] = NULL;
 
