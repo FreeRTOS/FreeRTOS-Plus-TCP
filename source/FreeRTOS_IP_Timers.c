@@ -372,6 +372,12 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_TCP == 1 )
+
+/**
+ * @brief Sets the reload time of an TCP timer and restarts it.
+ *
+ * @param[in] xTime: Time to be reloaded into the TCP timer.
+ */
     void vTCPTimerReload( TickType_t xTime )
     {
         prvIPTimerReload( &xTCPTimer, xTime );
@@ -379,6 +385,11 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
 #endif /* ipconfigUSE_TCP == 1 */
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Sets the reload time of an ARP timer and restarts it.
+ *
+ * @param[in] xTime: Time to be reloaded into the ARP timer.
+ */
 void vARPTimerReload( TickType_t xTime )
 {
     prvIPTimerReload( &xARPTimer, xTime );
@@ -416,6 +427,11 @@ void vARPTimerReload( TickType_t xTime )
 #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Reload the Network timer.
+ *
+ * @param[in] xTime: Time to be reloaded into the Network timer.
+ */
 void vNetworkTimerReload( TickType_t xTime )
 {
     prvIPTimerReload( &xNetworkTimer, xTime );

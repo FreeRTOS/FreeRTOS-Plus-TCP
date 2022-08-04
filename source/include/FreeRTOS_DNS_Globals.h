@@ -23,8 +23,8 @@
  * http://www.FreeRTOS.org
  */
 
-#ifndef DNS_GLOBALS_H
-#define DNS_GLOBALS_H
+#ifndef FREERTOS_DNS_GLOBALS_H
+#define FREERTOS_DNS_GLOBALS_H
 
 #include "FreeRTOS.h"
 
@@ -84,8 +84,8 @@
 
     #ifndef _lint
         /* LLMNR constants. */
-        #define dnsLLMNR_TTL_VALUE           300000UL /**< LLMNR time to live value. */
-        #define dnsLLMNR_FLAGS_IS_REPONSE    0x8000U  /**< LLMNR flag value for response. */
+        #define dnsLLMNR_TTL_VALUE           300U    /**< LLMNR time to live value of 5 minutes. */
+        #define dnsLLMNR_FLAGS_IS_REPONSE    0x8000U /**< LLMNR flag value for response. */
     #endif /* _lint */
 
 /* NBNS constants. */
@@ -183,7 +183,7 @@
     typedef struct xDNSMessage DNSMessage_t;
 
 /** @brief A struct with a set of variables that are shared among the helper functions
- *         for the function 'prvParseDNSReply()'. For internal use only.
+ *         for the function 'DNS_ParseDNSReply()'. For internal use only.
  */
     typedef struct xParseSet
     {
@@ -330,15 +330,16 @@
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
     } IPv46_Address_t;
 
-    #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
-
-/*
- * The following function should be provided by the user and return true if it
- * matches the domain name.
- */
+    #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) /*
+                                                                 *
+                                                                 * The following function should be provided by the user and return true if it
+                                                                 * matches the domain name.
+                                                                 */
         /* Even though the function is defined in main.c, the rule is violated. */
         /* misra_c_2012_rule_8_6_violation */
-        extern BaseType_t xApplicationDNSQueryHook( const char * pcName );
+        extern BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
+                                                    const char * pcName );
+
     #endif /* ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
 
 /** @brief Show the first IP-address within the linked struct 'pxAddress'. */
@@ -351,4 +352,4 @@
                                                const uint8_t * pucAddress );
 
 #endif /* ipconfigUSE_DNS */
-#endif /* ifndef DNS_GLOBALS_H */
+#endif /* ifndef FREERTOS_DNS_GLOBALS_H */

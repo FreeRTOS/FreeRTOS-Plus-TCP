@@ -23,8 +23,8 @@
  * https://www.FreeRTOS.org
  */
 
-#ifndef DNS_PARSER_H
-#define DNS_PARSER_H
+#ifndef FREERTOS_DNS_PARSER_H
+#define FREERTOS_DNS_PARSER_H
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
@@ -66,4 +66,4 @@
     #endif
 
 #endif /* if ( ipconfigUSE_DNS != 0 ) */
-#endif /* ifndef DNS_PARSER_H */
+#endif /* ifndef FREERTOS_DNS_PARSER_H */

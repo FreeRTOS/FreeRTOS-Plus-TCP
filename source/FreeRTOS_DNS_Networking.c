@@ -99,8 +99,6 @@
 
 /**
  * @brief perform a DNS network request
- * @param pcHostName the lookup name
- * @param uxIdentifier ignored
  * @param xDNSSocket socket
  * @param xAddress address structure
  * @param pucBuffer buffer to send
@@ -109,16 +107,12 @@
  *                  false otherwise
  *
  */
-    uint32_t DNS_SendRequest( const char * pcHostName,
-                              TickType_t uxIdentifier,
-                              Socket_t xDNSSocket,
+    uint32_t DNS_SendRequest( Socket_t xDNSSocket,
                               struct freertos_sockaddr * xAddress,
                               uint8_t * pucBuffer,
                               size_t uxBufferLength )
     {
         BaseType_t xReturn = pdFALSE;
-
-        ( void ) uxIdentifier;
 
         iptraceSENDING_DNS_REQUEST();
 

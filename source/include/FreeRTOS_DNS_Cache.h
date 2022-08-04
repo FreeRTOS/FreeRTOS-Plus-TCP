@@ -23,8 +23,8 @@
  * https://www.FreeRTOS.org
  */
 
-#ifndef DNS_CACHE_H
-#define DNS_CACHE_H
+#ifndef FREERTOS_DNS_CACHE_H
+#define FREERTOS_DNS_CACHE_H
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
@@ -66,4 +66,4 @@
                                 uint32_t ulTTL );
 #endif /* ( ipconfigUSE_DNS_CACHE == 1 ) && ( ipconfigUSE_DNS != 0 ) */
 
-#endif /* ifndef DNS_CACHE_H */
+#endif /* ifndef FREERTOS_DNS_CACHE_H */

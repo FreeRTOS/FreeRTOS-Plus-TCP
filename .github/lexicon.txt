@@ -749,6 +749,7 @@ printf
 printfs
 printlimit
 processdhcpreplies
+processdnscache
 processippacket
 projdefs
 promiscuousmode
@@ -774,13 +775,10 @@ prviptask
 prvlinkstatuschange
 prvnotifyqueuesetcontainer
 prvntptask
-prvparsednsreply
 prvpreparelookup
 prvprocessdhcpreplies
-prvprocessdnscache
 prvprocessippacket
 prvprocessnetworkdownevent
-prvreadnamefield
 prvreadsackoption
 prvrxcallback
 prvsenddata

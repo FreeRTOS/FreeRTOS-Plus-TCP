@@ -74,6 +74,10 @@
     static void prvParseDNS_StoreAnswer( ParseSet_t * pxSet,
                                          IPv46_Address_t * pxIP_Address,
                                          struct freertos_addrinfo ** ppxAddressInfo );
+
+    #if ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
+        static NetworkEndPoint_t * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer );
+    #endif
 /*-----------------------------------------------------------*/
 
 /**
@@ -468,6 +472,42 @@
             } while( ipFALSE_BOOL );
         }
     #endif /* ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
+/*-----------------------------------------------------------*/
+
+    #if ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
+
+/**
+ * @brief Find the best matching end-point given a reply that was received.
+ * @param[in] pxNetworkBuffer: The Ethernet packet that was received.
+ * @return An end-point.
+ */
+        static NetworkEndPoint_t * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer )
+        {
+            NetworkEndPoint_t * pxEndPoint;
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                IPPacket_IPv6_t * xIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+
+                if( xIPPacket_IPv6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+                {
+                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &xIPPacket_IPv6->xIPHeader.xSourceAddress );
+                }
+                else
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            {
+                IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+
+                pxEndPoint = FreeRTOS_FindEndPointOnNetMask( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
+            }
+
+            if( pxEndPoint != NULL )
+            {
+                pxNetworkBuffer->pxEndPoint = pxEndPoint;
+            }
+
+            return pxEndPoint;
+        }
+    #endif /* ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
@@ -932,9 +972,9 @@
  * @param[in] uxBufferLength: Length of the Buffer.
  * @param[in] ulIPAddress: IP address of the sender.
  */
-        static void DNS_TreatNBNS( uint8_t * pucPayload,
-                                   size_t uxBufferLength,
-                                   uint32_t ulIPAddress )
+        void DNS_TreatNBNS( uint8_t * pucPayload,
+                            size_t uxBufferLength,
+                            uint32_t ulIPAddress )
         {
             uint16_t usFlags, usType, usClass;
             uint8_t * pucSource, * pucTarget;

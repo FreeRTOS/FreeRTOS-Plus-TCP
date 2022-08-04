@@ -24,8 +24,8 @@
 * Signature of function under test
 ****************************************************************/
 
-size_t prvReadNameField( ParseSet_t * pxSet,
-                         size_t uxDestLen );
+size_t DNS_ReadNameField( ParseSet_t * pxSet,
+                          size_t uxDestLen );
 
 /****************************************************************
 * The function under test is not defined in all configurations
@@ -33,14 +33,14 @@ size_t prvReadNameField( ParseSet_t * pxSet,
 
 #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
 
-/* prvReadNameField is defined in this configuration */
+/* DNS_ReadNameField is defined in this configuration */
 
 #else
 
-/* prvReadNameField is not defined in this configuration, stub it. */
+/* DNS_ReadNameField is not defined in this configuration, stub it. */
 
-    size_t prvReadNameField( ParseSet_t * pxSet,
-                             size_t uxDestLen )
+    size_t DNS_ReadNameField( ParseSet_t * pxSet,
+                              size_t uxDestLen )
     {
         return 0;
     }
@@ -49,7 +49,7 @@ size_t prvReadNameField( ParseSet_t * pxSet,
 
 
 /****************************************************************
-* Proof of prvReadNameField function contract
+* Proof of DNS_ReadNameField function contract
 ****************************************************************/
 
 void harness()
@@ -102,11 +102,11 @@ void harness()
 
     memcpy( xSet.pcName, pcName, uxCopyLength );
 
-    size_t index = prvReadNameField( &xSet,
-                                     uxDestLen );
+    size_t index = DNS_ReadNameField( &xSet,
+                                      uxDestLen );
 
     /* Postconditions */
 
     __CPROVER_assert( index <= uxDestLen + 1 && index <= xSet.uxSourceBytesRemaining,
-                      "prvReadNamefield: index <= uxDestLen+1" );
+                      "DNS_ReadNameField: index <= uxDestLen+1" );
 }

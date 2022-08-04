@@ -29,7 +29,7 @@
 *
 *   Many methods in the FreeRTOS TCP API in stubs/freertos_api.c
 *
-*   prvParseDNSReply proved memory safe elsewhere
+*   DNS_ParseDNSReply proved memory safe elsewhere
 *
 *   prvCreateDNSMessage
 *
@@ -101,7 +101,7 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
 }
 
 /****************************************************************
-* Abstract prvParseDNSReply proved memory safe in ParseDNSReply.
+* Abstract DNS_ParseDNSReply proved memory safe in DNS_ParseDNSReply.
 *
 * We stub out his function to fill the payload buffer with
 * unconstrained data and return an unconstrained size.
@@ -110,11 +110,11 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
 * function.
 ****************************************************************/
 
-uint32_t __CPROVER_file_local_FreeRTOS_DNS_c_prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                                                               size_t xBufferLength,
-                                                               struct freertos_addrinfo ** ppxAddressInfo,
-                                                               BaseType_t xExpected,
-                                                               uint16_t usPort )
+uint32_t __CPROVER_file_local_FreeRTOS_DNS_Parse_c_DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+                                                                      size_t xBufferLength,
+                                                                      struct freertos_addrinfo ** ppxAddressInfo,
+                                                                      BaseType_t xExpected,
+                                                                      uint16_t usPort )
 {
     __CPROVER_assert( pucUDPPayloadBuffer != NULL,
                       "Precondition: pucUDPPayloadBuffer != NULL" );

@@ -42,11 +42,11 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
-#include "FreeRTOS_DNS_Globals.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
 #include "FreeRTOS_DNS_Cache.h"
+#include "FreeRTOS_DNS_Globals.h"
 
 #if ( ipconfigUSE_DNS != 0 )
 
@@ -87,14 +87,14 @@
                                           struct freertos_addrinfo ** ppxAddressInfo );
 
 /** update entry at \p index in the cache. */
-    static void prvUpdateCacheEntry( int index,
-                                     int ulTTL,
+    static void prvUpdateCacheEntry( BaseType_t index,
+                                     uint32_t ulTTL,
                                      IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds );
 
 /** insert entry in the cache. */
     static void prvInsertCacheEntry( const char * pcName,
-                                     int32_t ulTTL,
+                                     uint32_t ulTTL,
                                      IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds );
 
@@ -187,7 +187,6 @@
                                              struct freertos_addrinfo ** ppxAddressInfo )
         {
             BaseType_t x;
-            BaseType_t xFound = pdFALSE;
             uint32_t ulCurrentTimeSeconds;
             uint32_t ulIPAddressIndex = 0;
 
@@ -209,8 +208,6 @@
 
             if( x != -1 )
             { /* Element found */
-                xFound = pdTRUE;
-
                 /* Is this function called for a lookup or to add/update an IP address? */
                 if( xLookUp == pdTRUE )
                 {
@@ -235,7 +232,16 @@
                                      ulCurrentTimeSeconds );
             }
 
-            return xFound;
+            if( x == -1 )
+            {
+                x = 0;
+            }
+            else
+            {
+                x = 1;
+            }
+
+            return x;
         }
 
     #endif /* ipconfigUSE_DNS_CACHE */
@@ -245,13 +251,14 @@
 /**
  * @brief returns the index of the hostname entry in the dns cache.
  * @param[in] pcName find it in the cache
+ * @param[in] pxIP ip address
  * @returns index number or -1 if not found
  */
     static BaseType_t prvFindEntryIndex( const char * pcName,
                                          IPv46_Address_t * pxIP )
     {
-        int index = -1;
-        int x;
+        BaseType_t index = -1;
+        BaseType_t x;
 
         ( void ) pxIP;
 
@@ -279,6 +286,7 @@
  * @param[in]  index in the cache
  * @param[out] pxIP fill it with the result
  * @param[in]  ulCurrentTimeSeconds current time
+ * @param[out] ppxAddressInfo Target to store the DNS entries.
  * @returns    \c pdTRUE if the value is valid \c pdFALSE otherwise
  * @post the global structure \a xDNSCache might be modified
  *
@@ -290,10 +298,11 @@
     {
         BaseType_t isRead = pdFALSE;
         uint32_t ulIPAddressIndex = 0;
+        uint32_t ulAge = ulCurrentTimeSeconds - xDNSCache[ index ].ulTimeWhenAddedInSeconds;
 
-        /* Confirm that the record is still fresh. */
-        if( ulCurrentTimeSeconds < ( xDNSCache[ index ].ulTimeWhenAddedInSeconds +
-                                     FreeRTOS_ntohl( xDNSCache[ index ].ulTTL ) ) )
+        /* Confirm that the record is still fresh.
+         * The field ulTTL was stored as network-endian. */
+        if( ulAge < FreeRTOS_ntohl( xDNSCache[ index ].ulTTL ) )
         {
             #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
                 uint8_t ucIndex;
@@ -338,8 +347,8 @@
  * @param[in]  ulCurrentTimeSeconds current time
  * @post the global structure \a xDNSCache is modified
  */
-    static void prvUpdateCacheEntry( int index,
-                                     int ulTTL,
+    static void prvUpdateCacheEntry( BaseType_t index,
+                                     uint32_t ulTTL,
                                      IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
@@ -364,13 +373,13 @@
 /**
  * @brief insert entry in the cache
  * @param[in] pcName cache entry key
- * @param[in] ulTTL time to live
+ * @param[in] ulTTL time to live (in seconds)
  * @param[in] pxIP ip address
  * @param[in] ulCurrentTimeSeconds current time
  * @post the global structure \a xDNSCache is modified
  */
     static void prvInsertCacheEntry( const char * pcName,
-                                     int32_t ulTTL,
+                                     uint32_t ulTTL,
                                      IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
@@ -387,9 +396,9 @@
                 xDNSCache[ uxFreeDNSEntry ].ucCurrentIPAddress = 0;
 
                 /* Initialize all remaining IP addresses in this entry to 0 */
-                ( void ) memset( &xDNSCache[ uxFreeDNSEntry ].ulIPAddresses[ 1 ],
+                ( void ) memset( &xDNSCache[ uxFreeDNSEntry ].xAddresses[ 1 ],
                                  0,
-                                 sizeof( xDNSCache[ uxFreeDNSEntry ].ulIPAddresses[ 1 ] ) *
+                                 sizeof( xDNSCache[ uxFreeDNSEntry ].xAddresses[ 1 ] ) *
                                  ( ( uint32_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY - 1U ) );
             #endif
             uxFreeDNSEntry++;
@@ -578,5 +587,6 @@
             return ulIPAddress;
         }
     #endif /* ( ipconfigUSE_DNS_CACHE == 1 ) */
+/*-----------------------------------------------------------*/
 
 #endif /* if ( ipconfigUSE_DNS != 0 ) */

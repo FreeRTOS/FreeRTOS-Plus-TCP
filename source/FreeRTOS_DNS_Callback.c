@@ -28,15 +28,16 @@
  * @brief File that handles the DNS Callback option
  */
 
+#include "FreeRTOS_DNS_Callback.h"
+
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 #include "task.h"
 
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
-
 #include "FreeRTOS_DNS_Globals.h"
-#include "FreeRTOS_DNS_Callback.h"
+#include "FreeRTOS_IP_Timers.h"
 
 #if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
@@ -212,6 +213,11 @@
                 vListInsertEnd( &xCallbackList, &pxCallback->xListItem );
             }
             ( void ) xTaskResumeAll();
+        }
+        else
+        {
+            FreeRTOS_debug_printf( ( " vDNSSetCallBack : Could not allocate memory: %u bytes",
+                                     ( unsigned ) ( sizeof( *pxCallback ) + uxLength ) ) );
         }
     }
 /*-----------------------------------------------------------*/

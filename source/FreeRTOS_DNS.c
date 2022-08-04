@@ -281,56 +281,13 @@
     static NetworkEndPoint_t * prvGetDNSAddress( struct freertos_sockaddr * pxAddress,
                                                  const char * pcHostName );
 
+/** @brief Increment the field 'ucDNSIndex', which is an index in the array */
     static void prvIncreaseDNS4Index( NetworkEndPoint_t * pxEndPoint );
 
     #if ( ipconfigUSE_IPv6 != 0 )
+/** @brief Increment the field 'ucDNSIndex', which is an index in the array */
         static void prvIncreaseDNS6Index( NetworkEndPoint_t * pxEndPoint );
     #endif
-
-    #if ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-        static NetworkEndPoint_t * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer );
-    #endif
-
-    #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-
-        #include "pack_struct_start.h"
-        struct xLLMNRAnswer
-        {
-            uint8_t ucNameCode;    /**< Name type. */
-            uint8_t ucNameOffset;  /**< The name is not repeated in the answer, only the offset is given with "0xc0 <offs>" */
-            uint16_t usType;       /**< Type of the Resource record. */
-            uint16_t usClass;      /**< Class of the Resource record. */
-            uint32_t ulTTL;        /**< Seconds till this entry can be cached. */
-            uint16_t usDataLength; /**< Length of the address in this record. */
-            uint32_t ulIPAddress;  /**< The IP-address. */
-        }
-        #include "pack_struct_end.h"
-        typedef struct xLLMNRAnswer LLMNRAnswer_t;
-
-
-    #endif /* ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
-
-    #if ( ipconfigUSE_NBNS == 1 )
-
-        #include "pack_struct_start.h"
-        struct xNBNSRequest
-        {
-            uint16_t usRequestId;                          /**< NBNS request ID. */
-            uint16_t usFlags;                              /**< Flags of the DNS message. */
-            uint16_t ulRequestCount;                       /**< The number of requests/questions in this query. */
-            uint16_t usAnswerRSS;                          /**< The number of answers in this query. */
-            uint16_t usAuthRSS;                            /**< Number of authoritative resource records. */
-            uint16_t usAdditionalRSS;                      /**< Number of additional resource records. */
-            uint8_t ucNameSpace;                           /**< Length of name. */
-            uint8_t ucName[ dnsNBNS_ENCODED_NAME_LENGTH ]; /**< The domain name. */
-            uint8_t ucNameZero;                            /**< Terminator of the name. */
-            uint16_t usType;                               /**< Type of NBNS record. */
-            uint16_t usClass;                              /**< Class of NBNS request. */
-        }
-        #include "pack_struct_end.h"
-        typedef struct xNBNSRequest NBNSRequest_t;
-
-    #endif /* ipconfigUSE_NBNS == 1 */
 
 /*-----------------------------------------------------------*/
 
@@ -338,9 +295,7 @@
 
 /**
  * @brief Define FreeRTOS_gethostbyname() as a normal blocking call.
- *
  * @param[in] pcHostName: The hostname whose IP address is being searched for.
- *
  * @return The IP-address of the hostname.
  */
         uint32_t FreeRTOS_gethostbyname( const char * pcHostName )
@@ -365,7 +320,6 @@
 
 /**
  * @brief Remove the entry defined by the search ID to cancel a DNS request.
- *
  * @param[in] pvSearchID: The search ID of the callback function associated with
  *                        the DNS request being cancelled. Note that the value of
  *                        the pointer matters, not the pointee.
@@ -482,12 +436,10 @@
 
 /**
  * @brief Look-up the IP-address of a host.
- *
  * @param[in] pcName: The name of the node or device
  * @param[in] pcService: Ignored for now.
  * @param[in] pxHints: If not NULL: preferences. Can be used to indicate the preferred type if IP ( v4 or v6 ).
  * @param[out] ppxResult: An allocated struct, containing the results.
- *
  * @return Zero when the operation was successful, otherwise a negative errno value.
  */
         BaseType_t FreeRTOS_getaddrinfo( const char * pcName,                      /* The name of the node or device */
@@ -567,7 +519,6 @@
 
 /**
  * @brief Free a chain of structs of type 'freertos_addrinfo'.
- *
  * @param[in] pxInfo: The first find result.
  */
     void FreeRTOS_freeaddrinfo( struct freertos_addrinfo * pxInfo )
@@ -593,9 +544,7 @@
 /**
  * @brief Get the IPv4 address corresponding to the given hostname. The function
  *        will block until there is an answer, or until a time-out is reached.
- *
  * @param[in] pcHostName: The hostname whose IP address is being queried.
- *
  * @return The IPv4 address corresponding to the hostname.
  */
         uint32_t FreeRTOS_gethostbyname( const char * pcHostName )
@@ -607,12 +556,10 @@
 /**
  * @brief Get the IPv4 address corresponding to the given hostname. The search will
  *        be done asynchronously.
- *
  * @param[in] pcHostName: The hostname whose IP address is being queried.
  * @param[in] pCallback: The callback function which will be called upon DNS response.
  * @param[in] pvSearchID: Search ID for the callback function.
  * @param[in] uxTimeout: Timeout for the callback function.
- *
  * @return The IP-address corresponding to the hostname.
  */
         uint32_t FreeRTOS_gethostbyname_a( const char * pcHostName,
@@ -638,7 +585,6 @@
 
 /**
  * @brief See if pcHostName contains a valid IPv4 or IPv6 IP-address.
- *
  * @param[in] pcHostName: The name to be looked up
  * @param[in] xFamily: the IP-type, either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
  * @param[in] ppxAddressInfo: A pointer to a pointer where the find results will
@@ -697,7 +643,6 @@
 
 /**
  * @brief Check if hostname is already known. If not, call prvGetHostByName() to send a DNS request.
- *
  * @param[in] pcHostName: The hostname whose IP address is being queried.
  * @param[in] ppxAddressInfo: A pointer to a pointer where the find results will
  *                            be stored.
@@ -705,7 +650,6 @@
  * @param[in] pCallbackFunction: The callback function which will be called upon DNS response.
  * @param[in] pvSearchID: Search ID for the callback function.
  * @param[in] uxTimeout: Timeout for the callback function.
- *
  * @return The IP-address corresponding to the hostname.
  */
         static uint32_t prvPrepareLookup( const char * pcHostName,
@@ -719,12 +663,10 @@
 /**
  * @brief Check if hostname is already known. If not, call prvGetHostByName() to send a DNS request.
  *        This function will block to wait for a reply.
- *
  * @param[in] pcHostName: The hostname whose IP address is being queried.
  * @param[in] ppxAddressInfo: A pointer to a pointer where the find results will
  *                            be stored.
  * @param[in] xFamily: Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
- *
  * @return The IP-address corresponding to the hostname.
  */
         static uint32_t prvPrepareLookup( const char * pcHostName,
@@ -855,6 +797,13 @@
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_IPv6 != 0 )
+
+/**
+ * @brief Increment the field 'ucDNSIndex', which is an index in the array
+ *        of DNS addresses.
+ * @param[in] pxEndPoint: The end-point of which the DNS index should be
+ *                        incremented.
+ */
         static void prvIncreaseDNS6Index( NetworkEndPoint_t * pxEndPoint )
         {
             uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
@@ -874,7 +823,6 @@
 /**
  * @brief Increment the field 'ucDNSIndex', which is an index in the array
  *        of DNS addresses.
- *
  * @param[in] pxEndPoint: The end-point of which the DNS index should be
  *                        incremented.
  */
@@ -1067,7 +1015,6 @@
 /**
  * @brief Prepare and send a message to a DNS server.  'uxReadTimeOut_ticks' will be passed as
  * zero, in case the user has supplied a call-back function.
- *
  * @param[in] pcHostName: The hostname for which an IP address is required.
  * @param[in] uxIdentifier: Identifier to send in the DNS message.
  * @param[in] uxReadTimeOut_ticks: The timeout in ticks for waiting. In case the user has supplied
@@ -1226,9 +1173,7 @@
                 }
 
                 ulIPAddress = 0U;
-                BaseType_t xSendResult = DNS_SendRequest( pcHostName,
-                                                          uxIdentifier,
-                                                          xDNSSocket,
+                BaseType_t xSendResult = DNS_SendRequest( xDNSSocket,
                                                           &xAddress,
                                                           pucUDPPayloadBuffer,
                                                           uxPayloadLength );
@@ -1338,12 +1283,10 @@
 
 /**
  * @brief Create the DNS message in the zero copy buffer passed in the first parameter.
- *
  * @param[in,out] pucUDPPayloadBuffer: The zero copy buffer where the DNS message will be created.
  * @param[in] pcHostName: Hostname to be looked up.
  * @param[in] uxIdentifier: The identifier to be added to the DNS message.
  * @param[in] uxHostType: dnsTYPE_A_HOST ( IPv4 ) or dnsTYPE_AAA_HOST ( IPv6 ).
- *
  * @return Total size of the generated message, which is the space from the last written byte
  *         to the beginning of the buffer.
  */
@@ -1441,7 +1384,6 @@
 
 /**
  * @brief For testing purposes: print an address of DNS replies.
- *
  * @param[in] pcFormat: Print format.
  * @param[in] pxAddress: The address to print.
  */
@@ -1479,7 +1421,6 @@
 
 /**
  * @brief For testing purposes: print a list of DNS replies.
- *
  * @param[in] pxAddress: The first reply received ( or NULL )
  */
     void show_addressinfo( const struct freertos_addrinfo * pxAddress )
@@ -1508,9 +1449,7 @@
 
 /**
  * @brief Perform some preliminary checks and then parse the DNS packet.
- *
  * @param[in] pxNetworkBuffer: The network buffer to be parsed.
- *
  * @return Always pdFAIL to indicate that the packet was not consumed and must
  *         be released by the caller.
  */
@@ -1555,9 +1494,7 @@
 
 /**
  * @brief Handle an NBNS packet.
- *
  * @param[in] pxNetworkBuffer: The network buffer holding the NBNS packet.
- *
  * @return pdFAIL to show that the packet was not consumed.
  */
         uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
@@ -1574,44 +1511,6 @@
         }
 
     #endif /* ipconfigUSE_NBNS */
-/*-----------------------------------------------------------*/
-
-    #if ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-
-/**
- * @brief Find the best matching end-point given a reply that was received.
- *
- * @param[in] pxNetworkBuffer: The Ethernet packet that was received.
- *
- * @return An end-point.
- */
-        static NetworkEndPoint_t * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer )
-        {
-            NetworkEndPoint_t * pxEndPoint;
-
-            #if ( ipconfigUSE_IPv6 != 0 )
-                IPPacket_IPv6_t * xIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
-                if( xIPPacket_IPv6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-                {
-                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &xIPPacket_IPv6->xIPHeader.xSourceAddress );
-                }
-                else
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-            {
-                IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
-                pxEndPoint = FreeRTOS_FindEndPointOnNetMask( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
-            }
-
-            if( pxEndPoint != NULL )
-            {
-                pxNetworkBuffer->pxEndPoint = pxEndPoint;
-            }
-
-            return pxEndPoint;
-        }
-    #endif /* ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
 /*-----------------------------------------------------------*/
 
 #endif /* ipconfigUSE_DNS != 0 */

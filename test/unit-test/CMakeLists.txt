@@ -63,6 +63,10 @@ set( TCP_INCLUDES "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DHCP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DHCPv6.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Cache.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Callback.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Networking.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Parser.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_TCP_IP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_TCP_Reception.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_TCP_State_Handling.h"
@@ -234,6 +238,10 @@ include( unit_test_build.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_State_Handling/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
 # include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils/ut.cmake )
+# include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Cache/ut.cmake )
+# include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Networking/ut.cmake )
+# include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Callback/ut.cmake )
+# include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_Parser/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 

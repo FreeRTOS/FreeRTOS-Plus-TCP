@@ -152,7 +152,8 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
 
 #if ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 )
 
-    BaseType_t xApplicationDNSQueryHook( const char * pcName )
+    BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
+                                         const char * pcName )
     {
         BaseType_t xReturn;
 
