@@ -32,7 +32,7 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                             uint16_t usPort );
 
 /****************************************************************
-* Abstraction of DNS_ReadNameField proved in ReadNameField
+* Abstraction of DNS_ReadNameField proved in DNS_ReadNameField
 ****************************************************************/
 
 size_t DNS_ReadNameField( ParseSet_t * pxSet,
@@ -77,6 +77,88 @@ size_t DNS_ReadNameField( ParseSet_t * pxSet,
     __CPROVER_assume( index <= ( uxDestLen + 1U ) && index <= pxSet->uxSourceBytesRemaining );
 
     return index;
+}
+
+/****************************************************************
+* Abstraction of usChar2u16
+****************************************************************/
+uint16_t usChar2u16( const uint8_t * pucPtr )
+{
+    uint16_t ret;
+
+    return ret;
+}
+
+/****************************************************************
+* Abstraction of pxNew_AddrInfo
+****************************************************************/
+struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
+                                           BaseType_t xFamily,
+                                           const uint8_t * pucAddress )
+{
+    struct freertos_addrinfo * ret;
+
+    return ret;
+}
+
+/****************************************************************
+* Abstraction of pxUDPPayloadBuffer_to_NetworkBuffer
+****************************************************************/
+NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer )
+{
+    NetworkBufferDescriptor_t * ret;
+
+    return ret;
+}
+
+/****************************************************************
+* Abstraction of xApplicationDNSQueryHook
+****************************************************************/
+BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
+                                     const char * pcName )
+{
+    BaseType_t ret;
+
+    return ret;
+}
+
+/****************************************************************
+* Abstraction of uxIPHeaderSizePacket
+****************************************************************/
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    size_t ret;
+
+    return ret;
+}
+
+/****************************************************************
+* Abstraction of pxResizeNetworkBufferWithDescriptor
+****************************************************************/
+NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxDescriptor,
+                                                                 size_t xNewSizeBytes )
+{
+    NetworkBufferDescriptor_t * ret;
+
+    return ret;
+}
+
+/****************************************************************
+* Abstraction of vSetField16
+****************************************************************/
+void vSetField16helper( uint8_t * pucBase,
+                        size_t uxOffset,
+                        uint16_t usValue )
+{
+}
+
+/****************************************************************
+* Abstraction of vSetField16
+****************************************************************/
+void vSetField32helper( uint8_t * pucBase,
+                        size_t uxOffset,
+                        uint32_t ulValue )
+{
 }
 
 /****************************************************************

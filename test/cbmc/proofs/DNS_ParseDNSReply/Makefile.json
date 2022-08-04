@@ -7,6 +7,10 @@
   "ENTRY": "DNS_ParseDNSReply",
 
 ################################################################
+#Enable DNS callbacks or else ReadNameField is not defined
+  "callbacks": "0",
+
+################################################################
 # This is the network buffer size.
 # Reasonable values are size > 12 = sizeof(xDNSMessage)
   "NETWORK_BUFFER_SIZE": 40,
@@ -50,7 +54,7 @@
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--unwindset {PARSELOOP0}:{PARSELOOP0_UNWIND},{PARSELOOP1}:{PARSELOOP1_UNWIND},FreeRTOS_ProcessDNSCache.0:5"
+    "--unwindset {PARSELOOP0}:{PARSELOOP0_UNWIND},{PARSELOOP1}:{PARSELOOP1_UNWIND}"
   ],
 
   "OBJS":
@@ -65,5 +69,6 @@
   [
     "NETWORK_BUFFER_SIZE={NETWORK_BUFFER_SIZE}",
     "NAME_SIZE={NAME_SIZE}"
+    "ipconfigDNS_USE_CALLBACKS={callbacks}",
   ]
 }
