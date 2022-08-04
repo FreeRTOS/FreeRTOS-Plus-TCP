@@ -37,8 +37,6 @@
 #include "FreeRTOS_DNS_Callback.h"
 #include "FreeRTOS_DNS_Cache.h"
 
-
-
 /*
  * LLMNR is very similar to DNS, so is handled by the DNS routines.
  */
