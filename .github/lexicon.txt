@@ -735,6 +735,7 @@ pparam
 ppkt
 ppointer
 ppucdata
+ppucreceivebuffer
 ppucrecvdata
 ppxaddressinfo
 ppxendpoint
@@ -1290,6 +1291,7 @@ ulcount
 ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
+ulcurrenttimeseconds
 uldata
 uldatagot
 uldefaultipaddress
@@ -1575,6 +1577,7 @@ vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
 vdhcpprocessendpoint
+vdnscheckcallback
 vdnsinitialise
 vdnssetcallback
 ve
@@ -1596,6 +1599,7 @@ vprocessgeneratedudppacket
 vraprocess
 vreceivera
 vreleasenetworkbufferanddescriptor
+vreturnethernetframe
 vrxfaultinjection
 vsocketbind
 vsocketclose
@@ -1678,6 +1682,7 @@ xdhcpsocketusercount
 xdhcptxperiod
 xdhcptxtime
 xdmarxdescriptors
+xdnscache
 xdnsmessage
 xdnsserver
 xdnsserveraddresses
@@ -1696,6 +1701,7 @@ xemacps
 xemacpsif
 xemactaskhandle
 xenablestate
+xend
 xentries
 xentryfound
 xerrnum

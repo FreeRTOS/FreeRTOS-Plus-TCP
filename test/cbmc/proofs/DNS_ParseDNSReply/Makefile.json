@@ -57,6 +57,7 @@
   [
     "$(ENTRY)_harness.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS_Parser.goto",
     "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/tasks.goto"
   ],
 
