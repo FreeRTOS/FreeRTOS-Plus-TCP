@@ -263,15 +263,6 @@
 /** @brief Used for additional error checking when asserts are enabled. */
     _static struct freertos_addrinfo * pxLastInfo = NULL;
 
-    #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-
-/** @brief An LLMNR or an mDNS lookup of a host was received. The application code
- *         is consulted by calling xApplicationDNSQueryHook(), which returns true
- *         in case the driver should reply to the lookup. */
-        static void prvParseDNS_HandleLLMNRRequest( ParseSet_t * pxSet,
-                                                    uint8_t * pucUDPPayloadBuffer );
-    #endif
-
 /** @brief See if pcHostName contains a valid IPv4 or IPv6 IP-address. */
     static uint32_t prvPrepare_ReadIPAddress( const char * pcHostName,
                                               BaseType_t xFamily,

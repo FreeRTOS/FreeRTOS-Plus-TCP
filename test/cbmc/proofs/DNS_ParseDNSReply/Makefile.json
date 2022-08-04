@@ -20,7 +20,7 @@
 
 ################################################################
 # Loop DNS_ParseDNSReply.0:
-# file lib/FreeRTOS-Plus-TCP/source/FreeRTOS_DNS.c line 915
+# file lib/FreeRTOS-Plus-TCP/source/FreeRTOS_DNS_Parser.c line 681
   "PARSELOOP0": "DNS_ParseDNSReply.0",
 
 # M = sizeof( DNSMessage_t ) = 12
@@ -32,7 +32,7 @@
 
 ################################################################
 # Loop DNS_ParseDNSReply.1:
-# file lib/FreeRTOS-Plus-TCP/source/FreeRTOS_DNS.c line 989
+# file lib/FreeRTOS-Plus-TCP/source/FreeRTOS_DNS_Parser.c line 681
   "PARSELOOP1": "DNS_ParseDNSReply.1",
 
 # A = sizeof( DNSAnswerRecord_t ) = 10
