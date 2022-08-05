@@ -25,11 +25,9 @@
 * Signature of function under test
 ****************************************************************/
 
-uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                            size_t xBufferLength,
-                            struct freertos_addrinfo ** ppxAddressInfo,
-                            BaseType_t xExpected,
-                            uint16_t usPort );
+uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+                           size_t uxBufferLength,
+                           BaseType_t xExpected );
 
 /****************************************************************
 * Abstraction of DNS_ReadNameField proved in DNS_ReadNameField
@@ -80,89 +78,7 @@ size_t DNS_ReadNameField( ParseSet_t * pxSet,
 }
 
 /****************************************************************
-* Abstraction of usChar2u16
-****************************************************************/
-uint16_t usChar2u16( const uint8_t * pucPtr )
-{
-    uint16_t ret;
-
-    return ret;
-}
-
-/****************************************************************
-* Abstraction of pxNew_AddrInfo
-****************************************************************/
-struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
-                                           BaseType_t xFamily,
-                                           const uint8_t * pucAddress )
-{
-    struct freertos_addrinfo * ret;
-
-    return ret;
-}
-
-/****************************************************************
-* Abstraction of pxUDPPayloadBuffer_to_NetworkBuffer
-****************************************************************/
-NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer )
-{
-    NetworkBufferDescriptor_t * ret;
-
-    return ret;
-}
-
-/****************************************************************
-* Abstraction of xApplicationDNSQueryHook
-****************************************************************/
-BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
-                                     const char * pcName )
-{
-    BaseType_t ret;
-
-    return ret;
-}
-
-/****************************************************************
-* Abstraction of uxIPHeaderSizePacket
-****************************************************************/
-size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
-{
-    size_t ret;
-
-    return ret;
-}
-
-/****************************************************************
-* Abstraction of pxResizeNetworkBufferWithDescriptor
-****************************************************************/
-NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxDescriptor,
-                                                                 size_t xNewSizeBytes )
-{
-    NetworkBufferDescriptor_t * ret;
-
-    return ret;
-}
-
-/****************************************************************
-* Abstraction of vSetField16
-****************************************************************/
-void vSetField16helper( uint8_t * pucBase,
-                        size_t uxOffset,
-                        uint16_t usValue )
-{
-}
-
-/****************************************************************
-* Abstraction of vSetField16
-****************************************************************/
-void vSetField32helper( uint8_t * pucBase,
-                        size_t uxOffset,
-                        uint32_t ulValue )
-{
-}
-
-/****************************************************************
-* Proof of DNS_ParseDNSReply
+* Proof of prvParseDNSReply
 ****************************************************************/
 
 void harness()
@@ -178,7 +94,7 @@ void harness()
     __CPROVER_assume( uxBufferLength <= NETWORK_BUFFER_SIZE );
     __CPROVER_assume( pucUDPPayloadBuffer != NULL );
 
-    uint32_t index = DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                                        uxBufferLength,
-                                        xExpected );
+    uint32_t index = prvParseDNSReply( pucUDPPayloadBuffer,
+                                       uxBufferLength,
+                                       xExpected );
 }

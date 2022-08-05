@@ -4,11 +4,7 @@
 # iterations loops iterating over the buffer.
 
 {
-  "ENTRY": "DNS_ParseDNSReply",
-
-################################################################
-#Enable DNS callbacks or else ReadNameField is not defined
-  "callbacks": "0",
+  "ENTRY": "ParseDNSReply",
 
 ################################################################
 # This is the network buffer size.
@@ -23,9 +19,9 @@
   "NAME_SIZE":  "10",
 
 ################################################################
-# Loop DNS_ParseDNSReply.0:
-# file lib/FreeRTOS-Plus-TCP/source/FreeRTOS_DNS_Parser.c line 681
-  "PARSELOOP0": "DNS_ParseDNSReply.0",
+# Loop prvParseDNSReply.0:
+# file lib/FreeRTOS-Plus-TCP/source/FreeRTOS_DNS.c line 915
+  "PARSELOOP0": "prvParseDNSReply.0",
 
 # M = sizeof( DNSMessage_t ) = 12
 # U = sizeof( uint32_t) = 4
@@ -35,9 +31,9 @@
     "__eval 1 if {NETWORK_BUFFER_SIZE} < 12 else ({NETWORK_BUFFER_SIZE} - 12) / 5 + 1",
 
 ################################################################
-# Loop DNS_ParseDNSReply.1:
-# file lib/FreeRTOS-Plus-TCP/source/FreeRTOS_DNS_Parser.c line 681
-  "PARSELOOP1": "DNS_ParseDNSReply.1",
+# Loop prvParseDNSReply.1:
+# file lib/FreeRTOS-Plus-TCP/source/FreeRTOS_DNS.c line 915
+  "PARSELOOP1": "prvParseDNSReply.1",
 
 # A = sizeof( DNSAnswerRecord_t ) = 10
 # M = sizeof( DNSMessage_t ) = 12
@@ -54,14 +50,13 @@
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--unwindset {PARSELOOP0}:{PARSELOOP0_UNWIND},{PARSELOOP1}:{PARSELOOP1_UNWIND}"
+    "--unwindset {PARSELOOP0}:{PARSELOOP0_UNWIND},{PARSELOOP1}:{PARSELOOP1_UNWIND},prvProcessDNSCache.0:5"
   ],
 
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS.goto",
-    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS_Parser.goto",
     "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/tasks.goto"
   ],
 
@@ -69,6 +64,5 @@
   [
     "NETWORK_BUFFER_SIZE={NETWORK_BUFFER_SIZE}",
     "NAME_SIZE={NAME_SIZE}"
-    "ipconfigDNS_USE_CALLBACKS={callbacks}",
   ]
 }
