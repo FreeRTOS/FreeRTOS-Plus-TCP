@@ -776,6 +776,7 @@ prviptask
 prvlinkstatuschange
 prvnotifyqueuesetcontainer
 prvntptask
+prvparsednsreply
 prvpreparelookup
 prvprocessdhcpreplies
 prvprocessippacket
