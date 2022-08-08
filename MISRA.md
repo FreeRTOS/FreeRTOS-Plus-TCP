@@ -6,7 +6,7 @@ Since the FreeRTOS-Plus-TCP library is designed for small-embedded devices, it n
 be efficient. To achieve that and to increase the performace of the IP-stack, it deviates from some MISRA rules.
 The specific deviations, suppressed inline, are listed below.
 
-Additionally, [MISRA configuration file](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/tools/coverity_misra.config) contains the project wide deviations.
+Additionally, [MISRA configuration file](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/test/Coverity/coverity_misra.config) contains the project wide deviations.
 
 ### Suppressed with Coverity Comments
 To find the violation references in the source files run grep on the source code
