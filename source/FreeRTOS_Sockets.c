@@ -1533,6 +1533,9 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
  *
  * @return Returns NULL, always.
  */
+/* MISRA Ref 17.2.1 [Sockets and limited recursion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
+/* coverity[misra_c_2012_rule_17_2_violation] */
 void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -1645,12 +1648,16 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
  *
  * @param[in] pxSocketToDelete: The socket being closed.
  */
+    /* MISRA Ref 17.2.1 [Sockets and limited recursion] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
+    /* coverity[misra_c_2012_rule_17_2_violation] */
+    /* coverity[recursive_step] */
     static void prvTCPSetSocketCount( FreeRTOS_Socket_t const * pxSocketToDelete )
     {
         const ListItem_t * pxIterator;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
         FreeRTOS_Socket_t * pxOtherSocket;
@@ -1673,8 +1680,9 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                       ( pxOtherSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) ) )
                 {
                     /* MISRA Ref 17.2.1 [Sockets and limited recursion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
                     /* coverity[misra_c_2012_rule_17_2_violation] */
+                    /* coverity[recursive_step] */
                     ( void ) vSocketClose( pxOtherSocket );
                 }
             }
@@ -1957,8 +1965,13 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                          * type "B" removes const qualifier from the pointed to type. */
 
                         /* MISRA Ref 11.8.1 [Function pointer and use of const pointer] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-118 */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-118 */
+
+                        /* MISRA Ref 11.1.1 [ Conversion between pointer to
+                         * a function and another type ] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-111 */
                         /* coverity[misra_c_2012_rule_11_8_violation] */
+                        /* coverity[misra_c_2012_rule_11_1_violation] */
                         pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
                         xReturn = 0;
                         break;
@@ -2242,7 +2255,7 @@ static const ListItem_t * pxListFindListItemWithValue( const List_t * pxList,
         const ListItem_t * pxIterator;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxList->xListEnd ) );
 
@@ -3166,7 +3179,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* Not a valid socket or wrong type */
 
             /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
@@ -3176,7 +3189,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* Parent socket is not in listening mode */
 
             /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
@@ -3956,12 +3969,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         TickType_t xDelta = xNow - xLastTime;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxIterator = ( const ListItem_t * ) listGET_HEAD_ENTRY( &xBoundTCPSocketsList );
 
@@ -4060,7 +4073,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         FreeRTOS_Socket_t * pxResult = NULL, * pxListenSocket = NULL;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
@@ -4707,7 +4720,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
     BaseType_t xReturnValue = pdFALSE;
 
     /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) )
     {
@@ -4881,7 +4894,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
             if( xRound == 0 )
             {
                 /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxEnd = ( ( const ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
             }
@@ -4890,7 +4903,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
                 else
                 {
                     /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                     /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
                 }

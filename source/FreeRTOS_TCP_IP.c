@@ -65,9 +65,6 @@
 #if ipconfigUSE_TCP == 1
 
 
-/* MISRA Ref 8.9.1 [File scoped variables] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
-/* coverity[misra_c_2012_rule_8_9_violation] */
 
 /** @brief When closing a socket an event is posted to the Network Event Queue.
  *         If the queue is full, then the event is not posted and the socket
@@ -75,6 +72,9 @@
  *         track of any socket which needs to be closed. This variable can be
  *         accessed by the IP task only. Thus, preventing any race condition.
  */
+    /* MISRA Ref 8.9.1 [File scoped variables] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+    /* coverity[misra_c_2012_rule_8_9_violation] */
     static FreeRTOS_Socket_t * xPreviousSocket = NULL;
 
 /*
@@ -107,6 +107,7 @@
  *
  * @param[in] pxSocket: The socket to be checked.
  */
+    /* coverity[single_use] */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
     {
         if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )
@@ -552,7 +553,7 @@
         /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
@@ -578,7 +579,7 @@
             /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
             ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
@@ -810,7 +811,7 @@
         BaseType_t xResult = pdFALSE;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEndTCP = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 

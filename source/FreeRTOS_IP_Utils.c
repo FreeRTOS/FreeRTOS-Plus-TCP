@@ -78,6 +78,7 @@
 /* MISRA Ref 8.9.1 [File scoped variables] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
+/* coverity[single_use] */
     static BaseType_t xCallEventHook = pdFALSE;
 #endif
 
@@ -974,10 +975,10 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* coverity[value_overwrite] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
-    /* coverity[value_overwrite] */
     /* MISRA Ref 2.2.1 [Unions and dead code] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
     /* coverity[misra_c_2012_rule_2_2_violation] */
+    /* coverity[value_overwrite] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
     if( ( uxAlignBits & 1U ) != 0U )

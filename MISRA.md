@@ -31,6 +31,35 @@ _Ref 8.9.1_
        order of execution, some variables have file scope definitions rather
        than function scope.
 
+#### Rule 8.13
+_Ref 8.13.1_
+
+- MISRA C-2012 Rule 8.13 Parameter passed is never used, should be declared as
+    const.  The argument passed to the `prvIPTask` function is left unused which is
+    considered as the variable not being used and thus warranting the use of `const`.
+    However, the FreeRTOS-kernel function `xTaskCreate` expects a function signature
+    of type `void vSomeFunction( void * pvArgs )`. To satisfy that requirement, the
+    function signature of `prvIPTask` does not have a `const` qualifier in the
+    parameter signature.
+
+#### Rule 10.5
+_Ref 10.5.1_
+
+- MISRA C-2012 Rule 10.5 Converting from an unsigned to an enum type. The
+    operation is safe to perform in that case, as we are using a generic API
+    to send and receive data, in that case the exact data sent it is received
+
+#### Rule 11.1
+_Ref 11.1.1_
+
+- MISRA C-2012 Rule 11.1 Converting from a void pointer to a function pointer.
+   The `FreeRTOS_setsockopt` API allows users to configure sockets by setting
+   various options. In order to do so, the function must accept one parameter
+   which, based on the option value, can be casted to the corresponding socket
+   field. To that end, that parameter is of `void *` type to accommodate all values.
+   The caller of the API is responsible for providing correct function pointer to the
+   API. Thus, this violation can be safely suppressed.
+
 #### Rule 11.3
 _Ref 11.3.1_
 
@@ -107,16 +136,6 @@ _Ref 14.3.1_
 - MISRA C-2012 Rule 14.3 False positive as the value might be changed
         depending on the conditionally compiled code
 
-#### Rule 21.6
-_Ref 21.6.1_
-
-- MISRA C-2012 Rule 21.6 warns about the use of standard library input/output
-        functions as they might have implementation defined or undefined
-        behaviour. The function `snprintf` is used to insert information in a
-        logging string. This is only used in a utility function which aids in
-        debugging and is not part of the 'core' code governing the
-        functionality of the TCP/IP stack.
-
 #### Rule 17.2
 _Ref 17.2.1_
 
@@ -128,6 +147,17 @@ _Ref 17.2.1_
         have a secondary child socket thereby limiting the number of recursive
         calls to one.
 
+#### Rule 20.5
+_Ref 20.5.1_
+
+- MISRA C-2012 Rule 20.5 warns against the use of #undef.
+   FreeRTOS-Plus-TCP allows its users to set some configuration macros
+   to modify the behavior/performance of the library according to their
+   needs. However, the macros values must be within certain bounds.
+   To achieve that, if the macro values lie outside of the bounds, they
+   are undefined using `#undef` before being redefined to a proper
+   value.
+
 #### Rule 20.10
 _Ref 20.10.1_
 
@@ -135,3 +165,14 @@ _Ref 20.10.1_
         However, in this case, it must be used to support compile time
         assertions in case the preprocessor does not suppport sizeof. This
         operation (assert) has no runtime execution.
+
+#### Rule 21.6
+_Ref 21.6.1_
+
+- MISRA C-2012 Rule 21.6 warns about the use of standard library input/output
+        functions as they might have implementation defined or undefined
+        behaviour. The function `snprintf` is used to insert information in a
+        logging string. This is only used in a utility function which aids in
+        debugging and is not part of the 'core' code governing the
+        functionality of the TCP/IP stack.
+
