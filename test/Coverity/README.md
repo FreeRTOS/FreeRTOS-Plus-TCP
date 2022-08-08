@@ -17,13 +17,6 @@ You can run this on a platform supported by Coverity. The list and other details
 To compile and run the Coverity target successfully, you must have the following:
 
 1. CMake version > 3.13.0 (You can check whether you have this by typing `cmake --version`)
-    - You will need to get the latest CMake version using curl or wget (or similar command).
-        - For Debian based systems, including Ubuntu, uninstall the current version of CMake using `apt remove --purge --auto-remove cmake`.
-        - Download the 3.13.0 version using `wget https://cmake.org/files/v3.13/cmake-3.13.0.tar.gz`.
-        - Extract the cmake download using `tar -xzvf cmake-3.13.0.tar.gz`.
-        - Go to the extracted folder (`cd cmake-3.13.0`) and run `./bootstrap`.
-        - Run `make -j$(nproc)` and then run `make install`.
-        - Check the version using `cmake --version` command.
 2. GCC compiler
     - You can see the downloading and installation instructions [here](https://gcc.gnu.org/install/).
 3. Download the repo and include the submodules using the following commands.
