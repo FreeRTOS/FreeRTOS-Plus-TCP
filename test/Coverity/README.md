@@ -1,7 +1,15 @@
 # Static code analysis for FreeRTOS-Plus-TCP library
-This directory is made for the purpose of statically testing the MISRA C:2012 compliance of FreeRTOS+TCP using [Synopsys Coverity](https://www.synopsys.com/software-integrity/security-testing/static-analysis-sast.html) static analysis tool. To that end, this directory provides a [CMake](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/test/Coverity/CMakeLists.txt) file and [configuration files](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/main/test/Coverity/ConfigFiles) required to build an application for the tool to analyze.
+This directory is made for the purpose of statically testing the MISRA C:2012 compliance of FreeRTOS+TCP using
+[Synopsys Coverity](https://www.synopsys.com/software-integrity/security-testing/static-analysis-sast.html) static analysis tool.
+To that end, this directory provides a [CMake](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/test/Coverity/CMakeLists.txt)
+file and [configuration files](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/main/test/Coverity/ConfigFiles) required to build
+an application for the tool to analyze.
 
-For details regarding the suppressed violations in the report (which can be generated using the instructions described below), please see the [MISRA.md](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md) file.
+**Note**
+For generating the report, we have use Coverity version 2018.09.
+
+For details regarding the suppressed violations in the report (which can be generated using the instructions described below), please
+see the [MISRA.md](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md) file.
 
 ## Getting Started
 ### Prerequisites
@@ -53,4 +61,9 @@ Go to the root directory of the FreeRTOS-Plus-TCP repo and run the following com
   ~~~
 
 You should now have the HTML formatted violations list in a directory named `html-output`.
-With the current configuration and the provided project, you should see only one deviation from advisory rule 8.13 in file FreeRTOS_IP.c [here](https://github.com/alfred2g/FreeRTOS-Plus-TCP/blob/misra_remaining/source/FreeRTOS_IP.c#L236). This deviation has a justification outlined [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-813). With that justification in place, a coverity suppression statement has been added to the code. However, even with that suppression in place, the coverity tool continues to report the deviation. Thus, as an excpetion, we have allowed the deviation to be reported in the HTML formatted report. If you find a way around it, please help us fix this by creating a pull-request in this repository.
+With the current configuration and the provided project, you should see only one deviation from advisory rule 8.13 in file 
+FreeRTOS_IP.c [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/4ac10c84a384f0414f4aec0d4be0ee7c345f2f8b/source/FreeRTOS_IP.c#L236).
+This deviation has a justification outlined [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-813). With
+that justification in place, a coverity suppression statement has been added to the code. However, even with that suppression in
+place, the coverity tool continues to report the deviation. Thus, as an exception, we have allowed the deviation to be reported in
+the HTML formatted report. If you find a way around it, please help us fix this by creating a pull-request in this repository.
