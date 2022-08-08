@@ -72,7 +72,7 @@
  * @brief indicates the index of a free entry in the cache structure
  *        \a  DNSCacheRow_t
  */
-    static UBaseType_t uxFreeEntry = 0;
+    static UBaseType_t uxFreeEntry = 0U;
 
 
 
@@ -139,7 +139,7 @@
     void FreeRTOS_dnsclear( void )
     {
         ( void ) memset( xDNSCache, 0x0, sizeof( xDNSCache ) );
-        uxFreeEntry = 0;
+        uxFreeEntry = 0U;
     }
 
 /**
@@ -173,9 +173,13 @@
         { /* Element found */
             if( xLookUp == pdTRUE )
             {
-                prvGetCacheIPEntry( uxIndex,
-                                    pulIP,
-                                    ulCurrentTimeSeconds );
+                /* This statement can only be reached when xResult is true; which
+                 * implies that the entry is present and a 'get' operation will result
+                 * in success. Therefore, it is safe to ignore the return value of the
+                 * below function. */
+                ( void ) prvGetCacheIPEntry( uxIndex,
+                                             pulIP,
+                                             ulCurrentTimeSeconds );
             }
             else
             {

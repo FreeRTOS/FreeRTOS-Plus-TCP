@@ -34,4 +34,8 @@
 
 /* Keyword required to appear after any structure which has packed
  * placement in memory. */
+
+/* The language extension is used in a portable manner for each specific compiler */
+/* coverity[misra_c_2012_rule_1_2_violation] */
+/* coverity[caretline] */
 __attribute__( ( packed ) );

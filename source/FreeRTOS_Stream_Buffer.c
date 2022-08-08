@@ -341,7 +341,7 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
                 pxBuffer->uxFront = uxNextHead;
             }
         }
-        xTaskResumeAll();
+        ( void ) xTaskResumeAll();
     }
 
     return uxCount;

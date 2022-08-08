@@ -73,6 +73,12 @@
 #endif
 
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
+    /* used for unit testing */
+
+/* MISRA Ref 8.9.1 [File scoped variables] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+/* coverity[misra_c_2012_rule_8_9_violation] */
+/* coverity[single_use] */
     static BaseType_t xCallEventHook = pdFALSE;
 #endif
 
@@ -103,9 +109,9 @@ typedef union _xUnion32
  */
 typedef union _xUnionPtr
 {
-    uint32_t * u32ptr; /**< The pointer member to a 32-bit variable. */
-    uint16_t * u16ptr; /**< The pointer member to a 16-bit variable. */
-    uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
+    const uint32_t * u32ptr; /**< The pointer member to a 32-bit variable. */
+    const uint16_t * u16ptr; /**< The pointer member to a 16-bit variable. */
+    const uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
 } xUnionPtr;
 
 /*
@@ -129,6 +135,10 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
         uintptr_t uxOption = ( uintptr_t ) eGetDHCPState();
 
         xEventMessage.eEventType = eDHCPEvent;
+
+        /* MISRA Ref 11.6.1 [DHCP events and conversion to void] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
+        /* coverity[misra_c_2012_rule_11_6_violation] */
         xEventMessage.pvData = ( void * ) uxOption;
 
         return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );
@@ -220,7 +230,11 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
     else
     {
         /* Obtain the network buffer from the zero copy pointer. */
-        uxBuffer = ipPOINTER_CAST( uintptr_t, pvBuffer );
+
+        /* MISRA Ref 11.6.2 [Pointer arithmetic and hidden pointer] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
+        /* coverity[misra_c_2012_rule_11_6_violation] */
+        uxBuffer = ( uintptr_t ) pvBuffer;
 
         /* The input here is a pointer to a packet buffer plus some offset.  Subtract
          * this offset, and also the size of the header in the network buffer, usually
@@ -231,9 +245,9 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
          * pointer is dereferenced, make sure it is well aligned. */
         if( ( uxBuffer & ( ( ( uintptr_t ) sizeof( uxBuffer ) ) - 1U ) ) == ( uintptr_t ) 0U )
         {
-            /* The following statement may trigger a:
-             * warning: cast increases required alignment of target type [-Wcast-align].
-             * It has been confirmed though that the alignment is suitable. */
+            /* MISRA Ref 11.4.2 [Validation of pointer alignment] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             pxResult = *( ( NetworkBufferDescriptor_t ** ) uxBuffer );
         }
         else
@@ -308,6 +322,10 @@ BaseType_t xIsCallingFromIPTask( void )
 /**
  * @brief Process a 'Network down' event and complete required processing.
  */
+/* MISRA Ref 8.9.1 [File scoped variables] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+/* coverity[misra_c_2012_rule_8_9_violation] */
+/* coverity[single_use] */
 void prvProcessNetworkDownEvent( void )
 {
     /* Stop the ARP timer while there is no network. */
@@ -381,7 +399,6 @@ void vPreCheckConfigs( void )
                 /* This is a 64-bit platform, make sure there is enough space in
                  * pucEthernetBuffer to store a pointer. */
                 configASSERT( ipconfigBUFFER_PADDING >= 14 );
-
                 /* But it must have this strange alignment: */
                 configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
             }
@@ -459,6 +476,10 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
 
         /* Parse the packet length. */
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
         /* Per https://tools.ietf.org/html/rfc791, the four-bit Internet Header
@@ -500,6 +521,10 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
          * and IP headers incorrectly aligned. However, either way, the "third"
          * protocol (Layer 3 or 4) header will be aligned, which is the convenience
          * of this calculation. */
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtPack = ( ( ProtocolPacket_t * ) &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
         /* Switch on the Layer 3/4 protocol. */
@@ -674,7 +699,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
             /* And then continue at the IPv4 source and destination addresses. */
             usChecksum = ( uint16_t )
                          ( ~usGenerateChecksum( usChecksum,
-                                                ipPOINTER_CAST( const uint8_t *, &( pxIPPacket->xIPHeader.ulSourceIPAddress ) ),
+                                                ( const uint8_t * ) &( pxIPPacket->xIPHeader.ulSourceIPAddress ),
                                                 ( size_t ) ( ( 2U * ( size_t ) ipSIZE_OF_IPv4_ADDRESS ) + ulLength ) ) );
             /* Sum TCP header and data. */
         }
@@ -805,13 +830,16 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 {
 /* MISRA/PC-lint doesn't like the use of unions. Here, they are a great
  * aid though to optimise the calculations. */
-    xUnion32 xSum2, xSum, xTerm;
+    xUnion32 xSum2;
+    xUnion32 xSum;
+    xUnion32 xTerm;
     xUnionPtr xSource;
-    xUnionPtr xLastSource;
     uintptr_t uxAlignBits;
     uint32_t ulCarry = 0U;
     uint16_t usTemp;
     size_t uxDataLengthBytes = uxByteCount;
+    size_t uxSize;
+    uintptr_t ulX;
 
     /* Small MCUs often spend up to 30% of the time doing checksum calculations
     * This function is optimised for 32-bit CPUs; Each time it will try to fetch
@@ -822,7 +850,11 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSum.u32 = ( uint32_t ) usTemp;
     xTerm.u32 = 0U;
 
-    xSource.u8ptr = ipPOINTER_CAST( uint8_t *, pucNextData );
+    xSource.u8ptr = pucNextData;
+
+    /* MISRA Ref 11.4.3 [Casting pointer to int for verification] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
 
     /*
@@ -830,13 +862,13 @@ uint16_t usGenerateChecksum( uint16_t usSum,
      * odd position and we need to make sure the usSum value now in xSum is
      * as if it had been "aligned" in the same way.
      */
-    if( ( uxAlignBits & 1UL ) != 0U )
+    if( ( uxAlignBits & 1U ) != 0U )
     {
         xSum.u32 = ( ( xSum.u32 & 0xffU ) << 8 ) | ( ( xSum.u32 & 0xff00U ) >> 8 );
     }
 
     /* If byte (8-bit) aligned... */
-    if( ( ( uxAlignBits & 1UL ) != 0UL ) && ( uxDataLengthBytes >= ( size_t ) 1 ) )
+    if( ( ( uxAlignBits & 1U ) != 0U ) && ( uxDataLengthBytes >= ( size_t ) 1U ) )
     {
         xTerm.u8[ 1 ] = *( xSource.u8ptr );
         xSource.u8ptr++;
@@ -854,12 +886,22 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     }
 
     /* Word (32-bit) aligned, do the most part. */
-    xLastSource.u32ptr = ( xSource.u32ptr + ( uxDataLengthBytes / 4U ) ) - 3U;
+
+    uxSize = ( size_t ) ( ( uxDataLengthBytes / 4U ) * 4U );
+
+    if( uxSize >= ( 3U * sizeof( uint32_t ) ) )
+    {
+        uxSize -= ( 3U * sizeof( uint32_t ) );
+    }
+    else
+    {
+        uxSize = 0U;
+    }
 
     /* In this loop, four 32-bit additions will be done, in total 16 bytes.
      * Indexing with constants (0,1,2,3) gives faster code than using
      * post-increments. */
-    while( xSource.u32ptr < xLastSource.u32ptr )
+    for( ulX = 0U; ulX < uxSize; ulX += 4U * sizeof( uint32_t ) )
     {
         /* Use a secondary Sum2, just to see if the addition produced an
          * overflow. */
@@ -902,38 +944,41 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ] + ulCarry;
 
     uxDataLengthBytes %= 16U;
-    xLastSource.u8ptr = ( uint8_t * ) ( xSource.u8ptr + ( uxDataLengthBytes & ~( ( size_t ) 1 ) ) );
 
     /* Half-word aligned. */
+    uxSize = ( ( uxDataLengthBytes & ~( ( size_t ) 1U ) ) );
 
-    /* Coverity does not like Unions. Warning issued here: "The operator "<"
-     * is being applied to the pointers "xSource.u16ptr" and "xLastSource.u16ptr",
-     * which do not point into the same object." */
-    while( xSource.u16ptr < xLastSource.u16ptr )
+    for( ulX = 0U; ulX < uxSize; ulX += 1U * sizeof( uint16_t ) )
     {
         /* At least one more short. */
         xSum.u32 += xSource.u16ptr[ 0 ];
-        xSource.u16ptr++;
+        xSource.u16ptr = &xSource.u16ptr[ 1 ];
     }
 
-    if( ( uxDataLengthBytes & ( size_t ) 1 ) != 0U ) /* Maybe one more ? */
+    if( ( uxDataLengthBytes & ( size_t ) 1U ) != 0U ) /* Maybe one more ? */
     {
         xTerm.u8[ 0 ] = xSource.u8ptr[ 0 ];
     }
 
-    /* Coverity doesn't understand about union variables. */
+    /* MISRA Ref 2.2.1 [Unions and dead code] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
     /* coverity[misra_c_2012_rule_2_2_violation] */
+    /* coverity[assigned_value] */
     xSum.u32 += xTerm.u32;
 
     /* Now add all carries again. */
 
-    /* Assigning value from "xTerm.u32" to "xSum.u32" here, but that stored value is overwritten before it can be used.
-     * Coverity doesn't understand about union variables. */
+    /* Assigning value from "xTerm.u32" to "xSum.u32" here, but that stored value is overwritten before it can be used. */
+    /* MISRA Ref 2.2.1 [Unions and dead code] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
     /* coverity[misra_c_2012_rule_2_2_violation] */
+    /* coverity[value_overwrite] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
-    /* coverity[value_overwrite] */
+    /* MISRA Ref 2.2.1 [Unions and dead code] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
     /* coverity[misra_c_2012_rule_2_2_violation] */
+    /* coverity[value_overwrite] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
     if( ( uxAlignBits & 1U ) != 0U )
@@ -1110,18 +1155,18 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
             break;
 
         default:
-            /* Using function "snprintf". */
-            /* exception used for logging purposes only */
+            /* MISRA Ref 21.6.1 [snprintf and logging] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
             /* coverity[misra_c_2012_rule_21_6_violation] */
-            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int ) xErrnum );
+            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", xErrnum );
             pcName = NULL;
             break;
     }
 
     if( pcName != NULL )
     {
-        /* Using function "snprintf". */
-        /* exception used for logging purposes only */
+        /* MISRA Ref 21.6.1 [snprintf and logging] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
         /* coverity[misra_c_2012_rule_21_6_violation] */
         ( void ) snprintf( pcBuffer, uxLength, "%s", pcName );
     }

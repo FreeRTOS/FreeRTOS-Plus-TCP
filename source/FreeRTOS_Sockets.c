@@ -233,6 +233,9 @@ static BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
 {
     BaseType_t xReturn;
 
+    /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket == NULL ) || ( pxSocket == FREERTOS_INVALID_SOCKET ) )
     {
         xReturn = pdFALSE;
@@ -400,6 +403,9 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
     if( prvDetermineSocketSize( xDomain, xType, xProtocolCpy, &uxSocketSize ) == pdFAIL )
     {
+        /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+        /* coverity[misra_c_2012_rule_11_4_violation] */
         xReturn = FREERTOS_INVALID_SOCKET;
     }
     else
@@ -412,6 +418,9 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
         if( pxSocket == NULL )
         {
+            /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             xReturn = FREERTOS_INVALID_SOCKET;
             iptraceFAILED_TO_CREATE_SOCKET();
         }
@@ -422,6 +431,10 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             if( xEventGroup == NULL )
             {
                 vPortFreeSocket( pxSocket );
+
+                /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+                /* coverity[misra_c_2012_rule_11_4_violation] */
                 xReturn = FREERTOS_INVALID_SOCKET;
                 iptraceFAILED_TO_CREATE_EVENT_GROUP();
             }
@@ -457,7 +470,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                 }
 
                 vListInitialiseItem( &( pxSocket->xBoundSocketListItem ) );
-                listSET_LIST_ITEM_OWNER( &( pxSocket->xBoundSocketListItem ), ipPOINTER_CAST( void *, pxSocket ) );
+                listSET_LIST_ITEM_OWNER( &( pxSocket->xBoundSocketListItem ), ( void * ) pxSocket );
 
                 pxSocket->xReceiveBlockTime = ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME;
                 pxSocket->xSendBlockTime = ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME;
@@ -985,7 +998,7 @@ int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
                  * the received data can be copied, but a pointer that must be set to
                  * point to the buffer in which the received data has already been
                  * placed. */
-                *( ( void ** ) pvBuffer ) = ipPOINTER_CAST( void *, &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] ) );
+                *( ( void ** ) pvBuffer ) = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
             }
         }
 
@@ -1226,6 +1239,9 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
 
     configASSERT( xIsCallingFromIPTask() == pdFALSE );
 
+    /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket == NULL ) || ( pxSocket == FREERTOS_INVALID_SOCKET ) )
     {
         xReturn = -pdFREERTOS_ERRNO_EINVAL;
@@ -1457,6 +1473,9 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
     xCloseEvent.eEventType = eSocketCloseEvent;
     xCloseEvent.pvData = xSocket;
 
+    /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( xSocket == NULL ) || ( xSocket == FREERTOS_INVALID_SOCKET ) )
     {
         xResult = 0;
@@ -1514,6 +1533,9 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
  *
  * @return Returns NULL, always.
  */
+/* MISRA Ref 17.2.1 [Sockets and limited recursion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
+/* coverity[misra_c_2012_rule_17_2_violation] */
 void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -1626,14 +1648,22 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
  *
  * @param[in] pxSocketToDelete: The socket being closed.
  */
+    /* MISRA Ref 17.2.1 [Sockets and limited recursion] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
+    /* coverity[misra_c_2012_rule_17_2_violation] */
+    /* coverity[recursive_step] */
     static void prvTCPSetSocketCount( FreeRTOS_Socket_t const * pxSocketToDelete )
     {
         const ListItem_t * pxIterator;
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
         FreeRTOS_Socket_t * pxOtherSocket;
         uint16_t usLocalPort = pxSocketToDelete->usLocalPort;
 
-        if( pxSocketToDelete->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN )
+        if( pxSocketToDelete->u.xTCP.eTCPState == eTCP_LISTEN )
         {
             pxIterator = listGET_NEXT( pxEnd );
 
@@ -1644,11 +1674,15 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                 /* This needs to be done here, before calling vSocketClose. */
                 pxIterator = listGET_NEXT( pxIterator );
 
-                if( ( pxOtherSocket->u.xTCP.ucTCPState != ( uint8_t ) eTCP_LISTEN ) &&
+                if( ( pxOtherSocket->u.xTCP.eTCPState != eTCP_LISTEN ) &&
                     ( pxOtherSocket->usLocalPort == usLocalPort ) &&
                     ( ( pxOtherSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
                       ( pxOtherSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) ) )
                 {
+                    /* MISRA Ref 17.2.1 [Sockets and limited recursion] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
+                    /* coverity[misra_c_2012_rule_17_2_violation] */
+                    /* coverity[recursive_step] */
                     ( void ) vSocketClose( pxOtherSocket );
                 }
             }
@@ -1661,7 +1695,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
             {
                 pxOtherSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
-                if( ( pxOtherSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN ) &&
+                if( ( pxOtherSocket->u.xTCP.eTCPState == eTCP_LISTEN ) &&
                     ( pxOtherSocket->usLocalPort == usLocalPort ) &&
                     ( pxOtherSocket->u.xTCP.usChildCount != 0U ) )
                 {
@@ -1717,7 +1751,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
         }
         else
         {
-            ulNewValue = *( ipPOINTER_CAST( const uint32_t *, pvOptionValue ) );
+            ulNewValue = *( ( const uint32_t * ) pvOptionValue );
 
             if( lOptionName == FREERTOS_SO_SNDBUF )
             {
@@ -1772,6 +1806,9 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
     ( void ) lLevel;
     ( void ) uxOptionLength;
 
+    /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+    /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( pxSocket != NULL ) && ( pxSocket != FREERTOS_INVALID_SOCKET ) )
     {
         switch( lOptionName )
@@ -1911,7 +1948,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                      * sleeps. */
                     case FREERTOS_SO_SET_SEMAPHORE:
                        {
-                           pxSocket->pxUserSemaphore = *( ipPOINTER_CAST( SemaphoreHandle_t *, pvOptionValue ) );
+                           pxSocket->pxUserSemaphore = *( ( SemaphoreHandle_t * ) pvOptionValue );
                        }
                         xReturn = 0;
                         break;
@@ -1923,7 +1960,18 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         /* Each socket can have a callback function that is executed
                          * when there is an event the socket's owner might want to
                          * process. */
-                        /* The type cast of the pointer expression "A" to type "B" removes const qualifier from the pointed to type. */
+
+                        /* The type cast of the pointer expression "A" to
+                         * type "B" removes const qualifier from the pointed to type. */
+
+                        /* MISRA Ref 11.8.1 [Function pointer and use of const pointer] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-118 */
+
+                        /* MISRA Ref 11.1.1 [ Conversion between pointer to
+                         * a function and another type ] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-111 */
+                        /* coverity[misra_c_2012_rule_11_8_violation] */
+                        /* coverity[misra_c_2012_rule_11_1_violation] */
                         pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
                         xReturn = 0;
                         break;
@@ -1932,7 +1980,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                 #if ( ipconfigUSE_TCP != 0 )
                     case FREERTOS_SO_SET_LOW_HIGH_WATER:
                        {
-                           const LowHighWater_t * pxLowHighWater = ipPOINTER_CAST( const LowHighWater_t *, pvOptionValue );
+                           const LowHighWater_t * pxLowHighWater = ( const LowHighWater_t * ) pvOptionValue;
 
                            if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
                            {
@@ -1973,7 +2021,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                                break; /* will return -pdFREERTOS_ERRNO_EINVAL */
                            }
 
-                           pxProps = ipPOINTER_CAST( const WinProperties_t *, pvOptionValue );
+                           pxProps = ( const WinProperties_t * ) pvOptionValue;
 
                            /* Validity of txStream will be checked by the function below. */
                            xReturn = prvSockopt_so_buffer( pxSocket, FREERTOS_SO_SNDBUF, &( pxProps->lTxBufSize ) );
@@ -2070,7 +2118,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                            }
 
                            if( ( pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize == pdFALSE_UNSIGNED ) &&
-                               ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) &&
+                               ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) &&
                                ( FreeRTOS_outstanding( pxSocket ) > 0 ) )
                            {
                                pxSocket->u.xTCP.usTimeout = 1U; /* to set/clear bSendFullSize */
@@ -2205,6 +2253,10 @@ static const ListItem_t * pxListFindListItemWithValue( const List_t * pxList,
     if( ( xIPIsNetworkTaskReady() != pdFALSE ) && ( pxList != NULL ) )
     {
         const ListItem_t * pxIterator;
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxList->xListEnd ) );
 
         for( pxIterator = listGET_NEXT( pxEnd );
@@ -2899,7 +2951,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     static BaseType_t bMayConnect( FreeRTOS_Socket_t const * pxSocket )
     {
         BaseType_t xResult;
-        eIPTCPState_t eState = ( eIPTCPState_t ) pxSocket->u.xTCP.ucTCPState;
+
+        eIPTCPState_t eState = pxSocket->u.xTCP.eTCPState;
 
         switch( eState )
         {
@@ -3124,12 +3177,20 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         if( prvValidSocket( pxSocket, FREERTOS_IPPROTO_TCP, pdTRUE ) == pdFALSE )
         {
             /* Not a valid socket or wrong type */
+
+            /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
         else if( ( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED ) &&
-                 ( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eTCP_LISTEN ) )
+                 ( pxSocket->u.xTCP.eTCPState != eTCP_LISTEN ) )
         {
             /* Parent socket is not in listening mode */
+
+            /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
         else
@@ -3289,7 +3350,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             while( xByteCount == 0 )
             {
-                eIPTCPState_t eState = ( eIPTCPState_t ) pxSocket->u.xTCP.ucTCPState;
+                eIPTCPState_t eState = pxSocket->u.xTCP.eTCPState;
 
                 switch( eState )
                 {
@@ -3415,7 +3476,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     xByteCount = ( BaseType_t )
                                  uxStreamBufferGet( pxSocket->u.xTCP.rxStream,
                                                     0U,
-                                                    ipPOINTER_CAST( uint8_t *, pvBuffer ),
+                                                    ( uint8_t * ) pvBuffer,
                                                     ( size_t ) uxBufferLength,
                                                     xIsPeek );
 
@@ -3437,7 +3498,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 else
                 {
                     /* Zero-copy reception of data: pvBuffer is a pointer to a pointer. */
-                    xByteCount = ( BaseType_t ) uxStreamBufferGetPtr( pxSocket->u.xTCP.rxStream, ipPOINTER_CAST( uint8_t * *, pvBuffer ) );
+                    xByteCount = ( BaseType_t ) uxStreamBufferGetPtr( pxSocket->u.xTCP.rxStream, ( uint8_t ** ) pvBuffer );
                 }
             }
             else
@@ -3478,9 +3539,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             xResult = -pdFREERTOS_ERRNO_ENOMEM;
         }
-        else if( ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCLOSED ) ||
-                 ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCLOSE_WAIT ) ||
-                 ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCLOSING ) )
+        else if( ( pxSocket->u.xTCP.eTCPState == eCLOSED ) ||
+                 ( pxSocket->u.xTCP.eTCPState == eCLOSE_WAIT ) ||
+                 ( pxSocket->u.xTCP.eTCPState == eCLOSING ) )
         {
             xResult = -pdFREERTOS_ERRNO_ENOTCONN;
         }
@@ -3595,7 +3656,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         BaseType_t xTimed = pdFALSE;
         TimeOut_t xTimeOut;
         BaseType_t xCloseAfterSend;
-        const uint8_t * pucSource = ipPOINTER_CAST( const uint8_t *, pvBuffer );
+        const uint8_t * pucSource = ( const uint8_t * ) pvBuffer;
 
         /* Prevent compiler warnings about unused parameters.  The parameter
          * may be used in future versions. */
@@ -3741,7 +3802,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             if( xByteCount == 0 )
             {
-                if( pxSocket->u.xTCP.ucTCPState > ( uint8_t ) eESTABLISHED )
+                if( pxSocket->u.xTCP.eTCPState > eESTABLISHED )
                 {
                     xByteCount = ( BaseType_t ) -pdFREERTOS_ERRNO_ENOTCONN;
                 }
@@ -3792,7 +3853,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             xResult = -pdFREERTOS_ERRNO_EOPNOTSUPP;
         }
-        else if( ( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eCLOSED ) && ( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eCLOSE_WAIT ) )
+        else if( ( pxSocket->u.xTCP.eTCPState != eCLOSED ) && ( pxSocket->u.xTCP.eTCPState != eCLOSE_WAIT ) )
         {
             /* Socket is in a wrong state. */
             xResult = -pdFREERTOS_ERRNO_EOPNOTSUPP;
@@ -3861,7 +3922,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
              * supports the listen() operation. */
             xResult = -pdFREERTOS_ERRNO_EOPNOTSUPP;
         }
-        else if( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eESTABLISHED )
+        else if( pxSocket->u.xTCP.eTCPState != eESTABLISHED )
         {
             /* The socket is not connected. */
             xResult = -pdFREERTOS_ERRNO_ENOTCONN;
@@ -3906,7 +3967,15 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         TickType_t xNow = xTaskGetTickCount();
         static TickType_t xLastTime = 0U;
         TickType_t xDelta = xNow - xLastTime;
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxIterator = ( const ListItem_t * ) listGET_HEAD_ENTRY( &xBoundTCPSocketsList );
 
         xLastTime = xNow;
@@ -4002,6 +4071,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     {
         const ListItem_t * pxIterator;
         FreeRTOS_Socket_t * pxResult = NULL, * pxListenSocket = NULL;
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
         /* Parameter not yet supported. */
@@ -4015,7 +4088,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             if( pxSocket->usLocalPort == ( uint16_t ) uxLocalPort )
             {
-                if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN )
+                if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN )
                 {
                     /* If this is a socket listening to uxLocalPort, remember it
                      * in case there is no perfect match. */
@@ -4272,7 +4345,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
                             if( pucBuffer != NULL )
                             {
-                                ucReadPtr = ipPOINTER_CAST( uint8_t *, pucBuffer );
+                                ucReadPtr = ( uint8_t * ) pucBuffer;
                                 ulCount = ulByteCount;
                                 pucBuffer = NULL;
                             }
@@ -4394,9 +4467,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             xResult = -pdFREERTOS_ERRNO_EINVAL;
         }
-        else if( pxSocket->u.xTCP.ucTCPState != ( uint8_t ) eESTABLISHED )
+        else if( pxSocket->u.xTCP.eTCPState != eESTABLISHED )
         {
-            if( ( pxSocket->u.xTCP.ucTCPState < ( uint8_t ) eCONNECT_SYN ) || ( pxSocket->u.xTCP.ucTCPState > ( EventBits_t ) eESTABLISHED ) )
+            if( ( pxSocket->u.xTCP.eTCPState < eCONNECT_SYN ) || ( pxSocket->u.xTCP.eTCPState > eESTABLISHED ) )
             {
                 xResult = -1;
             }
@@ -4517,9 +4590,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         }
         else
         {
-            if( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED )
+            if( pxSocket->u.xTCP.eTCPState >= eESTABLISHED )
             {
-                if( pxSocket->u.xTCP.ucTCPState < ( uint8_t ) eCLOSE_WAIT )
+                if( pxSocket->u.xTCP.eTCPState < eCLOSE_WAIT )
                 {
                     xReturn = pdTRUE;
                 }
@@ -4590,7 +4663,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         else
         {
             /* Cast it to BaseType_t. */
-            xReturn = ( BaseType_t ) ( pxSocket->u.xTCP.ucTCPState );
+            xReturn = ( BaseType_t ) ( pxSocket->u.xTCP.eTCPState );
         }
 
         return xReturn;
@@ -4646,12 +4719,8 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 {
     BaseType_t xReturnValue = pdFALSE;
 
-    /*
-     * There are two values which can indicate an invalid socket:
-     * FREERTOS_INVALID_SOCKET and NULL.  In order to compare against
-     * both values, the code cannot be compliant with rule 11.4,
-     * hence the Coverity suppression statement below.
-     */
+    /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     if( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) )
     {
@@ -4747,7 +4816,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 
                 char ucChildText[ 16 ] = "";
 
-                if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN )
+                if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN )
                 {
                     /* Using function "snprintf". */
                     const int32_t copied_len = snprintf( ucChildText, sizeof( ucChildText ), " %d/%d",
@@ -4765,7 +4834,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
                                    pxSocket->u.xTCP.usRemotePort,            /* Port on remote machine */
                                    ( pxSocket->u.xTCP.rxStream != NULL ) ? 1 : 0,
                                    ( pxSocket->u.xTCP.txStream != NULL ) ? 1 : 0,
-                                   FreeRTOS_GetTCPStateName( pxSocket->u.xTCP.ucTCPState ),
+                                   FreeRTOS_GetTCPStateName( pxSocket->u.xTCP.eTCPState ),
                                    ( unsigned ) ( ( age > 999999U ) ? 999999U : age ), /* Format 'age' for printing */
                                    pxSocket->u.xTCP.usTimeout,
                                    ucChildText ) );
@@ -4824,12 +4893,18 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 
             if( xRound == 0 )
             {
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxEnd = ( ( const ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
             }
 
             #if ipconfigUSE_TCP == 1
                 else
                 {
+                    /* MISRA Ref 11.3.1 [Misaligned access] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
                 }
             #endif /* ipconfigUSE_TCP == 1 */
@@ -4867,7 +4942,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
                         /* Is the set owner interested in READ events? */
                         if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_READ ) != ( EventBits_t ) 0U )
                         {
-                            if( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eTCP_LISTEN )
+                            if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN )
                             {
                                 if( ( pxSocket->u.xTCP.pxPeerSocket != NULL ) && ( pxSocket->u.xTCP.pxPeerSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
                                 {
@@ -4893,7 +4968,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
                         /* Is the set owner interested in EXCEPTION events? */
                         if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_EXCEPT ) != 0U )
                         {
-                            if( ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCLOSE_WAIT ) || ( pxSocket->u.xTCP.ucTCPState == ( uint8_t ) eCLOSED ) )
+                            if( ( pxSocket->u.xTCP.eTCPState == eCLOSE_WAIT ) || ( pxSocket->u.xTCP.eTCPState == eCLOSED ) )
                             {
                                 xSocketBits |= ( EventBits_t ) eSELECT_EXCEPT;
                             }
@@ -4915,7 +4990,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
                             if( bMatch == pdFALSE )
                             {
                                 if( ( pxSocket->u.xTCP.bits.bConnPrepared != pdFALSE_UNSIGNED ) &&
-                                    ( pxSocket->u.xTCP.ucTCPState >= ( uint8_t ) eESTABLISHED ) &&
+                                    ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) &&
                                     ( pxSocket->u.xTCP.bits.bConnPassed == pdFALSE_UNSIGNED ) )
                                 {
                                     pxSocket->u.xTCP.bits.bConnPassed = pdTRUE;
