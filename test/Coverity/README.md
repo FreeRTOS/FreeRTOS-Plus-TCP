@@ -5,8 +5,8 @@ To that end, this directory provides a [CMake](https://github.com/FreeRTOS/FreeR
 file and [configuration files](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/main/test/Coverity/ConfigFiles) required to build
 an application for the tool to analyze.
 
-**Note**
-For generating the report, we have use Coverity version 2018.09.
+> **Note**
+For generating the report as outlined below, we have used Coverity version 2018.09.
 
 For details regarding the suppressed violations in the report (which can be generated using the instructions described below), please
 see the [MISRA.md](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md) file.
