@@ -8,6 +8,7 @@ project ( "FreeRTOS+TCP Static analysis"
 
 # Allow the project to be organized into folders.
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Use C90.
 set( CMAKE_C_STANDARD 90 )
