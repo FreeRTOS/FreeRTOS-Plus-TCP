@@ -46,11 +46,11 @@
 /* coverity[misra_c_2012_rule_20_9_violation] */
 /* coverity[caretline] */
 #if __x86_64__ || __ppc64__
-    typedef int64_t          BaseType_t;
-    typedef uint64_t         UBaseType_t;
+    typedef int64_t      BaseType_t;
+    typedef uint64_t     UBaseType_t;
 #else
-    typedef int32_t          BaseType_t;
-    typedef uint32_t         UBaseType_t;
+    typedef int32_t      BaseType_t;
+    typedef uint32_t     UBaseType_t;
 #endif
 
 typedef portSTACK_TYPE   StackType_t;
