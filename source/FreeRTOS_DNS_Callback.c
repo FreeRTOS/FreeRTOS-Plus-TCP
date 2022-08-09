@@ -157,12 +157,12 @@
  * @param[in] uxIdentifier: Random number used as ID in the DNS message.
  * @param[in] xIsIPv6: pdTRUE if the address type should be IPv6.
  */
-        static void vDNSSetCallBack( const char * pcHostName,
-                                     void * pvSearchID,
-                                     FOnDNSEvent pCallbackFunction,
-                                     TickType_t uxTimeout,
-                                     TickType_t uxIdentifier,
-                                     BaseType_t xIsIPv6 )
+        void vDNSSetCallBack( const char * pcHostName,
+                              void * pvSearchID,
+                              FOnDNSEvent pCallbackFunction,
+                              TickType_t uxTimeout,
+                              TickType_t uxIdentifier,
+                              BaseType_t xIsIPv6 )
     #else
 
 /**
@@ -175,11 +175,11 @@
  * @param[in] uxTimeout: Timeout of the callback function.
  * @param[in] uxIdentifier: Random number used as ID in the DNS message.
  */
-        static void vDNSSetCallBack( const char * pcHostName,
-                                     void * pvSearchID,
-                                     FOnDNSEvent pCallbackFunction,
-                                     TickType_t uxTimeout,
-                                     TickType_t uxIdentifier )
+        void vDNSSetCallBack( const char * pcHostName,
+                              void * pvSearchID,
+                              FOnDNSEvent pCallbackFunction,
+                              TickType_t uxTimeout,
+                              TickType_t uxIdentifier )
     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
     {
         size_t uxLength = strlen( pcHostName );
