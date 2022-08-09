@@ -1,0 +1,9 @@
+{
+  "name": "FreeRTOS-Plus-TCP",
+  "releases": [
+    "V3.0.0"
+  ],
+  "branches": [
+    "main"
+  ]
+}
