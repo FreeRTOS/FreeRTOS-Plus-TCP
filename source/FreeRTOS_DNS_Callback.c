@@ -199,7 +199,7 @@
             ( void ) strcpy( pxCallback->pcName, pcHostName );
             pxCallback->pCallbackFunction = pCallbackFunction;
             pxCallback->pvSearchID = pvSearchID;
-            pxCallback->uxRemaningTime = uxTimeout;
+            pxCallback->uxRemainingTime = uxTimeout;
             #if ( ipconfigUSE_IPv6 != 0 )
                 {
                     pxCallback->xIsIPv6 = xIsIPv6;
