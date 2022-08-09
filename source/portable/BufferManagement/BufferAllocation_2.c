@@ -82,7 +82,7 @@
 static List_t xFreeBuffersList;
 
 /* Some statistics about the use of buffers. */
-static size_t uxMinimumFreeNetworkBuffers;
+static UBaseType_t uxMinimumFreeNetworkBuffers;
 
 /* This constant is defined as false to let FreeRTOS_TCP_IP.c know that the
  * network buffers have a variable size: resizing may be necessary */

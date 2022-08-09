@@ -41,10 +41,15 @@
 #define portBASE_TYPE            long
 #define portPOINTER_SIZE_TYPE    size_t
 
-typedef portSTACK_TYPE   StackType_t;
-typedef int32_t          BaseType_t;
-typedef uint32_t         UBaseType_t;
+#if __x86_64__ || __ppc64__
+    typedef int64_t          BaseType_t;
+    typedef uint64_t         UBaseType_t;
+#else
+    typedef int32_t          BaseType_t;
+    typedef uint32_t         UBaseType_t;
+#endif
 
+typedef portSTACK_TYPE   StackType_t;
 
 #if ( configUSE_16_BIT_TICKS == 1 )
     typedef uint16_t     TickType_t;

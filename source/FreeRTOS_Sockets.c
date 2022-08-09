@@ -3471,7 +3471,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             {
                 if( ( ( uint32_t ) xFlags & ( uint32_t ) FREERTOS_ZERO_COPY ) == 0U )
                 {
-                    BaseType_t xIsPeek = ( ( ( uint32_t ) xFlags & ( uint32_t ) FREERTOS_MSG_PEEK ) != 0U ) ? 1L : 0L;
+                    BaseType_t xIsPeek = ( ( ( UbaseType_t ) xFlags & ( UBaseType_t ) FREERTOS_MSG_PEEK ) != 0U ) ? 1 : 0;
 
                     xByteCount = ( BaseType_t )
                                  uxStreamBufferGet( pxSocket->u.xTCP.rxStream,
