@@ -158,6 +158,12 @@ _Ref 20.5.1_
    are undefined using `#undef` before being redefined to a proper
    value.
 
+#### Rule 20.9
+_Ref 20.9.1_
+
+- MISRA C-2012 Rule 20.9 used to separate compile for 64bit and 32bit
+      __x86_64__  and __ppc64__ are not defined for 32 bit causing the violation
+
 #### Rule 20.10
 _Ref 20.10.1_
 

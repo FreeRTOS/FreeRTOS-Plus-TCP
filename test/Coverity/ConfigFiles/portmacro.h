@@ -41,6 +41,10 @@
 #define portBASE_TYPE            long
 #define portPOINTER_SIZE_TYPE    size_t
 
+/* MISRA Ref 20.9.1 [DHCP events and conversion to void] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-209 */
+/* coverity[misra_c_2012_rule_20_9_violation] */
+/* coverity[caretline] */
 #if __x86_64__ || __ppc64__
     typedef int64_t          BaseType_t;
     typedef uint64_t         UBaseType_t;
