@@ -27,7 +27,6 @@
 #define FREERTOS_TCP_STATE_HANDLING_H
 
 #include "FreeRTOS_TCP_IP.h"
-#include "FreeRTOS_IP_Private.h"
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

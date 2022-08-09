@@ -52,7 +52,6 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_Routing.h"
-#include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
@@ -95,11 +94,6 @@ void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
     void vSetMultiCastIPv6MacAddress( IPv6_Address_t * pxAddress,
                                       MACAddress_t * pxMACAddress );
 #endif
-
-/* Translate a pdFREERTOS_ERRNO code to a human readable string. */
-const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
-                                  char * pcBuffer,
-                                  size_t uxLength );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

@@ -32,8 +32,6 @@
 #endif
 /* *INDENT-ON* */
 
-#include "FreeRTOS_IP_Private.h"
-
 /*
  * Either sends a SYN or calls prvTCPSendRepeated (for regular messages).
  */
