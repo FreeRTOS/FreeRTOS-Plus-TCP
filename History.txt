@@ -1,3 +1,14 @@
+Changes between V3.0.0 and V2.4.0 releases:
+        + Split the source files according to the function the code performs.
+          This makes the code modular making test coverage easier.
+        + Achieved 100% unit-test coverage.
+        + Improved RFC compliance.
+        + Improved MISRA c-2012 compliance.
+
+        Helpful links to help you upgrade to V3
+        + https://github.com/FreeRTOS/FreeRTOS-plus-tcp#generating-pre-v300-folder-structure-for-backward-compatibility
+        + https://www.freertos.org/2022/08/the-freertos-plus-tcp-library-is-now-more-robust-and-secure.html
+
 Changes between V2.3.3 and V2.3.4 releases:
         + Added a check in BufferAllocation_2.c to ensure adding (2 +
           ipBUFFER_PADDING) bytes to the requested allocation size does
