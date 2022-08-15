@@ -124,16 +124,6 @@
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
 #endif
 
-#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
-    #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
-        /** @brief The bits in the two byte IP header field that make up the fragment offset value. */
-        #define ipFRAGMENT_OFFSET_BIT_MASK    ( ( uint16_t ) 0xff0f )
-    #else
-        /** @brief The bits in the two byte IP header field that make up the fragment offset value. */
-        #define ipFRAGMENT_OFFSET_BIT_MASK    ( ( uint16_t ) 0x0fff )
-    #endif /* ipconfigBYTE_ORDER */
-#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
-
 static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint );
 
 static void prvIPTask_Initialise( void );
