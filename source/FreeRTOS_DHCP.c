@@ -240,15 +240,6 @@
                                       BaseType_t xDoCheck,
                                       NetworkEndPoint_t * pxEndPoint );
 
-/*
- * After DHCP has failed to answer, prepare everything to start searching
- * for (trying-out) LinkLayer IP-addresses, using the random method: Send
- * a gratuitous ARP request and wait if another device responds to it.
- */
-    #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-        static void prvPrepareLinkLayerIPLookUp( NetworkEndPoint_t * pxEndPoint );
-    #endif
-
     static BaseType_t xHandleWaitingOffer( NetworkEndPoint_t * pxEndPoint,
                                            BaseType_t xDoCheck );
 
@@ -1613,7 +1604,7 @@
  *
  * param[in] pxEndPoint: The end-point that wants to obtain a link-layer address.
  */
-        static void prvPrepareLinkLayerIPLookUp( NetworkEndPoint_t * pxEndPoint )
+        void prvPrepareLinkLayerIPLookUp( NetworkEndPoint_t * pxEndPoint )
         {
             uint8_t ucLinkLayerIPAddress[ 2 ];
             uint32_t ulNumbers[ 2 ];

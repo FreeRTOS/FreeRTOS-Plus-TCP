@@ -125,6 +125,18 @@
                                                     uint32_t ulIPAddress );
     #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */
 
+    #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
+        struct xNetworkEndPoint;
+
+/**
+ * @brief When DHCP has failed, the code can assign a Link-Layer
+ *        address, and check if another device already uses the IP-address.
+ *
+ * param[in] pxEndPoint: The end-point that wants to obtain a link-layer address.
+ */
+        void prvPrepareLinkLayerIPLookUp( NetworkEndPoint_t * pxEndPoint );
+    #endif
+
     #ifdef __cplusplus
         } /* extern "C" */
     #endif

@@ -1532,7 +1532,6 @@ uxprotocolheaderlength
 uxptr
 uxremainingbytes
 uxremainingtime
-uxremaningtime
 uxremoteport
 uxrequestedsizebytes
 uxresult

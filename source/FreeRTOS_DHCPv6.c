@@ -52,6 +52,7 @@
     #include "FreeRTOS_ARP.h"
     #include "FreeRTOS_Sockets.h"
     #include "FreeRTOS_IP_Private.h"
+    #include "FreeRTOS_IP_Timers.h"
 
     #include "FreeRTOS_BitConfig.h"
 
