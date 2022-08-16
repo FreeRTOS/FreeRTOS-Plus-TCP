@@ -134,7 +134,7 @@
  *
  * param[in] pxEndPoint: The end-point that wants to obtain a link-layer address.
  */
-        void prvPrepareLinkLayerIPLookUp( NetworkEndPoint_t * pxEndPoint );
+        void prvPrepareLinkLayerIPLookUp( struct xNetworkEndPoint * pxEndPoint );
     #endif
 
     #ifdef __cplusplus
