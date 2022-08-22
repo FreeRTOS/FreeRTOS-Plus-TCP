@@ -1562,7 +1562,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                                         /* Exclude this from branch coverage as this is only used for debugging. */
                                         if( xCount < 5 ) /* LCOV_EXCL_BR_LINE */
                                         {
-                                            FreeRTOS_printf( ( "prvAllowIPPacket: UDP packet from %xip without CRC dropped\n",
+                                            FreeRTOS_printf( ( "prvAllowIPPacket: UDP packet from %lxip without CRC dropped\n",
                                                                FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
                                             xCount++;
                                         }
