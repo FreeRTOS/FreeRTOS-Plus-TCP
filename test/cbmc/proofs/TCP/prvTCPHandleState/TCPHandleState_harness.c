@@ -32,8 +32,14 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Utils.h"
+#include "FreeRTOS_IP_Timers.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_TCP_IP.h"
+#include "FreeRTOS_TCP_Reception.h"
+#include "FreeRTOS_TCP_State_Handling.h"
+#include "FreeRTOS_TCP_Transmission.h"
+#include "FreeRTOS_TCP_Utils.h"
 
 #include "../../utility/memory_assignments.c"
 
@@ -56,8 +62,8 @@ TaskHandle_t xTaskGetCurrentTaskHandle( void )
 /* This proof assumes that prvTCPPrepareSend and prvTCPReturnPacket are correct.
  * These functions are proved to be correct separately. */
 
-BaseType_t publicTCPHandleState( FreeRTOS_Socket_t * pxSocket,
-                                 NetworkBufferDescriptor_t ** ppxNetworkBuffer );
+BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
+                              NetworkBufferDescriptor_t ** ppxNetworkBuffer );
 
 /* The function under test requires that it be called from IP-task. Thus, the below stub makes sure
  * that a pdTRUE is returned meaning that the context is that of the IP-Task. */
@@ -103,6 +109,6 @@ void harness()
         ensure_memory_is_valid( pxNetworkBuffer->pucEthernetBuffer, sizeof( TCPPacket_t ) ) &&
         ensure_memory_is_valid( pxSocket->u.xTCP.pxPeerSocket, socketSize ) )
     {
-        publicTCPHandleState( pxSocket, &pxNetworkBuffer );
+        prvTCPHandleState( pxSocket, &pxNetworkBuffer );
     }
 }

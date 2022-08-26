@@ -12,7 +12,7 @@
     "--unwindset strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},vDNSCheckCallBack.0:2,strcpy.0:{HOSTNAME_UNWIND}",
     "--nondet-static"
   ],
-  #__CPROVER_file_local_FreeRTOS_DNS_c_prvProcessDNSCache.0:5
+  #__CPROVER_file_local_FreeRTOS_DNS_Cache_c_FreeRTOS_ProcessDNSCache.0:5
   "OBJS":
   [
     "$(ENTRY)_harness.goto",

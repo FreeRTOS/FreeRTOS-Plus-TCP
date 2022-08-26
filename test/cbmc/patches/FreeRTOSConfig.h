@@ -48,7 +48,9 @@
 #define configMINIMAL_STACK_SIZE                   ( ( unsigned short ) 60 ) /* In this simulated case, the stack only has to hold one small structure as the real stack is part of the Win32 thread. */
 #define configTOTAL_HEAP_SIZE                      ( ( size_t ) ( 2048U * 1024U ) )
 #define configMAX_TASK_NAME_LEN                    ( 15 )
-#define configUSE_16_BIT_TICKS                     0
+#ifndef configUSE_16_BIT_TICKS
+    #define configUSE_16_BIT_TICKS                 0
+#endif
 #define configIDLE_SHOULD_YIELD                    1
 #define configUSE_CO_ROUTINES                      0
 #ifndef configUSE_MUTEXES

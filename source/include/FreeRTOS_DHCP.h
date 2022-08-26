@@ -103,14 +103,6 @@
 
     eDHCPState_t eGetDHCPState( struct xNetworkEndPoint * pxEndPoint );
 
-    #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
-
-/*
- * Send a message to the IP-task, which will call vDHCPProcess().
- */
-        BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint );
-    #endif
-
 /*
  * NOT A PUBLIC API FUNCTION.
  * It will be called when the DHCP timer expires, or when
@@ -132,6 +124,18 @@
         eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
                                                     uint32_t ulIPAddress );
     #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */
+
+    #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
+        struct xNetworkEndPoint;
+
+/**
+ * @brief When DHCP has failed, the code can assign a Link-Layer
+ *        address, and check if another device already uses the IP-address.
+ *
+ * param[in] pxEndPoint: The end-point that wants to obtain a link-layer address.
+ */
+        void prvPrepareLinkLayerIPLookUp( struct xNetworkEndPoint * pxEndPoint );
+    #endif
 
     #ifdef __cplusplus
         } /* extern "C" */

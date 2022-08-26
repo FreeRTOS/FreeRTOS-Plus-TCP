@@ -15,8 +15,9 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * http://aws.amazon.com/freertos
- * http://www.FreeRTOS.org
+ *
+ * https://www.FreeRTOS.org
+ * https://github.com/FreeRTOS
  */
 
 
@@ -32,13 +33,15 @@
 
 #define _static
 
+#define TEST                               1
+
 #define ipconfigUSE_ARP_REMOVE_ENTRY       1
 #define ipconfigUSE_ARP_REVERSED_LOOKUP    1
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF           0
+#define ipconfigHAS_DEBUG_PRINTF           1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
     #define FreeRTOS_debug_printf( X )    configPRINTF( X )
 #endif
@@ -59,7 +62,7 @@
 /* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
  * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
  * stack repeating the checksum calculations. */
-#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     1
+#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     0
 
 /* Several API's will block until the result is known, or the action has been
  * performed, for example FreeRTOS_send() and FreeRTOS_recv().  The timeouts can be
@@ -76,8 +79,11 @@
  * a socket.
  */
 #define ipconfigUSE_DNS_CACHE                      ( 1 )
-#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 6 )
+#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 1 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
+
+#define ipconfigDNS_CACHE_NAME_LENGTH              254
+#define ipconfigDNS_CACHE_ENTRIES                  ( 2 )
 
 /* The IP stack executes it its own task (although any application task can make
  * use of its services through the published sockets API). ipconfigUDP_TASK_PRIORITY
@@ -212,41 +218,45 @@ extern uint32_t ulRand();
  * ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND is set to 0 then calling FreeRTOS_sendto()
  * on a socket that has not yet been bound will result in the send operation being
  * aborted. */
-#define ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND         1
+#define ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND    1
 
 /* Defines the Time To Live (TTL) values used in outgoing UDP packets. */
-#define ipconfigUDP_TIME_TO_LIVE                       128
+#define ipconfigUDP_TIME_TO_LIVE                  128
 /* Also defined in FreeRTOSIPConfigDefaults.h. */
-#define ipconfigTCP_TIME_TO_LIVE                       128
+#define ipconfigTCP_TIME_TO_LIVE                  128
 
 /* USE_TCP: Use TCP and all its features. */
-#define ipconfigUSE_TCP                                ( 1 )
+#define ipconfigUSE_TCP                           ( 1 )
 
 /* USE_WIN: Let TCP use windowing mechanism. */
-#define ipconfigUSE_TCP_WIN                            ( 1 )
+#ifndef ipconfigUSE_TCP_WIN
+    #define ipconfigUSE_TCP_WIN    ( 1 )
+#endif
 
 /* The MTU is the maximum number of bytes the payload of a network frame can
  * contain.  For normal Ethernet V2 frames the maximum MTU is 1500.  Setting a
  * lower value can save RAM, depending on the buffer management scheme used.  If
  * ipconfigCAN_FRAGMENT_OUTGOING_PACKETS is 1 then (ipconfigNETWORK_MTU - 28) must
  * be divisible by 8. */
-#define ipconfigNETWORK_MTU                            1200U
+#define ipconfigNETWORK_MTU                1200U
 
 /* Set ipconfigUSE_DNS to 1 to include a basic DNS client/resolver.  DNS is used
  * through the FreeRTOS_gethostbyname() API function. */
-#define ipconfigUSE_DNS                                1
+#define ipconfigUSE_DNS                    1
 
 /* If ipconfigREPLY_TO_INCOMING_PINGS is set to 1 then the IP stack will
  * generate replies to incoming ICMP echo (ping) requests. */
-#define ipconfigREPLY_TO_INCOMING_PINGS                1
+#define ipconfigREPLY_TO_INCOMING_PINGS    1
 
 /* If ipconfigSUPPORT_OUTGOING_PINGS is set to 1 then the
  * FreeRTOS_SendPingRequest() API function is available. */
-#define ipconfigSUPPORT_OUTGOING_PINGS                 0
+#define ipconfigSUPPORT_OUTGOING_PINGS     0
 
 /* If ipconfigSUPPORT_SELECT_FUNCTION is set to 1 then the FreeRTOS_select()
  * (and associated) API function is available. */
-#define ipconfigSUPPORT_SELECT_FUNCTION                1
+#ifndef ipconfigSUPPORT_SELECT_FUNCTION
+    #define ipconfigSUPPORT_SELECT_FUNCTION    1
+#endif
 
 /* If ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES is set to 1 then Ethernet frames
  * that are not in Ethernet II format will be dropped.  This option is included for
@@ -300,8 +310,15 @@ extern uint32_t ulRand();
 #define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 1 )
 #define ipconfigUSE_CALLBACKS                    ( 0 )
 
+#define ipconfigSUPPORT_SIGNALS                  ( 1 )
+
+#define ipconfigTCP_HANG_PROTECTION              ( 1 )
+
+#define ipconfigBUFFER_PADDING                   ( 14 )
 
 #define portINLINE
+
+#define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
 
 void vApplicationMQTTGetKeys( const char ** ppcRootCA,
                               const char ** ppcClientCert,

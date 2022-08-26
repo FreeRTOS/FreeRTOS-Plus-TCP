@@ -24,20 +24,22 @@
  */
 
 #ifndef FREERTOS_ND_H
-    #define FREERTOS_ND_H
+#define FREERTOS_ND_H
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 /* Application level configuration options. */
-    #include "FreeRTOSIPConfig.h"
-    #include "FreeRTOSIPConfigDefaults.h"
-    #include "IPTraceMacroDefaults.h"
+#include "FreeRTOSIPConfig.h"
+#include "FreeRTOSIPConfigDefaults.h"
+#include "IPTraceMacroDefaults.h"
 
-    #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_ARP.h"
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPv6 != 0 )
 /*-----------------------------------------------------------*/
 /* Miscellaneous structure and definitions. */
 /*-----------------------------------------------------------*/
@@ -48,15 +50,15 @@
  *       also be refreshed by active communication.  The ND cache entry
  *       is removed if the value reaches zero.
  */
-        typedef struct xND_CACHE_TABLE_ROW
-        {
-            IPv6_Address_t xIPAddress;            /**< The IP address of an ND cache entry. */
-            MACAddress_t xMACAddress;             /**< The MAC address of an ND cache entry. */
-            struct xNetworkEndPoint * pxEndPoint; /**< The end-point on which the
-                                                   * remote device had responded. */
-            uint8_t ucAge;                        /**< See here above. */
-            uint8_t ucValid;                      /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ND reply */
-        } NDCacheRow_t;
+    typedef struct xND_CACHE_TABLE_ROW
+    {
+        IPv6_Address_t xIPAddress;            /**< The IP address of an ND cache entry. */
+        MACAddress_t xMACAddress;             /**< The MAC address of an ND cache entry. */
+        struct xNetworkEndPoint * pxEndPoint; /**< The end-point on which the
+                                               * remote device had responded. */
+        uint8_t ucAge;                        /**< See here above. */
+        uint8_t ucValid;                      /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ND reply */
+    } NDCacheRow_t;
 
 /*
  * If ulIPAddress is already in the ND cache table then reset the age of the
@@ -64,16 +66,16 @@
  * cache table then add it - replacing the oldest current entry if there is not
  * a free space available.
  */
-        void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
-                                   const IPv6_Address_t * pxIPAddress,
-                                   NetworkEndPoint_t * pxEndPoint );
+    void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
+                               const IPv6_Address_t * pxIPAddress,
+                               NetworkEndPoint_t * pxEndPoint );
 
 /** @brief Options that can be sent in a ROuter Advertisement packet. */
-        #define ndICMP_SOURCE_LINK_LAYER_ADDRESS    1
-        #define ndICMP_TARGET_LINK_LAYER_ADDRESS    2
-        #define ndICMP_PREFIX_INFORMATION           3
-        #define ndICMP_REDIRECTED_HEADER            4
-        #define ndICMP_MTU_OPTION                   5
+    #define ndICMP_SOURCE_LINK_LAYER_ADDRESS    1
+    #define ndICMP_TARGET_LINK_LAYER_ADDRESS    2
+    #define ndICMP_PREFIX_INFORMATION           3
+    #define ndICMP_REDIRECTED_HEADER            4
+    #define ndICMP_MTU_OPTION                   5
 
 /*
  * @brief Send a neighbour solicitation.
@@ -90,16 +92,16 @@
  * (maybe DHCP is still in process, or the addressing needs a gateway but there
  * isn't a gateway defined) then return eCantSendPacket.
  */
-        eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                             MACAddress_t * const pxMACAddress,
-                                             struct xNetworkEndPoint ** ppxEndPoint );
+    eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
+                                         MACAddress_t * const pxMACAddress,
+                                         struct xNetworkEndPoint ** ppxEndPoint );
 
 /**
  * @brief Reduce the age counter in each entry within the ND cache.  An entry is no
  * longer considered valid and is deleted if its age reaches zero.
  * Just before getting to zero, 3 times a neighbour solicitation will be sent.
  */
-        void vNDAgeCache( void );
+    void vNDAgeCache( void );
 
 /**
  * @brief Send a neighbour solicitation.
@@ -110,39 +112,39 @@
  * add an entry into the ND table that indicates that an ND reply is
  * outstanding so re-transmissions can be generated.
  */
-        void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                           IPv6_Address_t * pxIPAddress );
+    void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                       IPv6_Address_t * pxIPAddress );
 
-        #if ( ipconfigUSE_RA != 0 )
+    #if ( ipconfigUSE_RA != 0 )
 
 /**
  * @brief Send a router solicitation.
  * @param[in] pxNetworkBuffer: A network buffer big enough to hold the ICMP packet.
  * @param[in] pxIPAddress: The multi-cast address of the routers ( normally ff02::2 ).
  */
-            void vNDSendRouterSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                            IPv6_Address_t * pxIPAddress );
-        #endif /* ( ipconfigUSE_RA != 0 ) */
+        void vNDSendRouterSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                        IPv6_Address_t * pxIPAddress );
+    #endif /* ( ipconfigUSE_RA != 0 ) */
 
-        #if ( ipconfigUSE_RA != 0 )
+    #if ( ipconfigUSE_RA != 0 )
 
 /**
  * @brief Work on the RA/SLAAC processing.
  * @param[in] xDoReset: WHen true, the state-machine will be reset and initialised.
  * @param[in] pxEndPoint: The end-point for which the RA/SLAAC process should be done..
  */
-            void vRAProcess( BaseType_t xDoReset,
-                             NetworkEndPoint_t * pxEndPoint );
-        #endif /* ( ipconfigUSE_RA != 0 ) */
+        void vRAProcess( BaseType_t xDoReset,
+                         NetworkEndPoint_t * pxEndPoint );
+    #endif /* ( ipconfigUSE_RA != 0 ) */
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPv6 != 0 )
 
 /**
  * @brief Send an ND advertisement.
  * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
  */
-            void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint );
-            #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+        void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint );
+        #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
 /**
  * @brief Send an IPv6 ping message to a remote device.
@@ -153,10 +155,10 @@
  * @return pdTRUE when a packets was successfully created
  *         and passed to the IP-task.
  */
-                BaseType_t FreeRTOS_SendPingRequestIPv6( IPv6_Address_t * pxIPAddress,
-                                                         size_t uxNumberOfBytesToSend,
-                                                         TickType_t uxBlockTimeTicks );
-            #endif
+            BaseType_t FreeRTOS_SendPingRequestIPv6( IPv6_Address_t * pxIPAddress,
+                                                     size_t uxNumberOfBytesToSend,
+                                                     TickType_t uxBlockTimeTicks );
+        #endif
 
 /**
  * @brief Create an IPv16 address, based on a prefix.
@@ -172,68 +174,45 @@
  *         case xApplicationGetRandomNumber()
  *         returned an error.
  */
-            BaseType_t FreeRTOS_CreateIPv6Address( IPv6_Address_t * pxIPAddress,
-                                                   const IPv6_Address_t * pxPrefix,
-                                                   size_t uxPrefixLength,
-                                                   BaseType_t xDoRandom );
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        BaseType_t FreeRTOS_CreateIPv6Address( IPv6_Address_t * pxIPAddress,
+                                               const IPv6_Address_t * pxPrefix,
+                                               size_t uxPrefixLength,
+                                               BaseType_t xDoRandom );
+    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
 /* Receive a Neighbour Advertisement. */
 
-        #if ( ipconfigUSE_RA != 0 )
+    #if ( ipconfigUSE_RA != 0 )
 
 /** @brief A neighbour advertisement has been received. Store its
  *         address in the ND address cache.
  *  @param[in] pxNetworkBuffer The buffer containing the packet.
  */
-            void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
-        #endif
+        void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+    #endif
 
 /* Receive a Router Advertisement. */
-        #if ( ipconfigUSE_RA != 0 )
+    #if ( ipconfigUSE_RA != 0 )
 
 /** @brief A router advertisement has been received.  See if it is
  *         applicable for this device.
  *  @param[in] pxNetworkBuffer The buffer containing the packet.
  */
-            void vReceiveRA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
-        #endif
-
-        #if ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) )
-/** @brief Print the contents of the ND cache, for debugging only. */
-            void FreeRTOS_PrintNDCache( void );
-        #endif
-
-/**
- * @defgroup CastingMacroFunctions Utility casting functions
- * @brief These functions are used to cast various types of pointers
- *        to other types. A major use would be to map various
- *        headers/packets on to the incoming byte stream.
- */
-        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_IPv6_t );
-        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPPacket_IPv6_t );
-
-        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_IPv6_t );
-        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_IPv6_t );
-
-        #if ( ipconfigUSE_RA != 0 )
-            extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPRouterAdvertisement_IPv6_t );
-            extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPRouterAdvertisement_IPv6_t );
-
-            extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPRouterSolicitation_IPv6_t );
-            extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPRouterSolicitation_IPv6_t );
-
-            extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPrefixOption_IPv6_t );
-            extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPPrefixOption_IPv6_t );
-        #endif /* ( ipconfigUSE_RA != 0 ) */
-
-        extern ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPEcho_IPv6_t );
-        extern ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPEcho_IPv6_t );
-
-    #endif /* ipconfigUSE_IPv6 != 0 */
-
-    #ifdef __cplusplus
-        } /* extern "C" */
+        void vReceiveRA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
     #endif
+
+    #if ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) )
+/** @brief Print the contents of the ND cache, for debugging only. */
+        void FreeRTOS_PrintNDCache( void );
+    #endif
+
+#endif /* ipconfigUSE_IPv6 != 0 */
+
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    }
+#endif
+/* *INDENT-ON* */
 
 #endif /* FREERTOS_ND_H */

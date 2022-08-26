@@ -666,7 +666,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                                    uint8_t * pucEthernetBuffer )
     {
         NetworkEndPoint_t * pxEndPoint = NULL;
-        ProtocolPacket_t * pxPacket = ipCAST_PTR_TO_TYPE_PTR( ProtocolPacket_t, pucEthernetBuffer );
+        ProtocolPacket_t * pxPacket = ( ( ProtocolPacket_t * ) pucEthernetBuffer );
         /*#pragma warning 'name' for logging only, take this away */
         const char * name = "";
 
@@ -701,7 +701,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             #if ( ipconfigUSE_IPv6 != 0 )
                 case ipIPv6_FRAME_TYPE:
                    {
-                       IPPacket_IPv6_t * pxIPPacket_IPv6 = ipCAST_PTR_TO_TYPE_PTR( IPPacket_IPv6_t, pucEthernetBuffer );
+                       IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pucEthernetBuffer );
 
                        pxEndPoint = pxNetworkEndPoints;
 

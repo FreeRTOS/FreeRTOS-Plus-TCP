@@ -9,18 +9,18 @@
 #include "FreeRTOS_IP_Private.h"
 
 /* Function Abstraction:
- * Function prvParseDNSReply is proven to be correct separately.
- * The proof can be found here: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/labs/ipv6_multi/test/cbmc/proofs/ParseDNSReply.
+ * Function DNS_ParseDNSReply is proven to be correct separately.
+ * The proof can be found here: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/labs/ipv6_multi/test/cbmc/proofs/DNS_ParseDNSReply.
  * Note: this function is defined as static in FreeRTOS_DNS.c.
  * To access this function outside of that file, we have used
  * a CBMC flag (--export-file-local-symbols). Using that flag
  * mangles the names of static functions. Thus, the below
  * function name is also mangled. */
-uint32_t __CPROVER_file_local_FreeRTOS_DNS_c_prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                                                               size_t uxBufferLength,
-                                                               struct freertos_addrinfo ** ppxAddressInfo,
-                                                               BaseType_t xExpected,
-                                                               uint16_t usPort )
+uint32_t __CPROVER_file_local_FreeRTOS_DNS_Cache_c_DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+                                                                      size_t uxBufferLength,
+                                                                      struct freertos_addrinfo ** ppxAddressInfo,
+                                                                      BaseType_t xExpected,
+                                                                      uint16_t usPort )
 {
     uint32_t ulReturn;
 

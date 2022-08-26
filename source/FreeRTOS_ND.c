@@ -94,12 +94,6 @@
 /** @brief The ND cache. */
     static NDCacheRow_t xNDCache[ ipconfigND_CACHE_ENTRIES ];
 
-/** @brief Cast a given constant pointer to MACAddress_t type pointer. */
-    static ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( MACAddress_t )
-    {
-        return ( const MACAddress_t * ) pvArgument;
-    }
-
 /*-----------------------------------------------------------*/
 
 /*
@@ -464,7 +458,7 @@
                                     size_t uxICMPSize )
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
-        ICMPPacket_IPv6_t * pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
+        ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
         configASSERT( pxEndPoint != NULL );
         configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
@@ -532,8 +526,8 @@
         {
             const uint32_t ulPayloadLength = 32U;
 
-            pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_IPv6_t, pxDescriptor->pucEthernetBuffer );
-            pxICMPHeader_IPv6 = ipCAST_PTR_TO_TYPE_PTR( ICMPHeader_IPv6_t, &( pxICMPPacket->xICMPHeaderIPv6 ) );
+            pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer );
+            pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
             pxDescriptor->xDataLength = uxNeededSize;
 
@@ -651,7 +645,7 @@
                 ( void ) memset( pxNetworkBuffer->pucEthernetBuffer, 0, pxNetworkBuffer->xDataLength );
 
                 pxNetworkBuffer->pxEndPoint = pxEndPoint;
-                pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
+                pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
                 if( uxNumberOfBytesToSend < ( ( ipconfigNETWORK_MTU - sizeof( IPHeader_IPv6_t ) ) - sizeof( ICMPEcho_IPv6_t ) ) )
                 {
@@ -664,7 +658,7 @@
 
                 if( ( uxGetNumberOfFreeNetworkBuffers() >= 3U ) && ( uxNumberOfBytesToSend >= 1U ) && ( xEnoughSpace != pdFALSE ) )
                 {
-                    pxICMPHeader = ipCAST_PTR_TO_TYPE_PTR( ICMPEcho_IPv6_t, &( pxICMPPacket->xICMPHeaderIPv6 ) );
+                    pxICMPHeader = ( ( ICMPEcho_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
                     usSequenceNumber++;
 
                     pxICMPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
@@ -698,7 +692,7 @@
                     pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
                     pxNetworkBuffer->xDataLength = uxPacketLength;
 
-                    pxEthernetHeader = ipCAST_PTR_TO_TYPE_PTR( EthernetHeader_t, pxNetworkBuffer->pucEthernetBuffer );
+                    pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
                     pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
 
                     /* Send to the stack. */
@@ -800,8 +794,8 @@
  */
     eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
-        ICMPPacket_IPv6_t * pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
-        ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ipCAST_PTR_TO_TYPE_PTR( ICMPHeader_IPv6_t, &( pxICMPPacket->xICMPHeaderIPv6 ) );
+        ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
         NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
         size_t uxNeededSize;
 
@@ -855,7 +849,7 @@
                         case ipICMP_PING_REPLY_IPv6:
                            {
                                ePingReplyStatus_t eStatus = eSuccess;
-                               ICMPEcho_IPv6_t * pxICMPEchoHeader = ipCAST_PTR_TO_TYPE_PTR( ICMPEcho_IPv6_t, pxICMPHeader_IPv6 );
+                               ICMPEcho_IPv6_t * pxICMPEchoHeader = ( ( ICMPEcho_IPv6_t * ) pxICMPHeader_IPv6 );
                                size_t uxDataLength, uxCount;
                                const uint8_t * pucByte;
 
@@ -915,7 +909,7 @@
                    break;
 
                 case ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6:
-                    vNDRefreshCacheEntry( ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( MACAddress_t, pxICMPHeader_IPv6->ucOptionBytes ),
+                    vNDRefreshCacheEntry( ( ( const MACAddress_t * ) pxICMPHeader_IPv6->ucOptionBytes ),
                                           &( pxICMPHeader_IPv6->xIPv6Address ),
                                           pxEndPoint );
                     FreeRTOS_printf( ( "NA from %pip\n",
@@ -978,8 +972,8 @@
 
             configASSERT( pxInterface != NULL );
 
-            pxICMPPacket = ipCAST_PTR_TO_TYPE_PTR( ICMPPacket_IPv6_t, pxNetworkBuffer->pucEthernetBuffer );
-            pxICMPHeader_IPv6 = ipCAST_PTR_TO_TYPE_PTR( ICMPHeader_IPv6_t, &( pxICMPPacket->xICMPHeaderIPv6 ) );
+            pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+            pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
             ( void ) memcpy( pxICMPPacket->xEthernetHeader.xDestinationAddress.ucBytes, pcLOCAL_ALL_NODES_MULTICAST_MAC, ipMAC_ADDRESS_LENGTH_BYTES );
             ( void ) memcpy( pxICMPPacket->xEthernetHeader.xSourceAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
@@ -1095,133 +1089,6 @@
         }
 
         return xResult;
-    }
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Cast a given pointer to ICMPPacket_IPv6_t type pointer.
- */
-    ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPacket_IPv6_t )
-    {
-        return ( ICMPPacket_IPv6_t * ) pvArgument;
-    }
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Cast a given constant pointer to ICMPPacket_IPv6_t type pointer.
- */
-    ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPPacket_IPv6_t )
-    {
-        return ( const ICMPPacket_IPv6_t * ) pvArgument;
-    }
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Cast a given pointer to ICMPHeader_IPv6_t type pointer.
- */
-    ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPHeader_IPv6_t )
-    {
-        return ( ICMPHeader_IPv6_t * ) pvArgument;
-    }
-/*-----------------------------------------------------------*/
-
-
-/**
- * @brief Cast a given constant pointer to ICMPHeader_IPv6_t type pointer.
- */
-    ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPHeader_IPv6_t )
-    {
-        return ( const ICMPHeader_IPv6_t * ) pvArgument;
-    }
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 )
-
-/**
- * @brief Cast a given pointer to ICMPRouterAdvertisement_IPv6_t type pointer.
- */
-        ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPRouterAdvertisement_IPv6_t )
-        {
-            return ( ICMPRouterAdvertisement_IPv6_t * ) pvArgument;
-        }
-    #endif
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 )
-
-/**
- * @brief Cast a given constant pointer to ICMPRouterAdvertisement_IPv6_t type pointer.
- */
-        ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPRouterAdvertisement_IPv6_t )
-        {
-            return ( const ICMPRouterAdvertisement_IPv6_t * ) pvArgument;
-        }
-    #endif
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 )
-
-/**
- * @brief Cast a given pointer to ICMPRouterSolicitation_IPv6_t type pointer.
- */
-        ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPRouterSolicitation_IPv6_t )
-        {
-            return ( ICMPRouterSolicitation_IPv6_t * ) pvArgument;
-        }
-    #endif
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 )
-
-/**
- * @brief Cast a given constant pointer to ICMPRouterSolicitation_IPv6_t type pointer.
- */
-        ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPRouterSolicitation_IPv6_t )
-        {
-            return ( const ICMPRouterSolicitation_IPv6_t * ) pvArgument;
-        }
-    #endif
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 )
-
-/**
- * @brief Cast a given pointer to ICMPPrefixOption_IPv6_t type pointer.
- */
-        ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPPrefixOption_IPv6_t )
-        {
-            return ( ICMPPrefixOption_IPv6_t * ) pvArgument;
-        }
-    #endif
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 )
-
-/**
- * @brief Cast a given constant pointer to ICMPPrefixOption_IPv6_t type pointer.
- */
-        ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPPrefixOption_IPv6_t )
-        {
-            return ( const ICMPPrefixOption_IPv6_t * ) pvArgument;
-        }
-    #endif
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Cast a given pointer to ICMPEcho_IPv6_t type pointer.
- */
-    ipDECL_CAST_PTR_FUNC_FOR_TYPE( ICMPEcho_IPv6_t )
-    {
-        return ( ICMPEcho_IPv6_t * ) pvArgument;
-    }
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Cast a given constant pointer to ICMPEcho_IPv6_t type pointer.
- */
-    ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( ICMPEcho_IPv6_t )
-    {
-        return ( const ICMPEcho_IPv6_t * ) pvArgument;
     }
 /*-----------------------------------------------------------*/
 

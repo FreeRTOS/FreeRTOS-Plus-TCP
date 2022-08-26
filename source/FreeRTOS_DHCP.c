@@ -40,6 +40,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_IP_Timers.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
 #include "FreeRTOS_ARP.h"
@@ -174,22 +175,6 @@
     #include "pack_struct_end.h"
     typedef struct xDHCPMessage_IPv4 DHCPMessage_IPv4_t;
 
-/**
- * @brief Function to cast pointers to DHCPMessage_IPv4_t.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( DHCPMessage_IPv4_t )
-    {
-        return ( DHCPMessage_IPv4_t * ) pvArgument;
-    }
-
-/**
- * @brief Function to cast const pointers to DHCPMessage_IPv4_t.
- */
-    static portINLINE ipDECL_CAST_CONST_PTR_FUNC_FOR_TYPE( DHCPMessage_IPv4_t )
-    {
-        return ( const DHCPMessage_IPv4_t * ) pvArgument;
-    }
-
 
 /** @brief The UDP socket used for all incoming and outgoing DHCP traffic. */
     _static Socket_t xDHCPv4Socket;
@@ -254,15 +239,6 @@
     static void vDHCPProcessEndPoint( BaseType_t xReset,
                                       BaseType_t xDoCheck,
                                       NetworkEndPoint_t * pxEndPoint );
-
-/*
- * After DHCP has failed to answer, prepare everything to start searching
- * for (trying-out) LinkLayer IP-addresses, using the random method: Send
- * a gratuitous ARP request and wait if another device responds to it.
- */
-    #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-        static void prvPrepareLinkLayerIPLookUp( NetworkEndPoint_t * pxEndPoint );
-    #endif
 
     static BaseType_t xHandleWaitingOffer( NetworkEndPoint_t * pxEndPoint,
                                            BaseType_t xDoCheck );
@@ -364,7 +340,7 @@
                 }
 
                 /* Map a DHCP structure onto the received data. */
-                pxDHCPMessage = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( DHCPMessage_IPv4_t, pucUDPPayload );
+                pxDHCPMessage = ( ( const DHCPMessage_IPv4_t * ) pucUDPPayload );
 
                 /* Sanity check. */
                 if( ( pxDHCPMessage->ulDHCPCookie == dhcpCOOKIE ) && ( pxDHCPMessage->ucOpcode == dhcpREPLY_OPCODE ) )
@@ -635,7 +611,7 @@
 
             /* Check for clashes. */
             vARPSendGratuitous();
-            vIPReloadDHCP_RATimer( ( struct xNetworkEndPoint * ) pxEndPoint, EP_DHCPData.ulLeaseTime );
+            vDHCP_RATimerReload( ( struct xNetworkEndPoint * ) pxEndPoint, EP_DHCPData.ulLeaseTime );
         }
         else
         {
@@ -733,14 +709,14 @@
                 }
 
                 /* From now on, we should be called more often */
-                vIPReloadDHCP_RATimer( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
+                vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
             }
         }
         else
         {
             /* See PR #53 on github/freertos/freertos */
             FreeRTOS_printf( ( "DHCP: lease time finished but network is down\n" ) );
-            vIPReloadDHCP_RATimer( ( struct xNetworkEndPoint * ) pxEndPoint, pdMS_TO_TICKS( 5000U ) );
+            vDHCP_RATimerReload( ( struct xNetworkEndPoint * ) pxEndPoint, pdMS_TO_TICKS( 5000U ) );
         }
     }
 /*-----------------------------------------------------------*/
@@ -1018,7 +994,7 @@
             /* Create the DHCP socket if it has not already been created. */
             prvCreateDHCPSocket( pxEndPoint );
             FreeRTOS_debug_printf( ( "prvInitialiseDHCP: start after %lu ticks\n", dhcpINITIAL_TIMER_PERIOD ) );
-            vIPReloadDHCP_RATimer( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
+            vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
         }
         else
         {
@@ -1303,7 +1279,7 @@
         if( lBytes > 0 )
         {
             /* Map a DHCP structure onto the received data. */
-            pxDHCPMessage = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( DHCPMessage_IPv4_t, pucUDPPayload );
+            pxDHCPMessage = ( ( const DHCPMessage_IPv4_t * ) pucUDPPayload );
 
             /* Sanity check. */
             if( lBytes < ( int32_t ) sizeof( DHCPMessage_IPv4_t ) )
@@ -1416,7 +1392,7 @@
         {
             /* Leave space for the UDP header. */
             pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
-            pxDHCPMessage = ipCAST_PTR_TO_TYPE_PTR( DHCPMessage_IPv4_t, pucUDPPayloadBuffer );
+            pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayloadBuffer );
 
             #if ( ipconfigUSE_IPv6 != 0 )
                 {
@@ -1628,7 +1604,7 @@
  *
  * param[in] pxEndPoint: The end-point that wants to obtain a link-layer address.
  */
-        static void prvPrepareLinkLayerIPLookUp( NetworkEndPoint_t * pxEndPoint )
+        void prvPrepareLinkLayerIPLookUp( NetworkEndPoint_t * pxEndPoint )
         {
             uint8_t ucLinkLayerIPAddress[ 2 ];
             uint32_t ulNumbers[ 2 ];

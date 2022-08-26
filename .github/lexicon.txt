@@ -106,6 +106,7 @@ bwinscaling
 bytecount
 callbacklist
 calloc
+cambridge
 camen
 carriersense
 castingmacrofunctions
@@ -279,6 +280,7 @@ enotconn
 enotusingleasedaddress
 enum
 eof
+eol
 eprocessbuffer
 erastateapply
 erastateiptest
@@ -430,6 +432,7 @@ ip
 ipaddress
 ipc
 ipco
+ipforever
 ipg
 ipif
 ipsec
@@ -442,6 +445,7 @@ isnetworkup
 isnumber
 isp
 isr
+isrs
 iss
 itemvalue
 itimezone
@@ -491,6 +495,7 @@ lmaxlength
 lminlength
 lnetlength
 loffset
+longjmp
 loopback
 loopbackmode
 loptionname
@@ -572,6 +577,7 @@ mii
 miiar
 min
 misra
+mit
 mmc
 mo
 mqtt
@@ -617,6 +623,7 @@ noevent
 nondet
 noninfringement
 nontemporaryaddress
+noop
 nop
 ntoh
 ntp
@@ -728,6 +735,7 @@ pparam
 ppkt
 ppointer
 ppucdata
+ppucreceivebuffer
 ppucrecvdata
 ppxaddressinfo
 ppxendpoint
@@ -742,13 +750,13 @@ printf
 printfs
 printlimit
 processdhcpreplies
+processdnscache
 processippacket
 projdefs
 promiscuousmode
 protcol
 prvallowippacket
 prvcachelookup
-prvchecknetworktimers
 prvcheckoptions
 prvcheckrxdata
 prvcopydatatoqueue
@@ -771,23 +779,29 @@ prvntptask
 prvparsednsreply
 prvpreparelookup
 prvprocessdhcpreplies
-prvprocessdnscache
 prvprocessippacket
 prvprocessnetworkdownevent
-prvreadnamefield
 prvreadsackoption
 prvrxcallback
 prvsenddata
+prvsetaynackoptions
 prvsetoptions
 prvsetsynackoptions
 prvsinglesteptcpheaderoptions
 prvskipnamefield
+prvsocketsetmss
 prvstorerxdata
+prvtcpaddtxdata
+prvtcpbufferresize
+prvtcpflagmeaning
 prvtcphandlefin
 prvtcphandlestate
+prvtcpmakesureprepared
+prvtcpnexttimeout
 prvtcpprepareconnect
 prvtcppreparesend
 prvtcpreturnpacket
+prvtcpsendchallengeack
 prvtcpsendloop
 prvtcpsendpacket
 prvtcpsendrepeated
@@ -796,10 +810,12 @@ prvtcpsendspecialpackethelper
 prvtcpsocketcopy
 prvtcpsocketisactive
 prvtcpstatusagecheck
+prvtcptouchsocket
 prvtxcallback
 prvvalidsocket
 prvwinpcaprecvthread
 prvwinpcapsendthread
+prvwinscalefactor
 prvwritepackets
 ps
 pt
@@ -888,6 +904,7 @@ pxevent
 pxeventbits
 pxfrom
 pxgatewayaddress
+pxgetnetworkbuffer
 pxgetnetworkbufferwithdescriptor
 pxhandleconnected
 pxhandlereceive
@@ -896,7 +913,9 @@ pxhead
 pxheadsegment
 pxhigherprioritytaskwoken
 pxhints
+pxicmpheader
 pxicmppacket
+pxindex
 pxinfo
 pxinterface
 pxip
@@ -933,6 +952,7 @@ pxparentsocket
 pxpeersocket
 pxphyobject
 pxprefix
+pxprevious
 pxprops
 pxprotocolheaders
 pxprotpack
@@ -1055,6 +1075,7 @@ rxstream
 rxtail
 rxubr
 sa
+sackp
 saf
 safemalloc
 safemallocsaif
@@ -1091,6 +1112,7 @@ sockaddr
 socketset
 sof
 sourceaddrfilter
+spdx
 spi
 sprintf
 sram
@@ -1100,6 +1122,7 @@ srtt
 ss
 starttx
 stdarg
+stderr
 stmicroelectronics
 strcasecmp
 strcmp
@@ -1269,6 +1292,7 @@ ulcount
 ulcurmss
 ulcurrentsequencenumber
 ulcurrentspistatus
+ulcurrenttimeseconds
 uldata
 uldatagot
 uldefaultipaddress
@@ -1359,7 +1383,9 @@ ultargetprotocoladdress
 ultcpwindowtxack
 ultcpwindowtxget
 ultcpwindowtxsack
+ultimergetage
 ultimestamp
+ultimewhenaddedinseconds
 ultransactionid
 ulttl
 ultxwindowlength
@@ -1478,6 +1504,7 @@ uxidsize
 uxindex
 uxipheaderlength
 uxipheadersize
+uxipheadersizepacket
 uxipheadersizesocket
 uxlast
 uxleft
@@ -1505,7 +1532,6 @@ uxprotocolheaderlength
 uxptr
 uxremainingbytes
 uxremainingtime
-uxremaningtime
 uxremoteport
 uxrequestedsizebytes
 uxresult
@@ -1546,10 +1572,12 @@ varprefreshcacheentry
 varpsendgratuitous
 vcastconstpointerto
 vcastconstptrto
+vchecknetworktimers
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
 vdhcpprocessendpoint
+vdnscheckcallback
 vdnsinitialise
 vdnssetcallback
 ve
@@ -1566,10 +1594,12 @@ vndrefreshcacheentry
 vnetworkinterfaceallocateramtobuffers
 vperformaction
 vportfree
+vprintresourcestats
 vprocessgeneratedudppacket
 vraprocess
 vreceivera
 vreleasenetworkbufferanddescriptor
+vreturnethernetframe
 vrxfaultinjection
 vsocketbind
 vsocketclose
@@ -1595,6 +1625,7 @@ wol
 woreg
 wrdata
 wrxsize
+wsf
 wsopt
 wtxsize
 www
@@ -1651,6 +1682,7 @@ xdhcpsocketusercount
 xdhcptxperiod
 xdhcptxtime
 xdmarxdescriptors
+xdnscache
 xdnsmessage
 xdnsserver
 xdnsserveraddresses
@@ -1669,6 +1701,7 @@ xemacps
 xemacpsif
 xemactaskhandle
 xenablestate
+xend
 xentries
 xentryfound
 xerrnum
@@ -1841,6 +1874,7 @@ xtaskgettickcount
 xtaskhandle
 xtaskresumeall
 xtcp
+xtcpchecknewclient
 xtcpheader
 xtcppacket
 xtcpsegments

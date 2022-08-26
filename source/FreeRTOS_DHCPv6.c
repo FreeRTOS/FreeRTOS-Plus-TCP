@@ -52,6 +52,7 @@
     #include "FreeRTOS_ARP.h"
     #include "FreeRTOS_Sockets.h"
     #include "FreeRTOS_IP_Private.h"
+    #include "FreeRTOS_IP_Timers.h"
 
     #include "FreeRTOS_BitConfig.h"
 
@@ -379,7 +380,7 @@
 
         /* Check for clashes. */
 
-        vIPReloadDHCP_RATimer( ( struct xNetworkEndPoint * ) pxEndPoint, EP_DHCPData.ulLeaseTime );
+        vDHCP_RATimerReload( ( struct xNetworkEndPoint * ) pxEndPoint, EP_DHCPData.ulLeaseTime );
 
         /* DHCP failed, the default configured IP-address will be used
          * Now call vIPNetworkUpCalls() to send the network-up event and
@@ -654,7 +655,7 @@
                     EP_DHCPData.eDHCPState = eWaitingAcknowledge;
 
                     /* From now on, we should be called more often */
-                    vIPReloadDHCP_RATimer( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
+                    vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
                 }
 
                 break;
@@ -852,7 +853,7 @@
         /* Create the DHCP socket if it has not already been created. */
         prvCreateDHCPv6Socket( pxEndPoint );
         FreeRTOS_debug_printf( ( "prvInitialiseDHCPv6: start after %lu ticks\n", dhcpINITIAL_TIMER_PERIOD ) );
-        vIPReloadDHCP_RATimer( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
+        vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
     }
 /*-----------------------------------------------------------*/
 
@@ -995,7 +996,7 @@
                 xAddress.sin_family = FREERTOS_AF_INET6;
                 xAddress.sin_port = FreeRTOS_htons( DHCPv6_SERVER_PORT );
 
-                struct freertos_sockaddr * pxAddress = ipCAST_PTR_TO_TYPE_PTR( sockaddr4_t, &( xAddress ) );
+                struct freertos_sockaddr * pxAddress = ( ( sockaddr4_t * ) &( xAddress ) );
 
                 ( void ) FreeRTOS_sendto( EP_DHCPData.xDHCPSocket, ( const void * ) xMessage.ucContents, xMessage.uxIndex, 0, pxAddress, sizeof xAddress );
             }

@@ -29,7 +29,7 @@
 *
 *   Many methods in the FreeRTOS TCP API in stubs/freertos_api.c
 *
-*   prvParseDNSReply proved memory safe elsewhere
+*   DNS_ParseDNSReply proved memory safe elsewhere
 *
 *   prvCreateDNSMessage
 *
@@ -108,7 +108,7 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
 
 /****************************************************************
 * Function Abstraction
-* prvParseDNSReply has been proved memory safe in ParseDNSReply.
+* DNS_ParseDNSReply has been proved memory safe in DNS_ParseDNSReply.
 *
 * We stub out his function to fill the payload buffer with
 * unconstrained data and return an unconstrained size.
@@ -116,11 +116,11 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
 * The function under test uses only the return value of this
 * function.
 ****************************************************************/
-uint32_t __CPROVER_file_local_FreeRTOS_DNS_c_prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                                                               size_t xBufferLength,
-                                                               struct freertos_addrinfo ** ppxAddressInfo,
-                                                               BaseType_t xExpected,
-                                                               uint16_t usPort )
+uint32_t __CPROVER_file_local_FreeRTOS_DNS_Parse_c_DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+                                                                      size_t xBufferLength,
+                                                                      struct freertos_addrinfo ** ppxAddressInfo,
+                                                                      BaseType_t xExpected,
+                                                                      uint16_t usPort )
 {
     uint32_t size;
 
@@ -170,7 +170,7 @@ void harness()
     __CPROVER_assume( pxNetworkInterfaces == NULL );
     __CPROVER_assume( pxNetworkEndPoints == NULL );
 
-    __CPROVER_assume( len > 0 ); /* prvProcessDNSCache strcmp */
+    __CPROVER_assume( len > 0 ); /* FreeRTOS_ProcessDNSCache strcmp */
     __CPROVER_assume( pcHostName != NULL );
     pcHostName[ len - 1 ] = NULL;
 

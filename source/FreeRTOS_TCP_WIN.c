@@ -56,17 +56,6 @@
     #define winSRTT_DECREMENT_CURRENT    7  /**< Current decrement for the smoothed RTT. */
     #define winSRTT_CAP_mS               50 /**< Cap in milliseconds. */
 
-/**
- * @brief Utility function to cast pointer of a type to pointer of type TCPSegment_t.
- *
- * @return The casted pointer.
- */
-    static portINLINE ipDECL_CAST_PTR_FUNC_FOR_TYPE( TCPSegment_t )
-    {
-        return ( TCPSegment_t * ) pvArgument;
-    }
-
-
     #if ( ipconfigUSE_TCP_WIN == 1 )
 
 /** @brief Create a new Rx window. */
@@ -398,7 +387,7 @@
         /* Insert a new list item into pxList, it does not sort the list,
          * but it puts the item just before xListEnd, so it will be the last item
          * returned by listGET_HEAD_ENTRY() */
-        pxNewListItem->pxNext = ipCAST_PTR_TO_TYPE_PTR( ListItem_t, pxWhere );
+        pxNewListItem->pxNext = ( ( ListItem_t * ) pxWhere );
 
         pxNewListItem->pxPrevious = pxWhere->pxPrevious;
         pxWhere->pxPrevious->pxNext = pxNewListItem;
@@ -425,7 +414,7 @@
             /* Allocate space for 'xTCPSegments' and store them in 'xSegmentList'. */
 
             vListInitialise( &xSegmentList );
-            xTCPSegments = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, pvPortMallocLarge( ( size_t ) ipconfigTCP_WIN_SEG_COUNT * sizeof( xTCPSegments[ 0 ] ) ) );
+            xTCPSegments = ( ( TCPSegment_t * ) pvPortMallocLarge( ( size_t ) ipconfigTCP_WIN_SEG_COUNT * sizeof( xTCPSegments[ 0 ] ) ) );
 
             if( xTCPSegments == NULL )
             {
@@ -478,13 +467,13 @@
 
             /* Find a segment with a given sequence number in the list of received
              * segments. */
-            pxEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( pxWindow->xRxSegments.xListEnd ) );
+            pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
 
             for( pxIterator = listGET_NEXT( pxEnd );
                  pxIterator != pxEnd;
                  pxIterator = listGET_NEXT( pxIterator ) )
             {
-                pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                pxSegment = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                 if( pxSegment->ulSequenceNumber == ulSequenceNumber )
                 {
@@ -533,7 +522,7 @@
                 /* Pop the item at the head of the list.  Semaphore protection is
                 * not required as only the IP task will call these functions.  */
                 pxItem = ( ListItem_t * ) listGET_HEAD_ENTRY( &xSegmentList );
-                pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxItem ) );
+                pxSegment = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxItem ) );
 
                 configASSERT( pxItem != NULL );
                 configASSERT( pxSegment != NULL );
@@ -645,7 +634,7 @@
             else
             {
                 pxItem = ( ListItem_t * ) listGET_HEAD_ENTRY( pxList );
-                pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxItem ) );
+                pxSegment = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxItem ) );
 
                 ( void ) uxListRemove( pxItem );
             }
@@ -678,7 +667,7 @@
             else
             {
                 pxItem = ( ListItem_t * ) listGET_HEAD_ENTRY( pxList );
-                pxReturn = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxItem ) );
+                pxReturn = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxItem ) );
             }
 
             return pxReturn;
@@ -755,7 +744,7 @@
                 {
                     while( listCURRENT_LIST_LENGTH( pxSegments ) > 0U )
                     {
-                        pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_OWNER_OF_HEAD_ENTRY( pxSegments ) );
+                        pxSegment = ( ( TCPSegment_t * ) listGET_OWNER_OF_HEAD_ENTRY( pxSegments ) );
                         vTCPWindowFree( pxSegment );
                     }
                 }
@@ -933,7 +922,7 @@
             TCPSegment_t * pxBest = NULL;
             const ListItem_t * pxIterator;
             uint32_t ulNextSequenceNumber = ulSequenceNumber + ulLength;
-            const ListItem_t * pxEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( pxWindow->xRxSegments.xListEnd ) );
+            const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xRxSegments.xListEnd ) );
             TCPSegment_t * pxSegment;
 
             /* A segment has been received with sequence number 'ulSequenceNumber',
@@ -949,7 +938,7 @@
                  pxIterator != pxEnd;
                  pxIterator = listGET_NEXT( pxIterator ) )
             {
-                pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                pxSegment = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                 /* And see if there is a segment for which:
                  * 'ulSequenceNumber' <= 'pxSegment->ulSequenceNumber' < 'ulNextSequenceNumber'
@@ -1914,7 +1903,7 @@
             uint32_t ulBytesConfirmed = 0U;
             uint32_t ulSequenceNumber = ulFirst, ulDataLength;
             const ListItem_t * pxIterator;
-            const ListItem_t * pxEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( pxWindow->xTxSegments.xListEnd ) );
+            const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxWindow->xTxSegments.xListEnd ) );
             BaseType_t xDoUnlink;
             TCPSegment_t * pxSegment;
 
@@ -1944,7 +1933,7 @@
             while( ( pxIterator != pxEnd ) && ( xSequenceLessThan( ulSequenceNumber, ulLast ) != 0 ) )
             {
                 xDoUnlink = pdFALSE;
-                pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                pxSegment = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                 /* Move to the next item because the current item might get
                  * removed. */
@@ -2064,14 +2053,14 @@
             /* A higher Tx block has been acknowledged.  Now iterate through the
              * xWaitQueue to find a possible condition for a FAST retransmission. */
 
-            pxEnd = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( ListItem_t, &( pxWindow->xWaitQueue.xListEnd ) );
+            pxEnd = ( ( const ListItem_t * ) &( pxWindow->xWaitQueue.xListEnd ) );
 
             pxIterator = listGET_NEXT( pxEnd );
 
             while( pxIterator != pxEnd )
             {
                 /* Get the owner, which is a TCP segment. */
-                pxSegment = ipCAST_PTR_TO_TYPE_PTR( TCPSegment_t, listGET_LIST_ITEM_OWNER( pxIterator ) );
+                pxSegment = ( ( TCPSegment_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                 /* Hop to the next item before the current gets unlinked. */
                 pxIterator = listGET_NEXT( pxIterator );

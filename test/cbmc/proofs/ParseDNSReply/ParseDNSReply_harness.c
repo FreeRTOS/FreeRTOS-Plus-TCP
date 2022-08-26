@@ -14,6 +14,7 @@
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DNS.h"
+#include "FreeRTOS_DNS_Parser.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 #include "IPTraceMacroDefaults.h"
@@ -29,11 +30,11 @@ uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                            BaseType_t xExpected );
 
 /****************************************************************
-* Abstraction of prvReadNameField proved in ReadNameField
+* Abstraction of DNS_ReadNameField proved in DNS_ReadNameField
 ****************************************************************/
 
-size_t prvReadNameField( ParseSet_t * pxSet,
-                         size_t uxDestLen )
+size_t DNS_ReadNameField( ParseSet_t * pxSet,
+                          size_t uxDestLen )
 {
     __CPROVER_assert( NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE,
                       "NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE" );
@@ -52,8 +53,8 @@ size_t prvReadNameField( ParseSet_t * pxSet,
     __CPROVER_assert( pxSet->uxSourceBytesRemaining <= NETWORK_BUFFER_SIZE,
                       "ReadNameField: pxSet->uxSourceBytesRemaining <= NETWORK_BUFFER_SIZE)" );
 
-    /* This precondition in the function contract for prvReadNameField
-     * fails because prvCheckOptions called prvReadNameField with the
+    /* This precondition in the function contract for DNS_ReadNameField
+     * fails because prvCheckOptions called DNS_ReadNameField with the
      * constant value 254.
      * __CPROVER_assert(uxDestLen <= NAME_SIZE,
      *       "ReadNameField: uxDestLen <= NAME_SIZE)");
