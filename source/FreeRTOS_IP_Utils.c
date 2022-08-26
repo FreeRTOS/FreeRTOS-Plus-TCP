@@ -385,46 +385,52 @@ void prvProcessNetworkDownEvent( void )
  */
 void vPreCheckConfigs( void )
 {
+    size_t uxSize;
+
     /* This function should only be called once. */
     configASSERT( xIPIsNetworkTaskReady() == pdFALSE );
     configASSERT( xNetworkEventQueue == NULL );
     configASSERT( FreeRTOS_GetIPTaskHandle() == NULL );
 
     #if ( configASSERT_DEFINED == 1 )
-        {
-            volatile size_t uxSize = sizeof( uintptr_t );
+        #if ( UINTPTR_MAX > 0xFFFFFFFF )
 
-            if( uxSize == 8U )
-            {
-                /* This is a 64-bit platform, make sure there is enough space in
-                 * pucEthernetBuffer to store a pointer. */
-                configASSERT( ipconfigBUFFER_PADDING >= 14 );
-                /* But it must have this strange alignment: */
-                configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
-            }
+            /*
+             * This is a 64-bit platform, make sure there is enough space in
+             * pucEthernetBuffer to store a pointer.
+             */
+            configASSERT( ipBUFFER_PADDING >= 14U );
+        #else
+            /* This is a 32-bit platform. */
+            configASSERT( ipBUFFER_PADDING >= 10U );
+        #endif /* UINTPTR_MAX > 0xFFFFFFFF */
 
-            /* LCOV_EXCL_BR_START */
-            uxSize = ipconfigNETWORK_MTU;
-            /* Check if MTU is big enough. */
-            configASSERT( uxSize >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
+        /* And it must have this strange alignment: */
+        configASSERT( ( ( ( ipBUFFER_PADDING ) + 2U ) % 4U ) == 0 );
 
-            uxSize = sizeof( EthernetHeader_t );
-            /* Check structure packing is correct. */
-            configASSERT( uxSize == ipEXPECTED_EthernetHeader_t_SIZE );
+        /* LCOV_EXCL_BR_START */
+        uxSize = ipconfigNETWORK_MTU;
+        /* Check if MTU is big enough. */
+        configASSERT( uxSize >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
 
-            uxSize = sizeof( ARPHeader_t );
-            configASSERT( uxSize == ipEXPECTED_ARPHeader_t_SIZE );
+        uxSize = sizeof( EthernetHeader_t );
+        /* Check structure packing is correct. */
+        configASSERT( uxSize == ipEXPECTED_EthernetHeader_t_SIZE );
 
-            uxSize = sizeof( IPHeader_t );
-            configASSERT( uxSize == ipEXPECTED_IPHeader_t_SIZE );
+        uxSize = sizeof( ARPHeader_t );
+        configASSERT( uxSize == ipEXPECTED_ARPHeader_t_SIZE );
 
-            uxSize = sizeof( ICMPHeader_t );
-            configASSERT( uxSize == ipEXPECTED_ICMPHeader_t_SIZE );
+        uxSize = sizeof( IPHeader_t );
+        configASSERT( uxSize == ipEXPECTED_IPHeader_t_SIZE );
 
-            uxSize = sizeof( UDPHeader_t );
-            configASSERT( uxSize == ipEXPECTED_UDPHeader_t_SIZE );
-            /* LCOV_EXCL_BR_STOP */
-        }
+        uxSize = sizeof( ICMPHeader_t );
+        configASSERT( uxSize == ipEXPECTED_ICMPHeader_t_SIZE );
+
+        uxSize = sizeof( UDPHeader_t );
+        configASSERT( uxSize == ipEXPECTED_UDPHeader_t_SIZE );
+        /* LCOV_EXCL_BR_STOP */
+    #else /* if ( configASSERT_DEFINED == 1 ) */
+        ( void ) uxSize;
     #endif /* if ( configASSERT_DEFINED == 1 ) */
 }
 
