@@ -98,22 +98,30 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
  * pointer back to the network buffer.  Should be a multiple of 8 to ensure 8 byte
  * alignment is maintained on architectures that require it.
  *
- * In order to get a 32-bit alignment of network packets, an offset of 2 bytes
- * would be desirable, as defined by ipconfigPACKET_FILLER_SIZE.  So the malloc'd
+ * In order to get a 32-bit or 64-bit alignment of network packets, an offset of 2 bytes
+ * is ideal as defined by ipconfigPACKET_FILLER_SIZE. So the malloc'd
  * buffer will have the following contents:
- *  uint32_t pointer;   // word-aligned
- *  uchar_8 filler[6];
- *  << ETH-header >>    // half-word-aligned
- *  uchar_8 dest[6];    // start of pucEthernetBuffer
- *  uchar_8 dest[6];
- *  uchar16_t type;
- *  << IP-header >>     // word-aligned
+ * +---------+-----------+---------+
+ * | Offset  | Alignment | Length  |
+ * | 32 | 64 | 32  | 64  | 32 | 64 |
+ * |----|----|-----|-----|----|----|
+ * | 0  | 0  | 4   | 8   | 4  | 8  | uchar_8 * pointer;
+ * | 4  | 8  | 4   | 8   | 2  | 6  | uchar_8   filler[];   // ipconfigPACKET_FILLER_SIZE
+ * | 6  | 14 | 4+2 | 8+6 | 7  | 7  | uchar_8   preamble[7] // Beginning of Ethernet header
+ * | 13 | 21 | 4+1 | 8+5 | 1  | 1  | uchar_8   delimiter;
+ * | 14 | 22 | 4+2 | 8+6 | 6  | 6  | uchar_8   dest_mac[6];
+ * | 20 | 28 | 4   | 8+4 | 6  | 6  | uchar_8   src_mac[6];
+ * | 26 | 30 | 4+2 | 8+6 | 2  | 2  | uchar16_t ethertype;
+ * | 28 | 32 | 4   | 8   |         | << IP-header >>     // word-aligned
  *  uint8_t ucVersionHeaderLength;
  *  etc
  */
 
-#if ( ipconfigBUFFER_PADDING != 0 )
+/* Use setting from FreeRTOS if defined and non-zero */
+#if defined( ipconfigBUFFER_PADDING ) && ( ipconfigBUFFER_PADDING != 0 )
     #define ipBUFFER_PADDING    ipconfigBUFFER_PADDING
+#elif ( UINTPTR_MAX > 0xFFFFFFFF )
+    #define ipBUFFER_PADDING    ( 12U + ipconfigPACKET_FILLER_SIZE )
 #else
     #define ipBUFFER_PADDING    ( 8U + ipconfigPACKET_FILLER_SIZE )
 #endif
