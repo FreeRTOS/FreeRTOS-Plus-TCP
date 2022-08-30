@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
