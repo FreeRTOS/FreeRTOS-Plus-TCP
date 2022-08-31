@@ -3584,6 +3584,46 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  * @brief Get a direct pointer to the circular transmit buffer.
  *
  * @param[in] xSocket: The socket owning the buffer.
+ *
+ * @return Address the circular transmit buffer if all checks pass. Or else, NULL
+ *         is returned.
+ */
+    uint8_t * FreeRTOS_get_tx_base( ConstSocket_t xSocket )
+    {
+        uint8_t * pucReturn = NULL;
+        const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
+
+        /* Confirm that this is a TCP socket before dereferencing structure
+         * member pointers. */
+        if( prvValidSocket( pxSocket, FREERTOS_IPPROTO_TCP, pdFALSE ) == pdTRUE )
+        {
+            StreamBuffer_t * pxBuffer = pxSocket->u.xTCP.txStream;
+
+            if( pxBuffer == NULL )
+            {
+                /* Create the outgoing stream only when it is needed */
+                ( void ) prvTCPCreateStream( pxSocket, pdFALSE );
+                pxBuffer = pxSocket->u.xTCP.txStream;
+            }
+
+            if( pxBuffer != NULL )
+            {
+                pucReturn = pxBuffer->ucArray;
+            }
+        }
+
+        return pucReturn;
+    }
+#endif /* if ( ipconfigUSE_TCP == 1 ) */
+
+#if ( ipconfigUSE_TCP == 1 )
+
+/**
+ * @brief Get a direct pointer to the circular transmit buffer at the
+ *        current head position. New outgoing data can be written to
+ *        this position.
+ *
+ * @param[in] xSocket: The socket owning the buffer.
  * @param[in] pxLength: This will contain the number of bytes that may be written.
  *
  * @return Head of the circular transmit buffer if all checks pass. Or else, NULL
@@ -3603,6 +3643,13 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         if( prvValidSocket( pxSocket, FREERTOS_IPPROTO_TCP, pdFALSE ) == pdTRUE )
         {
             pxBuffer = pxSocket->u.xTCP.txStream;
+
+            if( pxBuffer == NULL )
+            {
+                /* Create the outgoing stream only when it is needed */
+                ( void ) prvTCPCreateStream( pxSocket, pdFALSE );
+                pxBuffer = pxSocket->u.xTCP.txStream;
+            }
 
             if( pxBuffer != NULL )
             {

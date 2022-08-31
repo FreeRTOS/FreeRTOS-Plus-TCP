@@ -356,9 +356,16 @@
 
 /* For advanced applications only:
  * Get a direct pointer to the circular transmit buffer.
+ */
+        uint8_t * FreeRTOS_get_tx_base( ConstSocket_t xSocket );
+
+/* For advanced applications only:
+ * Get a direct pointer to the circular transmit buffer at the
+ * head position.
  * '*pxLength' will contain the number of bytes that may be written. */
         uint8_t * FreeRTOS_get_tx_head( ConstSocket_t xSocket,
                                         BaseType_t * pxLength );
+
 
 /* For the web server: borrow the circular Rx buffer for inspection
  * HTML driver wants to see if a sequence of 13/10/13/10 is available. */
