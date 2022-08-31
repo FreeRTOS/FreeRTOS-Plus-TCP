@@ -191,9 +191,31 @@
                 /* ipconfigTCP_HANG_PROTECTION_TIME is in units of seconds. */
                 if( xAge > ( ( TickType_t ) ipconfigTCP_HANG_PROTECTION_TIME * ( TickType_t ) configTICK_RATE_HZ ) )
                 {
+                    BaseType_t xHandled = pdFALSE;
+
+                    if( pxSocket->u.xTCP.bits.bReuseSocket )
+                    {
+                        switch( pxSocket->u.xTCP.eTCPState )
+                        {
+                            case eSYN_FIRST:    /* 3 (server) Just created, must ACK the SYN request */
+                            case eSYN_RECEIVED: /* 4 (server) waiting for a confirming connection request */
+                                                /* acknowledgement after having both received and sent a connection request */
+                                /* Fall back to eTCP_LISTEN to reassign RemoteIP / RemotePort to the socket */
+                                /* because at next connection request one or both of them may be different! */
+                                pxSocket->u.xTCP.eTCPState = eCLOSED;
+                                ( void ) FreeRTOS_listen( ( Socket_t ) pxSocket, pxSocket->u.xTCP.usBacklog );
+                                xHandled = pdTRUE;
+                                break;
+
+                            default:
+                                /* Follow the usual path, which will close this orphaned socket. */
+                                break;
+                        }
+                    }
+
                     #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
                         {
-                            FreeRTOS_debug_printf( ( "Inactive socket closed: port %u rem %xip:%u status %s\n",
+                            FreeRTOS_debug_printf( ( "Inactive socket: port %u rem %xip:%u status %s\n",
                                                      pxSocket->usLocalPort,
                                                      ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
                                                      pxSocket->u.xTCP.usRemotePort,
@@ -201,18 +223,21 @@
                         }
                     #endif /* ipconfigHAS_DEBUG_PRINTF */
 
-                    /* Move to eCLOSE_WAIT, user may close the socket. */
-                    vTCPStateChange( pxSocket, eCLOSE_WAIT );
-
-                    /* When 'bPassQueued' true, this socket is an orphan until it
-                     * gets connected. */
-                    if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
+                    if( xHandled == pdFALSE )
                     {
-                        /* vTCPStateChange() has called vSocketCloseNextTime()
-                         * in case the socket is not yet owned by the application.
-                         * Return a negative value to inform the caller that
-                         * the socket will be closed in the next cycle. */
-                        xResult = -1;
+                        /* Move to eCLOSE_WAIT, user may close the socket. */
+                        vTCPStateChange( pxSocket, eCLOSE_WAIT );
+
+                        /* When 'bPassQueued' true, this socket is an orphan until it
+                         * gets connected. */
+                        if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
+                        {
+                            /* vTCPStateChange() has called vSocketCloseNextTime()
+                             * in case the socket is not yet owned by the application.
+                             * Return a negative value to inform the caller that
+                             * the socket will be closed in the next cycle. */
+                            xResult = -1;
+                        }
                     }
                 }
             }
