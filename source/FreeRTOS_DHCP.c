@@ -1196,7 +1196,8 @@
             {
                 /* Remove option-50 from the list because it is not used. */
                 size_t uxCopyLength;
-                configASSERT( uxOptionsLength > ( dhcpOPTION_50_OFFSET + dhcpOPTION_50_SIZE ) );
+                /* Exclude this line from branch coverage as the not-taken condition will never happen unless the code is modified */
+                configASSERT( uxOptionsLength > ( dhcpOPTION_50_OFFSET + dhcpOPTION_50_SIZE ) ); /* LCOV_EXCL_BR_LINE */
                 uxCopyLength = uxOptionsLength - ( dhcpOPTION_50_OFFSET + dhcpOPTION_50_SIZE );
                 pvCopySource = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpOPTION_50_OFFSET + dhcpOPTION_50_SIZE ] );
                 pvCopyDest = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpOPTION_50_OFFSET ] );
