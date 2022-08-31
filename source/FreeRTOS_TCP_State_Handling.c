@@ -199,16 +199,16 @@
                         {
                             case eSYN_FIRST:    /* 3 (server) Just created, must ACK the SYN request */
                             case eSYN_RECEIVED: /* 4 (server) waiting for a confirming connection request */
-                                                /* acknowledgement after having both received and sent a connection request */
-                                /* Fall back to eTCP_LISTEN to reassign RemoteIP / RemotePort to the socket */
-                                /* because at next connection request one or both of them may be different! */
+
+                                /* Go back into list mode. Set the TCP status to 'eCLOSED',
+								 * otherwise FreeRTOS_listen() will refuse the action. */
                                 pxSocket->u.xTCP.eTCPState = eCLOSED;
                                 ( void ) FreeRTOS_listen( ( Socket_t ) pxSocket, pxSocket->u.xTCP.usBacklog );
                                 xHandled = pdTRUE;
                                 break;
 
                             default:
-                                /* Follow the usual path, which will close this orphaned socket. */
+                                /* Follow the usual path, which will close this socket in case it is orphaned. */
                                 break;
                         }
                     }
