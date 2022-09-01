@@ -41,7 +41,7 @@ set( TEST_DIR ${MODULE_ROOT_DIR}/test/build-combination )
 include_directories( ${MODULE_ROOT_DIR}/source/include )
 include_directories( ${MODULE_ROOT_DIR}/source/portable/Compiler/MSVC )
 include_directories( ${FREERTOS_KERNEL_DIR}/include )
-include_directories( ${FREERTOS_KERNEL_DIR}/portable/MSVC-MingW )
+include_directories( ${FREERTOS_KERNEL_DIR}/portable/ThirdParty/GCC/Posix )
 include_directories( ${FREERTOS_KERNEL_DIR}/portable/MemMang )
 include_directories( ${TEST_DIR}/Common )
 
@@ -55,7 +55,7 @@ endif()
 
 
 
-file(GLOB KERNEL_SOURCES "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/*.c")
+file(GLOB KERNEL_SOURCES "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/*.c" "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/*.c" "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/utils/*.c")
 file(GLOB TCP_SOURCES "${MODULE_ROOT_DIR}/source/*.c"
         )
 

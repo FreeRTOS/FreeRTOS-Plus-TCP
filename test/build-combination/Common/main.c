@@ -239,23 +239,6 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
     return pdTRUE;
 }
 
-void vPortEnterCritical( void )
-{
-    /* Provide a stub for this function. */
-}
-
-void vPortExitCritical( void )
-{
-    /* Provide a stub for this function. */
-}
-
-StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
-                                     TaskFunction_t pxCode,
-                                     void * pvParameters )
-{
-    /* Provide a stub for this function. */
-}
-
 void vPortGenerateSimulatedInterrupt( uint32_t ulInterruptNumber )
 {
     /* Provide a stub for this function. */
@@ -295,16 +278,6 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 
 
 void vConfigureTimerForRunTimeStats( void )
-{
-    /* Provide a stub for this function. */
-}
-
-BaseType_t xPortStartScheduler( void )
-{
-    /* Provide a stub for this function. */
-}
-
-void vPortEndScheduler( void )
 {
     /* Provide a stub for this function. */
 }
