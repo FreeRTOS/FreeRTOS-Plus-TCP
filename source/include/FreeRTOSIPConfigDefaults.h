@@ -1073,7 +1073,7 @@
  * this ID. It has a default value of NULL.
  */
 #ifndef ipconfigUSE_SetSocketID
-    #define ipconfigUSE_SetSocketID      0
+    #define ipconfigUSE_SetSocketID    0
 #endif
 
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */

@@ -366,17 +366,19 @@
 
         void FreeRTOS_netstat( void );
 
-    #if( ipconfigUSE_SetSocketID != 0 )
+        #if ( ipconfigUSE_SetSocketID != 0 )
+
 /* This option adds the possibility to have a user-ID attached to a socket.
  * The type of this ID is a void *.  Both UDP and TCP sockets have
  * this ID. It has a default value of NULL.
  */
-        BaseType_t xSocketSetSocketID( const Socket_t xSocket, void * pvSocketID );
-	#endif
+            BaseType_t xSocketSetSocketID( const Socket_t xSocket,
+                                           void * pvSocketID );
+        #endif
 
-    #if( ipconfigUSE_SetSocketID != 0 )
-        void * pvSocketGetSocketID( const ConstSocket_t xSocket );
-    #endif
+        #if ( ipconfigUSE_SetSocketID != 0 )
+            void * pvSocketGetSocketID( const ConstSocket_t xSocket );
+        #endif
 
 
 /* End TCP Socket Attributes. */
