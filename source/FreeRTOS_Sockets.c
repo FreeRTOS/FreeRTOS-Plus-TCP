@@ -4805,9 +4805,10 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 #if( ipconfigUSE_SetSocketID != 0 )
 /**
  * @brief Retrieve the SocketID that is associated with a socket.
- * @param[in] xSocket: The socket whose ID should be set.
+ * @param[in] xSocket: The socket whose ID should be returned.
  * @return The current value of pvSocketID, or NULL in case
- * the socket pointer is not valid.
+ *         the socket pointer is not valid or when the ID was not
+ *         yet set.
  */
     void * pvSocketGetSocketID( const ConstSocket_t xSocket )
     {
