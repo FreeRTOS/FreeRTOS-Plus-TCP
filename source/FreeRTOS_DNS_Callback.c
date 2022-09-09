@@ -61,7 +61,10 @@
         BaseType_t xResult = pdFALSE;
         const ListItem_t * pxIterator;
         const ListItem_t * xEnd = listGET_END_MARKER( &xCallbackList );
+        DNSCallback_t * pxKeepCallback = NULL;
 
+        /* Find the right entry in the list without getting disturbed by
+         * another task. */
         vTaskSuspendAll();
         {
             for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
@@ -73,23 +76,37 @@
                     DNSCallback_t * pxCallback = ( ( DNSCallback_t * )
                                                    listGET_LIST_ITEM_OWNER( pxIterator ) );
 
-                    pxCallback->pCallbackFunction( pcName, pxCallback->pvSearchID,
-                                                   ulIPAddress );
-                    ( void ) uxListRemove( &pxCallback->xListItem );
-                    vPortFree( pxCallback );
-
-                    if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
-                    {
-                        /* The list of outstanding requests is empty. No need for periodic polling. */
-                        vIPSetDNSTimerEnableState( pdFALSE );
-                    }
-
-                    xResult = pdTRUE;
+                    /* Remember the callback instance that must be called.  Call it outside
+                     * the critical section, so that FreeRTOS API's can be called. */
+                    pxKeepCallback = pxCallback;
                     break;
                 }
             }
         }
         ( void ) xTaskResumeAll();
+
+        if( pxKeepCallback )
+        {
+            pxKeepCallback->pCallbackFunction( pcName, pxKeepCallback->pvSearchID,
+                                               ulIPAddress );
+            vTaskSuspendAll();
+            {
+                /* uxListRemove() needs the protection of some critical section. */
+                ( void ) uxListRemove( &pxKeepCallback->xListItem );
+            }
+            ( void ) xTaskResumeAll();
+
+            vPortFree( pxKeepCallback );
+
+            if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
+            {
+                /* The list of outstanding requests is empty. No need for periodic polling. */
+                vIPSetDNSTimerEnableState( pdFALSE );
+            }
+
+            xResult = pdTRUE;
+        }
+
         return xResult;
     }
 
@@ -157,34 +174,56 @@
     {
         const ListItem_t * pxIterator;
         const ListItem_t * xEnd = listGET_END_MARKER( &xCallbackList );
+        DNSCallback_t * pxKeepCallback;
 
-        vTaskSuspendAll();
+        do
         {
-            for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
-                 pxIterator != xEnd; )
+            vTaskSuspendAll();
             {
-                DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
-                /* Move to the next item because we might remove this item */
-                pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator );
+                pxKeepCallback = NULL;
 
-                if( ( pvSearchID != NULL ) && ( pvSearchID == pxCallback->pvSearchID ) )
+                for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
+                     pxIterator != xEnd; )
                 {
-                    ( void ) uxListRemove( &( pxCallback->xListItem ) );
-                    vPortFree( pxCallback );
-                }
-                else if( xTaskCheckForTimeOut( &pxCallback->uxTimeoutState, &pxCallback->uxRemainingTime ) != pdFALSE )
-                {
-                    pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, 0 );
-                    ( void ) uxListRemove( &( pxCallback->xListItem ) );
-                    vPortFree( pxCallback );
-                }
-                else
-                {
-                    /* This call-back is still waiting for a reply or a time-out. */
+                    DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
+                    /* Move to the next item because we might remove this item */
+                    pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator );
+
+                    if( ( pvSearchID != NULL ) && ( pvSearchID == pxCallback->pvSearchID ) )
+                    {
+                        ( void ) uxListRemove( &( pxCallback->xListItem ) );
+                        vPortFree( pxCallback );
+                    }
+                    else if( xTaskCheckForTimeOut( &pxCallback->uxTimeoutState, &pxCallback->uxRemainingTime ) != pdFALSE )
+                    {
+                        /* Remember the entry that has expired. Call the user function from
+                         * outside the critical section, so that FreeRTOS API's may be called. */
+                        pxKeepCallback = pxCallback;
+                        break;
+                    }
+                    else
+                    {
+                        /* This call-back is still waiting for a reply or a time-out. */
+                    }
                 }
             }
-        }
-        ( void ) xTaskResumeAll();
+            ( void ) xTaskResumeAll();
+
+            if( pxKeepCallback != NULL )
+            {
+                pxKeepCallback->pCallbackFunction( pxKeepCallback->pcName, pxKeepCallback->pvSearchID, 0 );
+                vTaskSuspendAll();
+                {
+                    ( void ) uxListRemove( &( pxKeepCallback->xListItem ) );
+                }
+                ( void ) xTaskResumeAll();
+
+                vPortFree( pxKeepCallback );
+
+                /* The do-while-loop will make a new iteration to see if
+                 * there is another entry that has expired. */
+            }
+        } while( pxKeepCallback != NULL );
 
         if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
         {
