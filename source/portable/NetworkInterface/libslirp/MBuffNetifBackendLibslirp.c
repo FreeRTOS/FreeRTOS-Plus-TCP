@@ -353,8 +353,8 @@ void vMBuffNetifBackendDeInit( void * pvBackendContext )
             ( void ) WaitForSingleObject( ( HANDLE ) pxCtx->xTxThread, INFINITE );
             ( void ) WaitForSingleObject( ( HANDLE ) pxCtx->xRxThread, INFINITE );
         #else
-            pthread_join( &( pxCtx->xTxThread ), NULL );
-            pthread_join( &( pxCtx->xRxThread ), NULL );
+            pthread_join( pxCtx->xTxThread, NULL );
+            pthread_join( pxCtx->xRxThread, NULL );
         #endif
 
         vLockSlirpContext( pxCtx );
@@ -393,15 +393,15 @@ static slirp_ssize_t xSlirp_WriteCallback( const void * pvBuffer,
 
     if( uxLen > ( NETWORK_BUFFER_LEN ) )
     {
-        fprintf( stderr, "Dropping RX frame of length: %lu > %lu. Frame received from libslirp is too large.\n", uxLen, NETWORK_BUFFER_LEN );
+        fprintf( stderr, "Dropping RX frame of length: %zu > %zu. Frame received from libslirp is too large.\n", uxLen, ( size_t ) NETWORK_BUFFER_LEN );
     }
     else if( uxLen < sizeof( EthernetHeader_t ) )
     {
-        fprintf( stderr, "Dropping RX frame of length: %lu < %lu. Frame received from libslirp is too small.\n", uxLen, sizeof( EthernetHeader_t ) );
+        fprintf( stderr, "Dropping RX frame of length: %zu < %zu. Frame received from libslirp is too small.\n", uxLen, sizeof( EthernetHeader_t ) );
     }
     else if( xMessageBufferSpacesAvailable( pxCtx->xRecvMsgBuffer ) < ( uxLen + 4U ) )
     {
-        fprintf( stderr, "Dropping RX frame of length: %lu. xRecvMsgBuffer is full\n", uxLen );
+        fprintf( stderr, "Dropping RX frame of length: %zu. xRecvMsgBuffer is full\n", uxLen );
     }
     else
     {
