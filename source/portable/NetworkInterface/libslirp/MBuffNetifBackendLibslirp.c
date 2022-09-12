@@ -32,7 +32,6 @@
 
 /* QEMU Slirp Library */
 #include <libslirp.h>
-#include "if.h"
 
 #if defined( _WIN32 )
     #include <process.h>
@@ -52,6 +51,18 @@
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOS_IP.h"
 
+#ifndef IF_MTU_DEFAULT
+    #define IF_MTU_DEFAULT    1500
+#endif
+
+#ifndef IF_MRU_DEFAULT
+    #define IF_MRU_DEFAULT    1500
+#endif
+
+#ifndef slirp_ssize_t
+    typedef ssize_t slirp_ssize_t;
+#endif
+
 #define NETWORK_BUFFER_LEN    ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
 
 #define xSEND_BUFFER_SIZE     ( 32U * NETWORK_BUFFER_LEN )
@@ -59,15 +70,15 @@
 #define xNUM_TIMERS           ( 10U )
 
 #if defined( _WIN32 )
-    typedef uintptr_t         Thread_t;
-    typedef HANDLE            Mutex_t;
+    typedef uintptr_t       Thread_t;
+    typedef HANDLE          Mutex_t;
     #define THREAD_RETURN      unsigned
     #define THREAD_FUNC_DEF    __stdcall
     static LARGE_INTEGER xClockFrequency;
-    typedef size_t            nfds_t;
+    typedef size_t          nfds_t;
 #else
-    typedef pthread_t         Thread_t;
-    typedef pthread_mutex_t   Mutex_t;
+    typedef pthread_t       Thread_t;
+    typedef pthread_mutex_t Mutex_t;
     #define THREAD_RETURN    void *
     #define THREAD_FUNC_DEF
 #endif /* if defined( _WIN32 ) */
