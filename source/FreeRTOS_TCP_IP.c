@@ -283,6 +283,21 @@
             FreeRTOS_Socket_t * xConnected = NULL;
         #endif
 
+        if( ( xPreviousState == eCONNECT_SYN ) && ( eTCPState == eCLOSE_WAIT ) )
+        {
+            /* The application is waiting for a connect(), let wake it up. */
+            FreeRTOS_printf( ( "vTCPStateChange: Setting the 'eSOCKET_CLOSED' bit. Before/after: %d %d\n", ( int ) bBefore, ( int ) bAfter ) );
+            pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_CLOSED;
+            #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+                {
+                    if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_EXCEPT ) != 0U )
+                    {
+                        pxSocket->xEventBits |= ( ( EventBits_t ) eSELECT_EXCEPT ) << SOCKET_EVENT_BIT_COUNT;
+                    }
+                }
+            #endif
+        }
+
         /* Has the connected status changed? */
         if( bBefore != bAfter )
         {

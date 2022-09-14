@@ -374,6 +374,9 @@
         if( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN )
         {
             ucExpect |= tcpTCP_FLAG_SYN;
+            /* Adding a bug here. */
+            FreeRTOS_printf( ( "Code for testing only\n" ) );
+            ucTCPFlags &= ~( ( uint8_t ) tcpTCP_FLAG_SYN );
         }
 
         if( ( ucTCPFlags & ucFlagsMask ) != ucExpect )

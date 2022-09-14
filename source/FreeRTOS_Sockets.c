@@ -3139,7 +3139,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 }
 
                 /* Go sleeping until we get any down-stream event */
-                ( void ) xEventGroupWaitBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_CONNECT, pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, xRemainingTime );
+                EventBits_t uxEvents = xEventGroupWaitBits( pxSocket->xEventGroup,
+                                                            ( EventBits_t ) eSOCKET_CONNECT | ( EventBits_t ) eSOCKET_CLOSED,
+                                                            pdTRUE /*xClearOnExit*/,
+                                                            pdFALSE /*xWaitAllBits*/,
+                                                            xRemainingTime );
+                FreeRTOS_printf( ( "xEventGroupWaitBits: returns 0x%04X\n", ( unsigned ) uxEvents ) );
             }
         }
 
