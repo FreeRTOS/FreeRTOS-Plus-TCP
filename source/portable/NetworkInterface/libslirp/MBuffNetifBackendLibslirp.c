@@ -25,8 +25,6 @@
  * http://www.FreeRTOS.org
  */
 
-/* The following run from a pthread contenxt */
-
 /* libc */
 #include <stdlib.h>
 
@@ -57,10 +55,6 @@
 
 #ifndef IF_MRU_DEFAULT
     #define IF_MRU_DEFAULT    1500
-#endif
-
-#ifndef slirp_ssize_t
-    typedef ssize_t slirp_ssize_t;
 #endif
 
 #define NETWORK_BUFFER_LEN    ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
