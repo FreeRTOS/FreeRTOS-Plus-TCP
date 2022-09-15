@@ -272,52 +272,48 @@
     void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
                           enum eTCP_STATE eTCPState )
     {
-        FreeRTOS_Socket_t * xParent = NULL;
+        FreeRTOS_Socket_t * xParent = pxSocket;
         BaseType_t bBefore = tcpNOW_CONNECTED( ( BaseType_t ) pxSocket->u.xTCP.eTCPState ); /* Was it connected ? */
         BaseType_t bAfter = tcpNOW_CONNECTED( ( BaseType_t ) eTCPState );                   /* Is it connected now ? */
 
-        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-            BaseType_t xPreviousState = ( BaseType_t ) pxSocket->u.xTCP.eTCPState;
-        #endif
+        BaseType_t xPreviousState = ( BaseType_t ) pxSocket->u.xTCP.eTCPState;
         #if ( ipconfigUSE_CALLBACKS == 1 )
             FreeRTOS_Socket_t * xConnected = NULL;
         #endif
 
-        if( ( xPreviousState == eCONNECT_SYN ) && ( eTCPState == eCLOSE_WAIT ) )
+        if( ( ( xPreviousState == eCONNECT_SYN ) ||
+              ( xPreviousState == eSYN_FIRST ) ||
+              ( xPreviousState == eSYN_RECEIVED ) ) &&
+            ( eTCPState == eCLOSE_WAIT ) )
         {
-            /* The application is waiting for a connect(), let wake it up. */
-            FreeRTOS_printf( ( "vTCPStateChange: Setting the 'eSOCKET_CLOSED' bit. Before/after: %d %d\n", ( int ) bBefore, ( int ) bAfter ) );
-            pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_CLOSED;
-            #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-                {
-                    if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_EXCEPT ) != 0U )
-                    {
-                        pxSocket->xEventBits |= ( ( EventBits_t ) eSELECT_EXCEPT ) << SOCKET_EVENT_BIT_COUNT;
-                    }
-                }
-            #endif
+            /* A socket was in the connecting phase but something
+             * went wrong and it should be closed. */
+			FreeRTOS_printf( ( "Move from %s to %s\n",
+				FreeRTOS_GetTCPStateName( xPreviousState ),
+				FreeRTOS_GetTCPStateName( eTCPState ) ) );
+            bBefore = pdTRUE;
+            bAfter = pdFALSE;
         }
 
         /* Has the connected status changed? */
         if( bBefore != bAfter )
         {
+            /* if bPassQueued is true, this socket is an orphan until it gets connected. */
+            if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
+            {
+                /* Now that it is connected, find it's parent. */
+                if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                {
+                    xParent = pxSocket->u.xTCP.pxPeerSocket;
+                    configASSERT( xParent != NULL );
+                }
+			}
             /* Is the socket connected now ? */
             if( bAfter != pdFALSE )
             {
                 /* if bPassQueued is true, this socket is an orphan until it gets connected. */
                 if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
                 {
-                    /* Now that it is connected, find it's parent. */
-                    if( pxSocket->u.xTCP.bits.bReuseSocket != pdFALSE_UNSIGNED )
-                    {
-                        xParent = pxSocket;
-                    }
-                    else
-                    {
-                        xParent = pxSocket->u.xTCP.pxPeerSocket;
-                        configASSERT( xParent != NULL );
-                    }
-
                     if( xParent != NULL )
                     {
                         if( xParent->u.xTCP.pxPeerSocket == NULL )
@@ -377,13 +373,13 @@
             else /* bAfter == pdFALSE, connection is closed. */
             {
                 /* Notify/wake-up the socket-owner by setting a semaphore. */
-                pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_CLOSED;
+                xParent->xEventBits |= ( EventBits_t ) eSOCKET_CLOSED;
 
                 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
                     {
-                        if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_EXCEPT ) != 0U )
+                        if( ( xParent->xSelectBits & ( EventBits_t ) eSELECT_EXCEPT ) != 0U )
                         {
-                            pxSocket->xEventBits |= ( ( EventBits_t ) eSELECT_EXCEPT ) << SOCKET_EVENT_BIT_COUNT;
+                            xParent->xEventBits |= ( ( EventBits_t ) eSELECT_EXCEPT ) << SOCKET_EVENT_BIT_COUNT;
                         }
                     }
                 #endif
@@ -408,23 +404,20 @@
                 pxSocket->u.xTCP.usTimeout = 0U;
             }
         }
-        else
+        if( ( eTCPState == eCLOSED ) ||
+            ( eTCPState == eCLOSE_WAIT ) )
         {
-            if( ( eTCPState == eCLOSED ) ||
-                ( eTCPState == eCLOSE_WAIT ) )
+            /* Socket goes to status eCLOSED because of a RST.
+             * When nobody owns the socket yet, delete it. */
+            if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
+                ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
             {
-                /* Socket goes to status eCLOSED because of a RST.
-                 * When nobody owns the socket yet, delete it. */
-                if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
-                    ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
-                {
-                    FreeRTOS_debug_printf( ( "vTCPStateChange: Closing socket\n" ) );
+                FreeRTOS_debug_printf( ( "vTCPStateChange: Closing socket\n" ) );
 
-                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
-                    {
-                        configASSERT( xIsCallingFromIPTask() != pdFALSE );
-                        vSocketCloseNextTime( pxSocket );
-                    }
+                if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                {
+                    configASSERT( xIsCallingFromIPTask() != pdFALSE );
+                    vSocketCloseNextTime( pxSocket );
                 }
             }
         }

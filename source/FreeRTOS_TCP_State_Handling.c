@@ -61,6 +61,8 @@
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
+/* R */ BaseType_t xTCP_Introduce_bug;
+
 /*
  *  Called to handle the closure of a TCP connection.
  */
@@ -374,10 +376,22 @@
         if( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN )
         {
             ucExpect |= tcpTCP_FLAG_SYN;
-            /* Adding a bug here. */
-            FreeRTOS_printf( ( "Code for testing only\n" ) );
-            ucTCPFlags &= ~( ( uint8_t ) tcpTCP_FLAG_SYN );
+/* R */     if( xTCP_Introduce_bug )
+/* R */     {
+/* R */         /* Adding a bug here. */
+/* R */         FreeRTOS_printf( ( "Code for testing connect() only\n" ) );
+/* R */         ucTCPFlags &= ~( ( uint8_t ) tcpTCP_FLAG_SYN );
+/* R */     }
         }
+/* R */ if( xTCP_Introduce_bug )
+/* R */ {
+/* R */     if( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eSYN_RECEIVED )
+/* R */     {
+/* R */         /* Adding a bug here. */
+/* R */         FreeRTOS_printf( ( "Code for testing accept() only\n" ) );
+/* R */         ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_SYN;
+/* R */     }
+/* R */ }
 
         if( ( ucTCPFlags & ucFlagsMask ) != ucExpect )
         {
