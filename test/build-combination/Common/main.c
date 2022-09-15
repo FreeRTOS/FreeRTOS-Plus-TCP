@@ -276,17 +276,6 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
     return uxRand();
 }
 
-
-void vConfigureTimerForRunTimeStats( void )
-{
-    /* Provide a stub for this function. */
-}
-
-unsigned long ulGetRunTimeCounterValue( void )
-{
-    /* Provide a stub for this function. */
-}
-
 void vPortDeleteThread( void * pvThreadToDelete )
 {
     /* Provide a stub for this function. */

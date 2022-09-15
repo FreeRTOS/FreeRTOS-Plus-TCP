@@ -67,3 +67,7 @@ add_executable(project ${KERNEL_SOURCES}
 		       ${FREERTOS_KERNEL_DIR}/portable/MemMang/heap_4.c
 		       ${MODULE_ROOT_DIR}/source/portable/BufferManagement/BufferAllocation_2.c
 		       ${TEST_DIR}/Common/main.c )
+
+# Link pthread which is needed for POSIX port.
+find_package(Threads REQUIRED)
+target_link_libraries(project Threads::Threads)
