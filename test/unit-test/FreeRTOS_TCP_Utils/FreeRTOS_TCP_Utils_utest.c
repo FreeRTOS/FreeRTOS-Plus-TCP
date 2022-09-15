@@ -104,5 +104,5 @@ void test_prvSocketSetMSS_Normal( void )
     pxSocket->u.xTCP.ulRemoteIP = 0x0;
 
     prvSocketSetMSS( pxSocket );
-    TEST_ASSERT_EQUAL( 1160, pxSocket->u.xTCP.usMSS );
+    TEST_ASSERT_EQUAL( ipconfigNETWORK_MTU - 40U, pxSocket->u.xTCP.usMSS );
 }

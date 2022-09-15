@@ -849,7 +849,7 @@ void test_prvTCPBufferResize_Fixed_Size_Without_Buffer( void )
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &NewNetworkBuffer );
     pReturn = prvTCPBufferResize( pxSocket, NULL, 500, 0 );
     TEST_ASSERT_EQUAL_PTR( &NewNetworkBuffer, pReturn );
-    TEST_ASSERT_EQUAL( 1222, pReturn->xDataLength );
+    TEST_ASSERT_EQUAL( ipconfigNETWORK_MTU + 22U, pReturn->xDataLength );
 }
 
 /* test for prvTCPBufferResize function */
