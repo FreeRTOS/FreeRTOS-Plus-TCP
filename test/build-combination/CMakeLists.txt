@@ -69,5 +69,5 @@ add_executable(project ${KERNEL_SOURCES}
 		       ${TEST_DIR}/Common/main.c )
 
 # Link pthread which is needed for POSIX port.
-find_package(Threads REQUIRED)
-target_link_libraries(project Threads::Threads)
+find_package( Threads REQUIRED )
+target_link_libraries( project Threads::Threads )
