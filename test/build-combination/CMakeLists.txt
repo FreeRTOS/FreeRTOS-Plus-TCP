@@ -41,33 +41,49 @@ set( TEST_DIR ${MODULE_ROOT_DIR}/test/build-combination )
 include_directories( ${MODULE_ROOT_DIR}/source/include )
 include_directories( ${MODULE_ROOT_DIR}/source/portable/Compiler/MSVC )
 include_directories( ${FREERTOS_KERNEL_DIR}/include )
-include_directories( ${FREERTOS_KERNEL_DIR}/portable/ThirdParty/GCC/Posix )
-include_directories( ${FREERTOS_KERNEL_DIR}/portable/MemMang )
+# Add the correct portable directory to include search paths.
+if (WIN32)
+    include_directories( ${FREERTOS_KERNEL_DIR}/portable/MSVC-MingW )
+else()
+    include_directories( ${FREERTOS_KERNEL_DIR}/portable/ThirdParty/GCC/Posix )
+endif()
 include_directories( ${TEST_DIR}/Common )
 
 if( ${TEST_CONFIGURATION} STREQUAL "ENABLE_ALL" )
-	include_directories( ${TEST_DIR}/AllEnable )
+    include_directories( ${TEST_DIR}/AllEnable )
 elseif( ${TEST_CONFIGURATION} STREQUAL "DISABLE_ALL" )
-	include_directories( ${TEST_DIR}/AllDisable )
+    include_directories( ${TEST_DIR}/AllDisable )
 else()
-        include_directories( ${TEST_DIR}/DefaultConf )
+    include_directories( ${TEST_DIR}/DefaultConf )
 endif()
 
+# Pick the correct kernel port files for the platform.
+if (WIN32)
+    file(GLOB KERNEL_SOURCES "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/*.c"
+                             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/MSVC-MingW/*.c")
+else()
+    file(GLOB KERNEL_SOURCES "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/*.c"
+                             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/*.c"
+                             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/utils/*.c")
+endif()
 
-
-file(GLOB KERNEL_SOURCES "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/*.c" "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/*.c" "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/utils/*.c")
-file(GLOB TCP_SOURCES "${MODULE_ROOT_DIR}/source/*.c"
-        )
+file(GLOB TCP_SOURCES "${MODULE_ROOT_DIR}/source/*.c" )
 
 message(STATUS "${KERNEL_SOURCES}")
 message(STATUS "${TCP_SOURCES}")
 
 add_executable(project ${KERNEL_SOURCES}
-		       ${TCP_SOURCES}
-		       ${FREERTOS_KERNEL_DIR}/portable/MemMang/heap_4.c
-		       ${MODULE_ROOT_DIR}/source/portable/BufferManagement/BufferAllocation_2.c
-		       ${TEST_DIR}/Common/main.c )
+               ${TCP_SOURCES}
+               ${FREERTOS_KERNEL_DIR}/portable/MemMang/heap_4.c
+               ${MODULE_ROOT_DIR}/source/portable/BufferManagement/BufferAllocation_2.c
+               ${TEST_DIR}/Common/main.c )
 
-# Link pthread which is needed for POSIX port.
-find_package( Threads REQUIRED )
-target_link_libraries( project Threads::Threads )
+if (WIN32)
+    # Add preprocessor definitions to suppress warnings.
+    target_compile_definitions( project PRIVATE
+                                        _CRT_SECURE_NO_WARNINGS )
+else()
+    # Link pthread which is needed for POSIX port.
+    find_package( Threads REQUIRED )
+    target_link_libraries( project Threads::Threads )
+endif()

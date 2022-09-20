@@ -43,8 +43,6 @@
 
 #define mainHOST_NAME    "Build Combination"
 
-volatile BaseType_t xInsideInterrupt = pdFALSE;
-
 /*-----------------------------------------------------------*/
 
 /* Notes if the trace is running or not. */
@@ -239,16 +237,6 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
     return pdTRUE;
 }
 
-void vPortGenerateSimulatedInterrupt( uint32_t ulInterruptNumber )
-{
-    /* Provide a stub for this function. */
-}
-void vPortCloseRunningThread( void * pvTaskToDelete,
-                              volatile BaseType_t * pxPendYield )
-{
-    /* Provide a stub for this function. */
-}
-
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                     StackType_t ** ppxIdleTaskStackBuffer,
                                     uint32_t * pulIdleTaskStackSize )
@@ -276,11 +264,6 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
     return uxRand();
 }
 
-void vPortDeleteThread( void * pvThreadToDelete )
-{
-    /* Provide a stub for this function. */
-}
-
 void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
                                      StackType_t ** ppxTimerTaskStackBuffer,
                                      uint32_t * pulTimerTaskStackSize )
@@ -297,11 +280,13 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
                                     BaseType_t bReleaseAfterSend )
 {
     /* Provide a stub for this function. */
+    return pdTRUE;
 }
 
 BaseType_t xNetworkInterfaceInitialise( void )
 {
     /* Provide a stub for this function. */
+    return pdTRUE;
 }
 
 #if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_DHCP_HOOK != 0 ) )
@@ -309,6 +294,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
                                                 uint32_t ulIPAddress )
     {
         /* Provide a stub for this function. */
+        return eDHCPContinue;
     }
 #endif
 
