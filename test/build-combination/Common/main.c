@@ -34,8 +34,6 @@
 #include <FreeRTOS.h>
 #include "task.h"
 
-#include <windows.h>
-
 /* System application includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
