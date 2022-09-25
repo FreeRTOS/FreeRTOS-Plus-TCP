@@ -111,8 +111,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Update submodules
-        run: git submodule update --init --checkout
+      # Using CMake FetchContent to pull FreeRTOS-Kernel now.
+      # - name: Update submodules
+      #   run: git submodule update --init --checkout
+      - name: Build Install Dependencies
+        run: |
+          sudo apt-get install -y libpcap-dev
       - name: Build checks (Enable all functionalities)
         run: |
           cmake -S . -B build/ -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL
