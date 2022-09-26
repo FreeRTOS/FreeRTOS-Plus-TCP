@@ -1448,6 +1448,7 @@ xcallbacklist
 xcheckloopback
 xclearonexit
 xclientsocket
+xconnected
 xcount
 xdatalength
 xdatalengthbytes
