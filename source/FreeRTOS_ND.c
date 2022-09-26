@@ -334,7 +334,11 @@
                     if( pxNetworkBuffer != NULL )
                     {
                         pxNetworkBuffer->pxEndPoint = xNDCache[ x ].pxEndPoint;
-                        vNDSendNeighbourSolicitation( pxNetworkBuffer, &( xNDCache[ x ].xIPAddress ) );
+
+                        if( pxNetworkBuffer->pxEndPoint != NULL )
+                        {
+                            vNDSendNeighbourSolicitation( pxNetworkBuffer, &( xNDCache[ x ].xIPAddress ) );
+                        }
                     }
                 }
 

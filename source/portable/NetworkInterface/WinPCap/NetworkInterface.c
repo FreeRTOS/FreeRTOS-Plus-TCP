@@ -631,9 +631,9 @@ static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer )
             xResult = pdTRUE;
             break;
         }
-
-        return xResult;
     }
+
+    return xResult;
 }
 /*-----------------------------------------------------------*/
 
@@ -665,7 +665,8 @@ static void prvInterruptSimulatorTask( void * pvParameters )
             iptraceNETWORK_INTERFACE_RECEIVE();
 
             /* Check for minimal size. */
-            if( pxHeader->len >= sizeof( EthernetHeader_t ) )
+            if( ( pxHeader->len >= sizeof( EthernetHeader_t ) ) &&
+                ( xPacketBouncedBack( pucPacketData ) == pdFALSE ) )
             {
                 eResult = ipCONSIDER_FRAME_FOR_PROCESSING( pucPacketData );
             }
@@ -684,14 +685,7 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                      * is ok to call the task level function here, but note that
                      * some buffer implementations cannot be called from a real
                      * interrupt. */
-                    if( xPacketBouncedBack( pucPacketData ) == pdFALSE )
-                    {
-                        pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( pxHeader->len, 0 );
-                    }
-                    else
-                    {
-                        pxNetworkBuffer = NULL;
-                    }
+                    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( pxHeader->len, 0 );
 
                     if( pxNetworkBuffer != NULL )
                     {

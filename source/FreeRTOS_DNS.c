@@ -720,7 +720,17 @@
 
                     if( ulIPAddress != 0UL )
                     {
-                        FreeRTOS_debug_printf( ( "prvPrepareLookup: found '%s' in cache: %lxip\n", pcHostName, ulIPAddress ) );
+                        #if ( ipconfigUSE_IPv6 != 0 )
+                            if( ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 )
+                            {
+                                FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %pip\n",
+                                                   pcHostName, ( *ppxAddressInfo )->xPrivateStorage.sockaddr6.sin_addrv6.ucBytes ) );
+                            }
+                            else
+                        #endif
+                        {
+                            FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %xip\n", pcHostName, ( unsigned ) ulIPAddress ) );
+                        }
                     }
                 }
             #endif /* ipconfigUSE_DNS_CACHE == 1 */
@@ -799,14 +809,25 @@
         static void prvIncreaseDNS6Index( NetworkEndPoint_t * pxEndPoint )
         {
             uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
+            uint8_t ucInitialIndex = ucIndex;
 
-            ucIndex++;
-
-            if( ucIndex >= ( uint8_t ) ipconfigENDPOINT_DNS_ADDRESS_COUNT )
+            for( ; ; )
             {
-                ucIndex = 0U;
+                ucIndex++;
+
+                if( ucIndex >= ( uint8_t ) ipconfigENDPOINT_DNS_ADDRESS_COUNT )
+                {
+                    ucIndex = 0U;
+                }
+
+                if( ( pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes[ 0 ] != 0U ) ||
+                    ( ucInitialIndex == ucIndex ) )
+                {
+                    break;
+                }
             }
 
+            FreeRTOS_printf( ( "prvIncreaseDNS6Index: from %d to %d\n", ( int ) ucInitialIndex, ( int ) ucIndex ) );
             pxEndPoint->ipv6_settings.ucDNSIndex = ucIndex;
         }
     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -821,14 +842,25 @@
     static void prvIncreaseDNS4Index( NetworkEndPoint_t * pxEndPoint )
     {
         uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
+        uint8_t ucInitialIndex = ucIndex;
 
-        ucIndex++;
-
-        if( ucIndex >= ( uint8_t ) ipconfigENDPOINT_DNS_ADDRESS_COUNT )
+        for( ; ; )
         {
-            ucIndex = 0U;
+            ucIndex++;
+
+            if( ucIndex >= ( uint8_t ) ipconfigENDPOINT_DNS_ADDRESS_COUNT )
+            {
+                ucIndex = 0U;
+            }
+
+            if( ( pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ] != 0U ) ||
+                ( ucInitialIndex == ucIndex ) )
+            {
+                break;
+            }
         }
 
+        FreeRTOS_printf( ( "prvIncreaseDNS4Index: from %d to %d\n", ( int ) ucInitialIndex, ( int ) ucIndex ) );
         pxEndPoint->ipv4_settings.ucDNSIndex = ucIndex;
     }
 /*-----------------------------------------------------------*/
@@ -883,6 +915,8 @@
         /* Is this a local lookup? */
         if( ( bHasDot == pdFALSE ) || ( bHasLocal == pdTRUE ) )
         {
+            /* Looking for e.g. "mydevice" or "mydevice.local",
+             * while using either mDNS or LLMNR. */
             #if ( ipconfigUSE_MDNS == 1 )
                 {
                     if( bHasLocal )
@@ -967,7 +1001,7 @@
                  pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
             {
                 #if ( ipconfigUSE_IPv6 != 0 )
-                    if( ENDPOINT_IS_IPv6( pxEndPoint ) )
+                    if( ( xDNS_IP_Preference == xPreferenceIPv6 ) && ENDPOINT_IS_IPv6( pxEndPoint ) )
                     {
                         uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
                         uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
@@ -985,7 +1019,7 @@
                             break;
                         }
                     }
-                    else
+                    else if( ( xDNS_IP_Preference == xPreferenceIPv4 ) && ENDPOINT_IS_IPv4( pxEndPoint ) )
                 #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
                 {
                     uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
@@ -993,6 +1027,8 @@
 
                     if( ( ulIPAddress != 0U ) && ( ulIPAddress != ipBROADCAST_IP_ADDRESS ) )
                     {
+                        pxAddress->sin_family = FREERTOS_AF_INET;
+                        pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );
                         pxAddress->sin_addr = ulIPAddress;
                         break;
                     }
@@ -1181,14 +1217,16 @@
                 struct freertos_sockaddr xRecvAddress;
                 /* Wait for the reply. */
                 lBytes = DNS_ReadReply( xDNSSocket,
-                                        &xAddress,
+                                        &xRecvAddress,
                                         &pucReceiveBuffer );
+
+                FreeRTOS_printf( ( "DNS_ReadReply: rc = %d\n", ( int ) lBytes ) );
 
                 if( ( lBytes == -pdFREERTOS_ERRNO_EWOULDBLOCK ) && ( pxEndPoint != NULL ) )
                 {
                     /* This search timed out, next time try with a different DNS. */
                     #if ( ipconfigUSE_IPv6 != 0 )
-                        if( xRecvAddress.sin_family == FREERTOS_AF_INET6 )
+                        if( xAddress.sin_family == FREERTOS_AF_INET6 )
                         {
                             prvIncreaseDNS6Index( pxEndPoint );
                         }
@@ -1231,7 +1269,7 @@
                                                          ( size_t ) lBytes,
                                                          ppxAddressInfo,
                                                          xExpected,
-                                                         xAddress.sin_port );
+                                                         xRecvAddress.sin_port );
                     }
 
                     /* Finished with the buffer.  The zero copy interface
@@ -1250,7 +1288,7 @@
                     /* No data were received. */
                 }
 
-                if( lBytes <= 0 )
+                if( ( lBytes < 0 ) && ( lBytes != -pdFREERTOS_ERRNO_EWOULDBLOCK ) )
                 {
                     break;
                 }

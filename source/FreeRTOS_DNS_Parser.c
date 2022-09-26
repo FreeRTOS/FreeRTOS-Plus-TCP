@@ -159,6 +159,9 @@
         const DNSAnswerRecord_t * pxDNSAnswerRecord;
         IPv46_Address_t xIP_Address;
 
+        /* Avoid undefined values. */
+        memset( &( xIP_Address ), 0, sizeof( xIP_Address ) );
+
         for( x = 0U; x < pxSet->pxDNSMessageHeader->usAnswers; x++ )
         {
             BaseType_t xDoAccept = pdFALSE;

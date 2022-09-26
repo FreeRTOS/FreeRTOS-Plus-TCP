@@ -64,6 +64,9 @@
     void ParseDNS_StoreToCache( ParseSet_t * pxSet,
                                 IPv46_Address_t * pxIP_Address,
                                 uint32_t ulTTL );
+
+    void vShowDNSCacheTable( void );
+
 #endif /* ( ipconfigUSE_DNS_CACHE == 1 ) && ( ipconfigUSE_DNS != 0 ) */
 
 #endif /* ifndef FREERTOS_DNS_CACHE_H */

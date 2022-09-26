@@ -408,7 +408,7 @@ void vARPTimerReload( TickType_t xTime )
     void vDHCP_RATimerReload( struct xNetworkEndPoint * pxEndPoint,
                               TickType_t uxClockTicks )
     {
-        FreeRTOS_printf( ( "vDHCP_RATimerReload: %lu\n", uxClockTicks ) );
+        FreeRTOS_printf( ( "vDHCP_RATimerReload: %u ms.\n", ( unsigned ) ipTICKS_TO_MS( uxClockTicks ) ) );
         prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
     }
 #endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */

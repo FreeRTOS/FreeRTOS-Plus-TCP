@@ -269,10 +269,6 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         else
     #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
     {
-        FreeRTOS_printf( ( "Looking up %xip with%s end-point\n",
-                           ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->ulIPAddress ),
-                           ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
-
         /* Add an entry to the ARP table with a null hardware address.
          * This allows the ARP timer to know that an ARP reply is
          * outstanding, and perform retransmissions if necessary. */
@@ -293,6 +289,11 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         {
             vARPGenerateRequestPacket( pxNetworkBuffer );
         }
+
+        FreeRTOS_printf( ( "Looking up %xip with%s end-point eReturned %d\n",
+                           ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->ulIPAddress ),
+                           ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out",
+                           eReturned ) );
     }
 
     return eReturned;

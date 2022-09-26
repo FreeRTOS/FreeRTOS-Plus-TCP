@@ -332,6 +332,8 @@ uint32_t FreeRTOS_round_up( uint32_t a,
 
 #define ipMS_TO_MIN_TICKS( xTimeInMs )    ( ( pdMS_TO_TICKS( ( xTimeInMs ) ) < ( ( TickType_t ) 1U ) ) ? ( ( TickType_t ) 1U ) : pdMS_TO_TICKS( ( xTimeInMs ) ) )
 
+#define ipTICKS_TO_MS( xTickCount )       ( ( xTickCount ) * ( portTICK_PERIOD_MS ) )
+
 /* For backward compatibility. */
 #define pdMS_TO_MIN_TICKS( xTimeInMs )    ipMS_TO_MIN_TICKS( xTimeInMs )
 

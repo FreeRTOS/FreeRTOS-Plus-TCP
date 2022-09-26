@@ -680,11 +680,6 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
     *( ppxEndPoint ) = NULL;
     ulAddressToLookup = *pulIPAddress;
 
-    if( ( *pulIPAddress == 0x70040120U ) || ( *pulIPAddress == 0x80feU ) )
-    {
-        FreeRTOS_printf( ( "eARPGetCacheEntry %lxip\n", FreeRTOS_ntohl( *pulIPAddress ) ) );
-    }
-
     pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulAddressToLookup, 0 );
 
     if( xIsIPv4Multicast( ulAddressToLookup ) != pdFALSE )

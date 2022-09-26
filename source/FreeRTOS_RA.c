@@ -471,9 +471,9 @@
                     uxNewReloadTime = pdMS_TO_TICKS( 1000U * pxEndPoint->xRAData.ulPreferredLifeTime );
                     pxEndPoint->xRAData.eRAState = eRAStatePreLease;
                     iptraceRA_SUCCEDEED( &( pxEndPoint->ipv6_settings.xIPAddress ) );
-                    FreeRTOS_printf( ( "RA: succeeded, using IP address %pip Reload after %u seconds\n",
+                    FreeRTOS_printf( ( "RA: succeeded, using IP address %pip Reload after %u seconds.\n",
                                        pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
-                                       ( unsigned ) pxEndPoint->xRAData.ulPreferredLifeTime ) );
+                                       ( unsigned ) ( ipTICKS_TO_MS( pxEndPoint->xRAData.ulPreferredLifeTime ) / 1000U ) ) );
                 }
                 else
                 {
@@ -627,7 +627,7 @@
     void vRAProcess( BaseType_t xDoReset,
                      NetworkEndPoint_t * pxEndPoint )
     {
-        TickType_t uxReloadTime = pdMS_TO_TICKS( 5000U );
+        TickType_t uxReloadTime = pdMS_TO_TICKS( 60000U );
 
         #if ( ipconfigHAS_PRINTF == 1 )
             /* Remember the initial state, just for logging. */
@@ -662,7 +662,7 @@
 
         if( uxReloadTime != 0U )
         {
-            FreeRTOS_printf( ( "RA: Reload %u seconds\n", ( unsigned ) ( uxReloadTime / 1000U ) ) );
+            FreeRTOS_printf( ( "RA: Reload %u ms.\n", ( unsigned ) ipTICKS_TO_MS( uxReloadTime ) ) );
             vDHCP_RATimerReload( pxEndPoint, uxReloadTime );
         }
         else

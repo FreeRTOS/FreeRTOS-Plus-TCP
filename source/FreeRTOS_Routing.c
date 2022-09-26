@@ -400,6 +400,29 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     #if ( ipconfigUSE_IPv6 != 0 )
 
 /**
+ * @brief Check if an IPv6 address is a Global Unicast address.
+ *
+ * @param[in] pxIPAddress: The IP-address of interest.
+ *
+ * @return pdTRUE if address is a Global Unicast address.
+ */
+        BaseType_t xIPv6AddressIsPublic( const IPv6_Address_t * pxIPAddress )
+        {
+            BaseType_t xIsPublic = pdFALSE;
+
+            if( ( pxIPAddress->ucBytes[ 0 ] & 0xE0U ) == 0x20U )
+            {
+                xIsPublic = pdTRUE;
+            }
+
+            return xIsPublic;
+        }
+    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+/*-----------------------------------------------------------*/
+
+    #if ( ipconfigUSE_IPv6 != 0 )
+
+/**
  * @brief Find the end-point which handles a given IPv6 address.
  *
  * @param[in] pxIPAddress: The IP-address of interest.

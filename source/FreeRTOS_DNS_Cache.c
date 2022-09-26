@@ -205,8 +205,14 @@
             }
 
             x = prvFindEntryIndex( pcName, pxIP );
+            #if ( ipconfigUSE_IPv6 != 0 )
+                FreeRTOS_printf( ( "prvFindEntryIndex %d = \"%s/%d\"\n",
+                                   x, pcName, ( pxIP->xIs_IPv6 == pdTRUE ) ? 6 : 4 ) );
+            #else
+                FreeRTOS_printf( ( "prvFindEntryIndex %d = \"%s/4\"\n", x, pcName ) );
+            #endif /* ipconfigUSE_IPv6 != 0 */
 
-            if( x != -1 )
+            if( x >= 0 )
             { /* Element found */
                 /* Is this function called for a lookup or to add/update an IP address? */
                 if( xLookUp == pdTRUE )
@@ -223,13 +229,19 @@
                                          pxIP,
                                          ulCurrentTimeSeconds );
                 }
-            } /* if( xFound != pdTRUE ) */
-            else
+            }
+            else if( xLookUp == pdFALSE )
             { /* Element not Found */
                 prvInsertCacheEntry( pcName,
                                      ulTTL,
                                      pxIP,
                                      ulCurrentTimeSeconds );
+            }
+            else
+            {
+                /* We're looking up a name with a particular IP-type
+                 * but it does not exist in the cache table.
+                 */
             }
 
             if( x == -1 )
@@ -501,7 +513,7 @@
                     char cBuffer[ 40 ];
 
                     ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) pxIP_Address->xAddress_IPv6.ucBytes, cBuffer, sizeof( cBuffer ) );
-                    FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s been stored\n",
+                    FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s be stored\n",
                                        ( unsigned ) pxSet->pxDNSMessageHeader->usIdentifier,
                                        pxSet->pcName,
                                        cBuffer,
@@ -537,6 +549,8 @@
                     IPv46_Address_t xIPv46_Address;
                     BaseType_t xFound;
 
+                    /* Make sure the struct is cleared. */
+                    memset( &( xIPv46_Address ), 0, sizeof xIPv46_Address );
                     xIPv46_Address.xIs_IPv6 = pdTRUE;
                     xFound = FreeRTOS_ProcessDNSCache( pcHostName, &( xIPv46_Address ), 0, pdTRUE, ppxAddressInfo );
 
@@ -585,6 +599,61 @@
             }
 
             return ulIPAddress;
+        }
+    #endif /* ( ipconfigUSE_DNS_CACHE == 1 ) */
+/*-----------------------------------------------------------*/
+
+    #if ( ipconfigUSE_DNS_CACHE == 1 )
+
+/**
+ * @brief For debugging only: prints the contents of the DNS cache table.
+ */
+        void vShowDNSCacheTable()
+        {
+            UBaseType_t xEntry;
+            UBaseType_t xSubEntry;
+
+            for( xEntry = 0; xEntry < ipconfigDNS_CACHE_ENTRIES; xEntry++ )
+            {
+                DNSCacheRow_t * pxRow = &( xDNSCache[ xEntry ] );
+
+                if( pxRow->pcName[ 0 ] != ( char ) 0 )
+                {
+                    FreeRTOS_printf( ( "Entry %2u: %s use %u/%u\n",
+                                       ( unsigned ) xEntry,
+                                       pxRow->pcName,
+                                       ( unsigned ) pxRow->ucCurrentIPAddress,
+                                       ( unsigned ) pxRow->ucNumIPAddresses ) );
+
+                    for( xSubEntry = 0; xSubEntry < pxRow->ucNumIPAddresses; xSubEntry++ )
+                    {
+                        char pcAddress[ 40 ] = "";
+                        #if ( ipconfigUSE_IPv6 != 0 )
+
+                            /* The first entry determines the type of row:
+                             * either IPv4 or IPv6. */
+                            if( pxRow->xAddresses[ 0 ].xIs_IPv6 != pdFALSE )
+                            {
+                                FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
+                                                    ( const void * ) pxRow->xAddresses[ xSubEntry ].xAddress_IPv6.ucBytes,
+                                                    pcAddress,
+                                                    sizeof( pcAddress ) );
+                            }
+                            else
+                        #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+                        {
+                            FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
+                                                ( const void * ) &( pxRow->xAddresses[ xSubEntry ].ulIPAddress ),
+                                                pcAddress,
+                                                sizeof( pcAddress ) );
+                        }
+
+                        FreeRTOS_printf( ( "      %2u: %s\n",
+                                           ( unsigned ) xSubEntry,
+                                           pcAddress ) );
+                    }
+                }
+            }
         }
     #endif /* ( ipconfigUSE_DNS_CACHE == 1 ) */
 /*-----------------------------------------------------------*/
