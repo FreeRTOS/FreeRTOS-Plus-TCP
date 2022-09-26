@@ -277,6 +277,7 @@
         BaseType_t bAfter = tcpNOW_CONNECTED( ( BaseType_t ) eTCPState );                   /* Is it connected now ? */
 
         BaseType_t xPreviousState = ( BaseType_t ) pxSocket->u.xTCP.eTCPState;
+
         #if ( ipconfigUSE_CALLBACKS == 1 )
             FreeRTOS_Socket_t * xConnected = NULL;
         #endif
@@ -288,11 +289,10 @@
         {
             /* A socket was in the connecting phase but something
              * went wrong and it should be closed. */
-			FreeRTOS_printf( ( "Move from %s to %s\n",
-				FreeRTOS_GetTCPStateName( xPreviousState ),
-				FreeRTOS_GetTCPStateName( eTCPState ) ) );
+            FreeRTOS_printf( ( "Move from %s to %s\n",
+                               FreeRTOS_GetTCPStateName( xPreviousState ),
+                               FreeRTOS_GetTCPStateName( eTCPState ) ) );
             bBefore = pdTRUE;
-            bAfter = pdFALSE;
         }
 
         /* Has the connected status changed? */
@@ -307,7 +307,8 @@
                     xParent = pxSocket->u.xTCP.pxPeerSocket;
                     configASSERT( xParent != NULL );
                 }
-			}
+            }
+
             /* Is the socket connected now ? */
             if( bAfter != pdFALSE )
             {
@@ -316,6 +317,11 @@
                 {
                     if( xParent != NULL )
                     {
+                        /* The child socket has got connected.  See if the parent
+                         * ( the listening socket ) should be signalled, or if a
+                         * call-back must be made, in which case 'xConnected' will
+                         * be set to the parent socket. */
+
                         if( xParent->u.xTCP.pxPeerSocket == NULL )
                         {
                             xParent->u.xTCP.pxPeerSocket = pxSocket;
@@ -358,6 +364,9 @@
                 }
                 else
                 {
+                    /* An active connect() has succeeded. In this case there is no
+                     * ( listening ) parent socket. Signal the now connected socket. */
+
                     pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_CONNECT;
 
                     #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
@@ -404,6 +413,7 @@
                 pxSocket->u.xTCP.usTimeout = 0U;
             }
         }
+
         if( ( eTCPState == eCLOSED ) ||
             ( eTCPState == eCLOSE_WAIT ) )
         {
@@ -424,6 +434,26 @@
 
         /* Fill in the new state. */
         pxSocket->u.xTCP.eTCPState = eTCPState;
+
+        if( ( eTCPState == eCLOSE_WAIT ) && ( pxSocket->u.xTCP.bits.bReuseSocket == pdTRUE_UNSIGNED ) )
+        {
+            switch( xPreviousState )
+            {
+                case eSYN_FIRST:    /* 3 (server) Just created, must ACK the SYN request */
+                case eSYN_RECEIVED: /* 4 (server) waiting for a confirming connection request */
+                    FreeRTOS_printf( ( "Restoring a reuse socket port %u\n", pxSocket->usLocalPort ) );
+
+                    /* Go back into list mode. Set the TCP status to 'eCLOSED',
+                     * otherwise FreeRTOS_listen() will refuse the action. */
+                    pxSocket->u.xTCP.eTCPState = eCLOSED;
+                    ( void ) FreeRTOS_listen( ( Socket_t ) pxSocket, pxSocket->u.xTCP.usBacklog );
+                    break;
+
+                default:
+                    /* Nothing to do. */
+                    break;
+            }
+        }
 
         /* Touch the alive timers because moving to another state. */
         prvTCPTouchSocket( pxSocket );

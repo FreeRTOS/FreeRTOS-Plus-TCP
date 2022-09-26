@@ -3145,13 +3145,13 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                                                             pdFALSE /*xWaitAllBits*/,
                                                             xRemainingTime );
 
-				if( ( uxEvents & eSOCKET_CLOSED ) != 0U )
-				{
-					FreeRTOS_printf( ( "connect: xEventGroupWaitBits: returns 0x%04X\n", ( unsigned ) uxEvents ) );
-					xResult = -pdFREERTOS_ERRNO_ENOTCONN;
-					FreeRTOS_printf( ( "FreeRTOS_connect() stopped due to an error\n" ) );
-					break;
-				}
+                if( ( uxEvents & eSOCKET_CLOSED ) != 0U )
+                {
+                    FreeRTOS_printf( ( "connect: xEventGroupWaitBits: returns 0x%04X\n", ( unsigned ) uxEvents ) );
+                    xResult = -pdFREERTOS_ERRNO_ENOTCONN;
+                    FreeRTOS_printf( ( "FreeRTOS_connect() stopped due to an error\n" ) );
+                    break;
+                }
             }
         }
 
@@ -3300,18 +3300,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
                 /* Go sleeping until we get any down-stream event */
                 EventBits_t uxEvents = xEventGroupWaitBits( pxSocket->xEventGroup,
-                                                            ( EventBits_t ) eSOCKET_ACCEPT | ( EventBits_t ) eSOCKET_CLOSED,
+                                                            ( EventBits_t ) eSOCKET_ACCEPT,
                                                             pdTRUE /*xClearOnExit*/,
                                                             pdFALSE /*xWaitAllBits*/,
                                                             xRemainingTime );
-
-				if( ( uxEvents & eSOCKET_CLOSED ) != 0U )
-				{
-					FreeRTOS_printf( ( "accept: xEventGroupWaitBits: %p returns 0x%04X\n", pxSocket, ( unsigned ) uxEvents ) );
-					pxClientSocket = NULL;
-					FreeRTOS_printf( ( "FreeRTOS_accept() stopped due to an error\n" ) );
-					break;
-				}
             }
         }
 
