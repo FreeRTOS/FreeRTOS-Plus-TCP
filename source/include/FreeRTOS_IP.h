@@ -58,11 +58,9 @@
 #define ipSIZE_OF_ETH_HEADER      14U
 #define ipSIZE_OF_IPv4_HEADER     20U
 #define ipSIZE_OF_IGMP_HEADER     8U
-#define ipSIZE_OF_ICMP_HEADER     8U
 #define ipSIZE_OF_UDP_HEADER      8U
 #define ipSIZE_OF_TCP_HEADER      20U
 
-#define ipSIZE_OF_IPv4_ADDRESS    4U
 
 /*
  * Generate a randomized TCP Initial Sequence Number per RFC.
@@ -120,9 +118,6 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 
 /* The offset of ucTCPFlags within the TCP header. */
 #define ipTCP_FLAGS_OFFSET       13U
-
-#define ipFIRST_LOOPBACK_IPv4    0x7F000000UL                /**< Lowest IPv4 loopback address (including). */
-#define ipLAST_LOOPBACK_IPv4     0x80000000UL                /**< Highest IPv4 loopback address (excluding). */
 
 /** @brief Returned to indicate a valid checksum. */
 #define ipCORRECT_CRC            0xffffU
@@ -298,8 +293,6 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
 
 TaskHandle_t FreeRTOS_GetIPTaskHandle( void );
 
-void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
-                                     TickType_t uxBlockTimeTicks );
 void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
                                        uint32_t * pulNetMask,
                                        uint32_t * pulGatewayAddress,
@@ -327,15 +320,6 @@ void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH
     void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
                                     uint16_t usIdentifier );
 #endif
-uint32_t FreeRTOS_GetIPAddress( void );
-void FreeRTOS_SetIPAddress( uint32_t ulIPAddress );
-void FreeRTOS_SetNetmask( uint32_t ulNetmask );
-void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress );
-uint32_t FreeRTOS_GetGatewayAddress( void );
-uint32_t FreeRTOS_GetDNSServerAddress( void );
-uint32_t FreeRTOS_GetNetmask( void );
-BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
-                               TickType_t uxTicksToWait );
 
 BaseType_t FreeRTOS_IsNetworkUp( void );
 
@@ -354,21 +338,6 @@ BaseType_t xIsNetworkDownEventPending( void );
 #if ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) )
     const char * FreeRTOS_GetTCPStateName( UBaseType_t ulState );
 #endif
-
-/* _HT_ Temporary: show all valid ARP entries
- */
-#if ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 )
-    void FreeRTOS_PrintARPCache( void );
-#endif
-
-void FreeRTOS_ClearARP( void );
-
-/* Return pdTRUE if the IPv4 address is a multicast address. */
-BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
-
-/* Set the MAC-address that belongs to a given IPv4 multi-cast address. */
-void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
-                                  MACAddress_t * pxMACAddress );
 
 #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
 
@@ -446,6 +415,8 @@ extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 #endif
 
 #include "FreeRTOS_IP_Utils.h"
+#include "FreeRTOS_IPv4.h"
+#include "FreeRTOS_IPv6.h"
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

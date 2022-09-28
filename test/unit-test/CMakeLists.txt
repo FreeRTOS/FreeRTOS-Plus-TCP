@@ -53,12 +53,17 @@ set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 
 # Set TCP includes.
 set( TCP_INCLUDES "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP.h"
+		  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv4.h"
+		  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv6.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ICMP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Timers.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Utils.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_Sockets.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Private.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv4_Private.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv6_Private.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_UDP_IP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DHCP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS.h"
