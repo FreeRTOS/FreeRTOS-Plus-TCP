@@ -10,13 +10,13 @@ target_sources( freertos_plus_tcp_port
 target_include_directories( freertos_plus_tcp_port
   PUBLIC
     # Using Cmake to detect except for unknown compilers.
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},CCS>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/CCS>
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_COMPILER},CCS>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/CCS>
     $<$<C_COMPILER_ID:CCS>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/CCS>
     $<$<C_COMPILER_ID:GNU,Clang,ARMClang>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/GCC>
     $<$<C_COMPILER_ID:IAR>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/IAR>
     $<$<C_COMPILER_ID:ARMCC>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Keil>
     $<$<C_COMPILER_ID:MSVC>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/MSVC>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},Renesas>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Renesas>
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_COMPILER},Renesas>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Renesas>
 )
 
 target_compile_options( freertos_plus_tcp_port
@@ -73,18 +73,36 @@ target_sources( freertos_plus_tcp_network_if
         NetworkInterface/M487/m480_eth.c
         NetworkInterface/M487/m480_eth.h
         NetworkInterface/M487/NetworkInterface.c>
-    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MPS2_AN385>:> # TODO
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MPS2_AN385>:
+        NetworkInterface/MPS2_AN385/ether_lan9118
+        NetworkInterface/MPS2_AN385/ether_lan9118/SMM_MPS2.h
+        NetworkInterface/MPS2_AN385/ether_lan9118/smsc9220_emac_config.h
+        NetworkInterface/MPS2_AN385/ether_lan9118/smsc9220_eth_drv.c
+        NetworkInterface/MPS2_AN385/ether_lan9118/smsc9220_eth_drv.h
+        NetworkInterface/MPS2_AN385/NetworkInterface.c>
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MW300_RD>:
         NetworkInterface/mw300_rd/NetworkInterface.c>
-    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},PIC32MZEF_ETH>:> # TODO
-    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},PIC32MZEF_WIFI>:> # TODO
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},PIC32MZEF_ETH>:
+        NetworkInterface/pic32mzef/NetworkInterface_eth.c>
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},PIC32MZEF_WIFI>:
+        NetworkInterface/pic32mzef/NetworkInterface_wifi.c>
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},RX>:
         NetworkInterface/RX/ether_callback.c
         NetworkInterface/RX/NetworkInterface.c>
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},SH2A>:
         NetworkInterface/SH2A/NetworkInterface.c>
-    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32FXX>:> # TODO
-    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32HXX>:> # TODO
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32FXX>:
+        NetworkInterface/STM32Fxx/NetworkInterface.c
+        NetworkInterface/STM32Fxx/stm32f2xx_hal_eth.h
+        NetworkInterface/STM32Fxx/stm32f4xx_hal_eth.h
+        NetworkInterface/STM32Fxx/stm32f7xx_hal_eth.h
+        NetworkInterface/STM32Fxx/stm32fxx_hal_eth.c
+        NetworkInterface/STM32Fxx/stm32fxx_hal_eth.h>
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32HXX>:
+        NetworkInterface/STM32Hxx/NetworkInterface.c
+        NetworkInterface/STM32Hxx/stm32h7xx_hal_eth.h
+        NetworkInterface/STM32Hxx/stm32hxx_hal_eth.c
+        NetworkInterface/STM32Hxx/stm32hxx_hal_eth.h>
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MSP432>:
         NetworkInterface/ThirdParty/MSP432/NetworkInterface.c
         NetworkInterface/ThirdParty/MSP432/NetworkInterface.h
@@ -134,7 +152,7 @@ target_include_directories( freertos_plus_tcp_network_if
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},DRIVER_SAM>:NetworkInterface/DriverSAM>
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},KSZ8851SNL>:NetworkInterface/ksz8851snl>
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},M487>:NetworkInterface/M487>
-    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MPS2_AN385>:> #TODO
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MPS2_AN385>:NetworkInterface/MPS2_AN385/ether_lan9118>
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32FXX>:NetworkInterface/STM32Fxx>
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32HXX>:NetworkInterface/STM32Hxx>
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MSP432>:NetworkInterface/ThirdParty/MSP432>
