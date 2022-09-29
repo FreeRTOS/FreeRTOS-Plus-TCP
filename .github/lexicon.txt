@@ -1315,6 +1315,7 @@ uxipheaderlength
 uxipheadersizesocket
 uxleft
 uxlength
+uxlistremove
 uxlittlespace
 uxlocalport
 uxlower
