@@ -22,8 +22,8 @@ target_include_directories( freertos_plus_tcp_port
 target_compile_options( freertos_plus_tcp_port
   PRIVATE
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-align>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-extra-semi>
-    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-pedantic> # How STATIC_ASSERT is defined
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-extra-semi-stmt>
+    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-pedantic> # Strange definition for STATIC_ASSERT
 )
 
 target_link_libraries( freertos_plus_tcp_port
@@ -73,7 +73,7 @@ target_sources( freertos_plus_tcp_network_if
         NetworkInterface/M487/m480_eth.c
         NetworkInterface/M487/m480_eth.h
         NetworkInterface/M487/NetworkInterface.c>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MPS2_AN385>:
+        $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MPS2_AN385>:
         NetworkInterface/MPS2_AN385/ether_lan9118
         NetworkInterface/MPS2_AN385/ether_lan9118/SMM_MPS2.h
         NetworkInterface/MPS2_AN385/ether_lan9118/smsc9220_emac_config.h
@@ -82,7 +82,7 @@ target_sources( freertos_plus_tcp_network_if
         NetworkInterface/MPS2_AN385/NetworkInterface.c>
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MW300_RD>:
         NetworkInterface/mw300_rd/NetworkInterface.c>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},PIC32MZEF_ETH>:
+        $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},PIC32MZEF_ETH>:
         NetworkInterface/pic32mzef/NetworkInterface_eth.c>
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},PIC32MZEF_WIFI>:
         NetworkInterface/pic32mzef/NetworkInterface_wifi.c>
@@ -91,7 +91,7 @@ target_sources( freertos_plus_tcp_network_if
         NetworkInterface/RX/NetworkInterface.c>
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},SH2A>:
         NetworkInterface/SH2A/NetworkInterface.c>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32FXX>:
+        $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32FXX>:
         NetworkInterface/STM32Fxx/NetworkInterface.c
         NetworkInterface/STM32Fxx/stm32f2xx_hal_eth.h
         NetworkInterface/STM32Fxx/stm32f4xx_hal_eth.h
@@ -138,9 +138,9 @@ target_sources( freertos_plus_tcp_network_if
 )
 
 if( FREERTOS_PLUS_TCP_NETWORK_IF STREQUAL "POSIX")
-  find_package(PCAP REQUIRED)
-  set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-  find_package(Threads)
+    find_package(PCAP REQUIRED)
+    set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+    find_package(Threads)
 endif()
 
 target_include_directories( freertos_plus_tcp_network_if
@@ -148,16 +148,16 @@ target_include_directories( freertos_plus_tcp_network_if
     freertos_plus_tcp_port # For compiler pragmas.
     NetworkInterface/include
   PRIVATE
-    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},ATSAM4E:> #TODO
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},DRIVER_SAM>:NetworkInterface/DriverSAM>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},KSZ8851SNL>:NetworkInterface/ksz8851snl>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},M487>:NetworkInterface/M487>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MPS2_AN385>:NetworkInterface/MPS2_AN385/ether_lan9118>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32FXX>:NetworkInterface/STM32Fxx>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32HXX>:NetworkInterface/STM32Hxx>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MSP432>:NetworkInterface/ThirdParty/MSP432>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},XILINX_ULTRASCALE>:NetworkInterface/xilinx_ultrascale>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},ZYNQ>:NetworkInterface/Zynq>
+    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},ATSAM4E:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/ATSAM4E> #TODO
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},DRIVER_SAM>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/DriverSAM>
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},KSZ8851SNL>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/ksz8851snl>
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},M487>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/M487>
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MPS2_AN385>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/MPS2_AN385/ether_lan9118>
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32FXX>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/STM32Fxx>
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32HXX>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/STM32Hxx>
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MSP432>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/ThirdParty/MSP432>
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},XILINX_ULTRASCALE>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/xilinx_ultrascale>
+    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},ZYNQ>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/Zynq>
 )
 
 target_compile_options( freertos_plus_tcp_network_if

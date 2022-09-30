@@ -152,9 +152,9 @@ set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST
 if(NOT FREERTOS_PLUS_TCP_TEST_CONFIGURATION IN_LIST FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST)
     message(FATAL_ERROR "Invalid FREERTOS_PLUS_TCP_TEST_CONFIGURATION value '${FREERTOS_PLUS_TCP_TEST_CONFIGURATION}' should be one of: ${FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST}")
 else()
-    message(WARNING "Using FreeRTOS-Plus-TCP Test Configuration : ${FREERTOS_PLUS_TCP_TEST_CONFIGURATION}"
-    "  FreeRTOS-Kernel configuration settings are configured by FreeRTOS-Plus-TCP")
+    message(STATUS "Using FreeRTOS-Plus-TCP Test Configuration : ${FREERTOS_PLUS_TCP_TEST_CONFIGURATION}")
     if (NOT FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "CUSTOM")
+        message(WARNING "FreeRTOS-Kernel configuration settings are configured by FreeRTOS-Plus-TCP")
         # Configuration for FreeRTOS-Kernel
         set(FREERTOS_CONFIG_FILE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/test/build-combination/Common" CACHE STRING "" FORCE)
         if(UNIX)
@@ -202,10 +202,6 @@ add_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wpedantic>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Werror>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Weverything>
-
-    # Documentation types - add unrecognized but supported doxygen commands
-    # $<$<COMPILE_LANG_AND_ID:C,Clang>:-fcomment-block-commands=retval>
-    # $<$<COMPILE_LANG_AND_ID:C,Clang>:-fcomment-block-commands=copydetails>
 
     # TODO: Add in other Compilers here.
 )

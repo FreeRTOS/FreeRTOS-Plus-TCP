@@ -20,15 +20,15 @@ target_link_libraries(freertos_plus_tcp_config_default INTERFACE freertos_plus_t
 # Configuration for FreeRTOS-Kernel
 if(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "CUSTOM" )
     # Check Config target is available. And then do nothing.
-    if(NOT TARGET FreeRTOS::Config )
-        message(FATAL_ERROR "FREERTOS_PLUS_TCP_TEST_CONFIGURATIN = CUSTOM, but no FreeRTOS::Config target defined.")
+    if(NOT TARGET freertos_config )
+        message(FATAL_ERROR "FREERTOS_PLUS_TCP_TEST_CONFIGURATIN = CUSTOM, but no freertos_config target defined.")
     endif()
 elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "DISABLE_ALL" )
-    add_library( FreeRTOS::Config ALIAS freertos_plus_tcp_config_all_disable)
+    add_library( freertos_config ALIAS freertos_plus_tcp_config_all_disable)
 elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "ENABLE_ALL" )
-    add_library( FreeRTOS::Config ALIAS freertos_plus_tcp_config_all_enable)
+    add_library( freertos_config ALIAS freertos_plus_tcp_config_all_enable)
 else()
-    add_library( FreeRTOS::Config ALIAS freertos_plus_tcp_config_default)
+    add_library( freertos_config ALIAS freertos_plus_tcp_config_default)
 endif()
 
 add_executable(freertos_plus_tcp_build_test)
@@ -41,9 +41,12 @@ target_sources(freertos_plus_tcp_build_test
 target_compile_options(freertos_plus_tcp_build_test
   PRIVATE
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-qual>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-format-nonliteral>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-implicit-function-declaration>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-noreturn>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-prototypes>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-variable-declarations>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-reserved-identifier>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-shorten-64-to-32>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-sign-conversion>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-parameter>

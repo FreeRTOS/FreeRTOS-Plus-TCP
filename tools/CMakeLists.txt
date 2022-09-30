@@ -21,6 +21,7 @@ target_include_directories( freertos_plus_tcp_tools SYSTEM
 #TODO(phelter): Investigate and fix in freertos_plus_tcp if not already fixed.
 target_compile_options( freertos_plus_tcp_tools
   PRIVATE
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-extra-semi-stmt>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-format>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-variable-declarations>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-padded>
