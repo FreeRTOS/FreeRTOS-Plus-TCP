@@ -64,15 +64,15 @@
 #define xNUM_TIMERS           ( 10U )
 
 #if defined( _WIN32 )
-    typedef uintptr_t       Thread_t;
-    typedef HANDLE          Mutex_t;
+    typedef uintptr_t         Thread_t;
+    typedef HANDLE            Mutex_t;
     #define THREAD_RETURN      unsigned
     #define THREAD_FUNC_DEF    __stdcall
     static LARGE_INTEGER xClockFrequency;
-    typedef size_t          nfds_t;
+    typedef size_t            nfds_t;
 #else
-    typedef pthread_t       Thread_t;
-    typedef pthread_mutex_t Mutex_t;
+    typedef pthread_t         Thread_t;
+    typedef pthread_mutex_t   Mutex_t;
     #define THREAD_RETURN    void *
     #define THREAD_FUNC_DEF
 #endif /* if defined( _WIN32 ) */
