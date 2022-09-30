@@ -446,7 +446,7 @@
                 case eSYN_RECEIVED: /* 4 (server) waiting for a confirming connection request */
                     FreeRTOS_printf( ( "Restoring a reuse socket port %u\n", pxSocket->usLocalPort ) );
 
-                    /* Go back into list mode. Set the TCP status to 'eCLOSED',
+                    /* Go back into listening mode. Set the TCP status to 'eCLOSED',
                      * otherwise FreeRTOS_listen() will refuse the action. */
                     pxSocket->u.xTCP.eTCPState = eCLOSED;
                     ( void ) FreeRTOS_listen( ( Socket_t ) pxSocket, pxSocket->u.xTCP.usBacklog );
