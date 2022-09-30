@@ -292,6 +292,9 @@
             FreeRTOS_printf( ( "Move from %s to %s\n",
                                FreeRTOS_GetTCPStateName( xPreviousState ),
                                FreeRTOS_GetTCPStateName( eTCPState ) ) );
+            /* Set the flag to show that it was connected before and that the
+             * status has changed now. This will cause the control flow to go 
+             * in the below if condition.*/
             bBefore = pdTRUE;
         }
 
