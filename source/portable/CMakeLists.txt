@@ -1,5 +1,4 @@
 add_library( freertos_plus_tcp_port STATIC )
-add_library( FreeRTOS::PlusTCP::Port ALIAS freertos_plus_tcp_port )
 
 target_sources( freertos_plus_tcp_port
   PRIVATE
@@ -40,7 +39,6 @@ if (FREERTOS_PLUS_TCP_NETWORK_IF STREQUAL "A_CUSTOM_NETWORK_IF")
 endif()
 
 add_library( freertos_plus_tcp_network_if STATIC )
-add_library( FreeRTOS::PlusTCP::NetworkIF ALIAS freertos_plus_tcp_network_if )
 
 target_sources( freertos_plus_tcp_network_if
   PRIVATE

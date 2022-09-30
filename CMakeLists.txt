@@ -136,12 +136,12 @@ endif()
 
 # There is also the need to add a target - typically an interface library that describes the
 # Configuration for FreeRTOS-Kernel and FreeRTOS-Plus-TCP.
-# This is called FreeRTOS::Config
+# This is called freertos_config
 # If not defined will be default compile with one of the test build combinations AllEnable.
 
 # Select the appropriate Build Test configuration
-# This is only used when FreeRTOS::Config is not defined, otherwise the build test will be performed
-# on the config defined in the FreeRTOS::Config
+# This is only used when freertos_config is not defined, otherwise the build test will be performed
+# on the config defined in the freertos_config
 set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION "DEFAULT_CONF" CACHE STRING "FreeRTOS Plus TCP Build Test configuration")
 set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST
     CUSTOM       # Custom (external) configuration -eg from a top-level project

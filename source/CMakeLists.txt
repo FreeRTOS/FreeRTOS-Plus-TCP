@@ -1,5 +1,4 @@
 add_library( freertos_plus_tcp STATIC )
-add_library( FreeRTOS::PlusTCP ALIAS freertos_plus_tcp )
 
 target_sources( freertos_plus_tcp
   PRIVATE
