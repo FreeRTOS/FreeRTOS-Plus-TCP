@@ -3102,6 +3102,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* And wait for the result */
             for( ; ; )
             {
+                EventBits_t uxEvents;
+
                 if( xTimed == pdFALSE )
                 {
                     /* Only in the first round, check for non-blocking */
@@ -3139,11 +3141,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 }
 
                 /* Go sleeping until we get any down-stream event */
-                EventBits_t uxEvents = xEventGroupWaitBits( pxSocket->xEventGroup,
-                                                            ( EventBits_t ) eSOCKET_CONNECT | ( EventBits_t ) eSOCKET_CLOSED,
-                                                            pdTRUE /*xClearOnExit*/,
-                                                            pdFALSE /*xWaitAllBits*/,
-                                                            xRemainingTime );
+                uxEvents = xEventGroupWaitBits( pxSocket->xEventGroup,
+                                                ( EventBits_t ) eSOCKET_CONNECT | ( EventBits_t ) eSOCKET_CLOSED,
+                                                pdTRUE /*xClearOnExit*/,
+                                                pdFALSE /*xWaitAllBits*/,
+                                                xRemainingTime );
 
                 if( ( uxEvents & eSOCKET_CLOSED ) != 0U )
                 {
