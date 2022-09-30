@@ -3297,7 +3297,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     break;
                 }
 
-                /* Go sleeping until we get any down-stream event */
+                /* Put the calling task to 'sleep' until a down-stream event is received. */
                 ( void ) xEventGroupWaitBits( pxSocket->xEventGroup,
                                               ( EventBits_t ) eSOCKET_ACCEPT,
                                               pdTRUE /*xClearOnExit*/,
