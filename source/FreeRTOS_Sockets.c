@@ -4780,32 +4780,27 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 #endif /* ipconfigUSE_TCP */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_SetSocketID != 0 )
-
 /**
  * @brief Set the value of the SocketID of a socket.
  * @param[in] xSocket: The socket whose ID should be set.
  * @param[in] pvSocketID: The new value for the SocketID.
  * @return Zero if the socket was valid, otherwise -EINVAL.
  */
-    BaseType_t xSocketSetSocketID( const Socket_t xSocket,
-                                   void * pvSocketID )
+BaseType_t xSocketSetSocketID( const Socket_t xSocket,
+                               void * pvSocketID )
+{
+    FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
+    BaseType_t xReturn = -pdFREERTOS_ERRNO_EINVAL;
+
+    if( xSocketValid( pxSocket ) )
     {
-        FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
-        BaseType_t xReturn = -pdFREERTOS_ERRNO_EINVAL;
-
-        if( xSocketValid( pxSocket ) )
-        {
-            xReturn = 0;
-            pxSocket->pvSocketID = pvSocketID;
-        }
-
-        return xReturn;
+        xReturn = 0;
+        pxSocket->pvSocketID = pvSocketID;
     }
-#endif /* ipconfigUSE_SetSocketID */
-/*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_SetSocketID != 0 )
+    return xReturn;
+}
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Retrieve the SocketID that is associated with a socket.
@@ -4814,19 +4809,18 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
  *         the socket pointer is not valid or when the ID was not
  *         yet set.
  */
-    void * pvSocketGetSocketID( const ConstSocket_t xSocket )
+void * pvSocketGetSocketID( const ConstSocket_t xSocket )
+{
+    const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
+    void * pvReturn = NULL;
+
+    if( xSocketValid( pxSocket ) )
     {
-        const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
-        void * pvReturn = NULL;
-
-        if( xSocketValid( pxSocket ) )
-        {
-            pvReturn = pxSocket->pvSocketID;
-        }
-
-        return pvReturn;
+        pvReturn = pxSocket->pvSocketID;
     }
-#endif /* ipconfigUSE_SetSocketID */
+
+    return pvReturn;
+}
 /*-----------------------------------------------------------*/
 
 #if ( ( ipconfigHAS_PRINTF != 0 ) && ( ipconfigUSE_TCP == 1 ) )

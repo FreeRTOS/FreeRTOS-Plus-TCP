@@ -1068,12 +1068,4 @@
     #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES    0
 #endif
 
-/* This option adds the possibility to have a user-ID attached to a socket.
- * The type of this ID is a void *.  Both UDP and TCP sockets have
- * this ID. It has a default value of NULL.
- */
-#ifndef ipconfigUSE_SetSocketID
-    #define ipconfigUSE_SetSocketID    0
-#endif
-
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */
