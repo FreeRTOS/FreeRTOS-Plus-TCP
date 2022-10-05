@@ -72,15 +72,15 @@
                 {
                     DNSCallback_t * pxCallback = ( ( DNSCallback_t * )
                                                    listGET_LIST_ITEM_OWNER( pxIterator ) );
+                    FOnDNSEvent pCallbackFunction = pxCallback->pCallbackFunction;
+                    ( void ) uxListRemove( &pxCallback->xListItem );
+                    vPortFree( pxCallback );
 
                     ( void ) xTaskResumeAll();
                     {
-                        pxCallback->pCallbackFunction( pcName, pxCallback->pvSearchID,
-                                                       ulIPAddress );
+                        pCallbackFunction( pcName, pxCallback->pvSearchID, ulIPAddress );
                     }
                     vTaskSuspendAll();
-                    ( void ) uxListRemove( &pxCallback->xListItem );
-                    vPortFree( pxCallback );
 
                     if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
                     {
@@ -178,13 +178,13 @@
                 }
                 else if( xTaskCheckForTimeOut( &pxCallback->uxTimeoutState, &pxCallback->uxRemainingTime ) != pdFALSE )
                 {
+                    ( void ) uxListRemove( &( pxCallback->xListItem ) );
+                    vPortFree( pxCallback );
                     ( void ) xTaskResumeAll();
                     {
                         pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, 0 );
                     }
                     vTaskSuspendAll();
-                    ( void ) uxListRemove( &( pxCallback->xListItem ) );
-                    vPortFree( pxCallback );
                 }
                 else
                 {
