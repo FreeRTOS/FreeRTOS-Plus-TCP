@@ -73,12 +73,13 @@
                     DNSCallback_t * pxCallback = ( ( DNSCallback_t * )
                                                    listGET_LIST_ITEM_OWNER( pxIterator ) );
                     FOnDNSEvent pCallbackFunction = pxCallback->pCallbackFunction;
+                    void * pvSearchID = pxCallback->pvSearchID;
                     ( void ) uxListRemove( &pxCallback->xListItem );
                     vPortFree( pxCallback );
 
                     ( void ) xTaskResumeAll();
                     {
-                        pCallbackFunction( pcName, pxCallback->pvSearchID, ulIPAddress );
+                        pCallbackFunction( pcName, pvSearchID, ulIPAddress );
                     }
                     vTaskSuspendAll();
 
