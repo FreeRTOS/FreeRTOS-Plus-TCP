@@ -179,10 +179,10 @@
                 else if( xTaskCheckForTimeOut( &pxCallback->uxTimeoutState, &pxCallback->uxRemainingTime ) != pdFALSE )
                 {
                     ( void ) uxListRemove( &( pxCallback->xListItem ) );
-                    vPortFree( pxCallback );
                     ( void ) xTaskResumeAll();
                     {
                         pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, 0 );
+                        vPortFree( pxCallback );
                     }
                     vTaskSuspendAll();
                 }
