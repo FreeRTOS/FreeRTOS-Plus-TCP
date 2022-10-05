@@ -197,6 +197,7 @@ earpgetcacheentry
 earpgetcacheentrybymac
 earptimerevent
 ec
+ecanceldnscallbackevent
 ecantsendpacket
 eclosed
 eclosing
@@ -960,6 +961,7 @@ sck
 sdio
 sdma
 sdram
+searchid
 sec
 secondframeoperate
 segcount
