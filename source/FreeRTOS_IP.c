@@ -483,6 +483,13 @@ static void prvProcessIPEventsAndTimers( void )
             #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
             break;
 
+        case eCancelDNSCallbackEvent:
+            #if ( ipconfigUSE_DNS != 0 ) && ( ipconfigDNS_USE_CALLBACKS == 1 )
+                /* The event field 'pvData' contains the searchID of the DNS lookup. */
+                vDNSCheckCallBack( xReceivedEvent.pvData );
+            #endif
+            break;
+
         case eNoEvent:
             /* xQueueReceive() returned because of a normal time-out. */
             break;

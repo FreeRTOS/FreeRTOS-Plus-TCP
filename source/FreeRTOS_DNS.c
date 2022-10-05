@@ -139,8 +139,11 @@
  */
         void FreeRTOS_gethostbyname_cancel( void * pvSearchID )
         {
-            /* _HT_ Should better become a new API call to have the IP-task remove the callback */
-            vDNSCheckCallBack( pvSearchID );
+            /* Let the IP-task remove the callback from the list. */
+            IPStackEvent_t xRemoveEvent = { eCancelDNSCallbackEvent, pvSearchID };
+
+            /* Send the network task the appropriate event. */
+            xSendEventStructToIPTask( &( xRemoveEvent ), portMAX_DELAY );
         }
         /*-----------------------------------------------------------*/
 
