@@ -130,6 +130,9 @@ elseif((FREERTOS_PORT STREQUAL "A_CUSTOM_PORT") AND (NOT TARGET freertos_kernel_
     "     PUBLIC\n"
     "      .)\n\n"
     "   taget_link_libraries(freertos_plus_tcp_network_if\n"
+    "     PUBLIC\n"
+    "       freertos_plus_tcp_port\n"
+    "       freertos_plus_tcp_network_if_common\n"
     "     PRIVATE\n"
     "       freertos_kernel)")
 endif()

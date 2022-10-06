@@ -33,6 +33,36 @@ target_link_libraries( freertos_plus_tcp_port
 )
 
 #------------------------------------------------------------------------------
+add_library( freertos_plus_tcp_network_if_common STATIC )
+
+target_sources( freertos_plus_tcp_network_if_common
+  PRIVATE
+    NetworkInterface/Common/phyHandling.c
+    NetworkInterface/include/phyHandling.h
+)
+
+target_include_directories( freertos_plus_tcp_network_if_common
+  PUBLIC
+    NetworkInterface/include
+)
+
+target_compile_options( freertos_plus_tcp_network_if_common
+  PRIVATE
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-conditional-uninitialized>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-implicit-int-conversion>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-padded>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-uninitialized>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-but-set-variable>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
+)
+
+target_link_libraries( freertos_plus_tcp_network_if_common
+  PRIVATE
+    freertos_kernel
+    freertos_plus_tcp
+)
+
+#------------------------------------------------------------------------------
 if (FREERTOS_PLUS_TCP_NETWORK_IF STREQUAL "A_CUSTOM_NETWORK_IF")
     message(STATUS "Using a custom FREERTOS_PLUS_TCP_NETWORK_IF.")
     return()
@@ -142,20 +172,18 @@ if( FREERTOS_PLUS_TCP_NETWORK_IF STREQUAL "POSIX")
 endif()
 
 target_include_directories( freertos_plus_tcp_network_if
-  PUBLIC
-    freertos_plus_tcp_port # For compiler pragmas.
-    NetworkInterface/include
   PRIVATE
+    NetworkInterface
     # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},ATSAM4E:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/ATSAM4E> #TODO
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},DRIVER_SAM>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/DriverSAM>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},KSZ8851SNL>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/ksz8851snl>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},M487>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/M487>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MPS2_AN385>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/MPS2_AN385/ether_lan9118>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32FXX>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/STM32Fxx>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32HXX>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/STM32Hxx>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MSP432>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/ThirdParty/MSP432>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},XILINX_ULTRASCALE>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/xilinx_ultrascale>
-    $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},ZYNQ>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/Zynq>
+    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},DRIVER_SAM>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/DriverSAM>
+    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},KSZ8851SNL>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/ksz8851snl>
+    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},M487>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/M487>
+    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MPS2_AN385>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/MPS2_AN385/ether_lan9118>
+    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32FXX>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/STM32Fxx>
+    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},STM32HXX>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/STM32Hxx>
+    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},MSP432>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/ThirdParty/MSP432>
+    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},XILINX_ULTRASCALE>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/xilinx_ultrascale>
+    # $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},ZYNQ>:${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface/Zynq>
 )
 
 target_compile_options( freertos_plus_tcp_network_if
@@ -185,6 +213,7 @@ target_compile_options( freertos_plus_tcp_network_if
 target_link_libraries( freertos_plus_tcp_network_if
   PUBLIC
     freertos_plus_tcp_port
+    freertos_plus_tcp_network_if_common
   PRIVATE
     freertos_kernel
     freertos_plus_tcp
