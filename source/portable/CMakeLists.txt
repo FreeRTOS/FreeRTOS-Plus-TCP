@@ -205,9 +205,10 @@ target_compile_options( freertos_plus_tcp_network_if
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-type-limits>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-undef>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-uninitialized>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-but-set-variable>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-but-set-variable>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-parameter>
+    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-pedantic>
 )
 
 target_link_libraries( freertos_plus_tcp_network_if

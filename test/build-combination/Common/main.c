@@ -40,6 +40,7 @@
 #include "FreeRTOS_DHCP.h"
 
 #include <string.h>
+#include <stdarg.h>
 
 #define mainHOST_NAME    "Build Combination"
 #define mainDEVICE_NICK_NAME "Build_Combination"
@@ -198,8 +199,8 @@ void vApplicationIdleHook( void )
     /* Exit. Just a stub. */
 }
 /*-----------------------------------------------------------*/
-void vAssertCalled( const char * pcFile,
-                    size_t ulLine )
+void vAssertCalled( const char * const pcFile,
+                    unsigned long ulLine )
 {
     const uint32_t ulLongSleep = 1000UL;
     volatile uint32_t ulBlockVariable = 0UL;
