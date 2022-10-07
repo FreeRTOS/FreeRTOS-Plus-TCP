@@ -2729,7 +2729,7 @@ void test_FreeRTOS_connect_Timeout( void )
     /* No timeout the first time. */
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
 
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_CONNECT, pdTRUE, pdFALSE, xSocket.xReceiveBlockTime, pdTRUE );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_CONNECT | eSOCKET_CLOSED, pdTRUE, pdFALSE, xSocket.xReceiveBlockTime, pdTRUE );
 
     /* Timed out! */
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
