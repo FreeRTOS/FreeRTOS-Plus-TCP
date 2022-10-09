@@ -75,7 +75,18 @@
     /* MISRA Ref 8.9.1 [File scoped variables] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
     /* coverity[misra_c_2012_rule_8_9_violation] */
-    static FreeRTOS_Socket_t * xPreviousSocket = NULL;
+    static FreeRTOS_Socket_t * xSocketToClose = NULL;
+
+/** @brief When a connection is coming in on a reusable socket, and the
+ *         SYN phase times out, the socket must be put back into eTCP_LISTEN
+ *         mode, so it can accept a new connection again.
+ *         This variable can be accessed by the IP task only. Thus, preventing any
+ *         race condition.
+ */
+    /* MISRA Ref 8.9.1 [File scoped variables] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+    /* coverity[misra_c_2012_rule_8_9_violation] */
+    static FreeRTOS_Socket_t * xSocketToListen = NULL;
 
 /*
  * For anti-hang protection and TCP keep-alive messages.  Called in two places:
@@ -110,12 +121,28 @@
     /* coverity[single_use] */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
     {
-        if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )
+        if( ( xSocketToClose != NULL ) && ( xSocketToClose != pxSocket ) )
         {
-            ( void ) vSocketClose( xPreviousSocket );
+            ( void ) vSocketClose( xSocketToClose );
         }
 
-        xPreviousSocket = pxSocket;
+        xSocketToClose = pxSocket;
+    }
+    /*-----------------------------------------------------------*/
+
+/** @brief Postpone a call to FreeRTOS_listen() to avoid recursive calls.
+ *
+ * @param[in] pxSocket: The socket to be checked.
+ */
+    /* coverity[single_use] */
+    void vSocketListenNextTime( FreeRTOS_Socket_t * pxSocket )
+    {
+        if( ( xSocketToListen != NULL ) && ( xSocketToListen != pxSocket ) )
+        {
+            ( void ) FreeRTOS_listen( ( Socket_t ) xSocketToListen, xSocketToListen->u.xTCP.usBacklog );
+        }
+
+        xSocketToListen = pxSocket;
     }
     /*-----------------------------------------------------------*/
 
@@ -450,7 +477,9 @@
                     /* Go back into listening mode. Set the TCP status to 'eCLOSED',
                      * otherwise FreeRTOS_listen() will refuse the action. */
                     pxSocket->u.xTCP.eTCPState = eCLOSED;
-                    ( void ) FreeRTOS_listen( ( Socket_t ) pxSocket, pxSocket->u.xTCP.usBacklog );
+					/* vSocketListenNextTime() makes sure that FreeRTOS_listen() will be called
+					 * before the IP-task handles any new message. */
+					vSocketListenNextTime( pxSocket );
                     break;
 
                 default:
