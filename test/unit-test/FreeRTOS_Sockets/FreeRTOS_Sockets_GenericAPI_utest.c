@@ -2767,9 +2767,6 @@ void test_FreeRTOS_connect_SocketClosed( void )
 
     xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_CONNECT | eSOCKET_CLOSED, pdTRUE, pdFALSE, xSocket.xReceiveBlockTime, eSOCKET_CLOSED );
 
-    /* Timed out! */
-    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
-
     xResult = FreeRTOS_connect( &xSocket, &xAddress, xAddressLength );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOTCONN, xResult );
