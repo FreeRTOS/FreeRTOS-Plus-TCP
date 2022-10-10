@@ -106,9 +106,9 @@ void harness()
 
     /* To avoid asserting on the network buffer being NULL. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
-    
+
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) );
-    
+
     /* To avoid asserting on the ethernet buffer being NULL. */
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 

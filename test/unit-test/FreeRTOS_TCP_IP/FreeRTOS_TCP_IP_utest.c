@@ -137,6 +137,7 @@ void test_vSocketCloseNextTime_Close_Previous_Socket( void )
 void test_vSocketListenNextTime( void )
 {
     FreeRTOS_Socket_t xSocket;
+
     xSocketToListen = NULL;
 
     vSocketListenNextTime( &xSocket );
@@ -147,6 +148,7 @@ void test_vSocketListenNextTime( void )
 void test_vSocketListenNextTime1( void )
 {
     FreeRTOS_Socket_t xSocket;
+
     xSocketToListen = &xSocket;
 
     FreeRTOS_listen_ExpectAndReturn( ( Socket_t ) xSocketToListen, xSocketToListen->u.xTCP.usBacklog, 0 );
@@ -158,6 +160,7 @@ void test_vSocketListenNextTime1( void )
 void test_vSocketListenNextTime2( void )
 {
     FreeRTOS_Socket_t xSocket;
+
     xSocketToListen = &xSocket;
 
     vSocketListenNextTime( xSocketToListen );
