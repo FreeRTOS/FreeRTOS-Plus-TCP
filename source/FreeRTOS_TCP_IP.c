@@ -477,9 +477,10 @@
                     /* Go back into listening mode. Set the TCP status to 'eCLOSED',
                      * otherwise FreeRTOS_listen() will refuse the action. */
                     pxSocket->u.xTCP.eTCPState = eCLOSED;
-					/* vSocketListenNextTime() makes sure that FreeRTOS_listen() will be called
-					 * before the IP-task handles any new message. */
-					vSocketListenNextTime( pxSocket );
+
+                    /* vSocketListenNextTime() makes sure that FreeRTOS_listen() will be called
+                     * before the IP-task handles any new message. */
+                    vSocketListenNextTime( pxSocket );
                     break;
 
                 default:

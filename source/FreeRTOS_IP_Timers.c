@@ -243,7 +243,7 @@ void vCheckNetworkTimers( void )
         vSocketCloseNextTime( NULL );
 
         /* See if any reusable socket needs to go back to 'eTCP_LISTEN' state. */
-		vSocketListenNextTime( NULL );
+        vSocketListenNextTime( NULL );
     #endif /* ipconfigUSE_TCP == 1 */
 }
 /*-----------------------------------------------------------*/
