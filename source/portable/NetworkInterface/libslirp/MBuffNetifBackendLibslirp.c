@@ -25,8 +25,6 @@
  * http://www.FreeRTOS.org
  */
 
-/* The following run from a pthread contenxt */
-
 /* libc */
 #include <stdlib.h>
 
@@ -59,10 +57,6 @@
     #define IF_MRU_DEFAULT    1500
 #endif
 
-#ifndef slirp_ssize_t
-    typedef ssize_t slirp_ssize_t;
-#endif
-
 #define NETWORK_BUFFER_LEN    ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
 
 #define xSEND_BUFFER_SIZE     ( 32U * NETWORK_BUFFER_LEN )
@@ -70,15 +64,15 @@
 #define xNUM_TIMERS           ( 10U )
 
 #if defined( _WIN32 )
-    typedef uintptr_t       Thread_t;
-    typedef HANDLE          Mutex_t;
+    typedef uintptr_t         Thread_t;
+    typedef HANDLE            Mutex_t;
     #define THREAD_RETURN      unsigned
     #define THREAD_FUNC_DEF    __stdcall
     static LARGE_INTEGER xClockFrequency;
-    typedef size_t          nfds_t;
+    typedef size_t            nfds_t;
 #else
-    typedef pthread_t       Thread_t;
-    typedef pthread_mutex_t Mutex_t;
+    typedef pthread_t         Thread_t;
+    typedef pthread_mutex_t   Mutex_t;
     #define THREAD_RETURN    void *
     #define THREAD_FUNC_DEF
 #endif /* if defined( _WIN32 ) */
@@ -115,48 +109,6 @@ typedef struct
     Thread_t xRxThread;
 } SlirpBackendContext_t;
 
-static const struct SlirpConfig xSlirpConfig =
-{
-    .version               = 4U,
-    .restricted            = false,
-
-    /* IPv4 Enabled */
-    .in_enabled            = true,
-    .vnetwork.s_addr       = FreeRTOS_inet_addr_quick( 10U, 0U,    2U,   0U ),
-    .vnetmask.s_addr       = FreeRTOS_inet_addr_quick( 255U,255U,  255U, 0U ),
-    .vhost.s_addr          = FreeRTOS_inet_addr_quick( 10,  0U,    2U,   2U ),
-
-    /* IPv6 disabled */
-    .in6_enabled           = false,
-    .vprefix_addr6         = { 0 },
-    .vprefix_len           = 0,
-    .vhost6                = { 0 },
-
-    .vhostname             = NULL,
-    .tftp_server_name      = NULL,
-    .tftp_path             = NULL,
-    .bootfile              = NULL,
-
-    .vdhcp_start.s_addr    = FreeRTOS_inet_addr_quick( 10U, 0U,    2U,   15U ),
-    .vnameserver.s_addr    = FreeRTOS_inet_addr_quick( 10U, 0U,    2U,   3U ),
-    .vnameserver6          = { 0 },
-    .vdnssearch            = NULL,
-    .vdomainname           = NULL,
-
-    .if_mtu                = IF_MTU_DEFAULT,
-    .if_mru                = IF_MRU_DEFAULT,
-
-    .disable_host_loopback = false,
-    .enable_emu            = false,
-
-    .outbound_addr         = 0U,
-    .outbound_addr6        = 0U,
-    .disable_dns           = false,
-    .disable_dhcp          = false,
-};
-
-
-
 static int64_t llSlirp_ClockGetNanoSeconds( void * pvOpaque );
 static slirp_ssize_t xSlirp_WriteCallback( const void * pvBuffer,
                                            size_t uxLen,
@@ -176,9 +128,12 @@ static void vSlirp_TimerFree( void * pvTimer,
 static void vSlirp_TimerModify( void * pvTimer,
                                 int64_t expire_time,
                                 void * pvOpaque );
-static void * pvSlirpTimerNewOpaque( SlirpTimerId xTimerId,
-                                     void * cb_opaque,
-                                     void * pvOpaque );
+
+#if SLIRP_CHECK_VERSION( 4U, 7U, 0U )
+    static void * pvSlirpTimerNewOpaque( SlirpTimerId xTimerId,
+                                         void * cb_opaque,
+                                         void * pvOpaque );
+#endif /* SLIRP_CHECK_VERSION( 4U, 7U, 0U ) */
 
 /*
  * Other empty callbacks. Not used for linux port.
@@ -188,14 +143,15 @@ static void vSlirp_RegisterPollFd( int lFd,
 static void vSlirp_UnRegisterPollFd( int lFd,
                                      void * pvCallbackContext );
 static void vSlirp_Notify( void * pvCallbackContext );
-static void vSlirp_InitCompleted( Slirp * pxSlirp,
-                                  void * pvCallbackContext );
+
+#if SLIRP_CHECK_VERSION( 4U, 7U, 0U )
+    static void vSlirp_InitCompleted( Slirp * pxSlirp,
+                                      void * pvCallbackContext );
+#endif /* SLIRP_CHECK_VERSION( 4U, 7U, 0U ) */
 
 /* Receive and Transmit threads */
 static THREAD_RETURN THREAD_FUNC_DEF vReceiveThread( void * pvParameters );
 static THREAD_RETURN THREAD_FUNC_DEF vTransmitThread( void * pvParameters );
-
-
 
 /**
  * @brief Initialize the slirp posix backend.
@@ -226,11 +182,51 @@ void vMBuffNetifBackendInit( MessageBufferHandle_t * pxSendMsgBuffer,
         .unregister_poll_fd   = vSlirp_UnRegisterPollFd,
         .notify               = vSlirp_Notify,
 
-        #if SLIRP_CHECK_VERSION( 4, 7, 0 )
+        #if SLIRP_CHECK_VERSION( 4U, 7U, 0U )
             .init_completed   = vSlirp_InitCompleted,
             .timer_new_opaque = pvSlirpTimerNewOpaque,
         #endif
     };
+
+    static struct SlirpConfig xSlirpConfig = { 0U };
+
+    #if SLIRP_CHECK_VERSION( 4U, 7U, 0U )
+        xSlirpConfig.version = 4U;
+    #else
+        xSlirpConfig.version = 3U;
+    #endif
+
+    xSlirpConfig.restricted = false;
+
+    /* IPv4 Enabled */
+    xSlirpConfig.in_enabled = true;
+    xSlirpConfig.vnetwork.s_addr = FreeRTOS_inet_addr_quick( 10U, 0U, 2U, 0U );
+    xSlirpConfig.vnetmask.s_addr = FreeRTOS_inet_addr_quick( 255U, 255U, 255U, 0U );
+    xSlirpConfig.vhost.s_addr = FreeRTOS_inet_addr_quick( 10, 0U, 2U, 2U );
+
+    /* IPv6 disabled */
+    xSlirpConfig.in6_enabled = false;
+
+    xSlirpConfig.vhostname = NULL;
+    xSlirpConfig.tftp_server_name = NULL;
+    xSlirpConfig.tftp_path = NULL;
+    xSlirpConfig.bootfile = NULL;
+
+    xSlirpConfig.vdhcp_start.s_addr = FreeRTOS_inet_addr_quick( 10U, 0U, 2U, 15U );
+    xSlirpConfig.vnameserver.s_addr = FreeRTOS_inet_addr_quick( 10U, 0U, 2U, 3U );
+    xSlirpConfig.vdnssearch = NULL;
+    xSlirpConfig.vdomainname = NULL;
+
+    xSlirpConfig.if_mtu = IF_MTU_DEFAULT;
+    xSlirpConfig.if_mru = IF_MRU_DEFAULT;
+
+    xSlirpConfig.disable_host_loopback = false;
+    xSlirpConfig.enable_emu = false;
+    xSlirpConfig.disable_dns = false;
+
+    #if SLIRP_CHECK_VERSION( 4U, 7U, 0U )
+        xSlirpConfig.disable_dhcp = false;
+    #endif /* SLIRP_CHECK_VERSION( 4U, 7U, 0U ) */
 
     if( ( pxSendMsgBuffer == NULL ) ||
         ( pxRecvMsgBuffer == NULL ) ||
@@ -820,6 +816,8 @@ static void vSlirp_TimerModify( void * pvTimer,
     configASSERT( 0 );
 }
 
+#if SLIRP_CHECK_VERSION( 4U, 7U, 0U )
+
 /**
  * @brief Stub callback function for libslirp timer API.
  *
@@ -828,17 +826,18 @@ static void vSlirp_TimerModify( void * pvTimer,
  * @param pvOpaque Unused.
  * @return void* NULL
  */
-static void * pvSlirpTimerNewOpaque( SlirpTimerId xTimerId,
-                                     void * cb_opaque,
-                                     void * pvOpaque )
-{
-    /* Stub */
-    ( void ) xTimerId;
-    ( void ) cb_opaque;
-    ( void ) pvOpaque;
-    configASSERT( 0 );
-    return NULL;
-}
+    static void * pvSlirpTimerNewOpaque( SlirpTimerId xTimerId,
+                                         void * cb_opaque,
+                                         void * pvOpaque )
+    {
+        /* Stub */
+        ( void ) xTimerId;
+        ( void ) cb_opaque;
+        ( void ) pvOpaque;
+        configASSERT( 0 );
+        return NULL;
+    }
+#endif /* SLIRP_CHECK_VERSION( 4U, 7U, 0U ) */
 
 /**
  * @brief Called by libslipr when a new file descriptor / socket is opened.
@@ -882,16 +881,19 @@ static void vSlirp_Notify( void * pvOpaque )
     ( void ) pvOpaque;
 }
 
+#if SLIRP_CHECK_VERSION( 4U, 7U, 0U )
+
 /**
  * @brief Stub callback function.
  *
  * @param pxSlirp Unused.
  * @param pvOpaque Unused.
  */
-static void vSlirp_InitCompleted( Slirp * pxSlirp,
-                                  void * pvOpaque )
-{
-    /* Stub */
-    ( void ) pxSlirp;
-    ( void ) pvOpaque;
-}
+    static void vSlirp_InitCompleted( Slirp * pxSlirp,
+                                      void * pvOpaque )
+    {
+        /* Stub */
+        ( void ) pxSlirp;
+        ( void ) pvOpaque;
+    }
+#endif /* SLIRP_CHECK_VERSION( 4U, 7U, 0U ) */
