@@ -332,7 +332,7 @@
             /* if bPassQueued is true, this socket is an orphan until it gets connected. */
             if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
             {
-                /* Now that it is connected, find it's parent. */
+                /* Find it's parent if the reuse bit is not set. */
                 if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
                 {
                     xParent = pxSocket->u.xTCP.pxPeerSocket;
@@ -412,7 +412,7 @@
             }
             else /* bAfter == pdFALSE, connection is closed. */
             {
-                /* Notify/wake-up the socket-owner by setting a semaphore. */
+                /* Notify/wake-up the socket-owner by setting the event bits. */
                 xParent->xEventBits |= ( EventBits_t ) eSOCKET_CLOSED;
 
                 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
@@ -657,7 +657,7 @@
             ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
             ulRemoteIP = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
 
-            /* Find the destination socket, and if not found: return a socket listing to
+            /* Find the destination socket, and if not found: return a socket listening to
              * the destination PORT. */
             pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( ulLocalIP, usLocalPort, ulRemoteIP, usRemotePort );
 
