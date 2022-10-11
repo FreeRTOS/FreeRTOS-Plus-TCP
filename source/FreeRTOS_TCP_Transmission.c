@@ -139,7 +139,7 @@
                  * to most 3 times.  When there is no response, the socket get the
                  * status 'eCLOSE_WAIT'. */
                 FreeRTOS_debug_printf( ( "Connect: giving up %xip:%u\n",
-                                         ( unsigned ) pxSocket->u.xTCP.ulRemoteIP, /* IP address of remote machine. */
+                                         ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, /* IP address of remote machine. */
                                          pxSocket->u.xTCP.usRemotePort ) );        /* Port on remote machine. */
                 vTCPStateChange( pxSocket, eCLOSE_WAIT );
             }
@@ -615,7 +615,7 @@
             }
         #endif /* ipconfigHAS_PRINTF != 0 */
 
-        ulRemoteIP = FreeRTOS_htonl( pxSocket->u.xTCP.ulRemoteIP );
+        ulRemoteIP = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
 
         /* Determine the ARP cache status for the requested IP address. */
         eReturned = eARPGetCacheEntry( &( ulRemoteIP ), &( xEthAddress ) );
@@ -632,7 +632,7 @@
                 pxSocket->u.xTCP.ucRepCount++;
 
                 FreeRTOS_debug_printf( ( "ARP for %xip (using %xip): rc=%d %02X:%02X:%02X %02X:%02X:%02X\n",
-                                         ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
+                                         ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
                                          ( unsigned ) FreeRTOS_htonl( ulRemoteIP ),
                                          eReturned,
                                          xEthAddress.ucBytes[ 0 ],
@@ -653,7 +653,7 @@
             /* Get a difficult-to-predict initial sequence number for this 4-tuple. */
             ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
                                                                           pxSocket->usLocalPort,
-                                                                          pxSocket->u.xTCP.ulRemoteIP,
+                                                                          pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
                                                                           pxSocket->u.xTCP.usRemotePort );
 
             /* Check for a random number generation error. */
@@ -704,7 +704,7 @@
             /* Addresses and ports will be stored swapped because prvTCPReturnPacket
              * will swap them back while replying. */
             pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-            pxIPHeader->ulSourceIPAddress = FreeRTOS_htonl( pxSocket->u.xTCP.ulRemoteIP );
+            pxIPHeader->ulSourceIPAddress = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
 
             pxTCPPacket->xTCPHeader.usSourcePort = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
             pxTCPPacket->xTCPHeader.usDestinationPort = FreeRTOS_htons( pxSocket->usLocalPort );
@@ -1089,7 +1089,7 @@
                     if( pxSocket->u.xTCP.ucKeepRepCount > 3U ) /*_RB_ Magic number. */
                     {
                         FreeRTOS_debug_printf( ( "keep-alive: giving up %xip:%u\n",
-                                                 ( unsigned ) pxSocket->u.xTCP.ulRemoteIP, /* IP address of remote machine. */
+                                                 ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, /* IP address of remote machine. */
                                                  pxSocket->u.xTCP.usRemotePort ) );        /* Port on remote machine. */
                         vTCPStateChange( pxSocket, eCLOSE_WAIT );
                         lDataLen = -1;
@@ -1115,7 +1115,7 @@
                             if( xTCPWindowLoggingLevel != 0 )
                             {
                                 FreeRTOS_debug_printf( ( "keep-alive: %xip:%u count %u\n",
-                                                         ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
+                                                         ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
                                                          pxSocket->u.xTCP.usRemotePort,
                                                          pxSocket->u.xTCP.ucKeepRepCount ) );
                             }

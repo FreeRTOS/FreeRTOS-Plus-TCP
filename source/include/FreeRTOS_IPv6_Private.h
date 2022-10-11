@@ -36,6 +36,7 @@
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
+#include "FreeRTOS_IP_Common.h"
 #include "FreeRTOS_Sockets.h"
 #include "IPTraceMacroDefaults.h"
 #include "FreeRTOS_Stream_Buffer.h"
@@ -48,15 +49,19 @@
 
 #include "event_groups.h"
 
+#undef TCP_PACKET_SIZE
+#define TCP_PACKET_SIZE          ( sizeof( TCPPacket_IPv6_t ) )
+
 /* The offset from the UDP payload where the IP type will be stored.
  * For IPv4 packets, this it located 6 bytes before pucEthernetBuffer.
  * For IPv6 packets, this it located in the usual 'ucVersionTrafficClass'. */
-#define ipIP_TYPE_OFFSET                  ( 6U )
+#define ipIP_TYPE_OFFSET         ( 6U )
 /* The offset into an IP packet into which the IP data (payload) starts. */
-#define ipIPv6_PAYLOAD_OFFSET             ( sizeof( IPPacket_IPv6_t ) )
+#define ipIPv6_PAYLOAD_OFFSET    ( sizeof( IPPacket_IPv6_t ) )
 
 /* The maximum UDP payload length. */
-#define ipMAX_UDP_PAYLOAD_LENGTH          ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
+#undef ipMAX_UDP_PAYLOAD_LENGTH
+#define ipMAX_UDP_PAYLOAD_LENGTH          ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv6_HEADER ) - ipSIZE_OF_UDP_HEADER )
 /* The offset into a UDP packet at which the UDP data (payload) starts. */
 #define ipUDP_PAYLOAD_OFFSET_IPv6         ( sizeof( UDPPacket_IPv6_t ) )
 /* The value of 'ipUDP_PAYLOAD_IP_TYPE_OFFSET' is 42 + 6 = 48 bytes. */
@@ -131,14 +136,6 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
 typedef union xPROT_HEADERS   ProtocolHeaders_t;
 typedef struct xSOCKET        FreeRTOS_Socket_t;
 
-
-struct xIPv6_Address
-{
-    uint8_t ucBytes[ 16 ];
-};
-
-typedef struct xIPv6_Address IPv6_Address_t;
-
 #include "pack_struct_start.h"
 struct xIP_HEADER_IPv6
 {
@@ -153,21 +150,6 @@ struct xIP_HEADER_IPv6
 }
 #include "pack_struct_end.h"
 typedef struct xIP_HEADER_IPv6 IPHeader_IPv6_t;
-
-#include "pack_struct_start.h"
-struct xICMPHeader_IPv6
-{
-    uint8_t ucTypeOfMessage;     /**< The message type.     0 +  1 = 1 */
-    uint8_t ucTypeOfService;     /**< Type of service.      1 +  1 = 2 */
-    uint16_t usChecksum;         /**< Checksum.             2 +  2 = 4 */
-    uint32_t ulReserved;         /**< Reserved.             4 +  4 = 8 */
-    IPv6_Address_t xIPv6Address; /**< The IPv6 address.     8 + 16 = 24 */
-    uint8_t ucOptionType;        /**< The option type.     24 +  1 = 25 */
-    uint8_t ucOptionLength;      /**< The option length.   25 +  1 = 26 */
-    uint8_t ucOptionBytes[ 6 ];  /**< Option bytes.        26 +  6 = 32 */
-}
-#include "pack_struct_end.h"
-typedef struct xICMPHeader_IPv6 ICMPHeader_IPv6_t;
 
 #include "pack_struct_start.h"
 struct xICMPEcho_IPv6
@@ -255,28 +237,6 @@ struct xTCP_PACKET_IPv6
 }
 #include "pack_struct_end.h"
 typedef struct xTCP_PACKET_IPv6 TCPPacket_IPv6_t;
-
-/** @brief This struct describes a packet, it is used by the function
- * usGenerateProtocolChecksum(). */
-struct xPacketSummary
-{
-    #if ( ipconfigUSE_IPv6 != 0 )
-        BaseType_t xIsIPv6;                      /**< pdTRUE for IPv6 packets. */
-        const IPHeader_IPv6_t * pxIPPacket_IPv6; /**< A pointer to the IPv6 header. */
-    #endif
-    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-        const char * pcType;               /**< Just for logging purposes: the name of the protocol. */
-    #endif
-    size_t uxIPHeaderLength;               /**< Either 40 or 20, depending on the IP-type */
-    size_t uxProtocolHeaderLength;         /**< Either 8, 20, or more or 20, depending on the protocol-type */
-    uint16_t usChecksum;                   /**< Checksum accumulator. */
-    uint8_t ucProtocol;                    /**< ipPROTOCOL_TCP, ipPROTOCOL_UDP, ipPROTOCOL_ICMP */
-    const IPPacket_t * pxIPPacket;         /**< A pointer to the IPv4 header. */
-    ProtocolHeaders_t * pxProtocolHeaders; /**< Points to first byte after IP-header */
-    uint16_t usPayloadLength;              /**< Property of IP-header (for IPv4: length of IP-header included) */
-    uint16_t usProtocolBytes;              /**< The total length of the protocol data. */
-    uint16_t * pusChecksum;                /**< A pointer to the location where the protocol checksum is stored. */
-};
 
 /* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
  * It handles all ICMP messages except the PING requests. */

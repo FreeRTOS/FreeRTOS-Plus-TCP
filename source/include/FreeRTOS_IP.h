@@ -40,6 +40,7 @@
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
+#include "FreeRTOS_IP_Common.h"
 #include "IPTraceMacroDefaults.h"
 
 /* Constants defining the current version of the FreeRTOS+TCP
@@ -149,6 +150,7 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 #endif
 
 
+
 /**
  * The structure used to store buffers and pass them around the network stack.
  * Buffers can be in use by the stack, in use by the network interface hardware
@@ -157,7 +159,7 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 typedef struct xNETWORK_BUFFER
 {
     ListItem_t xBufferListItem;                /**< Used to reference the buffer form the free buffer list or a socket. */
-    uint32_t ulIPAddress;                      /**< Source or destination IP address, depending on usage scenario. */
+    IP_Address_t xIPAddress;                   /**< Source or destination IP address, depending on usage scenario. */
     uint8_t * pucEthernetBuffer;               /**< Pointer to the start of the Ethernet frame. */
     size_t xDataLength;                        /**< Starts by holding the total Ethernet frame length, then the UDP/TCP payload length. */
     uint16_t usPort;                           /**< Source or destination port, depending on usage scenario. */

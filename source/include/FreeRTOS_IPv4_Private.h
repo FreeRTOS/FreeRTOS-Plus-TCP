@@ -38,6 +38,8 @@
 /* The maximum UDP payload length. */
 #define ipMAX_UDP_PAYLOAD_LENGTH        ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
 
+#define TCP_PACKET_SIZE                 ( sizeof( TCPPacket_t ) )
+
 /* The offset into an IP packet into which the IP data (payload) starts. */
 #define ipIP_PAYLOAD_OFFSET             ( sizeof( IPPacket_t ) )
 /* The offset into a UDP packet at which the UDP data (payload) starts. */

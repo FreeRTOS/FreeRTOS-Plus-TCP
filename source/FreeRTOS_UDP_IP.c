@@ -96,7 +96,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
     UDPPacket_t * pxUDPPacket;
     IPHeader_t * pxIPHeader;
     eARPLookupResult_t eReturned;
-    uint32_t ulIPAddress = pxNetworkBuffer->ulIPAddress;
+    uint32_t ulIPAddress = pxNetworkBuffer->xIPAddress.xIP_IPv4;
     size_t uxPayloadSize;
     /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
     const void * pvCopySource;
@@ -130,7 +130,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
                 uint8_t ucSocketOptions;
             #endif
-            iptraceSENDING_UDP_PACKET( pxNetworkBuffer->ulIPAddress );
+            iptraceSENDING_UDP_PACKET( pxNetworkBuffer->xIPAddress.xIP_IPv4 );
 
             /* Create short cuts to the data within the packet. */
             pxIPHeader = &( pxUDPPacket->xIPHeader );
@@ -203,7 +203,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
             }
 
             pxIPHeader->usLength = FreeRTOS_htons( pxIPHeader->usLength );
-            pxIPHeader->ulDestinationIPAddress = pxNetworkBuffer->ulIPAddress;
+            pxIPHeader->ulDestinationIPAddress = pxNetworkBuffer->xIPAddress.xIP_IPv4;
 
             /* The stack doesn't support fragments, so the fragment offset field must always be zero.
              * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
@@ -218,7 +218,7 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
                 {
                     /* LLMNR messages are typically used on a LAN and they're
                      * not supposed to cross routers */
-                    if( pxNetworkBuffer->ulIPAddress == ipLLMNR_IP_ADDR )
+                    if( pxNetworkBuffer->xIPAddress.xIP_IPv4 == ipLLMNR_IP_ADDR )
                     {
                         pxIPHeader->ucTimeToLive = 0x01;
                     }
@@ -250,8 +250,8 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
             vARPRefreshCacheEntry( NULL, ulIPAddress );
 
             /* Generate an ARP for the required IP address. */
-            iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->ulIPAddress );
-            pxNetworkBuffer->ulIPAddress = ulIPAddress;
+            iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.xIP_IPv4 );
+            pxNetworkBuffer->xIPAddress.xIP_IPv4 = ulIPAddress;
             vARPGenerateRequestPacket( pxNetworkBuffer );
         }
         else
@@ -366,7 +366,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
                         void * pcData = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
                         FOnUDPReceive_t xHandler = ( FOnUDPReceive_t ) pxSocket->u.xUDP.pxHandleReceive;
                         xSourceAddress.sin_port = pxNetworkBuffer->usPort;
-                        xSourceAddress.sin_addr = pxNetworkBuffer->ulIPAddress;
+                        xSourceAddress.sin_addr = pxNetworkBuffer->xIPAddress.xIP_IPv4;
                         destinationAddress.sin_port = usPort;
                         destinationAddress.sin_addr = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
 

@@ -426,7 +426,7 @@
                 {
                     FreeRTOS_debug_printf( ( "Socket %u -> %xip:%u State %s->%s\n",
                                              pxSocket->usLocalPort,
-                                             ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
+                                             ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
                                              pxSocket->u.xTCP.usRemotePort,
                                              FreeRTOS_GetTCPStateName( ( UBaseType_t ) xPreviousState ),
                                              FreeRTOS_GetTCPStateName( ( UBaseType_t ) eTCPState ) ) );
@@ -486,7 +486,7 @@
             }
 
             FreeRTOS_debug_printf( ( "Connect[%xip:%u]: next timeout %u: %u ms\n",
-                                     ( unsigned ) pxSocket->u.xTCP.ulRemoteIP, pxSocket->u.xTCP.usRemotePort,
+                                     ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, pxSocket->u.xTCP.usRemotePort,
                                      pxSocket->u.xTCP.ucRepCount, ( unsigned ) ulDelayMs ) );
             pxSocket->u.xTCP.usTimeout = ( uint16_t ) ipMS_TO_MIN_TICKS( ulDelayMs );
         }

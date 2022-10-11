@@ -936,7 +936,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 
     if( pxNetworkBuffer != NULL )
     {
-        pxNetworkBuffer->ulIPAddress = ulIPAddress;
+        pxNetworkBuffer->xIPAddress.xIP_IPv4 = ulIPAddress;
         vARPGenerateRequestPacket( pxNetworkBuffer );
 
         #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
@@ -1115,11 +1115,11 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
     pvCopySource = ipLOCAL_IP_ADDRESS_POINTER;
     pvCopyDest = pxARPPacket->xARPHeader.ucSenderProtocolAddress;
     ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxARPPacket->xARPHeader.ucSenderProtocolAddress ) );
-    pxARPPacket->xARPHeader.ulTargetProtocolAddress = pxNetworkBuffer->ulIPAddress;
+    pxARPPacket->xARPHeader.ulTargetProtocolAddress = pxNetworkBuffer->xIPAddress.xIP_IPv4;
 
     pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t );
 
-    iptraceCREATING_ARP_REQUEST( pxNetworkBuffer->ulIPAddress );
+    iptraceCREATING_ARP_REQUEST( pxNetworkBuffer->xIPAddress.xIP_IPv4 );
 }
 /*-----------------------------------------------------------*/
 

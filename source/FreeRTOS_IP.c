@@ -1040,7 +1040,7 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
                 /* The message is complete, IP and checksum's are handled by
                  * vProcessGeneratedUDPPacket */
                 pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] = FREERTOS_SO_UDPCKSUM_OUT;
-                pxNetworkBuffer->ulIPAddress = ulIPAddress;
+                pxNetworkBuffer->xIPAddress.xIP_IPv4 = ulIPAddress;
                 pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
                 /* xDataLength is the size of the total packet, including the Ethernet header. */
                 pxNetworkBuffer->xDataLength = uxTotalLength;
@@ -1757,7 +1757,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
                                    /* Fields in pxNetworkBuffer (usPort, ulIPAddress) are network order. */
                                    pxNetworkBuffer->usPort = pxUDPPacket->xUDPHeader.usSourcePort;
-                                   pxNetworkBuffer->ulIPAddress = pxUDPPacket->xIPHeader.ulSourceIPAddress;
+                                   pxNetworkBuffer->xIPAddress.xIP_IPv4 = pxUDPPacket->xIPHeader.ulSourceIPAddress;
 
                                    /* ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM:
                                     * In some cases, the upper-layer checksum has been calculated

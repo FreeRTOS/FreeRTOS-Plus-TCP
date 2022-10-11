@@ -969,7 +969,7 @@ int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
             if( pxSourceAddress != NULL )
             {
                 pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
-                pxSourceAddress->sin_addr = pxNetworkBuffer->ulIPAddress;
+                pxSourceAddress->sin_addr = pxNetworkBuffer->xIPAddress.xIP_IPv4;
             }
 
             if( ( ( UBaseType_t ) xFlags & ( UBaseType_t ) FREERTOS_ZERO_COPY ) == 0U )
@@ -1150,7 +1150,7 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
                 pxNetworkBuffer->xDataLength = uxTotalDataLength + sizeof( UDPPacket_t );
                 pxNetworkBuffer->usPort = pxDestinationAddress->sin_port;
                 pxNetworkBuffer->usBoundPort = ( uint16_t ) socketGET_SOCKET_PORT( pxSocket );
-                pxNetworkBuffer->ulIPAddress = pxDestinationAddress->sin_addr;
+                pxNetworkBuffer->xIPAddress.xIP_IPv4 = pxDestinationAddress->sin_addr;
 
                 /* The socket options are passed to the IP layer in the
                  * space that will eventually get used by the Ethernet header. */
@@ -1622,7 +1622,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
             {
                 FreeRTOS_debug_printf( ( "FreeRTOS_closesocket[%u to %xip:%u]: buffers %u socks %u\n",
                                          pxSocket->usLocalPort,
-                                         ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
+                                         ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
                                          pxSocket->u.xTCP.usRemotePort,
                                          ( unsigned ) uxGetNumberOfFreeNetworkBuffers(),
                                          ( unsigned ) listCURRENT_LIST_LENGTH( &xBoundTCPSocketsList ) ) );
@@ -3047,7 +3047,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 pxSocket->u.xTCP.usRemotePort = FreeRTOS_ntohs( pxAddress->sin_port );
 
                 /* IP address of remote machine. */
-                pxSocket->u.xTCP.ulRemoteIP = FreeRTOS_ntohl( pxAddress->sin_addr );
+                pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_addr );
 
                 /* (client) internal state: socket wants to send a connect. */
                 vTCPStateChange( pxSocket, eCONNECT_SYN );
@@ -3232,7 +3232,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     if( pxAddress != NULL )
                     {
                         /* IP address of remote machine. */
-                        pxAddress->sin_addr = FreeRTOS_ntohl( pxClientSocket->u.xTCP.ulRemoteIP );
+                        pxAddress->sin_addr = FreeRTOS_ntohl( pxClientSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
 
                         /* Port on remote machine. */
                         pxAddress->sin_port = FreeRTOS_ntohs( pxClientSocket->u.xTCP.usRemotePort );
@@ -3812,7 +3812,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     {
                         FreeRTOS_debug_printf( ( "FreeRTOS_send: %u -> %xip:%d: no space\n",
                                                  pxSocket->usLocalPort,
-                                                 ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
+                                                 ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
                                                  pxSocket->u.xTCP.usRemotePort ) );
                     }
 
@@ -4094,7 +4094,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                      * in case there is no perfect match. */
                     pxListenSocket = pxSocket;
                 }
-                else if( ( pxSocket->u.xTCP.usRemotePort == ( uint16_t ) uxRemotePort ) && ( pxSocket->u.xTCP.ulRemoteIP == ulRemoteIP ) )
+                else if( ( pxSocket->u.xTCP.usRemotePort == ( uint16_t ) uxRemotePort ) && ( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 == ulRemoteIP ) )
                 {
                     /* For sockets not in listening mode, find a match with
                      * xLocalPort, ulRemoteIP AND xRemotePort. */
@@ -4432,7 +4432,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* BSD style sockets communicate IP and port addresses in network
              * byte order.
              * IP address of remote machine. */
-            pxAddress->sin_addr = FreeRTOS_htonl( pxSocket->u.xTCP.ulRemoteIP );
+            pxAddress->sin_addr = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
 
             /* Port on remote machine. */
             pxAddress->sin_port = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
@@ -4830,7 +4830,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 
                 FreeRTOS_printf( ( "TCP %5u %-16xip:%5u %d/%d %-13.13s %6u %6u%s\n",
                                    pxSocket->usLocalPort,                    /* Local port on this machine */
-                                   ( unsigned ) pxSocket->u.xTCP.ulRemoteIP, /* IP address of remote machine */
+                                   ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, /* IP address of remote machine */
                                    pxSocket->u.xTCP.usRemotePort,            /* Port on remote machine */
                                    ( pxSocket->u.xTCP.rxStream != NULL ) ? 1 : 0,
                                    ( pxSocket->u.xTCP.txStream != NULL ) ? 1 : 0,
