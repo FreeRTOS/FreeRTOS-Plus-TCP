@@ -27,6 +27,7 @@
 
 /* libc */
 #include <stdlib.h>
+#include <sys/types.h>
 
 /* QEMU Slirp Library */
 #include <libslirp.h>
@@ -50,11 +51,11 @@
 #include "FreeRTOS_IP.h"
 
 #ifndef IF_MTU_DEFAULT
-    #define IF_MTU_DEFAULT    1500
+    #define IF_MTU_DEFAULT    1500U
 #endif
 
 #ifndef IF_MRU_DEFAULT
-    #define IF_MRU_DEFAULT    1500
+    #define IF_MRU_DEFAULT    1500U
 #endif
 
 #define NETWORK_BUFFER_LEN    ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
@@ -76,6 +77,10 @@
     #define THREAD_RETURN    void *
     #define THREAD_FUNC_DEF
 #endif /* if defined( _WIN32 ) */
+
+#if !defined( slirp_ssize_t ) && defined( SSIZE_MAX )
+    typedef ssize_t slirp_ssize_t;
+#endif
 
 typedef struct
 {
@@ -588,10 +593,10 @@ static int lSlirpGetREventsCallback( int lIdx,
     configASSERT( pxCtx );
 
     configASSERT( lIdx >= 0 );
-    configASSERT( lIdx < pxCtx->nfds );
-    configASSERT( lIdx < pxCtx->xPollFdArraySize );
 
     xIndex = ( nfds_t ) lIdx;
+    configASSERT( xIndex < pxCtx->nfds );
+    configASSERT( xIndex < pxCtx->xPollFdArraySize );
 
     rEvents = ( pxCtx->pxPollFdArray[ xIndex ].revents );
 
