@@ -593,10 +593,10 @@ static int lSlirpGetREventsCallback( int lIdx,
     configASSERT( pxCtx );
 
     configASSERT( lIdx >= 0 );
-    configASSERT( lIdx < ( int ) pxCtx->nfds );
-    configASSERT( lIdx < ( int ) pxCtx->xPollFdArraySize );
 
     xIndex = ( nfds_t ) lIdx;
+    configASSERT( xIndex < pxCtx->nfds );
+    configASSERT( xIndex < pxCtx->xPollFdArraySize );
 
     rEvents = ( pxCtx->pxPollFdArray[ xIndex ].revents );
 
