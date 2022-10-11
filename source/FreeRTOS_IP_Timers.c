@@ -241,6 +241,9 @@ void vCheckNetworkTimers( void )
 
         /* See if any socket was planned to be closed. */
         vSocketCloseNextTime( NULL );
+
+        /* See if any reusable socket needs to go back to 'eTCP_LISTEN' state. */
+        vSocketListenNextTime( NULL );
     #endif /* ipconfigUSE_TCP == 1 */
 }
 /*-----------------------------------------------------------*/

@@ -3102,6 +3102,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* And wait for the result */
             for( ; ; )
             {
+                EventBits_t uxEvents;
+
                 if( xTimed == pdFALSE )
                 {
                     /* Only in the first round, check for non-blocking */
@@ -3139,7 +3141,18 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 }
 
                 /* Go sleeping until we get any down-stream event */
-                ( void ) xEventGroupWaitBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_CONNECT, pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, xRemainingTime );
+                uxEvents = xEventGroupWaitBits( pxSocket->xEventGroup,
+                                                ( EventBits_t ) eSOCKET_CONNECT | ( EventBits_t ) eSOCKET_CLOSED,
+                                                pdTRUE /*xClearOnExit*/,
+                                                pdFALSE /*xWaitAllBits*/,
+                                                xRemainingTime );
+
+                if( ( uxEvents & eSOCKET_CLOSED ) != 0U )
+                {
+                    xResult = -pdFREERTOS_ERRNO_ENOTCONN;
+                    FreeRTOS_debug_printf( ( "FreeRTOS_connect() stopped due to an error\n" ) );
+                    break;
+                }
             }
         }
 
@@ -3286,8 +3299,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     break;
                 }
 
-                /* Go sleeping until we get any down-stream event */
-                ( void ) xEventGroupWaitBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_ACCEPT, pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, xRemainingTime );
+                /* Put the calling task to 'sleep' until a down-stream event is received. */
+                ( void ) xEventGroupWaitBits( pxSocket->xEventGroup,
+                                              ( EventBits_t ) eSOCKET_ACCEPT,
+                                              pdTRUE /*xClearOnExit*/,
+                                              pdFALSE /*xWaitAllBits*/,
+                                              xRemainingTime );
             }
         }
 
