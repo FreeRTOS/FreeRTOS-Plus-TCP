@@ -472,7 +472,7 @@
             {
                 case eSYN_FIRST:    /* 3 (server) Just created, must ACK the SYN request */
                 case eSYN_RECEIVED: /* 4 (server) waiting for a confirming connection request */
-                    FreeRTOS_printf( ( "Restoring a reuse socket port %u\n", pxSocket->usLocalPort ) );
+                    FreeRTOS_debug_printf( ( "Restoring a reuse socket port %u\n", pxSocket->usLocalPort ) );
 
                     /* Go back into listening mode. Set the TCP status to 'eCLOSED',
                      * otherwise FreeRTOS_listen() will refuse the action. */

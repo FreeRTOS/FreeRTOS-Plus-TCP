@@ -3150,7 +3150,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 if( ( uxEvents & eSOCKET_CLOSED ) != 0U )
                 {
                     xResult = -pdFREERTOS_ERRNO_ENOTCONN;
-                    FreeRTOS_printf( ( "FreeRTOS_connect() stopped due to an error\n" ) );
+                    FreeRTOS_debug_printf( ( "FreeRTOS_connect() stopped due to an error\n" ) );
                     break;
                 }
             }
