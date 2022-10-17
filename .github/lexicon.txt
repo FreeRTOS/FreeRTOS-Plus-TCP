@@ -1395,6 +1395,7 @@ vrxfaultinjection
 vsocketbind
 vsocketclose
 vsocketclosenexttime
+vsocketlistennexttime
 vsocketselect
 vsocketwakeupuser
 vtasklist
@@ -1451,6 +1452,7 @@ xcallbacklist
 xcheckloopback
 xclearonexit
 xclientsocket
+xconnected
 xcount
 xdatalength
 xdatalengthbytes
