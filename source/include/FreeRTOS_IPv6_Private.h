@@ -33,8 +33,6 @@
 #endif
 /* *INDENT-ON* */
 
-#if ipconfigUSE_IPv6
-
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
@@ -53,24 +51,24 @@
 /* The offset from the UDP payload where the IP type will be stored.
  * For IPv4 packets, this it located 6 bytes before pucEthernetBuffer.
  * For IPv6 packets, this it located in the usual 'ucVersionTrafficClass'. */
-#define ipIP_TYPE_OFFSET                     ( 6U )
+#define ipIP_TYPE_OFFSET                  ( 6U )
 /* The offset into an IP packet into which the IP data (payload) starts. */
-#define ipIPv6_PAYLOAD_OFFSET                ( sizeof( IPPacket_IPv6_t ) )
+#define ipIPv6_PAYLOAD_OFFSET             ( sizeof( IPPacket_IPv6_t ) )
 
 /* The maximum UDP payload length. */
-#define ipMAX_UDP_PAYLOAD_LENGTH             ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
+#define ipMAX_UDP_PAYLOAD_LENGTH          ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
 /* The offset into a UDP packet at which the UDP data (payload) starts. */
-#define ipUDP_PAYLOAD_OFFSET_IPv6            ( sizeof( UDPPacket_IPv6_t ) )
+#define ipUDP_PAYLOAD_OFFSET_IPv6         ( sizeof( UDPPacket_IPv6_t ) )
 /* The value of 'ipUDP_PAYLOAD_IP_TYPE_OFFSET' is 42 + 6 = 48 bytes. */
-#define ipUDP_PAYLOAD_IPv6_TYPE_OFFSET       ( sizeof( UDPPacket_IPv6_t ) + ipIP_TYPE_OFFSET )
+#define ipUDP_PAYLOAD_IPv6_TYPE_OFFSET    ( sizeof( UDPPacket_IPv6_t ) + ipIP_TYPE_OFFSET )
 
 #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
 
-    #define ipIPv6_FRAME_TYPE                ( 0xDD86U )   /* Ethernet frame types. */
+    #define ipIPv6_FRAME_TYPE    ( 0xDD86U )               /* Ethernet frame types. */
 
 #else /* if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
 
-    #define ipIPv6_FRAME_TYPE                ( 0x86DDU )   /* Ethernet frame types. */
+    #define ipIPv6_FRAME_TYPE    ( 0x86DDU )               /* Ethernet frame types. */
 
 #endif /* ipconfigBYTE_ORDER */
 
@@ -91,7 +89,7 @@
  * The MISRA warnings can safely be suppressed because all casts are planned with care.
  */
 
-#define ipPOINTER_CAST( TYPE, pointer )       ( ( TYPE ) ( pointer ) )
+#define ipPOINTER_CAST( TYPE, pointer )    ( ( TYPE ) ( pointer ) )
 
 /* Sequence and ACK numbers are essentially unsigned (uint32_t). But when
  * a distance is calculated, it is useful to use signed numbers:
@@ -106,6 +104,19 @@
 
 #define ipNUMERIC_CAST( TYPE, expression )    ( ( TYPE ) ( expression ) )
 
+/*extern void vSetField16helper( uint8_t * pucBase,
+ *                             size_t uxOffset,
+ *                             uint16_t usValue );
+ #define vSetField16( pucBase, xType, xField, usValue ) \
+ *  vSetField16helper( pucBase, offsetof( xType, xField ), usValue )
+ *
+ * extern void vSetField32helper( uint8_t * pucBase,
+ *                             size_t uxOffset,
+ *                             uint32_t ulValue );
+ #define vSetField32( pucBase, xType, xField, ulValue ) \
+ *  vSetField32helper( pucBase, offsetof( xType, xField ), ulValue )
+ */
+
 /* As FreeRTOS_Routing is included later, use forward declarations
  * of the two structs. */
 struct xNetworkEndPoint;
@@ -117,13 +128,13 @@ extern struct xNetworkEndPoint * pxNetworkEndPoints;
 /* A list of all network interfaces: */
 extern struct xNetworkInterface * pxNetworkInterfaces;
 
-typedef union xPROT_HEADERS ProtocolHeaders_t;
-typedef struct xSOCKET FreeRTOS_Socket_t;
+typedef union xPROT_HEADERS   ProtocolHeaders_t;
+typedef struct xSOCKET        FreeRTOS_Socket_t;
 
 
 struct xIPv6_Address
 {
-	uint8_t ucBytes[ 16 ];
+    uint8_t ucBytes[ 16 ];
 };
 
 typedef struct xIPv6_Address IPv6_Address_t;
@@ -131,14 +142,14 @@ typedef struct xIPv6_Address IPv6_Address_t;
 #include "pack_struct_start.h"
 struct xIP_HEADER_IPv6
 {
-	uint8_t ucVersionTrafficClass;  /**< T  he version field.                      0 +  1 =  1 */
-	uint8_t ucTrafficClassFlow;     /**< Traffic class and flow.                 1 +  1 =  2 */
-	uint16_t usFlowLabel;           /**< Flow label.                             2 +  2 =  4 */
-	uint16_t usPayloadLength;       /**< Number of bytes after the IPv6 header.  4 +  2 =  6 */
-	uint8_t ucNextHeader;           /**< Next header: TCP, UDP, or ICMP.         6 +  1 =  7 */
-	uint8_t ucHopLimit;             /**< Replaces the time to live from IPv4.    7 +  1 =  8 */
-	IPv6_Address_t xSourceAddress;  /**< The IPv6 address of the sender.         8 + 16 = 24 */
-	IPv6_Address_t xDestinationAddress; /**< The IPv6 address of the receiver.      24 + 16 = 40 */
+    uint8_t ucVersionTrafficClass;      /**< T  he version field.                      0 +  1 =  1 */
+    uint8_t ucTrafficClassFlow;         /**< Traffic class and flow.                 1 +  1 =  2 */
+    uint16_t usFlowLabel;               /**< Flow label.                             2 +  2 =  4 */
+    uint16_t usPayloadLength;           /**< Number of bytes after the IPv6 header.  4 +  2 =  6 */
+    uint8_t ucNextHeader;               /**< Next header: TCP, UDP, or ICMP.         6 +  1 =  7 */
+    uint8_t ucHopLimit;                 /**< Replaces the time to live from IPv4.    7 +  1 =  8 */
+    IPv6_Address_t xSourceAddress;      /**< The IPv6 address of the sender.         8 + 16 = 24 */
+    IPv6_Address_t xDestinationAddress; /**< The IPv6 address of the receiver.      24 + 16 = 40 */
 }
 #include "pack_struct_end.h"
 typedef struct xIP_HEADER_IPv6 IPHeader_IPv6_t;
@@ -146,14 +157,14 @@ typedef struct xIP_HEADER_IPv6 IPHeader_IPv6_t;
 #include "pack_struct_start.h"
 struct xICMPHeader_IPv6
 {
-	uint8_t ucTypeOfMessage; /**< The message type.     0 +  1 = 1 */
-	uint8_t ucTypeOfService; /**< Type of service.      1 +  1 = 2 */
-	uint16_t usChecksum;     /**< Checksum.             2 +  2 = 4 */
-	uint32_t ulReserved;     /**< Reserved.             4 +  4 = 8 */
-	IPv6_Address_t xIPv6Address; /**< The IPv6 address.     8 + 16 = 24 */
-	uint8_t ucOptionType;    /**< The option type.     24 +  1 = 25 */
-	uint8_t ucOptionLength;  /**< The option length.   25 +  1 = 26 */
-	uint8_t ucOptionBytes[ 6 ]; /**< Option bytes.        26 +  6 = 32 */
+    uint8_t ucTypeOfMessage;     /**< The message type.     0 +  1 = 1 */
+    uint8_t ucTypeOfService;     /**< Type of service.      1 +  1 = 2 */
+    uint16_t usChecksum;         /**< Checksum.             2 +  2 = 4 */
+    uint32_t ulReserved;         /**< Reserved.             4 +  4 = 8 */
+    IPv6_Address_t xIPv6Address; /**< The IPv6 address.     8 + 16 = 24 */
+    uint8_t ucOptionType;        /**< The option type.     24 +  1 = 25 */
+    uint8_t ucOptionLength;      /**< The option length.   25 +  1 = 26 */
+    uint8_t ucOptionBytes[ 6 ];  /**< Option bytes.        26 +  6 = 32 */
 }
 #include "pack_struct_end.h"
 typedef struct xICMPHeader_IPv6 ICMPHeader_IPv6_t;
@@ -161,45 +172,45 @@ typedef struct xICMPHeader_IPv6 ICMPHeader_IPv6_t;
 #include "pack_struct_start.h"
 struct xICMPEcho_IPv6
 {
-	uint8_t ucTypeOfMessage; /**< The message type.     0 +  1 = 1 */
-	uint8_t ucTypeOfService; /**< Type of service.      1 +  1 = 2 */
-	uint16_t usChecksum;   /**< Checksum.             2 +  2 = 4 */
-	uint16_t usIdentifier; /**< Identifier.           4 +  2 = 6 */
-	uint16_t usSequenceNumber; /**< Sequence number.      6 +  2 = 8 */
+    uint8_t ucTypeOfMessage;   /**< The message type.     0 +  1 = 1 */
+    uint8_t ucTypeOfService;   /**< Type of service.      1 +  1 = 2 */
+    uint16_t usChecksum;       /**< Checksum.             2 +  2 = 4 */
+    uint16_t usIdentifier;     /**< Identifier.           4 +  2 = 6 */
+    uint16_t usSequenceNumber; /**< Sequence number.      6 +  2 = 8 */
 }
 #include "pack_struct_end.h"
 typedef struct xICMPEcho_IPv6 ICMPEcho_IPv6_t;
 
 #if ipconfigUSE_RA != 0
     #include "pack_struct_start.h"
-struct xICMPRouterAdvertisement_IPv6
-{
-	uint8_t ucTypeOfMessage;       /*  0 +  1 =  1 */
-	uint8_t ucTypeOfService;       /*  1 +  1 =  2 */
-	uint16_t usChecksum;           /*  2 +  2 =  4 */
-	uint8_t ucHopLimit;            /*  4 +  1 =  5 */
-	uint8_t ucFlags;               /*  5 +  1 =  6 */
-	uint16_t usLifetime;           /*  6 +  2 =  8 */
-	uint16_t usReachableTime[ 2 ]; /*  8 +  4 = 12 */
-	uint16_t usRetransTime[ 2 ];   /* 12 +  4 = 16 */
-}
+    struct xICMPRouterAdvertisement_IPv6
+    {
+        uint8_t ucTypeOfMessage;       /*  0 +  1 =  1 */
+        uint8_t ucTypeOfService;       /*  1 +  1 =  2 */
+        uint16_t usChecksum;           /*  2 +  2 =  4 */
+        uint8_t ucHopLimit;            /*  4 +  1 =  5 */
+        uint8_t ucFlags;               /*  5 +  1 =  6 */
+        uint16_t usLifetime;           /*  6 +  2 =  8 */
+        uint16_t usReachableTime[ 2 ]; /*  8 +  4 = 12 */
+        uint16_t usRetransTime[ 2 ];   /* 12 +  4 = 16 */
+    }
     #include "pack_struct_end.h"
-typedef struct xICMPRouterAdvertisement_IPv6 ICMPRouterAdvertisement_IPv6_t;
+    typedef struct xICMPRouterAdvertisement_IPv6 ICMPRouterAdvertisement_IPv6_t;
 
     #include "pack_struct_start.h"
-struct xICMPPrefixOption_IPv6
-{
-	uint8_t ucType;               /*  0 +  1 =  1 */
-	uint8_t ucLength;             /*  1 +  1 =  2 */
-	uint8_t ucPrefixLength;       /*  2 +  1 =  3 */
-	uint8_t ucFlags;              /*  3 +  1 =  4 */
-	uint32_t ulValidLifeTime;     /*  4 +  4 =  8 */
-	uint32_t ulPreferredLifeTime; /*  8 +  4 = 12 */
-	uint32_t ulReserved;          /* 12 +  4 = 16 */
-	uint8_t ucPrefix[ 16 ];       /* 16 + 16 = 32 */
-}
+    struct xICMPPrefixOption_IPv6
+    {
+        uint8_t ucType;               /*  0 +  1 =  1 */
+        uint8_t ucLength;             /*  1 +  1 =  2 */
+        uint8_t ucPrefixLength;       /*  2 +  1 =  3 */
+        uint8_t ucFlags;              /*  3 +  1 =  4 */
+        uint32_t ulValidLifeTime;     /*  4 +  4 =  8 */
+        uint32_t ulPreferredLifeTime; /*  8 +  4 = 12 */
+        uint32_t ulReserved;          /* 12 +  4 = 16 */
+        uint8_t ucPrefix[ 16 ];       /* 16 + 16 = 32 */
+    }
     #include "pack_struct_end.h"
-typedef struct xICMPPrefixOption_IPv6 ICMPPrefixOption_IPv6_t;
+    typedef struct xICMPPrefixOption_IPv6 ICMPPrefixOption_IPv6_t;
 #endif /* ipconfigUSE_RA != 0 */
 
 /*-----------------------------------------------------------*/
@@ -209,8 +220,8 @@ typedef struct xICMPPrefixOption_IPv6 ICMPPrefixOption_IPv6_t;
 #include "pack_struct_start.h"
 struct xIP_PACKET_IPv6
 {
-	EthernetHeader_t xEthernetHeader;
-	IPHeader_IPv6_t xIPHeader;
+    EthernetHeader_t xEthernetHeader;
+    IPHeader_IPv6_t xIPHeader;
 }
 #include "pack_struct_end.h"
 typedef struct xIP_PACKET_IPv6 IPPacket_IPv6_t;
@@ -218,9 +229,9 @@ typedef struct xIP_PACKET_IPv6 IPPacket_IPv6_t;
 #include "pack_struct_start.h"
 struct xICMP_PACKET_IPv6
 {
-	EthernetHeader_t xEthernetHeader;
-	IPHeader_IPv6_t xIPHeader;
-	ICMPHeader_IPv6_t xICMPHeaderIPv6;
+    EthernetHeader_t xEthernetHeader;
+    IPHeader_IPv6_t xIPHeader;
+    ICMPHeader_IPv6_t xICMPHeaderIPv6;
 }
 #include "pack_struct_end.h"
 typedef struct xICMP_PACKET_IPv6 ICMPPacket_IPv6_t;
@@ -228,19 +239,19 @@ typedef struct xICMP_PACKET_IPv6 ICMPPacket_IPv6_t;
 #include "pack_struct_start.h"
 struct xUDP_PACKET_IPv6
 {
-	EthernetHeader_t xEthernetHeader; /*  0 + 14 = 14 */
-	IPHeader_IPv6_t xIPHeader;    /* 14 + 40 = 54 */
-	UDPHeader_t xUDPHeader;       /* 54 +  8 = 62 */
+    EthernetHeader_t xEthernetHeader; /*  0 + 14 = 14 */
+    IPHeader_IPv6_t xIPHeader;        /* 14 + 40 = 54 */
+    UDPHeader_t xUDPHeader;           /* 54 +  8 = 62 */
 }
 #include "pack_struct_end.h"
 typedef struct xUDP_PACKET_IPv6 UDPPacket_IPv6_t;
 
-  #include "pack_struct_start.h"
+#include "pack_struct_start.h"
 struct xTCP_PACKET_IPv6
 {
-	EthernetHeader_t xEthernetHeader; /*  0 + 14 = 14 */
-	IPHeader_IPv6_t xIPHeader;    /* 14 + 40 = 54 */
-	TCPHeader_t xTCPHeader;       /* 54 + 32 = 86 */
+    EthernetHeader_t xEthernetHeader; /*  0 + 14 = 14 */
+    IPHeader_IPv6_t xIPHeader;        /* 14 + 40 = 54 */
+    TCPHeader_t xTCPHeader;           /* 54 + 32 = 86 */
 }
 #include "pack_struct_end.h"
 typedef struct xTCP_PACKET_IPv6 TCPPacket_IPv6_t;
@@ -250,21 +261,21 @@ typedef struct xTCP_PACKET_IPv6 TCPPacket_IPv6_t;
 struct xPacketSummary
 {
     #if ( ipconfigUSE_IPv6 != 0 )
-	BaseType_t xIsIPv6;                      /**< pdTRUE for IPv6 packets. */
-	const IPHeader_IPv6_t * pxIPPacket_IPv6; /**< A pointer to the IPv6 header. */
+        BaseType_t xIsIPv6;                      /**< pdTRUE for IPv6 packets. */
+        const IPHeader_IPv6_t * pxIPPacket_IPv6; /**< A pointer to the IPv6 header. */
     #endif
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-	const char * pcType;               /**< Just for logging purposes: the name of the protocol. */
+        const char * pcType;               /**< Just for logging purposes: the name of the protocol. */
     #endif
-	size_t uxIPHeaderLength;           /**< Either 40 or 20, depending on the IP-type */
-	size_t uxProtocolHeaderLength;     /**< Either 8, 20, or more or 20, depending on the protocol-type */
-	uint16_t usChecksum;               /**< Checksum accumulator. */
-	uint8_t ucProtocol;                /**< ipPROTOCOL_TCP, ipPROTOCOL_UDP, ipPROTOCOL_ICMP */
-	const IPPacket_t * pxIPPacket;     /**< A pointer to the IPv4 header. */
-	ProtocolHeaders_t * pxProtocolHeaders; /**< Points to first byte after IP-header */
-	uint16_t usPayloadLength;          /**< Property of IP-header (for IPv4: length of IP-header included) */
-	uint16_t usProtocolBytes;          /**< The total length of the protocol data. */
-	uint16_t * pusChecksum;            /**< A pointer to the location where the protocol checksum is stored. */
+    size_t uxIPHeaderLength;               /**< Either 40 or 20, depending on the IP-type */
+    size_t uxProtocolHeaderLength;         /**< Either 8, 20, or more or 20, depending on the protocol-type */
+    uint16_t usChecksum;                   /**< Checksum accumulator. */
+    uint8_t ucProtocol;                    /**< ipPROTOCOL_TCP, ipPROTOCOL_UDP, ipPROTOCOL_ICMP */
+    const IPPacket_t * pxIPPacket;         /**< A pointer to the IPv4 header. */
+    ProtocolHeaders_t * pxProtocolHeaders; /**< Points to first byte after IP-header */
+    uint16_t usPayloadLength;              /**< Property of IP-header (for IPv4: length of IP-header included) */
+    uint16_t usProtocolBytes;              /**< The total length of the protocol data. */
+    uint16_t * pusChecksum;                /**< A pointer to the location where the protocol checksum is stored. */
 };
 
 /* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
@@ -284,18 +295,7 @@ FreeRTOS_Socket_t * pxTCPSocketLookupIPv6( UBaseType_t uxLocalPort,
  * value into an array of bytes. They will be stored big-endian.
  * The helper functions do the actual work.
  */
-/*extern void vSetField16helper( uint8_t * pucBase,
-                               size_t uxOffset,
-                               uint16_t usValue );
- #define vSetField16( pucBase, xType, xField, usValue ) \
-    vSetField16helper( pucBase, offsetof( xType, xField ), usValue )
 
-   extern void vSetField32helper( uint8_t * pucBase,
-                               size_t uxOffset,
-                               uint32_t ulValue );
- #define vSetField32( pucBase, xType, xField, ulValue ) \
-    vSetField32helper( pucBase, offsetof( xType, xField ), ulValue )
- */
 /* Get the size of the IP-header.
  * 'usFrameType' must be filled in if IPv6is to be recognised. */
 size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
@@ -303,15 +303,13 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 
 /* Get the size of the IP-header.
  * The socket is checked for its type: IPv4 or IPv6. */
-//size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket );
+/*size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket ); */
 /*-----------------------------------------------------------*/
 
 #if ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) )
 /* prepare a string which describes a socket, just for logging. */
-const char * prvSocketProps( FreeRTOS_Socket_t * pxSocket );
+    const char * prvSocketProps( FreeRTOS_Socket_t * pxSocket );
 #endif /* ipconfigHAS_DEBUG_PRINTF || ipconfigHAS_PRINTF */
-
-#endif /* ipconfigUSE_IPv6 */
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

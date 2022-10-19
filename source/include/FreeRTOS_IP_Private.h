@@ -155,8 +155,12 @@ struct xTCP_HEADER
 #include "pack_struct_end.h"
 typedef struct xTCP_HEADER TCPHeader_t;
 
-#include "FreeRTOS_IPv4_Private.h"
-#include "FreeRTOS_IPv6_Private.h"
+#if ipconfigUSE_IPV4
+    #include "FreeRTOS_IPv4_Private.h"
+#endif /* ipconfigUSE_IPV4 */
+#if ipconfigUSE_IPV6
+    #include "FreeRTOS_IPv6_Private.h"
+#endif /* ipconfigUSE_IPV6 */
 
 /**
  * Union for the protocol packet to save space. Any packet cannot have more than one

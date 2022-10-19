@@ -55,11 +55,11 @@
 
 /* The size of the Ethernet header is 14, meaning that 802.1Q VLAN tags
  * are not ( yet ) supported. */
-#define ipSIZE_OF_ETH_HEADER      14U
-#define ipSIZE_OF_IPv4_HEADER     20U
-#define ipSIZE_OF_IGMP_HEADER     8U
-#define ipSIZE_OF_UDP_HEADER      8U
-#define ipSIZE_OF_TCP_HEADER      20U
+#define ipSIZE_OF_ETH_HEADER     14U
+#define ipSIZE_OF_IPv4_HEADER    20U
+#define ipSIZE_OF_IGMP_HEADER    8U
+#define ipSIZE_OF_UDP_HEADER     8U
+#define ipSIZE_OF_TCP_HEADER     20U
 
 
 /*
@@ -117,21 +117,21 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 #endif
 
 /* The offset of ucTCPFlags within the TCP header. */
-#define ipTCP_FLAGS_OFFSET       13U
+#define ipTCP_FLAGS_OFFSET      13U
 
 /** @brief Returned to indicate a valid checksum. */
-#define ipCORRECT_CRC            0xffffU
+#define ipCORRECT_CRC           0xffffU
 
 /** @brief Returned to indicate incorrect checksum. */
-#define ipWRONG_CRC              0x0000U
+#define ipWRONG_CRC             0x0000U
 
 /** @brief Returned as the (invalid) checksum when the length of the data being checked
  * had an invalid length. */
-#define ipINVALID_LENGTH         0x1234U
+#define ipINVALID_LENGTH        0x1234U
 
 /** @brief Returned as the (invalid) checksum when the protocol being checked is not
  * handled.  The value is chosen simply to be easy to spot when debugging. */
-#define ipUNHANDLED_PROTOCOL     0x4321U
+#define ipUNHANDLED_PROTOCOL    0x4321U
 
 /** @brief The maximum time the IP task is allowed to remain in the Blocked state if no
  * events are posted to the network event queue. */
@@ -415,8 +415,13 @@ extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 #endif
 
 #include "FreeRTOS_IP_Utils.h"
-#include "FreeRTOS_IPv4.h"
-#include "FreeRTOS_IPv6.h"
+
+#if ipconfigUSE_IPV4
+    #include "FreeRTOS_IPv4.h"
+#endif /* ipconfigUSE_IPV4 */
+#if ipconfigUSE_IPV6
+    #include "FreeRTOS_IPv6.h"
+#endif /* ipconfigUSE_IPV6 */
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

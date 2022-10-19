@@ -34,8 +34,6 @@
 #endif
 /* *INDENT-ON* */
 
-#if ipconfigUSE_IPv4
-
 #include "FreeRTOS.h"
 #include "task.h"
 #include "FreeRTOS_IP.h"
@@ -57,7 +55,7 @@
 #define ipLAST_LOOPBACK_IPv4         0x80000000UL                /**< Highest IPv4 loopback address (excluding). */
 
 /*
- *  _HT_ : these functions come from the IPv4-only library.
+ *  These functions come from the IPv4-only library.
  *  They should get an extra parameter, the end-point
  *  void FreeRTOS_SetIPAddress( uint32_t ulIPAddress );
  *  void FreeRTOS_SetNetmask( uint32_t ulNetmask );
@@ -86,10 +84,10 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
 
 void FreeRTOS_ClearARP( void );
 
-/* _HT_ Temporary: show all valid ARP entries
+/* Show all valid ARP entries
  */
 #if ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 )
-void FreeRTOS_PrintARPCache( void );
+    void FreeRTOS_PrintARPCache( void );
 #endif
 
 /* Return pdTRUE if the IPv4 address is a multicast address. */
@@ -100,8 +98,6 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
  * only be called from an application. */
 BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
                                TickType_t uxTicksToWait );
-
-#endif /* ipconfigUSE_IPv4 */
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
