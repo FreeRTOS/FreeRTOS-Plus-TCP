@@ -74,6 +74,7 @@ target_compile_options( freertos_plus_tcp
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-shorten-64-to-32>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-sign-conversion>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
+    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-unused-but-set-variable>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-parameter>
 )
 
