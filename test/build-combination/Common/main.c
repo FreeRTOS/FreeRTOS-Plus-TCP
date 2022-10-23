@@ -199,7 +199,7 @@ void vApplicationIdleHook( void )
     /* Exit. Just a stub. */
 }
 /*-----------------------------------------------------------*/
-void vAssertCalled( const char * const pcFile,
+void vAssertCalled( const char * pcFile,
                     unsigned long ulLine )
 {
     const uint32_t ulLongSleep = 1000UL;
