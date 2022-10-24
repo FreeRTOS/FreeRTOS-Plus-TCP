@@ -145,12 +145,12 @@ endif()
 # Select the appropriate Build Test configuration
 # This is only used when freertos_config is not defined, otherwise the build test will be performed
 # on the config defined in the freertos_config
-set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION "DEFAULT_CONF" CACHE STRING "FreeRTOS Plus TCP Build Test configuration")
+set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION "CUSTOM" CACHE STRING "FreeRTOS Plus TCP Build Test configuration")
 set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST
     CUSTOM       # Custom (external) configuration -eg from a top-level project
     ENABLE_ALL   # Enable all configuration settings
     DISABLE_ALL  # Disable all configuration settings
-    DEFAULT_CONF # Default (typical) configuration)
+    DEFAULT_CONF # Default (typical) configuration
 )
 if(NOT FREERTOS_PLUS_TCP_TEST_CONFIGURATION IN_LIST FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST)
     message(FATAL_ERROR "Invalid FREERTOS_PLUS_TCP_TEST_CONFIGURATION value '${FREERTOS_PLUS_TCP_TEST_CONFIGURATION}' should be one of: ${FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST}")
@@ -158,13 +158,6 @@ else()
     message(STATUS "Using FreeRTOS-Plus-TCP Test Configuration : ${FREERTOS_PLUS_TCP_TEST_CONFIGURATION}")
     if (NOT FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "CUSTOM")
         message(WARNING "FreeRTOS-Kernel configuration settings are configured by FreeRTOS-Plus-TCP")
-        # Configuration for FreeRTOS-Kernel
-        set(FREERTOS_CONFIG_FILE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/test/build-combination/Common" CACHE STRING "" FORCE)
-        if(UNIX)
-            set(FREERTOS_PORT GCC_POSIX CACHE STRING "" FORCE)
-        elseif(MINGW)
-            set(FREERTOS_PORT MSVC_MINGW CACHE STRING "" FORCE)
-        endif()
     endif()
 endif()
 
@@ -212,21 +205,15 @@ add_compile_options(
 ########################################################################
 # External Dependencies
 # Note: For backwards compatibility - still have .gitmodules defining submodules
-# To support fetching content in a higher level project add:
-#
-#   FetchContent_Declare( freertos_plus_tcp
-#     GIT_REPOSITORY https://github.com/FreeRTOS/FreeRTOS-Plus-TCP.git
-#     GIT_TAG        V3.0.0
-#     GIT_SUBMODULES "" # Don't grab any submodules - rely on FetchContent
-#   )
-#
-#   This will allow you to upgrade submodules and have one common submodule for
-#   all your builds despite multiple submodules having different versions.
+# To support fetching content in a higher level project see
+#   README.md `Consume with CMake`
+# This will allow you to upgrade submodules and have one common submodule for
+# all your builds despite multiple submodules having different versions.
 include(FetchContent)
 
 FetchContent_Declare( freertos_kernel
-  GIT_REPOSITORY https://github.com/FreeRTOS/FreeRTOS-Kernel.git
-  GIT_TAG        V10.5.0
+  GIT_REPOSITORY https://github.com/phelter/FreeRTOS-Kernel.git #https://github.com/FreeRTOS/FreeRTOS-Kernel.git
+  GIT_TAG        feature/fixing-clang-gnu-compiler-warnings #master
 )
 
 FetchContent_Declare( cmock
@@ -243,36 +230,7 @@ FetchContent_MakeAvailable(freertos_kernel cmock)
 # Note following are can be removed once FreeRTOS-Kernel v10.5.0 + fixes their issues.
 # To ignore header specific issues - change all of the headers to SYSTEM
 set(_freertos_kernel_targets freertos_kernel freertos_kernel_port)
-foreach (_target ${_freertos_kernel_targets} )
-  get_target_property( interface_directories ${_target} INTERFACE_INCLUDE_DIRECTORIES )
-  set_target_properties(${_target}  PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${interface_directories}" )
-endforeach()
-target_compile_options( freertos_kernel
-  PRIVATE
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-align>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-covered-switch-default>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-documentation>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-extra-semi-stmt>
-    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-int-to-pointer-cast>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-noreturn>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-variable-declarations>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-padded>
-    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-pointer-to-int-cast>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-shorten-64-to-32>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-sign-conversion>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
-    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-variable>
-)
-target_compile_options( freertos_kernel_port
-  PRIVATE
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-disabled-macro-expansion>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-documentation>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-noreturn>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-variable-declarations>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-padded>
-    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-pointer-to-int-cast>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-reserved-macro-identifier>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-sign-conversion>
-    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-type-limits>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
-)
+# foreach (_target ${_freertos_kernel_targets} )
+#   get_target_property( interface_directories ${_target} INTERFACE_INCLUDE_DIRECTORIES )
+#   set_target_properties(${_target}  PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${interface_directories}" )
+# endforeach()

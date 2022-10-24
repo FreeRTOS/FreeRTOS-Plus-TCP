@@ -21,7 +21,7 @@ target_link_libraries(freertos_plus_tcp_config_default INTERFACE freertos_plus_t
 if(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "CUSTOM" )
     # Check Config target is available. And then do nothing.
     if(NOT TARGET freertos_config )
-        message(FATAL_ERROR "FREERTOS_PLUS_TCP_TEST_CONFIGURATIN = CUSTOM, but no freertos_config target defined.")
+        message(FATAL_ERROR "FREERTOS_PLUS_TCP_TEST_CONFIGURATION = CUSTOM, but no freertos_config target defined.")
     endif()
 elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "DISABLE_ALL" )
     add_library( freertos_config ALIAS freertos_plus_tcp_config_all_disable)
