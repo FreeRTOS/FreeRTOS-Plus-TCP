@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -24,6 +24,8 @@
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
+
+#include <stdlib.h>
 
 /* WinPCap includes. */
 #define HAVE_REMOTE
@@ -680,4 +682,42 @@ static const char * prvRemoveSpaces( char * pcBuffer,
     *pcTarget = '\0';
 
     return pcBuffer;
+}
+
+#define BUFFER_SIZE               ( ipTOTAL_ETHERNET_FRAME_SIZE + ipBUFFER_PADDING )
+#define BUFFER_SIZE_ROUNDED_UP    ( ( BUFFER_SIZE + 7 ) & ~0x07UL )
+
+void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+{
+    static uint8_t * pucNetworkPacketBuffers = NULL;
+    size_t uxIndex;
+
+    if( pucNetworkPacketBuffers == NULL )
+    {
+        pucNetworkPacketBuffers = ( uint8_t * ) malloc( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * BUFFER_SIZE_ROUNDED_UP );
+    }
+
+    if( pucNetworkPacketBuffers == NULL )
+    {
+        FreeRTOS_printf( ( "Failed to allocate memory for pxNetworkBuffers" ) );
+        configASSERT( 0 );
+    }
+    else
+    {
+        for( uxIndex = 0; uxIndex < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; uxIndex++ )
+        {
+            size_t uxOffset = uxIndex * BUFFER_SIZE_ROUNDED_UP;
+            NetworkBufferDescriptor_t ** ppDescriptor;
+
+            /* At the beginning of each pbuff is a pointer to the relevant descriptor */
+            ppDescriptor = ( NetworkBufferDescriptor_t ** ) &( pucNetworkPacketBuffers[ uxOffset ] );
+
+            /* Set this pointer to the address of the correct descriptor */
+            *ppDescriptor = &( pxNetworkBuffers[ uxIndex ] );
+
+            /* pucEthernetBuffer is set to point ipBUFFER_PADDING bytes in from the
+             * beginning of the allocated buffer. */
+            pxNetworkBuffers[ uxIndex ].pucEthernetBuffer = &( pucNetworkPacketBuffers[ uxOffset + ipBUFFER_PADDING ] );
+        }
+    }
 }

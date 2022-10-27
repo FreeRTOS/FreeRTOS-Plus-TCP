@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -87,7 +87,7 @@ static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
 
 /*-----------------------------------------------------------*/
 
-static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
+static void vProcessARPPacketReply( const ARPPacket_t * pxARPFrame,
                                     uint32_t ulSenderProtocolAddress );
 
 /*-----------------------------------------------------------*/
@@ -111,18 +111,6 @@ static TickType_t xLastGratuitousARPTime = 0U;
     MACAddress_t xARPClashMacAddress;
 #endif /* ipconfigARP_USE_CLASH_DETECTION */
 
-/** @brief This local variable is used to keep track of number of ARP requests sent and
- * also to limit the requests to arpIP_CLASH_MAX_RETRIES per arpIP_CLASH_RESET_TIMEOUT_MS
- * period. */
-static UBaseType_t uxARPClashCounter = 0U;
-
-/** @brief The time at which the last ARP clash was sent. */
-static TimeOut_t xARPClashTimeOut;
-
-/** @brief Next defensive request must not be sent for arpIP_CLASH_RESET_TIMEOUT_MS
- * period. */
-static TickType_t uxARPClashTimeoutPeriod = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
-
 /*-----------------------------------------------------------*/
 
 /**
@@ -140,6 +128,17 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
     const void * pvCopySource;
     void * pvCopyDest;
+
+    /* Next defensive request must not be sent for arpIP_CLASH_RESET_TIMEOUT_MS
+     * period. */
+    static TickType_t uxARPClashTimeoutPeriod = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
+
+    /* This local variable is used to keep track of number of ARP requests sent and
+     * also to limit the requests to arpIP_CLASH_MAX_RETRIES per arpIP_CLASH_RESET_TIMEOUT_MS
+     * period. */
+    static UBaseType_t uxARPClashCounter = 0U;
+    /* The time at which the last ARP clash was sent. */
+    static TimeOut_t xARPClashTimeOut;
 
     pxARPHeader = &( pxARPFrame->xARPHeader );
 
@@ -328,10 +327,10 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
  * @param[in] pxARPFrame: The ARP packet received.
  * @param[in] ulSenderProtocolAddress: The IPv4 address involved.
  */
-static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
+static void vProcessARPPacketReply( const ARPPacket_t * pxARPFrame,
                                     uint32_t ulSenderProtocolAddress )
 {
-    ARPHeader_t * pxARPHeader = &( pxARPFrame->xARPHeader );
+    const ARPHeader_t * pxARPHeader = &( pxARPFrame->xARPHeader );
     uint32_t ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
 
     /* If the packet is meant for this device or if the entry already exists. */
@@ -344,8 +343,11 @@ static void vProcessARPPacketReply( ARPPacket_t * pxARPFrame,
 
     if( pxARPWaitingNetworkBuffer != NULL )
     {
-        IPPacket_t * pxARPWaitingIPPacket = ( ( IPPacket_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
-        IPHeader_t * pxARPWaitingIPHeader = &( pxARPWaitingIPPacket->xIPHeader );
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        const IPPacket_t * pxARPWaitingIPPacket = ( ( IPPacket_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
+        const IPHeader_t * pxARPWaitingIPHeader = &( pxARPWaitingIPPacket->xIPHeader );
 
         if( ulSenderProtocolAddress == pxARPWaitingIPHeader->ulSourceIPAddress )
         {
@@ -414,11 +416,15 @@ BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup )
  *
  * @return pdTRUE if the packet needs ARP resolution, pdFALSE otherwise.
  */
-BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
+BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xNeedsARPResolution = pdFALSE;
-    IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
+    const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
     if( ( pxIPHeader->ulSourceIPAddress & xNetworkAddressing.ulNetMask ) == ( *ipLOCAL_IP_ADDRESS_POINTER & xNetworkAddressing.ulNetMask ) )
     {
@@ -660,7 +666,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
  *
  * @return Either eARPCacheMiss or eARPCacheHit.
  */
-    eARPLookupResult_t eARPGetCacheEntryByMac( MACAddress_t * const pxMACAddress,
+    eARPLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
                                                uint32_t * pulIPAddress )
     {
         BaseType_t x;
@@ -1087,6 +1093,9 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->xDataLength >= sizeof( ARPPacket_t ) );
 
+    /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
     pxARPPacket = ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     /* memcpy the const part of the header information into the correct
@@ -1157,6 +1166,10 @@ void FreeRTOS_ClearARP( void )
     {
         BaseType_t xResult = pdFALSE;
         NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxUseDescriptor->pucEthernetBuffer );
 
         if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )

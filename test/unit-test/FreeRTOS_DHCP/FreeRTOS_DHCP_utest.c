@@ -844,6 +844,44 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
     /* Using broadcast. */
     xDHCPData.xUseBroadcast = pdTRUE;
+    xDHCPData.ulPreferredIPAddress = 0x00;
+
+    /* Make sure that the user indicates anything else than the desired options. */
+    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, eDHCPContinue );
+    /* Return the time value. */
+    xTaskGetTickCount_ExpectAndReturn( xTimeValue );
+    /* Get the hostname. */
+    pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
+    /* Returning a proper network buffer. */
+    pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
+    /* Make the call to FreeRTOS_send succeed. */
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
+
+    vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
+
+    /* DHCP socket should be NULL */
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    /* The state should indicate that we still in the state from where we started. */
+    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    /* The time value should be as expected. */
+    TEST_ASSERT_EQUAL( xTimeValue, xDHCPData.xDHCPTxTime );
+
+    /* Free the allocated memory. */
+    ReleaseNetworkBuffer();
+}
+
+void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCast1( void )
+{
+    struct xSOCKET xTestSocket;
+    TickType_t xTimeValue = 1234;
+
+    /* This should remain unchanged. */
+    xDHCPSocket = &xTestSocket;
+    /* Put the required state. */
+    xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    /* Using broadcast. */
+    xDHCPData.xUseBroadcast = pdTRUE;
+    xDHCPData.ulPreferredIPAddress = 0x01;
 
     /* Make sure that the user indicates anything else than the desired options. */
     xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, eDHCPContinue );

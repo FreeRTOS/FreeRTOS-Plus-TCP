@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -72,11 +72,12 @@
  * @brief indicates the index of a free entry in the cache structure
  *        \a  DNSCacheRow_t
  */
-    static BaseType_t xFreeEntry = 0;
+    static UBaseType_t uxFreeEntry = 0U;
 
 
 
-    static BaseType_t prvFindEntryIndex( const char * pcName );
+    static BaseType_t prvFindEntryIndex( const char * pcName,
+                                         UBaseType_t * uxResult );
 
     static BaseType_t prvGetCacheIPEntry( UBaseType_t uxIndex,
                                           uint32_t * pulIP,
@@ -84,12 +85,12 @@
 
     static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
-                                     uint32_t * pulIP,
+                                     const uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds );
 
     static void prvInsertCacheEntry( const char * pcName,
                                      uint32_t ulTTL,
-                                     uint32_t * pulIP,
+                                     const uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds );
 
 /**
@@ -101,7 +102,7 @@
  */
     uint32_t FreeRTOS_dnslookup( const char * pcHostName )
     {
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = 0U;
 
         ( void ) FreeRTOS_ProcessDNSCache( pcHostName,
                                            &ulIPAddress,
@@ -138,7 +139,7 @@
     void FreeRTOS_dnsclear( void )
     {
         ( void ) memset( xDNSCache, 0x0, sizeof( xDNSCache ) );
-        xFreeEntry = 0;
+        uxFreeEntry = 0U;
     }
 
 /**
@@ -158,36 +159,41 @@
                                          uint32_t ulTTL,
                                          BaseType_t xLookUp )
     {
-        BaseType_t x;
+        UBaseType_t uxIndex;
+        BaseType_t xResult;
         TickType_t xCurrentTickCount = xTaskGetTickCount();
         uint32_t ulCurrentTimeSeconds;
 
         configASSERT( ( pcName != NULL ) );
 
-        ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000UL;
-        x = prvFindEntryIndex( pcName );
+        ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000U;
+        xResult = prvFindEntryIndex( pcName, &uxIndex );
 
-        if( x != -1 )
+        if( xResult == pdTRUE )
         { /* Element found */
             if( xLookUp == pdTRUE )
             {
-                prvGetCacheIPEntry( x,
-                                    pulIP,
-                                    ulCurrentTimeSeconds );
+                /* This statement can only be reached when xResult is true; which
+                 * implies that the entry is present and a 'get' operation will result
+                 * in success. Therefore, it is safe to ignore the return value of the
+                 * below function. */
+                ( void ) prvGetCacheIPEntry( uxIndex,
+                                             pulIP,
+                                             ulCurrentTimeSeconds );
             }
             else
             {
-                prvUpdateCacheEntry( x,
+                prvUpdateCacheEntry( uxIndex,
                                      ulTTL,
                                      pulIP,
                                      ulCurrentTimeSeconds );
             }
         }
-        else /* Element not Found */
+        else /* Element not Found xResult = pdFALSE */
         {
             if( xLookUp == pdTRUE )
             {
-                *pulIP = 0UL;
+                *pulIP = 0U;
             }
             else
             {
@@ -198,7 +204,7 @@
             }
         }
 
-        if( ( xLookUp == pdFALSE ) || ( *pulIP != 0UL ) )
+        if( ( xLookUp == pdFALSE ) || ( *pulIP != 0U ) )
         {
             FreeRTOS_debug_printf( ( "FreeRTOS_ProcessDNSCache: %s: '%s' @ %xip (TTL %u)\n",
                                      ( xLookUp != 0 ) ? "look-up" : "add",
@@ -207,44 +213,38 @@
                                      ( unsigned ) FreeRTOS_ntohl( ulTTL ) ) );
         }
 
-        if( x == -1 )
-        {
-            x = 0;
-        }
-        else
-        {
-            x = 1;
-        }
-
-        return x;
+        return xResult;
     }
 
 /**
  * @brief returns the index of the hostname entry in the dns cache.
  * @param[in] pcName find it in the cache
- * @returns index number or -1 if not found
+ * @param [out] xResult index number
+ * @returns res pdTRUE if index in found else pdFALSE
  */
-    static BaseType_t prvFindEntryIndex( const char * pcName )
+    static BaseType_t prvFindEntryIndex( const char * pcName,
+                                         UBaseType_t * uxResult )
     {
-        BaseType_t index = -1;
-        BaseType_t x;
+        BaseType_t xReturn = pdFALSE;
+        UBaseType_t uxIndex;
 
         /* For each entry in the DNS cache table. */
-        for( x = 0; x < ( int ) ipconfigDNS_CACHE_ENTRIES; x++ )
+        for( uxIndex = 0; uxIndex < ipconfigDNS_CACHE_ENTRIES; uxIndex++ )
         {
-            if( xDNSCache[ x ].pcName[ 0 ] == ( char ) 0 )
+            if( xDNSCache[ uxIndex ].pcName[ 0 ] == ( char ) 0 )
             { /* empty slot */
                 continue;
             }
 
-            if( strcmp( xDNSCache[ x ].pcName, pcName ) == 0 )
+            if( strcmp( xDNSCache[ uxIndex ].pcName, pcName ) == 0 )
             { /* hostname found */
-                index = x;
+                xReturn = pdTRUE;
+                *uxResult = uxIndex;
                 break;
             }
         }
 
-        return index;
+        return xReturn;
     }
 
 /**
@@ -308,7 +308,7 @@
  */
     static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
-                                     uint32_t * pulIP,
+                                     const uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
         uint32_t ulIPAddressIndex = 0;
@@ -338,32 +338,32 @@
  */
     static void prvInsertCacheEntry( const char * pcName,
                                      uint32_t ulTTL,
-                                     uint32_t * pulIP,
+                                     const uint32_t * pulIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
         /* Add or update the item. */
         if( strlen( pcName ) < ( size_t ) ipconfigDNS_CACHE_NAME_LENGTH )
         {
-            ( void ) strcpy( xDNSCache[ xFreeEntry ].pcName, pcName );
+            ( void ) strcpy( xDNSCache[ uxFreeEntry ].pcName, pcName );
 
-            xDNSCache[ xFreeEntry ].ulIPAddresses[ 0 ] = *pulIP;
-            xDNSCache[ xFreeEntry ].ulTTL = ulTTL;
-            xDNSCache[ xFreeEntry ].ulTimeWhenAddedInSeconds = ulCurrentTimeSeconds;
+            xDNSCache[ uxFreeEntry ].ulIPAddresses[ 0 ] = *pulIP;
+            xDNSCache[ uxFreeEntry ].ulTTL = ulTTL;
+            xDNSCache[ uxFreeEntry ].ulTimeWhenAddedInSeconds = ulCurrentTimeSeconds;
             #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-                xDNSCache[ xFreeEntry ].ucNumIPAddresses = 1;
-                xDNSCache[ xFreeEntry ].ucCurrentIPAddress = 0;
+                xDNSCache[ uxFreeEntry ].ucNumIPAddresses = 1;
+                xDNSCache[ uxFreeEntry ].ucCurrentIPAddress = 0;
 
                 /* Initialize all remaining IP addresses in this entry to 0 */
-                ( void ) memset( &xDNSCache[ xFreeEntry ].ulIPAddresses[ 1 ],
+                ( void ) memset( &xDNSCache[ uxFreeEntry ].ulIPAddresses[ 1 ],
                                  0,
-                                 sizeof( xDNSCache[ xFreeEntry ].ulIPAddresses[ 1 ] ) *
+                                 sizeof( xDNSCache[ uxFreeEntry ].ulIPAddresses[ 1 ] ) *
                                  ( ( uint32_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY - 1U ) );
             #endif
-            xFreeEntry++;
+            uxFreeEntry++;
 
-            if( xFreeEntry == ipconfigDNS_CACHE_ENTRIES )
+            if( uxFreeEntry == ipconfigDNS_CACHE_ENTRIES )
             {
-                xFreeEntry = 0;
+                uxFreeEntry = 0;
             }
         }
     }

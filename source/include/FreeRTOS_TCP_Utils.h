@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -26,28 +26,31 @@
  */
 
 #ifndef FREERTOS_TCP_UTILS_H
-    #define FREERTOS_TCP_UTILS_H
+#define FREERTOS_TCP_UTILS_H
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 
 /*
  * For logging and debugging: make a string showing the TCP flags.
  */
-    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-        const char * prvTCPFlagMeaning( UBaseType_t xFlags );
-    #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+#if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+    const char * prvTCPFlagMeaning( UBaseType_t xFlags );
+#endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
 
 /*
  * Set the initial value for MSS (Maximum Segment Size) to be used.
  */
-    void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket );
+void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket );
 
-
-    #ifdef __cplusplus
-        } /* extern "C" */
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 #endif /* FREERTOS_TCP_UTILS_H */

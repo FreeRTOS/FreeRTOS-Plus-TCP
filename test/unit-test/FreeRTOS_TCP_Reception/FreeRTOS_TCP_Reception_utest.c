@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -718,7 +718,7 @@ void test_prvStoreRxData_Happy_Path( void )
 
     BaseType_t xResult = 0;
     xSocket.u.xTCP.uxRxStreamSize = 39;
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.rxStream = ( StreamBuffer_t * ) 0x12345678;
     pxSocket = &xSocket;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -754,7 +754,7 @@ void test_prvStoreRxData_Wrong_State( void )
     TEST_ASSERT_EQUAL( 14, result );
 
     BaseType_t xResult = 0;
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eCONNECT_SYN;
+    xSocket.u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket = &xSocket;
 
     xResult = prvStoreRxData( pxSocket,
@@ -790,7 +790,7 @@ void test_prvStoreRxData_Zero_Length( void )
     TEST_ASSERT_EQUAL( 0, result );
 
     BaseType_t xResult = 0;
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     pxSocket = &xSocket;
 
     xResult = prvStoreRxData( pxSocket,
@@ -819,7 +819,7 @@ void test_prvStoreRxData_Null_RxStream( void )
 
     BaseType_t xResult = 0;
     xSocket.u.xTCP.uxRxStreamSize = 39;
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.rxStream = NULL;
     pxSocket = &xSocket;
 
@@ -852,7 +852,7 @@ void test_prvStoreRxData_Negative_Offset( void )
 
     BaseType_t xResult = 0;
     xSocket.u.xTCP.uxRxStreamSize = 39;
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.rxStream = NULL;
     pxSocket = &xSocket;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -888,7 +888,7 @@ void test_prvStoreRxData_None_Zero_Skipcount( void )
 
     BaseType_t xResult = 0;
     xSocket.u.xTCP.uxRxStreamSize = 39;
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.rxStream = NULL;
     pxSocket = &xSocket;
 

@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -149,7 +149,7 @@ void test_prvTCPSendPacket_Syn_State( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
 
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.ucRepCount = 1;
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
 
@@ -172,7 +172,7 @@ void test_prvTCPSendPacket_Syn_State_Rep_Count_GT_3( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
 
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.ucRepCount = 3;
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
 
@@ -191,7 +191,7 @@ void test_prvTCPSendPacket_Syn_State_Not_Prepared( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
 
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.ucRepCount = 1;
     pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
 
@@ -211,7 +211,7 @@ void test_prvTCPSendPacket_Other_State_Zero_To_Send( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
 
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.ucRepCount = 1;
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
     pxSocket->u.xTCP.xLastAliveTime = 1000;
@@ -238,7 +238,7 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
 
     StreamBuffer_t TxStream;
 
-    pxSocket->u.xTCP.ucTCPState = eSYN_RECEIVED;
+    pxSocket->u.xTCP.eTCPState = eSYN_RECEIVED;
     pxSocket->u.xTCP.ucRepCount = 1;
     pxSocket->u.xTCP.xLastAliveTime = 1000;
     pxSocket->u.xTCP.txStream = &TxStream;
@@ -292,7 +292,7 @@ void test_prvTCPSendRepeated_Zero_To_Send( void )
 
     xBufferAllocFixedSize = pdFALSE;
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) 0x12345678;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE;
@@ -317,7 +317,7 @@ void test_prvTCPSendRepeated_Repeat_8( void )
     StreamBuffer_t StreamBuffer;
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) &StreamBuffer;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdTRUE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
@@ -849,7 +849,7 @@ void test_prvTCPBufferResize_Fixed_Size_Without_Buffer( void )
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &NewNetworkBuffer );
     pReturn = prvTCPBufferResize( pxSocket, NULL, 500, 0 );
     TEST_ASSERT_EQUAL_PTR( &NewNetworkBuffer, pReturn );
-    TEST_ASSERT_EQUAL( 1222, pReturn->xDataLength );
+    TEST_ASSERT_EQUAL( ipconfigNETWORK_MTU + 22U, pReturn->xDataLength );
 }
 
 /* test for prvTCPBufferResize function */
@@ -967,7 +967,7 @@ void test_prvTCPPrepareSend_State_Syn_Zero_Data( void )
 
     xBufferAllocFixedSize = pdFALSE;
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) 0x12345678;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE;
@@ -991,7 +991,7 @@ void test_prvTCPPrepareSend_State_Syn_Zero_Data_Win_Change( void )
 
     xBufferAllocFixedSize = pdFALSE;
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) 0x12345678;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdTRUE;
 
@@ -1014,7 +1014,7 @@ void test_prvTCPPrepareSend_State_Syn_Zero_Data_Keep_Alive( void )
 
     xBufferAllocFixedSize = pdFALSE;
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) 0x12345678;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
@@ -1038,7 +1038,7 @@ void test_prvTCPPrepareSend_State_Established_Zero_Data_KLCount1_Age_GT_Max( voi
 
     xBufferAllocFixedSize = pdFALSE;
     pxSocket->u.xTCP.txStream = NULL;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
@@ -1065,7 +1065,7 @@ void test_prvTCPPrepareSend_State_Established_Null_Buffer_Zero_Data_KLCount0_Age
 
     xBufferAllocFixedSize = pdFALSE;
     pxSocket->u.xTCP.txStream = NULL;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
@@ -1091,7 +1091,7 @@ void test_prvTCPPrepareSend_State_Established_Null_Buffer_Zero_Data_KLCount1_Age
 
     xBufferAllocFixedSize = pdFALSE;
     pxSocket->u.xTCP.txStream = NULL;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
@@ -1121,7 +1121,7 @@ void test_prvTCPPrepareSend_State_Established_Zero_Data_KLCount1_Age_GT_Max_Win_
 
     xBufferAllocFixedSize = pdFALSE;
     pxSocket->u.xTCP.txStream = NULL;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdTRUE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
@@ -1152,7 +1152,7 @@ void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_No_Buffer( void )
 
     xBufferAllocFixedSize = pdFALSE;
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) &StreamBuffer;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
@@ -1185,7 +1185,7 @@ void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_MSS_0_KLCount4( void
     StreamBuffer_t StreamBuffer;
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) &StreamBuffer;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usMSS = 0;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
@@ -1217,7 +1217,7 @@ void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_Not_Close_Not_ShutDo
     StreamBuffer_t StreamBuffer;
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) &StreamBuffer;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
@@ -1252,7 +1252,7 @@ void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_Req_Close_Req_ShutDo
     StreamBuffer_t StreamBuffer;
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) &StreamBuffer;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
@@ -1289,7 +1289,7 @@ void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_Req_Close_Req_ShutDo
     StreamBuffer_t StreamBuffer;
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) &StreamBuffer;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
@@ -1325,7 +1325,7 @@ void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_Req_Close_Req_ShutDo
     StreamBuffer_t StreamBuffer;
 
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) &StreamBuffer;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
@@ -1397,7 +1397,7 @@ void test_prvSetOptions_Zero_Option_Syn_State_No_MSS_Change( void )
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.bits.bMssChange = pdFALSE;
 
     pxTCPWindow->ucOptionLength = 0;
@@ -1420,7 +1420,7 @@ void test_prvSetOptions_Zero_Option_Syn_State_MSS_Change( void )
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.bits.bMssChange = pdTRUE;
 
     pxTCPWindow->ucOptionLength = 0;
@@ -1443,7 +1443,7 @@ void test_prvSetOptions_Zero_Option_Establish_State_No_MSS_Change( void )
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.bits.bMssChange = pdFALSE;
     pxTCPWindow->ucOptionLength = 0;
     pxTCPHeader->ucTCPOffset = 0x50;
@@ -1465,7 +1465,7 @@ void test_prvSetOptions_Zero_Option_Establish_State_MSS_Change( void )
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.bits.bMssChange = pdTRUE;
     pxTCPWindow->ucOptionLength = 0;
     pxTCPHeader->ucTCPOffset = 0x50;
@@ -1487,7 +1487,7 @@ void test_prvSetOptions_Establish_State_MSS_Change( void )
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.bits.bMssChange = pdTRUE;
     pxTCPWindow->ucOptionLength = 12;
     pxTCPHeader->ucTCPOffset = 0x50;
@@ -1513,7 +1513,7 @@ void test_prvSendData_Zero_Sent( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
     pxSocket->u.xTCP.usMSS = 1500;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
     pxSocket->u.xTCP.pxAckMessage = NULL;
 
@@ -1539,7 +1539,7 @@ void test_prvSendData_Zero_Sent_AckMsg_Not_Null_Small_Length( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
     pxSocket->u.xTCP.usMSS = 1500;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
     pxSocket->u.xTCP.pxAckMessage = &AckMessage;
 
@@ -1565,7 +1565,7 @@ void test_prvSendData_Zero_Sent_AckMsg_Not_Null_Same_NetBuffer_Log( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
     pxSocket->u.xTCP.usMSS = 1500;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
     pxSocket->u.xTCP.pxAckMessage = pxNetworkBuffer;
     xTCPWindowLoggingLevel = 2;
@@ -1593,7 +1593,7 @@ void test_prvSendData_AckMsg_Not_Null_Small_Length( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
     pxSocket->u.xTCP.usMSS = 1500;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxTCPHeader->ucTCPFlags = 0;
     pxSocket->u.xTCP.pxAckMessage = &AckMessage;
 
@@ -1638,7 +1638,7 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
     pxSocket->u.xTCP.usMSS = 1500;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxTCPHeader->ucTCPFlags = 0;
     pxSocket->u.xTCP.pxAckMessage = pxNetworkBuffer;
 
@@ -1682,7 +1682,7 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State_Data_To_Send( voi
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
     pxSocket->u.xTCP.usMSS = 1500;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxTCPHeader->ucTCPFlags = 0;
     pxSocket->u.xTCP.pxAckMessage = pxNetworkBuffer;
 
@@ -1726,7 +1726,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
     pxSocket->u.xTCP.usMSS = 1500;
     pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxTCPHeader->ucTCPFlags = 0;
     pxSocket->u.xTCP.pxAckMessage = NULL;
 
@@ -1770,7 +1770,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Log( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
     pxSocket->u.xTCP.usMSS = 1500;
     pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxTCPHeader->ucTCPFlags = 0;
     pxSocket->u.xTCP.pxAckMessage = NULL;
     xTCPWindowLoggingLevel = 2;
@@ -1815,7 +1815,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Rcv_Zero( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 1000;
     pxSocket->u.xTCP.usMSS = 1500;
     pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxTCPHeader->ucTCPFlags = 0;
     pxSocket->u.xTCP.pxAckMessage = NULL;
     xTCPWindowLoggingLevel = 1;

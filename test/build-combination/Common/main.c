@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -34,16 +34,12 @@
 #include <FreeRTOS.h>
 #include "task.h"
 
-#include <windows.h>
-
 /* System application includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_DHCP.h"
 
 #define mainHOST_NAME    "Build Combination"
-
-volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 /*-----------------------------------------------------------*/
 
@@ -239,33 +235,6 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
     return pdTRUE;
 }
 
-void vPortEnterCritical( void )
-{
-    /* Provide a stub for this function. */
-}
-
-void vPortExitCritical( void )
-{
-    /* Provide a stub for this function. */
-}
-
-StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
-                                     TaskFunction_t pxCode,
-                                     void * pvParameters )
-{
-    /* Provide a stub for this function. */
-}
-
-void vPortGenerateSimulatedInterrupt( uint32_t ulInterruptNumber )
-{
-    /* Provide a stub for this function. */
-}
-void vPortCloseRunningThread( void * pvTaskToDelete,
-                              volatile BaseType_t * pxPendYield )
-{
-    /* Provide a stub for this function. */
-}
-
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                     StackType_t ** ppxIdleTaskStackBuffer,
                                     uint32_t * pulIdleTaskStackSize )
@@ -293,32 +262,6 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
     return uxRand();
 }
 
-
-void vConfigureTimerForRunTimeStats( void )
-{
-    /* Provide a stub for this function. */
-}
-
-BaseType_t xPortStartScheduler( void )
-{
-    /* Provide a stub for this function. */
-}
-
-void vPortEndScheduler( void )
-{
-    /* Provide a stub for this function. */
-}
-
-unsigned long ulGetRunTimeCounterValue( void )
-{
-    /* Provide a stub for this function. */
-}
-
-void vPortDeleteThread( void * pvThreadToDelete )
-{
-    /* Provide a stub for this function. */
-}
-
 void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
                                      StackType_t ** ppxTimerTaskStackBuffer,
                                      uint32_t * pulTimerTaskStackSize )
@@ -335,11 +278,13 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
                                     BaseType_t bReleaseAfterSend )
 {
     /* Provide a stub for this function. */
+    return pdTRUE;
 }
 
 BaseType_t xNetworkInterfaceInitialise( void )
 {
     /* Provide a stub for this function. */
+    return pdTRUE;
 }
 
 #if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_DHCP_HOOK != 0 ) )
@@ -347,6 +292,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
                                                 uint32_t ulIPAddress )
     {
         /* Provide a stub for this function. */
+        return eDHCPContinue;
     }
 #endif
 

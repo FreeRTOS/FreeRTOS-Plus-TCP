@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -134,7 +134,7 @@
  * @return If the socket given as parameter is the DHCP socket - return
  *         pdTRUE, else pdFALSE.
  */
-    BaseType_t xIsDHCPSocket( Socket_t xSocket )
+    BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket )
     {
         BaseType_t xReturn;
 
@@ -616,6 +616,9 @@
         {
             xDHCPSocket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
 
+            /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
             if( xDHCPSocket != FREERTOS_INVALID_SOCKET )
             {
                 /* Ensure the Rx and Tx timeouts are zero as the DHCP executes in the
@@ -689,8 +692,8 @@
             ( pxDHCPMessage->ucOpcode != ( uint8_t ) dhcpREPLY_OPCODE ) ||
             ( pxDHCPMessage->ucAddressType != ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET ) ||
             ( pxDHCPMessage->ucAddressLength != ( uint8_t ) dhcpETHERNET_ADDRESS_LENGTH ) ||
-            ( ( FreeRTOS_ntohl( pxDHCPMessage->ulYourIPAddress_yiaddr ) & 0xFFU ) == 0xFF ) ||
-            ( ( ( pxDHCPMessage->ulYourIPAddress_yiaddr & 0x7FU ) ^ 0x7FU ) == 0x00 ) )
+            ( ( FreeRTOS_ntohl( pxDHCPMessage->ulYourIPAddress_yiaddr ) & 0xFFU ) == 0xFFU ) ||
+            ( ( ( pxDHCPMessage->ulYourIPAddress_yiaddr & 0x7FU ) ^ 0x7FU ) == 0x00U ) )
         {
             /* Invalid cookie OR
              * Unexpected opcode OR
@@ -732,6 +735,10 @@
         if( lBytes > 0 )
         {
             /* Map a DHCP structure onto the received data. */
+
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayload );
 
             /* Sanity check. */
@@ -1011,6 +1018,10 @@
         {
             /* Leave space for the UDP header. */
             pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayloadBuffer );
 
             /* Most fields need to be zero. */
@@ -1168,14 +1179,32 @@
 
         if( pucUDPPayloadBuffer != NULL )
         {
-            void * pvCopySource, * pvCopyDest;
+            const void * pvCopySource;
+            void * pvCopyDest;
 
             FreeRTOS_debug_printf( ( "vDHCPProcess: discover\n" ) );
             iptraceSENDING_DHCP_DISCOVER();
 
-            pvCopySource = &xDHCPData.ulPreferredIPAddress;
-            pvCopyDest = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ] );
-            ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulPreferredIPAddress ) );
+            if( xDHCPData.ulPreferredIPAddress != 0U )
+            {
+                /* Fill in the IPv4 address. */
+                pvCopySource = &xDHCPData.ulPreferredIPAddress;
+                pvCopyDest = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ] );
+                ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulPreferredIPAddress ) );
+            }
+            else
+            {
+                /* Remove option-50 from the list because it is not used. */
+                size_t uxCopyLength;
+                /* Exclude this line from branch coverage as the not-taken condition will never happen unless the code is modified */
+                configASSERT( uxOptionsLength > ( dhcpOPTION_50_OFFSET + dhcpOPTION_50_SIZE ) ); /* LCOV_EXCL_BR_LINE */
+                uxCopyLength = uxOptionsLength - ( dhcpOPTION_50_OFFSET + dhcpOPTION_50_SIZE );
+                pvCopySource = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpOPTION_50_OFFSET + dhcpOPTION_50_SIZE ] );
+                pvCopyDest = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpOPTION_50_OFFSET ] );
+                ( void ) memmove( pvCopyDest, pvCopySource, uxCopyLength );
+                /* Send 6 bytes less than foreseen. */
+                uxOptionsLength -= dhcpOPTION_50_SIZE;
+            }
 
             if( FreeRTOS_sendto( xDHCPSocket,
                                  pucUDPPayloadBuffer,

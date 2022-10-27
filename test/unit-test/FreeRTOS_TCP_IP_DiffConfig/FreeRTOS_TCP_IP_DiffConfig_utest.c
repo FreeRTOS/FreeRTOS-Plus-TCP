@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -65,7 +65,7 @@ FreeRTOS_Socket_t xSocket, * pxSocket;
 NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
 
 extern BaseType_t xTCPWindowLoggingLevel;
-extern FreeRTOS_Socket_t * xPreviousSocket;
+extern FreeRTOS_Socket_t * xSocketToListen;
 
 uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
 {
@@ -94,7 +94,7 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.txStream = ( void * ) &xSocket;
     xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
 
@@ -130,17 +130,51 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet( voi
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     eTCPState = eESTABLISHED;
-    xSocket.u.xTCP.ucTCPState = eCLOSED;
+    xSocket.u.xTCP.eTCPState = eCLOSED;
 
     xSocket.u.xTCP.usTimeout = 100;
     xSocket.xSelectBits = eSELECT_WRITE;
     /* if bPassQueued is true, this socket is an orphan until it gets connected. */
     xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
 
-    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
     vTCPStateChange( &xSocket, eTCPState );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is closed wait
+ *        and current state is equal to syn first. */
+void test_vTCPStateChange_ClosedWaitState_CurrentStateSynFirstNextStateCloseWait( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSE_WAIT;
+
+    xSocketToListen = NULL;
+
+    xSocket.u.xTCP.eTCPState = eSYN_FIRST;
+    xSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vSocketWakeUpUser_Expect( &xSocket );
+
+    vTCPStateChange( &xSocket, eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.eTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( &xSocket, xSocketToListen );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
 }

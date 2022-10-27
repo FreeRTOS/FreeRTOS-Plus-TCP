@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -58,7 +58,7 @@
  */
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 )
     static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
-                                                               NetworkBufferDescriptor_t * const pxNetworkBuffer );
+                                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer );
 #endif /* ipconfigREPLY_TO_INCOMING_PINGS */
 
 /*
@@ -79,7 +79,7 @@
  * @return eReleaseBuffer when the message buffer should be released, or eReturnEthernetFrame
  *                        when the packet should be returned.
  */
-    eFrameProcessingResult_t ProcessICMPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+    eFrameProcessingResult_t ProcessICMPPacket( const NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
         eFrameProcessingResult_t eReturn = eReleaseBuffer;
 
@@ -91,6 +91,10 @@
         {
             /* Map the buffer onto a ICMP-Packet struct to easily access the
              * fields of ICMP packet. */
+
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             ICMPPacket_t * pxICMPPacket = ( ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
             switch( pxICMPPacket->xICMPHeader.ucTypeOfMessage )
@@ -131,7 +135,7 @@
  * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
  */
     static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
-                                                               NetworkBufferDescriptor_t * const pxNetworkBuffer )
+                                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
         ICMPHeader_t * pxICMPHeader;
         IPHeader_t * pxIPHeader;

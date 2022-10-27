@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -26,25 +26,30 @@
  */
 
 #ifndef FREERTOS_UDP_IP_H
-    #define FREERTOS_UDP_IP_H
+#define FREERTOS_UDP_IP_H
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 /* Application level configuration options. */
-    #include "FreeRTOSIPConfig.h"
-    #include "FreeRTOSIPConfigDefaults.h"
-    #include "IPTraceMacroDefaults.h"
-    #include "FreeRTOS_IP.h"
+#include "FreeRTOSIPConfig.h"
+#include "FreeRTOSIPConfigDefaults.h"
+#include "IPTraceMacroDefaults.h"
+#include "FreeRTOS_IP.h"
 
 /*
  * Called when the application has generated a UDP packet to send.
  */
-    void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
-    #ifdef __cplusplus
-        } /* extern "C" */
-    #endif
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 #endif /* FREERTOS_UDP_IP_H */

@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -381,43 +381,11 @@ extern const BaseType_t xBufferAllocFixedSize;
 
 /* The local IP address is accessed from within xDefaultPartUDPPacketHeader,
  * rather than duplicated in its own variable. */
-#define ipLOCAL_IP_ADDRESS_POINTER    ( ( uint32_t * ) &( xDefaultPartUDPPacketHeader.ulWords[ 20U / sizeof( uint32_t ) ] ) )
+#define ipLOCAL_IP_ADDRESS_POINTER     ( ( uint32_t * ) &( xDefaultPartUDPPacketHeader.ulWords[ 20U / sizeof( uint32_t ) ] ) )
 
 /* The local MAC address is accessed from within xDefaultPartUDPPacketHeader,
  * rather than duplicated in its own variable. */
-#define ipLOCAL_MAC_ADDRESS           ( xDefaultPartUDPPacketHeader.ucBytes )
-
-/* In this library, there is often a cast from a character pointer
- * to a pointer to a struct.
- * In order to suppress MISRA warnings, do the cast within a macro,
- * which can be exempt from warnings:
- *
- * 3 required by MISRA:
- * -emacro(740,ipPOINTER_CAST)    // 750:  Unusual pointer cast (incompatible indirect types) [MISRA 2012 Rule 1.3, required])
- * -emacro(9005,ipPOINTER_CAST)   // 9005: attempt to cast away const/volatile from a pointer or reference [MISRA 2012 Rule 11.8, required]
- * -emacro(9087,ipPOINTER_CAST)   // 9087: cast performed between a pointer to object type and a pointer to a different object type [MISRA 2012 Rule 11.3, required]
- *
- * 2 advisory by MISRA:
- * -emacro(9079,ipPOINTER_CAST)   // 9079: conversion from pointer to void to pointer to other type [MISRA 2012 Rule 11.5, advisory])
- * --emacro((826),ipPOINTER_CAST) // 826:  Suspicious pointer-to-pointer conversion (area too small)
- *
- * The MISRA warnings can safely be suppressed because all casts are planned with care.
- */
-
-#define ipPOINTER_CAST( TYPE, pointer )    ( ( TYPE ) ( pointer ) )
-
-/* Sequence and ACK numbers are essentially unsigned (uint32_t). But when
- * a distance is calculated, it is useful to use signed numbers:
- * int32_t lDistance = ( int32_t ) ( ulSeq1 - ulSeq2 );
- *
- * 1 required by MISRA:
- * -emacro(9033,ipNUMERIC_CAST) // 9033: Impermissible cast of composite expression (different essential type categories) [MISRA 2012 Rule 10.8, required])
- *
- * 1 advisory by MISRA:
- * -emacro(9030,ipNUMERIC_CAST) // 9030: Impermissible cast; cannot cast from 'essentially Boolean' to 'essentially signed' [MISRA 2012 Rule 10.5, advisory])
- */
-
-#define ipNUMERIC_CAST( TYPE, expression )    ( ( TYPE ) ( expression ) )
+#define ipLOCAL_MAC_ADDRESS            ( xDefaultPartUDPPacketHeader.ucBytes )
 
 /* ICMP packets are sent using the same function as UDP packets.  The port
  * number is used to distinguish between the two, as 0 is an invalid UDP port. */
@@ -458,6 +426,10 @@ extern const BaseType_t xBufferAllocFixedSize;
 /* WARNING: Do NOT use this macro when the array was received as a parameter. */
 #ifndef ARRAY_SIZE
     #define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
+#endif
+
+#ifndef ARRAY_USIZE
+    #define ARRAY_USIZE( x )    ( ( UBaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
 #endif
 
 /*
@@ -606,7 +578,7 @@ BaseType_t xIPIsNetworkTaskReady( void );
         uint8_t ucRepCount;            /**< Send repeat count, for retransmissions
                                         * This counter is separate from the xmitCount in the
                                         * TCP win segments */
-        uint8_t ucTCPState;            /**< TCP state: see eTCP_STATE */
+        eIPTCPState_t eTCPState;       /**< TCP state: see eTCP_STATE */
         struct xSOCKET * pxPeerSocket; /**< for server socket: child, for child socket: parent */
         #if ( ipconfigTCP_KEEP_ALIVE == 1 )
             uint8_t ucKeepRepCount;
@@ -730,6 +702,11 @@ typedef struct xSOCKET
  * Close the socket another time.
  */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket );
+
+/*
+ * Postpone a call to listen() by the IP-task.
+ */
+    void vSocketListenNextTime( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Lookup a TCP socket, using a multiple matching: both port numbers and
@@ -857,7 +834,7 @@ BaseType_t xIsCallingFromIPTask( void );
         EventGroupHandle_t xSelectGroup;
     } SocketSelect_t;
 
-    extern void vSocketSelect( SocketSelect_t * pxSocketSet );
+    extern void vSocketSelect( const SocketSelect_t * pxSocketSet );
 
 /** @brief Define the data that must be passed for a 'eSocketSelectEvent'. */
     typedef struct xSocketSelectMessage

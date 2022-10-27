@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -207,7 +207,7 @@
         static uint32_t prvPrepareLookup( const char * pcHostName )
     #endif
     {
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = 0U;
         TickType_t uxReadTimeOut_ticks = ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS;
 
         /* Generate a unique identifier for this query. Keep it in a local variable
@@ -250,11 +250,11 @@
 
             #if ( ipconfigUSE_DNS_CACHE == 1 )
                 /* Check the cache before issuing another DNS request. */
-                if( ulIPAddress == 0UL )
+                if( ulIPAddress == 0U )
                 {
                     ulIPAddress = FreeRTOS_dnslookup( pcHostName );
 
-                    if( ulIPAddress != 0UL )
+                    if( ulIPAddress != 0U )
                     {
                         FreeRTOS_debug_printf( ( "FreeRTOS_gethostbyname: found '%s' in cache: %lxip\n", pcHostName, ulIPAddress ) );
                     }
@@ -266,7 +266,7 @@
             #endif /* if ( ipconfigUSE_DNS_CACHE == 1 ) */
 
             /* Generate a unique identifier. */
-            if( ulIPAddress == 0UL )
+            if( ulIPAddress == 0U )
             {
                 uint32_t ulNumber;
 
@@ -279,7 +279,7 @@
                 {
                     if( pCallback != NULL )
                     {
-                        if( ulIPAddress == 0UL )
+                        if( ulIPAddress == 0U )
                         {
                             /* The user has provided a callback function, so do not block on recvfrom() */
                             if( xHasRandom != pdFALSE )
@@ -301,7 +301,7 @@
                 }
             #endif /* if ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
-            if( ( ulIPAddress == 0UL ) && ( xHasRandom != pdFALSE ) )
+            if( ( ulIPAddress == 0U ) && ( xHasRandom != pdFALSE ) )
             {
                 ulIPAddress = prvGetHostByName( pcHostName,
                                                 uxIdentifier,
@@ -368,7 +368,7 @@
          * still needs to be tested. */
         *ppxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxExpectedPayloadLength +
                                                               uxHeaderBytes,
-                                                              0UL );
+                                                              0U );
 
         if( *ppxNetworkBuffer != NULL )
         {
@@ -386,7 +386,11 @@
     static void prvFillSockAddress( struct freertos_sockaddr * pxAddress,
                                     const char * pcHostName )
     {
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = 0U;
+
+        #if ( ipconfigUSE_LLMNR != 1 )
+            ( void ) pcHostName;
+        #endif
 
         /* Obtain the DNS server address. */
         FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, &ulIPAddress );
@@ -416,17 +420,28 @@
  * @returns ip address or zero on error
  *
  */
-    static uint32_t prvDNSReply( struct xDNSBuffer * pxReceiveBuffer,
+    static uint32_t prvDNSReply( const struct xDNSBuffer * pxReceiveBuffer,
                                  TickType_t uxIdentifier )
     {
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = 0U;
         BaseType_t xExpected;
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const DNSMessage_t * pxDNSMessageHeader =
             ( ( const DNSMessage_t * )
               pxReceiveBuffer->pucPayloadBuffer );
 
         /* See if the identifiers match. */
-        xExpected = ( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier );
+        if( uxIdentifier == ( TickType_t ) pxDNSMessageHeader->usIdentifier )
+        {
+            xExpected = pdTRUE;
+        }
+        else
+        {
+            xExpected = pdFALSE;
+        }
 
         /* The reply was received.  Process it. */
         #if ( ipconfigDNS_USE_CALLBACKS == 0 )
@@ -450,14 +465,14 @@
  * @param [in] uxIdentifier  matches sent and received packets
  * @param [in] xDNSSocket a valid socket
  * @param [in] pxAddress address structure
- * @returns whether sending the data was successful
+ * @returns pdTRUE if sending the data was successful, pdFALSE otherwise.
  */
     static BaseType_t prvSendBuffer( const char * pcHostName,
                                      TickType_t uxIdentifier,
                                      Socket_t xDNSSocket,
-                                     struct freertos_sockaddr * pxAddress )
+                                     const struct freertos_sockaddr * pxAddress )
     {
-        BaseType_t xReturn = pdFAIL;
+        BaseType_t uxReturn = pdFAIL;
         struct xDNSBuffer xDNSBuf = { 0 };
         NetworkBufferDescriptor_t * pxNetworkBuffer = NULL;
 
@@ -467,7 +482,6 @@
 
         if( xDNSBuf.pucPayloadBuffer != NULL )
         {
-            xDNSBuf.uxPayloadLength = pxNetworkBuffer->xDataLength;
             xDNSBuf.uxPayloadSize = pxNetworkBuffer->xDataLength;
 
             #if ( ipconfigUSE_LLMNR == 1 )
@@ -484,17 +498,17 @@
                                                            uxIdentifier );
 
             /* send the dns message */
-            xReturn = DNS_SendRequest( xDNSSocket,
-                                       pxAddress,
-                                       &xDNSBuf );
+            uxReturn = DNS_SendRequest( xDNSSocket,
+                                        pxAddress,
+                                        &xDNSBuf );
 
-            if( xReturn == pdFAIL )
+            if( uxReturn == pdFAIL )
             {
                 vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
             }
         }
 
-        return xReturn;
+        return uxReturn;
     }
 
 /*!
@@ -511,19 +525,19 @@
         uint32_t ulIPAddress = 0;
 
         struct freertos_sockaddr xAddress;
-        struct xDNSBuffer xReceiveBuffer = { 0 };
-        BaseType_t xReturn = pdFAIL;
+        DNSBuffer_t xReceiveBuffer = { 0 };
+        BaseType_t uxReturn = pdFAIL;
 
         prvFillSockAddress( &xAddress, pcHostName );
 
         do
         {
-            xReturn = prvSendBuffer( pcHostName,
-                                     uxIdentifier,
-                                     xDNSSocket,
-                                     &xAddress );
+            uxReturn = prvSendBuffer( pcHostName,
+                                      uxIdentifier,
+                                      xDNSSocket,
+                                      &xAddress );
 
-            if( xReturn == pdFAIL )
+            if( uxReturn == pdFAIL )
             {
                 break;
             }
@@ -546,7 +560,7 @@
              * is being used, so the buffer must be freed by the
              * task. */
             FreeRTOS_ReleaseUDPPayloadBuffer( xReceiveBuffer.pucPayloadBuffer );
-        } while( 0 );
+        } while( ipFALSE_BOOL );
 
         return ulIPAddress;
     }
@@ -574,7 +588,7 @@
                                               uxIdentifier,
                                               xDNSSocket );
 
-            if( ulIPAddress != 0 )
+            if( ulIPAddress != 0U )
             { /* ip found, no need to retry */
                 break;
             }
@@ -587,6 +601,7 @@
 /**
  * @brief Prepare and send a message to a DNS server.  'uxReadTimeOut_ticks' will be passed as
  *        zero, in case the user has supplied a call-back function.
+ *
  * @param[in] pcHostName The hostname for which an IP address is required.
  * @param[in] uxIdentifier Identifier to match sent and received packets
  * @param[in] uxReadTimeOut_ticks The timeout in ticks for waiting. In case the user has supplied
@@ -598,13 +613,13 @@
                                       TickType_t uxReadTimeOut_ticks )
     {
         Socket_t xDNSSocket;
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = 0U;
 
         xDNSSocket = DNS_CreateSocket( uxReadTimeOut_ticks );
 
         if( xDNSSocket != NULL )
         {
-            if( uxReadTimeOut_ticks == 0 )
+            if( uxReadTimeOut_ticks == 0U )
             {
                 ulIPAddress = prvGetHostByNameOp( pcHostName,
                                                   uxIdentifier,
@@ -668,6 +683,10 @@
 
         /* Write in a unique identifier. Cast the Payload Buffer to DNSMessage_t
          * to easily access fields of the DNS Message. */
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxDNSMessageHeader = ( ( DNSMessage_t * ) pucUDPPayloadBuffer );
         pxDNSMessageHeader->usIdentifier = ( uint16_t ) uxIdentifier;
 
@@ -709,6 +728,10 @@
 
         /* Finish off the record. Cast the record onto DNSTail_t structure to easily
          * access the fields of the DNS Message. */
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxTail = ( ( DNSTail_t * ) &( pucUDPPayloadBuffer[ uxStart + 1U ] ) );
 
         #if defined( _lint ) || defined( __COVERITY__ )
