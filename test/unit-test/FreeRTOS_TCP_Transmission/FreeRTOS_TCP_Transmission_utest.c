@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -849,7 +849,7 @@ void test_prvTCPBufferResize_Fixed_Size_Without_Buffer( void )
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &NewNetworkBuffer );
     pReturn = prvTCPBufferResize( pxSocket, NULL, 500, 0 );
     TEST_ASSERT_EQUAL_PTR( &NewNetworkBuffer, pReturn );
-    TEST_ASSERT_EQUAL( 1222, pReturn->xDataLength );
+    TEST_ASSERT_EQUAL( ipconfigNETWORK_MTU + 22U, pReturn->xDataLength );
 }
 
 /* test for prvTCPBufferResize function */

@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -702,6 +702,11 @@ typedef struct xSOCKET
  * Close the socket another time.
  */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket );
+
+/*
+ * Postpone a call to listen() by the IP-task.
+ */
+    void vSocketListenNextTime( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Lookup a TCP socket, using a multiple matching: both port numbers and

@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -168,7 +168,7 @@
  * stack.  FreeRTOS includes optional stack overflow detection, see:
  * http://www.freertos.org/Stacks-and-stack-overflow-checking.html */
 #ifndef ipconfigIP_TASK_STACK_SIZE_WORDS
-    #define ipconfigIP_TASK_STACK_SIZE_WORDS    ( configMINIMAL_STACK_SIZE * 5 )
+    #define ipconfigIP_TASK_STACK_SIZE_WORDS    ( configMINIMAL_STACK_SIZE * 5U )
 #endif
 
 /* Include all API's and code that is needed for the TCP protocol.
@@ -259,6 +259,9 @@
 
 #ifndef FreeRTOS_debug_printf
     #define FreeRTOS_debug_printf( MSG )    do {} while( ipFALSE_BOOL )
+    /* MISRA Ref 20.5.1 [Use of undef] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
+    /* coverity[misra_c_2012_rule_20_5_violation] */
     #undef ipconfigHAS_DEBUG_PRINTF
     #define ipconfigHAS_DEBUG_PRINTF    0
 #endif
@@ -282,6 +285,9 @@
 
 #ifndef FreeRTOS_printf
     #define FreeRTOS_printf( MSG )    do {} while( ipFALSE_BOOL )
+    /* MISRA Ref 20.5.1 [Use of undef] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
+    /* coverity[misra_c_2012_rule_20_5_violation] */
     #undef ipconfigHAS_PRINTF
     #define ipconfigHAS_PRINTF    0
 #endif
@@ -611,6 +617,9 @@
 #else
     /* A sanity check to avoid a possible overflow of size_t. */
     #if ipconfigNETWORK_MTU > ( SIZE_MAX >> 1 )
+        /* MISRA Ref 20.5.1 [Use of undef] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
+        /* coverity[misra_c_2012_rule_20_5_violation] */
         #undef ipconfigNETWORK_MTU
         #define ipconfigNETWORK_MTU    ( SIZE_MAX >> 1 )
     #endif

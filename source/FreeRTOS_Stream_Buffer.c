@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -341,7 +341,7 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
                 pxBuffer->uxFront = uxNextHead;
             }
         }
-        xTaskResumeAll();
+        ( void ) xTaskResumeAll();
     }
 
     return uxCount;

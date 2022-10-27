@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -122,7 +122,7 @@ static void prvProcessIPEventsAndTimers( void );
  * from the network hardware drivers and tasks that are using sockets.  It also
  * maintains a set of protocol timers.
  */
-static void prvIPTask( const void * pvParameters );
+static void prvIPTask( void * pvParameters );
 
 /*
  * Called when new data is available from the network interface.
@@ -229,7 +229,11 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
  *
  * @param[in] pvParameters: Not used.
  */
-static void prvIPTask( const void * pvParameters )
+
+/* MISRA Ref 8.13.1 [Not decorating a pointer to const parameter with const] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-813 */
+/* coverity[misra_c_2012_rule_8_13_violation] */
+static void prvIPTask( void * pvParameters )
 {
     /* Just to prevent compiler warnings about unused parameters. */
     ( void ) pvParameters;
@@ -390,9 +394,11 @@ static void prvProcessIPEventsAndTimers( void )
                     eDHCPState_t eState;
 
                     /* MISRA Ref 11.6.1 [DHCP events and conversion to void] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
                     /* coverity[misra_c_2012_rule_11_6_violation] */
                     uxState = ( uintptr_t ) xReceivedEvent.pvData;
+                    /* MISRA Ref 10.5.1 [DHCP events Enum] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-105 */
                     /* coverity[misra_c_2012_rule_10_5_violation] */
                     eState = ( eDHCPState_t ) uxState;
 
@@ -708,6 +714,7 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
  * @return pdPASS if the task was successfully created and added to a ready
  * list, otherwise an error code defined in the file projdefs.h
  */
+/* coverity[single_use] */
 BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                             const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ],
                             const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
@@ -1171,7 +1178,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
     /* Map the buffer onto Ethernet Header struct for easy access to fields. */
 
     /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
 
@@ -1245,7 +1252,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
         /* Map the buffer onto the Ethernet Header struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxEthernetHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
@@ -1263,7 +1270,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     if( pxNetworkBuffer->xDataLength >= sizeof( ARPPacket_t ) )
                     {
                         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                         /* coverity[misra_c_2012_rule_11_3_violation] */
                         eReturned = eARPProcessPacket( ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer ) );
                     }
@@ -1280,7 +1287,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     if( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) )
                     {
                         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                         /* coverity[misra_c_2012_rule_11_3_violation] */
                         eReturned = prvProcessIPPacket( ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer );
                     }
@@ -1542,7 +1549,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                             /* pxProtPack will point to the offset were the protocols begin. */
 
                             /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                             /* coverity[misra_c_2012_rule_11_3_violation] */
                             pxProtPack = ( ( ProtocolPacket_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
@@ -1610,6 +1617,10 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         /* Check if the IP headers are acceptable and if it has our destination. */
         eReturn = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
+        /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
+        /* coverity[misra_c_2012_rule_14_3_violation] */
+        /* coverity[cond_const] */
         if( eReturn == eProcessBuffer )
         {
             /* Are there IP-options. */
@@ -1647,8 +1658,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             }
 
             /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
             /* coverity[misra_c_2012_rule_14_3_violation] */
+            /* coverity[const] */
             if( eReturn != eReleaseBuffer )
             {
                 /* Add the IP and MAC addresses to the ARP table if they are not
@@ -1838,7 +1850,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
              * fields of the IP packet. */
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
@@ -1991,7 +2003,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         /* Map the Buffer to Ethernet Header struct for easy access to fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 

@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -78,6 +78,7 @@
 /* MISRA Ref 8.9.1 [File scoped variables] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
+/* coverity[single_use] */
     static BaseType_t xCallEventHook = pdFALSE;
 #endif
 
@@ -136,7 +137,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
         xEventMessage.eEventType = eDHCPEvent;
 
         /* MISRA Ref 11.6.1 [DHCP events and conversion to void] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
         /* coverity[misra_c_2012_rule_11_6_violation] */
         xEventMessage.pvData = ( void * ) uxOption;
 
@@ -231,7 +232,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
         /* Obtain the network buffer from the zero copy pointer. */
 
         /* MISRA Ref 11.6.2 [Pointer arithmetic and hidden pointer] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
         /* coverity[misra_c_2012_rule_11_6_violation] */
         uxBuffer = ( uintptr_t ) pvBuffer;
 
@@ -245,7 +246,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
         if( ( uxBuffer & ( ( ( uintptr_t ) sizeof( uxBuffer ) ) - 1U ) ) == ( uintptr_t ) 0U )
         {
             /* MISRA Ref 11.4.2 [Validation of pointer alignment] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             pxResult = *( ( NetworkBufferDescriptor_t ** ) uxBuffer );
         }
@@ -321,6 +322,10 @@ BaseType_t xIsCallingFromIPTask( void )
 /**
  * @brief Process a 'Network down' event and complete required processing.
  */
+/* MISRA Ref 8.9.1 [File scoped variables] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+/* coverity[misra_c_2012_rule_8_9_violation] */
+/* coverity[single_use] */
 void prvProcessNetworkDownEvent( void )
 {
     /* Stop the ARP timer while there is no network. */
@@ -473,7 +478,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         /* Parse the packet length. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
@@ -518,7 +523,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
          * of this calculation. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtPack = ( ( ProtocolPacket_t * ) &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
@@ -848,7 +853,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     xSource.u8ptr = pucNextData;
 
     /* MISRA Ref 11.4.3 [Casting pointer to int for verification] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
     /* coverity[misra_c_2012_rule_11_4_violation] */
     uxAlignBits = ( ( ( uintptr_t ) pucNextData ) & 0x03U );
 
@@ -956,22 +961,24 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     }
 
     /* MISRA Ref 2.2.1 [Unions and dead code] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
     /* coverity[misra_c_2012_rule_2_2_violation] */
+    /* coverity[assigned_value] */
     xSum.u32 += xTerm.u32;
 
     /* Now add all carries again. */
 
-    /* Assigning value from "xTerm.u32" to "xSum.u32" here, but that stored value is overwritten before it can be used.
-     * /* MISRA Ref 2.2.1 [Unions and dead code] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
+    /* Assigning value from "xTerm.u32" to "xSum.u32" here, but that stored value is overwritten before it can be used. */
+    /* MISRA Ref 2.2.1 [Unions and dead code] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
     /* coverity[misra_c_2012_rule_2_2_violation] */
+    /* coverity[value_overwrite] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
-    /* coverity[value_overwrite] */
     /* MISRA Ref 2.2.1 [Unions and dead code] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-22 */
     /* coverity[misra_c_2012_rule_2_2_violation] */
+    /* coverity[value_overwrite] */
     xSum.u32 = ( uint32_t ) xSum.u16[ 0 ] + xSum.u16[ 1 ];
 
     if( ( uxAlignBits & 1U ) != 0U )
@@ -1149,7 +1156,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
 
         default:
             /* MISRA Ref 21.6.1 [snprintf and logging] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
             /* coverity[misra_c_2012_rule_21_6_violation] */
             ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int ) xErrnum );
             pcName = NULL;
@@ -1159,7 +1166,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
     if( pcName != NULL )
     {
         /* MISRA Ref 21.6.1 [snprintf and logging] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
         /* coverity[misra_c_2012_rule_21_6_violation] */
         ( void ) snprintf( pcBuffer, uxLength, "%s", pcName );
     }

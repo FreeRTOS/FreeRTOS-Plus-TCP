@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -48,7 +48,8 @@ extern List_t xBoundUDPSocketsList;
     extern List_t xBoundTCPSocketsList;
 #endif /* ipconfigUSE_TCP == 1 */
 
-IOCounters_t xInputCounters, xOutputCounters;
+IOCounters_t xInputCounters = { 0U };
+IOCounters_t xOutputCounters = { 0U };
 
 BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
 {
