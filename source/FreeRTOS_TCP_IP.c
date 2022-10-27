@@ -75,7 +75,18 @@
     /* MISRA Ref 8.9.1 [File scoped variables] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
     /* coverity[misra_c_2012_rule_8_9_violation] */
-    static FreeRTOS_Socket_t * xPreviousSocket = NULL;
+    static FreeRTOS_Socket_t * xSocketToClose = NULL;
+
+/** @brief When a connection is coming in on a reusable socket, and the
+ *         SYN phase times out, the socket must be put back into eTCP_LISTEN
+ *         mode, so it can accept a new connection again.
+ *         This variable can be accessed by the IP task only. Thus, preventing any
+ *         race condition.
+ */
+    /* MISRA Ref 8.9.1 [File scoped variables] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+    /* coverity[misra_c_2012_rule_8_9_violation] */
+    static FreeRTOS_Socket_t * xSocketToListen = NULL;
 
 /*
  * For anti-hang protection and TCP keep-alive messages.  Called in two places:
@@ -110,12 +121,28 @@
     /* coverity[single_use] */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
     {
-        if( ( xPreviousSocket != NULL ) && ( xPreviousSocket != pxSocket ) )
+        if( ( xSocketToClose != NULL ) && ( xSocketToClose != pxSocket ) )
         {
-            ( void ) vSocketClose( xPreviousSocket );
+            ( void ) vSocketClose( xSocketToClose );
         }
 
-        xPreviousSocket = pxSocket;
+        xSocketToClose = pxSocket;
+    }
+    /*-----------------------------------------------------------*/
+
+/** @brief Postpone a call to FreeRTOS_listen() to avoid recursive calls.
+ *
+ * @param[in] pxSocket: The socket to be checked.
+ */
+    /* coverity[single_use] */
+    void vSocketListenNextTime( FreeRTOS_Socket_t * pxSocket )
+    {
+        if( ( xSocketToListen != NULL ) && ( xSocketToListen != pxSocket ) )
+        {
+            ( void ) FreeRTOS_listen( ( Socket_t ) xSocketToListen, xSocketToListen->u.xTCP.usBacklog );
+        }
+
+        xSocketToListen = pxSocket;
     }
     /*-----------------------------------------------------------*/
 
@@ -272,39 +299,60 @@
     void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
                           enum eTCP_STATE eTCPState )
     {
-        FreeRTOS_Socket_t * xParent = NULL;
+        FreeRTOS_Socket_t * xParent = pxSocket;
         BaseType_t bBefore = tcpNOW_CONNECTED( ( BaseType_t ) pxSocket->u.xTCP.eTCPState ); /* Was it connected ? */
         BaseType_t bAfter = tcpNOW_CONNECTED( ( BaseType_t ) eTCPState );                   /* Is it connected now ? */
 
-        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-            BaseType_t xPreviousState = ( BaseType_t ) pxSocket->u.xTCP.eTCPState;
-        #endif
+        BaseType_t xPreviousState = ( BaseType_t ) pxSocket->u.xTCP.eTCPState;
+
         #if ( ipconfigUSE_CALLBACKS == 1 )
             FreeRTOS_Socket_t * xConnected = NULL;
         #endif
 
+        if( ( ( xPreviousState == eCONNECT_SYN ) ||
+              ( xPreviousState == eSYN_FIRST ) ||
+              ( xPreviousState == eSYN_RECEIVED ) ) &&
+            ( eTCPState == eCLOSE_WAIT ) )
+        {
+            /* A socket was in the connecting phase but something
+             * went wrong and it should be closed. */
+            FreeRTOS_debug_printf( ( "Move from %s to %s\n",
+                                     FreeRTOS_GetTCPStateName( xPreviousState ),
+                                     FreeRTOS_GetTCPStateName( eTCPState ) ) );
+
+            /* Set the flag to show that it was connected before and that the
+             * status has changed now. This will cause the control flow to go
+             * in the below if condition.*/
+            bBefore = pdTRUE;
+        }
+
         /* Has the connected status changed? */
         if( bBefore != bAfter )
         {
+            /* if bPassQueued is true, this socket is an orphan until it gets connected. */
+            if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
+            {
+                /* Find it's parent if the reuse bit is not set. */
+                if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                {
+                    xParent = pxSocket->u.xTCP.pxPeerSocket;
+                    configASSERT( xParent != NULL );
+                }
+            }
+
             /* Is the socket connected now ? */
             if( bAfter != pdFALSE )
             {
                 /* if bPassQueued is true, this socket is an orphan until it gets connected. */
                 if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
                 {
-                    /* Now that it is connected, find it's parent. */
-                    if( pxSocket->u.xTCP.bits.bReuseSocket != pdFALSE_UNSIGNED )
-                    {
-                        xParent = pxSocket;
-                    }
-                    else
-                    {
-                        xParent = pxSocket->u.xTCP.pxPeerSocket;
-                        configASSERT( xParent != NULL );
-                    }
-
                     if( xParent != NULL )
                     {
+                        /* The child socket has got connected.  See if the parent
+                         * ( the listening socket ) should be signalled, or if a
+                         * call-back must be made, in which case 'xConnected' will
+                         * be set to the parent socket. */
+
                         if( xParent->u.xTCP.pxPeerSocket == NULL )
                         {
                             xParent->u.xTCP.pxPeerSocket = pxSocket;
@@ -347,6 +395,9 @@
                 }
                 else
                 {
+                    /* An active connect() has succeeded. In this case there is no
+                     * ( listening ) parent socket. Signal the now connected socket. */
+
                     pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_CONNECT;
 
                     #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
@@ -361,14 +412,14 @@
             }
             else /* bAfter == pdFALSE, connection is closed. */
             {
-                /* Notify/wake-up the socket-owner by setting a semaphore. */
-                pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_CLOSED;
+                /* Notify/wake-up the socket-owner by setting the event bits. */
+                xParent->xEventBits |= ( EventBits_t ) eSOCKET_CLOSED;
 
                 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
                     {
-                        if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_EXCEPT ) != 0U )
+                        if( ( xParent->xSelectBits & ( EventBits_t ) eSELECT_EXCEPT ) != 0U )
                         {
-                            pxSocket->xEventBits |= ( ( EventBits_t ) eSELECT_EXCEPT ) << SOCKET_EVENT_BIT_COUNT;
+                            xParent->xEventBits |= ( ( EventBits_t ) eSELECT_EXCEPT ) << SOCKET_EVENT_BIT_COUNT;
                         }
                     }
                 #endif
@@ -393,29 +444,50 @@
                 pxSocket->u.xTCP.usTimeout = 0U;
             }
         }
-        else
-        {
-            if( ( eTCPState == eCLOSED ) ||
-                ( eTCPState == eCLOSE_WAIT ) )
-            {
-                /* Socket goes to status eCLOSED because of a RST.
-                 * When nobody owns the socket yet, delete it. */
-                if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
-                    ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
-                {
-                    FreeRTOS_debug_printf( ( "vTCPStateChange: Closing socket\n" ) );
 
-                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
-                    {
-                        configASSERT( xIsCallingFromIPTask() != pdFALSE );
-                        vSocketCloseNextTime( pxSocket );
-                    }
+        if( ( eTCPState == eCLOSED ) ||
+            ( eTCPState == eCLOSE_WAIT ) )
+        {
+            /* Socket goes to status eCLOSED because of a RST.
+             * When nobody owns the socket yet, delete it. */
+            if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
+                ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
+            {
+                FreeRTOS_debug_printf( ( "vTCPStateChange: Closing socket\n" ) );
+
+                if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                {
+                    configASSERT( xIsCallingFromIPTask() != pdFALSE );
+                    vSocketCloseNextTime( pxSocket );
                 }
             }
         }
 
         /* Fill in the new state. */
         pxSocket->u.xTCP.eTCPState = eTCPState;
+
+        if( ( eTCPState == eCLOSE_WAIT ) && ( pxSocket->u.xTCP.bits.bReuseSocket == pdTRUE_UNSIGNED ) )
+        {
+            switch( xPreviousState )
+            {
+                case eSYN_FIRST:    /* 3 (server) Just created, must ACK the SYN request */
+                case eSYN_RECEIVED: /* 4 (server) waiting for a confirming connection request */
+                    FreeRTOS_debug_printf( ( "Restoring a reuse socket port %u\n", pxSocket->usLocalPort ) );
+
+                    /* Go back into listening mode. Set the TCP status to 'eCLOSED',
+                     * otherwise FreeRTOS_listen() will refuse the action. */
+                    pxSocket->u.xTCP.eTCPState = eCLOSED;
+
+                    /* vSocketListenNextTime() makes sure that FreeRTOS_listen() will be called
+                     * before the IP-task handles any new message. */
+                    vSocketListenNextTime( pxSocket );
+                    break;
+
+                default:
+                    /* Nothing to do. */
+                    break;
+            }
+        }
 
         /* Touch the alive timers because moving to another state. */
         prvTCPTouchSocket( pxSocket );
@@ -585,7 +657,7 @@
             ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
             ulRemoteIP = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
 
-            /* Find the destination socket, and if not found: return a socket listing to
+            /* Find the destination socket, and if not found: return a socket listening to
              * the destination PORT. */
             pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( ulLocalIP, usLocalPort, ulRemoteIP, usRemotePort );
 

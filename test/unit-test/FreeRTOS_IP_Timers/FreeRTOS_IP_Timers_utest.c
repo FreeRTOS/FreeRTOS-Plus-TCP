@@ -209,6 +209,8 @@ void test_vCheckNetworkTimers_AllTimersDisabled( void )
 
     vSocketCloseNextTime_Expect( NULL );
 
+    vSocketListenNextTime_Expect( NULL );
+
     vCheckNetworkTimers();
 }
 
@@ -228,6 +230,8 @@ void test_vCheckNetworkTimers_ARPTimerActiveAndExpired( void )
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
 
     vSocketCloseNextTime_Expect( NULL );
+
+    vSocketListenNextTime_Expect( NULL );
 
     vCheckNetworkTimers();
 }
@@ -249,6 +253,8 @@ void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired( void )
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
 
     vSocketCloseNextTime_Expect( NULL );
+
+    vSocketListenNextTime_Expect( NULL );
 
     vCheckNetworkTimers();
 }
@@ -272,6 +278,8 @@ void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired2( void )
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
 
     vSocketCloseNextTime_Expect( NULL );
+
+    vSocketListenNextTime_Expect( NULL );
 
     vCheckNetworkTimers();
 
@@ -297,6 +305,8 @@ void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 
     vSocketCloseNextTime_Expect( NULL );
 
+    vSocketListenNextTime_Expect( NULL );
+
     vCheckNetworkTimers();
 }
 
@@ -318,6 +328,8 @@ void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
 
     vSocketCloseNextTime_Expect( NULL );
 
+    vSocketListenNextTime_Expect( NULL );
+
     vCheckNetworkTimers();
 }
 
@@ -334,6 +346,8 @@ void test_vCheckNetworkTimers_AllTimersInactive_1( void )
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
 
     vSocketCloseNextTime_Expect( NULL );
+
+    vSocketListenNextTime_Expect( NULL );
 
     vCheckNetworkTimers();
 }
@@ -355,6 +369,8 @@ void test_vCheckNetworkTimers_AllTimersInactive_2( void )
     vTaskSetTimeOutState_Expect( &( xTCPTimer.xTimeOut ) );
 
     vSocketCloseNextTime_Expect( NULL );
+
+    vSocketListenNextTime_Expect( NULL );
 
     vCheckNetworkTimers();
 
