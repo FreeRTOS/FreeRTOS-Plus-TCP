@@ -146,6 +146,11 @@
             pxReceiveBuffer->uxPayloadLength = ( size_t ) lResult;
             pxReceiveBuffer->uxPayloadSize = pxReceiveBuffer->uxPayloadLength;
         }
+        else
+        {
+            pxReceiveBuffer->uxPayloadLength = 0U;
+            pxReceiveBuffer->uxPayloadSize = 0U;
+        }
     }
 
 /**
