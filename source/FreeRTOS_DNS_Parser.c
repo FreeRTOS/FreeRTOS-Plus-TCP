@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -255,7 +255,7 @@
                                 BaseType_t xExpected )
     {
         DNSMessage_t * pxDNSMessageHeader;
-        uint32_t ulIPAddress = 0UL;
+        uint32_t ulIPAddress = 0U;
 
         #if ( ipconfigUSE_LLMNR == 1 )
             char * pcRequestedName = NULL;
@@ -286,6 +286,10 @@
 
             /* Parse the DNS message header. Map the byte stream onto a structure
              * for easier access. */
+
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDNSMessageHeader = ( ( DNSMessage_t * )
                                    pucUDPPayloadBuffer );
 
@@ -496,12 +500,12 @@
         if( xReturn == pdFALSE )
         {
             /* There was an error while parsing the DNS response. Return error code. */
-            ulIPAddress = dnsPARSE_ERROR;
+            ulIPAddress = ( uint32_t ) dnsPARSE_ERROR;
         }
         else if( xExpected == pdFALSE )
         {
             /* Do not return a valid IP-address in case the reply was not expected. */
-            ulIPAddress = 0UL;
+            ulIPAddress = 0U;
         }
         else
         {
@@ -525,13 +529,13 @@
  * @param xDoStore whether to update the cache
  * @return ip address extracted from the frame or zero if not found
  */
-    uint32_t parseDNSAnswer( DNSMessage_t * pxDNSMessageHeader,
+    uint32_t parseDNSAnswer( const DNSMessage_t * pxDNSMessageHeader,
                              uint8_t * pucByte,
                              size_t uxSourceBytesRemaining,
                              size_t * uxBytesRead
     #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
                                  ,
-                                 char * pcName,
+                                 const char * pcName,
                                  BaseType_t xDoStore
     #endif
                              )
@@ -609,6 +613,10 @@
 
                 /* Mapping pucBuffer to a DNSAnswerRecord allows easy access of the
                  * fields of the structure. */
+
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucBuffer );
 
                 /* Sanity check the data length of an IPv4 answer. */
@@ -658,7 +666,7 @@
                             ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET,
                                                          ( const void * ) &( ulIPAddress ),
                                                          cBuffer,
-                                                         sizeof( cBuffer ) );
+                                                         ( socklen_t ) sizeof( cBuffer ) );
                             /* Show what has happened. */
                             FreeRTOS_printf( ( "DNS[0x%04lX]: The answer to '%s' (%s) will%s be stored\n",
                                                ( UBaseType_t ) pxDNSMessageHeader->usIdentifier,
@@ -683,6 +691,10 @@
                 /* It's not an A record, so skip it. Get the header location
                  * and then jump over the header. */
                 /* Cast the response to DNSAnswerRecord for easy access to fields of the DNS response. */
+
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pucBuffer );
 
                 pucBuffer = &( pucBuffer[ sizeof( DNSAnswerRecord_t ) ] );

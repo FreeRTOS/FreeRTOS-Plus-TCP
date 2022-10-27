@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -184,7 +184,7 @@
     typedef struct xSOCKET         * Socket_t;
     typedef struct xSOCKET const   * ConstSocket_t;
 
-    extern BaseType_t xSocketValid( Socket_t xSocket );
+    extern BaseType_t xSocketValid( const ConstSocket_t xSocket );
 
 /**
  * FULL, UP-TO-DATE AND MAINTAINED REFERENCE DOCUMENTATION FOR ALL THESE
@@ -237,12 +237,12 @@
                              socklen_t xDestinationAddressLength );
 
 /* Receive data from a UDP socket */
-    int32_t FreeRTOS_recvfrom( Socket_t xSocket,
+    int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
                                void * pvBuffer,
                                size_t uxBufferLength,
                                BaseType_t xFlags,
                                struct freertos_sockaddr * pxSourceAddress,
-                               socklen_t * pxSourceAddressLength );
+                               const socklen_t * pxSourceAddressLength );
 
 
 /* Function to get the local address and IP port. */
@@ -286,7 +286,7 @@
 
 /* Connect a TCP socket to a remote socket. */
         BaseType_t FreeRTOS_connect( Socket_t xClientSocket,
-                                     struct freertos_sockaddr * pxAddress,
+                                     const struct freertos_sockaddr * pxAddress,
                                      socklen_t xAddressLength );
 
 /* Places a TCP socket into a state where it is listening for and can accept
@@ -499,7 +499,8 @@
 /* The SocketSet_t type is the equivalent to the fd_set type used by the
  * Berkeley API. */
         struct xSOCKET_SET;
-        typedef struct xSOCKET_SET * SocketSet_t;
+        typedef struct xSOCKET_SET         * SocketSet_t;
+        typedef struct xSOCKET_SET const   * ConstSocketSet_t;
 
 /* Create a socket set for use with the FreeRTOS_select() function */
         SocketSet_t FreeRTOS_CreateSocketSet( void );
@@ -538,8 +539,8 @@
                               EventBits_t xBitsToClear );
 
 /* Check if a socket in a socket set has an event bit set. */
-        EventBits_t FreeRTOS_FD_ISSET( Socket_t xSocket,
-                                       SocketSet_t xSocketSet );
+        EventBits_t FreeRTOS_FD_ISSET( const ConstSocket_t xSocket,
+                                       const ConstSocketSet_t xSocketSet );
 
     #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
 

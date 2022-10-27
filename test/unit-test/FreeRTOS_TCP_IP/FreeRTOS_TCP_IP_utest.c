@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -67,7 +67,8 @@ FreeRTOS_Socket_t xSocket, * pxSocket;
 NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
 
 extern BaseType_t xTCPWindowLoggingLevel;
-extern FreeRTOS_Socket_t * xPreviousSocket;
+extern FreeRTOS_Socket_t * xSocketToClose;
+extern FreeRTOS_Socket_t * xSocketToListen;
 
 uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
 {
@@ -85,6 +86,20 @@ static void HandleConnected( Socket_t xSocket,
 {
     TEST_ASSERT_EQUAL( xHandleConnectedSocket, xSocket );
     TEST_ASSERT_EQUAL( xHandleConnectedLength, xLength );
+}
+
+/* Set the ACK message to NULL. */
+static void prvTCPReturnPacket_StubReturnNULL( FreeRTOS_Socket_t * pxSocket,
+                                               NetworkBufferDescriptor_t * pxDescriptor,
+                                               uint32_t ulLen,
+                                               BaseType_t xReleaseAfterSend,
+                                               int timesCalled )
+{
+    ( void ) pxDescriptor;
+    ( void ) ulLen;
+    ( void ) xReleaseAfterSend;
+    ( void ) timesCalled;
+    pxSocket->u.xTCP.pxAckMessage = NULL;
 }
 
 /* test vSocketCloseNextTime function */
@@ -119,6 +134,40 @@ void test_vSocketCloseNextTime_Close_Previous_Socket( void )
     vSocketCloseNextTime( &NewSocket );
 }
 
+void test_vSocketListenNextTime( void )
+{
+    FreeRTOS_Socket_t xSocket;
+
+    xSocketToListen = NULL;
+
+    vSocketListenNextTime( &xSocket );
+
+    TEST_ASSERT_EQUAL( &xSocket, xSocketToListen );
+}
+
+void test_vSocketListenNextTime1( void )
+{
+    FreeRTOS_Socket_t xSocket;
+
+    xSocketToListen = &xSocket;
+
+    FreeRTOS_listen_ExpectAndReturn( ( Socket_t ) xSocketToListen, xSocketToListen->u.xTCP.usBacklog, 0 );
+    vSocketListenNextTime( NULL );
+
+    TEST_ASSERT_EQUAL( NULL, xSocketToListen );
+}
+
+void test_vSocketListenNextTime2( void )
+{
+    FreeRTOS_Socket_t xSocket;
+
+    xSocketToListen = &xSocket;
+
+    vSocketListenNextTime( xSocketToListen );
+
+    TEST_ASSERT_EQUAL( &xSocket, xSocketToListen );
+}
+
 /* test xTCPSocketCheck function */
 void test_xTCPSocketCheck_AllInputsZero1( void )
 {
@@ -146,7 +195,7 @@ void test_xTCPSocketCheck_StateEstablished( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
 
     prvTCPSendPacket_ExpectAndReturn( &xSocket, 0 );
 
@@ -169,7 +218,7 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.txStream = ( void * ) &xSocket;
 
     prvTCPAddTxData_Expect( &xSocket );
@@ -195,7 +244,7 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.txStream = ( void * ) &xSocket;
     xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
 
@@ -219,6 +268,37 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1( void )
     TEST_ASSERT_EQUAL( 1U, xSocket.u.xTCP.usTimeout );
 }
 
+/* test xTCPSocketCheck function */
+void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull_BufferFreed( void )
+{
+    BaseType_t xReturn, xToReturn = 0xAABBCCDD;
+    FreeRTOS_Socket_t xSocket;
+    TickType_t xDelayReturn = 0;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.txStream = ( void * ) &xSocket;
+    xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
+
+    prvTCPAddTxData_Expect( &xSocket );
+
+    prvTCPReturnPacket_Stub( prvTCPReturnPacket_StubReturnNULL );
+
+    xTCPWindowTxHasData_ExpectAnyArgsAndReturn( pdTRUE );
+    xTCPWindowTxHasData_ReturnThruPtr_pulDelay( &xDelayReturn );
+
+    prvTCPSendPacket_ExpectAndReturn( &xSocket, 0 );
+
+    prvTCPStatusAgeCheck_ExpectAndReturn( &xSocket, xToReturn );
+
+    xReturn = xTCPSocketCheck( &xSocket );
+
+    TEST_ASSERT_EQUAL( xToReturn, xReturn );
+    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxAckMessage );
+    TEST_ASSERT_EQUAL( 1U, xSocket.u.xTCP.usTimeout );
+}
+
 /* @brief Test xTCPSocketCheck function when the stream is non-NULL and the
  *        time out is non-zero. */
 void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout( void )
@@ -229,7 +309,7 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout( void
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.txStream = ( void * ) &xSocket;
     xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
     xSocket.u.xTCP.usTimeout = 100;
@@ -258,7 +338,7 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout_NoLog
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.txStream = ( void * ) &xSocket;
     xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
     xSocket.u.xTCP.usTimeout = 100;
@@ -293,7 +373,7 @@ void test_xTCPSocketCheck_StateCLOSED_TxStreamNonNull1_NonZeroTimeout( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eCLOSED;
+    xSocket.u.xTCP.eTCPState = eCLOSED;
     xSocket.u.xTCP.txStream = ( void * ) &xSocket;
     xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
     xSocket.u.xTCP.usTimeout = 100;
@@ -322,7 +402,7 @@ void test_xTCPSocketCheck_StateeCONNECT_SYN_TxStreamNonNull_UserShutdown( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eCONNECT_SYN;
+    xSocket.u.xTCP.eTCPState = eCONNECT_SYN;
     xSocket.u.xTCP.txStream = ( void * ) &xSocket;
     xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
     xSocket.u.xTCP.usTimeout = 100;
@@ -370,7 +450,7 @@ void test_prvTCPNextTimeout_ConnSyn_State_Not_Active( void )
 
     pxSocket = &xSocket;
 
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
     pxSocket->u.xTCP.ucRepCount = 0;
 
@@ -385,7 +465,7 @@ void test_prvTCPNextTimeout_ConnSyn_State_Active_Rep0( void )
 
     pxSocket = &xSocket;
 
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
     pxSocket->u.xTCP.ucRepCount = 0;
 
@@ -400,7 +480,7 @@ void test_prvTCPNextTimeout_ConnSyn_State_Active_Rep1( void )
 
     pxSocket = &xSocket;
 
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
     pxSocket->u.xTCP.ucRepCount = 1;
 
@@ -415,7 +495,7 @@ void test_prvTCPNextTimeout_ConnSyn_State_Active_Rep3( void )
 
     pxSocket = &xSocket;
 
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
     pxSocket->u.xTCP.ucRepCount = 3;
 
@@ -430,7 +510,7 @@ void test_prvTCPNextTimeout_Established_State_Active_Timeout_Set( void )
 
     pxSocket = &xSocket;
 
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usTimeout = 5000;
     pxSocket->u.xTCP.ucRepCount = 3;
 
@@ -446,7 +526,7 @@ void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_Wi
     pxSocket = &xSocket;
     TickType_t TxWinReturn = 1000;
 
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usTimeout = 0;
     pxSocket->u.xTCP.ucRepCount = 3;
 
@@ -465,7 +545,7 @@ void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_Wi
     pxSocket = &xSocket;
     TickType_t TxWinReturn = 0;
 
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usTimeout = 0;
     pxSocket->u.xTCP.ucRepCount = 3;
 
@@ -484,7 +564,7 @@ void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_No_Data_Wit
     pxSocket = &xSocket;
     TickType_t TxWinReturn = 0;
 
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.usTimeout = 0;
     pxSocket->u.xTCP.ucRepCount = 3;
 
@@ -510,9 +590,135 @@ void test_vTCPStateChange_ClosedState( void )
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
+    vSocketWakeUpUser_Expect( &xSocket );
+
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.eTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is closed wait
+ *        and current state is equal to connect syn. */
+void test_vTCPStateChange_ClosedWaitState_PrvStateSyn( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSE_WAIT;
+
+    xSocket.u.xTCP.eTCPState = eCONNECT_SYN;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vSocketWakeUpUser_Expect( &xSocket );
+
+    vTCPStateChange( &xSocket, eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.eTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is closed wait
+ *        and current state is equal to syn first. */
+void test_vTCPStateChange_ClosedWaitState_PrvStateSynFirst( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSE_WAIT;
+
+    xSocket.u.xTCP.eTCPState = eSYN_FIRST;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vSocketWakeUpUser_Expect( &xSocket );
+
+    vTCPStateChange( &xSocket, eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.eTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is closed wait
+ *        and current state is equal to syn first. */
+void test_vTCPStateChange_ClosedWaitState_CurrentStateSynFirstNextStateCloseWait( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSE_WAIT;
+
+    xSocketToListen = NULL;
+
+    xSocket.u.xTCP.eTCPState = eSYN_FIRST;
+    xSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vSocketWakeUpUser_Expect( &xSocket );
+
+    vTCPStateChange( &xSocket, eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.eTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( &xSocket, xSocketToListen );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+}
+
+/* @brief Test vTCPStateChange function when the state to be reached is closed wait
+ *        and current state is equal to syn received. */
+void test_vTCPStateChange_ClosedWaitState_PrvStateSynRecvd( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSE_WAIT;
+
+    xSocket.u.xTCP.eTCPState = eSYN_RECEIVED;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+
+    vSocketWakeUpUser_Expect( &xSocket );
+
+    vTCPStateChange( &xSocket, eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -535,9 +741,11 @@ void test_vTCPStateChange_ClosedWaitState( void )
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
+    vSocketWakeUpUser_Expect( &xSocket );
+
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -556,7 +764,7 @@ void test_vTCPStateChange_ClosedWaitState_CallingFromIPTask( void )
     BaseType_t xTickCountAlive = 0xAABBEFDD;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
-    xSocket.u.xTCP.ucTCPState = eCLOSE_WAIT;
+    xSocket.u.xTCP.eTCPState = eCLOSE_WAIT;
     eTCPState = eCLOSE_WAIT;
 
     xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
@@ -566,9 +774,11 @@ void test_vTCPStateChange_ClosedWaitState_CallingFromIPTask( void )
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
+    vSocketWakeUpUser_Expect( &xSocket );
+
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -616,9 +826,11 @@ void test_vTCPStateChange_ClosedWaitState_CallingFromIPTask1( void )
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
+    vSocketWakeUpUser_Expect( &xSocket );
+
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -663,9 +875,11 @@ void test_vTCPStateChange_ClosedWaitState_ReuseSocket( void )
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
+    vSocketWakeUpUser_Expect( &xSocket );
+
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eCLOSE_WAIT, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -686,7 +900,7 @@ void test_vTCPStateChange_EstablishedState_ReuseSocket( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     eTCPState = eESTABLISHED;
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
 
     xSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
     xSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
@@ -697,9 +911,11 @@ void test_vTCPStateChange_EstablishedState_ReuseSocket( void )
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
+    vSocketWakeUpUser_Expect( &xSocket );
+
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -722,21 +938,23 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketInactive( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     eTCPState = eCLOSED;
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
 
     xSocket.u.xTCP.usTimeout = 100;
 
     xBackup = xTCPWindowLoggingLevel;
     xTCPWindowLoggingLevel = 2;
 
-    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, 0 );
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, 0 );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
+    vSocketWakeUpUser_Expect( &xSocket );
+
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -761,7 +979,7 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketActive( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     eTCPState = eCLOSED;
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
 
     xSocket.u.xTCP.usTimeout = 100;
     xSocket.u.xTCP.pxHandleConnected = HandleConnected;
@@ -772,14 +990,16 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketActive( void )
     xHandleConnectedSocket = &xSocket;
     xHandleConnectedLength = 0;
 
-    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
+    vSocketWakeUpUser_Expect( &xSocket );
+
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -803,7 +1023,7 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketActive_SelectExcept( vo
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     eTCPState = eCLOSED;
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
 
     xSocket.u.xTCP.usTimeout = 100;
     xSocket.u.xTCP.pxHandleConnected = HandleConnected;
@@ -815,14 +1035,16 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketActive_SelectExcept( vo
     xHandleConnectedSocket = &xSocket;
     xHandleConnectedLength = 0;
 
-    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
+    vSocketWakeUpUser_Expect( &xSocket );
+
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -846,7 +1068,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectExcept( vo
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     eTCPState = eESTABLISHED;
-    xSocket.u.xTCP.ucTCPState = eCLOSED;
+    xSocket.u.xTCP.eTCPState = eCLOSED;
 
     xSocket.u.xTCP.usTimeout = 100;
     xSocket.u.xTCP.pxHandleConnected = HandleConnected;
@@ -856,14 +1078,16 @@ void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectExcept( vo
     /* Expect the connected field to be set. */
     xHandleConnectedLength = 1;
 
-    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
+    vSocketWakeUpUser_Expect( &xSocket );
+
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -885,7 +1109,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectWrite( voi
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     eTCPState = eESTABLISHED;
-    xSocket.u.xTCP.ucTCPState = eCLOSED;
+    xSocket.u.xTCP.eTCPState = eCLOSED;
 
     xSocket.u.xTCP.usTimeout = 100;
     xSocket.u.xTCP.pxHandleConnected = HandleConnected;
@@ -895,14 +1119,16 @@ void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectWrite( voi
     /* Expect the connected field to be set. */
     xHandleConnectedLength = 1;
 
-    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
+    vSocketWakeUpUser_Expect( &xSocket );
+
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -926,7 +1152,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet( voi
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     eTCPState = eESTABLISHED;
-    xSocket.u.xTCP.ucTCPState = eCLOSED;
+    xSocket.u.xTCP.eTCPState = eCLOSED;
 
     xSocket.u.xTCP.usTimeout = 100;
     xSocket.xSelectBits = eSELECT_WRITE;
@@ -950,7 +1176,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet_Pare
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( &xParentSock, 0, sizeof( xParentSock ) );
     eTCPState = eESTABLISHED;
-    xSocket.u.xTCP.ucTCPState = eCLOSED;
+    xSocket.u.xTCP.eTCPState = eCLOSED;
 
     xSocket.u.xTCP.usTimeout = 100;
     xSocket.u.xTCP.pxHandleConnected = HandleConnected;
@@ -963,7 +1189,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet_Pare
     /* Expect the connected field to be set. */
     xHandleConnectedLength = 1;
 
-    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
@@ -972,7 +1198,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet_Pare
 
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -1001,7 +1227,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( &xParentSock, 0, sizeof( xParentSock ) );
     eTCPState = eESTABLISHED;
-    xSocket.u.xTCP.ucTCPState = eCLOSED;
+    xSocket.u.xTCP.eTCPState = eCLOSED;
 
     xSocket.u.xTCP.usTimeout = 100;
     xParentSock.u.xTCP.pxHandleConnected = HandleConnected;
@@ -1013,7 +1239,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
     /* Expect the connected field to be set. */
     xHandleConnectedLength = 1;
 
-    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
@@ -1022,7 +1248,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
 
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -1051,7 +1277,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( &xParentSock, 0, sizeof( xParentSock ) );
     eTCPState = eESTABLISHED;
-    xSocket.u.xTCP.ucTCPState = eCLOSED;
+    xSocket.u.xTCP.eTCPState = eCLOSED;
 
     xSocket.u.xTCP.usTimeout = 100;
     xParentSock.u.xTCP.pxHandleConnected = HandleConnected;
@@ -1065,7 +1291,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
     /* Expect the connected field to be set. */
     xHandleConnectedLength = 1;
 
-    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
@@ -1074,7 +1300,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
 
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -1102,7 +1328,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectRead_QueuedBitSet_Paren
     memset( &xSocket, 0, sizeof( xSocket ) );
 
     eTCPState = eESTABLISHED;
-    xSocket.u.xTCP.ucTCPState = eCLOSED;
+    xSocket.u.xTCP.eTCPState = eCLOSED;
 
     xSocket.u.xTCP.usTimeout = 100;
     xSocket.u.xTCP.pxHandleConnected = HandleConnected;
@@ -1115,7 +1341,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectRead_QueuedBitSet_Paren
     /* Expect the connected field to be set. */
     xHandleConnectedLength = 1;
 
-    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.ucTCPState, pdTRUE );
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
@@ -1124,7 +1350,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectRead_QueuedBitSet_Paren
 
     vTCPStateChange( &xSocket, eTCPState );
 
-    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eESTABLISHED, xSocket.u.xTCP.eTCPState );
     TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
@@ -1206,7 +1432,7 @@ void test_xProcessReceivedTCPPacket_No_Active_Socket( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eCLOSE_WAIT;
+    pxSocket->u.xTCP.eTCPState = eCLOSE_WAIT;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
@@ -1227,7 +1453,7 @@ void test_xProcessReceivedTCPPacket_No_Active_Socket_Send_Reset( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eCLOSE_WAIT;
+    pxSocket->u.xTCP.eTCPState = eCLOSE_WAIT;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
 
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
@@ -1249,7 +1475,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_No_Rst( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eTCP_LISTEN;
+    pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
@@ -1270,7 +1496,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_Rst( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eTCP_LISTEN;
+    pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK;
 
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
@@ -1292,7 +1518,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_Null_Socket( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eTCP_LISTEN;
+    pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
 
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
@@ -1314,7 +1540,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_Something( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eTCP_LISTEN;
+    pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
     pxSocket->u.xTCP.usTimeout = 1000;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x50;
@@ -1343,7 +1569,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_None( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eTCP_LISTEN;
+    pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
     pxSocket->u.xTCP.usTimeout = 1000;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x50;
@@ -1372,7 +1598,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Check_Failed( void 
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eTCP_LISTEN;
+    pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
     pxSocket->u.xTCP.usTimeout = 1000;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x80;
@@ -1401,7 +1627,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Sent_Something_Buff
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eTCP_LISTEN;
+    pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
     pxSocket->u.xTCP.usTimeout = 1000;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x80;
@@ -1431,7 +1657,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Syn( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
 
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
@@ -1452,7 +1678,7 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_Change_State( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber = 0;
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 1 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
@@ -1462,9 +1688,11 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_Change_State( void )
     xTaskGetTickCount_ExpectAndReturn( 1000 );
     xTaskGetTickCount_ExpectAndReturn( 1500 );
 
+    vSocketWakeUpUser_Expect( pxSocket );
+
     Return = xProcessReceivedTCPPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdFALSE, Return );
-    TEST_ASSERT_EQUAL( eCLOSED, pxSocket->u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eCLOSED, pxSocket->u.xTCP.eTCPState );
 }
 
 /* test xProcessReceivedTCPPacket function */
@@ -1478,7 +1706,7 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_SeqNo_Wrong( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber = 0;
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
@@ -1501,7 +1729,7 @@ void test_xProcessReceivedTCPPacket_SynReceived_State_Rst( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eSYN_RECEIVED;
+    pxSocket->u.xTCP.eTCPState = eSYN_RECEIVED;
     pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber = 1000;
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x50;
     pxProtocolHeaders->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( 1001 );
@@ -1531,7 +1759,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Change_State( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber = 1000;
     pxProtocolHeaders->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( 1000 );
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
@@ -1543,9 +1771,11 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Change_State( void )
     xTaskGetTickCount_ExpectAndReturn( 1000 );
     xTaskGetTickCount_ExpectAndReturn( 1500 );
 
+    vSocketWakeUpUser_Expect( pxSocket );
+
     Return = xProcessReceivedTCPPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdFALSE, Return );
-    TEST_ASSERT_EQUAL( eCLOSED, pxSocket->u.xTCP.ucTCPState );
+    TEST_ASSERT_EQUAL( eCLOSED, pxSocket->u.xTCP.eTCPState );
 }
 
 /* test xProcessReceivedTCPPacket function */
@@ -1559,7 +1789,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_InRange( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber = 1000;
     pxProtocolHeaders->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( 1001 );
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
@@ -1586,7 +1816,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange1( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber = 1000;
     pxProtocolHeaders->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( 1001 );
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
@@ -1612,7 +1842,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange2( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber = 1000;
     pxProtocolHeaders->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( 1001 );
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
@@ -1638,7 +1868,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Ack( void )
     ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
-    pxSocket->u.xTCP.ucTCPState = eESTABLISHED;
+    pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber = 1000;
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x50;
     pxProtocolHeaders->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( 1001 );

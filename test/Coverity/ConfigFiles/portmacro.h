@@ -1,6 +1,6 @@
 /*
- * FreeRTOS Kernel V10.3.0
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -42,8 +42,8 @@
 #define portPOINTER_SIZE_TYPE    size_t
 
 typedef portSTACK_TYPE   StackType_t;
-typedef long             BaseType_t;
-typedef unsigned long    UBaseType_t;
+typedef int32_t          BaseType_t;
+typedef uint32_t         UBaseType_t;
 
 
 #if ( configUSE_16_BIT_TICKS == 1 )

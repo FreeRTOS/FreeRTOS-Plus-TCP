@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -318,24 +318,30 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
             }
         }
 
-        if( uxOffset == 0U )
+        /* The below update to the stream buffer members must happen
+         * atomically. */
+        vTaskSuspendAll();
         {
-            /* ( uxOffset == 0 ) means: write at uxHead position */
-            uxNextHead += uxCount;
-
-            if( uxNextHead >= pxBuffer->LENGTH )
+            if( uxOffset == 0U )
             {
-                uxNextHead -= pxBuffer->LENGTH;
+                /* ( uxOffset == 0 ) means: write at uxHead position */
+                uxNextHead += uxCount;
+
+                if( uxNextHead >= pxBuffer->LENGTH )
+                {
+                    uxNextHead -= pxBuffer->LENGTH;
+                }
+
+                pxBuffer->uxHead = uxNextHead;
             }
 
-            pxBuffer->uxHead = uxNextHead;
+            if( xStreamBufferLessThenEqual( pxBuffer, pxBuffer->uxFront, uxNextHead ) != pdFALSE )
+            {
+                /* Advance the front pointer */
+                pxBuffer->uxFront = uxNextHead;
+            }
         }
-
-        if( xStreamBufferLessThenEqual( pxBuffer, pxBuffer->uxFront, uxNextHead ) != pdFALSE )
-        {
-            /* Advance the front pointer */
-            pxBuffer->uxFront = uxNextHead;
-        }
+        ( void ) xTaskResumeAll();
     }
 
     return uxCount;

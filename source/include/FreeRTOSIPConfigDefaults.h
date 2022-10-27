@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -168,7 +168,7 @@
  * stack.  FreeRTOS includes optional stack overflow detection, see:
  * http://www.freertos.org/Stacks-and-stack-overflow-checking.html */
 #ifndef ipconfigIP_TASK_STACK_SIZE_WORDS
-    #define ipconfigIP_TASK_STACK_SIZE_WORDS    ( configMINIMAL_STACK_SIZE * 5 )
+    #define ipconfigIP_TASK_STACK_SIZE_WORDS    ( configMINIMAL_STACK_SIZE * 5U )
 #endif
 
 /* Include all API's and code that is needed for the TCP protocol.
@@ -259,6 +259,10 @@
 
 #ifndef FreeRTOS_debug_printf
     #define FreeRTOS_debug_printf( MSG )    do {} while( ipFALSE_BOOL )
+    /* MISRA Ref 20.5.1 [Use of undef] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
+    /* coverity[misra_c_2012_rule_20_5_violation] */
+    #undef ipconfigHAS_DEBUG_PRINTF
     #define ipconfigHAS_DEBUG_PRINTF    0
 #endif
 
@@ -281,6 +285,10 @@
 
 #ifndef FreeRTOS_printf
     #define FreeRTOS_printf( MSG )    do {} while( ipFALSE_BOOL )
+    /* MISRA Ref 20.5.1 [Use of undef] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
+    /* coverity[misra_c_2012_rule_20_5_violation] */
+    #undef ipconfigHAS_PRINTF
     #define ipconfigHAS_PRINTF    0
 #endif
 
@@ -420,7 +428,7 @@
  * "reserved" for transmission.
  */
 #ifndef ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS
-    #define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    45
+    #define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    45U
 #endif
 
 /* Every task, and also the network interface can send messages
@@ -432,10 +440,10 @@
  * here below.
  */
 #ifndef ipconfigEVENT_QUEUE_LENGTH
-    #define ipconfigEVENT_QUEUE_LENGTH    ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5 )
+    #define ipconfigEVENT_QUEUE_LENGTH    ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U )
 #endif
 
-#if ( ipconfigEVENT_QUEUE_LENGTH < ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5 ) )
+#if ( ipconfigEVENT_QUEUE_LENGTH < ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U ) )
     #error The ipconfigEVENT_QUEUE_LENGTH parameter must be at least ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5
 #endif
 
@@ -609,6 +617,9 @@
 #else
     /* A sanity check to avoid a possible overflow of size_t. */
     #if ipconfigNETWORK_MTU > ( SIZE_MAX >> 1 )
+        /* MISRA Ref 20.5.1 [Use of undef] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
+        /* coverity[misra_c_2012_rule_20_5_violation] */
         #undef ipconfigNETWORK_MTU
         #define ipconfigNETWORK_MTU    ( SIZE_MAX >> 1 )
     #endif
@@ -725,7 +736,7 @@
 /* The number of entries in the DNS cache table.
  * The default of 1 is maybe too economic. */
     #ifndef ipconfigDNS_CACHE_ENTRIES
-        #define ipconfigDNS_CACHE_ENTRIES    1
+        #define ipconfigDNS_CACHE_ENTRIES    1U
     #endif
 
 #endif /* ipconfigUSE_DNS_CACHE != 0 */
@@ -800,6 +811,7 @@
  * It should be noted that it is most efficient to drop unwanted packets
  * as early as possible.
  */
+
 #ifndef ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES
     #define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    1
 #endif

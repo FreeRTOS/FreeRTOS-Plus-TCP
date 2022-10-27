@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -116,7 +116,7 @@ static BaseType_t xStubForEventGroupWaitBits( EventGroupHandle_t xEventGroup,
                                               TickType_t xTicksToWait,
                                               int CallbackCount )
 {
-    xGlobalSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xGlobalSocket.u.xTCP.eTCPState = eESTABLISHED;
 }
 
 static BaseType_t xLocalReceiveCallback( Socket_t xSocket,
@@ -2115,7 +2115,7 @@ void test_FreeRTOS_setsockopt_SetFullSize_Reset_StateIncorrect( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.u.xTCP.bits.bReuseSocket = pdTRUE;
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED - 1;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED - 1;
 
     xReturn = FreeRTOS_setsockopt( &xSocket, lLevel, lOptionName, &vOptionValue, uxOptionLength );
 
@@ -2140,7 +2140,7 @@ void test_FreeRTOS_setsockopt_SetFullSize_Reset_StateCorrect( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.u.xTCP.bits.bReuseSocket = pdTRUE;
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
 
     xReturn = FreeRTOS_setsockopt( &xSocket, lLevel, lOptionName, &vOptionValue, uxOptionLength );
 
@@ -2165,7 +2165,7 @@ void test_FreeRTOS_setsockopt_SetFullSize_Reset_HappyPath( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.u.xTCP.bits.bReuseSocket = pdTRUE;
-    xSocket.u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.txStream = ( uintptr_t ) 0xABCD;
 
     uxStreamBufferGetSize_ExpectAndReturn( xSocket.u.xTCP.txStream, 0x123 );
@@ -2729,7 +2729,7 @@ void test_FreeRTOS_connect_Timeout( void )
     /* No timeout the first time. */
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
 
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_CONNECT, pdTRUE, pdFALSE, xSocket.xReceiveBlockTime, pdTRUE );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_CONNECT | eSOCKET_CLOSED, pdTRUE, pdFALSE, xSocket.xReceiveBlockTime, pdTRUE );
 
     /* Timed out! */
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
@@ -2737,6 +2737,39 @@ void test_FreeRTOS_connect_Timeout( void )
     xResult = FreeRTOS_connect( &xSocket, &xAddress, xAddressLength );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ETIMEDOUT, xResult );
+}
+
+/*
+ * @brief Timeout in connection.
+ */
+void test_FreeRTOS_connect_SocketClosed( void )
+{
+    BaseType_t xResult;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xAddress;
+    socklen_t xAddressLength;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    /* Non 0 value to show blocking. */
+    xSocket.xReceiveBlockTime = 0x123;
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+
+    vTCPStateChange_Expect( &xSocket, eCONNECT_SYN );
+    xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdPASS );
+
+    /* Using a local variable. */
+    vTaskSetTimeOutState_ExpectAnyArgs();
+
+    /* No timeout the first time. */
+    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
+
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_CONNECT | eSOCKET_CLOSED, pdTRUE, pdFALSE, xSocket.xReceiveBlockTime, eSOCKET_CLOSED );
+
+    xResult = FreeRTOS_connect( &xSocket, &xAddress, xAddressLength );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOTCONN, xResult );
 }
 
 /*
@@ -2826,24 +2859,24 @@ void test_FreeRTOS_maywrite_InvalidValues( void )
 
     /* Invalid States. */
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.u.xTCP.ucTCPState = eCONNECT_SYN - 1;
+    xSocket.u.xTCP.eTCPState = eTCP_LISTEN; /* eCONNECT_SYN - 1 */
     xReturn = FreeRTOS_maywrite( &xSocket );
     TEST_ASSERT_EQUAL( -1, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED + 1;
+    xSocket.u.xTCP.eTCPState = eFIN_WAIT_1; /* eESTABLISHED + 1 */
     xReturn = FreeRTOS_maywrite( &xSocket );
     TEST_ASSERT_EQUAL( -1, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eCONNECT_SYN;
+    xSocket.u.xTCP.eTCPState = eCONNECT_SYN;
     xReturn = FreeRTOS_maywrite( &xSocket );
     TEST_ASSERT_EQUAL( 0, xReturn );
 
-    xSocket.u.xTCP.ucTCPState = eCONNECT_SYN + 1;
+    xSocket.u.xTCP.eTCPState = eSYN_FIRST; /* eCONNECT_SYN + 1 */
     xReturn = FreeRTOS_maywrite( &xSocket );
     TEST_ASSERT_EQUAL( 0, xReturn );
 
     /* Transmission NULL. */
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.uxTxStreamSize = 0x123;
     xReturn = FreeRTOS_maywrite( &xSocket );
     TEST_ASSERT_EQUAL( 0x123, xReturn );
@@ -2861,7 +2894,7 @@ void test_FreeRTOS_maywrite_HappyPath( void )
     memset( &xSocket, 0, sizeof( xSocket ) );
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.u.xTCP.ucTCPState = eESTABLISHED;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.txStream = ucStream;
 
     uxStreamBufferGetSpace_ExpectAndReturn( ucStream, 0x3344 );
@@ -2913,7 +2946,7 @@ void test_vTCPNetStat_IPStackInit( void )
     xTaskGetTickCount_ExpectAndReturn( 0x10 );
 
     /* Second Iteration. */
-    xSocket2.u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocket2.u.xTCP.eTCPState = eTCP_LISTEN;
     listGET_NEXT_ExpectAndReturn( &xIterator, &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xSocket2 );
 
@@ -3036,7 +3069,7 @@ void test_vSocketSelect_TCPSocketsOnly( void )
     /* Round 3. */
     xSocket[ 3 ].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
     xSocket[ 3 ].u.xTCP.bits.bPassAccept = pdTRUE;
-    xSocket[ 3 ].u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocket[ 3 ].u.xTCP.eTCPState = eTCP_LISTEN;
     xSocket[ 3 ].u.xTCP.pxPeerSocket = &xPeerSocket;
     xSocket[ 3 ].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
@@ -3045,7 +3078,7 @@ void test_vSocketSelect_TCPSocketsOnly( void )
     /* Round 4. */
     xSocket[ 4 ].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
     xSocket[ 4 ].u.xTCP.bits.bPassAccept = pdTRUE;
-    xSocket[ 4 ].u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocket[ 4 ].u.xTCP.eTCPState = eTCP_LISTEN;
     xSocket[ 4 ].u.xTCP.pxPeerSocket = &xPeerSocket1;
     xSocket[ 4 ].u.xTCP.pxPeerSocket->u.xTCP.bits.bPassAccept = pdTRUE;
     xSocket[ 4 ].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
@@ -3054,7 +3087,7 @@ void test_vSocketSelect_TCPSocketsOnly( void )
 
     /* Round 5. */
     xSocket[ 5 ].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
-    xSocket[ 5 ].u.xTCP.ucTCPState = ( uint8_t ) eTCP_LISTEN;
+    xSocket[ 5 ].u.xTCP.eTCPState = eTCP_LISTEN;
     xSocket[ 5 ].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
     xSocket[ 5 ].u.xTCP.txStream = ucStream;
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
@@ -3063,7 +3096,7 @@ void test_vSocketSelect_TCPSocketsOnly( void )
 
     /* Round 5. */
     xSocket[ 6 ].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
-    xSocket[ 6 ].u.xTCP.ucTCPState = ( uint8_t ) eCLOSE_WAIT;
+    xSocket[ 6 ].u.xTCP.eTCPState = eCLOSE_WAIT;
     xSocket[ 6 ].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
     xSocket[ 6 ].u.xTCP.txStream = ucStream;
     xSocket[ 6 ].u.xTCP.rxStream = ucStream;
@@ -3074,7 +3107,7 @@ void test_vSocketSelect_TCPSocketsOnly( void )
 
     /* Round 6. */
     xSocket[ 7 ].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
-    xSocket[ 7 ].u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket[ 7 ].u.xTCP.eTCPState = eESTABLISHED;
     xSocket[ 7 ].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
     xSocket[ 7 ].u.xTCP.bits.bPassQueued = pdTRUE;
     xSocket[ 7 ].u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
@@ -3083,7 +3116,7 @@ void test_vSocketSelect_TCPSocketsOnly( void )
 
     /* Round 7. */
     xSocket[ 8 ].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
-    xSocket[ 8 ].u.xTCP.ucTCPState = ( uint8_t ) eESTABLISHED;
+    xSocket[ 8 ].u.xTCP.eTCPState = eESTABLISHED;
     xSocket[ 8 ].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
     xSocket[ 8 ].u.xTCP.bits.bPassQueued = pdTRUE;
     xSocket[ 8 ].u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;

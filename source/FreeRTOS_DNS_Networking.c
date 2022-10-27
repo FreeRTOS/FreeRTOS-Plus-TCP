@@ -1,6 +1,6 @@
 /*
- * FreeRTOS+TCP V2.3.4
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -62,7 +62,7 @@
         {
             /* Auto bind the port. */
             xAddress.sin_port = 0U;
-            xReturn = FreeRTOS_bind( xSocket, &xAddress, sizeof( xAddress ) );
+            xReturn = FreeRTOS_bind( xSocket, &xAddress, ( socklen_t ) sizeof( xAddress ) );
 
             /* Check the bind was successful, and clean up if not. */
             if( xReturn != 0 )
@@ -92,9 +92,9 @@
  *                  false otherwise
  *
  */
-    uint32_t DNS_SendRequest( Socket_t xDNSSocket,
-                              struct freertos_sockaddr * xAddress,
-                              struct xDNSBuffer * pxDNSBuf )
+    BaseType_t DNS_SendRequest( Socket_t xDNSSocket,
+                                const struct freertos_sockaddr * xAddress,
+                                const struct xDNSBuffer * pxDNSBuf )
     {
         BaseType_t xReturn = pdFALSE;
 
@@ -106,7 +106,7 @@
                              pxDNSBuf->uxPayloadLength,
                              FREERTOS_ZERO_COPY,
                              xAddress,
-                             sizeof( *xAddress ) ) != 0 )
+                             ( socklen_t ) sizeof( *xAddress ) ) != 0 )
         {
             xReturn = pdTRUE;
         }
@@ -126,19 +126,19 @@
  * @param xAddress address to read from
  * @param pxReceiveBuffer buffer to fill with received data
  */
-    void DNS_ReadReply( Socket_t xDNSSocket,
+    void DNS_ReadReply( const ConstSocket_t xDNSSocket,
                         struct freertos_sockaddr * xAddress,
                         struct xDNSBuffer * pxReceiveBuffer )
     {
-        uint32_t ulAddressLength = sizeof( struct freertos_sockaddr );
+        uint32_t ulAddressLength = ( uint32_t ) sizeof( struct freertos_sockaddr );
 
         /* Wait for the reply. */
-        pxReceiveBuffer->uxPayloadLength = FreeRTOS_recvfrom( xDNSSocket,
-                                                              &pxReceiveBuffer->pucPayloadBuffer,
-                                                              0,
-                                                              FREERTOS_ZERO_COPY,
-                                                              xAddress,
-                                                              &ulAddressLength );
+        pxReceiveBuffer->uxPayloadLength = ( size_t ) FreeRTOS_recvfrom( xDNSSocket,
+                                                                         &pxReceiveBuffer->pucPayloadBuffer,
+                                                                         0,
+                                                                         FREERTOS_ZERO_COPY,
+                                                                         xAddress,
+                                                                         &ulAddressLength );
         pxReceiveBuffer->uxPayloadSize = pxReceiveBuffer->uxPayloadLength;
     }
 
