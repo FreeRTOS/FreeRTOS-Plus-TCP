@@ -66,8 +66,8 @@ typedef enum
  * Look for an IP-MAC couple in ARP cache and reset the 'age' field. If no match
  * is found then no action will be taken.
  */
-    void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
-                                   const uint32_t ulIPAddress );
+void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
+                               const uint32_t ulIPAddress );
 
 /*
  * If ulIPAddress is already in the ARP cache table then reset the age of the
