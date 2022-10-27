@@ -704,6 +704,11 @@ typedef struct xSOCKET
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket );
 
 /*
+ * Postpone a call to listen() by the IP-task.
+ */
+    void vSocketListenNextTime( FreeRTOS_Socket_t * pxSocket );
+
+/*
  * Lookup a TCP socket, using a multiple matching: both port numbers and
  * return IP address.
  */

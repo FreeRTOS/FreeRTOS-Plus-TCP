@@ -2729,7 +2729,7 @@ void test_FreeRTOS_connect_Timeout( void )
     /* No timeout the first time. */
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
 
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_CONNECT, pdTRUE, pdFALSE, xSocket.xReceiveBlockTime, pdTRUE );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_CONNECT | eSOCKET_CLOSED, pdTRUE, pdFALSE, xSocket.xReceiveBlockTime, pdTRUE );
 
     /* Timed out! */
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
@@ -2737,6 +2737,39 @@ void test_FreeRTOS_connect_Timeout( void )
     xResult = FreeRTOS_connect( &xSocket, &xAddress, xAddressLength );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ETIMEDOUT, xResult );
+}
+
+/*
+ * @brief Timeout in connection.
+ */
+void test_FreeRTOS_connect_SocketClosed( void )
+{
+    BaseType_t xResult;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xAddress;
+    socklen_t xAddressLength;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    /* Non 0 value to show blocking. */
+    xSocket.xReceiveBlockTime = 0x123;
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+
+    vTCPStateChange_Expect( &xSocket, eCONNECT_SYN );
+    xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdPASS );
+
+    /* Using a local variable. */
+    vTaskSetTimeOutState_ExpectAnyArgs();
+
+    /* No timeout the first time. */
+    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
+
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_CONNECT | eSOCKET_CLOSED, pdTRUE, pdFALSE, xSocket.xReceiveBlockTime, eSOCKET_CLOSED );
+
+    xResult = FreeRTOS_connect( &xSocket, &xAddress, xAddressLength );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOTCONN, xResult );
 }
 
 /*
