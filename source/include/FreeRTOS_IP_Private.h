@@ -746,6 +746,16 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
  */
 NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer );
 
+/* Get the size of the IP-header.
+ * 'usFrameType' must be filled in if IPv6is to be recognised. */
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+/*-----------------------------------------------------------*/
+
+/* Get the size of the IP-header.
+ * The socket is checked for its type: IPv4 or IPv6. */
+size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket );
+/*-----------------------------------------------------------*/
+
 /*
  * Internal: Sets a new state for a TCP socket and performs the necessary
  * actions like calling a OnConnected handler to notify the socket owner.

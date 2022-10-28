@@ -140,13 +140,13 @@
                  * status 'eCLOSE_WAIT'. */
                 FreeRTOS_debug_printf( ( "Connect: giving up %xip:%u\n",
                                          ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, /* IP address of remote machine. */
-                                         pxSocket->u.xTCP.usRemotePort ) );        /* Port on remote machine. */
+                                         pxSocket->u.xTCP.usRemotePort ) );                /* Port on remote machine. */
                 vTCPStateChange( pxSocket, eCLOSE_WAIT );
             }
             else if( prvTCPMakeSurePrepared( pxSocket ) == pdTRUE )
             {
                 ProtocolHeaders_t * pxProtocolHeaders;
-                const UBaseType_t uxHeaderSize = ipSIZE_OF_IPv4_HEADER;
+                const UBaseType_t uxHeaderSize = uxIPHeaderSizeSocket( pxSocket );
 
                 /* Or else, if the connection has been prepared, or can be prepared
                  * now, proceed to send the packet with the SYN flag.
@@ -403,7 +403,7 @@
                     {
                         /* Suppress FIN in case this packet carries earlier data to be
                          * retransmitted. */
-                        uint32_t ulDataLen = ( uint32_t ) ( ulLen - ( ipSIZE_OF_TCP_HEADER + ipSIZE_OF_IPv4_HEADER ) );
+                        uint32_t ulDataLen = ( uint32_t ) ( ulLen - ( ipSIZE_OF_TCP_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ) );
 
                         if( ( pxTCPWindow->ulOurSequenceNumber + ulDataLen ) != pxTCPWindow->tx.ulFINSequenceNumber )
                         {
@@ -467,7 +467,7 @@
                 {
                     /* calculate the IP header checksum, in case the driver won't do that. */
                     pxIPHeader->usHeaderChecksum = 0x00U;
-                    pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ipSIZE_OF_IPv4_HEADER );
+                    pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderSizePacket( pxNetworkBuffer ) );
                     pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
                     /* calculate the TCP checksum for an outgoing packet. */
@@ -1090,7 +1090,7 @@
                     {
                         FreeRTOS_debug_printf( ( "keep-alive: giving up %xip:%u\n",
                                                  ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, /* IP address of remote machine. */
-                                                 pxSocket->u.xTCP.usRemotePort ) );        /* Port on remote machine. */
+                                                 pxSocket->u.xTCP.usRemotePort ) );                /* Port on remote machine. */
                         vTCPStateChange( pxSocket, eCLOSE_WAIT );
                         lDataLen = -1;
                     }
@@ -1313,7 +1313,7 @@
         BaseType_t xSendLength = xByteCount;
         uint32_t ulRxBufferSpace;
         /* Two steps to please MISRA. */
-        size_t uxSize = ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER;
+        size_t uxSize = uxIPHeaderSizePacket( *ppxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER;
         BaseType_t xSizeWithoutData = ( BaseType_t ) uxSize;
 
         #if ( ipconfigUSE_TCP_WIN == 1 )
@@ -1462,7 +1462,7 @@
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
                 const uint32_t ulSendLength =
-                    ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */
+                    ( uxIPHeaderSizePacket( pxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */
 
                 pxTCPPacket->xTCPHeader.ucTCPFlags = ucTCPFlags;
                 pxTCPPacket->xTCPHeader.ucTCPOffset = ( ipSIZE_OF_TCP_HEADER ) << 2;

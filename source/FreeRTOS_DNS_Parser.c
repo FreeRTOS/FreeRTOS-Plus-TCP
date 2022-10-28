@@ -740,6 +740,7 @@
             IPHeader_t * pxIPHeader;
             UDPHeader_t * pxUDPHeader;
             size_t uxDataLength;
+            const size_t uxIPHeaderLength = uxIPHeaderSizePacket( pxNetworkBuffer );
 
             pxUDPPacket = ( ( UDPPacket_t * )
                             pxNetworkBuffer->pucEthernetBuffer );
@@ -747,7 +748,7 @@
             pxUDPHeader = &pxUDPPacket->xUDPHeader;
             /* HT: started using defines like 'ipSIZE_OF_xxx' */
             pxIPHeader->usLength = FreeRTOS_htons( ( uint16_t ) lNetLength +
-                                                   ipSIZE_OF_IPv4_HEADER +
+                                                   uxIPHeaderLength +
                                                    ipSIZE_OF_UDP_HEADER );
             /* HT:endian: should not be translated, copying from packet to packet */
             pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
@@ -769,13 +770,13 @@
             vFlip_16( pxUDPHeader->usSourcePort, pxUDPHeader->usDestinationPort );
 
             /* Important: tell NIC driver how many bytes must be sent */
-            uxDataLength = ( ( size_t ) lNetLength ) + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER + ipSIZE_OF_ETH_HEADER;
+            uxDataLength = ( ( size_t ) lNetLength ) + uxIPHeaderLength + ipSIZE_OF_UDP_HEADER + ipSIZE_OF_ETH_HEADER;
 
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
                 {
                     /* Calculate the IP header checksum. */
                     pxIPHeader->usHeaderChecksum = 0U;
-                    pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ipSIZE_OF_IPv4_HEADER );
+                    pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderLength );
                     pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
                     /* calculate the UDP checksum for outgoing package */

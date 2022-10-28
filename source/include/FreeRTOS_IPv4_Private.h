@@ -159,6 +159,11 @@ struct xTCP_PACKET
 #include "pack_struct_end.h"
 typedef struct xTCP_PACKET TCPPacket_t;
 
+/*
+ * Processes incoming ARP packets.
+ */
+eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame );
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */

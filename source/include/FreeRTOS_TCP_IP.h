@@ -163,7 +163,6 @@ typedef enum eTCP_STATE
 
 /* Two macro's that were introduced to work with both IPv4 and IPv6. */
 #define xIPHeaderSize( pxNetworkBuffer )    ( ipSIZE_OF_IPv4_HEADER )          /**< Size of IP Header. */
-#define uxIPHeaderSizeSocket( pxSocket )    ( ipSIZE_OF_IPv4_HEADER )          /**< Size of IP Header socket. */
 
 
 /* *INDENT-OFF* */

@@ -109,6 +109,12 @@
 
 #define ipNUMERIC_CAST( TYPE, expression )    ( ( TYPE ) ( expression ) )
 
+
+/** @brief The macros vSetField16() and vSetField32() will write either a short or a 32-bit
+ * value into an array of bytes. They will be stored big-endian.
+ * The helper functions do the actual work.
+ */
+
 /*extern void vSetField16helper( uint8_t * pucBase,
  *                             size_t uxOffset,
  *                             uint16_t usValue );
@@ -250,21 +256,6 @@ FreeRTOS_Socket_t * pxTCPSocketLookupIPv6( UBaseType_t uxLocalPort,
                                            uint32_t ulRemoteIP,
                                            UBaseType_t uxRemotePort,
                                            IPv6_Address_t * pxAddress_IPv6 );
-
-/** @brief The macros vSetField16() and vSetField32() will write either a short or a 32-bit
- * value into an array of bytes. They will be stored big-endian.
- * The helper functions do the actual work.
- */
-
-/* Get the size of the IP-header.
- * 'usFrameType' must be filled in if IPv6is to be recognised. */
-size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
-/*-----------------------------------------------------------*/
-
-/* Get the size of the IP-header.
- * The socket is checked for its type: IPv4 or IPv6. */
-/*size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket ); */
-/*-----------------------------------------------------------*/
 
 #if ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) )
 /* prepare a string which describes a socket, just for logging. */
