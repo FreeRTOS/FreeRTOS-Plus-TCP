@@ -49,6 +49,9 @@
 
 #include "event_groups.h"
 
+/* MISRA Ref 20.5.1 [Use of undef] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
+/* coverity[misra_c_2012_rule_20_5_violation] */
 #undef TCP_PACKET_SIZE
 #define TCP_PACKET_SIZE          ( sizeof( TCPPacket_IPv6_t ) )
 
@@ -58,7 +61,9 @@
 #define ipIP_TYPE_OFFSET         ( 6U )
 /* The offset into an IP packet into which the IP data (payload) starts. */
 #define ipIPv6_PAYLOAD_OFFSET    ( sizeof( IPPacket_IPv6_t ) )
-
+/* MISRA Ref 20.5.1 [Use of undef] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
+/* coverity[misra_c_2012_rule_20_5_violation] */
 /* The maximum UDP payload length. */
 #undef ipMAX_UDP_PAYLOAD_LENGTH
 #define ipMAX_UDP_PAYLOAD_LENGTH          ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv6_HEADER ) - ipSIZE_OF_UDP_HEADER )
@@ -139,8 +144,7 @@ extern struct xNetworkEndPoint * pxNetworkEndPoints;
 /* A list of all network interfaces: */
 extern struct xNetworkInterface * pxNetworkInterfaces;
 
-typedef union xPROT_HEADERS   ProtocolHeaders_t;
-typedef struct xSOCKET        FreeRTOS_Socket_t;
+typedef struct xSOCKET FreeRTOS_Socket_t;
 
 #include "pack_struct_start.h"
 struct xIP_HEADER_IPv6

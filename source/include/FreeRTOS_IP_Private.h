@@ -215,7 +215,7 @@ typedef struct IP_TASK_COMMANDS
 struct xPacketSummary
 {
     BaseType_t xIsIPv6;                          /**< pdTRUE for IPv6 packets. */
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ipconfigUSE_IPV6
         const IPHeader_IPv6_t * pxIPPacket_IPv6; /**< A pointer to the IPv6 header. */
     #endif
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
