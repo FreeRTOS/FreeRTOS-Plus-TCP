@@ -10,19 +10,19 @@ All the CMake commands are to be run from the root of the repository.
 * Build checks (Enable all functionalities)
 ```
 cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL
-make -C build
+cmake --build build --target freertos_plus_tcp_build_test
 ```
 
 * Build checks (Disable all functionalities)
 ```
 cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DISABLE_ALL
-make -C build
+cmake --build build --target freertos_plus_tcp_build_test
 ```
 
 * Build checks (Default configuration)
 ```
 cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DEFAULT_CONF
-make -C .
+cmake --build build --target freertos_plus_tcp_build_test
 ```
 
 ## Windows
