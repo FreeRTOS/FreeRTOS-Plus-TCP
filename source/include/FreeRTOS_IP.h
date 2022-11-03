@@ -216,7 +216,8 @@
 /* A forward declaration of 'struct xNetworkEndPoint' and 'xNetworkInterface'.
  * The actual declaration can be found in FreeRTOS_Routing.h which is included
  * as the last +TCP header file. */
-struct xNetworkEndPoint;
+struct xNetworkEndPoint_IPv4;
+struct xNetworkEndPoint_IPv6;
 struct xNetworkInterface;
 
 /** @brief The structure used to store buffers and pass them around the network stack.
@@ -229,7 +230,12 @@ typedef struct xNETWORK_BUFFER
     uint8_t * pucEthernetBuffer;               /**< Pointer to the start of the Ethernet frame. */
     size_t xDataLength;                        /**< Starts by holding the total Ethernet frame length, then the UDP/TCP payload length. */
     struct xNetworkInterface * pxInterface;    /**< The interface on which the packet was received. */
-    struct xNetworkEndPoint * pxEndPoint;      /**< The end-point through which this packet shall be sent. */
+    struct xNetworkEndPoint_IPv4 * pxEndPoint;      /**< The end-point through which this packet shall be sent. */
+    struct
+    {
+        uint32_t
+            bIPv6 : 1;         /**< Non-zero as soon as the interface is up. */
+    } bits;
     uint16_t usPort;                           /**< Source or destination port, depending on usage scenario. */
     uint16_t usBoundPort;                      /**< The port to which a transmitting socket is bound. */
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
@@ -237,6 +243,7 @@ typedef struct xNETWORK_BUFFER
     #endif
     #if ( ipconfigUSE_IPv6 != 0 )
         IPv6_Address_t xIPv6Address; /**< The IP-address of the unit which sent this packet. */
+        struct xNetworkEndPoint_IPv6 * pxEndPointIPv6;
     #endif
 } NetworkBufferDescriptor_t;
 
@@ -443,8 +450,7 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer );
     #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
         /* Not clear why Coverity doesn't see the declaration in main.c */
         /* misra_c_2012_rule_8_6_violation */
-        void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                             struct xNetworkEndPoint * pxEndPoint );
+        void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
     #else
         /* misra_c_2012_rule_8_6_violation */
         void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );

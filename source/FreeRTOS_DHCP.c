@@ -197,24 +197,24 @@
 /*
  * Generate a DHCP discover message and send it on the DHCP socket.
  */
-    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_IPv4_t * pxEndPoint );
 
 /*
  * Interpret message received on the DHCP socket.
  */
     static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
-                                             NetworkEndPoint_t * pxEndPoint );
+                                             NetworkEndPoint_IPv4_t * pxEndPoint );
 
 /*
  * Generate a DHCP request packet, and send it on the DHCP socket.
  */
-    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_IPv4_t * pxEndPoint );
 
 /*
  * Prepare to start a DHCP transaction.  This initialises some state variables
  * and creates the DHCP socket if necessary.
  */
-    static void prvInitialiseDHCP( NetworkEndPoint_t * pxEndPoint );
+    static void prvInitialiseDHCP( NetworkEndPoint_IPv4_t * pxEndPoint );
 
 /*
  * Creates the part of outgoing DHCP messages that are common to all outgoing
@@ -224,33 +224,33 @@
                                                BaseType_t xOpcode,
                                                const uint8_t * const pucOptionsArray,
                                                size_t * pxOptionsArraySize,
-                                               NetworkEndPoint_t * pxEndPoint );
+                                               NetworkEndPoint_IPv4_t * pxEndPoint );
 
 /*
  * Create the DHCP socket, if it has not been created already.
  */
-    _static void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
+    _static void prvCreateDHCPSocket( NetworkEndPoint_IPv4_t * pxEndPoint );
 
 /*
  * Close the DHCP socket, only when not in use anymore (i.e. xDHCPSocketUserCount = 0).
  */
-    static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint );
+    static void prvCloseDHCPSocket( NetworkEndPoint_IPv4_t * pxEndPoint );
 
     static void vDHCPProcessEndPoint( BaseType_t xReset,
                                       BaseType_t xDoCheck,
-                                      NetworkEndPoint_t * pxEndPoint );
+                                      NetworkEndPoint_IPv4_t * pxEndPoint );
 
-    static BaseType_t xHandleWaitingOffer( NetworkEndPoint_t * pxEndPoint,
+    static BaseType_t xHandleWaitingOffer( NetworkEndPoint_IPv4_t * pxEndPoint,
                                            BaseType_t xDoCheck );
 
-    static void vHandleWaitingAcknowledge( NetworkEndPoint_t * pxEndPoint,
+    static void vHandleWaitingAcknowledge( NetworkEndPoint_IPv4_t * pxEndPoint,
                                            BaseType_t xDoCheck );
 
-    static BaseType_t xHandleWaitingFirstDiscover( NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t xHandleWaitingFirstDiscover( NetworkEndPoint_IPv4_t * pxEndPoint );
 
-    static void prvHandleWaitingeLeasedAddress( NetworkEndPoint_t * pxEndPoint );
+    static void prvHandleWaitingeLeasedAddress( NetworkEndPoint_IPv4_t * pxEndPoint );
 
-    static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
+    static void vProcessHandleOption( NetworkEndPoint_IPv4_t * pxEndPoint,
                                       ProcessSet_t * pxSet,
                                       BaseType_t xExpectedMessageType );
 
@@ -288,7 +288,7 @@
  *
  * @param[in] pxEndPoint: the end-point which is going through the DHCP process.
  */
-    eDHCPState_t eGetDHCPState( struct xNetworkEndPoint * pxEndPoint )
+    eDHCPState_t eGetDHCPState( struct xNetworkEndPoint_IPv4 * pxEndPoint )
     {
         /* Note that EP_DHCPData is defined as "pxEndPoint->xDHCPData". */
         return EP_DHCPData.eDHCPState;
@@ -304,7 +304,7 @@
  *                        make one cycle.
  */
     void vDHCPProcess( BaseType_t xReset,
-                       struct xNetworkEndPoint * pxEndPoint )
+                       struct xNetworkEndPoint_IPv4 * pxEndPoint )
     {
         BaseType_t xDoProcess = pdTRUE;
 
@@ -324,7 +324,7 @@
             for( ; ; )
             {
                 BaseType_t xRecvFlags = FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK;
-                NetworkEndPoint_t * pxIterator = NULL;
+                NetworkEndPoint_IPv4_t * pxIterator = NULL;
 
                 /* Peek the next UDP message. */
                 lBytes = FreeRTOS_recvfrom( xDHCPv4Socket, &( pucUDPPayload ), 0, xRecvFlags, NULL, NULL );
@@ -345,7 +345,7 @@
                 /* Sanity check. */
                 if( ( pxDHCPMessage->ulDHCPCookie == dhcpCOOKIE ) && ( pxDHCPMessage->ucOpcode == dhcpREPLY_OPCODE ) )
                 {
-                    pxIterator = pxNetworkEndPoints;
+                    pxIterator = pxNetworkEndPoints_IPv4;
 
                     /* Find the end-point with given transaction ID. */
                     while( pxIterator != NULL )
@@ -406,7 +406,7 @@
  * @param[in] xDoCheck: When true, the function must handle any replies.
  * @return It returns pdTRUE in case the DHCP process must be given up.
  */
-    static BaseType_t xHandleWaitingOffer( NetworkEndPoint_t * pxEndPoint,
+    static BaseType_t xHandleWaitingOffer( NetworkEndPoint_IPv4_t * pxEndPoint,
                                            BaseType_t xDoCheck )
     {
         BaseType_t xGivingUp = pdFALSE;
@@ -539,7 +539,7 @@
  * @param[in] pxEndPoint: The end-point that is getting an IP-address from a DHCP server
  * @param[in] xDoCheck: When true, the function must handle any replies.
  */
-    static void vHandleWaitingAcknowledge( NetworkEndPoint_t * pxEndPoint,
+    static void vHandleWaitingAcknowledge( NetworkEndPoint_IPv4_t * pxEndPoint,
                                            BaseType_t xDoCheck )
     {
         if( xDoCheck == pdFALSE )
@@ -611,7 +611,7 @@
 
             /* Check for clashes. */
             vARPSendGratuitous();
-            vDHCP_RATimerReload( ( struct xNetworkEndPoint * ) pxEndPoint, EP_DHCPData.ulLeaseTime );
+            vDHCP_RATimerReload( ( struct xNetworkEndPoint_IPv4 * ) pxEndPoint, EP_DHCPData.ulLeaseTime );
         }
         else
         {
@@ -625,7 +625,7 @@
  * @param[in] pxEndPoint: The end-point that is getting an IP-address from a DHCP server
  * @return xGivingUp: when pdTRUE, there was a fatal error and the process can not continue;
  */
-    static BaseType_t xHandleWaitingFirstDiscover( NetworkEndPoint_t * pxEndPoint )
+    static BaseType_t xHandleWaitingFirstDiscover( NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         BaseType_t xGivingUp = pdFALSE;
 
@@ -684,7 +684,7 @@
  *        If waits until the lease must be renewed, and then send a new request.
  * @param[in] pxEndPoint: The end-point that is getting an IP-address from a DHCP server
  */
-    static void prvHandleWaitingeLeasedAddress( NetworkEndPoint_t * pxEndPoint )
+    static void prvHandleWaitingeLeasedAddress( NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         if( FreeRTOS_IsEndPointUp( pxEndPoint ) != 0 )
         {
@@ -716,7 +716,7 @@
         {
             /* See PR #53 on github/freertos/freertos */
             FreeRTOS_printf( ( "DHCP: lease time finished but network is down\n" ) );
-            vDHCP_RATimerReload( ( struct xNetworkEndPoint * ) pxEndPoint, pdMS_TO_TICKS( 5000U ) );
+            vDHCP_RATimerReload( ( struct xNetworkEndPoint_IPv4 * ) pxEndPoint, pdMS_TO_TICKS( 5000U ) );
         }
     }
 /*-----------------------------------------------------------*/
@@ -732,7 +732,7 @@
  */
     static void vDHCPProcessEndPoint( BaseType_t xReset,
                                       BaseType_t xDoCheck,
-                                      NetworkEndPoint_t * pxEndPoint )
+                                      NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         BaseType_t xGivingUp = pdFALSE;
 
@@ -894,7 +894,7 @@
  *        using it.
  * @param[in] pxEndPoint: The end-point that stops using the socket.
  */
-    static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
+    static void prvCloseDHCPSocket( NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         if( ( EP_DHCPData.xDHCPSocket == NULL ) || ( EP_DHCPData.xDHCPSocket != xDHCPv4Socket ) )
         {
@@ -930,7 +930,7 @@
  * @brief Create a DHCP socket with the defined timeouts. The same socket
  *        will be shared among all end-points that need DHCP.
  */
-    _static void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint )
+    _static void prvCreateDHCPSocket( NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         struct freertos_sockaddr xAddress;
         BaseType_t xReturn;
@@ -977,7 +977,7 @@
  *
  * @param[in] pxEndPoint: The end-point that needs DHCP.
  */
-    static void prvInitialiseDHCP( NetworkEndPoint_t * pxEndPoint )
+    static void prvInitialiseDHCP( NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         /* Initialise the parameters that will be set by the DHCP process. Per
          * https://www.ietf.org/rfc/rfc2131.txt, Transaction ID should be a random
@@ -1011,7 +1011,7 @@
  * @param[in] xExpectedMessageType: The type of message expected in the
  *                                  dhcpIPv4_MESSAGE_TYPE_OPTION_CODE option.
  */
-    static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
+    static void vProcessHandleOption( NetworkEndPoint_IPv4_t * pxEndPoint,
                                       ProcessSet_t * pxSet,
                                       BaseType_t xExpectedMessageType )
     {
@@ -1262,7 +1262,7 @@
  * @return pdPASS: if DHCP options are received correctly; pdFAIL: Otherwise.
  */
     static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
-                                             NetworkEndPoint_t * pxEndPoint )
+                                             NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         uint8_t * pucUDPPayload;
         int32_t lBytes;
@@ -1368,7 +1368,7 @@
                                                BaseType_t xOpcode,
                                                const uint8_t * const pucOptionsArray,
                                                size_t * pxOptionsArraySize,
-                                               NetworkEndPoint_t * pxEndPoint )
+                                               NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         DHCPMessage_IPv4_t * pxDHCPMessage;
         size_t uxRequiredBufferSize = sizeof( DHCPMessage_IPv4_t ) + *pxOptionsArraySize;
@@ -1474,7 +1474,7 @@
  *
  * param[in] pxEndPoint: The end-point for which the request will be sent.
  */
-    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint )
+    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         BaseType_t xResult = pdFAIL;
         uint8_t * pucUDPPayloadBuffer;
@@ -1547,7 +1547,7 @@
  *
  * @return: pdPASS if the DHCP discover message was sent successfully, pdFAIL otherwise.
  */
-    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint )
+    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         BaseType_t xResult = pdFAIL;
         uint8_t const * pucUDPPayloadBuffer;
@@ -1604,7 +1604,7 @@
  *
  * param[in] pxEndPoint: The end-point that wants to obtain a link-layer address.
  */
-        void prvPrepareLinkLayerIPLookUp( NetworkEndPoint_t * pxEndPoint )
+        void prvPrepareLinkLayerIPLookUp( NetworkEndPoint_IPv4_t * pxEndPoint )
         {
             uint8_t ucLinkLayerIPAddress[ 2 ];
             uint32_t ulNumbers[ 2 ];

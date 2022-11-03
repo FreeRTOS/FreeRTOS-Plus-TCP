@@ -24,8 +24,8 @@
  */
 
 /* The entire module FreeRTOS_ND.c is skipped when IPv6 is not used. */
-#define ipconfigUSE_IPv6 1
-#if ( ipconfigUSE_IPv6 != 0 )
+
+
 
 /* Standard includes. */
 #include <stdint.h>
@@ -46,10 +46,11 @@
 #if ( ipconfigUSE_LLMNR == 1 )
     #include "FreeRTOS_DNS.h"
 #endif /* ipconfigUSE_LLMNR */
+
+#if ( ipconfigUSE_IPv6 != 0 )
 #include "FreeRTOS_Routing.h"
 
-/** @brief A list of all network end-points.  Each element has a next pointer. */
-struct xNetworkEndPoint_IPv6 * pxNetworkEndPoints_IPv6 = NULL;
+struct xNetworkEndPoint_IPv4* pxNetworkEndPoints_IPv6 = NULL;
 
 /*
  * Add a new IP-address to a Network Interface.  The object pointed to by
@@ -152,7 +153,15 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
         if( pxResult != NULL )
         {
             pxResult = pxResult->pxNext;
+            while( pxResult != NULL )
+            {
+                if( ( pxInterface == NULL ) || ( pxResult->pxNetworkInterface == pxInterface ) )
+                {
+                    break;
+                }
 
+                pxResult = pxResult->pxNext;
+            }
         }
 
         return pxResult;
@@ -374,15 +383,15 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
         {
             NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkEndPoints_IPv6;
 
-            // while( pxEndPoint != NULL )
-            // {
-            //     if( ( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
-            //     {
-            //         break;
-            //     }
+            while( pxEndPoint != NULL )
+            {
+                if( ( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
+                {
+                    break;
+                }
 
-            //     pxEndPoint = pxEndPoint->pxNext;
-            // }
+                pxEndPoint = pxEndPoint->pxNext;
+            }
 
             return pxEndPoint;
         }
@@ -428,5 +437,8 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
         pxSocket->pxEndPoint = pxEndPoint;
     }
 /*-----------------------------------------------------------*/
+
+
+#endif ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 
 #endif /* ipconfigUSE_IPv6 */

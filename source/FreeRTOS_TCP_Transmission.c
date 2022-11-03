@@ -347,7 +347,7 @@
          * optimized away.
          */
         /* Fill in the source MAC addresses. */
-        pvCopySource = pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes;
+        pvCopySource = pxNetworkBuffer->pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes;
         pvCopyDest = &( pxEthernetHeader->xSourceAddress );
         ( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
     }
@@ -557,7 +557,7 @@
                 /*_RB_ Was FreeRTOS_FindEndPointOnIP_IPv4() but changed to FreeRTOS_FindEndPointOnNetMask()
                  * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */
                 pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-                pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPHeader->ulDestinationIPAddress, 8 );
+                pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv4( pxIPHeader->ulDestinationIPAddress, 8 );
 
                 if( pxNetworkBuffer->pxEndPoint == NULL )
                 {
@@ -570,8 +570,8 @@
             if( pxNetworkBuffer->pxEndPoint != NULL )
             {
                 FreeRTOS_printf( ( "prvTCPReturnPacket: packet's end-point %02x-%02x\n",
-                                   pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes[ 4 ],
-                                   pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes[ 5 ] ) );
+                                   pxNetworkBuffer->pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes[ 4 ],
+                                   pxNetworkBuffer->pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes[ 5 ] ) );
             }
         }
     }
@@ -1029,12 +1029,14 @@
 
         #if ( ipconfigUSE_IPv6 != 0 )
             IPv6_Address_t xRemoteIP;
+            NetworkEndPoint_IPv6_t* pxEndPoint = NULL;
         #endif
         MACAddress_t xEthAddress;
         BaseType_t xReturn = pdTRUE;
         uint32_t ulInitialSequenceNumber = 0;
-        NetworkEndPoint_t * pxEndPoint = NULL;
         ProtocolHeaders_t * pxProtocolHeaders;
+        NetworkEndPoint_IPv4_t * pxEndPointFound;
+        NetworkEndPoint_IPv4_t * pxEndPoint = NULL;
 
         #if ( ipconfigHAS_PRINTF != 0 )
             {
@@ -1045,6 +1047,9 @@
 
         /* See if the ARP/ND cache still contains the IP-address. */
         #if ( ipconfigUSE_IPv6 != 0 )
+
+            
+
             if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
             {
                 ulRemoteIP = 0U;
@@ -1060,7 +1065,7 @@
             else
         #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
         {
-            NetworkEndPoint_t * pxEndPointFound;
+            
 
             ulRemoteIP = FreeRTOS_htonl( pxSocket->u.xTCP.ulRemoteIP );
 
@@ -1234,7 +1239,7 @@
 
                 if( pxEndPoint == NULL )
                 {
-                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPHeader->ulSourceIPAddress, 9 ); /*_RB_ Added. */
+                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv4( pxIPHeader->ulSourceIPAddress, 9 ); /*_RB_ Added. */
                 }
 
                 if( pxEndPoint != NULL )

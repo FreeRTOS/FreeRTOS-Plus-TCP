@@ -847,7 +847,7 @@
         const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
         FreeRTOS_Socket_t * pxReturn = NULL;
         uint32_t ulInitialSequenceNumber;
-        NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+        NetworkEndPoint_IPv4_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
 
         /* Assume that a new Initial Sequence Number will be required. Request
          * it now in order to fail out if necessary. */

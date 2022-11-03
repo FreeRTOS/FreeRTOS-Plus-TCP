@@ -68,7 +68,7 @@
 /*-----------------------------------------------------------*/
 
 /* Initialise the Router Advertisement process for a given end-point. */
-    static void vRAProcessInit( NetworkEndPoint_t * pxEndPoint );
+    static void vRAProcessInit( NetworkEndPoint_IPv6_t * pxEndPoint );
 
 /* Find a link-local address that is bound to a given interface. */
     static BaseType_t xGetLinkLocalAddress( NetworkInterface_t * pxInterface,
@@ -78,11 +78,11 @@
     static ICMPPrefixOption_IPv6_t * vReceiveRA_ReadReply( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 /* Handle the states that are limited by a timer. See if any of the timers has expired. */
-    static TickType_t xRAProcess_HandleWaitStates( NetworkEndPoint_t * pxEndPoint,
+    static TickType_t xRAProcess_HandleWaitStates( NetworkEndPoint_IPv6_t * pxEndPoint,
                                                    TickType_t uxReloadTime );
 
 /* Handle the other states. */
-    static TickType_t xRAProcess_HandleOtherStates( NetworkEndPoint_t * pxEndPoint,
+    static TickType_t xRAProcess_HandleOtherStates( NetworkEndPoint_IPv6_t * pxEndPoint,
                                                     TickType_t uxReloadTime );
 
 
@@ -100,7 +100,7 @@
                                             IPv6_Address_t * pxAddress )
     {
         BaseType_t xResult = pdFAIL;
-        NetworkEndPoint_t * pxEndPoint;
+        NetworkEndPoint_IPv6_t * pxEndPoint;
 
         for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
              pxEndPoint != NULL;
@@ -133,7 +133,7 @@
     {
         ICMPPacket_IPv6_t * pxICMPPacket;
         ICMPRouterSolicitation_IPv6_t * xRASolicitationRequest;
-        NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+        NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
         const size_t uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t );
         MACAddress_t xMultiCastMacAddress;
         NetworkBufferDescriptor_t * pxDescriptor = pxNetworkBuffer;
@@ -219,7 +219,7 @@
     void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
         NetworkInterface_t * pxInterface = pxNetworkBuffer->pxInterface;
-        NetworkEndPoint_t * pxPoint;
+        NetworkEndPoint_IPv6_t * pxPoint;
         ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
         ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
@@ -351,7 +351,7 @@
 
             if( pxPrefixOption != NULL )
             {
-                NetworkEndPoint_t * pxEndPoint;
+                NetworkEndPoint_IPv6_t * pxEndPoint;
 
                 for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkBuffer->pxInterface );
                      pxEndPoint != NULL;
@@ -417,7 +417,7 @@
     }
 /*-----------------------------------------------------------*/
 
-    static TickType_t xRAProcess_HandleWaitStates( NetworkEndPoint_t * pxEndPoint,
+    static TickType_t xRAProcess_HandleWaitStates( NetworkEndPoint_IPv6_t * pxEndPoint,
                                                    TickType_t uxReloadTime )
     {
         TickType_t uxNewReloadTime = uxReloadTime;
@@ -497,7 +497,7 @@
     }
 /*-----------------------------------------------------------*/
 
-    static TickType_t xRAProcess_HandleOtherStates( NetworkEndPoint_t * pxEndPoint,
+    static TickType_t xRAProcess_HandleOtherStates( NetworkEndPoint_IPv6_t * pxEndPoint,
                                                     TickType_t uxReloadTime )
     {
         TickType_t uxNewReloadTime = uxReloadTime;
@@ -612,7 +612,7 @@
  *
  * @param[in] pxEndPoint: The end-point for which Router Advertisement is required.
  */
-    static void vRAProcessInit( NetworkEndPoint_t * pxEndPoint )
+    static void vRAProcessInit( NetworkEndPoint_IPv6_t * pxEndPoint )
     {
         pxEndPoint->xRAData.uxRetryCount = 0U;
         pxEndPoint->xRAData.eRAState = eRAStateApply;
@@ -625,7 +625,7 @@
  * @param[in] pxEndPoint: The end-point for which a RA assignment is required.
  */
     void vRAProcess( BaseType_t xDoReset,
-                     NetworkEndPoint_t * pxEndPoint )
+                     NetworkEndPoint_IPv6_t * pxEndPoint )
     {
         TickType_t uxReloadTime = pdMS_TO_TICKS( 5000U );
 

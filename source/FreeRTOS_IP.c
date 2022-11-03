@@ -124,7 +124,10 @@
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
 #endif
 
-static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint );
+static void prvCallDHCP_Handler(NetworkEndPoint_IPv4_t * pxEndPoint);
+#if ( ipconfigUSE_IPv6 != 0 )
+    static void prvCallDHCP_RA_Handler( NetworkEndPoint_IPv6_t * pxEndPoint );
+#endif
 
 static void prvIPTask_Initialise( void );
 
@@ -336,10 +339,15 @@ static void prvProcessIPEventsAndTimers( void )
              * member of the received event structure. */
             vProcessGeneratedUDPPacket( ( ( NetworkBufferDescriptor_t * ) xReceivedEvent.pvData ) );
             break;
-
-        case eDHCP_RA_Event:
-            prvCallDHCP_RA_Handler( ( ( NetworkEndPoint_t * ) xReceivedEvent.pvData ) );
+        case eDHCP_Event:
+            prvCallDHCP_Handler( ( (NetworkEndPoint_IPv4_t*) xReceivedEvent.pvData ) );
             break;
+
+        #if ( ipconfigUSE_IPv6 !=0 )
+        case eDHCPv6_RA_Event:
+            prvCallDHCP_RA_Handler( ( ( NetworkEndPoint_IPv6_t * ) xReceivedEvent.pvData ) );
+            break;
+        #endif
 
         case eSocketSelectEvent:
 
@@ -624,51 +632,56 @@ static void prvIPTask_CheckPendingEvents( void )
  *
  * @param[in] pxEndPoint: The end-point for which the state-machine will be called.
  */
-static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint )
+static void prvCallDHCP_Handler( NetworkEndPoint_IPv4_t * pxEndPoint )
 {
-    #if ( ipconfigUSE_IPv6 != 0 ) && ( ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 ) )
-        BaseType_t xIsIPv6 = pdFALSE;
-
-        if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-        {
-            xIsIPv6 = pdTRUE;
-        }
-    #endif
     /* The DHCP state machine needs processing. */
     #if ( ipconfigUSE_DHCP == 1 )
         {
             if( ( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED )
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    && ( xIsIPv6 == pdFALSE )
-                #endif
-                )
             {
                 /* Process DHCP messages for a given end-point. */
                 vDHCPProcess( pdFALSE, pxEndPoint );
             }
         }
     #endif /* ipconfigUSE_DHCP */
-    #if ( ipconfigUSE_DHCPv6 == 1 )
-        {
-            if( ( xIsIPv6 == pdTRUE ) && ( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED ) )
-            {
-                /* Process DHCPv6 messages for a given end-point. */
-                vDHCPv6Process( pdFALSE, pxEndPoint );
-            }
-        }
-    #endif /* ipconfigUSE_DHCPv6 */
-    #if ( ipconfigUSE_RA == 1 )
-        {
-            if( ( xIsIPv6 == pdTRUE ) && ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED ) )
-            {
-                /* Process RA messages for a given end-point. */
-                vRAProcess( pdFALSE, pxEndPoint );
-            }
-        }
-    #endif /* ipconfigUSE_RA */
+   
     /* Mention pxEndPoint in case it has not been used. */
     ( void ) pxEndPoint;
 }
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv6 != 0 )
+/**
+ * @brief Call the state machine of either DHCP, DHCPv6, or RA, whichever is activated.
+ *
+ * @param[in] pxEndPoint: The end-point for which the state-machine will be called.
+ */
+static void prvCallDHCPv6_RA_Handler(NetworkEndPoint_IPv6_t * pxEndPoint)
+{
+
+#if ( ipconfigUSE_DHCPv6 == 1 )
+    {
+        if ( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED)
+        {
+            /* Process DHCPv6 messages for a given end-point. */
+            vDHCPv6Process(pdFALSE, pxEndPoint);
+        }
+    }
+#endif /* ipconfigUSE_DHCPv6 */
+#if ( ipconfigUSE_RA == 1 )
+    {
+        if ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED) )
+        {
+            /* Process RA messages for a given end-point. */
+            vRAProcess(pdFALSE, pxEndPoint);
+        }
+    }
+#endif /* ipconfigUSE_RA */
+    /* Mention pxEndPoint in case it has not been used. */
+    (void)pxEndPoint;
+}
+#endif
+
 /*-----------------------------------------------------------*/
 
 /**
@@ -970,23 +983,18 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 BaseType_t FreeRTOS_IPStart( void )
 {
     BaseType_t xReturn = pdFALSE;
-    NetworkEndPoint_t * pxFirstEndPoint;
+    NetworkEndPoint_IPv4_t * pxFirstEndPoint;
 
     /* There must be at least one interface and one end-point. */
     configASSERT( FreeRTOS_FirstNetworkInterface() != NULL );
 
-    pxFirstEndPoint = FreeRTOS_FirstEndPoint( NULL );
+    pxFirstEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
     #if ( ipconfigUSE_IPv6 != 0 )
-        for( ;
-             pxFirstEndPoint != NULL;
-             pxFirstEndPoint = FreeRTOS_NextEndPoint( NULL, pxFirstEndPoint ) )
-        {
-            if( ENDPOINT_IS_IPv4( pxFirstEndPoint ) )
-            {
-                break;
-            }
-        }
+        NetworkEndPoint_IPv6_t* pxFirstEndPoint_IPv6;
+
+        pxFirstEndPoint_IPv6 = FreeRTOS_FirstEndPoint_IPv6(NULL);
+        configASSERT(pxFirstEndPoint_IPv6 != NULL);
     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
     /* At least one IPv4 end-point must be defined. */
@@ -1113,7 +1121,7 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
                                         uint32_t * pulNetMask,
                                         uint32_t * pulGatewayAddress,
                                         uint32_t * pulDNSServerAddress,
-                                        struct xNetworkEndPoint * pxEndPoint )
+                                        struct xNetworkEndPoint_IPv4 * pxEndPoint )
 {
     #if ( ipconfigUSE_IPv6 != 0 )
         if( ENDPOINT_IS_IPv4( pxEndPoint ) )
@@ -1158,7 +1166,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
                                         const uint32_t * pulNetMask,
                                         const uint32_t * pulGatewayAddress,
                                         const uint32_t * pulDNSServerAddress,
-                                        struct xNetworkEndPoint * pxEndPoint )
+                                        struct xNetworkEndPoint_IPv4 * pxEndPoint )
 {
     /* Update the address configuration. */
 
@@ -1415,14 +1423,14 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
 {
     eFrameProcessingResult_t eReturn;
     const EthernetHeader_t * pxEthernetHeader;
-    NetworkEndPoint_t * pxEndPoint;
+    NetworkEndPoint_IPv4_t* pxEndPoint;
 
     /* Map the buffer onto Ethernet Header struct for easy access to fields. */
     pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
 
     /* Examine the destination MAC from the Ethernet header to see if it matches
      * that of an end point managed by FreeRTOS+TCP. */
-    pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxEthernetHeader->xDestinationAddress ), NULL );
+    pxEndPoint = FreeRTOS_FindEndPointOnMAC_IPv4( &( pxEthernetHeader->xDestinationAddress ), NULL );
 
     if( pxEndPoint != NULL )
     {
@@ -1494,10 +1502,8 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
  *
  * @param pxEndPoint: The end-point which goes up.
  */
-void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
+void vIPNetworkUpCalls()
 {
-    pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
-
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
         {
             #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 )
@@ -1506,7 +1512,7 @@ void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
                 }
             #else
                 {
-                    vApplicationIPNetworkEventHook( eNetworkUp, pxEndPoint );
+                    vApplicationIPNetworkEventHook( eNetworkUp );
                 }
             #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 ) */
         }
@@ -1567,6 +1573,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                 case ipIPv4_FRAME_TYPE:
                     #if ( ipconfigUSE_IPv6 != 0 )
                         case ipIPv6_FRAME_TYPE:
+                            pxNetworkBuffer->bits.bIPv6 = pdTRUE_UNSIGNED;
                     #endif
 
                     /* The Ethernet frame contains an IP packet. */
@@ -2447,7 +2454,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 #if ( ipconfigUSE_IPv6 != 0 )
                     if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                     {
-                        vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
+                        vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPointIPv6 );
                     }
                     else
                 #endif /* ipconfigUSE_IPv6 */
@@ -2570,38 +2577,38 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
         /* Send! */
-        if( pxNetworkBuffer->pxEndPoint == NULL )
-        {
-            /* _HT_ I wonder if this ad-hoc search of an end-point it necessary. */
-            FreeRTOS_printf( ( "vReturnEthernetFrame: No pxEndPoint yet for %lxip?\n", FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulDestinationIPAddress ) ) );
-            #if ( ipconfigUSE_IPv6 != 0 )
-                if( ( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType == ipIPv6_FRAME_TYPE )
-                {
-                    /* To do */
-                }
-                else
-            #endif /* ipconfigUSE_IPv6 */
-            {
-                pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPPacket->xIPHeader.ulDestinationIPAddress, 7 );
-            }
-        }
+        // if( pxNetworkBuffer->pxEndPoint == NULL )
+        // {
+        //     /* _HT_ I wonder if this ad-hoc search of an end-point it necessary. */
+        //     FreeRTOS_printf( ( "vReturnEthernetFrame: No pxEndPoint yet for %lxip?\n", FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulDestinationIPAddress ) ) );
+        //     #if ( ipconfigUSE_IPv6 != 0 )
+        //         if( ( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType == ipIPv6_FRAME_TYPE )
+        //         {
+        //             /* To do */
+        //         }
+        //         else
+        //     #endif /* ipconfigUSE_IPv6 */
+        //     {
+        //         pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPPacket->xIPHeader.ulDestinationIPAddress, 7 );
+        //     }
+        // }
 
-        if( pxNetworkBuffer->pxEndPoint != NULL )
-        {
-            NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface; /*_RB_ Why not use the pxNetworkBuffer->pxNetworkInterface directly? */
+        // if( pxNetworkBuffer->pxEndPoint != NULL )
+        // {
+            NetworkInterface_t * pxInterface = pxNetworkBuffer->pxInterface; /*_RB_ Why not use the pxNetworkBuffer->pxNetworkInterface directly? */
 
             /* Swap source and destination MAC addresses. */
             pvCopySource = &( pxIPPacket->xEthernetHeader.xSourceAddress );
             pvCopyDest = &( pxIPPacket->xEthernetHeader.xDestinationAddress );
             ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxIPPacket->xEthernetHeader.xDestinationAddress ) );
 
-            pvCopySource = pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes;
+            pvCopySource = pxNetworkBuffer->pxInterface->xMACAddress.ucBytes;
             pvCopyDest = &( pxIPPacket->xEthernetHeader.xSourceAddress );
             ( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
             /* Send! */
             iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
             ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xReleaseAfterSend );
-        }
+        //}
     }
 }
 /*-----------------------------------------------------------*/
@@ -2613,10 +2620,10 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
  */
 uint32_t FreeRTOS_GetIPAddress( void )
 {
-    NetworkEndPoint_t * pxEndPoint;
+    NetworkEndPoint_IPv4_t * pxEndPoint;
     uint32_t ulIPAddress;
 
-    pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+    pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
     #if ( ipconfigUSE_IPv6 != 0 )
         for( ;
@@ -2840,7 +2847,7 @@ BaseType_t xIsNetworkDownEventPending( void )
  *
  * @return pdTRUE if a particular end-points is up.
  */
-BaseType_t FreeRTOS_IsEndPointUp( const struct xNetworkEndPoint * pxEndPoint )
+BaseType_t FreeRTOS_IsEndPointUp( const struct xNetworkEndPoint_IPv4 * pxEndPoint )
 {
     BaseType_t xReturn;
 
@@ -2870,7 +2877,7 @@ BaseType_t FreeRTOS_IsEndPointUp( const struct xNetworkEndPoint * pxEndPoint )
 BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface )
 {
     BaseType_t xResult = pdTRUE;
-    NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+    NetworkEndPoint_IPv4_t * pxEndPoint = pxNetworkEndPoints_IPv4;
 
     while( pxEndPoint != NULL )
     {

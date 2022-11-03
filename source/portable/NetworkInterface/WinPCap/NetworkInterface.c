@@ -605,27 +605,27 @@ static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer )
 {
     static BaseType_t xHasWarned = pdFALSE;
     EthernetHeader_t * pxEtherHeader;
-    NetworkEndPoint_t * pxEndPoint;
+    NetworkInterface_t * pxNetworkInterface = NULL;
     BaseType_t xResult = pdFALSE;
 
     pxEtherHeader = ( EthernetHeader_t * ) pucBuffer;
 
-    for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-         pxEndPoint != NULL;
-         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+    for( pxNetworkInterface = FreeRTOS_FirstNetworkInterface( );
+         pxNetworkInterface != NULL;
+         pxNetworkInterface = FreeRTOS_NextNetworkInterface( pxNetworkInterface ) )
     {
-        if( memcmp( pxEndPoint->xMACAddress.ucBytes, pxEtherHeader->xSourceAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
+        if( memcmp( pxNetworkInterface->xMACAddress.ucBytes, pxEtherHeader->xSourceAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
         {
             if( xHasWarned == pdFALSE )
             {
                 xHasWarned = pdTRUE;
                 FreeRTOS_printf( ( "Bounced back by WinPCAP interface: %02x:%02x:%02x:%02x:%02x:%02x\n",
-                                   pxEndPoint->xMACAddress.ucBytes[ 0 ],
-                                   pxEndPoint->xMACAddress.ucBytes[ 1 ],
-                                   pxEndPoint->xMACAddress.ucBytes[ 2 ],
-                                   pxEndPoint->xMACAddress.ucBytes[ 3 ],
-                                   pxEndPoint->xMACAddress.ucBytes[ 4 ],
-                                   pxEndPoint->xMACAddress.ucBytes[ 5 ] ) );
+                                   pxNetworkInterface->xMACAddress.ucBytes[ 0 ],
+                                   pxNetworkInterface->xMACAddress.ucBytes[ 1 ],
+                                   pxNetworkInterface->xMACAddress.ucBytes[ 2 ],
+                                   pxNetworkInterface->xMACAddress.ucBytes[ 3 ],
+                                   pxNetworkInterface->xMACAddress.ucBytes[ 4 ],
+                                   pxNetworkInterface->xMACAddress.ucBytes[ 5 ] ) );
             }
 
             xResult = pdTRUE;
@@ -708,8 +708,11 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                         {
                             xRxEvent.pvData = ( void * ) pxNetworkBuffer;
 
+                            /* Fill in NetworkBuffer */
                             pxNetworkBuffer->pxInterface = pxMyInterface;
-                            pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer->pucEthernetBuffer );
+                            pxNetworkBuffer->pxEndPoint = NULL;
+                            pxNetworkBuffer->bits.bIPv6 = pdFALSE_UNSIGNED;
+                            FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer );
 
                             /* Data was received and stored.  Send a message to
                              * the IP task to let it know. */

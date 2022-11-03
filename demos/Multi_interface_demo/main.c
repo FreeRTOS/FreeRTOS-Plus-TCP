@@ -124,7 +124,7 @@ static UBaseType_t ulNextRand;
     static NetworkInterface_t xInterfaces[ 1 ];
 
 /* The demo will have two end-points. */
-    static NetworkEndPoint_t xEndPoints[ 2 ];
+    static NetworkEndPoint_IPv4_t xEndPoints[ 2 ];
 
 /* A function from NetworkInterface.c to initialise the interface descriptor
  * of type 'NetworkInterface_t'. */
@@ -271,7 +271,7 @@ int main( void )
 
 
     /* Fill in the details of the first endpoint. */
-    FreeRTOS_FillEndPoint( pxWinPCapInterface,
+    FreeRTOS_FillEndPoint_IPv4( pxWinPCapInterface,
                            &( xEndPoints[ 0 ] ),
                            ucIPAddress,
                            ucNetMask,
@@ -280,7 +280,7 @@ int main( void )
                            ucMACAddress );
 
     /* Fill in the details of the second endpoint. */
-    FreeRTOS_FillEndPoint( pxWinPCapInterface,
+    FreeRTOS_FillEndPoint_IPv4( pxWinPCapInterface,
                            &( xEndPoints[ 1 ] ),
                            ucIPAddress2,
                            ucNetMask2,
@@ -297,6 +297,7 @@ int main( void )
      * but a DHCP server cannot be	contacted. */
     FreeRTOS_debug_printf( ( "FreeRTOS_IPInit\r\n" ) );
     xIPTaskStarted = FreeRTOS_IPStart();
+
 
     if( xIPTaskStarted != pdTRUE )
     {
@@ -360,41 +361,50 @@ void vAssertCalled( const char * pcFile,
 
 /* Called by FreeRTOS+TCP when the network connects or disconnects. Disconnect
  * events are only received if implemented in the MAC driver. */
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                     NetworkEndPoint_t * pxEndPoint )
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 {
     uint32_t ulIPAddress, ulNetMask, ulGatewayAddress, ulDNSServerAddress;
     char cBuffer[ 16 ];
     BaseType_t xIsClassA;
 
+    NetworkInterface_t* pxInterface = FreeRTOS_FirstNetworkInterface();
+
     /* If the network has just come up...*/
     if( eNetworkEvent == eNetworkUp )
     {
-        if( memcmp( &( pxEndPoint->ipv4_defaults.ulIPAddress ), ucIPAddress, sizeof( ucIPAddress ) ) == 0 )
+        /* This demo assume IPv6 is not enabled */
+        NetworkEndPoint_IPv4_t* pxEndPoint;
+        /* Using winsim, only one HW interface is used */
+        for (pxEndPoint = FreeRTOS_FirstEndPoint_IPv4(pxInterface);
+            pxEndPoint != NULL;
+            pxEndPoint = FreeRTOS_NextEndPoint_IPv4(pxInterface, pxEndPoint))
         {
-            xIsClassA = pdTRUE;
+            if (memcmp(&(pxEndPoint->ipv4_defaults.ulIPAddress), ucIPAddress, sizeof(ucIPAddress)) == 0)
+            {
+                xIsClassA = pdTRUE;
+            }
+            else
+            {
+                xIsClassA = pdFALSE;
+            }
+            
+            vCreateDemoTasks(xIsClassA);
+
+            /* Print out the network configuration, which may have come from a DHCP
+             * server. */
+            FreeRTOS_GetEndPointConfiguration(&ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, pxEndPoint);
+            FreeRTOS_inet_ntoa(ulIPAddress, cBuffer);
+            FreeRTOS_printf(("\r\n\r\nIP Address: %s\r\n", cBuffer));
+
+            FreeRTOS_inet_ntoa(ulNetMask, cBuffer);
+            FreeRTOS_printf(("Subnet Mask: %s\r\n", cBuffer));
+
+            FreeRTOS_inet_ntoa(ulGatewayAddress, cBuffer);
+            FreeRTOS_printf(("Gateway Address: %s\r\n", cBuffer));
+
+            FreeRTOS_inet_ntoa(ulDNSServerAddress, cBuffer);
+            FreeRTOS_printf(("DNS Server Address: %s\r\n\r\n\r\n", cBuffer));
         }
-        else
-        {
-            xIsClassA = pdFALSE;
-        }
-
-        vCreateDemoTasks( xIsClassA );
-
-        /* Print out the network configuration, which may have come from a DHCP
-         * server. */
-        FreeRTOS_GetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, pxEndPoint );
-        FreeRTOS_inet_ntoa( ulIPAddress, cBuffer );
-        FreeRTOS_printf( ( "\r\n\r\nIP Address: %s\r\n", cBuffer ) );
-
-        FreeRTOS_inet_ntoa( ulNetMask, cBuffer );
-        FreeRTOS_printf( ( "Subnet Mask: %s\r\n", cBuffer ) );
-
-        FreeRTOS_inet_ntoa( ulGatewayAddress, cBuffer );
-        FreeRTOS_printf( ( "Gateway Address: %s\r\n", cBuffer ) );
-
-        FreeRTOS_inet_ntoa( ulDNSServerAddress, cBuffer );
-        FreeRTOS_printf( ( "DNS Server Address: %s\r\n\r\n\r\n", cBuffer ) );
     }
 }
 /*-----------------------------------------------------------*/

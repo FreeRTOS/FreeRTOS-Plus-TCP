@@ -30,7 +30,6 @@
     extern "C" {
 #endif
 
-#define ipconfigUSE_IPv6 1
 
 #if ( ipconfigUSE_IPv6 != 0 )
     #include "FreeRTOS_DHCPv6.h"
@@ -120,6 +119,8 @@
         struct xNetworkEndPoint_IPv6 * pxNext;        /**< The next end-point in the chain. */
     } NetworkEndPoint_IPv6_t;
 
+    /** @brief A list of all network end-points.  Each element has a next pointer. */
+    extern struct xNetworkEndPoint_IPv4* pxNetworkEndPoints_IPv6;
 
         #define END_POINT_USES_DHCP( pxEndPoint )    ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bWantDHCP != pdFALSE_UNSIGNED ) )
         #define END_POINT_USES_RA( pxEndPoint )      ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 != pdFALSE_UNSIGNED ) && ( ( pxEndPoint )->bits.bWantRA != pdFALSE_UNSIGNED ) )
@@ -146,17 +147,11 @@
  */
     NetworkEndPoint_IPv6_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPAddress );
 
-/*
- * Find the end-point with given MAC-address.
- * The search can be limited by supplying a particular interface.
- */
-    NetworkEndPoint_IPv6_t * FreeRTOS_FindEndPointOnMAC_IPv6( const MACAddress_t * pxMACAddress,
-                                                    NetworkInterface_t * pxInterface );
 
 /*
  * Find the best fitting end-point to reach a given IP-address.
  */
-    NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address );
+    NetworkEndPoint_IPv6_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address );
     
 
 /* A ethernet packet has come in on a certain network interface.

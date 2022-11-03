@@ -140,7 +140,7 @@ TickType_t xCalculateSleepTime( void )
 
     #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
         {
-            NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+            NetworkEndPoint_IPv4_t * pxEndPoint = pxNetworkEndPoints_IPv4;
 
             while( pxEndPoint != NULL )
             {
@@ -156,6 +156,25 @@ TickType_t xCalculateSleepTime( void )
             }
         }
     #endif /* ipconfigUSE_DHCP */
+
+    #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 )
+        {
+            NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkEndPoints_IPv6;
+
+            while( pxEndPoint != NULL )
+            {
+                if( pxEndPoint->xDHCP_RATimer.bActive != pdFALSE_UNSIGNED )
+                {
+                    if( pxEndPoint->xDHCP_RATimer.ulRemainingTime < uxMaximumSleepTime )
+                    {
+                        uxMaximumSleepTime = pxEndPoint->xDHCP_RATimer.ulRemainingTime;
+                    }
+                }
+
+                pxEndPoint = pxEndPoint->pxNext;
+            }
+        }
+    #endif /* ipconfigUSE_DHCPv6 */
 
     #if ( ipconfigUSE_TCP == 1 )
         {
@@ -218,10 +237,30 @@ void vCheckNetworkTimers( void )
         }
     }
 
-    #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
+    #if ( ipconfigUSE_DHCP == 1 )
         {
             /* Is it time for DHCP processing? */
-            NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+            NetworkEndPoint_IPv4_t * pxEndPoint = pxNetworkEndPoints_IPv4;
+
+            while( pxEndPoint != NULL )
+            {
+                if( prvIPTimerCheck( &( pxEndPoint->xDHCP_RATimer ) ) != pdFALSE )
+                {
+                    if( END_POINT_USES_DHCP( pxEndPoint ) )
+                    {
+                        ( void ) xSendDHCPEvent( pxEndPoint );
+                    }
+                }
+
+                pxEndPoint = pxEndPoint->pxNext;
+            }
+        }
+    #endif /* ( ipconfigUSE_DHCP == 1 ) */
+
+    #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 )
+        {
+            /* Is it time for DHCP processing? */
+            NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkEndPoints_IPv6;
 
             while( pxEndPoint != NULL )
             {
@@ -230,7 +269,7 @@ void vCheckNetworkTimers( void )
                     #if ( ipconfigUSE_DHCP == 1 )
                         if( END_POINT_USES_DHCP( pxEndPoint ) )
                         {
-                            ( void ) xSendDHCPEvent( pxEndPoint );
+                            ( void ) xSendDHCPv6Event( pxEndPoint );
                         }
                     #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
@@ -245,7 +284,7 @@ void vCheckNetworkTimers( void )
                 pxEndPoint = pxEndPoint->pxNext;
             }
         }
-    #endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA != 0 ) */
+    #endif /* ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA != 0 ) */
 
     #if ( ipconfigDNS_USE_CALLBACKS != 0 )
         {

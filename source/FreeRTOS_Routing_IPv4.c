@@ -44,15 +44,13 @@
 #endif /* ipconfigUSE_LLMNR */
 #include "FreeRTOS_Routing.h"
 
-/** @brief A list of all network end-points.  Each element has a next pointer. */
-struct xNetworkEndPoint_IPv4 * pxNetworkEndPoints_IPv4 = NULL;
+struct xNetworkEndPoint_IPv4* pxNetworkEndPoints_IPv4 = NULL;
 
 /*
  * Add a new IP-address to a Network Interface.  The object pointed to by
  * 'pxEndPoint' and the interface must continue to exist.
  */
-static NetworkEndPoint_IPv4_t * FreeRTOS_AddEndPoint_IPv4( NetworkInterface_t * pxInterface,
-                                                 NetworkEndPoint_IPv4_t * pxEndPoint );
+static NetworkEndPoint_IPv4_t * FreeRTOS_AddEndPoint_IPv4( NetworkEndPoint_IPv4_t * pxEndPoint );
 
 /*-----------------------------------------------------------*/
 
@@ -106,7 +104,9 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
 
     /* The field 'ipv4_settings.ulIPAddress' will be set later on. */
 
-    ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ucMACAddress, sizeof( pxEndPoint->xMACAddress ) );
+    ( void ) memcpy( pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes, 
+                    ucMACAddress, 
+                    sizeof( pxEndPoint->pxNetworkInterface->xMACAddress ) );
     ( void ) FreeRTOS_AddEndPoint_IPv4( pxEndPoint );
 }
 /*-----------------------------------------------------------*/
@@ -127,7 +127,7 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
  *
  * @return The value of the parameter 'pxEndPoint'.
  */
-    static NetworkEndPoint_IPv4_t * FreeRTOS_AddEndPoint_IPv4( NetworkEndPoint_t * pxEndPoint )
+    static NetworkEndPoint_IPv4_t * FreeRTOS_AddEndPoint_IPv4( NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         NetworkEndPoint_IPv4_t * pxIterator = NULL;
 
@@ -166,8 +166,8 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
         }
 
         FreeRTOS_printf( ( "FreeRTOS_AddEndPoint: MAC: %02x-%02x IPv4: %lxip\n",
-                               pxEndPoint->xMACAddress.ucBytes[ 4 ],
-                               pxEndPoint->xMACAddress.ucBytes[ 5 ],
+                               pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes[ 4 ],
+                               pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes[ 5 ],
                                FreeRTOS_ntohl( pxEndPoint->ipv4_defaults.ulIPAddress ) ) );
 
         return pxEndPoint;
@@ -186,17 +186,17 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
     {
         NetworkEndPoint_IPv4_t * pxEndPoint = pxNetworkEndPoints_IPv4;
 
-        // /* Find and return the NetworkEndPoint_t structure that is associated with
-        //  * the pxInterface NetworkInterface_t. *//*_RB_ Could this be made a two way link, so the NetworkEndPoint_t can just be read from the NetworkInterface_t structure?  Looks like there is a pointer in the struct already. */
-        // while( pxEndPoint != NULL )
-        // {
-        //     if( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) )
-        //     {
-        //         break;
-        //     }
+        /* Find and return the NetworkEndPoint_t structure that is associated with
+         * the pxInterface NetworkInterface_t. *//*_RB_ Could this be made a two way link, so the NetworkEndPoint_t can just be read from the NetworkInterface_t structure?  Looks like there is a pointer in the struct already. */
+        while( pxEndPoint != NULL )
+        {
+            if( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) )
+            {
+                break;
+            }
 
-        //     pxEndPoint = pxEndPoint->pxNext;
-        // }
+            pxEndPoint = pxEndPoint->pxNext;
+        }
 
         return pxEndPoint;
     }
@@ -212,13 +212,22 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
  *
  * @return The end-point that is found, or NULL when there are no more end-points in the list.
  */
-    NetworkEndPoint_IPv4_t * FreeRTOS_NextEndPoint_IPv4( NetworkEndPoint_IPv4_t * pxEndPoint )
+    NetworkEndPoint_IPv4_t * FreeRTOS_NextEndPoint_IPv4( NetworkInterface_t * pxInterface, NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         NetworkEndPoint_IPv4_t * pxResult = pxEndPoint;
 
         if( pxResult != NULL )
         {
             pxResult = pxResult->pxNext;
+            while( pxResult != NULL )
+            {
+                if( ( pxInterface == NULL ) || ( pxResult->pxNetworkInterface == pxInterface ) )
+                {
+                    break;
+                }
+
+                pxResult = pxResult->pxNext;
+            }
 
         }
 
@@ -289,11 +298,10 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
         /* Find the end-point with given MAC-address. */
         while( pxEndPoint != NULL )
         {
-            if( memcmp( pxEndPoint->xMACAddress.ucBytes, pxMACAddress->ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
+            if( memcmp( pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes, pxMACAddress->ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
                 {
                     break;
                 }
-            }
 
             pxEndPoint = pxEndPoint->pxNext;
         }
@@ -330,7 +338,7 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
                                                              uint32_t ulIPAddress,
                                                              uint32_t ulWhere )
     {
-        NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints_IPv4;
+        NetworkEndPoint_IPv4_t * pxEndPoint = pxNetworkEndPoints_IPv4;
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
             uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRouteingStatistics.ulLocations ) / sizeof( xRoutingStatistics.ulLocations )[ 0 ] );
@@ -403,10 +411,10 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
  *
  * @return An end-point or NULL in case the socket is not bound to an end-point.
  */
-    NetworkEndPoint_t * pxGetSocketEndpoint( Socket_t xSocket )
+    NetworkEndPoint_IPv4_t * pxGetSocketEndpoint_IPv4( Socket_t xSocket )
     {
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
-        NetworkEndPoint_t * pxResult;
+        NetworkEndPoint_IPv4_t * pxResult;
 
         if( pxSocket != NULL )
         {
@@ -427,8 +435,8 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
  * @param[in] xSocket: The socket to which an end-point will be assigned.
  * @param[in] pxEndPoint: The end-point to be assigned.
  */
-    void vSetSocketEndpoint( Socket_t xSocket,
-                             NetworkEndPoint_t * pxEndPoint )
+    void vSetSocketEndpoint_IPv4( Socket_t xSocket,
+                             NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
 
@@ -436,3 +444,4 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
     }
 /*-----------------------------------------------------------*/
 
+#endif ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )

@@ -270,15 +270,17 @@
                                               struct freertos_addrinfo ** ppxAddressInfo );
 
 /** @brief Get an IP address ( IPv4 or IPv6 ) of a DNS server. */
-    static NetworkEndPoint_t * prvGetDNSAddress( struct freertos_sockaddr * pxAddress,
+    static NetworkEndPoint_IPv4_t * prvGetDNSAddress( struct freertos_sockaddr * pxAddress,
                                                  const char * pcHostName );
 
 /** @brief Increment the field 'ucDNSIndex', which is an index in the array */
-    static void prvIncreaseDNS4Index( NetworkEndPoint_t * pxEndPoint );
+    static void prvIncreaseDNS4Index( NetworkEndPoint_IPv4_t * pxEndPoint );
 
     #if ( ipconfigUSE_IPv6 != 0 )
+        static NetworkEndPoint_IPv6_t* prvGetDNSAddress(struct freertos_sockaddr* pxAddress,
+        const char* pcHostName);
 /** @brief Increment the field 'ucDNSIndex', which is an index in the array */
-        static void prvIncreaseDNS6Index( NetworkEndPoint_t * pxEndPoint );
+        static void prvIncreaseDNS6Index( NetworkEndPoint_IPv6_t * pxEndPoint );
     #endif
 
 /*-----------------------------------------------------------*/
@@ -796,7 +798,7 @@
  * @param[in] pxEndPoint: The end-point of which the DNS index should be
  *                        incremented.
  */
-        static void prvIncreaseDNS6Index( NetworkEndPoint_t * pxEndPoint )
+        static void prvIncreaseDNS6Index( NetworkEndPoint_IPv6_t * pxEndPoint )
         {
             uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
 
@@ -818,7 +820,7 @@
  * @param[in] pxEndPoint: The end-point of which the DNS index should be
  *                        incremented.
  */
-    static void prvIncreaseDNS4Index( NetworkEndPoint_t * pxEndPoint )
+    static void prvIncreaseDNS4Index( NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
 
@@ -840,10 +842,10 @@
  * @return The end-point that holds the DNS address.
  */
 
-    static NetworkEndPoint_t * prvGetDNSAddress( struct freertos_sockaddr * pxAddress,
+    static NetworkEndPoint_IPv4_t * prvGetDNSAddress( struct freertos_sockaddr * pxAddress,
                                                  const char * pcHostName )
     {
-        NetworkEndPoint_t * pxEndPoint = NULL;
+        NetworkEndPoint_IPv4_t * pxEndPoint = NULL;
         BaseType_t xNeed_Endpoint = pdFALSE;
 
         /* Make sure all fields of the 'sockaddr' are cleared. */
@@ -893,16 +895,6 @@
                         pxAddress->sin_port = ipMDNS_PORT;
                         pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
                         xNeed_Endpoint = pdTRUE;
-                        #if ( ipconfigUSE_IPv6 != 0 )
-                            if( xDNS_IP_Preference == xPreferenceIPv6 )
-                            {
-                                sockaddr6_t * pxAddressV6 = ( ( sockaddr6_t * ) pxAddress );
-                                memcpy( pxAddressV6->sin_addrv6.ucBytes,
-                                        ipMDNS_IP_ADDR_IPv6.ucBytes,
-                                        ipSIZE_OF_IPv6_ADDRESS );
-                                pxAddress->sin_family = FREERTOS_AF_INET6;
-                            }
-                        #endif
                     }
                 }
             #endif /* if ( ipconfigUSE_MDNS == 1 ) */
@@ -916,84 +908,159 @@
                         pxAddress->sin_port = ipLLMNR_PORT;
                         pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
                         xNeed_Endpoint = pdTRUE;
-                        #if ( ipconfigUSE_IPv6 != 0 )
-                            sockaddr6_t * pxAddressV6 = ( ( sockaddr6_t * ) pxAddress );
-
-                            if( xDNS_IP_Preference == xPreferenceIPv6 )
-                            {
-                                memcpy( pxAddressV6->sin_addrv6.ucBytes,
-                                        ipLLMNR_IP_ADDR_IPv6.ucBytes,
-                                        ipSIZE_OF_IPv6_ADDRESS );
-                                pxAddress->sin_family = FREERTOS_AF_INET6;
-                            }
-                        #endif
                     }
                 }
             #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
 
             if( xNeed_Endpoint == pdTRUE )
             {
-                for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-                     pxEndPoint != NULL;
-                     pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
-                {
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        if( xDNS_IP_Preference == xPreferenceIPv6 )
-                        {
-                            if( ENDPOINT_IS_IPv6( pxEndPoint ) )
-                            {
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            if( ENDPOINT_IS_IPv4( pxEndPoint ) )
-                            {
-                                break;
-                            }
-                        }
-                    #else /* if ( ipconfigUSE_IPv6 != 0 ) */
-                        /* IPv6 is not included, so all end-points are IPv4. */
-                        break;
-                    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
-                }
+                pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
             }
         }
         else
         {
             /* Look for an end-point that has defined a DNS server address. */
-            for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+            for( pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
                  pxEndPoint != NULL;
-                 pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+                 pxEndPoint = FreeRTOS_NextEndPoint_IPv4( NULL, pxEndPoint ) )
             {
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    if( ENDPOINT_IS_IPv6( pxEndPoint ) )
-                    {
-                        uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
-                        uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
+                uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
+                uint32_t ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ];
 
-                        /* Test if the DNS entry is in used. */
-                        if( ( ucBytes[ 0 ] != 0U ) && ( ucBytes[ 1 ] != 0U ) )
-                        {
-                            struct freertos_sockaddr6 * pxAddress6 = ( struct freertos_sockaddr6 * ) pxAddress;
-
-                            pxAddress->sin_family = FREERTOS_AF_INET6;
-                            pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr6 );
-                            ( void ) memcpy( pxAddress6->sin_addrv6.ucBytes,
-                                             pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes,
-                                             ipSIZE_OF_IPv6_ADDRESS );
-                            break;
-                        }
-                    }
-                    else
-                #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+                if( ( ulIPAddress != 0U ) && ( ulIPAddress != ipBROADCAST_IP_ADDRESS ) )
                 {
-                    uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
-                    uint32_t ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ];
+                    pxAddress->sin_addr = ulIPAddress;
+                    break;
+                }
+            }
+        }
 
-                    if( ( ulIPAddress != 0U ) && ( ulIPAddress != ipBROADCAST_IP_ADDRESS ) )
+        return pxEndPoint;
+    }
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv6 != 0 )
+/**
+ * @brief Get an IP address ( IPv4 or IPv6 ) of a DNS server.
+ * @param[out] pxAddress: Variable to store the address found.
+ * @param[in] pcHostName: use to check if it contains a dot ( DNS ), or not ( LLMNR ).
+ * @return The end-point that holds the DNS address.
+ */
+
+    static NetworkEndPoint_IPv6_t* prvGetDNS6Address(struct freertos_sockaddr* pxAddress,
+        const char* pcHostName)
+    {
+        NetworkEndPoint_IPv6_t* pxEndPoint = NULL;
+        BaseType_t xNeed_Endpoint = pdFALSE;
+
+        /* Make sure all fields of the 'sockaddr' are cleared. */
+        (void)memset((void*)pxAddress, 0, sizeof(*pxAddress));
+
+        /* And set the address type to IPv4.
+         * It may change to IPv6 in case an IPv6 DNS server will be used. */
+        pxAddress->sin_family = FREERTOS_AF_INET;
+
+        /* 'sin_len' doesn't really matter, 'sockaddr' and 'sockaddr6'
+         * have the same size. */
+        pxAddress->sin_len = (uint8_t)sizeof(struct freertos_sockaddr);
+        /* Use the DNS port by default, this may be changed later. */
+        pxAddress->sin_port = dnsDNS_PORT;
+
+        /* If LLMNR is being used then determine if the host name includes a '.' -
+         * if not then LLMNR can be used as the lookup method. */
+         /* For local resolution, mDNS uses names ending with the string ".local" */
+        BaseType_t bHasDot = pdFALSE;
+        BaseType_t bHasLocal = pdFALSE;
+        char* pcDot = strchr(pcHostName, '.');
+
+        if (pcDot != NULL)
+        {
+            bHasDot = pdTRUE;
+
+            if (strcmp(pcDot, ".local") == 0)
+            {
+                bHasLocal = pdTRUE;
+            }
+            else
+            {
+                /* a DNS look-up of a public URL with at least one dot. */
+            }
+        }
+
+        /* Is this a local lookup? */
+        if ((bHasDot == pdFALSE) || (bHasLocal == pdTRUE))
+        {
+#if ( ipconfigUSE_MDNS == 1 )
+            {
+                if (bHasLocal)
+                {
+                    /* Looking up a name like "mydevice.local".
+                     * Use mDNS addresses. */
+                    pxAddress->sin_addr = ipMDNS_IP_ADDRESS; /* Is in network byte order. */
+                    pxAddress->sin_port = ipMDNS_PORT;
+                    pxAddress->sin_port = FreeRTOS_ntohs(pxAddress->sin_port);
+                    xNeed_Endpoint = pdTRUE;
+                    if (xDNS_IP_Preference == xPreferenceIPv6)
                     {
-                        pxAddress->sin_addr = ulIPAddress;
+                        sockaddr6_t* pxAddressV6 = ((sockaddr6_t*)pxAddress);
+                        memcpy(pxAddressV6->sin_addrv6.ucBytes,
+                            ipMDNS_IP_ADDR_IPv6.ucBytes,
+                            ipSIZE_OF_IPv6_ADDRESS);
+                        pxAddress->sin_family = FREERTOS_AF_INET6;
+                    }
+                }
+            }
+#endif /* if ( ipconfigUSE_MDNS == 1 ) */
+#if ( ipconfigUSE_LLMNR == 1 )
+            {
+                /* The hostname doesn't have a dot. */
+                if (bHasDot == pdFALSE)
+                {
+                    /* Use LLMNR addressing. */
+                    pxAddress->sin_addr = ipLLMNR_IP_ADDR; /* Is in network byte order. */
+                    pxAddress->sin_port = ipLLMNR_PORT;
+                    pxAddress->sin_port = FreeRTOS_ntohs(pxAddress->sin_port);
+                    xNeed_Endpoint = pdTRUE;
+                    sockaddr6_t* pxAddressV6 = ((sockaddr6_t*)pxAddress);
+
+                    if (xDNS_IP_Preference == xPreferenceIPv6)
+                    {
+                        memcpy(pxAddressV6->sin_addrv6.ucBytes,
+                            ipLLMNR_IP_ADDR_IPv6.ucBytes,
+                            ipSIZE_OF_IPv6_ADDRESS);
+                        pxAddress->sin_family = FREERTOS_AF_INET6;
+                    }
+                }
+            }
+#endif /* if ( ipconfigUSE_LLMNR == 1 ) */
+
+            if (xNeed_Endpoint == pdTRUE)
+            {
+                pxEndPoint = FreeRTOS_FirstEndPoint_IPv6(NULL);
+            }
+        }
+        else
+        {
+            /* Look for an end-point that has defined a DNS server address. */
+            for (pxEndPoint = FreeRTOS_FirstEndPoint_IPv6(NULL);
+                pxEndPoint != NULL;
+                pxEndPoint = FreeRTOS_NextEndPoint_IPv6(NULL, pxEndPoint))
+            {
+                if (ENDPOINT_IS_IPv6(pxEndPoint))
+                {
+                    uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
+                    uint8_t* ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ucIndex].ucBytes;
+
+                    /* Test if the DNS entry is in used. */
+                    if ((ucBytes[0] != 0U) && (ucBytes[1] != 0U))
+                    {
+                        struct freertos_sockaddr6* pxAddress6 = (struct freertos_sockaddr6*)pxAddress;
+
+                        pxAddress->sin_family = FREERTOS_AF_INET6;
+                        pxAddress->sin_len = (uint8_t)sizeof(struct freertos_sockaddr6);
+                        (void)memcpy(pxAddress6->sin_addrv6.ucBytes,
+                            pxEndPoint->ipv6_settings.xDNSServerAddresses[ucIndex].ucBytes,
+                            ipSIZE_OF_IPv6_ADDRESS);
                         break;
                     }
                 }
@@ -1002,7 +1069,9 @@
 
         return pxEndPoint;
     }
-/*-----------------------------------------------------------*/
+#endif /* (ipconfigUSE_IPv6 !=0 ) */
+
+    /*-----------------------------------------------------------*/
 
 /**
  * @brief Prepare and send a message to a DNS server.  'uxReadTimeOut_ticks' will be passed as
@@ -1060,9 +1129,16 @@
                 size_t uxHeaderBytes;
                 NetworkBufferDescriptor_t * pxNetworkBuffer;
                 uint8_t * pucUDPPayloadBuffer = NULL, * pucReceiveBuffer;
-                NetworkEndPoint_t * pxEndPoint;
+#if ( ipconfigUSE_IPv6 !=0 )
+                NetworkEndPoint_IPv6_t * pxEndPoint;
 
-                pxEndPoint = prvGetDNSAddress( &( xAddress ), pcHostName );
+                pxEndPoint = prvGetDNS6Address( &( xAddress ), pcHostName );
+#else
+
+                NetworkEndPoint_IPv4_t* pxEndPoint;
+
+                pxEndPoint = prvGetDNSAddress(&(xAddress), pcHostName);
+#endif /* (ipconfigUSE_IPv6 !=0) */
 
                 if( pxEndPoint == NULL )
                 {

@@ -111,7 +111,7 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
 #endif /* ipconfigUSE_IPv6 != 0 */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
+#if ( ipconfigUSE_DHCP == 1 )
 
 /**
  * @brief Create a DHCP event.
@@ -120,20 +120,40 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
  *         succeeded.
  * @param pxEndPoint: The end-point that needs DHCP.
  */
-    BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
+    BaseType_t xSendDHCPEvent( struct xNetworkEndPoint_IPv4 * pxEndPoint )
     {
         IPStackEvent_t xEventMessage;
         const TickType_t uxDontBlock = 0U;
 
-        #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
-            eDHCPState_t uxOption = eGetDHCPState( pxEndPoint );
-        #endif
+        eDHCPState_t uxOption = eGetDHCPState( pxEndPoint );
 
-        xEventMessage.eEventType = eDHCP_RA_Event;
+        xEventMessage.eEventType = eDHCP_Event;
         xEventMessage.pvData = ( void * ) pxEndPoint;
-        #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+        pxEndPoint->xDHCPData.eExpectedState = uxOption;
+
+        return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );
+    }
+#endif /* if ( ipconfigUSE_DHCP == 1 ) */
+
+#if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 )
+
+/**
+ * @brief Create a DHCP event.
+ *
+ * @return pdPASS or pdFAIL, depending on whether xSendEventStructToIPTask()
+ *         succeeded.
+ * @param pxEndPoint: The end-point that needs DHCP.
+ */
+    BaseType_t xSendDHCPv6Event( struct xNetworkEndPoint_IPv6 * pxEndPoint )
+    {
+        IPStackEvent_t xEventMessage;
+        const TickType_t uxDontBlock = 0U;
+
+        xEventMessage.eEventType = eDHCPv6_RA_Event;
+        xEventMessage.pvData = ( void * ) pxEndPoint;
+        #if ( ipconfigUSE_DHCPv6 == 1 )
             {
-                pxEndPoint->xDHCPData.eExpectedState = uxOption;
+                pxEndPoint->xDHCPData.eExpectedState = eGetDHCPv6State( pxEndPoint );
             }
         #endif
 
@@ -217,10 +237,12 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         pxNewBuffer->usBoundPort = pxNetworkBuffer->usBoundPort;
         pxNewBuffer->pxInterface = pxNetworkBuffer->pxInterface;
         pxNewBuffer->pxEndPoint = pxNetworkBuffer->pxEndPoint;
+        pxNewBuffer->bits.bIPv6 = pxNetworkBuffer->bits.bIPv6;
         ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
         #if ( ipconfigUSE_IPv6 != 0 )
             {
                 ( void ) memcpy( pxNewBuffer->xIPv6Address.ucBytes, pxNetworkBuffer->xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                pxNewBuffer->pxEndPointIPv6 = pxNetworkBuffer->pxEndPointIPv6;
             }
         #endif /* ipconfigUSE_IPv6 != 0 */
     }
@@ -897,7 +919,7 @@ BaseType_t xIsCallingFromIPTask( void )
  */
 void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
 {
-    NetworkEndPoint_t * pxEndPoint;
+    //NetworkEndPoint_t * pxEndPoint;
 
     configASSERT( pxInterface != NULL );
     configASSERT( pxInterface->pfInitialise != NULL );
@@ -910,39 +932,32 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
      * mapping between the interface and the end point, which would negate
      * the need for this loop.  Likewise the loop further down the same function. */
     /*_HT_ Because a single interface can have multiple end-points. */
-    for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
-         pxEndPoint != NULL;
-         pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
-    {
-        /* The bit 'bEndPointUp' stays low until vIPNetworkUpCalls() is called. */
-        pxEndPoint->bits.bEndPointUp = pdFALSE_UNSIGNED;
-        #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
+    #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
+        {
+            if( pxInterface->bits.bCallDownEvent != pdFALSE_UNSIGNED )
             {
-                if( pxEndPoint->bits.bCallDownHook != pdFALSE_UNSIGNED )
+                #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 )
                 {
-                    #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 )
-                        {
-                            vApplicationIPNetworkEventHook( eNetworkDown );
-                        }
-                    #else
-                        {
-                            vApplicationIPNetworkEventHook( eNetworkDown, pxEndPoint );
-                        }
-                    #endif
+                    vApplicationIPNetworkEventHook( eNetworkDown );
                 }
-                else
+                #else
                 {
-                    /* The next time NetworkEventHook will be called for this end-point. */
-                    pxEndPoint->bits.bCallDownHook = pdTRUE_UNSIGNED;
+                     vApplicationIPNetworkEventHook( eNetworkDown );
                 }
+                #endif
             }
-        #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
-    }
-
+            else
+            {
+                /* The next time NetworkEventHook will be called for this end-point. */
+                pxInterface->bits.bCallDownEvent = pdTRUE_UNSIGNED;
+            }
+        }
+    #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
+    
     /* Per the ARP Cache Validation section of https://tools.ietf.org/html/rfc1122,
      * treat network down as a "delivery problem" and flush the ARP cache for this
      * interface. */
-    FreeRTOS_ClearARP( ( ( NetworkEndPoint_t * ) pxInterface ) );
+    FreeRTOS_ClearARP( ( ( NetworkInterface_t * ) pxInterface ) );
 
     /* The network has been disconnected (or is being initialised for the first
      * time).  Perform whatever hardware processing is necessary to bring it up
@@ -955,55 +970,66 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
 
         /* The network is not up until DHCP has completed.
          * Start it now for all associated end-points. */
-
-        for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
-             pxEndPoint != NULL;
-             pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
+        NetworkEndPoint_IPv4_t* pxEndPoint = NULL;
+        for (pxEndPoint = FreeRTOS_FirstEndPoint_IPv4(pxInterface);
+            pxEndPoint != NULL;
+            pxEndPoint = FreeRTOS_NextEndPoint_IPv4(pxInterface, pxEndPoint))
         {
-            #if ( ipconfigUSE_DHCP == 1 )
-                if( END_POINT_USES_DHCP( pxEndPoint ) )
+#if ( ipconfigUSE_DHCP == 1 )
+            if (END_POINT_USES_DHCP(pxEndPoint))
+            {
                 {
-                    #if ( ipconfigUSE_DHCPv6 != 0 )
-                        if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                        {
-                            vDHCPv6Process( pdTRUE, pxEndPoint );
-                        }
-                        else
-                    #endif /* ipconfigUSE_DHCPv6 */
-                    {
-                        /* Reset the DHCP process for this end-point. */
-                        vDHCPProcess( pdTRUE, pxEndPoint );
-                    }
+                    /* Reset the DHCP process for this end-point. */
+                    vDHCPProcess(pdTRUE, pxEndPoint);
                 }
-                else /* Yes this else ought to be here. */
-            #endif /* ( ipconfigUSE_DHCP == 1 ) */
+            }
+            else /* Yes this else ought to be here. */
+#endif /* ( ipconfigUSE_DHCP == 1 ) */
 
-            #if ( ipconfigUSE_RA != 0 )
-                if( END_POINT_USES_RA( pxEndPoint ) )
-                {
-                    /* Reset the RA/SLAAC process for this end-point. */
-                    vRAProcess( pdTRUE, pxEndPoint );
-                }
-                else
-            #endif /* ( #if( ipconfigUSE_IPv6 != 0 ) */
 
             {
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                    {
-                        ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
-                    }
-                    else
-                #endif
-                {
-                    ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
-                }
-
                 /* DHCP or Router Advertisement are not enabled for this end-point.
                  * Perform any necessary 'network up' processing. */
-                vIPNetworkUpCalls( pxEndPoint );
+                {
+                    (void)memcpy(&(pxEndPoint->ipv4_settings), &(pxEndPoint->ipv4_defaults), sizeof(pxEndPoint->ipv4_settings));
+                }
+
+                //vIPNetworkUpCalls( pxEndPoint );
             }
         }
+
+        
+
+        /* Two EndPoint list to go through if IPv6 is enabled. */
+        #if ( ipconfigUSE_IPv6 !=0 )
+            NetworkEndPoint_IPv6_t* pxEndPoint_IPv6 = NULL;
+        for( pxEndPoint_IPv6 = FreeRTOS_FirstEndPoint_IPv4( pxInterface );
+             pxEndPoint_IPv6 != NULL;
+             pxEndPoint_IPv6 = FreeRTOS_NextEndPoint_IPv4( pxInterface, pxEndPoint_IPv6 ) )
+        {
+            #if ( ipconfigUSE_DHCPv6 != 0 )
+                vDHCPv6Process( pdTRUE, pxEndPoint_IPv6 );
+            #endif /* ( ipconfigUSE_DHCPv6 == 1 ) */
+
+            #if ( ipconfigUSE_RA != 0 )
+                if( END_POINT_USES_RA( pxEndPoint_IPv6 ) )
+                {
+                    /* Reset the RA/SLAAC process for this end-point. */
+                    vRAProcess( pdTRUE, pxEndPoint_IPv6 );
+                }
+            #endif
+
+            ( void ) memcpy( &( pxEndPoint_IPv6->ipv6_settings ), &( pxEndPoint_IPv6->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
+            /* DHCP or Router Advertisement are not enabled for this end-point.
+             * Perform any necessary 'network up' processing. */
+             //vIPNetworkUpCalls_IPv6( pxEndPoint_IPv6);
+        }
+
+        #endif /* ( ipconfigUSE_IPv6 !=0 ) */
+
+        /* call the hook after all endpoints are up */
+        vIPNetworkUpCalls();
+        
     }
     else
     {

@@ -64,7 +64,8 @@
 /*
  * Send a message to the IP-task, which will call vDHCPProcess().
  */
-    BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint );
+    BaseType_t xSendDHCPEvent( struct xNetworkEndPoint_IPv4 * pxEndPoint );
+    BaseType_t xSendDHCPv6Event( struct xNetworkEndPoint_IPv6 * pxEndPoint );
 #endif /* ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
 
 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )

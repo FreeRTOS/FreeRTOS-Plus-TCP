@@ -76,7 +76,7 @@
                                          struct freertos_addrinfo ** ppxAddressInfo );
 
     #if ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-        static NetworkEndPoint_t * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer );
+        static void * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer );
     #endif
 /*-----------------------------------------------------------*/
 
@@ -323,7 +323,7 @@
             /* If this is not a reply to our DNS request, it might an LLMNR
              * request. */
             NetworkBufferDescriptor_t * pxNetworkBuffer;
-            NetworkEndPoint_t * pxEndPoint, xEndPoint;
+            NetworkEndPoint_IPv4_t * pxEndPoint, xEndPoint;
             int16_t usLength;
             LLMNRAnswer_t * pxAnswer;
             size_t uxDataLength;
@@ -354,7 +354,7 @@
                     /* NetworkInterface is obliged to set 'pxEndPoint' in every received packet,
                      * but in case this has not be done, set it here. */
 
-                    pxNetworkBuffer->pxEndPoint = prvFindEndPointOnNetMask( pxNetworkBuffer );
+                    prvFindEndPointOnNetMask( pxNetworkBuffer );
                     FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest: No pxEndPoint yet? Using %lxip\n",
                                        FreeRTOS_ntohl( pxNetworkBuffer->pxEndPoint ? pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress : 0U ) ) );
 
@@ -438,7 +438,7 @@
                     if( pxSet->usType == dnsTYPE_AAAA_HOST )
                     {
                         size_t uxDistance;
-                        NetworkEndPoint_t * pxReplyEndpoint = FreeRTOS_FirstEndPoint_IPv6( NULL );
+                        NetworkEndPoint_IPv6_t * pxReplyEndpoint = FreeRTOS_FirstEndPoint_IPv6( NULL );
 
                         if( pxReplyEndpoint == NULL )
                         {
@@ -481,31 +481,37 @@
  * @param[in] pxNetworkBuffer: The Ethernet packet that was received.
  * @return An end-point.
  */
-        static NetworkEndPoint_t * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer )
+        static void * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer )
         {
-            NetworkEndPoint_t * pxEndPoint;
-
             #if ( ipconfigUSE_IPv6 != 0 )
                 IPPacket_IPv6_t * xIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
+                NetworkEndPoint_IPv6_t * pxEndPoint;
                 if( xIPPacket_IPv6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                 {
                     pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &xIPPacket_IPv6->xIPHeader.xSourceAddress );
+                    if( pxEndPoint != NULL )
+                    {
+                        pxNetworkBuffer->pxEndPointIPv6 = pxEndPoint;
+                    }
+                    return pxEndPoint;
                 }
                 else
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
             {
                 IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+                NetworkEndPoint_IPv4_t * pxEndPoint;
 
-                pxEndPoint = FreeRTOS_FindEndPointOnNetMask( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
+                pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv4( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
+                if( pxEndPoint != NULL )
+                {
+                    pxNetworkBuffer->pxEndPoint = pxEndPoint;
+                }
+                return pxEndPoint;
             }
 
-            if( pxEndPoint != NULL )
-            {
-                pxNetworkBuffer->pxEndPoint = pxEndPoint;
-            }
+            
 
-            return pxEndPoint;
+           // return pxEndPoint;
         }
     #endif /* ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
 /*-----------------------------------------------------------*/
@@ -804,12 +810,12 @@
             UDPPacket_t * pxUDPPacket;
             IPHeader_t * pxIPHeader;
             UDPHeader_t * pxUDPHeader;
-            NetworkEndPoint_t * pxEndPoint = prvFindEndPointOnNetMask( pxNetworkBuffer );
             size_t uxDataLength;
 
             pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxUDPPacket->xIPHeader;
 
+            prvFindEndPointOnNetMask( pxNetworkBuffer );
             #if ( ipconfigUSE_IPv6 != 0 )
                 if( ( pxIPHeader->ucVersionHeaderLength & 0xf0U ) == 0x60U )
                 {
@@ -824,7 +830,7 @@
 
                     {
                         ( void ) memcpy( pxIPHeader_IPv6->xDestinationAddress.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                        ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pNetworkBuffer->pxEndPointIPv6->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     }
 
                     xUDPPacket_IPv6->xUDPHeader.usLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
@@ -848,7 +854,7 @@
                     pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
                 }
 
-                pxIPHeader->ulSourceIPAddress = ( pxEndPoint != NULL ) ? pxEndPoint->ipv4_settings.ulIPAddress : 0U;
+                pxIPHeader->ulSourceIPAddress = ( pxNetworkBuffer->pxEndPoint != NULL ) ? pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress : 0U;
                 pxIPHeader->ucTimeToLive = ipconfigUDP_TIME_TO_LIVE;
                 pxIPHeader->usIdentification = FreeRTOS_htons( usPacketIdentifier );
                 usPacketIdentifier++;
@@ -986,7 +992,7 @@
 
             do
             {
-                NetworkEndPoint_t xEndPoint;
+                NetworkEndPoint_IPv4_t xEndPoint;
                 BaseType_t xMustReply = pdFALSE;
 
                 /* Check for minimum buffer size. */
@@ -1073,7 +1079,7 @@
 
                 if( pxNetworkBuffer->pxEndPoint == NULL )
                 {
-                    pxNetworkBuffer->pxEndPoint = prvFindEndPointOnNetMask( pxNetworkBuffer );
+                    prvFindEndPointOnNetMask( pxNetworkBuffer );
                 }
 
                 if( pxNetworkBuffer->pxEndPoint != NULL )

@@ -89,11 +89,12 @@
     void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket )
     {
         uint32_t ulMSS = ipconfigTCP_MSS;
-        NetworkEndPoint_t * pxEndPoint = pxSocket->pxEndPoint;
+        
 
-        if( pxEndPoint != NULL )
+        if( pxSocket->pxEndPoint != NULL )
         {
             #if ( ipconfigUSE_IPv6 != 0 )
+                NetworkEndPoint_IPv6_t* pxEndPoint = pxSocket->pxEndPoint;
                 if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
                 {
                     BaseType_t xResult;
@@ -110,6 +111,7 @@
                 else
             #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
+            NetworkEndPoint_IPv4_t* pxEndPoint = pxSocket->pxEndPoint;
             /* Check if the remote IP-address belongs to the same netmask. */
             if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.ulRemoteIP ) ^ pxEndPoint->ipv4_settings.ulIPAddress ) & pxEndPoint->ipv4_settings.ulNetMask ) != 0U )
             {

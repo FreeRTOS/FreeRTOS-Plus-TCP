@@ -96,12 +96,12 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
     eARPLookupResult_t eReturned;
     /* Map the UDP packet onto the start of the frame. */
     UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+    void * pxEndPoint = (void *) pxNetworkBuffer->pxEndPoint;
 
     #if ( ipconfigUSE_IPv6 != 0 )
         if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
         {
-            eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPv6Address ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
+            eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPv6Address ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( (NetworkEndPoint_IPv6_t *) pxEndPoint ) );
         }
         else
     #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
@@ -131,7 +131,7 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
             }
         #endif
 
-        eReturned = eARPGetCacheEntry( &( pxNetworkBuffer->ulIPAddress ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
+        eReturned = eARPGetCacheEntry( &( pxNetworkBuffer->ulIPAddress ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( (NetworkEndPoint_IPv4_t *)pxEndPoint ) );
     }
 
     if( pxNetworkBuffer->pxEndPoint == NULL )
@@ -283,7 +283,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
 
         /* 'ulIPAddress' might have become the address of the Gateway.
          * Find the route again. */
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->ulIPAddress, 11 ); /* ARP request */
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv4( pxNetworkBuffer->ulIPAddress, 11 ); /* ARP request */
 
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
@@ -309,7 +309,9 @@ static void prvUDPSendPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer 
     NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
     EthernetHeader_t * pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-    ( void ) memcpy( pxEthernetHeader->xSourceAddress.ucBytes, pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+    ( void ) memcpy( pxEthernetHeader->xSourceAddress.ucBytes, 
+                    pxNetworkBuffer->pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes, 
+                    ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
     #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
         {
             if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
@@ -339,7 +341,7 @@ static void prvFindIPv4Endpoint( NetworkBufferDescriptor_t * const pxNetworkBuff
 {
     if( pxNetworkBuffer->pxEndPoint == NULL )
     {
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->ulIPAddress, 10 );
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv4( pxNetworkBuffer->ulIPAddress, 10 );
 
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
@@ -852,6 +854,20 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
                 }
             }
         #endif /* if ( ipconfigUSE_DHCP == 1 ) */
+
+        #if ( ipconfigUSE_DHCPv6 == 1 )
+            {
+                if( xIsDHCPSocket( pxSocket ) != 0 )
+                {
+                    /* This is the DHCP clients socket, bound to port 68. */
+                    /* Can call this function directly, because this code is running from the IP-task. */
+                    if( pxNetworkBuffer->pxEndPoint != NULL )
+                    {
+                        ( void ) xSendDHCPv6Event( pxNetworkBuffer->pxEndPoint );
+                    }
+                }
+            }
+        #endif /* if ( ipconfigUSE_DHCPv6 == 1 ) */
     }
     while( ipFALSE_BOOL );
 

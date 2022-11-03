@@ -20,13 +20,13 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -137,6 +137,8 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\source\FreeRTOS_Routing_IPv4.c" />
+    <ClCompile Include="..\..\source\FreeRTOS_Routing_IPv6.c" />
     <ClCompile Include="..\..\source\portable\BufferManagement\BufferAllocation_2.c" />
     <ClCompile Include="..\..\source\portable\NetworkInterface\WinPCap\NetworkInterface.c" />
     <ClCompile Include="..\..\source\FreeRTOS_ARP.c" />
@@ -198,6 +200,8 @@
     <ClInclude Include="..\..\source\include\FreeRTOS_IP_Utils.h" />
     <ClInclude Include="..\..\source\include\FreeRTOS_ND.h" />
     <ClInclude Include="..\..\source\include\FreeRTOS_Routing.h" />
+    <ClInclude Include="..\..\source\include\FreeRTOS_Routing_IPv4.h" />
+    <ClInclude Include="..\..\source\include\FreeRTOS_Routing_IPv6.h" />
     <ClInclude Include="..\..\source\include\FreeRTOS_Sockets.h" />
     <ClInclude Include="..\..\source\include\FreeRTOS_Stream_Buffer.h" />
     <ClInclude Include="..\..\source\include\FreeRTOS_TCP_IP.h" />

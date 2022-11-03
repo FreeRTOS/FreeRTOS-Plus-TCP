@@ -411,7 +411,8 @@ typedef enum
     eNetworkTxEvent,    /* 2: Let the IP-task send a network packet. */
     eARPTimerEvent,     /* 3: The ARP timer expired. */
     eStackTxEvent,      /* 4: The software stack has queued a packet to transmit. */
-    eDHCP_RA_Event,     /* 5: Process the DHCP or RA/SLAAC state machine. */
+    eDHCP_Event,     /* 5: Process the DHCP or RA/SLAAC state machine. */
+    eDHCPv6_RA_Event,
     eTCPTimerEvent,     /* 6: See if any TCP socket needs attention. */
     eTCPAcceptEvent,    /* 7: Client API FreeRTOS_accept() waiting for client connections. */
     eTCPNetStat,        /* 8: IP-task is asked to produce a netstat listing. */
@@ -537,7 +538,8 @@ extern const BaseType_t xBufferAllocFixedSize;
 
 /* As FreeRTOS_Routing is included later, use forward declarations
  * of the two structs. */
-struct xNetworkEndPoint;
+struct xNetworkEndPoint_IPv4;
+struct xNetworkEndPoint_IPv6;
 struct xNetworkInterface;
 
 /* A list of all network end-points: */
@@ -888,6 +890,7 @@ typedef struct xSOCKET
     uint32_t ulLocalAddress;         /**< Local IP address */
     #if ( ipconfigUSE_IPv6 != 0 )
         IPv6_Address_t xLocalAddress_IPv6;
+        struct xNetworkEndPoint_IPv6 * pxEndPointIPv6;
     #endif
     uint16_t usLocalPort;                  /**< Local port on this machine */
     uint8_t ucSocketOptions;               /**< Socket options */
@@ -906,7 +909,7 @@ typedef struct xSOCKET
         EventBits_t xSocketBits;          /**< These bits indicate the events which have actually occurred.
                                            * They are maintained by the IP-task */
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
-    struct xNetworkEndPoint * pxEndPoint; /**< The end-point to which the socket is bound. */
+    struct xNetworkEndPoint_IPv4 * pxEndPoint; /**< The end-point to which the socket is bound. */
     /* TCP/UDP specific fields: */
     /* Before accessing any member of this structure, it should be confirmed */
     /* that the protocol corresponds with the type of structure */
@@ -1089,7 +1092,7 @@ BaseType_t xIsCallingFromIPTask( void );
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
 /* Send the network-up event and start the ARP timer. */
-void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint );
+void vIPNetworkUpCalls( );
 
 #if ( ipconfigUSE_IPv6 != 0 )
 
