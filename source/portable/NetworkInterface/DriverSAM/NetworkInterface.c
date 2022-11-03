@@ -193,7 +193,7 @@ static void hand_tx_errors( void );
 /*-----------------------------------------------------------*/
 
 /* A copy of PHY register 1: 'PHY_REG_01_BMSR' */
-static volatile BaseType_t xGMACSwitchRequired;
+static BaseType_t xGMACSwitchRequired;
 
 /* LLMNR multicast address. */
 static const uint8_t llmnr_mac_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
@@ -567,7 +567,11 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
         #endif
 
         ulResult = gmac_dev_write( &gs_gmac_dev, ( void * ) pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength );
-        configASSERT( ulResult == GMAC_OK )
+
+        if( ulResult != GMAC_OK )
+        {
+            TX_STAT_INCREMENT( tx_write_fail );
+        }
 
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
             {

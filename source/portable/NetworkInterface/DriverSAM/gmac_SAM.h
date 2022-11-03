@@ -1613,6 +1613,7 @@
         {
             unsigned tx_enqueue_ok;   /* xNetworkInterfaceOutput() success. */
             unsigned tx_enqueue_fail; /* xNetworkInterfaceOutput() failed, no slot available. */
+            unsigned tx_write_fail;   /* gmac_dev_write() did not return GMAC-OK. */
             unsigned tx_callback;     /* Transmission ready, buffer returned to driver. */
             unsigned tx_release_ok;   /* Buffer released. */
             unsigned tx_release_bad;  /* Buffer corruption. */
