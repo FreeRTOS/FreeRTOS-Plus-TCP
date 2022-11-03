@@ -1544,10 +1544,15 @@
 /**INDENT-ON**/
 /*/ @endcond */
 
+    #ifndef GMAC_STATS
+        #define GMAC_STATS    0
+    #endif
 
-    #define GMAC_STATS    0
+    #if ( GMAC_STATS == 0 )
 
-    #if ( GMAC_STATS != 0 )
+        #define TX_STAT_INCREMENT( field )    do {} while( ipFALSE_BOOL )
+
+    #else
 
 /* Here below some code to study the types and
  * frequencies of  GMAC interrupts. */
@@ -1598,6 +1603,24 @@
         };
 
         void gmac_show_irq_counts();
+
+/*
+ *  The following struct replaces the earlier:
+ *      int tx_release_count[ 4 ];
+ *  The purpose of this struct is to describe the TX events.
+ */
+        typedef struct STransmitStats
+        {
+            unsigned tx_enqueue_ok;   /* xNetworkInterfaceOutput() success. */
+            unsigned tx_enqueue_fail; /* xNetworkInterfaceOutput() failed, no slot available. */
+            unsigned tx_write_fail;   /* gmac_dev_write() did not return GMAC-OK. */
+            unsigned tx_callback;     /* Transmission ready, buffer returned to driver. */
+            unsigned tx_release_ok;   /* Buffer released. */
+            unsigned tx_release_bad;  /* Buffer corruption. */
+        } TransmitStats_t;
+
+        extern TransmitStats_t xTransmitStats;
+        #define TX_STAT_INCREMENT( field )    xTransmitStats.field++
 
     #endif /* if ( GMAC_STATS != 0 ) */
 
