@@ -512,7 +512,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
 
     pxSendPacket = ( IPPacket_t * ) pxDescriptor->pucEthernetBuffer;
 
-	/* 'GMAC_TX_UNITSIZE' is the netto size of a transmission buffer. */
+    /* 'GMAC_TX_UNITSIZE' is the netto size of a transmission buffer. */
     if( ulTransmitSize > GMAC_TX_UNITSIZE )
     {
         ulTransmitSize = GMAC_TX_UNITSIZE;
@@ -737,17 +737,26 @@ void vGMACGenerateChecksum( uint8_t * pucBuffer,
 {
     ProtocolPacket_t * xProtPacket = ( ProtocolPacket_t * ) pucBuffer;
 
-    if( xProtPacket->xTCPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
+    /* The SAM4E has problems offloading checksums for transmission.
+     * The SAME70 does not set the CRC for ICMP packets (ping). */
+
+    if( xProtPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {
-        IPHeader_t * pxIPHeader = &( xProtPacket->xTCPPacket.xIPHeader );
+        #if ( SAME70 != 0 )
+            if( ( xProtPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_UDP ) &&
+                ( xProtPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_TCP ) )
+        #endif
+        {
+            IPHeader_t * pxIPHeader = &( xProtPacket->xTCPPacket.xIPHeader );
 
-        /* Calculate the IP header checksum. */
-        pxIPHeader->usHeaderChecksum = 0x00;
-        pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ipSIZE_OF_IPv4_HEADER );
-        pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
+            /* Calculate the IP header checksum. */
+            pxIPHeader->usHeaderChecksum = 0x00;
+            pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ipSIZE_OF_IPv4_HEADER );
+            pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
-        /* Calculate the TCP checksum for an outgoing packet. */
-        usGenerateProtocolChecksum( pucBuffer, uxLength, pdTRUE );
+            /* Calculate the TCP checksum for an outgoing packet. */
+            usGenerateProtocolChecksum( pucBuffer, uxLength, pdTRUE );
+        }
     }
 }
 /*-----------------------------------------------------------*/

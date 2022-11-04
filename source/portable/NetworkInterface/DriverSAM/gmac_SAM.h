@@ -99,42 +99,42 @@
     #define GMAC_RX_UNITSIZE           GMAC_FRAME_LENTGH_MAX /**< Maximum size for RX buffer  */
     #define GMAC_TX_UNITSIZE           GMAC_FRAME_LENTGH_MAX /**< Maximum size for TX buffer  */
 
-    /* A network buffer starts with 10 hidden bytes (ipBUFFER_PADDING)
-     * in which a pointer is stored. Round up this extra size to a multiple of 16,
-     * in order to get well-aligned buffers. */
+/* A network buffer starts with 10 hidden bytes (ipBUFFER_PADDING)
+ * in which a pointer is stored. Round up this extra size to a multiple of 16,
+ * in order to get well-aligned buffers. */
 
-    #define BUFFER_PADDING             ( ( ipBUFFER_PADDING + 16U ) & ~0x0FU )
-    #define NETWORK_BUFFER_SIZE        ( GMAC_FRAME_LENTGH_MAX + BUFFER_PADDING )
+    #define BUFFER_PADDING           ( ( ipBUFFER_PADDING + 16U ) & ~0x0FU )
+    #define NETWORK_BUFFER_SIZE      ( GMAC_FRAME_LENTGH_MAX + BUFFER_PADDING )
 
 /** GMAC clock speed */
-    #define GMAC_MCK_SPEED_240MHZ      ( 240 * 1000 * 1000 )
-    #define GMAC_MCK_SPEED_160MHZ      ( 160 * 1000 * 1000 )
-    #define GMAC_MCK_SPEED_120MHZ      ( 120 * 1000 * 1000 )
-    #define GMAC_MCK_SPEED_80MHZ       ( 80 * 1000 * 1000 )
-    #define GMAC_MCK_SPEED_40MHZ       ( 40 * 1000 * 1000 )
-    #define GMAC_MCK_SPEED_20MHZ       ( 20 * 1000 * 1000 )
+    #define GMAC_MCK_SPEED_240MHZ    ( 240 * 1000 * 1000 )
+    #define GMAC_MCK_SPEED_160MHZ    ( 160 * 1000 * 1000 )
+    #define GMAC_MCK_SPEED_120MHZ    ( 120 * 1000 * 1000 )
+    #define GMAC_MCK_SPEED_80MHZ     ( 80 * 1000 * 1000 )
+    #define GMAC_MCK_SPEED_40MHZ     ( 40 * 1000 * 1000 )
+    #define GMAC_MCK_SPEED_20MHZ     ( 20 * 1000 * 1000 )
 
 /** GMAC maintain code default value*/
-    #define GMAC_MAN_CODE_VALUE        ( 10 )
+    #define GMAC_MAN_CODE_VALUE      ( 10 )
 
 /** GMAC maintain start of frame default value*/
-    #define GMAC_MAN_SOF_VALUE         ( 1 )
+    #define GMAC_MAN_SOF_VALUE       ( 1 )
 
 /** GMAC maintain read/write*/
-    #define GMAC_MAN_RW_TYPE           ( 2 )
+    #define GMAC_MAN_RW_TYPE         ( 2 )
 
 /** GMAC maintain read only*/
-    #define GMAC_MAN_READ_ONLY         ( 1 )
+    #define GMAC_MAN_READ_ONLY       ( 1 )
 
 /** GMAC address length */
-    #define GMAC_ADDR_LENGTH           ( 6 )
+    #define GMAC_ADDR_LENGTH         ( 6 )
 
 
-    #define GMAC_DUPLEX_HALF           0
-    #define GMAC_DUPLEX_FULL           1
+    #define GMAC_DUPLEX_HALF         0
+    #define GMAC_DUPLEX_FULL         1
 
-    #define GMAC_SPEED_10M             0
-    #define GMAC_SPEED_100M            1
+    #define GMAC_SPEED_10M           0
+    #define GMAC_SPEED_100M          1
 
 /**
  * \brief Return codes for GMAC APIs.
@@ -1538,6 +1538,11 @@
     void gmac_handler( gmac_device_t * p_gmac_dev );
 
     void gmac_reset_tx_mem( gmac_device_t * p_dev );
+
+/* The SAM4E has problems offloading checksums for transmission.
+ * The SAME70 does not set the CRC for ICMP packets (ping). */
+    extern void vGMACGenerateChecksum( uint8_t * apBuffer,
+                                       size_t uxLength );
 
 /*/ @cond 0 */
 /**INDENT-OFF**/

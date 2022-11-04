@@ -698,11 +698,6 @@ uint32_t gmac_dev_read( gmac_device_t * p_gmac_dev,
     return GMAC_OK;
 }
 
-#if ( SAME70 == 0 )
-    extern void vGMACGenerateChecksum( uint8_t * apBuffer,
-                                       size_t uxLength );
-#endif
-
 /**
  * \brief Send ulLength bytes from pcFrom. This copies the buffer to one of the
  * GMAC Tx buffers, and then indicates to the GMAC that the buffer is ready.
@@ -759,13 +754,11 @@ uint32_t gmac_dev_write( gmac_device_t * p_gmac_dev,
                 memcpy( ( void * ) p_tx_td->addr, p_buffer, ul_size );
             }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
-        #if ( SAME70 == 0 )
-            {
-                #warning Is this a SAM4E?
-                /* Needs to be called for SAM4E series only. */
-                vGMACGenerateChecksum( ( uint8_t * ) p_tx_td->addr, ( size_t ) ul_size );
-            }
-        #endif
+        {
+            #warning Is this a SAM4E?
+            /* Needs to be called for SAM4E series only. */
+            vGMACGenerateChecksum( ( uint8_t * ) p_tx_td->addr, ( size_t ) ul_size );
+        }
     }
 
     /* Update transmit descriptor status */
@@ -1018,7 +1011,7 @@ void gmac_handler( gmac_device_t * p_gmac_dev )
 /*/ @cond 0 */
 /**INDENT-OFF**/
 #ifdef __cplusplus
-    }
+}
 #endif
 /**INDENT-ON**/
 /*/ @endcond */
