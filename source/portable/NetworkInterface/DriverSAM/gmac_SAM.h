@@ -96,12 +96,15 @@
 
 /** The MAC can support frame lengths up to 1536 bytes */
     #define GMAC_FRAME_LENTGH_MAX      1536
+    #define GMAC_RX_UNITSIZE           GMAC_FRAME_LENTGH_MAX /**< Maximum size for RX buffer  */
+    #define GMAC_TX_UNITSIZE           GMAC_FRAME_LENTGH_MAX /**< Maximum size for TX buffer  */
 
-/*#define GMAC_RX_UNITSIZE            128     / **< Fixed size for RX buffer  * / */
-    #define GMAC_RX_UNITSIZE           1536 /**< Fixed size for RX buffer  */
+    /* A network buffer starts with 10 hidden bytes (ipBUFFER_PADDING)
+     * in which a pointer is stored. Round up this extra size to a multiple of 16,
+     * in order to get well-aligned buffers. */
 
-/*#define GMAC_TX_UNITSIZE            1518    / **< Size for ETH frame length * / */
-    #define GMAC_TX_UNITSIZE           1536 /**< Size for ETH frame length */
+    #define BUFFER_PADDING             ( ( ipBUFFER_PADDING + 16U ) & ~0x0FU )
+    #define NETWORK_BUFFER_SIZE        ( GMAC_FRAME_LENTGH_MAX + BUFFER_PADDING )
 
 /** GMAC clock speed */
     #define GMAC_MCK_SPEED_240MHZ      ( 240 * 1000 * 1000 )

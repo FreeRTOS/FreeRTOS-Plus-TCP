@@ -71,12 +71,6 @@
 #define EMAC_IF_ERR_EVENT    4UL
 #define EMAC_IF_ALL_EVENT    ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
 
-/* 1536 bytes is more than needed, 1524 would be enough.
- * But 1536 is a multiple of 32, which gives a great alignment for
- * cached memories. */
-
-#define NETWORK_BUFFER_SIZE    1536
-
 #ifndef EMAC_MAX_BLOCK_TIME_MS
 
 /* The task 'prvEMACHandlerTask()' will wake-up every 100 ms, to see
@@ -518,9 +512,10 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
 
     pxSendPacket = ( IPPacket_t * ) pxDescriptor->pucEthernetBuffer;
 
-    if( ulTransmitSize > NETWORK_BUFFER_SIZE )
+	/* 'GMAC_TX_UNITSIZE' is the netto size of a transmission buffer. */
+    if( ulTransmitSize > GMAC_TX_UNITSIZE )
     {
-        ulTransmitSize = NETWORK_BUFFER_SIZE;
+        ulTransmitSize = GMAC_TX_UNITSIZE;
     }
 
     /* A do{}while(0) loop is introduced to allow the use of multiple break
@@ -566,7 +561,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
             }
         #endif
 
-        ulResult = gmac_dev_write( &gs_gmac_dev, ( void * ) pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength );
+        ulResult = gmac_dev_write( &gs_gmac_dev, ( void * ) pxDescriptor->pucEthernetBuffer, ulTransmitSize );
 
         if( ulResult != GMAC_OK )
         {
@@ -773,7 +768,7 @@ static uint32_t prvEMACRxPoll( void )
          * descriptor then allocate one now. */
         if( ( pxNextNetworkBufferDescriptor == NULL ) && ( uxGetNumberOfFreeNetworkBuffers() > xMinDescriptorsToLeave ) )
         {
-            pxNextNetworkBufferDescriptor = pxGetNetworkBufferWithDescriptor( ipTOTAL_ETHERNET_FRAME_SIZE, xBlockTime );
+            pxNextNetworkBufferDescriptor = pxGetNetworkBufferWithDescriptor( GMAC_RX_UNITSIZE, xBlockTime );
         }
 
         if( pxNextNetworkBufferDescriptor != NULL )
@@ -789,7 +784,7 @@ static uint32_t prvEMACRxPoll( void )
         }
 
         /* Read the next packet from the hardware into pucUseBuffer. */
-        ulResult = gmac_dev_read( &gs_gmac_dev, pucUseBuffer, ipTOTAL_ETHERNET_FRAME_SIZE, &ulReceiveCount, &pucDMABuffer );
+        ulResult = gmac_dev_read( &gs_gmac_dev, pucUseBuffer, GMAC_RX_UNITSIZE, &ulReceiveCount, &pucDMABuffer );
 
         if( ( ulResult != GMAC_OK ) || ( ulReceiveCount == 0 ) )
         {
