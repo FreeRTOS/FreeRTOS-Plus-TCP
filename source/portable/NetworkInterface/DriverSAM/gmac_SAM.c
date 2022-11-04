@@ -755,7 +755,6 @@ uint32_t gmac_dev_write( gmac_device_t * p_gmac_dev,
             }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
         {
-            #warning Is this a SAM4E?
             /* Needs to be called for SAM4E series only. */
             vGMACGenerateChecksum( ( uint8_t * ) p_tx_td->addr, ( size_t ) ul_size );
         }
