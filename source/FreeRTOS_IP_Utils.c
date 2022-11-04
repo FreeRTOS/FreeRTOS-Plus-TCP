@@ -992,10 +992,12 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
                  * Perform any necessary 'network up' processing. */
                 {
                     (void)memcpy(&(pxEndPoint->ipv4_settings), &(pxEndPoint->ipv4_defaults), sizeof(pxEndPoint->ipv4_settings));
+                    
                 }
 
                 //vIPNetworkUpCalls( pxEndPoint );
             }
+            pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
         }
 
         
@@ -1018,6 +1020,8 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
                     vRAProcess( pdTRUE, pxEndPoint_IPv6 );
                 }
             #endif
+
+            pxEndPoint_IPv6->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
             ( void ) memcpy( &( pxEndPoint_IPv6->ipv6_settings ), &( pxEndPoint_IPv6->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
             /* DHCP or Router Advertisement are not enabled for this end-point.

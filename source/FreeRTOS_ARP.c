@@ -1298,23 +1298,24 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
  * @param[in] pxEndPoint: only clean entries with this end-point, or when NULL,
  *                        clear the entire ARP cache.
  */
-void FreeRTOS_ClearARP( const struct xNetworkEndPoint_IPv4 * pxEndPoint )
+void FreeRTOS_ClearARP( const struct xNetworkInterface_t * pxInterface )
 {
-    if( pxEndPoint != NULL )
-    {
-        BaseType_t x;
+    NetworkEndPoint_IPv4_t * pxEndPoint;
+    BaseType_t x;
 
-        for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
-        {
-            if( xARPCache[ x ].pxEndPoint == pxEndPoint )
-            {
-                ( void ) memset( &( xARPCache[ x ] ), 0, sizeof( ARPCacheRow_t ) );
-            }
-        }
-    }
-    else
+    for(pxEndPoint = FreeRTOS_FirstEndPoint_IPv4(pxInterface);
+        pxEndPoint != NULL;
+        pxEndPoint = FreeRTOS_NextEndPoint_IPv4(pxInterface, pxEndPoint))
     {
-        ( void ) memset( xARPCache, 0, sizeof( xARPCache ) );
+        pxEndPoint->bits.bEndPointUp = pdFALSE_UNSIGNED;
+        
+        for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+            {
+                if( xARPCache[ x ].pxEndPoint == pxEndPoint )
+                {
+                    ( void ) memset( &( xARPCache[ x ] ), 0, sizeof( ARPCacheRow_t ) );
+                }
+            }
     }
 }
 /*-----------------------------------------------------------*/
