@@ -212,6 +212,18 @@
     #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
 #endif
 
+/* Include all API's and code that is needed for the IPv4 protocol.
+ * When defined as zero, the application should uses IPv6. */
+#ifndef ipconfigUSE_IPV4
+    #define ipconfigUSE_IPV4    ( 1 )
+#endif
+
+/* Include all API's and code that is needed for the IPv6 protocol.
+ * When defined as zero, the application should uses IPv4. */
+#ifndef ipconfigUSE_IPV6
+    #define ipconfigUSE_IPV6    ( 1 )
+#endif
+
 /* Determine the number of clock ticks that the API's FreeRTOS_recv() and
  * FreeRTOS_recvfrom() must wait for incoming data. */
 #ifndef ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME

@@ -133,7 +133,7 @@ void test_pxDuplicateNetworkBufferWithDescriptor_LargerBufferReturned( void )
     memset( ucEthBuffer2, 0x00, ipconfigTCP_MSS );
 
     pxNetworkBuffer->xDataLength = 0x123;
-    pxNetworkBuffer->ulIPAddress = 0xABCDEF56;
+    pxNetworkBuffer->xIPAddress.xIP_IPv4 = 0xABCDEF56;
     pxNetworkBuffer->usPort = 0x1234;
     pxNetworkBuffer->usBoundPort = 0xFFAA;
 
@@ -143,7 +143,7 @@ void test_pxDuplicateNetworkBufferWithDescriptor_LargerBufferReturned( void )
 
     TEST_ASSERT_EQUAL( &xNetworkBuffer2, pxReturn );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.xDataLength, uxNewLength );
-    TEST_ASSERT_EQUAL( xNetworkBuffer2.ulIPAddress, pxNetworkBuffer->ulIPAddress );
+    TEST_ASSERT_EQUAL( xNetworkBuffer2.xIPAddress.xIP_IPv4, pxNetworkBuffer->xIP_IPv4.ulIPAddress );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.usPort, pxNetworkBuffer->usPort );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.usBoundPort, pxNetworkBuffer->usBoundPort );
     TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pucEthernetBuffer, xNetworkBuffer2.pucEthernetBuffer, pxNetworkBuffer->xDataLength );
@@ -166,7 +166,7 @@ void test_pxDuplicateNetworkBufferWithDescriptor_SmallerBufferReturned( void )
     memset( ucEthBuffer2, 0x00, ipconfigTCP_MSS );
 
     pxNetworkBuffer->xDataLength = 0x123;
-    pxNetworkBuffer->ulIPAddress = 0xABCDEF56;
+    pxNetworkBuffer->xIPAddress.xIP_IPv4 = 0xABCDEF56;
     pxNetworkBuffer->usPort = 0x1234;
     pxNetworkBuffer->usBoundPort = 0xFFAA;
 
@@ -176,7 +176,7 @@ void test_pxDuplicateNetworkBufferWithDescriptor_SmallerBufferReturned( void )
 
     TEST_ASSERT_EQUAL( &xNetworkBuffer2, pxReturn );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.xDataLength, uxNewLength );
-    TEST_ASSERT_EQUAL( xNetworkBuffer2.ulIPAddress, pxNetworkBuffer->ulIPAddress );
+    TEST_ASSERT_EQUAL( xNetworkBuffer2.xIPAddress.xIP_IPv4, pxNetworkBuffer->xIPAddress.xIP_IPv4 );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.usPort, pxNetworkBuffer->usPort );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.usBoundPort, pxNetworkBuffer->usBoundPort );
     TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pucEthernetBuffer, xNetworkBuffer2.pucEthernetBuffer, uxNewLength );
