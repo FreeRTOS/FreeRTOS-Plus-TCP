@@ -136,6 +136,9 @@ void test_xDNSDoCallback_success_equal_identifier( void )
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
     vPortFree_ExpectAnyArgs();
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+    /* Function pointer 'pCallbackFunction' will be called. */
+    vTaskSuspendAll_Expect();
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
@@ -164,6 +167,9 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
     vPortFree_ExpectAnyArgs();
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+    /* Function pointer 'pCallbackFunction' will be called. */
+    vTaskSuspendAll_Expect();
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
 
     vIPSetDNSTimerEnableState_ExpectAnyArgs();
@@ -345,7 +351,9 @@ void test_vDNSCheckCallback_success_search_id_null_timeout( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
     vPortFree_ExpectAnyArgs();
+    vTaskSuspendAll_Expect();
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
@@ -378,7 +386,9 @@ void test_vDNSCheckCallback_success_search_id_null_timeout2( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
     vPortFree_ExpectAnyArgs();
+    vTaskSuspendAll_Expect();
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );

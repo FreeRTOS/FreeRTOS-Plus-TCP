@@ -498,7 +498,7 @@ void test_FreeRTOS_gethostbyname_cancel_success( void )
 {
     void * pvSearchID = NULL;
 
-    vDNSCheckCallBack_ExpectAnyArgs();
+    xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
     FreeRTOS_gethostbyname_cancel( pvSearchID );
 }
 
