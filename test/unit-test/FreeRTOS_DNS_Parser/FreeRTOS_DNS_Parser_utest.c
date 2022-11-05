@@ -1514,7 +1514,7 @@ void test_parseDNSAnswer_recordstored_gt_count2( void )
     char pucByte[ 300 ];
     size_t uxsourceBytesRemaining = 300;
     size_t uxBytesRead = 0;
-    char pcName = "FreeRTOS+TCP";
+    char * pcName = "FreeRTOS+TCP";
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
     DNSAnswerRecord_t * pxDNSAnswerRecord2;

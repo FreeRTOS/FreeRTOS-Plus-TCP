@@ -57,6 +57,7 @@
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_FreeRTOS_UDP_IP.h"
+#include "mock_FreeRTOS_DNS_Callback.h"
 
 #include "FreeRTOS_IP.h"
 
@@ -1063,13 +1064,36 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending( void
     prvProcessIPEventsAndTimers();
 }
 
+void test_prvProcessIPEventsAndTimers_eCancelDNSCallbackEvent( void )
+{
+    IPStackEvent_t xReceivedEvent;
+	void * pvData = ( void * ) 1234;
+
+    xNetworkDownEventPending = pdFALSE;
+
+    xReceivedEvent.pvData = pvData;
+    xReceivedEvent.eEventType = eCancelDNSCallbackEvent;
+
+    vCheckNetworkTimers_Expect();
+
+    xCalculateSleepTime_ExpectAndReturn( 0 );
+
+    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+
+	vDNSCheckCallBack_Expect( pvData );
+
+    prvProcessIPEventsAndTimers();
+}
+
 void test_prvProcessIPEventsAndTimers_Error( void )
 {
     IPStackEvent_t xReceivedEvent;
 
     xNetworkDownEventPending = pdFALSE;
 
-    xReceivedEvent.eEventType = eSocketSetDeleteEvent + 1;
+    /* Send an invalid event, which is the highest one plus 1. */
+    xReceivedEvent.eEventType = eCancelDNSCallbackEvent + 1;
 
     vCheckNetworkTimers_Expect();
 
