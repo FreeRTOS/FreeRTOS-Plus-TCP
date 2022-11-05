@@ -66,6 +66,7 @@ target_compile_options( freertos_plus_tcp
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-qual>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-conditional-uninitialized>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-covered-switch-default>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-declaration-after-statement>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-documentation>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-extra-semi-stmt>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-implicit-int-conversion>
