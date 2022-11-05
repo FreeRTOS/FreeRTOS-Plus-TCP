@@ -163,7 +163,7 @@ endif()
 
 ########################################################################
 # Requirements
-set(CMAKE_C_STANDARD 99) # Note FreeRTOS-Kernel uses C99 constructs.
+set(CMAKE_C_STANDARD 89) # Note FreeRTOS-Kernel uses C99 constructs.
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 ########################################################################

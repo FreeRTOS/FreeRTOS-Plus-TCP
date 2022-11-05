@@ -87,7 +87,7 @@ target_link_libraries( freertos_plus_tcp
   PRIVATE
     freertos_kernel
     freertos_plus_tcp_network_if
-    freertos_plus_tcp_tools
+    freertos_plus_tcp_utilities
 )
 
 add_subdirectory(portable)
