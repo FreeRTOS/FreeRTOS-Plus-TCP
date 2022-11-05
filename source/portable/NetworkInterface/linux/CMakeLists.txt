@@ -18,7 +18,13 @@ target_compile_options( freertos_plus_tcp_network_if
   PRIVATE
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-align>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-declaration-after-statement>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-documentation>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-noreturn>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-padded>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-shorten-64-to-32>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-undef>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
+    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-unused-parameter>
 )
 
 target_link_libraries( freertos_plus_tcp_network_if
