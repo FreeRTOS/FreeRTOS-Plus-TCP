@@ -168,6 +168,8 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
     /* Introduce a do while loop to allow use of breaks. */
     do
     {
+        uint32_t ulHostEndianProtocolAddr;
+
         /* Only Ethernet hardware type is supported.
          * Only IPv4 address can be present in the ARP packet.
          * The hardware length (the MAC address) must be 6 bytes. And,
@@ -193,7 +195,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
             break;
         }
 
-        uint32_t ulHostEndianProtocolAddr = FreeRTOS_ntohl( ulSenderProtocolAddress );
+        ulHostEndianProtocolAddr = FreeRTOS_ntohl( ulSenderProtocolAddress );
 
         if( ( ipFIRST_LOOPBACK_IPv4 <= ulHostEndianProtocolAddr ) &&
             ( ulHostEndianProtocolAddr < ipLAST_LOOPBACK_IPv4 ) )
