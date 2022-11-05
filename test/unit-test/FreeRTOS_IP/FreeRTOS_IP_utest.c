@@ -1067,7 +1067,7 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending( void
 void test_prvProcessIPEventsAndTimers_eCancelDNSCallbackEvent( void )
 {
     IPStackEvent_t xReceivedEvent;
-	void * pvData = ( void * ) 1234;
+    void * pvData = ( void * ) 1234;
 
     xNetworkDownEventPending = pdFALSE;
 
@@ -1081,7 +1081,7 @@ void test_prvProcessIPEventsAndTimers_eCancelDNSCallbackEvent( void )
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
 
-	vDNSCheckCallBack_Expect( pvData );
+    vDNSCheckCallBack_Expect( pvData );
 
     prvProcessIPEventsAndTimers();
 }
