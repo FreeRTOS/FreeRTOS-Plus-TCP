@@ -1121,7 +1121,8 @@
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )
         {
             FreeRTOS_debug_printf( ( "TCP: Listen: new socket bind error\n" ) );
-            ( void ) vSocketClose( pxNewSocket );
+            vSocketClose( pxNewSocket, pdTRUE_UNSIGNED );
+            pxNewSocket = NULL;
             xResult = pdFALSE;
         }
         else

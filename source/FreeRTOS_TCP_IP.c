@@ -116,14 +116,15 @@
 
 /** @brief Close the socket another time.
  *
- * @param[in] pxSocket: The socket to be checked.
+ * @param[in] pxSocket The socket to be checked.
  */
     /* coverity[single_use] */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
     {
         if( ( xSocketToClose != NULL ) && ( xSocketToClose != pxSocket ) )
         {
-            ( void ) vSocketClose( xSocketToClose );
+            /* Do not destroy - that is the user's responsibility */
+            vSocketClose( xSocketToClose, pdFALSE_UNSIGNED );
         }
 
         xSocketToClose = pxSocket;
@@ -453,7 +454,7 @@
             if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
                 ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
             {
-                FreeRTOS_debug_printf( ( "vTCPStateChange: Closing socket\n" ) );
+                FreeRTOS_debug_printf( ( "vTCPStateChange: Closing socket %u\n", pxSocket->usLocalPort ) );
 
                 if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
                 {

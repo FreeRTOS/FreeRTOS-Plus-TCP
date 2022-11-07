@@ -55,6 +55,10 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
 
+#if ( ipconfigUSE_TCP_MEM_STATS != 0 )
+    #include "tcp_mem_stats.h"
+#endif
+
 /* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
 #define ipFIRST_MULTI_CAST_IPv4             0xE0000000U /**< Lower bound of the IPv4 multicast address. */
 #define ipLAST_MULTI_CAST_IPv4              0xF0000000U /**< Higher bound of the IPv4 multicast address. */
@@ -357,6 +361,7 @@ static void prvProcessIPEventsAndTimers( void )
              * API will unblock as soon as the eSOCKET_BOUND event is
              * triggered. */
             pxSocket = ( ( FreeRTOS_Socket_t * ) xReceivedEvent.pvData );
+            socketASSERT_IS_VALID( pxSocket );
             xAddress.sin_addr = 0U; /* For the moment. */
             xAddress.sin_port = FreeRTOS_ntohs( pxSocket->usLocalPort );
             pxSocket->usLocalPort = 0U;
@@ -375,7 +380,7 @@ static void prvProcessIPEventsAndTimers( void )
              * IP-task to actually close a socket. This is handled in
              * vSocketClose().  As the socket gets closed, there is no way to
              * report back to the API, so the API won't wait for the result */
-            ( void ) vSocketClose( ( ( FreeRTOS_Socket_t * ) xReceivedEvent.pvData ) );
+            vSocketClose( ( ( FreeRTOS_Socket_t * ) xReceivedEvent.pvData ), pdTRUE_UNSIGNED );
             break;
 
         case eStackTxEvent:
@@ -453,6 +458,7 @@ static void prvProcessIPEventsAndTimers( void )
              * received a new connection. */
             #if ( ipconfigUSE_TCP == 1 )
                 pxSocket = ( ( FreeRTOS_Socket_t * ) xReceivedEvent.pvData );
+                socketASSERT_IS_VALID( pxSocket );
 
                 if( xTCPCheckNewClient( pxSocket ) != pdFALSE )
                 {

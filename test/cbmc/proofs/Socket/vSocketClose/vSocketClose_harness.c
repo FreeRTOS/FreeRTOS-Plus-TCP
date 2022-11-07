@@ -119,7 +119,7 @@ void harness()
     vNetworkSocketsInit();
 
     /* Call the function. */
-    vSocketClose( pxSocket );
+    vSocketClose( pxSocket, pdTRUE_UNSIGNED );
 
     /* No post checking to be done. */
 }

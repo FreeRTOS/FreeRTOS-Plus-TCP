@@ -660,6 +660,8 @@ typedef struct xSOCKET
     EventGroupHandle_t xEventGroup;        /**< The event group for this socket. */
 
     ListItem_t xBoundSocketListItem;       /**< Used to reference the socket from a bound sockets list. */
+    ListItem_t xSocketListItem;            /**< Used to reference the socket from an active/inactive sockets list. */
+
     TickType_t xReceiveBlockTime;          /**< if recv[to] is called while no data is available, wait this amount of time. Unit in clock-ticks */
     TickType_t xSendBlockTime;             /**< if send[to] is called while there is not enough space to send, wait this amount of time. Unit in clock-ticks */
 
@@ -702,6 +704,9 @@ typedef struct xSOCKET
         #endif /* ipconfigUSE_TCP */
     } u;                              /**< Union of TCP/UDP socket */
 } FreeRTOS_Socket_t;
+
+/** @brief Confirm Socket Info is valid. */
+#define socketASSERT_IS_VALID( pxSocket )    configASSERT( ( pxSocket != NULL ) && ( pxSocket != FREERTOS_INVALID_SOCKET ) )
 
 #if ( ipconfigUSE_TCP == 1 )
 
@@ -796,7 +801,8 @@ BaseType_t xTCPCheckNewClient( FreeRTOS_Socket_t * pxSocket );
 /* Defined in FreeRTOS_Sockets.c
  * Close a socket
  */
-void * vSocketClose( FreeRTOS_Socket_t * pxSocket );
+void vSocketClose( FreeRTOS_Socket_t * pxSocket,
+                   uint8_t bDestroy );
 
 /*
  * Send the event eEvent to the IP task event queue, using a block time of

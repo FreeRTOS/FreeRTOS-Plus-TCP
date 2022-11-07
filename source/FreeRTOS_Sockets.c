@@ -50,6 +50,10 @@
 #include "FreeRTOS_DNS.h"
 #include "NetworkBufferManagement.h"
 
+#if ( ipconfigUSE_TCP_MEM_STATS != 0 )
+    #include "tcp_mem_stats.h"
+#endif
+
 /* The ItemValue of the sockets xBoundSocketListItem member holds the socket's
  * port number. */
 /** @brief Set the port number for the socket in the xBoundSocketListItem. */
@@ -90,6 +94,24 @@
 #if ( ( ipconfigUSE_TCP == 1 ) && !defined( ipTCP_TIMER_PERIOD_MS ) )
     #define ipTCP_TIMER_PERIOD_MS    ( 1000U )
 #endif
+
+
+/** @brief Confirm Socket Info is still active. */
+#define socketASSERT_IS_ACTIVE( pxSocket )                          \
+    socketASSERT_IS_VALID( pxSocket );                              \
+    configASSERT( listLIST_IS_INITIALISED( &xActiveSocketsList ) ); \
+    configASSERT( listIS_CONTAINED_WITHIN( &xActiveSocketsList,     \
+                                           &( pxSocket->xSocketListItem ) ) )
+
+/** @brief Confirm Socket Info is either active or inactive (not destroyed). */
+#define socketASSERT_IS_NOT_DESTROYED( pxSocket )                           \
+    socketASSERT_IS_VALID( pxSocket );                                      \
+    configASSERT( listLIST_IS_INITIALISED( &xActiveSocketsList ) );         \
+    configASSERT( listLIST_IS_INITIALISED( &xInactiveSocketsList ) );       \
+    configASSERT( listIS_CONTAINED_WITHIN( &xActiveSocketsList,             \
+                                           &( pxSocket->xSocketListItem ) ) \
+                  || listIS_CONTAINED_WITHIN( &xInactiveSocketsList,        \
+                                              &( pxSocket->xSocketListItem ) ) )
 
 /* Some helper macro's for defining the 20/80 % limits of uxLittleSpace / uxEnoughSpace. */
 #define sock20_PERCENT            20U  /**< 20% of the defined limit. */
@@ -205,7 +227,7 @@ static uint8_t ucASCIIToHex( char cChar );
  */
 List_t xBoundUDPSocketsList;
 
-#if ipconfigUSE_TCP == 1
+#if ( ipconfigUSE_TCP == 1 )
 
 /** @brief The list that contains mappings between sockets and port numbers.
  *         Accesses to this list must be protected by critical sections of
@@ -214,6 +236,20 @@ List_t xBoundUDPSocketsList;
     List_t xBoundTCPSocketsList;
 
 #endif /* ipconfigUSE_TCP == 1 */
+
+/** @brief The list that contains a list of sockets that were created.
+ *         Accesses to this list must be protected by critical sections of
+ *         some kind.
+ */
+static List_t xActiveSocketsList;
+
+/** @brief The list that contains a list of sockets that were created but are
+ *         now closed internally due to timeout or far-end closed.
+ *         Accesses to this list must be protected by critical sections of
+ *         some kind.
+ */
+static List_t xInactiveSocketsList;
+
 
 /*-----------------------------------------------------------*/
 
@@ -271,6 +307,9 @@ void vNetworkSocketsInit( void )
             vListInitialise( &xBoundTCPSocketsList );
         }
     #endif /* ipconfigUSE_TCP == 1 */
+
+    vListInitialise( &xActiveSocketsList );
+    vListInitialise( &xInactiveSocketsList );
 }
 /*-----------------------------------------------------------*/
 
@@ -313,6 +352,9 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
                 configASSERT( listLIST_IS_INITIALISED( &xBoundTCPSocketsList ) );
             }
         #endif /* ipconfigUSE_TCP == 1 */
+        /* Check if the Created and CreatedClosable socket-lists have been initialised. */
+        configASSERT( listLIST_IS_INITIALISED( &xActiveSocketsList ) );
+        configASSERT( listLIST_IS_INITIALISED( &xInactiveSocketsList ) );
 
         if( xProtocol == FREERTOS_IPPROTO_UDP )
         {
@@ -505,6 +547,11 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                         }
                     }
                 #endif /* ipconfigUSE_TCP == 1 */
+
+                vListInitialiseItem( &( pxSocket->xSocketListItem ) );
+                listSET_LIST_ITEM_OWNER( &( pxSocket->xSocketListItem ), ( void * ) pxSocket );
+                vListInsertEnd( &( xActiveSocketsList ), &( pxSocket->xSocketListItem ) );
+
                 xReturn = pxSocket;
             }
         }
@@ -595,7 +642,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
         SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) xSocketSet;
 
 
-        configASSERT( pxSocket != NULL );
+        socketASSERT_IS_ACTIVE( pxSocket );
         configASSERT( xSocketSet != NULL );
 
         /* Make sure we're not adding bits which are reserved for internal use,
@@ -634,7 +681,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     {
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
 
-        configASSERT( pxSocket != NULL );
+        socketASSERT_IS_ACTIVE( pxSocket );
         configASSERT( xSocketSet != NULL );
 
         pxSocket->xSelectBits &= ~( xBitsToClear & ( ( EventBits_t ) eSELECT_ALL ) );
@@ -672,7 +719,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
         EventBits_t xReturn;
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
 
-        configASSERT( pxSocket != NULL );
+        socketASSERT_IS_ACTIVE( pxSocket );
         configASSERT( xSocketSet != NULL );
 
         if( xSocketSet == ( SocketSet_t ) pxSocket->pxSocketSet )
@@ -1324,8 +1371,7 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
         struct freertos_sockaddr xAddress;
     #endif /* ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND */
 
-    configASSERT( pxSocket != NULL );
-    configASSERT( pxSocket != FREERTOS_INVALID_SOCKET );
+    socketASSERT_IS_ACTIVE( pxSocket );
 
     #if ( ipconfigUSE_TCP == 1 )
         if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
@@ -1529,112 +1575,132 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
  * @brief This is the internal version of FreeRTOS_closesocket(). It will
  *        be called by the IPtask only to avoid problems with synchronicity.
  *
- * @param[in] pxSocket: The socket descriptor of the socket being closed.
+ * @param[in] pxSocket The socket descriptor of the socket being closed.
+ * @param[in] bDestroy Destroy the socket or not.  When false will not destroy the
+ * socket but will leave for the user to destroy with FreeRTOS_closesocket()
+ * When true will both close and destroy the socket.
  *
- * @return Returns NULL, always.
+ * @note internally keeps track of whether a socket is active or inactive to identify
+ *       whether or not the socket was closed internally or not.  There may be cases where
+ *       a socket has migrated from active to inactive without the knowledge of the user
+ *       TCP cases of timeout and/or close from far end.
  */
 /* MISRA Ref 17.2.1 [Sockets and limited recursion] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
 /* coverity[misra_c_2012_rule_17_2_violation] */
-void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
+void vSocketClose( FreeRTOS_Socket_t * pxSocket,
+                   uint8_t bDestroy )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
 
-    #if ( ipconfigUSE_TCP == 1 )
-        {
-            /* For TCP: clean up a little more. */
-            if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
+    socketASSERT_IS_NOT_DESTROYED( pxSocket );
+
+    if( listIS_CONTAINED_WITHIN( &xActiveSocketsList, &( pxSocket->xSocketListItem ) ) )
+    {
+        #if ( ipconfigUSE_TCP == 1 )
             {
-                #if ( ipconfigUSE_TCP_WIN == 1 )
-                    {
-                        if( pxSocket->u.xTCP.pxAckMessage != NULL )
+                /* For TCP: clean up a little more. */
+                if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                {
+                    #if ( ipconfigUSE_TCP_WIN == 1 )
                         {
-                            vReleaseNetworkBufferAndDescriptor( pxSocket->u.xTCP.pxAckMessage );
+                            if( pxSocket->u.xTCP.pxAckMessage != NULL )
+                            {
+                                vReleaseNetworkBufferAndDescriptor( pxSocket->u.xTCP.pxAckMessage );
+                            }
+
+                            /* Free the resources which were claimed by the tcpWin member */
+                            vTCPWindowDestroy( &pxSocket->u.xTCP.xTCPWindow );
                         }
+                    #endif /* ipconfigUSE_TCP_WIN */
 
-                        /* Free the resources which were claimed by the tcpWin member */
-                        vTCPWindowDestroy( &pxSocket->u.xTCP.xTCPWindow );
+                    /* Free the input and output streams */
+                    if( pxSocket->u.xTCP.rxStream != NULL )
+                    {
+                        iptraceMEM_STATS_DELETE( pxSocket->u.xTCP.rxStream );
+                        vPortFreeLarge( pxSocket->u.xTCP.rxStream );
                     }
-                #endif /* ipconfigUSE_TCP_WIN */
 
-                /* Free the input and output streams */
-                if( pxSocket->u.xTCP.rxStream != NULL )
-                {
-                    iptraceMEM_STATS_DELETE( pxSocket->u.xTCP.rxStream );
-                    vPortFreeLarge( pxSocket->u.xTCP.rxStream );
+                    if( pxSocket->u.xTCP.txStream != NULL )
+                    {
+                        iptraceMEM_STATS_DELETE( pxSocket->u.xTCP.txStream );
+                        vPortFreeLarge( pxSocket->u.xTCP.txStream );
+                    }
+
+                    /* In case this is a child socket, make sure the child-count of the
+                     * parent socket is decreased. */
+                    prvTCPSetSocketCount( pxSocket );
                 }
+            }
+        #endif /* ipconfigUSE_TCP == 1 */
 
-                if( pxSocket->u.xTCP.txStream != NULL )
+        /* Socket must be unbound first, to ensure no more packets are queued on
+         * it. */
+        if( socketSOCKET_IS_BOUND( pxSocket ) )
+        {
+            /* If the network driver can iterate through 'xBoundUDPSocketsList',
+             * by calling xPortHasUDPSocket(), then the IP-task must temporarily
+             * suspend the scheduler to keep the list in a consistent state. */
+            #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 1 )
                 {
-                    iptraceMEM_STATS_DELETE( pxSocket->u.xTCP.txStream );
-                    vPortFreeLarge( pxSocket->u.xTCP.txStream );
+                    vTaskSuspendAll();
                 }
+            #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
 
-                /* In case this is a child socket, make sure the child-count of the
-                 * parent socket is decreased. */
-                prvTCPSetSocketCount( pxSocket );
-            }
+            ( void ) uxListRemove( &( pxSocket->xBoundSocketListItem ) );
+
+            #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 1 )
+                {
+                    ( void ) xTaskResumeAll();
+                }
+            #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
         }
-    #endif /* ipconfigUSE_TCP == 1 */
 
-    /* Socket must be unbound first, to ensure no more packets are queued on
-     * it. */
-    if( socketSOCKET_IS_BOUND( pxSocket ) )
-    {
-        /* If the network driver can iterate through 'xBoundUDPSocketsList',
-         * by calling xPortHasUDPSocket(), then the IP-task must temporarily
-         * suspend the scheduler to keep the list in a consistent state. */
-        #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 1 )
-            {
-                vTaskSuspendAll();
-            }
-        #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
-
-        ( void ) uxListRemove( &( pxSocket->xBoundSocketListItem ) );
-
-        #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 1 )
-            {
-                ( void ) xTaskResumeAll();
-            }
-        #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
-    }
-
-    /* Now the socket is not bound the list of waiting packets can be
-     * drained. */
-    if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_UDP )
-    {
-        while( listCURRENT_LIST_LENGTH( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) > 0U )
+        /* Now the socket is not bound the list of waiting packets can be
+         * drained. */
+        if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_UDP )
         {
-            pxNetworkBuffer = ( ( NetworkBufferDescriptor_t * ) listGET_OWNER_OF_HEAD_ENTRY( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) );
-            ( void ) uxListRemove( &( pxNetworkBuffer->xBufferListItem ) );
-            vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-        }
-    }
-
-    if( pxSocket->xEventGroup != NULL )
-    {
-        vEventGroupDelete( pxSocket->xEventGroup );
-    }
-
-    #if ( ipconfigUSE_TCP == 1 ) && ( ipconfigHAS_DEBUG_PRINTF != 0 )
-        {
-            if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
+            while( listCURRENT_LIST_LENGTH( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) > 0U )
             {
-                FreeRTOS_debug_printf( ( "FreeRTOS_closesocket[%u to %xip:%u]: buffers %u socks %u\n",
-                                         pxSocket->usLocalPort,
-                                         ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
-                                         pxSocket->u.xTCP.usRemotePort,
-                                         ( unsigned ) uxGetNumberOfFreeNetworkBuffers(),
-                                         ( unsigned ) listCURRENT_LIST_LENGTH( &xBoundTCPSocketsList ) ) );
+                pxNetworkBuffer = ( ( NetworkBufferDescriptor_t * ) listGET_OWNER_OF_HEAD_ENTRY( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) );
+                ( void ) uxListRemove( &( pxNetworkBuffer->xBufferListItem ) );
+                vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
             }
         }
-    #endif /* ( ipconfigUSE_TCP == 1 ) && ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
-    /* And finally, after all resources have been freed, free the socket space */
-    iptraceMEM_STATS_DELETE( pxSocket );
-    vPortFreeSocket( pxSocket );
+        if( pxSocket->xEventGroup != NULL )
+        {
+            vEventGroupDelete( pxSocket->xEventGroup );
+        }
 
-    return NULL;
+        #if ( ipconfigUSE_TCP == 1 ) && ( ipconfigHAS_DEBUG_PRINTF != 0 )
+            {
+                if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
+                {
+                    FreeRTOS_debug_printf( ( "FreeRTOS_closesocket[%u to %xip:%u]: buffers %u socks %u\n",
+                                             pxSocket->usLocalPort,
+                                             ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
+                                             pxSocket->u.xTCP.usRemotePort,
+                                             ( unsigned ) uxGetNumberOfFreeNetworkBuffers(),
+                                             ( unsigned ) listCURRENT_LIST_LENGTH( &xBoundTCPSocketsList ) ) );
+                }
+            }
+        #endif /* ( ipconfigUSE_TCP == 1 ) && ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
+    }
+
+    if( bDestroy )
+    {
+        ( void ) uxListRemove( &( pxSocket->xSocketListItem ) );
+
+        /* And finally, after all resources have been freed, free the socket space */
+        iptraceMEM_STATS_DELETE( pxSocket );
+        vPortFreeSocket( pxSocket );
+    }
+    else
+    {
+        uxListRemove( &( pxSocket->xSocketListItem ) );
+        vListInsertEnd( &( xInactiveSocketsList ), &( pxSocket->xSocketListItem ) );
+    }
 } /* Tested */
 
 /*-----------------------------------------------------------*/
@@ -1683,7 +1749,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
                     /* coverity[misra_c_2012_rule_17_2_violation] */
                     /* coverity[recursive_step] */
-                    ( void ) vSocketClose( pxOtherSocket );
+                    vSocketClose( pxOtherSocket, pdTRUE_UNSIGNED );
                 }
             }
         }
@@ -2299,7 +2365,7 @@ FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
     {
         /* The owner of the list item is the socket itself. */
         pxSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxListItem ) );
-        configASSERT( pxSocket != NULL );
+        socketASSERT_IS_ACTIVE( pxSocket );
     }
 
     return pxSocket;
@@ -2860,6 +2926,8 @@ size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
  */
 void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 {
+    socketASSERT_IS_ACTIVE( pxSocket );
+
 /* _HT_ must work this out, now vSocketWakeUpUser will be called for any important
  * event or transition */
     #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE == 1 )
@@ -5175,7 +5243,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
         BaseType_t xReturn;
         IPStackEvent_t xEvent;
 
-        configASSERT( pxSocket != NULL );
+        socketASSERT_IS_ACTIVE( pxSocket );
         configASSERT( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP );
         configASSERT( pxSocket->xEventGroup != NULL );
 

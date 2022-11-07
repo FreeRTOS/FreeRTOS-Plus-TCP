@@ -596,7 +596,7 @@
         {
             /* This modules runs from the IP-task. Use the internal
              * function 'vSocketClose()` to close the socket. */
-            ( void ) vSocketClose( xDHCPSocket );
+            vSocketClose( xDHCPSocket, pdTRUE_UNSIGNED );
             xDHCPSocket = NULL;
         }
     }
