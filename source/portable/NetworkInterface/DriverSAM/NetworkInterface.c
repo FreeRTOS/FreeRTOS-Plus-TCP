@@ -71,12 +71,6 @@
 #define EMAC_IF_ERR_EVENT    4UL
 #define EMAC_IF_ALL_EVENT    ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
 
-/* 1536 bytes is more than needed, 1524 would be enough.
- * But 1536 is a multiple of 32, which gives a great alignment for
- * cached memories. */
-
-#define NETWORK_BUFFER_SIZE    1536
-
 #ifndef EMAC_MAX_BLOCK_TIME_MS
 
 /* The task 'prvEMACHandlerTask()' will wake-up every 100 ms, to see
@@ -576,9 +570,10 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
 
     pxSendPacket = ( IPPacket_t * ) pxDescriptor->pucEthernetBuffer;
 
-    if( ulTransmitSize > NETWORK_BUFFER_SIZE )
+    /* 'GMAC_TX_UNITSIZE' is the netto size of a transmission buffer. */
+    if( ulTransmitSize > GMAC_TX_UNITSIZE )
     {
-        ulTransmitSize = NETWORK_BUFFER_SIZE;
+        ulTransmitSize = GMAC_TX_UNITSIZE;
     }
 
     /* A do{}while(0) loop is introduced to allow the use of multiple break
@@ -633,7 +628,7 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
             }
         #endif
 
-        ulResult = gmac_dev_write( &gs_gmac_dev, ( void * ) pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength );
+        ulResult = gmac_dev_write( &gs_gmac_dev, ( void * ) pxDescriptor->pucEthernetBuffer, ulTransmitSize );
 
         if( ulResult != GMAC_OK )
         {
@@ -846,17 +841,26 @@ void vGMACGenerateChecksum( uint8_t * pucBuffer,
 {
     ProtocolPacket_t * xProtPacket = ( ProtocolPacket_t * ) pucBuffer;
 
-    if( xProtPacket->xTCPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
+    /* The SAM4E has problems offloading checksums for transmission.
+     * The SAME70 does not set the CRC for ICMP packets (ping). */
+
+    if( xProtPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {
-        IPHeader_t * pxIPHeader = &( xProtPacket->xTCPPacket.xIPHeader );
+        #if ( SAME70 != 0 )
+            if( ( xProtPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_UDP ) &&
+                ( xProtPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_TCP ) )
+        #endif
+        {
+            IPHeader_t * pxIPHeader = &( xProtPacket->xTCPPacket.xIPHeader );
 
-        /* Calculate the IP header checksum. */
-        pxIPHeader->usHeaderChecksum = 0x00;
-        pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ipSIZE_OF_IPv4_HEADER );
-        pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
+            /* Calculate the IP header checksum. */
+            pxIPHeader->usHeaderChecksum = 0x00;
+            pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ipSIZE_OF_IPv4_HEADER );
+            pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
-        /* Calculate the TCP checksum for an outgoing packet. */
-        usGenerateProtocolChecksum( pucBuffer, uxLength, pdTRUE );
+            /* Calculate the TCP checksum for an outgoing packet. */
+            usGenerateProtocolChecksum( pucBuffer, uxLength, pdTRUE );
+        }
     }
 }
 /*-----------------------------------------------------------*/
@@ -877,7 +881,7 @@ static uint32_t prvEMACRxPoll( void )
          * descriptor then allocate one now. */
         if( ( pxNextNetworkBufferDescriptor == NULL ) && ( uxGetNumberOfFreeNetworkBuffers() > xMinDescriptorsToLeave ) )
         {
-            pxNextNetworkBufferDescriptor = pxGetNetworkBufferWithDescriptor( ipTOTAL_ETHERNET_FRAME_SIZE, xBlockTime );
+            pxNextNetworkBufferDescriptor = pxGetNetworkBufferWithDescriptor( GMAC_RX_UNITSIZE, xBlockTime );
         }
 
         if( pxNextNetworkBufferDescriptor != NULL )
@@ -893,7 +897,7 @@ static uint32_t prvEMACRxPoll( void )
         }
 
         /* Read the next packet from the hardware into pucUseBuffer. */
-        ulResult = gmac_dev_read( &gs_gmac_dev, pucUseBuffer, ipTOTAL_ETHERNET_FRAME_SIZE, &ulReceiveCount, &pucDMABuffer );
+        ulResult = gmac_dev_read( &gs_gmac_dev, pucUseBuffer, GMAC_RX_UNITSIZE, &ulReceiveCount, &pucDMABuffer );
 
         if( ( ulResult != GMAC_OK ) || ( ulReceiveCount == 0 ) )
         {
