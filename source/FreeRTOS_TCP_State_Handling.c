@@ -314,7 +314,7 @@
 
         if( pxTCPHeader->ucTCPFlags != 0U )
         {
-            ucIntermediateResult = uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + pxTCPWindow->ucOptionLength;
+            ucIntermediateResult = ( uint8_t ) ( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + pxTCPWindow->ucOptionLength );
             xSendLength = ( BaseType_t ) ucIntermediateResult;
         }
 

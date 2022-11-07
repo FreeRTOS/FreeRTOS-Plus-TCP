@@ -215,7 +215,7 @@ typedef struct IP_TASK_COMMANDS
 struct xPacketSummary
 {
     BaseType_t xIsIPv6;                          /**< pdTRUE for IPv6 packets. */
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ipconfigUSE_IPV6
         const IPHeader_IPv6_t * pxIPPacket_IPv6; /**< A pointer to the IPv6 header. */
     #endif
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
@@ -745,6 +745,16 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
  * payload buffer.
  */
 NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer );
+
+/* Get the size of the IP-header.
+ * 'usFrameType' must be filled in if IPv6is to be recognised. */
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+/*-----------------------------------------------------------*/
+
+/* Get the size of the IP-header.
+ * The socket is checked for its type: IPv4 or IPv6. */
+size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket );
+/*-----------------------------------------------------------*/
 
 /*
  * Internal: Sets a new state for a TCP socket and performs the necessary

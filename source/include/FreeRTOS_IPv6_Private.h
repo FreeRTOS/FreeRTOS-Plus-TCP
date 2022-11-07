@@ -49,6 +49,9 @@
 
 #include "event_groups.h"
 
+/* MISRA Ref 20.5.1 [Use of undef] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
+/* coverity[misra_c_2012_rule_20_5_violation] */
 #undef TCP_PACKET_SIZE
 #define TCP_PACKET_SIZE          ( sizeof( TCPPacket_IPv6_t ) )
 
@@ -58,7 +61,9 @@
 #define ipIP_TYPE_OFFSET         ( 6U )
 /* The offset into an IP packet into which the IP data (payload) starts. */
 #define ipIPv6_PAYLOAD_OFFSET    ( sizeof( IPPacket_IPv6_t ) )
-
+/* MISRA Ref 20.5.1 [Use of undef] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
+/* coverity[misra_c_2012_rule_20_5_violation] */
 /* The maximum UDP payload length. */
 #undef ipMAX_UDP_PAYLOAD_LENGTH
 #define ipMAX_UDP_PAYLOAD_LENGTH          ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv6_HEADER ) - ipSIZE_OF_UDP_HEADER )
@@ -109,6 +114,12 @@
 
 #define ipNUMERIC_CAST( TYPE, expression )    ( ( TYPE ) ( expression ) )
 
+
+/** @brief The macros vSetField16() and vSetField32() will write either a short or a 32-bit
+ * value into an array of bytes. They will be stored big-endian.
+ * The helper functions do the actual work.
+ */
+
 /*extern void vSetField16helper( uint8_t * pucBase,
  *                             size_t uxOffset,
  *                             uint16_t usValue );
@@ -133,8 +144,7 @@ extern struct xNetworkEndPoint * pxNetworkEndPoints;
 /* A list of all network interfaces: */
 extern struct xNetworkInterface * pxNetworkInterfaces;
 
-typedef union xPROT_HEADERS   ProtocolHeaders_t;
-typedef struct xSOCKET        FreeRTOS_Socket_t;
+typedef struct xSOCKET FreeRTOS_Socket_t;
 
 #include "pack_struct_start.h"
 struct xIP_HEADER_IPv6
@@ -250,21 +260,6 @@ FreeRTOS_Socket_t * pxTCPSocketLookupIPv6( UBaseType_t uxLocalPort,
                                            uint32_t ulRemoteIP,
                                            UBaseType_t uxRemotePort,
                                            IPv6_Address_t * pxAddress_IPv6 );
-
-/** @brief The macros vSetField16() and vSetField32() will write either a short or a 32-bit
- * value into an array of bytes. They will be stored big-endian.
- * The helper functions do the actual work.
- */
-
-/* Get the size of the IP-header.
- * 'usFrameType' must be filled in if IPv6is to be recognised. */
-size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
-/*-----------------------------------------------------------*/
-
-/* Get the size of the IP-header.
- * The socket is checked for its type: IPv4 or IPv6. */
-/*size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket ); */
-/*-----------------------------------------------------------*/
 
 #if ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) )
 /* prepare a string which describes a socket, just for logging. */

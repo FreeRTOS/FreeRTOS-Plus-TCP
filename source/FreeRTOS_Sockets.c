@@ -4846,9 +4846,9 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
                 }
 
                 FreeRTOS_printf( ( "TCP %5u %-16xip:%5u %d/%d %-13.13s %6u %6u%s\n",
-                                   pxSocket->usLocalPort,                    /* Local port on this machine */
+                                   pxSocket->usLocalPort,                            /* Local port on this machine */
                                    ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, /* IP address of remote machine */
-                                   pxSocket->u.xTCP.usRemotePort,            /* Port on remote machine */
+                                   pxSocket->u.xTCP.usRemotePort,                    /* Port on remote machine */
                                    ( pxSocket->u.xTCP.rxStream != NULL ) ? 1 : 0,
                                    ( pxSocket->u.xTCP.txStream != NULL ) ? 1 : 0,
                                    FreeRTOS_GetTCPStateName( pxSocket->u.xTCP.eTCPState ),

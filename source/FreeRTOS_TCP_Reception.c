@@ -443,7 +443,7 @@
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPHeader_t * pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-        const size_t xIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
+        const size_t xIPHeaderLength = uxIPHeaderSizePacket( pxNetworkBuffer );
         uint16_t usLength;
         uint8_t ucIntermediateResult = 0;
 
