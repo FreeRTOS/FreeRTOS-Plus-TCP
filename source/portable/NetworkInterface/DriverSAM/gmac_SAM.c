@@ -111,8 +111,8 @@
  * See \ref gmac_quickstart.
  *
  * Driver for the GMAC (Ethernet Media Access Controller).
- * This file contains basic functions for the GMAC, with support for all modes, settings
- * and clock speeds.
+ * This file contains basic functions for the GMAC, with support for all modes,
+ * settings and clock speeds.
  *
  * \section dependencies Dependencies
  * This driver does not depend on other modules.
