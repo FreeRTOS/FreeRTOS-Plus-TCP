@@ -111,8 +111,8 @@
  * See \ref gmac_quickstart.
  *
  * Driver for the GMAC (Ethernet Media Access Controller).
- * This file contains basic functions for the GMAC, with support for all modes, settings
- * and clock speeds.
+ * This file contains basic functions for the GMAC, with support for all modes,
+ * settings and clock speeds.
  *
  * \section dependencies Dependencies
  * This driver does not depend on other modules.
@@ -120,8 +120,18 @@
  * @{
  */
 
-#define NETWORK_BUFFER_SIZE    1536
-
+/*
+ *     When BufferAllocation_1.c is used, the network buffer space
+ *     is declared statically as 'ucNetworkPackets[]'.
+ *     Like the DMA descriptors, this array is located in a non-cached area.
+ *     Here an example of the total size:
+ *
+ *         #define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    24
+ *         #define GMAC_FRAME_LENTGH_MAX                     1536
+ *         Hidden space for back-pointer and IP-type         16
+ *
+ *     Total size: 24 * ( 1536 + 16 ) = 37248 bytes
+ */
 __attribute__( ( aligned( 32 ) ) )
 __attribute__( ( section( ".first_data" ) ) )
 uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * NETWORK_BUFFER_SIZE ];
@@ -688,11 +698,6 @@ uint32_t gmac_dev_read( gmac_device_t * p_gmac_dev,
     return GMAC_OK;
 }
 
-#if ( SAME70 == 0 )
-    extern void vGMACGenerateChecksum( uint8_t * apBuffer,
-                                       size_t uxLength );
-#endif
-
 /**
  * \brief Send ulLength bytes from pcFrom. This copies the buffer to one of the
  * GMAC Tx buffers, and then indicates to the GMAC that the buffer is ready.
@@ -749,13 +754,10 @@ uint32_t gmac_dev_write( gmac_device_t * p_gmac_dev,
                 memcpy( ( void * ) p_tx_td->addr, p_buffer, ul_size );
             }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
-        #if ( SAME70 == 0 )
-            {
-                #warning Is this a SAM4E?
-                /* Needs to be called for SAM4E series only. */
-                vGMACGenerateChecksum( ( uint8_t * ) p_tx_td->addr, ( size_t ) ul_size );
-            }
-        #endif
+        {
+            /* Needs to be called for SAM4E series only. */
+            vGMACGenerateChecksum( ( uint8_t * ) p_tx_td->addr, ( size_t ) ul_size );
+        }
     }
 
     /* Update transmit descriptor status */
