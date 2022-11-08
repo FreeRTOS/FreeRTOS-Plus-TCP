@@ -637,7 +637,7 @@ static void prvCallDHCP_Handler( NetworkEndPoint_IPv4_t * pxEndPoint )
     /* The DHCP state machine needs processing. */
     #if ( ipconfigUSE_DHCP == 1 )
         {
-            if( ( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED )
+            if( ( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED ) )
             {
                 /* Process DHCP messages for a given end-point. */
                 vDHCPProcess( pdFALSE, pxEndPoint );

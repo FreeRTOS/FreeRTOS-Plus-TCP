@@ -444,7 +444,7 @@ void vARPTimerReload( TickType_t xTime )
  * @param[in] pxEndPoint: The end-point that needs to acquire an IP-address.
  * @param[in] uxClockTicks: The number of clock-ticks after which the timer should expire.
  */
-    void vDHCP_RATimerReload( struct xNetworkEndPoint * pxEndPoint,
+    void vDHCP_RATimerReload( struct xNetworkEndPoint_IPv4 * pxEndPoint,
                               TickType_t uxClockTicks )
     {
         FreeRTOS_printf( ( "vDHCP_RATimerReload: %lu\n", uxClockTicks ) );
@@ -586,7 +586,7 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
  * @param[in] pxEndPoint: The end-point that needs to acquire an IP-address.
  * @param[in] xEnableState: pdTRUE if the timer must be enabled, pdFALSE otherwise.
  */
-    void vIPSetDHCP_RATimerEnableState( struct xNetworkEndPoint * pxEndPoint,
+    void vIPSetDHCP_RATimerEnableState( struct xNetworkEndPoint_IPv4 * pxEndPoint,
                                         BaseType_t xEnableState )
     {
         FreeRTOS_printf( ( "vIPSetDHCP_RATimerEnableState: %s\n", ( xEnableState != 0 ) ? "On" : "Off" ) );

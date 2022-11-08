@@ -159,7 +159,11 @@ static UBaseType_t ulNextRand;
     static NetworkInterface_t xInterfaces[ 1 ];
 
 /* It will have several end-points. */
-    static NetworkEndPoint_t xEndPoints[ 3 ];
+    static NetworkEndPoint_IPv4_t xEndPoints[ 3 ];
+
+#if ( ipconfigUSE_IPv6 != 0 )
+    static NetworkEndPoint_IPv6_t xEndPoints_IPv6[ 3 ];
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
 /* A function from NetInterface.c to initialise the interface descriptor
  * of type 'NetworkInterface_t'. */
@@ -240,7 +244,7 @@ int main( void )
                 FreeRTOS_inet_pton6( "fe80::9355:69c7:585a:afe7", xGateWay.ucBytes );
 
                 FreeRTOS_FillEndPoint_IPv6( &( xInterfaces[ 0 ] ),
-                                            &( xEndPoints[ 2 ] ),
+                                            &( xEndPoints_IPv6[ 0 ] ),
                                             &( xIPAddress ),
                                             &( xPrefix ),
                                             64uL,            /* Prefix length. */
@@ -250,13 +254,13 @@ int main( void )
                 #if ( ipconfigUSE_RA != 0 )
                     {
                         /* End-point 1 wants to use Router Advertisement / SLAAC. */
-                        xEndPoints[ 2 ].bits.bWantRA = pdTRUE;
+                        xEndPoints_IPv6[ 0 ].bits.bWantRA = pdTRUE;
                     }
                 #endif /* #if( ipconfigUSE_RA != 0 ) */
                 #if ( ipconfigUSE_DHCPv6 != 0 )
                     {
                         /* End-point 1 wants to use DHCPv6. */
-                        xEndPoints[ 2 ].bits.bWantDHCP = pdTRUE;
+                        xEndPoints_IPv6[ 0 ].bits.bWantDHCP = pdTRUE;
                     }
                 #endif /* ( ipconfigUSE_DHCPv6 != 0 ) */
             }
@@ -325,8 +329,7 @@ void vAssertCalled( const char * pcFile,
 /* *INDENT-OFF* */
 #if ( ipconfigMULTI_INTERFACE != 0 ) || ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
     /* The multi version: each end-point comes up individually. */
-    void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                         NetworkEndPoint_t * pxEndPoint )
+    void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 #else
     /* The single version, the interface comes up as a whole. */
     void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
@@ -390,7 +393,7 @@ void vAssertCalled( const char * pcFile,
             {
                 /* Print out the network configuration, which may have come from a DHCP
                  * server. */
-                showEndPoint( pxEndPoint );
+                showEndPoints( NULL );
             }
         #endif /* ipconfigMULTI_INTERFACE */
     }

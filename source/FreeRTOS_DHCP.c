@@ -920,8 +920,8 @@
         }
 
         FreeRTOS_printf( ( "DHCP-socket[%02x-%02x]: closed, user count %d\n",
-                           pxEndPoint->xMACAddress.ucBytes[ 4 ],
-                           pxEndPoint->xMACAddress.ucBytes[ 5 ],
+                           pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes[ 4 ],
+                           pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes[ 5 ],
                            ( int ) xDHCPSocketUserCount ) );
     }
 /*-----------------------------------------------------------*/
@@ -956,8 +956,8 @@
             configASSERT( xReturn == 0 );
             xDHCPSocketUserCount = 1;
             FreeRTOS_printf( ( "DHCP-socket[%02x-%02x]: DHCP Socket Create\n",
-                               pxEndPoint->xMACAddress.ucBytes[ 4 ],
-                               pxEndPoint->xMACAddress.ucBytes[ 5 ] ) );
+                               pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes[ 4 ],
+                               pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes[ 5 ] ) );
 
             /* Remove compiler warnings if configASSERT() is not defined. */
             ( void ) xReturn;
@@ -1298,7 +1298,7 @@
             else /* Looks like a valid DHCP response, with the same transaction ID. */
             {
                 if( memcmp( pxDHCPMessage->ucClientHardwareAddress,
-                            pxEndPoint->xMACAddress.ucBytes,
+                            pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes,
                             sizeof( MACAddress_t ) ) != 0 )
                 {
                     /* Target MAC address doesn't match. */
@@ -1422,7 +1422,7 @@
                 pxDHCPMessage->usFlags = 0U;
             }
 
-            ( void ) memcpy( &( pxDHCPMessage->ucClientHardwareAddress[ 0 ] ), pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+            ( void ) memcpy( &( pxDHCPMessage->ucClientHardwareAddress[ 0 ] ), pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
             /* Copy in the const part of the options options. */
             ( void ) memcpy( &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET ] ), pucOptionsArray, *pxOptionsArraySize );
@@ -1457,7 +1457,7 @@
 
             /* Map in the client identifier. */
             ( void ) memcpy( &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpCLIENT_IDENTIFIER_OFFSET ] ),
-                             pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+                             pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
             /* Set the addressing. */
             pxAddress->sin_addr = ipBROADCAST_IP_ADDRESS;
