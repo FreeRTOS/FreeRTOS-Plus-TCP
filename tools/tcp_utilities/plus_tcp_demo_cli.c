@@ -250,7 +250,6 @@ BaseType_t xHandleTestingCommand( char * pcBuffer,
     static void handle_ifconfig( char * pcBuffer )
     {
         NetworkInterface_t * pxInterface;
-        NetworkEndPoint_t * pxEndPoint;
 
         ( void ) pcBuffer;
 
@@ -260,12 +259,7 @@ BaseType_t xHandleTestingCommand( char * pcBuffer,
         {
             FreeRTOS_printf( ( "Interface %s\n", pxInterface->pcName ) );
 
-            for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
-                 pxEndPoint != NULL;
-                 pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
-            {
-                showEndPoint( pxEndPoint );
-            }
+            showEndPoints( pxInterface );
         }
     }
 #endif /* ( ipconfigMULTI_INTERFACE != 0 ) */
@@ -503,25 +497,15 @@ size_t uxGetOptions( CommandOptions_t * pxOptions,
 #if ( ipconfigMULTI_INTERFACE != 0 )
     static void handle_gw( char * pcBuffer )
     {
-        NetworkEndPoint_t * pxEndPoint;
+        NetworkEndPoint_IPv4_t * pxEndPoint;
 
         ( void ) pcBuffer;
         FreeRTOS_printf( ( "Showing all gateways\n" ) );
 
-        for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        for( pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
              pxEndPoint != NULL;
-             pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+             pxEndPoint = FreeRTOS_NextEndPoint_IPv4( NULL, pxEndPoint ) )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
-                if( pxEndPoint->bits.bIPv6 )
-                {
-                    if( memcmp( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
-                    {
-                        FreeRTOS_printf( ( "IPv6: %pip on '%s'\n", pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, pxEndPoint->pxNetworkInterface->pcName ) );
-                    }
-                }
-                else
-            #endif
             {
                 if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U )
                 {
@@ -529,6 +513,20 @@ size_t uxGetOptions( CommandOptions_t * pxOptions,
                 }
             }
         }
+
+#if ( ipconfigUSE_IPv6 != 0 )
+
+        NetworkEndPoint_IPv6_t * pxEndPoint_IPv6
+        for (pxEndPoint_IPv6 = FreeRTOS_FirstEndPoint_IPv6(NULL);
+            pxEndPoint_IPv6 != NULL;
+            pxEndPoint_IPv6 = FreeRTOS_NextEndPoint_IPv6(NULL, pxEndPoint_IPv6) )
+        {
+            if (memcmp(pxEndPoint_IPv6->ipv6_settings.xGatewayAddress.ucBytes, in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS) != 0)
+            {
+                FreeRTOS_printf(("IPv6: %pip on '%s'\n", pxEndPoint_IPv6->ipv6_settings.xGatewayAddress.ucBytes, pxEndPoint_IPv6->pxNetworkInterface->pcName));
+            }
+        }
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
     }
 #endif /* if ( ipconfigMULTI_INTERFACE != 0 ) */
 
@@ -1056,68 +1054,81 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigMULTI_INTERFACE != 0 )
-    void showEndPoint( NetworkEndPoint_t * pxEndPoint )
+    void showEndPoints( NetworkInterface_t * pxInterface )
     {
+        /* if NULL is passed in, show all endpoints */
         #if ( ipconfigUSE_IPv6 != 0 )
-            if( pxEndPoint->bits.bIPv6 )
+            NetworkEndPoint_IPv6 * pxEndPoint_IPv6;
+            for (pxEndPoint_IPv6 = FreeRTOS_FirstEndPoint_IPv6(pxInterface);
+                pxEndPoint_IPv6 != NULL;
+                pxEndPoint_IPv6 = FreeRTOS_NextEndPoint_IPv6(pxInterface, pxEndPoint_IPv6))
             {
                 IPv6_Address_t xPrefix;
-/*			pxEndPoint->ipv6_settings.xIPAddress;			/ * The actual IPv4 address. Will be 0 as long as end-point is still down. * / */
-/*			pxEndPoint->ipv6_settings.uxPrefixLength; */
-/*			pxEndPoint->ipv6_defaults.xIPAddress; */
-/*			pxEndPoint->ipv6_settings.xGatewayAddress; */
-/*			pxEndPoint->ipv6_settings.xDNSServerAddresses[ 2 ];	/ * Not yet in use. * / */
+/*			pxEndPoint_IPv6->ipv6_settings.xIPAddress;			/ * The actual IPv4 address. Will be 0 as long as end-point is still down. * / */
+/*			pxEndPoint_IPv6->ipv6_settings.uxPrefixLength; */
+/*			pxEndPoint_IPv6->ipv6_defaults.xIPAddress; */
+/*			pxEndPoint_IPv6->ipv6_settings.xGatewayAddress; */
+/*			pxEndPoint_IPv6->ipv6_settings.xDNSServerAddresses[ 2 ];	/ * Not yet in use. * / */
 
                 /* Extract the prefix from the IP-address */
-                FreeRTOS_CreateIPv6Address( &( xPrefix ), &( pxEndPoint->ipv6_settings.xIPAddress ), pxEndPoint->ipv6_settings.uxPrefixLength, pdFALSE );
+                FreeRTOS_CreateIPv6Address( &( xPrefix ), &( pxEndPoint_IPv6->ipv6_settings.xIPAddress ), pxEndPoint_IPv6->ipv6_settings.uxPrefixLength, pdFALSE );
 
-                FreeRTOS_printf( ( "IP-address : %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
+                FreeRTOS_printf( ( "IP-address : %pip\n", pxEndPoint_IPv6->ipv6_settings.xIPAddress.ucBytes ) );
 
-                if( memcmp( pxEndPoint->ipv6_defaults.xIPAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
+                if( memcmp( pxEndPoint_IPv6->ipv6_defaults.xIPAddress.ucBytes, pxEndPoint_IPv6->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
                 {
-                    FreeRTOS_printf( ( "Default IP : %pip\n", pxEndPoint->ipv6_defaults.xIPAddress.ucBytes ) );
+                    FreeRTOS_printf( ( "Default IP : %pip\n", pxEndPoint_IPv6->ipv6_defaults.xIPAddress.ucBytes ) );
                 }
 
-                FreeRTOS_printf( ( "End-point  : up = %s\n", pxEndPoint->bits.bEndPointUp ? "yes" : "no" ) );
-                FreeRTOS_printf( ( "Prefix     : %pip/%d\n", xPrefix.ucBytes, ( int ) pxEndPoint->ipv6_settings.uxPrefixLength ) );
-                FreeRTOS_printf( ( "GW         : %pip\n", pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes ) );
-                FreeRTOS_printf( ( "DNS        : %pip\n", pxEndPoint->ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes ) );
+                FreeRTOS_printf( ( "End-point  : up = %s\n", pxEndPoint_IPv6->bits.bEndPointUp ? "yes" : "no" ) );
+                FreeRTOS_printf( ( "Prefix     : %pip/%d\n", xPrefix.ucBytes, ( int ) pxEndPoint_IPv6->ipv6_settings.uxPrefixLength ) );
+                FreeRTOS_printf( ( "GW         : %pip\n", pxEndPoint_IPv6->ipv6_settings.xGatewayAddress.ucBytes ) );
+                FreeRTOS_printf( ( "DNS        : %pip\n", pxEndPoint_IPv6->ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes ) );
             }
             else
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         {
-            FreeRTOS_printf( ( "IP-address : %lxip\n",
-                               FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulIPAddress ) ) );
-
-            if( pxEndPoint->ipv4_settings.ulIPAddress != pxEndPoint->ipv4_defaults.ulIPAddress )
+            NetworkEndPoint_IPv4_t * pxEndPoint;
+            for (pxEndPoint = FreeRTOS_FirstEndPoint(pxInterface);
+                pxEndPoint != NULL;
+                pxEndPoint = FreeRTOS_NextEndPoint(pxInterface, pxEndPoint))
             {
-                FreeRTOS_printf( ( "Default IP : %lxip\n", FreeRTOS_ntohl( pxEndPoint->ipv4_defaults.ulIPAddress ) ) );
+                FreeRTOS_printf( ( "IP-address : %lxip\n",
+                                FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulIPAddress ) ) );
+
+                if( pxEndPoint->ipv4_settings.ulIPAddress != pxEndPoint->ipv4_defaults.ulIPAddress )
+                {
+                    FreeRTOS_printf( ( "Default IP : %lxip\n", FreeRTOS_ntohl( pxEndPoint->ipv4_defaults.ulIPAddress ) ) );
+                }
+
+                int bWantDHCP;
+                #if ( ipconfigUSE_DHCP != 0 )
+                    bWantDHCP = pxEndPoint->bits.bWantDHCP;
+                #else
+                    bWantDHCP = 0;
+                #endif
+
+                FreeRTOS_printf( ( "End-point  : up = %s dhcp = %d\n",
+                                pxEndPoint->bits.bEndPointUp ? "yes" : "no",
+                                bWantDHCP ) );
+                FreeRTOS_printf( ( "Net mask   : %lxip\n", FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulNetMask ) ) );
+                FreeRTOS_printf( ( "GW         : %lxip\n", FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulGatewayAddress ) ) );
+                FreeRTOS_printf( ( "DNS        : %lxip\n", FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ] ) ) );
+                FreeRTOS_printf( ( "Broadcast  : %lxip\n", FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulBroadcastAddress ) ) );
             }
-
-            int bWantDHCP;
-            #if ( ipconfigUSE_DHCP != 0 )
-                bWantDHCP = pxEndPoint->bits.bWantDHCP;
-            #else
-                bWantDHCP = 0;
-            #endif
-
-            FreeRTOS_printf( ( "End-point  : up = %s dhcp = %d\n",
-                               pxEndPoint->bits.bEndPointUp ? "yes" : "no",
-                               bWantDHCP ) );
-            FreeRTOS_printf( ( "Net mask   : %lxip\n", FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulNetMask ) ) );
-            FreeRTOS_printf( ( "GW         : %lxip\n", FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulGatewayAddress ) ) );
-            FreeRTOS_printf( ( "DNS        : %lxip\n", FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ] ) ) );
-            FreeRTOS_printf( ( "Broadcast  : %lxip\n", FreeRTOS_ntohl( pxEndPoint->ipv4_settings.ulBroadcastAddress ) ) );
         }
 
-        FreeRTOS_printf( ( "MAC address: %02x-%02x-%02x-%02x-%02x-%02x\n",
-                           pxEndPoint->xMACAddress.ucBytes[ 0 ],
-                           pxEndPoint->xMACAddress.ucBytes[ 1 ],
-                           pxEndPoint->xMACAddress.ucBytes[ 2 ],
-                           pxEndPoint->xMACAddress.ucBytes[ 3 ],
-                           pxEndPoint->xMACAddress.ucBytes[ 4 ],
-                           pxEndPoint->xMACAddress.ucBytes[ 5 ] ) );
-        FreeRTOS_printf( ( " \n" ) );
+        if(pxInterface != NULL)
+        {
+            FreeRTOS_printf( ( "MAC address: %02x-%02x-%02x-%02x-%02x-%02x\n",
+                            pxInterface->xMACAddress.ucBytes[ 0 ],
+                            pxInterface->xMACAddress.ucBytes[ 1 ],
+                            pxInterface->xMACAddress.ucBytes[ 2 ],
+                            pxInterface->xMACAddress.ucBytes[ 3 ],
+                            pxInterface->xMACAddress.ucBytes[ 4 ],
+                            pxInterface->xMACAddress.ucBytes[ 5 ] ) );
+            FreeRTOS_printf( ( " \n" ) );
+        }
     }
 #endif /* ipconfigMULTI_INTERFACE */
 /*-----------------------------------------------------------*/

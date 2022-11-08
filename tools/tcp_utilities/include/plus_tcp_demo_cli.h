@@ -21,9 +21,10 @@ void xHandleTesting( void );
 #if ( ipconfigMULTI_INTERFACE != 0 )
 
 /*
- * Show all properties of an end-point.
+ * Show all properties of all end-points.
  */
-    void showEndPoint( NetworkEndPoint_t * pxEndPoint );
+    void showEndPoints( NetworkInterface_t * pxInterface );
+
 #endif
 
 extern int verboseLevel;
