@@ -63,6 +63,9 @@
 
 extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;
+extern List_t xActiveSocketsList;
+extern List_t xInactiveSocketsList;
+
 
 BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
                            BaseType_t xProtocol,
@@ -270,6 +273,8 @@ void test_FreeRTOS_socket_NoMemory( void )
 
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
 
     pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), NULL );
 
@@ -292,6 +297,8 @@ void test_FreeRTOS_socket_EventGroupCreationFailed( void )
 
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
 
     pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), ( void * ) ucSocket );
 
@@ -321,6 +328,8 @@ void test_FreeRTOS_socket_TCPSocket_ProtocolDependent( void )
 
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
 
     pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), ( void * ) ucSocket );
 
@@ -333,6 +342,10 @@ void test_FreeRTOS_socket_TCPSocket_ProtocolDependent( void )
     FreeRTOS_round_up_ExpectAndReturn( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS, 0xAABB );
     FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( ipconfigTCP_RX_BUFFER_LENGTH / 2U ) / ipconfigTCP_MSS, 0x1234 );
     FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( 0xAABB / 2U ) / ipconfigTCP_MSS, 0x3456 );
+
+    vListInitialiseItem_Expect( &( pxSocket->xSocketListItem ) );
+    listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xSocketListItem ), pxSocket );
+    vListInsertEnd_Expect( &( xActiveSocketsList ), &( pxSocket->xSocketListItem ) );
 
     xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
 
@@ -366,6 +379,8 @@ void test_FreeRTOS_socket_TCPSocket( void )
 
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
 
     pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), ( void * ) ucSocket );
 
@@ -378,6 +393,10 @@ void test_FreeRTOS_socket_TCPSocket( void )
     FreeRTOS_round_up_ExpectAndReturn( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS, 0xAABB );
     FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( ipconfigTCP_RX_BUFFER_LENGTH / 2U ) / ipconfigTCP_MSS, 0x1234 );
     FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( 0xAABB / 2U ) / ipconfigTCP_MSS, 0x3456 );
+
+    vListInitialiseItem_Expect( &( pxSocket->xSocketListItem ) );
+    listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xSocketListItem ), pxSocket );
+    vListInsertEnd_Expect( &( xActiveSocketsList ), &( pxSocket->xSocketListItem ) );
 
     xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
 
@@ -411,6 +430,8 @@ void test_FreeRTOS_socket_UDPSocket( void )
 
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
 
     pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xUDP ), ( void * ) ucSocket );
 
@@ -421,6 +442,10 @@ void test_FreeRTOS_socket_UDPSocket( void )
     vListInitialiseItem_Expect( &( pxSocket->xBoundSocketListItem ) );
 
     listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xBoundSocketListItem ), pxSocket );
+
+    vListInitialiseItem_Expect( &( pxSocket->xSocketListItem ) );
+    listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xSocketListItem ), pxSocket );
+    vListInsertEnd_Expect( &( xActiveSocketsList ), &( pxSocket->xSocketListItem ) );
 
     xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
 
@@ -450,6 +475,8 @@ void test_FreeRTOS_socket_UDPSocket_ProtocolDependent( void )
 
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
 
     pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xUDP ), ( void * ) ucSocket );
 
@@ -460,6 +487,10 @@ void test_FreeRTOS_socket_UDPSocket_ProtocolDependent( void )
     vListInitialiseItem_Expect( &( pxSocket->xBoundSocketListItem ) );
 
     listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xBoundSocketListItem ), pxSocket );
+
+    vListInitialiseItem_Expect( &( pxSocket->xSocketListItem ) );
+    listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xSocketListItem ), pxSocket );
+    vListInsertEnd_Expect( &( xActiveSocketsList ), &( pxSocket->xSocketListItem ) );
 
     xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
 
@@ -572,6 +603,10 @@ void test_FreeRTOS_FD_SET_CatchAssert2( void )
     SocketSet_t xSocketSet = NULL;
     EventBits_t xBitsToSet;
 
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket->xSocketListItem ), pdTRUE );
+
     catch_assert( FreeRTOS_FD_SET( xSocket, xSocketSet, xBitsToSet ) );
 }
 
@@ -588,6 +623,10 @@ void test_FreeRTOS_FD_SET_NoBitsToSet( void )
 
     memset( ucSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( ucSocketSet, 0, sizeof( SocketSelect_t ) );
+
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket->xSocketListItem ), pdTRUE );
 
     FreeRTOS_FD_SET( xSocket, xSocketSet, xBitsToSet );
 
@@ -607,6 +646,10 @@ void test_FreeRTOS_FD_SET_AllBitsToSet( void )
 
     memset( ucSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( ucSocketSet, 0, sizeof( SocketSelect_t ) );
+
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket->xSocketListItem ), pdTRUE );
 
     xEventGroupClearBits_ExpectAndReturn( xSocketSet->xSelectGroup, ( BaseType_t ) eSELECT_CALL_IP, 0 );
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdFAIL );
@@ -639,6 +682,10 @@ void test_FreeRTOS_FD_CLR_CatchAssert2( void )
     SocketSet_t xSocketSet = NULL;
     EventBits_t xBitsToClear;
 
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket->xSocketListItem ), pdTRUE );
+
     catch_assert( FreeRTOS_FD_CLR( xSocket, xSocketSet, xBitsToClear ) );
 }
 
@@ -657,6 +704,10 @@ void test_FreeRTOS_FD_CLR_NoBitsToClear( void )
     memset( ucSocketSet, 0, sizeof( SocketSelect_t ) );
 
     xSocket->xSelectBits = 0;
+
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket->xSocketListItem ), pdTRUE );
 
     FreeRTOS_FD_CLR( xSocket, xSocketSet, xBitsToClear );
 
@@ -679,6 +730,10 @@ void test_FreeRTOS_FD_CLR_AllBitsToClear( void )
     memset( ucSocketSet, 0, sizeof( SocketSelect_t ) );
 
     xSocket->xSelectBits = eSELECT_ALL;
+
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket->xSocketListItem ), pdTRUE );
 
     FreeRTOS_FD_CLR( xSocket, xSocketSet, xBitsToClear );
 
@@ -707,6 +762,10 @@ void test_FreeRTOS_FD_ISSET_CatchAssert2( void )
     Socket_t xSocket = ucSocket;
     SocketSet_t xSocketSet = NULL;
 
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket->xSocketListItem ), pdTRUE );
+
     /* Assertion that the socket set must be non-NULL. */
     catch_assert( FreeRTOS_FD_ISSET( xSocket, xSocketSet ) );
 }
@@ -724,6 +783,10 @@ void test_FreeRTOS_FD_ISSET_SocketSetDifferent( void )
 
     memset( ucSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( ucSocketSet, 0, sizeof( SocketSelect_t ) );
+
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket->xSocketListItem ), pdTRUE );
 
     xReturn = FreeRTOS_FD_ISSET( xSocket, xSocketSet );
 
@@ -747,6 +810,10 @@ void test_FreeRTOS_FD_ISSET_SocketSetSame( void )
     xSocket->pxSocketSet = xSocketSet;
 
     xSocket->xSocketBits = 0x12;
+
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket->xSocketListItem ), pdTRUE );
 
     xReturn = FreeRTOS_FD_ISSET( xSocket, xSocketSet );
 
@@ -3323,13 +3390,31 @@ void test_FreeRTOS_SignalSocketFromISR_catchAsserts( void )
     /* Socket cannot be NULL. */
     catch_assert( FreeRTOS_SignalSocketFromISR( NULL, &xHigherPriorityTaskWoken ) );
 
+    /* Socket cannot be INVALID_SOCKET. */
+    catch_assert( FreeRTOS_SignalSocketFromISR( FREERTOS_INVALID_SOCKET, &xHigherPriorityTaskWoken ) );
+
+    /* Not initialized list. */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdFALSE );
+    catch_assert( FreeRTOS_SignalSocketFromISR( &xSocket, &xHigherPriorityTaskWoken ) );
+
+    /* Not In Active List. */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdFALSE );
+    catch_assert( FreeRTOS_SignalSocketFromISR( &xSocket, &xHigherPriorityTaskWoken ) );
+
     memset( &xSocket, 0, sizeof( xSocket ) );
+
     /* Socket must have TCP protocol. */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
     catch_assert( FreeRTOS_SignalSocketFromISR( &xSocket, &xHigherPriorityTaskWoken ) );
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+
     /* Event group must be non-NULL. */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
     catch_assert( FreeRTOS_SignalSocketFromISR( &xSocket, &xHigherPriorityTaskWoken ) );
 }
 
@@ -3346,6 +3431,10 @@ void test_FreeRTOS_SignalSocketFromISR_HappyPath( void )
     memset( &xSocket, 0, sizeof( xSocket ) );
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.xEventGroup = xEventGroup;
+
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
 
     xQueueGenericSendFromISR_ExpectAnyArgsAndReturn( 0xABC );
 

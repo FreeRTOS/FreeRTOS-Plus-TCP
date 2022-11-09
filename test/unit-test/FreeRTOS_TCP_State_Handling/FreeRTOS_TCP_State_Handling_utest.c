@@ -1664,7 +1664,7 @@ void test_prvHandleListen_New_Socket_Socket_Copy_Failure( void )
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_socket_ExpectAnyArgsAndReturn( &MockReturnSocket );
     vSocketBind_ExpectAnyArgsAndReturn( 1 );
-    vSocketClose_ExpectAnyArgsAndReturn( pdTRUE );
+    vSocketClose_ExpectAnyArgs();
 
     pxReturn = prvHandleListen( pxSocket, pxNetworkBuffer );
 
@@ -1709,7 +1709,7 @@ void test_prvTCPSocketCopy_Bind_Error( void )
     pxSocket->xSelectBits = eSELECT_READ;
 
     vSocketBind_ExpectAnyArgsAndReturn( 1 );
-    vSocketClose_ExpectAnyArgsAndReturn( pdTRUE );
+    vSocketClose_ExpectAnyArgs();
 
     Result = prvTCPSocketCopy( &MockReturnSocket, pxSocket );
     TEST_ASSERT_EQUAL( pdFALSE, Result );

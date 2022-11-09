@@ -63,6 +63,8 @@
 
 extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;
+extern List_t xActiveSocketsList;
+extern List_t xInactiveSocketsList;
 
 BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
                            BaseType_t xProtocol,
@@ -239,6 +241,9 @@ void test_vNetworkSocketsInit( void )
     vListInitialise_Expect( &xBoundUDPSocketsList );
     vListInitialise_Expect( &xBoundTCPSocketsList );
 
+    vListInitialise_Expect( &xActiveSocketsList );
+    vListInitialise_Expect( &xInactiveSocketsList );
+
     vNetworkSocketsInit();
 }
 
@@ -331,6 +336,9 @@ void test_prvDetermineSocketSize_CatchAssert4( void )
 
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
 
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
+
     memset( &xBoundUDPSocketsList, 0, sizeof( xBoundUDPSocketsList ) );
     memset( &xBoundTCPSocketsList, 0, sizeof( xBoundTCPSocketsList ) );
 
@@ -355,6 +363,8 @@ void test_prvDetermineSocketSize_CatchAssert5( void )
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
 
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
 
     memset( &xBoundUDPSocketsList, 0, sizeof( xBoundUDPSocketsList ) );
     memset( &xBoundTCPSocketsList, 0, sizeof( xBoundTCPSocketsList ) );
@@ -380,6 +390,8 @@ void test_prvDetermineSocketSize_UDPSocket( void )
 
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
 
     memset( &xBoundUDPSocketsList, 0, sizeof( xBoundUDPSocketsList ) );
     memset( &xBoundTCPSocketsList, 0, sizeof( xBoundTCPSocketsList ) );
@@ -407,6 +419,8 @@ void test_prvDetermineSocketSize_CatchAssert6( void )
 
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
 
     memset( &xBoundUDPSocketsList, 0, sizeof( xBoundUDPSocketsList ) );
     memset( &xBoundTCPSocketsList, 0, sizeof( xBoundTCPSocketsList ) );
@@ -432,6 +446,8 @@ void test_prvDetermineSocketSize_TCPSocket( void )
 
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
     listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
 
     xReturn = prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize );
 
@@ -576,6 +592,10 @@ void test_vSocketBind_TCP( void )
 
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
 
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+
     xIPIsNetworkTaskReady_ExpectAndReturn( pdFALSE );
 
     listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
@@ -604,6 +624,10 @@ void test_vSocketBind_TCPNULLAddress( void )
 
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
 
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
     xReturn = vSocketBind( &xSocket, NULL, uxAddressLength, xInternal );
 
@@ -627,6 +651,10 @@ void test_vSocketBind_RNGFails( void )
     xBindAddress.sin_port = 0;
 
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
+
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
 
@@ -652,6 +680,10 @@ void test_vSocketBind_NonZeroPortNumber( void )
     xBindAddress.sin_port = 0x12;
 
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_UDP;
+
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdFALSE );
 
@@ -682,6 +714,10 @@ void test_vSocketBind_GotNULLItem( void )
     memset( &xSocket, 0, sizeof( xSocket ) );
 
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_UDP;
+
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
 
@@ -722,6 +758,10 @@ void test_vSocketBind_GotANonNULLValue( void )
 
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_UDP;
 
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
 
     listGET_NEXT_ExpectAnyArgsAndReturn( xListStart );
@@ -756,6 +796,10 @@ void test_vSocketBind_TCPGotAProperValue( void )
 
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
 
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+
     listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
 
     vListInsertEnd_Expect( NULL, &( xSocket.xBoundSocketListItem ) );
@@ -788,6 +832,10 @@ void test_vSocketBind_TCPGotAProperValuePortZero( void )
 
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
 
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
@@ -811,19 +859,23 @@ void test_vSocketBind_TCPGotAProperValuePortZero( void )
 void test_vSocketClose_UnknownProtocol_NotBound( void )
 {
     FreeRTOS_Socket_t xSocket;
-    void * pvReturn;
 
     memset( &xSocket, 0xAB, sizeof( xSocket ) );
+
+    /* socketASSERT_IS_NOT_DESTROYED */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xInactiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
 
     vEventGroupDelete_Expect( xSocket.xEventGroup );
 
+    uxListRemove_ExpectAndReturn( &( xSocket.xSocketListItem ), 0 );
     vPortFree_Expect( &xSocket );
 
-    pvReturn = vSocketClose( &xSocket );
-
-    TEST_ASSERT_EQUAL( NULL, pvReturn );
+    vSocketClose( &xSocket, pdTRUE );
 }
 
 /*
@@ -832,19 +884,23 @@ void test_vSocketClose_UnknownProtocol_NotBound( void )
 void test_vSocketClose_UnknownProtocol_NotBound_EventGroupNULL( void )
 {
     FreeRTOS_Socket_t xSocket;
-    void * pvReturn;
 
     memset( &xSocket, 0xAB, sizeof( xSocket ) );
 
     xSocket.xEventGroup = NULL;
 
+    /* socketASSERT_IS_NOT_DESTROYED */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xInactiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
 
+    uxListRemove_ExpectAndReturn( &( xSocket.xSocketListItem ), 0 );
     vPortFree_Expect( &xSocket );
 
-    pvReturn = vSocketClose( &xSocket );
-
-    TEST_ASSERT_EQUAL( NULL, pvReturn );
+    vSocketClose( &xSocket, pdTRUE );
 }
 
 /*
@@ -853,13 +909,18 @@ void test_vSocketClose_UnknownProtocol_NotBound_EventGroupNULL( void )
 void test_vSocketClose_TCP_EverythingNonNULL( void )
 {
     FreeRTOS_Socket_t xSocket;
-    void * pvReturn;
     ListItem_t xLocalList;
 
     memset( &xSocket, 0xAB, sizeof( xSocket ) );
 
     xSocket.xEventGroup = NULL;
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
+
+    /* socketASSERT_IS_NOT_DESTROYED */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xInactiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
 
     vReleaseNetworkBufferAndDescriptor_Expect( xSocket.u.xTCP.pxAckMessage );
 
@@ -873,11 +934,10 @@ void test_vSocketClose_TCP_EverythingNonNULL( void )
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
 
+    uxListRemove_ExpectAndReturn( &( xSocket.xSocketListItem ), 0 );
     vPortFree_Expect( &xSocket );
 
-    pvReturn = vSocketClose( &xSocket );
-
-    TEST_ASSERT_EQUAL( NULL, pvReturn );
+    vSocketClose( &xSocket, pdTRUE );
 }
 
 /*
@@ -886,7 +946,6 @@ void test_vSocketClose_TCP_EverythingNonNULL( void )
 void test_vSocketClose_TCP_LastAckMessageNonNULL( void )
 {
     FreeRTOS_Socket_t xSocket;
-    void * pvReturn;
     ListItem_t xLocalList;
 
     memset( &xSocket, 0xAB, sizeof( xSocket ) );
@@ -895,6 +954,12 @@ void test_vSocketClose_TCP_LastAckMessageNonNULL( void )
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
 
     xSocket.u.xTCP.pxAckMessage = NULL;
+
+    /* socketASSERT_IS_NOT_DESTROYED */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xInactiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
 
     vTCPWindowDestroy_Expect( &( xSocket.u.xTCP.xTCPWindow ) );
 
@@ -906,11 +971,10 @@ void test_vSocketClose_TCP_LastAckMessageNonNULL( void )
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
 
+    uxListRemove_ExpectAndReturn( &( xSocket.xSocketListItem ), 0 );
     vPortFree_Expect( &xSocket );
 
-    pvReturn = vSocketClose( &xSocket );
-
-    TEST_ASSERT_EQUAL( NULL, pvReturn );
+    vSocketClose( &xSocket, pdTRUE );
 }
 
 /*
@@ -919,7 +983,6 @@ void test_vSocketClose_TCP_LastAckMessageNonNULL( void )
 void test_vSocketClose_TCP_AllFieldsNonNULL( void )
 {
     FreeRTOS_Socket_t xSocket;
-    void * pvReturn;
     ListItem_t xLocalList;
 
     memset( &xSocket, 0xAB, sizeof( xSocket ) );
@@ -931,6 +994,12 @@ void test_vSocketClose_TCP_AllFieldsNonNULL( void )
     xSocket.u.xTCP.rxStream = NULL;
     xSocket.u.xTCP.txStream = NULL;
 
+    /* socketASSERT_IS_NOT_DESTROYED */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xInactiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+
     vTCPWindowDestroy_Expect( &( xSocket.u.xTCP.xTCPWindow ) );
 
     listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &( xBoundTCPSocketsList.xListEnd ) );
@@ -939,11 +1008,10 @@ void test_vSocketClose_TCP_AllFieldsNonNULL( void )
 
     uxListRemove_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), 0 );
 
+    uxListRemove_ExpectAndReturn( &( xSocket.xSocketListItem ), 0 );
     vPortFree_Expect( &xSocket );
 
-    pvReturn = vSocketClose( &xSocket );
-
-    TEST_ASSERT_EQUAL( NULL, pvReturn );
+    vSocketClose( &xSocket, pdTRUE );
 }
 
 /*
@@ -952,7 +1020,6 @@ void test_vSocketClose_TCP_AllFieldsNonNULL( void )
 void test_vSocketClose_UDP_NoWaitingPackets( void )
 {
     FreeRTOS_Socket_t xSocket;
-    void * pvReturn;
     ListItem_t xLocalList;
 
     memset( &xSocket, 0xAB, sizeof( xSocket ) );
@@ -960,15 +1027,20 @@ void test_vSocketClose_UDP_NoWaitingPackets( void )
     xSocket.xEventGroup = NULL;
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_UDP;
 
+    /* socketASSERT_IS_NOT_DESTROYED */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xInactiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket.u.xUDP.xWaitingPacketsList ), 0 );
 
+    uxListRemove_ExpectAndReturn( &( xSocket.xSocketListItem ), 0 );
     vPortFree_Expect( &xSocket );
 
-    pvReturn = vSocketClose( &xSocket );
-
-    TEST_ASSERT_EQUAL( NULL, pvReturn );
+    vSocketClose( &xSocket, pdTRUE );
 }
 
 /*
@@ -977,7 +1049,6 @@ void test_vSocketClose_UDP_NoWaitingPackets( void )
 void test_vSocketClose_UDP_SomeWaitingPackets( void )
 {
     FreeRTOS_Socket_t xSocket;
-    void * pvReturn;
     ListItem_t xLocalList;
     NetworkBufferDescriptor_t xNetworkBuffer;
 
@@ -985,6 +1056,12 @@ void test_vSocketClose_UDP_SomeWaitingPackets( void )
 
     xSocket.xEventGroup = NULL;
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_UDP;
+
+    /* socketASSERT_IS_NOT_DESTROYED */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xInactiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
 
@@ -1001,11 +1078,10 @@ void test_vSocketClose_UDP_SomeWaitingPackets( void )
         listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket.u.xUDP.xWaitingPacketsList ), 4 - i );
     }
 
+    uxListRemove_ExpectAndReturn( &( xSocket.xSocketListItem ), 0 );
     vPortFree_Expect( &xSocket );
 
-    pvReturn = vSocketClose( &xSocket );
-
-    TEST_ASSERT_EQUAL( NULL, pvReturn );
+    vSocketClose( &xSocket, pdTRUE );
 }
 
 /*
@@ -1168,12 +1244,19 @@ void test_prvTCPSetSocketCount_ListeningSock_HappyPath1( void )
 
     listGET_NEXT_ExpectAndReturn( &( xIterator ), &( xBoundTCPSocketsList.xListEnd ) );
 
+    /* socketASSERT_IS_NOT_DESTROYED */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocketToDelete.xSocketListItem ), pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xInactiveSocketsList, &( xSocketToDelete.xSocketListItem ), pdTRUE );
+
     vTCPWindowDestroy_Expect( &( xChildSocket.u.xTCP.xTCPWindow ) );
 
     listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &( xBoundTCPSocketsList.xListEnd ) );
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xChildSocket.xBoundSocketListItem ), NULL );
 
+    uxListRemove_ExpectAndReturn( &( xChildSocket.xSocketListItem ), 0 );
     vPortFree_Expect( &xChildSocket );
 
     prvTCPSetSocketCount( &xSocketToDelete );
@@ -1209,12 +1292,19 @@ void test_prvTCPSetSocketCount_ListeningSock_HappyPath2( void )
 
     listGET_NEXT_ExpectAndReturn( &( xIterator ), &( xBoundTCPSocketsList.xListEnd ) );
 
+    /* socketASSERT_IS_NOT_DESTROYED */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocketToDelete.xSocketListItem ), pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xInactiveSocketsList, &( xSocketToDelete.xSocketListItem ), pdTRUE );
+
     vTCPWindowDestroy_Expect( &( xChildSocket.u.xTCP.xTCPWindow ) );
 
     listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &( xBoundTCPSocketsList.xListEnd ) );
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xChildSocket.xBoundSocketListItem ), NULL );
 
+    uxListRemove_ExpectAndReturn( &( xChildSocket.xSocketListItem ), 0 );
     vPortFree_Expect( &xChildSocket );
 
     prvTCPSetSocketCount( &xSocketToDelete );
@@ -1250,12 +1340,19 @@ void test_prvTCPSetSocketCount_ListeningSock_HappyPath3( void )
 
     listGET_NEXT_ExpectAndReturn( &( xIterator ), &( xBoundTCPSocketsList.xListEnd ) );
 
+    /* socketASSERT_IS_NOT_DESTROYED */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xInactiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocketToDelete.xSocketListItem ), pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xInactiveSocketsList, &( xSocketToDelete.xSocketListItem ), pdTRUE );
+
     vTCPWindowDestroy_Expect( &( xChildSocket.u.xTCP.xTCPWindow ) );
 
     listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &( xBoundTCPSocketsList.xListEnd ) );
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xChildSocket.xBoundSocketListItem ), NULL );
 
+    uxListRemove_ExpectAndReturn( &( xChildSocket.xSocketListItem ), 0 );
     vPortFree_Expect( &xChildSocket );
 
     prvTCPSetSocketCount( &xSocketToDelete );
@@ -1786,6 +1883,10 @@ void test_pxUDPSocketLookup_Found( void )
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xListItem, &xLocalSocket );
 
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAnyArgsAndReturn( pdTRUE );
+
     pxReturn = pxUDPSocketLookup( uxLocalPort );
 
     TEST_ASSERT_EQUAL( &xLocalSocket, pxReturn );
@@ -1852,6 +1953,10 @@ void test_vSocketWakeUpUser_AllNULL( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
+
     vSocketWakeUpUser( &xSocket );
 
     TEST_ASSERT_EQUAL( 0, xSocket.xEventBits );
@@ -1874,6 +1979,10 @@ void test_vSocketWakeUpUser_AllNonNULL( void )
     xSocket.pxUserWakeCallback = vUserCallbackLocal;
     xSocket.pxSocketSet = xLocalSocketSet;
     xSocket.xEventGroup = xLocalEventGroup;
+
+    /* socketASSERT_IS_ACTIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
 
     xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore, NULL, semGIVE_BLOCK_TIME, queueSEND_TO_BACK, pdPASS );
 
@@ -1902,6 +2011,9 @@ void test_vSocketWakeUpUser_AllNonNULL_EventBitsSet( void )
     xSocket.xEventGroup = xLocalEventGroup;
 
     xSocket.xEventBits = ( eSOCKET_ALL << SOCKET_EVENT_BIT_COUNT ) | eSOCKET_ALL;
+
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
 
     xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore, NULL, semGIVE_BLOCK_TIME, queueSEND_TO_BACK, pdPASS );
 
@@ -2447,6 +2559,10 @@ void test_xTCPTimerCheck_EventBitsNonZeroWillSleep( void )
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &( xBoundTCPSocketsList.xListEnd ) );
+
+    /* socketASSERT_IS_ACIVE */
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
 
     xReturn = xTCPTimerCheck( xWillSleep );
 

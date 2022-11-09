@@ -62,6 +62,7 @@
 
 extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;
+extern List_t xActiveSocketsList;
 
 BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
                            BaseType_t xProtocol,
@@ -141,6 +142,9 @@ void test_vSocketBind_TCP( void )
     memset( &xSocket, 0, sizeof( xSocket ) );
 
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
+
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xActiveSocketsList, pdTRUE );
+    listIS_CONTAINED_WITHIN_ExpectAndReturn( &xActiveSocketsList, &( xSocket.xSocketListItem ), pdTRUE );
 
     catch_assert( vSocketBind( &xSocket, NULL, uxAddressLength, xInternal ) );
 }

@@ -517,7 +517,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void 
         /* Make sure that binding fails. Return anything except zero. */
         vSocketBind_ExpectAnyArgsAndReturn( pdTRUE );
         /* Then expect the socket to be closed. */
-        vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+        vSocketClose_Expect( &xTestSocket, pdTRUE );
         /* See if the timer is reloaded. */
         vDHCPTimerReload_Expect( dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
@@ -668,7 +668,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNonNULL( void )
     /* Ignore the call. */
     vIPNetworkUpCalls_Ignore();
     /* Expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( xDHCPSocket, NULL );
+    vSocketClose_Expect( xDHCPSocket, pdTRUE );
 
     vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
 
@@ -702,7 +702,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookDefaultReturn( void )
     /* Ignore the call. */
     vIPNetworkUpCalls_Ignore();
     /* Expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( xDHCPSocket, NULL );
+    vSocketClose_Expect( xDHCPSocket, pdTRUE );
 
     vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
 
@@ -1048,7 +1048,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutGiveUp( void )
 
 
     /* Closing the DHCP socket. */
-    vSocketClose_ExpectAndReturn( xDHCPSocket, 0 );
+    vSocketClose_Expect( xDHCPSocket, pdTRUE );
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
 
@@ -2198,7 +2198,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnDe
     vIPSetDHCPTimerEnableState_Expect( pdFALSE );
     vIPNetworkUpCalls_Ignore();
     /* Expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( xDHCPSocket, NULL );
+    vSocketClose_Expect( xDHCPSocket, pdTRUE );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -2286,7 +2286,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnEr
     vIPSetDHCPTimerEnableState_Expect( pdFALSE );
     vIPNetworkUpCalls_Ignore();
     /* Expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( xDHCPSocket, NULL );
+    vSocketClose_Expect( xDHCPSocket, pdTRUE );
 
     vDHCPProcess( pdFALSE, eWaitingOffer );
 
@@ -2727,7 +2727,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
     vIPNetworkUpCalls_Expect();
 
     /* Then expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+    vSocketClose_Expect( &xTestSocket, pdTRUE );
 
     /* Expect ARP to begin. */
     vARPSendGratuitous_Expect();
@@ -2820,7 +2820,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeLessTh
     vIPNetworkUpCalls_Expect();
 
     /* Then expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+    vSocketClose_Expect( &xTestSocket, pdTRUE );
 
     /* Expect ARP to begin. */
     vARPSendGratuitous_Expect();
@@ -2912,7 +2912,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_CorrectServer_AptLeaseTime
     vIPNetworkUpCalls_Expect();
 
     /* Then expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+    vSocketClose_Expect( &xTestSocket, pdTRUE );
 
     /* Expect ARP to begin. */
     vARPSendGratuitous_Expect();
@@ -3135,7 +3135,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     vIPNetworkUpCalls_Expect();
 
     /* Then expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+    vSocketClose_Expect( &xTestSocket, pdTRUE );
 
     /* Expect ARP to begin. */
     vARPSendGratuitous_Expect();
@@ -3275,7 +3275,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     vIPNetworkUpCalls_Expect();
 
     /* Then expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+    vSocketClose_Expect( &xTestSocket, pdTRUE );
 
     /* Expect ARP to begin. */
     vARPSendGratuitous_Expect();
@@ -3387,7 +3387,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IPv4ServerIncorrectLength( void )
     vIPNetworkUpCalls_Expect();
 
     /* Then expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+    vSocketClose_Expect( &xTestSocket, pdTRUE );
 
     /* Expect ARP to begin. */
     vARPSendGratuitous_Expect();
@@ -3498,7 +3498,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_SubnetMaskIncorrectLength( void )
     vIPNetworkUpCalls_Expect();
 
     /* Then expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+    vSocketClose_Expect( &xTestSocket, pdTRUE );
 
     /* Expect ARP to begin. */
     vARPSendGratuitous_Expect();
@@ -3616,7 +3616,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_GatewayIncorrectLength( void )
     vIPNetworkUpCalls_Expect();
 
     /* Then expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+    vSocketClose_Expect( &xTestSocket, pdTRUE );
 
     /* Expect ARP to begin. */
     vARPSendGratuitous_Expect();
@@ -3744,7 +3744,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength( void )
     vIPNetworkUpCalls_Expect();
 
     /* Then expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+    vSocketClose_Expect( &xTestSocket, pdTRUE );
 
     /* Expect ARP to begin. */
     vARPSendGratuitous_Expect();
@@ -3891,7 +3891,7 @@ void test_vDHCPProcess_eGetLinkLayerAddress_Timeout_ARPIPClash( void )
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     /* Then expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+    vSocketClose_Expect( &xTestSocket, pdTRUE );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     vARPSendGratuitous_Expect();
 

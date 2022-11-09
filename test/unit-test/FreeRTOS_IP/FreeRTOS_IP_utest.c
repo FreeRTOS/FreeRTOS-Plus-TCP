@@ -847,7 +847,7 @@ void test_prvProcessIPEventsAndTimers_eSocketCloseEvent( void )
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
 
-    vSocketClose_ExpectAndReturn( &xSocket, 0 );
+    vSocketClose_Expect( &xSocket, pdTRUE );
 
     prvProcessIPEventsAndTimers();
 }

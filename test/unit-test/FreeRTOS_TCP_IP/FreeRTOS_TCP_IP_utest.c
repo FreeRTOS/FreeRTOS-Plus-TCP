@@ -130,7 +130,7 @@ void test_vSocketCloseNextTime_Close_Previous_Socket( void )
 {
     FreeRTOS_Socket_t NewSocket;
 
-    vSocketClose_ExpectAnyArgsAndReturn( NULL );
+    vSocketClose_ExpectAnyArgs();
     vSocketCloseNextTime( &NewSocket );
 }
 

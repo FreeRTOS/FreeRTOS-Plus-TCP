@@ -72,7 +72,8 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
-void * vSocketClose( FreeRTOS_Socket_t * pxSocket );
+void vSocketClose( FreeRTOS_Socket_t * pxSocket,
+                   uint8_t bDestroy );
 
 /* Returns pdTRUE is this function is called from the IP-task */
 BaseType_t xIsCallingFromIPTask( void );
