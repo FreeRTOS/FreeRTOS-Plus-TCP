@@ -352,7 +352,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
                 configASSERT( listLIST_IS_INITIALISED( &xBoundTCPSocketsList ) );
             }
         #endif /* ipconfigUSE_TCP == 1 */
-        /* Check if the Created and CreatedClosable socket-lists have been initialised. */
+        /* Check if the active and inactive socket-lists have been initialised. */
         configASSERT( listLIST_IS_INITIALISED( &xActiveSocketsList ) );
         configASSERT( listLIST_IS_INITIALISED( &xInactiveSocketsList ) );
 

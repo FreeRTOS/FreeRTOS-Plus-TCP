@@ -47,6 +47,7 @@ bcloseaftersend
 bcloserequested
 bconnpassed
 bconnprepared
+bdestroy
 bds
 berkeley
 besr
@@ -1594,6 +1595,7 @@ xsize
 xsizewithoutdata
 xsocket
 xsocketbits
+xsocketlistitem
 xsocketset
 xsource
 xsourceaddress
