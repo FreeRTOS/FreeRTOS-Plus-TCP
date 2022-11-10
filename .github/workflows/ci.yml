@@ -38,6 +38,8 @@ jobs:
         uses: FreeRTOS/CI-CD-Github-Actions/coverage-cop@main
         with:
           path: ./test/unit-test/build/coverage.info
+          line-coverage-min: 99.8
+          branch-coverage-min: 98.7
 
   spell-check:
     runs-on: ubuntu-latest
