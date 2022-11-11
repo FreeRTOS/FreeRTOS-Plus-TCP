@@ -45,7 +45,7 @@
 
 #define ipSIZE_OF_IPv4_HEADER        20U
 #define ipSIZE_OF_IPv4_ADDRESS       4U
-#define ipSIZE_OF_ICMP_HEADER        8U
+#define ipSIZE_OF_ICMPv4_HEADER      8U
 #define ipTYPE_IPv4                  ( 0x40U )
 
 /* The number of octets in the IP addresses respectively. */

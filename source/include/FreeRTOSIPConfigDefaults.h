@@ -70,6 +70,10 @@
     #error now called: ipconfigPACKET_FILLER_SIZE
 #endif
 
+#ifndef ipconfigENDPOINT_DNS_ADDRESS_COUNT
+    #define ipconfigENDPOINT_DNS_ADDRESS_COUNT    2U
+#endif
+
 #ifdef dnsMAX_REQUEST_ATTEMPTS
     #error now called: ipconfigDNS_REQUEST_ATTEMPTS
 #endif

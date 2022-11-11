@@ -614,6 +614,7 @@ typedef struct xSOCKET
         EventBits_t xSocketBits;          /**< These bits indicate the events which have actually occurred.
                                            * They are maintained by the IP-task */
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
+    struct xNetworkEndPoint * pxEndPoint; /**< The end-point to which the socket is bound. */
     /* TCP/UDP specific fields: */
     /* Before accessing any member of this structure, it should be confirmed */
     /* that the protocol corresponds with the type of structure */

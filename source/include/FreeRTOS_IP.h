@@ -161,6 +161,8 @@ typedef struct xNETWORK_BUFFER
     IP_Address_t xIPAddress;                   /**< Source or destination IP address, depending on usage scenario. */
     uint8_t * pucEthernetBuffer;               /**< Pointer to the start of the Ethernet frame. */
     size_t xDataLength;                        /**< Starts by holding the total Ethernet frame length, then the UDP/TCP payload length. */
+    struct xNetworkInterface * pxInterface;    /**< The interface on which the packet was received. */
+    struct xNetworkEndPoint * pxEndPoint;      /**< The end-point through which this packet shall be sent. */
     uint16_t usPort;                           /**< Source or destination port, depending on usage scenario. */
     uint16_t usBoundPort;                      /**< The port to which a transmitting socket is bound. */
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
