@@ -41,6 +41,7 @@
 #include "FreeRTOS_IP.h"
 
 /*-----------------------------------------------------------*/
+
 /**
  * @brief Set multicast MAC address.
  *
@@ -69,8 +70,8 @@ void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
  * @return Non-zero in case of an error.
  */
 BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
-                                         size_t uxBufferLength,
-                                         struct xPacketSummary * pxSet )
+                                  size_t uxBufferLength,
+                                  struct xPacketSummary * pxSet )
 {
     BaseType_t xReturn = 0;
     uint8_t ucVersion;

@@ -61,9 +61,10 @@
 /**
  * Start an IP timer. The IP-task has its own implementation of a timer
  * called 'IPTimer_t', which is based on the FreeRTOS 'TimeOut_t'.
-*/
+ */
 static void prvIPTimerStart( IPTimer_t * pxTimer,
                              TickType_t xTime );
+
 /**
  * Check the IP timer to see whether an IP event should be processed or not.
  */
@@ -113,7 +114,7 @@ static IPTimer_t xNetworkTimer;
  * @return The maximum sleep time or ipconfigMAX_IP_TASK_SLEEP_TIME,
  *         whichever is smaller.
  */
- //TODO - ENDPPOINT UPDATE
+/*TODO - ENDPPOINT UPDATE */
 TickType_t xCalculateSleepTime( void )
 {
     TickType_t uxMaximumSleepTime;
@@ -129,7 +130,8 @@ TickType_t xCalculateSleepTime( void )
             uxMaximumSleepTime = xARPTimer.ulRemainingTime;
         }
     }
-//TODO : Endpoint
+
+/*TODO : Endpoint */
     #if ( ipconfigUSE_DHCP == 1 )
         {
             if( xDHCPTimer.bActive != pdFALSE_UNSIGNED )
@@ -200,7 +202,8 @@ void vCheckNetworkTimers( void )
             iptraceDELAYED_ARP_TIMER_EXPIRED();
         }
     }
-//TODO: EndPoint
+
+/*TODO: EndPoint */
     #if ( ipconfigUSE_DHCP == 1 )
         {
             /* Is it time for DHCP processing? */
@@ -264,7 +267,7 @@ void vCheckNetworkTimers( void )
         /* See if any reusable socket needs to go back to 'eTCP_LISTEN' state. */
         vSocketListenNextTime( NULL );
     #endif /* ipconfigUSE_TCP == 1 */
-    //TODO : ENDPOINT
+    /*TODO : ENDPOINT */
 }
 /*-----------------------------------------------------------*/
 
@@ -335,6 +338,7 @@ void vARPTimerReload( TickType_t xTime )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_DHCP == 1 )
+
 /**
  * @brief Reload the DHCP timer.
  *
@@ -369,13 +373,14 @@ void vARPTimerReload( TickType_t xTime )
  * @param[in] pxEndPoint: The end-point that needs to acquire an IP-address.
  * @param[in] uxClockTicks: The number of clock-ticks after which the timer should expire.
  */
+
 /*TODO Needs to be uncommented when adding struct xNetworkEndPoint
-    void vDHCP_RATimerReload( struct xNetworkEndPoint * pxEndPoint,
-                              TickType_t uxClockTicks )
-    {
-        FreeRTOS_printf( ( "vDHCP_RATimerReload: %lu\n", uxClockTicks ) );
-        prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
-    }*/
+ *  void vDHCP_RATimerReload( struct xNetworkEndPoint * pxEndPoint,
+ *                            TickType_t uxClockTicks )
+ *  {
+ *      FreeRTOS_printf( ( "vDHCP_RATimerReload: %lu\n", uxClockTicks ) );
+ *      prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
+ *  }*/
 #endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
 /*-----------------------------------------------------------*/
 
@@ -448,7 +453,8 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_TCP == 1 )
-//TODO : CHECK_HEIN Just name diff is that fine? vIPSetTCPTimerEnableState
+/*TODO : CHECK_HEIN Just name diff is that fine? vIPSetTCPTimerEnableState */
+
 /**
  * @brief Enable/disable the TCP timer.
  *
@@ -507,7 +513,8 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_DHCP == 1 )
-//TODO vIPSetDHCP_RATimerEnableState
+/*TODO vIPSetDHCP_RATimerEnableState */
+
 /**
  * @brief Enable/disable the DHCP timer.
  *

@@ -51,7 +51,7 @@
 
 /* Set the MAC-address that belongs to a given IPv6 multi-cast address. */
 void vSetMultiCastIPv6MacAddress( IPv6_Address_t * pxAddress,
-                                   MACAddress_t * pxMACAddress );
+                                  MACAddress_t * pxMACAddress );
 
 extern BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
                                          size_t uxBufferLength,
@@ -67,4 +67,3 @@ extern BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
 /* *INDENT-ON* */
 
 #endif /* FREERTOS_IP_UTILS_H */
-

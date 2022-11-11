@@ -41,6 +41,7 @@
 #include "FreeRTOS_IP.h"
 
 /*-----------------------------------------------------------*/
+
 /**
  * @brief Set multicast MAC address.
  *
@@ -58,6 +59,7 @@ void vSetMultiCastIPv6MacAddress( IPv6_Address_t * pxAddress,
     pxMACAddress->ucBytes[ 5 ] = pxAddress->ucBytes[ 15 ];
 }
 /*-----------------------------------------------------------*/
+
 /** @brief Do the first IPv6 length checks at the IP-header level.
  * @param[in] pucEthernetBuffer: The buffer containing the packet.
  * @param[in] uxBufferLength: The number of bytes to be sent or received.
@@ -66,8 +68,8 @@ void vSetMultiCastIPv6MacAddress( IPv6_Address_t * pxAddress,
  * @return Non-zero in case of an error.
  */
 BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
-                                         size_t uxBufferLength,
-                                         struct xPacketSummary * pxSet )
+                                  size_t uxBufferLength,
+                                  struct xPacketSummary * pxSet )
 {
     BaseType_t xReturn = 0;
 
@@ -103,6 +105,7 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
     return xReturn;
 }
 /*-----------------------------------------------------------*/
+
 /**
  * @brief Check the buffer lengths of an ICMPv6 packet.
  * @param[in] uxBufferLength: The total length of the packet.
@@ -110,7 +113,7 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
  * @return Non-zero in case of an error.
  */
 BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
-                                           struct xPacketSummary * pxSet )
+                                    struct xPacketSummary * pxSet )
 {
     BaseType_t xReturn = 0;
     size_t xICMPLength;

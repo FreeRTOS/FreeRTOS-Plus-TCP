@@ -77,8 +77,9 @@ TickType_t xCalculateSleepTime( void );
  * Start an ARP Resolution timer.
  */
 void vIPTimerStartARPResolution( TickType_t xTime );
-//TODO
+/*TODO */
 void vIPSetTCPTimerExpiredState( BaseType_t xExpiredState );
+
 /*
  * Enable/disable the ARP timer.
  */
@@ -116,7 +117,7 @@ void vARPTimerReload( TickType_t xTime );
  * Sets the reload time of an TCP timer and restarts it.
  */
 void vTCPTimerReload( TickType_t xTime );
-#if ( ipconfigUSE_DHCP == 1 ) //TODO
+#if ( ipconfigUSE_DHCP == 1 ) /*TODO */
     void vDHCPTimerReload( TickType_t xLeaseTime );
 #endif
 

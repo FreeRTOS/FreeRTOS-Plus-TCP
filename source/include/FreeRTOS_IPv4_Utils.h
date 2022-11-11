@@ -55,8 +55,8 @@ void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
 
 /* The first IPv4 length checks at the IP-header level. */
 BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
-                                         size_t uxBufferLength,
-                                         struct xPacketSummary * pxSet );
+                                  size_t uxBufferLength,
+                                  struct xPacketSummary * pxSet );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
@@ -65,5 +65,3 @@ BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
 /* *INDENT-ON* */
 
 #endif /* FREERTOS_IP_UTILS_H */
-
-

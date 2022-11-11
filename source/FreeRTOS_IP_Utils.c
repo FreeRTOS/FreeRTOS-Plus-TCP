@@ -147,9 +147,9 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
  *         succeeded.
  * @param pxEndPoint: The end-point that needs DHCP.
  */
- //TODO eDHCPEvent - eDHCP_RA_Event
- //eGetDHCPState and Need if check?
-    //BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
+/*TODO eDHCPEvent - eDHCP_RA_Event */
+/*eGetDHCPState and Need if check? */
+    /*BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint ) */
     BaseType_t xSendDHCPEvent( void )
     {
         IPStackEvent_t xEventMessage;
@@ -157,7 +157,7 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
         uintptr_t uxOption = ( uintptr_t ) eGetDHCPState();
 
         xEventMessage.eEventType = eDHCPEvent;
-//TODO
+/*TODO */
         /* MISRA Ref 11.6.1 [DHCP events and conversion to void] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
         /* coverity[misra_c_2012_rule_11_6_violation] */
@@ -207,11 +207,10 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         pxNewBuffer->pxEndPoint = pxNetworkBuffer->pxEndPoint;
         ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, uxLengthToCopy );
         #if ( ipconfigUSE_IPV6 != 0 )
-        {
-            ( void ) memcpy( pxNewBuffer->xIPAddress.xIP_IPv6.ucBytes, pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-        }
+            {
+                ( void ) memcpy( pxNewBuffer->xIPAddress.xIP_IPv6.ucBytes, pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+            }
         #endif /* ipconfigUSE_IPV6 != 0 */
-
     }
 
     return pxNewBuffer;
@@ -383,7 +382,7 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
         }
     }
 
-    #if ( ipconfigUSE_IPV6 != 0 ) //TODO : Can be only 1 check
+    #if ( ipconfigUSE_IPV6 != 0 ) /*TODO : Can be only 1 check */
         else if( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 )
         {
             xReturn = prvChecksumICMPv6Checks( uxBufferLength, pxSet );
@@ -708,7 +707,7 @@ BaseType_t xIsCallingFromIPTask( void )
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
 /* coverity[single_use] */
-//TODO - need to be updated according to interface and end point
+/*TODO - need to be updated according to interface and end point */
 void prvProcessNetworkDownEvent( void )
 {
     /* Stop the ARP timer while there is no network. */
@@ -808,10 +807,10 @@ void vPreCheckConfigs( void )
             configASSERT( uxSize == ipEXPECTED_UDPHeader_t_SIZE );
             /* LCOV_EXCL_BR_STOP */
             #if ipconfigUSE_TCP == 1
-            {
-                uxSize = sizeof( TCPHeader_t );
-                configASSERT( uxSize == ( ipEXPECTED_TCPHeader_t_SIZE + ipSIZE_TCP_OPTIONS ) );
-            }
+                {
+                    uxSize = sizeof( TCPHeader_t );
+                    configASSERT( uxSize == ( ipEXPECTED_TCPHeader_t_SIZE + ipSIZE_TCP_OPTIONS ) );
+                }
             #endif
         }
     #endif /* if ( configASSERT_DEFINED == 1 ) */
@@ -834,7 +833,7 @@ void vPreCheckConfigs( void )
  *         When xOutgoingPacket is true: either ipINVALID_LENGTH, ipUNHANDLED_PROTOCOL,
  *         or ipCORRECT_CRC.
  */
- //TODO - check with hein
+/*TODO - check with hein */
 uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                                      size_t uxBufferLength,
                                      BaseType_t xOutgoingPacket )
@@ -1477,7 +1476,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
  *
  * @return The buffer filled with human readable error string.
  */
- //TODO: Return value needs to be checked
+/*TODO: Return value needs to be checked */
 const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
                                   char * pcBuffer,
                                   size_t uxLength )
