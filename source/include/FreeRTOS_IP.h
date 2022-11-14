@@ -163,6 +163,8 @@ typedef struct xNETWORK_BUFFER
     size_t xDataLength;                        /**< Starts by holding the total Ethernet frame length, then the UDP/TCP payload length. */
     uint16_t usPort;                           /**< Source or destination port, depending on usage scenario. */
     uint16_t usBoundPort;                      /**< The port to which a transmitting socket is bound. */
+    struct xNetworkInterface * pxInterface;    /**< The interface on which the packet was received. */
+    struct xNetworkEndPoint * pxEndPoint;      /**< The end-point through which this packet shall be sent. */
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
         struct xNETWORK_BUFFER * pxNextBuffer; /**< Possible optimisation for expert users - requires network driver support. */
     #endif
