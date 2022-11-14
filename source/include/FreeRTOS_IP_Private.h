@@ -97,6 +97,7 @@ typedef struct xNetworkAddressingParameters
 
 extern BaseType_t xTCPWindowLoggingLevel;
 extern QueueHandle_t xNetworkEventQueue;
+typedef struct xSOCKET FreeRTOS_Socket_t;
 
 /*-----------------------------------------------------------*/
 /* Protocol headers.                                         */
@@ -580,7 +581,7 @@ enum eSOCKET_EVENT
 /**
  * Structure to hold information for a socket.
  */
-typedef struct xSOCKET
+struct xSOCKET
 {
     EventBits_t xEventBits;         /**< The eventbits to keep track of events. */
     EventGroupHandle_t xEventGroup; /**< The event group for this socket. */
@@ -629,7 +630,7 @@ typedef struct xSOCKET
                                        * declaring a 64-bit variable in the same union */
         #endif /* ipconfigUSE_TCP */
     } u;                              /**< Union of TCP/UDP socket */
-} FreeRTOS_Socket_t;
+} ;
 
 #if ( ipconfigUSE_TCP == 1 )
 

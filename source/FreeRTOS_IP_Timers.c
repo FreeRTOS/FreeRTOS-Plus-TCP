@@ -103,7 +103,12 @@ static IPTimer_t xARPTimer;
 
 /** @brief As long as not all networks are up, repeat initialisation by calling the
  * xNetworkInterfaceInitialise() function of the interfaces that are not ready. */
+
+/* MISRA Ref 8.9.1 [File scoped variables] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+/* coverity[misra_c_2012_rule_8_9_violation] */
 static IPTimer_t xNetworkTimer;
+
 /*-----------------------------------------------------------*/
 
 /**

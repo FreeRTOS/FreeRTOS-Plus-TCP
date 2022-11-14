@@ -48,7 +48,7 @@
  * @param[in] pxAddress: IPv6 address.
  * @param[out] pxMACAddress: Pointer to MAC address.
  */
-void vSetMultiCastIPv6MacAddress( IPv6_Address_t * pxAddress,
+void vSetMultiCastIPv6MacAddress( const IPv6_Address_t * pxAddress,
                                   MACAddress_t * pxMACAddress )
 {
     pxMACAddress->ucBytes[ 0 ] = 0x33U;
@@ -86,6 +86,9 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
     else
     {
         pxSet->ucProtocol = pxSet->pxIPPacket_IPv6->ucNextHeader;
+	/* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
         pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
         /* For IPv6, the number of bytes in the protocol is indicated. */

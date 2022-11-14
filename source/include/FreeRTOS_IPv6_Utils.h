@@ -50,7 +50,7 @@
 #include "FreeRTOS_IP.h"
 
 /* Set the MAC-address that belongs to a given IPv6 multi-cast address. */
-void vSetMultiCastIPv6MacAddress( IPv6_Address_t * pxAddress,
+void vSetMultiCastIPv6MacAddress( const IPv6_Address_t * pxAddress,
                                   MACAddress_t * pxMACAddress );
 
 extern BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,

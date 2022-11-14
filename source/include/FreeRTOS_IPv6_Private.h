@@ -144,8 +144,6 @@ extern struct xNetworkEndPoint * pxNetworkEndPoints;
 /* A list of all network interfaces: */
 extern struct xNetworkInterface * pxNetworkInterfaces;
 
-typedef struct xSOCKET FreeRTOS_Socket_t;
-
 #include "pack_struct_start.h"
 struct xIP_HEADER_IPv6
 {
@@ -184,7 +182,7 @@ struct xICMPRouterSolicitation_IPv6
 #include "pack_struct_end.h"
 typedef struct xICMPRouterSolicitation_IPv6 ICMPRouterSolicitation_IPv6_t;
 
-#if ipconfigUSE_RA != 0
+#if ( ipconfigUSE_RA != 0 )
     #include "pack_struct_start.h"
     struct xICMPRouterAdvertisement_IPv6
     {

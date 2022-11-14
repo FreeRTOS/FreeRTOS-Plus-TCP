@@ -858,6 +858,9 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         BaseType_t xResult;
 
         /* Parse the packet length. */
+	/* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         xSet.pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
         #if ( ipconfigUSE_IPv6 != 0 )

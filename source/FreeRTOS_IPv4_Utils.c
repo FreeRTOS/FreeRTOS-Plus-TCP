@@ -134,7 +134,10 @@ BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
     {
         /* Identify the next protocol. */
         pxSet->ucProtocol = pxSet->pxIPPacket->xIPHeader.ucProtocol;
-        pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ pxSet->uxIPHeaderLength + ipSIZE_OF_ETH_HEADER ] ) );
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+	pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ pxSet->uxIPHeaderLength + ipSIZE_OF_ETH_HEADER ] ) );
         /* For IPv4, the number of bytes in IP-header + the protocol is indicated. */
         pxSet->usProtocolBytes = pxSet->usPayloadLength - ( ( uint16_t ) pxSet->uxIPHeaderLength );
     }
