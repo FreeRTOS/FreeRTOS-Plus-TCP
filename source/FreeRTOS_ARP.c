@@ -43,6 +43,7 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Timers.h"
+#include "FreeRTOS_IP_Utils.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
@@ -52,6 +53,7 @@
     #include "FreeRTOS_DNS.h"
 #endif /* ipconfigUSE_LLMNR */
 #include "NetworkBufferManagement.h"
+#include "FreeRTOS_Routing.h"
 #include "NetworkInterface.h"
 
 /** @brief When the age of an entry in the ARP table reaches this value (it counts down

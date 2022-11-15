@@ -149,19 +149,26 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
  */
 /*TODO eDHCPEvent - eDHCP_RA_Event */
 /*eGetDHCPState and Need if check? */
-    /*BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint ) */
-    BaseType_t xSendDHCPEvent( void )
+    BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
     {
         IPStackEvent_t xEventMessage;
         const TickType_t uxDontBlock = 0U;
-        uintptr_t uxOption = ( uintptr_t ) eGetDHCPState();
+        
+        #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+            eDHCPState_t uxOption = eGetDHCPState( pxEndPoint );
+        #endif
 
         xEventMessage.eEventType = eDHCPEvent;
-/*TODO */
+
         /* MISRA Ref 11.6.1 [DHCP events and conversion to void] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
         /* coverity[misra_c_2012_rule_11_6_violation] */
-        xEventMessage.pvData = ( void * ) uxOption;
+        xEventMessage.pvData = ( void * ) pxEndPoint;
+        #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+            {
+                pxEndPoint->xDHCPData.eExpectedState = uxOption;
+            }
+        #endif
 
         return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );
     }

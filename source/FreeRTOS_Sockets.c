@@ -51,6 +51,7 @@
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_DNS.h"
 #include "NetworkBufferManagement.h"
+#include "FreeRTOS_Routing.h"
 
 /* The ItemValue of the sockets xBoundSocketListItem member holds the socket's
  * port number. */
