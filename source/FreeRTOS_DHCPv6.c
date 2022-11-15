@@ -132,39 +132,39 @@
                                         DHCPMessage_IPv6_t * pxDHCPMessage );
 
     static void vDHCPv6ProcessEndPoint( BaseType_t xReset,
-                                        NetworkEndPoint_t * pxEndPoint,
+                                        NetworkEndPoint_IPv6_t * pxEndPoint,
                                         DHCPMessage_IPv6_t * pxDHCPMessage );
 
-    static void prvInitialiseDHCPv6( NetworkEndPoint_t * pxEndPoint );
+    static void prvInitialiseDHCPv6( NetworkEndPoint_IPv6_t * pxEndPoint );
 
-    static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint );
+    static void prvSendDHCPMessage( NetworkEndPoint_IPv6_t * pxEndPoint );
 
 /*
  * Create the DHCP socket, if it has not been created already.
  */
-    static void prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint );
+    static void prvCreateDHCPv6Socket( NetworkEndPoint_IPv6_t * pxEndPoint );
 
 /*
  * Close the DHCP socket, only when not in use anymore (i.e. xDHCPv6SocketUserCount = 0).
  */
-    static void prvCloseDHCPv6Socket( NetworkEndPoint_t * pxEndPoint );
+    static void prvCloseDHCPv6Socket( NetworkEndPoint_IPv6_t * pxEndPoint );
 
     #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
         static const char * prvStateName( eDHCPState_t eState );
     #endif
 
-    static BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint * pxEndPoint );
+    static BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint_IPv6 * pxEndPoint );
 
-    static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
+    static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_IPv6_t * pxEndPoint,
                                                     DHCPMessage_IPv6_t * pxDHCPMessage );
 
 
-    static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * pxEndPoint,
+    static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_IPv6_t * pxEndPoint,
                                                               DHCPMessage_IPv6_t * pxDHCPMessage );
 
-    static void vDHCPv6ProcessEndPoint_SendDiscover( NetworkEndPoint_t * pxEndPoint );
+    static void vDHCPv6ProcessEndPoint_SendDiscover( NetworkEndPoint_IPv6_t * pxEndPoint );
 
-    static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndPoint,
+    static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_IPv6_t * pxEndPoint,
                                                           DHCPMessage_IPv6_t * pxDHCPMessage );
 
     static void prvDHCPv6_subOption( uint16_t usOption,
@@ -182,7 +182,7 @@
 
     static DHCPMessage_IPv6_t xDHCPMessage;
 
-    eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint * pxEndPoint )
+    eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint_IPv6 * pxEndPoint )
     {
         configASSERT( pxEndPoint );
         return pxEndPoint->xDHCPData.eDHCPState;
@@ -197,13 +197,13 @@
  * @return In case the message is passed to 'pxEndPoint', return pdFALSE, meaning that
  *         the it has done its periodic processing.
  */
-    static BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint * pxEndPoint )
+    static BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint_IPv6 * pxEndPoint )
     {
         uint32_t ulCompareResult = pdTRUE;
         BaseType_t xDoProcess = pdTRUE;
-        struct xNetworkEndPoint * pxIterator;
+        struct xNetworkEndPoint_IPv6 * pxIterator;
 
-        pxIterator = pxNetworkEndPoints;
+        pxIterator = pxNetworkEndPoints_IPv6;
 
         /* Find the end-point with given transaction ID. */
         while( pxIterator != NULL )
@@ -266,7 +266,7 @@
  * @param[in] pxEndPoint: The end-point that wants a DHCPv6 address.
  */
     void vDHCPv6Process( BaseType_t xReset,
-                         struct xNetworkEndPoint * pxEndPoint )
+                         struct xNetworkEndPoint_IPv6 * pxEndPoint )
     {
         BaseType_t xDoProcess = pdTRUE;
 
@@ -345,7 +345,7 @@
  * @param[in] pxEndPoint: The end-point that is asking for an IP-address.
  * @param[in] pxDHCPMessage: The reply received from the DHCP server.
  */
-    static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
+    static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_IPv6_t * pxEndPoint,
                                                     DHCPMessage_IPv6_t * pxDHCPMessage )
     {
         FreeRTOS_printf( ( "vDHCPProcess: acked %lxip\n", FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
@@ -380,7 +380,7 @@
 
         /* Check for clashes. */
 
-        vDHCP_RATimerReload( ( struct xNetworkEndPoint * ) pxEndPoint, EP_DHCPData.ulLeaseTime );
+        vDHCPv6_RATimerReload( ( struct xNetworkEndPoint_IPv6 * ) pxEndPoint, EP_DHCPData.ulLeaseTime );
 
         /* DHCP failed, the default configured IP-address will be used
          * Now call vIPNetworkUpCalls() to send the network-up event and
@@ -396,7 +396,7 @@
  * @param[in] pxDHCPMessage: The advertisement received from the DHCP server.
  * @return When the request will be send, pdFALSE will be returned.
  */
-    static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * pxEndPoint,
+    static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_IPv6_t * pxEndPoint,
                                                               DHCPMessage_IPv6_t * pxDHCPMessage )
     {
         BaseType_t xGivingUp = pdFALSE;
@@ -444,7 +444,7 @@
  * @brief The first step in the DHCP dialogue is to ask the server for an offer.
  * @param[in] pxEndPoint: The end-point that is asking for an IP-address.
  */
-    static void vDHCPv6ProcessEndPoint_SendDiscover( NetworkEndPoint_t * pxEndPoint )
+    static void vDHCPv6ProcessEndPoint_SendDiscover( NetworkEndPoint_IPv6_t * pxEndPoint )
     {
         if( ( xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod )
         {
@@ -473,7 +473,7 @@
  * @param[in] pxDHCPMessage: when not NULL, a message that was received for this end-point.
  * @return It returns pdTRUE in case the DHCP process is to be cancelled.
  */
-    static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndPoint,
+    static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_IPv6_t * pxEndPoint,
                                                           DHCPMessage_IPv6_t * pxDHCPMessage )
 
     {
@@ -655,14 +655,14 @@
                     EP_DHCPData.eDHCPState = eWaitingAcknowledge;
 
                     /* From now on, we should be called more often */
-                    vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
+                    vDHCPv6_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
                 }
 
                 break;
 
             case eNotUsingLeasedAddress:
 
-                vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
+                vIPSetDHCPv6_RATimerEnableState( pxEndPoint, pdFALSE );
                 break;
 
             default:
@@ -682,7 +682,7 @@
  * @param[in] pxDHCPMessage: A DHCP message that has just been received, or NULL.
  */
     static void vDHCPv6ProcessEndPoint( BaseType_t xReset,
-                                        NetworkEndPoint_t * pxEndPoint,
+                                        NetworkEndPoint_IPv6_t * pxEndPoint,
                                         DHCPMessage_IPv6_t * pxDHCPMessage )
     {
         BaseType_t xGivingUp = pdFALSE;
@@ -735,7 +735,7 @@
                 taskEXIT_CRITICAL();
 
                 EP_DHCPData.eDHCPState = eNotUsingLeasedAddress;
-                vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
+                vIPSetDHCPv6_RATimerEnableState( pxEndPoint, pdFALSE );
 
                 /* Close socket to ensure packets don't queue on it. */
                 prvCloseDHCPv6Socket( pxEndPoint );
@@ -755,7 +755,7 @@
  *
  * @param[in] pxEndPoint: The end-point that wants to close the socket.
  */
-    static void prvCloseDHCPv6Socket( NetworkEndPoint_t * pxEndPoint )
+    static void prvCloseDHCPv6Socket( NetworkEndPoint_IPv6_t * pxEndPoint )
     {
         if( ( EP_DHCPData.xDHCPSocket == NULL ) || ( EP_DHCPData.xDHCPSocket != xDHCPv6Socket ) )
         {
@@ -791,7 +791,7 @@
  *
  * @param[in] pxEndPoint: The end-point that needs the socket.
  */
-    static void prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint )
+    static void prvCreateDHCPv6Socket( NetworkEndPoint_IPv6_t * pxEndPoint )
     {
         struct freertos_sockaddr xAddress;
         BaseType_t xReturn;
@@ -837,7 +837,7 @@
  *
  * @param[in] pxEndPoint: The end-point.
  */
-    static void prvInitialiseDHCPv6( NetworkEndPoint_t * pxEndPoint )
+    static void prvInitialiseDHCPv6( NetworkEndPoint_IPv6_t * pxEndPoint )
     {
         /* Initialise the parameters that will be set by the DHCP process. Per
          * https://www.ietf.org/rfc/rfc2131.txt, Transaction ID should be a random
@@ -853,7 +853,7 @@
         /* Create the DHCP socket if it has not already been created. */
         prvCreateDHCPv6Socket( pxEndPoint );
         FreeRTOS_debug_printf( ( "prvInitialiseDHCPv6: start after %lu ticks\n", dhcpINITIAL_TIMER_PERIOD ) );
-        vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
+        vDHCPv6_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
     }
 /*-----------------------------------------------------------*/
 
@@ -862,7 +862,7 @@
  *
  * @param[in] pxEndPoint: The end-point for which a message will be sent.
  */
-    static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
+    static void prvSendDHCPMessage( NetworkEndPoint_IPv6_t * pxEndPoint )
     {
         BaseType_t xRandomOk = pdTRUE;
         DHCPMessage_IPv6_t * pxDHCPMessage = pxEndPoint->pxDHCPMessage;

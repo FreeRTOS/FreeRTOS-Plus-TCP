@@ -232,7 +232,7 @@
                 if( memcmp( pxPoint->ipv6_settings.xIPAddress.ucBytes, pxICMPHeader_IPv6->xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
                 {
                     pxPoint->xRAData.bits.bIPAddressInUse = pdTRUE_UNSIGNED;
-                    vDHCP_RATimerReload( pxPoint, 100U );
+                    vDHCPv6_RATimerReload( pxPoint, 100U );
                 }
             }
         }
@@ -663,13 +663,13 @@
         if( uxReloadTime != 0U )
         {
             FreeRTOS_printf( ( "RA: Reload %u seconds\n", ( unsigned ) ( uxReloadTime / 1000U ) ) );
-            vDHCP_RATimerReload( pxEndPoint, uxReloadTime );
+            vDHCPv6_RATimerReload( pxEndPoint, uxReloadTime );
         }
         else
         {
             /* Disable the timer, this function vRAProcess() won't be called anymore for this end-point. */
             FreeRTOS_printf( ( "RA: Disabled timer.\n" ) );
-            vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
+            vIPSetDHCPv6_RATimerEnableState( pxEndPoint, pdFALSE );
         }
     }
 /*-----------------------------------------------------------*/

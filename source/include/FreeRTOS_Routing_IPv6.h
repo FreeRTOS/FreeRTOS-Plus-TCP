@@ -23,15 +23,14 @@
  * http://www.FreeRTOS.org
  */
 
-#ifndef FREERTOS_ROUTING_H
-#define FREERTOS_ROUTING_H
+#ifndef FREERTOS_ROUTING_IPV6_H
+#define FREERTOS_ROUTING_IPV6_H
 
 #ifdef __cplusplus
     extern "C" {
 #endif
 
-
-#if ( ipconfigUSE_IPv6 != 0 )
+#if (ipconfigUSE_IPv6 != 0 )
     #include "FreeRTOS_DHCPv6.h"
 
 
@@ -120,14 +119,7 @@
     } NetworkEndPoint_IPv6_t;
 
     /** @brief A list of all network end-points.  Each element has a next pointer. */
-    extern struct xNetworkEndPoint_IPv4* pxNetworkEndPoints_IPv6;
-
-        #define END_POINT_USES_DHCP( pxEndPoint )    ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bWantDHCP != pdFALSE_UNSIGNED ) )
-        #define END_POINT_USES_RA( pxEndPoint )      ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 != pdFALSE_UNSIGNED ) && ( ( pxEndPoint )->bits.bWantRA != pdFALSE_UNSIGNED ) )
-
-        #define ENDPOINT_IS_IPv4( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 == 0U ) )
-        #define ENDPOINT_IS_IPv6( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 != 0U ) )
-
+    extern struct xNetworkEndPoint_IPv6* pxNetworkEndPoints_IPv6;
 
 /*
  * Get the first end-point belonging to a given interface.  When pxInterface is
@@ -161,11 +153,11 @@
 
 /* Find an end-point that has a defined gateway.
  * xIPType should equal ipTYPE_IPv4 or ipTYPE_IPv6. */
-    NetworkEndPoint_IPv6_t * FreeRTOS_FindGateWay_IPv6( BaseType_t xIPType );
+    NetworkEndPoint_IPv6_t * FreeRTOS_FindGateWay_IPv6( void );
 
 /* Fill-in the end-point structure. */
     void FreeRTOS_FillEndPoint_IPv6( NetworkInterface_t * pxNetworkInterface,
-                                         NetworkEndPoint_t * pxEndPoint,
+                                         NetworkEndPoint_IPv6_t * pxEndPoint,
                                          IPv6_Address_t * pxIPAddress,
                                          IPv6_Address_t * pxNetPrefix,
                                          size_t uxPrefixLength,
@@ -185,7 +177,7 @@
             UBaseType_t ulLocationsIP[ 8 ]; /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called from a particular location. */
         } RoutingStats_IPv6_t;
 
-        extern RoutingStats_t xRoutingStatistics;
+        RoutingStats_IPv6_t xRoutingStatistics_IPv6;
     #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
     NetworkEndPoint_IPv6_t * pxGetSocketEndPoint_IPv6( Socket_t xSocket );
@@ -198,4 +190,4 @@
     } /* extern "C" */
 #endif
 
-#endif /* FREERTOS_ROUTING_H */
+#endif /* FREERTOS_ROUTING_IPV6_H */

@@ -778,7 +778,7 @@ static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
         {
             /* The IP address is off the local network, so look up the
              * hardware address of the router, if any. */
-            *( ppxEndPoint ) = FreeRTOS_FindGateWay_IPv4( ( BaseType_t ) ipTYPE_IPv4 );
+            *( ppxEndPoint ) = FreeRTOS_FindGateWay_IPv4();
 
             if( *( ppxEndPoint ) != NULL )
             {
@@ -1022,13 +1022,9 @@ void vARPAgeCache( void )
         {
             if( ( pxEndPoint->bits.bEndPointUp != pdFALSE_UNSIGNED ) && ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
             {
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                    {
-                        FreeRTOS_OutputAdvertiseIPv6( pxEndPoint );
-                    }
-                    else
-                #endif
+                /* __XX__ Need to double check if this is needed for IPv6,
+                 * it should have a better place to call this  FreeRTOS_OutputAdvertiseIPv6( pxEndPoint );
+                 */                  
                 {
                     if( pxEndPoint->ipv4_settings.ulIPAddress != 0U )
                     {
@@ -1298,7 +1294,7 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
  * @param[in] pxEndPoint: only clean entries with this end-point, or when NULL,
  *                        clear the entire ARP cache.
  */
-void FreeRTOS_ClearARP( const struct xNetworkInterface_t * pxInterface )
+void FreeRTOS_ClearARP( const NetworkInterface_t * pxInterface )
 {
     NetworkEndPoint_IPv4_t * pxEndPoint;
     BaseType_t x;
@@ -1348,7 +1344,7 @@ BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
     {
         NetworkEndPoint_IPv4_t * pxEndPoint;
 
-        pxEndPoint = FreeRTOS_FindEndPointOnMAC_IPv4( &( pxIPPacket->xEthernetHeader.xDestinationAddress ), NULL );
+        pxEndPoint = FreeRTOS_FindEndPointOnMAC_IPv4( &( pxIPPacket->xEthernetHeader.xDestinationAddress ) );
 
         if( pxEndPoint != NULL )
         {

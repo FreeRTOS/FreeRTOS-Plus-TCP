@@ -97,11 +97,11 @@
 /*
  * Get the next Network Interface.
  */
-    NetworkInterface_t * FreeRTOS_NextNetworkInterface( NetworkInterface_t * pxInterface );
+    NetworkInterface_t * FreeRTOS_NextNetworkInterface( const NetworkInterface_t * pxInterface );
 
 /* A ethernet packet has come in on a certain network interface.
  * Find the best matching end-point. */
-    void FreeRTOS_MatchingEndpoint(NetworkInterface_t* pxNetworkInterface,
+    void FreeRTOS_MatchingEndpoint(const NetworkInterface_t* pxNetworkInterface,
         NetworkBufferDescriptor_t* pucEthernetBuffer);
 
 

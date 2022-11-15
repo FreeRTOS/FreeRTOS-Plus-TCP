@@ -422,13 +422,13 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
                                         uint32_t * pulNetMask,
                                         uint32_t * pulGatewayAddress,
                                         uint32_t * pulDNSServerAddress,
-                                        struct xNetworkEndPoint * pxEndPoint );
+                                        struct xNetworkEndPoint_IPv4 * pxEndPoint );
 
 void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
                                         const uint32_t * pulNetMask,
                                         const uint32_t * pulGatewayAddress,
                                         const uint32_t * pulDNSServerAddress,
-                                        struct xNetworkEndPoint * pxEndPoint );
+                                        struct xNetworkEndPoint_IPv4 * pxEndPoint );
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
     BaseType_t FreeRTOS_SendPingRequest( uint32_t ulIPAddress,
                                          size_t uxNumberOfBytesToSend,
@@ -485,7 +485,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
 /* Return true if a given end-point is up and running.
 * When FreeRTOS_IsNetworkUp() is called with NULL as a parameter,
 * it will return pdTRUE when all end-points are up. */
-BaseType_t FreeRTOS_IsEndPointUp( const struct xNetworkEndPoint * pxEndPoint );
+BaseType_t FreeRTOS_IsEndPointUp( const struct xNetworkEndPoint_IPv4 * pxEndPoint );
 
 /* Return pdTRUE if all end-points are up.
  * When pxInterface is null, all end-points will be checked. */

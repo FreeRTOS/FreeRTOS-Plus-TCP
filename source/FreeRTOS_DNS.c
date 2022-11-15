@@ -277,7 +277,7 @@
     static void prvIncreaseDNS4Index( NetworkEndPoint_IPv4_t * pxEndPoint );
 
     #if ( ipconfigUSE_IPv6 != 0 )
-        static NetworkEndPoint_IPv6_t* prvGetDNSAddress(struct freertos_sockaddr* pxAddress,
+        static NetworkEndPoint_IPv6_t* prvGetDNS6Address(struct freertos_sockaddr6* pxAddress,
         const char* pcHostName);
 /** @brief Increment the field 'ucDNSIndex', which is an index in the array */
         static void prvIncreaseDNS6Index( NetworkEndPoint_IPv6_t * pxEndPoint );
@@ -947,7 +947,7 @@
  * @return The end-point that holds the DNS address.
  */
 
-    static NetworkEndPoint_IPv6_t* prvGetDNS6Address(struct freertos_sockaddr* pxAddress,
+    static NetworkEndPoint_IPv6_t* prvGetDNS6Address(struct freertos_sockaddr6* pxAddress,
         const char* pcHostName)
     {
         NetworkEndPoint_IPv6_t* pxEndPoint = NULL;
@@ -958,11 +958,11 @@
 
         /* And set the address type to IPv4.
          * It may change to IPv6 in case an IPv6 DNS server will be used. */
-        pxAddress->sin_family = FREERTOS_AF_INET;
+        pxAddress->sin_family = FREERTOS_AF_INET6;
 
         /* 'sin_len' doesn't really matter, 'sockaddr' and 'sockaddr6'
          * have the same size. */
-        pxAddress->sin_len = (uint8_t)sizeof(struct freertos_sockaddr);
+        pxAddress->sin_len = (uint8_t)sizeof(struct freertos_sockaddr6);
         /* Use the DNS port by default, this may be changed later. */
         pxAddress->sin_port = dnsDNS_PORT;
 

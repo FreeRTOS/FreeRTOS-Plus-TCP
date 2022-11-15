@@ -670,7 +670,7 @@ static void prvCallDHCPv6_RA_Handler(NetworkEndPoint_IPv6_t * pxEndPoint)
 #endif /* ipconfigUSE_DHCPv6 */
 #if ( ipconfigUSE_RA == 1 )
     {
-        if ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED) )
+        if ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED)
         {
             /* Process RA messages for a given end-point. */
             vRAProcess(pdFALSE, pxEndPoint);
@@ -1430,7 +1430,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
 
     /* Examine the destination MAC from the Ethernet header to see if it matches
      * that of an end point managed by FreeRTOS+TCP. */
-    pxEndPoint = FreeRTOS_FindEndPointOnMAC_IPv4( &( pxEthernetHeader->xDestinationAddress ), NULL );
+    pxEndPoint = FreeRTOS_FindEndPointOnMAC_IPv4( &( pxEthernetHeader->xDestinationAddress ) );
 
     if( pxEndPoint != NULL )
     {

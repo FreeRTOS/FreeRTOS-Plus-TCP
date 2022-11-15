@@ -77,19 +77,19 @@
 /** @brief See if the MAC-address can be resolved because it is a multi-cast address. */
     static eARPLookupResult_t prvMACResolve( IPv6_Address_t * pxAddressToLookup,
                                              MACAddress_t * const pxMACAddress,
-                                             NetworkEndPoint_t ** ppxEndPoint );
+                                             NetworkEndPoint_IPv6_t ** ppxEndPoint );
 
 /** @brief Lookup an MAC address in the ND cache from the IP address. */
     static eARPLookupResult_t prvNDCacheLookup( IPv6_Address_t * pxAddressToLookup,
                                                 MACAddress_t * const pxMACAddress,
-                                                NetworkEndPoint_t ** ppxEndPoint );
+                                                NetworkEndPoint_IPv6_t ** ppxEndPoint );
 
     #if ( ipconfigHAS_PRINTF == 1 )
         static const char * pcMessageType( BaseType_t xType );
     #endif
 
 /** @brief Find the first end-point of type IPv6. */
-    static NetworkEndPoint_t * pxFindLocalEndpoint( void );
+    static NetworkEndPoint_IPv6_t * pxFindLocalEndpoint( void );
 
 /** @brief The ND cache. */
     static NDCacheRow_t xNDCache[ ipconfigND_CACHE_ENTRIES ];
@@ -108,9 +108,9 @@
  *
  * @return The first IPv6 end-point found.
  */
-    static NetworkEndPoint_t * pxFindLocalEndpoint( void )
+    static NetworkEndPoint_IPv6_t * pxFindLocalEndpoint( void )
     {
-        NetworkEndPoint_t * pxEndPoint;
+        NetworkEndPoint_IPv6_t * pxEndPoint;
 
         for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
              pxEndPoint != NULL;
@@ -136,7 +136,7 @@
  */
     static eARPLookupResult_t prvMACResolve( IPv6_Address_t * pxAddressToLookup,
                                              MACAddress_t * const pxMACAddress,
-                                             NetworkEndPoint_t ** ppxEndPoint )
+                                             NetworkEndPoint_IPv6_t ** ppxEndPoint )
     {
         eARPLookupResult_t eReturn;
 
@@ -174,10 +174,10 @@
  */
     eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
                                          MACAddress_t * const pxMACAddress,
-                                         struct xNetworkEndPoint ** ppxEndPoint )
+                                         struct xNetworkEndPoint_IPv6 ** ppxEndPoint )
     {
         eARPLookupResult_t eReturn;
-        NetworkEndPoint_t * pxEndPoint;
+        NetworkEndPoint_IPv6_t * pxEndPoint;
 
         /* Multi-cast addresses can be resolved immediately. */
         eReturn = prvMACResolve( pxIPAddress, pxMACAddress, ppxEndPoint );
@@ -199,7 +199,7 @@
             }
             else
             {
-                pxEndPoint = FreeRTOS_FindGateWay( ( BaseType_t ) ipTYPE_IPv6 );
+                pxEndPoint = FreeRTOS_FindGateWay_IPv6();
 
                 if( pxEndPoint != NULL )
                 {
@@ -235,7 +235,7 @@
  */
     void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                                const IPv6_Address_t * pxIPAddress,
-                               NetworkEndPoint_t * pxEndPoint )
+                               NetworkEndPoint_IPv6_t * pxEndPoint )
     {
         BaseType_t x;
         BaseType_t xFreeEntry = -1, xEntryFound = -1;
@@ -369,7 +369,7 @@
  */
     static eARPLookupResult_t prvNDCacheLookup( IPv6_Address_t * pxAddressToLookup,
                                                 MACAddress_t * const pxMACAddress,
-                                                NetworkEndPoint_t ** ppxEndPoint )
+                                                NetworkEndPoint_IPv6_t ** ppxEndPoint )
     {
         BaseType_t x;
         eARPLookupResult_t eReturn = eARPCacheMiss;
@@ -457,7 +457,7 @@
     static void prvReturnICMP_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     size_t uxICMPSize )
     {
-        NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+        NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
         ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
         configASSERT( pxEndPoint != NULL );
@@ -506,7 +506,7 @@
     {
         ICMPPacket_IPv6_t * pxICMPPacket;
         ICMPHeader_IPv6_t * pxICMPHeader_IPv6;
-        NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+        NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
         size_t uxNeededSize;
         IPv6_Address_t xTargetIPAddress;
         MACAddress_t xMultiCastMacAddress;
@@ -612,14 +612,14 @@
             static uint16_t usSequenceNumber = 0;
             uint8_t * pucChar;
             IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
-            NetworkEndPoint_t * pxEndPoint;
+            NetworkEndPoint_IPv6_t * pxEndPoint;
             size_t uxPacketLength;
 
             pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( pxIPAddress );
 
             if( pxEndPoint == NULL )
             {
-                pxEndPoint = FreeRTOS_FindGateWay( ( BaseType_t ) ipTYPE_IPv6 );
+                pxEndPoint = FreeRTOS_FindGateWay_IPv6();
 
                 if( pxEndPoint == NULL )
                 {
@@ -796,7 +796,7 @@
     {
         ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
         ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
-        NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+        NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
         size_t uxNeededSize;
 
         #if ( ipconfigHAS_PRINTF == 1 )
@@ -948,7 +948,7 @@
  *
  * @param[in] pxEndPoint: The end-point to use.
  */
-    void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint )
+    void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_IPv6_t * pxEndPoint )
     {
         NetworkBufferDescriptor_t * pxNetworkBuffer;
         ICMPPacket_IPv6_t * pxICMPPacket;

@@ -611,7 +611,7 @@
 
             /* Check for clashes. */
             vARPSendGratuitous();
-            vDHCP_RATimerReload( ( struct xNetworkEndPoint_IPv4 * ) pxEndPoint, EP_DHCPData.ulLeaseTime );
+            vDHCP_TimerReload( ( struct xNetworkEndPoint_IPv4 * ) pxEndPoint, EP_DHCPData.ulLeaseTime );
         }
         else
         {
@@ -709,14 +709,14 @@
                 }
 
                 /* From now on, we should be called more often */
-                vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
+                vDHCP_TimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
             }
         }
         else
         {
             /* See PR #53 on github/freertos/freertos */
             FreeRTOS_printf( ( "DHCP: lease time finished but network is down\n" ) );
-            vDHCP_RATimerReload( ( struct xNetworkEndPoint_IPv4 * ) pxEndPoint, pdMS_TO_TICKS( 5000U ) );
+            vDHCP_TimerReload( ( struct xNetworkEndPoint_IPv4 * ) pxEndPoint, pdMS_TO_TICKS( 5000U ) );
         }
     }
 /*-----------------------------------------------------------*/
@@ -842,7 +842,7 @@
 
                 case eNotUsingLeasedAddress:
 
-                    vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
+                    vIPSetDHCP_TimerEnableState( pxEndPoint, pdFALSE );
                     break;
 
                 default:
@@ -875,7 +875,7 @@
                 taskEXIT_CRITICAL();
 
                 EP_DHCPData.eDHCPState = eNotUsingLeasedAddress;
-                vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
+                vIPSetDHCP_TimerEnableState( pxEndPoint, pdFALSE );
 
                 /* DHCP failed, the default configured IP-address will be used. Now
                  * call vIPNetworkUpCalls() to send the network-up event and start the ARP
@@ -994,7 +994,7 @@
             /* Create the DHCP socket if it has not already been created. */
             prvCreateDHCPSocket( pxEndPoint );
             FreeRTOS_debug_printf( ( "prvInitialiseDHCP: start after %lu ticks\n", dhcpINITIAL_TIMER_PERIOD ) );
-            vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
+            vDHCP_TimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
         }
         else
         {

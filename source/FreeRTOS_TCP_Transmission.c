@@ -1029,7 +1029,7 @@
 
         #if ( ipconfigUSE_IPv6 != 0 )
             IPv6_Address_t xRemoteIP;
-            NetworkEndPoint_IPv6_t* pxEndPoint = NULL;
+            NetworkEndPoint_IPv6_t* pxEndPointIPv6 = NULL;
         #endif
         MACAddress_t xEthAddress;
         BaseType_t xReturn = pdTRUE;

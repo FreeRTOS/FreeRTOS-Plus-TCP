@@ -46,7 +46,7 @@
 
 #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 /** @brief A list of all network interfaces: */
-struct xNetworkInterface * pxNetworkInterfaces = NULL;
+    struct xNetworkInterface * pxNetworkInterfaces = NULL;
 
 /*-----------------------------------------------------------*/
 
@@ -120,7 +120,7 @@ struct xNetworkInterface * pxNetworkInterfaces = NULL;
  * @return The interface that comes after 'pxInterface'. NULL when either 'pxInterface'
  *         is NULL, or when 'pxInterface' is the last interface.
  */
-    NetworkInterface_t * FreeRTOS_NextNetworkInterface( NetworkInterface_t * pxInterface )
+    NetworkInterface_t * FreeRTOS_NextNetworkInterface( const NetworkInterface_t * pxInterface )
     {
         NetworkInterface_t * pxReturn;
 
@@ -145,20 +145,26 @@ struct xNetworkInterface * pxNetworkInterfaces = NULL;
  *
  * @return The end-point that should handle the incoming Ethernet packet.
  */
-    void FreeRTOS_MatchingEndpoint( NetworkInterface_t * pxNetworkInterface,
-                                    NetworkBufferDescriptor_t * pNetworkBuffer )
+    void FreeRTOS_MatchingEndpoint( const NetworkInterface_t * pxNetworkInterface,
+                                    NetworkBufferDescriptor_t * pucEthernetBuffer )
     {
-        ProtocolPacket_t * pxPacket = ( ( ProtocolPacket_t * ) pNetworkBuffer->pucEthernetBuffer );
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        const ProtocolPacket_t * pxPacket = ( ( const ProtocolPacket_t * ) pucEthernetBuffer->pucEthernetBuffer );
         /*#pragma warning 'name' for logging only, take this away */
         const char * name = "";
 
-        configASSERT( pNetworkBuffer->pucEthernetBuffer != NULL );
+        configASSERT( pucEthernetBuffer->pucEthernetBuffer != NULL );
 
         /* Check if 'pucEthernetBuffer()' has the expected alignment,
          * which is 32-bits + 2. */
         #ifndef _lint
             {
-                uintptr_t uxAddress = ( uintptr_t ) pNetworkBuffer->pucEthernetBuffer;
+                /* MISRA Ref 11.4.3 [Casting pointer to int for verification] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+                /* coverity[misra_c_2012_rule_11_4_violation] */
+                uintptr_t uxAddress = ( uintptr_t ) pucEthernetBuffer->pucEthernetBuffer;
                 uxAddress += 2U;
                 configASSERT( ( uxAddress % 4U ) == 0U );
                 /* And in case configASSERT is not defined. */
@@ -178,62 +184,62 @@ struct xNetworkInterface * pxNetworkInterfaces = NULL;
         #endif
 
         /* Probably an ARP packet or a broadcast. */
-            switch (pxPacket->xUDPPacket.xEthernetHeader.usFrameType)
-            {
-#if ( ipconfigUSE_IPv6 != 0 )
-            case ipIPv6_FRAME_TYPE:
-            {
-                IPPacket_IPv6_t* pxIPPacket_IPv6 = ((IPPacket_IPv6_t*)pNetworkBuffer->pucEthernetBuffer);
-                NetworkEndpoint_IPv6_t pxEndPoint = NULL;
+        switch( pxPacket->xUDPPacket.xEthernetHeader.usFrameType )
+        {
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipIPv6_FRAME_TYPE:
+                   {
+                       IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pucEthernetBuffer->pucEthernetBuffer );
+                       NetworkEndPoint_IPv6_t * pxEndPoint = NULL;
 
-                pxEndPoint = pxNetworkEndPoints_IPv6;
+                       pxEndPoint = pxNetworkEndPoints_IPv6;
 
-                while (pxEndPoint != NULL)
-                {
-                    if (pxEndPoint->pxNetworkInterface == pxNetworkInterface)
-                    {
-                        /* This is a IPv6 end-point on the same interface,
-                         * and with a matching IP-address. */
-                        if (xCompareIPv6_Address(&(pxEndPoint->ipv6_settings.xIPAddress), &(pxIPPacket_IPv6->xIPHeader.xDestinationAddress), pxEndPoint->ipv6_settings.uxPrefixLength) == 0)
-                        {
-                            break;
-                        }
-                    }
+                       while( pxEndPoint != NULL )
+                       {
+                           if( pxEndPoint->pxNetworkInterface == pxNetworkInterface )
+                           {
+                               /* This is a IPv6 end-point on the same interface,
+                                * and with a matching IP-address. */
+                               if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), &( pxIPPacket_IPv6->xIPHeader.xDestinationAddress ), pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
+                               {
+                                   break;
+                               }
+                           }
 
-                    pxEndPoint = pxEndPoint->pxNext;
-                }
+                           pxEndPoint = pxEndPoint->pxNext;
+                       }
 
-#if ( ipconfigUSE_LLMNR != 0 )
-                {
-                    if (pxEndPoint == NULL)
-                    {
-                        if (xCompareIPv6_Address(&(ipLLMNR_IP_ADDR_IPv6), &(pxIPPacket_IPv6->xIPHeader.xDestinationAddress), (size_t)8U * ipSIZE_OF_IPv6_ADDRESS) == 0)
-                        {
-                            pxEndPoint = FreeRTOS_FirstEndPoint_IPv6(pxNetworkInterface);
-                        }
-                    }
-                }
-#endif
+                       #if ( ipconfigUSE_LLMNR != 0 )
+                           {
+                               if( pxEndPoint == NULL )
+                               {
+                                   if( xCompareIPv6_Address( &( ipLLMNR_IP_ADDR_IPv6 ), &( pxIPPacket_IPv6->xIPHeader.xDestinationAddress ), ( size_t ) 8U * ipSIZE_OF_IPv6_ADDRESS ) == 0 )
+                                   {
+                                       pxEndPoint = FreeRTOS_FirstEndPoint_IPv6( pxNetworkInterface );
+                                   }
+                               }
+                           }
+                       #endif
 
-                if (pxEndPoint != NULL)
-                {
-                    pNetworkBuffer->pxEndPoint = pxEndPoint;
-                    pNetworkBuffer->bits.bIPv6 = pdTRUE_UNSIGNED;
-                }
+                       if( pxEndPoint != NULL )
+                       {
+                           pucEthernetBuffer->pxEndPoint = pxEndPoint;
+                           pucEthernetBuffer->bits.bIPv6 = pdTRUE_UNSIGNED;
+                       }
                    }
                    break;
-
             #endif /* ipconfigUSE_IPv6 */
 
             case ipARP_FRAME_TYPE:
-            {
-                NetworkEndPoint_IPv4_t* pxEndPoint = NULL;
-                pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4(pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress, 3U);
-                name = "ARP";
-                pNetworkBuffer->pxEndPoint = pxEndPoint;
-                
-                break;
-            }
+               {
+                   NetworkEndPoint_IPv4_t * pxEndPoint = NULL;
+                   pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress, 3U );
+                   name = "ARP";
+                   pucEthernetBuffer->pxEndPoint = pxEndPoint;
+
+                   break;
+               }
+
             case ipIPv4_FRAME_TYPE:
                {
                    /* An IPv4 UDP or TCP packet. */
@@ -276,7 +282,7 @@ struct xNetworkInterface * pxNetworkInterfaces = NULL;
                         pxEndPoint = FreeRTOS_NextEndPoint_IPv4( pxNetworkInterface, pxEndPoint ) )
                    {
                        ( void ) name;
-                       
+
                        if( pxEndPoint->ipv4_settings.ulIPAddress == ulIPTargetAddress )
                        {
                            /* The perfect match. */
@@ -310,7 +316,7 @@ struct xNetworkInterface * pxNetworkInterfaces = NULL;
                        pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( pxNetworkInterface );
                    }
 
-                   pNetworkBuffer->pxEndPoint = pxEndPoint;
+                   pucEthernetBuffer->pxEndPoint = pxEndPoint;
                }
                break;
 
@@ -321,8 +327,6 @@ struct xNetworkInterface * pxNetworkInterfaces = NULL;
         } /* switch usFrameType */
 
         ( void ) name;
-
-        return;
     }
 /*-----------------------------------------------------------*/
 
@@ -454,11 +458,9 @@ struct xNetworkInterface * pxNetworkInterfaces = NULL;
  *
  * @return The end-point that will lead to the gateway, or NULL when no gateway was found.
  */
-    NetworkEndPoint_t * FreeRTOS_FindGateWay( BaseType_t xIPType )
+    NetworkEndPoint_t * FreeRTOS_FindGateWay( void )
     {
         NetworkEndPoint_t * pxReturn = NULL;
-
-        ( void ) xIPType;
 
         if( pxNetworkEndPoints != NULL )
         {

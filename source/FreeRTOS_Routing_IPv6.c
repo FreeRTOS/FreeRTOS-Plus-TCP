@@ -50,7 +50,7 @@
 #if ( ipconfigUSE_IPv6 != 0 )
 #include "FreeRTOS_Routing.h"
 
-struct xNetworkEndPoint_IPv4* pxNetworkEndPoints_IPv6 = NULL;
+struct xNetworkEndPoint_IPv6 * pxNetworkEndPoints_IPv6 = NULL;
 
 /*
  * Add a new IP-address to a Network Interface.  The object pointed to by
@@ -63,10 +63,6 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
 
 
 #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
-
-    #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-        RoutingStats_IPv6_t xRoutingStatistics;
-    #endif
 
     static NetworkEndPoint_IPv6_t * prvFindFirstAddress_IPv6( void );
 
@@ -208,7 +204,7 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
             {
-                xRoutingStatistics.ulOnMAC++;
+                xRoutingStatistics_IPv6.ulOnMAC++;
             }
         #endif
 
@@ -303,16 +299,6 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
         {
             NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkEndPoints_IPv6;
 
-            // while( pxEndPoint != NULL )
-            // {
-            //     if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-            //     {
-            //         break;
-            //     }
-
-            //     pxEndPoint = pxEndPoint->pxNext;
-            // }
-
             return pxEndPoint;
         }
 
@@ -329,7 +315,7 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
         {
             ( void ) pxIPv6Address;
 
-            /* _HT_ to be worked out later. */
+            /* _HT_ to be worked out later. __TODO__*/
             return prvFindFirstAddress_IPv6();
         }
 
@@ -342,24 +328,19 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
  *
  * @return The end-point that will lead to the gateway, or NULL when no gateway was found.
  */
-    NetworkEndPoint_IPv6_t * FreeRTOS_FindGateWay_IPv6( )
+    NetworkEndPoint_IPv6_t * FreeRTOS_FindGateWay_IPv6( void )
     {
         NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkEndPoints_IPv6;
 
         while( pxEndPoint != NULL )
         {
-            if( ( xIPType == ( BaseType_t ) ipTYPE_IPv6 ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
+            {
+                /* Check if the IP-address is non-zero. */
+                if( memcmp( in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 ) /* access to ipv6_settings is checked. */
                 {
-                    /* Check if the IP-address is non-zero. */
-                    if( memcmp( in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 ) /* access to ipv6_settings is checked. */
-                    {
-                        break;
-                    }
+                    break;
                 }
-                else
-                {
-                    /* This end-point is not the right IP-type. */
-                }
+            }
 
             pxEndPoint = pxEndPoint->pxNext;
         }
@@ -405,14 +386,14 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
  *
  * @return An end-point or NULL in case the socket is not bound to an end-point.
  */
-    NetworkEndPoint_t * pxGetSocketEndpoint( Socket_t xSocket )
+    NetworkEndPoint_IPv6_t * pxGetSocketEndpoint_IPv6( Socket_t xSocket )
     {
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
-        NetworkEndPoint_t * pxResult;
+        NetworkEndPoint_IPv6_t * pxResult;
 
         if( pxSocket != NULL )
         {
-            pxResult = pxSocket->pxEndPoint;
+            pxResult = pxSocket->pxEndPointIPv6;
         }
         else
         {
@@ -429,12 +410,12 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
  * @param[in] xSocket: The socket to which an end-point will be assigned.
  * @param[in] pxEndPoint: The end-point to be assigned.
  */
-    void vSetSocketEndpoint( Socket_t xSocket,
-                             NetworkEndPoint_t * pxEndPoint )
+    void vSetSocketEndpoint_IPv6( Socket_t xSocket,
+                             NetworkEndPoint_IPv6_t * pxEndPoint )
     {
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
 
-        pxSocket->pxEndPoint = pxEndPoint;
+        pxSocket->pxEndPointIPv6 = pxEndPoint;
     }
 /*-----------------------------------------------------------*/
 

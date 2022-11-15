@@ -72,9 +72,9 @@
     } DHCPOptionSet_t;
 
 /* Returns the current state of a DHCP process. */
-    eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint * pxEndPoint );
+    eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint_IPv6 * pxEndPoint );
 
-    struct xNetworkEndPoint;
+    struct xNetworkEndPoint_IPv6;
 
 /*
  * NOT A PUBLIC API FUNCTION.
@@ -82,7 +82,7 @@
  * data has been received on the DHCP socket.
  */
     void vDHCPv6Process( BaseType_t xReset,
-                         struct xNetworkEndPoint * pxEndPoint );
+                         struct xNetworkEndPoint_IPv6 * pxEndPoint );
 
 /* Prototype of the hook (or callback) function that must be provided by the
  * application if ipconfigUSE_DHCP_HOOK is set to 1.  See the following URL for

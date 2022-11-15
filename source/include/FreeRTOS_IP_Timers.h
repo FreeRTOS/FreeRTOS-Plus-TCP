@@ -57,6 +57,7 @@
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
+#include "FreeRTOS_Routing.h"
 
 /*
  * Checks the ARP, DHCP and TCP timers to see if any periodic or timeout
@@ -97,7 +98,18 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
  * @param[in] pxEndPoint: The end-point for which the timer will be called.
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
-    void vIPSetDHCP_RATimerEnableState( struct xNetworkEndPoint * pxEndPoint,
+    void vIPSetDHCP_TimerEnableState( NetworkEndPoint_IPv4_t * pxEndPoint,
+                                        BaseType_t xEnableState );
+#endif /* ( ipconfigUSE_DHCP == 1 ) */
+
+#if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 )
+
+/**
+ * @brief Enable/disable the DHCP/RA timer.
+ * @param[in] pxEndPoint: The end-point for which the timer will be called.
+ * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
+ */
+    void vIPSetDHCPv6_RATimerEnableState( NetworkEndPoint_IPv6_t * pxEndPoint,
                                         BaseType_t xEnableState );
 #endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
 
@@ -119,10 +131,16 @@ void vARPTimerReload( TickType_t xTime );
  * Sets the reload time of an TCP timer and restarts it.
  */
 void vTCPTimerReload( TickType_t xTime );
-#if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
-    void vDHCP_RATimerReload( struct xNetworkEndPoint * pxEndPoint,
+#if ( ipconfigUSE_DHCP == 1 )
+    void vDHCP_TimerReload( NetworkEndPoint_IPv4_t * pxEndPoint,
                               TickType_t uxClockTicks );
-#endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
+#endif /* ( ipconfigUSE_DHCP == 1 ) */
+
+#if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 )
+    void vDHCPv6_RATimerReload( NetworkEndPoint_IPv6_t * pxEndPoint,
+                              TickType_t uxClockTicks );
+#endif /* ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 ) */
+
 
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
 

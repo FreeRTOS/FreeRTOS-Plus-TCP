@@ -96,16 +96,21 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
     eARPLookupResult_t eReturned;
     /* Map the UDP packet onto the start of the frame. */
     UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    void * pxEndPoint = (void *) pxNetworkBuffer->pxEndPoint;
 
     #if ( ipconfigUSE_IPv6 != 0 )
+        NetworkEndPoint_IPv6_t * pxEndPointIPv6 = pxNetworkBuffer->pxEndPointIPv6;
         if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
         {
-            eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPv6Address ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( (NetworkEndPoint_IPv6_t *) pxEndPoint ) );
+            eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPv6Address ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( (NetworkEndPoint_IPv6_t *) pxEndPointIPv6 ) );
+            if( pxNetworkBuffer->pxEndPointIPv6 == NULL )
+            {
+                pxNetworkBuffer->pxEndPointIPv6 = pxEndPointIPv6;
+            }
         }
         else
     #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
     {
+        NetworkEndPoint_IPv4_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
         pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
         ( void ) memset( &( pxUDPPacket->xIPHeader ), 0, sizeof( pxUDPPacket->xIPHeader ) );
@@ -131,12 +136,11 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
             }
         #endif
 
-        eReturned = eARPGetCacheEntry( &( pxNetworkBuffer->ulIPAddress ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( (NetworkEndPoint_IPv4_t *)pxEndPoint ) );
-    }
-
-    if( pxNetworkBuffer->pxEndPoint == NULL )
-    {
-        pxNetworkBuffer->pxEndPoint = pxEndPoint;
+        eReturned = eARPGetCacheEntry( &( pxNetworkBuffer->ulIPAddress ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
+        if( pxNetworkBuffer->pxEndPoint == NULL )
+        {
+            pxNetworkBuffer->pxEndPoint = pxEndPoint;
+        }
     }
 
     return eReturned;

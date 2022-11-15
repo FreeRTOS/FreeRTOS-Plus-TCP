@@ -82,13 +82,13 @@ struct xNetworkInterface;
  * Get the first end-point belonging to a given interface.  When pxInterface is
  * NULL, the very first end-point will be returned.
  */
-    NetworkEndPoint_IPv4_t* FreeRTOS_FirstEndPoint_IPv4( NetworkInterface_t * pxInterface);
+    NetworkEndPoint_IPv4_t* FreeRTOS_FirstEndPoint_IPv4( const NetworkInterface_t * pxInterface);
 
 /*
  * Get the next end-point.  When pxInterface is null, all end-points can be
  * iterated.
  */
-    NetworkEndPoint_IPv4_t * FreeRTOS_NextEndPoint_IPv4(NetworkInterface_t* pxInterface, NetworkEndPoint_IPv4_t * pxEndPoint );
+    NetworkEndPoint_IPv4_t * FreeRTOS_NextEndPoint_IPv4( const NetworkInterface_t * pxInterface, NetworkEndPoint_IPv4_t * pxEndPoint );
 
 /*
  * Find the end-point with given IP-address.
@@ -114,16 +114,17 @@ struct xNetworkInterface;
  * Find the best fitting end-point to reach a given IP-address on a given interface
  * 'ulWhere' is temporary and or debugging only.
  */
-    NetworkEndPoint_IPv4_t * FreeRTOS_InterfaceEndPointOnNetMask_IPv4( uint32_t ulIPAddress,
-                                                             uint32_t ulWhere );
+    NetworkEndPoint_IPv4_t * FreeRTOS_InterfaceEndPointOnNetMask_IPv4( NetworkInterface_t * pxInterface,
+                                                            uint32_t ulIPAddress,
+                                                            uint32_t ulWhere );
 
  
 /* Find an end-point that has a defined gateway.
  * xIPType should equal ipTYPE_IPv4 or ipTYPE_IPv6. */
-    NetworkEndPoint_IPv4_t * FreeRTOS_FindGateWay_IPv4( BaseType_t xIPType );
+    NetworkEndPoint_IPv4_t * FreeRTOS_FindGateWay_IPv4( void );
 
 /* Fill-in the end-point structure. */
-    void FreeRTOS_FillEndPoint_IPv4( struct NetworkInterface_t * pxNetworkInterface,
+    void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
                                 NetworkEndPoint_IPv4_t * pxEndPoint,
                                 const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                                 const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ],
@@ -144,7 +145,7 @@ struct xNetworkInterface;
             UBaseType_t ulLocationsIP[ 8 ]; /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called from a particular location. */
         } RoutingStats_IPv4_t;
 
-        extern RoutingStats_IPv4_t xRoutingStatistics;
+        RoutingStats_IPv4_t xRoutingStatistics;
     #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
     NetworkEndPoint_IPv4_t * pxGetSocketEndPoint_IPv4( Socket_t xSocket );
@@ -155,4 +156,4 @@ struct xNetworkInterface;
         } /* extern "C" */
     #endif
 
-#endif /* FREERTOS_ROUTING_H */
+#endif /* FREERTOS_ROUTING_IPV4_H */

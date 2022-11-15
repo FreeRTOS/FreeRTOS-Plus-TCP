@@ -83,9 +83,6 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
      * will remain to exist. */
     ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
 
-    /* All is cleared, also the IPv6 flag. */
-    /* pxEndPoint->bits.bIPv6 = pdFALSE; */
-
     ulIPAddress = FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] );
     pxEndPoint->ipv4_settings.ulNetMask = FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] );
     pxEndPoint->ipv4_settings.ulGatewayAddress = FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] );
@@ -113,9 +110,6 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
 
 #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 
-    #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-        RoutingStats_IPv4_t xRoutingStatistics;
-    #endif
 
 /*-----------------------------------------------------------*/
 
@@ -182,7 +176,7 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
  * @return The first end-point that is found to the interface, or NULL when the
  *         interface doesn't have any end-point yet.
  */
-    NetworkEndPoint_IPv4_t * FreeRTOS_FirstEndPoint_IPv4( NetworkInterface_t * pxInterface )
+    NetworkEndPoint_IPv4_t * FreeRTOS_FirstEndPoint_IPv4( const NetworkInterface_t * pxInterface )
     {
         NetworkEndPoint_IPv4_t * pxEndPoint = pxNetworkEndPoints_IPv4;
 
@@ -212,7 +206,7 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
  *
  * @return The end-point that is found, or NULL when there are no more end-points in the list.
  */
-    NetworkEndPoint_IPv4_t * FreeRTOS_NextEndPoint_IPv4( NetworkInterface_t * pxInterface, NetworkEndPoint_IPv4_t * pxEndPoint )
+    NetworkEndPoint_IPv4_t * FreeRTOS_NextEndPoint_IPv4( const NetworkInterface_t * pxInterface, NetworkEndPoint_IPv4_t * pxEndPoint )
     {
         NetworkEndPoint_IPv4_t * pxResult = pxEndPoint;
 
@@ -248,13 +242,13 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
         NetworkEndPoint_IPv4_t * pxEndPoint = pxNetworkEndPoints_IPv4;
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRouteingStatistics.ulLocationsIP ) / sizeof( xRoutingStatistics.ulLocationsIP )[ 0 ] );
+            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocationsIP ) / sizeof( (xRoutingStatistics.ulLocationsIP )[ 0 ] ));
 
-            xRouteingStatistics.ulOnIp++;
+            xRoutingStatistics.ulOnIp++;
 
             if( ulWhere < ulLocationCount )
             {
-                xRouteingStatistics.ulLocationsIP[ ulWhere ]++;
+                xRoutingStatistics.ulLocationsIP[ ulWhere ]++;
             }
         #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
@@ -286,7 +280,7 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
             {
-                xRouteingStatistics.ulOnMAC++;
+                xRoutingStatistics.ulOnMAC++;
             }
         #endif
 
@@ -341,13 +335,13 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
         NetworkEndPoint_IPv4_t * pxEndPoint = pxNetworkEndPoints_IPv4;
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRouteingStatistics.ulLocations ) / sizeof( xRoutingStatistics.ulLocations )[ 0 ] );
+            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocations ) / sizeof( (xRoutingStatistics.ulLocations )[ 0 ] ));
 
-            xRouteingStatistics.ulOnNetMask++;
+            xRoutingStatistics.ulOnNetMask++;
 
             if( ulWhere < ulLocationCount )
             {
-                xRouteingStatistics.ulLocations[ ulWhere ]++;
+                xRoutingStatistics.ulLocations[ ulWhere ]++;
             }
         #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
@@ -359,12 +353,16 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
 
         while( pxEndPoint != NULL )
         {
-            if( ( ulIPAddress & pxEndPoint->ipv4_settings.ulNetMask ) == ( pxEndPoint->ipv4_settings.ulIPAddress & pxEndPoint->ipv4_settings.ulNetMask ) )
-                    {
-                        /* Found a match. */
-                        break;
-                    }
-        
+            if( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) )
+            {
+                if( ( ulIPAddress & pxEndPoint->ipv4_settings.ulNetMask ) == ( pxEndPoint->ipv4_settings.ulIPAddress & pxEndPoint->ipv4_settings.ulNetMask ) )
+                {
+                    /* Found a match. */
+                    break;
+                }
+                
+            }
+
             pxEndPoint = pxEndPoint->pxNext;
         }
 
@@ -386,7 +384,7 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
  *
  * @return The end-point that will lead to the gateway, or NULL when no gateway was found.
  */
-    NetworkEndPoint_IPv4_t * FreeRTOS_FindGateWay_IPv4( )
+    NetworkEndPoint_IPv4_t * FreeRTOS_FindGateWay_IPv4( void )
     {
         NetworkEndPoint_IPv4_t * pxEndPoint = pxNetworkEndPoints_IPv4;
 
@@ -444,4 +442,4 @@ void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
     }
 /*-----------------------------------------------------------*/
 
-#endif ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
+#endif /*( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) */

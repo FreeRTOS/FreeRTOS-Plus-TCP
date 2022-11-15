@@ -54,7 +54,7 @@
     {
         IPv6_Address_t xIPAddress;            /**< The IP address of an ND cache entry. */
         MACAddress_t xMACAddress;             /**< The MAC address of an ND cache entry. */
-        struct xNetworkEndPoint * pxEndPoint; /**< The end-point on which the
+        struct xNetworkEndPoint_IPv6 * pxEndPoint; /**< The end-point on which the
                                                * remote device had responded. */
         uint8_t ucAge;                        /**< See here above. */
         uint8_t ucValid;                      /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ND reply */
@@ -68,7 +68,7 @@
  */
     void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                                const IPv6_Address_t * pxIPAddress,
-                               NetworkEndPoint_t * pxEndPoint );
+                               NetworkEndPoint_IPv6_t * pxEndPoint );
 
 /** @brief Options that can be sent in a ROuter Advertisement packet. */
     #define ndICMP_SOURCE_LINK_LAYER_ADDRESS    1
@@ -94,7 +94,7 @@
  */
     eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
                                          MACAddress_t * const pxMACAddress,
-                                         struct xNetworkEndPoint ** ppxEndPoint );
+                                         struct xNetworkEndPoint_IPv6 ** ppxEndPoint );
 
 /**
  * @brief Reduce the age counter in each entry within the ND cache.  An entry is no
@@ -134,7 +134,7 @@
  * @param[in] pxEndPoint: The end-point for which the RA/SLAAC process should be done..
  */
         void vRAProcess( BaseType_t xDoReset,
-                         NetworkEndPoint_t * pxEndPoint );
+                         NetworkEndPoint_IPv6_t * pxEndPoint );
     #endif /* ( ipconfigUSE_RA != 0 ) */
 
     #if ( ipconfigUSE_IPv6 != 0 )
@@ -143,7 +143,8 @@
  * @brief Send an ND advertisement.
  * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
  */
-        void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint );
+        void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_IPv6_t * pxEndPoint );
+        
         #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
 /**

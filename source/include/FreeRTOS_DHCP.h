@@ -99,9 +99,9 @@
     } ProcessSet_t;
 
 /* Returns the current state of a DHCP process. */
-    struct xNetworkEndPoint;
+    struct xNetworkEndPoint_IPv4;
 
-    eDHCPState_t eGetDHCPState( struct xNetworkEndPoint * pxEndPoint );
+    eDHCPState_t eGetDHCPState( struct xNetworkEndPoint_IPv4 * pxEndPoint );
 
 /*
  * NOT A PUBLIC API FUNCTION.
@@ -109,7 +109,7 @@
  * data has been received on the DHCP socket.
  */
     void vDHCPProcess( BaseType_t xReset,
-                       struct xNetworkEndPoint * pxEndPoint );
+                       struct xNetworkEndPoint_IPv4 * pxEndPoint );
 
 /* Internal call: returns true if socket is the current DHCP socket */
     BaseType_t xIsDHCPSocket( Socket_t xSocket );
@@ -126,7 +126,7 @@
     #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */
 
     #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-        struct xNetworkEndPoint;
+        struct xNetworkEndPoint_IPv4;
 
 /**
  * @brief When DHCP has failed, the code can assign a Link-Layer
@@ -134,7 +134,7 @@
  *
  * param[in] pxEndPoint: The end-point that wants to obtain a link-layer address.
  */
-        void prvPrepareLinkLayerIPLookUp( struct xNetworkEndPoint * pxEndPoint );
+        void prvPrepareLinkLayerIPLookUp( struct xNetworkEndPoint_IPv4 * pxEndPoint );
     #endif
 
     #ifdef __cplusplus

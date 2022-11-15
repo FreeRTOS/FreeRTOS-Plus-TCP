@@ -919,8 +919,7 @@ BaseType_t xIsCallingFromIPTask( void )
  */
 void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
 {
-    //NetworkEndPoint_t * pxEndPoint;
-
+    
     configASSERT( pxInterface != NULL );
     configASSERT( pxInterface->pfInitialise != NULL );
 
@@ -976,7 +975,7 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
             pxEndPoint = FreeRTOS_NextEndPoint_IPv4(pxInterface, pxEndPoint))
         {
 #if ( ipconfigUSE_DHCP == 1 )
-            if (END_POINT_USES_DHCP(pxEndPoint))
+            if (pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED)
             {
                 {
                     /* Reset the DHCP process for this end-point. */
@@ -1005,16 +1004,16 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
         /* Two EndPoint list to go through if IPv6 is enabled. */
         #if ( ipconfigUSE_IPv6 !=0 )
             NetworkEndPoint_IPv6_t* pxEndPoint_IPv6 = NULL;
-        for( pxEndPoint_IPv6 = FreeRTOS_FirstEndPoint_IPv4( pxInterface );
+        for( pxEndPoint_IPv6 = FreeRTOS_FirstEndPoint_IPv6( pxInterface );
              pxEndPoint_IPv6 != NULL;
-             pxEndPoint_IPv6 = FreeRTOS_NextEndPoint_IPv4( pxInterface, pxEndPoint_IPv6 ) )
+             pxEndPoint_IPv6 = FreeRTOS_NextEndPoint_IPv6( pxInterface, pxEndPoint_IPv6 ) )
         {
             #if ( ipconfigUSE_DHCPv6 != 0 )
                 vDHCPv6Process( pdTRUE, pxEndPoint_IPv6 );
             #endif /* ( ipconfigUSE_DHCPv6 == 1 ) */
 
             #if ( ipconfigUSE_RA != 0 )
-                if( END_POINT_USES_RA( pxEndPoint_IPv6 ) )
+                if( pxEndPoint_IPv6->bits.bWantRA != pdFALSE_UNSIGNED )
                 {
                     /* Reset the RA/SLAAC process for this end-point. */
                     vRAProcess( pdTRUE, pxEndPoint_IPv6 );
@@ -1023,7 +1022,7 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
 
             pxEndPoint_IPv6->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
-            ( void ) memcpy( &( pxEndPoint_IPv6->ipv6_settings ), &( pxEndPoint_IPv6->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
+            ( void ) memcpy( &( pxEndPoint_IPv6->ipv6_settings ), &( pxEndPoint_IPv6->ipv6_defaults ), sizeof( pxEndPoint_IPv6->ipv6_settings ) );
             /* DHCP or Router Advertisement are not enabled for this end-point.
              * Perform any necessary 'network up' processing. */
              //vIPNetworkUpCalls_IPv6( pxEndPoint_IPv6);

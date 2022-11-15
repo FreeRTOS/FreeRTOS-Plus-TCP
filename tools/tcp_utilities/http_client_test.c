@@ -303,7 +303,7 @@
                         continue;
                     }
                 #else
-                    pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv4 );
+                    pxEndPoint = FreeRTOS_FindGateWay_IPv4();
 
                     if( ( pxEndPoint != NULL ) && ( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) )
                     {
@@ -382,7 +382,7 @@
 
                         if( pxEndPoint == NULL )
                         {
-                            pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv6 );
+                            pxEndPoint = FreeRTOS_FindGateWay_IPv6();
                         }
 
                         if( pxEndPoint != NULL )

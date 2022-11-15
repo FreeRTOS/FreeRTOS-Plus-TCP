@@ -42,14 +42,14 @@
 /* A forward declaration of 'xNetworkInterface' which is
  * declared in FreeRTOS_Routing.h */
     struct xNetworkInterface;
-    struct xNetworkEndPoint;
+    struct xNetworkEndPoint_IPv4;
 
 /** @brief Description of an entry of the ARP cache. */
     typedef struct xARP_CACHE_TABLE_ROW
     {
         uint32_t ulIPAddress;     /**< The IP address of an ARP cache entry. */
         MACAddress_t xMACAddress; /**< The MAC address of an ARP cache entry. */
-        struct xNetworkEndPoint
+        struct xNetworkEndPoint_IPv4
         * pxEndPoint;             /**< The end-point on which the MAC address was last seen. */
         uint8_t ucAge;            /**< A value that is periodically decremented but can also be refreshed by active communication.  The ARP cache entry is removed if the value reaches zero. */
         uint8_t ucValid;          /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ARP reply */
@@ -80,7 +80,7 @@
  */
     void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                                 const uint32_t ulIPAddress,
-                                struct xNetworkEndPoint * pxEndPoint );
+                                struct xNetworkEndPoint_IPv4 * pxEndPoint );
 
     #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
         /* Becomes non-zero if another device responded to a gratuitous ARP message. */
@@ -114,7 +114,7 @@
  */
     eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
                                           MACAddress_t * const pxMACAddress,
-                                          struct xNetworkEndPoint ** ppxEndPoint );
+                                          struct xNetworkEndPoint_IPv4 ** ppxEndPoint );
 
     #if ( ipconfigUSE_ARP_REVERSED_LOOKUP != 0 )
 
@@ -163,7 +163,7 @@
                                BaseType_t bReleaseAfterSend );
 
 /* Clear all entries in the ARp cache. */
-    void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint );
+    void FreeRTOS_ClearARP( const NetworkInterface_t * pxInterface );
 
     #ifdef __cplusplus
         } /* extern "C" */

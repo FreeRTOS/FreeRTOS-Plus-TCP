@@ -246,7 +246,7 @@ void vCheckNetworkTimers( void )
             {
                 if( prvIPTimerCheck( &( pxEndPoint->xDHCP_RATimer ) ) != pdFALSE )
                 {
-                    if( END_POINT_USES_DHCP( pxEndPoint ) )
+                    if( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED  )
                     {
                         ( void ) xSendDHCPEvent( pxEndPoint );
                     }
@@ -266,15 +266,15 @@ void vCheckNetworkTimers( void )
             {
                 if( prvIPTimerCheck( &( pxEndPoint->xDHCP_RATimer ) ) != pdFALSE )
                 {
-                    #if ( ipconfigUSE_DHCP == 1 )
-                        if( END_POINT_USES_DHCP( pxEndPoint ) )
+                    #if ( ipconfigUSE_DHCPv6 == 1 )
+                        if( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED  )
                         {
                             ( void ) xSendDHCPv6Event( pxEndPoint );
                         }
                     #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
                     #if ( ipconfigUSE_RA != 0 )
-                        if( END_POINT_USES_RA( pxEndPoint ) )
+                        if( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED)
                         {
                             vRAProcess( pdFALSE, pxEndPoint );
                         }
@@ -436,7 +436,7 @@ void vARPTimerReload( TickType_t xTime )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
+#if ( ipconfigUSE_DHCP == 1 )
 
 /**
  * @brief Set the reload time of the DHCP/DHCPv6/RA timer.
@@ -444,13 +444,30 @@ void vARPTimerReload( TickType_t xTime )
  * @param[in] pxEndPoint: The end-point that needs to acquire an IP-address.
  * @param[in] uxClockTicks: The number of clock-ticks after which the timer should expire.
  */
-    void vDHCP_RATimerReload( struct xNetworkEndPoint_IPv4 * pxEndPoint,
+    void vDHCP_TimerReload( NetworkEndPoint_IPv4_t * pxEndPoint,
                               TickType_t uxClockTicks )
     {
-        FreeRTOS_printf( ( "vDHCP_RATimerReload: %lu\n", uxClockTicks ) );
+        FreeRTOS_printf( ( "vDHCP_TimerReload: %lu\n", uxClockTicks ) );
         prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
     }
-#endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
+#endif /* ( ipconfigUSE_DHCP == 1 ) */
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 )
+
+/**
+ * @brief Set the reload time of the DHCP/DHCPv6/RA timer.
+ *
+ * @param[in] pxEndPoint: The end-point that needs to acquire an IP-address.
+ * @param[in] uxClockTicks: The number of clock-ticks after which the timer should expire.
+ */
+    void vDHCPv6_TimerReload( NetworkEndPoint_IPv6_t * pxEndPoint,
+                              TickType_t uxClockTicks )
+    {
+        FreeRTOS_printf( ( "vDHCPv6_RATimerReload: %lu\n", uxClockTicks ) );
+        prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
+    }
+#endif /* ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
@@ -578,7 +595,7 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 )
+#if ( ipconfigUSE_DHCP == 1 ) 
 
 /**
  * @brief Enable or disable the DHCP/DHCPv6/RA timer.
@@ -586,7 +603,34 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
  * @param[in] pxEndPoint: The end-point that needs to acquire an IP-address.
  * @param[in] xEnableState: pdTRUE if the timer must be enabled, pdFALSE otherwise.
  */
-    void vIPSetDHCP_RATimerEnableState( struct xNetworkEndPoint_IPv4 * pxEndPoint,
+    void vIPSetDHCP_TimerEnableState( struct xNetworkEndPoint_IPv4 * pxEndPoint,
+                                        BaseType_t xEnableState )
+    {
+        FreeRTOS_printf( ( "vIPSetDHCP_TimerEnableState: %s\n", ( xEnableState != 0 ) ? "On" : "Off" ) );
+
+        /* 'xDHCP_RATimer' is shared between DHCP (IPv4) and RA/SLAAC (IPv6). */
+        if( xEnableState != 0 )
+        {
+            pxEndPoint->xDHCP_RATimer.bActive = pdTRUE_UNSIGNED;
+        }
+        else
+        {
+            pxEndPoint->xDHCP_RATimer.bActive = pdFALSE_UNSIGNED;
+        }
+    }
+#endif /* ( ipconfigUSE_DHCP == 1 )  */
+
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 )
+
+/**
+ * @brief Enable or disable the DHCP/DHCPv6/RA timer.
+ *
+ * @param[in] pxEndPoint: The end-point that needs to acquire an IP-address.
+ * @param[in] xEnableState: pdTRUE if the timer must be enabled, pdFALSE otherwise.
+ */
+    void vIPSetDHCPv6_RATimerEnableState( struct xNetworkEndPoint_IPv6 * pxEndPoint,
                                         BaseType_t xEnableState )
     {
         FreeRTOS_printf( ( "vIPSetDHCP_RATimerEnableState: %s\n", ( xEnableState != 0 ) ? "On" : "Off" ) );
@@ -601,7 +645,8 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
             pxEndPoint->xDHCP_RATimer.bActive = pdFALSE_UNSIGNED;
         }
     }
-#endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
+#endif /* ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 ) */
+
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigDNS_USE_CALLBACKS == 1 )
