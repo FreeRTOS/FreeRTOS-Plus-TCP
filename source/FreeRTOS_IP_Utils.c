@@ -199,7 +199,7 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         pxNewBuffer->xDataLength = uxNewLength;
 
         /* Copy the original packet information. */
-        pxNewBuffer->ulIPAddress = pxNetworkBuffer->ulIPAddress;
+        pxNewBuffer->xIPAddress.xIP_IPv4 = pxNetworkBuffer->xIPAddress.xIP_IPv4;
         pxNewBuffer->usPort = pxNetworkBuffer->usPort;
         pxNewBuffer->usBoundPort = pxNetworkBuffer->usBoundPort;
         ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, uxLengthToCopy );

@@ -196,10 +196,10 @@
                                                          pxSocket->u.xTCP.usRemotePort,
                                                          ( unsigned ) ( pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber - pxSocket->u.xTCP.xTCPWindow.rx.ulFirstSequenceNumber ),
                                                          ( unsigned ) ( pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber - pxSocket->u.xTCP.xTCPWindow.tx.ulFirstSequenceNumber ),
-                                                         ( unsigned ) ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) ) );
+                                                         ( unsigned ) ( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER ) ) );
                             }
 
-                            prvTCPReturnPacket( pxSocket, pxSocket->u.xTCP.pxAckMessage, ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER, ipconfigZERO_COPY_TX_DRIVER );
+                            prvTCPReturnPacket( pxSocket, pxSocket->u.xTCP.pxAckMessage, uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER, ipconfigZERO_COPY_TX_DRIVER );
 
                             #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
                                 {
@@ -498,7 +498,7 @@
                 {
                     FreeRTOS_debug_printf( ( "Socket %u -> %xip:%u State %s->%s\n",
                                              pxSocket->usLocalPort,
-                                             ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
+                                             ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
                                              pxSocket->u.xTCP.usRemotePort,
                                              FreeRTOS_GetTCPStateName( ( UBaseType_t ) xPreviousState ),
                                              FreeRTOS_GetTCPStateName( ( UBaseType_t ) eTCPState ) ) );
@@ -558,7 +558,7 @@
             }
 
             FreeRTOS_debug_printf( ( "Connect[%xip:%u]: next timeout %u: %u ms\n",
-                                     ( unsigned ) pxSocket->u.xTCP.ulRemoteIP, pxSocket->u.xTCP.usRemotePort,
+                                     ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, pxSocket->u.xTCP.usRemotePort,
                                      pxSocket->u.xTCP.ucRepCount, ( unsigned ) ulDelayMs ) );
             pxSocket->u.xTCP.usTimeout = ( uint16_t ) ipMS_TO_MIN_TICKS( ulDelayMs );
         }

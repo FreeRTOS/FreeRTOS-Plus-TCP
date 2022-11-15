@@ -1040,7 +1040,7 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
                 /* The message is complete, IP and checksum's are handled by
                  * vProcessGeneratedUDPPacket */
                 pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] = FREERTOS_SO_UDPCKSUM_OUT;
-                pxNetworkBuffer->ulIPAddress = ulIPAddress;
+                pxNetworkBuffer->xIPAddress.xIP_IPv4 = ulIPAddress;
                 pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
                 /* xDataLength is the size of the total packet, including the Ethernet header. */
                 pxNetworkBuffer->xDataLength = uxTotalLength;
@@ -1757,7 +1757,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
                                    /* Fields in pxNetworkBuffer (usPort, ulIPAddress) are network order. */
                                    pxNetworkBuffer->usPort = pxUDPPacket->xUDPHeader.usSourcePort;
-                                   pxNetworkBuffer->ulIPAddress = pxUDPPacket->xIPHeader.ulSourceIPAddress;
+                                   pxNetworkBuffer->xIPAddress.xIP_IPv4 = pxUDPPacket->xIPHeader.ulSourceIPAddress;
 
                                    /* ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM:
                                     * In some cases, the upper-layer checksum has been calculated
@@ -2163,6 +2163,53 @@ BaseType_t FreeRTOS_IsNetworkUp( void )
         return uxQueueMinimumSpace;
     }
 #endif
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the size of the IP-header, by checking the type of the network buffer.
+ * @param[in] pxNetworkBuffer: The network buffer.
+ * @return The size of the corresponding IP-header.
+ */
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    size_t uxResult;
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    /* misra_c_2012_rule_11_3_violation */
+    const EthernetHeader_t * pxHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
+
+    if( pxHeader->usFrameType == ( uint16_t ) ipIPv6_FRAME_TYPE )
+    {
+        uxResult = ipSIZE_OF_IPv6_HEADER;
+    }
+    else
+    {
+        uxResult = ipSIZE_OF_IPv4_HEADER;
+    }
+
+    return uxResult;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the size of the IP-header, by checking if the socket bIsIPv6 set.
+ * @param[in] pxSocket: The socket.
+ * @return The size of the corresponding IP-header.
+ */
+size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
+{
+    size_t uxResult;
+
+    if( ( pxSocket != NULL ) && ( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED ) )
+    {
+        uxResult = ipSIZE_OF_IPv6_HEADER;
+    }
+    else
+    {
+        uxResult = ipSIZE_OF_IPv4_HEADER;
+    }
+
+    return uxResult;
+}
 /*-----------------------------------------------------------*/
 
 /* Provide access to private members for verification. */

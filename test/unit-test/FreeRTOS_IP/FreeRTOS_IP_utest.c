@@ -1121,7 +1121,7 @@ void test_FreeRTOS_SendPingRequest_HappyPath( void )
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usSequenceNumber );
     TEST_ASSERT_EQUAL( ipIPv4_FRAME_TYPE, pxEthernetHeader->usFrameType );
     TEST_ASSERT_EQUAL( FREERTOS_SO_UDPCKSUM_OUT, pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] );
-    TEST_ASSERT_EQUAL( ulIPAddress, pxNetworkBuffer->ulIPAddress );
+    TEST_ASSERT_EQUAL( ulIPAddress, pxNetworkBuffer->xIPAddress.xIP_IPv4 );
     TEST_ASSERT_EQUAL( ipPACKET_CONTAINS_ICMP_DATA, pxNetworkBuffer->usPort );
 }
 
@@ -1167,7 +1167,7 @@ void test_FreeRTOS_SendPingRequest_SendingToIPTaskFails( void )
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usSequenceNumber );
     TEST_ASSERT_EQUAL( ipIPv4_FRAME_TYPE, pxEthernetHeader->usFrameType );
     TEST_ASSERT_EQUAL( FREERTOS_SO_UDPCKSUM_OUT, pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] );
-    TEST_ASSERT_EQUAL( ulIPAddress, pxNetworkBuffer->ulIPAddress );
+    TEST_ASSERT_EQUAL( ulIPAddress, pxNetworkBuffer->xIPAddress.xIP_IPv4 );
     TEST_ASSERT_EQUAL( ipPACKET_CONTAINS_ICMP_DATA, pxNetworkBuffer->usPort );
 }
 
@@ -2807,7 +2807,7 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
     TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
     TEST_ASSERT_EQUAL( FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) - sizeof( UDPHeader_t ) + sizeof( UDPPacket_t ), pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usSourcePort );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->ulIPAddress, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.xIP_IPv4, pxUDPPacket->xIPHeader.xIP_IPv4 );
 }
 
 void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
@@ -2861,7 +2861,7 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
 
     TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usSourcePort );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->ulIPAddress, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.xIP_IPv4, pxUDPPacket->xIPHeader.ulSourceIPAddress );
 }
 
 void test_prvProcessIPPacket_TCP( void )

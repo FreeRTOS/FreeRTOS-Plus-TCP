@@ -139,14 +139,14 @@
                  * to most 3 times.  When there is no response, the socket get the
                  * status 'eCLOSE_WAIT'. */
                 FreeRTOS_debug_printf( ( "Connect: giving up %xip:%u\n",
-                                         ( unsigned ) pxSocket->u.xTCP.ulRemoteIP, /* IP address of remote machine. */
-                                         pxSocket->u.xTCP.usRemotePort ) );        /* Port on remote machine. */
+                                         ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, /* IP address of remote machine. */
+                                         pxSocket->u.xTCP.usRemotePort ) );                /* Port on remote machine. */
                 vTCPStateChange( pxSocket, eCLOSE_WAIT );
             }
             else if( prvTCPMakeSurePrepared( pxSocket ) == pdTRUE )
             {
                 ProtocolHeaders_t * pxProtocolHeaders;
-                const UBaseType_t uxHeaderSize = ipSIZE_OF_IPv4_HEADER;
+                const UBaseType_t uxHeaderSize = uxIPHeaderSizeSocket( pxSocket );
 
                 /* Or else, if the connection has been prepared, or can be prepared
                  * now, proceed to send the packet with the SYN flag.
@@ -403,7 +403,7 @@
                     {
                         /* Suppress FIN in case this packet carries earlier data to be
                          * retransmitted. */
-                        uint32_t ulDataLen = ( uint32_t ) ( ulLen - ( ipSIZE_OF_TCP_HEADER + ipSIZE_OF_IPv4_HEADER ) );
+                        uint32_t ulDataLen = ( uint32_t ) ( ulLen - ( ipSIZE_OF_TCP_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ) );
 
                         if( ( pxTCPWindow->ulOurSequenceNumber + ulDataLen ) != pxTCPWindow->tx.ulFINSequenceNumber )
                         {
@@ -467,7 +467,7 @@
                 {
                     /* calculate the IP header checksum, in case the driver won't do that. */
                     pxIPHeader->usHeaderChecksum = 0x00U;
-                    pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ipSIZE_OF_IPv4_HEADER );
+                    pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderSizePacket( pxNetworkBuffer ) );
                     pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
                     /* calculate the TCP checksum for an outgoing packet. */
@@ -615,7 +615,7 @@
             }
         #endif /* ipconfigHAS_PRINTF != 0 */
 
-        ulRemoteIP = FreeRTOS_htonl( pxSocket->u.xTCP.ulRemoteIP );
+        ulRemoteIP = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
 
         /* Determine the ARP cache status for the requested IP address. */
         eReturned = eARPGetCacheEntry( &( ulRemoteIP ), &( xEthAddress ) );
@@ -632,7 +632,7 @@
                 pxSocket->u.xTCP.ucRepCount++;
 
                 FreeRTOS_debug_printf( ( "ARP for %xip (using %xip): rc=%d %02X:%02X:%02X %02X:%02X:%02X\n",
-                                         ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
+                                         ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
                                          ( unsigned ) FreeRTOS_htonl( ulRemoteIP ),
                                          eReturned,
                                          xEthAddress.ucBytes[ 0 ],
@@ -653,7 +653,7 @@
             /* Get a difficult-to-predict initial sequence number for this 4-tuple. */
             ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
                                                                           pxSocket->usLocalPort,
-                                                                          pxSocket->u.xTCP.ulRemoteIP,
+                                                                          pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
                                                                           pxSocket->u.xTCP.usRemotePort );
 
             /* Check for a random number generation error. */
@@ -704,7 +704,7 @@
             /* Addresses and ports will be stored swapped because prvTCPReturnPacket
              * will swap them back while replying. */
             pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-            pxIPHeader->ulSourceIPAddress = FreeRTOS_htonl( pxSocket->u.xTCP.ulRemoteIP );
+            pxIPHeader->ulSourceIPAddress = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
 
             pxTCPPacket->xTCPHeader.usSourcePort = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
             pxTCPPacket->xTCPHeader.usDestinationPort = FreeRTOS_htons( pxSocket->usLocalPort );
@@ -1089,8 +1089,8 @@
                     if( pxSocket->u.xTCP.ucKeepRepCount > 3U ) /*_RB_ Magic number. */
                     {
                         FreeRTOS_debug_printf( ( "keep-alive: giving up %xip:%u\n",
-                                                 ( unsigned ) pxSocket->u.xTCP.ulRemoteIP, /* IP address of remote machine. */
-                                                 pxSocket->u.xTCP.usRemotePort ) );        /* Port on remote machine. */
+                                                 ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, /* IP address of remote machine. */
+                                                 pxSocket->u.xTCP.usRemotePort ) );                /* Port on remote machine. */
                         vTCPStateChange( pxSocket, eCLOSE_WAIT );
                         lDataLen = -1;
                     }
@@ -1115,7 +1115,7 @@
                             if( xTCPWindowLoggingLevel != 0 )
                             {
                                 FreeRTOS_debug_printf( ( "keep-alive: %xip:%u count %u\n",
-                                                         ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
+                                                         ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
                                                          pxSocket->u.xTCP.usRemotePort,
                                                          pxSocket->u.xTCP.ucKeepRepCount ) );
                             }
@@ -1313,7 +1313,7 @@
         BaseType_t xSendLength = xByteCount;
         uint32_t ulRxBufferSpace;
         /* Two steps to please MISRA. */
-        size_t uxSize = ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER;
+        size_t uxSize = uxIPHeaderSizePacket( *ppxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER;
         BaseType_t xSizeWithoutData = ( BaseType_t ) uxSize;
 
         #if ( ipconfigUSE_TCP_WIN == 1 )
@@ -1462,7 +1462,7 @@
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
                 const uint32_t ulSendLength =
-                    ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */
+                    ( uxIPHeaderSizePacket( pxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */
 
                 pxTCPPacket->xTCPHeader.ucTCPFlags = ucTCPFlags;
                 pxTCPPacket->xTCPHeader.ucTCPOffset = ( ipSIZE_OF_TCP_HEADER ) << 2;

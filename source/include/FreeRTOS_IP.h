@@ -40,6 +40,7 @@
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
+#include "FreeRTOS_IP_Common.h"
 #include "IPTraceMacroDefaults.h"
 
 /* Constants defining the current version of the FreeRTOS+TCP
@@ -55,14 +56,11 @@
 
 /* The size of the Ethernet header is 14, meaning that 802.1Q VLAN tags
  * are not ( yet ) supported. */
-#define ipSIZE_OF_ETH_HEADER      14U
-#define ipSIZE_OF_IPv4_HEADER     20U
-#define ipSIZE_OF_IGMP_HEADER     8U
-#define ipSIZE_OF_ICMP_HEADER     8U
-#define ipSIZE_OF_UDP_HEADER      8U
-#define ipSIZE_OF_TCP_HEADER      20U
+#define ipSIZE_OF_ETH_HEADER     14U
+#define ipSIZE_OF_IGMP_HEADER    8U
+#define ipSIZE_OF_UDP_HEADER     8U
+#define ipSIZE_OF_TCP_HEADER     20U
 
-#define ipSIZE_OF_IPv4_ADDRESS    4U
 
 /*
  * Generate a randomized TCP Initial Sequence Number per RFC.
@@ -119,24 +117,21 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 #endif
 
 /* The offset of ucTCPFlags within the TCP header. */
-#define ipTCP_FLAGS_OFFSET       13U
-
-#define ipFIRST_LOOPBACK_IPv4    0x7F000000UL                /**< Lowest IPv4 loopback address (including). */
-#define ipLAST_LOOPBACK_IPv4     0x80000000UL                /**< Highest IPv4 loopback address (excluding). */
+#define ipTCP_FLAGS_OFFSET      13U
 
 /** @brief Returned to indicate a valid checksum. */
-#define ipCORRECT_CRC            0xffffU
+#define ipCORRECT_CRC           0xffffU
 
 /** @brief Returned to indicate incorrect checksum. */
-#define ipWRONG_CRC              0x0000U
+#define ipWRONG_CRC             0x0000U
 
 /** @brief Returned as the (invalid) checksum when the length of the data being checked
  * had an invalid length. */
-#define ipINVALID_LENGTH         0x1234U
+#define ipINVALID_LENGTH        0x1234U
 
 /** @brief Returned as the (invalid) checksum when the protocol being checked is not
  * handled.  The value is chosen simply to be easy to spot when debugging. */
-#define ipUNHANDLED_PROTOCOL     0x4321U
+#define ipUNHANDLED_PROTOCOL    0x4321U
 
 /** @brief The maximum time the IP task is allowed to remain in the Blocked state if no
  * events are posted to the network event queue. */
@@ -154,6 +149,7 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 #endif
 
 
+
 /**
  * The structure used to store buffers and pass them around the network stack.
  * Buffers can be in use by the stack, in use by the network interface hardware
@@ -162,7 +158,7 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 typedef struct xNETWORK_BUFFER
 {
     ListItem_t xBufferListItem;                /**< Used to reference the buffer form the free buffer list or a socket. */
-    uint32_t ulIPAddress;                      /**< Source or destination IP address, depending on usage scenario. */
+    IP_Address_t xIPAddress;                   /**< Source or destination IP address, depending on usage scenario. */
     uint8_t * pucEthernetBuffer;               /**< Pointer to the start of the Ethernet frame. */
     size_t xDataLength;                        /**< Starts by holding the total Ethernet frame length, then the UDP/TCP payload length. */
     uint16_t usPort;                           /**< Source or destination port, depending on usage scenario. */
@@ -298,8 +294,6 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
 
 TaskHandle_t FreeRTOS_GetIPTaskHandle( void );
 
-void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
-                                     TickType_t uxBlockTimeTicks );
 void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
                                        uint32_t * pulNetMask,
                                        uint32_t * pulGatewayAddress,
@@ -327,15 +321,6 @@ void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH
     void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
                                     uint16_t usIdentifier );
 #endif
-uint32_t FreeRTOS_GetIPAddress( void );
-void FreeRTOS_SetIPAddress( uint32_t ulIPAddress );
-void FreeRTOS_SetNetmask( uint32_t ulNetmask );
-void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress );
-uint32_t FreeRTOS_GetGatewayAddress( void );
-uint32_t FreeRTOS_GetDNSServerAddress( void );
-uint32_t FreeRTOS_GetNetmask( void );
-BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
-                               TickType_t uxTicksToWait );
 
 BaseType_t FreeRTOS_IsNetworkUp( void );
 
@@ -354,21 +339,6 @@ BaseType_t xIsNetworkDownEventPending( void );
 #if ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) )
     const char * FreeRTOS_GetTCPStateName( UBaseType_t ulState );
 #endif
-
-/* _HT_ Temporary: show all valid ARP entries
- */
-#if ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 )
-    void FreeRTOS_PrintARPCache( void );
-#endif
-
-void FreeRTOS_ClearARP( void );
-
-/* Return pdTRUE if the IPv4 address is a multicast address. */
-BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
-
-/* Set the MAC-address that belongs to a given IPv4 multi-cast address. */
-void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
-                                  MACAddress_t * pxMACAddress );
 
 #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
 
@@ -446,6 +416,13 @@ extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 #endif
 
 #include "FreeRTOS_IP_Utils.h"
+
+#if ipconfigUSE_IPV4
+    #include "FreeRTOS_IPv4.h"
+#endif /* ipconfigUSE_IPV4 */
+#if ipconfigUSE_IPV6
+    #include "FreeRTOS_IPv6.h"
+#endif /* ipconfigUSE_IPV6 */
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

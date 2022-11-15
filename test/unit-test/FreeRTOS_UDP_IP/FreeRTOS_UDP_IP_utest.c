@@ -117,7 +117,7 @@ void test_vProcessGeneratedUDPPacket_CacheMiss_PacketSmaller( void )
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xLocalNetworkBuffer.ulIPAddress = ulIPAddr;
+    xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
 
     /* Cleanup the ethernet buffer. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
@@ -155,7 +155,7 @@ void test_vProcessGeneratedUDPPacket_CacheMiss_PacketNotSmaller( void )
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = sizeof( UDPPacket_t );
 
-    xLocalNetworkBuffer.ulIPAddress = ulIPAddr;
+    xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
 
     /* Cleanup the ethernet buffer. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
@@ -191,7 +191,7 @@ void test_vProcessGeneratedUDPPacket_UnknownARPReturn( void )
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xLocalNetworkBuffer.ulIPAddress = ulIPAddr;
+    xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
     xLocalNetworkBuffer.usPort = ipPACKET_CONTAINS_ICMP_DATA;
 
     /* Cleanup the ethernet buffer. */
@@ -223,7 +223,7 @@ void test_vProcessGeneratedUDPPacket_CacheHit_NoICMP( void )
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
 
-    xLocalNetworkBuffer.ulIPAddress = ulIPAddr;
+    xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
     /* Not ICMP data. */
     xLocalNetworkBuffer.usPort = ipPACKET_CONTAINS_ICMP_DATA + 1;
     xLocalNetworkBuffer.usBoundPort = 0x1023;
@@ -267,7 +267,7 @@ void test_vProcessGeneratedUDPPacket_CacheHit_ICMPPacket_LLMNR_UDPChkSumOption( 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] = ucSocketOptions;
 
-    xLocalNetworkBuffer.ulIPAddress = ulIPAddr;
+    xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
     xLocalNetworkBuffer.usPort = ipPACKET_CONTAINS_ICMP_DATA;
     xLocalNetworkBuffer.usBoundPort = 0x1023;
     xLocalNetworkBuffer.xDataLength = sizeof( UDPPacket_t );
