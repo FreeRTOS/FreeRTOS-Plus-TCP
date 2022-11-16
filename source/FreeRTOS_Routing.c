@@ -170,7 +170,7 @@
                 /* And in case configASSERT is not defined. */
                 ( void ) uxAddress;
             }
-        #endif
+        #endif /* ifndef _lint */
 
         /* An Ethernet packet has been received. Inspect the contents to see which
          * defined end-point has the best match.
@@ -189,7 +189,10 @@
             #if ( ipconfigUSE_IPv6 != 0 )
                 case ipIPv6_FRAME_TYPE:
                    {
-                       IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pucEthernetBuffer->pucEthernetBuffer );
+                       /* MISRA Ref 11.3.1 [Misaligned access] */
+                       /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                       /* coverity[misra_c_2012_rule_11_3_violation] */
+                       const IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pucEthernetBuffer->pucEthernetBuffer );
                        NetworkEndPoint_IPv6_t * pxEndPoint = NULL;
 
                        pxEndPoint = pxNetworkEndPoints_IPv6;
@@ -223,7 +226,7 @@
 
                        if( pxEndPoint != NULL )
                        {
-                           pucEthernetBuffer->pxEndPoint = pxEndPoint;
+                           pucEthernetBuffer->pxEndPointIPv6 = pxEndPoint;
                            pucEthernetBuffer->bits.bIPv6 = pdTRUE_UNSIGNED;
                        }
                    }
