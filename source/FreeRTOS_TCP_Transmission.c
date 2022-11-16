@@ -454,7 +454,7 @@
                     pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( ulLen - sizeof( IPHeader_IPv6_t ) );
 
                     ( void ) memcpy( &( pxIPHeader_IPv6->xDestinationAddress ), &( pxIPHeader_IPv6->xSourceAddress ), ipSIZE_OF_IPv6_ADDRESS );
-                    ( void ) memcpy( &( pxIPHeader_IPv6->xSourceAddress ), &( pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress ), ipSIZE_OF_IPv6_ADDRESS );
+                    ( void ) memcpy( &( pxIPHeader_IPv6->xSourceAddress ), &( pxNetworkBuffer->pxEndPointIPv6->ipv6_settings.xIPAddress ), ipSIZE_OF_IPv6_ADDRESS );
                 }
 
                 #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
@@ -542,9 +542,9 @@
                 if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
                 {
                     pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-                    pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPHeader_IPv6->xDestinationAddress ) );
+                    pxNetworkBuffer->pxEndPointIPv6 = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPHeader_IPv6->xDestinationAddress ) );
 
-                    if( pxNetworkBuffer->pxEndPoint == NULL )
+                    if( pxNetworkBuffer->pxEndPointIPv6 == NULL )
                     {
                         FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %pip => %pip\n",
                                            pxIPHeader_IPv6->xSourceAddress.ucBytes,
@@ -567,11 +567,11 @@
                 }
             }
 
-            if( pxNetworkBuffer->pxEndPoint != NULL )
+            if( pxNetworkBuffer->pxInterface != NULL )
             {
                 FreeRTOS_printf( ( "prvTCPReturnPacket: packet's end-point %02x-%02x\n",
-                                   pxNetworkBuffer->pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes[ 4 ],
-                                   pxNetworkBuffer->pxEndPoint->pxNetworkInterface->xMACAddress.ucBytes[ 5 ] ) );
+                                   pxNetworkBuffer->pxInterface->xMACAddress.ucBytes[ 4 ],
+                                   pxNetworkBuffer->pxInterface->xMACAddress.ucBytes[ 5 ] ) );
             }
         }
     }

@@ -461,7 +461,7 @@ void vARPTimerReload( TickType_t xTime )
  * @param[in] pxEndPoint: The end-point that needs to acquire an IP-address.
  * @param[in] uxClockTicks: The number of clock-ticks after which the timer should expire.
  */
-    void vDHCPv6_TimerReload( NetworkEndPoint_IPv6_t * pxEndPoint,
+    void vDHCPv6_RATimerReload( NetworkEndPoint_IPv6_t * pxEndPoint,
                               TickType_t uxClockTicks )
     {
         FreeRTOS_printf( ( "vDHCPv6_RATimerReload: %lu\n", uxClockTicks ) );

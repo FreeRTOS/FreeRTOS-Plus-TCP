@@ -1203,7 +1203,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
                                            uint32_t * pulGatewayAddress,
                                            uint32_t * pulDNSServerAddress )
     {
-        struct xNetworkEndPoint * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        struct xNetworkEndPoint * pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
         FreeRTOS_GetEndPointConfiguration( pulIPAddress, pulNetMask, pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
     }
@@ -1215,7 +1215,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
                                            const uint32_t * pulGatewayAddress,
                                            const uint32_t * pulDNSServerAddress )
     {
-        struct xNetworkEndPoint * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        struct xNetworkEndPoint * pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
         FreeRTOS_SetEndPointConfiguration( pulIPAddress, pulNetMask, pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
     }
@@ -2628,7 +2628,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
     #if ( ipconfigUSE_IPv6 != 0 )
         for( ;
              pxEndPoint != NULL;
-             pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+             pxEndPoint = FreeRTOS_NextEndPoint_IPv4( NULL, pxEndPoint ) )
         {
             if( ENDPOINT_IS_IPv4( pxEndPoint ) )
             {
@@ -2670,7 +2670,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
     void FreeRTOS_SetIPAddress( uint32_t ulIPAddress )
     {
         /* Sets the IP address of the NIC. */
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
         if( pxEndPoint != NULL )
         {
@@ -2688,7 +2688,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
     uint32_t FreeRTOS_GetGatewayAddress( void )
     {
         uint32_t ulIPAddress = 0U;
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
         if( pxEndPoint != NULL )
         {
@@ -2707,7 +2707,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
     uint32_t FreeRTOS_GetDNSServerAddress( void )
     {
         uint32_t ulIPAddress = 0U;
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
         if( pxEndPoint != NULL )
         {
@@ -2726,7 +2726,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
     uint32_t FreeRTOS_GetNetmask( void )
     {
         uint32_t ulIPAddress = 0U;
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
         if( pxEndPoint != NULL )
         {
@@ -2744,7 +2744,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
  */
     void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
     {
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
         if( pxEndPoint != NULL )
         {
@@ -2762,7 +2762,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
     const uint8_t * FreeRTOS_GetMACAddress( void )
     {
         const uint8_t * pucReturn = NULL;
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
         if( pxEndPoint != NULL )
         {
@@ -2781,7 +2781,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
  */
     void FreeRTOS_SetNetmask( uint32_t ulNetmask )
     {
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
         if( pxEndPoint != NULL )
         {
@@ -2797,7 +2797,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
  */
     void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress )
     {
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
         if( pxEndPoint != NULL )
         {

@@ -98,10 +98,10 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
     UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     #if ( ipconfigUSE_IPv6 != 0 )
-        NetworkEndPoint_IPv6_t * pxEndPointIPv6 = pxNetworkBuffer->pxEndPointIPv6;
+        struct xNetworkEndPoint_IPv6 * pxEndPointIPv6 = pxNetworkBuffer->pxEndPointIPv6;
         if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
         {
-            eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPv6Address ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( (NetworkEndPoint_IPv6_t *) pxEndPointIPv6 ) );
+            eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPv6Address ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &(pxEndPointIPv6 ) );
             if( pxNetworkBuffer->pxEndPointIPv6 == NULL )
             {
                 pxNetworkBuffer->pxEndPointIPv6 = pxEndPointIPv6;
@@ -444,20 +444,19 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
             prvFindIPv4Endpoint( pxNetworkBuffer );
         }
 
-        if( pxNetworkBuffer->pxEndPoint != NULL )
+        #if ( ipconfigUSE_IPv6 != 0 )
+        if( pxNetworkBuffer->pxEndPointIPv6 != NULL )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
-                if( xIsIPV6 != pdFALSE )
-                {
-                    IPHeader_IPv6_t * pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-                    ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                }
-                else
-            #endif
+            IPHeader_IPv6_t * pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+            ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxNetworkBuffer->pxEndPointIPv6->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+        }
+        #else
+        if(pxNetworkBuffer->pxEndPoint != NULL ) )
             {
                 pxIPHeader->ulSourceIPAddress = pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress;
             }
         }
+        #endif
 
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
             {

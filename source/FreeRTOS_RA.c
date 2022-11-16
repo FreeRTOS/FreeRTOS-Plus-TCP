@@ -102,9 +102,9 @@
         BaseType_t xResult = pdFAIL;
         NetworkEndPoint_IPv6_t * pxEndPoint;
 
-        for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
+        for( pxEndPoint = FreeRTOS_FirstEndPoint_IPv6( pxInterface );
              pxEndPoint != NULL;
-             pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
+             pxEndPoint = FreeRTOS_NextEndPoint_IPv6( pxInterface, pxEndPoint ) )
         {
             /* Check if it has the link-local prefix FE80::/10 */
             if( ( pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 0 ] == 0xfeU ) &&
@@ -223,9 +223,9 @@
         ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
         ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
-        for( pxPoint = FreeRTOS_FirstEndPoint( pxInterface );
+        for( pxPoint = FreeRTOS_FirstEndPoint_IPv6( pxInterface );
              pxPoint != NULL;
-             pxPoint = FreeRTOS_NextEndPoint( pxInterface, pxPoint ) )
+             pxPoint = FreeRTOS_NextEndPoint_IPv6( pxInterface, pxPoint ) )
         {
             if( ( pxPoint->bits.bWantRA != pdFALSE_UNSIGNED ) && ( pxPoint->xRAData.eRAState == eRAStateIPWait ) )
             {
@@ -353,9 +353,9 @@
             {
                 NetworkEndPoint_IPv6_t * pxEndPoint;
 
-                for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkBuffer->pxInterface );
+                for( pxEndPoint = FreeRTOS_FirstEndPoint_IPv6( pxNetworkBuffer->pxInterface );
                      pxEndPoint != NULL;
-                     pxEndPoint = FreeRTOS_NextEndPoint( pxNetworkBuffer->pxInterface, pxEndPoint ) )
+                     pxEndPoint = FreeRTOS_NextEndPoint_IPv6( pxNetworkBuffer->pxInterface, pxEndPoint ) )
                 {
                     if( ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED ) && ( pxEndPoint->xRAData.eRAState == eRAStateWait ) )
                     {

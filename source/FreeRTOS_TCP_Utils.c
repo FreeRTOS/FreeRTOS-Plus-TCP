@@ -90,33 +90,30 @@
     {
         uint32_t ulMSS = ipconfigTCP_MSS;
         
-
-        if( pxSocket->pxEndPoint != NULL )
+        #if ( ipconfigUSE_IPv6 != 0 )
+        NetworkEndPoint_IPv6_t* pxEndPointIPv6 = pxSocket->pxEndPointIPv6;
+        if( pxSocket->pxEndPointIPv6 != NULL )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
-                NetworkEndPoint_IPv6_t* pxEndPoint = pxSocket->pxEndPoint;
-                if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
-                {
-                    BaseType_t xResult;
+            BaseType_t xResult;
 
-                    xResult = xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ),
-                                                    &( pxSocket->u.xTCP.xRemoteIP_IPv6 ),
-                                                    pxEndPoint->ipv6_settings.uxPrefixLength );
+            xResult = xCompareIPv6_Address( &( pxEndPointIPv6->ipv6_settings.xIPAddress ),
+                                            &( pxSocket->u.xTCP.xRemoteIP_IPv6 ),
+                                            pxEndPointIPv6->ipv6_settings.uxPrefixLength );
 
-                    if( xResult != 0 )
-                    {
-                        ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
-                    }
-                }
-                else
-            #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
-
-            NetworkEndPoint_IPv4_t* pxEndPoint = pxSocket->pxEndPoint;
+            if( xResult != 0 )
+            {
+                ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
+            }
+        }
+               
+        #else /* if ( ipconfigUSE_IPv6 != 0 ) */
+        {
+            NetworkEndPoint_IPv4_t * pxEndPoint = pxSocket->pxEndPoint;
             /* Check if the remote IP-address belongs to the same netmask. */
             if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.ulRemoteIP ) ^ pxEndPoint->ipv4_settings.ulIPAddress ) & pxEndPoint->ipv4_settings.ulNetMask ) != 0U )
             {
                 /* Data for this peer will pass through a router, and maybe through
-                 * the internet.  Limit the MSS to 1400 bytes or less. */
+                * the internet.  Limit the MSS to 1400 bytes or less. */
                 ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
             }
             else
@@ -124,6 +121,7 @@
                 /* Nothing to do, but MISRA wants an else statement here. */
             }
         }
+        #endif /* (ipconfigUSE_IPv6 != 0)*/
 
         FreeRTOS_debug_printf( ( "prvSocketSetMSS: %lu bytes for %s\n", ulMSS, prvSocketProps( pxSocket ) ) );
 

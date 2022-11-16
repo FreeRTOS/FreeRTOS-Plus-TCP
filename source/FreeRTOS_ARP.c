@@ -693,22 +693,14 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
         eReturn = eCantSendPacket;
         pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        /* __XX__ TODO check the logic here */
             {
-                for( ;
-                     pxEndPoint != NULL;
-                     pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
-                {
-                    if( ENDPOINT_IS_IPv4( pxEndPoint ) )
-                    {
-                        /* For multi-cast, use the first IPv4 end-point. */
-                        *( ppxEndPoint ) = pxEndPoint;
-                        eReturn = eARPCacheHit;
-                        break;
-                    }
-                }
+                /* For multi-cast, use the first IPv4 end-point. */
+                *( ppxEndPoint ) = pxEndPoint;
+                eReturn = eARPCacheHit;
+                
             }
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                
     }
     else if( pxEndPoint != NULL ) /* ARP lookup loop-back? */
     {
