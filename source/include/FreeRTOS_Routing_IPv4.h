@@ -34,7 +34,7 @@
         #include "FreeRTOS_DHCP.h"
     #endif
 
-struct xNetworkInterface;
+    struct xNetworkInterface;
 
 /** @brief The network settings for IPv4. */
     typedef struct xIPV4Parameters
@@ -50,7 +50,6 @@ struct xNetworkInterface;
 /** @brief The description of an end-point. */
     typedef struct xNetworkEndPoint_IPv4
     {
-        
         struct
         {
             IPV4Parameters_t ipv4_settings; /**< Actual IPv4 settings used by the end-point. */
@@ -64,37 +63,39 @@ struct xNetworkInterface;
                 bWantDHCP : 1,  /**< This end-point wants to use DHCPv4 to obtain an IP-address. */
             #endif /* ipconfigUSE_DHCP */
             #if ( ipconfigUSE_NETWORK_EVENT_HOOK != 0 )
-                bCallDownHook : 1, /**< The network down hook-must be called for this end-point. */
+                bCallDownHook : 1,                     /**< The network down hook-must be called for this end-point. */
             #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
-            bEndPointUp : 1;       /**< The end-point is up. */
-        } bits;                    /**< A collection of boolean properties. */
+            bEndPointUp : 1;                           /**< The end-point is up. */
+        } bits;                                        /**< A collection of boolean properties. */
         #if ( ipconfigUSE_DHCP != 0 )
-            IPTimer_t xDHCP_RATimer; /**<  The timer used to call the DHCP/DHCPv6/RA state machine. */
-            DHCPData_t xDHCPData; /**< A description of the DHCP client state machine. */
+            IPTimer_t xDHCP_RATimer;                   /**<  The timer used to call the DHCP/DHCPv6/RA state machine. */
+            DHCPData_t xDHCPData;                      /**< A description of the DHCP client state machine. */
         #endif /* ( ipconfigUSE_DHCP != 0 )  */
         struct xNetworkInterface * pxNetworkInterface; /**< The network interface that owns this end-point. */
-        struct xNetworkEndPoint_IPv4 * pxNext;        /**< The next end-point in the chain. */
+        struct xNetworkEndPoint_IPv4 * pxNext;         /**< The next end-point in the chain. */
     } NetworkEndPoint_IPv4_t;
 
-    /** @brief A list of all network end-points.  Each element has a next pointer. */
-    extern struct xNetworkEndPoint_IPv4* pxNetworkEndPoints_IPv4;
+/** @brief A list of all network end-points.  Each element has a next pointer. */
+    extern struct xNetworkEndPoint_IPv4 * pxNetworkEndPoints_IPv4;
+
 /*
  * Get the first end-point belonging to a given interface.  When pxInterface is
  * NULL, the very first end-point will be returned.
  */
-    NetworkEndPoint_IPv4_t* FreeRTOS_FirstEndPoint_IPv4( const NetworkInterface_t * pxInterface);
+    NetworkEndPoint_IPv4_t * FreeRTOS_FirstEndPoint_IPv4( const NetworkInterface_t * pxInterface );
 
 /*
  * Get the next end-point.  When pxInterface is null, all end-points can be
  * iterated.
  */
-    NetworkEndPoint_IPv4_t * FreeRTOS_NextEndPoint_IPv4( const NetworkInterface_t * pxInterface, NetworkEndPoint_IPv4_t * pxEndPoint );
+    NetworkEndPoint_IPv4_t * FreeRTOS_NextEndPoint_IPv4( const NetworkInterface_t * pxInterface,
+                                                         NetworkEndPoint_IPv4_t * pxEndPoint );
 
 /*
  * Find the end-point with given IP-address.
  */
-    NetworkEndPoint_IPv4_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
-                                                        uint32_t ulWhere );
+    NetworkEndPoint_IPv4_t * FreeRTOS_FindEndPointOnIP_IPv4( const uint32_t ulIPAddress,
+                                                             const uint32_t ulWhere );
 
 /*
  * Find the end-point with given MAC-address.
@@ -108,31 +109,31 @@ struct xNetworkInterface;
  * 'ulWhere' is temporary and or debugging only.
  */
     NetworkEndPoint_IPv4_t * FreeRTOS_FindEndPointOnNetMask_IPv4( uint32_t ulIPAddress,
-                                                        uint32_t ulWhere );
+                                                                  uint32_t ulWhere );
 
 /*
  * Find the best fitting end-point to reach a given IP-address on a given interface
  * 'ulWhere' is temporary and or debugging only.
  */
-    NetworkEndPoint_IPv4_t * FreeRTOS_InterfaceEndPointOnNetMask_IPv4( NetworkInterface_t * pxInterface,
-                                                            uint32_t ulIPAddress,
-                                                            uint32_t ulWhere );
+    NetworkEndPoint_IPv4_t * FreeRTOS_InterfaceEndPointOnNetMask_IPv4( const NetworkInterface_t * pxInterface,
+                                                                       uint32_t ulIPAddress,
+                                                                       uint32_t ulWhere );
 
- 
+
 /* Find an end-point that has a defined gateway.
  * xIPType should equal ipTYPE_IPv4 or ipTYPE_IPv6. */
     NetworkEndPoint_IPv4_t * FreeRTOS_FindGateWay_IPv4( void );
 
 /* Fill-in the end-point structure. */
     void FreeRTOS_FillEndPoint_IPv4( NetworkInterface_t * pxNetworkInterface,
-                                NetworkEndPoint_IPv4_t * pxEndPoint,
-                                const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
-                                const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ],
-                                const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
-                                const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
-                                const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
+                                     NetworkEndPoint_IPv4_t * pxEndPoint,
+                                     const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                     const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                     const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                     const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 
-    
+
     #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
 /** @brief Some simple network statistics. */
         typedef struct xRoutingStats_IPv4
@@ -145,12 +146,12 @@ struct xNetworkInterface;
             UBaseType_t ulLocationsIP[ 8 ]; /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called from a particular location. */
         } RoutingStats_IPv4_t;
 
-        RoutingStats_IPv4_t xRoutingStatistics;
+        extern RoutingStats_IPv4_t xRoutingStatistics;
     #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
-    NetworkEndPoint_IPv4_t * pxGetSocketEndPoint_IPv4( Socket_t xSocket );
+    NetworkEndPoint_IPv4_t * pxGetSocketEndPoint_IPv4( const Socket_t * xSocket );
     void vSetSocketEndPoint_IPv4( Socket_t xSocket,
-                             NetworkEndPoint_IPv4_t * pxEndPoint );
+                                  NetworkEndPoint_IPv4_t * pxEndPoint );
 
     #ifdef __cplusplus
         } /* extern "C" */

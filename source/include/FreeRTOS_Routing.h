@@ -61,13 +61,13 @@
         struct
         {
             uint32_t
-                bInterfaceUp : 1,             /**< Non-zero as soon as the interface is up. */
-                bCallDownEvent : 1;           /**< The down-event must be called. */
-        } bits;                               /**< A collection of boolean flags. */
+                bInterfaceUp : 1,          /**< Non-zero as soon as the interface is up. */
+                bCallDownEvent : 1;        /**< The down-event must be called. */
+        } bits;                            /**< A collection of boolean flags. */
 
-        MACAddress_t xMACAddress; /**< The MAC-address assigned to this end-point. */
+        MACAddress_t xMACAddress;          /**< The MAC-address assigned to this end-point. */
 
-        struct xNetworkInterface * pxNext;    /**< The next interface in a linked list. */
+        struct xNetworkInterface * pxNext; /**< The next interface in a linked list. */
     } NetworkInterface_t;
 
 /*
@@ -101,15 +101,15 @@
 
 /* A ethernet packet has come in on a certain network interface.
  * Find the best matching end-point. */
-    void FreeRTOS_MatchingEndpoint(const NetworkInterface_t* pxNetworkInterface,
-        NetworkBufferDescriptor_t* pucEthernetBuffer);
+    void FreeRTOS_MatchingEndpoint( const NetworkInterface_t * pxNetworkInterface,
+                                    NetworkBufferDescriptor_t * pucEthernetBuffer );
 
 
-#include "FreeRTOS_Routing_IPv4.h"
+    #include "FreeRTOS_Routing_IPv4.h"
 
-#if ( ipconfigUSE_IPv6 != 0 )
-#include "FreeRTOS_Routing_IPv6.h"
-#endif
+    #if ( ipconfigUSE_IPv6 != 0 )
+        #include "FreeRTOS_Routing_IPv6.h"
+    #endif
 
     #ifdef __cplusplus
         } /* extern "C" */

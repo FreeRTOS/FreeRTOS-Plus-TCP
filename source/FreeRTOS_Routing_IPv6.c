@@ -48,23 +48,26 @@
 #endif /* ipconfigUSE_LLMNR */
 
 #if ( ipconfigUSE_IPv6 != 0 )
-#include "FreeRTOS_Routing.h"
+    #include "FreeRTOS_Routing.h"
 
-struct xNetworkEndPoint_IPv6 * pxNetworkEndPoints_IPv6 = NULL;
+    struct xNetworkEndPoint_IPv6 * pxNetworkEndPoints_IPv6 = NULL;
 
+    #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
+    RoutingStats_IPv6_t xRoutingStatistics_IPv6;
+    #endif 
 /*
  * Add a new IP-address to a Network Interface.  The object pointed to by
  * 'pxEndPoint' and the interface must continue to exist.
  */
-static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * pxInterface,
-                                                 NetworkEndPoint_IPv6_t * pxEndPoint );
+    static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * pxInterface,
+                                                               NetworkEndPoint_IPv6_t * pxEndPoint );
 
 /*-----------------------------------------------------------*/
 
 
-#if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
+    #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 
-    static NetworkEndPoint_IPv6_t * prvFindFirstAddress_IPv6( void );
+        static NetworkEndPoint_IPv6_t * prvFindFirstAddress_IPv6( void );
 
 
 /*-----------------------------------------------------------*/
@@ -77,56 +80,56 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
  *
  * @return The value of the parameter 'pxEndPoint'.
  */
-    static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * pxInterface,
-                                                     NetworkEndPoint_IPv6_t * pxEndPoint )
-    {
-        NetworkEndPoint_IPv6_t * pxIterator = NULL;
-
-        /* This end point will go to the end of the list, so there is no pxNext
-         * yet. */
-        pxEndPoint->pxNext = NULL;
-
-        /* Double link between the NetworkInterface_t that is using the addressing
-         * defined by this NetworkEndPoint_t structure. */
-        pxEndPoint->pxNetworkInterface = pxInterface;
-
-        if( pxNetworkEndPoints_IPv6 == NULL )
+        static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * pxInterface,
+                                                                   NetworkEndPoint_IPv6_t * pxEndPoint )
         {
-            /* No other end points are defined yet - so this is the first in the
-             * list. */
-            pxNetworkEndPoints_IPv6 = pxEndPoint;
-        }
-        else
-        {
-            /* Other end points are already defined so iterate to the end of the
-             * list. */
-            pxIterator = pxNetworkEndPoints_IPv6;
+            NetworkEndPoint_IPv6_t * pxIterator = NULL;
 
-            for( ; ; )
+            /* This end point will go to the end of the list, so there is no pxNext
+             * yet. */
+            pxEndPoint->pxNext = NULL;
+
+            /* Double link between the NetworkInterface_t that is using the addressing
+             * defined by this NetworkEndPoint_t structure. */
+            pxEndPoint->pxNetworkInterface = pxInterface;
+
+            if( pxNetworkEndPoints_IPv6 == NULL )
             {
-                if( pxIterator == pxEndPoint )
-                {
-                    /* This end-point has already been added to the list. */
-                    break;
-                }
-
-                if( pxIterator->pxNext == NULL )
-                {
-                    pxIterator->pxNext = pxEndPoint;
-                    break;
-                }
-
-                pxIterator = pxIterator->pxNext;
+                /* No other end points are defined yet - so this is the first in the
+                 * list. */
+                pxNetworkEndPoints_IPv6 = pxEndPoint;
             }
+            else
+            {
+                /* Other end points are already defined so iterate to the end of the
+                 * list. */
+                pxIterator = pxNetworkEndPoints_IPv6;
+
+                for( ; ; )
+                {
+                    if( pxIterator == pxEndPoint )
+                    {
+                        /* This end-point has already been added to the list. */
+                        break;
+                    }
+
+                    if( pxIterator->pxNext == NULL )
+                    {
+                        pxIterator->pxNext = pxEndPoint;
+                        break;
+                    }
+
+                    pxIterator = pxIterator->pxNext;
+                }
+            }
+
+            FreeRTOS_printf( ( "FreeRTOS_AddEndPoint: MAC: %02x-%02x IPv6: %pip\n",
+                               pxEndPoint->xMACAddress.ucBytes[ 4 ],
+                               pxEndPoint->xMACAddress.ucBytes[ 5 ],
+                               pxEndPoint->ipv6_defaults.xIPAddress.ucBytes ) );
+
+            return pxEndPoint;
         }
-
-        FreeRTOS_printf( ( "FreeRTOS_AddEndPoint: MAC: %02x-%02x IPv6: %pip\n",
-                                   pxEndPoint->xMACAddress.ucBytes[ 4 ],
-                                   pxEndPoint->xMACAddress.ucBytes[ 5 ],
-                                   pxEndPoint->ipv6_defaults.xIPAddress.ucBytes ) );
-
-        return pxEndPoint;
-    }
 /*-----------------------------------------------------------*/
 
 
@@ -141,27 +144,28 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
  *
  * @return The end-point that is found, or NULL when there are no more end-points in the list.
  */
-    NetworkEndPoint_IPv6_t * FreeRTOS_NextEndPoint_IPv6( NetworkInterface_t * pxInterface,
-                                               NetworkEndPoint_IPv6_t * pxEndPoint )
-    {
-        NetworkEndPoint_IPv6_t * pxResult = pxEndPoint;
-
-        if( pxResult != NULL )
+        NetworkEndPoint_IPv6_t * FreeRTOS_NextEndPoint_IPv6( const NetworkInterface_t * pxInterface,
+                                                             NetworkEndPoint_IPv6_t * pxEndPoint )
         {
-            pxResult = pxResult->pxNext;
-            while( pxResult != NULL )
+            NetworkEndPoint_IPv6_t * pxResult = pxEndPoint;
+
+            if( pxResult != NULL )
             {
-                if( ( pxInterface == NULL ) || ( pxResult->pxNetworkInterface == pxInterface ) )
-                {
-                    break;
-                }
-
                 pxResult = pxResult->pxNext;
-            }
-        }
 
-        return pxResult;
-    }
+                while( pxResult != NULL )
+                {
+                    if( ( pxInterface == NULL ) || ( pxResult->pxNetworkInterface == pxInterface ) )
+                    {
+                        break;
+                    }
+
+                    pxResult = pxResult->pxNext;
+                }
+            }
+
+            return pxResult;
+        }
 /*-----------------------------------------------------------*/
 
 /**
@@ -175,12 +179,17 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
         {
             NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkEndPoints_IPv6;
 
+            /* __XX__ place holder for IPv6 stats, need to revisit on what should be recorded*/
+            #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
+                xRoutingStatistics_IPv6.ulOnIp++;
+            #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
+
             while( pxEndPoint != NULL )
             {
                 if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), pxIPAddress, pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
-                    {
-                        break;
-                    }
+                {
+                    break;
+                }
 
                 pxEndPoint = pxEndPoint->pxNext;
             }
@@ -198,35 +207,34 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
  *
  * @return The end-point that has the given MAC-address.
  */
-    NetworkEndPoint_IPv6_t * FreeRTOS_FindEndPointOnMAC_IPv6( const MACAddress_t * pxMACAddress )
-    {
-        NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkEndPoints_IPv6;
-
-        #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-            {
-                xRoutingStatistics_IPv6.ulOnMAC++;
-            }
-        #endif
-
-        /*_RB_ Question - would it be more efficient to store the mac addresses in
-         * uin64_t variables for direct comparison instead of using memcmp()?  [don't
-         * know if there is a quick way of creating a 64-bit number from the 48-byte
-         * MAC address without getting junk in the top 2 bytes]. */
-
-        /* Find the end-point with given MAC-address. */
-        while( pxEndPoint != NULL )
+        NetworkEndPoint_IPv6_t * FreeRTOS_FindEndPointOnMAC_IPv6( const MACAddress_t * pxMACAddress )
         {
-            if( memcmp( pxEndPoint->xMACAddress.ucBytes, pxMACAddress->ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
+            NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkEndPoints_IPv6;
+
+            #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
+                {
+                    xRoutingStatistics_IPv6.ulOnMAC++;
+                }
+            #endif
+
+            /*_RB_ Question - would it be more efficient to store the mac addresses in
+             * uin64_t variables for direct comparison instead of using memcmp()?  [don't
+             * know if there is a quick way of creating a 64-bit number from the 48-byte
+             * MAC address without getting junk in the top 2 bytes]. */
+
+            /* Find the end-point with given MAC-address. */
+            while( pxEndPoint != NULL )
+            {
+                if( memcmp( pxEndPoint->xMACAddress.ucBytes, pxMACAddress->ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
                 {
                     break;
                 }
-            
 
-            pxEndPoint = pxEndPoint->pxNext;
+                pxEndPoint = pxEndPoint->pxNext;
+            }
+
+            return pxEndPoint;
         }
-
-        return pxEndPoint;
-    }
 
 /*-----------------------------------------------------------*/
 
@@ -247,11 +255,11 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
  */
         void FreeRTOS_FillEndPoint_IPv6( NetworkInterface_t * pxNetworkInterface,
                                          NetworkEndPoint_IPv6_t * pxEndPoint,
-                                         IPv6_Address_t * pxIPAddress,
-                                         IPv6_Address_t * pxNetPrefix,
+                                         const IPv6_Address_t * pxIPAddress,
+                                         const IPv6_Address_t * pxNetPrefix,
                                          size_t uxPrefixLength,
-                                         IPv6_Address_t * pxGatewayAddress,
-                                         IPv6_Address_t * pxDNSServerAddress,
+                                         const IPv6_Address_t * pxGatewayAddress,
+                                         const IPv6_Address_t * pxDNSServerAddress,
                                          const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
         {
             configASSERT( pxIPAddress != NULL );
@@ -311,7 +319,7 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
  *
  * @return An end-point that has the same network mask as the given IP-address.
  */
-        NetworkEndPoint_IPv6_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address )
+        NetworkEndPoint_IPv6_t * FreeRTOS_FindEndPointOnPrefix_IPv6( const IPv6_Address_t * pxIPv6Address )
         {
             ( void ) pxIPv6Address;
 
@@ -328,25 +336,25 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
  *
  * @return The end-point that will lead to the gateway, or NULL when no gateway was found.
  */
-    NetworkEndPoint_IPv6_t * FreeRTOS_FindGateWay_IPv6( void )
-    {
-        NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkEndPoints_IPv6;
-
-        while( pxEndPoint != NULL )
+        NetworkEndPoint_IPv6_t * FreeRTOS_FindGateWay_IPv6( void )
         {
+            NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkEndPoints_IPv6;
+
+            while( pxEndPoint != NULL )
             {
-                /* Check if the IP-address is non-zero. */
-                if( memcmp( in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 ) /* access to ipv6_settings is checked. */
                 {
-                    break;
+                    /* Check if the IP-address is non-zero. */
+                    if( memcmp( in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 ) /* access to ipv6_settings is checked. */
+                    {
+                        break;
+                    }
                 }
+
+                pxEndPoint = pxEndPoint->pxNext;
             }
 
-            pxEndPoint = pxEndPoint->pxNext;
+            return pxEndPoint;
         }
-
-        return pxEndPoint;
-    }
 /*-----------------------------------------------------------*/
 
 
@@ -360,7 +368,7 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
  *
  * @return The end-point found, or NULL when there are no end-points at all.
  */
-        NetworkEndPoint_IPv6_t * FreeRTOS_FirstEndPoint_IPv6( NetworkInterface_t * pxInterface )
+        NetworkEndPoint_IPv6_t * FreeRTOS_FirstEndPoint_IPv6( const NetworkInterface_t * pxInterface )
         {
             NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkEndPoints_IPv6;
 
@@ -386,22 +394,25 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
  *
  * @return An end-point or NULL in case the socket is not bound to an end-point.
  */
-    NetworkEndPoint_IPv6_t * pxGetSocketEndpoint_IPv6( Socket_t xSocket )
-    {
-        FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
-        NetworkEndPoint_IPv6_t * pxResult;
-
-        if( pxSocket != NULL )
+        NetworkEndPoint_IPv6_t * pxGetSocketEndPoint_IPv6( const Socket_t * xSocket )
         {
-            pxResult = pxSocket->pxEndPointIPv6;
-        }
-        else
-        {
-            pxResult = NULL;
-        }
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
+            NetworkEndPoint_IPv6_t * pxResult;
 
-        return pxResult;
-    }
+            if( pxSocket != NULL )
+            {
+                pxResult = pxSocket->pxEndPointIPv6;
+            }
+            else
+            {
+                pxResult = NULL;
+            }
+
+            return pxResult;
+        }
 /*-----------------------------------------------------------*/
 
 /**
@@ -410,16 +421,16 @@ static NetworkEndPoint_IPv6_t * FreeRTOS_AddEndPoint_IPv6( NetworkInterface_t * 
  * @param[in] xSocket: The socket to which an end-point will be assigned.
  * @param[in] pxEndPoint: The end-point to be assigned.
  */
-    void vSetSocketEndpoint_IPv6( Socket_t xSocket,
-                             NetworkEndPoint_IPv6_t * pxEndPoint )
-    {
-        FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
+        void vSetSocketEndPoint_IPv6( Socket_t xSocket,
+                                      NetworkEndPoint_IPv6_t * pxEndPoint )
+        {
+            FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
 
-        pxSocket->pxEndPointIPv6 = pxEndPoint;
-    }
+            pxSocket->pxEndPointIPv6 = pxEndPoint;
+        }
 /*-----------------------------------------------------------*/
 
 
-#endif ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
+    #endif ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 
 #endif /* ipconfigUSE_IPv6 */
