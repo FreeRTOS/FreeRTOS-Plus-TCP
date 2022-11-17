@@ -186,7 +186,7 @@
         /* Probably an ARP packet or a broadcast. */
         switch( pxPacket->xUDPPacket.xEthernetHeader.usFrameType )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 case ipIPv6_FRAME_TYPE:
                    {
                        /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -231,7 +231,7 @@
                        }
                    }
                    break;
-            #endif /* ipconfigUSE_IPv6 */
+            #endif /* ipconfigUSE_IPV6 */
 
             case ipARP_FRAME_TYPE:
                {
@@ -333,6 +333,7 @@
     }
 /*-----------------------------------------------------------*/
 
+/* __XX__ revisit on handling SINGLE interface situation , this might be removed entirely */
 #else /* ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) */
 
 /* Here below the most important function of FreeRTOS_Routing.c in a short

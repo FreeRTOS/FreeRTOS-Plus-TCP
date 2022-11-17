@@ -39,7 +39,7 @@
 
 #include "FreeRTOS_ARP.h"
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 /*-----------------------------------------------------------*/
 /* Miscellaneous structure and definitions. */
 /*-----------------------------------------------------------*/
@@ -52,12 +52,12 @@
  */
     typedef struct xND_CACHE_TABLE_ROW
     {
-        IPv6_Address_t xIPAddress;            /**< The IP address of an ND cache entry. */
-        MACAddress_t xMACAddress;             /**< The MAC address of an ND cache entry. */
+        IPv6_Address_t xIPAddress;                 /**< The IP address of an ND cache entry. */
+        MACAddress_t xMACAddress;                  /**< The MAC address of an ND cache entry. */
         struct xNetworkEndPoint_IPv6 * pxEndPoint; /**< The end-point on which the
-                                               * remote device had responded. */
-        uint8_t ucAge;                        /**< See here above. */
-        uint8_t ucValid;                      /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ND reply */
+                                                    * remote device had responded. */
+        uint8_t ucAge;                             /**< See here above. */
+        uint8_t ucValid;                           /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ND reply */
     } NDCacheRow_t;
 
 /*
@@ -137,15 +137,13 @@
                          NetworkEndPoint_IPv6_t * pxEndPoint );
     #endif /* ( ipconfigUSE_RA != 0 ) */
 
-    #if ( ipconfigUSE_IPv6 != 0 )
-
 /**
  * @brief Send an ND advertisement.
  * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
  */
-        void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_IPv6_t * pxEndPoint );
-        
-        #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+    void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_IPv6_t * pxEndPoint );
+
+    #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
 /**
  * @brief Send an IPv6 ping message to a remote device.
@@ -156,10 +154,10 @@
  * @return pdTRUE when a packets was successfully created
  *         and passed to the IP-task.
  */
-            BaseType_t FreeRTOS_SendPingRequestIPv6( const IPv6_Address_t * pxIPAddress,
-                                                     size_t uxNumberOfBytesToSend,
-                                                     TickType_t uxBlockTimeTicks );
-        #endif
+        BaseType_t FreeRTOS_SendPingRequestIPv6( const IPv6_Address_t * pxIPAddress,
+                                                 size_t uxNumberOfBytesToSend,
+                                                 TickType_t uxBlockTimeTicks );
+    #endif
 
 /**
  * @brief Create an IPv16 address, based on a prefix.
@@ -175,11 +173,10 @@
  *         case xApplicationGetRandomNumber()
  *         returned an error.
  */
-        BaseType_t FreeRTOS_CreateIPv6Address( IPv6_Address_t * pxIPAddress,
-                                               const IPv6_Address_t * pxPrefix,
-                                               size_t uxPrefixLength,
-                                               BaseType_t xDoRandom );
-    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+    BaseType_t FreeRTOS_CreateIPv6Address( IPv6_Address_t * pxIPAddress,
+                                           const IPv6_Address_t * pxPrefix,
+                                           size_t uxPrefixLength,
+                                           BaseType_t xDoRandom );
 
 /* Receive a Neighbour Advertisement. */
 
@@ -207,7 +204,7 @@
         void FreeRTOS_PrintNDCache( void );
     #endif
 
-#endif /* ipconfigUSE_IPv6 != 0 */
+#endif /* ipconfigUSE_IPV6 != 0 */
 
 
 /* *INDENT-OFF* */

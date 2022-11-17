@@ -51,7 +51,7 @@
 #include "NetworkBufferManagement.h"
 
 /* The entire module FreeRTOS_ND.c is skipped when IPv6 is not used. */
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /** @brief Type of Neighbour Advertisement packets. */
     #define ndICMPv6_FLAG_SOLICITED                       0x40000000U
@@ -1136,4 +1136,4 @@
     }
 /*-----------------------------------------------------------*/
 
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */
