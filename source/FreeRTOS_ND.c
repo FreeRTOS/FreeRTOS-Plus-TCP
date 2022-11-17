@@ -71,6 +71,9 @@
     #define ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION    ( 3U )
 
 /** @brief All nodes on the local network segment: IP- and MAC-address. */
+    /* MISRA Ref 8.9.1 [File scoped variables] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+    /* coverity[misra_c_2012_rule_8_9_violation] */
     static const uint8_t pcLOCAL_ALL_NODES_MULTICAST_IP[ ipSIZE_OF_IPv6_ADDRESS ] = { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }; /* ff02:1 */
     static const uint8_t pcLOCAL_ALL_NODES_MULTICAST_MAC[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33, 0x33, 0x00, 0x00, 0x00, 0x01 };
 
@@ -80,7 +83,7 @@
                                              NetworkEndPoint_IPv6_t ** ppxEndPoint );
 
 /** @brief Lookup an MAC address in the ND cache from the IP address. */
-    static eARPLookupResult_t prvNDCacheLookup( IPv6_Address_t * pxAddressToLookup,
+    static eARPLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
                                                 MACAddress_t * const pxMACAddress,
                                                 NetworkEndPoint_IPv6_t ** ppxEndPoint );
 
@@ -367,7 +370,7 @@
  *
  * @return An enum: either eARPCacheHit or eARPCacheMiss.
  */
-    static eARPLookupResult_t prvNDCacheLookup( IPv6_Address_t * pxAddressToLookup,
+    static eARPLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
                                                 MACAddress_t * const pxMACAddress,
                                                 NetworkEndPoint_IPv6_t ** ppxEndPoint )
     {
@@ -457,7 +460,7 @@
     static void prvReturnICMP_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     size_t uxICMPSize )
     {
-        NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkBuffer->pxEndPointIPv6;
+        const NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkBuffer->pxEndPointIPv6;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -506,11 +509,11 @@
  */
 
     void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                       IPv6_Address_t * pxIPAddress )
+                                       const IPv6_Address_t * pxIPAddress )
     {
         ICMPPacket_IPv6_t * pxICMPPacket;
         ICMPHeader_IPv6_t * pxICMPHeader_IPv6;
-        NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkBuffer->pxEndPointIPv6;
+        const NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkBuffer->pxEndPointIPv6;
         size_t uxNeededSize;
         IPv6_Address_t xTargetIPAddress;
         MACAddress_t xMultiCastMacAddress;
@@ -607,7 +610,7 @@
  *
  * @return When failed: pdFAIL, otherwise the PING sequence number.
  */
-        BaseType_t FreeRTOS_SendPingRequestIPv6( IPv6_Address_t * pxIPAddress,
+        BaseType_t FreeRTOS_SendPingRequestIPv6( const IPv6_Address_t * pxIPAddress,
                                                  size_t uxNumberOfBytesToSend,
                                                  TickType_t uxBlockTimeTicks )
         {
@@ -619,7 +622,7 @@
             static uint16_t usSequenceNumber = 0;
             uint8_t * pucChar;
             IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
-            NetworkEndPoint_IPv6_t * pxEndPoint;
+            NetworkEndPoint_IPv6_t * pxEndPoint = NULL;
             size_t uxPacketLength;
 
             pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( pxIPAddress );
@@ -628,6 +631,9 @@
             {
                 pxEndPoint = FreeRTOS_FindGateWay_IPv6();
 
+                /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
+                /* coverity[cond_notnull] */
                 if( pxEndPoint == NULL )
                 {
                     FreeRTOS_printf( ( "SendPingRequestIPv6: No routing/gw found\n" ) );
@@ -644,6 +650,10 @@
                 pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxPacketLength, uxBlockTimeTicks );
             }
 
+            /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
+            /* coverity[misra_c_2012_rule_14_3_violation] */
+            /* coverity[notnull] */
             if( ( pxNetworkBuffer != NULL ) && ( pxEndPoint != NULL ) )
             {
                 BaseType_t xEnoughSpace;
@@ -873,7 +883,7 @@
                                /* MISRA Ref 11.3.1 [Misaligned access] */
                                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                                /* coverity[misra_c_2012_rule_11_3_violation] */
-                               ICMPEcho_IPv6_t * pxICMPEchoHeader = ( ( ICMPEcho_IPv6_t * ) pxICMPHeader_IPv6 );
+                               const ICMPEcho_IPv6_t * pxICMPEchoHeader = ( ( const ICMPEcho_IPv6_t * ) pxICMPHeader_IPv6 );
                                size_t uxDataLength, uxCount;
                                const uint8_t * pucByte;
 
@@ -975,6 +985,10 @@
  *
  * @param[in] pxEndPoint: The end-point to use.
  */
+    /* MISRA Ref 8.9.1 [File scoped variables] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+    /* coverity[misra_c_2012_rule_8_9_violation] */
+    /* coverity[single_use] */
     void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_IPv6_t * pxEndPoint )
     {
         NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -1084,7 +1098,7 @@
         }
         else
         {
-            ( void ) memset( pulRandom, 0, sizeof pulRandom );
+            ( void ) memset( pulRandom, 0, sizeof( pulRandom ) );
         }
 
         if( xResult == pdPASS )

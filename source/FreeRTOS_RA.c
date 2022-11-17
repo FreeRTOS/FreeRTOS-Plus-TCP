@@ -71,11 +71,11 @@
     static void vRAProcessInit( NetworkEndPoint_IPv6_t * pxEndPoint );
 
 /* Find a link-local address that is bound to a given interface. */
-    static BaseType_t xGetLinkLocalAddress( NetworkInterface_t * pxInterface,
+    static BaseType_t xGetLinkLocalAddress( const NetworkInterface_t * pxInterface,
                                             IPv6_Address_t * pxAddress );
 
 /* Read the reply received from the RA server. */
-    static ICMPPrefixOption_IPv6_t * vReceiveRA_ReadReply( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+    static ICMPPrefixOption_IPv6_t * vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 /* Handle the states that are limited by a timer. See if any of the timers has expired. */
     static TickType_t xRAProcess_HandleWaitStates( NetworkEndPoint_IPv6_t * pxEndPoint,
@@ -96,7 +96,7 @@
  *
  * @return pdPASS in case a link-local address was found, otherwise pdFAIL.
  */
-    static BaseType_t xGetLinkLocalAddress( NetworkInterface_t * pxInterface,
+    static BaseType_t xGetLinkLocalAddress( const NetworkInterface_t * pxInterface,
                                             IPv6_Address_t * pxAddress )
     {
         BaseType_t xResult = pdFAIL;
@@ -133,7 +133,7 @@
     {
         ICMPPacket_IPv6_t * pxICMPPacket;
         ICMPRouterSolicitation_IPv6_t * xRASolicitationRequest;
-        NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+        const NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkBuffer->pxEndPointIPv6;
         const size_t uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t );
         MACAddress_t xMultiCastMacAddress;
         NetworkBufferDescriptor_t * pxDescriptor = pxNetworkBuffer;
@@ -161,6 +161,9 @@
 
         if( pxDescriptor != NULL )
         {
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer );
             xRASolicitationRequest = ( ( ICMPRouterSolicitation_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
@@ -195,7 +198,7 @@
             ( void ) memset( xRASolicitationRequest, 0, sizeof( *xRASolicitationRequest ) );
             xRASolicitationRequest->ucTypeOfMessage = ipICMP_ROUTER_SOLICITATION_IPv6;
 
-/*
+/*  __XX__ revisit on why commented out 
  *  xRASolicitationRequest->ucOptionType = ndICMP_SOURCE_LINK_LAYER_ADDRESS;
  *  xRASolicitationRequest->ucOptionLength = 1;
  *  ( void ) memcpy( xRASolicitationRequest->ucOptionBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
@@ -216,12 +219,16 @@
  *
  * @param[in] pxNetworkBuffer: The buffer that contains the message.
  */
-    void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+    void vReceiveNA( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
-        NetworkInterface_t * pxInterface = pxNetworkBuffer->pxInterface;
+        const NetworkInterface_t * pxInterface = pxNetworkBuffer->pxInterface;
         NetworkEndPoint_IPv6_t * pxPoint;
-        ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-        ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        const ICMPPacket_IPv6_t * pxICMPPacket = ( ( const ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        const ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( const ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
         for( pxPoint = FreeRTOS_FirstEndPoint_IPv6( pxInterface );
              pxPoint != NULL;
@@ -239,11 +246,11 @@
     }
 /*-----------------------------------------------------------*/
 
-    static ICMPPrefixOption_IPv6_t * vReceiveRA_ReadReply( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+    static ICMPPrefixOption_IPv6_t * vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
         size_t uxIndex = 0U;
         const size_t uxICMPSize = sizeof( ICMPRouterAdvertisement_IPv6_t );
-        const size_t uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
+        const size_t uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize;
         /* uxLast points to the first byte after the buffer. */
         const size_t uxLast = pxNetworkBuffer->xDataLength - uxNeededSize;
         uint8_t * pucBytes = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
@@ -276,6 +283,9 @@
                     break;
 
                 case ndICMP_PREFIX_INFORMATION: /* 3 */
+                    /* MISRA Ref 11.3.1 [Misaligned access] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxPrefixOption = ( ( ICMPPrefixOption_IPv6_t * ) &( pucBytes[ uxIndex ] ) );
 
                     FreeRTOS_printf( ( "RA: Prefix len %d Life %lu, %lu (%pip)\n",
@@ -318,12 +328,15 @@
  *
  * @param[in] pxNetworkBuffer: The buffer that contains the message.
  */
-    void vReceiveRA( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+    void vReceiveRA( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ICMPPacket_IPv6_t * pxICMPPacket = ( ( const ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-        ICMPPrefixOption_IPv6_t * pxPrefixOption = NULL;
+        const ICMPPrefixOption_IPv6_t * pxPrefixOption = NULL;
         const size_t uxICMPSize = sizeof( ICMPRouterAdvertisement_IPv6_t );
-        const size_t uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
+        const size_t uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize;
 
         /* A Router Advertisement was received, handle it here. */
         if( uxNeededSize > pxNetworkBuffer->xDataLength )
@@ -387,7 +400,7 @@
  * @return pdPASS if an existing IP-address has been found and written to pxIPAddress.
  */
     static BaseType_t prvGetTestAddress( BaseType_t xIndex,
-                                         IPv6_Address_t * pxIPAddress )
+                                         const IPv6_Address_t * pxIPAddress )
     {
         ( void ) xIndex;
         ( void ) pxIPAddress;
@@ -484,13 +497,17 @@
 
                     FreeRTOS_printf( ( "RA: failed, using default parameters and IP address %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
                     /* Disable the timer. */
-                    uxReloadTime = 0U;
+                    uxNewReloadTime = 0U;
                 }
 
                 /* Now call vIPNetworkUpCalls() to send the network-up event and
                  * start the ARP timer. */
                 vIPNetworkUpCalls( pxEndPoint );
             }
+        }
+        else
+        {
+            /* Nothing to do */
         }
 
         return uxNewReloadTime;
@@ -511,7 +528,7 @@
                    NetworkBufferDescriptor_t * pxNetworkBuffer;
 
                    /* Send a Router Solicitation to ff02::2 */
-                   ( void ) memset( xIPAddress.ucBytes, 0, sizeof xIPAddress.ucBytes );
+                   ( void ) memset( xIPAddress.ucBytes, 0, sizeof( xIPAddress.ucBytes ) );
                    xIPAddress.ucBytes[ 0 ] = 0xffU;
                    xIPAddress.ucBytes[ 1 ] = 0x02U;
                    xIPAddress.ucBytes[ 15 ] = 0x02U;
@@ -520,7 +537,7 @@
 
                    if( pxNetworkBuffer != NULL )
                    {
-                       pxNetworkBuffer->pxEndPoint = pxEndPoint;
+                       pxNetworkBuffer->pxEndPointIPv6 = pxEndPoint;
                        vNDSendRouterSolicitation( pxNetworkBuffer, &( xIPAddress ) );
                    }
 
@@ -570,7 +587,7 @@
 
                    if( pxNetworkBuffer != NULL )
                    {
-                       pxNetworkBuffer->pxEndPoint = pxEndPoint;
+                       pxNetworkBuffer->pxEndPointIPv6 = pxEndPoint;
                        vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxEndPoint->ipv6_settings.xIPAddress ) );
                    }
 

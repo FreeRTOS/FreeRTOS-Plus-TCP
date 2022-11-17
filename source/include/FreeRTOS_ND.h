@@ -113,7 +113,7 @@
  * outstanding so re-transmissions can be generated.
  */
     void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                       IPv6_Address_t * pxIPAddress );
+                                       const IPv6_Address_t * pxIPAddress );
 
     #if ( ipconfigUSE_RA != 0 )
 
@@ -156,7 +156,7 @@
  * @return pdTRUE when a packets was successfully created
  *         and passed to the IP-task.
  */
-            BaseType_t FreeRTOS_SendPingRequestIPv6( IPv6_Address_t * pxIPAddress,
+            BaseType_t FreeRTOS_SendPingRequestIPv6( const IPv6_Address_t * pxIPAddress,
                                                      size_t uxNumberOfBytesToSend,
                                                      TickType_t uxBlockTimeTicks );
         #endif
@@ -189,7 +189,7 @@
  *         address in the ND address cache.
  *  @param[in] pxNetworkBuffer The buffer containing the packet.
  */
-        void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+        void vReceiveNA( const NetworkBufferDescriptor_t * pxNetworkBuffer );
     #endif
 
 /* Receive a Router Advertisement. */
@@ -199,7 +199,7 @@
  *         applicable for this device.
  *  @param[in] pxNetworkBuffer The buffer containing the packet.
  */
-        void vReceiveRA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+        void vReceiveRA( const NetworkBufferDescriptor_t * pxNetworkBuffer );
     #endif
 
     #if ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) )
