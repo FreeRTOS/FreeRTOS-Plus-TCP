@@ -52,7 +52,7 @@
 #include "NetworkBufferManagement.h"
 
 /* This define may exclude the entire source file. */
-#if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 )
+#if ( ipconfigUSE_IPV6 != 0 ) && ( ipconfigUSE_RA != 0 )
 
 /*-----------------------------------------------------------*/
 
@@ -198,7 +198,7 @@
             ( void ) memset( xRASolicitationRequest, 0, sizeof( *xRASolicitationRequest ) );
             xRASolicitationRequest->ucTypeOfMessage = ipICMP_ROUTER_SOLICITATION_IPv6;
 
-/*  __XX__ revisit on why commented out 
+/*  __XX__ revisit on why commented out
  *  xRASolicitationRequest->ucOptionType = ndICMP_SOURCE_LINK_LAYER_ADDRESS;
  *  xRASolicitationRequest->ucOptionLength = 1;
  *  ( void ) memcpy( xRASolicitationRequest->ucOptionBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
@@ -691,4 +691,4 @@
     }
 /*-----------------------------------------------------------*/
 
-#endif /* ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) && ( ipconfigUSE_RA != 0 ) */

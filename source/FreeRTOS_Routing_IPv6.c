@@ -47,14 +47,15 @@
     #include "FreeRTOS_DNS.h"
 #endif /* ipconfigUSE_LLMNR */
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     #include "FreeRTOS_Routing.h"
 
     struct xNetworkEndPoint_IPv6 * pxNetworkEndPoints_IPv6 = NULL;
 
     #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-    RoutingStats_IPv6_t xRoutingStatistics_IPv6;
-    #endif 
+        RoutingStats_IPv6_t xRoutingStatistics_IPv6;
+    #endif
+
 /*
  * Add a new IP-address to a Network Interface.  The object pointed to by
  * 'pxEndPoint' and the interface must continue to exist.
@@ -433,4 +434,4 @@
 
     #endif ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */

@@ -105,11 +105,13 @@
                                     NetworkBufferDescriptor_t * pucEthernetBuffer );
 
 
-    #include "FreeRTOS_Routing_IPv4.h"
+    #if ( ipconfigUSE_IPV4 != 0 )
+        #include "FreeRTOS_Routing_IPv4.h"
+    #endif /* (ipconfigUSE_IPV4 !=0 ) */
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         #include "FreeRTOS_Routing_IPv6.h"
-    #endif
+    #endif /* (ipconfigUSE_IPV6 !=0 ) */
 
     #ifdef __cplusplus
         } /* extern "C" */

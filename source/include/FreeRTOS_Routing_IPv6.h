@@ -30,7 +30,7 @@
         extern "C" {
     #endif
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         #include "FreeRTOS_DHCPv6.h"
 
 
@@ -190,7 +190,7 @@
         void vSetSocketEndPoint_IPv6( Socket_t xSocket,
                                       NetworkEndPoint_IPv6_t * pxEndPoint );
 
-    #endif /* ( ipconfigUSE_IPv6 != 0 )*/
+    #endif /* ( ipconfigUSE_IPV6 != 0 )*/
 
     #ifdef __cplusplus
         } /* extern "C" */
