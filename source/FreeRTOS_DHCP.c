@@ -1394,14 +1394,14 @@
             pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayloadBuffer );
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 {
                     uint8_t * pucIPType;
 
                     pucIPType = pucUDPPayloadBuffer - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
                     *pucIPType = ipTYPE_IPv4;
                 }
-            #endif /* ipconfigUSE_IPv6 */
+            #endif /* ipconfigUSE_IPV6 */
 
             /* Most fields need to be zero. */
             ( void ) memset( pxDHCPMessage, 0x00, sizeof( DHCPMessage_IPv4_t ) );

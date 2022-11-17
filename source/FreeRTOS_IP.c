@@ -66,7 +66,7 @@
     #endif
 #endif
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     /* IPv6 multicast MAC address starts with 33-33-. */
     #define ipMULTICAST_MAC_ADDRESS_IPv6_0    0x33U
     #define ipMULTICAST_MAC_ADDRESS_IPv6_1    0x33U
@@ -124,8 +124,8 @@
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
 #endif
 
-static void prvCallDHCP_Handler(NetworkEndPoint_IPv4_t * pxEndPoint);
-#if ( ipconfigUSE_IPv6 != 0 )
+static void prvCallDHCP_Handler( NetworkEndPoint_IPv4_t * pxEndPoint );
+#if ( ipconfigUSE_IPV6 != 0 )
     static void prvCallDHCP_RA_Handler( NetworkEndPoint_IPv6_t * pxEndPoint );
 #endif
 
@@ -149,7 +149,7 @@ static void prvIPTask_CheckPendingEvents( void );
 
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     const struct xIPv6_Address in6addr_any = { 0 };
     const struct xIPv6_Address in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
 #endif
@@ -191,7 +191,7 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
                                                       const NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                       UBaseType_t uxHeaderLength );
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     static eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
                                                           const NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                           UBaseType_t uxHeaderLength );
@@ -234,7 +234,7 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
     static UBaseType_t uxQueueMinimumSpace = ipconfigEVENT_QUEUE_LENGTH;
 #endif
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     /** @brief Handle the IPv6 extension headers. */
     static eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                                  BaseType_t xDoRemove );
@@ -314,9 +314,9 @@ static void prvProcessIPEventsAndTimers( void )
         case eARPTimerEvent:
             /* The ARP timer has expired, process the ARP cache. */
             vARPAgeCache();
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 vNDAgeCache();
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
             break;
 
         case eSocketBindEvent:
@@ -339,15 +339,16 @@ static void prvProcessIPEventsAndTimers( void )
              * member of the received event structure. */
             vProcessGeneratedUDPPacket( ( ( NetworkBufferDescriptor_t * ) xReceivedEvent.pvData ) );
             break;
+
         case eDHCP_Event:
-            prvCallDHCP_Handler( ( (NetworkEndPoint_IPv4_t*) xReceivedEvent.pvData ) );
+            prvCallDHCP_Handler( ( ( NetworkEndPoint_IPv4_t * ) xReceivedEvent.pvData ) );
             break;
 
-        #if ( ipconfigUSE_IPv6 !=0 )
-        case eDHCPv6_RA_Event:
-            prvCallDHCP_RA_Handler( ( ( NetworkEndPoint_IPv6_t * ) xReceivedEvent.pvData ) );
-            break;
-        #endif
+            #if ( ipconfigUSE_IPV6 != 0 )
+                case eDHCPv6_RA_Event:
+                    prvCallDHCP_RA_Handler( ( ( NetworkEndPoint_IPv6_t * ) xReceivedEvent.pvData ) );
+                    break;
+            #endif
 
         case eSocketSelectEvent:
 
@@ -513,7 +514,7 @@ static void prvIPTask_HandleBindEvent( IPStackEvent_t * pxReceivedEvent )
 {
     FreeRTOS_Socket_t * pxSocket;
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         struct freertos_sockaddr6 xAddress;
     #else
         struct freertos_sockaddr xAddress;
@@ -526,7 +527,7 @@ static void prvIPTask_HandleBindEvent( IPStackEvent_t * pxReceivedEvent )
      * triggered. */
     pxSocket = ( ( FreeRTOS_Socket_t * ) pxReceivedEvent->pvData );
     xAddress.sin_len = ( uint8_t ) sizeof( xAddress );
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
         {
             xAddress.sin_family = FREERTOS_AF_INET6;
@@ -644,43 +645,43 @@ static void prvCallDHCP_Handler( NetworkEndPoint_IPv4_t * pxEndPoint )
             }
         }
     #endif /* ipconfigUSE_DHCP */
-   
+
     /* Mention pxEndPoint in case it has not been used. */
     ( void ) pxEndPoint;
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
+
 /**
  * @brief Call the state machine of either DHCP, DHCPv6, or RA, whichever is activated.
  *
  * @param[in] pxEndPoint: The end-point for which the state-machine will be called.
  */
-static void prvCallDHCPv6_RA_Handler(NetworkEndPoint_IPv6_t * pxEndPoint)
-{
-
-#if ( ipconfigUSE_DHCPv6 == 1 )
+    static void prvCallDHCPv6_RA_Handler( NetworkEndPoint_IPv6_t * pxEndPoint )
     {
-        if ( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED)
-        {
-            /* Process DHCPv6 messages for a given end-point. */
-            vDHCPv6Process(pdFALSE, pxEndPoint);
-        }
+        #if ( ipconfigUSE_DHCPv6 == 1 )
+            {
+                if( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED )
+                {
+                    /* Process DHCPv6 messages for a given end-point. */
+                    vDHCPv6Process( pdFALSE, pxEndPoint );
+                }
+            }
+        #endif /* ipconfigUSE_DHCPv6 */
+        #if ( ipconfigUSE_RA == 1 )
+            {
+                if( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED )
+                {
+                    /* Process RA messages for a given end-point. */
+                    vRAProcess( pdFALSE, pxEndPoint );
+                }
+            }
+        #endif /* ipconfigUSE_RA */
+        /* Mention pxEndPoint in case it has not been used. */
+        ( void ) pxEndPoint;
     }
-#endif /* ipconfigUSE_DHCPv6 */
-#if ( ipconfigUSE_RA == 1 )
-    {
-        if ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED)
-        {
-            /* Process RA messages for a given end-point. */
-            vRAProcess(pdFALSE, pxEndPoint);
-        }
-    }
-#endif /* ipconfigUSE_RA */
-    /* Mention pxEndPoint in case it has not been used. */
-    (void)pxEndPoint;
-}
-#endif
+#endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 
 /*-----------------------------------------------------------*/
 
@@ -828,7 +829,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 /*-----------------------------------------------------------*/
 
 /* *INDENT-OFF* */
-#if ( ipconfigUSE_IPv6 == 1 )
+#if ( ipconfigUSE_IPV6 == 1 )
 
 /**
  * @brief Obtain a buffer big enough for a UDP payload of given size.
@@ -844,7 +845,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
     void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                          TickType_t uxBlockTimeTicks,
                                          uint8_t ucIPType )
-#else /* #if ( ipconfigUSE_IPv6 == 1 ) */
+#else /* #if ( ipconfigUSE_IPV6 == 1 ) */
 
 /**
  * @brief Obtain a buffer big enough for a UDP payload of given size.
@@ -858,7 +859,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
  */
     void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                          TickType_t uxBlockTimeTicks )
-#endif /* #if ( ipconfigUSE_IPv6 == 1 ) */
+#endif /* #if ( ipconfigUSE_IPV6 == 1 ) */
 /* *INDENT-ON* */
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -878,7 +879,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 
     if( pxNetworkBuffer != NULL )
     {
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             {
                 uint8_t * pucIPType;
                 size_t uxIPHeaderLength;
@@ -913,14 +914,14 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
                  * first byte of the IP-header: 'ucVersionTrafficClass'. */
                 *pucIPType = ucIPType;
             }
-        #else /* if ( ipconfigUSE_IPv6 != 0 ) */
+        #else /* if ( ipconfigUSE_IPV6 != 0 ) */
             {
                 /* Set the actual packet size in case a bigger buffer was returned. */
                 pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t ) + uxRequestedSizeBytes;
                 /* Skip 3 headers. */
                 pvReturn = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] );
             }
-        #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+        #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
     }
     else
     {
@@ -944,7 +945,7 @@ uint8_t * pcNetworkBuffer_to_UDPPayloadBuffer( NetworkBufferDescriptor_t * pxNet
     uint8_t * pcResult;
     size_t uxOffset = ipUDP_PAYLOAD_OFFSET_IPv4;
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         {
             EthernetHeader_t * pxHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
@@ -953,7 +954,7 @@ uint8_t * pcNetworkBuffer_to_UDPPayloadBuffer( NetworkBufferDescriptor_t * pxNet
                 uxOffset = ipUDP_PAYLOAD_OFFSET_IPv6;
             }
         }
-    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* ( ipconfigUSE_IPV6 != 0 ) */
     pcResult = &( pxNetworkBuffer->pucEthernetBuffer[ uxOffset ] );
 
     return pcResult;
@@ -990,12 +991,12 @@ BaseType_t FreeRTOS_IPStart( void )
 
     pxFirstEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
-    #if ( ipconfigUSE_IPv6 != 0 )
-        NetworkEndPoint_IPv6_t* pxFirstEndPoint_IPv6;
+    #if ( ipconfigUSE_IPV6 != 0 )
+        NetworkEndPoint_IPv6_t * pxFirstEndPoint_IPv6;
 
-        pxFirstEndPoint_IPv6 = FreeRTOS_FirstEndPoint_IPv6(NULL);
-        configASSERT(pxFirstEndPoint_IPv6 != NULL);
-    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        pxFirstEndPoint_IPv6 = FreeRTOS_FirstEndPoint_IPv6( NULL );
+        configASSERT( pxFirstEndPoint_IPv6 != NULL );
+    #endif /* ( ipconfigUSE_IPV6 != 0 ) */
 
     /* At least one IPv4 end-point must be defined. */
     configASSERT( pxFirstEndPoint != NULL );
@@ -1123,7 +1124,7 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
                                         uint32_t * pulDNSServerAddress,
                                         struct xNetworkEndPoint_IPv4 * pxEndPoint )
 {
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         if( ENDPOINT_IS_IPv4( pxEndPoint ) )
     #endif
     {
@@ -1170,7 +1171,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 {
     /* Update the address configuration. */
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         if( ENDPOINT_IS_IPv4( pxEndPoint ) )
     #endif
     {
@@ -1423,7 +1424,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
 {
     eFrameProcessingResult_t eReturn;
     const EthernetHeader_t * pxEthernetHeader;
-    NetworkEndPoint_IPv4_t* pxEndPoint;
+    NetworkEndPoint_IPv4_t * pxEndPoint;
 
     /* Map the buffer onto Ethernet Header struct for easy access to fields. */
     pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
@@ -1460,7 +1461,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         else
     #endif /* ipconfigUSE_MDNS */
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
             ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
         {
@@ -1468,7 +1469,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
             eReturn = eProcessBuffer;
         }
         else
-    #endif /* ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_IPV6 */
     {
         /* The packet was not a broadcast, or for this node, just release
          * the buffer without taking any other action. */
@@ -1571,7 +1572,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     break;
 
                 case ipIPv4_FRAME_TYPE:
-                    #if ( ipconfigUSE_IPv6 != 0 )
+                    #if ( ipconfigUSE_IPV6 != 0 )
                         case ipIPv6_FRAME_TYPE:
                             pxNetworkBuffer->bits.bIPv6 = pdTRUE_UNSIGNED;
                     #endif
@@ -1673,7 +1674,7 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
     {
         BaseType_t xReturn;
@@ -1689,10 +1690,10 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
 
         return xReturn;
     }
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
                                      const IPv6_Address_t * pxRight,
                                      size_t uxPrefixLength )
@@ -1763,9 +1764,9 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
 
         return xResult;
     }
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Check whether this IPv6 packet is to be allowed or to be dropped.
@@ -1846,7 +1847,7 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
 
         return eReturn;
     }
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */
 /*-----------------------------------------------------------*/
 
 /**
@@ -1981,7 +1982,7 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
                     {
                         uint8_t ucProtocol;
                         ProtocolHeaders_t * pxProtocolHeaders;
-                        #if ( ipconfigUSE_IPv6 != 0 )
+                        #if ( ipconfigUSE_IPV6 != 0 )
                             const IPHeader_IPv6_t * pxIPPacket_IPv6;
 
                             pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
@@ -1992,7 +1993,7 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
                                 pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
                             }
                             else
-                        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                        #endif /* ( ipconfigUSE_IPV6 != 0 ) */
                         {
                             ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
                             pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ( size_t ) ipSIZE_OF_IPv4_HEADER ] ) );
@@ -2121,7 +2122,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     size_t uxLength;
     uint16_t usLength;
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
         {
             ProtocolHeaders_t * pxProtocolHeaders;
@@ -2191,7 +2192,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     static BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
                                           uint8_t ucNextHeader )
     {
@@ -2242,10 +2243,10 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
         return xReturn;
     }
 
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Handle the IPv6 extension headers.
@@ -2356,7 +2357,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
                            pxNetworkBuffer->xDataLength ) );
         return eResult;
     }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 
 /*-----------------------------------------------------------*/
 
@@ -2374,13 +2375,13 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
     eFrameProcessingResult_t eReturn;
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         const IPHeader_IPv6_t * pxIPHeader_IPv6;
     #endif
     UBaseType_t uxHeaderLength;
     uint8_t ucProtocol;
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         pxIPHeader_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
         if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
@@ -2395,7 +2396,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             pxNetworkBuffer->pucEthernetBuffer[ 0 - ( BaseType_t ) ipIP_TYPE_OFFSET ] = pxIPHeader_IPv6->ucVersionTrafficClass;
         }
         else
-    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
     {
         size_t uxLength = ( size_t ) pxIPHeader->ucVersionHeaderLength;
 
@@ -2405,14 +2406,14 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         uxHeaderLength = ( size_t ) ( ( uxLength & 0x0FU ) << 2 );
         ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
         eReturn = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             {
                 /* The IP-header type is copied to a location 6 bytes before the
                  * messages starts.  It might be needed later on when a UDP-payload
                  * buffer is being used. */
                 pxNetworkBuffer->pucEthernetBuffer[ 0 - ( BaseType_t ) ipIP_TYPE_OFFSET ] = pxIPHeader->ucVersionHeaderLength;
             }
-        #endif /* ipconfigUSE_IPv6 */
+        #endif /* ipconfigUSE_IPV6 */
     }
 
     if( eReturn == eProcessBuffer )
@@ -2425,7 +2426,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             eReturn = prvCheckIP4HeaderOptions( pxNetworkBuffer );
         }
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             if( ( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
                 ( xGetExtensionOrder( ucProtocol, 0U ) > 0 ) )
             {
@@ -2436,7 +2437,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                     ucProtocol = pxIPHeader_IPv6->ucNextHeader;
                 }
             }
-        #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+        #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 
         /* If the packet can be processed. */
         if( eReturn != eReleaseBuffer )
@@ -2451,13 +2452,13 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                  *  xProcessReceivedUDPPacket(), as soon as it's know that the message
                  *  will be handled.  This will prevent the ARP cache getting
                  *  overwritten with the IP address of useless broadcast packets. */
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                     {
                         vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPointIPv6 );
                     }
                     else
-                #endif /* ipconfigUSE_IPv6 */
+                #endif /* ipconfigUSE_IPV6 */
                 {
                     if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
                     {
@@ -2482,7 +2483,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                             break;
                     #endif
 
-                    #if ( ipconfigUSE_IPv6 != 0 )
+                    #if ( ipconfigUSE_IPV6 != 0 )
                         case ipPROTOCOL_ICMP_IPv6:
                             eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
                             break;
@@ -2577,38 +2578,38 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
         /* Send! */
-        // if( pxNetworkBuffer->pxEndPoint == NULL )
-        // {
-        //     /* _HT_ I wonder if this ad-hoc search of an end-point it necessary. */
-        //     FreeRTOS_printf( ( "vReturnEthernetFrame: No pxEndPoint yet for %lxip?\n", FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulDestinationIPAddress ) ) );
-        //     #if ( ipconfigUSE_IPv6 != 0 )
-        //         if( ( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType == ipIPv6_FRAME_TYPE )
-        //         {
-        //             /* To do */
-        //         }
-        //         else
-        //     #endif /* ipconfigUSE_IPv6 */
-        //     {
-        //         pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPPacket->xIPHeader.ulDestinationIPAddress, 7 );
-        //     }
-        // }
+        /* if( pxNetworkBuffer->pxEndPoint == NULL ) */
+        /* { */
+        /*     / * _HT_ I wonder if this ad-hoc search of an end-point it necessary. * / */
+        /*     FreeRTOS_printf( ( "vReturnEthernetFrame: No pxEndPoint yet for %lxip?\n", FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulDestinationIPAddress ) ) ); */
+        /*     #if ( ipconfigUSE_IPV6 != 0 ) */
+        /*         if( ( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType == ipIPv6_FRAME_TYPE ) */
+        /*         { */
+        /*             / * To do * / */
+        /*         } */
+        /*         else */
+        /*     #endif / * ipconfigUSE_IPV6 * / */
+        /*     { */
+        /*         pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPPacket->xIPHeader.ulDestinationIPAddress, 7 ); */
+        /*     } */
+        /* } */
 
-        // if( pxNetworkBuffer->pxEndPoint != NULL )
-        // {
-            NetworkInterface_t * pxInterface = pxNetworkBuffer->pxInterface; /*_RB_ Why not use the pxNetworkBuffer->pxNetworkInterface directly? */
+        /* if( pxNetworkBuffer->pxEndPoint != NULL ) */
+        /* { */
+        NetworkInterface_t * pxInterface = pxNetworkBuffer->pxInterface; /*_RB_ Why not use the pxNetworkBuffer->pxNetworkInterface directly? */
 
-            /* Swap source and destination MAC addresses. */
-            pvCopySource = &( pxIPPacket->xEthernetHeader.xSourceAddress );
-            pvCopyDest = &( pxIPPacket->xEthernetHeader.xDestinationAddress );
-            ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxIPPacket->xEthernetHeader.xDestinationAddress ) );
+        /* Swap source and destination MAC addresses. */
+        pvCopySource = &( pxIPPacket->xEthernetHeader.xSourceAddress );
+        pvCopyDest = &( pxIPPacket->xEthernetHeader.xDestinationAddress );
+        ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxIPPacket->xEthernetHeader.xDestinationAddress ) );
 
-            pvCopySource = pxNetworkBuffer->pxInterface->xMACAddress.ucBytes;
-            pvCopyDest = &( pxIPPacket->xEthernetHeader.xSourceAddress );
-            ( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
-            /* Send! */
-            iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-            ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xReleaseAfterSend );
-        //}
+        pvCopySource = pxNetworkBuffer->pxInterface->xMACAddress.ucBytes;
+        pvCopyDest = &( pxIPPacket->xEthernetHeader.xSourceAddress );
+        ( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+        /* Send! */
+        iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+        ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xReleaseAfterSend );
+        /*} */
     }
 }
 /*-----------------------------------------------------------*/
@@ -2625,7 +2626,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 
     pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         for( ;
              pxEndPoint != NULL;
              pxEndPoint = FreeRTOS_NextEndPoint_IPv4( NULL, pxEndPoint ) )
@@ -2635,7 +2636,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
                 break;
             }
         }
-    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* ( ipconfigUSE_IPV6 != 0 ) */
 
     /* Returns the IP address of the NIC. */
     if( pxEndPoint == NULL )
@@ -2907,7 +2908,7 @@ BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface
 #endif
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Get the size of the IP-header, by checking the type of the network buffer.
@@ -2932,7 +2933,7 @@ BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface
 
         return uxResult;
     }
-#else /* if ( ipconfigUSE_IPv6 != 0 ) */
+#else /* if ( ipconfigUSE_IPV6 != 0 ) */
 
 /**
  * @brief Get the size of an IPv4-header, independent of the network buffer.
@@ -2946,9 +2947,9 @@ BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface
 
         return ipSIZE_OF_IPv4_HEADER;
     }
-#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Get the size of the IP-header, by checking if the socket bIsIPv6 set.
@@ -2970,7 +2971,7 @@ BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface
 
         return uxResult;
     }
-#else /* if ( ipconfigUSE_IPv6 != 0 ) */
+#else /* if ( ipconfigUSE_IPV6 != 0 ) */
 
 /**
  * @brief Get the size of an IPv4-header, independent of the socket setting.
@@ -2984,7 +2985,7 @@ BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface
 
         return ipSIZE_OF_IPv4_HEADER;
     }
-#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 
 /* Provide access to private members for verification. */
 #ifdef FREERTOS_TCP_ENABLE_VERIFICATION

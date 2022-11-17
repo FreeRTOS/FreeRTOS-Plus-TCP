@@ -154,7 +154,7 @@
         struct
         {
             /* In order to avoid allocations, reserve space here for *ai_addr and *ai_canonname. */
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 struct freertos_sockaddr6 sockaddr6;
             #else
                 struct freertos_sockaddr sockaddr4;
@@ -283,7 +283,7 @@
  * Users may define this type of function as a callback.
  * It will be called when a DNS reply is received or when a timeout has been reached.
  */
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
                                             void * /* pvSearchID */,
                                             struct freertos_addrinfo * /* pxAddressInfo */ );
@@ -291,7 +291,7 @@
             typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
                                             void * /* pvSearchID */,
                                             uint32_t /* ulIPAddress */ );
-        #endif /* ipconfigUSE_IPv6 != 0 */
+        #endif /* ipconfigUSE_IPV6 != 0 */
 
 /** @brief The structure to hold information for a DNS callback. */
         typedef struct xDNS_Callback
@@ -301,7 +301,7 @@
             TimeOut_t uxTimeoutState;      /**< Timeout state. */
             void * pvSearchID;             /**< Search ID of the callback function. */
             struct xLIST_ITEM xListItem;   /**< List struct. */
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 /* Remember whether this was a IPv6 lookup. */
                 BaseType_t xIsIPv6;
             #endif
@@ -324,10 +324,10 @@
     {
         /* A struct that can hold either an IPv4 or an IPv6 address. */
         uint32_t ulIPAddress;             /**< The IPv4-address. */
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             IPv6_Address_t xAddress_IPv6; /**< The IPv6-address. */
             BaseType_t xIs_IPv6;          /**< pdTRUE if the IPv6 member is used. */
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        #endif /* ( ipconfigUSE_IPV6 != 0 ) */
     } IPv46_Address_t;
 
     #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) /*

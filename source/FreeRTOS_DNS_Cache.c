@@ -128,7 +128,7 @@
     }
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_DNS_CACHE == 1 ) && ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_DNS_CACHE == 1 ) && ( ipconfigUSE_IPV6 != 0 )
         uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
                                       IPv6_Address_t * pxAddress_IPv6 )
         {
@@ -150,7 +150,7 @@
 
             return ulReturn;
         }
-    #endif /* ( ipconfigUSE_DNS_CACHE == 1 ) && ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* ( ipconfigUSE_DNS_CACHE == 1 ) && ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -266,10 +266,10 @@
         for( x = 0; x < ( BaseType_t ) ipconfigDNS_CACHE_ENTRIES; x++ )
         {
             if( ( xDNSCache[ x ].pcName[ 0 ] != ( char ) 0 ) &&
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     /* IPv6 is enabled, See if the cache entry has the correct type. */
                     ( pxIP->xIs_IPv6 == xDNSCache[ x ].xAddresses[ 0 ].xIs_IPv6 ) &&
-                #endif /* ipconfigUSE_IPv6 != 0 */
+                #endif /* ipconfigUSE_IPV6 != 0 */
                 ( strcmp( xDNSCache[ x ].pcName, pcName ) == 0 ) )
             {
                 index = x;
@@ -442,13 +442,13 @@
             {
                 pxAddresses = &( xDNSCache[ xIndex ].xAddresses[ uxIPAddressIndex ] );
 
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     if( pxAddresses->xIs_IPv6 != pdFALSE )
                     {
                         pxNewAddress = pxNew_AddrInfo( xDNSCache[ xIndex ].pcName, FREERTOS_AF_INET6, pxAddresses->xAddress_IPv6.ucBytes );
                     }
                     else
-                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                #endif /* ( ipconfigUSE_IPV6 != 0 ) */
                 {
                     uint8_t * ucBytes = ( uint8_t * ) &( pxAddresses->ulIPAddress );
 
@@ -495,7 +495,7 @@
                 pxSet->usNumARecordsStored++; /* Track # of A records stored */
             }
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
                 {
                     char cBuffer[ 40 ];
@@ -508,7 +508,7 @@
                                        ( pxSet->xDoStore != 0 ) ? "" : " NOT" ) );
                 }
                 else
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
             {
                 char cBuffer[ 16 ];
 
@@ -531,7 +531,7 @@
         {
             uint32_t ulIPAddress = 0U;
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( xFamily == FREERTOS_AF_INET6 )
                 {
                     IPv46_Address_t xIPv46_Address;
@@ -559,14 +559,14 @@
                     }
                 }
                 else
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
             {
                 IPv46_Address_t xIPv46_Address;
                 BaseType_t xFound;
 
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     xIPv46_Address.xIs_IPv6 = pdFALSE;
-                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                #endif /* ( ipconfigUSE_IPV6 != 0 ) */
                 xFound = FreeRTOS_ProcessDNSCache( pcHostName, &( xIPv46_Address ), 0, pdTRUE, ppxAddressInfo );
 
                 if( xFound != 0 )

@@ -161,9 +161,9 @@ static UBaseType_t ulNextRand;
 /* It will have several end-points. */
     static NetworkEndPoint_IPv4_t xEndPoints[ 3 ];
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     static NetworkEndPoint_IPv6_t xEndPoints_IPv6[ 3 ];
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 
 /* A function from NetInterface.c to initialise the interface descriptor
  * of type 'NetworkInterface_t'. */
@@ -230,7 +230,7 @@ int main( void )
          *     IPv6   : 2001:470:ec54::4514:89d5:4589:8b79/128
          *     Gateway: fe80::9355:69c7:585a:afe7  // obtained from Router Advertisement
          */
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             {
                 IPv6_Address_t xIPAddress;
                 IPv6_Address_t xPrefix;
@@ -264,7 +264,7 @@ int main( void )
                     }
                 #endif /* ( ipconfigUSE_DHCPv6 != 0 ) */
             }
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        #endif /* ( ipconfigUSE_IPV6 != 0 ) */
         FreeRTOS_IPStart();
     #endif /* if ( ipconfigMULTI_INTERFACE == 0 ) || ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 ) */
     xTaskCreate( prvServerWorkTask, "SvrWork", mainTCP_SERVER_STACK_SIZE, NULL, mainTCP_SERVER_TASK_PRIORITY, NULL );

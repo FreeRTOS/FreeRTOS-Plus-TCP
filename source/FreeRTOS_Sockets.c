@@ -179,14 +179,14 @@ static int32_t prvSendUDPPacket( FreeRTOS_Socket_t * pxSocket,
                                  TickType_t xTicksToWait,
                                  size_t uxPayloadOffset );
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /** @brief Scan the binary IPv6 address and find the longest train of consecutive zero's.
  *         The result of this search will be stored in 'xZeroStart' and 'xZeroLength'. */
     static void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet );
 #endif
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
                                                  uint8_t ucNew,
                                                  char ch );
@@ -194,12 +194,12 @@ static int32_t prvSendUDPPacket( FreeRTOS_Socket_t * pxSocket,
 
 static uint8_t ucASCIIToHex( char cChar );
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 /** @brief Converts a hex value to a readable hex character, e.g. 14 becomes 'e'. */
     static char cHexToChar( unsigned short usValue );
 #endif
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /** @brief Converts a hex value to a readable hex character, *
  *         e.g. 14 becomes 'e'.static char cHexToChar( unsigned short usValue ); */
@@ -208,7 +208,7 @@ static uint8_t ucASCIIToHex( char cChar );
                                       uint16_t usValue );
 #endif
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     static void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet );
 #endif
 
@@ -392,7 +392,7 @@ static int32_t prvSendTo_ActualSend( FreeRTOS_Socket_t * pxSocket,
                                      const struct freertos_sockaddr * pxDestinationAddress,
                                      size_t uxPayloadOffset );
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /** @brief Called by pxTCPSocketLookup(), this function will check if a socket
  *         is connected to a remote IP-address. It will be called from a loop
@@ -523,7 +523,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
     else
     {
         /* Only Ethernet is currently supported. */
-        #if ( ipconfigUSE_IPv6 == 0 )
+        #if ( ipconfigUSE_IPV6 == 0 )
             {
                 configASSERT( xDomain == FREERTOS_AF_INET );
             }
@@ -1240,7 +1240,7 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
 
         if( pxNetworkBuffer != NULL )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 UDPPacket_IPv6_t * pxUDPPacketV6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
                 if( pxUDPPacketV6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
@@ -1261,7 +1261,7 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
                     xAddressLength = sizeof( struct freertos_sockaddr6 );
                 }
                 else
-            #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
             {
                 if( pxSourceAddress != NULL )
                 {
@@ -1363,12 +1363,12 @@ static int32_t prvSendUDPPacket( FreeRTOS_Socket_t * pxSocket,
     UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         BaseType_t xIsIPV6 = pdFALSE;
         UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
     #endif
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         if( pxDestinationAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
         {
             xIsIPV6 = pdTRUE;
@@ -1378,7 +1378,7 @@ static int32_t prvSendUDPPacket( FreeRTOS_Socket_t * pxSocket,
     pxNetworkBuffer->usPort = pxDestinationAddress->sin_port;
     pxNetworkBuffer->usBoundPort = ( uint16_t ) socketGET_SOCKET_PORT( pxSocket );
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         if( xIsIPV6 != 0 )
         {
             const struct freertos_sockaddr6 * pxDestinationAddress_IPv6 = ( ( const sockaddr6_t * ) pxDestinationAddress );
@@ -1390,7 +1390,7 @@ static int32_t prvSendUDPPacket( FreeRTOS_Socket_t * pxSocket,
             pxUDPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
         }
         else
-    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
     {
         pxNetworkBuffer->ulIPAddress = pxDestinationAddress->sin_addr;
         /* Map the UDP packet onto the start of the frame. */
@@ -1551,7 +1551,7 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
     configASSERT( pxDestinationAddress != NULL );
     configASSERT( pvBuffer != NULL );
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         if( pxDestinationAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
         {
             uxMaxPayloadLength = ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER );
@@ -1637,15 +1637,15 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
          * The desired port number will be passed in usLocalPort. */
         xBindEvent.eEventType = eSocketBindEvent;
         xBindEvent.pvData = xSocket;
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             {
                 pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
             }
-        #endif /* ipconfigUSE_IPv6 */
+        #endif /* ipconfigUSE_IPV6 */
 
         if( pxAddress != NULL )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
                 {
                     const struct freertos_sockaddr6 * pxAddress_IPv6 = ( ( const sockaddr6_t * ) pxAddress );
@@ -1729,7 +1729,7 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
         /* And also store it in a socket field 'usLocalPort' in host-byte-order,
          * mostly used for logging and debugging purposes */
         pxSocket->usLocalPort = FreeRTOS_ntohs( pxAddress->sin_port );
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
             {
                 struct freertos_sockaddr6 * pxAddress_IPv6 = ( ( sockaddr6_t * ) pxAddress );
@@ -1737,7 +1737,7 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
                 ( void ) memcpy( pxSocket->xLocalAddress_IPv6.ucBytes, pxAddress_IPv6->sin_addrv6.ucBytes, sizeof( pxSocket->xLocalAddress_IPv6.ucBytes ) );
             }
             else
-        #endif /* ipconfigUSE_IPv6 */
+        #endif /* ipconfigUSE_IPV6 */
         {
             if( pxAddress->sin_addr != FREERTOS_INADDR_ANY )
             {
@@ -2083,7 +2083,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
         #if ipconfigUSE_TCP == 1
             if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
             {
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
                     {
                         /* The use of snprintf() is discouraged by the MISRA rules.
@@ -2099,7 +2099,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                                            pxSocket->u.xTCP.usRemotePort );
                     }
                     else
-                #endif /* ipconfigUSE_IPv6 */
+                #endif /* ipconfigUSE_IPV6 */
                 {
                     ( void ) snprintf( pucReturn, sizeof( pucReturn ), "%xip port %u to %xip port %u",
                                        ( unsigned ) pxSocket->ulLocalAddress,
@@ -2113,7 +2113,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
         if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_UDP )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
                 {
                     ( void ) snprintf( pucReturn, sizeof( pucReturn ),
@@ -2122,7 +2122,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                                        pxSocket->usLocalPort );
                 }
                 else
-            #endif /* ipconfigUSE_IPv6 */
+            #endif /* ipconfigUSE_IPV6 */
             {
                 ( void ) snprintf( pucReturn, sizeof( pucReturn ),
                                    "%xip port %u",
@@ -3033,11 +3033,11 @@ BaseType_t FreeRTOS_inet_pton( BaseType_t xAddressFamily,
             xResult = FreeRTOS_inet_pton4( pcSource, pvDestination );
             break;
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 case FREERTOS_AF_INET6:
                     xResult = FreeRTOS_inet_pton6( pcSource, pvDestination );
                     break;
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
         default:
             xResult = -pdFREERTOS_ERRNO_EAFNOSUPPORT;
             break;
@@ -3076,11 +3076,11 @@ const char * FreeRTOS_inet_ntop( BaseType_t xAddressFamily,
             pcResult = FreeRTOS_inet_ntop4( pvSource, pcDestination, uxSize );
             break;
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 case FREERTOS_AF_INET6:
                     pcResult = FreeRTOS_inet_ntop6( pvSource, pcDestination, uxSize );
                     break;
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
         default:
             /* errno should be set to pdFREERTOS_ERRNO_EAFNOSUPPORT. */
             pcResult = NULL;
@@ -3129,7 +3129,7 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Converts a hex value to a readable hex character, e.g. 14 becomes 'e'.
@@ -3158,10 +3158,10 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 
         return cReturn;
     }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Convert a short numeric value to a hex string of at most 4 characters.
@@ -3207,10 +3207,10 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 
         return uxIndex;
     }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Scan the binary IPv6 address and find the longest train of consecutive zero's.
@@ -3260,10 +3260,10 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
             }
         }
     }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief The location is now at the longest train of zero's. Two colons have to
@@ -3314,10 +3314,10 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 
         return xReturn;
     }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Write a short value, as a hex number with at most 4 characters. E.g. the
@@ -3373,10 +3373,10 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 
         return xReturn;
     }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief This function converts a binary IPv6 address to a human readable notation.
@@ -3443,7 +3443,7 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 
         return pcReturn;
     }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -3591,7 +3591,7 @@ uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Converting a readable IPv6 address to its binary form, add one nibble.
@@ -3665,7 +3665,7 @@ uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
 
         return xReturn;
     }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -3712,7 +3712,7 @@ static uint8_t ucASCIIToHex( char cChar )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Convert an ASCII character to its corresponding hexadecimal value.
@@ -3739,10 +3739,10 @@ static uint8_t ucASCIIToHex( char cChar )
 
         pxSet->xTargetIndex = ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS;
     }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Convert an IPv6 address in hexadecimal notation to a binary format of 16 bytes.
@@ -3843,7 +3843,7 @@ static uint8_t ucASCIIToHex( char cChar )
 
         return xResult;
     }
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */
 /*-----------------------------------------------------------*/
 
 /**
@@ -3989,7 +3989,7 @@ BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
  * @return Size of the freertos_sockaddr structure.
  */
 /* *INDENT-OFF* */
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
                                      struct freertos_sockaddr6 * pxAddress6 )
 #else
@@ -4000,11 +4000,11 @@ BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
 {
     const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         struct freertos_sockaddr * pxAddress = ( ( sockaddr4_t * ) pxAddress6 );
-    #endif /* ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_IPV6 */
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
         {
             pxAddress6->sin_family = FREERTOS_AF_INET6;
@@ -4216,7 +4216,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE_UNSIGNED;
                 pxSocket->u.xTCP.ucRepCount = 0U;
 
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
                     {
                         const struct freertos_sockaddr6 * pxAddress_IPv6 = ( ( const sockaddr6_t * ) pxAddress );
@@ -4227,13 +4227,13 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                         ( void ) memcpy( pxSocket->u.xTCP.xRemoteIP_IPv6.ucBytes, pxAddress_IPv6->sin_addrv6.ucBytes, sizeof( pxSocket->xLocalAddress_IPv6.ucBytes ) );
                     }
                     else
-                #endif /* ipconfigUSE_IPv6 */
+                #endif /* ipconfigUSE_IPV6 */
                 {
-                    #if ( ipconfigUSE_IPv6 != 0 )
+                    #if ( ipconfigUSE_IPV6 != 0 )
                         {
                             pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
                         }
-                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                    #endif /* ( ipconfigUSE_IPV6 != 0 ) */
                     FreeRTOS_printf( ( "FreeRTOS_connect: %u to %lxip:%u\n",
                                        pxSocket->usLocalPort, FreeRTOS_ntohl( pxAddress->sin_addr ), FreeRTOS_ntohs( pxAddress->sin_port ) ) );
                 }
@@ -4398,7 +4398,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         if( pxClientSocket != NULL )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( pxClientSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
                 {
                     *pxAddressLength = sizeof( struct freertos_sockaddr6 );
@@ -4414,7 +4414,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     }
                 }
                 else
-            #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
             {
                 *pxAddressLength = sizeof( struct freertos_sockaddr );
 
@@ -5311,7 +5311,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 #endif /* ipconfigUSE_TCP */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Called by pxTCPSocketLookup(), this function will check if a socket
@@ -5355,7 +5355,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         return pxResult;
     }
-#endif /* ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_IPV6 != 0 ) */
 
 
 #if ( ipconfigUSE_TCP == 1 )
@@ -5376,10 +5376,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     FreeRTOS_Socket_t * pxTCPSocketLookup( UBaseType_t uxLocalPort,
                                            uint32_t ulRemoteIP,
                                            UBaseType_t uxRemotePort
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
                                                ,
                                                IPv6_Address_t * pxAddress_IPv6
-    #endif /* ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_IPV6 */
                                            )
     {
         const ListItem_t * pxIterator;
@@ -5402,11 +5402,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 }
                 else if( pxSocket->u.xTCP.usRemotePort == ( uint16_t ) uxRemotePort )
                 {
-                    #if ( ipconfigUSE_IPv6 != 0 )
+                    #if ( ipconfigUSE_IPV6 != 0 )
                         {
                             pxResult = pxTCPSocketLookup_IPv6( pxSocket, pxAddress_IPv6, ulRemoteIP );
                         }
-                    #else /* if ( ipconfigUSE_IPv6 != 0 ) */
+                    #else /* if ( ipconfigUSE_IPV6 != 0 ) */
                         {
                             if( pxSocket->u.xTCP.ulRemoteIP == ulRemoteIP )
                             {
@@ -5415,7 +5415,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                                 pxResult = pxSocket;
                             }
                         }
-                    #endif /* ipconfigUSE_IPv6 */
+                    #endif /* ipconfigUSE_IPV6 */
 
                     if( pxResult != NULL )
                     {
@@ -5741,17 +5741,17 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  */
 
 /* Function to get the remote address and IP port */
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         BaseType_t FreeRTOS_GetRemoteAddress( ConstSocket_t xSocket,
                                               struct freertos_sockaddr6 * pxAddress6 )
     #else
         BaseType_t FreeRTOS_GetRemoteAddress( ConstSocket_t xSocket,
                                               struct freertos_sockaddr * pxAddress )
-    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* ( ipconfigUSE_IPV6 != 0 ) */
     {
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             struct freertos_sockaddr * pxAddress = ( ( sockaddr4_t * ) pxAddress6 );
         #endif
         BaseType_t xResult;
@@ -5765,7 +5765,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* BSD style sockets communicate IP and port addresses in network
              * byte order.
              * IP address of remote machine. */
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
                 {
                     pxAddress6->sin_family = FREERTOS_AF_INET6;
@@ -5777,7 +5777,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     pxAddress6->sin_port = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
                 }
                 else
-            #endif /* ipconfigUSE_IPv6 */
+            #endif /* ipconfigUSE_IPV6 */
             {
                 pxAddress->sin_len = ( uint8_t ) sizeof( *pxAddress );
                 pxAddress->sin_family = FREERTOS_AF_INET;
@@ -5797,7 +5797,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #endif /* ipconfigUSE_TCP */
 
-#if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+#if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_IPV6 != 0 ) )
 
 /**
  * @brief Get the version of IP: either 'ipTYPE_IPv4' or 'ipTYPE_IPv6'.
@@ -5822,7 +5822,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         return xResult;
     }
-#endif /* if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
+#endif /* if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_IPV6 != 0 ) ) */
 
 /*-----------------------------------------------------------*/
 
@@ -6171,7 +6171,7 @@ portINLINE BaseType_t xSocketValid( ConstSocket_t xSocket )
     {
         char pcRemoteIp[ 40 ];
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             const int xIPWidth = 32;
         #else
             const int xIPWidth = 16;
@@ -6200,7 +6200,7 @@ portINLINE BaseType_t xSocketValid( ConstSocket_t xSocket )
             age = 999999U;
         }
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
             {
                 ( void ) snprintf( pcRemoteIp,
@@ -6254,7 +6254,7 @@ portINLINE BaseType_t xSocketValid( ConstSocket_t xSocket )
             const ListItem_t * pxEndTCP = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
             const ListItem_t * pxEndUDP = ( ( const ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 {
                     FreeRTOS_printf( ( "Prot Port IP-Remote                       : Port R/T Status         Alive  tmout Child\n" ) );
                 }

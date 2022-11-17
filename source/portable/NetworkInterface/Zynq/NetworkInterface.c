@@ -259,7 +259,7 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
         #if ( ipconfigUSE_LLMNR == 1 )
             {
                 /* Also add LLMNR multicast MAC address. */
-                #if ( ipconfigUSE_IPv6 == 0 )
+                #if ( ipconfigUSE_IPV6 == 0 )
                     {
                         XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAdress.ucBytes );
                     }
@@ -284,7 +284,7 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
 
                         XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAdressIPv6.ucBytes );
                     }
-                #endif /* if ( ipconfigUSE_IPv6 == 0 ) */
+                #endif /* if ( ipconfigUSE_IPV6 == 0 ) */
             }
         #endif /* ipconfigUSE_LLMNR == 1 */
 

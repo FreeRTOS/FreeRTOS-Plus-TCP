@@ -420,12 +420,12 @@
         IPHeader_t * pxIPHeader = NULL;
         ProtocolHeaders_t * pxProtocolHeaders;
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             BaseType_t xIsIPv6 = pdFALSE;
             IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
         #endif
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
             {
                 xIsIPv6 = pdTRUE;
@@ -441,7 +441,7 @@
         pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                               &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] ) );
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             if( xIsIPv6 == pdTRUE )
             {
                 /* When xIsIPv6 is true: Let lint know that
@@ -477,7 +477,7 @@
                 #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 */
             }
             else
-        #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+        #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
         {
             configASSERT( pxIPHeader ); /*_RB_ Potential uninitialised local variable warning issued, but can say for certain if it is genuine, hence assert() added. */
 
@@ -526,7 +526,7 @@
     {
         IPHeader_t * pxIPHeader = NULL;
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
         #endif
 
@@ -538,7 +538,7 @@
         {
             FreeRTOS_printf( ( "prvTCPReturnPacket: No pxEndPoint yet?\n" ) );
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
                 {
                     pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
@@ -552,7 +552,7 @@
                     }
                 }
                 else
-            #endif /* ipconfigUSE_IPv6 */
+            #endif /* ipconfigUSE_IPV6 */
             {
                 /*_RB_ Was FreeRTOS_FindEndPointOnIP_IPv4() but changed to FreeRTOS_FindEndPointOnNetMask()
                  * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */
@@ -780,7 +780,7 @@
     {
         ProtocolHeaders_t * pxProtocolHeaders = NULL;
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
             BaseType_t xIsIPv6 = pdFALSE;
         #endif
@@ -798,7 +798,7 @@
         /* Insert a do {} while(false) to be able to use breaks */
         do
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 {
                     if( pxNetworkBuffer != NULL )
                     {
@@ -819,7 +819,7 @@
                         }
                     }
                 }
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
 
             /* The test for pxSocket not being NULL is only added here to convince MISRA checkers. */
             if( ( pxNetworkBuffer == NULL ) && ( pxSocket != NULL ) )
@@ -830,7 +830,7 @@
                 pxNetworkBuffer->pucEthernetBuffer = pxSocket->u.xTCP.xPacket.u.ucLastPacket;
                 pxNetworkBuffer->xDataLength = sizeof( pxSocket->u.xTCP.xPacket.u.ucLastPacket );
                 pxEthernetHeader = ( ( EthernetHeader_t * ) pxSocket->u.xTCP.xPacket.u.ucLastPacket );
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     if( xIsIPv6 == pdTRUE )
                     {
                         pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
@@ -865,14 +865,14 @@
                 }
             #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( xIsIPv6 == pdTRUE )
                 {
                     /* Map the ethernet buffer onto a IPHeader_IPv6_t struct for easy access to the fields. */
                     pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
                 }
                 else
-            #endif /* ipconfigUSE_IPv6 */
+            #endif /* ipconfigUSE_IPV6 */
             {
                 /* Map the ethernet buffer onto a IPHeader_t struct for easy access to the fields. */
                 pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
@@ -946,7 +946,7 @@
             /* Swap-back some fields, as pxBuffer probably points to a socket field
              * containing the packet header. */
             vFlip_16( pxProtocolHeaders->xTCPHeader.usSourcePort, pxProtocolHeaders->xTCPHeader.usDestinationPort );
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( xIsIPv6 == pdTRUE )
                 {
                     if( pxIPHeader_IPv6 != NULL )
@@ -1027,9 +1027,9 @@
         eARPLookupResult_t eReturned;
         uint32_t ulRemoteIP;
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             IPv6_Address_t xRemoteIP;
-            NetworkEndPoint_IPv6_t* pxEndPointIPv6 = NULL;
+            NetworkEndPoint_IPv6_t * pxEndPointIPv6 = NULL;
         #endif
         MACAddress_t xEthAddress;
         BaseType_t xReturn = pdTRUE;
@@ -1046,10 +1046,7 @@
         #endif /* ipconfigHAS_PRINTF != 0 */
 
         /* See if the ARP/ND cache still contains the IP-address. */
-        #if ( ipconfigUSE_IPv6 != 0 )
-
-            
-
+        #if ( ipconfigUSE_IPV6 != 0 )
             if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
             {
                 ulRemoteIP = 0U;
@@ -1063,10 +1060,8 @@
                 }
             }
             else
-        #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+        #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
         {
-            
-
             ulRemoteIP = FreeRTOS_htonl( pxSocket->u.xTCP.ulRemoteIP );
 
             /* Determine the ARP cache status for the requested IP address. */
@@ -1098,7 +1093,7 @@
                 /* Count the number of times it could not find the ARP address. */
                 pxSocket->u.xTCP.ucRepCount++;
 
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
                     {
                         FreeRTOS_printf( ( "Looking up %pip with%s end-point\n", xRemoteIP.ucBytes, ( pxEndPoint != NULL ) ? "" : "out" ) );
@@ -1119,7 +1114,7 @@
                         }
                     }
                     else
-                #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+                #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
                 {
                     FreeRTOS_debug_printf( ( "ARP for %lxip (using %lxip): rc=%d %02X:%02X:%02X %02X:%02X:%02X\n",
                                              pxSocket->u.xTCP.ulRemoteIP,
@@ -1143,7 +1138,7 @@
         if( xReturn != pdFALSE )
         {
             uint32_t ulIPAddress = 0U;
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( pxEndPoint != NULL )
                 {
                     ulIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
@@ -1168,7 +1163,7 @@
 
             /* The MAC-address of the peer (or gateway) has been found, now prepare
              * the initial TCP packet and some fields in the socket. */
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
                 {
                     uxIPHeaderSize = ipSIZE_OF_IPv6_HEADER;
@@ -1197,7 +1192,7 @@
              * prvTCPReturnPacket(). */
             ( void ) memcpy( &pxTCPPacket->xEthernetHeader.xSourceAddress, &xEthAddress, sizeof( xEthAddress ) );
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
                 {
                     IPHeader_IPv6_t * pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxTCPPacket->xIPHeader ) );
@@ -1217,7 +1212,7 @@
                     pxEndPoint = pxSocket->pxEndPoint;
                 }
                 else
-            #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
             {
                 IPHeader_t * pxIPHeader = &( pxTCPPacket->xIPHeader );
                 uint16_t usLength;
@@ -1907,7 +1902,7 @@
             {
                 uint32_t ulSendLength;
 
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     /* Map the ethernet buffer onto the TCPPacket_t struct for easy access to the fields. */
                     TCPPacket_IPv6_t * pxTCPPacket_IPv6 = ( ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
@@ -1919,7 +1914,7 @@
                             ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */
                     }
                     else
-                #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+                #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
                 {
                     TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
                     ulSendLength =

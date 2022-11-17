@@ -246,7 +246,7 @@ void vCheckNetworkTimers( void )
             {
                 if( prvIPTimerCheck( &( pxEndPoint->xDHCP_RATimer ) ) != pdFALSE )
                 {
-                    if( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED  )
+                    if( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED )
                     {
                         ( void ) xSendDHCPEvent( pxEndPoint );
                     }
@@ -267,14 +267,14 @@ void vCheckNetworkTimers( void )
                 if( prvIPTimerCheck( &( pxEndPoint->xDHCP_RATimer ) ) != pdFALSE )
                 {
                     #if ( ipconfigUSE_DHCPv6 == 1 )
-                        if( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED  )
+                        if( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED )
                         {
                             ( void ) xSendDHCPv6Event( pxEndPoint );
                         }
                     #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
                     #if ( ipconfigUSE_RA != 0 )
-                        if( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED)
+                        if( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED )
                         {
                             vRAProcess( pdFALSE, pxEndPoint );
                         }
@@ -445,7 +445,7 @@ void vARPTimerReload( TickType_t xTime )
  * @param[in] uxClockTicks: The number of clock-ticks after which the timer should expire.
  */
     void vDHCP_TimerReload( NetworkEndPoint_IPv4_t * pxEndPoint,
-                              TickType_t uxClockTicks )
+                            TickType_t uxClockTicks )
     {
         FreeRTOS_printf( ( "vDHCP_TimerReload: %lu\n", uxClockTicks ) );
         prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
@@ -462,7 +462,7 @@ void vARPTimerReload( TickType_t xTime )
  * @param[in] uxClockTicks: The number of clock-ticks after which the timer should expire.
  */
     void vDHCPv6_RATimerReload( NetworkEndPoint_IPv6_t * pxEndPoint,
-                              TickType_t uxClockTicks )
+                                TickType_t uxClockTicks )
     {
         FreeRTOS_printf( ( "vDHCPv6_RATimerReload: %lu\n", uxClockTicks ) );
         prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
@@ -595,7 +595,7 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_DHCP == 1 ) 
+#if ( ipconfigUSE_DHCP == 1 )
 
 /**
  * @brief Enable or disable the DHCP/DHCPv6/RA timer.
@@ -604,7 +604,7 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
  * @param[in] xEnableState: pdTRUE if the timer must be enabled, pdFALSE otherwise.
  */
     void vIPSetDHCP_TimerEnableState( struct xNetworkEndPoint_IPv4 * pxEndPoint,
-                                        BaseType_t xEnableState )
+                                      BaseType_t xEnableState )
     {
         FreeRTOS_printf( ( "vIPSetDHCP_TimerEnableState: %s\n", ( xEnableState != 0 ) ? "On" : "Off" ) );
 
@@ -631,7 +631,7 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
  * @param[in] xEnableState: pdTRUE if the timer must be enabled, pdFALSE otherwise.
  */
     void vIPSetDHCPv6_RATimerEnableState( struct xNetworkEndPoint_IPv6 * pxEndPoint,
-                                        BaseType_t xEnableState )
+                                          BaseType_t xEnableState )
     {
         FreeRTOS_printf( ( "vIPSetDHCP_RATimerEnableState: %s\n", ( xEnableState != 0 ) ? "On" : "Off" ) );
 

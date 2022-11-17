@@ -99,7 +99,7 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
     void vIPSetDHCP_TimerEnableState( NetworkEndPoint_IPv4_t * pxEndPoint,
-                                        BaseType_t xEnableState );
+                                      BaseType_t xEnableState );
 #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
 #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 )
@@ -110,7 +110,7 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
     void vIPSetDHCPv6_RATimerEnableState( NetworkEndPoint_IPv6_t * pxEndPoint,
-                                        BaseType_t xEnableState );
+                                          BaseType_t xEnableState );
 #endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
 
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
@@ -133,12 +133,12 @@ void vARPTimerReload( TickType_t xTime );
 void vTCPTimerReload( TickType_t xTime );
 #if ( ipconfigUSE_DHCP == 1 )
     void vDHCP_TimerReload( NetworkEndPoint_IPv4_t * pxEndPoint,
-                              TickType_t uxClockTicks );
+                            TickType_t uxClockTicks );
 #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
 #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 )
     void vDHCPv6_RATimerReload( NetworkEndPoint_IPv6_t * pxEndPoint,
-                              TickType_t uxClockTicks );
+                                TickType_t uxClockTicks );
 #endif /* ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_RA == 1 ) */
 
 

@@ -49,7 +49,7 @@
     extern const MACAddress_t xLLMNR_MacAdress;
 #endif /* ipconfigUSE_LLMNR */
 
-#if ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPV6 != 0 )
 
 /* The LLMNR IPv6 address is ff02::1:3 */
     extern const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6;
@@ -63,7 +63,7 @@
     extern const MACAddress_t xMDNS_MacAdress;
 #endif /* ipconfigUSE_MDNS */
 
-#if ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPV6 != 0 )
 
 /* The MDNS IPv6 address is ff02::1:3 */
     extern const IPv6_Address_t ipMDNS_IP_ADDR_IPv6;
@@ -79,7 +79,7 @@ typedef enum xIPPreference
 {
     xPreferenceNone,
     xPreferenceIPv4,
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         xPreferenceIPv6,
     #endif
 } IPPreference_t;
@@ -131,7 +131,7 @@ uint32_t FreeRTOS_gethostbyname( const char * pcHostName );
 
 /*
  * FreeRTOS_getaddrinfo() replaces FreeRTOS_gethostbyname().
- * When 'ipconfigUSE_IPv6' is defined, it can also retrieve IPv6 addresses,
+ * When 'ipconfigUSE_IPV6' is defined, it can also retrieve IPv6 addresses,
  * in case pxHints->ai_family equals FREERTOS_AF_INET6.
  * Otherwise, or when pxHints is NULL, only IPv4 addresses will be returned.
  */

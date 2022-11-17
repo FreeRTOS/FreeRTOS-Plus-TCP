@@ -191,7 +191,7 @@ struct freertos_sockaddr
     uint8_t sin_family;                               /**< Set to FREERTOS_AF_INET. */
     uint16_t sin_port;                                /**< The port number in network-endian format. */
     uint32_t sin_addr;                                /**< The IP-address in network-endian format. */
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ]; /**< Make sure that the IPv4 and IPv6 socket addresses have an equal size. */
     #endif
 };
@@ -199,7 +199,7 @@ struct freertos_sockaddr
 /** @brief Introduce a short name to make casting easier. */
 typedef struct freertos_sockaddr sockaddr4_t;
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     struct freertos_sockaddr6
     {
         uint8_t sin_len;           /**< Ignored, still present for backward compatibility. */
@@ -210,7 +210,7 @@ typedef struct freertos_sockaddr sockaddr4_t;
     };
     /** @brief Introduce a short name to make casting easier. */
     typedef struct freertos_sockaddr6 sockaddr6_t;
-#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 
 /* In earlier release, FreeRTOS_inet_ntoa was a macro that used snprintf(),
  * which was not MISRA compliant. Now it has become a normal function that
@@ -276,8 +276,8 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
                           socklen_t xAddressLength );
 
 /* function to get the local address and IP port */
-/* Note that when 'ipconfigUSE_IPv6 != 0', freertos_sockaddr can be interpreted as a freertos_sockaddr6. */
-#if ( ipconfigUSE_IPv6 != 0 )
+/* Note that when 'ipconfigUSE_IPV6 != 0', freertos_sockaddr can be interpreted as a freertos_sockaddr6. */
+#if ( ipconfigUSE_IPV6 != 0 )
     size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
                                      struct freertos_sockaddr6 * pxAddress6 );
 #else
@@ -325,8 +325,8 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
 
     #if ( ipconfigUSE_TCP == 1 )
 
-/* Note that when 'ipconfigUSE_IPv6 != 0', freertos_sockaddr can be interpreted as a freertos_sockaddr6. */
-        #if ( ipconfigUSE_IPv6 != 0 )
+/* Note that when 'ipconfigUSE_IPV6 != 0', freertos_sockaddr can be interpreted as a freertos_sockaddr6. */
+        #if ( ipconfigUSE_IPV6 != 0 )
             BaseType_t FreeRTOS_GetRemoteAddress( ConstSocket_t xSocket,
                                                   struct freertos_sockaddr6 * pxAddress6 );
         #else
@@ -334,7 +334,7 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
                                                   struct freertos_sockaddr * pxAddress );
         #endif
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             /* Get the type of IP: either 'ipTYPE_IPv4' or 'ipTYPE_IPv6'. */
             BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket );
         #else
@@ -473,7 +473,7 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
                                   char * pcDestination,
                                   socklen_t uxSize );
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /*
  * Convert a string like 'fe80::8d11:cd9b:8b66:4a80'
@@ -484,7 +484,7 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
     const char * FreeRTOS_inet_ntop6( const void * pvSource,
                                       char * pcDestination,
                                       socklen_t uxSize );
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */
 
 /** @brief This function converts a 48-bit MAC address to a human readable string. */
 

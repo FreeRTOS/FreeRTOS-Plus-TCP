@@ -1168,7 +1168,7 @@
             macinit.DestinationAddrFilter = ETH_DESTINATIONADDRFILTER_NORMAL;
             macinit.PromiscuousMode = ETH_PROMISCUOUS_MODE_DISABLE;
 
-            #if ( ipconfigMULTI_INTERFACE != 0 ) && ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigMULTI_INTERFACE != 0 ) && ( ipconfigUSE_IPV6 != 0 )
 
                 /* _HT_ to be sorted out:
                  * IPv6 needs several multicast addresses.

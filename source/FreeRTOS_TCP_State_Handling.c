@@ -847,11 +847,12 @@
         const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
         FreeRTOS_Socket_t * pxReturn = NULL;
         uint32_t ulInitialSequenceNumber;
-        #if (ipconfigUSE_IPv6 != 0)
-        NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkBuffer->pxEndPointIPv6;
+
+        #if ( ipconfigUSE_IPV6 != 0 )
+            NetworkEndPoint_IPv6_t * pxEndPoint = pxNetworkBuffer->pxEndPointIPv6;
         #else
-        NetworkEndPoint_IPv4_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
-        #endif 
+            NetworkEndPoint_IPv4_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+        #endif
 
         /* Assume that a new Initial Sequence Number will be required. Request
          * it now in order to fail out if necessary. */
@@ -922,23 +923,24 @@
             pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                   &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
 
-            #if (ipconfigUSE_IPv6 !=0 )
-            if( pxNetworkBuffer->pxEndPointIPv6 != NULL )
-            {
-                pxReturn->pxEndPointIPv6 = pxNetworkBuffer->pxEndPointIPv6;
-            }
-            configASSERT( pxReturn->pxEndPointIPv6 != NULL );
+            #if ( ipconfigUSE_IPV6 != 0 )
+                if( pxNetworkBuffer->pxEndPointIPv6 != NULL )
+                {
+                    pxReturn->pxEndPointIPv6 = pxNetworkBuffer->pxEndPointIPv6;
+                }
+
+                configASSERT( pxReturn->pxEndPointIPv6 != NULL );
             #else
-            if( pxNetworkBuffer->pxEndPoint != NULL )
-            {
-                pxReturn->pxEndPoint = pxNetworkBuffer->pxEndPoint;
-            }
-            configASSERT( pxReturn->pxEndPoint != NULL );
-            #endif
+                if( pxNetworkBuffer->pxEndPoint != NULL )
+                {
+                    pxReturn->pxEndPoint = pxNetworkBuffer->pxEndPoint;
+                }
+                configASSERT( pxReturn->pxEndPoint != NULL );
+            #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 
-            
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
                 {
                     pxReturn->bits.bIsIPv6 = pdTRUE_UNSIGNED;
@@ -947,11 +949,11 @@
                 {
                     pxReturn->bits.bIsIPv6 = pdFALSE_UNSIGNED;
                 }
-            #endif /* ipconfigUSE_IPv6 */
+            #endif /* ipconfigUSE_IPV6 */
 
             pxReturn->u.xTCP.usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
                 {
                     const IPHeader_IPv6_t * pxIPHeader_IPv6;
@@ -961,13 +963,12 @@
                     ( void ) memcpy( pxReturn->u.xTCP.xRemoteIP_IPv6.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     pxReturn->u.xTCP.ulRemoteIP = 0;
                 }
-                
-            #else /* ipconfigUSE_IPv6 */
-            {
-                pxReturn->ulLocalAddress = FreeRTOS_ntohl( pxReturn->pxEndPoint->ipv4_settings.ulIPAddress );
-                pxReturn->u.xTCP.ulRemoteIP = FreeRTOS_htonl( pxTCPPacket->xIPHeader.ulSourceIPAddress );
-            }
-            #endif /* ipconfigUSE_IPv6 */
+            #else /* ipconfigUSE_IPV6 */
+                {
+                    pxReturn->ulLocalAddress = FreeRTOS_ntohl( pxReturn->pxEndPoint->ipv4_settings.ulIPAddress );
+                    pxReturn->u.xTCP.ulRemoteIP = FreeRTOS_htonl( pxTCPPacket->xIPHeader.ulSourceIPAddress );
+                }
+            #endif /* ipconfigUSE_IPV6 */
 
             FreeRTOS_printf( ( "Connection accepted on %s\n",
                                prvSocketProps( pxReturn ) ) );

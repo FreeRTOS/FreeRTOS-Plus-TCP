@@ -216,7 +216,7 @@ static void prvEthernetUpdateConfig( BaseType_t xForce );
  */
 static BaseType_t prvNetworkInterfaceInput( void );
 
-#if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_IPV6 != 0 )
 
 /*
  * For LLMNR, an extra MAC-address must be configured to
@@ -536,7 +536,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
                     xMACEntry += 8;
                 }
             #endif
-            #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+            #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPV6 != 0 ) )
                 {
                     prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
                     xMACEntry += 8;
@@ -549,7 +549,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
                     xMACEntry += 8;
                 }
             #endif
-            #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+            #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPV6 != 0 ) )
                 {
                     prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xLLMNR_MacAdressIPv6.ucBytes );
                     xMACEntry += 8;
@@ -562,7 +562,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
                      pxEndPoint != NULL;
                      pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
                 {
-                    #if ( ipconfigUSE_IPv6 != 0 )
+                    #if ( ipconfigUSE_IPV6 != 0 )
                         if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
                         {
                             uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
@@ -574,7 +574,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
                             xMACEntry += 8;
                         }
                         else
-                    #else /* if ( ipconfigUSE_IPv6 != 0 ) */
+                    #else /* if ( ipconfigUSE_IPV6 != 0 ) */
                         {
                             if( xETH.Init.MACAddr != ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes )
                             {
@@ -582,7 +582,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
                                 xMACEntry += 8;
                             }
                         }
-                    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+                    #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
                     if( xMACEntry > ( BaseType_t ) ETH_MAC_ADDRESS3 )
                     {
                         /* No more locations available. */
@@ -590,7 +590,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
                     }
                 }
             }
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 {
                     if( xMACEntry <= ( BaseType_t ) ETH_MAC_ADDRESS3 )
                     {
@@ -601,7 +601,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
                         xMACEntry += 8;
                     }
                 }
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
 
             /* Force a negotiation with the Switch or Router and wait for LS. */
             prvEthernetUpdateConfig( pdTRUE );
@@ -812,7 +812,7 @@ static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
                 const IPPacket_t * pxIPPacket;
 
                 pxIPPacket = ipPOINTER_CAST( const IPPacket_t *, pxDescriptor->pucEthernetBuffer );
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                     {
                         const IPHeader_IPv6_t * pxIPPacket_IPv6;
@@ -828,7 +828,7 @@ static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
                         }
                     }
                     else
-                #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+                #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 
                 if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
                 {

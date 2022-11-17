@@ -394,7 +394,7 @@
          * ( LinkLayer length (14) + IP header length (20) + size of TCP header(20 +) ).*/
         lReceiveLength = ipNUMERIC_CAST( int32_t, pxNetworkBuffer->xDataLength ) - ( int32_t ) ipSIZE_OF_ETH_HEADER;
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             if( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
             {
                 IPHeader_IPv6_t * pxIPHeader = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
@@ -407,7 +407,7 @@
                 lLength += ( int32_t ) sizeof( IPHeader_IPv6_t );
             }
             else
-        #endif /* ipconfigUSE_IPv6 */
+        #endif /* ipconfigUSE_IPV6 */
         {
             IPHeader_t * pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
             uint16_t usLength;

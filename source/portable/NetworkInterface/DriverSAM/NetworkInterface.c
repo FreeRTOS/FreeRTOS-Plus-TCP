@@ -670,7 +670,7 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
         }
     #endif /* ipconfigUSE_LLMNR */
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         {
             NetworkEndPoint_t * pxEndPoint;
             #if ( ipconfigUSE_LLMNR == 1 )
@@ -694,7 +694,7 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
                 }
             }
         }
-    #endif /* ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_IPV6 */
 
     {
         /* Set MDC clock divider. */

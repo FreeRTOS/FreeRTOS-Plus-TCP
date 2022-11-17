@@ -104,7 +104,7 @@ struct xIP_HEADER
 #include "pack_struct_end.h"
 typedef struct xIP_HEADER IPHeader_t;
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     #include "pack_struct_start.h"
     struct xIP_HEADER_IPv6
     {
@@ -119,7 +119,7 @@ typedef struct xIP_HEADER IPHeader_t;
     }
     #include "pack_struct_end.h"
     typedef struct xIP_HEADER_IPv6 IPHeader_IPv6_t;
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */
 #include "pack_struct_start.h"
 struct xICMP_HEADER
 {
@@ -132,7 +132,7 @@ struct xICMP_HEADER
 #include "pack_struct_end.h"
 typedef struct xICMP_HEADER ICMPHeader_t;
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     #include "pack_struct_start.h"
     struct xICMPHeader_IPv6
     {
@@ -147,9 +147,9 @@ typedef struct xICMP_HEADER ICMPHeader_t;
     }
     #include "pack_struct_end.h"
     typedef struct xICMPHeader_IPv6 ICMPHeader_IPv6_t;
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     #include "pack_struct_start.h"
     struct xICMPEcho_IPv6
     {
@@ -161,7 +161,7 @@ typedef struct xICMP_HEADER ICMPHeader_t;
     }
     #include "pack_struct_end.h"
     typedef struct xICMPEcho_IPv6 ICMPEcho_IPv6_t;
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */
 
 #include "pack_struct_start.h"
 struct xICMPRouterSolicitation_IPv6
@@ -174,7 +174,7 @@ struct xICMPRouterSolicitation_IPv6
 #include "pack_struct_end.h"
 typedef struct xICMPRouterSolicitation_IPv6 ICMPRouterSolicitation_IPv6_t;
 
-#if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 )
+#if ( ipconfigUSE_IPV6 != 0 ) && ( ipconfigUSE_RA != 0 )
     #include "pack_struct_start.h"
     struct xICMPRouterAdvertisement_IPv6
     {
@@ -189,9 +189,9 @@ typedef struct xICMPRouterSolicitation_IPv6 ICMPRouterSolicitation_IPv6_t;
     }
     #include "pack_struct_end.h"
     typedef struct xICMPRouterAdvertisement_IPv6 ICMPRouterAdvertisement_IPv6_t;
-#endif /* ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) && ( ipconfigUSE_RA != 0 ) */
 
-#if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 )
+#if ( ipconfigUSE_IPV6 != 0 ) && ( ipconfigUSE_RA != 0 )
     /* This is an option with the Router Advertisement. */
     #include "pack_struct_start.h"
     struct xICMPPrefixOption_IPv6
@@ -207,7 +207,7 @@ typedef struct xICMPRouterSolicitation_IPv6 ICMPRouterSolicitation_IPv6_t;
     }
     #include "pack_struct_end.h"
     typedef struct xICMPPrefixOption_IPv6 ICMPPrefixOption_IPv6_t;
-#endif /* if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 ) */
+#endif /* if ( ipconfigUSE_IPV6 != 0 ) && ( ipconfigUSE_RA != 0 ) */
 
 #include "pack_struct_start.h"
 struct xUDP_HEADER
@@ -261,7 +261,7 @@ struct xIP_PACKET
 #include "pack_struct_end.h"
 typedef struct xIP_PACKET IPPacket_t;
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     #include "pack_struct_start.h"
     struct xIP_PACKET_IPv6
     {
@@ -271,7 +271,7 @@ typedef struct xIP_PACKET IPPacket_t;
     #include "pack_struct_end.h"
     typedef struct xIP_PACKET_IPv6 IPPacket_IPv6_t;
 
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */
 
 #include "pack_struct_start.h"
 struct xICMP_PACKET
@@ -283,7 +283,7 @@ struct xICMP_PACKET
 #include "pack_struct_end.h"
 typedef struct xICMP_PACKET ICMPPacket_t;
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     #include "pack_struct_start.h"
     struct xICMP_PACKET_IPv6
     {
@@ -293,7 +293,7 @@ typedef struct xICMP_PACKET ICMPPacket_t;
     }
     #include "pack_struct_end.h"
     typedef struct xICMP_PACKET_IPv6 ICMPPacket_IPv6_t;
-#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 
 #include "pack_struct_start.h"
 struct xUDP_PACKET
@@ -305,7 +305,7 @@ struct xUDP_PACKET
 #include "pack_struct_end.h"
 typedef struct xUDP_PACKET UDPPacket_t;
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     #include "pack_struct_start.h"
     struct xUDP_PACKET_IPv6
     {
@@ -315,7 +315,7 @@ typedef struct xUDP_PACKET UDPPacket_t;
     }
     #include "pack_struct_end.h"
     typedef struct xUDP_PACKET_IPv6 UDPPacket_IPv6_t;
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */
 
 #include "pack_struct_start.h"
 struct xTCP_PACKET
@@ -327,7 +327,7 @@ struct xTCP_PACKET
 #include "pack_struct_end.h"
 typedef struct xTCP_PACKET TCPPacket_t;
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     #include "pack_struct_start.h"
     struct xTCP_PACKET_IPv6
     {
@@ -337,7 +337,7 @@ typedef struct xTCP_PACKET TCPPacket_t;
     }
     #include "pack_struct_end.h"
     typedef struct xTCP_PACKET_IPv6 TCPPacket_IPv6_t;
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */
 
 /**
  * Union for the protocol packet to save space. Any packet cannot have more than one
@@ -360,7 +360,7 @@ typedef union xPROT_HEADERS
     ICMPHeader_t xICMPHeader;              /**< Union member: ICMP header */
     UDPHeader_t xUDPHeader;                /**< Union member: UDP header */
     TCPHeader_t xTCPHeader;                /**< Union member: TCP header */
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         ICMPHeader_IPv6_t xICMPHeaderIPv6; /**< Union member: ICMPv6 header */
     #endif
 } ProtocolHeaders_t;
@@ -369,7 +369,7 @@ typedef union xPROT_HEADERS
  * usGenerateProtocolChecksum(). */
 struct xPacketSummary
 {
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         BaseType_t xIsIPv6;                      /**< pdTRUE for IPv6 packets. */
         const IPHeader_IPv6_t * pxIPPacket_IPv6; /**< A pointer to the IPv6 header. */
     #endif
@@ -388,7 +388,7 @@ struct xPacketSummary
 };
 
 /* The maximum UDP payload length. */
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     #define ipMAX_UDP_PAYLOAD_LENGTH    ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv6_HEADER ) - ipSIZE_OF_UDP_HEADER )
 #else
     #define ipMAX_UDP_PAYLOAD_LENGTH    ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
@@ -411,7 +411,7 @@ typedef enum
     eNetworkTxEvent,    /* 2: Let the IP-task send a network packet. */
     eARPTimerEvent,     /* 3: The ARP timer expired. */
     eStackTxEvent,      /* 4: The software stack has queued a packet to transmit. */
-    eDHCP_Event,     /* 5: Process the DHCP or RA/SLAAC state machine. */
+    eDHCP_Event,        /* 5: Process the DHCP or RA/SLAAC state machine. */
     eDHCPv6_RA_Event,
     eTCPTimerEvent,     /* 6: See if any TCP socket needs attention. */
     eTCPAcceptEvent,    /* 7: Client API FreeRTOS_accept() waiting for client connections. */
@@ -627,10 +627,10 @@ extern void vSetField32helper( uint8_t * pucBase,
 #ifndef _WINDOWS_
     /** @brief Macro calculates the number of elements in an array as a size_t. */
     #ifndef ARRAY_SIZE_X
-        #define ARRAY_SIZE_X( x )                            \
-    ( { size_t uxCount = ( sizeof( x ) / sizeof( x )[ 0 ] ); \
-        BaseType_t xCount = ( BaseType_t ) uxCount;          \
-        xCount; }                                            \
+        #define ARRAY_SIZE_X( x )                                \
+    ( { size_t uxCount = ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ); \
+        BaseType_t xCount = ( BaseType_t ) uxCount;              \
+        xCount; }                                                \
     )
     #endif
 #else
@@ -732,7 +732,7 @@ BaseType_t xIPIsNetworkTaskReady( void );
             /* The next field only serves to give 'ucLastPacket' a correct
              * alignment of 8 + 2.  See comments in FreeRTOS_IP.h */
             uint8_t ucFillPacket[ ipconfigPACKET_FILLER_SIZE ];
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 uint8_t ucLastPacket[ sizeof( TCPPacket_IPv6_t ) ];
             #else
                 uint8_t ucLastPacket[ sizeof( TCPPacket_t ) ];
@@ -749,7 +749,7 @@ BaseType_t xIPIsNetworkTaskReady( void );
     typedef struct TCPSOCKET
     {
         uint32_t ulRemoteIP; /**< IP address of remote machine */
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             IPv6_Address_t xRemoteIP_IPv6;
         #endif
         uint16_t usRemotePort; /**< Port on remote machine */
@@ -877,9 +877,9 @@ typedef struct xSOCKET
     struct
     {
         uint32_t
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             bIsIPv6 : 1, /**< Non-zero in case the connection is using IPv6. */
-        #endif /* ipconfigUSE_IPv6 */
+        #endif /* ipconfigUSE_IPV6 */
         bSomeFlag : 1;
     } bits;                          /**< A collection of boolean properties. */
 
@@ -888,7 +888,7 @@ typedef struct xSOCKET
     TickType_t xSendBlockTime;       /**< if send[to] is called while there is not enough space to send, wait this amount of time. Unit in clock-ticks */
 
     uint32_t ulLocalAddress;         /**< Local IP address */
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         IPv6_Address_t xLocalAddress_IPv6;
         struct xNetworkEndPoint_IPv6 * pxEndPointIPv6;
     #endif
@@ -903,11 +903,11 @@ typedef struct xSOCKET
     #endif /* ipconfigSOCKET_HAS_USER_WAKE_CALLBACK */
 
     #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-        struct xSOCKET_SET * pxSocketSet; /**< Pointer to the socket set structure */
-        EventBits_t xSelectBits;          /**< User may indicate which bits are interesting for this socket. */
+        struct xSOCKET_SET * pxSocketSet;      /**< Pointer to the socket set structure */
+        EventBits_t xSelectBits;               /**< User may indicate which bits are interesting for this socket. */
 
-        EventBits_t xSocketBits;          /**< These bits indicate the events which have actually occurred.
-                                           * They are maintained by the IP-task */
+        EventBits_t xSocketBits;               /**< These bits indicate the events which have actually occurred.
+                                                * They are maintained by the IP-task */
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
     struct xNetworkEndPoint_IPv4 * pxEndPoint; /**< The end-point to which the socket is bound. */
     /* TCP/UDP specific fields: */
@@ -940,10 +940,10 @@ typedef struct xSOCKET
     FreeRTOS_Socket_t * pxTCPSocketLookup( UBaseType_t uxLocalPort,
                                            uint32_t ulRemoteIP,
                                            UBaseType_t uxRemotePort
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
                                                ,
                                                IPv6_Address_t * pxAddress_IPv6
-    #endif /* ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_IPV6 */
                                            );
 
 #endif /* ipconfigUSE_TCP */
@@ -1092,9 +1092,9 @@ BaseType_t xIsCallingFromIPTask( void );
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
 /* Send the network-up event and start the ARP timer. */
-void vIPNetworkUpCalls( );
+void vIPNetworkUpCalls();
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
  * It handles all ICMP messages except the PING requests. */

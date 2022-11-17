@@ -90,7 +90,7 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface );
 void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
                                   MACAddress_t * pxMACAddress );
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     /* Set the MAC-address that belongs to a given IPv6 multi-cast address. */
     void vSetMultiCastIPv6MacAddress( IPv6_Address_t * pxAddress,
                                       MACAddress_t * pxMACAddress );

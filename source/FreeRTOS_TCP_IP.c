@@ -595,9 +595,9 @@
         FreeRTOS_Socket_t * pxSocket;
         uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             IPv6_Address_t * pxRemoteAddres;
-        #endif /* ipconfigUSE_IPv6 */
+        #endif /* ipconfigUSE_IPV6 */
         uint16_t xLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
         uint16_t xRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
         uint32_t ulRemoteIP;
@@ -614,7 +614,7 @@
                 break;
             }
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
                 {
                     IPHeader_IPv6_t * pxIPHeader_IPv6;
@@ -628,7 +628,7 @@
                     pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( xLocalPort, ulRemoteIP, xRemotePort, pxRemoteAddres );
                 }
                 else
-            #endif /* ipconfigUSE_IPv6 */
+            #endif /* ipconfigUSE_IPV6 */
             {
                 IPHeader_t * pxIPHeader;
                 pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
@@ -637,9 +637,9 @@
                 /* Find the destination socket, and if not found: return a socket listing to
                  * the destination PORT. */
                 pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( xLocalPort, ulRemoteIP, xRemotePort
-                                                                      #if ( ipconfigUSE_IPv6 != 0 )
+                                                                      #if ( ipconfigUSE_IPV6 != 0 )
                                                                           , NULL
-                                                                      #endif /* ipconfigUSE_IPv6 */
+                                                                      #endif /* ipconfigUSE_IPV6 */
                                                                       );
             }
 

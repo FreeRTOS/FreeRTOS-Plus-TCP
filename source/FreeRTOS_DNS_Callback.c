@@ -47,7 +47,7 @@
     static List_t xCallbackList;
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief A DNS reply was received, see if there is any matching entry and
@@ -71,7 +71,7 @@
  */
         BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
                                    uint32_t ulIPAddress )
-    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* ( ipconfigUSE_IPV6 != 0 ) */
     {
         BaseType_t xResult = pdFALSE;
         const ListItem_t * pxIterator;
@@ -129,7 +129,7 @@
 
         if( pCallbackFunction != NULL )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 {
                     pCallbackFunction( pxSet->pcName, pvSearchID, pxAddress );
                 }
@@ -144,7 +144,7 @@
     }
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief FreeRTOS_gethostbyname_a() was called along with callback parameters.
@@ -180,7 +180,7 @@
                               FOnDNSEvent pCallbackFunction,
                               TickType_t uxTimeout,
                               TickType_t uxIdentifier )
-    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* ( ipconfigUSE_IPV6 != 0 ) */
     {
         size_t uxLength = strlen( pcHostName );
         DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) pvPortMalloc( sizeof( *pxCallback ) + uxLength ) );
@@ -200,11 +200,11 @@
             pxCallback->pCallbackFunction = pCallbackFunction;
             pxCallback->pvSearchID = pvSearchID;
             pxCallback->uxRemainingTime = uxTimeout;
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 {
                     pxCallback->xIsIPv6 = xIsIPv6;
                 }
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
             vTaskSetTimeOutState( &( pxCallback->uxTimeoutState ) );
             listSET_LIST_ITEM_OWNER( &( pxCallback->xListItem ), ( void * ) pxCallback );
             listSET_LIST_ITEM_VALUE( &( pxCallback->xListItem ), uxIdentifier );
@@ -293,7 +293,7 @@
 
                 /* A time-out occurred in the asynchronous search.
                  * Call the application hook with the proper information. */
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     {
                         pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, NULL );
                     }
@@ -301,7 +301,7 @@
                     {
                         pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, 0U );
                     }
-                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                #endif /* ( ipconfigUSE_IPV6 != 0 ) */
                 /* Remove it from 'xTempList' and free the memory. */
                 ( void ) uxListRemove( &( pxCallback->xListItem ) );
                 vPortFree( pxCallback );

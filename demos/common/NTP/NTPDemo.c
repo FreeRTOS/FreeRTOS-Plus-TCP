@@ -107,7 +107,7 @@ static const char * pcTimeServers[] =
 static SemaphoreHandle_t xNTPWakeupSem = NULL;
 static uint32_t ulIPAddressFound;
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     static struct freertos_sockaddr6 xIPAddressFound;
 #endif
 static BaseType_t xHasIPAddress = pdFALSE;
@@ -142,7 +142,7 @@ static void vSignalTask( void )
 void vNTPClearCache( void )
 {
     ulIPAddressFound = 0U;
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         {
             memset( &( xIPAddressFound ), 0, sizeof xIPAddressFound );
         }
@@ -160,7 +160,7 @@ void vNTPSetNTPType( BaseType_t aIPType,
             xPreferredHostType = FREERTOS_AF_INET4;
             break;
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 case 6:
                     xPreferredHostType = FREERTOS_AF_INET6;
                     break;
@@ -237,7 +237,7 @@ void vStartNTPTask( uint16_t usTaskStackSize,
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     static void vDNS_callback( const char * pcName,
                                void * pvSearchID,
                                struct freertos_addrinfo * pxAddress )
@@ -291,7 +291,7 @@ void vStartNTPTask( uint16_t usTaskStackSize,
 
         vSignalTask();
     }
-#else /* if ( ipconfigUSE_IPv6 != 0 ) */
+#else /* if ( ipconfigUSE_IPV6 != 0 ) */
     static void vDNS_callback( const char * pcName,
                                void * pvSearchID,
                                uint32_t ulIPAddress )
@@ -322,7 +322,7 @@ void vStartNTPTask( uint16_t usTaskStackSize,
 
         vSignalTask();
     }
-#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 static void prvSwapFields( struct SNtpPacket * pxPacket )
@@ -588,7 +588,7 @@ static void prvNTPTask( void * pvParameters )
             case EStatusAsking:
                 prvNTPPacketInit();
                 uxSendTime = xTaskGetTickCount();
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     if( memcmp( xIPAddressFound.sin_addrv6.ucBytes, in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
                     {
                         FreeRTOS_printf( ( "Sending UDP message to %pip:%u\n",
@@ -602,7 +602,7 @@ static void prvNTPTask( void * pvParameters )
                                          sizeof( xIPAddressFound ) );
                     }
                     else
-                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                #endif /* ( ipconfigUSE_IPV6 != 0 ) */
                 {
                     xAddress.sin_addr = ulIPAddressFound;
                     xAddress.sin_port = FreeRTOS_htons( NTP_PORT );

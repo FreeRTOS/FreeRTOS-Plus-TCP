@@ -40,15 +40,15 @@
 /* Standard includes. */
     #include <stdint.h>
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
                                    struct freertos_addrinfo * pxAddress );
     #else
         BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
                                    uint32_t ulIPAddress );
-    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* ( ipconfigUSE_IPV6 != 0 ) */
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         void vDNSSetCallBack( const char * pcHostName,
                               void * pvSearchID,
                               FOnDNSEvent pCallbackFunction,
@@ -61,7 +61,7 @@
                               FOnDNSEvent pCallbackFunction,
                               TickType_t uxTimeout,
                               TickType_t uxIdentifier );
-    #endif /* ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_IPV6 */
 
     void vDNSCheckCallBack( void * pvSearchID );
 

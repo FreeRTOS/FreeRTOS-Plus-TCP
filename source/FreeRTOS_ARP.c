@@ -50,7 +50,7 @@
 #endif /* ipconfigUSE_LLMNR */
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_Routing.h"
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     #include "FreeRTOS_ND.h"
 #endif
 
@@ -694,13 +694,11 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
         pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( NULL );
 
         /* __XX__ TODO check the logic here */
-            {
-                /* For multi-cast, use the first IPv4 end-point. */
-                *( ppxEndPoint ) = pxEndPoint;
-                eReturn = eARPCacheHit;
-                
-            }
-                
+        {
+            /* For multi-cast, use the first IPv4 end-point. */
+            *( ppxEndPoint ) = pxEndPoint;
+            eReturn = eARPCacheHit;
+        }
     }
     else if( pxEndPoint != NULL ) /* ARP lookup loop-back? */
     {
@@ -1016,7 +1014,7 @@ void vARPAgeCache( void )
             {
                 /* __XX__ Need to double check if this is needed for IPv6,
                  * it should have a better place to call this  FreeRTOS_OutputAdvertiseIPv6( pxEndPoint );
-                 */                  
+                 */
                 {
                     if( pxEndPoint->ipv4_settings.ulIPAddress != 0U )
                     {
@@ -1291,19 +1289,19 @@ void FreeRTOS_ClearARP( const NetworkInterface_t * pxInterface )
     NetworkEndPoint_IPv4_t * pxEndPoint;
     BaseType_t x;
 
-    for(pxEndPoint = FreeRTOS_FirstEndPoint_IPv4(pxInterface);
-        pxEndPoint != NULL;
-        pxEndPoint = FreeRTOS_NextEndPoint_IPv4(pxInterface, pxEndPoint))
+    for( pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( pxInterface );
+         pxEndPoint != NULL;
+         pxEndPoint = FreeRTOS_NextEndPoint_IPv4( pxInterface, pxEndPoint ) )
     {
         pxEndPoint->bits.bEndPointUp = pdFALSE_UNSIGNED;
-        
+
         for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+        {
+            if( xARPCache[ x ].pxEndPoint == pxEndPoint )
             {
-                if( xARPCache[ x ].pxEndPoint == pxEndPoint )
-                {
-                    ( void ) memset( &( xARPCache[ x ] ), 0, sizeof( ARPCacheRow_t ) );
-                }
+                ( void ) memset( &( xARPCache[ x ] ), 0, sizeof( ARPCacheRow_t ) );
             }
+        }
     }
 }
 /*-----------------------------------------------------------*/

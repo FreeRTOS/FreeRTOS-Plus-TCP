@@ -54,7 +54,7 @@
 
 #if ( ipconfigMULTI_INTERFACE != 0 )
     #include "FreeRTOS_Routing.h"
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         #include "FreeRTOS_ND.h"
     #endif
 #endif
@@ -91,7 +91,7 @@ static TaskHandle_t xServerWorkTaskHandle = NULL;
 
 extern void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
                                        uint16_t usIdentifier );
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     static IPv6_Address_t xPing6IPAddress;
     volatile BaseType_t xPing6Count = -1;
 #endif
@@ -110,7 +110,7 @@ static void handle_rand( char * pcBuffer );
 
 static void handle_http( char * pcBuffer );
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     static void handle_whatismyipaddress( char * pcBuffer );
 #endif
 
@@ -131,7 +131,7 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
                                                BaseType_t xAsynchronous,
                                                BaseType_t xDoClear );
 
-#if ( ipconfigUSE_IPv6 == 0 )
+#if ( ipconfigUSE_IPV6 == 0 )
     /* In the old days, an IP-address was just a number. */
     void onDNSEvent( const char * pcName,
                      void * pvSearchID,
@@ -219,7 +219,7 @@ BaseType_t xHandleTestingCommand( char * pcBuffer,
         }
     #endif /* ( ipconfigUSE_NTP_DEMO != 0 ) */
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         else if( can_handle( pcBuffer, "whatismyip", 10U, handle_whatismyipaddress ) == pdTRUE )
         {
         }
@@ -468,7 +468,7 @@ size_t uxGetOptions( CommandOptions_t * pxOptions,
     }
 #endif /* if ( ipconfigUSE_NTP_DEMO != 0 ) */
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     static void handle_whatismyipaddress( char * pcBuffer )
     {
         NetworkEndPoint_t * pxEndPoint;
@@ -480,7 +480,7 @@ size_t uxGetOptions( CommandOptions_t * pxOptions,
              pxEndPoint != NULL;
              pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( pxEndPoint->bits.bIPv6 )
                 {
                     FreeRTOS_printf( ( "IPv6: %pip on '%s'\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxEndPoint->pxNetworkInterface->pcName ) );
@@ -492,7 +492,7 @@ size_t uxGetOptions( CommandOptions_t * pxOptions,
             }
         }
     }
-#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 
 #if ( ipconfigMULTI_INTERFACE != 0 )
     static void handle_gw( char * pcBuffer )
@@ -514,7 +514,7 @@ size_t uxGetOptions( CommandOptions_t * pxOptions,
             }
         }
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
         NetworkEndPoint_IPv6_t * pxEndPoint_IPv6
         for (pxEndPoint_IPv6 = FreeRTOS_FirstEndPoint_IPv6(NULL);
@@ -526,7 +526,7 @@ size_t uxGetOptions( CommandOptions_t * pxOptions,
                 FreeRTOS_printf(("IPv6: %pip on '%s'\n", pxEndPoint_IPv6->ipv6_settings.xGatewayAddress.ucBytes, pxEndPoint_IPv6->pxNetworkInterface->pcName));
             }
         }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
     }
 #endif /* if ( ipconfigMULTI_INTERFACE != 0 ) */
 
@@ -550,7 +550,7 @@ size_t uxGetOptions( CommandOptions_t * pxOptions,
 
         if( *pcHostname == '\0' )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( xOptions.xIPVersion == 6 )
                 {
                     pcHostname = "fe80::6816:5e9b:80a0:9edb";
@@ -562,7 +562,7 @@ size_t uxGetOptions( CommandOptions_t * pxOptions,
             }
         }
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             if( strchr( pcHostname, ':' ) != NULL )
             {
                 IPv6_Address_t xAddress_IPv6; /*lint !e9018 declaration of symbol 'xAddress_IPv6' with union based type 'const IPv6_Address_t' [MISRA 2012 Rule 19.2, advisory]. */
@@ -584,7 +584,7 @@ size_t uxGetOptions( CommandOptions_t * pxOptions,
                     xOptions.xIPVersion = 4;
                 }
             }
-        #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+        #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
         FreeRTOS_printf( ( "ping%d: looking up name '%s'\n", ( int ) xOptions.xIPVersion, pcHostname ) );
 
         if( xOptions.xDoClear )
@@ -597,7 +597,7 @@ size_t uxGetOptions( CommandOptions_t * pxOptions,
 
         if( pxDNSResult != NULL )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( xOptions.xIPVersion == 6 )
                 {
                     FreeRTOS_printf( ( "ping6 to '%s' (%pip)\n", pcHostname, pxDNSResult->xPrivateStorage.sockaddr6.sin_addrv6.ucBytes ) );
@@ -611,7 +611,7 @@ size_t uxGetOptions( CommandOptions_t * pxOptions,
             {
                 FreeRTOS_printf( ( "ping4 to '%s' (%lxip)\n", pcHostname, FreeRTOS_ntohl( pxDNSResult->ai_addr->sin_addr ) ) );
                 xPing4Count = 0;
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     xPing6Count = -1;
                 #endif
                 ulPingIPAddress = pxDNSResult->ai_addr->sin_addr;
@@ -686,9 +686,9 @@ size_t uxGetOptions( CommandOptions_t * pxOptions,
 
         ulPingIPAddress = ulIPAddress;
         xPing4Count = 0;
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             xPing6Count = -1;
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        #endif /* ( ipconfigUSE_IPV6 != 0 ) */
         xPingReady = pdFALSE;
 
         if( xOptions.xDoClear )
@@ -771,7 +771,7 @@ void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
         }
     }
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         if( ( xPing6Count >= 0 ) && ( xPing6Count < PING_COUNT_MAX ) )
         {
             xPing6Count++;
@@ -794,7 +794,7 @@ void xHandleTesting()
 {
     if( xPingReady )
     {
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             FreeRTOS_printf( ( "xPingReady %d xPing4 %d xPing6 %d\n", ( int ) xPingReady, ( int ) xPing4Count, ( int ) xPing6Count ) );
         #else
             FreeRTOS_printf( ( "xPingReady %d xPing4 %d\n", ( int ) xPingReady, ( int ) xPing4Count ) );
@@ -807,7 +807,7 @@ void xHandleTesting()
             FreeRTOS_SendPingRequest( ulPingIPAddress, uxPingSize, PING_TIMEOUT );
         }
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             if( ( xPing6Count >= 0 ) && ( xPing6Count < PING_COUNT_MAX ) )
             {
                 FreeRTOS_SendPingRequestIPv6( &xPing6IPAddress, uxPingSize, PING_TIMEOUT );
@@ -895,7 +895,7 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
             }
             else
             {
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     if( xIPVersion == 6 )
                     {
                         struct freertos_sockaddr6 * pxAddr6;
@@ -904,7 +904,7 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
                         FreeRTOS_printf( ( "dns query%d: '%s' = %pip rc = %d\n", ( int ) xIPVersion, pcHost, pxAddr6->sin_addrv6.ucBytes, ( int ) rc ) );
                     }
                     else
-                #endif /* ipconfigUSE_IPv6 */
+                #endif /* ipconfigUSE_IPV6 */
                 {
                     uint32_t luIPAddress = pxResult->ai_addr->sin_addr;
                     FreeRTOS_printf( ( "dns query%d: '%s' = %lxip rc = %d\n", ( int ) xIPVersion, pcHost, FreeRTOS_ntohl( luIPAddress ), ( int ) rc ) );
@@ -916,9 +916,9 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
     #if ( ipconfigDNS_USE_CALLBACKS != 0 ) && ( ipconfigMULTI_INTERFACE != 0 )
         if( pxResult == NULL )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 IPv6_Address_t xAddress_IPv6;
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
             uint32_t ulIpAddress;
             int iCount;
 
@@ -941,7 +941,7 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
                 pxResult->ai_canonname = pxResult->xPrivateStorage.ucName;
                 strncpy( pxResult->xPrivateStorage.ucName, pcHost, sizeof( pxResult->xPrivateStorage.ucName ) );
 
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     {
                         pxResult->ai_addr = ipPOINTER_CAST( struct freertos_sockaddr *, & ( pxResult->xPrivateStorage.sockaddr6 ) );
                     }
@@ -951,7 +951,7 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
                     }
                 #endif
 
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     memset( xAddress_IPv6.ucBytes, '\0', sizeof( xAddress_IPv6.ucBytes ) );
 
                     if( xIPVersion == 6 )
@@ -963,7 +963,7 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
                         memcpy( pxResult->xPrivateStorage.sockaddr6.sin_addrv6.ucBytes, xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     }
                     else
-                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                #endif /* ( ipconfigUSE_IPV6 != 0 ) */
                 {
                     #if ( ipconfigUSE_DNS_CACHE != 0 )
                         ulIpAddress = FreeRTOS_dnslookup( pcHost );
@@ -985,7 +985,7 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     void onDNSEvent( const char * pcName,
                      void * pvSearchID,
                      struct freertos_addrinfo * pxAddrInfo )
@@ -1035,7 +1035,7 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
             xTaskNotifyGive( xServerWorkTaskHandle );
         }
     }
-#else /* if ( ipconfigUSE_IPv6 != 0 ) */
+#else /* if ( ipconfigUSE_IPV6 != 0 ) */
     void onDNSEvent( const char * pcName,
                      void * pvSearchID,
                      uint32_t ulIPAddress )
@@ -1050,14 +1050,14 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
             xTaskNotifyGive( xServerWorkTaskHandle );
         }
     }
-#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigMULTI_INTERFACE != 0 )
     void showEndPoints( NetworkInterface_t * pxInterface )
     {
         /* if NULL is passed in, show all endpoints */
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             NetworkEndPoint_IPv6 * pxEndPoint_IPv6;
             for (pxEndPoint_IPv6 = FreeRTOS_FirstEndPoint_IPv6(pxInterface);
                 pxEndPoint_IPv6 != NULL;
@@ -1086,7 +1086,7 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
                 FreeRTOS_printf( ( "DNS        : %pip\n", pxEndPoint_IPv6->ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes ) );
             }
             else
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        #endif /* ( ipconfigUSE_IPV6 != 0 ) */
         {
             NetworkEndPoint_IPv4_t * pxEndPoint;
             for (pxEndPoint = FreeRTOS_FirstEndPoint(pxInterface);

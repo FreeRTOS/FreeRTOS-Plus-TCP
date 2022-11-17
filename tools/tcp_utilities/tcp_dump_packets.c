@@ -364,7 +364,7 @@
     {
         ProtocolHeaders_t * pxProtocolHeaders;
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             const IPHeader_IPv6_t * pxIPHeader_IPv6;
         #endif
         UBaseType_t uxHeaderLength;
@@ -374,7 +374,7 @@
 
         pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
         pxIPHeader = &( pxIPPacket->xIPHeader );
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             pxIPHeader_IPv6 = ipPOINTER_CAST( const IPHeader_IPv6_t *, &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
             if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
@@ -402,7 +402,7 @@
                 ADD_TYPE( ICMP4 );
                 break;
 
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     case ipPROTOCOL_ICMP_IPv6:
                         ADD_TYPE( ICMP6 );
                         break;
@@ -509,7 +509,7 @@
                 vAddProtocolTags( pucBuffer, 4 );
                 break;
 
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     case ipIPv6_FRAME_TYPE:
                         ADD_TYPE( FRAME_6 );
                         vAddProtocolTags( pucBuffer, 6 );

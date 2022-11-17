@@ -58,7 +58,7 @@
 #define ipSIZE_OF_IPv4_ADDRESS    4U
 #define ipSIZE_OF_IPv6_ADDRESS    16U
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
     struct xIPv6_Address
     {
@@ -87,7 +87,7 @@
                                      const IPv6_Address_t * pxRight,
                                      size_t uxPrefixLength );
 
-#endif /* ipconfigUSE_IPv6 */
+#endif /* ipconfigUSE_IPV6 */
 
 #if ( ipconfigUSE_TCP == 1 )
 
@@ -230,18 +230,18 @@ typedef struct xNETWORK_BUFFER
     uint8_t * pucEthernetBuffer;               /**< Pointer to the start of the Ethernet frame. */
     size_t xDataLength;                        /**< Starts by holding the total Ethernet frame length, then the UDP/TCP payload length. */
     struct xNetworkInterface * pxInterface;    /**< The interface on which the packet was received. */
-    struct xNetworkEndPoint_IPv4 * pxEndPoint;      /**< The end-point through which this packet shall be sent. */
+    struct xNetworkEndPoint_IPv4 * pxEndPoint; /**< The end-point through which this packet shall be sent. */
     struct
     {
         uint32_t
-            bIPv6 : 1;         /**< Non-zero as soon as the interface is up. */
+            bIPv6 : 1;                         /**< Non-zero as soon as the interface is up. */
     } bits;
     uint16_t usPort;                           /**< Source or destination port, depending on usage scenario. */
     uint16_t usBoundPort;                      /**< The port to which a transmitting socket is bound. */
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
         struct xNETWORK_BUFFER * pxNextBuffer; /**< Possible optimisation for expert users - requires network driver support. */
     #endif
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         IPv6_Address_t xIPv6Address; /**< The IP-address of the unit which sent this packet. */
         struct xNetworkEndPoint_IPv6 * pxEndPointIPv6;
     #endif
@@ -397,7 +397,7 @@ struct xNetworkInterface;
 
 TaskHandle_t FreeRTOS_GetIPTaskHandle( void );
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     /* The last parameter is either ipTYPE_IPv4 or ipTYPE_IPv6. */
     void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                          TickType_t uxBlockTimeTicks,
@@ -517,16 +517,16 @@ BaseType_t xIsNetworkDownEventPending( void );
     extern void FreeRTOS_PrintARPCache( void );
 #endif
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     extern void FreeRTOS_ClearND( void );
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 
 /* Return pdTRUE if the IPv4 address is a multicast address. */
 BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress );
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 
 #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
 

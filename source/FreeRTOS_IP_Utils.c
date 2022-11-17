@@ -85,11 +85,11 @@ static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
                                          size_t uxBufferLength,
                                          struct xPacketSummary * pxSet );
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     static BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
                                              size_t uxBufferLength,
                                              struct xPacketSummary * pxSet );
-#endif /* ipconfigUSE_IPv6 != 0 */
+#endif /* ipconfigUSE_IPV6 != 0 */
 
 static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
                                              struct xPacketSummary * pxSet );
@@ -105,10 +105,10 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
                                             size_t uxBufferLength,
                                             struct xPacketSummary * pxSet );
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
     static BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
                                                struct xPacketSummary * pxSet );
-#endif /* ipconfigUSE_IPv6 != 0 */
+#endif /* ipconfigUSE_IPV6 != 0 */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_DHCP == 1 )
@@ -186,7 +186,7 @@ void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Set multicast MAC address.
@@ -204,7 +204,7 @@ void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
         pxMACAddress->ucBytes[ 4 ] = pxAddress->ucBytes[ 14 ];
         pxMACAddress->ucBytes[ 5 ] = pxAddress->ucBytes[ 15 ];
     }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -239,12 +239,12 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         pxNewBuffer->pxEndPoint = pxNetworkBuffer->pxEndPoint;
         pxNewBuffer->bits.bIPv6 = pxNetworkBuffer->bits.bIPv6;
         ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             {
                 ( void ) memcpy( pxNewBuffer->xIPv6Address.ucBytes, pxNetworkBuffer->xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 pxNewBuffer->pxEndPointIPv6 = pxNetworkBuffer->pxEndPointIPv6;
             }
-        #endif /* ipconfigUSE_IPv6 != 0 */
+        #endif /* ipconfigUSE_IPV6 != 0 */
     }
 
     return pxNewBuffer;
@@ -409,7 +409,7 @@ static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /** @brief Do the first IPv6 length checks at the IP-header level.
  * @param[in] pucEthernetBuffer: The buffer containing the packet.
@@ -455,7 +455,7 @@ static BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
 
         return xReturn;
     }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 /** @brief Get and check the specific lengths depending on the protocol ( TCP/UDP/ICMP/IGMP ).
@@ -545,12 +545,12 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
         }
     }
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         else if( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 )
         {
             xReturn = prvChecksumICMPv6Checks( uxBufferLength, pxSet );
         }
-    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
     else
     {
         /* Unhandled protocol, other than ICMP, IGMP, UDP, or TCP. */
@@ -609,10 +609,10 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                                           const uint8_t * pucEthernetBuffer,
                                           struct xPacketSummary * pxSet )
 {
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         if( pxSet->xIsIPv6 != pdFALSE )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 uint32_t pulHeader[ 2 ];
             #endif
 
@@ -636,7 +636,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                                                     ( const uint8_t * ) pulHeader,
                                                     ( size_t ) ( sizeof( pulHeader ) ) );
         }
-    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 
     if( ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) || ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
     {
@@ -645,7 +645,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                             ( ~usGenerateChecksum( 0U, &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength ] ), ( size_t ) pxSet->usProtocolBytes ) );
     }
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         else if( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 )
         {
             pxSet->usChecksum = ( uint16_t )
@@ -653,10 +653,10 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                                                        ( uint8_t * ) &( pxSet->pxProtocolHeaders->xTCPHeader ),
                                                        ( size_t ) pxSet->usProtocolBytes ) );
         }
-    #endif /* ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_IPV6 */
     else
     {
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             if( pxSet->xIsIPv6 != pdFALSE )
             {
                 /* The CRC of the IPv6 pseudo-header has already been calculated. */
@@ -666,7 +666,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                                                            ( size_t ) ( pxSet->usProtocolBytes ) ) );
             }
             else
-        #endif /* ipconfigUSE_IPv6 */
+        #endif /* ipconfigUSE_IPV6 */
         {
             /* The IPv4 pseudo header contains 2 IP-addresses, totalling 8 bytes. */
             uint32_t ulByteCount = pxSet->usProtocolBytes;
@@ -752,7 +752,7 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
+#if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Check the buffer lengths of an ICMPv6 packet.
@@ -801,7 +801,7 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
 
         return xReturn;
     }
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )
@@ -843,7 +843,7 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
         /* The input here is a pointer to a payload buffer.  Subtract
          * the total size of a UDP/IP packet plus the size of the header in
          * the network buffer, usually 8 + 2 bytes. */
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             {
                 uintptr_t uxTypeOffset;
                 const uint8_t * pucIPType;
@@ -873,11 +873,11 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
                     uxOffset = sizeof( UDPPacket_t );
                 }
             }
-        #else /* if ( ipconfigUSE_IPv6 != 0 ) */
+        #else /* if ( ipconfigUSE_IPV6 != 0 ) */
             {
                 uxOffset = sizeof( UDPPacket_t );
             }
-        #endif /* ipconfigUSE_IPv6 */
+        #endif /* ipconfigUSE_IPV6 */
 
         pxResult = prvPacketBuffer_to_NetworkBuffer( pvBuffer, uxOffset );
     }
@@ -919,7 +919,6 @@ BaseType_t xIsCallingFromIPTask( void )
  */
 void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
 {
-    
     configASSERT( pxInterface != NULL );
     configASSERT( pxInterface->pfInitialise != NULL );
 
@@ -936,13 +935,13 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
             if( pxInterface->bits.bCallDownEvent != pdFALSE_UNSIGNED )
             {
                 #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 )
-                {
-                    vApplicationIPNetworkEventHook( eNetworkDown );
-                }
+                    {
+                        vApplicationIPNetworkEventHook( eNetworkDown );
+                    }
                 #else
-                {
-                     vApplicationIPNetworkEventHook( eNetworkDown );
-                }
+                    {
+                        vApplicationIPNetworkEventHook( eNetworkDown );
+                    }
                 #endif
             }
             else
@@ -952,7 +951,7 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
             }
         }
     #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
-    
+
     /* Per the ARP Cache Validation section of https://tools.ietf.org/html/rfc1122,
      * treat network down as a "delivery problem" and flush the ARP cache for this
      * interface. */
@@ -969,70 +968,69 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
 
         /* The network is not up until DHCP has completed.
          * Start it now for all associated end-points. */
-        NetworkEndPoint_IPv4_t* pxEndPoint = NULL;
-        for (pxEndPoint = FreeRTOS_FirstEndPoint_IPv4(pxInterface);
-            pxEndPoint != NULL;
-            pxEndPoint = FreeRTOS_NextEndPoint_IPv4(pxInterface, pxEndPoint))
+        NetworkEndPoint_IPv4_t * pxEndPoint = NULL;
+
+        for( pxEndPoint = FreeRTOS_FirstEndPoint_IPv4( pxInterface );
+             pxEndPoint != NULL;
+             pxEndPoint = FreeRTOS_NextEndPoint_IPv4( pxInterface, pxEndPoint ) )
         {
-#if ( ipconfigUSE_DHCP == 1 )
-            if (pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED)
-            {
+            #if ( ipconfigUSE_DHCP == 1 )
+                if( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED )
                 {
-                    /* Reset the DHCP process for this end-point. */
-                    vDHCPProcess(pdTRUE, pxEndPoint);
+                    {
+                        /* Reset the DHCP process for this end-point. */
+                        vDHCPProcess( pdTRUE, pxEndPoint );
+                    }
                 }
-            }
-            else /* Yes this else ought to be here. */
-#endif /* ( ipconfigUSE_DHCP == 1 ) */
+                else /* Yes this else ought to be here. */
+            #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
 
             {
                 /* DHCP or Router Advertisement are not enabled for this end-point.
                  * Perform any necessary 'network up' processing. */
                 {
-                    (void)memcpy(&(pxEndPoint->ipv4_settings), &(pxEndPoint->ipv4_defaults), sizeof(pxEndPoint->ipv4_settings));
-                    
+                    ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
                 }
 
-                //vIPNetworkUpCalls( pxEndPoint );
+                /*vIPNetworkUpCalls( pxEndPoint ); */
             }
+
             pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
         }
 
-        
-
         /* Two EndPoint list to go through if IPv6 is enabled. */
-        #if ( ipconfigUSE_IPv6 !=0 )
-            NetworkEndPoint_IPv6_t* pxEndPoint_IPv6 = NULL;
-        for( pxEndPoint_IPv6 = FreeRTOS_FirstEndPoint_IPv6( pxInterface );
-             pxEndPoint_IPv6 != NULL;
-             pxEndPoint_IPv6 = FreeRTOS_NextEndPoint_IPv6( pxInterface, pxEndPoint_IPv6 ) )
-        {
-            #if ( ipconfigUSE_DHCPv6 != 0 )
-                vDHCPv6Process( pdTRUE, pxEndPoint_IPv6 );
-            #endif /* ( ipconfigUSE_DHCPv6 == 1 ) */
+        #if ( ipconfigUSE_IPV6 != 0 )
+            NetworkEndPoint_IPv6_t * pxEndPoint_IPv6 = NULL;
 
-            #if ( ipconfigUSE_RA != 0 )
-                if( pxEndPoint_IPv6->bits.bWantRA != pdFALSE_UNSIGNED )
-                {
-                    /* Reset the RA/SLAAC process for this end-point. */
-                    vRAProcess( pdTRUE, pxEndPoint_IPv6 );
-                }
-            #endif
+            for( pxEndPoint_IPv6 = FreeRTOS_FirstEndPoint_IPv6( pxInterface );
+                 pxEndPoint_IPv6 != NULL;
+                 pxEndPoint_IPv6 = FreeRTOS_NextEndPoint_IPv6( pxInterface, pxEndPoint_IPv6 ) )
+            {
+                #if ( ipconfigUSE_DHCPv6 != 0 )
+                    vDHCPv6Process( pdTRUE, pxEndPoint_IPv6 );
+                #endif /* ( ipconfigUSE_DHCPv6 == 1 ) */
 
-            pxEndPoint_IPv6->bits.bEndPointUp = pdTRUE_UNSIGNED;
+                #if ( ipconfigUSE_RA != 0 )
+                    if( pxEndPoint_IPv6->bits.bWantRA != pdFALSE_UNSIGNED )
+                    {
+                        /* Reset the RA/SLAAC process for this end-point. */
+                        vRAProcess( pdTRUE, pxEndPoint_IPv6 );
+                    }
+                #endif
 
-            ( void ) memcpy( &( pxEndPoint_IPv6->ipv6_settings ), &( pxEndPoint_IPv6->ipv6_defaults ), sizeof( pxEndPoint_IPv6->ipv6_settings ) );
-            /* DHCP or Router Advertisement are not enabled for this end-point.
-             * Perform any necessary 'network up' processing. */
-             //vIPNetworkUpCalls_IPv6( pxEndPoint_IPv6);
-        }
+                pxEndPoint_IPv6->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
-        #endif /* ( ipconfigUSE_IPv6 !=0 ) */
+                ( void ) memcpy( &( pxEndPoint_IPv6->ipv6_settings ), &( pxEndPoint_IPv6->ipv6_defaults ), sizeof( pxEndPoint_IPv6->ipv6_settings ) );
+
+                /* DHCP or Router Advertisement are not enabled for this end-point.
+                 * Perform any necessary 'network up' processing. */
+                /*vIPNetworkUpCalls_IPv6( pxEndPoint_IPv6); */
+            }
+        #endif /* ( ipconfigUSE_IPV6 !=0 ) */
 
         /* call the hook after all endpoints are up */
         vIPNetworkUpCalls();
-        
     }
     else
     {
@@ -1126,7 +1124,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         /* Parse the packet length. */
         xSet.pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
             if( xSet.pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
@@ -1140,7 +1138,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                 }
             }
             else
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        #endif /* ( ipconfigUSE_IPV6 != 0 ) */
         {
             xResult = prvChecksumIPv4Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
 

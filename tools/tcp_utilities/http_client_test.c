@@ -201,7 +201,7 @@
     {
         Socket_t xSocket = NULL;
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             struct freertos_sockaddr6 xEchoServerAddress;
         #else
             struct freertos_sockaddr xEchoServerAddress;
@@ -222,7 +222,7 @@
             xWinProps.lRxWinSize = configECHO_CLIENT_RX_WINDOW_SIZE;
         #endif /* ipconfigUSE_TCP_WIN */
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             struct freertos_sockaddr * pxAddress = ( struct freertos_sockaddr * ) &xEchoServerAddress;
         #else
             struct freertos_sockaddr * pxAddress = &xEchoServerAddress;
@@ -256,7 +256,7 @@
              * missing data. */
             TickType_t xReceiveTimeOut = pdMS_TO_TICKS( 2500U );
             TickType_t xSendTimeOut = pdMS_TO_TICKS( 2000U );
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 IPv6_Address_t xIPAddress_IPv6;
                 struct freertos_sockaddr6 xLocalAddress;
             #else
@@ -328,7 +328,7 @@
                         ulIPAddress = pxResult->ai_addr->sin_addr;
                     }
 
-                    #if ( ipconfigUSE_IPv6 != 0 )
+                    #if ( ipconfigUSE_IPV6 != 0 )
                         else if( pxResult->ai_family == FREERTOS_AF_INET6 )
                         {
                             struct freertos_sockaddr6 * pxAddr6;
@@ -345,7 +345,7 @@
                 #endif /* if ( ipconfigMULTI_INTERFACE == 0 ) */
             }
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( xHasIPv6Address != 0 )
                 {
                     xEchoServerAddress.sin_len = sizeof( struct freertos_sockaddr6 );
@@ -375,7 +375,7 @@
             memset( &( xBindAddress ), 0, sizeof( xBindAddress ) );
 
             #if ( ipconfigMULTI_INTERFACE != 0 )
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     if( xEchoServerAddress.sin_family == FREERTOS_AF_INET6 )
                     {
                         pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &( xEchoServerAddress.sin_addrv6 ) );
@@ -391,7 +391,7 @@
                         }
                     }
                     else
-                #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+                #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
                 {
                     pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxAddress->sin_addr, 9999 );
 
@@ -425,13 +425,13 @@
             /* Connect to the echo server. */
             rc = FreeRTOS_connect( xSocket, ( struct freertos_sockaddr * ) &xEchoServerAddress, sizeof( xEchoServerAddress ) );
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 struct freertos_sockaddr * pxLocalAddress = ( struct freertos_sockaddr * ) &xLocalAddress;
             #else
                 struct freertos_sockaddr * pxLocalAddress = &xLocalAddress;
             #endif
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( pxAddress->sin_family == FREERTOS_AF_INET6 )
                 {
                     FreeRTOS_printf( ( "httpTest: FreeRTOS_connect to %pip port %u: rc %d\n",
