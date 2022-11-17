@@ -680,6 +680,13 @@ typedef struct xSOCKET
         EventBits_t xSocketBits;          /**< These bits indicate the events which have actually occurred.
                                            * They are maintained by the IP-task */
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
+
+    /* This field is only only by the user, and can be accessed with
+     * vSocketSetSocketID() / vSocketGetSocketID().
+     * All fields of a socket will be cleared by memset() in FreeRTOS_socket().
+     */
+    void * pvSocketID;
+
     /* TCP/UDP specific fields: */
     /* Before accessing any member of this structure, it should be confirmed */
     /* that the protocol corresponds with the type of structure */
