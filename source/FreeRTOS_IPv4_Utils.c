@@ -77,6 +77,8 @@ BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
     uint8_t ucVersion;
     uint16_t usLength;
 
+    pxSet->xIsIPv6 = pdFALSE;
+
     usLength = pxSet->pxIPPacket->xIPHeader.usLength;
     usLength = FreeRTOS_ntohs( usLength );
 
