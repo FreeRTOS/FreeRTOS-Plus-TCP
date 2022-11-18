@@ -343,7 +343,8 @@ void vARPTimerReload( TickType_t xTime )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_DHCP == 1 )
-//TODO vDHCP_RATimerReload
+/*TODO vDHCP_RATimerReload */
+
 /**
  * @brief Reload the DHCP timer.
  *
@@ -458,6 +459,7 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_TCP == 1 )
+
 /**
  * @brief Enable/disable the TCP timer.
  *

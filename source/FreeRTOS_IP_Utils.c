@@ -206,10 +206,11 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         pxNewBuffer->pxInterface = pxNetworkBuffer->pxInterface;
         pxNewBuffer->pxEndPoint = pxNetworkBuffer->pxEndPoint;
         ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, uxLengthToCopy );
+
         if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
-            {
-                ( void ) memcpy( pxNewBuffer->xIPAddress.xIP_IPv6.ucBytes, pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-            }
+        {
+            ( void ) memcpy( pxNewBuffer->xIPAddress.xIP_IPv6.ucBytes, pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+        }
     }
 
     return pxNewBuffer;
@@ -381,7 +382,7 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
         }
     }
 
-    else if( pxSet->xIsIPv6 != pdFALSE && pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 )
+    else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
     {
         xReturn = prvChecksumICMPv6Checks( uxBufferLength, pxSet );
     }
@@ -474,7 +475,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
         pxSet->usChecksum = ( uint16_t )
                             ( ~usGenerateChecksum( 0U, &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength ] ), ( size_t ) pxSet->usProtocolBytes ) );
     }
-    else if( pxSet->xIsIPv6 != pdFALSE && pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 )
+    else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
     {
         pxSet->usChecksum = ( uint16_t )
                             ( ~usGenerateChecksum( pxSet->usChecksum,
@@ -846,7 +847,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         BaseType_t xResult;
 
         /* Parse the packet length. */
-	/* MISRA Ref 11.3.1 [Misaligned access] */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         xSet.pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );

@@ -591,7 +591,8 @@ struct xSOCKET
     {
         uint32_t bIsIPv6 : 1; /**< Non-zero in case the connection is using IPv6. */
         uint32_t bSomeFlag : 1;
-    } bits;
+    }
+    bits;
 
     ListItem_t xBoundSocketListItem;       /**< Used to reference the socket from a bound sockets list. */
     TickType_t xReceiveBlockTime;          /**< if recv[to] is called while no data is available, wait this amount of time. Unit in clock-ticks */
@@ -629,8 +630,9 @@ struct xSOCKET
             uint64_t ullTCPAlignment; /**< Make sure that xTCP is 8-bytes aligned by
                                        * declaring a 64-bit variable in the same union */
         #endif /* ipconfigUSE_TCP */
-    } u;                              /**< Union of TCP/UDP socket */
-} ;
+    }
+    u;                                /**< Union of TCP/UDP socket */
+};
 
 #if ( ipconfigUSE_TCP == 1 )
 

@@ -86,7 +86,7 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
     else
     {
         pxSet->ucProtocol = pxSet->pxIPPacket_IPv6->ucNextHeader;
-	/* MISRA Ref 11.3.1 [Misaligned access] */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
