@@ -852,21 +852,18 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         /* coverity[misra_c_2012_rule_11_3_violation] */
         xSet.pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        if( xSet.pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+        {
             xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
-            if( xSet.pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+            xResult = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
+            if( xResult != 0 )
             {
-                xResult = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
-
-                if( xResult != 0 )
-                {
-                    DEBUG_SET_TRACE_VARIABLE( xLocation, xResult );
-                    break;
-                }
+                DEBUG_SET_TRACE_VARIABLE( xLocation, xResult );
+                break;
             }
-            else
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        }
+        else
         {
             xResult = prvChecksumIPv4Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
 
