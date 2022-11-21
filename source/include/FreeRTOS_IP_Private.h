@@ -631,7 +631,7 @@ struct xSOCKET
                                        * declaring a 64-bit variable in the same union */
         #endif /* ipconfigUSE_TCP */
     }
-    u;                                /**< Union of TCP/UDP socket */
+    u; /**< Union of TCP/UDP socket */
 };
 
 #if ( ipconfigUSE_TCP == 1 )

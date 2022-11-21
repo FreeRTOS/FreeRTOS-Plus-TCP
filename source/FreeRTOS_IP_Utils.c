@@ -857,6 +857,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
             xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
             xResult = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
+
             if( xResult != 0 )
             {
                 DEBUG_SET_TRACE_VARIABLE( xLocation, xResult );
