@@ -97,6 +97,7 @@ typedef struct xNetworkAddressingParameters
 
 extern BaseType_t xTCPWindowLoggingLevel;
 extern QueueHandle_t xNetworkEventQueue;
+typedef struct xSOCKET FreeRTOS_Socket_t;
 
 /*-----------------------------------------------------------*/
 /* Protocol headers.                                         */
@@ -580,7 +581,7 @@ enum eSOCKET_EVENT
 /**
  * Structure to hold information for a socket.
  */
-typedef struct xSOCKET
+struct xSOCKET
 {
     EventBits_t xEventBits;         /**< The eventbits to keep track of events. */
     EventGroupHandle_t xEventGroup; /**< The event group for this socket. */
@@ -590,7 +591,8 @@ typedef struct xSOCKET
     {
         uint32_t bIsIPv6 : 1; /**< Non-zero in case the connection is using IPv6. */
         uint32_t bSomeFlag : 1;
-    } bits;
+    }
+    bits;
 
     ListItem_t xBoundSocketListItem;       /**< Used to reference the socket from a bound sockets list. */
     TickType_t xReceiveBlockTime;          /**< if recv[to] is called while no data is available, wait this amount of time. Unit in clock-ticks */
@@ -614,6 +616,7 @@ typedef struct xSOCKET
         EventBits_t xSocketBits;          /**< These bits indicate the events which have actually occurred.
                                            * They are maintained by the IP-task */
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
+    struct xNetworkEndPoint * pxEndPoint; /**< The end-point to which the socket is bound. */
     /* TCP/UDP specific fields: */
     /* Before accessing any member of this structure, it should be confirmed */
     /* that the protocol corresponds with the type of structure */
@@ -627,8 +630,9 @@ typedef struct xSOCKET
             uint64_t ullTCPAlignment; /**< Make sure that xTCP is 8-bytes aligned by
                                        * declaring a 64-bit variable in the same union */
         #endif /* ipconfigUSE_TCP */
-    } u;                              /**< Union of TCP/UDP socket */
-} FreeRTOS_Socket_t;
+    }
+    u; /**< Union of TCP/UDP socket */
+};
 
 #if ( ipconfigUSE_TCP == 1 )
 

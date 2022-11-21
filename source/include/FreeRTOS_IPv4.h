@@ -45,7 +45,7 @@
 
 #define ipSIZE_OF_IPv4_HEADER        20U
 #define ipSIZE_OF_IPv4_ADDRESS       4U
-#define ipSIZE_OF_ICMP_HEADER        8U
+#define ipSIZE_OF_ICMPv4_HEADER      8U
 #define ipTYPE_IPv4                  ( 0x40U )
 
 /* The number of octets in the IP addresses respectively. */
@@ -72,10 +72,6 @@ uint32_t FreeRTOS_GetGatewayAddress( void );
 uint32_t FreeRTOS_GetDNSServerAddress( void );
 uint32_t FreeRTOS_GetNetmask( void );
 uint32_t FreeRTOS_GetIPAddress( void );
-
-/* Set the MAC-address that belongs to a given IPv4 multi-cast address. */
-void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
-                                  MACAddress_t * pxMACAddress );
 
 void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                      TickType_t uxBlockTimeTicks );

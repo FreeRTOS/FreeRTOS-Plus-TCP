@@ -73,17 +73,26 @@ void vCheckNetworkTimers( void );
  */
 TickType_t xCalculateSleepTime( void );
 
+/*
+ * Start an ARP Resolution timer.
+ */
 void vIPTimerStartARPResolution( TickType_t xTime );
-
+/*TODO */
 void vIPSetTCPTimerExpiredState( BaseType_t xExpiredState );
 
+/*
+ * Enable/disable the ARP timer.
+ */
 void vIPSetARPTimerEnableState( BaseType_t xEnableState );
 
+/*
+ * Enable or disable the ARP resolution timer.
+ */
 void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
 
 #if ( ipconfigUSE_DHCP != 0 )
 
-/**
+/** TODO
  * @brief Enable/disable the DHCP timer.
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
@@ -97,17 +106,33 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
     void vIPSetDNSTimerEnableState( BaseType_t xEnableState );
-#endif
+#endif /* ipconfigDNS_USE_CALLBACKS != 0 */
 
+/**
+ * Sets the reload time of an ARP timer and restarts it.
+ */
 void vARPTimerReload( TickType_t xTime );
+
+/**
+ * Sets the reload time of an TCP timer and restarts it.
+ */
 void vTCPTimerReload( TickType_t xTime );
-#if ( ipconfigUSE_DHCP == 1 )
+#if ( ipconfigUSE_DHCP == 1 ) /*TODO */
     void vDHCPTimerReload( TickType_t xLeaseTime );
 #endif
 
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
+
+/**
+ * Reload the DNS timer.
+ */
     void vDNSTimerReload( uint32_t ulCheckTime );
-#endif
+#endif /* ipconfigDNS_USE_CALLBACKS != 0 */
+
+/**
+ * Reload the Network timer.
+ */
+void vNetworkTimerReload( TickType_t xTime );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

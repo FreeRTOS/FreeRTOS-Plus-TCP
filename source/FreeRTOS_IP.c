@@ -51,6 +51,9 @@
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
+#if ( ipconfigUSE_DHCPv6 == 1 )
+    #include "FreeRTOS_DHCPv6.h"
+#endif
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
@@ -1901,7 +1904,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             else if( ( ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) ||
                      ( ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
             {
-                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMP_HEADER;
+                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMPv4_HEADER;
             }
             else
             {

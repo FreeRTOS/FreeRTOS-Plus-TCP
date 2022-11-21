@@ -212,7 +212,7 @@
 
         /* Remove the length of the ICMP header, to obtain the length of
          * data contained in the ping. */
-        usDataLength = ( uint16_t ) ( ( ( uint32_t ) usDataLength ) - ipSIZE_OF_ICMP_HEADER );
+        usDataLength = ( uint16_t ) ( ( ( uint32_t ) usDataLength ) - ipSIZE_OF_ICMPv4_HEADER );
 
         /* Checksum has already been checked before in prvProcessIPPacket */
 
