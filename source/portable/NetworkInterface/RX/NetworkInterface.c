@@ -73,9 +73,9 @@
 
 #ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
 
-/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
+/* Check if the LinkStatus in the PHY is still high after 2 seconds of not
  * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
+    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    2000U
 #endif
 
 #ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
