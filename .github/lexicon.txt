@@ -230,6 +230,7 @@ egetlinklayeraddress
 ehertype
 einitialwait
 einprogress
+einval
 einvalidchecksum
 einvaliddata
 eleasedaddress
@@ -785,6 +786,7 @@ pvparameters
 pvportmalloc
 pvportmallocsocket
 pvsearchid
+pvsocketid
 pvsource
 pxackmessage
 pxaddr
@@ -981,6 +983,7 @@ skipnamefield
 snd
 snprintf
 sockaddr
+socketid
 socketset
 sockopt
 sof
@@ -1392,8 +1395,10 @@ vrxfaultinjection
 vsocketbind
 vsocketclose
 vsocketclosenexttime
+vsocketgetsocketid
 vsocketlistennexttime
 vsocketselect
+vsocketsetsocketid
 vsocketwakeupuser
 vtasklist
 vtasknotifygivefromisr

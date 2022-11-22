@@ -1563,7 +1563,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                                         if( xCount < 5 ) /* LCOV_EXCL_BR_LINE */
                                         {
                                             FreeRTOS_printf( ( "prvAllowIPPacket: UDP packet from %xip without CRC dropped\n",
-                                                               FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
+                                                               ( unsigned ) FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
                                             xCount++;
                                         }
                                     }

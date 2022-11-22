@@ -60,17 +60,22 @@
 
 #define niBMSR_LINK_STATUS                  0x0004uL
 
-#ifndef PHY_LS_HIGH_CHECK_TIME_MS
+#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
+    #error please use the new defines with 'ipconfig' prefix
+#endif
 
-/* Check if the LinkSStatus in the PHY is still high after 15 seconds of not
+#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
+
+/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
  * receiving packets. */
-    #define PHY_LS_HIGH_CHECK_TIME_MS    15000
+    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
 #endif
 
-#ifndef PHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkSStatus in the PHY is still low every second. */
-    #define PHY_LS_LOW_CHECK_TIME_MS    1000
+#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
+    /* Check if the LinkStatus in the PHY is still low every second. */
+    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
 #endif
+
 
 /* The size of each buffer when BufferAllocation_1 is used:
  * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
@@ -344,7 +349,7 @@ static void prvEMACHandlerTask( void * pvParameters )
     iptraceEMAC_TASK_STARTING();
 
     vTaskSetTimeOutState( &xPhyTime );
-    xPhyRemTime = pdMS_TO_TICKS( PHY_LS_LOW_CHECK_TIME_MS );
+    xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );
 
     for( ; ; )
     {
@@ -386,7 +391,7 @@ static void prvEMACHandlerTask( void * pvParameters )
             /* A packet was received. No need to check for the PHY status now,
              * but set a timer to check it later on. */
             vTaskSetTimeOutState( &xPhyTime );
-            xPhyRemTime = pdMS_TO_TICKS( PHY_LS_HIGH_CHECK_TIME_MS );
+            xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             xResult = 0;
 
             if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) == 0uL )
@@ -411,11 +416,11 @@ static void prvEMACHandlerTask( void * pvParameters )
 
             if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0uL )
             {
-                xPhyRemTime = pdMS_TO_TICKS( PHY_LS_HIGH_CHECK_TIME_MS );
+                xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             }
             else
             {
-                xPhyRemTime = pdMS_TO_TICKS( PHY_LS_LOW_CHECK_TIME_MS );
+                xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );
             }
         }
     }

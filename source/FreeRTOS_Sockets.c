@@ -404,7 +404,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     if( prvDetermineSocketSize( xDomain, xType, xProtocolCpy, &uxSocketSize ) == pdFAIL )
     {
         /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
         /* coverity[misra_c_2012_rule_11_4_violation] */
         xReturn = FREERTOS_INVALID_SOCKET;
     }
@@ -414,12 +414,16 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
         * size depends on the type of socket: UDP sockets need less space. A
         * define 'pvPortMallocSocket' will used to allocate the necessary space.
         * By default it points to the FreeRTOS function 'pvPortMalloc()'. */
+
+        /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-412. */
+        /* coverity[misra_c_2012_directive_4_12_violation] */
         pxSocket = ( ( FreeRTOS_Socket_t * ) pvPortMallocSocket( uxSocketSize ) );
 
         if( pxSocket == NULL )
         {
             /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             xReturn = FREERTOS_INVALID_SOCKET;
             iptraceFAILED_TO_CREATE_SOCKET();
@@ -433,7 +437,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                 vPortFreeSocket( pxSocket );
 
                 /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
                 /* coverity[misra_c_2012_rule_11_4_violation] */
                 xReturn = FREERTOS_INVALID_SOCKET;
                 iptraceFAILED_TO_CREATE_EVENT_GROUP();
@@ -528,6 +532,9 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     {
         SocketSelect_t * pxSocketSet;
 
+        /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-412. */
+        /* coverity[misra_c_2012_directive_4_12_violation] */
         pxSocketSet = ( ( SocketSelect_t * ) pvPortMalloc( sizeof( *pxSocketSet ) ) );
 
         if( pxSocketSet != NULL )
@@ -4235,6 +4242,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         uxSize = ( sizeof( *pxBuffer ) + uxLength ) - sizeof( pxBuffer->ucArray );
 
+        /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-412. */
+        /* coverity[misra_c_2012_directive_4_12_violation] */
         pxBuffer = ( ( StreamBuffer_t * ) pvPortMallocLarge( uxSize ) );
 
         if( pxBuffer == NULL )
@@ -4795,6 +4805,49 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
     }
 
 #endif /* ipconfigUSE_TCP */
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Set the value of the SocketID of a socket.
+ * @param[in] xSocket: The socket whose ID should be set.
+ * @param[in] pvSocketID: The new value for the SocketID.
+ * @return Zero if the socket was valid, otherwise -EINVAL.
+ */
+BaseType_t xSocketSetSocketID( const Socket_t xSocket,
+                               void * pvSocketID )
+{
+    FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
+    BaseType_t xReturn = -pdFREERTOS_ERRNO_EINVAL;
+
+    if( xSocketValid( pxSocket ) )
+    {
+        xReturn = 0;
+        pxSocket->pvSocketID = pvSocketID;
+    }
+
+    return xReturn;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Retrieve the SocketID that is associated with a socket.
+ * @param[in] xSocket: The socket whose ID should be returned.
+ * @return The current value of pvSocketID, or NULL in case
+ *         the socket pointer is not valid or when the ID was not
+ *         yet set.
+ */
+void * pvSocketGetSocketID( const ConstSocket_t xSocket )
+{
+    const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
+    void * pvReturn = NULL;
+
+    if( xSocketValid( pxSocket ) )
+    {
+        pvReturn = pxSocket->pvSocketID;
+    }
+
+    return pvReturn;
+}
 /*-----------------------------------------------------------*/
 
 #if ( ( ipconfigHAS_PRINTF != 0 ) && ( ipconfigUSE_TCP == 1 ) )
