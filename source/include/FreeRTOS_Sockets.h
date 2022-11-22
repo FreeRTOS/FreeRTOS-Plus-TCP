@@ -43,12 +43,9 @@
     #include "FreeRTOSIPConfig.h"
     #include "FreeRTOSIPConfigDefaults.h"
 
-    
     #ifndef FREERTOS_IP_CONFIG_H
         #error FreeRTOSIPConfig.h has not been included yet
     #endif
-
-    #include "FreeRTOS_IP.h"
 
 /* Event bit definitions are required by the select functions. */
     #include "event_groups.h"
@@ -96,11 +93,6 @@
     #define FREERTOS_SOCK_DEPENDENT_PROTO    ( 0 )
 
     #define FREERTOS_AF_INET4                 FREERTOS_AF_INET
-    /* IP packet of type "Any local network"
-     * can be used in stead of TCP for testing with sockets in raw mode
-     */
-    #define FREERTOS_IPPROTO_USR_LAN              ( 63 )
-
 /* Values for xFlags parameter of Receive/Send functions. */
     #define FREERTOS_ZERO_COPY               ( 1 )  /* Can be used with recvfrom(), sendto() and recv(),
                                                      * Indicates that the zero copy interface is being used.
@@ -183,26 +175,11 @@
  * fields sin_len and sin_family doesn't make the structure bigger, due to alignment.
  * These fields are only inserted as a preparation for IPv6
  * and are not used in the IPv4-only release. */
-        uint8_t sin_len;    /**< length of this structure. Ignored, still present for backward compatibility. */
-        uint8_t sin_family; /**< Set to FREERTOS_AF_INET. */
-        uint16_t sin_port;  /**< The port number in network-endian format. */
-        uint32_t sin_addr;  /**< The IP-address in network-endian format. */
+        uint8_t sin_len;    /**< length of this structure. */
+        uint8_t sin_family; /**< FREERTOS_AF_INET. */
+        uint16_t sin_port;  /**< The port. */
+        uint32_t sin_addr;  /**< The IP address. */
     };
-/** @brief Introduce a short name to make casting easier. */
-typedef struct freertos_sockaddr sockaddr4_t;
-
-#if ( ipconfigUSE_IPV6 != 0 )
-    struct freertos_sockaddr6
-    {
-        uint8_t sin_len;           /**< Ignored, still present for backward compatibility. */
-        uint8_t sin_family;        /**< Set to FREERTOS_AF_INET6. */
-        uint16_t sin_port;         /**< The port number in network-endian format. */
-        uint32_t sin_flowinfo;     /**< IPv6 flow information, not used in this library. */
-        IPv6_Address_t sin_addrv6; /**< The IPv6 address. */
-    };
-    /** @brief Introduce a short name to make casting easier. */
-    typedef struct freertos_sockaddr6 sockaddr6_t;
-#endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 
 /* The socket type itself. */
     struct xSOCKET;
@@ -340,23 +317,16 @@ typedef struct freertos_sockaddr sockaddr4_t;
         BaseType_t FreeRTOS_shutdown( Socket_t xSocket,
                                       BaseType_t xHow );
 
+        #if ( ipconfigUSE_TCP == 1 )
+
 /* Release a TCP payload buffer that was obtained by
  * calling FreeRTOS_recv() with the FREERTOS_ZERO_COPY flag,
  * and a pointer to a void pointer. */
-        BaseType_t FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
-                                                     void const * pvBuffer,
-                                                     BaseType_t xByteCount );
+            BaseType_t FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
+                                                         void const * pvBuffer,
+                                                         BaseType_t xByteCount );
+        #endif /* ( ipconfigUSE_TCP == 1 ) */
 
-        #if ( ipconfigUSE_IPV6 != 0 )
-            /* Get the type of IP: either 'ipTYPE_IPv4' or 'ipTYPE_IPv6'. */
-            BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket );
-        #else
-            static __inline BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
-            {
-                ( void ) xSocket;
-                return ( BaseType_t ) ipTYPE_IPv4;
-            }
-        #endif
 /* Returns the number of bytes available in the Rx buffer. */
         BaseType_t FreeRTOS_rx_size( ConstSocket_t xSocket );
 
@@ -512,18 +482,6 @@ typedef struct freertos_sockaddr sockaddr4_t;
     const char * FreeRTOS_inet_ntop4( const void * pvSource,
                                       char * pcDestination,
                                       socklen_t uxSize );
-
-    #if ( ipconfigUSE_IPV6 != 0 )
-/*
- * Convert a string like 'fe80::8d11:cd9b:8b66:4a80'
- * to a 16-byte IPv6 address
- */
-    BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
-                                    void * pvDestination );
-    const char * FreeRTOS_inet_ntop6( const void * pvSource,
-                                      char * pcDestination,
-                                      socklen_t uxSize );
-#endif /* ipconfigUSE_IPV6 */
 
 /** @brief This function converts a human readable string, representing an 48-bit MAC address,
  * into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba". */
