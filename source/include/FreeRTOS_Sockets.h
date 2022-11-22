@@ -92,6 +92,7 @@
     #define FREERTOS_IPPROTO_TCP             ( 6 )
     #define FREERTOS_SOCK_DEPENDENT_PROTO    ( 0 )
 
+    #define FREERTOS_AF_INET4                 FREERTOS_AF_INET
 /* Values for xFlags parameter of Receive/Send functions. */
     #define FREERTOS_ZERO_COPY               ( 1 )  /* Can be used with recvfrom(), sendto() and recv(),
                                                      * Indicates that the zero copy interface is being used.
@@ -147,6 +148,7 @@
     #if ( ipconfigUSE_TCP == 1 )
         #define FREERTOS_SO_SET_LOW_HIGH_WATER    ( 18 )
     #endif
+#define FREERTOS_INADDR_ANY                       ( 0U )     /* The 0.0.0.0 IPv4 address. */
 
     #if ( 0 ) /* Not Used */
         #define FREERTOS_NOT_LAST_IN_FRAGMENTED_PACKET    ( 0x80 )
@@ -242,7 +244,7 @@
                                size_t uxBufferLength,
                                BaseType_t xFlags,
                                struct freertos_sockaddr * pxSourceAddress,
-                               const socklen_t * pxSourceAddressLength );
+                               socklen_t * pxSourceAddressLength );
 
 
 /* Function to get the local address and IP port. */

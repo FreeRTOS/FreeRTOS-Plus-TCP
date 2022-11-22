@@ -57,7 +57,7 @@
 /** @brief When the age of an entry in the ARP table reaches this value (it counts down
  * to zero, so this is an old entry) an ARP request will be sent to see if the
  * entry is still valid and can therefore be refreshed. */
-#define arpMAX_ARP_AGE_BEFORE_NEW_ARP_REQUEST    ( 3 )
+#define arpMAX_ARP_AGE_BEFORE_NEW_ARP_REQUEST    ( 3U )
 
 /** @brief The time between gratuitous ARPs. */
 #ifndef arpGRATUITOUS_ARP_PERIOD
