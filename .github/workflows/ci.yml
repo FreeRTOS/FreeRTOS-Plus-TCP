@@ -99,7 +99,7 @@ jobs:
           fi
 
   doxygen:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Run doxygen build
