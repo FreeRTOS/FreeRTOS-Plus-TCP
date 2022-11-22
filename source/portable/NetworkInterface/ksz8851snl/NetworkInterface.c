@@ -194,7 +194,7 @@
 #define BMSR_LINK_STATUS        0x0004  /*!< Link status */
 
 #if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #warning please use the new defines with 'ipconfig' prefix
+    #error please use the new defines with 'ipconfig' prefix
 #endif
 
 #ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS

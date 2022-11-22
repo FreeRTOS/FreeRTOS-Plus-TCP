@@ -68,7 +68,7 @@
 #endif /* if defined( BSP_MCU_RX65N ) || defined( BSP_MCU_RX64M ) || defined( BSP_MCU_RX71M ) */
 
 #if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #warning please use the new defines with 'ipconfig' prefix
+    #error please use the new defines with 'ipconfig' prefix
 #endif
 
 #ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
