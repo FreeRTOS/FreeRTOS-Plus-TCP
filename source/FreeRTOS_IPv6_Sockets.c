@@ -25,7 +25,7 @@
  * http://www.FreeRTOS.org
  */
 
- /**
+/**
  * @file FreeRTOS_Sockets_IPv6.c
  * @brief Implements the Sockets API based on Berkeley sockets for the FreeRTOS+TCP network stack.
  *        Sockets are used by the application processes to interact with the IP-task which in turn
@@ -61,8 +61,8 @@
  * @return The socket in case it is connected to the remote IP-address
  */
     FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
-                                                       IPv6_Address_t * pxAddress_IPv6,
-                                                       uint32_t ulRemoteIP )
+                                                IPv6_Address_t * pxAddress_IPv6,
+                                                uint32_t ulRemoteIP )
     {
         FreeRTOS_Socket_t * pxResult = NULL;
 
@@ -96,6 +96,7 @@
 #endif /* if ( ( ipconfigUSE_TCP == 1 ) */
 
 #if ( ipconfigUSE_TCP == 1 )
+
 /**
  * @brief Get the version of IP: either 'ipTYPE_IPv4' or 'ipTYPE_IPv6'.
  *
@@ -126,28 +127,28 @@
  * @param usValue : The value to be converted, must be between 0 and 15.
  * @return The character, between '0' and '9', or between 'a' and 'f'.
  */
-    static char cHexToChar( unsigned short usValue )
+static char cHexToChar( unsigned short usValue )
+{
+    char cReturn = '0';
+
+    if( usValue <= 9U )
     {
-        char cReturn = '0';
-
-        if( usValue <= 9U )
-        {
-            cReturn += usValue;
-        }
-        else if( usValue <= 15U )
-        {
-            cReturn = 'a';
-            cReturn += ( usValue - 10U );
-        }
-        else
-        {
-            /* The value passed to 'usValue' has been and-ed with 0x0f,
-             * so this else clause should never be reached. */
-            configASSERT( 0 == 1 );
-        }
-
-        return cReturn;
+        cReturn += usValue;
     }
+    else if( usValue <= 15U )
+    {
+        cReturn = 'a';
+        cReturn += ( usValue - 10U );
+    }
+    else
+    {
+        /* The value passed to 'usValue' has been and-ed with 0x0f,
+         * so this else clause should never be reached. */
+        configASSERT( 0 == 1 );
+    }
+
+    return cReturn;
+}
 
 /*-----------------------------------------------------------*/
 
@@ -160,41 +161,41 @@
  * @param usValue[in] : The 16-bit value to be converted.
  * @return The number of bytes written to 'pcBuffer'.
  */
-    static socklen_t uxHexPrintShort( char * pcBuffer,
-                                      size_t uxBufferSize,
-                                      uint16_t usValue )
+static socklen_t uxHexPrintShort( char * pcBuffer,
+                                  size_t uxBufferSize,
+                                  uint16_t usValue )
+{
+    const size_t uxNibbleCount = 4U;
+    size_t uxNibble;
+    size_t uxIndex = 0U;
+    uint16_t usShifter = usValue;
+    BaseType_t xHadNonZero = pdFALSE;
+
+    for( uxNibble = 0; uxNibble < uxNibbleCount; uxNibble++ )
     {
-        const size_t uxNibbleCount = 4U;
-        size_t uxNibble;
-        size_t uxIndex = 0U;
-        uint16_t usShifter = usValue;
-        BaseType_t xHadNonZero = pdFALSE;
+        uint16_t usNibble = ( usShifter >> 12 ) & 0x0FU;
 
-        for( uxNibble = 0; uxNibble < uxNibbleCount; uxNibble++ )
+        if( usNibble != 0U )
         {
-            uint16_t usNibble = ( usShifter >> 12 ) & 0x0FU;
-
-            if( usNibble != 0U )
-            {
-                xHadNonZero = pdTRUE;
-            }
-
-            if( ( xHadNonZero != pdFALSE ) || ( uxNibble == ( uxNibbleCount - 1U ) ) )
-            {
-                if( uxIndex >= ( uxBufferSize - 1U ) )
-                {
-                    break;
-                }
-
-                pcBuffer[ uxIndex ] = cHexToChar( usNibble );
-                uxIndex++;
-            }
-
-            usShifter <<= 4;
+            xHadNonZero = pdTRUE;
         }
 
-        return uxIndex;
+        if( ( xHadNonZero != pdFALSE ) || ( uxNibble == ( uxNibbleCount - 1U ) ) )
+        {
+            if( uxIndex >= ( uxBufferSize - 1U ) )
+            {
+                break;
+            }
+
+            pcBuffer[ uxIndex ] = cHexToChar( usNibble );
+            uxIndex++;
+        }
+
+        usShifter <<= 4;
     }
+
+    return uxIndex;
+}
 /*-----------------------------------------------------------*/
 
 /**
@@ -202,49 +203,49 @@
  *        The result of this search will be stored in 'xZeroStart' and 'xZeroLength'.
  * @param pxSet: the set of parameters as used by FreeRTOS_inet_ntop6().
  */
-    static void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet )
+static void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet )
+{
+    BaseType_t xIndex = 0;                /* The index in the IPv6 address: 0..7. */
+    BaseType_t xCurStart = 0;             /* The position of the first zero found so far. */
+    BaseType_t xCurLength = 0;            /* The number of zero's seen so far. */
+    const BaseType_t xShortCount = 8;     /* An IPv6 address consists of 8 shorts. */
+
+    /* Default: when xZeroStart is negative, it won't match with any xIndex. */
+    pxSet->xZeroStart = -1;
+
+    /* Look for the longest train of zero's 0:0:0:... */
+    for( ; xIndex < xShortCount; xIndex++ )
     {
-        BaseType_t xIndex = 0;            /* The index in the IPv6 address: 0..7. */
-        BaseType_t xCurStart = 0;         /* The position of the first zero found so far. */
-        BaseType_t xCurLength = 0;        /* The number of zero's seen so far. */
-        const BaseType_t xShortCount = 8; /* An IPv6 address consists of 8 shorts. */
+        uint16_t usValue = pxSet->pusAddress[ xIndex ];
 
-        /* Default: when xZeroStart is negative, it won't match with any xIndex. */
-        pxSet->xZeroStart = -1;
-
-        /* Look for the longest train of zero's 0:0:0:... */
-        for( ; xIndex < xShortCount; xIndex++ )
+        if( usValue == 0U )
         {
-            uint16_t usValue = pxSet->pusAddress[ xIndex ];
-
-            if( usValue == 0U )
+            if( xCurLength == 0 )
             {
-                if( xCurLength == 0 )
-                {
-                    /* Remember the position of the first zero. */
-                    xCurStart = xIndex;
-                }
-
-                /* Count consecutive zeros. */
-                xCurLength++;
+                /* Remember the position of the first zero. */
+                xCurStart = xIndex;
             }
 
-            if( ( usValue != 0U ) || ( xIndex == ( xShortCount - 1 ) ) )
-            {
-                /* Has a longer train of zero's been found? */
-                if( ( xCurLength > 1 ) && ( pxSet->xZeroLength < xCurLength ) )
-                {
-                    /* Remember the number of consecutive zeros. */
-                    pxSet->xZeroLength = xCurLength;
-                    /* Remember the index of the first zero found. */
-                    pxSet->xZeroStart = xCurStart;
-                }
+            /* Count consecutive zeros. */
+            xCurLength++;
+        }
 
-                /* Reset the counter of consecutive zeros. */
-                xCurLength = 0;
+        if( ( usValue != 0U ) || ( xIndex == ( xShortCount - 1 ) ) )
+        {
+            /* Has a longer train of zero's been found? */
+            if( ( xCurLength > 1 ) && ( pxSet->xZeroLength < xCurLength ) )
+            {
+                /* Remember the number of consecutive zeros. */
+                pxSet->xZeroLength = xCurLength;
+                /* Remember the index of the first zero found. */
+                pxSet->xZeroStart = xCurStart;
             }
+
+            /* Reset the counter of consecutive zeros. */
+            xCurLength = 0;
         }
     }
+}
 /*-----------------------------------------------------------*/
 
 /**
@@ -257,45 +258,45 @@
  * @note uxSize must be at least 2, enough to print "::". The string will get
  *       null-terminated later on.
  */
-    static BaseType_t prv_ntop6_write_zeros( char * pcDestination,
-                                             size_t uxSize,
-                                             struct sNTOP6_Set * pxSet )
+static BaseType_t prv_ntop6_write_zeros( char * pcDestination,
+                                         size_t uxSize,
+                                         struct sNTOP6_Set * pxSet )
+{
+    BaseType_t xReturn = pdPASS;
+    const BaseType_t xShortCount = 8;     /* An IPv6 address consists of 8 shorts. */
+
+    if( pxSet->uxTargetIndex <= ( uxSize - 1U ) )
     {
-        BaseType_t xReturn = pdPASS;
-        const BaseType_t xShortCount = 8; /* An IPv6 address consists of 8 shorts. */
+        pcDestination[ pxSet->uxTargetIndex ] = ':';
+        pxSet->uxTargetIndex++;
 
-        if( pxSet->uxTargetIndex <= ( uxSize - 1U ) )
+        if( ( pxSet->xIndex + pxSet->xZeroLength ) == xShortCount )
         {
-            pcDestination[ pxSet->uxTargetIndex ] = ':';
-            pxSet->uxTargetIndex++;
-
-            if( ( pxSet->xIndex + pxSet->xZeroLength ) == xShortCount )
+            /* Reached the last index, write a second ";". */
+            if( pxSet->uxTargetIndex <= ( uxSize - 1U ) )
             {
-                /* Reached the last index, write a second ";". */
-                if( pxSet->uxTargetIndex <= ( uxSize - 1U ) )
-                {
-                    pcDestination[ pxSet->uxTargetIndex ] = ':';
-                    pxSet->uxTargetIndex++;
-                }
-                else
-                {
-                    /* Can not write the second colon. */
-                    xReturn = pdFAIL;
-                }
+                pcDestination[ pxSet->uxTargetIndex ] = ':';
+                pxSet->uxTargetIndex++;
             }
             else
             {
-                /* Otherwise the function prv_ntop6_write_short() will places the second colon. */
+                /* Can not write the second colon. */
+                xReturn = pdFAIL;
             }
         }
         else
         {
-            /* Can not write the first colon. */
-            xReturn = pdFAIL;
+            /* Otherwise the function prv_ntop6_write_short() will places the second colon. */
         }
-
-        return xReturn;
     }
+    else
+    {
+        /* Can not write the first colon. */
+        xReturn = pdFAIL;
+    }
+
+    return xReturn;
+}
 /*-----------------------------------------------------------*/
 
 /**
@@ -308,50 +309,50 @@
  * @note uxSize must be at least 4, enough to print "abcd". The string will get
  *       null-terminated later on.
  */
-    static BaseType_t prv_ntop6_write_short( char * pcDestination,
-                                             size_t uxSize,
-                                             struct sNTOP6_Set * pxSet )
-    {
-        socklen_t uxLength;
-        BaseType_t xReturn = pdPASS;
-        const size_t uxBytesPerShortValue = 4U;
+static BaseType_t prv_ntop6_write_short( char * pcDestination,
+                                         size_t uxSize,
+                                         struct sNTOP6_Set * pxSet )
+{
+    socklen_t uxLength;
+    BaseType_t xReturn = pdPASS;
+    const size_t uxBytesPerShortValue = 4U;
 
-        if( pxSet->xIndex > 0 )
+    if( pxSet->xIndex > 0 )
+    {
+        if( pxSet->uxTargetIndex >= ( uxSize - 1U ) )
         {
-            if( pxSet->uxTargetIndex >= ( uxSize - 1U ) )
+            xReturn = pdFAIL;
+        }
+        else
+        {
+            pcDestination[ pxSet->uxTargetIndex ] = ':';
+            pxSet->uxTargetIndex++;
+        }
+    }
+
+    if( xReturn == pdPASS )
+    {
+        /* If there is enough space to write a short. */
+        if( pxSet->uxTargetIndex <= ( uxSize - uxBytesPerShortValue ) )
+        {
+            /* Write hex value of short. at most 4 + 1 bytes. */
+            uxLength = uxHexPrintShort( &( pcDestination[ pxSet->uxTargetIndex ] ),
+                                        uxBytesPerShortValue + 1U,
+                                        FreeRTOS_ntohs( pxSet->pusAddress[ pxSet->xIndex ] ) );
+
+            if( uxLength <= 0U )
             {
                 xReturn = pdFAIL;
             }
             else
             {
-                pcDestination[ pxSet->uxTargetIndex ] = ':';
-                pxSet->uxTargetIndex++;
+                pxSet->uxTargetIndex += uxLength;
             }
         }
-
-        if( xReturn == pdPASS )
-        {
-            /* If there is enough space to write a short. */
-            if( pxSet->uxTargetIndex <= ( uxSize - uxBytesPerShortValue ) )
-            {
-                /* Write hex value of short. at most 4 + 1 bytes. */
-                uxLength = uxHexPrintShort( &( pcDestination[ pxSet->uxTargetIndex ] ),
-                                            uxBytesPerShortValue + 1U,
-                                            FreeRTOS_ntohs( pxSet->pusAddress[ pxSet->xIndex ] ) );
-
-                if( uxLength <= 0U )
-                {
-                    xReturn = pdFAIL;
-                }
-                else
-                {
-                    pxSet->uxTargetIndex += uxLength;
-                }
-            }
-        }
-
-        return xReturn;
     }
+
+    return xReturn;
+}
 /*-----------------------------------------------------------*/
 
 /**
@@ -364,61 +365,61 @@
  *
  * @return pdPASS if the translation was successful or else pdFAIL.
  */
-    const char * FreeRTOS_inet_ntop6( const void * pvSource,
-                                      char * pcDestination,
-                                      socklen_t uxSize )
+const char * FreeRTOS_inet_ntop6( const void * pvSource,
+                                  char * pcDestination,
+                                  socklen_t uxSize )
+{
+    const char * pcReturn;      /* The return value, which is either 'pcDestination' or NULL. */
+    struct sNTOP6_Set xSet;     /* A set of values for easy exchange with the helper functions prv_ntop6_xxx(). */
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+
+    xSet.pusAddress = pvSource;
+
+    if( uxSize < 3U )
     {
-        const char * pcReturn;  /* The return value, which is either 'pcDestination' or NULL. */
-        struct sNTOP6_Set xSet; /* A set of values for easy exchange with the helper functions prv_ntop6_xxx(). */
+        /* Can not even print :: */
+    }
+    else
+    {
+        prv_ntop6_search_zeros( &( xSet ) );
 
-        ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-
-        xSet.pusAddress = pvSource;
-
-        if( uxSize < 3U )
+        while( xSet.xIndex < 8 )
         {
-            /* Can not even print :: */
-        }
-        else
-        {
-            prv_ntop6_search_zeros( &( xSet ) );
-
-            while( xSet.xIndex < 8 )
+            if( xSet.xIndex == xSet.xZeroStart )
             {
-                if( xSet.xIndex == xSet.xZeroStart )
+                if( prv_ntop6_write_zeros( pcDestination, uxSize, &( xSet ) ) == pdFAIL )
                 {
-                    if( prv_ntop6_write_zeros( pcDestination, uxSize, &( xSet ) ) == pdFAIL )
-                    {
-                        break;
-                    }
-
-                    xSet.xIndex += xSet.xZeroLength;
+                    break;
                 }
-                else
+
+                xSet.xIndex += xSet.xZeroLength;
+            }
+            else
+            {
+                if( prv_ntop6_write_short( pcDestination, uxSize, &( xSet ) ) == pdFAIL )
                 {
-                    if( prv_ntop6_write_short( pcDestination, uxSize, &( xSet ) ) == pdFAIL )
-                    {
-                        break;
-                    }
-
-                    xSet.xIndex++;
+                    break;
                 }
+
+                xSet.xIndex++;
             }
         }
-
-        if( xSet.xIndex < 8 )
-        {
-            /* Didn't reach the last nibble: clear the string. */
-            pcReturn = NULL;
-        }
-	else
-        {
-            pcDestination[ xSet.uxTargetIndex ] = '\0';
-            pcReturn = pcDestination;
-        }
-
-        return pcReturn;
     }
+
+    if( xSet.xIndex < 8 )
+    {
+        /* Didn't reach the last nibble: clear the string. */
+        pcReturn = NULL;
+    }
+    else
+    {
+        pcDestination[ xSet.uxTargetIndex ] = '\0';
+        pcReturn = pcDestination;
+    }
+
+    return pcReturn;
+}
 /*-----------------------------------------------------------*/
 
 /**
@@ -430,69 +431,69 @@
  *
  * @return pdTRUE when the nibble was added, otherwise pdFALSE.
  */
-    static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
-                                                 uint8_t ucNew,
-                                                 char ch )
+static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
+                                             uint8_t ucNew,
+                                             char ch )
+{
+    BaseType_t xReturn = pdPASS;
+
+    if( ucNew != ( uint8_t ) socketINVALID_HEX_CHAR )
     {
-        BaseType_t xReturn = pdPASS;
+        /* Shift in 4 bits. */
+        pxSet->ulValue <<= 4;
+        pxSet->ulValue |= ( uint32_t ) ucNew;
 
-        if( ucNew != ( uint8_t ) socketINVALID_HEX_CHAR )
+        /* Remember that ulValue is valid now. */
+        pxSet->xHadDigit = pdTRUE;
+
+        /* Check if the number is not becoming larger than 16 bits. */
+        if( pxSet->ulValue > 0xffffU )
         {
-            /* Shift in 4 bits. */
-            pxSet->ulValue <<= 4;
-            pxSet->ulValue |= ( uint32_t ) ucNew;
-
-            /* Remember that ulValue is valid now. */
-            pxSet->xHadDigit = pdTRUE;
-
-            /* Check if the number is not becoming larger than 16 bits. */
-            if( pxSet->ulValue > 0xffffU )
-            {
-                /* The highest nibble has already been set,
-                 * an overflow would occur.  Break out of the for-loop. */
-                xReturn = pdFAIL;
-            }
+            /* The highest nibble has already been set,
+             * an overflow would occur.  Break out of the for-loop. */
+            xReturn = pdFAIL;
         }
-        else if( ch == ':' )
+    }
+    else if( ch == ':' )
+    {
+        if( pxSet->xHadDigit == pdFALSE )
         {
-            if( pxSet->xHadDigit == pdFALSE )
+            /* A "::" sequence has been received. Check if it is not a third colon. */
+            if( pxSet->xColon >= 0 )
             {
-                /* A "::" sequence has been received. Check if it is not a third colon. */
-                if( pxSet->xColon >= 0 )
-                {
-                    xReturn = pdFAIL;
-                }
-                else
-                {
-                    /* Two or more zero's are expected, starting at position 'xColon'. */
-                    pxSet->xColon = pxSet->xTargetIndex;
-                }
+                xReturn = pdFAIL;
             }
             else
             {
-                if( pxSet->xTargetIndex <= pxSet->xHighestIndex )
-                {
-                    /* Store a short value at position 'xTargetIndex'. */
-                    pxSet->pucTarget[ pxSet->xTargetIndex ] = ( uint8_t ) ( ( pxSet->ulValue >> 8 ) & 0xffU );
-                    pxSet->pucTarget[ pxSet->xTargetIndex + 1 ] = ( uint8_t ) ( pxSet->ulValue & 0xffU );
-                    pxSet->xTargetIndex += 2;
-                    pxSet->xHadDigit = pdFALSE;
-                    pxSet->ulValue = 0U;
-                }
-                else
-                {
-                    xReturn = pdFAIL;
-                }
+                /* Two or more zero's are expected, starting at position 'xColon'. */
+                pxSet->xColon = pxSet->xTargetIndex;
             }
         }
         else
         {
-            /* When an IPv4 address or rubbish is provided, this statement will be reached. */
-            xReturn = pdFAIL;
+            if( pxSet->xTargetIndex <= pxSet->xHighestIndex )
+            {
+                /* Store a short value at position 'xTargetIndex'. */
+                pxSet->pucTarget[ pxSet->xTargetIndex ] = ( uint8_t ) ( ( pxSet->ulValue >> 8 ) & 0xffU );
+                pxSet->pucTarget[ pxSet->xTargetIndex + 1 ] = ( uint8_t ) ( pxSet->ulValue & 0xffU );
+                pxSet->xTargetIndex += 2;
+                pxSet->xHadDigit = pdFALSE;
+                pxSet->ulValue = 0U;
+            }
+            else
+            {
+                xReturn = pdFAIL;
+            }
         }
-
-        return xReturn;
     }
+    else
+    {
+        /* When an IPv4 address or rubbish is provided, this statement will be reached. */
+        xReturn = pdFAIL;
+    }
+
+    return xReturn;
+}
 /*-----------------------------------------------------------*/
 
 /**
@@ -544,26 +545,26 @@ uint8_t ucASCIIToHex( char cChar )
  *        A :: block was found, now fill in the zero's.
  * @param[in] pxSet : A set of variables describing the conversion.
  */
-    static void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet )
+static void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet )
+{
+    /* The number of bytes that were written after the :: */
+    const BaseType_t xCount = pxSet->xTargetIndex - pxSet->xColon;
+    const BaseType_t xTopIndex = ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS;
+    BaseType_t xIndex;
+    BaseType_t xTarget = xTopIndex - 1;
+    BaseType_t xSource = pxSet->xColon + ( xCount - 1 );
+
+    /* Inserting 'xCount' zero's. */
+    for( xIndex = 0; xIndex < xCount; xIndex++ )
     {
-        /* The number of bytes that were written after the :: */
-        const BaseType_t xCount = pxSet->xTargetIndex - pxSet->xColon;
-        const BaseType_t xTopIndex = ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS;
-        BaseType_t xIndex;
-        BaseType_t xTarget = xTopIndex - 1;
-        BaseType_t xSource = pxSet->xColon + ( xCount - 1 );
-
-        /* Inserting 'xCount' zero's. */
-        for( xIndex = 0; xIndex < xCount; xIndex++ )
-        {
-            pxSet->pucTarget[ xTarget ] = pxSet->pucTarget[ xSource ];
-            pxSet->pucTarget[ xSource ] = 0;
-            xTarget--;
-            xSource--;
-        }
-
-        pxSet->xTargetIndex = ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS;
+        pxSet->pucTarget[ xTarget ] = pxSet->pucTarget[ xSource ];
+        pxSet->pucTarget[ xSource ] = 0;
+        xTarget--;
+        xSource--;
     }
+
+    pxSet->xTargetIndex = ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS;
+}
 /*-----------------------------------------------------------*/
 
 /**
@@ -574,97 +575,97 @@ uint8_t ucASCIIToHex( char cChar )
  *
  * @return The 32-bit representation of IP(v4) address.
  */
-    BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
-                                    void * pvDestination )
+BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
+                                void * pvDestination )
+{
+    char ch;
+    uint8_t ucNew;
+    BaseType_t xResult;
+    struct sPTON6_Set xSet;
+
+    const char * pcIterator = pcSource;
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.xColon = -1;
+    xSet.pucTarget = pvDestination;
+
+    ( void ) memset( xSet.pucTarget, 0, ipSIZE_OF_IPv6_ADDRESS );
+
+    xResult = 0;
+
+    /* Leading :: requires some special handling. */
+    if( strcmp( pcIterator, "::" ) == 0 )
     {
-        char ch;
-        uint8_t ucNew;
-        BaseType_t xResult;
-        struct sPTON6_Set xSet;
+        xResult = 1;
+    }
+    else
+    {
+        if( pcIterator[ 0 ] == ':' )
+        {
+            pcIterator++;
+        }
 
-        const char * pcIterator = pcSource;
+        /* The last bytes will be written at position 14 and 15. */
+        xSet.xHighestIndex = ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS;
+        xSet.xHighestIndex -= ( BaseType_t ) sizeof( uint16_t );
 
-        ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-        xSet.xColon = -1;
-        xSet.pucTarget = pvDestination;
+        /* The value in ulValue is not yet valid. */
+        xSet.xHadDigit = pdFALSE;
+        xSet.ulValue = 0U;
 
-        ( void ) memset( xSet.pucTarget, 0, ipSIZE_OF_IPv6_ADDRESS );
+        for( ; ; )
+        {
+            ch = *( pcIterator++ );
 
-        xResult = 0;
+            if( ch == ( char ) '\0' )
+            {
+                /* The string is parsed now.
+                 * Store the last short, if present. */
+                if( ( xSet.xHadDigit != pdFALSE ) &&
+                    ( xSet.xTargetIndex <= xSet.xHighestIndex ) )
+                {
+                    /* Add the last value seen, network byte order ( MSB first ). */
+                    xSet.pucTarget[ xSet.xTargetIndex ] = ( uint8_t ) ( ( xSet.ulValue >> 8 ) & 0xffU );
+                    xSet.pucTarget[ xSet.xTargetIndex + 1 ] = ( uint8_t ) ( xSet.ulValue & 0xffU );
+                    xSet.xTargetIndex += 2;
+                }
 
-        /* Leading :: requires some special handling. */
-        if( strcmp( pcIterator, "::" ) == 0 )
+                /* Break out of the for-ever loop. */
+                break;
+            }
+
+            /* Convert from a readable character to a hex value. */
+            ucNew = ucASCIIToHex( ch );
+            /* See if this is a digit or a colon. */
+            xResult = prv_inet_pton6_add_nibble( &( xSet ), ucNew, ch );
+
+            if( xResult == pdFALSE )
+            {
+                /* The new character was not accepted. */
+                break;
+            }
+        }     /* for( ;; ) */
+
+        if( xSet.xColon >= 0 )
+        {
+            /* The address contains a block of zero. */
+            prv_inet_pton6_set_zeros( &( xSet ) );
+        }
+
+        if( xSet.xTargetIndex == ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS )
         {
             xResult = 1;
         }
-        else
-        {
-            if( pcIterator[ 0 ] == ':' )
-            {
-                pcIterator++;
-            }
-
-            /* The last bytes will be written at position 14 and 15. */
-            xSet.xHighestIndex = ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS;
-            xSet.xHighestIndex -= ( BaseType_t ) sizeof( uint16_t );
-
-            /* The value in ulValue is not yet valid. */
-            xSet.xHadDigit = pdFALSE;
-            xSet.ulValue = 0U;
-
-            for( ; ; )
-            {
-                ch = *( pcIterator++ );
-
-                if( ch == ( char ) '\0' )
-                {
-                    /* The string is parsed now.
-                     * Store the last short, if present. */
-                    if( ( xSet.xHadDigit != pdFALSE ) &&
-                        ( xSet.xTargetIndex <= xSet.xHighestIndex ) )
-                    {
-                        /* Add the last value seen, network byte order ( MSB first ). */
-                        xSet.pucTarget[ xSet.xTargetIndex ] = ( uint8_t ) ( ( xSet.ulValue >> 8 ) & 0xffU );
-                        xSet.pucTarget[ xSet.xTargetIndex + 1 ] = ( uint8_t ) ( xSet.ulValue & 0xffU );
-                        xSet.xTargetIndex += 2;
-                    }
-
-                    /* Break out of the for-ever loop. */
-                    break;
-                }
-
-                /* Convert from a readable character to a hex value. */
-                ucNew = ucASCIIToHex( ch );
-                /* See if this is a digit or a colon. */
-                xResult = prv_inet_pton6_add_nibble( &( xSet ), ucNew, ch );
-
-                if( xResult == pdFALSE )
-                {
-                    /* The new character was not accepted. */
-                    break;
-                }
-            } /* for( ;; ) */
-
-            if( xSet.xColon >= 0 )
-            {
-                /* The address contains a block of zero. */
-                prv_inet_pton6_set_zeros( &( xSet ) );
-            }
-
-            if( xSet.xTargetIndex == ( BaseType_t ) ipSIZE_OF_IPv6_ADDRESS )
-            {
-                xResult = 1;
-            }
-        }
-
-        if( xResult != 1 )
-        {
-            xSet.pucTarget = ( uint8_t * ) pvDestination;
-            ( void ) memset( xSet.pucTarget, 0, ipSIZE_OF_IPv6_ADDRESS );
-        }
-
-        return xResult;
     }
+
+    if( xResult != 1 )
+    {
+        xSet.pucTarget = ( uint8_t * ) pvDestination;
+        ( void ) memset( xSet.pucTarget, 0, ipSIZE_OF_IPv6_ADDRESS );
+    }
+
+    return xResult;
+}
 
 /*-----------------------------------------------------------*/
 
@@ -677,13 +678,14 @@ uint8_t ucASCIIToHex( char cChar )
  *
  * @return Size of the freertos_sockaddr structure.
  */
-    size_t FreeRTOS_GetLocalAddressv6( ConstSocket_t xSocket,
-                                     struct freertos_sockaddr6 * pxAddress6 )
+size_t FreeRTOS_GetLocalAddressv6( ConstSocket_t xSocket,
+                                   struct freertos_sockaddr6 * pxAddress6 )
 {
     const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
 
     #if ( ipconfigUSE_IPV6 != 0 )
         struct freertos_sockaddr * pxAddress = ( ( sockaddr4_t * ) pxAddress6 );
+
         if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
         {
             pxAddress6->sin_family = FREERTOS_AF_INET6;
@@ -693,7 +695,7 @@ uint8_t ucASCIIToHex( char cChar )
             pxAddress6->sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
         }
         else
-    #endif
+    #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
     {
         pxAddress->sin_family = FREERTOS_AF_INET;
         pxAddress->sin_len = ( uint8_t ) sizeof( *pxAddress );
@@ -723,7 +725,7 @@ uint8_t ucASCIIToHex( char cChar )
 
 /* Function to get the remote address and IP port */
     BaseType_t FreeRTOS_GetRemoteAddress6( ConstSocket_t xSocket,
-                                              struct freertos_sockaddr6 * pxAddress )
+                                           struct freertos_sockaddr6 * pxAddress )
     {
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
         BaseType_t xResult;
@@ -737,17 +739,17 @@ uint8_t ucASCIIToHex( char cChar )
             /* BSD style sockets communicate IP and port addresses in network
              * byte order.
              * IP address of remote machine. */
-            
+
             if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
-                {
-                    pxAddress->sin_family = FREERTOS_AF_INET6;
+            {
+                pxAddress->sin_family = FREERTOS_AF_INET6;
 
-                    /* IP address of remote machine. */
-                    ( void ) memcpy( pxAddress->sin_addrv6.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, sizeof( pxAddress->sin_addrv6.ucBytes ) );
+                /* IP address of remote machine. */
+                ( void ) memcpy( pxAddress->sin_addrv6.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, sizeof( pxAddress->sin_addrv6.ucBytes ) );
 
-                    /* Port of remote machine. */
-                    pxAddress->sin_port = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
-                }
+                /* Port of remote machine. */
+                pxAddress->sin_port = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
+            }
 
             xResult = ( BaseType_t ) sizeof( *pxAddress );
         }

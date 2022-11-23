@@ -25,7 +25,7 @@
  * http://www.FreeRTOS.org
  */
 
- /**
+/**
  * @file FreeRTOS_Sockets_IPv6.c
  * @brief Implements the Sockets API based on Berkeley sockets for the FreeRTOS+TCP network stack.
  *        Sockets are used by the application processes to interact with the IP-task which in turn
@@ -47,7 +47,7 @@
 #include "FreeRTOS_IP.h"
 
 /** @brief The number of octets that make up an IP address. */
-#define socketMAX_IP_ADDRESS_OCTETS              4U
+#define socketMAX_IP_ADDRESS_OCTETS    4U
 
 /**
  * @brief This function converts the character string pcSource into a network address

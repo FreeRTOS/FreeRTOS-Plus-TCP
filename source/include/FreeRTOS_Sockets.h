@@ -94,7 +94,7 @@
     #define FREERTOS_IPPROTO_TCP             ( 6 )
     #define FREERTOS_SOCK_DEPENDENT_PROTO    ( 0 )
 
-    #define FREERTOS_AF_INET4                 FREERTOS_AF_INET
+    #define FREERTOS_AF_INET4                FREERTOS_AF_INET
 /* Values for xFlags parameter of Receive/Send functions. */
     #define FREERTOS_ZERO_COPY               ( 1 )  /* Can be used with recvfrom(), sendto() and recv(),
                                                      * Indicates that the zero copy interface is being used.
@@ -148,11 +148,11 @@
     #endif
 
     #if ( ipconfigUSE_TCP == 1 )
-        #define FREERTOS_SO_SET_LOW_HIGH_WATER    ( 18 )
+        #define FREERTOS_SO_SET_LOW_HIGH_WATER            ( 18 )
     #endif
-#define FREERTOS_INADDR_ANY                       ( 0U )     /* The 0.0.0.0 IPv4 address. */
+    #define FREERTOS_INADDR_ANY                           ( 0U ) /* The 0.0.0.0 IPv4 address. */
 
-    #if ( 0 ) /* Not Used */
+    #if ( 0 )                                                    /* Not Used */
         #define FREERTOS_NOT_LAST_IN_FRAGMENTED_PACKET    ( 0x80 )
         #define FREERTOS_FRAGMENTED_PACKET                ( 0x40 )
     #endif
@@ -185,12 +185,12 @@
     /** @brief Introduce a short name to make casting easier. */
     typedef struct freertos_sockaddr sockaddr4_t;
 
-   //TODO
+/*TODO */
 
 /* The socket type itself. */
     struct xSOCKET;
-    typedef struct xSOCKET         * Socket_t;
-    typedef struct xSOCKET const   * ConstSocket_t;
+    typedef struct xSOCKET       * Socket_t;
+    typedef struct xSOCKET const * ConstSocket_t;
 
     extern BaseType_t xSocketValid( const ConstSocket_t xSocket );
 
@@ -507,8 +507,8 @@
 /* The SocketSet_t type is the equivalent to the fd_set type used by the
  * Berkeley API. */
         struct xSOCKET_SET;
-        typedef struct xSOCKET_SET         * SocketSet_t;
-        typedef struct xSOCKET_SET const   * ConstSocketSet_t;
+        typedef struct xSOCKET_SET       * SocketSet_t;
+        typedef struct xSOCKET_SET const * ConstSocketSet_t;
 
 /* Create a socket set for use with the FreeRTOS_select() function */
         SocketSet_t FreeRTOS_CreateSocketSet( void );

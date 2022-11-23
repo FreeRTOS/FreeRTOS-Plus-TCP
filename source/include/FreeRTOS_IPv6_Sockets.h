@@ -45,48 +45,49 @@
 
     #include "FreeRTOS_IP_Common.h"
 
-   /** @brief When ucASCIIToHex() can not convert a character,
+/** @brief When ucASCIIToHex() can not convert a character,
  *         the value 255 will be returned.
  */
-#define socketINVALID_HEX_CHAR    0xffU
+    #define socketINVALID_HEX_CHAR    0xffU
 
-struct freertos_sockaddr6
-{
-    uint8_t sin_len;           /**< Ignored, still present for backward compatibility. */
-    uint8_t sin_family;        /**< Set to FREERTOS_AF_INET6. */
-    uint16_t sin_port;         /**< The port number in network-endian format. */
-    uint32_t sin_flowinfo;     /**< IPv6 flow information, not used in this library. */
-    IPv6_Address_t sin_addrv6; /**< The IPv6 address. */
-};
+    struct freertos_sockaddr6
+    {
+        uint8_t sin_len;           /**< Ignored, still present for backward compatibility. */
+        uint8_t sin_family;        /**< Set to FREERTOS_AF_INET6. */
+        uint16_t sin_port;         /**< The port number in network-endian format. */
+        uint32_t sin_flowinfo;     /**< IPv6 flow information, not used in this library. */
+        IPv6_Address_t sin_addrv6; /**< The IPv6 address. */
+    };
 /** @brief Introduce a short name to make casting easier. */
     typedef struct freertos_sockaddr6 sockaddr6_t;
 
 /** @brief The struct sNTOP6_Set is a set of parameters used by  the function FreeRTOS_inet_ntop6().
  * It passes this set to a few helper functions. */
-struct sNTOP6_Set
-{
-    const uint16_t * pusAddress; /**< The network address, 8 short values. */
-    BaseType_t xZeroStart;       /**< The position of the first byte of the longest train of zero values. */
-    BaseType_t xZeroLength;      /**< The number of short values in the longest train of zero values. */
-    BaseType_t xIndex;           /**< The read index in the array of short values, the network address. */
-    socklen_t uxTargetIndex;     /**< The write index in 'pcDestination'. */
-};
+    struct sNTOP6_Set
+    {
+        const uint16_t * pusAddress; /**< The network address, 8 short values. */
+        BaseType_t xZeroStart;       /**< The position of the first byte of the longest train of zero values. */
+        BaseType_t xZeroLength;      /**< The number of short values in the longest train of zero values. */
+        BaseType_t xIndex;           /**< The read index in the array of short values, the network address. */
+        socklen_t uxTargetIndex;     /**< The write index in 'pcDestination'. */
+    };
 
 /** @brief The struct sNTOP6_Set is a set of parameters used by  the function FreeRTOS_inet_ntop6().
  * It passes this set to a few helper functions. */
-struct sPTON6_Set
-{
-    uint32_t ulValue;         /**< A 32-bit accumulator, only 16 bits are used. */
-    BaseType_t xHadDigit;     /**< Becomes pdTRUE as soon as ulValue has valid data. */
-    BaseType_t xTargetIndex;  /**< The index in the array pucTarget to write the next byte. */
-    BaseType_t xColon;        /**< The position in the output where the train of zero's will start. */
-    BaseType_t xHighestIndex; /**< The highest allowed value of xTargetIndex. */
-    uint8_t * pucTarget;      /**< The array of bytes in which the resulting IPv6 address is written. */
-};
+    struct sPTON6_Set
+    {
+        uint32_t ulValue;         /**< A 32-bit accumulator, only 16 bits are used. */
+        BaseType_t xHadDigit;     /**< Becomes pdTRUE as soon as ulValue has valid data. */
+        BaseType_t xTargetIndex;  /**< The index in the array pucTarget to write the next byte. */
+        BaseType_t xColon;        /**< The position in the output where the train of zero's will start. */
+        BaseType_t xHighestIndex; /**< The highest allowed value of xTargetIndex. */
+        uint8_t * pucTarget;      /**< The array of bytes in which the resulting IPv6 address is written. */
+    };
 
 
 
-uint8_t ucASCIIToHex( char cChar );
+    uint8_t ucASCIIToHex( char cChar );
+
 /*
  * Convert a string like 'fe80::8d11:cd9b:8b66:4a80'
  * to a 16-byte IPv6 address
@@ -97,9 +98,9 @@ uint8_t ucASCIIToHex( char cChar );
                                       char * pcDestination,
                                       socklen_t uxSize );
 
-    /* Function to get the remote address and IP port */
+/* Function to get the remote address and IP port */
     BaseType_t FreeRTOS_GetRemoteAddress6( ConstSocket_t xSocket,
-                                              struct freertos_sockaddr6 * pxAddress );
+                                           struct freertos_sockaddr6 * pxAddress );
     size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
                                      struct freertos_sockaddr * pxAddress );
 
