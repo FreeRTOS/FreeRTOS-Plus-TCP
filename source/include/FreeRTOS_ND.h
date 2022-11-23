@@ -113,7 +113,7 @@
  * outstanding so re-transmissions can be generated.
  */
     void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                       IPv6_Address_t * pxIPAddress );
+                                       const IPv6_Address_t * pxIPAddress );
 
     #if ( ipconfigUSE_RA != 0 )
 
@@ -141,8 +141,8 @@
  * @brief Send an ND advertisement.
  * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
  */
-        void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint );
-        #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+    void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint );
+    #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
 /**
  * @brief Send an IPv6 ping message to a remote device.
@@ -153,10 +153,10 @@
  * @return pdTRUE when a packets was successfully created
  *         and passed to the IP-task.
  */
-            BaseType_t FreeRTOS_SendPingRequestIPv6( IPv6_Address_t * pxIPAddress,
-                                                     size_t uxNumberOfBytesToSend,
-                                                     TickType_t uxBlockTimeTicks );
-        #endif
+        BaseType_t FreeRTOS_SendPingRequestIPv6( const IPv6_Address_t * pxIPAddress,
+                                                 size_t uxNumberOfBytesToSend,
+                                                 TickType_t uxBlockTimeTicks );
+    #endif
 
 /**
  * @brief Create an IPv16 address, based on a prefix.
@@ -172,10 +172,10 @@
  *         case xApplicationGetRandomNumber()
  *         returned an error.
  */
-        BaseType_t FreeRTOS_CreateIPv6Address( IPv6_Address_t * pxIPAddress,
-                                               const IPv6_Address_t * pxPrefix,
-                                               size_t uxPrefixLength,
-                                               BaseType_t xDoRandom );
+    BaseType_t FreeRTOS_CreateIPv6Address( IPv6_Address_t * pxIPAddress,
+                                           const IPv6_Address_t * pxPrefix,
+                                           size_t uxPrefixLength,
+                                           BaseType_t xDoRandom );
 
 /* Receive a Neighbour Advertisement. */
 
@@ -185,7 +185,7 @@
  *         address in the ND address cache.
  *  @param[in] pxNetworkBuffer The buffer containing the packet.
  */
-        void vReceiveNA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+        void vReceiveNA( const NetworkBufferDescriptor_t * pxNetworkBuffer );
     #endif
 
 /* Receive a Router Advertisement. */
@@ -195,7 +195,7 @@
  *         applicable for this device.
  *  @param[in] pxNetworkBuffer The buffer containing the packet.
  */
-        void vReceiveRA( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+        void vReceiveRA( const NetworkBufferDescriptor_t * pxNetworkBuffer );
     #endif
 
     #if ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) )
@@ -203,7 +203,7 @@
         void FreeRTOS_PrintNDCache( void );
     #endif
 
-#endif /* ipconfigUSE_IPv6 != 0 */
+#endif /* ipconfigUSE_IPV6 != 0 */
 
 
 /* *INDENT-OFF* */

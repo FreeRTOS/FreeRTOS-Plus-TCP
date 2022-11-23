@@ -71,6 +71,9 @@
     #define ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION    ( 3U )
 
 /** @brief All nodes on the local network segment: IP- and MAC-address. */
+    /* MISRA Ref 8.9.1 [File scoped variables] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+    /* coverity[misra_c_2012_rule_8_9_violation] */
     static const uint8_t pcLOCAL_ALL_NODES_MULTICAST_IP[ ipSIZE_OF_IPv6_ADDRESS ] = { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }; /* ff02:1 */
     static const uint8_t pcLOCAL_ALL_NODES_MULTICAST_MAC[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33, 0x33, 0x00, 0x00, 0x00, 0x01 };
 
@@ -80,7 +83,7 @@
                                              NetworkEndPoint_t ** ppxEndPoint );
 
 /** @brief Lookup an MAC address in the ND cache from the IP address. */
-    static eARPLookupResult_t prvNDCacheLookup( IPv6_Address_t * pxAddressToLookup,
+    static eARPLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
                                                 MACAddress_t * const pxMACAddress,
                                                 NetworkEndPoint_t ** ppxEndPoint );
 
@@ -367,7 +370,7 @@
  *
  * @return An enum: either eARPCacheHit or eARPCacheMiss.
  */
-    static eARPLookupResult_t prvNDCacheLookup( IPv6_Address_t * pxAddressToLookup,
+    static eARPLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
                                                 MACAddress_t * const pxMACAddress,
                                                 NetworkEndPoint_t ** ppxEndPoint )
     {
@@ -458,6 +461,10 @@
                                     size_t uxICMPSize )
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
         configASSERT( pxEndPoint != NULL );
@@ -502,11 +509,11 @@
  */
 
     void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                       IPv6_Address_t * pxIPAddress )
+                                       const IPv6_Address_t * pxIPAddress )
     {
         ICMPPacket_IPv6_t * pxICMPPacket;
         ICMPHeader_IPv6_t * pxICMPHeader_IPv6;
-        NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+        const NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
         size_t uxNeededSize;
         IPv6_Address_t xTargetIPAddress;
         MACAddress_t xMultiCastMacAddress;
@@ -526,6 +533,9 @@
         {
             const uint32_t ulPayloadLength = 32U;
 
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer );
             pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
@@ -553,7 +563,7 @@
             pxICMPPacket->xIPHeader.ucHopLimit = 255U;
 
             /* Source address "fe80::1" */
-            ( void ) memset( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, 0, sizeof pxICMPPacket->xIPHeader.xSourceAddress.ucBytes );
+            ( void ) memset( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, 0, sizeof( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes ) );
             pxICMPPacket->xIPHeader.xSourceAddress.ucBytes[ 0 ] = 0xfeU;
             pxICMPPacket->xIPHeader.xSourceAddress.ucBytes[ 1 ] = 0x80U;
             pxICMPPacket->xIPHeader.xSourceAddress.ucBytes[ 15 ] = 0x01U;
@@ -600,7 +610,7 @@
  *
  * @return When failed: pdFAIL, otherwise the PING sequence number.
  */
-        BaseType_t FreeRTOS_SendPingRequestIPv6( IPv6_Address_t * pxIPAddress,
+        BaseType_t FreeRTOS_SendPingRequestIPv6( const IPv6_Address_t * pxIPAddress,
                                                  size_t uxNumberOfBytesToSend,
                                                  TickType_t uxBlockTimeTicks )
         {
@@ -617,6 +627,9 @@
 
             pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( pxIPAddress );
 
+            /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
+            /* coverity[cond_notnull] */
             if( pxEndPoint == NULL )
             {
                 pxEndPoint = FreeRTOS_FindGateWay( ( BaseType_t ) ipTYPE_IPv6 );
@@ -637,6 +650,10 @@
                 pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxPacketLength, uxBlockTimeTicks );
             }
 
+            /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
+            /* coverity[misra_c_2012_rule_14_3_violation] */
+            /* coverity[notnull] */
             if( ( pxNetworkBuffer != NULL ) && ( pxEndPoint != NULL ) )
             {
                 BaseType_t xEnoughSpace;
@@ -645,6 +662,9 @@
                 ( void ) memset( pxNetworkBuffer->pucEthernetBuffer, 0, pxNetworkBuffer->xDataLength );
 
                 pxNetworkBuffer->pxEndPoint = pxEndPoint;
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
                 if( uxNumberOfBytesToSend < ( ( ipconfigNETWORK_MTU - sizeof( IPHeader_IPv6_t ) ) - sizeof( ICMPEcho_IPv6_t ) ) )
@@ -658,6 +678,9 @@
 
                 if( ( uxGetNumberOfFreeNetworkBuffers() >= 3U ) && ( uxNumberOfBytesToSend >= 1U ) && ( xEnoughSpace != pdFALSE ) )
                 {
+                    /* MISRA Ref 11.3.1 [Misaligned access] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxICMPHeader = ( ( ICMPEcho_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
                     usSequenceNumber++;
 
@@ -681,7 +704,7 @@
                     pucChar = &( pucChar[ sizeof( ICMPEcho_IPv6_t ) ] );
 
                     /* Just memset the data to a fixed value. */
-                    ( void ) memset( pucChar, ( int ) ndECHO_DATA_FILL_BYTE, uxNumberOfBytesToSend );
+                    ( void ) memset( pucChar, ( int32_t ) ndECHO_DATA_FILL_BYTE, uxNumberOfBytesToSend );
 
                     /* The message is complete, IP and checksum's are handled by
                      * vProcessGeneratedUDPPacket */
@@ -692,6 +715,9 @@
                     pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
                     pxNetworkBuffer->xDataLength = uxPacketLength;
 
+                    /* MISRA Ref 11.3.1 [Misaligned access] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
                     pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
 
@@ -794,7 +820,11 @@
  */
     eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
         NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
         size_t uxNeededSize;
@@ -849,7 +879,10 @@
                         case ipICMP_PING_REPLY_IPv6:
                            {
                                ePingReplyStatus_t eStatus = eSuccess;
-                               ICMPEcho_IPv6_t * pxICMPEchoHeader = ( ( ICMPEcho_IPv6_t * ) pxICMPHeader_IPv6 );
+                               /* MISRA Ref 11.3.1 [Misaligned access] */
+                               /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                               /* coverity[misra_c_2012_rule_11_3_violation] */
+                               +const ICMPEcho_IPv6_t * pxICMPEchoHeader = ( ( ICMPEcho_IPv6_t * ) pxICMPHeader_IPv6 );
                                size_t uxDataLength, uxCount;
                                const uint8_t * pucByte;
 
@@ -909,6 +942,9 @@
                    break;
 
                 case ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6:
+                    /* MISRA Ref 11.3.1 [Misaligned access] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
                     vNDRefreshCacheEntry( ( ( const MACAddress_t * ) pxICMPHeader_IPv6->ucOptionBytes ),
                                           &( pxICMPHeader_IPv6->xIPv6Address ),
                                           pxEndPoint );
@@ -948,6 +984,10 @@
  *
  * @param[in] pxEndPoint: The end-point to use.
  */
+    /* MISRA Ref 8.9.1 [File scoped variables] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+    /* coverity[misra_c_2012_rule_8_9_violation] */
+    /* coverity[single_use] */
     void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint )
     {
         NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -972,6 +1012,9 @@
 
             configASSERT( pxInterface != NULL );
 
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
             pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
@@ -1054,7 +1097,7 @@
         }
         else
         {
-            ( void ) memset( pulRandom, 0, sizeof pulRandom );
+            ( void ) memset( pulRandom, 0, sizeof( pulRandom ) );
         }
 
         if( xResult == pdPASS )
