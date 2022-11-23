@@ -653,12 +653,8 @@ struct xSOCKET
     FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                            UBaseType_t uxLocalPort,
                                            uint32_t ulRemoteIP,
-                                           UBaseType_t uxRemotePort
-                                        #if ( ipconfigUSE_IPv6 != 0 )
-                                               ,
-                                               IPv6_Address_t * pxAddress_IPv6
-                                        #endif /* ipconfigUSE_IPv6 */
-                                           );
+                                           UBaseType_t uxRemotePort,
+                                           IPv6_Address_t * pxAddress_IPv6 );
 
 #endif /* ipconfigUSE_TCP */
 

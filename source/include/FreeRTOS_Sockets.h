@@ -185,18 +185,7 @@
     /** @brief Introduce a short name to make casting easier. */
     typedef struct freertos_sockaddr sockaddr4_t;
 
-    #if ( ipconfigUSE_IPV6 != 0 )
-    struct freertos_sockaddr6
-    {
-        uint8_t sin_len;           /**< Ignored, still present for backward compatibility. */
-        uint8_t sin_family;        /**< Set to FREERTOS_AF_INET6. */
-        uint16_t sin_port;         /**< The port number in network-endian format. */
-        uint32_t sin_flowinfo;     /**< IPv6 flow information, not used in this library. */
-        IPv6_Address_t sin_addrv6; /**< The IPv6 address. */
-    };
-    /** @brief Introduce a short name to make casting easier. */
-    typedef struct freertos_sockaddr6 sockaddr6_t;
-    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+   //TODO
 
 /* The socket type itself. */
     struct xSOCKET;
@@ -499,17 +488,6 @@
     const char * FreeRTOS_inet_ntop4( const void * pvSource,
                                       char * pcDestination,
                                       socklen_t uxSize );
-    #if ( ipconfigUSE_IPV6 != 0 )
-/*
- * Convert a string like 'fe80::8d11:cd9b:8b66:4a80'
- * to a 16-byte IPv6 address
- */
-    BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
-                                    void * pvDestination );
-    const char * FreeRTOS_inet_ntop6( const void * pvSource,
-                                      char * pcDestination,
-                                      socklen_t uxSize );
-#endif /* ipconfigUSE_IPV6 */
 
 /** @brief This function converts a human readable string, representing an 48-bit MAC address,
  * into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba". */
