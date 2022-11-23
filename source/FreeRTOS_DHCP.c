@@ -1077,7 +1077,7 @@
                              ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
 
             /* Set the addressing. */
-            pxAddress->sin_addr = ipBROADCAST_IP_ADDRESS;
+            pxAddress->sin_addr.xIP_IPv4 = ipBROADCAST_IP_ADDRESS;
             pxAddress->sin_port = ( uint16_t ) dhcpSERVER_PORT_IPv4;
         }
 

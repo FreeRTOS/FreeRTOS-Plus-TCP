@@ -47,7 +47,7 @@
 #include "FreeRTOS_IP.h"
 
 /** @brief The number of octets that make up an IP address. */
-#define socketMAX_IP_ADDRESS_OCTETS    4U
+#define socketMAX_IP_ADDRESS_OCTETS    ( 4U )
 
 /**
  * @brief This function converts the character string pcSource into a network address
@@ -210,5 +210,19 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
     }
 
     return pcReturn;
+}
+
+int32_t xIPv4UDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                        const struct freertos_sockaddr * pxDestinationAddress )
+{
+    int32_t lReturn = 0;
+    UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    
+    pxNetworkBuffer->xIPAddress.xIP_IPv4 = pxDestinationAddress->sin_addr.xIP_IPv4;
+    /* Map the UDP packet onto the start of the frame. */
+    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+
+    return lReturn;
+    
 }
 /*-----------------------------------------------------------*/

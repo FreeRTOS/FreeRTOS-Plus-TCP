@@ -261,14 +261,6 @@ typedef struct xTCP_PACKET_IPv6 TCPPacket_IPv6_t;
  * It handles all ICMP messages except the PING requests. */
 eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
-/*
- * Lookup a TCP socket, using a multiple matching: both port numbers and
- * return IP address.
- */
-FreeRTOS_Socket_t * pxTCPSocketLookupIPv6( UBaseType_t uxLocalPort,
-                                           uint32_t ulRemoteIP,
-                                           UBaseType_t uxRemotePort,
-                                           IPv6_Address_t * pxAddress_IPv6 );
 
 #if ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) )
 /* prepare a string which describes a socket, just for logging. */

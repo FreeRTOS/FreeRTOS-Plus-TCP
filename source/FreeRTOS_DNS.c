@@ -400,7 +400,7 @@
             if( bHasDot == pdFALSE )
             {
                 /* Use LLMNR addressing. */
-                pxAddress->sin_addr = ipLLMNR_IP_ADDR; /* Is in network byte order. */
+                pxAddress->sin_addr.xIP_IPv4 = ipLLMNR_IP_ADDR; /* Is in network byte order. TODO */
                 pxAddress->sin_port = ipLLMNR_PORT;
                 pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
             }
@@ -408,7 +408,7 @@
         #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
         {
             /* Use DNS server. */
-            pxAddress->sin_addr = ulIPAddress;
+            pxAddress->sin_addr.xIP_IPv4 = ulIPAddress; /*TODO */
             pxAddress->sin_port = dnsDNS_PORT;
         }
     }

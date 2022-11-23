@@ -173,24 +173,19 @@
  */
     struct freertos_sockaddr
     {
-/* _HT_ On 32- and 64-bit architectures, the addition of the two uint8_t
- * fields sin_len and sin_family doesn't make the structure bigger, due to alignment.
- * These fields are only inserted as a preparation for IPv6
- * and are not used in the IPv4-only release. */
-        uint8_t sin_len;    /**< length of this structure. */
-        uint8_t sin_family; /**< FREERTOS_AF_INET. */
-        uint16_t sin_port;  /**< The port. */
-        uint32_t sin_addr;  /**< The IP address. */
+        uint8_t sin_len;       /**< length of this structure. */
+        uint8_t sin_family;    /**< FREERTOS_AF_INET. */
+        uint16_t sin_port;     /**< The port. */
+        uint32_t sin_flowinfo; /**< IPv6 flow information, not used in this library. */
+        IP_Address_t sin_addr; /**< The IPv4/IPv6 address. */
     };
-    /** @brief Introduce a short name to make casting easier. */
-    typedef struct freertos_sockaddr sockaddr4_t;
-
-/*TODO */
+    /** Introduce a short name to make casting easier. */
+    typedef struct freertos_sockaddr   xFreertosSocAddr;
 
 /* The socket type itself. */
     struct xSOCKET;
-    typedef struct xSOCKET       * Socket_t;
-    typedef struct xSOCKET const * ConstSocket_t;
+    typedef struct xSOCKET             * Socket_t;
+    typedef struct xSOCKET const       * ConstSocket_t;
 
     extern BaseType_t xSocketValid( const ConstSocket_t xSocket );
 
@@ -353,6 +348,9 @@
         BaseType_t FreeRTOS_GetRemoteAddress( ConstSocket_t xSocket,
                                               struct freertos_sockaddr * pxAddress );
 
+/* Get the type of IP: either 'ipTYPE_IPv4' or 'ipTYPE_IPv6'. */
+        BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket );
+
 /* Returns the number of bytes that may be added to txStream. */
         BaseType_t FreeRTOS_maywrite( ConstSocket_t xSocket );
 
@@ -507,8 +505,8 @@
 /* The SocketSet_t type is the equivalent to the fd_set type used by the
  * Berkeley API. */
         struct xSOCKET_SET;
-        typedef struct xSOCKET_SET       * SocketSet_t;
-        typedef struct xSOCKET_SET const * ConstSocketSet_t;
+        typedef struct xSOCKET_SET         * SocketSet_t;
+        typedef struct xSOCKET_SET const   * ConstSocketSet_t;
 
 /* Create a socket set for use with the FreeRTOS_select() function */
         SocketSet_t FreeRTOS_CreateSocketSet( void );

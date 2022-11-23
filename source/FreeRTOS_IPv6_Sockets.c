@@ -38,16 +38,10 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IPv6_Sockets.h"
-
-
 
 #if ( ipconfigUSE_TCP == 1 )
 
@@ -93,34 +87,24 @@
 
         return pxResult;
     }
+
 #endif /* if ( ( ipconfigUSE_TCP == 1 ) */
 
-#if ( ipconfigUSE_TCP == 1 )
+int32_t xIPv6UDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                        const struct freertos_sockaddr * pxDestinationAddress )
+{
+    int32_t lReturn = 0;
+    UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-/**
- * @brief Get the version of IP: either 'ipTYPE_IPv4' or 'ipTYPE_IPv6'.
- *
- * @param[in] xSocket : The socket to be checked.
- *
- * @return Either ipTYPE_IPv4 or ipTYPE_IPv6.
- */
-    BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
-    {
-        const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
-        BaseType_t xResult;
+    pxNetworkBuffer->xIPAddress.xIP_IPv4 = 0U;
 
-        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
-        {
-            xResult = ( BaseType_t ) ipTYPE_IPv6;
-        }
-        else
-        {
-            xResult = ( BaseType_t ) ipTYPE_IPv4;
-        }
+    configASSERT( pxDestinationAddress != NULL );
+    ( void ) memcpy( pxUDPPacket_IPv6->xIPHeader.xDestinationAddress.ucBytes, pxDestinationAddress->sin_addr.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, pxDestinationAddress->sin_addr.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    pxUDPPacket_IPv6->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-        return xResult;
-    }
-#endif /* if ( ( ipconfigUSE_TCP == 1 ) */
+    return lReturn;
+}
 
 /**
  * @brief Converts a hex value to a readable hex character, e.g. 14 becomes 'e'.
@@ -205,10 +189,10 @@ static socklen_t uxHexPrintShort( char * pcBuffer,
  */
 static void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet )
 {
-    BaseType_t xIndex = 0;                /* The index in the IPv6 address: 0..7. */
-    BaseType_t xCurStart = 0;             /* The position of the first zero found so far. */
-    BaseType_t xCurLength = 0;            /* The number of zero's seen so far. */
-    const BaseType_t xShortCount = 8;     /* An IPv6 address consists of 8 shorts. */
+    BaseType_t xIndex = 0;            /* The index in the IPv6 address: 0..7. */
+    BaseType_t xCurStart = 0;         /* The position of the first zero found so far. */
+    BaseType_t xCurLength = 0;        /* The number of zero's seen so far. */
+    const BaseType_t xShortCount = 8; /* An IPv6 address consists of 8 shorts. */
 
     /* Default: when xZeroStart is negative, it won't match with any xIndex. */
     pxSet->xZeroStart = -1;
@@ -263,7 +247,7 @@ static BaseType_t prv_ntop6_write_zeros( char * pcDestination,
                                          struct sNTOP6_Set * pxSet )
 {
     BaseType_t xReturn = pdPASS;
-    const BaseType_t xShortCount = 8;     /* An IPv6 address consists of 8 shorts. */
+    const BaseType_t xShortCount = 8; /* An IPv6 address consists of 8 shorts. */
 
     if( pxSet->uxTargetIndex <= ( uxSize - 1U ) )
     {
@@ -369,8 +353,8 @@ const char * FreeRTOS_inet_ntop6( const void * pvSource,
                                   char * pcDestination,
                                   socklen_t uxSize )
 {
-    const char * pcReturn;      /* The return value, which is either 'pcDestination' or NULL. */
-    struct sNTOP6_Set xSet;     /* A set of values for easy exchange with the helper functions prv_ntop6_xxx(). */
+    const char * pcReturn;  /* The return value, which is either 'pcDestination' or NULL. */
+    struct sNTOP6_Set xSet; /* A set of values for easy exchange with the helper functions prv_ntop6_xxx(). */
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
 
@@ -644,7 +628,7 @@ BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
                 /* The new character was not accepted. */
                 break;
             }
-        }     /* for( ;; ) */
+        } /* for( ;; ) */
 
         if( xSet.xColon >= 0 )
         {
@@ -668,94 +652,3 @@ BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
 }
 
 /*-----------------------------------------------------------*/
-
-/**
- * @brief Function to get the local address and IP port of the given socket.
- *
- * @param[in] xSocket: Socket whose port is to be added to the pxAddress.
- * @param[out] pxAddress: Structure in which the IP address and the port number
- *                        is returned.
- *
- * @return Size of the freertos_sockaddr structure.
- */
-size_t FreeRTOS_GetLocalAddressv6( ConstSocket_t xSocket,
-                                   struct freertos_sockaddr6 * pxAddress6 )
-{
-    const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
-
-    #if ( ipconfigUSE_IPV6 != 0 )
-        struct freertos_sockaddr * pxAddress = ( ( sockaddr4_t * ) pxAddress6 );
-
-        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
-        {
-            pxAddress6->sin_family = FREERTOS_AF_INET6;
-            /* IP address of local machine. */
-            ( void ) memcpy( pxAddress6->sin_addrv6.ucBytes, pxSocket->xLocalAddress.xIP_IPv6.ucBytes, sizeof( pxAddress6->sin_addrv6.ucBytes ) );
-            /* Local port on this machine. */
-            pxAddress6->sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
-        }
-        else
-    #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
-    {
-        pxAddress->sin_family = FREERTOS_AF_INET;
-        pxAddress->sin_len = ( uint8_t ) sizeof( *pxAddress );
-        /* IP address of local machine. */
-        pxAddress->sin_addr = FreeRTOS_htonl( pxSocket->xLocalAddress.xIP_IPv4 );
-
-        /* Local port on this machine. */
-        pxAddress->sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
-    }
-
-    return sizeof( *pxAddress );
-}
-
-/*-----------------------------------------------------------*/
-#if ( ipconfigUSE_TCP == 1 )
-
-/**
- * @brief Function to get the remote IPv6-address and port number.
- *
- * @param[in] xSocket: Socket owning the connection.
- * @param[out] pxAddress: The IPv6 address pointer to which the address
- *                        is to be added.
- *
- * @return The size of the address being returned. Or else a negative
- *         error code will be returned.
- */
-
-/* Function to get the remote address and IP port */
-    BaseType_t FreeRTOS_GetRemoteAddress6( ConstSocket_t xSocket,
-                                           struct freertos_sockaddr6 * pxAddress )
-    {
-        const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
-        BaseType_t xResult;
-
-        if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
-        {
-            xResult = -pdFREERTOS_ERRNO_EINVAL;
-        }
-        else
-        {
-            /* BSD style sockets communicate IP and port addresses in network
-             * byte order.
-             * IP address of remote machine. */
-
-            if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
-            {
-                pxAddress->sin_family = FREERTOS_AF_INET6;
-
-                /* IP address of remote machine. */
-                ( void ) memcpy( pxAddress->sin_addrv6.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, sizeof( pxAddress->sin_addrv6.ucBytes ) );
-
-                /* Port of remote machine. */
-                pxAddress->sin_port = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
-            }
-
-            xResult = ( BaseType_t ) sizeof( *pxAddress );
-        }
-
-        return xResult;
-    }
-
-
-#endif /* ipconfigUSE_TCP */

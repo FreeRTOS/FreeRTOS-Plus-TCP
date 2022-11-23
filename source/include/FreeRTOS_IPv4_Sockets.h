@@ -38,45 +38,17 @@
 /* FreeRTOS includes. */
     #include "FreeRTOS.h"
 
-/* Application level configuration options. */
-    #include "FreeRTOSIPConfig.h"
-    #include "FreeRTOSIPConfigDefaults.h"
-
-
-/** @brief For this limited implementation, only two members are required in the
- * Berkeley style sockaddr structure. */
-    struct freertos_sockaddr
-    {
-        uint8_t sin_len;                                  /**< Ignored, still present for backward compatibility. */
-        uint8_t sin_family;                               /**< Set to FREERTOS_AF_INET. */
-        uint16_t sin_port;                                /**< The port number in network-endian format. */
-        uint32_t sin_addr;                                /**< The IP-address in network-endian format. */
-        #if ( ipconfigUSE_IPv6 != 0 )
-            uint8_t sin_filler[ ipSIZE_OF_IPv6_ADDRESS ]; /**< Make sure that the IPv4 and IPv6 socket addresses have an equal size. */
-        #endif
-    };
-
-/** @brief Introduce a short name to make casting easier. */
-    typedef struct freertos_sockaddr sockaddr4_t;
 
 /* Translate from 192.168.1.1 to a 32-bit number. */
     BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
                                     void * pvDestination );
+
     const char * FreeRTOS_inet_ntop4( const void * pvSource,
                                       char * pcDestination,
                                       socklen_t uxSize );
 
-/* Function to get the remote address and IP port */
-    BaseType_t FreeRTOS_GetRemoteAddress( ConstSocket_t xSocket,
-                                          struct freertos_sockaddr * pxAddress );
-    size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
-                                     struct freertos_sockaddr6 * pxAddress6 );
-
-    static __inline BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
-    {
-        ( void ) xSocket;
-        return ( BaseType_t ) ipTYPE_IPv4;
-    }
+    int32_t xIPv4UDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                            const struct freertos_sockaddr * pxDestinationAddress );
 
     #ifdef __cplusplus
         } /* extern "C" */

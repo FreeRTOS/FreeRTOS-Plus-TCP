@@ -37,29 +37,15 @@
 
 /* FreeRTOS includes. */
     #include "FreeRTOS.h"
-    #include "task.h"
-
-/* Application level configuration options. */
-    #include "FreeRTOSIPConfig.h"
-    #include "FreeRTOSIPConfigDefaults.h"
-
     #include "FreeRTOS_IP_Common.h"
 
 /** @brief When ucASCIIToHex() can not convert a character,
  *         the value 255 will be returned.
  */
-    #define socketINVALID_HEX_CHAR    0xffU
+    #define socketINVALID_HEX_CHAR    ( 0xffU )
 
-    struct freertos_sockaddr6
-    {
-        uint8_t sin_len;           /**< Ignored, still present for backward compatibility. */
-        uint8_t sin_family;        /**< Set to FREERTOS_AF_INET6. */
-        uint16_t sin_port;         /**< The port number in network-endian format. */
-        uint32_t sin_flowinfo;     /**< IPv6 flow information, not used in this library. */
-        IPv6_Address_t sin_addrv6; /**< The IPv6 address. */
-    };
-/** @brief Introduce a short name to make casting easier. */
-    typedef struct freertos_sockaddr6 sockaddr6_t;
+/* For compatibility with the expected Berkeley sockets naming. */
+/*    #define socklen_t                 uint32_t */
 
 /** @brief The struct sNTOP6_Set is a set of parameters used by  the function FreeRTOS_inet_ntop6().
  * It passes this set to a few helper functions. */
@@ -73,7 +59,8 @@
     };
 
 /** @brief The struct sNTOP6_Set is a set of parameters used by  the function FreeRTOS_inet_ntop6().
- * It passes this set to a few helper functions. */
+ * It passes this set to a few helper functions.
+ */
     struct sPTON6_Set
     {
         uint32_t ulValue;         /**< A 32-bit accumulator, only 16 bits are used. */
@@ -84,9 +71,27 @@
         uint8_t * pucTarget;      /**< The array of bytes in which the resulting IPv6 address is written. */
     };
 
-
-
+/**
+ * @brief Convert an ASCII character to its corresponding hexadecimal value.
+ *        Accepted characters are 0-9, a-f, and A-F.
+ */
     uint8_t ucASCIIToHex( char cChar );
+
+/* @brief Converts a hex value to a readable hex character, e.g. 14 becomes 'e'.
+ */
+    static char cHexToChar( unsigned short usValue );
+
+/** @brief Converts a hex value to a readable hex character, *
+ *         e.g. 14 becomes 'e'.static char cHexToChar( unsigned short usValue );
+ */
+    static socklen_t uxHexPrintShort( char * pcBuffer,
+                                      size_t uxBufferSize,
+                                      uint16_t usValue );
+
+/** @brief Scan the binary IPv6 address and find the longest train of consecutive zero's.
+ *         The result of this search will be stored in 'xZeroStart' and 'xZeroLength'.
+ */
+    static void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet );
 
 /*
  * Convert a string like 'fe80::8d11:cd9b:8b66:4a80'
@@ -98,11 +103,15 @@
                                       char * pcDestination,
                                       socklen_t uxSize );
 
-/* Function to get the remote address and IP port */
-    BaseType_t FreeRTOS_GetRemoteAddress6( ConstSocket_t xSocket,
-                                           struct freertos_sockaddr6 * pxAddress );
-    size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
-                                     struct freertos_sockaddr * pxAddress );
+/** @brief Called by pxTCPSocketLookup(), this function will check if a socket
+ *         is connected to a remote IP-address. It will be called from a loop
+ *         iterating through all sockets. */
+    FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
+                                                IPv6_Address_t * pxAddress_IPv6,
+                                                uint32_t ulRemoteIP );
+
+    int32_t xIPv6UDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                            const struct freertos_sockaddr * pxDestinationAddress );
 
     #ifdef __cplusplus
         } /* extern "C" */
