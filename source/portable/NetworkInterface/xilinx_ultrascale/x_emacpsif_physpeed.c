@@ -842,6 +842,9 @@ static void ar8035Tick( XEmacPs * xemacpsp,
     value = XEmacPs_PhyRead2( xemacpsp, phy_addr, IEEE_STATUS_REG_OFFSET );
     /*Retrieve current link state */
     linkState = ( value & IEEE_STAT_LINK_STATUS ) ? TRUE : FALSE;
+
+    /* Just to prevent compiler warnings about unused variable. */
+    ( void ) linkState;
 }
 
 #define AR803X_DEBUG_ADDR    0x1D
@@ -969,6 +972,9 @@ static uint32_t ar8035CheckStatus( XEmacPs * xemacpsp,
         /*Process link state change event */
 /*		nicNotifyLinkChange(interface); */
     }
+
+    /* Just to prevent compiler warnings about unused variable. */
+    ( void ) linkState;
 
     return linkSpeed;
 }
