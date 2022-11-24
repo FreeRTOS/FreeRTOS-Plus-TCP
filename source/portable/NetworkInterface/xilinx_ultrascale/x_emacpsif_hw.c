@@ -47,7 +47,7 @@ void setup_isr( xemacpsif_s * xemacpsif )
     /*
      * Setup callbacks
      */
-    XEmacPs *xInstancePtr = &xemacpsif->emacps;
+    XEmacPs * xInstancePtr = &xemacpsif->emacps;
 
     xInstancePtr->SendHandler = ( XEmacPs_Handler ) emacps_send_handler;
     xInstancePtr->SendRef = ( void * ) xemacpsif;
