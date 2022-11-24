@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_Sockets_IPv6.c
+ * @file FreeRTOS_Sockets_IPv4.c
  * @brief Implements the Sockets API based on Berkeley sockets for the FreeRTOS+TCP network stack.
  *        Sockets are used by the application processes to interact with the IP-task which in turn
  *        interacts with the hardware.
@@ -212,17 +212,47 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
     return pcReturn;
 }
 
-int32_t xIPv4UDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                        const struct freertos_sockaddr * pxDestinationAddress )
+/**
+ * @brief Called by prvSendUDPPacket(), this function will UDP packet
+ *        fields and IPv4 address for the packet to be send.
+ * @param[in] pxNetworkBuffer : The packet to be sent.
+ * @param[in] pxDestinationAddress: The IPv4 socket address.
+ * @return  Returns NULL, always.
+ */
+void * xSend_UDP_Update_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                              const struct freertos_sockaddr * pxDestinationAddress )
 {
-    int32_t lReturn = 0;
     UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    
+
     pxNetworkBuffer->xIPAddress.xIP_IPv4 = pxDestinationAddress->sin_addr.xIP_IPv4;
     /* Map the UDP packet onto the start of the frame. */
     pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
-    return lReturn;
-    
+    return NULL;
 }
+
+/**
+ * @brief Called by FreeRTOS_recvfrom(), this function will update socket
+ *        address with IPv4 address from the packet received.
+ * @param[in] pxNetworkBuffer : The packet received.
+ * @param[in] pxSourceAddress: The IPv4 socket address.
+ * @return  The Payload Offset.
+ */
+size_t xRecv_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                          struct freertos_sockaddr * pxSourceAddress )
+{
+    size_t uxPayloadOffset = 0;
+
+    if( pxSourceAddress != NULL )
+    {
+        pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET;
+        pxSourceAddress->sin_addr.xIP_IPv4 = pxNetworkBuffer->xIPAddress.xIP_IPv4;
+        pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
+    }
+
+    uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv4;
+
+    return uxPayloadOffset;
+}
+
 /*-----------------------------------------------------------*/

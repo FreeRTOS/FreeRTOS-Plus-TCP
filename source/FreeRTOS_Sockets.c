@@ -1217,36 +1217,14 @@ int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
         {
             if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
             {
-                UDPPacket_IPv6_t * pxUDPPacketV6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
-                if( pxUDPPacketV6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-                {
-                    if( pxSourceAddress != NULL )
-                    {
-                        ( void ) memcpy( ( void * ) pxSourceAddress->sin_addr.xIP_IPv6.ucBytes,
-                                         ( const void * ) pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
-                                         ipSIZE_OF_IPv6_ADDRESS );
-                        pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET6;
-                        pxSourceAddress->sin_addr.xIP_IPv4 = 0U;
-                        pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
-                    }
-
-                    uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv6;
-                    xAddressLength = sizeof( struct freertos_sockaddr );
-                }
+                uxPayloadOffset = xRecv_Update_IPv6( pxNetworkBuffer, pxSourceAddress );
             }
             else
             {
-                if( pxSourceAddress != NULL )
-                {
-                    pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET;
-                    pxSourceAddress->sin_addr.xIP_IPv4 = pxNetworkBuffer->xIPAddress.xIP_IPv4;
-                    pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
-                }
-
-                uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv4;
-                xAddressLength = sizeof( struct freertos_sockaddr );
+                uxPayloadOffset = xRecv_Update_IPv4( pxNetworkBuffer, pxSourceAddress );
             }
+
+            xAddressLength = sizeof( struct freertos_sockaddr );
 
             if( pxSourceAddressLength != NULL )
             {
@@ -1338,11 +1316,11 @@ static int32_t prvSendUDPPacket( FreeRTOS_Socket_t * pxSocket,
 
     if( pxDestinationAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
     {
-        xIPv6UDPPacket( pxNetworkBuffer, pxDestinationAddress );
+        xSend_UDP_Update_IPv6( pxNetworkBuffer, pxDestinationAddress );
     }
     else
     {
-        xIPv4UDPPacket( pxNetworkBuffer, pxDestinationAddress );
+        xSend_UDP_Update_IPv4( pxNetworkBuffer, pxDestinationAddress );
     }
 
     pxNetworkBuffer->xDataLength = uxTotalDataLength + uxPayloadOffset;
@@ -3023,11 +3001,10 @@ BaseType_t FreeRTOS_inet_pton( BaseType_t xAddressFamily,
             xResult = FreeRTOS_inet_pton4( pcSource, pvDestination );
             break;
 
-            #if ( ipconfigUSE_IPV6 != 0 )
-                case FREERTOS_AF_INET6:
-                    xResult = FreeRTOS_inet_pton6( pcSource, pvDestination );
-                    break;
-            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
+        case FREERTOS_AF_INET6:
+            xResult = FreeRTOS_inet_pton6( pcSource, pvDestination );
+            break;
+
         default:
             xResult = -pdFREERTOS_ERRNO_EAFNOSUPPORT;
             break;
@@ -3066,11 +3043,10 @@ const char * FreeRTOS_inet_ntop( BaseType_t xAddressFamily,
             pcResult = FreeRTOS_inet_ntop4( pvSource, pcDestination, uxSize );
             break;
 
-            #if ( ipconfigUSE_IPV6 != 0 )
-                case FREERTOS_AF_INET6:
-                    pcResult = FreeRTOS_inet_ntop6( pvSource, pcDestination, uxSize );
-                    break;
-            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
+        case FREERTOS_AF_INET6:
+            pcResult = FreeRTOS_inet_ntop6( pvSource, pcDestination, uxSize );
+            break;
+
         default:
             /* errno should be set to pdFREERTOS_ERRNO_EAFNOSUPPORT. */
             pcResult = NULL;
@@ -5020,16 +4996,27 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* BSD style sockets communicate IP and port addresses in network
              * byte order.
              * IP address of remote machine. */
+            if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+            {
+                pxAddress->sin_family = FREERTOS_AF_INET6;
 
-            pxAddress->sin_len = ( uint8_t ) sizeof( *pxAddress );
-            pxAddress->sin_family = FREERTOS_AF_INET;
+                /* IP address of remote machine. */
+                ( void ) memcpy( pxAddress->sin_addr.xIP_IPv6.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, sizeof( pxAddress->sin_addr.xIP_IPv6.ucBytes ) );
 
-            /* IP address of remote machine. */
-            pxAddress->sin_addr.xIP_IPv4 = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
+                /* Port of remote machine. */
+                pxAddress->sin_port = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
+            }
+            else
+            {
+                pxAddress->sin_len = ( uint8_t ) sizeof( *pxAddress );
+                pxAddress->sin_family = FREERTOS_AF_INET;
 
-            /* Port on remote machine. */
-            pxAddress->sin_port = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
+                /* IP address of remote machine. */
+                pxAddress->sin_addr.xIP_IPv4 = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
 
+                /* Port on remote machine. */
+                pxAddress->sin_port = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
+            }
 
             xResult = ( BaseType_t ) sizeof( *pxAddress );
         }

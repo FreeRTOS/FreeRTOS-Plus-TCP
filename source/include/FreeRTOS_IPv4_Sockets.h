@@ -47,8 +47,19 @@
                                       char * pcDestination,
                                       socklen_t uxSize );
 
-    int32_t xIPv4UDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                            const struct freertos_sockaddr * pxDestinationAddress );
+/**
+ * @brief Called by prvSendUDPPacket(), this function will UDP packet
+ *        fields and IPv4 address for the packet to be send.
+ */
+    void * xSend_UDP_Update_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                  const struct freertos_sockaddr * pxDestinationAddress );
+
+/**
+ * @brief Called by FreeRTOS_recvfrom(), this function will update socket
+ *        address with IPv4 address from the packet received.
+ */
+    size_t xRecv_UDP_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                  struct freertos_sockaddr * pxSourceAddress );
 
     #ifdef __cplusplus
         } /* extern "C" */

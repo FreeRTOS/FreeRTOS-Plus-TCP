@@ -110,8 +110,19 @@
                                                 IPv6_Address_t * pxAddress_IPv6,
                                                 uint32_t ulRemoteIP );
 
-    int32_t xIPv6UDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                            const struct freertos_sockaddr * pxDestinationAddress );
+/**
+ * @brief Called by prvSendUDPPacket(), this function will UDP packet
+ *        fields and IPv6 address for the packet to be send.
+ */
+    void * xSend_UDP_Update_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                  const struct freertos_sockaddr * pxDestinationAddress );
+
+/**
+ * @brief Called by FreeRTOS_recvfrom(), this function will update socket
+ *        address with IPv6 address from the packet received.
+ */
+    size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                              struct freertos_sockaddr * pxSourceAddress );
 
     #ifdef __cplusplus
         } /* extern "C" */

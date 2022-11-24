@@ -90,8 +90,15 @@
 
 #endif /* if ( ( ipconfigUSE_TCP == 1 ) */
 
-int32_t xIPv6UDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                        const struct freertos_sockaddr * pxDestinationAddress )
+/**
+ * @brief Called by prvSendUDPPacket(), this function will UDP packet
+ *        fields and IPv6 address for the packet to be send.
+ * @param[in] pxNetworkBuffer : The packet to be sent.
+ * @param[in] pxDestinationAddress: The IPv4 socket address.
+ * @return  Returns NULL, always.
+ */
+void * xSend_UDP_Update_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                              const struct freertos_sockaddr * pxDestinationAddress )
 {
     int32_t lReturn = 0;
     UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
@@ -103,8 +110,40 @@ int32_t xIPv6UDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
     ( void ) memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, pxDestinationAddress->sin_addr.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     pxUDPPacket_IPv6->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-    return lReturn;
+    return NULL;
 }
+
+/**
+ * @brief Called by FreeRTOS_recvfrom(), this function will update socket
+ *        address with IPv6 address from the packet received.
+ * @param[in] pxNetworkBuffer : The packet received.
+ * @param[in] pxDestinationAddress: The IPv4 socket address.
+ * @return The Payload Offset.
+ */
+size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                          struct freertos_sockaddr * pxSourceAddress )
+{
+    UDPPacket_IPv6_t * pxUDPPacketV6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    size_t uxPayloadOffset = 0;
+
+    if( pxUDPPacketV6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+    {
+        if( pxSourceAddress != NULL )
+        {
+            ( void ) memcpy( ( void * ) pxSourceAddress->sin_addr.xIP_IPv6.ucBytes,
+                             ( const void * ) pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
+                             ipSIZE_OF_IPv6_ADDRESS );
+            pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET6;
+            pxSourceAddress->sin_addr.xIP_IPv4 = 0U;
+            pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
+        }
+
+        uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv6;
+    }
+
+    return uxPayloadOffset;
+}
+
 
 /**
  * @brief Converts a hex value to a readable hex character, e.g. 14 becomes 'e'.
