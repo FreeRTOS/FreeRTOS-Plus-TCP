@@ -246,6 +246,7 @@ ehertype
 eigrp
 einitialwait
 einprogress
+einval
 einvalidchecksum
 einvaliddata
 eleasedaddress
@@ -847,6 +848,7 @@ pvparameters
 pvportmalloc
 pvportmallocsocket
 pvsearchid
+pvsocketid
 pvsource
 pxackmessage
 pxaddr
@@ -1064,6 +1066,7 @@ slaac
 snd
 snprintf
 sockaddr
+socketid
 socketset
 sockopt
 sof
@@ -1546,8 +1549,10 @@ vrxfaultinjection
 vsocketbind
 vsocketclose
 vsocketclosenexttime
+vsocketgetsocketid
 vsocketlistennexttime
 vsocketselect
+vsocketsetsocketid
 vsocketwakeupuser
 vtasklist
 vtasknotifygivefromisr
