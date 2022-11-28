@@ -1021,11 +1021,11 @@ static uint32_t get_IEEE_phy_speed_US( XEmacPs * xemacpsp,
     XEmacPs_PhyRead( xemacpsp, phy_addr, PHY_IDENTIFIER_1_REG,
                      &phy_identity );
 
-    const char * pcPHINAme = pcGetPHIName( phy_identity );
-    FreeRTOS_printf( ( "Start %s PHY autonegotiation. ID = 0x%04X\n", pcPHINAme, phy_identity ) );
+    const char * pcPHYName = pcGetPHIName( phy_identity );
+    FreeRTOS_printf( ( "Start %s PHY autonegotiation. ID = 0x%04X\n", pcPHYName, phy_identity ) );
 
     /* Just to prevent compiler warnings about unused variablies. */
-    ( void ) pcPHINAme;
+    ( void ) pcPHYName;
 
     switch( phy_identity )
     {
