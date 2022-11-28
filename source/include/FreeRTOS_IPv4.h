@@ -87,11 +87,21 @@ void FreeRTOS_ClearARP( void );
 /* Return pdTRUE if the IPv4 address is a multicast address. */
 BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
 
+
+/* The function 'prvAllowIPPacket()' checks if a packets should be processed. */
+static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPacket,
+                                                      const NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                      UBaseType_t uxHeaderLength );
+
 /* xARPWaitResolution checks if an IPv4 address is already known. If not
  * it may send an ARP request and wait for a reply.  This function will
  * only be called from an application. */
 BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
                                TickType_t uxTicksToWait );
+
+/* Check if the IP-header is carrying options. */
+static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
