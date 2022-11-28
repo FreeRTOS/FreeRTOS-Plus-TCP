@@ -79,13 +79,13 @@
 #if ( ipconfigNETWORK_MTU > 1526 )
     #warning the use of Jumbo Frames has not been tested sufficiently yet.
     #define USE_JUMBO_FRAMES    1
-#endif
+#endif /* ( ipconfigNETWORK_MTU > 1526 ) */
 
 #if ( USE_JUMBO_FRAMES == 1 )
     #define dmaRX_TX_BUFFER_SIZE    10240
 #else
     #define dmaRX_TX_BUFFER_SIZE    1536
-#endif
+#endif /* ( USE_JUMBO_FRAMES == 1 ) */
 
 #if ( ipconfigULTRASCALE == 1 )
     extern XScuGic xInterruptController;
@@ -430,8 +430,19 @@ int emacps_check_rx( xemacpsif_s * xemacpsif )
 
             /*
              * Adjust the buffer size to the actual number of bytes received.
+             * If port is built with Jumbo Frame support, then the XEMACPS_RXBUF_LEN_JUMBO_MASK
+             * should be used to obtain the size of the buffer. Otherwise the mask
+             * XEMACPS_RXBUF_LEN_MASK can be used.
              */
-            rx_bytes = xemacpsif->rxSegments[ head ].flags & XEMACPS_RXBUF_LEN_MASK;
+            #if ( USE_JUMBO_FRAMES == 1 )
+                {
+                    rx_bytes = xemacpsif->rxSegments[ head ].flags & XEMACPS_RXBUF_LEN_JUMBO_MASK;
+                }
+            #else
+                {
+                    rx_bytes = xemacpsif->rxSegments[ head ].flags & XEMACPS_RXBUF_LEN_MASK;
+                }
+            #endif /* ( USE_JUMBO_FRAMES == 1 ) */
 
             pxBuffer->xDataLength = rx_bytes;
 
