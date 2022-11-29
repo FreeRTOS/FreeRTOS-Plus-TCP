@@ -61,6 +61,9 @@
         else
         {
             /* Auto bind the port. */
+            /* Auto bind the port. */
+            ( void ) memset( &( xAddress ), 0, sizeof( xAddress ) );
+            xAddress.sin_family = FREERTOS_AF_INET;
             xAddress.sin_port = 0U;
             xReturn = FreeRTOS_bind( xSocket, &xAddress, ( socklen_t ) sizeof( xAddress ) );
 
@@ -119,6 +122,7 @@
 
         return xReturn;
     }
+/*-----------------------------------------------------------*/
 
 /**
  * @brief perform a DNS network read
@@ -141,6 +145,7 @@
                                                                          &ulAddressLength );
         pxReceiveBuffer->uxPayloadSize = pxReceiveBuffer->uxPayloadLength;
     }
+/*-----------------------------------------------------------*/
 
 /**
  * @brief perform a DNS network close
@@ -151,3 +156,4 @@
         ( void ) FreeRTOS_closesocket( xDNSSocket );
     }
 #endif /* if ( ipconfigUSE_DNS != 0 ) */
+/*-----------------------------------------------------------*/

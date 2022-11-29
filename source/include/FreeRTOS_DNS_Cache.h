@@ -39,7 +39,15 @@
 
 #if ( ( ipconfigUSE_DNS_CACHE == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
+/* Look for the indicated host name in the DNS cache. Returns the IPv4
+ * address if present, or 0x0 otherwise. */
     uint32_t FreeRTOS_dnslookup( const char * pcHostName );
+
+    #if ( ipconfigUSE_IPv6 != 0 )
+        /* FreeRTOS_dnslookup6() returns pdTRUE when a host has been found. */
+        uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
+                                      IPv6_Address_t * pxAddress_IPv6 );
+    #endif /* ipconfigUSE_IPv6 != 0 */
 
     void FreeRTOS_dnsclear( void );
 
@@ -48,9 +56,14 @@
                                     uint32_t ulTTL );
 
     BaseType_t FreeRTOS_ProcessDNSCache( const char * pcName,
-                                         uint32_t * pulIP,
+                                         IPv46_Address_t * pxIP,
                                          uint32_t ulTTL,
-                                         BaseType_t xLookUp );
+                                         BaseType_t xLookUp,
+                                         struct freertos_addrinfo ** ppxAddressInfo );
+
+    uint32_t Prepare_CacheLookup( const char * pcHostName,
+                                  BaseType_t xFamily,
+                                  struct freertos_addrinfo ** ppxAddressInfo );
 #endif /* if ( ipconfigUSE_DNS_CACHE == 1 ) */
 
 #endif /* ifndef FREERTOS_DNS_CACHE_H */
