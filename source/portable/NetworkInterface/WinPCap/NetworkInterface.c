@@ -233,6 +233,59 @@ static void prvCreateThreadSafeBuffers( void )
         xRecvBuffer->LENGTH = xRECV_BUFFER_SIZE + 1;
     }
 }
+
+/*-----------------------------------------------------------*/
+
+static size_t prvStreamBufferAdd( StreamBuffer_t * pxBuffer,
+                                  const uint8_t * pucData,
+                                  size_t uxByteCount )
+{
+    size_t uxSpace, uxNextHead, uxFirst;
+    size_t uxCount = uxByteCount;
+
+    uxSpace = uxStreamBufferGetSpace( pxBuffer );
+
+    /* The number of bytes that can be written is the minimum of the number of
+     * bytes requested and the number available. */
+    uxCount = FreeRTOS_min_size_t( uxSpace, uxCount );
+
+    if( uxCount != 0U )
+    {
+        uxNextHead = pxBuffer->uxHead;
+
+        if( pucData != NULL )
+        {
+            /* Calculate the number of bytes that can be added in the first
+            * write - which may be less than the total number of bytes that need
+            * to be added if the buffer will wrap back to the beginning. */
+            uxFirst = FreeRTOS_min_size_t( pxBuffer->LENGTH - uxNextHead, uxCount );
+
+            /* Write as many bytes as can be written in the first write. */
+            ( void ) memcpy( &( pxBuffer->ucArray[ uxNextHead ] ), pucData, uxFirst );
+
+            /* If the number of bytes written was less than the number that
+             * could be written in the first write... */
+            if( uxCount > uxFirst )
+            {
+                /* ...then write the remaining bytes to the start of the
+                 * buffer. */
+                ( void ) memcpy( pxBuffer->ucArray, &( pucData[ uxFirst ] ), uxCount - uxFirst );
+            }
+        }
+
+        uxNextHead += uxCount;
+
+        if( uxNextHead >= pxBuffer->LENGTH )
+        {
+            uxNextHead -= pxBuffer->LENGTH;
+        }
+
+        pxBuffer->uxHead = uxNextHead;
+    }
+
+    return uxCount;
+}
+
 /*-----------------------------------------------------------*/
 
 static size_t prvStreamBufferAdd( StreamBuffer_t * pxBuffer,
