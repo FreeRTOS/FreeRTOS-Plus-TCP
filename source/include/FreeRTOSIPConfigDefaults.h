@@ -181,8 +181,17 @@
     #define ipconfigUSE_TCP    ( 1 )
 #endif
 
+#ifndef ipconfigCOMPATIBLE_WITH_SINGLE
+    #define ipconfigCOMPATIBLE_WITH_SINGLE  ( 0)
+#endif 
+
 #if ( ipconfigUSE_TCP != 0 )
 
+/* Disable IPv6 by default. */
+    #ifndef ipconfigUSE_DHCPv6
+        #define ipconfigUSE_DHCPv6    ( 0 )
+    #endif
+    
 /* 'ipconfigUSE_TCP_WIN' enables support for TCP sliding windows.  When
  * defined as zero, each TCP packet must be acknowledged individually.
  * That will be slower, but it will result less code. */
@@ -580,7 +589,7 @@
  * if the DHCP offer shall be accepted.
  */
 #ifndef ipconfigUSE_DHCP_HOOK
-    #define ipconfigUSE_DHCP_HOOK    0
+    #define ipconfigUSE_DHCP_HOOK    1
 #endif
 
 /* DHCP servers have a table with information about each clients.  One
@@ -1082,6 +1091,41 @@
  * which will be called by the stack for any frame with an unsupported EtherType. */
 #ifndef ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES
     #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES    0
+#endif
+
+#ifndef ipconfigND_CACHE_ENTRIES
+    #define ipconfigND_CACHE_ENTRIES 24
+#endif
+
+#ifndef ipconfigHAS_ROUTING_STATISTICS
+    #define ipconfigHAS_ROUTING_STATISTICS 1
+#endif
+
+#ifndef ipconfigUSE_RA
+    #define ipconfigUSE_RA 1
+#endif
+
+/* RA or Router Advertisement/SLAAC: see end-point flag 'bWantRA'.
+ * An Router Solicitation will be sent. It will wait for ipconfigRA_SEARCH_TIME_OUT_MSEC ms.
+ * When there is no response, it will be repeated ipconfigRA_SEARCH_COUNT times.
+ * Then it will be checked if the chosen IP-address already exists, repeating this
+ * ipconfigRA_IP_TEST_COUNT times, each time with a timeout of ipconfigRA_IP_TEST_TIME_OUT_MSEC ms.
+ * Finally the end-point will go in the UP state.
+ */
+#ifndef ipconfigRA_SEARCH_COUNT
+    #define ipconfigRA_SEARCH_COUNT    ( 3U )
+#endif
+
+#ifndef ipconfigRA_SEARCH_TIME_OUT_MSEC
+    #define ipconfigRA_SEARCH_TIME_OUT_MSEC    ( 10000U )
+#endif
+
+#ifndef ipconfigRA_IP_TEST_COUNT
+    #define ipconfigRA_IP_TEST_COUNT    ( 3 )
+#endif
+
+#ifndef ipconfigRA_IP_TEST_TIME_OUT_MSEC
+    #define ipconfigRA_IP_TEST_TIME_OUT_MSEC    ( 1500U )
 #endif
 
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */

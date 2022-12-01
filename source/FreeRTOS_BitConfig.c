@@ -105,7 +105,7 @@ BaseType_t xBitConfig_read_uc( BitConfig_t * pxConfig,
 
     if( pxConfig->xHasError == pdFALSE )
     {
-        if( pxConfig->uxIndex <= pxConfig->uxSize - uxNeeded )
+        if( pxConfig->uxIndex <= (pxConfig->uxSize - uxNeeded) )
         {
             if( pucData != NULL )
             {
@@ -210,14 +210,14 @@ uint32_t ulBitConfig_read_32( BitConfig_t * pxConfig )
  *         the field xHasError will be set.
  */
 void vBitConfig_write_uc( BitConfig_t * pxConfig,
-                          uint8_t * pucData,
+                          const uint8_t * pucData,
                           size_t uxSize )
 {
     const size_t uxNeeded = uxSize;
 
     if( pxConfig->xHasError == pdFALSE )
     {
-        if( pxConfig->uxIndex <= pxConfig->uxSize - uxNeeded )
+        if( pxConfig->uxIndex <= (pxConfig->uxSize - uxNeeded) )
         {
             uint8_t * pucDestination = &( pxConfig->ucContents[ pxConfig->uxIndex ] );
             ( void ) memcpy( pucDestination, pucData, uxNeeded );
@@ -309,6 +309,6 @@ void vBitConfig_release( BitConfig_t * pxConfig )
         vPortFree( pxConfig->ucContents );
     }
 
-    ( void ) memset( pxConfig, 0, sizeof *pxConfig );
+    ( void ) memset( pxConfig, 0, sizeof(BitConfig_t) );
 }
 /*-----------------------------------------------------------*/

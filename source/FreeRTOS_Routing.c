@@ -117,7 +117,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         RoutingStats_t xRoutingStatistics;
     #endif
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         static NetworkEndPoint_t * prvFindFirstAddress_IPv6( void );
     #endif
 
@@ -197,7 +197,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  * @return The interface that comes after 'pxInterface'. NULL when either 'pxInterface'
  *         is NULL, or when 'pxInterface' is the last interface.
  */
-    NetworkInterface_t * FreeRTOS_NextNetworkInterface( NetworkInterface_t * pxInterface )
+    NetworkInterface_t * FreeRTOS_NextNetworkInterface( const NetworkInterface_t * pxInterface )
     {
         NetworkInterface_t * pxReturn;
 
@@ -272,7 +272,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             }
         }
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
             {
                 FreeRTOS_printf( ( "FreeRTOS_AddEndPoint: MAC: %02x-%02x IPv6: %pip\n",
@@ -301,7 +301,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  * @return The first end-point that is found to the interface, or NULL when the
  *         interface doesn't have any end-point yet.
  */
-    NetworkEndPoint_t * FreeRTOS_FirstEndPoint( NetworkInterface_t * pxInterface )
+    NetworkEndPoint_t * FreeRTOS_FirstEndPoint( const NetworkInterface_t * pxInterface )
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
@@ -331,7 +331,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  *
  * @return The end-point that is found, or NULL when there are no more end-points in the list.
  */
-    NetworkEndPoint_t * FreeRTOS_NextEndPoint( NetworkInterface_t * pxInterface,
+    NetworkEndPoint_t * FreeRTOS_NextEndPoint( const NetworkInterface_t * pxInterface,
                                                NetworkEndPoint_t * pxEndPoint )
     {
         NetworkEndPoint_t * pxResult = pxEndPoint;
@@ -368,7 +368,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocationsIP ) / sizeof( xRoutingStatistics.ulLocationsIP )[ 0 ] );
+            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocationsIP ) / sizeof( xRoutingStatistics.ulLocationsIP[ 0 ] ));
 
             xRoutingStatistics.ulOnIp++;
 
@@ -380,7 +380,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
         while( pxEndPoint != NULL )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 if( ENDPOINT_IS_IPv4( pxEndPoint ) )
             #endif
             {
@@ -397,7 +397,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     }
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Find the end-point which handles a given IPv6 address.
@@ -425,7 +425,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
             return pxEndPoint;
         }
-    #endif /* ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_IPV6 */
 /*-----------------------------------------------------------*/
 
 /**
@@ -437,7 +437,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  * @return The end-point that has the given MAC-address.
  */
     NetworkEndPoint_t * FreeRTOS_FindEndPointOnMAC( const MACAddress_t * pxMACAddress,
-                                                    NetworkInterface_t * pxInterface )
+                                                    const NetworkInterface_t * pxInterface )
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
@@ -494,14 +494,14 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  *
  * @return An end-point that has the same network mask as the given IP-address.
  */
-    NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask( NetworkInterface_t * pxInterface,
+    NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask( const NetworkInterface_t * pxInterface,
                                                              uint32_t ulIPAddress,
                                                              uint32_t ulWhere )
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocations ) / sizeof( xRoutingStatistics.ulLocations )[ 0 ] );
+            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocations ) / sizeof( xRoutingStatistics.ulLocations[ 0 ] ));
 
             xRoutingStatistics.ulOnNetMask++;
 
@@ -521,7 +521,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         {
             if( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) )
             {
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     if( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED )
                 #endif
                 {
@@ -547,7 +547,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     }
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Configure and install a new IPv6 end-point.
@@ -565,11 +565,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  */
         void FreeRTOS_FillEndPoint_IPv6( NetworkInterface_t * pxNetworkInterface,
                                          NetworkEndPoint_t * pxEndPoint,
-                                         IPv6_Address_t * pxIPAddress,
-                                         IPv6_Address_t * pxNetPrefix,
+                                         const IPv6_Address_t * pxIPAddress,
+                                         const IPv6_Address_t * pxNetPrefix,
                                          size_t uxPrefixLength,
-                                         IPv6_Address_t * pxGatewayAddress,
-                                         IPv6_Address_t * pxDNSServerAddress,
+                                         const IPv6_Address_t * pxGatewayAddress,
+                                         const IPv6_Address_t * pxDNSServerAddress,
                                          const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
         {
             configASSERT( pxIPAddress != NULL );
@@ -605,10 +605,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ucMACAddress, ipMAC_ADDRESS_LENGTH_BYTES );
             ( void ) FreeRTOS_AddEndPoint( pxNetworkInterface, pxEndPoint );
         }
-    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Find the first end-point of the type IPv6.
@@ -632,10 +632,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
             return pxEndPoint;
         }
-    #endif /* ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_IPV6 */
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
 
 /**
  * @brief Find an end-point that handles a given IPv6-address.
@@ -651,7 +651,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             /* _HT_ to be worked out later. */
             return prvFindFirstAddress_IPv6();
         }
-    #endif /* ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_IPV6 */
 /*-----------------------------------------------------------*/
 
 /**
@@ -662,11 +662,14 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  *
  * @return The end-point that should handle the incoming Ethernet packet.
  */
-    NetworkEndPoint_t * FreeRTOS_MatchingEndpoint( NetworkInterface_t * pxNetworkInterface,
-                                                   uint8_t * pucEthernetBuffer )
+    NetworkEndPoint_t * FreeRTOS_MatchingEndpoint( const NetworkInterface_t * pxNetworkInterface,
+                                                   const uint8_t * pucEthernetBuffer )
     {
         NetworkEndPoint_t * pxEndPoint = NULL;
-        ProtocolPacket_t * pxPacket = ( ( ProtocolPacket_t * ) pucEthernetBuffer );
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        const ProtocolPacket_t * pxPacket = ( ( const ProtocolPacket_t * ) pucEthernetBuffer );
         /*#pragma warning 'name' for logging only, take this away */
         const char * name = "";
 
@@ -676,6 +679,9 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
          * which is 32-bits + 2. */
         #ifndef _lint
             {
+                /* MISRA Ref 11.4.3 [Casting pointer to int for verification] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+                /* coverity[misra_c_2012_rule_11_4_violation] */
                 uintptr_t uxAddress = ( uintptr_t ) pucEthernetBuffer;
                 uxAddress += 2U;
                 configASSERT( ( uxAddress % 4U ) == 0U );
@@ -698,10 +704,13 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         /* Probably an ARP packet or a broadcast. */
         switch( pxPacket->xUDPPacket.xEthernetHeader.usFrameType )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 case ipIPv6_FRAME_TYPE:
                    {
-                       IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pucEthernetBuffer );
+                        /* MISRA Ref 11.3.1 [Misaligned access] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                        /* coverity[misra_c_2012_rule_11_3_violation] */
+                        const IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( const IPPacket_IPv6_t * ) pucEthernetBuffer );
 
                        pxEndPoint = pxNetworkEndPoints;
 
@@ -734,7 +743,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                        #endif
                    }
                    break;
-            #endif /* ipconfigUSE_IPv6 */
+            #endif /* ipconfigUSE_IPV6 */
             case ipARP_FRAME_TYPE:
                 pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress, 3U );
                 name = "ARP";
@@ -781,12 +790,12 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                         pxEndPoint = FreeRTOS_NextEndPoint( pxNetworkInterface, pxEndPoint ) )
                    {
                        ( void ) name;
-                       #if ( ipconfigUSE_IPv6 != 0 )
+                       #if ( ipconfigUSE_IPV6 != 0 )
                            if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
                            {
                                continue;
                            }
-                       #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                       #endif /* ( ipconfigUSE_IPV6 != 0 ) */
 
                        if( pxEndPoint->ipv4_settings.ulIPAddress == ulIPTargetAddress )
                        {
@@ -848,7 +857,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
         while( pxEndPoint != NULL )
         {
-            #if ( ipconfigUSE_IPv6 == 0 )
+            #if ( ipconfigUSE_IPV6 == 0 )
                 ( void ) xIPType;
 
                 if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) /* access to ipv4_settings is checked. */
@@ -876,7 +885,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 {
                     /* This end-point is not the right IP-type. */
                 }
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
             pxEndPoint = pxEndPoint->pxNext;
         }
 
@@ -884,7 +893,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     }
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
 
 /* Get the first end-point belonging to a given interface.
  * When pxInterface is NULL, the very first end-point will be returned. */
@@ -896,7 +905,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  *
  * @return The end-point found, or NULL when there are no end-points at all.
  */
-        NetworkEndPoint_t * FreeRTOS_FirstEndPoint_IPv6( NetworkInterface_t * pxInterface )
+        NetworkEndPoint_t * FreeRTOS_FirstEndPoint_IPv6( const NetworkInterface_t * pxInterface )
         {
             NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
@@ -912,7 +921,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
             return pxEndPoint;
         }
-    #endif /* ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_IPV6 */
 /*-----------------------------------------------------------*/
 
 /**
@@ -922,9 +931,9 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  *
  * @return An end-point or NULL in case the socket is not bound to an end-point.
  */
-    NetworkEndPoint_t * pxGetSocketEndpoint( Socket_t xSocket )
+    NetworkEndPoint_t * pxGetSocketEndpoint( Socket_t const xSocket )
     {
-        FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
+        const FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
         NetworkEndPoint_t * pxResult;
 
         if( pxSocket != NULL )
