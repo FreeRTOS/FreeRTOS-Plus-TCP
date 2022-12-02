@@ -58,7 +58,7 @@ typedef struct xARP_CACHE_TABLE_ROW
     uint8_t ucAge;            /**< A value that is periodically decremented but can also be refreshed by active communication.  The ARP cache entry is removed if the value reaches zero. */
     uint8_t ucValid;          /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ARP reply */
 	struct xNetworkEndPoint
-        * pxEndPoint;         /**< The end-point on which the MAC address was last seen. *
+        * pxEndPoint;         /**< The end-point on which the MAC address was last seen. */
 } ARPCacheRow_t;
 
 typedef enum

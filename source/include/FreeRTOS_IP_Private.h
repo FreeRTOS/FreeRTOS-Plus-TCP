@@ -39,6 +39,7 @@
 #include "FreeRTOS_Sockets.h"
 #include "IPTraceMacroDefaults.h"
 #include "FreeRTOS_Stream_Buffer.h"
+#include "FreeRTOS_Routing.h"
 
 #if ( ipconfigUSE_TCP == 1 )
     #include "FreeRTOS_TCP_WIN.h"
@@ -171,10 +172,10 @@ struct xTCP_HEADER
 #include "pack_struct_end.h"
 typedef struct xTCP_HEADER TCPHeader_t;
 
-#if ipconfigUSE_IPV4
+#if ( ipconfigUSE_IPV4 != 0 )
     #include "FreeRTOS_IPv4_Private.h"
 #endif /* ipconfigUSE_IPV4 */
-#if ipconfigUSE_IPV6
+#if ( ipconfigUSE_IPV6 != 0 )
     #include "FreeRTOS_IPv6_Private.h"
 #endif /* ipconfigUSE_IPV6 */
 
@@ -366,10 +367,21 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
         ( right ) = tmp;         \
     } while( ipFALSE_BOOL )
 
+#ifndef _WINDOWS_
+    /** @brief Macro calculates the number of elements in an array as a size_t. */
+    #ifndef ARRAY_SIZE_X
+        #define ARRAY_SIZE_X( x )                            \
+    ( { size_t uxCount = ( sizeof( x ) / sizeof( x[ 0 ] ) ); \
+        BaseType_t xCount = ( BaseType_t ) uxCount;          \
+        xCount; }                                            \
+    )
+    #endif
+#endif
 /* WARNING: Do NOT use this macro when the array was received as a parameter. */
 #ifndef ARRAY_SIZE
     #define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
 #endif
+
 
 #ifndef ARRAY_USIZE
     #define ARRAY_USIZE( x )    ( ( UBaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
@@ -805,7 +817,7 @@ BaseType_t xIsCallingFromIPTask( void );
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
 /* Send the network-up event and start the ARP timer. */
-void vIPNetworkUpCalls( void );
+void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

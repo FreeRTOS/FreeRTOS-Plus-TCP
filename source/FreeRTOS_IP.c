@@ -57,6 +57,7 @@
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
+#include "FreeRTOS_Routing.h"
 
 /* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
 #define ipFIRST_MULTI_CAST_IPv4             0xE0000000U /**< Lower bound of the IPv4 multicast address. */
@@ -521,7 +522,7 @@ TaskHandle_t FreeRTOS_GetIPTaskHandle( void )
 /**
  * @brief Perform all the required tasks when the network gets connected.
  */
-void vIPNetworkUpCalls( void )
+void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint )
 {
     xNetworkUp = pdTRUE;
 
@@ -1391,6 +1392,98 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_IPV6 != 0 )
+    BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
+    {
+        BaseType_t xReturn;
+
+        if( pxIPAddress->ucBytes[ 0 ] == 0xffU )
+        {
+            xReturn = pdTRUE;
+        }
+        else
+        {
+            xReturn = pdFALSE;
+        }
+
+        return xReturn;
+    }
+#endif /* ipconfigUSE_IPV6 */
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPV6 != 0 )
+    BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
+                                     const IPv6_Address_t * pxRight,
+                                     size_t uxPrefixLength )
+    {
+        BaseType_t xResult;
+
+        /* 0    2    4    6    8    10   12   14 */
+        /* ff02:0000:0000:0000:0000:0001:ff66:4a81 */
+        if( ( pxRight->ucBytes[ 0 ] == 0xffU ) &&
+            ( pxRight->ucBytes[ 1 ] == 0x02U ) &&
+            ( pxRight->ucBytes[ 12 ] == 0xffU ) )
+        {
+            /* This is an LLMNR address. */
+            xResult = memcmp( &( pxLeft->ucBytes[ 13 ] ), &( pxRight->ucBytes[ 13 ] ), 3 );
+        }
+        else
+        if( ( pxRight->ucBytes[ 0 ] == 0xffU ) &&
+            ( pxRight->ucBytes[ 1 ] == 0x02U ) )
+        {
+            /* FF02::1 is all node address to reach out all nodes in the same link. */
+            xResult = 0;
+        }
+        else
+        if( ( pxRight->ucBytes[ 0 ] == 0xfeU ) &&
+            ( pxRight->ucBytes[ 1 ] == 0x80U ) &&
+            ( pxLeft->ucBytes[ 0 ] == 0xfeU ) &&
+            ( pxLeft->ucBytes[ 1 ] == 0x80U ) )
+        {
+            /* Both are local addresses. */
+            xResult = 0;
+        }
+        else
+        {
+            if( uxPrefixLength == 0U )
+            {
+                xResult = 0;
+            }
+            else if( uxPrefixLength == ( 8U * ipSIZE_OF_IPv6_ADDRESS ) )
+            {
+                xResult = memcmp( pxLeft->ucBytes, pxRight->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+            }
+            else
+            {
+                size_t uxLength = uxPrefixLength / 8U;
+
+                xResult = 0;
+
+                if( uxLength > 0U )
+                {
+                    xResult = memcmp( pxLeft->ucBytes, pxRight->ucBytes, uxLength );
+                }
+
+                if( ( xResult == 0 ) && ( ( uxPrefixLength % 8U ) != 0U ) )
+                {
+                    /* One byte has both a network- and a host-address. */
+                    size_t uxBits = uxPrefixLength % 8U;
+                    size_t uxHostLen = 8U - uxBits;
+                    uint32_t uxHostMask = ( ( ( uint32_t ) 1U ) << uxHostLen ) - 1U;
+                    uint8_t ucNetMask = ( uint8_t ) ~( uxHostMask );
+
+                    if( ( pxLeft->ucBytes[ uxLength ] & ucNetMask ) != ( pxRight->ucBytes[ uxLength ] & ucNetMask ) )
+                    {
+                        xResult = 1;
+                    }
+                }
+            }
+        }
+
+        return xResult;
+    }
+#endif /* ipconfigUSE_IPV6 */
+
 /**
  * @brief Check whether this IP packet is to be allowed or to be dropped.
  *
@@ -2180,15 +2273,17 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     /* misra_c_2012_rule_11_3_violation */
     const EthernetHeader_t * pxHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
+    #if (ipconfigUSE_IPV6 != 0)
     if( pxHeader->usFrameType == ( uint16_t ) ipIPv6_FRAME_TYPE )
     {
         uxResult = ipSIZE_OF_IPv6_HEADER;
     }
     else
+    #endif
     {
         uxResult = ipSIZE_OF_IPv4_HEADER;
     }
-
+    
     return uxResult;
 }
 /*-----------------------------------------------------------*/
@@ -2202,11 +2297,13 @@ size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
 {
     size_t uxResult;
 
+    #if (ipconfigUSE_IPV6 != 0)
     if( ( pxSocket != NULL ) && ( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED ) )
     {
         uxResult = ipSIZE_OF_IPv6_HEADER;
     }
     else
+    #endif
     {
         uxResult = ipSIZE_OF_IPv4_HEADER;
     }

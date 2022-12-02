@@ -138,9 +138,6 @@
 struct xNetworkEndPoint;
 struct xNetworkInterface;
 
-/* A list of all network end-points: */
-extern struct xNetworkEndPoint * pxNetworkEndPoints;
-
 /* A list of all network interfaces: */
 extern struct xNetworkInterface * pxNetworkInterfaces;
 

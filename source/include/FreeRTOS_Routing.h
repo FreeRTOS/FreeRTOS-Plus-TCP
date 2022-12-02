@@ -34,7 +34,7 @@
         #include "FreeRTOS_DHCP.h"
     #endif
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         #include "FreeRTOS_DHCPv6.h"
     #endif
 
@@ -95,7 +95,7 @@
         uint8_t ucDNSIndex;                                                  /**< The index of the next DNS address to be used. */
     } IPV4Parameters_t;
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         typedef struct xIPV6Parameters
         {
             IPv6_Address_t xIPAddress;      /* The actual IPv4 address. Will be 0 as long as end-point is still down. */
@@ -148,7 +148,7 @@
                 IPV4Parameters_t ipv4_settings; /**< Actual IPv4 settings used by the end-point. */
                 IPV4Parameters_t ipv4_defaults; /**< Use values form "ipv4_defaults" in case DHCP has failed. */
             };
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 struct
                 {
                     IPV6Parameters_t ipv6_settings; /**< Actual IPv6 settings used by the end-point. */
@@ -167,25 +167,25 @@
             #if ( ipconfigUSE_RA != 0 )
                 bWantRA : 1, /**< This end-point wants to use RA/SLAAC to obtain an IP-address. */
             #endif /* ipconfigUSE_RA */
-            #if ( ipconfigUSE_IPv6 != 0 )
+            #if ( ipconfigUSE_IPV6 != 0 )
                 bIPv6 : 1, /**< This end-point has an IP-address of type IPv6. */
-            #endif /* ipconfigUSE_IPv6 */
+            #endif /* ipconfigUSE_IPV6 */
             #if ( ipconfigUSE_NETWORK_EVENT_HOOK != 0 )
                 bCallDownHook : 1, /**< The network down hook-must be called for this end-point. */
             #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
             bEndPointUp : 1;       /**< The end-point is up. */
         } bits;                    /**< A collection of boolean properties. */
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             uint8_t usDNSType;     /**< A LLMNR/mDNS lookup is being done for an IPv6 address.
                                     * This field is only valid while xApplicationDNSQueryHook() is called. */
-        #endif /* ipconfigUSE_IPv6 */
+        #endif /* ipconfigUSE_IPV6 */
         #if ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_RA != 0 )
             IPTimer_t xDHCP_RATimer; /**<  The timer used to call the DHCP/DHCPv6/RA state machine. */
         #endif /* ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_RA != 0 ) */
         #if ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 )
             DHCPData_t xDHCPData; /**< A description of the DHCP client state machine. */
         #endif /* ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 ) */
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPV6 != 0 )
             DHCPMessage_IPv6_t * pxDHCPMessage; /**< A description of the DHCPv6 client state machine. */
         #endif
         #if ( ipconfigUSE_RA != 0 )
@@ -196,21 +196,21 @@
     } NetworkEndPoint_t;
 
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         #define END_POINT_USES_DHCP( pxEndPoint )    ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bWantDHCP != pdFALSE_UNSIGNED ) )
         #define END_POINT_USES_RA( pxEndPoint )      ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 != pdFALSE_UNSIGNED ) && ( ( pxEndPoint )->bits.bWantRA != pdFALSE_UNSIGNED ) )
 
         #define ENDPOINT_IS_IPv4( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 == 0U ) )
         #define ENDPOINT_IS_IPv6( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 != 0U ) )
 
-    #else /* if ( ipconfigUSE_IPv6 != 0 ) */
+    #else /* if ( ipconfigUSE_IPV6 != 0 ) */
         #define END_POINT_USES_DHCP( pxEndPoint )    ( ( pxEndPoint )->bits.bWantDHCP != pdFALSE_UNSIGNED )
         #define END_POINT_USES_RA( pxEndPoint )      ( ipFALSE_BOOL )
 
         #define ENDPOINT_IS_IPv4( pxEndPoint )       ( ipTRUE_BOOL )
         #define ENDPOINT_IS_IPv6( pxEndPoint )       ( ipFALSE_BOOL )
 
-    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 
 /*
  * Add a new physical Network Interface.  The object pointed to by 'pxInterface'
@@ -227,19 +227,19 @@
 /*
  * Get the next Network Interface.
  */
-    NetworkInterface_t * FreeRTOS_NextNetworkInterface( NetworkInterface_t * pxInterface );
+    NetworkInterface_t * FreeRTOS_NextNetworkInterface( const NetworkInterface_t * pxInterface );
 
 /*
  * Get the first end-point belonging to a given interface.  When pxInterface is
  * NULL, the very first end-point will be returned.
  */
-    NetworkEndPoint_t * FreeRTOS_FirstEndPoint( NetworkInterface_t * pxInterface );
+    NetworkEndPoint_t * FreeRTOS_FirstEndPoint( const NetworkInterface_t * pxInterface );
 
 /*
  * Get the next end-point.  When pxInterface is null, all end-points can be
  * iterated.
  */
-    NetworkEndPoint_t * FreeRTOS_NextEndPoint( NetworkInterface_t * pxInterface,
+    NetworkEndPoint_t * FreeRTOS_NextEndPoint( const NetworkInterface_t * pxInterface,
                                                NetworkEndPoint_t * pxEndPoint );
 
 /*
@@ -248,17 +248,17 @@
     NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
                                                         uint32_t ulWhere );
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         /* Find the end-point with given IP-address. */
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPAddress );
-    #endif /* ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_IPV6 */
 
 /*
  * Find the end-point with given MAC-address.
  * The search can be limited by supplying a particular interface.
  */
     NetworkEndPoint_t * FreeRTOS_FindEndPointOnMAC( const MACAddress_t * pxMACAddress,
-                                                    NetworkInterface_t * pxInterface );
+                                                    const NetworkInterface_t * pxInterface );
 
 /*
  * Find the best fitting end-point to reach a given IP-address.
@@ -272,25 +272,25 @@
  * Find the best fitting end-point to reach a given IP-address on a given interface
  * 'ulWhere' is temporary and or debugging only.
  */
-    NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask( NetworkInterface_t * pxInterface,
+    NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask( const NetworkInterface_t * pxInterface,
                                                              uint32_t ulIPAddress,
                                                              uint32_t ulWhere );
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address );
-    #endif /* ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_IPV6 */
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
 
 /* Get the first end-point belonging to a given interface.
  * When pxInterface is NULL, the very first end-point will be returned. */
-        NetworkEndPoint_t * FreeRTOS_FirstEndPoint_IPv6( NetworkInterface_t * pxInterface );
-    #endif /* ipconfigUSE_IPv6 */
+        NetworkEndPoint_t * FreeRTOS_FirstEndPoint_IPv6( const NetworkInterface_t * pxInterface );
+    #endif /* ipconfigUSE_IPV6 */
 
 /* A ethernet packet has come in on a certain network interface.
  * Find the best matching end-point. */
-    NetworkEndPoint_t * FreeRTOS_MatchingEndpoint( NetworkInterface_t * pxNetworkInterface,
-                                                   uint8_t * pucEthernetBuffer );
+    NetworkEndPoint_t * FreeRTOS_MatchingEndpoint( const NetworkInterface_t * pxNetworkInterface,
+                                                   const uint8_t * pucEthernetBuffer );
 
 /* Find an end-point that has a defined gateway.
  * xIPType should equal ipTYPE_IPv4 or ipTYPE_IPv6. */
@@ -305,15 +305,15 @@
                                 const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                                 const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPV6 != 0 )
         /* Fill-in the end-point structure. */
         void FreeRTOS_FillEndPoint_IPv6( NetworkInterface_t * pxNetworkInterface,
                                          NetworkEndPoint_t * pxEndPoint,
-                                         IPv6_Address_t * pxIPAddress,
-                                         IPv6_Address_t * pxNetPrefix,
+                                         const IPv6_Address_t * pxIPAddress,
+                                         const IPv6_Address_t * pxNetPrefix,
                                          size_t uxPrefixLength,
-                                         IPv6_Address_t * pxGatewayAddress,
-                                         IPv6_Address_t * pxDNSServerAddress, /* Not used yet. */
+                                         const IPv6_Address_t * pxGatewayAddress,
+                                         const IPv6_Address_t * pxDNSServerAddress, /* Not used yet. */
                                          const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
     #endif
 
@@ -332,7 +332,7 @@
         extern RoutingStats_t xRoutingStatistics;
     #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
-    NetworkEndPoint_t * pxGetSocketEndpoint( Socket_t xSocket );
+    NetworkEndPoint_t * pxGetSocketEndpoint( Socket_t const xSocket );
     void vSetSocketEndpoint( Socket_t xSocket,
                              NetworkEndPoint_t * pxEndPoint );
 
