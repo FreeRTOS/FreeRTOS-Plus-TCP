@@ -376,12 +376,12 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
         xCount; }                                            \
     )
     #endif
-#else
-    /* WARNING: Do NOT use this macro when the array was received as a parameter. */
-    #ifndef ARRAY_SIZE
-        #define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
-    #endif
-#endif 
+#endif
+/* WARNING: Do NOT use this macro when the array was received as a parameter. */
+#ifndef ARRAY_SIZE
+    #define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
+#endif
+
 
 #ifndef ARRAY_USIZE
     #define ARRAY_USIZE( x )    ( ( UBaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
