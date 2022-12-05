@@ -399,8 +399,8 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
  * returns a non-zero value then a context switch should be performed before
  * the interrupt is exited.
  */
-void FreeRTOS_NetworkDown( void );
-BaseType_t FreeRTOS_NetworkDownFromISR( void );
+void FreeRTOS_NetworkDown( struct xNetworkInterface * pxNetworkInterface );
+BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInterface );
 
 /*
  * Inspect an Ethernet frame to see if it contains data that the stack needs to

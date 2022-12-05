@@ -73,9 +73,6 @@ uint32_t FreeRTOS_GetDNSServerAddress( void );
 uint32_t FreeRTOS_GetNetmask( void );
 uint32_t FreeRTOS_GetIPAddress( void );
 
-void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
-                                     TickType_t uxBlockTimeTicks );
-
 void FreeRTOS_ClearARP( void );
 
 /* Show all valid ARP entries

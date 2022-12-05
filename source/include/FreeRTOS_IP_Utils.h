@@ -100,7 +100,7 @@ void vPreCheckConfigs( void );
  * @brief Called to create a network connection when the stack is first
  *        started, or when the network connection is lost.
  */
-void prvProcessNetworkDownEvent( void );
+void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

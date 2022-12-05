@@ -318,7 +318,8 @@ const uint8_t * FreeRTOS_GetMACAddress( void );
 void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     /* This function shall be defined by the application. */
-    void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
+    void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                         struct xNetworkEndPoint * pxEndPoint );
 #endif
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
     void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,

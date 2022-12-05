@@ -182,8 +182,8 @@
 #endif
 
 #ifndef ipconfigCOMPATIBLE_WITH_SINGLE
-    #define ipconfigCOMPATIBLE_WITH_SINGLE  ( 0)
-#endif 
+    #define ipconfigCOMPATIBLE_WITH_SINGLE    ( 0 )
+#endif
 
 #if ( ipconfigUSE_TCP != 0 )
 
@@ -191,7 +191,7 @@
     #ifndef ipconfigUSE_DHCPv6
         #define ipconfigUSE_DHCPv6    ( 0 )
     #endif
-    
+
 /* 'ipconfigUSE_TCP_WIN' enables support for TCP sliding windows.  When
  * defined as zero, each TCP packet must be acknowledged individually.
  * That will be slower, but it will result less code. */
@@ -1094,15 +1094,15 @@
 #endif
 
 #ifndef ipconfigND_CACHE_ENTRIES
-    #define ipconfigND_CACHE_ENTRIES 24
+    #define ipconfigND_CACHE_ENTRIES    24
 #endif
 
 #ifndef ipconfigHAS_ROUTING_STATISTICS
-    #define ipconfigHAS_ROUTING_STATISTICS 1
+    #define ipconfigHAS_ROUTING_STATISTICS    1
 #endif
 
 #ifndef ipconfigUSE_RA
-    #define ipconfigUSE_RA 1
+    #define ipconfigUSE_RA    1
 #endif
 
 /* RA or Router Advertisement/SLAAC: see end-point flag 'bWantRA'.
