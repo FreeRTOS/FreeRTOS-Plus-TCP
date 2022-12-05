@@ -361,7 +361,7 @@ static void prvProcessIPEventsAndTimers( void )
              * API will unblock as soon as the eSOCKET_BOUND event is
              * triggered. */
             pxSocket = ( ( FreeRTOS_Socket_t * ) xReceivedEvent.pvData );
-            xAddress.sin_addr = 0U; /* For the moment. */
+            xAddress.sin_addr.xIP_IPv4 = 0U; /* For the moment. */
             xAddress.sin_port = FreeRTOS_ntohs( pxSocket->usLocalPort );
             pxSocket->usLocalPort = 0U;
             ( void ) vSocketBind( pxSocket, &xAddress, sizeof( xAddress ), pdFALSE );

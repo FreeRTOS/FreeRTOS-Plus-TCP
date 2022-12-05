@@ -56,7 +56,7 @@
 
 /*
  *  These functions come from the IPv4-only library.
- *  They should get an extra parameter, the end-point
+ *  TODO : They should get an extra parameter, the end-point
  *  void FreeRTOS_SetIPAddress( uint32_t ulIPAddress );
  *  void FreeRTOS_SetNetmask( uint32_t ulNetmask );
  *  void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress );
