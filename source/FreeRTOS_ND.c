@@ -78,7 +78,7 @@
     static const uint8_t pcLOCAL_ALL_NODES_MULTICAST_MAC[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33, 0x33, 0x00, 0x00, 0x00, 0x01 };
 
 /** @brief See if the MAC-address can be resolved because it is a multi-cast address. */
-    static eARPLookupResult_t prvMACResolve( IPv6_Address_t * pxAddressToLookup,
+    static eARPLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
                                              MACAddress_t * const pxMACAddress,
                                              NetworkEndPoint_t ** ppxEndPoint );
 
@@ -137,7 +137,7 @@
  *
  * @return An enum, either eARPCacheHit or eARPCacheMiss.
  */
-    static eARPLookupResult_t prvMACResolve( IPv6_Address_t * pxAddressToLookup,
+    static eARPLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
                                              MACAddress_t * const pxMACAddress,
                                              NetworkEndPoint_t ** ppxEndPoint )
     {
@@ -318,7 +318,7 @@
                 {
                     /* This entry will get removed soon.  See if the MAC address is
                      * still valid to prevent this happening. */
-                    iptraceND_TABLE_ENTRY_WILL_EXPIRE( xNDCache[ x ].ulIPAddress );
+                    iptraceND_TABLE_ENTRY_WILL_EXPIRE( xNDCache[ x ].xIPAddress );
                     xDoSolicitate = pdTRUE;
                 }
                 else
@@ -344,7 +344,7 @@
                 if( xNDCache[ x ].ucAge == 0U )
                 {
                     /* The entry is no longer valid.  Wipe it out. */
-                    iptraceND_TABLE_ENTRY_EXPIRED( xNDCache[ x ].ulIPAddress );
+                    iptraceND_TABLE_ENTRY_EXPIRED( xNDCache[ x ].xIPAddress );
                     ( void ) memset( &( xNDCache[ x ] ), 0, sizeof( xNDCache[ x ] ) );
                 }
             }
@@ -460,7 +460,7 @@
     static void prvReturnICMP_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     size_t uxICMPSize )
     {
-        NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+        const NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -709,8 +709,8 @@
                     /* The message is complete, IP and checksum's are handled by
                      * vProcessGeneratedUDPPacket */
                     pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] = FREERTOS_SO_UDPCKSUM_OUT;
-                    pxNetworkBuffer->ulIPAddress = 0U;
-                    ( void ) memcpy( pxNetworkBuffer->xIPv6Address.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    (void) memset( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
+                    ( void ) memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     /* Let vProcessGeneratedUDPPacket() know that this is an ICMP packet. */
                     pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
                     pxNetworkBuffer->xDataLength = uxPacketLength;
@@ -882,7 +882,7 @@
                                /* MISRA Ref 11.3.1 [Misaligned access] */
                                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                                /* coverity[misra_c_2012_rule_11_3_violation] */
-                               +const ICMPEcho_IPv6_t * pxICMPEchoHeader = ( ( ICMPEcho_IPv6_t * ) pxICMPHeader_IPv6 );
+                               const ICMPEcho_IPv6_t * pxICMPEchoHeader = ( ( const ICMPEcho_IPv6_t * ) pxICMPHeader_IPv6 );
                                size_t uxDataLength, uxCount;
                                const uint8_t * pucByte;
 
@@ -1005,7 +1005,7 @@
 
         if( pxNetworkBuffer != NULL )
         {
-            pxNetworkBuffer->ulIPAddress = 0;
+            (void) memset( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
             pxNetworkBuffer->pxEndPoint = pxEndPoint;
 
             pxInterface = pxEndPoint->pxNetworkInterface;

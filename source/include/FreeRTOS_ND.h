@@ -122,7 +122,7 @@
  * @param[in] pxNetworkBuffer: A network buffer big enough to hold the ICMP packet.
  * @param[in] pxIPAddress: The multi-cast address of the routers ( normally ff02::2 ).
  */
-        void vNDSendRouterSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+        void vNDSendRouterSolicitation( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                         IPv6_Address_t * pxIPAddress );
     #endif /* ( ipconfigUSE_RA != 0 ) */
 

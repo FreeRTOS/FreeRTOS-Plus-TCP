@@ -209,3 +209,11 @@ BaseType_t FreeRTOS_SendPingRequest( uint32_t ulIPAddress,
     return pdFAIL;
 }
 /*-----------------------------------------------------------*/
+
+eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
+                                                uint32_t ulIPAddress )
+{
+    /* Provide a stub for this function. */
+    return eDHCPContinue;
+}
+/*-----------------------------------------------------------*/

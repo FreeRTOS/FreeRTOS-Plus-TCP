@@ -128,7 +128,7 @@
  *
  * @return An enum which says whether to return the frame or to release it
  */
-    void vNDSendRouterSolicitation( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+    void vNDSendRouterSolicitation( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                     IPv6_Address_t * pxIPAddress )
     {
         ICMPPacket_IPv6_t * pxICMPPacket;
@@ -227,8 +227,8 @@
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-        ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
+        const ICMPPacket_IPv6_t * pxICMPPacket = ( ( const ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        const ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( const ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
         for( pxPoint = FreeRTOS_FirstEndPoint( pxInterface );
              pxPoint != NULL;

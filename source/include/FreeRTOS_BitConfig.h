@@ -66,7 +66,7 @@
     void vBitConfig_write_32( BitConfig_t * pxConfig,
                               uint32_t ulValue );
     void vBitConfig_write_uc( BitConfig_t * pxConfig,
-                              uint8_t * pucData,
+                              const uint8_t * pucData,
                               size_t uxSize );
 
     void vBitConfig_release( BitConfig_t * pxConfig );

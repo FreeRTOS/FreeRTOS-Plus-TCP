@@ -418,7 +418,7 @@
                         /* DHCP failed, the default configured IP-address will be used
                          * Now call vIPNetworkUpCalls() to send the network-up event and
                          * start the ARP timer. */
-                        vIPNetworkUpCalls();
+                        vIPNetworkUpCalls(NULL);
 
                         /* Close socket to ensure packets don't queue on it. */
                         prvCloseDHCPSocket();
@@ -488,7 +488,7 @@
                                     /* Auto-IP succeeded, the default configured IP-address will
                                      * be used.  Now call vIPNetworkUpCalls() to send the
                                      * network-up event and start the ARP timer. */
-                                    vIPNetworkUpCalls();
+                                    vIPNetworkUpCalls(NULL);
                                     EP_DHCPData.eDHCPState = eNotUsingLeasedAddress;
                                 }
                                 else
@@ -578,7 +578,7 @@
                 /* DHCP failed, the default configured IP-address will be used.  Now
                  * call vIPNetworkUpCalls() to send the network-up event and start the ARP
                  * timer. */
-                vIPNetworkUpCalls();
+                vIPNetworkUpCalls(NULL);
 
                 /* Close socket to ensure packets don't queue on it. */
                 prvCloseDHCPSocket();
@@ -1077,7 +1077,7 @@
                              ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
 
             /* Set the addressing. */
-            pxAddress->sin_addr = ipBROADCAST_IP_ADDRESS;
+            pxAddress->sin_addr.xIP_IPv4 = ipBROADCAST_IP_ADDRESS;
             pxAddress->sin_port = ( uint16_t ) dhcpSERVER_PORT_IPv4;
         }
 

@@ -39,6 +39,7 @@
 #include "FreeRTOS_Sockets.h"
 #include "IPTraceMacroDefaults.h"
 #include "FreeRTOS_Stream_Buffer.h"
+#include "FreeRTOS_Routing.h"
 
 #if ( ipconfigUSE_TCP == 1 )
     #include "FreeRTOS_TCP_WIN.h"
@@ -171,10 +172,10 @@ struct xTCP_HEADER
 #include "pack_struct_end.h"
 typedef struct xTCP_HEADER TCPHeader_t;
 
-#if ipconfigUSE_IPV4
+#if ( ipconfigUSE_IPV4 != 0 )
     #include "FreeRTOS_IPv4_Private.h"
 #endif /* ipconfigUSE_IPV4 */
-#if ipconfigUSE_IPV6
+#if ( ipconfigUSE_IPV6 != 0 )
     #include "FreeRTOS_IPv6_Private.h"
 #endif /* ipconfigUSE_IPV6 */
 
@@ -306,6 +307,17 @@ extern NetworkAddressingParameters_t xDefaultAddressing; /*lint !e9003 could def
 /* True when BufferAllocation_1.c was included, false for BufferAllocation_2.c */
 extern const BaseType_t xBufferAllocFixedSize;
 
+/* As FreeRTOS_Routing is included later, use forward declarations
+ * of the two structs. */
+struct xNetworkEndPoint;
+struct xNetworkInterface;
+
+/* A list of all network end-points: */
+extern struct xNetworkEndPoint * pxNetworkEndPoints;
+
+/* A list of all network interfaces: */
+extern struct xNetworkInterface * pxNetworkInterfaces;
+
 /* Defined in FreeRTOS_Sockets.c */
 #if ( ipconfigUSE_TCP == 1 )
     extern List_t xBoundTCPSocketsList;
@@ -355,10 +367,21 @@ extern const BaseType_t xBufferAllocFixedSize;
         ( right ) = tmp;         \
     } while( ipFALSE_BOOL )
 
+#ifndef _WINDOWS_
+    /** @brief Macro calculates the number of elements in an array as a size_t. */
+    #ifndef ARRAY_SIZE_X
+        #define ARRAY_SIZE_X( x )                            \
+    ( { size_t uxCount = ( sizeof( x ) / sizeof( x[ 0 ] ) ); \
+        BaseType_t xCount = ( BaseType_t ) uxCount;          \
+        xCount; }                                            \
+    )
+    #endif
+#endif
 /* WARNING: Do NOT use this macro when the array was received as a parameter. */
 #ifndef ARRAY_SIZE
     #define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
 #endif
+
 
 #ifndef ARRAY_USIZE
     #define ARRAY_USIZE( x )    ( ( UBaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
@@ -652,7 +675,7 @@ struct xSOCKET
  */
     FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                            UBaseType_t uxLocalPort,
-                                           uint32_t ulRemoteIP,
+                                           IP_Address_t ulRemoteIP,
                                            UBaseType_t uxRemotePort );
 
 #endif /* ipconfigUSE_TCP */
@@ -794,7 +817,7 @@ BaseType_t xIsCallingFromIPTask( void );
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
 /* Send the network-up event and start the ARP timer. */
-void vIPNetworkUpCalls( void );
+void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

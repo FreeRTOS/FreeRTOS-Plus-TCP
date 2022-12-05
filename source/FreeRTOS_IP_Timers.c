@@ -52,6 +52,7 @@
 #include "FreeRTOS_DHCP.h"
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
+#include "FreeRTOS_Routing.h"
 #include "FreeRTOS_DNS.h"
 
 /*
@@ -108,6 +109,7 @@ static IPTimer_t xARPTimer;
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
 static IPTimer_t xNetworkTimer;
+struct xNetworkEndpoint;
 
 /*-----------------------------------------------------------*/
 
@@ -380,13 +382,12 @@ void vARPTimerReload( TickType_t xTime )
  * @param[in] uxClockTicks: The number of clock-ticks after which the timer should expire.
  */
 
-/*TODO Needs to be uncommented when adding struct xNetworkEndPoint
- *  void vDHCP_RATimerReload( struct xNetworkEndPoint * pxEndPoint,
- *                            TickType_t uxClockTicks )
- *  {
- *      FreeRTOS_printf( ( "vDHCP_RATimerReload: %lu\n", uxClockTicks ) );
- *      prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
- *  }*/
+   void vDHCP_RATimerReload( NetworkEndPoint_t * pxEndPoint,
+                             TickType_t uxClockTicks )
+   {
+       FreeRTOS_printf( ( "vDHCP_RATimerReload: %lu\n", uxClockTicks ) );
+       prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
+   }
 #endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
 /*-----------------------------------------------------------*/
 
@@ -538,6 +539,31 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
     }
 #endif /* ipconfigUSE_DHCP */
 /*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 )
+
+/**
+ * @brief Enable or disable the DHCP/DHCPv6/RA timer.
+ *
+ * @param[in] pxEndPoint: The end-point that needs to acquire an IP-address.
+ * @param[in] xEnableState: pdTRUE if the timer must be enabled, pdFALSE otherwise.
+ */
+    void vIPSetDHCP_RATimerEnableState( struct xNetworkEndPoint * pxEndPoint,
+                                        BaseType_t xEnableState )
+    {
+        FreeRTOS_printf( ( "vIPSetDHCP_RATimerEnableState: %s\n", ( xEnableState != 0 ) ? "On" : "Off" ) );
+
+        /* 'xDHCP_RATimer' is shared between DHCP (IPv4) and RA/SLAAC (IPv6). */
+        if( xEnableState != 0 )
+        {
+            pxEndPoint->xDHCP_RATimer.bActive = pdTRUE_UNSIGNED;
+        }
+        else
+        {
+            pxEndPoint->xDHCP_RATimer.bActive = pdFALSE_UNSIGNED;
+        }
+    }
+#endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
 
 #if ( ipconfigDNS_USE_CALLBACKS == 1 )
 

@@ -135,7 +135,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
 static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
                                             const uint8_t * pucEthernetBuffer,
                                             size_t uxBufferLength,
-                                            struct xPacketSummary * pxSet );
+                                            const struct xPacketSummary * pxSet );
 
 
 #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
@@ -544,7 +544,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
 static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
                                             const uint8_t * pucEthernetBuffer,
                                             size_t uxBufferLength,
-                                            struct xPacketSummary * pxSet )
+                                            const struct xPacketSummary * pxSet )
 {
     if( xOutgoingPacket != pdFALSE )
     {
@@ -627,6 +627,9 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
                  * It is stored 48 bytes before the payload buffer as 0x40 or 0x60. */
                 uxTypeOffset = void_ptr_to_uintptr( pvBuffer );
                 uxTypeOffset -= ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+                /* MISRA Ref 11.4.3 [Casting pointer to int for verification] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+                /* coverity[misra_c_2012_rule_11_4_violation] */
                 pucIPType = ( const uint8_t * ) uxTypeOffset;
 
                 /* For an IPv4 packet, pucIPType points to 6 bytes before the pucEthernetBuffer,
@@ -743,7 +746,7 @@ void prvProcessNetworkDownEvent( void )
         #else
             {
                 /* Perform any necessary 'network up' processing. */
-                vIPNetworkUpCalls();
+                vIPNetworkUpCalls(NULL);
             }
         #endif
     }
@@ -854,6 +857,9 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 
         if( xSet.pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
         {
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
             xResult = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
@@ -1327,7 +1333,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
             /* MISRA Ref 21.6.1 [snprintf and logging] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
             /* coverity[misra_c_2012_rule_21_6_violation] */
-            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int ) xErrnum );
+            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int32_t ) xErrnum );
             pcName = NULL;
             break;
     }
