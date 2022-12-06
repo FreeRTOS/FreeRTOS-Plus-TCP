@@ -712,7 +712,8 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  *                   If the value is 'portMAX_DELAY' then the function will wait
  *                   indefinitely for an event to occur.
  *
- * @return The socket which might have triggered the event bit.
+ * @return The event bits (event flags) value for the socket in which an event occurred.
+ *
  */
     BaseType_t FreeRTOS_select( SocketSet_t xSocketSet,
                                 TickType_t xBlockTimeTicks )
