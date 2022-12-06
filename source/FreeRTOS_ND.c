@@ -709,7 +709,7 @@
                     /* The message is complete, IP and checksum's are handled by
                      * vProcessGeneratedUDPPacket */
                     pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] = FREERTOS_SO_UDPCKSUM_OUT;
-                    (void) memset( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
+                    ( void ) memset( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
                     ( void ) memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     /* Let vProcessGeneratedUDPPacket() know that this is an ICMP packet. */
                     pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
@@ -1005,7 +1005,7 @@
 
         if( pxNetworkBuffer != NULL )
         {
-            (void) memset( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
+            ( void ) memset( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
             pxNetworkBuffer->pxEndPoint = pxEndPoint;
 
             pxInterface = pxEndPoint->pxNetworkInterface;

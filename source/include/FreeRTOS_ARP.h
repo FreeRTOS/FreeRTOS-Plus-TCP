@@ -45,8 +45,8 @@
 
 /* A forward declaration of 'xNetworkInterface' which is
  * declared in FreeRTOS_Routing.h */
-    struct xNetworkInterface;
-    struct xNetworkEndPoint;
+struct xNetworkInterface;
+struct xNetworkEndPoint;
 
 /**
  * Structure for one row in the ARP cache table.
@@ -57,8 +57,8 @@ typedef struct xARP_CACHE_TABLE_ROW
     MACAddress_t xMACAddress; /**< The MAC address of an ARP cache entry. */
     uint8_t ucAge;            /**< A value that is periodically decremented but can also be refreshed by active communication.  The ARP cache entry is removed if the value reaches zero. */
     uint8_t ucValid;          /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ARP reply */
-	struct xNetworkEndPoint
-        * pxEndPoint;         /**< The end-point on which the MAC address was last seen. */
+    struct xNetworkEndPoint
+    * pxEndPoint;             /**< The end-point on which the MAC address was last seen. */
 } ARPCacheRow_t;
 
 typedef enum
@@ -75,12 +75,8 @@ typedef enum
  * a free space available.
  */
 void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
-                            const uint32_t ulIPAddress );
-/* TBD
-void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
-                                const uint32_t ulIPAddress,
-                                struct xNetworkEndPoint * pxEndPoint );
-*/
+                            const uint32_t ulIPAddress,
+                            struct xNetworkEndPoint * pxEndPoint );
 
 #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
     /* Becomes non-zero if another device responded to a gratuitous ARP message. */

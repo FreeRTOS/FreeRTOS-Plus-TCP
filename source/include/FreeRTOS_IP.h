@@ -299,6 +299,9 @@ void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
                                        uint32_t * pulGatewayAddress,
                                        uint32_t * pulDNSServerAddress );
 
+/* The following 2 functions also assume that there is only 1 network interface.
+ * The new function are called: FreeRTOS_GetEndPointConfiguration() and
+ * FreeRTOS_SetEndPointConfiguration(), see below. */
 void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
                                        const uint32_t * pulNetMask,
                                        const uint32_t * pulGatewayAddress,
@@ -315,7 +318,8 @@ const uint8_t * FreeRTOS_GetMACAddress( void );
 void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     /* This function shall be defined by the application. */
-    void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
+    void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                         struct xNetworkEndPoint * pxEndPoint );
 #endif
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
     void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,

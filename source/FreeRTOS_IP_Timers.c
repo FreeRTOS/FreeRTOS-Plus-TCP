@@ -382,12 +382,12 @@ void vARPTimerReload( TickType_t xTime )
  * @param[in] uxClockTicks: The number of clock-ticks after which the timer should expire.
  */
 
-   void vDHCP_RATimerReload( NetworkEndPoint_t * pxEndPoint,
-                             TickType_t uxClockTicks )
-   {
-       FreeRTOS_printf( ( "vDHCP_RATimerReload: %lu\n", uxClockTicks ) );
-       prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
-   }
+    void vDHCP_RATimerReload( NetworkEndPoint_t * pxEndPoint,
+                              TickType_t uxClockTicks )
+    {
+        FreeRTOS_printf( ( "vDHCP_RATimerReload: %lu\n", uxClockTicks ) );
+        prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
+    }
 #endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
 /*-----------------------------------------------------------*/
 

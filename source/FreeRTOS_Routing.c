@@ -368,7 +368,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocationsIP ) / sizeof( xRoutingStatistics.ulLocationsIP[ 0 ] ));
+            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocationsIP ) / sizeof( xRoutingStatistics.ulLocationsIP[ 0 ] ) );
 
             xRoutingStatistics.ulOnIp++;
 
@@ -501,7 +501,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocations ) / sizeof( xRoutingStatistics.ulLocations[ 0 ] ));
+            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocations ) / sizeof( xRoutingStatistics.ulLocations[ 0 ] ) );
 
             xRoutingStatistics.ulOnNetMask++;
 
@@ -688,7 +688,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 /* And in case configASSERT is not defined. */
                 ( void ) uxAddress;
             }
-        #endif
+        #endif /* ifndef _lint */
 
         /* An Ethernet packet has been received. Inspect the contents to see which
          * defined end-point has the best match.
@@ -707,10 +707,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             #if ( ipconfigUSE_IPV6 != 0 )
                 case ipIPv6_FRAME_TYPE:
                    {
-                        /* MISRA Ref 11.3.1 [Misaligned access] */
-                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                        /* coverity[misra_c_2012_rule_11_3_violation] */
-                        const IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( const IPPacket_IPv6_t * ) pucEthernetBuffer );
+                       /* MISRA Ref 11.3.1 [Misaligned access] */
+                       /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                       /* coverity[misra_c_2012_rule_11_3_violation] */
+                       const IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( const IPPacket_IPv6_t * ) pucEthernetBuffer );
 
                        pxEndPoint = pxNetworkEndPoints;
 

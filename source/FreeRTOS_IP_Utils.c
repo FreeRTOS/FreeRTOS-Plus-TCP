@@ -700,7 +700,7 @@ BaseType_t xIsCallingFromIPTask( void )
 /* coverity[misra_c_2012_rule_8_9_violation] */
 /* coverity[single_use] */
 /*TODO - need to be updated according to interface and end point */
-void prvProcessNetworkDownEvent( void )
+void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
 {
     /* Stop the ARP timer while there is no network. */
     vIPSetARPTimerEnableState( pdFALSE );
@@ -746,7 +746,7 @@ void prvProcessNetworkDownEvent( void )
         #else
             {
                 /* Perform any necessary 'network up' processing. */
-                vIPNetworkUpCalls(NULL);
+                vIPNetworkUpCalls( NULL );
             }
         #endif
     }
