@@ -55,7 +55,7 @@
  * @return The socket in case it is connected to the remote IP-address
  */
     FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
-                                                IPv6_Address_t * pxAddress_IPv6,
+                                                const IPv6_Address_t * pxAddress_IPv6,
                                                 uint32_t ulRemoteIP )
     {
         FreeRTOS_Socket_t * pxResult = NULL;
@@ -100,7 +100,9 @@
 void * xSend_UDP_Update_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
                               const struct freertos_sockaddr * pxDestinationAddress )
 {
-    int32_t lReturn = 0;
+    /* MISRA Ref 11.3.1 [Misaligned access] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
     UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     pxNetworkBuffer->xIPAddress.xIP_IPv4 = 0U;
@@ -123,7 +125,10 @@ void * xSend_UDP_Update_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
 size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
                           struct freertos_sockaddr * pxSourceAddress )
 {
-    UDPPacket_IPv6_t * pxUDPPacketV6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    /* MISRA Ref 11.3.1 [Misaligned access] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
+    const UDPPacket_IPv6_t * pxUDPPacketV6 = ( ( const UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
     size_t uxPayloadOffset = 0;
 
     if( pxUDPPacketV6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
@@ -150,7 +155,7 @@ size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
  * @param usValue : The value to be converted, must be between 0 and 15.
  * @return The character, between '0' and '9', or between 'a' and 'f'.
  */
-static char cHexToChar( unsigned short usValue )
+char cHexToChar( uint16_t usValue )
 {
     char cReturn = '0';
 
@@ -184,9 +189,9 @@ static char cHexToChar( unsigned short usValue )
  * @param usValue[in] : The 16-bit value to be converted.
  * @return The number of bytes written to 'pcBuffer'.
  */
-static socklen_t uxHexPrintShort( char * pcBuffer,
-                                  size_t uxBufferSize,
-                                  uint16_t usValue )
+socklen_t uxHexPrintShort( char * pcBuffer,
+                           size_t uxBufferSize,
+                           uint16_t usValue )
 {
     const size_t uxNibbleCount = 4U;
     size_t uxNibble;
@@ -226,7 +231,7 @@ static socklen_t uxHexPrintShort( char * pcBuffer,
  *        The result of this search will be stored in 'xZeroStart' and 'xZeroLength'.
  * @param pxSet: the set of parameters as used by FreeRTOS_inet_ntop6().
  */
-static void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet )
+void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet )
 {
     BaseType_t xIndex = 0;            /* The index in the IPv6 address: 0..7. */
     BaseType_t xCurStart = 0;         /* The position of the first zero found so far. */
@@ -638,7 +643,8 @@ BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
 
         for( ; ; )
         {
-            ch = *( pcIterator++ );
+            ch = *( pcIterator );
+            pcIterator++;
 
             if( ch == ( char ) '\0' )
             {

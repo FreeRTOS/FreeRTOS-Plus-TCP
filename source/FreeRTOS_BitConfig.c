@@ -105,7 +105,7 @@ BaseType_t xBitConfig_read_uc( BitConfig_t * pxConfig,
 
     if( pxConfig->xHasError == pdFALSE )
     {
-        if( pxConfig->uxIndex <= (pxConfig->uxSize - uxNeeded) )
+        if( pxConfig->uxIndex <= ( pxConfig->uxSize - uxNeeded ) )
         {
             if( pucData != NULL )
             {
@@ -217,7 +217,7 @@ void vBitConfig_write_uc( BitConfig_t * pxConfig,
 
     if( pxConfig->xHasError == pdFALSE )
     {
-        if( pxConfig->uxIndex <= (pxConfig->uxSize - uxNeeded) )
+        if( pxConfig->uxIndex <= ( pxConfig->uxSize - uxNeeded ) )
         {
             uint8_t * pucDestination = &( pxConfig->ucContents[ pxConfig->uxIndex ] );
             ( void ) memcpy( pucDestination, pucData, uxNeeded );
@@ -309,6 +309,6 @@ void vBitConfig_release( BitConfig_t * pxConfig )
         vPortFree( pxConfig->ucContents );
     }
 
-    ( void ) memset( pxConfig, 0, sizeof(BitConfig_t) );
+    ( void ) memset( pxConfig, 0, sizeof( BitConfig_t ) );
 }
 /*-----------------------------------------------------------*/

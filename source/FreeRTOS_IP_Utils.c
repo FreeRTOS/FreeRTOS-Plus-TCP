@@ -746,7 +746,7 @@ void prvProcessNetworkDownEvent( void )
         #else
             {
                 /* Perform any necessary 'network up' processing. */
-                vIPNetworkUpCalls(NULL);
+                vIPNetworkUpCalls( NULL );
             }
         #endif
     }
