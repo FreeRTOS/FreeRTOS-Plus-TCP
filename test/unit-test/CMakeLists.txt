@@ -77,6 +77,7 @@ set( TCP_INCLUDES "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Callback.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Networking.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Parser.h"
+          "${MODULE_ROOT_DIR}/source/include/FreeRTOS_Routing.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_TCP_IP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_TCP_Transmission.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_TCP_Reception.h"
@@ -115,7 +116,7 @@ foreach( file ${TCP_INCLUDES} )
 
     # Add the FreeRTOSIPConfig file to each directory
     execute_process( COMMAND sed "1 i\#include \"FreeRTOSIPConfig.h\"" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp1.h
-                     OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h )
+                     OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h  )
 
     if(${MODIFIED_FILE} STREQUAL "FreeRTOS_IP_Private" )
         execute_process( COMMAND sed "s/extern const BaseType_t xBufferAllocFixedSize/extern BaseType_t xBufferAllocFixedSize/g" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
