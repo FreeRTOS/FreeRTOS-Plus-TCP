@@ -27,7 +27,7 @@
 
 
 #ifndef FREERTOS_DNS_CALLBACK_H
-#define FREERTOS_DNS_CALLBACK_H
+    #define FREERTOS_DNS_CALLBACK_H
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
@@ -36,35 +36,36 @@
 /* *INDENT-ON* */
 
 /* FreeRTOS includes. */
-#include "FreeRTOS.h"
+    #include "FreeRTOS.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
+    #include "FreeRTOS_IP.h"
 
-#include "FreeRTOS_DNS_Globals.h"
+    #include "FreeRTOS_DNS_Globals.h"
 
 /* Standard includes. */
-#include <stdint.h>
+    #include <stdint.h>
 /* Application level configuration options. */
 
-#if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
+    #if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
-    BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
+        BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
                                    struct freertos_addrinfo * pxAddress );
 
-    void vDNSSetCallBack( const char * pcHostName,
-                          void * pvSearchID,
-                          FOnDNSEvent pCallbackFunction,
-                          TickType_t uxTimeout,
-                          TickType_t uxIdentifier,
-                          BaseType_t xIsIPv6 );
+        void vDNSSetCallBack( const char * pcHostName,
+                              void * pvSearchID,
+                              FOnDNSEvent pCallbackFunction,
+                              TickType_t uxTimeout,
+                              TickType_t uxIdentifier,
+                              BaseType_t xIsIPv6 );
 
-    void vDNSCheckCallBack( void * pvSearchID );
+        void vDNSCheckCallBack( void * pvSearchID );
+
 /* Look for the indicated host name in the DNS cache. Returns the IPv4
- * address if present, or 0x0 otherwise. 
+ * address if present, or 0x0 otherwise.
  * FreeRTOS_dnslookup6() returns pdTRUE when a host has been found. */
-    uint32_t FreeRTOS_dnslookup( const char * pcHostName,
-                                      IPv6_Address_t * pxAddress_IPv6 );
+        uint32_t FreeRTOS_dnslookup( const char * pcHostName,
+                                     IPv6_Address_t * pxAddress_IPv6 );
     #endif /* ipconfigUSE_IPv6 != 0 */
 
     void vDNSCallbackInitialise();

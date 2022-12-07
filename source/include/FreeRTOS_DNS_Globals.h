@@ -214,7 +214,7 @@
         struct freertos_addrinfo * pxLastAddress;         /**< This variable is used while creating a linked-list of IP-addresses. */
         struct freertos_addrinfo ** ppxLastAddress;       /**< This variable is also used while creating a linked-list of IP-addresses. */
     } ParseSet_t;
-        #if ( ipconfigUSE_LLMNR == 1 )
+    #if ( ipconfigUSE_LLMNR == 1 )
 
         #include "pack_struct_start.h"
         struct xLLMNRAnswer
@@ -282,8 +282,7 @@
             TimeOut_t uxTimeoutState;      /**< Timeout state. */
             void * pvSearchID;             /**< Search ID of the callback function. */
             struct xLIST_ITEM xListItem;   /**< List struct. */
-           
-                BaseType_t xIsIPv6;  /**< Remember whether this was a IPv6 lookup. */
+            BaseType_t xIsIPv6;            /**< Remember whether this was a IPv6 lookup. */
             char pcName[ 1 ];              /**< 1 character name. */
         } DNSCallback_t;
     #endif /* if ( ipconfigDNS_USE_CALLBACKS != 0 ) */
@@ -318,7 +317,7 @@
         /* Even though the function is defined in main.c, the rule is violated. */
         /* misra_c_2012_rule_8_6_violation */
         extern BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
-        const char * pcName );
+                                                    const char * pcName );
 
     #endif /* ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
 #endif /* ipconfigUSE_DNS */
