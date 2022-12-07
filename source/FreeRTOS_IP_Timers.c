@@ -62,6 +62,7 @@
 static BaseType_t xAllNetworksUp = pdFALSE;
 
 /*-----------------------------------------------------------*/
+
 /*
  * Utility functions for the light weight IP timers.
  */
@@ -155,8 +156,8 @@ TickType_t xCalculateSleepTime( void )
                     if( pxEndPoint->xDHCP_RATimer.ulRemainingTime < uxMaximumSleepTime )
                     {
                         uxMaximumSleepTime = pxEndPoint->xDHCP_RATimer.ulRemainingTime;
+                    }
                 }
-            }
 
                 pxEndPoint = pxEndPoint->pxNext;
             }
@@ -237,14 +238,14 @@ void vCheckNetworkTimers( void )
                         if( END_POINT_USES_DHCP( pxEndPoint ) )
                         {
                             ( void ) xSendDHCPEvent( pxEndPoint );
-            }
+                        }
                     #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
                     #if ( ipconfigUSE_RA != 0 )
                         if( END_POINT_USES_RA( pxEndPoint ) )
                         {
                             vRAProcess( pdFALSE, pxEndPoint );
-        }
+                        }
                     #endif /* ( ipconfigUSE_RA != 0 ) */
                 }
 

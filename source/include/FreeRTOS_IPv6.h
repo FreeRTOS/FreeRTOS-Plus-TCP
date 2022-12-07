@@ -97,13 +97,13 @@ struct xNetworkInterface;
 
 /* The function 'prvAllowIPPacket()' checks if a IPv6 packets should be processed. */
 eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
-                                                      const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                      UBaseType_t uxHeaderLength );
+                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                               UBaseType_t uxHeaderLength );
 
 
 /** @brief Handle the IPv6 extension headers. */
 eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                             BaseType_t xDoRemove );
+                                                      BaseType_t xDoRemove );
 
 /*
  * Returns the addresses stored in an end-point structure.

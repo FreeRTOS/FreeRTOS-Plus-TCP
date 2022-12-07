@@ -59,11 +59,10 @@
 /* The following define is temporary and serves to make the /single source
  * code more similar to the /multi version. */
 
-    #define EP_DHCPData                     pxEndPoint->xDHCPData     /**< Temporary define to make /single source similar to /multi version. */
-    #define EP_IPv4_SETTINGS                pxEndPoint->ipv4_settings /**< Temporary define to make /single source similar to /multi version. */
+    #define EP_DHCPData         pxEndPoint->xDHCPData                 /**< Temporary define to make /single source similar to /multi version. */
+    #define EP_IPv4_SETTINGS    pxEndPoint->ipv4_settings             /**< Temporary define to make /single source similar to /multi version. */
 
 
- 
 
 /** @brief The UDP socket used for all incoming and outgoing DHCP traffic. */
     _static Socket_t xDHCPv4Socket;
@@ -90,19 +89,19 @@
 /*
  * Interpret message received on the DHCP socket.
  */
-static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
-                                         NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
+                                             NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Generate a DHCP request packet, and send it on the DHCP socket.
  */
-static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Prepare to start a DHCP transaction.  This initialises some state variables
  * and creates the DHCP socket if necessary.
  */
-    static void prvInitialiseDHCP( NetworkEndPoint_t * pxEndPoint  );
+    static void prvInitialiseDHCP( NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Creates the part of outgoing DHCP messages that are common to all outgoing
@@ -117,30 +116,30 @@ static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint );
 /*
  * Create the DHCP socket, if it has not been created already.
  */
-_static void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
+    _static void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Close the DHCP socket, only when not in use anymore (i.e. xDHCPSocketUserCount = 0).
  */
-static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint );
+    static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint );
 
-static void vDHCPProcessEndPoint( BaseType_t xReset,
-                                  BaseType_t xDoCheck,
-                                  NetworkEndPoint_t * pxEndPoint );
+    static void vDHCPProcessEndPoint( BaseType_t xReset,
+                                      BaseType_t xDoCheck,
+                                      NetworkEndPoint_t * pxEndPoint );
 
-static BaseType_t xHandleWaitingOffer( NetworkEndPoint_t * pxEndPoint,
-                                       BaseType_t xDoCheck );
+    static BaseType_t xHandleWaitingOffer( NetworkEndPoint_t * pxEndPoint,
+                                           BaseType_t xDoCheck );
 
-static void vHandleWaitingAcknowledge( NetworkEndPoint_t * pxEndPoint,
-                                       BaseType_t xDoCheck );
+    static void vHandleWaitingAcknowledge( NetworkEndPoint_t * pxEndPoint,
+                                           BaseType_t xDoCheck );
 
-static BaseType_t xHandleWaitingFirstDiscover( NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t xHandleWaitingFirstDiscover( NetworkEndPoint_t * pxEndPoint );
 
-static void prvHandleWaitingeLeasedAddress( NetworkEndPoint_t * pxEndPoint );
+    static void prvHandleWaitingeLeasedAddress( NetworkEndPoint_t * pxEndPoint );
 
-static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
-                                  ProcessSet_t * pxSet,
-                                  BaseType_t xExpectedMessageType );
+    static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
+                                      ProcessSet_t * pxSet,
+                                      BaseType_t xExpectedMessageType );
 
 /*
  * After DHCP has failed to answer, prepare everything to start searching
@@ -222,8 +221,8 @@ static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
     void vDHCPProcess( BaseType_t xReset,
                        struct xNetworkEndPoint * pxEndPoint )
     {
-            BaseType_t xGivingUp = pdFALSE;
-            BaseType_t xDoProcess = pdTRUE;
+        BaseType_t xGivingUp = pdFALSE;
+        BaseType_t xDoProcess = pdTRUE;
 
         /* Is DHCP starting over? */
         if( xReset != pdFALSE )
@@ -319,7 +318,7 @@ static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
             /* Process the end-point, but do not expect incoming packets. */
             vDHCPProcessEndPoint( xReset, pdFALSE, pxEndPoint );
         }
-                }
+    }
 
 /**
  * @brief Called by vDHCPProcessEndPoint(), this function handles the state 'eWaitingOffer'.
@@ -618,10 +617,10 @@ static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
             {
                 uint32_t ulID = 0U;
 
-                            if( xApplicationGetRandomNumber( &( ulID ) ) != pdFALSE )
-                            {
-                                EP_DHCPData.ulTransactionId = ulID;
-                            }
+                if( xApplicationGetRandomNumber( &( ulID ) ) != pdFALSE )
+                {
+                    EP_DHCPData.ulTransactionId = ulID;
+                }
 
                 EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
                 EP_DHCPData.xDHCPTxPeriod = dhcpINITIAL_DHCP_TX_PERIOD;
@@ -1329,32 +1328,33 @@ static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
                             case dhcpIPv4_DNS_SERVER_OPTIONS_CODE:
 
                                 /* The DHCP server may send more than 1 DNS server addresses. */
+
                                 /* ulProcessed is not incremented in this case
-                                     * because the DNS server is not essential.  Only the
-                                     * first DNS server address is taken. */
+                                 * because the DNS server is not essential.  Only the
+                                 * first DNS server address is taken. */
                                 if( xSet.uxLength >= sizeof( uint32_t ) )
                                 {
                                     size_t uxSourceIndex;
-                                     size_t uxTargetIndex = 0;
-                                   size_t uxDNSCount = xSet.uxLength / sizeof( uint32_t );
-                                     size_t uxByteIndex = xSet.uxIndex;
+                                    size_t uxTargetIndex = 0;
+                                    size_t uxDNSCount = xSet.uxLength / sizeof( uint32_t );
+                                    size_t uxByteIndex = xSet.uxIndex;
 
                                     void * pvCopyDest = &( xSet.ulParameter );
 
-                                     /* Just to try-out for CBMC. */
+                                    /* Just to try-out for CBMC. */
                                     if( uxDNSCount > ipconfigENDPOINT_DNS_ADDRESS_COUNT )
-                                     {
-                                           uxDNSCount = ipconfigENDPOINT_DNS_ADDRESS_COUNT;
-                                      }
+                                    {
+                                        uxDNSCount = ipconfigENDPOINT_DNS_ADDRESS_COUNT;
+                                    }
 
-                                     for( uxSourceIndex = 0U; uxSourceIndex < uxDNSCount; uxSourceIndex++ )
+                                    for( uxSourceIndex = 0U; uxSourceIndex < uxDNSCount; uxSourceIndex++ )
                                     {
                                         const void * pvCopySource = &( xSet.pucByte[ uxByteIndex ] );
                                         ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( xSet.ulParameter ) );
 
                                         if( ( xSet.ulParameter != FREERTOS_INADDR_ANY ) && ( xSet.ulParameter != ipBROADCAST_IP_ADDRESS ) )
                                         {
-                                           EP_IPv4_SETTINGS.ulDNSServerAddresses[ uxTargetIndex ] = xSet.ulParameter;
+                                            EP_IPv4_SETTINGS.ulDNSServerAddresses[ uxTargetIndex ] = xSet.ulParameter;
                                             uxTargetIndex++;
 
                                             if( uxTargetIndex >= ipconfigENDPOINT_DNS_ADDRESS_COUNT )
@@ -1363,20 +1363,21 @@ static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
                                             }
                                         }
 
-                                     uxByteIndex += sizeof( uint32_t );
-                                     }
-                                     /* Clear the remaining entries. */
+                                        uxByteIndex += sizeof( uint32_t );
+                                    }
+
+                                    /* Clear the remaining entries. */
                                     while( uxTargetIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT )
                                     {
-                                         EP_IPv4_SETTINGS.ulDNSServerAddresses[ uxTargetIndex ] = 0U;
+                                        EP_IPv4_SETTINGS.ulDNSServerAddresses[ uxTargetIndex ] = 0U;
                                         uxTargetIndex++;
-                                     }
+                                    }
 
                                     /* For the next lookup, start using the first DNS entry. */
                                     EP_IPv4_SETTINGS.ucDNSIndex = 0U;
                                 }
-                                
-                            break;
+
+                                break;
 
                             case dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE:
 
@@ -1469,7 +1470,7 @@ static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
                                                BaseType_t xOpcode,
                                                const uint8_t * const pucOptionsArray,
                                                size_t * pxOptionsArraySize,
-                                               NetworkEndPoint_t * pxEndPoint  )
+                                               NetworkEndPoint_t * pxEndPoint )
     {
         DHCPMessage_IPv4_t * pxDHCPMessage;
         size_t uxRequiredBufferSize = sizeof( DHCPMessage_IPv4_t ) + *pxOptionsArraySize;

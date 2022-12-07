@@ -176,7 +176,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 /* Even when the driver takes care of checksum calculations,
  *  the IP-task will still check if the length fields are OK. */
     BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
-                                        size_t uxBufferLength );
+                                 size_t uxBufferLength );
 #endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 /*-----------------------------------------------------------*/
 
@@ -951,7 +951,7 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
         #endif /* configQUEUE_REGISTRY_SIZE */
 
         if( xNetworkBuffersInitialise() == pdPASS )
-        {  
+        {
             /* Prepare the sockets interface. */
             vNetworkSocketsInit();
 
@@ -1657,7 +1657,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
     UBaseType_t uxHeaderLength;
     uint8_t ucProtocol;
     const IPHeader_IPv6_t * pxIPHeader_IPv6;
-        
+
 
     if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
@@ -1921,7 +1921,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  *         should be dropped.
  */
     BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
-                                        size_t uxBufferLength )
+                                 size_t uxBufferLength )
     {
         size_t uxLength;
         const IPPacket_t * pxIPPacket;

@@ -43,16 +43,16 @@
 #include "FreeRTOSIPConfigDefaults.h"
 #include "IPTraceMacroDefaults.h"
 
-#define ipSIZE_OF_IPv4_HEADER        20U
-#define ipSIZE_OF_IPv4_ADDRESS       4U
-#define ipSIZE_OF_ICMPv4_HEADER      8U
-#define ipTYPE_IPv4                  ( 0x40U )
+#define ipSIZE_OF_IPv4_HEADER               20U
+#define ipSIZE_OF_IPv4_ADDRESS              4U
+#define ipSIZE_OF_ICMPv4_HEADER             8U
+#define ipTYPE_IPv4                         ( 0x40U )
 
 /* The number of octets in the IP addresses respectively. */
-#define ipIP_ADDRESS_LENGTH_BYTES    ( 4U )
+#define ipIP_ADDRESS_LENGTH_BYTES           ( 4U )
 
-#define ipFIRST_LOOPBACK_IPv4        0x7F000000UL                /**< Lowest IPv4 loopback address (including). */
-#define ipLAST_LOOPBACK_IPv4         0x80000000UL                /**< Highest IPv4 loopback address (excluding). */
+#define ipFIRST_LOOPBACK_IPv4               0x7F000000UL         /**< Lowest IPv4 loopback address (including). */
+#define ipLAST_LOOPBACK_IPv4                0x80000000UL         /**< Highest IPv4 loopback address (excluding). */
 
 /* The first byte in the IPv4 header combines the IP version (4) with
  * with the length of the IP header. */
@@ -92,8 +92,8 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
 
 /* The function 'prvAllowIPPacket()' checks if a packets should be processed. */
 eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPacket,
-                                                      const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                      UBaseType_t uxHeaderLength );
+                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                               UBaseType_t uxHeaderLength );
 
 /* xARPWaitResolution checks if an IPv4 address is already known. If not
  * it may send an ARP request and wait for a reply.  This function will

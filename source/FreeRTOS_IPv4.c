@@ -43,8 +43,8 @@
 #include "FreeRTOS_IPv4.h"
 
 /* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
-#define ipFIRST_MULTI_CAST_IPv4             0xE0000000U /**< Lower bound of the IPv4 multicast address. */
-#define ipLAST_MULTI_CAST_IPv4              0xF0000000U /**< Higher bound of the IPv4 multicast address. */
+#define ipFIRST_MULTI_CAST_IPv4    0xE0000000U          /**< Lower bound of the IPv4 multicast address. */
+#define ipLAST_MULTI_CAST_IPv4     0xF0000000U          /**< Higher bound of the IPv4 multicast address. */
 
 /**
  * @brief Is the IP address an IPv4 multicast address.
@@ -81,8 +81,8 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
  * @return Whether the packet should be processed or dropped.
  */
 eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPacket,
-                                                      const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                      UBaseType_t uxHeaderLength )
+                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                               UBaseType_t uxHeaderLength )
 {
     eFrameProcessingResult_t eReturn = eProcessBuffer;
 
