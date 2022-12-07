@@ -220,7 +220,6 @@ static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
  *                        make one cycle.
  */
     void vDHCPProcess( BaseType_t xReset,
-                       eDHCPState_t eExpectedState,
                        struct xNetworkEndPoint * pxEndPoint )
     {
             BaseType_t xGivingUp = pdFALSE;
@@ -232,7 +231,7 @@ static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
             EP_DHCPData.eDHCPState = eInitialWait;
         }
 
-        if( ( EP_DHCPData.eDHCPState != eExpectedState ) && ( xReset == pdFALSE ) )
+        if( ( EP_DHCPData.eDHCPState != EP_DHCPData.eExpectedState ) && ( xReset == pdFALSE ) )
         {
             /* When the DHCP event was generated, the DHCP client was
             * in a different state.  Therefore, ignore this event. */
@@ -1646,7 +1645,7 @@ static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
     static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint )
     {
         BaseType_t xResult = pdFAIL;
-        uint8_t const * pucUDPPayloadBuffer;
+        uint8_t * pucUDPPayloadBuffer;
         struct freertos_sockaddr xAddress;
         static const uint8_t ucDHCPDiscoverOptions[] =
         {

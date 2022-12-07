@@ -76,7 +76,7 @@
  * @return pdPASS or pdFAIL, depending on whether xSendEventStructToIPTask()
  *         succeeded.
  */
-    BaseType_t xSendDHCPEvent( void );
+    BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint );
 #endif
 
 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )

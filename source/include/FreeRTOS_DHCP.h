@@ -101,9 +101,9 @@
 #define dhcpETHERNET_ADDRESS_LENGTH     ( 6U )                /**< Ethernet address length opcode. */
 
 /* The following define is temporary and serves to make the /single source
- * code more similar to the /multi version. */
-#define EP_DHCPData                     xDHCPData              /**< Temporary define to make /single source similar to /multi version. */
-#define EP_IPv4_SETTINGS                xNetworkAddressing     /**< Temporary define to make /single source similar to /multi version. */
+ * code more similar to the /multi version. TODO */
+//#define EP_DHCPData                     xDHCPData              /**< Temporary define to make /single source similar to /multi version. */
+//#define EP_IPv4_SETTINGS                xNetworkAddressing     /**< Temporary define to make /single source similar to /multi version. */
 
 /** @brief If a lease time is not received, use the default of two days (48 hours in ticks).
  * Can not use pdMS_TO_TICKS() as integer overflow can occur. */
@@ -235,8 +235,7 @@ eDHCPState_t eGetDHCPState( struct xNetworkEndPoint * pxEndPoint );
  * data has been received on the DHCP socket.
  */
 void vDHCPProcess( BaseType_t xReset,
-eDHCPState_t eExpectedState,
-                   struct xNetworkEndPoint * pxEndPoint );
+                    struct xNetworkEndPoint * pxEndPoint );
 
 /* Internal call: returns true if socket is the current DHCP socket */
 BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket );

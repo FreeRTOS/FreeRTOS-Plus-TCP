@@ -41,7 +41,8 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 
-
+ const struct xIPv6_Address in6addr_any = { 0 };
+ const struct xIPv6_Address in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
 
 BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
 {
@@ -147,7 +148,7 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
  *
  * @return Whether the packet should be processed or dropped.
  */
-static eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
+eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
                                                       const NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                       UBaseType_t uxHeaderLength )
 {
@@ -220,7 +221,7 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * co
 
 /*-----------------------------------------------------------*/
 
-static BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
+BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
                                       uint8_t ucNextHeader )
 {
     BaseType_t xReturn;
@@ -283,7 +284,7 @@ static BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
  * @return eProcessBuffer in case the options are removed successfully, otherwise
  *         eReleaseBuffer.
  */
-static eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                              BaseType_t xDoRemove )
 {
     eFrameProcessingResult_t eResult = eReleaseBuffer;

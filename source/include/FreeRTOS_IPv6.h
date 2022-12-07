@@ -89,13 +89,6 @@
 #define ipMULTICAST_MAC_ADDRESS_IPv6_1    0x33U
 
 
-const struct xIPv6_Address in6addr_any = {
-    0
-};
-const struct xIPv6_Address in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }
-};
-
-
 /* A forward declaration of 'struct xNetworkEndPoint' and 'xNetworkInterface'.
  * The actual declaration can be found in FreeRTOS_Routing.h which is included
  * as the last +TCP header file. */
@@ -103,13 +96,13 @@ struct xNetworkEndPoint;
 struct xNetworkInterface;
 
 /* The function 'prvAllowIPPacket()' checks if a IPv6 packets should be processed. */
-static eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
+eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
                                                       const NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                       UBaseType_t uxHeaderLength );
 
 
 /** @brief Handle the IPv6 extension headers. */
-static eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                              BaseType_t xDoRemove );
 
 /*

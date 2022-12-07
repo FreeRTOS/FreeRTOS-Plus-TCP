@@ -54,6 +54,11 @@
 #define ipFIRST_LOOPBACK_IPv4        0x7F000000UL                /**< Lowest IPv4 loopback address (including). */
 #define ipLAST_LOOPBACK_IPv4         0x80000000UL                /**< Highest IPv4 loopback address (excluding). */
 
+/* The first byte in the IPv4 header combines the IP version (4) with
+ * with the length of the IP header. */
+#define ipIPV4_VERSION_HEADER_LENGTH_MIN    0x45U /**< Minimum IPv4 header length. */
+#define ipIPV4_VERSION_HEADER_LENGTH_MAX    0x4FU /**< Maximum IPv4 header length. */
+
 /*
  *  These functions come from the IPv4-only library.
  *  TODO : They should get an extra parameter, the end-point
@@ -86,7 +91,7 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
 
 
 /* The function 'prvAllowIPPacket()' checks if a packets should be processed. */
-static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPacket,
+eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPacket,
                                                       const NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                       UBaseType_t uxHeaderLength );
 
@@ -97,7 +102,7 @@ BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
                                TickType_t uxTicksToWait );
 
 /* Check if the IP-header is carrying options. */
-static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 
 /* *INDENT-OFF* */
