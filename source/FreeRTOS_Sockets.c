@@ -712,7 +712,9 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  *                   If the value is 'portMAX_DELAY' then the function will wait
  *                   indefinitely for an event to occur.
  *
- * @return The event bits (event flags) value for the socket in which an event occurred.
+ * @return The event bits (event flags) value for the socket set in which an
+ *          event occurred. During the call if any socket is signalled 
+ *          (using FreeRTOS_SignalSocket), then eSELECT_INTR is returned.
  *
  */
     BaseType_t FreeRTOS_select( SocketSet_t xSocketSet,
