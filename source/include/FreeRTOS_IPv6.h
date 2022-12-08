@@ -83,22 +83,27 @@
 
 #endif
 
+
+/* IPv6 multicast MAC address starts with 33-33-. */
+#define ipMULTICAST_MAC_ADDRESS_IPv6_0    0x33U
+#define ipMULTICAST_MAC_ADDRESS_IPv6_1    0x33U
+
+
 /* A forward declaration of 'struct xNetworkEndPoint' and 'xNetworkInterface'.
  * The actual declaration can be found in FreeRTOS_Routing.h which is included
  * as the last +TCP header file. */
 struct xNetworkEndPoint;
 struct xNetworkInterface;
 
-/* The last parameter is either ipTYPE_IPv4 or ipTYPE_IPv6. */
-void * FreeRTOS_GetUDPPayloadBufferv6( size_t uxRequestedSizeBytes,
-                                       TickType_t uxBlockTimeTicks,
-                                       uint8_t ucIPType );
+/* The function 'prvAllowIPPacket()' checks if a IPv6 packets should be processed. */
+eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
+                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                               UBaseType_t uxHeaderLength );
 
-/*
- * Calculates the starting offset of the UDP payload.
- * If IPv6 enabled, checks for ( usFrameType == ipIPv6_FRAME_TYPE )
- */
-uint8_t * pcNetworkBuffer_to_UDPPayloadBuffer( NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+/** @brief Handle the IPv6 extension headers. */
+eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                      BaseType_t xDoRemove );
 
 /*
  * Returns the addresses stored in an end-point structure.
@@ -141,6 +146,7 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
 /* FreeRTOS_dnslookup6() returns pdTRUE when a host has been found. */
 uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
                               IPv6_Address_t * pxAddress_IPv6 );
+
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
