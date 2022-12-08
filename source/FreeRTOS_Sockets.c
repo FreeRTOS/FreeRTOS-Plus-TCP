@@ -704,7 +704,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
 /**
  * @brief The select() statement: wait for an event to occur on any of the sockets
- *        included in a socket set.
+ *        included in a socket set and return its event bits when the event occurs.
  *
  * @param[in] xSocketSet: The socket set including the sockets on which we are
  *                        waiting for an event to occur.
