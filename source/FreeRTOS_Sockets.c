@@ -713,7 +713,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  *                   indefinitely for an event to occur.
  *
  * @return The event bits (event flags) value for the socket set in which an
- *          event occurred. During the call if any socket is signalled 
+ *          event occurred. During the call if any socket is signalled
  *          (using FreeRTOS_SignalSocket), then eSELECT_INTR is returned.
  *
  */
