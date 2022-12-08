@@ -60,15 +60,6 @@
 #include "FreeRTOS_Routing.h"
 #include "FreeRTOS_ND.h"
 
-/* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
-#define ipFIRST_MULTI_CAST_IPv4             0xE0000000U /**< Lower bound of the IPv4 multicast address. */
-#define ipLAST_MULTI_CAST_IPv4              0xF0000000U /**< Higher bound of the IPv4 multicast address. */
-
-/* The first byte in the IPv4 header combines the IP version (4) with
- * with the length of the IP header. */
-#define ipIPV4_VERSION_HEADER_LENGTH_MIN    0x45U /**< Minimum IPv4 header length. */
-#define ipIPV4_VERSION_HEADER_LENGTH_MAX    0x4FU /**< Maximum IPv4 header length. */
-
 /** @brief Time delay between repeated attempts to initialise the network hardware. */
 #ifndef ipINITIALISATION_RETRY_DELAY
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
@@ -184,8 +175,8 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 
 /* Even when the driver takes care of checksum calculations,
  *  the IP-task will still check if the length fields are OK. */
-    static BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
-                                        size_t uxBufferLength );
+    BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
+                                 size_t uxBufferLength );
 #endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 /*-----------------------------------------------------------*/
 
@@ -198,9 +189,6 @@ uint16_t usPacketIdentifier = 0U;
 /** @brief For convenience, a MAC address of all 0xffs is defined const for quick
  * reference. */
 const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
-
-/** @brief Structure that stores the netmask, gateway address and DNS server addresses. */
-NetworkAddressingParameters_t xNetworkAddressing = { 0, 0, 0, 0, 0 };
 
 /** @brief Default values for the above struct in case DHCP
  * does not lead to a confirmed request. */
@@ -441,7 +429,7 @@ static void prvProcessIPEventsAndTimers( void )
 
                 /* Simply mark the TCP timer as expired so it gets processed
                  * the next time prvCheckNetworkTimers() is called. */
-                vIPSetTCPTimerExpiredState( pdTRUE ); /*TODO check */
+                vIPSetTCPTimerExpiredState( pdTRUE );
             #endif /* ipconfigUSE_TCP */
             break;
 
@@ -963,39 +951,7 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
         #endif /* configQUEUE_REGISTRY_SIZE */
 
         if( xNetworkBuffersInitialise() == pdPASS )
-        {   /*TODO remove xNetworkAddressing handle ARP flood */
-          /* Store the local IP and MAC address. */
-            xNetworkAddressing.ulDefaultIPAddress = FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] );
-            xNetworkAddressing.ulNetMask = FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] );
-            xNetworkAddressing.ulGatewayAddress = FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] );
-            xNetworkAddressing.ulDNSServerAddress = FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] );
-            xNetworkAddressing.ulBroadcastAddress = ( xNetworkAddressing.ulDefaultIPAddress & xNetworkAddressing.ulNetMask ) | ~xNetworkAddressing.ulNetMask;
-
-            ( void ) memcpy( &xDefaultAddressing, &xNetworkAddressing, sizeof( xDefaultAddressing ) );
-
-            #if ipconfigUSE_DHCP == 1
-                {
-                    /* The IP address is not set until DHCP completes. */
-                    *ipLOCAL_IP_ADDRESS_POINTER = 0x00U;
-                }
-            #else
-                {
-                    /* The IP address is set from the value passed in. */
-                    *ipLOCAL_IP_ADDRESS_POINTER = xNetworkAddressing.ulDefaultIPAddress;
-
-                    /* Added to prevent ARP flood to gateway.  Ensure the
-                    * gateway is on the same subnet as the IP address. */
-                    if( xNetworkAddressing.ulGatewayAddress != 0U )
-                    {
-                        configASSERT( ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) == ( xNetworkAddressing.ulGatewayAddress & xNetworkAddressing.ulNetMask ) );
-                    }
-                }
-            #endif /* ipconfigUSE_DHCP == 1 */
-
-            /* The MAC address is stored in the start of the default packet
-             * header fragment, which is used when sending UDP packets. */
-            ( void ) memcpy( ipLOCAL_MAC_ADDRESS, ucMACAddress, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
-/*TODO end */
+        {
             /* Prepare the sockets interface. */
             vNetworkSocketsInit();
 
@@ -1110,46 +1066,18 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 
         FreeRTOS_GetEndPointConfiguration( pulIPAddress, pulNetMask, pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
     }
+
+    void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
+                                           const uint32_t * pulNetMask,
+                                           const uint32_t * pulGatewayAddress,
+                                           const uint32_t * pulDNSServerAddress )
+    {
+        struct xNetworkEndPoint * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        FreeRTOS_SetEndPointConfiguration( pulIPAddress, pulNetMask, pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
+    }
 #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE ) */
 
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Set the current network address configuration. Only non-NULL pointers will
- *        be used.
- *
- * @param[in] pulIPAddress: The current IP-address assigned.
- * @param[in] pulNetMask: The netmask used for current subnet.
- * @param[in] pulGatewayAddress: The gateway address.
- * @param[in] pulDNSServerAddress: The DNS server address.
- */
-void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
-                                       const uint32_t * pulNetMask,
-                                       const uint32_t * pulGatewayAddress,
-                                       const uint32_t * pulDNSServerAddress )
-{
-    /* Update the address configuration. */
-
-    if( pulIPAddress != NULL )
-    {
-        *ipLOCAL_IP_ADDRESS_POINTER = *pulIPAddress;
-    }
-
-    if( pulNetMask != NULL )
-    {
-        xNetworkAddressing.ulNetMask = *pulNetMask;
-    }
-
-    if( pulGatewayAddress != NULL )
-    {
-        xNetworkAddressing.ulGatewayAddress = *pulGatewayAddress;
-    }
-
-    if( pulDNSServerAddress != NULL )
-    {
-        xNetworkAddressing.ulDNSServerAddress = *pulDNSServerAddress;
-    }
-}
 /*-----------------------------------------------------------*/
 
 /**
@@ -1157,9 +1085,13 @@ void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
  *
  * @param[in] pvBuffer: Pointer to the UDP buffer that is to be released.
  */
-void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer ) /*TODO */
+void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 {
-    vReleaseNetworkBufferAndDescriptor( pxUDPPayloadBuffer_to_NetworkBuffer( pvBuffer ) );
+    NetworkBufferDescriptor_t * pxBuffer;
+
+    pxBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pvBuffer );
+    configASSERT( pxBuffer != NULL );
+    vReleaseNetworkBufferAndDescriptor( pxBuffer );
 }
 /*-----------------------------------------------------------*/
 
@@ -1425,11 +1357,6 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
     pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxEthernetHeader->xDestinationAddress ), NULL );
 
     if( pxEndPoint != NULL )
-    {
-        /* The packet was directed to this node - process it. */
-        eReturn = eProcessBuffer;
-    } /* TODO : ipLOCAL_MAC_ADDRESS needed? */
-    else if( memcmp( ipLOCAL_MAC_ADDRESS, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
     {
         /* The packet was directed to this node - process it. */
         eReturn = eProcessBuffer;
@@ -1729,10 +1656,11 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
     UBaseType_t uxHeaderLength;
     uint8_t ucProtocol;
+    const IPHeader_IPv6_t * pxIPHeader_IPv6;
+
 
     if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
-        const IPHeader_IPv6_t * pxIPHeader_IPv6; /*TODO move to different file. */
         pxIPHeader_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
 
@@ -1876,7 +1804,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                /* MISRA Ref 11.3.1 [Misaligned access] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                                /* coverity[misra_c_2012_rule_11_3_violation] */
-                               UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+                               UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
                                UDPHeader_t * pxUDPHeader = &( pxUDPPacket->xUDPHeader );
                                uint16_t usLength;
                                BaseType_t xIsWaitingARPResolution = pdFALSE;
@@ -1992,8 +1920,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
  *         should be dropped.
  */
-    static BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
-                                        size_t uxBufferLength )
+    BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
+                                 size_t uxBufferLength )
     {
         size_t uxLength;
         const IPPacket_t * pxIPPacket;

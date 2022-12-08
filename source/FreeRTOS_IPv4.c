@@ -42,7 +42,9 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IPv4.h"
 
-
+/* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
+#define ipFIRST_MULTI_CAST_IPv4    0xE0000000U          /**< Lower bound of the IPv4 multicast address. */
+#define ipLAST_MULTI_CAST_IPv4     0xF0000000U          /**< Higher bound of the IPv4 multicast address. */
 
 /**
  * @brief Is the IP address an IPv4 multicast address.
@@ -78,9 +80,9 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
  *
  * @return Whether the packet should be processed or dropped.
  */
-static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPacket,
-                                                      const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                      UBaseType_t uxHeaderLength )
+eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPacket,
+                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                               UBaseType_t uxHeaderLength )
 {
     eFrameProcessingResult_t eReturn = eProcessBuffer;
 
@@ -290,7 +292,7 @@ static eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const p
  *
  * @return Either 'eProcessBuffer' or 'eReleaseBuffer'
  */
-static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t eReturn = eProcessBuffer;
 
@@ -301,8 +303,18 @@ static eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescripto
 
     #if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 )
         {
+            IPHeader_t * pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
             /* All structs of headers expect a IP header size of 20 bytes
              * IP header options were included, we'll ignore them and cut them out. */
+            size_t uxLength = ( size_t ) pxIPHeader->ucVersionHeaderLength;
+
+            /* Check if the IP headers are acceptable and if it has our destination.
+             * The lowest four bits of 'ucVersionHeaderLength' indicate the IP-header
+             * length in multiples of 4. */
+            size_t uxHeaderLength = ( size_t ) ( ( uxLength & 0x0FU ) << 2 );
+
+            /* Number of bytes contained in IPv4 header options. */
             const size_t optlen = ( ( size_t ) uxHeaderLength ) - ipSIZE_OF_IPv4_HEADER;
             /* From: the previous start of UDP/ICMP/TCP data. */
             const uint8_t * pucSource = ( const uint8_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( EthernetHeader_t ) + uxHeaderLength ] );

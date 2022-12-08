@@ -51,6 +51,7 @@
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_DNS.h"
 #include "NetworkBufferManagement.h"
+#include "FreeRTOS_Routing.h"
 
 /* The ItemValue of the sockets xBoundSocketListItem member holds the socket's
  * port number. */
@@ -1664,13 +1665,13 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
         }
         else if( pxAddress->sin_addr.xIP_IPv4 != FREERTOS_INADDR_ANY )
         {
-            /* pxSocket->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxAddress->sin_addr, 7 ); TODO endpoint */
+            pxSocket->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxAddress->sin_addr, 7 );
         }
 
         if( pxSocket->pxEndPoint != NULL )
         {
-            /*pxSocket->xLocalAddress.xIP_IPv4 = FreeRTOS_ntohl( pxSocket->pxEndPoint->ipv4_settings.ulIPAddress ); */
-            /*TODO uncomment with EndPoint changes and check if needed for ipv6 setting */
+            pxSocket->xLocalAddress.xIP_IPv4 = FreeRTOS_ntohl( pxSocket->pxEndPoint->ipv4_settings.ulIPAddress );
+            /*TODO Check if needed for ipv6 setting */
         }
         else
         {
@@ -4209,7 +4210,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 xBytesLeft -= xByteCount;
                 xBytesSent += xByteCount;
 
-                if( ( xBytesLeft == 0 ) && ( pvBuffer == NULL ) ) /* TODO && or || */
+                if( ( xBytesLeft == 0 ) && ( pvBuffer == NULL ) )
                 {
                     /* pvBuffer can be NULL in case TCP zero-copy transmissions are used. */
                     break;

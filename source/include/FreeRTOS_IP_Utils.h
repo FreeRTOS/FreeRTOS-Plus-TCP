@@ -53,6 +53,7 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_Routing.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_UDP_IP.h"
@@ -75,7 +76,7 @@
  * @return pdPASS or pdFAIL, depending on whether xSendEventStructToIPTask()
  *         succeeded.
  */
-    BaseType_t xSendDHCPEvent( void );
+    BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint );
 #endif
 
 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )
