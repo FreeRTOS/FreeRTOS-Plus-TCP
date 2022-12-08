@@ -58,8 +58,8 @@
  * @brief Called by FreeRTOS_recvfrom(), this function will update socket
  *        address with IPv4 address from the packet received.
  */
-    size_t xRecv_UDP_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                  struct freertos_sockaddr * pxSourceAddress );
+    size_t xRecv_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                              struct freertos_sockaddr * pxSourceAddress );
 
     #ifdef __cplusplus
         } /* extern "C" */

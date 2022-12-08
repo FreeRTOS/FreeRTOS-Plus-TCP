@@ -332,7 +332,7 @@
         extern RoutingStats_t xRoutingStatistics;
     #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
-    NetworkEndPoint_t * pxGetSocketEndpoint( Socket_t const xSocket );
+    NetworkEndPoint_t * pxGetSocketEndpoint( ConstSocket_t xSocket );
     void vSetSocketEndpoint( Socket_t xSocket,
                              NetworkEndPoint_t * pxEndPoint );
 

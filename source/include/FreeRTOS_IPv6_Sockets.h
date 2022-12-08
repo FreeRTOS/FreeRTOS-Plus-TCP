@@ -79,19 +79,19 @@
 
 /* @brief Converts a hex value to a readable hex character, e.g. 14 becomes 'e'.
  */
-    static char cHexToChar( unsigned short usValue );
+    char cHexToChar( uint16_t usValue );
 
 /** @brief Converts a hex value to a readable hex character, *
  *         e.g. 14 becomes 'e'.static char cHexToChar( unsigned short usValue );
  */
-    static socklen_t uxHexPrintShort( char * pcBuffer,
-                                      size_t uxBufferSize,
-                                      uint16_t usValue );
+    socklen_t uxHexPrintShort( char * pcBuffer,
+                               size_t uxBufferSize,
+                               uint16_t usValue );
 
 /** @brief Scan the binary IPv6 address and find the longest train of consecutive zero's.
  *         The result of this search will be stored in 'xZeroStart' and 'xZeroLength'.
  */
-    static void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet );
+    void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet );
 
 /*
  * Convert a string like 'fe80::8d11:cd9b:8b66:4a80'
@@ -107,7 +107,7 @@
  *         is connected to a remote IP-address. It will be called from a loop
  *         iterating through all sockets. */
     FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
-                                                IPv6_Address_t * pxAddress_IPv6,
+                                                const IPv6_Address_t * pxAddress_IPv6,
                                                 uint32_t ulRemoteIP );
 
 /**

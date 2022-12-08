@@ -45,6 +45,8 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_IPv4_Sockets.h"
+
 
 /** @brief The number of octets that make up an IP address. */
 #define socketMAX_IP_ADDRESS_OCTETS    ( 4U )
@@ -222,6 +224,9 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 void * xSend_UDP_Update_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
                               const struct freertos_sockaddr * pxDestinationAddress )
 {
+    /* MISRA Ref 11.3.1 [Misaligned access] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
     UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     pxNetworkBuffer->xIPAddress.xIP_IPv4 = pxDestinationAddress->sin_addr.xIP_IPv4;

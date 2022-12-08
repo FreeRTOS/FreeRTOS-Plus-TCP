@@ -931,9 +931,9 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  *
  * @return An end-point or NULL in case the socket is not bound to an end-point.
  */
-    NetworkEndPoint_t * pxGetSocketEndpoint( Socket_t const xSocket )
+    NetworkEndPoint_t * pxGetSocketEndpoint( ConstSocket_t xSocket )
     {
-        const FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
+        const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
         NetworkEndPoint_t * pxResult;
 
         if( pxSocket != NULL )
