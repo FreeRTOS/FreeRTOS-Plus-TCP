@@ -144,11 +144,7 @@
         struct
         {
             /* In order to avoid allocations, reserve space here for *ai_addr and *ai_canonname. */
-            #if ( ipconfigUSE_IPv6 != 0 )
-                struct freertos_sockaddr6 sockaddr6;
-            #else
-                struct freertos_sockaddr sockaddr4;
-            #endif
+            struct freertos_sockaddr sockaddr;
 
             #if ( ipconfigUSE_DNS_CACHE != 0 )
                 char ucName[ ipconfigDNS_CACHE_NAME_LENGTH ];
@@ -302,10 +298,8 @@
     {
         /* A struct that can hold either an IPv4 or an IPv6 address. */
         uint32_t ulIPAddress;             /**< The IPv4-address. */
-        #if ( ipconfigUSE_IPv6 != 0 )
-            IPv6_Address_t xAddress_IPv6; /**< The IPv6-address. */
-            BaseType_t xIs_IPv6;          /**< pdTRUE if the IPv6 member is used. */
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        IPv6_Address_t xAddress_IPv6; /**< The IPv6-address. */
+        BaseType_t xIs_IPv6;          /**< pdTRUE if the IPv6 member is used. */
     } IPv46_Address_t;
 
     #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )

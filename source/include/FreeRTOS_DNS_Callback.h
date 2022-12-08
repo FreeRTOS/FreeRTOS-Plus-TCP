@@ -66,7 +66,6 @@
  * FreeRTOS_dnslookup6() returns pdTRUE when a host has been found. */
         uint32_t FreeRTOS_dnslookup( const char * pcHostName,
                                      IPv6_Address_t * pxAddress_IPv6 );
-    #endif /* ipconfigUSE_IPv6 != 0 */
 
     void vDNSCallbackInitialise();
 
