@@ -5140,7 +5140,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
  *
  * @return If xSocket is an invalid socket (NULL) or if the socket set is invalid (NULL)
  *         and/or if event group is invalid/not created, then, -pdFREERTOS_ERRNO_EINVAL
- *         is returned. Else 0 is returned.
+ *         is returned. On successful sending of a signal, 0 is returned.
  */
     BaseType_t FreeRTOS_SignalSocket( Socket_t xSocket )
     {
