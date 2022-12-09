@@ -2462,7 +2462,8 @@ void test_pxTCPSocketLookup_FoundAMatch( void )
     FreeRTOS_Socket_t * pxReturn, xSocket, xMatchingSocket;
     uint32_t ulLocalIP = 0xAABBCCDD;
     UBaseType_t uxLocalPort = 0x1234;
-    uint32_t ulRemoteIP = 0xBCBCDCDC;
+    IP_Address_t ulRemoteIP;
+    ulRemoteIP.xIP_IPv4 = 0xBCBCDCDC;
     UBaseType_t uxRemotePort = 0x4567;
     ListItem_t xLocalListItem;
 
@@ -2471,7 +2472,7 @@ void test_pxTCPSocketLookup_FoundAMatch( void )
 
     xMatchingSocket.usLocalPort = uxLocalPort;
     xMatchingSocket.u.xTCP.usRemotePort = uxRemotePort;
-    xMatchingSocket.u.xTCP.ulRemoteIP = ulRemoteIP;
+    xMatchingSocket.u.xTCP.xRemoteIP.xIP_IPv4 = ulRemoteIP.xIP_IPv4;
 
     /* First iteration, no match. */
     listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );
@@ -2494,7 +2495,8 @@ void test_pxTCPSocketLookup_NoMatch( void )
     FreeRTOS_Socket_t * pxReturn, xSocket, xMatchingSocket;
     uint32_t ulLocalIP = 0xAABBCCDD;
     UBaseType_t uxLocalPort = 0x1234;
-    uint32_t ulRemoteIP = 0xBCBCDCDC;
+    IP_Address_t ulRemoteIP;
+    ulRemoteIP.xIP_IPv4 = 0xBCBCDCDC;
     UBaseType_t uxRemotePort = 0x4567;
     ListItem_t xLocalListItem;
 
@@ -2503,7 +2505,7 @@ void test_pxTCPSocketLookup_NoMatch( void )
 
     xMatchingSocket.usLocalPort = uxLocalPort;
     xMatchingSocket.u.xTCP.usRemotePort = uxRemotePort;
-    xMatchingSocket.u.xTCP.ulRemoteIP = ulRemoteIP + 1;
+    xMatchingSocket.u.xTCP.xRemoteIP.xIP_IPv4 = ulRemoteIP.xIP_IPv4 + 1;
 
     /* First iteration, no match. */
     listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );
@@ -2529,7 +2531,8 @@ void test_pxTCPSocketLookup_NoMatch2( void )
     FreeRTOS_Socket_t * pxReturn, xSocket, xMatchingSocket;
     uint32_t ulLocalIP = 0xAABBCCDD;
     UBaseType_t uxLocalPort = 0x1234;
-    uint32_t ulRemoteIP = 0xBCBCDCDC;
+    IP_Address_t ulRemoteIP;
+    ulRemoteIP.xIP_IPv4 = 0xBCBCDCDC;
     UBaseType_t uxRemotePort = 0x4567;
     ListItem_t xLocalListItem;
 
@@ -2538,7 +2541,7 @@ void test_pxTCPSocketLookup_NoMatch2( void )
 
     xMatchingSocket.usLocalPort = uxLocalPort;
     xMatchingSocket.u.xTCP.usRemotePort = uxRemotePort + 1;
-    xMatchingSocket.u.xTCP.ulRemoteIP = ulRemoteIP + 1;
+    xMatchingSocket.u.xTCP.xRemoteIP.xIP_IPv4 = ulRemoteIP.xIP_IPv4 + 1;
 
     /* First iteration, no match. */
     listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );
@@ -2564,7 +2567,8 @@ void test_pxTCPSocketLookup_FoundAPartialMatch( void )
     FreeRTOS_Socket_t * pxReturn, xSocket, xMatchingSocket;
     uint32_t ulLocalIP = 0xAABBCCDD;
     UBaseType_t uxLocalPort = 0x1234;
-    uint32_t ulRemoteIP = 0xBCBCDCDC;
+    IP_Address_t ulRemoteIP;
+    ulRemoteIP.xIP_IPv4 = 0xBCBCDCDC;
     UBaseType_t uxRemotePort = 0x4567;
     ListItem_t xLocalListItem;
 
@@ -2573,7 +2577,7 @@ void test_pxTCPSocketLookup_FoundAPartialMatch( void )
 
     xMatchingSocket.usLocalPort = uxLocalPort;
     xMatchingSocket.u.xTCP.usRemotePort = uxRemotePort + 1;
-    xMatchingSocket.u.xTCP.ulRemoteIP = ulRemoteIP;
+    xMatchingSocket.u.xTCP.xRemoteIP.xIP_IPv4 = ulRemoteIP.xIP_IPv4;
     xMatchingSocket.u.xTCP.eTCPState = eTCP_LISTEN;
 
     /* First iteration, no match. */
