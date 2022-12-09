@@ -2624,7 +2624,7 @@ void test_FreeRTOS_GetLocalAddress( void )
     uxReturn = FreeRTOS_GetLocalAddress( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( sizeof( xAddress ), uxReturn );
-    TEST_ASSERT_EQUAL( 0xABFC8769, xAddress.sin_addr );
+    TEST_ASSERT_EQUAL( 0xABFC8769, xAddress.sin_addr.xIP_IPv4 );
     TEST_ASSERT_EQUAL( FreeRTOS_htons( 0xAB12 ), xAddress.sin_port );
 }
 
@@ -2833,13 +2833,13 @@ void test_FreeRTOS_GetRemoteAddress_HappyPath( void )
     memset( &xAddress, 0, sizeof( xAddress ) );
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.u.xTCP.ulRemoteIP = 0xABCDEF12;
+    xSocket.u.xTCP.xRemoteIP.xIP_IPv4 = 0xABCDEF12;
     xSocket.u.xTCP.usRemotePort = 0x1234;
 
     xReturn = FreeRTOS_GetRemoteAddress( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( sizeof( xAddress ), xReturn );
-    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 0xABCDEF12 ), xAddress.sin_addr );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 0xABCDEF12 ), xAddress.sin_addr.xIP_IPv4 );
     TEST_ASSERT_EQUAL( FreeRTOS_htons( 0x1234 ), xAddress.sin_port );
 }
 

@@ -23,8 +23,8 @@
  * http://www.FreeRTOS.org
  */
 
-#ifndef FREERTOS_DHCPv6_H
-    #define FREERTOS_DHCPv6_H
+#ifndef FREERTOS_DHCPV6_H
+    #define FREERTOS_DHCPV6_H
 
     #ifdef __cplusplus
         extern "C" {

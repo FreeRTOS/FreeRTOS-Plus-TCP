@@ -25,8 +25,8 @@
  * https://github.com/FreeRTOS
  */
 
-#ifndef FREERTOS_IPv6_PRIVATE_H
-#define FREERTOS_IPv6_PRIVATE_H
+#ifndef FREERTOS_IPV6_PRIVATE_H
+#define FREERTOS_IPV6_PRIVATE_H
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {

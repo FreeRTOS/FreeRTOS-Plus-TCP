@@ -24,9 +24,9 @@
  * https://www.FreeRTOS.org
  * https://github.com/FreeRTOS
  */
-
-#ifndef FREERTOS_IPv4_PRIVATE_H
-#define FREERTOS_IPv4_PRIVATE_H
+ 
+#ifndef FREERTOS_IPV4_PRIVATE_H
+#define FREERTOS_IPV4_PRIVATE_H
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
