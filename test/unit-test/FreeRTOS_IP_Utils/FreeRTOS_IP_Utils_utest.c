@@ -76,12 +76,13 @@ extern size_t uxMinLastSize;
 void test_xSendDHCPEvent( void )
 {
     BaseType_t xReturn, xResult = 0x123;
+    struct xNetworkEndPoint pxEndPoint = {0};
 
-    eGetDHCPState_ExpectAndReturn( 12 );
+    eGetDHCPState_ExpectAndReturn( NULL, 12 );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( xResult );
 
-    xReturn = xSendDHCPEvent();
+    xReturn = xSendDHCPEvent(&pxEndPoint);
 
     TEST_ASSERT_EQUAL( xResult, xReturn );
 }
@@ -143,7 +144,7 @@ void test_pxDuplicateNetworkBufferWithDescriptor_LargerBufferReturned( void )
 
     TEST_ASSERT_EQUAL( &xNetworkBuffer2, pxReturn );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.xDataLength, uxNewLength );
-    TEST_ASSERT_EQUAL( xNetworkBuffer2.xIPAddress.xIP_IPv4, pxNetworkBuffer->xIP_IPv4.ulIPAddress );
+    TEST_ASSERT_EQUAL( xNetworkBuffer2.xIPAddress.xIP_IPv4, pxNetworkBuffer->xIPAddress.xIP_IPv4 );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.usPort, pxNetworkBuffer->usPort );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.usBoundPort, pxNetworkBuffer->usBoundPort );
     TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pucEthernetBuffer, xNetworkBuffer2.pucEthernetBuffer, pxNetworkBuffer->xDataLength );
@@ -279,7 +280,7 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
-    FreeRTOS_ClearARP_Expect();
+    FreeRTOS_ClearARP_ExpectAnyArgs();
 
     xNetworkInterfaceInitialise_ExpectAndReturn( pdPASS );
 
