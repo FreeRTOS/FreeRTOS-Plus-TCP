@@ -396,22 +396,6 @@ void vARPTimerReload( TickType_t xTime )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_DHCP == 1 )
-
-/**
- * @brief Reload the DHCP timer.
- *
- * @param[in] ulLeaseTime: The reload value.
- */
-    void vDHCP_RATimerReload( struct xNetworkEndPoint * pxEndPoint,
-                              TickType_t uxClockTicks )
-    {
-        FreeRTOS_printf( ( "vDHCP_RATimerReload: %lu\n", uxClockTicks ) );
-        prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
-    }
-#endif /* ipconfigUSE_DHCP */
-/*-----------------------------------------------------------*/
-
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
 
 /**
@@ -442,20 +426,6 @@ void vARPTimerReload( TickType_t xTime )
         prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
     }
 #endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
-/*-----------------------------------------------------------*/
-
-#if ( ipconfigDNS_USE_CALLBACKS != 0 )
-
-/**
- * @brief Reload the DNS timer.
- *
- * @param[in] ulCheckTime: The reload value.
- */
-    void vDNSTimerReload( uint32_t ulCheckTime )
-    {
-        prvIPTimerReload( &xDNSTimer, ulCheckTime );
-    }
-#endif /* ipconfigDNS_USE_CALLBACKS != 0 */
 /*-----------------------------------------------------------*/
 
 /**

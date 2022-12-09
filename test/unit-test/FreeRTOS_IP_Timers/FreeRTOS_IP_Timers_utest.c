@@ -299,7 +299,7 @@ void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 
     vTaskSetTimeOutState_Expect( &( xDHCPTimer.xTimeOut ) );
 
-    xSendDHCPEvent_ExpectAndReturn( pdTRUE );
+    xSendDHCPEvent_ExpectAnyArgsAndReturn( pdTRUE );
 
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
 
