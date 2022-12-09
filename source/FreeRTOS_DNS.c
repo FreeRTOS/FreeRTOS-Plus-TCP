@@ -40,7 +40,6 @@
 #include "semphr.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_DNS_Globals.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_UDP_IP.h"
@@ -49,6 +48,7 @@
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
+#include "FreeRTOS_DNS_Globals.h"
 #include "FreeRTOS_DNS_Cache.h"
 #include "FreeRTOS_DNS_Parser.h"
 #include "FreeRTOS_DNS_Networking.h"

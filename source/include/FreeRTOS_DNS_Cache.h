@@ -31,8 +31,7 @@
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 
-/* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
+#include "FreeRTOS_DNS_Globals.h"
 
 /* Standard includes. */
 #include <stdint.h>
@@ -41,8 +40,13 @@
 
 /* Look for the indicated host name in the DNS cache. Returns the IPv4
  * address if present, or 0x0 otherwise. */
-    uint32_t FreeRTOS_dnslookup( const char * pcHostName,
-    IPv6_Address_t * pxAddress_IPv6 );
+    uint32_t FreeRTOS_dnslookup( const char * pcHostName );
+
+    #if ( ipconfigUSE_IPv6 != 0 )
+        /* FreeRTOS_dnslookup6() returns pdTRUE when a host has been found. */
+        uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
+                                      IPv6_Address_t * pxAddress_IPv6 );
+    #endif /* ipconfigUSE_IPv6 != 0 */
 
     void FreeRTOS_dnsclear( void );
 

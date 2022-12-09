@@ -162,13 +162,14 @@
  * @post the global structure \a xDNSCache might be modified
  */
     BaseType_t FreeRTOS_dns_update( const char * pcName,
-                                    uint32_t * pulIP,
-                                    uint32_t ulTTL )
+                                    IPv46_Address_t * pxIP,
+                                    uBaseType_t xLookUp,
+                                    struct freertos_addrinfo ** ppxAddressInfo)
     {
         ( void ) FreeRTOS_ProcessDNSCache( pcName,
-                                           pulIP,
-                                           ulTTL,
-                                           pdFALSE );
+                                           pxIP,
+                                           xLookUp,
+                                           ppxAddressInfo );
         return pdTRUE;
     }
 
@@ -275,7 +276,7 @@
  * @param [out] xResult index number
  * @returns res pdTRUE if index in found else pdFALSE
  */
-    static BaseType_t prvFindEntryIndex( const char * pcName,
+    static UBaseType_t prvFindEntryIndex( const char * pcName,
                                          IPv46_Address_t * pxIP,
                                          UBaseType_t * uxResult )
     {

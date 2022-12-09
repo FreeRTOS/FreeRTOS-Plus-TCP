@@ -34,7 +34,8 @@
 #include "FreeRTOSIPConfigDefaults.h"
 #include "IPTraceMacroDefaults.h"
 
-/* Standard includes. */
+/* FreeRTOS+TCP includes. */
+//#include "FreeRTOS_IP.h"
 
 #define dnsPARSE_ERROR              0UL
 
