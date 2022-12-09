@@ -51,8 +51,10 @@
     void FreeRTOS_dnsclear( void );
 
     BaseType_t FreeRTOS_dns_update( const char * pcName,
-                                    uint32_t * pulIP,
-                                    uint32_t ulTTL );
+                                    IPv46_Address_t * pulIP,
+                                    uint32_t ulTTL,
+                                    BaseType_t xLookUp,
+                                    struct freertos_addrinfo ** ppxAddressInfo );
 
     BaseType_t FreeRTOS_ProcessDNSCache( const char * pcName,
                                          IPv46_Address_t * pxIP,

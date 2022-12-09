@@ -35,7 +35,7 @@
 #include "IPTraceMacroDefaults.h"
 
 /* FreeRTOS+TCP includes. */
-//#include "FreeRTOS_IP.h"
+/*#include "FreeRTOS_IP.h" */
 
 #define dnsPARSE_ERROR              0UL
 
@@ -75,6 +75,7 @@
 
 /* Host types. */
     #define dnsTYPE_A_HOST            0x01U /**< DNS type A host. */
+    #define dnsTYPE_AAAA_HOST         0x001CU
     #define dnsCLASS_IN               0x01U /**< DNS class IN (Internet). */
 
 /* Maximum hostname length as defined in RFC 1035 section 3.1. */
@@ -119,17 +120,22 @@
  * The target IP address will be 224.0.0.252
  */
     #if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
-        #define ipLLMNR_IP_ADDR    0xE00000FCUL
+        #define ipLLMNR_IP_ADDR      0xE00000FCUL
     #else
-        #define ipLLMNR_IP_ADDR    0xFC0000E0UL
+        #define ipLLMNR_IP_ADDR      0xFC0000E0UL
     #endif /* ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN */
-
-    #define ipLLMNR_PORT           5355 /* Standard LLMNR port. */
-    #define ipDNS_PORT             53   /* Standard DNS port. */
-    #define ipDHCP_CLIENT          67
-    #define ipDHCP_SERVER          68
-    #define ipNBNS_PORT            137 /* NetBIOS Name Service. */
-    #define ipNBDGM_PORT           138 /* Datagram Service, not included. */
+    #if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
+        #define ipMDNS_IP_ADDRESS    0xe00000fbU /* 224.0.0.251 */
+    #else
+        #define ipMDNS_IP_ADDRESS    0xfb0000e0U /* 224.0.0.251 */
+    #endif
+    #define ipMDNS_PORT              5353U       /* Standard mDNS port. */
+    #define ipLLMNR_PORT             5355        /* Standard LLMNR port. */
+    #define ipDNS_PORT               53          /* Standard DNS port. */
+    #define ipDHCP_CLIENT            67
+    #define ipDHCP_SERVER            68
+    #define ipNBNS_PORT              137 /* NetBIOS Name Service. */
+    #define ipNBDGM_PORT             138 /* Datagram Service, not included. */
 
 /** @brief freertos_addrinfo is the equivalent of 'struct addrinfo'. */
     struct freertos_addrinfo
@@ -298,7 +304,7 @@
     typedef struct xxIPv46_Address
     {
         /* A struct that can hold either an IPv4 or an IPv6 address. */
-        uint32_t ulIPAddress;             /**< The IPv4-address. */
+        uint32_t ulIPAddress;         /**< The IPv4-address. */
         IPv6_Address_t xAddress_IPv6; /**< The IPv6-address. */
         BaseType_t xIs_IPv6;          /**< pdTRUE if the IPv6 member is used. */
     } IPv46_Address_t;
