@@ -276,6 +276,9 @@ void test_xIsCallingFromIPTask_IsCallingFromIPTask( void )
 
 void test_prvProcessNetworkDownEvent_Pass( void )
 {
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint;
+
     xCallEventHook = pdFALSE;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
@@ -286,38 +289,42 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     vDHCPProcess_Expect( pdTRUE, eInitialWait );
 
-    prvProcessNetworkDownEvent();
+    prvProcessNetworkDownEvent(&xInterface);
 
     /* Run again to trigger a different path in the code. */
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
-    vApplicationIPNetworkEventHook_Expect( eNetworkDown );
+    vApplicationIPNetworkEventHook_Expect( eNetworkDown, &xEndPoint );
 
-    FreeRTOS_ClearARP_Expect();
+    FreeRTOS_ClearARP_Expect(&xEndPoint);
 
     xNetworkInterfaceInitialise_ExpectAndReturn( pdPASS );
 
     vDHCPProcess_Expect( pdTRUE, eInitialWait );
 
-    prvProcessNetworkDownEvent();
+    prvProcessNetworkDownEvent(&xInterface);
 }
 
 void test_prvProcessNetworkDownEvent_Fail( void )
 {
+
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint;
+
     xCallEventHook = pdFALSE;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
-    FreeRTOS_ClearARP_Expect();
+    FreeRTOS_ClearARP_Expect(&xEndPoint);
 
     xNetworkInterfaceInitialise_ExpectAndReturn( pdFAIL );
 
     vTaskDelay_ExpectAnyArgs();
 
-    FreeRTOS_NetworkDown_Expect();
+    FreeRTOS_NetworkDown_Expect(&xEndPoint);
 
-    prvProcessNetworkDownEvent();
+    prvProcessNetworkDownEvent(&xInterface);
 }
 
 void test_vPreCheckConfigs_CatchAssert1( void )
@@ -884,8 +891,8 @@ void test_usGenerateProtocolChecksum_ICMPInvalidLength3( void )
     BaseType_t xOutgoingPacket = pdTRUE;
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
-    uint16_t usLength = ucVersionHeaderLength; /* + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMP_HEADER - 1; */
-    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMP_HEADER - 1;
+    uint16_t usLength = ucVersionHeaderLength; /* + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMPv4_HEADER - 1; */
+    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMPv4_HEADER - 1;
     ProtocolPacket_t * pxProtPack;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
@@ -1052,7 +1059,7 @@ void test_usGenerateProtocolChecksum_IGMPInvalidLength3( void )
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
     uint16_t usLength = ucVersionHeaderLength;
-    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMP_HEADER - 1;
+    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMPv4_HEADER - 1;
     ProtocolPacket_t * pxProtPack;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
