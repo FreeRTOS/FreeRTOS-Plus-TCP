@@ -72,6 +72,4 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eEvent );
-
 #endif /* ifndef LIST_MACRO_H */
