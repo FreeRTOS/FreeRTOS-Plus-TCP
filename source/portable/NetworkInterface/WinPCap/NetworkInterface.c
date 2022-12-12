@@ -40,12 +40,13 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 #include "NetworkBufferManagement.h"
+#include "FreeRTOS_Routing.h"
 
 /* Thread-safe circular buffers are being used to pass data to and from the PCAP
  * access functions. */
 #include "Win32-Extensions.h"
 #include "FreeRTOS_Stream_Buffer.h"
-#include "FreeRTOS_Routing.h"
+
 
 /* Sizes of the thread safe circular buffers used to pass data to and from the
  * WinPCAP Windows threads. */
@@ -117,6 +118,13 @@ static const char * prvRemoveSpaces( char * pcBuffer,
                                      int aBuflen,
                                      const char * pcMessage );
 
+/*
+ * This function will return pdTRUE if the packet is targeted at
+ * the MAC address of this device, in other words when is was bounced-
+ * back by the WinPCap interface.
+ */
+static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer );
+
 /*-----------------------------------------------------------*/
 
 /* Required by the WinPCap library. */
@@ -146,7 +154,20 @@ static volatile uint32_t ulWinPCAPSendFailures = 0;
 
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
+static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                   NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                   BaseType_t bReleaseAfterSend );
+static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface );
+
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                       NetworkInterface_t * pxInterface );
+
+/*-----------------------------------------------------------*/
+
+/*-----------------------------------------------------------*/
+
+static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     BaseType_t xReturn = pdFALSE;
     pcap_if_t * pxAllNetworkInterfaces;
@@ -200,8 +221,9 @@ static void prvCreateThreadSafeBuffers( void )
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface, NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t bReleaseAfterSend )
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface, 
+                                            NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                            BaseType_t bReleaseAfterSend )
 {
     size_t xSpace;
 
@@ -243,7 +265,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface, NetworkBuf
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
+static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
     BaseType_t xResult = pdFALSE;
 
@@ -256,6 +278,9 @@ BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 
     return xResult;
 }
+
+/*-----------------------------------------------------------*/
+
 
 NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                        NetworkInterface_t * pxInterface )
@@ -575,7 +600,7 @@ static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer )
     static BaseType_t xHasWarned = pdFALSE;
     EthernetHeader_t * pxEtherHeader;
     NetworkEndPoint_t * pxEndPoint;
-    BaseType_t xResult;
+    BaseType_t xResult = pdFALSE;
 
     pxEtherHeader = ( EthernetHeader_t * ) pucBuffer;
 
@@ -602,9 +627,10 @@ static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer )
             xResult = pdTRUE;
             break;
         }
-
-        return xResult;
+        
     }
+    return xResult;
+
 }
 /*-----------------------------------------------------------*/
 
