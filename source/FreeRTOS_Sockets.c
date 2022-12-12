@@ -1664,7 +1664,7 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
         }
         else if( pxAddress->sin_addr.xIP_IPv4 != FREERTOS_INADDR_ANY )
         {
-            pxSocket->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxAddress->sin_addr, 7 );
+            pxSocket->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxAddress->sin_addr.xIP_IPv4, 7 );
         }
         else
         {

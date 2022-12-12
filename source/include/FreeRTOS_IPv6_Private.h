@@ -138,9 +138,6 @@
 struct xNetworkEndPoint;
 struct xNetworkInterface;
 
-/* A list of all network interfaces: */
-extern struct xNetworkInterface * pxNetworkInterfaces;
-
 #include "pack_struct_start.h"
 struct xIP_HEADER_IPv6
 {
