@@ -83,17 +83,19 @@ void test_pxPacketBuffer_to_NetworkBuffer( void )
 
 void test_prvProcessNetworkDownEvent_Pass( void )
 {
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint;
     xCallEventHook = pdFALSE;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
-    FreeRTOS_ClearARP_Expect();
+    FreeRTOS_ClearARP_Expect(&xEndPoint);
 
     xNetworkInterfaceInitialise_ExpectAndReturn( pdPASS );
 
-    vIPNetworkUpCalls_Expect();
+    vIPNetworkUpCalls_Expect(&xEndPoint);
 
-    prvProcessNetworkDownEvent();
+    prvProcessNetworkDownEvent(&xInterface);
 }
 
 void test_FreeRTOS_round_up( void )

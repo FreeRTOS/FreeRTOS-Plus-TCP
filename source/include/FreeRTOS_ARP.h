@@ -159,6 +159,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
 
 /* Clear all entries in the ARp cache. */
 /* TBD: void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint ); */
+void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
