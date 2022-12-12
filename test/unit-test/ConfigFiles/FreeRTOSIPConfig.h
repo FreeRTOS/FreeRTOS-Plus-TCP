@@ -338,4 +338,8 @@ extern uint32_t ulRand();
 
 #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
 
+#define ipconfigUSE_IPV6                         ( 1 )
+
+#define ipconfigUSE_RA                         ( 1 ) 
+
 #endif /* FREERTOS_IP_CONFIG_H */
