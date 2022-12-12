@@ -154,35 +154,38 @@ void test_FreeRTOS_GetIPTaskHandle( void )
 
 void test_vIPNetworkUpCalls( void )
 {
+    NetworkEndPoint_t xEndPoint;
     xNetworkUp = pdFALSE;
 
-    vApplicationIPNetworkEventHook_Expect( eNetworkUp );
+    vApplicationIPNetworkEventHook_Expect( eNetworkUp, &xEndPoint );
     vDNSInitialise_Expect();
     vARPTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
 
-    vIPNetworkUpCalls();
+    vIPNetworkUpCalls(&xEndPoint);
 
     TEST_ASSERT_EQUAL( pdTRUE, xNetworkUp );
 }
 
 void test_FreeRTOS_NetworkDown_SendToIPTaskSuccessful( void )
 {
+    struct xNetworkInterface xNetworkInterface;
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     xQueueGenericSend_ExpectAnyArgsAndReturn( pdPASS );
 
-    FreeRTOS_NetworkDown();
+    FreeRTOS_NetworkDown(&xNetworkInterface);
 
     TEST_ASSERT_EQUAL( pdFALSE, xIsNetworkDownEventPending() );
 }
 
 void test_FreeRTOS_NetworkDown_SendToIPTaskNotSuccessful( void )
 {
+    struct xNetworkInterface xNetworkInterface;
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     xQueueGenericSend_ExpectAnyArgsAndReturn( pdFAIL );
 
-    FreeRTOS_NetworkDown();
+    FreeRTOS_NetworkDown(&xNetworkInterface);
 
     TEST_ASSERT_EQUAL( pdTRUE, xIsNetworkDownEventPending() );
 }
@@ -191,11 +194,12 @@ void test_FreeRTOS_NetworkDownFromISR_SendToIPTaskSuccessful( void )
 {
     BaseType_t xHasPriorityTaskAwoken = pdTRUE;
     BaseType_t xReturn;
+    struct xNetworkInterface xNetworkInterface;
 
     xQueueGenericSendFromISR_ExpectAnyArgsAndReturn( pdPASS );
     xQueueGenericSendFromISR_ReturnThruPtr_pxHigherPriorityTaskWoken( &xHasPriorityTaskAwoken );
 
-    xReturn = FreeRTOS_NetworkDownFromISR();
+    xReturn = FreeRTOS_NetworkDownFromISR(&xNetworkInterface);
 
     TEST_ASSERT_EQUAL( pdFALSE, xIsNetworkDownEventPending() );
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
@@ -205,11 +209,12 @@ void test_FreeRTOS_NetworkDownFromISR_SendToIPTaskUnsuccessful( void )
 {
     BaseType_t xHasPriorityTaskAwoken = pdFALSE;
     BaseType_t xReturn;
+    struct xNetworkInterface xNetworkInterface;
 
     xQueueGenericSendFromISR_ExpectAnyArgsAndReturn( pdFAIL );
     xQueueGenericSendFromISR_ReturnThruPtr_pxHigherPriorityTaskWoken( &xHasPriorityTaskAwoken );
 
-    xReturn = FreeRTOS_NetworkDownFromISR();
+    xReturn = FreeRTOS_NetworkDownFromISR(&xNetworkInterface);
 
     TEST_ASSERT_EQUAL( pdTRUE, xIsNetworkDownEventPending() );
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
@@ -695,6 +700,7 @@ void test_prvProcessIPEventsAndTimers_NoEventReceived( void )
 void test_prvProcessIPEventsAndTimers_eNetworkDownEvent( void )
 {
     IPStackEvent_t xReceivedEvent;
+    struct xNetworkInterface xNetworkInterface;
 
     xReceivedEvent.eEventType = eNetworkDownEvent;
 
@@ -707,7 +713,7 @@ void test_prvProcessIPEventsAndTimers_eNetworkDownEvent( void )
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
 
-    prvProcessNetworkDownEvent_Expect();
+    prvProcessNetworkDownEvent_Expect(&xNetworkInterface);
 
     prvProcessIPEventsAndTimers();
 
@@ -1041,6 +1047,7 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent( void )
 void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending( void )
 {
     IPStackEvent_t xReceivedEvent;
+    struct xNetworkInterface xNetworkInterface;
     SocketSelect_t * pxSocketSet = malloc( sizeof( SocketSelect_t ) );
 
     xNetworkDownEventPending = pdTRUE;
@@ -1058,7 +1065,7 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending( void
     vEventGroupDelete_Expect( pxSocketSet->xSelectGroup );
 
     /* Since network down event is pending, a call to this function should be expected. */
-    prvProcessNetworkDownEvent_Expect();
+    prvProcessNetworkDownEvent_Expect(&xNetworkInterface);
 
     prvProcessIPEventsAndTimers();
 }
@@ -2807,7 +2814,7 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
     TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
     TEST_ASSERT_EQUAL( FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) - sizeof( UDPHeader_t ) + sizeof( UDPPacket_t ), pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usSourcePort );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.xIP_IPv4, pxUDPPacket->xIPHeader.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.xIP_IPv4, pxUDPPacket->xIPHeader.ulSourceIPAddress );
 }
 
 void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
@@ -2874,6 +2881,7 @@ void test_prvProcessIPPacket_TCP( void )
     IPHeader_t * pxIPHeader;
     BaseType_t xReturnValue = pdTRUE;
     uint32_t backup = xProcessedTCPMessage;
+    NetworkEndPoint_t xEndPoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
@@ -2900,7 +2908,7 @@ void test_prvProcessIPPacket_TCP( void )
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
 
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
-    vARPRefreshCacheEntry_Expect( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress );
+    vARPRefreshCacheEntry_Expect( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, &xEndPoint );
 
     xProcessReceivedTCPPacket_ExpectAndReturn( pxNetworkBuffer, pdPASS );
 
@@ -2920,6 +2928,7 @@ void test_prvProcessIPPacket_TCP1( void )
     IPHeader_t * pxIPHeader;
     BaseType_t xReturnValue = pdTRUE;
     uint32_t backup = xProcessedTCPMessage;
+    NetworkEndPoint_t xEndPoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
@@ -2946,7 +2955,7 @@ void test_prvProcessIPPacket_TCP1( void )
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
 
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
-    vARPRefreshCacheEntry_Expect( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress );
+    vARPRefreshCacheEntry_Expect( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, &xEndPoint );
 
     xProcessReceivedTCPPacket_ExpectAndReturn( pxNetworkBuffer, pdFAIL );
 
