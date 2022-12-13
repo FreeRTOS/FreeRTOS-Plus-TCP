@@ -339,8 +339,4 @@ extern uint32_t ulRand();
 #define ipconfigCHECK_IP_QUEUE_SPACE    ( 1 )
 #define ipconfigZERO_COPY_TX_DRIVER     ( 1 )
 
-#define ipconfigUSE_IPV6                        ( 1 )
-
-#define ipconfigUSE_RA                          ( 1 )
-
 #endif /* FREERTOS_IP_CONFIG_H */
