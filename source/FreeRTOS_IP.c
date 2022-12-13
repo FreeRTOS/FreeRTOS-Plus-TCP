@@ -178,10 +178,6 @@ uint16_t usPacketIdentifier = 0U;
  * reference. */
 const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
 
-/* __XX__ temporary for coverity build */
-/** @brief Structure that stores the netmask, gateway address and DNS server addresses. */
-NetworkAddressingParameters_t xNetworkAddressing = { 0, 0, 0, 0, 0 };
-
 /** @brief Default values for the above struct in case DHCP
  * does not lead to a confirmed request. */
 
@@ -1765,8 +1761,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                      *  will be handled.  This will prevent the ARP cache getting
                      *  overwritten with the IP address of useless broadcast packets.
                      */
-                    /*__XX__ temporary commented out for coverity */
-                    /*vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint ); */
+                    vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
                 }
             }
 
