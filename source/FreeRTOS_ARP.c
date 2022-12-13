@@ -55,6 +55,8 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_Routing.h"
 #include "NetworkInterface.h"
+#include "FreeRTOS_Routing.h"
+#include "FreeRTOS_ND.h"
 
 /** @brief When the age of an entry in the ARP table reaches this value (it counts down
  * to zero, so this is an old entry) an ARP request will be sent to see if the
@@ -696,28 +698,54 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
  *         eCantSendPacket.
  */
 eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                      MACAddress_t * const pxMACAddress )
+                                      MACAddress_t * const pxMACAddress
+                                      struct xNetworkEndPoint ** ppxEndPoint )
 {
     eARPLookupResult_t eReturn;
     uint32_t ulAddressToLookup;
+	NetworkEndPoint_t * pxEndPoint = NULL;
 
     configASSERT( pxMACAddress != NULL );
     configASSERT( pulIPAddress != NULL );
+    configASSERT( ppxEndPoint != NULL );
 
+    *( ppxEndPoint ) = NULL;
     ulAddressToLookup = *pulIPAddress;
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulAddressToLookup, 0 );
 
     if( xIsIPv4Multicast( ulAddressToLookup ) != 0 )
     {
         /* Get the lowest 23 bits of the IP-address. */
         vSetMultiCastIPv4MacAddress( ulAddressToLookup, pxMACAddress );
 
-        eReturn = eARPCacheHit;
+        eReturn = eCantSendPacket;
+        pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        for( ;
+             pxEndPoint != NULL;
+             pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+        {
+            if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+            {
+                /* For multi-cast, use the first IPv4 end-point. */
+                *( ppxEndPoint ) = pxEndPoint;
+                eReturn = eARPCacheHit;
+                break;
+            }
+        }
+        
     }
     else if( ( *pulIPAddress == ipBROADCAST_IP_ADDRESS ) ||               /* Is it the general broadcast address 255.255.255.255? */
              ( *pulIPAddress == xNetworkAddressing.ulBroadcastAddress ) ) /* Or a local broadcast address, eg 192.168.1.255? */
     {
         /* This is a broadcast so it uses the broadcast MAC address. */
         ( void ) memcpy( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+        pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulAddressToLookup, 4 );
+
+        if( pxEndPoint != NULL )
+        {
+            *( ppxEndPoint ) = pxEndPoint;
+        }
         eReturn = eARPCacheHit;
     }
     else if( *ipLOCAL_IP_ADDRESS_POINTER == 0U )
@@ -726,21 +754,25 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
          * can be done. */
         eReturn = eCantSendPacket;
     }
-    else if( *ipLOCAL_IP_ADDRESS_POINTER == *pulIPAddress )
+    else if( pxEndPoint != NULL ) /* ARP lookup loop-back? */
     {
         /* The address of this device. May be useful for the loopback device. */
         eReturn = eARPCacheHit;
-        ( void ) memcpy( pxMACAddress->ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( pxMACAddress->ucBytes ) );
+		*( ppxEndPoint ) = pxEndPoint;
+        ( void ) memcpy( pxMACAddress->ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( pxMACAddress->ucBytes ) );
     }
     else
     {
         eReturn = eARPCacheMiss;
+        /* It is assumed that devices with the same netmask are on the same
+         * LAN and don't need a gateway. */
+        pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulAddressToLookup, 4 );
 
-        if( ( *pulIPAddress & xNetworkAddressing.ulNetMask ) != ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) )
+        if( ( pxEndPoint == NULL )
         {
             /* No matching end-point is found, look for a gateway. */
             #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 1 )
-                eReturn = prvCacheLookup( *pulIPAddress, pxMACAddress );
+                eReturn = prvCacheLookup( *pulIPAddress, pxMACAddress, ppxEndPoint );
 
                 if( eReturn == eARPCacheHit )
                 {
@@ -753,9 +785,12 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
             {
                 /* The IP address is off the local network, so look up the
                  * hardware address of the router, if any. */
-                if( xNetworkAddressing.ulGatewayAddress != ( uint32_t ) 0U )
+                *( ppxEndPoint ) = FreeRTOS_FindGateWay( ( BaseType_t ) ipTYPE_IPv4 );
+
+                if( *( ppxEndPoint ) != NULL )
                 {
-                    ulAddressToLookup = xNetworkAddressing.ulGatewayAddress;
+                    /* 'ipv4_settings' can be accessed safely, because 'ipTYPE_IPv4' was provided. */
+                    ulAddressToLookup = ( *ppxEndPoint )->ipv4_settings.ulGatewayAddress;
                 }
                 else
                 {
@@ -784,7 +819,7 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
             }
             else
             {
-                eReturn = prvCacheLookup( ulAddressToLookup, pxMACAddress );
+                eReturn = prvCacheLookup( ulAddressToLookup, pxMACAddress, ppxEndPoint );
 
                 if( eReturn == eARPCacheMiss )
                 {
@@ -900,7 +935,28 @@ void vARPAgeCache( void )
 
     if( ( xLastGratuitousARPTime == ( TickType_t ) 0 ) || ( ( xTimeNow - xLastGratuitousARPTime ) > ( TickType_t ) arpGRATUITOUS_ARP_PERIOD ) )
     {
-        FreeRTOS_OutputARPRequest( *ipLOCAL_IP_ADDRESS_POINTER );
+        NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+
+        while( pxEndPoint != NULL )
+        {
+            if( ( pxEndPoint->bits.bEndPointUp != pdFALSE_UNSIGNED ) && ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
+            {
+                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                {
+                        FreeRTOS_OutputAdvertiseIPv6( pxEndPoint );
+                }
+                else
+                {
+                    if( pxEndPoint->ipv4_settings.ulIPAddress != 0U )
+                    {
+                        FreeRTOS_OutputARPRequest( pxEndPoint->ipv4_settings.ulIPAddress );
+                    }
+                }
+            }
+
+            pxEndPoint = pxEndPoint->pxNext;
+        }
+
         xLastGratuitousARPTime = xTimeNow;
     }
 }
