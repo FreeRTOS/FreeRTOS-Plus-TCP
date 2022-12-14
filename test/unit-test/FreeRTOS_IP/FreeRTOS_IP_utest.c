@@ -72,9 +72,7 @@ void prvProcessIPEventsAndTimers( void );
 eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                              NetworkBufferDescriptor_t * const pxNetworkBuffer );
 void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
-eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPPacket,
-                                           const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                           UBaseType_t uxHeaderLength );
+
 
 extern BaseType_t xIPTaskInitialised;
 extern BaseType_t xNetworkDownEventPending;
@@ -1817,7 +1815,7 @@ void test_xIsIPv4Multicast_IsMultiCast( void )
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
 
-void test_prvAllowIPPacket( void )
+void test_prvAllowIPPacketIPv4( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1831,12 +1829,12 @@ void test_prvAllowIPPacket( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_FragmentedPacket( void )
+void test_prvAllowIPPacketIPv4_FragmentedPacket( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1854,12 +1852,12 @@ void test_prvAllowIPPacket_FragmentedPacket( void )
 
     pxIPHeader->usFragmentOffset = ipFRAGMENT_OFFSET_BIT_MASK;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_FragmentedPacket1( void )
+void test_prvAllowIPPacketIPv4_FragmentedPacket1( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1877,12 +1875,12 @@ void test_prvAllowIPPacket_FragmentedPacket1( void )
 
     pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_MORE_FRAGMENTS;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_IncorrectLength( void )
+void test_prvAllowIPPacketIPv4_IncorrectLength( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1900,12 +1898,12 @@ void test_prvAllowIPPacket_IncorrectLength( void )
 
     pxIPHeader->ucVersionHeaderLength = 0xFF;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_NotMatchingIP( void )
+void test_prvAllowIPPacketIPv4_NotMatchingIP( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1926,12 +1924,12 @@ void test_prvAllowIPPacket_NotMatchingIP( void )
     pxIPHeader->ucVersionHeaderLength = 0x45;
     pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER + 1;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SourceIPBrdCast_DestIPMatch( void )
+void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPMatch( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1954,12 +1952,12 @@ void test_prvAllowIPPacket_SourceIPBrdCast_DestIPMatch( void )
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SourceIPBrdCast_DestIPBrdCast( void )
+void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdCast( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1982,12 +1980,12 @@ void test_prvAllowIPPacket_SourceIPBrdCast_DestIPBrdCast( void )
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SourceIPBrdCast_DestIPBrdcast1( void )
+void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdcast1( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2010,12 +2008,12 @@ void test_prvAllowIPPacket_SourceIPBrdCast_DestIPBrdcast1( void )
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SourceIPBrdCast_DestIPLLMNR( void )
+void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2038,12 +2036,12 @@ void test_prvAllowIPPacket_SourceIPBrdCast_DestIPLLMNR( void )
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SourceIPBrdCast_NoLocalIP( void )
+void test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2066,12 +2064,12 @@ void test_prvAllowIPPacket_SourceIPBrdCast_NoLocalIP( void )
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_DestMACBrdCast_DestIPUnicast( void )
+void test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPUnicast( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2095,12 +2093,12 @@ void test_prvAllowIPPacket_DestMACBrdCast_DestIPUnicast( void )
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SrcMACBrdCast( void )
+void test_prvAllowIPPacketIPv4_SrcMACBrdCast( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2124,12 +2122,12 @@ void test_prvAllowIPPacket_SrcMACBrdCast( void )
 
     memcpy( pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SrcMACBrdCast2( void )
+void test_prvAllowIPPacketIPv4_SrcMACBrdCast2( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2154,12 +2152,12 @@ void test_prvAllowIPPacket_SrcMACBrdCast2( void )
     memcpy( pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SrcIPAddrIsMulticast( void )
+void test_prvAllowIPPacketIPv4_SrcIPAddrIsMulticast( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2185,12 +2183,12 @@ void test_prvAllowIPPacket_SrcIPAddrIsMulticast( void )
 
     pxIPHeader->ulSourceIPAddress = FreeRTOS_htonl( 0xE0000000 + 1 );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_IncorrectChecksum( void )
+void test_prvAllowIPPacketIPv4_IncorrectChecksum( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2218,12 +2216,12 @@ void test_prvAllowIPPacket_IncorrectChecksum( void )
 
     usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC - 1 );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_IncorrectProtocolChecksum( void )
+void test_prvAllowIPPacketIPv4_IncorrectProtocolChecksum( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2253,12 +2251,12 @@ void test_prvAllowIPPacket_IncorrectProtocolChecksum( void )
 
     usGenerateProtocolChecksum_ExpectAndReturn( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE, ( uint16_t ) ( ipCORRECT_CRC + 1 ) );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_HappyPath( void )
+void test_prvAllowIPPacketIPv4_HappyPath( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2288,7 +2286,7 @@ void test_prvAllowIPPacket_HappyPath( void )
 
     usGenerateProtocolChecksum_ExpectAndReturn( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
 }
