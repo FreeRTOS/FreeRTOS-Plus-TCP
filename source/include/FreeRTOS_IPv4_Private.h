@@ -24,7 +24,7 @@
  * https://www.FreeRTOS.org
  * https://github.com/FreeRTOS
  */
- 
+
 #ifndef FREERTOS_IPV4_PRIVATE_H
 #define FREERTOS_IPV4_PRIVATE_H
 /* *INDENT-OFF* */
@@ -162,7 +162,7 @@ typedef struct xTCP_PACKET TCPPacket_t;
 /*
  * Processes incoming ARP packets.
  */
-eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame );
+eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

@@ -75,7 +75,8 @@ typedef enum
  * a free space available.
  */
 void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
-                            const uint32_t ulIPAddress );
+                            const uint32_t ulIPAddress,
+                            struct xNetworkEndPoint * pxEndPoint );
 
 #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
     /* Becomes non-zero if another device responded to a gratuitous ARP message. */
@@ -109,7 +110,7 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
  */
 eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
                                       MACAddress_t * const pxMACAddress,
-                                       struct xNetworkEndPoint ** ppxEndPoint );
+                                      struct xNetworkEndPoint ** ppxEndPoint );
 
 #if ( ipconfigUSE_ARP_REVERSED_LOOKUP != 0 )
 
