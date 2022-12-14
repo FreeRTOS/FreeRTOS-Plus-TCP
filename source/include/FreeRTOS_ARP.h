@@ -108,13 +108,15 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
  * isn't a gateway defined) then return eCantSendPacket.
  */
 eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                      MACAddress_t * const pxMACAddress );
+                                      MACAddress_t * const pxMACAddress,
+                                       struct xNetworkEndPoint ** ppxEndPoint );
 
 #if ( ipconfigUSE_ARP_REVERSED_LOOKUP != 0 )
 
 /* Lookup an IP-address if only the MAC-address is known */
     eARPLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
-                                               uint32_t * pulIPAddress );
+                                               uint32_t * pulIPAddress,
+                                               struct xNetworkInterface ** ppxInterface );
 
 #endif
 
@@ -158,7 +160,7 @@ BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
 void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
 
 /* Clear all entries in the ARp cache. */
-/* TBD: void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint ); */
+void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
