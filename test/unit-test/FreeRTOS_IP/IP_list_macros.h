@@ -73,8 +73,6 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
-int pxFillInterfaceDescriptor(int, NetworkInterface_t *xInterfaces);
-
 extern NetworkInterface_t xInterfaces[ 1 ];
 
 /* The function 'prvAllowIPPacket()' checks if a IPv6 packets should be processed. */

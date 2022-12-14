@@ -42,6 +42,8 @@
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
+BaseType_t xNetworkUp;
+
 struct xNetworkInterface * pxNetworkInterfaces = NULL;
 
 /** @brief A list of all network end-points.  Each element has a next pointer. */
