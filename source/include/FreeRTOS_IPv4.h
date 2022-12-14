@@ -78,8 +78,6 @@ uint32_t FreeRTOS_GetDNSServerAddress( void );
 uint32_t FreeRTOS_GetNetmask( void );
 uint32_t FreeRTOS_GetIPAddress( void );
 
-void FreeRTOS_ClearARP( void );
-
 /* Show all valid ARP entries
  */
 #if ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 )
