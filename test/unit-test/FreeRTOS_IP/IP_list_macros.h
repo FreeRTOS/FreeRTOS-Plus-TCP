@@ -75,6 +75,8 @@ void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
 int pxFillInterfaceDescriptor(int, NetworkInterface_t *xInterfaces);
 
+extern NetworkInterface_t xInterfaces[ 1 ];
+
 /* The function 'prvAllowIPPacket()' checks if a IPv6 packets should be processed. */
 eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
                                                const NetworkBufferDescriptor_t * const pxNetworkBuffer,

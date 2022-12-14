@@ -217,6 +217,9 @@ static BaseType_t xNetworkUp = pdFALSE;
 /** @brief Set to pdTRUE when the IP task is ready to start processing packets. */
 static BaseType_t xIPTaskInitialised = pdFALSE;
 
+/** @brief Stores interface structures. */
+static NetworkInterface_t xInterfaces[ 1 ];
+
 #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
     /** @brief Keep track of the lowest amount of space in 'xNetworkEventQueue'. */
     static UBaseType_t uxQueueMinimumSpace = ipconfigEVENT_QUEUE_LENGTH;
@@ -884,7 +887,6 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
 {
     BaseType_t xReturn = pdFALSE;
     NetworkEndPoint_t * pxFirstEndPoint;
-    static NetworkInterface_t xInterfaces[ 1 ];
     static NetworkEndPoint_t xEndPoints[ 1 ];
 
     /* IF the following function should be declared in the NetworkInterface.c
