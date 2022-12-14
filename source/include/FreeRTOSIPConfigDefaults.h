@@ -797,6 +797,11 @@
     #define ipconfigUSE_NBNS    0
 #endif
 
+/* Include support for MDNS: Multicast DNS. */
+#ifndef ipconfigUSE_MDNS
+    #define ipconfigUSE_MDNS    0
+#endif
+
 /* It is recommended to let the application respond to incoming ping
  * requests. */
 #ifndef ipconfigREPLY_TO_INCOMING_PINGS
@@ -956,7 +961,7 @@
  * functions.
  */
 #ifndef ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM
-    #define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM    0
+    #define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM    1
 #endif
 
 /* The macro 'ipconfigSOCKET_HAS_USER_SEMAPHORE' is rarely used, yet it

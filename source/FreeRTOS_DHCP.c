@@ -82,9 +82,14 @@
 /*-----------------------------------------------------------*/
 
 /*
+ * @brief The number of end-points that are making use of the UDP-socket.
+ */
+    static BaseType_t xDHCPSocketUserCount = 0;
+
+/*
  * Generate a DHCP discover message and send it on the DHCP socket.
  */
-    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvSendDHCPDiscover( const NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Interpret message received on the DHCP socket.
@@ -95,7 +100,7 @@
 /*
  * Generate a DHCP request packet, and send it on the DHCP socket.
  */
-    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvSendDHCPRequest( const NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Prepare to start a DHCP transaction.  This initialises some state variables
@@ -111,7 +116,7 @@
                                                BaseType_t xOpcode,
                                                const uint8_t * const pucOptionsArray,
                                                size_t * pxOptionsArraySize,
-                                               NetworkEndPoint_t * pxEndPoint );
+                                               const NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Create the DHCP socket, if it has not been created already.
@@ -140,6 +145,8 @@
     static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
                                       ProcessSet_t * pxSet,
                                       BaseType_t xExpectedMessageType );
+    static BaseType_t xProcessCheckOption( ProcessSet_t * pxSet );
+
 
 /*
  * After DHCP has failed to answer, prepare everything to start searching
@@ -204,7 +211,7 @@
  *
  * @param[in] pxEndPoint: the end-point which is going through the DHCP process.
  */
-    eDHCPState_t eGetDHCPState( struct xNetworkEndPoint * pxEndPoint )
+    eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint )
     {
         /* Note that EP_DHCPData is defined as "pxEndPoint->xDHCPData". */
         return EP_DHCPData.eDHCPState;
@@ -221,7 +228,6 @@
     void vDHCPProcess( BaseType_t xReset,
                        struct xNetworkEndPoint * pxEndPoint )
     {
-        BaseType_t xGivingUp = pdFALSE;
         BaseType_t xDoProcess = pdTRUE;
 
         /* Is DHCP starting over? */
@@ -262,6 +268,9 @@
                 }
 
                 /* Map a DHCP structure onto the received data. */
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDHCPMessage = ( ( const DHCPMessage_IPv4_t * ) pucUDPPayload );
 
                 /* Sanity check. */
@@ -312,8 +321,12 @@
                 }
             }
         }
+        else
+        {
+            /* do nothing, coverity happy */
+        }
 
-        if( ( pxEndPoint != NULL ) && ( xDoProcess != pdFALSE ) )
+        if( xDoProcess != pdFALSE )
         {
             /* Process the end-point, but do not expect incoming packets. */
             vDHCPProcessEndPoint( xReset, pdFALSE, pxEndPoint );
@@ -1144,6 +1157,90 @@
 
         return xReturn;
     }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Check an incoming DHCP option.
+ *
+ * @param[in] pxSet: A set of variables needed to parse the DHCP reply.
+ *
+ * @return pdPASS: 1 when the option must be analysed, 0 when the option
+ *                 must be skipped, and -1 when parsing must stop.
+ */
+    static BaseType_t xProcessCheckOption( ProcessSet_t * pxSet )
+    {
+        BaseType_t xResult = -1;
+
+        do
+        {
+            if( pxSet->ucOptionCode == ( uint8_t ) dhcpOPTION_END_BYTE )
+            {
+                /* Ready, the last byte has been seen.
+                 * Return -1 so that the parsing will stop. */
+                break;
+            }
+
+            if( pxSet->ucOptionCode == ( uint8_t ) dhcpIPv4_ZERO_PAD_OPTION_CODE )
+            {
+                /* The value zero is used as a pad byte,
+                 * it is not followed by a length byte. */
+                pxSet->uxIndex++;
+                /* Return zero to skip this option. */
+                xResult = 0;
+                break;
+            }
+
+            /* Stop if the response is malformed. */
+            if( ( pxSet->uxIndex + 1U ) >= pxSet->uxPayloadDataLength )
+            {
+                /* The length byte is missing, stop parsing. */
+                break;
+            }
+
+            /* Fetch the length byte. */
+            pxSet->uxLength = ( size_t ) pxSet->pucByte[ pxSet->uxIndex + 1U ];
+            pxSet->uxIndex = pxSet->uxIndex + 2U;
+
+            if( !( ( ( pxSet->uxIndex + pxSet->uxLength ) - 1U ) < pxSet->uxPayloadDataLength ) )
+            {
+                /* There are not as many bytes left as there should be. */
+                break;
+            }
+
+            /* In most cases, a 4-byte network-endian parameter follows,
+             * just get it once here and use later. */
+            if( pxSet->uxLength >= sizeof( pxSet->ulParameter ) )
+            {
+                /*
+                 * Use helper variables for memcpy() to remain
+                 * compliant with MISRA Rule 21.15.  These should be
+                 * optimized away.
+                 */
+                const void * pvCopySource = &( pxSet->pucByte[ pxSet->uxIndex ] );
+                void * pvCopyDest = &( pxSet->ulParameter );
+                ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxSet->ulParameter ) );
+                /* 'uxIndex' will be increased at the end of this loop. */
+            }
+            else
+            {
+                pxSet->ulParameter = 0;
+            }
+
+            /* Confirm uxIndex is still a valid index after adjustments to uxIndex above */
+            if( !( pxSet->uxIndex < pxSet->uxPayloadDataLength ) )
+            {
+                break;
+            }
+
+            /* Return 1 so that the option will be processed. */
+            xResult = 1;
+            /* Try to please CBMC with a break statement here. */
+            break;
+        } while( ipFALSE_BOOL );
+
+        return xResult;
+    }
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Process the DHCP replies.
@@ -1163,9 +1260,6 @@
         BaseType_t xReturn = pdFALSE;
         const uint32_t ulMandatoryOptions = 2U; /* DHCP server address, and the correct DHCP message type must be present in the options. */
         ProcessSet_t xSet;
-        /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-        const void * pvCopySource;
-        void * pvCopyDest;
 
         ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
 
@@ -1177,7 +1271,7 @@
             /* Map a DHCP structure onto the received data. */
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayload );
 
@@ -1215,222 +1309,18 @@
 
                     while( xSet.uxIndex < xSet.uxPayloadDataLength )
                     {
+                        BaseType_t xResult;
                         xSet.ucOptionCode = xSet.pucByte[ xSet.uxIndex ];
 
-                        if( xSet.ucOptionCode == ( uint8_t ) dhcpOPTION_END_BYTE )
+                        xResult = xProcessCheckOption( &( xSet ) );
+
+                        if( xResult > 0 )
                         {
-                            /* Ready, the last byte has been seen. */
-                            /* coverity[break_stmt] : Break statement terminating the loop */
-                            break;
-                        }
-
-                        if( xSet.ucOptionCode == ( uint8_t ) dhcpIPv4_ZERO_PAD_OPTION_CODE )
-                        {
-                            /* The value zero is used as a pad byte,
-                             * it is not followed by a length byte. */
-                            xSet.uxIndex = xSet.uxIndex + 1U;
-                            continue;
-                        }
-
-                        /* Stop if the response is malformed. */
-                        if( ( xSet.uxIndex + 1U ) < xSet.uxPayloadDataLength )
-                        {
-                            /* Fetch the length byte. */
-                            xSet.uxLength = ( size_t ) xSet.pucByte[ xSet.uxIndex + 1U ];
-                            xSet.uxIndex = xSet.uxIndex + 2U;
-
-                            if( !( ( ( xSet.uxIndex + xSet.uxLength ) - 1U ) < xSet.uxPayloadDataLength ) )
-                            {
-                                /* There are not as many bytes left as there should be. */
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            /* The length byte is missing. */
-                            break;
-                        }
-
-                        /* In most cases, a 4-byte network-endian parameter follows,
-                         * just get it once here and use later. */
-                        if( xSet.uxLength >= sizeof( xSet.ulParameter ) )
-                        {
-                            /*
-                             * Use helper variables for memcpy() to remain
-                             * compliant with MISRA Rule 21.15.  These should be
-                             * optimized away.
-                             */
-                            pvCopySource = &( xSet.pucByte[ xSet.uxIndex ] );
-                            pvCopyDest = &( xSet.ulParameter );
-                            ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( xSet.ulParameter ) );
-                            /* 'uxIndex' will be increased at the end of this loop. */
-                        }
-                        else
-                        {
-                            xSet.ulParameter = 0;
-                        }
-
-                        /* Confirm uxIndex is still a valid index after adjustments to uxIndex above */
-                        if( !( xSet.uxIndex < xSet.uxPayloadDataLength ) )
-                        {
-                            break;
-                        }
-
-                        /* Option-specific handling. */
-                        switch( xSet.ucOptionCode )
-                        {
-                            case dhcpIPv4_MESSAGE_TYPE_OPTION_CODE:
-
-                                if( xSet.pucByte[ xSet.uxIndex ] == ( uint8_t ) xExpectedMessageType )
-                                {
-                                    /* The message type is the message type the
-                                     * state machine is expecting. */
-                                    xSet.ulProcessed++;
-                                }
-                                else
-                                {
-                                    if( xSet.pucByte[ xSet.uxIndex ] == ( uint8_t ) dhcpMESSAGE_TYPE_NACK )
-                                    {
-                                        if( xExpectedMessageType == ( BaseType_t ) dhcpMESSAGE_TYPE_ACK )
-                                        {
-                                            /* Start again. */
-                                            EP_DHCPData.eDHCPState = eInitialWait;
-                                        }
-                                    }
-
-                                    /* Stop processing further options. */
-                                    xSet.uxLength = 0;
-                                }
-
-                                break;
-
-                            case dhcpIPv4_SUBNET_MASK_OPTION_CODE:
-
-                                if( xSet.uxLength == sizeof( uint32_t ) )
-                                {
-                                    EP_IPv4_SETTINGS.ulNetMask = xSet.ulParameter;
-                                }
-
-                                break;
-
-                            case dhcpIPv4_GATEWAY_OPTION_CODE:
-
-                                /* The DHCP server may send more than 1 gateway addresses. */
-                                if( xSet.uxLength >= sizeof( uint32_t ) )
-                                {
-                                    /* ulProcessed is not incremented in this case
-                                     * because the gateway is not essential. */
-                                    EP_IPv4_SETTINGS.ulGatewayAddress = xSet.ulParameter;
-                                }
-
-                                break;
-
-                            case dhcpIPv4_DNS_SERVER_OPTIONS_CODE:
-
-                                /* The DHCP server may send more than 1 DNS server addresses. */
-
-                                /* ulProcessed is not incremented in this case
-                                 * because the DNS server is not essential.  Only the
-                                 * first DNS server address is taken. */
-                                if( xSet.uxLength >= sizeof( uint32_t ) )
-                                {
-                                    size_t uxSourceIndex;
-                                    size_t uxTargetIndex = 0;
-                                    size_t uxDNSCount = xSet.uxLength / sizeof( uint32_t );
-                                    size_t uxByteIndex = xSet.uxIndex;
-
-                                    void * pvCopyDest = &( xSet.ulParameter );
-
-                                    /* Just to try-out for CBMC. */
-                                    if( uxDNSCount > ipconfigENDPOINT_DNS_ADDRESS_COUNT )
-                                    {
-                                        uxDNSCount = ipconfigENDPOINT_DNS_ADDRESS_COUNT;
-                                    }
-
-                                    for( uxSourceIndex = 0U; uxSourceIndex < uxDNSCount; uxSourceIndex++ )
-                                    {
-                                        const void * pvCopySource = &( xSet.pucByte[ uxByteIndex ] );
-                                        ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( xSet.ulParameter ) );
-
-                                        if( ( xSet.ulParameter != FREERTOS_INADDR_ANY ) && ( xSet.ulParameter != ipBROADCAST_IP_ADDRESS ) )
-                                        {
-                                            EP_IPv4_SETTINGS.ulDNSServerAddresses[ uxTargetIndex ] = xSet.ulParameter;
-                                            uxTargetIndex++;
-
-                                            if( uxTargetIndex >= ipconfigENDPOINT_DNS_ADDRESS_COUNT )
-                                            {
-                                                break;
-                                            }
-                                        }
-
-                                        uxByteIndex += sizeof( uint32_t );
-                                    }
-
-                                    /* Clear the remaining entries. */
-                                    while( uxTargetIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT )
-                                    {
-                                        EP_IPv4_SETTINGS.ulDNSServerAddresses[ uxTargetIndex ] = 0U;
-                                        uxTargetIndex++;
-                                    }
-
-                                    /* For the next lookup, start using the first DNS entry. */
-                                    EP_IPv4_SETTINGS.ucDNSIndex = 0U;
-                                }
-
-                                break;
-
-                            case dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE:
-
-                                if( xSet.uxLength == sizeof( uint32_t ) )
-                                {
-                                    if( xExpectedMessageType == ( BaseType_t ) dhcpMESSAGE_TYPE_OFFER )
-                                    {
-                                        /* Offers state the replying server. */
-                                        xSet.ulProcessed++;
-                                        EP_DHCPData.ulDHCPServerAddress = xSet.ulParameter;
-                                    }
-                                    else
-                                    {
-                                        /* The ack must come from the expected server. */
-                                        if( EP_DHCPData.ulDHCPServerAddress == xSet.ulParameter )
-                                        {
-                                            xSet.ulProcessed++;
-                                        }
-                                    }
-                                }
-
-                                break;
-
-                            case dhcpIPv4_LEASE_TIME_OPTION_CODE:
-
-                                if( xSet.uxLength == sizeof( EP_DHCPData.ulLeaseTime ) )
-                                {
-                                    /* ulProcessed is not incremented in this case
-                                     * because the lease time is not essential. */
-
-                                    /* The DHCP parameter is in seconds, convert
-                                     * to host-endian format. */
-                                    EP_DHCPData.ulLeaseTime = FreeRTOS_ntohl( xSet.ulParameter );
-
-                                    /* Divide the lease time by two to ensure a renew
-                                     * request is sent before the lease actually expires. */
-                                    EP_DHCPData.ulLeaseTime >>= 1;
-
-                                    /* Multiply with configTICK_RATE_HZ to get clock ticks. */
-                                    EP_DHCPData.ulLeaseTime = ( uint32_t ) configTICK_RATE_HZ * ( uint32_t ) EP_DHCPData.ulLeaseTime;
-                                }
-
-                                break;
-
-                            default:
-
-                                /* Not interested in this field. */
-
-                                break;
+                            vProcessHandleOption( pxEndPoint, &( xSet ), xExpectedMessageType );
                         }
 
                         /* Jump over the data to find the next option code. */
-                        if( ( xSet.uxLength == 0U ) )
+                        if( ( xSet.uxLength == 0U ) || ( xResult < 0 ) )
                         {
                             break;
                         }
@@ -1470,7 +1360,7 @@
                                                BaseType_t xOpcode,
                                                const uint8_t * const pucOptionsArray,
                                                size_t * pxOptionsArraySize,
-                                               NetworkEndPoint_t * pxEndPoint )
+                                               const NetworkEndPoint_t * pxEndPoint )
     {
         DHCPMessage_IPv4_t * pxDHCPMessage;
         size_t uxRequiredBufferSize = sizeof( DHCPMessage_IPv4_t ) + *pxOptionsArraySize;
@@ -1570,7 +1460,7 @@
  *
  * param[in] pxEndPoint: The end-point for which the request will be sent.
  */
-    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint )
+    static BaseType_t prvSendDHCPRequest( const NetworkEndPoint_t * pxEndPoint )
     {
         BaseType_t xResult = pdFAIL;
         uint8_t * pucUDPPayloadBuffer;
@@ -1643,7 +1533,7 @@
  *
  * @return: pdPASS if the DHCP discover message was sent successfully, pdFAIL otherwise.
  */
-    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint )
+    static BaseType_t prvSendDHCPDiscover( const NetworkEndPoint_t * pxEndPoint )
     {
         BaseType_t xResult = pdFAIL;
         uint8_t * pucUDPPayloadBuffer;
@@ -1659,7 +1549,7 @@
         };
         size_t uxOptionsLength = sizeof( ucDHCPDiscoverOptions );
 
-        ( void ) memset( &( xAddress ), 0, sizeof xAddress );
+        ( void ) memset( &( xAddress ), 0, sizeof( xAddress ) );
         pucUDPPayloadBuffer = prvCreatePartDHCPMessage( &xAddress,
                                                         ( BaseType_t ) dhcpREQUEST_OPCODE,
                                                         ucDHCPDiscoverOptions,
