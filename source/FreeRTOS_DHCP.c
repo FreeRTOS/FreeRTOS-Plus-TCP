@@ -148,15 +148,6 @@
     static BaseType_t xProcessCheckOption( ProcessSet_t * pxSet );
 
 
-/*
- * After DHCP has failed to answer, prepare everything to start searching
- * for (trying-out) LinkLayer IP-addresses, using the random method: Send
- * a gratuitous ARP request and wait if another device responds to it.
- */
-    #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-        static void prvPrepareLinkLayerIPLookUp( void );
-    #endif
-
 /*-----------------------------------------------------------*/
 
 /** @brief Hold information in between steps in the DHCP state machine. */
