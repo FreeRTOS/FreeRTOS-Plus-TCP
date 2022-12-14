@@ -623,10 +623,11 @@
         configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
         BaseType_t xResult = pdPASS;
+
         if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
         {
             xResult = xProcessReceivedTCPPacket_IPV6( pxDescriptor );
-		}
+        }
         else
         {
             xResult = xProcessReceivedTCPPacket_IPV4( pxDescriptor );
