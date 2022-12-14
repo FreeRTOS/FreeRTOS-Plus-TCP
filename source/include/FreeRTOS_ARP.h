@@ -74,8 +74,8 @@ typedef enum
  * cache table then add it - replacing the oldest current entry if there is not
  * a free space available.
  */
-void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
-                            const uint32_t ulIPAddress );
+// void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress, //TODO: Update with new declaration
+//                             const uint32_t ulIPAddress );
 
 #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
     /* Becomes non-zero if another device responded to a gratuitous ARP message. */
