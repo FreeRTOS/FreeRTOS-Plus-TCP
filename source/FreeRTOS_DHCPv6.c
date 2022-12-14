@@ -43,7 +43,7 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 
-#if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 ) /*TODO */
+#if ( ipconfigUSE_IPV6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 ) /*TODO */
 
     #include "FreeRTOS_Sockets.h"
     #include "FreeRTOS_DHCPv6.h"

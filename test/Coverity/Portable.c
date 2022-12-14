@@ -73,9 +73,11 @@ BaseType_t xNetworkInterfaceInitialise( void )
 }
 /*-----------------------------------------------------------*/
 
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                         struct xNetworkEndPoint * pxEndPoint )
 {
     ( void ) eNetworkEvent;
+    ( void ) pxEndPoint;
 }
 /*-----------------------------------------------------------*/
 
