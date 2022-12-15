@@ -65,13 +65,6 @@
 #if ipconfigUSE_TCP == 1
 
 /*
- * Common code for sending a TCP protocol control packet (i.e. no options, no
- * payload, just flags).
- */
-    static BaseType_t prvTCPSendSpecialPacketHelper( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                     uint8_t ucTCPFlags );
-
-/*
  * Let ARP look-up the MAC-address of the peer and initialise the first SYN
  * packet.
  */
@@ -260,11 +253,11 @@
 
         if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
         {
-			prvTCPReturnPacket_IPV6(pxSocket, pxDescriptor, ulLen, xReleaseAfterSend);
-		}
+            prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+        }
         else
         {
-            prvTCPReturnPacket_IPV4(pxSocket, pxDescriptor, ulLen, xReleaseAfterSend);
+            prvTCPReturnPacket_IPV4( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
         }
     }
     /*-----------------------------------------------------------*/
@@ -324,11 +317,11 @@
 
         if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
         {
-            xReturn = prvTCPPrepareConnect_IPV6(pxSocket);
+            xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
         }
         else
         {
-            xReturn = prvTCPPrepareConnect_IPV4(pxSocket);
+            xReturn = prvTCPPrepareConnect_IPV4( pxSocket );
         }
 
         return xReturn;
@@ -1045,23 +1038,24 @@
  *
  * @return pdFAIL always indicating that the packet was not consumed.
  */
-    static BaseType_t prvTCPSendSpecialPacketHelper( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                     uint8_t ucTCPFlags )
+    BaseType_t prvTCPSendSpecialPacketHelper( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                              uint8_t ucTCPFlags )
     {
-	    BaseType_t xReturn = pdTRUE;
+        BaseType_t xReturn = pdTRUE;
+
         #if ( ipconfigIGNORE_UNKNOWN_PACKETS == 1 )
             /* Configured to ignore unknown packets just suppress a compiler warning. */
             ( void ) pxNetworkBuffer;
             ( void ) ucTCPFlags;
         #else
             {
-				if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+                if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
                 {
-                    xReturn = prvTCPSendSpecialPacketHelper_IPV6(pxNetworkBuffer, ucTCPFlags);
+                    xReturn = prvTCPSendSpecialPacketHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
                 }
                 else
                 {
-                    xReturn = prvTCPSendSpecialPacketHelper_IPV4(pxNetworkBuffer, ucTCPFlags);
+                    xReturn = prvTCPSendSpecialPacketHelper_IPV4( pxNetworkBuffer, ucTCPFlags );
                 }
             }
         #endif /* !ipconfigIGNORE_UNKNOWN_PACKETS */

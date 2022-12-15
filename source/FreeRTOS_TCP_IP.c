@@ -88,20 +88,6 @@
     /* coverity[misra_c_2012_rule_8_9_violation] */
     static FreeRTOS_Socket_t * xSocketToListen = NULL;
 
-/*
- * For anti-hang protection and TCP keep-alive messages.  Called in two places:
- * after receiving a packet and after a state change.  The socket's alive timer
- * may be reset.
- */
-    static void prvTCPTouchSocket( FreeRTOS_Socket_t * pxSocket );
-
-
-/*
- * Calculate when this socket needs to be checked to do (re-)transmissions.
- */
-    static TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket );
-
-
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
 /*
@@ -266,7 +252,7 @@
  *       Called in two places: after receiving a packet and after a state change.
  *       The socket's alive timer may be reset.
  */
-    static void prvTCPTouchSocket( FreeRTOS_Socket_t * pxSocket )
+    void prvTCPTouchSocket( FreeRTOS_Socket_t * pxSocket )
     {
         #if ( ipconfigTCP_HANG_PROTECTION == 1 )
             {
@@ -531,7 +517,7 @@
  *
  * @return The number of clock ticks before the timer expires.
  */
-    static TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket )
+    TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket )
     {
         TickType_t ulDelayMs = ( TickType_t ) tcpMAXIMUM_TCP_WAKEUP_TIME_MS;
 
@@ -623,10 +609,11 @@
         configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
         BaseType_t xResult = pdPASS;
+
         if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
         {
             xResult = xProcessReceivedTCPPacket_IPV6( pxDescriptor );
-		}
+        }
         else
         {
             xResult = xProcessReceivedTCPPacket_IPV4( pxDescriptor );
