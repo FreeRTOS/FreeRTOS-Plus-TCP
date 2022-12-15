@@ -59,17 +59,16 @@
         NetworkEndPoint_t * pxEndPoint = pxSocket->pxEndPoint;
 
         if( pxEndPoint != NULL )
-		{
-
+        {
             /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
             #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
-            {
-                ulMSS = ipconfigTCP_MSS;
-            }
+                {
+                    ulMSS = ipconfigTCP_MSS;
+                }
             #else
-            {
-                ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
-            }
+                {
+                    ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
+                }
             #endif
 
             if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 ) ^ *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) != 0U )

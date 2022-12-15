@@ -54,6 +54,7 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOSIPConfigDefaults.h"
+#include "FreeRTOS_ND.h"
 
 #include "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_TCP_Reception.h"
@@ -63,19 +64,6 @@
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
-
-/*
- * Common code for sending a TCP protocol control packet (i.e. no options, no
- * payload, just flags).
- */
-    static BaseType_t prvTCPSendSpecialPacketHelper_IPV6( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                     uint8_t ucTCPFlags );
-
-/*
- * Let ARP look-up the MAC-address of the peer and initialise the first SYN
- * packet.
- */
-    static BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket );
 
 /*------------------------------------------------------------------------*/
 
@@ -93,10 +81,11 @@
  *                               transferred to the network interface.
  */
     void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
-                             NetworkBufferDescriptor_t * pxDescriptor,
-                             uint32_t ulLen,
-                             BaseType_t xReleaseAfterSend )
+                                  NetworkBufferDescriptor_t * pxDescriptor,
+                                  uint32_t ulLen,
+                                  BaseType_t xReleaseAfterSend )
     {
+        TCPPacket_t * pxTCPPacket = NULL;
         TCPHeader_t * pxTCPHeader = NULL;
         ProtocolHeaders_t * pxProtocolHeaders = NULL;
         IPHeader_t * pxIPHeader = NULL;
@@ -112,7 +101,7 @@
         void * pvCopyDest = NULL;
         BaseType_t xIsIPv6 = pdFALSE;
         uint16_t usFrameType;
-        size_t uxIPHeaderSize = ipSIZE_OF_IPv4_HEADER;
+        size_t uxIPHeaderSize = ipSIZE_OF_IPv6_HEADER;
 
         if( pxNetworkBuffer != NULL )
         {
@@ -123,7 +112,7 @@
         }
         else /* pxSocket is not equal to NULL. */
         {
-            if ( pxSocket == NULL )
+            if( pxSocket == NULL )
             {
                 return;
             }
@@ -174,29 +163,31 @@
             /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
-            pxEthernetHeader = ( EthernetHeader_t * )&pxTCPPacket->xEthernetHeader;
+            pxTCPPacket = ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+            pxEthernetHeader = ( EthernetHeader_t * ) &( pxTCPPacket->xEthernetHeader );
             pxProtocolHeaders =
-                (ProtocolHeaders_t *)&( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] ) );
+                ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] );
 
-#if 0 /* TBD after Endpoint support */
-            if( pxNetworkBuffer->pxEndPoint == NULL )
-            {
-                prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
-
+            #if 0 /* TBD after Endpoint support */
                 if( pxNetworkBuffer->pxEndPoint == NULL )
                 {
-                    if( xDoRelease != pdFALSE )
-                    {
-                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                    }
+                    prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
 
-                    pxNetworkBuffer = NULL;
-                    break;
+                    if( pxNetworkBuffer->pxEndPoint == NULL )
+                    {
+                        if( xDoRelease != pdFALSE )
+                        {
+                            vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+                        }
+
+                        pxNetworkBuffer = NULL;
+                        break;
+                    }
                 }
-            }
-#endif
+            #endif /* if 0 */
+
             /* Fill the packet, using hton translations. */
             if( pxSocket != NULL )
             {
@@ -309,7 +300,6 @@
                 vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
             }
 
-
             /* When xIsIPv6 is true: Let lint know that
              * 'pxIPHeader_IPv6' is not NULL. */
             configASSERT( pxIPHeader_IPv6 != NULL );
@@ -324,22 +314,22 @@
             }
 
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
-            {
-                /* calculate the TCP checksum for an outgoing packet. */
-                uint32_t ulTotalLength = ulLen + ipSIZE_OF_ETH_HEADER;
-                ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxNetworkBuffer->pucEthernetBuffer, ulTotalLength, pdTRUE );
-
-                /* A calculated checksum of 0 must be inverted as 0 means the checksum
-                 * is disabled. */
-
-                /* _HT_ The above is a very old comment.  It is only true for
-                 * UDP packets.  However, theoretically usChecksum can never be zero
-                 * and so the if-statement won't be executed. */
-                if( pxProtocolHeaders->xTCPHeader.usChecksum == 0U )
                 {
-                    pxProtocolHeaders->xTCPHeader.usChecksum = 0xffffU;
+                    /* calculate the TCP checksum for an outgoing packet. */
+                    uint32_t ulTotalLength = ulLen + ipSIZE_OF_ETH_HEADER;
+                    ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxNetworkBuffer->pucEthernetBuffer, ulTotalLength, pdTRUE );
+
+                    /* A calculated checksum of 0 must be inverted as 0 means the checksum
+                     * is disabled. */
+
+                    /* _HT_ The above is a very old comment.  It is only true for
+                     * UDP packets.  However, theoretically usChecksum can never be zero
+                     * and so the if-statement won't be executed. */
+                    if( pxProtocolHeaders->xTCPHeader.usChecksum == 0U )
+                    {
+                        pxProtocolHeaders->xTCPHeader.usChecksum = 0xffffU;
+                    }
                 }
-            }
             #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 */
 
             vFlip_16( pxProtocolHeaders->xTCPHeader.usSourcePort, pxProtocolHeaders->xTCPHeader.usDestinationPort );
@@ -396,6 +386,7 @@
                 /* Swap-back some fields, as pxBuffer probably points to a socket field
                  * containing the packet header. */
                 vFlip_16( pxTCPPacket->xTCPHeader.usSourcePort, pxTCPPacket->xTCPHeader.usDestinationPort );
+
                 if( pxIPHeader_IPv6 != NULL )
                 {
                     ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxIPHeader_IPv6->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
@@ -426,16 +417,17 @@
  *       target IP address is not within the netmask, the hardware address of the
  *       gateway will be used.
  */
-    static BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
+    BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
     {
         TCPPacket_t * pxTCPPacket = NULL;
         IPHeader_t * pxIPHeader = NULL;
         eARPLookupResult_t eReturned;
-        uint32_t ulRemoteIP;
+        IP_Address_t xRemoteIP;
         MACAddress_t xEthAddress;
         BaseType_t xReturn = pdTRUE;
         uint32_t ulInitialSequenceNumber = 0;
-		ProtocolHeaders_t * pxProtocolHeaders = NULL;
+        ProtocolHeaders_t * pxProtocolHeaders = NULL;
+        NetworkEndPoint_t * pxEndPoint = NULL;
 
         #if ( ipconfigHAS_PRINTF != 0 )
             {
@@ -446,9 +438,9 @@
 
         if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
         {
-            ulRemoteIP = 0U;
-            ( void ) memcpy( xRemoteIP.ucBytes, pxSocket->u.xTCP.xRemoteIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-            eReturned = eNDGetCacheEntry( &( xRemoteIP ), &( xEthAddress ), &( pxEndPoint ) );
+            ( void ) memset( xRemoteIP.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
+            ( void ) memcpy( xRemoteIP.xIP_IPv6.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+            eReturned = eNDGetCacheEntry( &( xRemoteIP.xIP_IPv6 ), &( xEthAddress ), &( pxEndPoint ) );
             FreeRTOS_printf( ( "eNDGetCacheEntry: %d with end-point %p\n", eReturned, pxEndPoint ) );
 
             if( pxEndPoint != NULL )
@@ -483,7 +475,7 @@
                         if( pxNetworkBuffer != NULL )
                         {
                             pxNetworkBuffer->pxEndPoint = pxEndPoint;
-                            vNDSendNeighbourSolicitation( pxNetworkBuffer, &( xRemoteIP ) );
+                            vNDSendNeighbourSolicitation( pxNetworkBuffer, &( xRemoteIP.xIP_IPv6 ) );
                         }
                     }
                 }
@@ -520,7 +512,7 @@
             /* coverity[misra_c_2012_rule_11_3_violation] */
 
             pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                    &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] ) );
+                                  &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
             pxTCPPacket = ( ( TCPPacket_t * ) pxSocket->u.xTCP.xPacket.u.ucLastPacket );
             pxIPHeader = &pxTCPPacket->xIPHeader;
 
@@ -545,18 +537,18 @@
                 /* 'ipIPv4_FRAME_TYPE' is already in network-byte-order. */
                 pxTCPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-				pxIPHeader_IPv6->ucVersionTrafficClass = ( uint8_t ) 0x60U;
-				pxIPHeader_IPv6->ucTrafficClassFlow = ( uint8_t ) 0x00;
-				pxIPHeader_IPv6->usFlowLabel = ( uint16_t ) 0x0000U;
-				pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( sizeof( TCPHeader_t ) );
-				pxIPHeader_IPv6->ucNextHeader = ( uint8_t ) ipPROTOCOL_TCP;
-				pxIPHeader_IPv6->ucHopLimit = 128;
-				/* The Source and Destination addresses will be swapped later. */
-				( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxSocket->u.xTCP.xRemoteIP_IPv6.ucBytes, sizeof pxIPHeader_IPv6->xSourceAddress.ucBytes );
-				( void ) memcpy( pxIPHeader_IPv6->xDestinationAddress.ucBytes, pxSocket->xLocalAddress_IPv6.ucBytes, sizeof pxIPHeader_IPv6->xDestinationAddress.ucBytes );
-				pxEndPoint = pxSocket->pxEndPoint;
+                pxIPHeader_IPv6->ucVersionTrafficClass = ( uint8_t ) 0x60U;
+                pxIPHeader_IPv6->ucTrafficClassFlow = ( uint8_t ) 0x00;
+                pxIPHeader_IPv6->usFlowLabel = ( uint16_t ) 0x0000U;
+                pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( sizeof( TCPHeader_t ) );
+                pxIPHeader_IPv6->ucNextHeader = ( uint8_t ) ipPROTOCOL_TCP;
+                pxIPHeader_IPv6->ucHopLimit = 128;
+                /* The Source and Destination addresses will be swapped later. */
+                ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, sizeof pxIPHeader_IPv6->xSourceAddress.ucBytes );
+                ( void ) memcpy( pxIPHeader_IPv6->xDestinationAddress.ucBytes, pxSocket->xLocalAddress.xIP_IPv6.ucBytes, sizeof pxIPHeader_IPv6->xDestinationAddress.ucBytes );
+                pxEndPoint = pxSocket->pxEndPoint;
             }
-
+        }
 
         if( pxEndPoint != NULL )
         {
@@ -607,8 +599,8 @@
  *
  * @return pdFAIL always indicating that the packet was not consumed.
  */
-    static BaseType_t prvTCPSendSpecialPacketHelper_IPV6( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                     uint8_t ucTCPFlags )
+    BaseType_t prvTCPSendSpecialPacketHelper_IPV6( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                   uint8_t ucTCPFlags )
     {
         #if ( ipconfigIGNORE_UNKNOWN_PACKETS == 1 )
             /* Configured to ignore unknown packets just suppress a compiler warning. */
@@ -617,9 +609,9 @@
         #else
             {
                 /* Map the ethernet buffer onto the TCPPacket_t struct for easy access to the fields. */
-
+                uint32_t ulSendLength;
                 /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 TCPPacket_IPv6_t * pxTCPPacket_IPv6 = ( ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
@@ -627,9 +619,10 @@
                 {
                     pxTCPPacket_IPv6->xTCPHeader.ucTCPFlags = ucTCPFlags;
                     pxTCPPacket_IPv6->xTCPHeader.ucTCPOffset = ( ipSIZE_OF_TCP_HEADER ) << 2;
-                    const uint32_t ulSendLength =
+                    ulSendLength =
                         ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */
                 }
+
                 prvTCPReturnPacket( NULL, pxNetworkBuffer, ulSendLength, pdFALSE );
             }
         #endif /* !ipconfigIGNORE_UNKNOWN_PACKETS */

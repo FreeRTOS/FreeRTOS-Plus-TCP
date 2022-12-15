@@ -134,12 +134,12 @@
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
         FreeRTOS_Socket_t * pxSocket;
-		IP_Address_t * pxRemoteAddres;
+        IP_Address_t * pxRemoteAddres;
         uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
         uint32_t ulLocalIP;
         uint16_t usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
         uint16_t usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
-        uint32_t ulRemoteIP;
+        IP_Address_t ulRemoteIP;
         uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
         uint32_t ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
         BaseType_t xResult = pdPASS;
@@ -158,14 +158,14 @@
             /* coverity[misra_c_2012_rule_11_3_violation] */
 
             IPHeader_IPv6_t * pxIPHeader_IPv6;
-			ulLocalIP = *ipLOCAL_IP_ADDRESS_POINTER;
+            ulLocalIP = *ipLOCAL_IP_ADDRESS_POINTER;
             pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-            pxRemoteAddres->xIP_IPv6 = &( pxIPHeader_IPv6->xSourceAddress );
-            ulRemoteIP = 0;
+            ( void ) memcpy( &( pxRemoteAddres->xIP_IPv6 ), &( pxIPHeader_IPv6->xSourceAddress ), sizeof( IPv6_Address_t ) );
+            ( void ) memset( &( ulRemoteIP.xIP_IPv6 ), 0, sizeof( IPv6_Address_t ) );
 
             /* Find the destination socket, and if not found: return a socket listing to
              * the destination PORT. */
-            pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( ulLocalIP, usLocalPort, ulRemoteIP, usRemotePort, pxRemoteAddres );
+            pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( ulLocalIP, usLocalPort, ulRemoteIP, usRemotePort );
 
             if( ( pxSocket == NULL ) || ( prvTCPSocketIsActive( pxSocket->u.xTCP.eTCPState ) == pdFALSE ) )
             {

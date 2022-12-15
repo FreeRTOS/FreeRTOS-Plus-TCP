@@ -64,19 +64,6 @@
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
-/*
- * Common code for sending a TCP protocol control packet (i.e. no options, no
- * payload, just flags).
- */
-    static BaseType_t prvTCPSendSpecialPacketHelper_IPV4( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                     uint8_t ucTCPFlags );
-
-/*
- * Let ARP look-up the MAC-address of the peer and initialise the first SYN
- * packet.
- */
-    static BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket );
-
 /*------------------------------------------------------------------------*/
 
 
@@ -92,11 +79,12 @@
  * @param[in] xReleaseAfterSend: pdTRUE if the ownership of the descriptor is
  *                               transferred to the network interface.
  */
-    void prvTCPReturnPacket_IPv4( FreeRTOS_Socket_t * pxSocket,
-                             NetworkBufferDescriptor_t * pxDescriptor,
-                             uint32_t ulLen,
-                             BaseType_t xReleaseAfterSend )
+    void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
+                                  NetworkBufferDescriptor_t * pxDescriptor,
+                                  uint32_t ulLen,
+                                  BaseType_t xReleaseAfterSend )
     {
+        TCPPacket_t * pxTCPPacket = NULL;
         TCPHeader_t * pxTCPHeader = NULL;
         ProtocolHeaders_t * pxProtocolHeaders = NULL;
         IPHeader_t * pxIPHeader = NULL;
@@ -123,7 +111,7 @@
         }
         else /* pxSocket is not equal to NULL. */
         {
-            if ( pxSocket == NULL )
+            if( pxSocket == NULL )
             {
                 return;
             }
@@ -180,30 +168,34 @@
         {
             /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
 
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            pxEthernetHeader = ( EthernetHeader_t * )&pxTCPPacket->xEthernetHeader;
-            pxProtocolHeaders =
-                (ProtocolHeaders_t *)&( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] ) );
-y
-#if 0 /* TBD after Endpoint support */
-            if( pxNetworkBuffer->pxEndPoint == NULL )
-            {
-                prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
 
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            pxTCPPacket = ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+            pxEthernetHeader = ( EthernetHeader_t * ) &( pxTCPPacket->xEthernetHeader );
+            pxProtocolHeaders =
+                ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] );
+
+/* TBD after Endpoint support */
+            #if 0
                 if( pxNetworkBuffer->pxEndPoint == NULL )
                 {
-                    if( xDoRelease != pdFALSE )
-                    {
-                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                    }
+                    prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
 
-                    pxNetworkBuffer = NULL;
-                    break;
+                    if( pxNetworkBuffer->pxEndPoint == NULL )
+                    {
+                        if( xDoRelease != pdFALSE )
+                        {
+                            vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+                        }
+
+                        pxNetworkBuffer = NULL;
+                        return;
+                    }
                 }
-            }
-#endif
+            #endif /* if 0 */
+
             /* Fill the packet, using hton translations. */
             if( pxSocket != NULL )
             {
@@ -316,7 +308,7 @@ y
                 vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
             }
 
-            if ( usFrameType == ipIPv6_FRAME_TYPE )
+            if( usFrameType == ipIPv6_FRAME_TYPE )
             {
                 /* When xIsIPv6 is true: Let lint know that
                  * 'pxIPHeader_IPv6' is not NULL. */
@@ -354,7 +346,6 @@ y
             {
                 pxIPHeader->ucTimeToLive = ( uint8_t ) ipconfigTCP_TIME_TO_LIVE;
                 pxIPHeader->usLength = FreeRTOS_htons( ulLen );
-
 
                 if( ( pxSocket == NULL ) || ( *ipLOCAL_IP_ADDRESS_POINTER == 0U ) )
                 {
@@ -395,7 +386,7 @@ y
                         /* calculate the TCP checksum for an outgoing packet. */
                         ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxTCPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
                     }
-                endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
+                #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
             }
 
             vFlip_16( pxProtocolHeaders->xTCPHeader.usSourcePort, pxProtocolHeaders->xTCPHeader.usDestinationPort );
@@ -410,13 +401,13 @@ y
                 }
             #endif
 
-            if ( usFrameType == ipIPv4_FRAME_TYPE )
+            if( usFrameType == ipIPv4_FRAME_TYPE )
             {
                 MACAddress_t xMACAddress;
                 uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
                 eARPLookupResult_t eResult;
 
-                eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress );
+                eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &( pxNetworkBuffer->pxEndPoint ) );
 
                 if( eResult == eARPCacheHit )
                 {
@@ -471,6 +462,7 @@ y
                 /* Swap-back some fields, as pxBuffer probably points to a socket field
                  * containing the packet header. */
                 vFlip_16( pxTCPPacket->xTCPHeader.usSourcePort, pxTCPPacket->xTCPHeader.usDestinationPort );
+
                 if( xIsIPv6 == pdTRUE )
                 {
                     if( pxIPHeader_IPv6 != NULL )
@@ -488,6 +480,7 @@ y
                     {
                         /* No IP-header available. */
                     }
+
                     ( void ) memcpy( pxEthernetHeader->xSourceAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
                 }
             }
@@ -514,7 +507,7 @@ y
  *       target IP address is not within the netmask, the hardware address of the
  *       gateway will be used.
  */
-    static BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
+    BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
     {
         TCPPacket_t * pxTCPPacket;
         IPHeader_t * pxIPHeader;
@@ -534,7 +527,7 @@ y
         ulRemoteIP = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
 
         /* Determine the ARP cache status for the requested IP address. */
-        eReturned = eARPGetCacheEntry( &( ulRemoteIP ), &( xEthAddress ) );
+        eReturned = eARPGetCacheEntry( &( ulRemoteIP ), &( xEthAddress ), &( pxSocket->pxEndPoint ) );
 
         switch( eReturned )
         {
@@ -662,8 +655,8 @@ y
  *
  * @return pdFAIL always indicating that the packet was not consumed.
  */
-    static BaseType_t prvTCPSendSpecialPacketHelper_IPV4( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                     uint8_t ucTCPFlags )
+    BaseType_t prvTCPSendSpecialPacketHelper_IPV4( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                   uint8_t ucTCPFlags )
     {
         #if ( ipconfigIGNORE_UNKNOWN_PACKETS == 1 )
             /* Configured to ignore unknown packets just suppress a compiler warning. */
