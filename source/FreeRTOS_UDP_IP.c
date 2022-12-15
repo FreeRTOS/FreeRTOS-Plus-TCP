@@ -103,8 +103,8 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
     /* Map the UDP packet onto the start of the frame. */
     UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
-    
-    if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE)
+
+    if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
         eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
     }
@@ -113,7 +113,7 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
         pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
         ulIPAddress = pxNetworkBuffer->xIPAddress.xIP_IPv4;
 
-        eReturned = eARPGetCacheEntry( &(ulIPAddress ), &(pxUDPPacket->xEthernetHeader.xDestinationAddress), &(pxEndPoint) );
+        eReturned = eARPGetCacheEntry( &( ulIPAddress ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
     }
 
     if( pxNetworkBuffer->pxEndPoint == NULL )
@@ -133,8 +133,7 @@ static void prvFindIPv4Endpoint( NetworkBufferDescriptor_t * const pxNetworkBuff
 {
     if( pxNetworkBuffer->pxEndPoint == NULL )
     {
-        /*** TBD */
-        /* pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->ulIPAddress, 10 ); */
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.xIP_IPv4, 10 );
 
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
@@ -166,18 +165,18 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
     eARPLookupResult_t eReturned = eARPCacheMiss;
     uint32_t ulIPAddress;
 
-   
+
     UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
         FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
-                            pxNetworkBuffer->xIPv6Address.ucBytes,
-                            ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
+                           pxNetworkBuffer->xIPv6Address.ucBytes,
+                           ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
 
         if( pxNetworkBuffer->pxEndPoint != NULL )
         {
-            vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPv6Address ) );
+            vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
 
             /* pxNetworkBuffer has been sent and released.
              * Make sure it won't be used again.. */
@@ -189,7 +188,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         ulIPAddress = pxNetworkBuffer->xIPAddress.xIP_IPv4;
 
         FreeRTOS_printf( ( "Looking up %xip with%s end-point\n",
-                           ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->ulIPAddress ),
+                           ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->xIPAddress.xIP_IPv4 ),
                            ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
 
         /* Add an entry to the ARP table with a null hardware address.
@@ -202,8 +201,8 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
 
         /* 'ulIPAddress' might have become the address of the Gateway.
          * Find the route again. */
-       
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->ulIPAddress, 11 ); 
+
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.xIP_IPv4, 11 );
 
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
@@ -236,9 +235,6 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
     /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
     const void * pvCopySource;
     void * pvCopyDest;
-    /* TBD */
-    /* NetworkInterface_t * pxInterface = NULL;
-    EthernetHeader_t * pxEthernetHeader = NULL; */
     BaseType_t xLostBuffer = pdFALSE;
 
     /* Map the UDP packet onto the start of the frame. */
@@ -248,7 +244,6 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-    
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
         eReturned = vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
@@ -258,7 +253,6 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
         pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
         eReturned = vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
     }
-
 }
 /*-----------------------------------------------------------*/
 
@@ -278,7 +272,6 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 {
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
-    UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
@@ -296,13 +289,13 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {
         xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
-                                   usPort, pxIsWaitingForARPResolution );
+                                        usPort, pxIsWaitingForARPResolution );
     }
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
         xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
-                                   usPort, pxIsWaitingForARPResolution );
+                                        usPort, pxIsWaitingForARPResolution );
     }
 
     return xReturn;

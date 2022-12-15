@@ -163,8 +163,6 @@ typedef struct xNETWORK_BUFFER
     struct xNetworkEndPoint * pxEndPoint;      /**< The end-point through which this packet shall be sent. */
     uint16_t usPort;                           /**< Source or destination port, depending on usage scenario. */
     uint16_t usBoundPort;                      /**< The port to which a transmitting socket is bound. */
-    struct xNetworkInterface * pxInterface;    /**< The interface on which the packet was received. */
-    struct xNetworkEndPoint * pxEndPoint;      /**< The end-point through which this packet shall be sent. */
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
         struct xNETWORK_BUFFER * pxNextBuffer; /**< Possible optimisation for expert users - requires network driver support. */
     #endif
@@ -338,6 +336,12 @@ void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH
     void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
                                     uint16_t usIdentifier );
 #endif
+
+/* xARPWaitResolution checks if an IPv4 address is already known. If not
+ * it may send an ARP request and wait for a reply.  This function will
+ * only be called from an application. */
+BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
+                               TickType_t uxTicksToWait );
 
 BaseType_t FreeRTOS_IsNetworkUp( void );
 

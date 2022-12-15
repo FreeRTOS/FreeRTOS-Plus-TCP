@@ -443,8 +443,9 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
     /* coverity[misra_c_2012_rule_11_3_violation] */
     const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+    IPV4Parameters_t * pxIPv4Settings = &( pxNetworkBuffer->pxEndPoint->ipv4_settings );
 
-    if( ( pxIPHeader->ulSourceIPAddress & xNetworkAddressing.ulNetMask ) == ( *ipLOCAL_IP_ADDRESS_POINTER & xNetworkAddressing.ulNetMask ) )
+    if( ( pxIPHeader->ulSourceIPAddress & pxIPv4Settings->ulNetMask ) == ( pxIPv4Settings->ulIPAddress & pxIPv4Settings->ulNetMask ) )
     {
         /* If the IP is on the same subnet and we do not have an ARP entry already,
          * then we should send out ARP for finding the MAC address. */
@@ -515,7 +516,10 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
         /* Only process the IP address if it is on the local network. */
-        if( ( ulIPAddress & xNetworkAddressing.ulNetMask ) == ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) )
+        BaseType_t xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 2 ) != NULL ) ? 1 : 0; /* ARP remote address. */
+
+        /* Only process the IP address if it matches with one of the end-points. */
+        if( xAddressIsLocal != 0 )
     #else
 
         /* If ipconfigARP_STORES_REMOTE_ADDRESSES is non-zero, IP addresses with
@@ -594,13 +598,11 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                     /* If ARP stores the MAC address of IP addresses outside the
                      * network, than the MAC address of the gateway should not be
                      * overwritten. */
-                    BaseType_t bIsLocal[ 2 ];
-                    bIsLocal[ 0 ] = ( ( xARPCache[ x ].ulIPAddress & xNetworkAddressing.ulNetMask ) == ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) );
-                    bIsLocal[ 1 ] = ( ( ulIPAddress & xNetworkAddressing.ulNetMask ) == ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) );
+                    BaseType_t xOtherIsLocal = ( FreeRTOS_FindEndPointOnNetMask( xARPCache[ x ].ulIPAddress, 3 ) != NULL ) ? 1 : 0; /* ARP remote address. */
 
-                    if( bIsLocal[ 0 ] == bIsLocal[ 1 ] )
+                    if( xAddressIsLocal == xOtherIsLocal )
                     {
-                        xMacEntry = x;
+                        pxLocation->xMacEntry = x;
                     }
                 #else /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 ) */
                     xMacEntry = x;
@@ -779,8 +781,8 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
             }
         }
     }
-    else if( ( *pulIPAddress == ipBROADCAST_IP_ADDRESS ) ||               /* Is it the general broadcast address 255.255.255.255? */
-             ( *pulIPAddress == xNetworkAddressing.ulBroadcastAddress ) ) /* Or a local broadcast address, eg 192.168.1.255? */
+    else if( ( *pulIPAddress == ipBROADCAST_IP_ADDRESS ) ) /*||               / * Is it the general broadcast address 255.255.255.255? * / */
+    /*TBD           ( *pulIPAddress == xNetworkAddressing.ulBroadcastAddress ) ) / * Or a local broadcast address, eg 192.168.1.255? * / */
     {
         /* This is a broadcast so it uses the broadcast MAC address. */
         ( void ) memcpy( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
