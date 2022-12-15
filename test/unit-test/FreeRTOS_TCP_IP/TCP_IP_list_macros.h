@@ -85,7 +85,16 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket );
  */
 FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                        UBaseType_t uxLocalPort,
-                                       uint32_t ulRemoteIP,
+                                       IP_Address_t ulRemoteIP,
                                        UBaseType_t uxRemotePort );
+
+/* Get the size of the IP-header.
+ * The socket is checked for its type: IPv4 or IPv6. */
+size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket );
+/*-----------------------------------------------------------*/
+
+BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescriptor );
+
+BaseType_t xProcessReceivedTCPPacket_IPV4( NetworkBufferDescriptor_t * pxDescriptor );
 
 #endif /* ifndef LIST_MACRO_H */
