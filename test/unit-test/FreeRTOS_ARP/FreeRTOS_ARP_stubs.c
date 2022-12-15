@@ -12,6 +12,9 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/** @brief A list of all network end-points.  Each element has a next pointer. */
+struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
+
 NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
@@ -80,7 +83,9 @@ uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 BaseType_t xNetworkInterfaceInitialise( void )
 {
 }
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+/* This function shall be defined by the application. */
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                        struct xNetworkEndPoint * pxEndPoint )
 {
 }
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
@@ -151,4 +156,10 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
 {
     return pdPASS;
 }
+
+/**
+ * @brief Send an ND advertisement.
+ * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
+ */
+void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint ) {}
 /*-----------------------------------------------------------*/
