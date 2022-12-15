@@ -138,7 +138,7 @@
         uint32_t ulLocalIP;
         uint16_t usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
         uint16_t usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
-        uint32_t ulRemoteIP;
+        IP_Address_t ulRemoteIP;
         uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
         uint32_t ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
         BaseType_t xResult = pdPASS;
@@ -159,11 +159,11 @@
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
             ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
-            ulRemoteIP = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
+            ulRemoteIP.xIP_IPv4 = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
 
             /* Find the destination socket, and if not found: return a socket listening to
              * the destination PORT. */
-            pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( ulLocalIP, usLocalPort, ulRemoteIP, usRemotePort, NULL );
+            pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( ulLocalIP, usLocalPort, ulRemoteIP, usRemotePort );
 
             if( ( pxSocket == NULL ) || ( prvTCPSocketIsActive( pxSocket->u.xTCP.eTCPState ) == pdFALSE ) )
             {

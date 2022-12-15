@@ -71,7 +71,7 @@
  *         that socket is returned or else, a NULL pointer is returned.
  */
     FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
-                                         NetworkBufferDescriptor_t * pxNetworkBuffer )
+                                              NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
 
