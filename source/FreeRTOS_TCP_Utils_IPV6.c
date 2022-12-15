@@ -59,32 +59,33 @@
         NetworkEndPoint_t * pxEndPoint = pxSocket->pxEndPoint;
 
         if( pxEndPoint != NULL )
-		{
+        {
             /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
             #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
-            {
-                ulMSS = ipconfigTCP_MSS;
-            }
+                {
+                    ulMSS = ipconfigTCP_MSS;
+                }
             #else
-            {
-                ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
-            }
+                {
+                    ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
+                }
             #endif
 
             BaseType_t xResult;
 
             xResult = xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ),
-                                                &( pxSocket->u.xTCP.xRemoteIP_IPv6 ),
-                                                pxEndPoint->ipv6_settings.uxPrefixLength );
+                                            &( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6 ),
+                                            pxEndPoint->ipv6_settings.uxPrefixLength );
 
             if( xResult != 0 )
             {
                 ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
             }
         }
-            FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %xip:%u\n", ( unsigned ) ulMSS, ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, pxSocket->u.xTCP.usRemotePort ) );
 
-            pxSocket->u.xTCP.usMSS = ( uint16_t ) ulMSS;
+        FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %xip:%u\n", ( unsigned ) ulMSS, ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, pxSocket->u.xTCP.usRemotePort ) );
+
+        pxSocket->u.xTCP.usMSS = ( uint16_t ) ulMSS;
     }
     /*-----------------------------------------------------------*/
 

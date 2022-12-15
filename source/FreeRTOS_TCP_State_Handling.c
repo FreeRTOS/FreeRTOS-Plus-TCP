@@ -84,12 +84,6 @@
                                             uint32_t ulReceiveLength,
                                             UBaseType_t uxOptionsLength );
 
-/*
- * After a listening socket receives a new connection, it may duplicate itself.
- * The copying takes place in prvTCPSocketCopy.
- */
-    static BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
-                                        FreeRTOS_Socket_t * pxSocket );
 
 /**
  * @brief Check whether the socket is active or not.
@@ -912,11 +906,11 @@
     {
         if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
         {
-            return prvHandleListen_IPV6(pxSocket, pxNetworkBuffer);
+            return prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
         }
         else
         {
-            return prvHandleListen_IPV4(pxSocket, pxNetworkBuffer);
+            return prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
         }
     }
     /*-----------------------------------------------------------*/
@@ -932,8 +926,8 @@
  *
  * @return If all steps all successful, then pdTRUE is returned. Else, pdFALSE.
  */
-    static BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
-                                        FreeRTOS_Socket_t * pxSocket )
+    BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
+                                 FreeRTOS_Socket_t * pxSocket )
     {
         struct freertos_sockaddr xAddress;
         BaseType_t xResult;

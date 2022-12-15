@@ -92,8 +92,8 @@
         if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
         {
             prvSocketSetMSS_IPV6( pxSocket );
-		}
-		else
+        }
+        else
         {
             prvSocketSetMSS_IPV4( pxSocket );
         }
