@@ -435,8 +435,9 @@ void test_eGetDHCPState( void )
 
 void test_vDHCPProcess_NotResetAndIncorrectState( void )
 {
+    struct xNetworkEndPoint xEndPoint;
     xDHCPData.eDHCPState = eSendDHCPRequest;
-    vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
+    vDHCPProcess( pdFALSE, &xEndPoint );
 
     /* Since the expected state is incorrect, the state
      * should remain the same. */
@@ -450,7 +451,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGFail( void )
 
     /* Make random number generation fail. */
     xApplicationGetRandomNumber_ExpectAndReturn( &( xDHCPData.ulTransactionId ), pdFALSE );
-    vDHCPProcess( pdTRUE, eWaitingSendFirstDiscover );
+    vDHCPProcess( pdTRUE, &xEndPoint );
 
     /* Expected state is incorrect, but we are trying to reset
      * the DHCP the state machine. */
@@ -652,7 +653,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNULL( void )
     vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
     vIPNetworkUpCalls_Ignore();
 
-    vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
+    vDHCPProcess( pdFALSE, &xEndPoint );
 
     /* DHCP socket should be NULL */
     TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
@@ -685,7 +686,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNonNULL( void )
     /* Expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( xDHCPSocket, NULL );
 
-    vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
+    vDHCPProcess( pdFALSE, &xEndPoint );
 
     /* DHCP socket should be NULL */
     TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
@@ -720,7 +721,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookDefaultReturn( void )
     /* Expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( xDHCPSocket, NULL );
 
-    vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
+    vDHCPProcess( pdFALSE, &xEndPoint );
 
     /* DHCP socket should be NULL */
     TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
@@ -736,6 +737,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookDefaultReturn( void )
 void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButGNWFails( void )
 {
     struct xSOCKET xTestSocket;
+    NetworkEndPoint_t xEndPoint;
 
     /* This should remain unchanged. */
     xDHCPSocket = &xTestSocket;
@@ -749,7 +751,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButGNW
     /* Returning NULL will mean the prvSendDHCPDiscover fail. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
-    vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
+    vDHCPProcess( pdFALSE, &xEndPoint );
 
     /* DHCP socket should be NULL */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
@@ -773,7 +775,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNULL( void )
     /* Ignore the call. */
     vIPNetworkUpCalls_Ignore();
 
-    vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
+    vDHCPProcess( pdFALSE, &xEndPoint );
 
     /* DHCP socket should be NULL */
     TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
@@ -785,6 +787,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast( v
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint;
 
     /* This should remain unchanged. */
     xDHCPSocket = &xTestSocket;
@@ -806,7 +809,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast( v
     /* Since the send failed, a call to release the buffer should be there. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Stub( ReleaseUDPBuffer );
 
-    vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
+    vDHCPProcess( pdFALSE, &xEndPoint );
 
     /* DHCP socket should be NULL */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
@@ -820,6 +823,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsUseBroadCast( 
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint;
 
     /* This should remain unchanged. */
     xDHCPSocket = &xTestSocket;
@@ -841,7 +845,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsUseBroadCast( 
     /* Since the send failed, a call to release the buffer should be there. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Stub( ReleaseUDPBuffer );
 
-    vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
+    vDHCPProcess( pdFALSE, &xEndPoint );
 
     /* DHCP socket should be NULL */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
@@ -855,6 +859,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint;
 
     /* This should remain unchanged. */
     xDHCPSocket = &xTestSocket;
@@ -875,7 +880,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     /* Make the call to FreeRTOS_send succeed. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
-    vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
+    vDHCPProcess( pdFALSE, &xEndPoint );
 
     /* DHCP socket should be NULL */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
@@ -892,6 +897,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint;
 
     /* This should remain unchanged. */
     xDHCPSocket = &xTestSocket;
@@ -912,7 +918,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     /* Make the call to FreeRTOS_send succeed. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
-    vDHCPProcess( pdFALSE, eWaitingSendFirstDiscover );
+    vDHCPProcess( pdFALSE, &xEndPoint );
 
     /* DHCP socket should be NULL */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
