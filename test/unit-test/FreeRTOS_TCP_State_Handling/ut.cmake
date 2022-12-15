@@ -32,6 +32,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Transmission.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Reception.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Utils.h"
+            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/TCP_State_Handling_list_macros.h"
         )
 
 set(mock_include_list "")
