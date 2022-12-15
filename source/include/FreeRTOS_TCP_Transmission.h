@@ -69,6 +69,9 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
                               uint32_t ulLen,
                               BaseType_t xReleaseAfterSend );
 
+void prvTCPReturn_SetEndPoint( FreeRTOS_Socket_t * pxSocket,
+                                          NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                          size_t uxIPHeaderSize );
 /*
  * Let ARP look-up the MAC-address of the peer and initialise the first SYN
  * packet.

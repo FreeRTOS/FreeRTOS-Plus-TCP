@@ -133,8 +133,7 @@ static void prvFindIPv4Endpoint( NetworkBufferDescriptor_t * const pxNetworkBuff
 {
     if( pxNetworkBuffer->pxEndPoint == NULL )
     {
-        /*** TBD */
-        /* pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->ulIPAddress, 10 ); */
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.xIP_IPv4, 10 );
 
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
@@ -177,7 +176,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
 
         if( pxNetworkBuffer->pxEndPoint != NULL )
         {
-            vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPv6Address ) );
+            vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
 
             /* pxNetworkBuffer has been sent and released.
              * Make sure it won't be used again.. */
@@ -189,7 +188,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         ulIPAddress = pxNetworkBuffer->xIPAddress.xIP_IPv4;
 
         FreeRTOS_printf( ( "Looking up %xip with%s end-point\n",
-                           ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->ulIPAddress ),
+                           ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->xIPAddress.xIP_IPv4 ),
                            ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
 
         /* Add an entry to the ARP table with a null hardware address.
@@ -203,7 +202,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         /* 'ulIPAddress' might have become the address of the Gateway.
          * Find the route again. */
        
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->ulIPAddress, 11 ); 
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.xIP_IPv4, 11 ); 
 
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
@@ -236,9 +235,6 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
     /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
     const void * pvCopySource;
     void * pvCopyDest;
-    /* TBD */
-    /* NetworkInterface_t * pxInterface = NULL;
-    EthernetHeader_t * pxEthernetHeader = NULL; */
     BaseType_t xLostBuffer = pdFALSE;
 
     /* Map the UDP packet onto the start of the frame. */
@@ -278,7 +274,6 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 {
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
-    UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );

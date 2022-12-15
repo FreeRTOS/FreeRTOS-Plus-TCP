@@ -62,27 +62,6 @@
 /** @brief The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 
-/** @brief Part of the Ethernet and IP headers are always constant when sending an IPv4
- * UDP packet.  This array defines the constant parts, allowing this part of the
- * packet to be filled in using a simple memcpy() instead of individual writes. */
-/*lint -e708 (Info -- union initialization). */
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
-{
-    /* .ucBytes : */
-    {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
-    }
-};
 /*-----------------------------------------------------------*/
 
 /**
@@ -262,7 +241,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             /* 'ulIPAddress' might have become the address of the Gateway.
              * Find the route again. */
             
-            pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->ulIPAddress, 11 );
+            pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.xIP_IPv4, 11 );
 
             if( pxNetworkBuffer->pxEndPoint == NULL )
             {
@@ -290,8 +269,8 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
 
         if( pxNetworkBuffer->pxEndPoint != NULL )
         {
-            pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
-            pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
+            NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+            EthernetHeader_t * pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
             ( void ) memcpy( pxEthernetHeader->xSourceAddress.ucBytes, pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
             
             #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
@@ -400,9 +379,9 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                         void * pcData = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
                         FOnUDPReceive_t xHandler = ( FOnUDPReceive_t ) pxSocket->u.xUDP.pxHandleReceive;
                         xSourceAddress.sin_port = pxNetworkBuffer->usPort;
-                        xSourceAddress.sin_addr = pxNetworkBuffer->xIPAddress.xIP_IPv4;
+                        xSourceAddress.sin_addr.xIP_IPv4 = pxNetworkBuffer->xIPAddress.xIP_IPv4;
                         destinationAddress.sin_port = usPort;
-                        destinationAddress.sin_addr = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
+                        destinationAddress.sin_addr.xIP_IPv4 = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
 
                         /* The value of 'xDataLength' was proven to be at least the size of a UDP packet in prvProcessIPPacket(). */
                         if( xHandler( ( Socket_t ) pxSocket,
@@ -478,7 +457,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                     {
                         if( xIsDHCPSocket( pxSocket ) != 0 )
                         {
-                            ( void ) xSendDHCPEvent();
+                            ( void ) xSendDHCPEvent( pxNetworkBuffer->pxEndPoint );
                         }
                     }
                 #endif

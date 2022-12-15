@@ -160,6 +160,8 @@
             pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
             ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
             ulRemoteIP.xIP_IPv4 = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
+            ( void ) memset( ulRemoteIP.xIP_IPv6.ucBytes, 0, sizeof( IPv6_Address_t ) );
+            
 
             /* Find the destination socket, and if not found: return a socket listening to
              * the destination PORT. */

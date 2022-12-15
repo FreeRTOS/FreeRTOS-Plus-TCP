@@ -872,7 +872,7 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
 
     /* IF the following function should be declared in the NetworkInterface.c
      * linked in the project. */
-    pxFillInterfaceDescriptor( 0, &( xInterfaces[ 0 ] ) );
+    //TBD pxFillInterfaceDescriptor( 0, &( xInterfaces[ 0 ] ) );
     FreeRTOS_FillEndPoint( &( xInterfaces[ 0 ] ), &( xEndPoints[ 0 ] ), ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
     #if ( ipconfigUSE_DHCP != 0 )
         {
