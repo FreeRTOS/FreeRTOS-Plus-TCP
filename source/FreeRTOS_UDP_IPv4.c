@@ -101,7 +101,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
     }
 
     /* Determine the ARP cache status for the requested IP address. */
-    eReturned = eARPGetCacheEntry( &(ulIPAddress ), &(pxUDPPacket->xEthernetHeader.xDestinationAddress), &(pxEndPoint) );
+    eReturned = eARPGetCacheEntry( &( ulIPAddress ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
 
     if( pxNetworkBuffer->pxEndPoint == NULL )
     {
@@ -229,7 +229,6 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
         }
         else if( eReturned == eARPCacheMiss )
         {
-
             /* Add an entry to the ARP table with a null hardware address.
              * This allows the ARP timer to know that an ARP reply is
              * outstanding, and perform retransmissions if necessary. */
@@ -240,7 +239,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
 
             /* 'ulIPAddress' might have become the address of the Gateway.
              * Find the route again. */
-            
+
             pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.xIP_IPv4, 11 );
 
             if( pxNetworkBuffer->pxEndPoint == NULL )
@@ -252,7 +251,6 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
                 pxNetworkBuffer->xIPAddress.xIP_IPv4 = ulIPAddress;
                 vARPGenerateRequestPacket( pxNetworkBuffer );
             }
-
         }
         else
         {
@@ -272,7 +270,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
             EthernetHeader_t * pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
             ( void ) memcpy( pxEthernetHeader->xSourceAddress.ucBytes, pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
-            
+
             #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
                 {
                     if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
@@ -317,8 +315,8 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
  * @return pdPASS in case the UDP packet could be processed. Else pdFAIL is returned.
  */
 BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint16_t usPort,
-                                      BaseType_t * pxIsWaitingForARPResolution )
+                                           uint16_t usPort,
+                                           BaseType_t * pxIsWaitingForARPResolution )
 {
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;

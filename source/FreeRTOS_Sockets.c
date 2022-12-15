@@ -459,13 +459,13 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
     {
         /* Only Ethernet is currently supported. */
         #if ( ipconfigUSE_IPV6 == 0 )
-        {
-            configASSERT( xDomain == FREERTOS_AF_INET );
-        }
-        else
-        {
-            configASSERT( ( xDomain == FREERTOS_AF_INET ) || ( xDomain == FREERTOS_AF_INET6 ) );
-        }
+            {
+                configASSERT( xDomain == FREERTOS_AF_INET );
+            }
+            else
+            {
+                configASSERT( ( xDomain == FREERTOS_AF_INET ) || ( xDomain == FREERTOS_AF_INET6 ) );
+            }
         #endif
 
         /* Check if the UDP socket-list has been initialised. */
@@ -4614,19 +4614,19 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 }
                 else if( pxSocket->u.xTCP.usRemotePort == ( uint16_t ) uxRemotePort )
                 {
-                    if ( ulRemoteIP.xIP_IPv4 == 0 )
-                        {
-                            pxResult = pxTCPSocketLookup_IPv6( pxSocket, &ulRemoteIP.xIP_IPv6, ulRemoteIP.xIP_IPv4 );
-                        }
+                    if( ulRemoteIP.xIP_IPv4 == 0 )
+                    {
+                        pxResult = pxTCPSocketLookup_IPv6( pxSocket, &ulRemoteIP.xIP_IPv6, ulRemoteIP.xIP_IPv4 );
+                    }
                     else
+                    {
+                        if( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 == ulRemoteIP.xIP_IPv4 )
                         {
-                            if( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 == ulRemoteIP.xIP_IPv4 )
-                            {
-                                /* For sockets not in listening mode, find a match with
-                                 * xLocalPort, ulRemoteIP AND xRemotePort. */
-                                pxResult = pxSocket;
-                            }
+                            /* For sockets not in listening mode, find a match with
+                             * xLocalPort, ulRemoteIP AND xRemotePort. */
+                            pxResult = pxSocket;
                         }
+                    }
 
                     if( pxResult != NULL )
                     {

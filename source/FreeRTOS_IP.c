@@ -872,7 +872,7 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
 
     /* IF the following function should be declared in the NetworkInterface.c
      * linked in the project. */
-    //TBD pxFillInterfaceDescriptor( 0, &( xInterfaces[ 0 ] ) );
+    pxFillInterfaceDescriptor( 0, &( xInterfaces[ 0 ] ) );
     FreeRTOS_FillEndPoint( &( xInterfaces[ 0 ] ), &( xEndPoints[ 0 ] ), ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
     #if ( ipconfigUSE_DHCP != 0 )
         {
@@ -1444,7 +1444,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                         /* MISRA Ref 11.3.1 [Misaligned access] */
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                         /* coverity[misra_c_2012_rule_11_3_violation] */
-                        eReturned = eARPProcessPacket( ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer ) );
+                        eReturned = eARPProcessPacket( pxNetworkBuffer );
                     }
                     else
                     {

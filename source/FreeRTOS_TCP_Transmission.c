@@ -527,7 +527,7 @@
         return pxReturn;
     }
 
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Called by prvTCPReturnPacket(), this function makes sure that the network buffer
@@ -536,9 +536,9 @@
  * @param[in] pxNetworkBuffer: The network buffer carrying the outgoing message.
  * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
  */
-     void prvTCPReturn_SetEndPoint( FreeRTOS_Socket_t * pxSocket,
-                                          NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                          size_t uxIPHeaderSize )
+    void prvTCPReturn_SetEndPoint( FreeRTOS_Socket_t * pxSocket,
+                                   NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                   size_t uxIPHeaderSize )
     {
         IPHeader_t * pxIPHeader = NULL;
 

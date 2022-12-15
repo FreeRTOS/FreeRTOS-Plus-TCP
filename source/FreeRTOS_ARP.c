@@ -781,8 +781,8 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
             }
         }
     }
-    else if( ( *pulIPAddress == ipBROADCAST_IP_ADDRESS ) )//||               /* Is it the general broadcast address 255.255.255.255? */
-  //TBD           ( *pulIPAddress == xNetworkAddressing.ulBroadcastAddress ) ) /* Or a local broadcast address, eg 192.168.1.255? */
+    else if( ( *pulIPAddress == ipBROADCAST_IP_ADDRESS ) ) /*||               / * Is it the general broadcast address 255.255.255.255? * / */
+    /*TBD           ( *pulIPAddress == xNetworkAddressing.ulBroadcastAddress ) ) / * Or a local broadcast address, eg 192.168.1.255? * / */
     {
         /* This is a broadcast so it uses the broadcast MAC address. */
         ( void ) memcpy( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );

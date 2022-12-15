@@ -171,22 +171,22 @@
                 ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] );
 
             if( pxNetworkBuffer->pxEndPoint == NULL )
+            {
+                prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
+
+                if( pxNetworkBuffer->pxEndPoint == NULL )
                 {
-                    prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
-
-                    if( pxNetworkBuffer->pxEndPoint == NULL )
+                    if( xDoRelease != pdFALSE )
                     {
-                        if( xDoRelease != pdFALSE )
-                        {
-                            vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                        }
-
-                        pxNetworkBuffer = NULL;
+                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
                     }
+
+                    pxNetworkBuffer = NULL;
                 }
+            }
 
             /* Fill the packet, using hton translations. */
-            if( pxNetworkBuffer != NULL && pxSocket != NULL )
+            if( ( pxNetworkBuffer != NULL ) && ( pxSocket != NULL ) )
             {
                 /* Calculate the space in the RX buffer in order to advertise the
                  * size of this socket's reception window. */

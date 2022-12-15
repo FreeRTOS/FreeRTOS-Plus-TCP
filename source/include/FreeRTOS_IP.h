@@ -342,7 +342,7 @@ void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH
  * only be called from an application. */
 BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
                                TickType_t uxTicksToWait );
-                               
+
 BaseType_t FreeRTOS_IsNetworkUp( void );
 
 #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )

@@ -80,21 +80,21 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
     eARPLookupResult_t eReturned = eARPCacheMiss;
     uint32_t ulIPAddress;
 
-   
-        UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+
+    UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
         FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
-                            pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
-                            ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
+                           pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
+                           ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
 
         if( pxNetworkBuffer->pxEndPoint != NULL )
         {
             vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
 
             /* pxNetworkBuffer has been sent and released.
-                * Make sure it won't be used again.. */
+             * Make sure it won't be used again.. */
             *pxLostBuffer = pdTRUE;
         }
     }
@@ -116,7 +116,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
 
         /* 'ulIPAddress' might have become the address of the Gateway.
          * Find the route again. */
-       
+
         pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.xIP_IPv4, 11 );
 
         if( pxNetworkBuffer->pxEndPoint == NULL )
@@ -164,8 +164,8 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-    
- 
+
+
     BaseType_t xIsIPV6 = pdTRUE;
 
     /* Remember the original address. It might get replaced with
@@ -182,7 +182,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     {
         uxPayloadSize = pxNetworkBuffer->xDataLength - sizeof( UDPPacket_t );
     }
- 
+
     /* Look in the IPv6 MAC-address cache for the target IP-address. */
     eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ),
                                   &( pxEndPoint ) );
@@ -286,6 +286,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
         else if( eReturned == eARPCacheMiss )
         {
             eReturned = prvStartLookup( pxNetworkBuffer, &( xLostBuffer ) );
+
             if( pxNetworkBuffer->pxEndPoint != NULL )
             {
                 vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
@@ -294,7 +295,6 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
                  * Make sure it won't be used again.. */
                 xLostBuffer = pdTRUE;
             }
-
         }
         else
         {
@@ -320,7 +320,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
             ( void ) memcpy( pxEthernetHeader->xSourceAddress.ucBytes,
                              pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes,
                              ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
-            
+
             #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
                 {
                     if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
@@ -365,8 +365,8 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
  * @return pdPASS in case the UDP packet could be processed. Else pdFAIL is returned.
  */
 BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint16_t usPort,
-                                      BaseType_t * pxIsWaitingForARPResolution )
+                                           uint16_t usPort,
+                                           BaseType_t * pxIsWaitingForARPResolution )
 {
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
@@ -410,7 +410,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                 {
                     size_t uxIPLength = uxIPHeaderSizePacket( pxNetworkBuffer );
                     size_t uxPayloadSize;
-        
+
                     /* Did the owner of this socket register a reception handler ? */
                     if( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xUDP.pxHandleReceive ) )
                     {
@@ -419,7 +419,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
                         void * pcData = &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPLength + ipSIZE_OF_UDP_HEADER ] );
                         FOnUDPReceive_t xHandler = ( FOnUDPReceive_t ) pxSocket->u.xUDP.pxHandleReceive;
-                        
+
                         xSourceAddress.sin_port = pxNetworkBuffer->usPort;
                         destinationAddress.sin_port = usPort;
                         ( void ) memcpy( xSourceAddress.sin_addr.xIP_IPv6.ucBytes, pxUDPPacket_IPv6->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
