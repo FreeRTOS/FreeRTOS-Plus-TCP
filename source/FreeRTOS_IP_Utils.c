@@ -53,6 +53,8 @@
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
+#include "FreeRTOS_Routing.h"
+#include "FreeRTOS_ND.h"
 /*-----------------------------------------------------------*/
 
 /* Used to ensure the structure packing is having the desired effect.  The
@@ -71,16 +73,6 @@
 /** @brief Time delay between repeated attempts to initialise the network hardware. */
 #ifndef ipINITIALISATION_RETRY_DELAY
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
-#endif
-
-#if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-    /* used for unit testing */
-
-/* MISRA Ref 8.9.1 [File scoped variables] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
-/* coverity[misra_c_2012_rule_8_9_violation] */
-/* coverity[single_use] */
-    static BaseType_t xCallEventHook = pdFALSE;
 #endif
 
 #if ( ipconfigHAS_PRINTF != 0 )
@@ -793,10 +785,10 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
                     vRAProcess( pdTRUE, pxEndPoint );
                 }
                 else
-            #endif /* ( #if( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* ( #if( ipconfigUSE_IPV6 != 0 ) */
 
             {
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
                     {
                         ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );

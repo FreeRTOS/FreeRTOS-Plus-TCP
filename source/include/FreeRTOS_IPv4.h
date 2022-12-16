@@ -78,8 +78,6 @@ uint32_t FreeRTOS_GetDNSServerAddress( void );
 uint32_t FreeRTOS_GetNetmask( void );
 uint32_t FreeRTOS_GetIPAddress( void );
 
-void FreeRTOS_ClearARP( void );
-
 /* Show all valid ARP entries
  */
 #if ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 )
@@ -94,12 +92,6 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
 eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPacket,
                                                const NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                UBaseType_t uxHeaderLength );
-
-/* xARPWaitResolution checks if an IPv4 address is already known. If not
- * it may send an ARP request and wait for a reply.  This function will
- * only be called from an application. */
-BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
-                               TickType_t uxTicksToWait );
 
 /* Check if the IP-header is carrying options. */
 eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * const pxNetworkBuffer );

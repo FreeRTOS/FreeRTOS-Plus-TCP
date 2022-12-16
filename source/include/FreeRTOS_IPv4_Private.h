@@ -24,7 +24,7 @@
  * https://www.FreeRTOS.org
  * https://github.com/FreeRTOS
  */
- 
+
 #ifndef FREERTOS_IPV4_PRIVATE_H
 #define FREERTOS_IPV4_PRIVATE_H
 /* *INDENT-OFF* */
@@ -47,32 +47,6 @@
 /* The value of 'ipUDP_PAYLOAD_IP_TYPE_OFFSET' is 42 + 6 = 48 bytes. */
 #define ipUDP_PAYLOAD_IP_TYPE_OFFSET    ( sizeof( UDPPacket_t ) + ipIP_TYPE_OFFSET )
 
-#if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
-
-/* Ethernet frame types. */
-    #define ipARP_FRAME_TYPE                ( 0x0608U )
-    #define ipIPv4_FRAME_TYPE               ( 0x0008U )
-
-/* ARP related definitions. */
-    #define ipARP_PROTOCOL_TYPE             ( 0x0008U )
-    #define ipARP_HARDWARE_TYPE_ETHERNET    ( 0x0100U )
-    #define ipARP_REQUEST                   ( 0x0100U )
-    #define ipARP_REPLY                     ( 0x0200U )
-
-#else /* if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
-
-/* Ethernet frame types. */
-    #define ipARP_FRAME_TYPE                ( 0x0806U )
-    #define ipIPv4_FRAME_TYPE               ( 0x0800U )
-
-/* ARP related definitions. */
-    #define ipARP_PROTOCOL_TYPE             ( 0x0800U )
-    #define ipARP_HARDWARE_TYPE_ETHERNET    ( 0x0001U )
-    #define ipARP_REQUEST                   ( 0x0001 )
-    #define ipARP_REPLY                     ( 0x0002 )
-
-#endif /* ipconfigBYTE_ORDER */
-
 #include "pack_struct_start.h"
 struct xIP_HEADER
 {
@@ -90,34 +64,9 @@ struct xIP_HEADER
 #include "pack_struct_end.h"
 typedef struct xIP_HEADER IPHeader_t;
 
-#include "pack_struct_start.h"
-struct xARP_HEADER
-{
-    uint16_t usHardwareType;              /**< Network Link Protocol type                     0 +  2 =  2 */
-    uint16_t usProtocolType;              /**< The internetwork protocol                      2 +  2 =  4 */
-    uint8_t ucHardwareAddressLength;      /**< Length in octets of a hardware address         4 +  1 =  5 */
-    uint8_t ucProtocolAddressLength;      /**< Length in octets of the internetwork protocol  5 +  1 =  6 */
-    uint16_t usOperation;                 /**< Operation that the sender is performing        6 +  2 =  8 */
-    MACAddress_t xSenderHardwareAddress;  /**< Media address of the sender                    8 +  6 = 14 */
-    uint8_t ucSenderProtocolAddress[ 4 ]; /**< Internetwork address of sender                14 +  4 = 18  */
-    MACAddress_t xTargetHardwareAddress;  /**< Media address of the intended receiver        18 +  6 = 24  */
-    uint32_t ulTargetProtocolAddress;     /**< Internetwork address of the intended receiver 24 +  4 = 28  */
-}
-#include "pack_struct_end.h"
-typedef struct xARP_HEADER ARPHeader_t;
-
 /*-----------------------------------------------------------*/
 /* Nested protocol packets.                                  */
 /*-----------------------------------------------------------*/
-
-#include "pack_struct_start.h"
-struct xARP_PACKET
-{
-    EthernetHeader_t xEthernetHeader; /**< The ethernet header of an ARP Packet  0 + 14 = 14 */
-    ARPHeader_t xARPHeader;           /**< The ARP header of an ARP Packet       14 + 28 = 42 */
-}
-#include "pack_struct_end.h"
-typedef struct xARP_PACKET ARPPacket_t;
 
 #include "pack_struct_start.h"
 struct xIP_PACKET
@@ -158,11 +107,6 @@ struct xTCP_PACKET
 }
 #include "pack_struct_end.h"
 typedef struct xTCP_PACKET TCPPacket_t;
-
-/*
- * Processes incoming ARP packets.
- */
-eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
