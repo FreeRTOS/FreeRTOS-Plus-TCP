@@ -38,6 +38,7 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_DNS.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "NetworkBufferManagement.h"
@@ -106,6 +107,7 @@ static BaseType_t xGMACWaitLS( TickType_t xMaxTime );
 /*
  * Called from the ASF GMAC driver.
  */
+
 static void prvRxCallback( uint32_t ulStatus );
 static void prvTxCallback( uint32_t ulStatus,
                            uint8_t * puc_buffer );
@@ -124,6 +126,17 @@ static BaseType_t prvGMACInit( void );
  * Try to obtain an Rx packet from the hardware.
  */
 static uint32_t prvEMACRxPoll( void );
+
+static NetworkInterface_t * pxMyInterface;
+
+static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface  );
+
+static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface );
+
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface, NetworkBufferDescriptor_t * const pxNetworkBuffer, BaseType_t xReleaseAfterSend );
+
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex, NetworkInterface_t * pxInterface );        
+
 
 /*-----------------------------------------------------------*/
 
@@ -207,10 +220,34 @@ static void prvTxCallback( uint32_t ulStatus,
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceInitialise( void )
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                          NetworkInterface_t * pxInterface )
+{
+    static char pcName[ 8 ];
+
+/* This function pxFillInterfaceDescriptor() adds a network-interface.
+ * Make sure that the object pointed to by 'pxInterface'
+ * is declared static or global, and that it will remain to exist. */
+
+    snprintf( pcName, sizeof( pcName ), "eth%ld", xEMACIndex );
+
+    memset( pxInterface, '\0', sizeof( *pxInterface ) );
+    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pfInitialise = xNetworkInterfaceInitialise;
+    pxInterface->pfOutput = xNetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xGetPhyLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+    pxMyInterface = pxInterface;
+
+    return pxInterface;
+}
+
+static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     const TickType_t x5_Seconds = 5000UL;
-
+    (void) pxInterface;
     if( xEMACTaskHandle == NULL )
     {
         prvGMACInit();
@@ -242,10 +279,10 @@ BaseType_t xNetworkInterfaceInitialise( void )
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xGetPhyLinkStatus( void )
+static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
-    BaseType_t xResult;
-
+    BaseType_t xResult = pdFALSE;
+    (void) pxInterface;
     /* This function returns true if the Link Status in the PHY is high. */
     if( ( ulPHYLinkStatus & BMSR_LINK_STATUS ) != 0 )
     {
@@ -260,12 +297,13 @@ BaseType_t xGetPhyLinkStatus( void )
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                    NetworkBufferDescriptor_t * const pxDescriptor,
                                     BaseType_t bReleaseAfterSend )
 {
 /* Do not wait too long for a free TX DMA buffer. */
     const TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 50u );
-
+    (void) pxInterface;
     do
     {
         if( ( ulPHYLinkStatus & BMSR_LINK_STATUS ) == 0 )
