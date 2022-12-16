@@ -34,7 +34,8 @@
 #include "FreeRTOSIPConfigDefaults.h"
 #include "IPTraceMacroDefaults.h"
 
-/* Standard includes. */
+/* FreeRTOS+TCP includes. */
+/*#include "FreeRTOS_IP.h" */
 
 #define dnsPARSE_ERROR              0UL
 
@@ -74,6 +75,7 @@
 
 /* Host types. */
     #define dnsTYPE_A_HOST            0x01U /**< DNS type A host. */
+    #define dnsTYPE_AAAA_HOST         0x001CU
     #define dnsCLASS_IN               0x01U /**< DNS class IN (Internet). */
 
 /* Maximum hostname length as defined in RFC 1035 section 3.1. */
@@ -118,18 +120,45 @@
  * The target IP address will be 224.0.0.252
  */
     #if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
-        #define ipLLMNR_IP_ADDR    0xE00000FCUL
+        #define ipLLMNR_IP_ADDR      0xE00000FCUL
     #else
-        #define ipLLMNR_IP_ADDR    0xFC0000E0UL
+        #define ipLLMNR_IP_ADDR      0xFC0000E0UL
     #endif /* ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN */
+    #if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
+        #define ipMDNS_IP_ADDRESS    0xe00000fbU /* 224.0.0.251 */
+    #else
+        #define ipMDNS_IP_ADDRESS    0xfb0000e0U /* 224.0.0.251 */
+    #endif
+    #define ipMDNS_PORT              5353U       /* Standard mDNS port. */
+    #define ipLLMNR_PORT             5355        /* Standard LLMNR port. */
+    #define ipDNS_PORT               53          /* Standard DNS port. */
+    #define ipDHCP_CLIENT            67
+    #define ipDHCP_SERVER            68
+    #define ipNBNS_PORT              137 /* NetBIOS Name Service. */
+    #define ipNBDGM_PORT             138 /* Datagram Service, not included. */
 
-    #define ipLLMNR_PORT           5355 /* Standard LLMNR port. */
-    #define ipDNS_PORT             53   /* Standard DNS port. */
-    #define ipDHCP_CLIENT          67
-    #define ipDHCP_SERVER          68
-    #define ipNBNS_PORT            137 /* NetBIOS Name Service. */
-    #define ipNBDGM_PORT           138 /* Datagram Service, not included. */
+/** @brief freertos_addrinfo is the equivalent of 'struct addrinfo'. */
+    struct freertos_addrinfo
+    {
+        BaseType_t ai_flags;                /**< The field is included for completeness, but it is not used. */
+        BaseType_t ai_family;               /**< The type of IP-address, either FREERTOS_AF_INET4 or FREERTOS_AF_INET6. */
+        BaseType_t ai_socktype;             /**< n.a. */
+        BaseType_t ai_protocol;             /**< n.a. */
+        socklen_t ai_addrlen;               /**< The length of the address, either ipSIZE_OF_IPv4_ADDRESS or ipSIZE_OF_IPv6_ADDRESS. */
+        struct freertos_sockaddr * ai_addr; /**< The IP-address. Can be mapped onto 'freertos_sockaddr6' in case of IPv6. */
+        char * ai_canonname;                /**< The name of the host. */
+        struct freertos_addrinfo * ai_next; /**< A pointer to the next find result, or NULL. */
+        struct
+        {
+            /* In order to avoid allocations, reserve space here for *ai_addr and *ai_canonname. */
+            struct freertos_sockaddr sockaddr;
 
+            #if ( ipconfigUSE_DNS_CACHE != 0 )
+                char ucName[ ipconfigDNS_CACHE_NAME_LENGTH ];
+            #endif
+        }
+        xPrivateStorage; /**< In order to avoid extra calls to malloc, the necessary space is reserved 'statically'. */
+    };
 /* DNS answer record header. */
     #include "pack_struct_start.h"
     struct xDNSAnswerRecord
@@ -157,6 +186,37 @@
     #include "pack_struct_end.h"
     typedef struct xDNSMessage DNSMessage_t;
 
+/** @brief A struct with a set of variables that are shared among the helper functions
+ *         for the function 'DNS_ParseDNSReply()'. For internal use only.
+ */
+    typedef struct xParseSet
+    {
+        DNSMessage_t * pxDNSMessageHeader; /**< A pointer to the UDP payload buffer where the DNS message is stored. */
+        uint16_t usQuestions;              /**< The number of DNS questions that were asked. */
+        uint8_t * pucUDPPayloadBuffer;     /**< A pointer to the original UDP load buffer. */
+        uint8_t * pucByte;                 /**< A pointer that is used while parsing. */
+        size_t uxBufferLength;             /**< The total number of bytes received in the UDP payload. */
+        size_t uxSourceBytesRemaining;     /**< As pucByte is incremented, 'uxSourceBytesRemaining' will be decremented. */
+        uint16_t usType;                   /**< The type of address, recognised are dnsTYPE_A_HOST ( Ipv4 ) and
+                                            *   dnsTYPE_AAAA_HOST ( IPv6 ). */
+        uint32_t ulIPAddress;              /**< The IPv4 address found. In an IPv6 look-up, store a non-zero value when
+                                            *   an IPv6 address was found. */
+        size_t uxAddressLength;            /**< The size of the address, either ipSIZE_OF_IPv4_ADDRESS or
+                                            *   ipSIZE_OF_IPv6_ADDRESS */
+        uint16_t usNumARecordsStored;      /**< The number of A-records stored during a look-up. */
+        uint16_t usPortNumber;             /**< The port number that belong to the protocol ( DNS, MDNS etc ). */
+        #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 )
+            uint16_t usClass;              /**< Only the value 'dnsCLASS_IN' is recognised, which stands for "Internet". */
+            char * pcRequestedName;        /**< A pointer to the full name of the host being looked up. */
+        #endif
+        #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 ) || ( ipconfigUSE_MDNS == 1 )
+            BaseType_t xDoStore;                          /**< Becomes true when a DNS reply was requested by this device,
+                                                           *   i.e. it has a matching request ID. */
+            char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ]; /**< A copy of the name that is mentioned in the questions. */
+        #endif
+        struct freertos_addrinfo * pxLastAddress;         /**< This variable is used while creating a linked-list of IP-addresses. */
+        struct freertos_addrinfo ** ppxLastAddress;       /**< This variable is also used while creating a linked-list of IP-addresses. */
+    } ParseSet_t;
     #if ( ipconfigUSE_LLMNR == 1 )
 
         #include "pack_struct_start.h"
@@ -216,7 +276,7 @@
  */
         typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
                                         void * /* pvSearchID */,
-                                        uint32_t /* ulIPAddress */ );
+                                        struct freertos_addrinfo * /* pxAddressInfo */ );
         /** @brief The structure to hold information for a DNS callback. */
         typedef struct xDNS_Callback
         {
@@ -225,6 +285,7 @@
             TimeOut_t uxTimeoutState;      /**< Timeout state. */
             void * pvSearchID;             /**< Search ID of the callback function. */
             struct xLIST_ITEM xListItem;   /**< List struct. */
+            BaseType_t xIsIPv6;            /**< Remember whether this was a IPv6 lookup. */
             char pcName[ 1 ];              /**< 1 character name. */
         } DNSCallback_t;
     #endif /* if ( ipconfigDNS_USE_CALLBACKS != 0 ) */
@@ -239,13 +300,26 @@
         size_t uxPayloadSize;       /**< Total buffer size */
     } DNSBuffer_t;
 
+/** @brief A struct that can hold either an IPv4 or an IPv6 address. */
+    typedef struct xxIPv46_Address
+    {
+        /* A struct that can hold either an IPv4 or an IPv6 address. */
+        uint32_t ulIPAddress;         /**< The IPv4-address. */
+        IPv6_Address_t xAddress_IPv6; /**< The IPv6-address. */
+        BaseType_t xIs_IPv6;          /**< pdTRUE if the IPv6 member is used. */
+    } IPv46_Address_t;
+
     #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
 
 /*
  * The following function should be provided by the user and return true if it
  * matches the domain name.
  */
-        extern BaseType_t xApplicationDNSQueryHook( const char * pcName );
+        /* Even though the function is defined in main.c, the rule is violated. */
+        /* misra_c_2012_rule_8_6_violation */
+        extern BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
+                                                    const char * pcName );
+
     #endif /* ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
 #endif /* ipconfigUSE_DNS */
 #endif /* ifndef FREERTOS_DNS_GLOBALS_H */
