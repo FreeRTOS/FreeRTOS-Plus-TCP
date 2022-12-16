@@ -206,6 +206,9 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
     static UBaseType_t uxQueueMinimumSpace = ipconfigEVENT_QUEUE_LENGTH;
 #endif
 
+/** @brief Stores the network interfaces */
+static NetworkInterface_t xInterfaces[ 1 ];
+
 /*-----------------------------------------------------------*/
 
 /* Coverity wants to make pvParameters const, which would make it incompatible. Leave the

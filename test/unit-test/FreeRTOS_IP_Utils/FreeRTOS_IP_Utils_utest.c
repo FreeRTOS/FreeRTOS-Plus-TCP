@@ -65,6 +65,7 @@
 
 #include "FreeRTOSIPConfig.h"
 
+extern NetworkInterface_t xInterfaces[ 1 ];
 
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     extern BaseType_t xCallEventHook;
@@ -280,12 +281,13 @@ void test_prvProcessNetworkDownEvent_Pass( void )
     NetworkEndPoint_t xEndPoint;
 
     xCallEventHook = pdFALSE;
+    xInterfaces[0].pfInitialise = xNetworkInterfaceInitialise_CMockExpectAndReturn;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
     FreeRTOS_ClearARP_ExpectAnyArgs();
 
-    xNetworkInterfaceInitialise_ExpectAndReturn( pdPASS );
+    xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces, pdPASS );
 
     vDHCPProcess_Expect( pdTRUE, eInitialWait );
 
@@ -299,7 +301,7 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     FreeRTOS_ClearARP_Expect(&xEndPoint);
 
-    xNetworkInterfaceInitialise_ExpectAndReturn( pdPASS );
+    xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces, pdPASS );
 
     vDHCPProcess_Expect( pdTRUE, eInitialWait );
 
@@ -313,12 +315,13 @@ void test_prvProcessNetworkDownEvent_Fail( void )
     NetworkEndPoint_t xEndPoint;
 
     xCallEventHook = pdFALSE;
+    xInterfaces[0].pfInitialise = xNetworkInterfaceInitialise_CMockExpectAndReturn;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
     FreeRTOS_ClearARP_Expect(&xEndPoint);
 
-    xNetworkInterfaceInitialise_ExpectAndReturn( pdFAIL );
+    xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces, pdFAIL );
 
     vTaskDelay_ExpectAnyArgs();
 
