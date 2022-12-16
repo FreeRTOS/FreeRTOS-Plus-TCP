@@ -162,7 +162,7 @@ typedef struct xTCP_PACKET TCPPacket_t;
 /*
  * Processes incoming ARP packets.
  */
-eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * pxNetworkBuffer );
+eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

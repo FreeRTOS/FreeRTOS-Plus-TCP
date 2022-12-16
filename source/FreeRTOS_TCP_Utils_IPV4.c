@@ -55,22 +55,22 @@
  */
     void prvSocketSetMSS_IPV4( FreeRTOS_Socket_t * pxSocket )
     {
-        uint32_t ulMSS;
-        NetworkEndPoint_t * pxEndPoint = pxSocket->pxEndPoint;
+        uint32_t ulMSS = ipconfigTCP_MSS;
+        const NetworkEndPoint_t * pxEndPoint = pxSocket->pxEndPoint;
 
         if( pxEndPoint != NULL )
         {
             /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
             #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
                 {
-                    ulMSS = ipconfigTCP_MSS;
+                    ulMSS = ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) );
                 }
             #else
                 {
                     ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
                 }
             #endif
-
+            
             if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 ) ^ *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) != 0U )
             {
                 /* Data for this peer will pass through a router, and maybe through

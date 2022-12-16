@@ -64,30 +64,6 @@
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
-
-
-/** @brief When closing a socket an event is posted to the Network Event Queue.
- *         If the queue is full, then the event is not posted and the socket
- *         can be orphaned. To prevent this, the below variable is used to keep
- *         track of any socket which needs to be closed. This variable can be
- *         accessed by the IP task only. Thus, preventing any race condition.
- */
-    /* MISRA Ref 8.9.1 [File scoped variables] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
-    /* coverity[misra_c_2012_rule_8_9_violation] */
-    static FreeRTOS_Socket_t * xSocketToClose = NULL;
-
-/** @brief When a connection is coming in on a reusable socket, and the
- *         SYN phase times out, the socket must be put back into eTCP_LISTEN
- *         mode, so it can accept a new connection again.
- *         This variable can be accessed by the IP task only. Thus, preventing any
- *         race condition.
- */
-    /* MISRA Ref 8.9.1 [File scoped variables] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
-    /* coverity[misra_c_2012_rule_8_9_violation] */
-    static FreeRTOS_Socket_t * xSocketToListen = NULL;
-
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
 /*
@@ -134,7 +110,6 @@
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
         FreeRTOS_Socket_t * pxSocket;
-        IP_Address_t * pxRemoteAddres;
         uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
         uint32_t ulLocalIP;
         uint16_t usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
@@ -153,15 +128,12 @@
         {
             /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
 
+            ulLocalIP = *ipLOCAL_IP_ADDRESS_POINTER;
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
-
-            IPHeader_IPv6_t * pxIPHeader_IPv6;
-            ulLocalIP = *ipLOCAL_IP_ADDRESS_POINTER;
-            pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-            ( void ) memcpy( &( pxRemoteAddres->xIP_IPv6 ), &( pxIPHeader_IPv6->xSourceAddress ), sizeof( IPv6_Address_t ) );
-            ( void ) memset( &( ulRemoteIP.xIP_IPv6 ), 0, sizeof( IPv6_Address_t ) );
+            const IPHeader_IPv6_t * pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+            ( void ) memcpy( ulRemoteIP.xIP_IPv6.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, sizeof( IPv6_Address_t ) );
 
             /* Find the destination socket, and if not found: return a socket listing to
              * the destination PORT. */

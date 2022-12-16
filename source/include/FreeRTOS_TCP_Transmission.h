@@ -53,6 +53,23 @@ void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
                          uint32_t ulLen,
                          BaseType_t xReleaseAfterSend );
 
+/**
+ * Called by prvTCPReturnPacket(), this function will set the the window
+ * size on this side: 'xTCPHeader.usWindow'.
+ */
+void prvTCPReturn_CheckTCPWindow( FreeRTOS_Socket_t * pxSocket,
+                                             const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                             size_t uxIPHeaderSize );
+
+/*
+ * Called by prvTCPReturnPacket(), this function sets the sequence and ack numbers
+ * in the TCP-header.
+ */
+void prvTCPReturn_SetSequenceNumber( FreeRTOS_Socket_t * pxSocket,
+                                                const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                size_t uxIPHeaderSize,
+                                                uint32_t ulLen );
+
 /*
  * Return or send a packet to the other party.
  */

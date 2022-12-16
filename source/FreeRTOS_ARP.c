@@ -124,13 +124,17 @@ static TickType_t xLastGratuitousARPTime = 0U;
  *
  * @return An enum which says whether to return the frame or to release it.
  */
-eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
+eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
+    /* MISRA Ref 11.3.1 [Misaligned access] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
     ARPPacket_t * pxARPFrame = ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     eFrameProcessingResult_t eReturn = eReleaseBuffer;
     ARPHeader_t * pxARPHeader;
     uint32_t ulTargetProtocolAddress, ulSenderProtocolAddress;
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+
+    /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
     const void * pvCopySource;
     void * pvCopyDest;
     NetworkEndPoint_t * pxTargetEndPoint = pxNetworkBuffer->pxEndPoint;
@@ -1037,8 +1041,8 @@ void vARPSendGratuitous( void )
 void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    NetworkEndPoint_t * pxEndPoint;
-    NetworkInterface_t * pxInterface;
+    const NetworkEndPoint_t * pxEndPoint;
+    const NetworkInterface_t * pxInterface;
 
     for( pxInterface = FreeRTOS_FirstNetworkInterface();
          pxInterface != NULL;
