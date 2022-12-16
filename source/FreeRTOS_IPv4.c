@@ -122,8 +122,8 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
                 eReturn = eReleaseBuffer;
             }
             else if(
-                ( pxNetworkBuffer->pxEndPoint == NULL ) &&
                 ( FreeRTOS_FindEndPointOnIP_IPv4( ulDestinationIPAddress, 4 ) == NULL ) &&
+                ( pxNetworkBuffer->pxEndPoint == NULL ) &&
                 /* Is it an IPv4 broadcast address x.x.x.255 ? */
                 ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) &&
                 ( xIsIPv4Multicast( ulDestinationIPAddress ) == pdFALSE ) &&
@@ -223,7 +223,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
                     if( eReturn == eProcessBuffer )
                     {
                         uint8_t ucProtocol;
-                        ProtocolHeaders_t * pxProtocolHeaders;
+                        const ProtocolHeaders_t * pxProtocolHeaders;
 
                         /* ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS is defined as 0,
                          * and so UDP packets carrying a protocol checksum of 0, will
@@ -233,10 +233,16 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
                         {
                             const IPHeader_IPv6_t * pxIPPacket_IPv6;
 
+                            /* MISRA Ref 11.3.1 [Misaligned access] */
+                            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                            /* coverity[misra_c_2012_rule_11_3_violation] */
                             pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
 
                             ucProtocol = pxIPPacket_IPv6->ucNextHeader;
+                            /* MISRA Ref 11.3.1 [Misaligned access] */
+                            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                            /* coverity[misra_c_2012_rule_11_3_violation] */
                             pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
                         }
                         else
@@ -303,6 +309,9 @@ eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * c
 
     #if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 )
         {
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             IPHeader_t * pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
             /* All structs of headers expect a IP header size of 20 bytes

@@ -195,22 +195,12 @@
         struct xNetworkEndPoint * pxNext;        /**< The next end-point in the chain. */
     } NetworkEndPoint_t;
 
+    #define END_POINT_USES_DHCP( pxEndPoint )    ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bWantDHCP != pdFALSE_UNSIGNED ) )
+    #define END_POINT_USES_RA( pxEndPoint )      ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 != pdFALSE_UNSIGNED ) && ( ( pxEndPoint )->bits.bWantRA != pdFALSE_UNSIGNED ) )
 
-    #if ( ipconfigUSE_IPV6 != 0 )
-        #define END_POINT_USES_DHCP( pxEndPoint )    ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bWantDHCP != pdFALSE_UNSIGNED ) )
-        #define END_POINT_USES_RA( pxEndPoint )      ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 != pdFALSE_UNSIGNED ) && ( ( pxEndPoint )->bits.bWantRA != pdFALSE_UNSIGNED ) )
+    #define ENDPOINT_IS_IPv4( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 == 0U ) )
+    #define ENDPOINT_IS_IPv6( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 != 0U ) )
 
-        #define ENDPOINT_IS_IPv4( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 == 0U ) )
-        #define ENDPOINT_IS_IPv6( pxEndPoint )       ( ( ( pxEndPoint ) != NULL ) && ( ( pxEndPoint )->bits.bIPv6 != 0U ) )
-
-    #else /* if ( ipconfigUSE_IPV6 != 0 ) */
-        #define END_POINT_USES_DHCP( pxEndPoint )    ( ( pxEndPoint )->bits.bWantDHCP != pdFALSE_UNSIGNED )
-        #define END_POINT_USES_RA( pxEndPoint )      ( ipFALSE_BOOL )
-
-        #define ENDPOINT_IS_IPv4( pxEndPoint )       ( ipTRUE_BOOL )
-        #define ENDPOINT_IS_IPv6( pxEndPoint )       ( ipFALSE_BOOL )
-
-    #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
 
 /*
  * Add a new physical Network Interface.  The object pointed to by 'pxInterface'

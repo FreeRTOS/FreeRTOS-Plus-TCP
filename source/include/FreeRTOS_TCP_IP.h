@@ -164,6 +164,20 @@ typedef enum eTCP_STATE
 /* Two macro's that were introduced to work with both IPv4 and IPv6. */
 #define xIPHeaderSize( pxNetworkBuffer )    ( ipSIZE_OF_IPv4_HEADER )          /**< Size of IP Header. */
 
+struct xSOCKET;
+
+/*
+ * For anti-hang protection and TCP keep-alive messages.  Called in two places:
+ * after receiving a packet and after a state change.  The socket's alive timer
+ * may be reset.
+ */
+void prvTCPTouchSocket( struct xSOCKET * pxSocket );
+
+/*
+ * Calculate when this socket needs to be checked to do (re-)transmissions.
+ */
+TickType_t prvTCPNextTimeout( struct xSOCKET * pxSocket );
+
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
