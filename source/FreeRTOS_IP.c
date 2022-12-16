@@ -870,7 +870,6 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
 {
     BaseType_t xReturn = pdFALSE;
     NetworkEndPoint_t * pxFirstEndPoint;
-    static NetworkInterface_t xInterfaces[ 1 ];
     static NetworkEndPoint_t xEndPoints[ 1 ];
 
     /* IF the following function should be declared in the NetworkInterface.c
