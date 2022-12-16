@@ -582,6 +582,7 @@ mtu
 multicastframesfilter
 mutex
 mutexes
+mydevice
 na
 nack
 nanosec
@@ -717,6 +718,7 @@ ppucdata
 ppucrecvdata
 ppxaddressinfo
 ppxendpoint
+ppxlastaddress
 ppxnetworkbuffer
 ppxresult
 pr
@@ -916,6 +918,7 @@ pxipheader
 pxippacket
 pxiswaitingforarpresolution
 pxiterator
+pxlastaddress
 pxlength
 pxlist
 pxlistfindlistitemwithvalue
@@ -1441,6 +1444,7 @@ uspayloadlength
 uspeerportnumber
 usport
 usportnr
+usportnumber
 usprotocolbytes
 usprotocoltype
 usquestions
@@ -1632,6 +1636,7 @@ xarphadipclash
 xarpheader
 xarppacket
 xarpwaitresolution
+xattempt
 xbacklog
 xbest
 xbitstoclear
@@ -1811,6 +1816,7 @@ xrequestedsizebytes
 xreset
 xresize
 xresult
+xretryindex
 xreturn
 xround
 xrxcallback
@@ -1859,6 +1865,7 @@ xtcpwindowrxconfirm
 xtcpwindowrxfind
 xtcpwindowtxdone
 xtcpwindowtxnew
+xtemplist
 xtickstowait
 xtime
 xtimeout
