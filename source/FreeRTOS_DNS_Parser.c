@@ -681,15 +681,15 @@
             pxSet->usType = usChar2u16( pxSet->pucByte );
 
             if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
-                {
-                    pxSet->uxAddressLength = ipSIZE_OF_IPv6_ADDRESS;
+            {
+                pxSet->uxAddressLength = ipSIZE_OF_IPv6_ADDRESS;
 
-                    if( pxSet->uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ) )
-                    {
-                        xDoAccept = pdTRUE;
-                    }
+                if( pxSet->uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ) )
+                {
+                    xDoAccept = pdTRUE;
                 }
-                else if( pxSet->usType == ( uint16_t ) dnsTYPE_A_HOST )
+            }
+            else if( pxSet->usType == ( uint16_t ) dnsTYPE_A_HOST )
             {
                 pxSet->uxAddressLength = ipSIZE_OF_IPv4_ADDRESS; /*TODO check if fine */
 
@@ -826,17 +826,17 @@
                             }
 
                             if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
-                                {
-                                    char cBuffer[ 40 ];
+                            {
+                                char cBuffer[ 40 ];
 
-                                    ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) xIP_Address.xAddress_IPv6.ucBytes, cBuffer, sizeof( cBuffer ) );
-                                    FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s been stored\n",
-                                                       ( unsigned ) pxSet->pxDNSMessageHeader->usIdentifier,
-                                                       pxSet->pcName,
-                                                       cBuffer,
-                                                       ( pxSet->xDoStore != 0 ) ? "" : " NOT" ) );
-                                }
-                                else
+                                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) xIP_Address.xAddress_IPv6.ucBytes, cBuffer, sizeof( cBuffer ) );
+                                FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s been stored\n",
+                                                   ( unsigned ) pxSet->pxDNSMessageHeader->usIdentifier,
+                                                   pxSet->pcName,
+                                                   cBuffer,
+                                                   ( pxSet->xDoStore != 0 ) ? "" : " NOT" ) );
+                            }
+                            else
                             {
                                 ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET,
                                                              ( const void * ) &( pxSet->ulIPAddress ),

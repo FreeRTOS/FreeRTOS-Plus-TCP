@@ -162,8 +162,8 @@
             xPreferenceIPv4;
     #endif /* ipconfigUSE_IPV6 != 0 */
 
- /** @brief Used for additional error checking when asserts are enabled. */
-_static struct freertos_addrinfo * pxLastInfo = NULL;
+/** @brief Used for additional error checking when asserts are enabled. */
+        _static struct freertos_addrinfo * pxLastInfo = NULL;
 /*-----------------------------------------------------------*/
 
 /**
@@ -172,7 +172,7 @@ _static struct freertos_addrinfo * pxLastInfo = NULL;
  *        with two fields: type and class
  */
     #include "pack_struct_start.h"
-        struct xDNSTail
+    struct xDNSTail
     {
         uint16_t usType;  /**< Type of DNS message. */
         uint16_t usClass; /**< Class of DNS message. */
@@ -476,11 +476,11 @@ _static struct freertos_addrinfo * pxLastInfo = NULL;
                             {
                                 uxReadTimeOut_ticks = 0U;
                                 vDNSSetCallBack( pcHostName,
-                                                         pvSearchID,
-                                                         pCallback,
-                                                         uxTimeout,
-                                                         ( TickType_t ) uxIdentifier,
-                                                         ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
+                                                 pvSearchID,
+                                                 pCallback,
+                                                 uxTimeout,
+                                                 ( TickType_t ) uxIdentifier,
+                                                 ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
                             }
                         }
                         else if( ppxAddressInfo != NULL )
@@ -506,7 +506,7 @@ _static struct freertos_addrinfo * pxLastInfo = NULL;
     }
     /*-----------------------------------------------------------*/
 
- 
+
 /*!
  * @brief If LLMNR is being used then determine if the host name includes a '.'
  *        if not then LLMNR can be used as the lookup method.
@@ -514,23 +514,23 @@ _static struct freertos_addrinfo * pxLastInfo = NULL;
  * @returns true if the hostname is a dotted format, else false
  *
  */
-        static BaseType_t llmnr_has_dot( const char * pcHostName )
+    static BaseType_t llmnr_has_dot( const char * pcHostName )
+    {
+        BaseType_t bHasDot = pdFALSE;
+        const char * pucPtr;
+
+        for( pucPtr = pcHostName; *pucPtr != ( char ) 0; pucPtr++ )
         {
-            BaseType_t bHasDot = pdFALSE;
-            const char * pucPtr;
-
-            for( pucPtr = pcHostName; *pucPtr != ( char ) 0; pucPtr++ )
+            if( *pucPtr == '.' )
             {
-                if( *pucPtr == '.' )
-                {
-                    bHasDot = pdTRUE;
-                    break;
-                }
+                bHasDot = pdTRUE;
+                break;
             }
-
-            return bHasDot;
         }
-  
+
+        return bHasDot;
+    }
+
 /*!
  * @brief create a payload buffer and return it through the parameter
  * @param [out] ppxNetworkBuffer network buffer to create
@@ -592,7 +592,7 @@ _static struct freertos_addrinfo * pxLastInfo = NULL;
             /* Obtain the DNS server address. */
             FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, &ulIPAddress );
         #endif
-    
+
         BaseType_t bHasDot = llmnr_has_dot( pcHostName );
         /* For local resolution, mDNS uses names ending with the string ".local" */
         BaseType_t bHasLocal = pdFALSE;
@@ -693,25 +693,25 @@ _static struct freertos_addrinfo * pxLastInfo = NULL;
                  pxEndPoint != NULL;
                  pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
             {
-                    if( ENDPOINT_IS_IPv6( pxEndPoint ) )
+                if( ENDPOINT_IS_IPv6( pxEndPoint ) )
+                {
+                    uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
+                    uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
+
+                    /* Test if the DNS entry is in used. */
+                    if( ( ucBytes[ 0 ] != 0U ) && ( ucBytes[ 1 ] != 0U ) )
                     {
-                        uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
-                        uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
+                        struct freertos_sockaddr * pxAddress6 = pxAddress;
 
-                        /* Test if the DNS entry is in used. */
-                        if( ( ucBytes[ 0 ] != 0U ) && ( ucBytes[ 1 ] != 0U ) )
-                        {
-                            struct freertos_sockaddr * pxAddress6 = pxAddress;
-
-                            pxAddress->sin_family = FREERTOS_AF_INET6;
-                            pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );
-                            ( void ) memcpy( pxAddress->sin_addr.xIP_IPv6.ucBytes,
-                                             pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes,
-                                             ipSIZE_OF_IPv6_ADDRESS );
-                            break;
-                        }
+                        pxAddress->sin_family = FREERTOS_AF_INET6;
+                        pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );
+                        ( void ) memcpy( pxAddress->sin_addr.xIP_IPv6.ucBytes,
+                                         pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes,
+                                         ipSIZE_OF_IPv6_ADDRESS );
+                        break;
                     }
-                    else
+                }
+                else
                 {
                     uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
                     uint32_t ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ];
@@ -845,10 +845,10 @@ _static struct freertos_addrinfo * pxLastInfo = NULL;
             /* Later when translating form UDP payload to a Network Buffer,
              * it is important to know whether this is an IPv4 packet. */
             if( pxAddress->sin_family == FREERTOS_AF_INET6 )
-                {
-                    xDNSBuf.pucPayloadBuffer[ -xIndex ] = ( uint8_t ) ipTYPE_IPv6;
-                }
-                else
+            {
+                xDNSBuf.pucPayloadBuffer[ -xIndex ] = ( uint8_t ) ipTYPE_IPv6;
+            }
+            else
             {
                 xDNSBuf.pucPayloadBuffer[ -xIndex ] = ( uint8_t ) ipTYPE_IPv4;
             }

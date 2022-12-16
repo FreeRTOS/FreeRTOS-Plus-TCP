@@ -54,12 +54,12 @@
     typedef struct xDNS_CACHE_TABLE_ROW
     {
         IPv46_Address_t xAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ]; /*!< The IP address(es) of an ARP cache entry. */
-        char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                    /*!< The name of the host */
-        uint32_t ulTTL;                                                  /*!< Time-to-Live (in seconds) from the DNS server. */
-        uint32_t ulTimeWhenAddedInSeconds;                               /*!< time at which the entry was added */
+        char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                        /*!< The name of the host */
+        uint32_t ulTTL;                                                      /*!< Time-to-Live (in seconds) from the DNS server. */
+        uint32_t ulTimeWhenAddedInSeconds;                                   /*!< time at which the entry was added */
         #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-            uint8_t ucNumIPAddresses;                                    /*!< number of ip addresses for the same entry */
-            uint8_t ucCurrentIPAddress;                                  /*!< current ip address index */
+            uint8_t ucNumIPAddresses;                                        /*!< number of ip addresses for the same entry */
+            uint8_t ucCurrentIPAddress;                                      /*!< current ip address index */
         #endif
     } DNSCacheRow_t;
 
@@ -129,26 +129,26 @@
 /*-----------------------------------------------------------*/
 
     uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
-                                      IPv6_Address_t * pxAddress_IPv6 )
+                                  IPv6_Address_t * pxAddress_IPv6 )
+    {
+        IPv46_Address_t xIPv46_Address;
+        BaseType_t xResult;
+        uint32_t ulReturn = 0U;
+
+        /* Looking up an IPv6 address in the DNS cache. */
+        ( void ) memset( &xIPv46_Address, 0, sizeof xIPv46_Address );
+        /* Let FreeRTOS_ProcessDNSCache only return IPv6 addresses. */
+        xIPv46_Address.xIs_IPv6 = pdTRUE;
+        xResult = FreeRTOS_ProcessDNSCache( pcHostName, &xIPv46_Address, 0, pdTRUE, NULL );
+
+        if( xResult != pdFALSE )
         {
-            IPv46_Address_t xIPv46_Address;
-            BaseType_t xResult;
-            uint32_t ulReturn = 0U;
-
-            /* Looking up an IPv6 address in the DNS cache. */
-            ( void ) memset( &xIPv46_Address, 0, sizeof xIPv46_Address );
-            /* Let FreeRTOS_ProcessDNSCache only return IPv6 addresses. */
-            xIPv46_Address.xIs_IPv6 = pdTRUE;
-            xResult = FreeRTOS_ProcessDNSCache( pcHostName, &xIPv46_Address, 0, pdTRUE, NULL );
-
-            if( xResult != pdFALSE )
-            {
-                ( void ) memcpy( pxAddress_IPv6->ucBytes, xIPv46_Address.xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                ulReturn = 1U;
-            }
-
-            return ulReturn;
+            ( void ) memcpy( pxAddress_IPv6->ucBytes, xIPv46_Address.xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+            ulReturn = 1U;
         }
+
+        return ulReturn;
+    }
 /*-----------------------------------------------------------*/
 
 /**
@@ -475,10 +475,10 @@
                 pxAddresses = &( xDNSCache[ uxIndex ].xAddresses[ uxIPAddressIndex ] );
 
                 if( pxAddresses->xIs_IPv6 != pdFALSE )
-                    {
-                        pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET6, pxAddresses->xAddress_IPv6.ucBytes );
-                    }
-                    else
+                {
+                    pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET6, pxAddresses->xAddress_IPv6.ucBytes );
+                }
+                else
                 {
                     uint8_t * ucBytes = ( uint8_t * ) &( pxAddresses->ulIPAddress );
 
