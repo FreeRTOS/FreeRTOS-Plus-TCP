@@ -101,7 +101,7 @@
     #endif /* ipconfigUSE_LLMNR == 1 */
 
 /*-----------------------------------------------------------*/
-    #if ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPV6 != 0 )
         const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6 =
         {
             #ifndef _MSC_VER
@@ -120,7 +120,7 @@
             }
         };
         const MACAddress_t xLLMNR_MacAdressIPv6 = { { 0x33, 0x33, 0x00, 0x01, 0x00, 0x03 } };
-    #endif /* ipconfigUSE_LLMNR && ipconfigUSE_IPv6 */
+    #endif /* ipconfigUSE_LLMNR && ipconfigUSE_IPV6 */
 
     #if ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPV6 != 0 )
         const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
@@ -144,7 +144,7 @@
 /* The MAC-addresses are provided here in case a network
  * interface needs it. */
         const MACAddress_t xMDNS_MACAdressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
-    #endif /* ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPV6 != 0 ) */
 
 
     #if ( ipconfigUSE_MDNS == 1 )
@@ -160,7 +160,10 @@
             xPreferenceIPv6;
     #else
             xPreferenceIPv4;
-    #endif /* ipconfigUSE_IPv6 != 0 */
+    #endif /* ipconfigUSE_IPV6 != 0 */
+
+ /** @brief Used for additional error checking when asserts are enabled. */
+_static struct freertos_addrinfo * pxLastInfo = NULL;
 /*-----------------------------------------------------------*/
 
 /**
@@ -178,6 +181,82 @@
     typedef struct xDNSTail DNSTail_t;
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Internal function: allocate and initialise a new struct of type freertos_addrinfo.
+ *
+ * @param[in] pcName: the name of the host.
+ * @param[in] xFamily: the type of IP-address: FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
+ * @param[in] pucAddress: The IP-address of the host.
+ *
+ * @return A pointer to the newly allocated struct, or NULL in case malloc failed..
+ */
+    struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
+                                               BaseType_t xFamily,
+                                               const uint8_t * pucAddress )
+    {
+        struct freertos_addrinfo * pxAddrInfo = NULL;
+        void * pvBuffer;
+
+        /* 'xFamily' might not be used when IPv6 is disabled. */
+        ( void ) xFamily;
+        pvBuffer = pvPortMalloc( sizeof( *pxAddrInfo ) );
+
+        if( pvBuffer != NULL )
+        {
+            pxAddrInfo = ( struct freertos_addrinfo * ) pvBuffer;
+
+            ( void ) memset( pxAddrInfo, 0, sizeof( *pxAddrInfo ) );
+            pxAddrInfo->ai_canonname = pxAddrInfo->xPrivateStorage.ucName;
+            ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName, pcName, sizeof( pxAddrInfo->xPrivateStorage.ucName ) );
+
+            #if ( ipconfigUSE_IPv6 == 0 )
+                pxAddrInfo->ai_addr = &( pxAddrInfo->xPrivateStorage.sockaddr );
+            #else
+                pxAddrInfo->ai_addr = ( ( xFreertosSocAddr * ) &( pxAddrInfo->xPrivateStorage.sockaddr ) );
+
+                if( xFamily == ( BaseType_t ) FREERTOS_AF_INET6 )
+                {
+                    pxAddrInfo->ai_family = FREERTOS_AF_INET6;
+                    pxAddrInfo->ai_addrlen = ipSIZE_OF_IPv6_ADDRESS;
+                    ( void ) memcpy( pxAddrInfo->xPrivateStorage.sockaddr.sin_addrv6.ucBytes, pucAddress, ipSIZE_OF_IPv6_ADDRESS );
+                }
+                else
+            #endif /* ( ipconfigUSE_IPv6 == 0 ) */
+            {
+                /* ulChar2u32 reads from big-endian to host-endian. */
+                uint32_t ulIPAddress = ulChar2u32( pucAddress );
+                /* Translate to network-endian. */
+                pxAddrInfo->ai_addr->sin_addr.xIP_IPv4 = FreeRTOS_htonl( ulIPAddress );
+                pxAddrInfo->ai_family = FREERTOS_AF_INET4;
+                pxAddrInfo->ai_addrlen = ipSIZE_OF_IPv4_ADDRESS;
+            }
+        }
+
+        return pxAddrInfo;
+    }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Free a chain of structs of type 'freertos_addrinfo'.
+ * @param[in] pxInfo: The first find result.
+ */
+    void FreeRTOS_freeaddrinfo( struct freertos_addrinfo * pxInfo )
+    {
+        struct freertos_addrinfo * pxNext;
+        struct freertos_addrinfo * pxIterator = pxInfo;
+
+        configASSERT( pxLastInfo != pxInfo );
+
+        while( pxIterator != NULL )
+        {
+            pxNext = pxIterator->ai_next;
+            vPortFree( pxIterator );
+            pxIterator = pxNext;
+        }
+
+        pxLastInfo = NULL;
+    }
+/*-----------------------------------------------------------*/
 
     #if ( ipconfigDNS_USE_CALLBACKS == 1 )
 
@@ -396,24 +475,12 @@
                             if( xHasRandom != pdFALSE )
                             {
                                 uxReadTimeOut_ticks = 0U;
-                                #if ( ipconfigUSE_IPV6 != 0 )
-                                    {
-                                        vDNSSetCallBack( pcHostName,
+                                vDNSSetCallBack( pcHostName,
                                                          pvSearchID,
                                                          pCallback,
                                                          uxTimeout,
                                                          ( TickType_t ) uxIdentifier,
                                                          ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
-                                    }
-                                #else
-                                    {
-                                        vDNSSetCallBack( pcHostName,
-                                                         pvSearchID,
-                                                         pCallback,
-                                                         uxTimeout,
-                                                         ( TickType_t ) uxIdentifier );
-                                    }
-                                #endif /* ( ipconfigUSE_IPV6 != 0 ) */
                             }
                         }
                         else if( ppxAddressInfo != NULL )
@@ -439,8 +506,7 @@
     }
     /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_LLMNR == 1 )
-
+ 
 /*!
  * @brief If LLMNR is being used then determine if the host name includes a '.'
  *        if not then LLMNR can be used as the lookup method.
@@ -464,8 +530,7 @@
 
             return bHasDot;
         }
-    #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
-
+  
 /*!
  * @brief create a payload buffer and return it through the parameter
  * @param [out] ppxNetworkBuffer network buffer to create
@@ -523,9 +588,11 @@
         /* 'sin_len' doesn't really matter, 'sockaddr' and 'sockaddr6'
          * have the same size. */
         pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );
-
-        /* Obtain the DNS server address. */
-        FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, &ulIPAddress );
+        #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 )
+            /* Obtain the DNS server address. */
+            FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, &ulIPAddress );
+        #endif
+    
         BaseType_t bHasDot = llmnr_has_dot( pcHostName );
         /* For local resolution, mDNS uses names ending with the string ".local" */
         BaseType_t bHasLocal = pdFALSE;
@@ -548,7 +615,7 @@
                     {
                         /* Looking up a name like "mydevice.local".
                          * Use mDNS addresses. */
-                        pxAddress->sin_addr = ipMDNS_IP_ADDRESS; /* Is in network byte order. */
+                        pxAddress->sin_addr.xIP_IPv4 = ipMDNS_IP_ADDRESS; /* Is in network byte order. */
                         pxAddress->sin_port = ipMDNS_PORT;
                         pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
                         xNeed_Endpoint = pdTRUE;
@@ -574,11 +641,9 @@
                     pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
                     xNeed_Endpoint = pdTRUE;
                     #if ( ipconfigUSE_IPV6 != 0 )
-                        struct freertos_sockaddr * pxAddressV6 = pxAddress;
-
                         if( xDNS_IP_Preference == xPreferenceIPv6 )
                         {
-                            memcpy( pxAddressV6->sin_addr.xIP_IPv6.ucBytes,
+                            memcpy( pxAddress->sin_addr.xIP_IPv6.ucBytes,
                                     ipLLMNR_IP_ADDR_IPv6.ucBytes,
                                     ipSIZE_OF_IPv6_ADDRESS );
                             pxAddress->sin_family = FREERTOS_AF_INET6;
@@ -628,8 +693,7 @@
                  pxEndPoint != NULL;
                  pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
             {
-                #if ( ipconfigUSE_IPV6 != 0 )
-                    if( ENDPOINT_IS_IPV6( pxEndPoint ) )
+                    if( ENDPOINT_IS_IPv6( pxEndPoint ) )
                     {
                         uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
                         uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
@@ -648,7 +712,6 @@
                         }
                     }
                     else
-                #endif /* if ( ipconfigUSE_IPV6 != 0 ) */
                 {
                     uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
                     uint32_t ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ];
@@ -781,13 +844,11 @@
 
             /* Later when translating form UDP payload to a Network Buffer,
              * it is important to know whether this is an IPv4 packet. */
-            #if ( ipconfigUSE_IPV6 != 0 )
-                if( pxAddress->sin_family == FREERTOS_AF_INET6 )
+            if( pxAddress->sin_family == FREERTOS_AF_INET6 )
                 {
                     xDNSBuf.pucPayloadBuffer[ -xIndex ] = ( uint8_t ) ipTYPE_IPv6;
                 }
                 else
-            #endif
             {
                 xDNSBuf.pucPayloadBuffer[ -xIndex ] = ( uint8_t ) ipTYPE_IPv4;
             }

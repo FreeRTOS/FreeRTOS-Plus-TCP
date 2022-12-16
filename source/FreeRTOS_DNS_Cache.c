@@ -54,12 +54,12 @@
     typedef struct xDNS_CACHE_TABLE_ROW
     {
         IPv46_Address_t xAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ]; /*!< The IP address(es) of an ARP cache entry. */
-        char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                        /*!< The name of the host */
-        uint32_t ulTTL;                                                      /*!< Time-to-Live (in seconds) from the DNS server. */
-        uint32_t ulTimeWhenAddedInSeconds;                                   /*!< time at which the entry was added */
+        char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                    /*!< The name of the host */
+        uint32_t ulTTL;                                                  /*!< Time-to-Live (in seconds) from the DNS server. */
+        uint32_t ulTimeWhenAddedInSeconds;                               /*!< time at which the entry was added */
         #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-            uint8_t ucNumIPAddresses;                                        /*!< number of ip addresses for the same entry */
-            uint8_t ucCurrentIPAddress;                                      /*!< current ip address index */
+            uint8_t ucNumIPAddresses;                                    /*!< number of ip addresses for the same entry */
+            uint8_t ucCurrentIPAddress;                                  /*!< current ip address index */
         #endif
     } DNSCacheRow_t;
 
@@ -128,8 +128,7 @@
     }
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_DNS_CACHE == 1 ) && ( ipconfigUSE_IPv6 != 0 )
-        uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
+    uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
                                       IPv6_Address_t * pxAddress_IPv6 )
         {
             IPv46_Address_t xIPv46_Address;
@@ -150,7 +149,6 @@
 
             return ulReturn;
         }
-    #endif /* ( ipconfigUSE_DNS_CACHE == 1 ) && ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -296,10 +294,10 @@
 
             if( strcmp( xDNSCache[ uxIndex ].pcName, pcName ) == 0 )
             { /* hostname found */
-                #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigUSE_IPV6 != 0 )
                     /* IPv6 is enabled, See if the cache entry has the correct type. */
-                    if( pxIP->xIs_IPv6 == xDNSCache[ x ].xAddresses[ 0 ].xIs_IPv6 )
-                #endif /* ipconfigUSE_IPv6 != 0 */
+                    if( pxIP->xIs_IPv6 == xDNSCache[ uxIndex ].xAddresses[ 0 ].xIs_IPv6 )
+                #endif /* ipconfigUSE_IPV6 != 0 */
                 {
                     xReturn = pdTRUE;
                     *uxResult = uxIndex;
@@ -476,13 +474,11 @@
             {
                 pxAddresses = &( xDNSCache[ uxIndex ].xAddresses[ uxIPAddressIndex ] );
 
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    if( pxAddresses->xIs_IPv6 != pdFALSE )
+                if( pxAddresses->xIs_IPv6 != pdFALSE )
                     {
                         pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET6, pxAddresses->xAddress_IPv6.ucBytes );
                     }
                     else
-                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
                 {
                     uint8_t * ucBytes = ( uint8_t * ) &( pxAddresses->ulIPAddress );
 
@@ -515,10 +511,10 @@
                                       struct freertos_addrinfo ** ppxAddressInfo )
         {
             uint32_t ulIPAddress = 0U;
+            IPv46_Address_t xIPv46_Address;
 
             if( xFamily == FREERTOS_AF_INET6 )
             {
-                IPv46_Address_t xIPv46_Address;
                 BaseType_t xFound;
 
                 xIPv46_Address.xIs_IPv6 = pdTRUE;
@@ -540,12 +536,9 @@
             }
             else
             {
-                IPv46_Address_t xIPv46_Address;
                 BaseType_t xFound;
 
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    xIPv46_Address.xIs_IPv6 = pdFALSE;
-                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                xIPv46_Address.xIs_IPv6 = pdFALSE;
                 xFound = FreeRTOS_ProcessDNSCache( pcHostName, &( xIPv46_Address ), 0, pdTRUE, ppxAddressInfo );
 
                 if( xFound != 0 )
