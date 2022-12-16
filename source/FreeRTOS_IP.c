@@ -469,7 +469,7 @@ static void prvProcessIPEventsAndTimers( void )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Helper function for prvIPTask, it does the first initialisations
+ * @brief Helper function for prvIPTask, it does the first initializations
  *        at start-up. No parameters, no return type.
  */
 static void prvIPTask_Initialise( void )
