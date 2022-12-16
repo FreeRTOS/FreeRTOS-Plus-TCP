@@ -186,13 +186,13 @@ static size_t uxGetOwnCount( ETH_HandleTypeDef * heth );
 static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 
 static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                  NetworkBufferDescriptor_t * const pxBuffer,
-                                                  BaseType_t xReleaseAfterSend );
+                                           NetworkBufferDescriptor_t * const pxBuffer,
+                                           BaseType_t xReleaseAfterSend );
 
 static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
 NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                         NetworkInterface_t * pxInterface );
+                                                NetworkInterface_t * pxInterface );
 
 /*-----------------------------------------------------------*/
 
@@ -237,10 +237,11 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
     size_t uxIndex = 0;
 
     if( xMacInitStatus == eMACInit )
-    {   
+    {
         pxMyInterface = pxInterface;
-        pxEndPoint = FreeRTOS_FirstEndPoint(pxInterface);
-        configASSERT(pxEndPoint != NULL);
+        pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
+        configASSERT( pxEndPoint != NULL );
+
         /*
          * Initialize ETH Handler
          * It assumes that Ethernet GPIO and clock configuration
@@ -397,9 +398,9 @@ NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t xNetworkInterfaceOutput(  NetworkInterface_t * pxInterface,
-                                            NetworkBufferDescriptor_t * const pxDescriptor,
-                                            BaseType_t xReleaseAfterSend )
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                           NetworkBufferDescriptor_t * const pxDescriptor,
+                                           BaseType_t xReleaseAfterSend )
 {
     BaseType_t xResult = pdFAIL;
     TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 100U );
@@ -696,7 +697,7 @@ static BaseType_t prvNetworkInterfaceInput( void )
                     .eEventType = eNetworkRxEvent,
                     .pvData     = ( void * ) pxReceivedBuffer
                 };
-                
+
                 pxReceivedBuffer->pxInterface = pxMyInterface;
                 pxReceivedBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxReceivedBuffer->pucEthernetBuffer );
 

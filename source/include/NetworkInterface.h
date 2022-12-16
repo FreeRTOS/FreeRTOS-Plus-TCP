@@ -35,6 +35,7 @@
 /* *INDENT-ON* */
 
 /* INTERNAL API FUNCTIONS. */
+
 /* Since there are multiple interfaces, there are multiple versions
  * of the following functions.
  * These are now declared static in NetworkInterface.c and their addresses

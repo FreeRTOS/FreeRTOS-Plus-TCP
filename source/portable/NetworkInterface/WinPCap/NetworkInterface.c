@@ -156,12 +156,12 @@ static volatile uint32_t ulWinPCAPSendFailures = 0;
 
 static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                   NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                   BaseType_t bReleaseAfterSend );
+                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                           BaseType_t bReleaseAfterSend );
 static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
 NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                       NetworkInterface_t * pxInterface );
+                                                NetworkInterface_t * pxInterface );
 
 /*-----------------------------------------------------------*/
 
@@ -221,9 +221,9 @@ static void prvCreateThreadSafeBuffers( void )
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface, 
-                                            NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                            BaseType_t bReleaseAfterSend )
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                           BaseType_t bReleaseAfterSend )
 {
     size_t xSpace;
 
@@ -283,7 +283,7 @@ static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 
 
 NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                       NetworkInterface_t * pxInterface )
+                                                NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
 
@@ -627,10 +627,9 @@ static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer )
             xResult = pdTRUE;
             break;
         }
-        
     }
-    return xResult;
 
+    return xResult;
 }
 /*-----------------------------------------------------------*/
 
@@ -707,7 +706,6 @@ static void prvInterruptSimulatorTask( void * pvParameters )
 
                             pxNetworkBuffer->pxInterface = pxMyInterface;
                             pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer->pucEthernetBuffer );
-
 
                             /* Data was received and stored.  Send a message to
                              * the IP task to let it know. */

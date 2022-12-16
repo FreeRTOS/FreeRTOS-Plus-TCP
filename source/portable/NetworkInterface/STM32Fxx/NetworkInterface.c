@@ -205,13 +205,13 @@ static BaseType_t prvNetworkInterfaceInput( void );
 static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 
 static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                  NetworkBufferDescriptor_t * const pxBuffer,
-                                                  BaseType_t bReleaseAfterSend );
+                                           NetworkBufferDescriptor_t * const pxBuffer,
+                                           BaseType_t bReleaseAfterSend );
 
 static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
 NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                         NetworkInterface_t * pxInterface );
+                                                NetworkInterface_t * pxInterface );
 
 
 /*
@@ -419,6 +419,7 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
     HAL_StatusTypeDef hal_eth_init_status;
     BaseType_t xResult = pdPASS;
     Network_EndPoint_t * pxEndPoint;
+
     #if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 )
         BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
     #endif
@@ -505,7 +506,7 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
                     prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
                     xMACEntry += 8;
                 }
-            #endif 
+            #endif
             #if ( ipconfigUSE_LLMNR == 1 )
                 {
                     /* Program the LLMNR address. */
@@ -519,10 +520,10 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
                     xMACEntry += 8;
                 }
             #endif
-            
+
             {
-                    /* The EMAC address of the first end-point has been registered in HAL_ETH_Init(). */
-                    for( ;
+                /* The EMAC address of the first end-point has been registered in HAL_ETH_Init(). */
+                for( ;
                      pxEndPoint != NULL;
                      pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
                 {
@@ -749,8 +750,8 @@ static void prvDMARxDescListInit()
 /*-----------------------------------------------------------*/
 
 static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                    NetworkBufferDescriptor_t * const pxDescriptor,
-                                    BaseType_t bReleaseAfterSend )
+                                           NetworkBufferDescriptor_t * const pxDescriptor,
+                                           BaseType_t bReleaseAfterSend )
 {
     BaseType_t xReturn = pdFAIL;
     uint32_t ulTransmitSize = 0;
@@ -917,7 +918,7 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
         case ipARP_FRAME_TYPE:
             /* Check it later. */
             return pdTRUE;
-        
+
         case ipIPv6_FRAME_TYPE:
             /* Check it later. */
             return pdTRUE;
@@ -1124,7 +1125,7 @@ static BaseType_t prvNetworkInterfaceInput( void )
             pxCurDescriptor->xDataLength = xReceivedLength;
             pxCurDescriptor->pxInterface = pxMyInterface;
             pxCurDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxCurDescriptor->pucEthernetBuffer );
-            
+
             #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
                 {
                     pxCurDescriptor->pxNextBuffer = NULL;
@@ -1329,7 +1330,7 @@ static void prvEthernetUpdateConfig( BaseType_t xForce )
         /* Optionally, pass all mutlicast */
         #if 0
             xETH.Instance->MACFFR |= ETH_MACFFR_PAM;
-        #endif        
+        #endif
 
         /* Restart MAC interface */
         HAL_ETH_Start( &xETH );
