@@ -444,7 +444,7 @@ extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
     extern BaseType_t xProcessedTCPMessage;
 #endif
 
-#include "FreeRTOS_IP_Utils.h" /*TODO ccan be moved after other 2 includes */
+#include "FreeRTOS_IP_Utils.h" /*TODO can be moved after other 2 includes */
 
 #if ipconfigUSE_IPV4
     #include "FreeRTOS_IPv4.h"
