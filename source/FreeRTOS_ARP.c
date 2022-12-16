@@ -264,7 +264,6 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
 
         /* Don't do anything if the local IP address is zero because
          * that means a DHCP request has not completed. */
-        /*if( *ipLOCAL_IP_ADDRESS_POINTER != 0U ) */
         if( ( pxTargetEndPoint != NULL ) && ( pxTargetEndPoint->bits.bEndPointUp != pdFALSE_UNSIGNED ) )
         {
             switch( pxARPHeader->usOperation )

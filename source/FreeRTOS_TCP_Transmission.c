@@ -148,7 +148,7 @@
                 /* MISRA Ref 11.3.1 [Misaligned access] */
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
-                pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
+                pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
 
                 /* About to send a SYN packet.  Call prvSetSynAckOptions() to set
                  * the proper options: The size of MSS and whether SACK's are
