@@ -72,10 +72,6 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
 }
 
 /**
- * @brief Send a neighbour solicitation.
- * @param[in] pxNetworkBuffer: A network buffer big enough to hold the ICMP packet.
- * @param[in] pxIPAddress: The IPv6 address of the target device.
- *
  * @note Send out an ND request for the IPv6 address contained in pxNetworkBuffer, and
  * add an entry into the ND table that indicates that an ND reply is
  * outstanding so re-transmissions can be generated.
@@ -86,8 +82,6 @@ void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBu
 }
 
 /**
- * @brief Process the generated UDP packet and do other checks before sending the
- *        packet such as ARP cache check and address resolution.
  *
  * @param[in] pxNetworkBuffer: The network buffer carrying the packet.
  */

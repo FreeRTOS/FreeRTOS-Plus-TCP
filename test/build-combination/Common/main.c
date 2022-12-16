@@ -288,6 +288,12 @@ BaseType_t xNetworkInterfaceInitialise( void )
     return pdTRUE;
 }
 
+struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                      struct xNetworkInterface * pxInterface )
+{
+        return pxInterface;
+}
+
 #if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_DHCP_HOOK != 0 ) )
     eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
                                                 uint32_t ulIPAddress )
