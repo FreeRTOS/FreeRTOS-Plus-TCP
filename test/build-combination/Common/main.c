@@ -120,7 +120,7 @@ int main( void )
 /*-----------------------------------------------------------*/
 
 void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-struct xNetworkEndPoint * pxEndPoint )
+                                     struct xNetworkEndPoint * pxEndPoint )
 {
     static BaseType_t xTasksAlreadyCreated = pdFALSE;
 
@@ -291,7 +291,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                       struct xNetworkInterface * pxInterface )
 {
-        return pxInterface;
+    return pxInterface;
 }
 
 #if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_DHCP_HOOK != 0 ) )

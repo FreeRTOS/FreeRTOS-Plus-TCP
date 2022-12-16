@@ -77,13 +77,13 @@ extern size_t uxMinLastSize;
 void test_xSendDHCPEvent( void )
 {
     BaseType_t xReturn, xResult = 0x123;
-    struct xNetworkEndPoint pxEndPoint = {0};
+    struct xNetworkEndPoint pxEndPoint = { 0 };
 
     eGetDHCPState_ExpectAndReturn( NULL, 12 );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( xResult );
 
-    xReturn = xSendDHCPEvent(&pxEndPoint);
+    xReturn = xSendDHCPEvent( &pxEndPoint );
 
     TEST_ASSERT_EQUAL( xResult, xReturn );
 }
@@ -281,7 +281,7 @@ void test_prvProcessNetworkDownEvent_Pass( void )
     NetworkEndPoint_t xEndPoint;
 
     xCallEventHook = pdFALSE;
-    xInterfaces[0].pfInitialise = xNetworkInterfaceInitialise_CMockExpectAndReturn;
+    xInterfaces[ 0 ].pfInitialise = xNetworkInterfaceInitialise_CMockExpectAndReturn;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
@@ -291,7 +291,7 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     vDHCPProcess_Expect( pdTRUE, eInitialWait );
 
-    prvProcessNetworkDownEvent(&xInterface);
+    prvProcessNetworkDownEvent( &xInterface );
 
     /* Run again to trigger a different path in the code. */
 
@@ -299,35 +299,34 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     vApplicationIPNetworkEventHook_Expect( eNetworkDown, &xEndPoint );
 
-    FreeRTOS_ClearARP_Expect(&xEndPoint);
+    FreeRTOS_ClearARP_Expect( &xEndPoint );
 
     xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces, pdPASS );
 
     vDHCPProcess_Expect( pdTRUE, eInitialWait );
 
-    prvProcessNetworkDownEvent(&xInterface);
+    prvProcessNetworkDownEvent( &xInterface );
 }
 
 void test_prvProcessNetworkDownEvent_Fail( void )
 {
-
     NetworkInterface_t xInterface;
     NetworkEndPoint_t xEndPoint;
 
     xCallEventHook = pdFALSE;
-    xInterfaces[0].pfInitialise = xNetworkInterfaceInitialise_CMockExpectAndReturn;
+    xInterfaces[ 0 ].pfInitialise = xNetworkInterfaceInitialise_CMockExpectAndReturn;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
-    FreeRTOS_ClearARP_Expect(&xEndPoint);
+    FreeRTOS_ClearARP_Expect( &xEndPoint );
 
     xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces, pdFAIL );
 
     vTaskDelay_ExpectAnyArgs();
 
-    FreeRTOS_NetworkDown_Expect(&xEndPoint);
+    FreeRTOS_NetworkDown_Expect( &xEndPoint );
 
-    prvProcessNetworkDownEvent(&xInterface);
+    prvProcessNetworkDownEvent( &xInterface );
 }
 
 void test_vPreCheckConfigs_CatchAssert1( void )

@@ -60,7 +60,7 @@
                           BaseType_t xIsIPv6 );
 
     void vDNSCheckCallBack( void * pvSearchID );
-    
+
     void vDNSCallbackInitialise();
 
 #endif /* ipconfigDNS_USE_CALLBACKS  && ipconfigUSE_DNS */

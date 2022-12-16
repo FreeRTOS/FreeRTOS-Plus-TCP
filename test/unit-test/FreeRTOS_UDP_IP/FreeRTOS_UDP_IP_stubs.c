@@ -57,15 +57,19 @@ NetworkInterface_t xInterfaces[ 1 ];
  * (maybe DHCP is still in process, or the addressing needs a gateway but there
  * isn't a gateway defined) then return eCantSendPacket.
  */
-    eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                         MACAddress_t * const pxMACAddress,
-                                         struct xNetworkEndPoint ** ppxEndPoint ) {}
+eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
+                                     MACAddress_t * const pxMACAddress,
+                                     struct xNetworkEndPoint ** ppxEndPoint )
+{
+}
 
 /*
  * Find the end-point with given IP-address.
  */
-    NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
-                                                        uint32_t ulWhere ) {}
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
+                                                    uint32_t ulWhere )
+{
+}
 
 /**
  * @brief Send a neighbour solicitation.
@@ -76,8 +80,10 @@ NetworkInterface_t xInterfaces[ 1 ];
  * add an entry into the ND table that indicates that an ND reply is
  * outstanding so re-transmissions can be generated.
  */
-    void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                       const IPv6_Address_t * pxIPAddress ) {}
+void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                   const IPv6_Address_t * pxIPAddress )
+{
+}
 
 /**
  * @brief Process the generated UDP packet and do other checks before sending the
@@ -85,7 +91,9 @@ NetworkInterface_t xInterfaces[ 1 ];
  *
  * @param[in] pxNetworkBuffer: The network buffer carrying the packet.
  */
-void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer ) {}
+void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+}
 
 /**
  * @brief Process the received UDP packet.
@@ -99,7 +107,9 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
  */
 BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                            uint16_t usPort,
-                                           BaseType_t * pxIsWaitingForARPResolution ) {}
+                                           BaseType_t * pxIsWaitingForARPResolution )
+{
+}
 
 
 /*
@@ -107,8 +117,10 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
  * Find an end-point whose IP-address is in the same network as the IP-address provided.
  * 'ulWhere' is temporary and or debugging only.
  */
-    NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
-                                                        uint32_t ulWhere ) {}
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
+                                                    uint32_t ulWhere )
+{
+}
 
 /**
  * @brief Process the generated UDP packet and do other checks before sending the
@@ -116,7 +128,9 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
  *
  * @param[in] pxNetworkBuffer: The network buffer carrying the packet.
  */
-void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetworkBuffer ) {}
+void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+}
 
 
 /**
@@ -131,8 +145,10 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
  */
 BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                            uint16_t usPort,
-                                           BaseType_t * pxIsWaitingForARPResolution ) {}
-                                           
+                                           BaseType_t * pxIsWaitingForARPResolution )
+{
+}
+
 void vPortEnterCritical( void )
 {
 }

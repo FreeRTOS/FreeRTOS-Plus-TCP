@@ -79,9 +79,9 @@ size_t xPortGetMinimumEverFreeHeapSize( void );
  * @param[in] xDoReset: WHen true, the state-machine will be reset and initialised.
  * @param[in] pxEndPoint: The end-point for which the RA/SLAAC process should be done..
  */
-        void vRAProcess( BaseType_t xDoReset,
-                         NetworkEndPoint_t * pxEndPoint );
+void vRAProcess( BaseType_t xDoReset,
+                 NetworkEndPoint_t * pxEndPoint );
 
-BaseType_t xNetworkInterfaceInitialise( struct xNetworkInterface *pxInterface );
+BaseType_t xNetworkInterfaceInitialise( struct xNetworkInterface * pxInterface );
 
 #endif /* ifndef LIST_MACRO_H */
