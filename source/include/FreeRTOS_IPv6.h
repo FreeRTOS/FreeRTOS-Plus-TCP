@@ -148,6 +148,9 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
 uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
                               IPv6_Address_t * pxAddress_IPv6 );
 
+/* Return IPv6 header extension order number */
+BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
+                               uint8_t ucNextHeader );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

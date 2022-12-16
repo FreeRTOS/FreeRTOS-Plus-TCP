@@ -89,29 +89,14 @@
  */
     void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket )
     {
-        uint32_t ulMSS;
-
-        /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
-        #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
-            {
-                ulMSS = ipconfigTCP_MSS;
-            }
-        #else
-            {
-                ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
-            }
-        #endif
-
-        if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 ) ^ *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) != 0U )
+        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
         {
-            /* Data for this peer will pass through a router, and maybe through
-             * the internet.  Limit the MSS to 1400 bytes or less. */
-            ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
+            prvSocketSetMSS_IPV6( pxSocket );
         }
-
-        FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %xip:%u\n", ( unsigned ) ulMSS, ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, pxSocket->u.xTCP.usRemotePort ) );
-
-        pxSocket->u.xTCP.usMSS = ( uint16_t ) ulMSS;
+        else
+        {
+            prvSocketSetMSS_IPV4( pxSocket );
+        }
     }
     /*-----------------------------------------------------------*/
 

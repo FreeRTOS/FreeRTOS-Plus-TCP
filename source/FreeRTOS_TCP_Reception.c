@@ -465,8 +465,23 @@
         lReceiveLength = ( int32_t ) pxNetworkBuffer->xDataLength;
         lReceiveLength -= ( int32_t ) ipSIZE_OF_ETH_HEADER;
 
-        usLength = FreeRTOS_htons( pxIPHeader->usLength );
-        lLength = ( int32_t ) usLength;
+        if( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
+        {
+            IPHeader_IPv6_t * pxIPHeader = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
+            /* For Coverity: conversion and cast in 2 steps. */
+            usLength = FreeRTOS_htons( pxIPHeader->usPayloadLength );
+            lLength = ( int32_t ) usLength;
+            /* Add the length of the TCP-header, because that was not included in 'usPayloadLength'. */
+            lLength += ( int32_t ) sizeof( IPHeader_IPv6_t );
+        }
+        else
+        {
+            IPHeader_t * pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
+            usLength = FreeRTOS_htons( pxIPHeader->usLength );
+            lLength = ( int32_t ) usLength;
+        }
 
         if( lReceiveLength > lLength )
         {
