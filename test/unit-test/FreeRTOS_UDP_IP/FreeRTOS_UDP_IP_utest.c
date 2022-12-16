@@ -60,6 +60,8 @@
 
 #include "FreeRTOSIPConfig.h"
 
+extern NetworkInterface_t xInterfaces[ 1 ];
+
 static uint32_t ulFunctionCalled = 0;
 static BaseType_t xFunctionReturn;
 static BaseType_t xLocalHandler( Socket_t pxSocket,
@@ -115,6 +117,7 @@ void test_vProcessGeneratedUDPPacket_CacheMiss_PacketSmaller( void )
     uint32_t ulIPAddr = 0x1234ABCD, ulLocalIPAddress = 0xAABBCCDD;
     struct xNetworkEndPoint xEndPoint;
 
+    xInterfaces[0].pfOutput = xNetworkInterfaceOutput_CMockExpectAndReturn;
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
@@ -132,7 +135,7 @@ void test_vProcessGeneratedUDPPacket_CacheMiss_PacketSmaller( void )
     vARPRefreshCacheEntry_Expect( NULL, ulLocalIPAddress, &xEndPoint );
     vARPGenerateRequestPacket_Expect( &xLocalNetworkBuffer );
 
-    // xNetworkInterfaceOutput_ExpectAndReturn( &xLocalNetworkBuffer, pdTRUE, pdTRUE ); TODO: handle it, as now its called via function ptrs
+    xNetworkInterfaceOutput_ExpectAndReturn( &xInterfaces[0], &xLocalNetworkBuffer, pdTRUE, pdTRUE ); 
 
     /* Make sure that the packet is smaller than minimum packet length. */
     xLocalNetworkBuffer.xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 2;
@@ -154,6 +157,7 @@ void test_vProcessGeneratedUDPPacket_CacheMiss_PacketNotSmaller( void )
     uint32_t ulIPAddr = 0x1234ABCD, ulLocalIPAddress = 0xAABBCCDD;
     struct xNetworkEndPoint xEndPoint;
 
+    xInterfaces[0].pfOutput = xNetworkInterfaceOutput_CMockExpectAndReturn;
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = sizeof( UDPPacket_t );
 
@@ -171,7 +175,7 @@ void test_vProcessGeneratedUDPPacket_CacheMiss_PacketNotSmaller( void )
     vARPRefreshCacheEntry_Expect( NULL, ulLocalIPAddress, &xEndPoint );
     vARPGenerateRequestPacket_Expect( &xLocalNetworkBuffer );
 
-    // xNetworkInterfaceOutput_ExpectAndReturn( &xLocalNetworkBuffer, pdTRUE, pdTRUE ); TODO: handle it, as now its called via function ptrs
+    xNetworkInterfaceOutput_ExpectAndReturn( &xInterfaces[0], &xLocalNetworkBuffer, pdTRUE, pdTRUE ); 
 
     xLocalNetworkBuffer.xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES + 2;
 
@@ -223,6 +227,7 @@ void test_vProcessGeneratedUDPPacket_CacheHit_NoICMP( void )
     UDPPacket_t * pxUDPPacket;
     uint32_t ulIPAddr = 0x1234ABCD;
 
+    xInterfaces[0].pfOutput = xNetworkInterfaceOutput_CMockExpectAndReturn;
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
 
     xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
@@ -242,7 +247,7 @@ void test_vProcessGeneratedUDPPacket_CacheHit_NoICMP( void )
     usGenerateChecksum_ExpectAndReturn( 0U, NULL, ipSIZE_OF_IPv4_HEADER, 0 );
     usGenerateChecksum_IgnoreArg_pucNextData();
 
-    // xNetworkInterfaceOutput_ExpectAndReturn( &xLocalNetworkBuffer, pdTRUE, pdTRUE ); TODO: handle it, as now its called via function ptrs
+    xNetworkInterfaceOutput_ExpectAndReturn( &xInterfaces[0], &xLocalNetworkBuffer, pdTRUE, pdTRUE );
 
     vProcessGeneratedUDPPacket( &xLocalNetworkBuffer );
 
@@ -265,7 +270,7 @@ void test_vProcessGeneratedUDPPacket_CacheHit_ICMPPacket_LLMNR_UDPChkSumOption( 
 
     /* Cleanup the ethernet buffer. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
-
+    xInterfaces[0].pfOutput = xNetworkInterfaceOutput_CMockExpectAndReturn;
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] = ucSocketOptions;
 
@@ -284,7 +289,7 @@ void test_vProcessGeneratedUDPPacket_CacheHit_ICMPPacket_LLMNR_UDPChkSumOption( 
 
     usGenerateProtocolChecksum_ExpectAndReturn( pucLocalEthernetBuffer, xLocalNetworkBuffer.xDataLength, pdTRUE, 0 );
 
-    xNetworkInterfaceOutput_ExpectAndReturn( &xLocalNetworkBuffer, pdTRUE, pdTRUE );
+    xNetworkInterfaceOutput_ExpectAndReturn( &xInterfaces[0], &xLocalNetworkBuffer, pdTRUE, pdTRUE );
 
     vProcessGeneratedUDPPacket( &xLocalNetworkBuffer );
 
