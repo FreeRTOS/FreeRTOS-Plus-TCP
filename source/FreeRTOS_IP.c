@@ -206,6 +206,9 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
     static UBaseType_t uxQueueMinimumSpace = ipconfigEVENT_QUEUE_LENGTH;
 #endif
 
+/** @brief Stores the network interfaces */
+static NetworkInterface_t xInterfaces[ 1 ];
+
 /*-----------------------------------------------------------*/
 
 /* Coverity wants to make pvParameters const, which would make it incompatible. Leave the
@@ -472,7 +475,7 @@ static void prvProcessIPEventsAndTimers( void )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Helper function for prvIPTask, it does the first initialisations
+ * @brief Helper function for prvIPTask, it does the first initializations
  *        at start-up. No parameters, no return type.
  */
 static void prvIPTask_Initialise( void )
@@ -1446,7 +1449,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                         /* MISRA Ref 11.3.1 [Misaligned access] */
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                         /* coverity[misra_c_2012_rule_11_3_violation] */
-                        eReturned = eARPProcessPacket( ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer ) );
+                        eReturned = eARPProcessPacket( pxNetworkBuffer );
                     }
                     else
                     {
