@@ -61,12 +61,6 @@
 
     void vDNSCheckCallBack( void * pvSearchID );
 
-/* Look for the indicated host name in the DNS cache. Returns the IPv4
- * address if present, or 0x0 otherwise.
- * FreeRTOS_dnslookup6() returns pdTRUE when a host has been found. */
-    uint32_t FreeRTOS_dnslookup( const char * pcHostName,
-                                 IPv6_Address_t * pxAddress_IPv6 );
-
     void vDNSCallbackInitialise();
 
 #endif /* ipconfigDNS_USE_CALLBACKS  && ipconfigUSE_DNS */
