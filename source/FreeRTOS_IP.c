@@ -114,11 +114,6 @@ static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint );
 
 static void prvIPTask_Initialise( void );
 
-static void prvIPTask_WaitForEvent( IPStackEvent_t * pxReceivedEvent,
-                                    TickType_t xNextIPSleep );
-
-static void prvIPTask_HandleBindEvent( IPStackEvent_t * pxReceivedEvent );
-
 static void prvIPTask_CheckPendingEvents( void );
 
 /*-----------------------------------------------------------*/
@@ -160,7 +155,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 /*
  * Process incoming IP packets.
  */
-static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
+static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacket,
                                                     NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 /*
@@ -171,13 +166,6 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer );
 
 static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
-#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
-
-/* Even when the driver takes care of checksum calculations,
- *  the IP-task will still check if the length fields are OK. */
-    BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
-                                 size_t uxBufferLength );
-#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 /*-----------------------------------------------------------*/
 
 /** @brief The queue used to pass events into the IP-task for processing. */
@@ -210,10 +198,6 @@ static volatile BaseType_t xNetworkDownEventPending = pdFALSE;
 
 static TaskHandle_t xIPTaskHandle = NULL;
 
-/** @brief Simple set to pdTRUE or pdFALSE depending on whether the network is up or
- * down (connected, not connected) respectively. */
-static BaseType_t xNetworkUp = pdFALSE;
-
 /** @brief Set to pdTRUE when the IP task is ready to start processing packets. */
 static BaseType_t xIPTaskInitialised = pdFALSE;
 
@@ -221,6 +205,9 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
     /** @brief Keep track of the lowest amount of space in 'xNetworkEventQueue'. */
     static UBaseType_t uxQueueMinimumSpace = ipconfigEVENT_QUEUE_LENGTH;
 #endif
+
+/** @brief Stores the network interfaces */
+static NetworkInterface_t xInterfaces[ 1 ];
 
 /*-----------------------------------------------------------*/
 
@@ -485,7 +472,7 @@ static void prvProcessIPEventsAndTimers( void )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Helper function for prvIPTask, it does the first initialisations
+ * @brief Helper function for prvIPTask, it does the first initializations
  *        at start-up. No parameters, no return type.
  */
 static void prvIPTask_Initialise( void )
@@ -630,7 +617,6 @@ TaskHandle_t FreeRTOS_GetIPTaskHandle( void )
 void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint )
 {
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
-    xNetworkUp = pdTRUE;
 
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
         {
@@ -884,7 +870,6 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
 {
     BaseType_t xReturn = pdFALSE;
     NetworkEndPoint_t * pxFirstEndPoint;
-    static NetworkInterface_t xInterfaces[ 1 ];
     static NetworkEndPoint_t xEndPoints[ 1 ];
 
     /* IF the following function should be declared in the NetworkInterface.c
@@ -1343,7 +1328,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
 {
     eFrameProcessingResult_t eReturn;
     const EthernetHeader_t * pxEthernetHeader;
-    NetworkEndPoint_t * pxEndPoint;
+    const NetworkEndPoint_t * pxEndPoint;
 
     /* Map the buffer onto Ethernet Header struct for easy access to fields. */
 
@@ -1461,7 +1446,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                         /* MISRA Ref 11.3.1 [Misaligned access] */
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                         /* coverity[misra_c_2012_rule_11_3_violation] */
-                        eReturned = eARPProcessPacket( ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer ) );
+                        eReturned = eARPProcessPacket( pxNetworkBuffer );
                     }
                     else
                     {
@@ -1566,8 +1551,11 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     eFrameProcessingResult_t eReturn = eReleaseBuffer;
     BaseType_t xIsWaitingARPResolution = pdFALSE;
     /* The IP packet contained a UDP frame. */
-    UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    UDPHeader_t * pxUDPHeader = &( pxUDPPacket->xUDPHeader );
+    /* MISRA Ref 11.3.1 [Misaligned access] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
+    const UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    const UDPHeader_t * pxUDPHeader = &( pxUDPPacket->xUDPHeader );
 
     size_t uxMinSize = ipSIZE_OF_ETH_HEADER + ( size_t ) uxIPHeaderSizePacket( pxNetworkBuffer ) + ipSIZE_OF_UDP_HEADER;
     size_t uxLength;
@@ -1575,8 +1563,11 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
-        ProtocolHeaders_t * pxProtocolHeaders;
+        const ProtocolHeaders_t * pxProtocolHeaders;
 
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
         pxUDPHeader = &( pxProtocolHeaders->xUDPHeader );
     }
@@ -1649,11 +1640,11 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
  *
  * @return An enum to show whether the packet should be released/kept/processed etc.
  */
-static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
+static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacket,
                                                     NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t eReturn;
-    IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+    const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
     UBaseType_t uxHeaderLength;
     uint8_t ucProtocol;
     const IPHeader_IPv6_t * pxIPHeader_IPv6;
@@ -1661,12 +1652,18 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
     if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxIPHeader_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
 
         uxHeaderLength = ipSIZE_OF_IPv6_HEADER;
         ucProtocol = pxIPHeader_IPv6->ucNextHeader;
-        eReturn = prvAllowIPPacketIPv6( ( ( IPHeader_IPv6_t * ) &( pxIPPacket->xIPHeader ) ), pxNetworkBuffer, uxHeaderLength );
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        eReturn = prvAllowIPPacketIPv6( ( ( const IPHeader_IPv6_t * ) &( pxIPPacket->xIPHeader ) ), pxNetworkBuffer, uxHeaderLength );
 
         /* The IP-header type is copied to a location 6 bytes before the messages
          * starts.  It might be needed later on when a UDP-payload buffer is being
@@ -1702,202 +1699,122 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 }
             #endif
         }
+    }
+
+    /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
+    /* coverity[misra_c_2012_rule_14_3_violation] */
+    /* coverity[cond_const] */
+    if( eReturn == eProcessBuffer )
+    {
+        /* Are there IP-options. */
+        if( ( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
+            ( uxHeaderLength > ipSIZE_OF_IPv4_HEADER ) )
+        {
+            /* The size of the IP-header is larger than 20 bytes.
+             * The extra space is used for IP-options. */
+            eReturn = prvCheckIP4HeaderOptions( pxNetworkBuffer );
+        }
+
+        if( ( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
+            ( xGetExtensionOrder( ucProtocol, 0U ) > 0 ) )
+        {
+            eReturn = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
+
+            if( eReturn != eReleaseBuffer )
+            {
+                ucProtocol = pxIPHeader_IPv6->ucNextHeader;
+            }
+        }
 
         /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
         /* coverity[misra_c_2012_rule_14_3_violation] */
-        /* coverity[cond_const] */
-        if( eReturn == eProcessBuffer )
+        /* coverity[const] */
+        if( eReturn != eReleaseBuffer )
         {
-            /* Are there IP-options. */
-            if( ( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
-                ( uxHeaderLength > ipSIZE_OF_IPv4_HEADER ) )
+            /* Add the IP and MAC addresses to the ARP table if they are not
+             * already there - otherwise refresh the age of the existing
+             * entry. */
+            if( ucProtocol != ( uint8_t ) ipPROTOCOL_UDP )
             {
-                /* The size of the IP-header is larger than 20 bytes.
-                 * The extra space is used for IP-options. */
-                eReturn = prvCheckIP4HeaderOptions( pxNetworkBuffer );
-            }
-
-            if( ( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
-                ( xGetExtensionOrder( ucProtocol, 0U ) > 0 ) )
-            {
-                eReturn = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
-
-                if( eReturn != eReleaseBuffer )
+                /* Refresh the ARP cache with the IP/MAC-address of the received
+                 *  packet.  For UDP packets, this will be done later in
+                 *  xProcessReceivedUDPPacket(), as soon as it's know that the message
+                 *  will be handled.  This will prevent the ARP cache getting
+                 *  overwritten with the IP address of useless broadcast packets. */
+                if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                 {
-                    ucProtocol = pxIPHeader_IPv6->ucNextHeader;
+                    vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
                 }
-            }
+                else
 
-            /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
-            /* coverity[misra_c_2012_rule_14_3_violation] */
-            /* coverity[const] */
-            if( eReturn != eReleaseBuffer )
-            {
-                /* Add the IP and MAC addresses to the ARP table if they are not
-                 * already there - otherwise refresh the age of the existing
-                 * entry. */
-                if( ucProtocol != ( uint8_t ) ipPROTOCOL_UDP )
+
+                if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
                 {
-                    /* Refresh the ARP cache with the IP/MAC-address of the received
-                     *  packet.  For UDP packets, this will be done later in
+                    eReturn = eWaitingARPResolution;
+                }
+                else
+                {
+                    /* IP address is not on the same subnet, ARP table can be updated.
+                     * Refresh the ARP cache with the IP/MAC-address of the received
+                     *  packet. For UDP packets, this will be done later in
                      *  xProcessReceivedUDPPacket(), as soon as it's know that the message
                      *  will be handled.  This will prevent the ARP cache getting
-                     *  overwritten with the IP address of useless broadcast packets. */
-                    if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-                    {
-                        vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
-                    }
-                    else
-
-
-                    if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
-                    {
-                        eReturn = eWaitingARPResolution;
-                    }
-                    else
-                    {
-                        /* IP address is not on the same subnet, ARP table can be updated.
-                         * Refresh the ARP cache with the IP/MAC-address of the received
-                         *  packet. For UDP packets, this will be done later in
-                         *  xProcessReceivedUDPPacket(), as soon as it's know that the message
-                         *  will be handled.  This will prevent the ARP cache getting
-                         *  overwritten with the IP address of useless broadcast packets.
-                         */
-                        vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
-                    }
+                     *  overwritten with the IP address of useless broadcast packets.
+                     */
+                    vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
                 }
+            }
 
-                if( eReturn != eWaitingARPResolution ) /*TODO eReturn != eReleaseBuffer */
+            if( eReturn != eWaitingARPResolution ) /*TODO eReturn != eReleaseBuffer */
+            {
+                switch( ucProtocol )
                 {
-                    switch( ucProtocol )
-                    {
-                        case ipPROTOCOL_ICMP:
+                    case ipPROTOCOL_ICMP:
 
-                            /* The IP packet contained an ICMP frame.  Don't bother checking
-                             * the ICMP checksum, as if it is wrong then the wrong data will
-                             * also be returned, and the source of the ping will know something
-                             * went wrong because it will not be able to validate what it
-                             * receives. */
-                            #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+                        /* The IP packet contained an ICMP frame.  Don't bother checking
+                         * the ICMP checksum, as if it is wrong then the wrong data will
+                         * also be returned, and the source of the ping will know something
+                         * went wrong because it will not be able to validate what it
+                         * receives. */
+                        #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+                            {
+                                if( pxIPHeader->ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
                                 {
-                                    if( pxIPHeader->ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
-                                    {
-                                        eReturn = ProcessICMPPacket( pxNetworkBuffer );
-                                    }
+                                    eReturn = ProcessICMPPacket( pxNetworkBuffer );
                                 }
-                            #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
-                            break;
+                            }
+                        #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
+                        break;
 
-                        case ipPROTOCOL_ICMP_IPv6:
-                            eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
-                            break;
+                    case ipPROTOCOL_ICMP_IPv6:
+                        eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+                        break;
 
-                        case ipPROTOCOL_UDP:
-                           {
-                               /* The IP packet contained a UDP frame. */
+                    case ipPROTOCOL_UDP:
+                        /* The IP packet contained a UDP frame. */
 
-                               /* Map the buffer onto a UDP-Packet struct to easily access the
-                                * fields of UDP packet. */
+                        eReturn = prvProcessUDPPacket( pxNetworkBuffer );
+                        break;
 
-                               /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                               /* coverity[misra_c_2012_rule_11_3_violation] */
-                               UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-                               UDPHeader_t * pxUDPHeader = &( pxUDPPacket->xUDPHeader );
-                               uint16_t usLength;
-                               BaseType_t xIsWaitingARPResolution = pdFALSE;
+                        #if ipconfigUSE_TCP == 1
+                            case ipPROTOCOL_TCP:
 
-                               if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-                               {
-                                   ProtocolHeaders_t * pxProtocolHeaders;
+                                if( xProcessReceivedTCPPacket( pxNetworkBuffer ) == pdPASS )
+                                {
+                                    eReturn = eFrameConsumed;
+                                }
 
-                                   pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
-                                   pxUDPHeader = &( pxProtocolHeaders->xUDPHeader );
-                               }
-
-                               /* Note the header values required prior to the checksum
-                                * generation as the checksum pseudo header may clobber some of
-                                * these values. */
-                               usLength = FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength );
-
-                               if( ( pxNetworkBuffer->xDataLength < sizeof( UDPPacket_t ) ) ||
-                                   ( ( ( size_t ) usLength ) < sizeof( UDPHeader_t ) ) )
-                               {
-                                   eReturn = eReleaseBuffer;
-                               }
-                               else if( usLength > ( FreeRTOS_ntohs( pxIPHeader->usLength ) - ipSIZE_OF_IPv4_HEADER ) )
-                               {
-                                   /* The UDP packet is bigger than the IP-payload. Something is wrong, drop the packet. */
-                                   eReturn = eReleaseBuffer;
-                               }
-                               else
-                               {
-                                   size_t uxPayloadSize_1, uxPayloadSize_2;
-
-                                   /* Ensure that downstream UDP packet handling has the lesser
-                                    * of: the actual network buffer Ethernet frame length, or
-                                    * the sender's UDP packet header payload length, minus the
-                                    * size of the UDP header.
-                                    *
-                                    * The size of the UDP packet structure in this implementation
-                                    * includes the size of the Ethernet header, the size of
-                                    * the IP header, and the size of the UDP header. */
-                                   uxPayloadSize_1 = pxNetworkBuffer->xDataLength - sizeof( UDPPacket_t );
-                                   uxPayloadSize_2 = ( ( size_t ) usLength ) - sizeof( UDPHeader_t );
-
-                                   if( uxPayloadSize_1 > uxPayloadSize_2 )
-                                   {
-                                       pxNetworkBuffer->xDataLength = uxPayloadSize_2 + sizeof( UDPPacket_t );
-                                   }
-
-                                   /* Fields in pxNetworkBuffer (usPort, ulIPAddress) are network order. */
-                                   pxNetworkBuffer->usPort = pxUDPPacket->xUDPHeader.usSourcePort;
-                                   pxNetworkBuffer->xIPAddress.xIP_IPv4 = pxUDPPacket->xIPHeader.ulSourceIPAddress;
-
-                                   /* ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM:
-                                    * In some cases, the upper-layer checksum has been calculated
-                                    * by the NIC driver. */
-
-                                   /* Pass the packet payload to the UDP sockets
-                                    * implementation. */
-                                   if( xProcessReceivedUDPPacket( pxNetworkBuffer,
-                                                                  pxUDPPacket->xUDPHeader.usDestinationPort,
-                                                                  &( xIsWaitingARPResolution ) ) == pdPASS )
-                                   {
-                                       eReturn = eFrameConsumed;
-                                   }
-                                   else
-                                   {
-                                       /* Is this packet to be set aside for ARP resolution. */
-                                       if( xIsWaitingARPResolution == pdTRUE )
-                                       {
-                                           eReturn = eWaitingARPResolution;
-                                       }
-                                   }
-                               }
-                           }
-                           break;
-
-                            #if ipconfigUSE_TCP == 1
-                                case ipPROTOCOL_TCP:
-
-                                    if( xProcessReceivedTCPPacket( pxNetworkBuffer ) == pdPASS )
-                                    {
-                                        eReturn = eFrameConsumed;
-                                    }
-
-                                    /* Setting this variable will cause xTCPTimerCheck()
-                                     * to be called just before the IP-task blocks. */
-                                    xProcessedTCPMessage++;
-                                    break;
-                            #endif /* if ipconfigUSE_TCP == 1 */
-                        default:
-                            /* Not a supported frame type. */
-                            eReturn = eReleaseBuffer;
-                            break;
-                    }
+                                /* Setting this variable will cause xTCPTimerCheck()
+                                 * to be called just before the IP-task blocks. */
+                                xProcessedTCPMessage++;
+                                break;
+                        #endif /* if ipconfigUSE_TCP == 1 */
+                    default:
+                        /* Not a supported frame type. */
+                        eReturn = eReleaseBuffer;
+                        break;
                 }
             }
         }
@@ -2097,6 +2014,9 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         if( pxNetworkBuffer != NULL )
     #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
     {
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
         /* Send! */
@@ -2105,6 +2025,9 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
             /* _HT_ I wonder if this ad-hoc search of an end-point it necessary. */
             FreeRTOS_printf( ( "vReturnEthernetFrame: No pxEndPoint yet for %lxip?\n", FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulDestinationIPAddress ) ) );
 
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             if( ( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType == ipIPv6_FRAME_TYPE )
             {
                 /* To do */
@@ -2400,7 +2323,7 @@ BaseType_t FreeRTOS_IsEndPointUp( const struct xNetworkEndPoint * pxEndPoint )
 BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface )
 {
     BaseType_t xResult = pdTRUE;
-    NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+    const NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
     while( pxEndPoint != NULL )
     {
@@ -2445,7 +2368,9 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     size_t uxResult;
     /* Map the buffer onto Ethernet Header struct for easy access to fields. */
-    /* misra_c_2012_rule_11_3_violation */
+    /* MISRA Ref 11.3.1 [Misaligned access] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
     const EthernetHeader_t * pxHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     if( pxHeader->usFrameType == ( uint16_t ) ipIPv6_FRAME_TYPE )

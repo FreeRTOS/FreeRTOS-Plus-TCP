@@ -462,7 +462,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
             {
                 configASSERT( xDomain == FREERTOS_AF_INET );
             }
-        #else
+            else
             {
                 configASSERT( ( xDomain == FREERTOS_AF_INET ) || ( xDomain == FREERTOS_AF_INET6 ) );
             }
@@ -686,12 +686,18 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             pxSocket->ucSocketOptions = ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT;
             pxSocket->ucProtocol = ( uint8_t ) xProtocolCpy; /* protocol: UDP or TCP */
 
+            if( xDomain == ( uint8_t ) FREERTOS_AF_INET6 )
+            {
+                pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
+            }
+            else
+            {
+                pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+            }
+
             xReturn = pxSocket;
         }
     } while( ipFALSE_BOOL );
-
-    /* Remove compiler warnings in the case the configASSERT() is not defined. */
-    ( void ) xDomain;
 
     return xReturn;
 }
@@ -4608,20 +4614,19 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 }
                 else if( pxSocket->u.xTCP.usRemotePort == ( uint16_t ) uxRemotePort )
                 {
-                    #if ( ipconfigUSE_IPV6 != 0 )
+                    if( ulRemoteIP.xIP_IPv4 == 0 )
+                    {
+                        pxResult = pxTCPSocketLookup_IPv6( pxSocket, &ulRemoteIP.xIP_IPv6, ulRemoteIP.xIP_IPv4 );
+                    }
+                    else
+                    {
+                        if( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 == ulRemoteIP.xIP_IPv4 )
                         {
-                            pxResult = pxTCPSocketLookup_IPv6( pxSocket, &ulRemoteIP.xIP_IPv6, ulRemoteIP.xIP_IPv4 );
+                            /* For sockets not in listening mode, find a match with
+                             * xLocalPort, ulRemoteIP AND xRemotePort. */
+                            pxResult = pxSocket;
                         }
-                    #else /* if ( ipconfigUSE_IPV6 != 0 ) */
-                        {
-                            if( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 == ulRemoteIP )
-                            {
-                                /* For sockets not in listening mode, find a match with
-                                 * xLocalPort, ulRemoteIP AND xRemotePort. */
-                                pxResult = pxSocket;
-                            }
-                        }
-                    #endif /* ipconfigUSE_IPV6 */
+                    }
 
                     if( pxResult != NULL )
                     {
@@ -5479,15 +5484,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
             const ListItem_t * pxEndTCP = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
             const ListItem_t * pxEndUDP = ( ( const ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
 
-            #if ( ipconfigUSE_IPV6 != 0 )
-                {
-                    FreeRTOS_printf( ( "Prot Port IP-Remote                       : Port R/T Status         Alive  tmout Child\n" ) );
-                }
-            #else
-                {
-                    FreeRTOS_printf( ( "Prot Port IP-Remote       : Port  R/T Status       Alive  tmout Child\n" ) );
-                }
-            #endif
+            FreeRTOS_printf( ( "Prot Port IP-Remote       : Port  R/T Status       Alive  tmout Child\n" ) );
 
             for( pxIterator = listGET_HEAD_ENTRY( &xBoundTCPSocketsList );
                  pxIterator != pxEndTCP;

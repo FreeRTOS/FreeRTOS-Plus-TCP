@@ -227,7 +227,7 @@ typedef struct xProcessSet
 } ProcessSet_t;
 
 /* Returns the current state of a DHCP process. */
-eDHCPState_t eGetDHCPState( struct xNetworkEndPoint * pxEndPoint );
+eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint );
 
 /*
  * NOT A PUBLIC API FUNCTION.
