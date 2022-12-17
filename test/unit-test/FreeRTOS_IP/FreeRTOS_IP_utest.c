@@ -58,15 +58,17 @@
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_FreeRTOS_UDP_IP.h"
-#include "mock_FreeRTOS_IPv4_Private.h""
+#include "mock_FreeRTOS_IPv4_Private.h" "
 
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IPv4.h"
+#include "FreeRTOS_IP.h "
+#include "FreeRTOS_IPv4.h "
 
-#include "FreeRTOS_IP_stubs.c"
-#include "catch_assert.h"
+#include "FreeRTOS_IP_stubs.c "
+#include "catch_assert.h "
 
-#include "FreeRTOSIPConfig.h"
+#include "FreeRTOSIPConfig.h "
+
+extern NetworkInterface_t xInterfaces[ 1 ];
 
 void prvIPTask( void * pvParameters );
 void prvProcessIPEventsAndTimers( void );
@@ -326,7 +328,7 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
     #if ( configQUEUE_REGISTRY_SIZE > 0 )
-        vQueueAddToRegistry_Expect( ulPointerToQueue, "NetEvnt" );
+        vQueueAddToRegistry_Expect( ulPointerToQueue, "NetEvnt " );
     #endif
 
     xNetworkBuffersInitialise_ExpectAndReturn( pdPASS );
@@ -429,7 +431,7 @@ void test_FreeRTOS_IPInit_BufferCreationFails( void )
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
     #if ( configQUEUE_REGISTRY_SIZE > 0 )
-        vQueueAddToRegistry_Expect( pxPointerToQueue, "NetEvnt" );
+        vQueueAddToRegistry_Expect( pxPointerToQueue, "NetEvnt " );
     #endif
 
     xNetworkBuffersInitialise_ExpectAndReturn( pdFAIL );
@@ -481,7 +483,7 @@ void test_FreeRTOS_IPInit_TaskCreationFails( void )
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
     #if ( configQUEUE_REGISTRY_SIZE > 0 )
-        vQueueAddToRegistry_Expect( pxPointerToQueue, "NetEvnt" );
+        vQueueAddToRegistry_Expect( pxPointerToQueue, "NetEvnt " );
     #endif
 
     xNetworkBuffersInitialise_ExpectAndReturn( pdPASS );
@@ -3175,3 +3177,4 @@ void test_CastingFunctions( void )
     const ProtocolHeaders_t * pxConstProtHeader = ( ( const ProtocolHeaders_t * ) pvPtr );
     ProtocolHeaders_t * pxProtHeader = ( ( ProtocolHeaders_t * ) pvPtr );
 }
+

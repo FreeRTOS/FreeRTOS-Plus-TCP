@@ -40,6 +40,8 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+NetworkInterface_t xInterfaces[ 1 ];
+
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 BaseType_t xNetworkUp;

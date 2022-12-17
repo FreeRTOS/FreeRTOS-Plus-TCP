@@ -74,8 +74,8 @@ typedef enum
  * cache table then add it - replacing the oldest current entry if there is not
  * a free space available.
  */
-//void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
-//                            const uint32_t ulIPAddress );
+/*void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress, */
+/*                            const uint32_t ulIPAddress ); */
 
 void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                             const uint32_t ulIPAddress,

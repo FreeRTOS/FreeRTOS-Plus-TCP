@@ -86,11 +86,38 @@ BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
 /** @brief Handle the IPv6 extension headers. */
 eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                       BaseType_t xDoRemove );
-                                                    
+
 /* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
  * It handles all ICMP messages except the PING requests. */
 eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
+BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxBuffer,
+                                    BaseType_t bReleaseAfterSend );
+
+/**
+ * @brief Reduce the age counter in each entry within the ND cache.  An entry is no
+ * longer considered valid and is deleted if its age reaches zero.
+ * Just before getting to zero, 3 times a neighbour solicitation will be sent.
+ */
+void vNDAgeCache( void );
+
+/**
+ * @brief Work on the RA/SLAAC processing.
+ * @param[in] xDoReset: WHen true, the state-machine will be reset and initialised.
+ * @param[in] pxEndPoint: The end-point for which the RA/SLAAC process should be done..
+ */
+void vRAProcess( BaseType_t xDoReset,
+                 NetworkEndPoint_t * pxEndPoint );
+
+/*
+ * If ulIPAddress is already in the ND cache table then reset the age of the
+ * entry back to its maximum value.  If ulIPAddress is not already in the ND
+ * cache table then add it - replacing the oldest current entry if there is not
+ * a free space available.
+ */
+void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
+                           const IPv6_Address_t * pxIPAddress,
+                           NetworkEndPoint_t * pxEndPoint );
 
 
 #endif /* ifndef LIST_MACRO_H */
