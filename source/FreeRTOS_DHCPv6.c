@@ -1396,4 +1396,4 @@
         }
     #endif /* ( ipconfigHAS_DEBUG_PRINTF == 1 ) */
 
-#endif /* ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPV6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 ) */
