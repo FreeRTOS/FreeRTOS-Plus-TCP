@@ -86,35 +86,7 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
                               uint32_t ulLen,
                               BaseType_t xReleaseAfterSend );
 
-/*
- * Let ARP look-up the MAC-address of the peer and initialise the first SYN
- * packet.
- */
-BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * Let ARP look-up the MAC-address of the peer and initialise the first SYN
- * packet.
- */
-BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * Return or send a packet to the other party.
- */
-void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
-                              NetworkBufferDescriptor_t * pxDescriptor,
-                              uint32_t ulLen,
-                              BaseType_t xReleaseAfterSend );
-
-/*
- * Return or send a packet to the other party.
- */
-void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
-                              NetworkBufferDescriptor_t * pxDescriptor,
-                              uint32_t ulLen,
-                              BaseType_t xReleaseAfterSend );
-
-void prvTCPReturn_SetEndPoint( FreeRTOS_Socket_t * pxSocket,
+void prvTCPReturn_SetEndPoint( const FreeRTOS_Socket_t * pxSocket,
                                NetworkBufferDescriptor_t * pxNetworkBuffer,
                                size_t uxIPHeaderSize );
 

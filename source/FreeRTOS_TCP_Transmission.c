@@ -680,14 +680,14 @@
  * @param[in] pxNetworkBuffer: The network buffer carrying the outgoing message.
  * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
  */
-    void prvTCPReturn_SetEndPoint( FreeRTOS_Socket_t * pxSocket,
+    void prvTCPReturn_SetEndPoint( const FreeRTOS_Socket_t * pxSocket,
                                    NetworkBufferDescriptor_t * pxNetworkBuffer,
                                    size_t uxIPHeaderSize )
     {
-        IPHeader_t * pxIPHeader = NULL;
+        const IPHeader_t * pxIPHeader = NULL;
 
         #if ( ipconfigUSE_IPV6 != 0 )
-            IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
+            const IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
         #endif
 
         if( ( pxSocket != NULL ) && ( pxSocket->pxEndPoint != NULL ) )
@@ -701,6 +701,9 @@
             #if ( ipconfigUSE_IPV6 != 0 )
                 if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
                 {
+                    /* MISRA Ref 11.3.1 [Misaligned access] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
                     pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPHeader_IPv6->xDestinationAddress ) );
 
@@ -716,6 +719,9 @@
             {
                 /*_RB_ Was FreeRTOS_FindEndPointOnIP_IPv4() but changed to FreeRTOS_FindEndPointOnNetMask()
                  * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
                 pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPHeader->ulDestinationIPAddress, 8 );
 

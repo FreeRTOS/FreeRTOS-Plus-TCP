@@ -186,7 +186,7 @@
                 }
 
                 /* Fill the packet, using hton translations. */
-                if( ( pxNetworkBuffer != NULL ) && ( pxSocket != NULL ) )
+                if( pxSocket != NULL )
                 {
                     prvTCPReturn_CheckTCPWindow( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
                     prvTCPReturn_SetSequenceNumber( pxSocket, pxNetworkBuffer, uxIPHeaderSize, ulLen );
