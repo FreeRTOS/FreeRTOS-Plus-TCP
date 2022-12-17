@@ -63,15 +63,16 @@
             /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
             #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
                 {
-                    ulMSS = ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) );
+                    ulMSS = ipconfigTCP_MSS;
                 }
             #else
                 {
                     ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
                 }
             #endif
-            
-            if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 ) ^ *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) != 0U )
+
+            /* Check if the remote IP-address belongs to the same netmask. */
+            if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 ) ^ pxEndPoint->ipv4_settings.ulIPAddress ) & pxEndPoint->ipv4_settings.ulNetMask ) != 0U )
             {
                 /* Data for this peer will pass through a router, and maybe through
                  * the internet.  Limit the MSS to 1400 bytes or less. */

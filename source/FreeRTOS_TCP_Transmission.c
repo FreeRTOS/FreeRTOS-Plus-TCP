@@ -670,7 +670,72 @@
 
         return pxReturn;
     }
-    /*-----------------------------------------------------------*/
+
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Called by prvTCPReturnPacket(), this function makes sure that the network buffer
+ *        has 'pxEndPoint' set properly.
+ * @param[in] pxSocket: The socket on which the packet is being sent.
+ * @param[in] pxNetworkBuffer: The network buffer carrying the outgoing message.
+ * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
+ */
+    void prvTCPReturn_SetEndPoint( FreeRTOS_Socket_t * pxSocket,
+                                   NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                   size_t uxIPHeaderSize )
+    {
+        IPHeader_t * pxIPHeader = NULL;
+
+        #if ( ipconfigUSE_IPV6 != 0 )
+            IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
+        #endif
+
+        if( ( pxSocket != NULL ) && ( pxSocket->pxEndPoint != NULL ) )
+        {
+            pxNetworkBuffer->pxEndPoint = pxSocket->pxEndPoint;
+        }
+        else
+        {
+            FreeRTOS_printf( ( "prvTCPReturnPacket: No pxEndPoint yet?\n" ) );
+
+            #if ( ipconfigUSE_IPV6 != 0 )
+                if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
+                {
+                    pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                    pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPHeader_IPv6->xDestinationAddress ) );
+
+                    if( pxNetworkBuffer->pxEndPoint == NULL )
+                    {
+                        FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %pip => %pip\n",
+                                           pxIPHeader_IPv6->xSourceAddress.ucBytes,
+                                           pxIPHeader_IPv6->xDestinationAddress.ucBytes ) );
+                    }
+                }
+                else
+            #endif /* ipconfigUSE_IPV6 */
+            {
+                /*_RB_ Was FreeRTOS_FindEndPointOnIP_IPv4() but changed to FreeRTOS_FindEndPointOnNetMask()
+                 * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */
+                pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPHeader->ulDestinationIPAddress, 8 );
+
+                if( pxNetworkBuffer->pxEndPoint == NULL )
+                {
+                    FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %lxip => %lxip\n",
+                                       FreeRTOS_ntohl( pxIPHeader->ulSourceIPAddress ),
+                                       FreeRTOS_ntohl( pxIPHeader->ulDestinationIPAddress ) ) );
+                }
+            }
+
+            if( pxNetworkBuffer->pxEndPoint != NULL )
+            {
+                FreeRTOS_printf( ( "prvTCPReturnPacket: packet's end-point %02x-%02x\n",
+                                   pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes[ 4 ],
+                                   pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes[ 5 ] ) );
+            }
+        }
+    }
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Prepare an outgoing message, in case anything has to be sent.

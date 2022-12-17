@@ -63,7 +63,7 @@
             /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
             #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
                 {
-                    ulMSS = ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) );
+                    ulMSS = ipconfigTCP_MSS;
                 }
             #else
                 {

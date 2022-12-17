@@ -43,6 +43,7 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_DNS.h"
+#include "FreeRTOS_Routing.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
@@ -106,6 +107,8 @@ static SemaphoreHandle_t xTransmissionMutex;
 /* Global Ethernet handle */
 static ETH_HandleTypeDef xEthHandle;
 static ETH_TxPacketConfig xTxConfig;
+
+static NetworkInterface_t * pxMyInterface = NULL;
 
 /*
  * About the section ".ethernet_data" : the DMA wants the descriptors and buffers allocated in the
@@ -172,6 +175,25 @@ static void vClearOptionBit( volatile uint32_t * pulValue,
 
 static size_t uxGetOwnCount( ETH_HandleTypeDef * heth );
 
+/* FreeRTOS+TCP/multi :
+ * Each network device has 3 access functions:
+ * - Initialise the device
+ * - Output a network packet
+ * - Return the PHY Link-Status (LS)
+ * They can be defined as static because the function addresses
+ * addresses will be stored in struct NetworkInterface_t. */
+
+static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                           NetworkBufferDescriptor_t * const pxBuffer,
+                                           BaseType_t xReleaseAfterSend );
+
+static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface );
+
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                NetworkInterface_t * pxInterface );
+
 /*-----------------------------------------------------------*/
 
 static EthernetPhy_t xPhyObject;
@@ -207,21 +229,26 @@ static uint8_t * pucGetRXBuffer( size_t uxSize )
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceInitialise( void )
+static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     BaseType_t xResult = pdFAIL;
+    NetworkEndPoint_t * pxEndPoint;
     HAL_StatusTypeDef xHalEthInitStatus;
     size_t uxIndex = 0;
 
     if( xMacInitStatus == eMACInit )
     {
+        pxMyInterface = pxInterface;
+        pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
+        configASSERT( pxEndPoint != NULL );
+
         /*
          * Initialize ETH Handler
          * It assumes that Ethernet GPIO and clock configuration
          * are already done in the ETH_MspInit()
          */
         xEthHandle.Instance = ETH;
-        xEthHandle.Init.MACAddr = ( uint8_t * ) FreeRTOS_GetMACAddress();
+        xEthHandle.Init.MACAddr = ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes;
         xEthHandle.Init.MediaInterface = HAL_ETH_RMII_MODE;
         xEthHandle.Init.TxDesc = DMATxDscrTab;
         xEthHandle.Init.RxDesc = DMARxDscrTab;
@@ -318,16 +345,21 @@ BaseType_t xNetworkInterfaceInitialise( void )
         {
             /* For now pdFAIL will be returned. But prvEMACHandlerTask() is running
              * and it will keep on checking the PHY and set 'ulLinkStatusMask' when necessary. */
+            xResult = pdFAIL;
         }
+    }
+    else
+    {
+        xResult = pdFAIL;
     }
 
     return xResult;
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xGetPhyLinkStatus( void )
+static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
-    BaseType_t xReturn;
+    BaseType_t xReturn = pdFAIL;
 
     if( xPhyObject.ulLinkStatusMask != 0U )
     {
@@ -342,8 +374,33 @@ BaseType_t xGetPhyLinkStatus( void )
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
-                                    BaseType_t xReleaseAfterSend )
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                NetworkInterface_t * pxInterface )
+{
+    static char pcName[ 17 ];
+
+/* This function pxFillInterfaceDescriptor() adds a network-interface.
+ * Make sure that the object pointed to by 'pxInterface'
+ * is declared static or global, and that it will remain to exist. */
+
+    snprintf( pcName, sizeof( pcName ), "eth%u", ( unsigned ) xEMACIndex );
+
+    memset( pxInterface, '\0', sizeof( *pxInterface ) );
+    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pfInitialise = xNetworkInterfaceInitialise;
+    pxInterface->pfOutput = xNetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xGetPhyLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+
+    return pxInterface;
+}
+/*-----------------------------------------------------------*/
+
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                           NetworkBufferDescriptor_t * const pxDescriptor,
+                                           BaseType_t xReleaseAfterSend )
 {
     BaseType_t xResult = pdFAIL;
     TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 100U );
@@ -640,6 +697,9 @@ static BaseType_t prvNetworkInterfaceInput( void )
                     .eEventType = eNetworkRxEvent,
                     .pvData     = ( void * ) pxReceivedBuffer
                 };
+
+                pxReceivedBuffer->pxInterface = pxMyInterface;
+                pxReceivedBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxReceivedBuffer->pucEthernetBuffer );
 
                 /* Send the data to the TCP/IP stack. */
                 if( xSendEventStructToIPTask( &( xRxEvent ), 0 ) != pdFALSE )

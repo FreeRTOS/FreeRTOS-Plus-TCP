@@ -169,26 +169,24 @@
                 pxProtocolHeaders =
                     ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] );
 
-                #if 0 /* TBD after Endpoint support */
+                if( pxNetworkBuffer->pxEndPoint == NULL )
+                {
+                    prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
+
                     if( pxNetworkBuffer->pxEndPoint == NULL )
                     {
-                        prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
-
-                        if( pxNetworkBuffer->pxEndPoint == NULL )
+                        if( xDoRelease != pdFALSE )
                         {
-                            if( xDoRelease != pdFALSE )
-                            {
-                                vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                            }
-
-                            pxNetworkBuffer = NULL;
-                            break;
+                            vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
                         }
+
+                        pxNetworkBuffer = NULL;
+                        break;
                     }
-                #endif /* if 0 */
+                }
 
                 /* Fill the packet, using hton translations. */
-                if( pxSocket != NULL )
+                if( ( pxNetworkBuffer != NULL ) && ( pxSocket != NULL ) )
                 {
                     prvTCPReturn_CheckTCPWindow( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
                     prvTCPReturn_SetSequenceNumber( pxSocket, pxNetworkBuffer, uxIPHeaderSize, ulLen );
