@@ -40,6 +40,10 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+NetworkInterface_t xInterfaces[ 1 ];
+
+BaseType_t xCallEventHook;
+
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 /** @brief The expected IP version and header length coded into the IP header itself. */

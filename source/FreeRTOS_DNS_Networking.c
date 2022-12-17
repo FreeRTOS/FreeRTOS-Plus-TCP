@@ -38,6 +38,27 @@
 #if ( ipconfigUSE_DNS != 0 )
 
 /**
+ * @brief Bind the socket to a port number.
+ * @param[in] xSocket: the socket that must be bound.
+ * @param[in] usPort: the port number to bind to.
+ * @return The created socket - or NULL if the socket could not be created or could not be bound.
+ */
+    BaseType_t DNS_BindSocket( Socket_t xSocket,
+                               uint16_t usPort )
+    {
+        struct freertos_sockaddr xAddress;
+        BaseType_t xReturn;
+
+        ( void ) memset( &( xAddress ), 0, sizeof( xAddress ) );
+        xAddress.sin_family = FREERTOS_AF_INET;
+        xAddress.sin_port = usPort;
+
+        xReturn = FreeRTOS_bind( xSocket, &xAddress, ( socklen_t ) sizeof( xAddress ) );
+
+        return xReturn;
+    }
+
+/**
  * @brief Create a socket and bind it to the standard DNS port number.
  *
  * @return The created socket - or NULL if the socket could not be created or could not be bound.
@@ -60,24 +81,11 @@
         }
         else
         {
-            /* Auto bind the port. */
-            xAddress.sin_port = 0U;
-            xReturn = FreeRTOS_bind( xSocket, &xAddress, ( socklen_t ) sizeof( xAddress ) );
-
-            /* Check the bind was successful, and clean up if not. */
-            if( xReturn != 0 )
-            {
-                ( void ) FreeRTOS_closesocket( xSocket );
-                xSocket = NULL;
-            }
-            else
-            {
-                /* Ideally we should check for the return value. But since we are passing
-                 * correct parameters, and xSocket is != NULL, the return value is
-                 * going to be '0' i.e. success. Thus, return value is discarded */
-                ( void ) FreeRTOS_setsockopt( xSocket, 0, FREERTOS_SO_SNDTIMEO, &( uxWriteTimeOut_ticks ), sizeof( TickType_t ) );
-                ( void ) FreeRTOS_setsockopt( xSocket, 0, FREERTOS_SO_RCVTIMEO, &( uxReadTimeOut_ticks ), sizeof( TickType_t ) );
-            }
+            /* Ideally we should check for the return value. But since we are passing
+             * correct parameters, and xSocket is != NULL, the return value is
+             * going to be '0' i.e. success. Thus, return value is discarded */
+            ( void ) FreeRTOS_setsockopt( xSocket, 0, FREERTOS_SO_SNDTIMEO, &( uxWriteTimeOut_ticks ), sizeof( TickType_t ) );
+            ( void ) FreeRTOS_setsockopt( xSocket, 0, FREERTOS_SO_RCVTIMEO, &( uxReadTimeOut_ticks ), sizeof( TickType_t ) );
         }
 
         return xSocket;
@@ -119,6 +127,7 @@
 
         return xReturn;
     }
+/*-----------------------------------------------------------*/
 
 /**
  * @brief perform a DNS network read
@@ -141,6 +150,7 @@
                                                                          &ulAddressLength );
         pxReceiveBuffer->uxPayloadSize = pxReceiveBuffer->uxPayloadLength;
     }
+/*-----------------------------------------------------------*/
 
 /**
  * @brief perform a DNS network close
@@ -151,3 +161,4 @@
         ( void ) FreeRTOS_closesocket( xDNSSocket );
     }
 #endif /* if ( ipconfigUSE_DNS != 0 ) */
+/*-----------------------------------------------------------*/

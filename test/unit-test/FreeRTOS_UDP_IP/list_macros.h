@@ -29,6 +29,8 @@
 #define LIST_MACRO_H
 
 #include <FreeRTOS.h>
+#include <FreeRTOS_IP.h>
+#include <FreeRTOS_Routing.h>
 #include <portmacro.h>
 #include <list.h>
 
@@ -71,5 +73,9 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
+
+BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                    NetworkBufferDescriptor_t * const pxBuffer,
+                                    BaseType_t bReleaseAfterSend );
 
 #endif /* ifndef LIST_MACRO_H */

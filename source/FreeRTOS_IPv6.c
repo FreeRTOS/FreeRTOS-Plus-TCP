@@ -290,6 +290,9 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
     eFrameProcessingResult_t eResult = eReleaseBuffer;
     const size_t uxMaxLength = pxNetworkBuffer->xDataLength;
     const uint8_t * pucSource = pxNetworkBuffer->pucEthernetBuffer;
+    /* MISRA Ref 11.3.1 [Misaligned access] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
     IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
     size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
     size_t uxHopSize = 0U;
