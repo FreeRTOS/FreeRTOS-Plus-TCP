@@ -337,6 +337,12 @@ void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH
                                     uint16_t usIdentifier );
 #endif
 
+/* xARPWaitResolution checks if an IPv4 address is already known. If not
+ * it may send an ARP request and wait for a reply.  This function will
+ * only be called from an application. */
+BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
+                               TickType_t uxTicksToWait );
+
 BaseType_t FreeRTOS_IsNetworkUp( void );
 
 #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
@@ -438,7 +444,7 @@ extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
     extern BaseType_t xProcessedTCPMessage;
 #endif
 
-#include "FreeRTOS_IP_Utils.h" /*TODO ccan be moved after other 2 includes */
+#include "FreeRTOS_IP_Utils.h" /*TODO can be moved after other 2 includes */
 
 #if ipconfigUSE_IPV4
     #include "FreeRTOS_IPv4.h"
