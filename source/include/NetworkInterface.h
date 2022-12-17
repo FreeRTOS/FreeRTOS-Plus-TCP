@@ -35,15 +35,19 @@
 /* *INDENT-ON* */
 
 /* INTERNAL API FUNCTIONS. */
-BaseType_t xNetworkInterfaceInitialise( void );
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t xReleaseAfterSend );
+
+/* Since there are multiple interfaces, there are multiple versions
+ * of the following functions.
+ * These are now declared static in NetworkInterface.c and their addresses
+ * are stored in a struct NetworkInterfaceDescriptor_t.
+ *
+ *  BaseType_t xNetworkInterfaceInitialise( struct xNetworkInterface *pxInterface );
+ *  BaseType_t xNetworkInterfaceOutput( struct xNetworkInterface *pxInterface, NetworkBufferDescriptor_t * const pxNetworkBuffer, BaseType_t xReleaseAfterSend );
+ *  BaseType_t xGetPhyLinkStatus( struct xNetworkInterface *pxInterface );
+ */
 
 /* The following function is defined only when BufferAllocation_1.c is linked in the project. */
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] );
-
-/* The following function is defined only when BufferAllocation_1.c is linked in the project. */
-BaseType_t xGetPhyLinkStatus( void );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
