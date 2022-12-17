@@ -110,7 +110,7 @@ size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket );
  *          prvTCPReturnPacket()        // Prepare for returning
  *          xNetworkInterfaceOutput()   // Sends data to the NIC
  */
-    BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescriptor );
+BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescriptor );
 
 /**
  * @brief Process the received TCP packet.
@@ -130,5 +130,5 @@ size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket );
  *          prvTCPReturnPacket()        // Prepare for returning
  *          xNetworkInterfaceOutput()   // Sends data to the NIC
  */
-    BaseType_t xProcessReceivedTCPPacket_IPV4( NetworkBufferDescriptor_t * pxDescriptor );
+BaseType_t xProcessReceivedTCPPacket_IPV4( NetworkBufferDescriptor_t * pxDescriptor );
 #endif /* ifndef LIST_MACRO_H */
