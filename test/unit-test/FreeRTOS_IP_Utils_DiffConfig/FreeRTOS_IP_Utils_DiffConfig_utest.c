@@ -87,19 +87,20 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 {
     NetworkInterface_t xInterface;
     NetworkEndPoint_t xEndPoint;
+
     xCallEventHook = pdFALSE;
-    
+
     xInterfaces[ 0 ].pfInitialise = xNetworkInterfaceInitialise_CMockExpectAndReturn;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
-    FreeRTOS_ClearARP_Expect(&xEndPoint);
+    FreeRTOS_ClearARP_Expect( &xEndPoint );
 
     xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces[ 0 ], pdPASS );
 
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
-    prvProcessNetworkDownEvent(&xInterface);
+    prvProcessNetworkDownEvent( &xInterface );
 }
 
 void test_FreeRTOS_round_up( void )
