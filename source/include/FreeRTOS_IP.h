@@ -286,6 +286,13 @@ uint32_t FreeRTOS_round_down( uint32_t a,
  * FUNCTIONS IS AVAILABLE ON THE FOLLOWING URL:
  * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/FreeRTOS_TCP_API_Functions.html
  */
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialise the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                      struct xNetworkInterface * pxInterface );
+
 BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                             const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ],
                             const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
@@ -293,6 +300,10 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
                             const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 
 TaskHandle_t FreeRTOS_GetIPTaskHandle( void );
+
+void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
+                                     TickType_t uxBlockTimeTicks,
+                                     uint8_t ucIPType );
 
 void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
                                        uint32_t * pulNetMask,
@@ -325,6 +336,12 @@ void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH
     void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
                                     uint16_t usIdentifier );
 #endif
+
+/* xARPWaitResolution checks if an IPv4 address is already known. If not
+ * it may send an ARP request and wait for a reply.  This function will
+ * only be called from an application. */
+BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
+                               TickType_t uxTicksToWait );
 
 BaseType_t FreeRTOS_IsNetworkUp( void );
 
@@ -367,6 +384,14 @@ BaseType_t xIsNetworkDownEventPending( void );
 /* "xApplicationGetRandomNumber" is declared but never defined, because it may
  * be defined in a user module. */
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
+
+#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
+
+/* Even when the driver takes care of checksum calculations,
+ *  the IP-task will still check if the length fields are OK. */
+    BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
+                                 size_t uxBufferLength );
+#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
  *  is defined in FreeRTOS_IP.c.
@@ -419,7 +444,7 @@ extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
     extern BaseType_t xProcessedTCPMessage;
 #endif
 
-#include "FreeRTOS_IP_Utils.h" /*TODO ccan be moved after other 2 includes */
+#include "FreeRTOS_IP_Utils.h" /*TODO can be moved after other 2 includes */
 
 #if ipconfigUSE_IPV4
     #include "FreeRTOS_IPv4.h"

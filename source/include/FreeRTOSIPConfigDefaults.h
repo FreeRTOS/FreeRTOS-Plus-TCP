@@ -747,7 +747,7 @@
 
 /* The results of DNS lookup's can be stored in a cache table. */
 #ifndef ipconfigUSE_DNS_CACHE
-    #define ipconfigUSE_DNS_CACHE    0
+    #define ipconfigUSE_DNS_CACHE    1
 #endif
 
 #if ( ipconfigUSE_DNS_CACHE != 0 )
@@ -795,6 +795,11 @@
 /* Include support for NBNS: NetBIOS Name Server. */
 #ifndef ipconfigUSE_NBNS
     #define ipconfigUSE_NBNS    0
+#endif
+
+/* Include support for MDNS: Multicast DNS. */
+#ifndef ipconfigUSE_MDNS
+    #define ipconfigUSE_MDNS    0
 #endif
 
 /* It is recommended to let the application respond to incoming ping
@@ -956,7 +961,7 @@
  * functions.
  */
 #ifndef ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM
-    #define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM    0
+    #define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM    1
 #endif
 
 /* The macro 'ipconfigSOCKET_HAS_USER_SEMAPHORE' is rarely used, yet it

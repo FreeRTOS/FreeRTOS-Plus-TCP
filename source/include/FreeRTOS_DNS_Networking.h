@@ -27,6 +27,7 @@
 #ifndef FREERTOS_DNS_NETWORKING_H
 #define FREERTOS_DNS_NETWORKING_H
 
+#include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_DNS_Globals.h"
 

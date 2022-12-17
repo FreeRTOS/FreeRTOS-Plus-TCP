@@ -2463,6 +2463,7 @@ void test_pxTCPSocketLookup_FoundAMatch( void )
     uint32_t ulLocalIP = 0xAABBCCDD;
     UBaseType_t uxLocalPort = 0x1234;
     IP_Address_t ulRemoteIP;
+
     ulRemoteIP.xIP_IPv4 = 0xBCBCDCDC;
     UBaseType_t uxRemotePort = 0x4567;
     ListItem_t xLocalListItem;
@@ -2496,6 +2497,7 @@ void test_pxTCPSocketLookup_NoMatch( void )
     uint32_t ulLocalIP = 0xAABBCCDD;
     UBaseType_t uxLocalPort = 0x1234;
     IP_Address_t ulRemoteIP;
+
     ulRemoteIP.xIP_IPv4 = 0xBCBCDCDC;
     UBaseType_t uxRemotePort = 0x4567;
     ListItem_t xLocalListItem;
@@ -2532,6 +2534,7 @@ void test_pxTCPSocketLookup_NoMatch2( void )
     uint32_t ulLocalIP = 0xAABBCCDD;
     UBaseType_t uxLocalPort = 0x1234;
     IP_Address_t ulRemoteIP;
+
     ulRemoteIP.xIP_IPv4 = 0xBCBCDCDC;
     UBaseType_t uxRemotePort = 0x4567;
     ListItem_t xLocalListItem;
@@ -2568,6 +2571,7 @@ void test_pxTCPSocketLookup_FoundAPartialMatch( void )
     uint32_t ulLocalIP = 0xAABBCCDD;
     UBaseType_t uxLocalPort = 0x1234;
     IP_Address_t ulRemoteIP;
+
     ulRemoteIP.xIP_IPv4 = 0xBCBCDCDC;
     UBaseType_t uxRemotePort = 0x4567;
     ListItem_t xLocalListItem;
