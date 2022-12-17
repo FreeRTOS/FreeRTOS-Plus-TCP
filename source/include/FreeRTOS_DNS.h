@@ -49,6 +49,21 @@ uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
     extern const MACAddress_t xLLMNR_MacAdress;
 #endif /* ipconfigUSE_LLMNR */
 
+/** @brief While doing integration tests, it is necessary to influence the choice
+ * between DNS/IPv4 and DNS/IPv4.  Depending on this, a DNS server will be
+ * addressed via IPv4 or IPv6 messages. */
+typedef enum xIPPreference
+{
+    xPreferenceNone,
+    xPreferenceIPv4,
+    #if ( ipconfigUSE_IPV6 != 0 )
+        xPreferenceIPv6,
+    #endif
+} IPPreference_t;
+
+/** @brief This variable determines he choice of DNS server, either IPv4 or IPv6. */
+extern IPPreference_t xDNS_IP_Preference;
+
 #if ( ipconfigUSE_NBNS != 0 )
 
 /*
