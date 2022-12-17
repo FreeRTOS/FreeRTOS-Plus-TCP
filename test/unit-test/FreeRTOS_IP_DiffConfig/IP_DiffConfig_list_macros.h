@@ -76,33 +76,24 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
-/*
- * If ulIPAddress is already in the ARP cache table then reset the age of the
- * entry back to its maximum value.  If ulIPAddress is not already in the ARP
- * cache table then add it - replacing the oldest current entry if there is not
- * a free space available.
- */
-void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
-                            const uint32_t ulIPAddress, NetworkEndPoint_t * pxEndPoint );
-
 /**
  * @brief Reduce the age counter in each entry within the ND cache.  An entry is no
  * longer considered valid and is deleted if its age reaches zero.
  * Just before getting to zero, 3 times a neighbour solicitation will be sent.
  */
-    void vNDAgeCache( void );
+void vNDAgeCache( void );
 
 /**
  * @brief Work on the RA/SLAAC processing.
  * @param[in] xDoReset: WHen true, the state-machine will be reset and initialised.
  * @param[in] pxEndPoint: The end-point for which the RA/SLAAC process should be done..
  */
-        void vRAProcess( BaseType_t xDoReset,
-                         NetworkEndPoint_t * pxEndPoint );
+void vRAProcess( BaseType_t xDoReset,
+                 NetworkEndPoint_t * pxEndPoint );
 
-    /* This function shall be defined by the application. */
-    void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                         struct xNetworkEndPoint * pxEndPoint );
+/* This function shall be defined by the application. */
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                     struct xNetworkEndPoint * pxEndPoint );
 
 
 /* Do not call the following function directly. It is there for downward compatibility.
@@ -134,9 +125,9 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
  * cache table then add it - replacing the oldest current entry if there is not
  * a free space available.
  */
-    void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
-                               const IPv6_Address_t * pxIPAddress,
-                               NetworkEndPoint_t * pxEndPoint );
+void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
+                           const IPv6_Address_t * pxIPAddress,
+                           NetworkEndPoint_t * pxEndPoint );
 
 /* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
  * It handles all ICMP messages except the PING requests. */
@@ -145,5 +136,9 @@ eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t *
 /* Return pdTRUE if all end-points are up.
  * When pxInterface is null, all end-points will be checked. */
 BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface );
+
+BaseType_t xNetworkInterfaceOutput( struct xNetworkInterface * pxInterface,
+                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                    BaseType_t xReleaseAfterSend );
 
 #endif /* ifndef LIST_MACRO_H */

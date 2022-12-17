@@ -60,7 +60,7 @@
 
 #include "FreeRTOS_IP.h"
 
-//#include "FreeRTOS_IP_stubs.c"
+/*#include "FreeRTOS_IP_stubs.c" */
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
@@ -171,7 +171,7 @@ void test_prvProcessIPEventsAndTimers_eNetworkDownEvent( void )
 
     uxQueueSpacesAvailable_ExpectAnyArgsAndReturn( xQueueReturn );
 
-    prvProcessNetworkDownEvent_Expect(&xInterface);
+    prvProcessNetworkDownEvent_Expect( &xInterface );
 
     prvProcessIPEventsAndTimers();
 
@@ -286,8 +286,8 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     BaseType_t xReturn;
     QueueHandle_t ulPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
 
-    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
-    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
+    NetworkEndPoint_t * xEndPoints = FreeRTOS_FirstEndPoint( &xInterfaces[ 0 ] );
+    IPV4Parameters_t * xIPv4Addressing = &( xEndPoints->ipv4_settings );
 
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
@@ -316,9 +316,9 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] ), xIPv4Addressing->ulIPAddress );
     TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] ), xIPv4Addressing->ulNetMask );
     TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] ), xIPv4Addressing->ulGatewayAddress );
-    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] ), xIPv4Addressing->ulDNSServerAddresses[0] );
+    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] ), xIPv4Addressing->ulDNSServerAddresses[ 0 ] );
     TEST_ASSERT_EQUAL( ( ( xIPv4Addressing->ulIPAddress & xIPv4Addressing->ulNetMask ) | ~xIPv4Addressing->ulNetMask ), xIPv4Addressing->ulBroadcastAddress );
-    // TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, &xNetworkAddressing, sizeof( xDefaultAddressing ) ); TODO: verify if xNetworkAddressing is used
+    /* TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, &xNetworkAddressing, sizeof( xDefaultAddressing ) ); TODO: verify if xNetworkAddressing is used */
     TEST_ASSERT_EQUAL( 0, *ipLOCAL_IP_ADDRESS_POINTER );
     TEST_ASSERT_EQUAL_MEMORY( ucMACAddress, ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
     TEST_ASSERT_EQUAL( IPInItHappyPath_xTaskHandleToSet, FreeRTOS_GetIPTaskHandle() );
@@ -1028,6 +1028,7 @@ void test_vReturnEthernetFrame_DuplicationSuccess( void )
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
+    struct xNetworkInterface xInterface;
 
     pxNetworkBuffer = &xNetworkBuffer;
     memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
@@ -1046,7 +1047,7 @@ void test_vReturnEthernetFrame_DuplicationSuccess( void )
 
     pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( &xNetworkBuffer, xNetworkBuffer.xDataLength, &xDuplicateNetworkBuffer );
 
-    xNetworkInterfaceOutput_ExpectAndReturn( &xDuplicateNetworkBuffer, pdTRUE, pdTRUE );
+    xNetworkInterfaceOutput_ExpectAndReturn( &xInterface, &xDuplicateNetworkBuffer, pdTRUE, pdTRUE );
 
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
@@ -1062,6 +1063,7 @@ void test_vReturnEthernetFrame( void )
     BaseType_t xReleaseAfterSend = pdTRUE;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
+    struct xNetworkInterface xInterface;
 
     pxNetworkBuffer = &xNetworkBuffer;
     memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
@@ -1075,7 +1077,7 @@ void test_vReturnEthernetFrame( void )
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10;
 
-    xNetworkInterfaceOutput_ExpectAndReturn( pxNetworkBuffer, xReleaseAfterSend, pdTRUE );
+    xNetworkInterfaceOutput_ExpectAndReturn( &xInterface, pxNetworkBuffer, xReleaseAfterSend, pdTRUE );
 
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
@@ -1091,6 +1093,7 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
     BaseType_t xReleaseAfterSend = pdTRUE;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
+    struct xNetworkInterface xInterface;
 
     pxNetworkBuffer = &xNetworkBuffer;
     memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
@@ -1104,7 +1107,7 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
 
-    xNetworkInterfaceOutput_ExpectAndReturn( pxNetworkBuffer, xReleaseAfterSend, pdTRUE );
+    xNetworkInterfaceOutput_ExpectAndReturn( &xInterface, pxNetworkBuffer, xReleaseAfterSend, pdTRUE );
 
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
