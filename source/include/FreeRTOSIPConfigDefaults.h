@@ -747,7 +747,7 @@
 
 /* The results of DNS lookup's can be stored in a cache table. */
 #ifndef ipconfigUSE_DNS_CACHE
-    #define ipconfigUSE_DNS_CACHE    0
+    #define ipconfigUSE_DNS_CACHE    1
 #endif
 
 #if ( ipconfigUSE_DNS_CACHE != 0 )
