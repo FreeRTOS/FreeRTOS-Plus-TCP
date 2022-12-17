@@ -114,6 +114,21 @@ struct xETH_HEADER
 #include "pack_struct_end.h"
 typedef struct xETH_HEADER EthernetHeader_t;
 
+#include "pack_struct_start.h"
+struct xARP_HEADER
+{
+    uint16_t usHardwareType;              /**< Network Link Protocol type                     0 +  2 =  2 */
+    uint16_t usProtocolType;              /**< The internetwork protocol                      2 +  2 =  4 */
+    uint8_t ucHardwareAddressLength;      /**< Length in octets of a hardware address         4 +  1 =  5 */
+    uint8_t ucProtocolAddressLength;      /**< Length in octets of the internetwork protocol  5 +  1 =  6 */
+    uint16_t usOperation;                 /**< Operation that the sender is performing        6 +  2 =  8 */
+    MACAddress_t xSenderHardwareAddress;  /**< Media address of the sender                    8 +  6 = 14 */
+    uint8_t ucSenderProtocolAddress[ 4 ]; /**< Internetwork address of sender                14 +  4 = 18  */
+    MACAddress_t xTargetHardwareAddress;  /**< Media address of the intended receiver        18 +  6 = 24  */
+    uint32_t ulTargetProtocolAddress;     /**< Internetwork address of the intended receiver 24 +  4 = 28  */
+}
+#include "pack_struct_end.h"
+typedef struct xARP_HEADER ARPHeader_t;
 
 #include "pack_struct_start.h"
 struct xICMP_HEADER
@@ -171,6 +186,16 @@ struct xTCP_HEADER
 }
 #include "pack_struct_end.h"
 typedef struct xTCP_HEADER TCPHeader_t;
+
+#include "pack_struct_start.h"
+struct xARP_PACKET
+{
+    EthernetHeader_t xEthernetHeader; /**< The ethernet header of an ARP Packet  0 + 14 = 14 */
+    ARPHeader_t xARPHeader;           /**< The ARP header of an ARP Packet       14 + 28 = 42 */
+}
+#include "pack_struct_end.h"
+typedef struct xARP_PACKET ARPPacket_t;
+
 
 #if ( ipconfigUSE_IPV4 != 0 )
     #include "FreeRTOS_IPv4_Private.h"
@@ -245,6 +270,16 @@ struct xPacketSummary
 
 #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
 
+/* Ethernet frame types. */
+    #define ipARP_FRAME_TYPE                   ( 0x0608U )
+    #define ipIPv4_FRAME_TYPE                  ( 0x0008U )
+
+/* ARP related definitions. */
+    #define ipARP_PROTOCOL_TYPE                ( 0x0008U )
+    #define ipARP_HARDWARE_TYPE_ETHERNET       ( 0x0100U )
+    #define ipARP_REQUEST                      ( 0x0100U )
+    #define ipARP_REPLY                        ( 0x0200U )
+
 /* The bits in the two byte IP header field that make up the fragment offset value. */
     #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0xff1fU )
 
@@ -258,6 +293,16 @@ struct xPacketSummary
     #define ipFRAGMENT_FLAGS_MORE_FRAGMENTS    ( ( uint16_t ) 0x0020U )
 
 #else /* if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
+
+/* Ethernet frame types. */
+    #define ipARP_FRAME_TYPE                   ( 0x0806U )
+    #define ipIPv4_FRAME_TYPE                  ( 0x0800U )
+
+/* ARP related definitions. */
+    #define ipARP_PROTOCOL_TYPE                ( 0x0800U )
+    #define ipARP_HARDWARE_TYPE_ETHERNET       ( 0x0001U )
+    #define ipARP_REQUEST                      ( 0x0001 )
+    #define ipARP_REPLY                        ( 0x0002 )
 
 /* The bits in the two byte IP header field that make up the fragment offset value. */
     #define ipFRAGMENT_OFFSET_BIT_MASK         ( ( uint16_t ) 0x1fffU )
@@ -401,6 +446,11 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
  */
 void FreeRTOS_NetworkDown( struct xNetworkInterface * pxNetworkInterface );
 BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInterface );
+
+/*
+ * Processes incoming ARP packets.
+ */
+eFrameProcessingResult_t eARPProcessPacket( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Inspect an Ethernet frame to see if it contains data that the stack needs to

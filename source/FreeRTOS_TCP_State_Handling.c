@@ -84,12 +84,6 @@
                                             uint32_t ulReceiveLength,
                                             UBaseType_t uxOptionsLength );
 
-/*
- * After a listening socket receives a new connection, it may duplicate itself.
- * The copying takes place in prvTCPSocketCopy.
- */
-    static BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
-                                        FreeRTOS_Socket_t * pxSocket );
 
 /**
  * @brief Check whether the socket is active or not.
@@ -910,117 +904,14 @@
     FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
                                          NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
-        /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
-
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
-        const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-        FreeRTOS_Socket_t * pxReturn = NULL;
-        uint32_t ulInitialSequenceNumber;
-
-        /* Silently discard a SYN packet which was not specifically sent for this node. */
-        if( pxTCPPacket->xIPHeader.ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
+        if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
         {
-            /* Assume that a new Initial Sequence Number will be required. Request
-             * it now in order to fail out if necessary. */
-            ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
-                                                                          pxSocket->usLocalPort,
-                                                                          pxTCPPacket->xIPHeader.ulSourceIPAddress,
-                                                                          pxTCPPacket->xTCPHeader.usSourcePort );
+            return prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
         }
         else
         {
-            /* Set the sequence number to 0 to avoid further processing. */
-            ulInitialSequenceNumber = 0U;
+            return prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
         }
-
-        /* A pure SYN (without ACK) has come in, create a new socket to answer
-         * it. */
-        if( ulInitialSequenceNumber != 0U )
-        {
-            if( pxSocket->u.xTCP.bits.bReuseSocket != pdFALSE_UNSIGNED )
-            {
-                /* The flag bReuseSocket indicates that the same instance of the
-                 * listening socket should be used for the connection. */
-                pxReturn = pxSocket;
-                pxSocket->u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
-                pxSocket->u.xTCP.pxPeerSocket = pxSocket;
-            }
-            else
-            {
-                /* The socket does not have the bReuseSocket flag set meaning create a
-                 * new socket when a connection comes in. */
-                pxReturn = NULL;
-
-                if( pxSocket->u.xTCP.usChildCount >= pxSocket->u.xTCP.usBacklog )
-                {
-                    FreeRTOS_printf( ( "Check: Socket %u already has %u / %u child%s\n",
-                                       pxSocket->usLocalPort,
-                                       pxSocket->u.xTCP.usChildCount,
-                                       pxSocket->u.xTCP.usBacklog,
-                                       ( pxSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren" ) );
-                    ( void ) prvTCPSendReset( pxNetworkBuffer );
-                }
-                else
-                {
-                    FreeRTOS_Socket_t * pxNewSocket = ( FreeRTOS_Socket_t * )
-                                                      FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_STREAM, FREERTOS_IPPROTO_TCP );
-
-                    /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
-                    /* coverity[misra_c_2012_rule_11_4_violation] */
-                    if( ( pxNewSocket == NULL ) || ( pxNewSocket == FREERTOS_INVALID_SOCKET ) )
-                    {
-                        FreeRTOS_debug_printf( ( "TCP: Listen: new socket failed\n" ) );
-                        ( void ) prvTCPSendReset( pxNetworkBuffer );
-                    }
-                    else if( prvTCPSocketCopy( pxNewSocket, pxSocket ) != pdFALSE )
-                    {
-                        /* The socket will be connected immediately, no time for the
-                         * owner to setsockopt's, therefore copy properties of the server
-                         * socket to the new socket.  Only the binding might fail (due to
-                         * lack of resources). */
-                        pxReturn = pxNewSocket;
-                    }
-                    else
-                    {
-                        /* Copying failed somehow. */
-                    }
-                }
-            }
-        }
-
-        if( ( ulInitialSequenceNumber != 0U ) && ( pxReturn != NULL ) )
-        {
-            /* Map the byte stream onto the ProtocolHeaders_t for easy access to the fields. */
-
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
-                                                            &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
-
-            pxReturn->u.xTCP.usRemotePort = FreeRTOS_htons( pxTCPPacket->xTCPHeader.usSourcePort );
-            pxReturn->u.xTCP.xRemoteIP.xIP_IPv4 = FreeRTOS_htonl( pxTCPPacket->xIPHeader.ulSourceIPAddress );
-            pxReturn->u.xTCP.xTCPWindow.ulOurSequenceNumber = ulInitialSequenceNumber;
-
-            /* Here is the SYN action. */
-            pxReturn->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
-            prvSocketSetMSS( pxReturn );
-
-            prvTCPCreateWindow( pxReturn );
-
-            vTCPStateChange( pxReturn, eSYN_FIRST );
-
-            /* Make a copy of the header up to the TCP header.  It is needed later
-             * on, whenever data must be sent to the peer. */
-            ( void ) memcpy( ( void * ) pxReturn->u.xTCP.xPacket.u.ucLastPacket,
-                             ( const void * ) pxNetworkBuffer->pucEthernetBuffer,
-                             sizeof( pxReturn->u.xTCP.xPacket.u.ucLastPacket ) );
-        }
-
-        return pxReturn;
     }
     /*-----------------------------------------------------------*/
 
@@ -1035,8 +926,8 @@
  *
  * @return If all steps all successful, then pdTRUE is returned. Else, pdFALSE.
  */
-    static BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
-                                        FreeRTOS_Socket_t * pxSocket )
+    BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
+                                 FreeRTOS_Socket_t * pxSocket )
     {
         struct freertos_sockaddr xAddress;
         BaseType_t xResult;
