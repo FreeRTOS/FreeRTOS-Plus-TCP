@@ -57,7 +57,7 @@
 
 typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
                                 void * /* pvSearchID */,
-                                uint32_t /* ulIPAddress */ );
+                                struct freertos_addrinfo * /* pxAddressInfo */ );
 
 /* ===========================   GLOBAL VARIABLES =========================== */
 static int callback_called = 0;
@@ -113,14 +113,17 @@ void test_processDNS_CACHE_Success( void )
 {
     BaseType_t x;
     uint32_t pulIP = 1234;
+    IPv46_Address_t pxIP;
+
+    pxIP.ulIPAddress = pulIP;
 
     xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
 
     FreeRTOS_dns_update( "hello",
-                         &pulIP,
-                         FreeRTOS_htonl( 3 ) ); /* lives 3 seconds */
+                         &pxIP,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 5000 );  /* 5 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 5 seconds */
 
     x = FreeRTOS_dnslookup( "hello" );
 
@@ -148,12 +151,15 @@ void test_processDNS_CACHE_entry_not_found( void )
 {
     BaseType_t x;
     uint32_t pulIP = 1234;
+    IPv46_Address_t pxIP;
+
+    pxIP.ulIPAddress = pulIP;
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
 
     FreeRTOS_dns_update( "world",
-                         &pulIP,
-                         400 );
+                         &pxIP,
+                         400, pdFALSE, NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
 
@@ -169,17 +175,20 @@ void test_processDNS_CACHE_update_entry( void )
 {
     BaseType_t x;
     uint32_t pulIP = 1234;
+    IPv46_Address_t pxIP;
+
+    pxIP.ulIPAddress = pulIP;
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
 
     FreeRTOS_dns_update( "world",
-                         &pulIP,
-                         400 );
+                         &pxIP,
+                         400, pdFALSE, NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_dns_update( "world",
-                         &pulIP,
-                         500 );
+                         &pxIP,
+                         500, pdFALSE, NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
 
@@ -195,14 +204,17 @@ void test_processDNS_CACHE_expired_entry( void )
 {
     BaseType_t x;
     uint32_t pulIP = 1234;
+    IPv46_Address_t pxIP;
+
+    pxIP.ulIPAddress = pulIP;
 
     xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
 
     FreeRTOS_dns_update( "world",
-                         &pulIP,
-                         FreeRTOS_htonl( 20 ) ); /* lives 20 seconds */
+                         &pxIP,
+                         FreeRTOS_htonl( 20 ), pdFALSE, NULL ); /* lives 20 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 50000 );  /* 50 Seconds */
+    xTaskGetTickCount_ExpectAndReturn( 50000 );                 /* 50 Seconds */
     x = FreeRTOS_dnslookup( "world" );
 
     TEST_ASSERT_EQUAL( 0, x );
@@ -216,23 +228,27 @@ void test_processDNS_CACHE_exceed_IP_entry_limit( void )
     BaseType_t x;
     uint32_t pulIP = 789;
     uint32_t pulIP_arr[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ] = { 123 };
+    IPv46_Address_t pxIP[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1 ], pxIP_2;
+
+    pxIP_2.ulIPAddress = pulIP;
 
     memset( pulIP_arr, 123, ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY );
 
     for( int i = 0; i < ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY; i++ )
     {
+        pxIP[ i ].ulIPAddress = pulIP_arr[ i ];
         xTaskGetTickCount_ExpectAndReturn( 3000 );
 
         FreeRTOS_dns_update( "world",
-                             &pulIP_arr[ i ],
-                             400 );
+                             &pxIP[ i ],
+                             400, pdFALSE, NULL );
     }
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
 
     FreeRTOS_dns_update( "world",
-                         &pulIP,
-                         FreeRTOS_htonl( 400 ) ); /* lives 400 seconds */
+                         &pxIP_2,
+                         FreeRTOS_htonl( 400 ), pdFALSE, NULL ); /* lives 400 seconds */
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     x = FreeRTOS_dnslookup( "world" );
@@ -250,24 +266,28 @@ void test_processDNS_CACHE_exceed_host_entry_limit( void )
     uint32_t pulIP = 456;
     char hosts[ ipconfigDNS_CACHE_NAME_LENGTH ] = { "hello" };
     char template[] = "helloXXXXXX";
+    IPv46_Address_t pxIP[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1 ], pxIP_2;
+
+    pxIP_2.ulIPAddress = pulIP;
 
     for( int i = 0; i < ipconfigDNS_CACHE_ENTRIES; i++ )
     {
+        pxIP[ i ].ulIPAddress = pulIP_arr[ i ];
         memcpy( template, "helloXXXXXX", strlen( template ) );
         char * name = mktemp( template );
         memcpy( hosts, name, ipconfigDNS_CACHE_ENTRIES );
         xTaskGetTickCount_ExpectAndReturn( 3000 );
 
         FreeRTOS_dns_update( hosts,
-                             &pulIP_arr[ i ],
-                             FreeRTOS_htonl( 400 ) ); /* lives 400 seconds */
+                             &pxIP[ i ],
+                             FreeRTOS_htonl( 400 ), pdFALSE, NULL ); /* lives 400 seconds */
     }
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
 
     FreeRTOS_dns_update( "world",
-                         &pulIP,
-                         400 );
+                         &pxIP_2,
+                         400, pdFALSE, NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     x = FreeRTOS_dnslookup( "world" );
@@ -283,6 +303,9 @@ void test_processDNS_CACHE_exceed_dns_name_limit( void )
     BaseType_t x;
     uint32_t pulIP = 1234;
     char long_dns_name[ ipconfigDNS_CACHE_NAME_LENGTH + 3 ];
+    IPv46_Address_t pxIP;
+
+    pxIP.ulIPAddress = pulIP;
 
     memset( long_dns_name, 'a', ipconfigDNS_CACHE_NAME_LENGTH + 3 );
     long_dns_name[ ipconfigDNS_CACHE_NAME_LENGTH + 2 ] = '\0';
@@ -290,8 +313,8 @@ void test_processDNS_CACHE_exceed_dns_name_limit( void )
     xTaskGetTickCount_ExpectAndReturn( 3000 );
 
     FreeRTOS_dns_update( long_dns_name,
-                         &pulIP,
-                         400 );
+                         &pxIP,
+                         400, pdFALSE, NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 50000 );
     x = FreeRTOS_dnslookup( long_dns_name );
