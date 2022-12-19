@@ -34,7 +34,21 @@
 #endif
 /* *INDENT-ON* */
 
+/**
+ * @brief Process the received TCP packet.
+ *
+ */
 BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t * pxDescriptor );
+
+/**
+ * @brief Process the received TCP packet.
+ */
+BaseType_t xProcessReceivedTCPPacket_IPV4( NetworkBufferDescriptor_t * pxDescriptor );
+
+/**
+ * @brief Process the received TCP packet.
+ */
+BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescriptor );
 
 typedef enum eTCP_STATE
 {
