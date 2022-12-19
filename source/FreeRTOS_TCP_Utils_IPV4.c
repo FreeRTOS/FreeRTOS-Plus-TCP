@@ -55,8 +55,8 @@
  */
     void prvSocketSetMSS_IPV4( FreeRTOS_Socket_t * pxSocket )
     {
-        uint32_t ulMSS;
-        NetworkEndPoint_t * pxEndPoint = pxSocket->pxEndPoint;
+        uint32_t ulMSS = ipconfigTCP_MSS;
+        const NetworkEndPoint_t * pxEndPoint = pxSocket->pxEndPoint;
 
         if( pxEndPoint != NULL )
         {

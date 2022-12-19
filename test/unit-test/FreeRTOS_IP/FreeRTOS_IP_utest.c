@@ -70,6 +70,8 @@
 
 extern NetworkInterface_t xInterfaces[ 1 ];
 
+extern NetworkInterface_t xInterfaces[ 1 ];
+
 void prvIPTask( void * pvParameters );
 void prvProcessIPEventsAndTimers( void );
 eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,

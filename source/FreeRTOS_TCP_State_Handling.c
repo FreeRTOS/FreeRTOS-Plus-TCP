@@ -904,14 +904,18 @@
     FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
                                          NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
+        FreeRTOS_Socket_t * pxNewSocket = NULL;
+
         if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
         {
-            return prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
+            pxNewSocket = prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
         }
         else
         {
-            return prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
+            pxNewSocket = prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
         }
+
+        return pxNewSocket;
     }
     /*-----------------------------------------------------------*/
 
