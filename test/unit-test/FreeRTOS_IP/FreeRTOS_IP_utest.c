@@ -60,13 +60,15 @@
 #include "mock_FreeRTOS_UDP_IP.h"
 #include "mock_FreeRTOS_IPv4_Private.h" "
 
-#include "FreeRTOS_IP.h "
-#include "FreeRTOS_IPv4.h "
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IPv4.h"
 
-#include "FreeRTOS_IP_stubs.c "
-#include "catch_assert.h "
+#include "FreeRTOS_IP_stubs.c"
+#include "catch_assert.h"
 
-#include "FreeRTOSIPConfig.h "
+#include "FreeRTOSIPConfig.h"
+
+extern NetworkInterface_t xInterfaces[ 1 ];
 
 extern NetworkInterface_t xInterfaces[ 1 ];
 
