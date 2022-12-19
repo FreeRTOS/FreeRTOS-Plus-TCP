@@ -241,10 +241,6 @@ void vDHCPProcess( BaseType_t xReset,
 BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket );
 
 
-/* The application can indicate a preferred IP address by calling this function
- * before FreeRTOS_IPInit() is called. */
-uint32_t vDHCPSetPreferredIPAddress( uint32_t ulIPAddress );
-
 #if ( ipconfigUSE_DHCP_HOOK != 0 )
 
 /* Prototype of the hook (or callback) function that must be provided by the
@@ -267,11 +263,6 @@ uint32_t vDHCPSetPreferredIPAddress( uint32_t ulIPAddress );
  */
     void prvPrepareLinkLayerIPLookUp( struct xNetworkEndPoint * pxEndPoint );
 #endif
-
-/*
- * @brief The number of end-points that are making use of the UDP-socket.
- */
-static BaseType_t xDHCPSocketUserCount;
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
