@@ -100,7 +100,7 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
  * @param[in] pxEndPoint: The end-point for which the timer will be called.
  * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
  */
-    void vIPSetDHCP_RATimerEnableState( struct xNetworkEndPoint * pxEndPoint,
+    void vIPSetDHCP_RATimerEnableState( NetworkEndPoint_t * pxEndPoint,
                                         BaseType_t xEnableState );
 #endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
 
@@ -124,7 +124,7 @@ void vARPTimerReload( TickType_t xTime );
 void vTCPTimerReload( TickType_t xTime );
 
 #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
-    void vDHCP_RATimerReload( struct xNetworkEndPoint * pxEndPoint,
+    void vDHCP_RATimerReload( NetworkEndPoint_t * pxEndPoint,
                               TickType_t uxClockTicks );
 #endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
 

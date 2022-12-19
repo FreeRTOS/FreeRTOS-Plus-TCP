@@ -201,6 +201,9 @@ static TaskHandle_t xIPTaskHandle = NULL;
 /** @brief Set to pdTRUE when the IP task is ready to start processing packets. */
 static BaseType_t xIPTaskInitialised = pdFALSE;
 
+/** @brief Stores interface structures. */
+static NetworkInterface_t xInterfaces[ 1 ];
+
 #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
     /** @brief Keep track of the lowest amount of space in 'xNetworkEventQueue'. */
     static UBaseType_t uxQueueMinimumSpace = ipconfigEVENT_QUEUE_LENGTH;

@@ -12,6 +12,9 @@ message( STATUS "${project_name}" )
 list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv4.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv4_Utils.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Timers.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"

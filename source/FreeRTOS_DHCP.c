@@ -159,11 +159,6 @@
 
 /*-----------------------------------------------------------*/
 
-/** @brief Hold information in between steps in the DHCP state machine. */
-    _static DHCPData_t xDHCPData;
-
-/*-----------------------------------------------------------*/
-
 /**
  * @brief Check whether a given socket is the DHCP socket or not.
  *
@@ -188,23 +183,6 @@
         return xReturn;
     }
     /*-----------------------------------------------------------*/
-
-/**
- * @brief The application can indicate a preferred IP address by calling this function.
- *        before starting up the IP-task by calling FreeRTOS_IPInit().
- *
- * @param[in] ulIPAddress: The preferred IP-address.
- *
- * @return The previous value of ulPreferredIPAddress.
- */
-    uint32_t vDHCPSetPreferredIPAddress( uint32_t ulIPAddress )
-    {
-        uint32_t ulPrevious = xDHCPData.ulPreferredIPAddress;
-
-        xDHCPData.ulPreferredIPAddress = ulIPAddress;
-
-        return ulPrevious;
-    }
 
 /**
  * @brief Returns the current state of a DHCP process.
@@ -1564,10 +1542,10 @@
             FreeRTOS_debug_printf( ( "vDHCPProcess: discover\n" ) );
             iptraceSENDING_DHCP_DISCOVER();
 
-            if( xDHCPData.ulPreferredIPAddress != 0U )
+            if( pxEndPoint->xDHCPData.ulPreferredIPAddress != 0U )
             {
                 /* Fill in the IPv4 address. */
-                pvCopySource = &xDHCPData.ulPreferredIPAddress;
+                pvCopySource = &(pxEndPoint->xDHCPData.ulPreferredIPAddress);
                 pvCopyDest = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ] );
                 ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulPreferredIPAddress ) );
             }

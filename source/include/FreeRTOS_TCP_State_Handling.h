@@ -90,14 +90,14 @@ BaseType_t prvTCPSendSpecialPacketHelper( NetworkBufferDescriptor_t * pxNetworkB
  * Common code for sending a TCP protocol control packet (i.e. no options, no
  * payload, just flags).
  */
-BaseType_t prvTCPSendSpecialPacketHelper_IPV4( NetworkBufferDescriptor_t * pxNetworkBuffer,
+BaseType_t prvTCPSendSpecialPktHelper_IPV4( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                                uint8_t ucTCPFlags );
 
 /*
  * Common code for sending a TCP protocol control packet (i.e. no options, no
  * payload, just flags).
  */
-BaseType_t prvTCPSendSpecialPacketHelper_IPV6( NetworkBufferDescriptor_t * pxNetworkBuffer,
+BaseType_t prvTCPSendSpecialPktHelper_IPV6( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                                uint8_t ucTCPFlags );
 
 /*
