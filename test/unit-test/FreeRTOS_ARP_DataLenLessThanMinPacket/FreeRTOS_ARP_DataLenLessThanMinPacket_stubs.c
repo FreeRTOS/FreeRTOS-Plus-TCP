@@ -59,7 +59,10 @@ size_t xPortGetMinimumEverFreeHeapSize( void )
 }
 
 
-BaseType_t xApplicationDNSQueryHook( const char * pcName )
+/* Even though the function is defined in main.c, the rule is violated. */
+        /* misra_c_2012_rule_8_6_violation */
+extern BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
+                                            const char * pcName )
 {
 }
 
