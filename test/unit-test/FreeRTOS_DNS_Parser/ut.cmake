@@ -46,6 +46,7 @@ list(APPEND real_source_files
 set ( real_include_directories ""
         )
 list(APPEND real_include_directories
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             .
             ${CMAKE_BINARY_DIR}/Annexed_TCP/
             ${TCP_INCLUDE_DIRS}
