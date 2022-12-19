@@ -43,6 +43,7 @@
 #include "mock_queue.h"
 #include "mock_event_groups.h"
 
+#include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_IP_Utils.h"
 #include "mock_FreeRTOS_IP_Timers.h"
@@ -57,22 +58,24 @@
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_FreeRTOS_UDP_IP.h"
+#include "mock_FreeRTOS_IPv4_Private.h" "
 
-#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP.h "
+#include "FreeRTOS_IPv4.h "
 
-#include "FreeRTOS_IP_stubs.c"
-#include "catch_assert.h"
+#include "FreeRTOS_IP_stubs.c "
+#include "catch_assert.h "
 
-#include "FreeRTOSIPConfig.h"
+#include "FreeRTOSIPConfig.h "
+
+extern NetworkInterface_t xInterfaces[ 1 ];
 
 void prvIPTask( void * pvParameters );
 void prvProcessIPEventsAndTimers( void );
 eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                              NetworkBufferDescriptor_t * const pxNetworkBuffer );
 void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
-eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPPacket,
-                                           const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                           UBaseType_t uxHeaderLength );
+
 
 extern BaseType_t xIPTaskInitialised;
 extern BaseType_t xNetworkDownEventPending;
@@ -154,35 +157,38 @@ void test_FreeRTOS_GetIPTaskHandle( void )
 
 void test_vIPNetworkUpCalls( void )
 {
+    NetworkEndPoint_t xEndPoint;
     xNetworkUp = pdFALSE;
 
-    vApplicationIPNetworkEventHook_Expect( eNetworkUp );
+    vApplicationIPNetworkEventHook_Expect( eNetworkUp, &xEndPoint );
     vDNSInitialise_Expect();
     vARPTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
 
-    vIPNetworkUpCalls();
+    vIPNetworkUpCalls(&xEndPoint);
 
     TEST_ASSERT_EQUAL( pdTRUE, xNetworkUp );
 }
 
 void test_FreeRTOS_NetworkDown_SendToIPTaskSuccessful( void )
 {
+    struct xNetworkInterface xNetworkInterface;
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     xQueueGenericSend_ExpectAnyArgsAndReturn( pdPASS );
 
-    FreeRTOS_NetworkDown();
+    FreeRTOS_NetworkDown(&xNetworkInterface);
 
     TEST_ASSERT_EQUAL( pdFALSE, xIsNetworkDownEventPending() );
 }
 
 void test_FreeRTOS_NetworkDown_SendToIPTaskNotSuccessful( void )
 {
+    struct xNetworkInterface xNetworkInterface;
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     xQueueGenericSend_ExpectAnyArgsAndReturn( pdFAIL );
 
-    FreeRTOS_NetworkDown();
+    FreeRTOS_NetworkDown(&xNetworkInterface);
 
     TEST_ASSERT_EQUAL( pdTRUE, xIsNetworkDownEventPending() );
 }
@@ -191,11 +197,12 @@ void test_FreeRTOS_NetworkDownFromISR_SendToIPTaskSuccessful( void )
 {
     BaseType_t xHasPriorityTaskAwoken = pdTRUE;
     BaseType_t xReturn;
+    struct xNetworkInterface xNetworkInterface;
 
     xQueueGenericSendFromISR_ExpectAnyArgsAndReturn( pdPASS );
     xQueueGenericSendFromISR_ReturnThruPtr_pxHigherPriorityTaskWoken( &xHasPriorityTaskAwoken );
 
-    xReturn = FreeRTOS_NetworkDownFromISR();
+    xReturn = FreeRTOS_NetworkDownFromISR(&xNetworkInterface);
 
     TEST_ASSERT_EQUAL( pdFALSE, xIsNetworkDownEventPending() );
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
@@ -205,11 +212,12 @@ void test_FreeRTOS_NetworkDownFromISR_SendToIPTaskUnsuccessful( void )
 {
     BaseType_t xHasPriorityTaskAwoken = pdFALSE;
     BaseType_t xReturn;
+    struct xNetworkInterface xNetworkInterface;
 
     xQueueGenericSendFromISR_ExpectAnyArgsAndReturn( pdFAIL );
     xQueueGenericSendFromISR_ReturnThruPtr_pxHigherPriorityTaskWoken( &xHasPriorityTaskAwoken );
 
-    xReturn = FreeRTOS_NetworkDownFromISR();
+    xReturn = FreeRTOS_NetworkDownFromISR(&xNetworkInterface);
 
     TEST_ASSERT_EQUAL( pdTRUE, xIsNetworkDownEventPending() );
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
@@ -229,7 +237,7 @@ void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeEqualToConfig( void )
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, uxBlockTimeTicks, pxNetworkBuffer );
 
-    pvReturn = FreeRTOS_GetUDPPayloadBuffer( uxRequestedSizeBytes, uxBlockTimeTicks );
+    pvReturn = FreeRTOS_GetUDPPayloadBuffer( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
 
     TEST_ASSERT_EQUAL( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EQUAL_PTR( &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] ), pvReturn );
@@ -249,7 +257,7 @@ void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeLessThanConfig( void )
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, uxBlockTimeTicks, pxNetworkBuffer );
 
-    pvReturn = FreeRTOS_GetUDPPayloadBuffer( uxRequestedSizeBytes, uxBlockTimeTicks );
+    pvReturn = FreeRTOS_GetUDPPayloadBuffer( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
 
     TEST_ASSERT_EQUAL( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EQUAL_PTR( &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] ), pvReturn );
@@ -269,7 +277,7 @@ void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeMoreThanConfig( void )
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS, pxNetworkBuffer );
 
-    pvReturn = FreeRTOS_GetUDPPayloadBuffer( uxRequestedSizeBytes, uxBlockTimeTicks );
+    pvReturn = FreeRTOS_GetUDPPayloadBuffer( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4  );
 
     TEST_ASSERT_EQUAL( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EQUAL_PTR( &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] ), pvReturn );
@@ -283,7 +291,7 @@ void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeMoreThanConfig_NULLBufferReturne
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS, NULL );
 
-    pvReturn = FreeRTOS_GetUDPPayloadBuffer( uxRequestedSizeBytes, uxBlockTimeTicks );
+    pvReturn = FreeRTOS_GetUDPPayloadBuffer( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4  );
 
     TEST_ASSERT_NULL( pvReturn );
 }
@@ -302,9 +310,12 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
 
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
+
     /* Clear default values. */
     memset( &xDefaultAddressing, 0, sizeof( xDefaultAddressing ) );
-    memset( &xNetworkAddressing, 0, sizeof( xDefaultAddressing ) );
+    memset( xIPv4Addressing, 0, sizeof( IPV4Parameters_t ) );
 
     vPreCheckConfigs_Expect();
 
@@ -317,7 +328,7 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
     #if ( configQUEUE_REGISTRY_SIZE > 0 )
-        vQueueAddToRegistry_Expect( ulPointerToQueue, "NetEvnt" );
+        vQueueAddToRegistry_Expect( ulPointerToQueue, "NetEvnt " );
     #endif
 
     xNetworkBuffersInitialise_ExpectAndReturn( pdPASS );
@@ -333,12 +344,12 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     xReturn = FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
 
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
-    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] ), xNetworkAddressing.ulDefaultIPAddress );
-    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] ), xNetworkAddressing.ulNetMask );
-    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] ), xNetworkAddressing.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] ), xNetworkAddressing.ulDNSServerAddress );
-    TEST_ASSERT_EQUAL( ( ( xNetworkAddressing.ulDefaultIPAddress & xNetworkAddressing.ulNetMask ) | ~xNetworkAddressing.ulNetMask ), xNetworkAddressing.ulBroadcastAddress );
-    TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, &xNetworkAddressing, sizeof( xDefaultAddressing ) );
+    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] ), xIPv4Addressing->ulIPAddress );
+    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] ), xIPv4Addressing->ulNetMask );
+    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] ), xIPv4Addressing->ulGatewayAddress );
+    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] ), xIPv4Addressing->ulDNSServerAddresses[0] );
+    TEST_ASSERT_EQUAL( ( ( xIPv4Addressing->ulIPAddress & xIPv4Addressing->ulNetMask ) | ~(xIPv4Addressing->ulNetMask) ), xIPv4Addressing->ulBroadcastAddress );
+    //TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, xIPv4Addressing, sizeof( xDefaultAddressing ) ); TODO: verify if xDefaultAddressing is used
     TEST_ASSERT_EQUAL( 0, *ipLOCAL_IP_ADDRESS_POINTER );
     TEST_ASSERT_EQUAL_MEMORY( ucMACAddress, ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
     TEST_ASSERT_EQUAL( xTaskHandleToSet, FreeRTOS_GetIPTaskHandle() );
@@ -357,9 +368,12 @@ void test_FreeRTOS_IPInit_QueueCreationFails( void )
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
 
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
+
     /* Clear default values. */
     memset( &xDefaultAddressing, 0, sizeof( xDefaultAddressing ) );
-    memset( &xNetworkAddressing, 0, sizeof( xDefaultAddressing ) );
+    memset( xIPv4Addressing, 0, sizeof( IPV4Parameters_t ) );
     memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
     vPreCheckConfigs_Expect();
@@ -375,12 +389,12 @@ void test_FreeRTOS_IPInit_QueueCreationFails( void )
     xReturn = FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xNetworkAddressing.ulDefaultIPAddress, ipIP_ADDRESS_LENGTH_BYTES );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xNetworkAddressing.ulNetMask, ipIP_ADDRESS_LENGTH_BYTES );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xNetworkAddressing.ulGatewayAddress, ipIP_ADDRESS_LENGTH_BYTES );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xNetworkAddressing.ulDNSServerAddress, ipIP_ADDRESS_LENGTH_BYTES );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xNetworkAddressing.ulBroadcastAddress, ipIP_ADDRESS_LENGTH_BYTES );
-    TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, &xNetworkAddressing, sizeof( xDefaultAddressing ) );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xIPv4Addressing->ulIPAddress, ipIP_ADDRESS_LENGTH_BYTES );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xIPv4Addressing->ulNetMask, ipIP_ADDRESS_LENGTH_BYTES );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xIPv4Addressing->ulGatewayAddress, ipIP_ADDRESS_LENGTH_BYTES );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xIPv4Addressing->ulDNSServerAddresses[0], ipIP_ADDRESS_LENGTH_BYTES );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xIPv4Addressing->ulBroadcastAddress, ipIP_ADDRESS_LENGTH_BYTES );
+    //TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, xIPv4Addressing, sizeof( xDefaultAddressing ) ); TODO: verify if xDefaultAddressing is used
     TEST_ASSERT_EQUAL( 0xABCD, *ipLOCAL_IP_ADDRESS_POINTER );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0, ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 }
@@ -398,9 +412,12 @@ void test_FreeRTOS_IPInit_BufferCreationFails( void )
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
 
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
+
     /* Clear default values. */
     memset( &xDefaultAddressing, 0, sizeof( xDefaultAddressing ) );
-    memset( &xNetworkAddressing, 0, sizeof( xDefaultAddressing ) );
+    memset( xIPv4Addressing, 0, sizeof( IPV4Parameters_t ) );
     memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
     vPreCheckConfigs_Expect();
@@ -414,7 +431,7 @@ void test_FreeRTOS_IPInit_BufferCreationFails( void )
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
     #if ( configQUEUE_REGISTRY_SIZE > 0 )
-        vQueueAddToRegistry_Expect( pxPointerToQueue, "NetEvnt" );
+        vQueueAddToRegistry_Expect( pxPointerToQueue, "NetEvnt " );
     #endif
 
     xNetworkBuffersInitialise_ExpectAndReturn( pdFAIL );
@@ -424,12 +441,12 @@ void test_FreeRTOS_IPInit_BufferCreationFails( void )
     xReturn = FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xNetworkAddressing.ulDefaultIPAddress, ipIP_ADDRESS_LENGTH_BYTES );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xNetworkAddressing.ulNetMask, ipIP_ADDRESS_LENGTH_BYTES );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xNetworkAddressing.ulGatewayAddress, ipIP_ADDRESS_LENGTH_BYTES );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xNetworkAddressing.ulDNSServerAddress, ipIP_ADDRESS_LENGTH_BYTES );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xNetworkAddressing.ulBroadcastAddress, ipIP_ADDRESS_LENGTH_BYTES );
-    TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, &xNetworkAddressing, sizeof( xDefaultAddressing ) );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xIPv4Addressing->ulIPAddress, ipIP_ADDRESS_LENGTH_BYTES );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xIPv4Addressing->ulNetMask, ipIP_ADDRESS_LENGTH_BYTES );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xIPv4Addressing->ulGatewayAddress, ipIP_ADDRESS_LENGTH_BYTES );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xIPv4Addressing->ulDNSServerAddresses[0], ipIP_ADDRESS_LENGTH_BYTES );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xIPv4Addressing->ulBroadcastAddress, ipIP_ADDRESS_LENGTH_BYTES );
+    // TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, &xNetworkAddressing, sizeof( xDefaultAddressing ) ); TODO: verify if xDefaultAddressing is used
     TEST_ASSERT_EQUAL( 0xABCD, *ipLOCAL_IP_ADDRESS_POINTER );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0, ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 }
@@ -447,9 +464,12 @@ void test_FreeRTOS_IPInit_TaskCreationFails( void )
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
 
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
+
     /* Clear default values. */
     memset( &xDefaultAddressing, 0, sizeof( xDefaultAddressing ) );
-    memset( &xNetworkAddressing, 0, sizeof( xDefaultAddressing ) );
+    memset( xIPv4Addressing, 0, sizeof( IPV4Parameters_t ) );
     memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
     vPreCheckConfigs_Expect();
@@ -463,7 +483,7 @@ void test_FreeRTOS_IPInit_TaskCreationFails( void )
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
     #if ( configQUEUE_REGISTRY_SIZE > 0 )
-        vQueueAddToRegistry_Expect( pxPointerToQueue, "NetEvnt" );
+        vQueueAddToRegistry_Expect( pxPointerToQueue, "NetEvnt " );
     #endif
 
     xNetworkBuffersInitialise_ExpectAndReturn( pdPASS );
@@ -480,12 +500,12 @@ void test_FreeRTOS_IPInit_TaskCreationFails( void )
     xReturn = FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
-    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] ), xNetworkAddressing.ulDefaultIPAddress );
-    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] ), xNetworkAddressing.ulNetMask );
-    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] ), xNetworkAddressing.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] ), xNetworkAddressing.ulDNSServerAddress );
-    TEST_ASSERT_EQUAL( ( ( xNetworkAddressing.ulDefaultIPAddress & xNetworkAddressing.ulNetMask ) | ~xNetworkAddressing.ulNetMask ), xNetworkAddressing.ulBroadcastAddress );
-    TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, &xNetworkAddressing, sizeof( xDefaultAddressing ) );
+    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] ), xIPv4Addressing->ulIPAddress );
+    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] ), xIPv4Addressing->ulNetMask );
+    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] ), xIPv4Addressing->ulGatewayAddress );
+    TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] ), xIPv4Addressing->ulDNSServerAddresses[0] );
+    TEST_ASSERT_EQUAL( ( ( xIPv4Addressing->ulIPAddress & xIPv4Addressing->ulNetMask ) | ~xIPv4Addressing->ulNetMask ), xIPv4Addressing->ulBroadcastAddress );
+    // TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, &xNetworkAddressing, sizeof( xDefaultAddressing ) ); TODO: verify if xDefaultAddressing is used
     TEST_ASSERT_EQUAL( 0, *ipLOCAL_IP_ADDRESS_POINTER );
     TEST_ASSERT_EQUAL_MEMORY( ucMACAddress, ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
     TEST_ASSERT_EQUAL( NULL, FreeRTOS_GetIPTaskHandle() );
@@ -503,10 +523,13 @@ void test_FreeRTOS_GetAddressConfiguration_HappyPath( void )
     uint32_t * pulGatewayAddress = &ulGatewayAddress;
     uint32_t * pulDNSServerAddress = &ulDNSServerAddress;
 
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
+
     *ipLOCAL_IP_ADDRESS_POINTER = ulStoredIPAddress;
-    xNetworkAddressing.ulNetMask = ulStoredNetMask;
-    xNetworkAddressing.ulGatewayAddress = ulStoredGatewayAddress;
-    xNetworkAddressing.ulDNSServerAddress = ulStoredDNSServerAddress;
+    xIPv4Addressing->ulNetMask = ulStoredNetMask;
+    xIPv4Addressing->ulGatewayAddress = ulStoredGatewayAddress;
+    xIPv4Addressing->ulDNSServerAddresses[0] = ulStoredDNSServerAddress;
 
     FreeRTOS_GetAddressConfiguration( pulIPAddress, pulNetMask, pulGatewayAddress, pulDNSServerAddress );
 
@@ -527,10 +550,13 @@ void test_FreeRTOS_GetAddressConfiguration_AllPointersNull( void )
     uint32_t * pulGatewayAddress = NULL;
     uint32_t * pulDNSServerAddress = NULL;
 
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
+
     *ipLOCAL_IP_ADDRESS_POINTER = ulStoredIPAddress;
-    xNetworkAddressing.ulNetMask = ulStoredNetMask;
-    xNetworkAddressing.ulGatewayAddress = ulStoredGatewayAddress;
-    xNetworkAddressing.ulDNSServerAddress = ulStoredDNSServerAddress;
+    xIPv4Addressing->ulNetMask = ulStoredNetMask;
+    xIPv4Addressing->ulGatewayAddress = ulStoredGatewayAddress;
+    xIPv4Addressing->ulDNSServerAddresses[0] = ulStoredDNSServerAddress;
 
     FreeRTOS_GetAddressConfiguration( pulIPAddress, pulNetMask, pulGatewayAddress, pulDNSServerAddress );
 
@@ -551,17 +577,20 @@ void test_FreeRTOS_SetAddressConfiguration_HappyPath( void )
     uint32_t * pulGatewayAddress = &ulStoredGatewayAddress;
     uint32_t * pulDNSServerAddress = &ulStoredDNSServerAddress;
 
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
+
     *ipLOCAL_IP_ADDRESS_POINTER = 0;
-    xNetworkAddressing.ulNetMask = 0;
-    xNetworkAddressing.ulGatewayAddress = 0;
-    xNetworkAddressing.ulDNSServerAddress = 0;
+    xIPv4Addressing->ulNetMask = 0;
+    xIPv4Addressing->ulGatewayAddress = 0;
+    xIPv4Addressing->ulDNSServerAddresses[0] = 0;
 
     FreeRTOS_SetAddressConfiguration( pulIPAddress, pulNetMask, pulGatewayAddress, pulDNSServerAddress );
 
     TEST_ASSERT_EQUAL( ulStoredIPAddress, *ipLOCAL_IP_ADDRESS_POINTER );
-    TEST_ASSERT_EQUAL( ulStoredNetMask, xNetworkAddressing.ulNetMask );
-    TEST_ASSERT_EQUAL( ulStoredGatewayAddress, xNetworkAddressing.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( ulStoredDNSServerAddress, xNetworkAddressing.ulDNSServerAddress );
+    TEST_ASSERT_EQUAL( ulStoredNetMask, xIPv4Addressing->ulNetMask );
+    TEST_ASSERT_EQUAL( ulStoredGatewayAddress, xIPv4Addressing->ulGatewayAddress );
+    TEST_ASSERT_EQUAL( ulStoredDNSServerAddress, xIPv4Addressing->ulDNSServerAddresses[0] );
 }
 
 void test_FreeRTOS_SetAddressConfiguration_AllValuesNULL( void )
@@ -571,17 +600,20 @@ void test_FreeRTOS_SetAddressConfiguration_AllValuesNULL( void )
     uint32_t * pulGatewayAddress = NULL;
     uint32_t * pulDNSServerAddress = NULL;
 
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
+
     *ipLOCAL_IP_ADDRESS_POINTER = 0;
-    xNetworkAddressing.ulNetMask = 0;
-    xNetworkAddressing.ulGatewayAddress = 0;
-    xNetworkAddressing.ulDNSServerAddress = 0;
+    xIPv4Addressing->ulNetMask = 0;
+    xIPv4Addressing->ulGatewayAddress = 0;
+    xIPv4Addressing->ulDNSServerAddresses[0] = 0;
 
     FreeRTOS_SetAddressConfiguration( pulIPAddress, pulNetMask, pulGatewayAddress, pulDNSServerAddress );
 
     TEST_ASSERT_EQUAL( 0, *ipLOCAL_IP_ADDRESS_POINTER );
-    TEST_ASSERT_EQUAL( 0, xNetworkAddressing.ulNetMask );
-    TEST_ASSERT_EQUAL( 0, xNetworkAddressing.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( 0, xNetworkAddressing.ulDNSServerAddress );
+    TEST_ASSERT_EQUAL( 0, xIPv4Addressing->ulNetMask );
+    TEST_ASSERT_EQUAL( 0, xIPv4Addressing->ulGatewayAddress );
+    TEST_ASSERT_EQUAL( 0, xIPv4Addressing->ulDNSServerAddresses[0] );
 }
 
 void test_FreeRTOS_ReleaseUDPPayloadBuffer( void )
@@ -695,6 +727,7 @@ void test_prvProcessIPEventsAndTimers_NoEventReceived( void )
 void test_prvProcessIPEventsAndTimers_eNetworkDownEvent( void )
 {
     IPStackEvent_t xReceivedEvent;
+    struct xNetworkInterface xNetworkInterface;
 
     xReceivedEvent.eEventType = eNetworkDownEvent;
 
@@ -707,7 +740,7 @@ void test_prvProcessIPEventsAndTimers_eNetworkDownEvent( void )
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
 
-    prvProcessNetworkDownEvent_Expect();
+    prvProcessNetworkDownEvent_Expect(&xNetworkInterface);
 
     prvProcessIPEventsAndTimers();
 
@@ -1041,6 +1074,7 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent( void )
 void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending( void )
 {
     IPStackEvent_t xReceivedEvent;
+    struct xNetworkInterface xNetworkInterface;
     SocketSelect_t * pxSocketSet = malloc( sizeof( SocketSelect_t ) );
 
     xNetworkDownEventPending = pdTRUE;
@@ -1058,7 +1092,7 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending( void
     vEventGroupDelete_Expect( pxSocketSet->xSelectGroup );
 
     /* Since network down event is pending, a call to this function should be expected. */
-    prvProcessNetworkDownEvent_Expect();
+    prvProcessNetworkDownEvent_Expect(&xNetworkInterface);
 
     prvProcessIPEventsAndTimers();
 }
@@ -1808,7 +1842,7 @@ void test_xIsIPv4Multicast_IsMultiCast( void )
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
 
-void test_prvAllowIPPacket( void )
+void test_prvAllowIPPacketIPv4( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1822,12 +1856,12 @@ void test_prvAllowIPPacket( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_FragmentedPacket( void )
+void test_prvAllowIPPacketIPv4_FragmentedPacket( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1845,12 +1879,12 @@ void test_prvAllowIPPacket_FragmentedPacket( void )
 
     pxIPHeader->usFragmentOffset = ipFRAGMENT_OFFSET_BIT_MASK;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_FragmentedPacket1( void )
+void test_prvAllowIPPacketIPv4_FragmentedPacket1( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1868,12 +1902,12 @@ void test_prvAllowIPPacket_FragmentedPacket1( void )
 
     pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_MORE_FRAGMENTS;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_IncorrectLength( void )
+void test_prvAllowIPPacketIPv4_IncorrectLength( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1891,12 +1925,12 @@ void test_prvAllowIPPacket_IncorrectLength( void )
 
     pxIPHeader->ucVersionHeaderLength = 0xFF;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_NotMatchingIP( void )
+void test_prvAllowIPPacketIPv4_NotMatchingIP( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1917,12 +1951,12 @@ void test_prvAllowIPPacket_NotMatchingIP( void )
     pxIPHeader->ucVersionHeaderLength = 0x45;
     pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER + 1;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SourceIPBrdCast_DestIPMatch( void )
+void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPMatch( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1945,12 +1979,12 @@ void test_prvAllowIPPacket_SourceIPBrdCast_DestIPMatch( void )
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SourceIPBrdCast_DestIPBrdCast( void )
+void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdCast( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1973,12 +2007,12 @@ void test_prvAllowIPPacket_SourceIPBrdCast_DestIPBrdCast( void )
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SourceIPBrdCast_DestIPBrdcast1( void )
+void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdcast1( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -1986,6 +2020,9 @@ void test_prvAllowIPPacket_SourceIPBrdCast_DestIPBrdcast1( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
@@ -1997,16 +2034,16 @@ void test_prvAllowIPPacket_SourceIPBrdCast_DestIPBrdcast1( void )
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAB12CD34;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
-    pxIPHeader->ulDestinationIPAddress = xNetworkAddressing.ulBroadcastAddress;
+    pxIPHeader->ulDestinationIPAddress = xIPv4Addressing->ulBroadcastAddress;
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SourceIPBrdCast_DestIPLLMNR( void )
+void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2029,12 +2066,12 @@ void test_prvAllowIPPacket_SourceIPBrdCast_DestIPLLMNR( void )
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SourceIPBrdCast_NoLocalIP( void )
+void test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2057,12 +2094,12 @@ void test_prvAllowIPPacket_SourceIPBrdCast_NoLocalIP( void )
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_DestMACBrdCast_DestIPUnicast( void )
+void test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPUnicast( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2086,12 +2123,12 @@ void test_prvAllowIPPacket_DestMACBrdCast_DestIPUnicast( void )
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SrcMACBrdCast( void )
+void test_prvAllowIPPacketIPv4_SrcMACBrdCast( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2115,12 +2152,12 @@ void test_prvAllowIPPacket_SrcMACBrdCast( void )
 
     memcpy( pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SrcMACBrdCast2( void )
+void test_prvAllowIPPacketIPv4_SrcMACBrdCast2( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2145,12 +2182,12 @@ void test_prvAllowIPPacket_SrcMACBrdCast2( void )
     memcpy( pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_SrcIPAddrIsMulticast( void )
+void test_prvAllowIPPacketIPv4_SrcIPAddrIsMulticast( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2176,12 +2213,12 @@ void test_prvAllowIPPacket_SrcIPAddrIsMulticast( void )
 
     pxIPHeader->ulSourceIPAddress = FreeRTOS_htonl( 0xE0000000 + 1 );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_IncorrectChecksum( void )
+void test_prvAllowIPPacketIPv4_IncorrectChecksum( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2209,12 +2246,12 @@ void test_prvAllowIPPacket_IncorrectChecksum( void )
 
     usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC - 1 );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_IncorrectProtocolChecksum( void )
+void test_prvAllowIPPacketIPv4_IncorrectProtocolChecksum( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2244,12 +2281,12 @@ void test_prvAllowIPPacket_IncorrectProtocolChecksum( void )
 
     usGenerateProtocolChecksum_ExpectAndReturn( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE, ( uint16_t ) ( ipCORRECT_CRC + 1 ) );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacket_HappyPath( void )
+void test_prvAllowIPPacketIPv4_HappyPath( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2279,7 +2316,7 @@ void test_prvAllowIPPacket_HappyPath( void )
 
     usGenerateProtocolChecksum_ExpectAndReturn( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
 
-    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
 }
@@ -2807,7 +2844,7 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
     TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
     TEST_ASSERT_EQUAL( FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) - sizeof( UDPHeader_t ) + sizeof( UDPPacket_t ), pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usSourcePort );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.xIP_IPv4, pxUDPPacket->xIPHeader.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.xIP_IPv4, pxUDPPacket->xIPHeader.ulSourceIPAddress );
 }
 
 void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
@@ -2874,6 +2911,7 @@ void test_prvProcessIPPacket_TCP( void )
     IPHeader_t * pxIPHeader;
     BaseType_t xReturnValue = pdTRUE;
     uint32_t backup = xProcessedTCPMessage;
+    NetworkEndPoint_t xEndPoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
@@ -2900,7 +2938,7 @@ void test_prvProcessIPPacket_TCP( void )
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
 
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
-    vARPRefreshCacheEntry_Expect( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress );
+    vARPRefreshCacheEntry_Expect( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, &xEndPoint );
 
     xProcessReceivedTCPPacket_ExpectAndReturn( pxNetworkBuffer, pdPASS );
 
@@ -2920,6 +2958,7 @@ void test_prvProcessIPPacket_TCP1( void )
     IPHeader_t * pxIPHeader;
     BaseType_t xReturnValue = pdTRUE;
     uint32_t backup = xProcessedTCPMessage;
+    NetworkEndPoint_t xEndPoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
@@ -2946,7 +2985,7 @@ void test_prvProcessIPPacket_TCP1( void )
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
 
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
-    vARPRefreshCacheEntry_Expect( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress );
+    vARPRefreshCacheEntry_Expect( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, &xEndPoint );
 
     xProcessReceivedTCPPacket_ExpectAndReturn( pxNetworkBuffer, pdFAIL );
 
@@ -3035,28 +3074,34 @@ void test_FreeRTOS_SetIPAddress( void )
 void test_FreeRTOS_GetGatewayAddress( void )
 {
     uint32_t ulGatewayAddress;
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
 
     ulGatewayAddress = FreeRTOS_GetGatewayAddress();
 
-    TEST_ASSERT_EQUAL( xNetworkAddressing.ulGatewayAddress, ulGatewayAddress );
+    TEST_ASSERT_EQUAL( xIPv4Addressing->ulGatewayAddress, ulGatewayAddress );
 }
 
 void test_FreeRTOS_GetDNSServerAddress( void )
 {
     uint32_t ulDNSServerAddress;
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
 
     ulDNSServerAddress = FreeRTOS_GetDNSServerAddress();
 
-    TEST_ASSERT_EQUAL( xNetworkAddressing.ulDNSServerAddress, ulDNSServerAddress );
+    TEST_ASSERT_EQUAL( xIPv4Addressing->ulDNSServerAddresses[0], ulDNSServerAddress );
 }
 
 void test_FreeRTOS_GetNetmask( void )
 {
     uint32_t ulNetmask;
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
 
     ulNetmask = FreeRTOS_GetNetmask();
 
-    TEST_ASSERT_EQUAL( xNetworkAddressing.ulNetMask, ulNetmask );
+    TEST_ASSERT_EQUAL( xIPv4Addressing->ulNetMask, ulNetmask );
 }
 
 void test_FreeRTOS_UpdateMACAddress( void )
@@ -3080,19 +3125,23 @@ void test_FreeRTOS_GetMACAddress( void )
 void test_FreeRTOS_SetNetmask( void )
 {
     uint32_t ulNetmask = 0xAB12BC23;
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
 
     FreeRTOS_SetNetmask( ulNetmask );
 
-    TEST_ASSERT_EQUAL( ulNetmask, xNetworkAddressing.ulNetMask );
+    TEST_ASSERT_EQUAL( ulNetmask, xIPv4Addressing->ulNetMask );
 }
 
 void test_FreeRTOS_SetGatewayAddress( void )
 {
     uint32_t ulGatewayAddress = 0x1234ABCD;
+    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
+    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
 
     FreeRTOS_SetGatewayAddress( ulGatewayAddress );
 
-    TEST_ASSERT_EQUAL( ulGatewayAddress, xNetworkAddressing.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( ulGatewayAddress, xIPv4Addressing->ulGatewayAddress );
 }
 
 void test_FreeRTOS_IsNetworkUp( void )
@@ -3128,3 +3177,4 @@ void test_CastingFunctions( void )
     const ProtocolHeaders_t * pxConstProtHeader = ( ( const ProtocolHeaders_t * ) pvPtr );
     ProtocolHeaders_t * pxProtHeader = ( ( ProtocolHeaders_t * ) pvPtr );
 }
+
