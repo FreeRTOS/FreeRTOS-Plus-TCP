@@ -246,12 +246,12 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
-        eReturned = vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
+        vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
     }
     else
     {
         pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-        eReturned = vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+        vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
     }
 }
 /*-----------------------------------------------------------*/

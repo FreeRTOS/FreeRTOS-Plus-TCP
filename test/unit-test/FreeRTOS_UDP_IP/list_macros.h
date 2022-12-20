@@ -78,4 +78,14 @@ BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                     NetworkBufferDescriptor_t * const pxBuffer,
                                     BaseType_t bReleaseAfterSend );
 
+/**
+ * @brief Process the generated UDP packet and do other checks before sending the
+ *        packet such as ARP cache check and address resolution.
+ *
+ * @param[in] pxNetworkBuffer: The network buffer carrying the packet.
+ */
+void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
+                                                    uint32_t ulWhere );
 #endif /* ifndef LIST_MACRO_H */

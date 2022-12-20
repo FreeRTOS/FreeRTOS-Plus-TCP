@@ -51,7 +51,7 @@ set(real_source_files "")
 
 # list the files you would like to test here
 list(APPEND real_source_files
-            ${MODULE_ROOT_DIR}/source/${project_name}.c
+            ${MODULE_ROOT_DIR}/source/FreeRTOS_UDP_IPv4.c
 	)
 
 #set(real_include_directories "")
