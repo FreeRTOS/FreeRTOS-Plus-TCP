@@ -78,7 +78,8 @@ size_t xPortGetMinimumEverFreeHeapSize( void )
     return 0;
 }
 
-BaseType_t xApplicationDNSQueryHook( const char * pcName )
+BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
+                                     const char * pcName )
 {
     return 0;
 }
@@ -104,7 +105,9 @@ BaseType_t xNetworkInterfaceInitialise( void )
     return 0;
 }
 
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+/* This function shall be defined by the application. */
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                     struct xNetworkEndPoint * pxEndPoint )
 {
 }
 
