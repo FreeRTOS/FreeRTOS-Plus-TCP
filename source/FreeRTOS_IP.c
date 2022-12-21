@@ -1014,9 +1014,7 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
                                         uint32_t * pulDNSServerAddress,
                                         struct xNetworkEndPoint * pxEndPoint )
 {
-    #if ( ipconfigUSE_IPv6 != 0 )
-        if( ENDPOINT_IS_IPv4( pxEndPoint ) )
-    #endif
+    if( ENDPOINT_IS_IPv4( pxEndPoint ) )
     {
         /* Return the address configuration to the caller. */
 
@@ -1061,9 +1059,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 {
     /* Update the address configuration. */
 
-    #if ( ipconfigUSE_IPv6 != 0 )
-        if( ENDPOINT_IS_IPv4( pxEndPoint ) )
-    #endif
+    if( ENDPOINT_IS_IPv4( pxEndPoint ) )
     {
         if( pulIPAddress != NULL )
         {
