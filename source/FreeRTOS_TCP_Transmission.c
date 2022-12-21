@@ -139,7 +139,7 @@
             else if( prvTCPMakeSurePrepared( pxSocket ) == pdTRUE )
             {
                 ProtocolHeaders_t * pxProtocolHeaders;
-                
+
                 /* Or else, if the connection has been prepared, or can be prepared
                  * now, proceed to send the packet with the SYN flag.
                  * prvTCPPrepareConnect() prepares 'xPacket' and returns pdTRUE if
@@ -269,8 +269,8 @@
  * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
  */
     void prvTCPReturn_CheckTCPWindow( FreeRTOS_Socket_t * pxSocket,
-                                             const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                             size_t uxIPHeaderSize )
+                                      const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                      size_t uxIPHeaderSize )
     {
         /* Calculate the space in the RX buffer in order to advertise the
          * size of this socket's reception window. */
@@ -355,9 +355,9 @@
  * @return
  */
     void prvTCPReturn_SetSequenceNumber( FreeRTOS_Socket_t * pxSocket,
-                                                const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                size_t uxIPHeaderSize,
-                                                uint32_t ulLen )
+                                         const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                         size_t uxIPHeaderSize,
+                                         uint32_t ulLen )
     {
         ProtocolHeaders_t * pxProtocolHeaders;
         const TCPWindow_t * pxTCPWindow = &( pxSocket->u.xTCP.xTCPWindow );

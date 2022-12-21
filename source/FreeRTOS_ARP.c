@@ -602,7 +602,6 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                      * network, than the MAC address of the gateway should not be
                      * overwritten. */
                     BaseType_t xOtherIsLocal = ( FreeRTOS_FindEndPointOnNetMask( xARPCache[ x ].ulIPAddress, 3 ) != NULL ) ? 1 : 0; /* ARP remote address. */
-
                 #else /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 ) */
                     xMacEntry = x;
                 #endif /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 ) */
