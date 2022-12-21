@@ -91,9 +91,9 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
  * It handles all ICMP messages except the PING requests. */
 eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxBuffer,
-                                    BaseType_t bReleaseAfterSend );
-
+BaseType_t xNetworkInterfaceOutput( struct xNetworkInterface *pxInterface,
+                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                    BaseType_t xReleaseAfterSend );
 /**
  * @brief Reduce the age counter in each entry within the ND cache.  An entry is no
  * longer considered valid and is deleted if its age reaches zero.
@@ -109,6 +109,13 @@ void vNDAgeCache( void );
 void vRAProcess( BaseType_t xDoReset,
                  NetworkEndPoint_t * pxEndPoint );
 
+/**
+ * @brief Call the state machine of either DHCP, DHCPv6, or RA, whichever is activated.
+ *
+ * @param[in] pxEndPoint: The end-point for which the state-machine will be called.
+ */
+void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint );
+
 /*
  * If ulIPAddress is already in the ND cache table then reset the age of the
  * entry back to its maximum value.  If ulIPAddress is not already in the ND
@@ -119,5 +126,10 @@ void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                            const IPv6_Address_t * pxIPAddress,
                            NetworkEndPoint_t * pxEndPoint );
 
+/**
+ * @brief Check the value of 'xNetworkDownEventPending'. When non-zero, pending
+ *        network-down events will be handled.
+ */
+void prvIPTask_CheckPendingEvents( void );
 
 #endif /* ifndef LIST_MACRO_H */

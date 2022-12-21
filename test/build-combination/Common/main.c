@@ -275,8 +275,9 @@ void vApplicationMallocFailedHook( void )
     /* Provide a stub for this function. */
 }
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t bReleaseAfterSend )
+BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+					NetworkBufferDescriptor_t * const pxNetworkBuffer,
+				    BaseType_t bReleaseAfterSend )
 {
     /* Provide a stub for this function. */
     return pdTRUE;
