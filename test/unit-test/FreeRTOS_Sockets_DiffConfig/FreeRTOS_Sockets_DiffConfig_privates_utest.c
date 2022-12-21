@@ -47,6 +47,7 @@
 #include "FreeRTOSIPConfig.h"
 
 #include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_ARP.h"
 #include "mock_NetworkBufferManagement.h"
 #include "mock_NetworkInterface.h"
