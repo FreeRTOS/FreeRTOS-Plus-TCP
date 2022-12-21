@@ -14,6 +14,7 @@
 #include "mock_task.h"
 #include "mock_NetworkBufferManagement.h"
 #include "mock_NetworkInterface.h"
+#include "mock_ARP_DataLenLessThanMinPacket_list_macros.h"
 
 #include "FreeRTOS_ARP.h"
 

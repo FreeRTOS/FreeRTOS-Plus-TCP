@@ -15,6 +15,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
+            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/ARP_DataLenLessThanMinPacket_list_macros.h"
         )
 # list the directories your mocks need
 set(mock_include_list "")
