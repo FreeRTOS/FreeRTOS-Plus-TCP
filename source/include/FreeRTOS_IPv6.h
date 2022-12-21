@@ -106,23 +106,6 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
 eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                       BaseType_t xDoRemove );
 
-/*
- * Returns the addresses stored in an end-point structure.
- * This function already existed in the release with the single-interface.
- * Only the first parameters is new: an end-point
- */
-void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
-                                        uint32_t * pulNetMask,
-                                        uint32_t * pulGatewayAddress,
-                                        uint32_t * pulDNSServerAddress,
-                                        struct xNetworkEndPoint * pxEndPoint );
-
-void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
-                                        const uint32_t * pulNetMask,
-                                        const uint32_t * pulGatewayAddress,
-                                        const uint32_t * pulDNSServerAddress,
-                                        struct xNetworkEndPoint * pxEndPoint );
-
 /* Return true if a given end-point is up and running.
 * When FreeRTOS_IsNetworkUp() is called with NULL as a parameter,
 * it will return pdTRUE when all end-points are up. */

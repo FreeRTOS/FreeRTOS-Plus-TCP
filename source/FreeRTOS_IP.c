@@ -623,15 +623,7 @@ void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint )
 
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
         {
-            #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 )
-                {
-                    vApplicationIPNetworkEventHook( eNetworkUp );
-                }
-            #else
-                {
-                    vApplicationIPNetworkEventHook( eNetworkUp, pxEndPoint );
-                }
-            #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 ) */
+            vApplicationIPNetworkEventHook( eNetworkUp, pxEndPoint );
         }
     #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
 
@@ -992,6 +984,66 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Release the UDP payload buffer.
+ *
+ * @param[in] pvBuffer: Pointer to the UDP buffer that is to be released.
+ */
+void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
+{
+    NetworkBufferDescriptor_t * pxBuffer;
+
+    pxBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pvBuffer );
+    configASSERT( pxBuffer != NULL );
+    vReleaseNetworkBufferAndDescriptor( pxBuffer );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the current address configuration. Only non-NULL pointers will
+ *        be filled in. pxEndPoint must be non-NULL.
+ *
+ * @param[out] pulIPAddress: The current IP-address assigned.
+ * @param[out] pulNetMask: The netmask used for current subnet.
+ * @param[out] pulGatewayAddress: The gateway address.
+ * @param[out] pulDNSServerAddress: The DNS server address.
+ * @param[in] pxEndPoint: The end-point which is being questioned.
+ */
+void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
+                                        uint32_t * pulNetMask,
+                                        uint32_t * pulGatewayAddress,
+                                        uint32_t * pulDNSServerAddress,
+                                        struct xNetworkEndPoint * pxEndPoint )
+{
+    #if ( ipconfigUSE_IPv6 != 0 )
+        if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+    #endif
+    {
+        /* Return the address configuration to the caller. */
+
+        if( pulIPAddress != NULL )
+        {
+            *pulIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
+        }
+
+        if( pulNetMask != NULL )
+        {
+            *pulNetMask = pxEndPoint->ipv4_settings.ulNetMask;
+        }
+
+        if( pulGatewayAddress != NULL )
+        {
+            *pulGatewayAddress = pxEndPoint->ipv4_settings.ulGatewayAddress;
+        }
+
+        if( pulDNSServerAddress != NULL )
+        {
+            *pulDNSServerAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ]; /*_RB_ Only returning the address of the first DNS server. */
+        }
+    }
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Set the current network address configuration. Only non-NULL pointers will
  *        be used. pxEndPoint must pointer to a valid end-point.
  *
@@ -1009,7 +1061,9 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 {
     /* Update the address configuration. */
 
-    if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+    #if ( ipconfigUSE_IPv6 != 0 )
+        if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+    #endif
     {
         if( pulIPAddress != NULL )
         {
@@ -1031,55 +1085,6 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
             pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ] = *pulDNSServerAddress;
         }
     }
-}
-/*-----------------------------------------------------------*/
-
-#if ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 )
-
-/**
- * @brief Get the current address configuration. Only non-NULL pointers will
- *        be filled in.
- *
- * @param[out] pulIPAddress: The current IP-address assigned.
- * @param[out] pulNetMask: The netmask used for current subnet.
- * @param[out] pulGatewayAddress: The gateway address.
- * @param[out] pulDNSServerAddress: The DNS server address.
- */
-    void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
-                                           uint32_t * pulNetMask,
-                                           uint32_t * pulGatewayAddress,
-                                           uint32_t * pulDNSServerAddress )
-    {
-        struct xNetworkEndPoint * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
-        FreeRTOS_GetEndPointConfiguration( pulIPAddress, pulNetMask, pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
-    }
-
-    void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
-                                           const uint32_t * pulNetMask,
-                                           const uint32_t * pulGatewayAddress,
-                                           const uint32_t * pulDNSServerAddress )
-    {
-        struct xNetworkEndPoint * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
-        FreeRTOS_SetEndPointConfiguration( pulIPAddress, pulNetMask, pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
-    }
-#endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE ) */
-
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Release the UDP payload buffer.
- *
- * @param[in] pvBuffer: Pointer to the UDP buffer that is to be released.
- */
-void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
-{
-    NetworkBufferDescriptor_t * pxBuffer;
-
-    pxBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pvBuffer );
-    configASSERT( pxBuffer != NULL );
-    vReleaseNetworkBufferAndDescriptor( pxBuffer );
 }
 /*-----------------------------------------------------------*/
 
@@ -2103,158 +2108,6 @@ uint32_t FreeRTOS_GetIPAddress( void )
     return ulIPAddress;
 }
 /*-----------------------------------------------------------*/
-
-#if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
-
-/*
- * The helper functions here below assume that there is a single
- * interface and a single end-point (ipconfigCOMPATIBLE_WITH_SINGLE)
- */
-
-/**
- * @brief Sets the IP address of the NIC.
- *
- * @param[in] ulIPAddress: IP address of the NIC to be set.
- */
-    void FreeRTOS_SetIPAddress( uint32_t ulIPAddress )
-    {
-        /* Sets the IP address of the NIC. */
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
-        if( pxEndPoint != NULL )
-        {
-            pxEndPoint->ipv4_settings.ulIPAddress = ulIPAddress;
-        }
-    }
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Get the gateway address of the subnet.
- *
- * @return The IP-address of the gateway, zero if a gateway is
- *         not used/defined.
- */
-    uint32_t FreeRTOS_GetGatewayAddress( void )
-    {
-        uint32_t ulIPAddress = 0U;
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
-        if( pxEndPoint != NULL )
-        {
-            ulIPAddress = pxEndPoint->ipv4_settings.ulGatewayAddress;
-        }
-
-        return ulIPAddress;
-    }
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Get the DNS server address.
- *
- * @return The IP address of the DNS server.
- */
-    uint32_t FreeRTOS_GetDNSServerAddress( void )
-    {
-        uint32_t ulIPAddress = 0U;
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
-        if( pxEndPoint != NULL )
-        {
-            ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ];
-        }
-
-        return ulIPAddress;
-    }
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Get the netmask for the subnet.
- *
- * @return The 32 bit netmask for the subnet.
- */
-    uint32_t FreeRTOS_GetNetmask( void )
-    {
-        uint32_t ulIPAddress = 0U;
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
-        if( pxEndPoint != NULL )
-        {
-            ulIPAddress = pxEndPoint->ipv4_settings.ulNetMask;
-        }
-
-        return ulIPAddress;
-    }
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Update the MAC address.
- *
- * @param[in] ucMACAddress: the MAC address to be set.
- */
-    void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
-    {
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
-        if( pxEndPoint != NULL )
-        {
-            /* Copy the MAC address at the start of the default packet header fragment. */
-            ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ( const void * ) ucMACAddress, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
-        }
-    }
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Get the MAC address.
- *
- * @return The pointer to MAC address.
- */
-    const uint8_t * FreeRTOS_GetMACAddress( void )
-    {
-        const uint8_t * pucReturn = NULL;
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
-        if( pxEndPoint != NULL )
-        {
-            /* Copy the MAC address at the start of the default packet header fragment. */
-            pucReturn = pxEndPoint->xMACAddress.ucBytes;
-        }
-
-        return pucReturn;
-    }
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Set the netmask for the subnet.
- *
- * @param[in] ulNetmask: The 32 bit netmask of the subnet.
- */
-    void FreeRTOS_SetNetmask( uint32_t ulNetmask )
-    {
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
-        if( pxEndPoint != NULL )
-        {
-            pxEndPoint->ipv4_settings.ulNetMask = ulNetmask;
-        }
-    }
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Set the gateway address.
- *
- * @param[in] ulGatewayAddress: The gateway address.
- */
-    void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress )
-    {
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
-        if( pxEndPoint != NULL )
-        {
-            pxEndPoint->ipv4_settings.ulGatewayAddress = ulGatewayAddress;
-        }
-    }
-/*-----------------------------------------------------------*/
-#endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
 
 /**
  * @brief Returns whether the IP task is ready.

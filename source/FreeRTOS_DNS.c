@@ -588,10 +588,6 @@
         /* 'sin_len' doesn't really matter, 'sockaddr' and 'sockaddr6'
          * have the same size. */
         pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );
-        #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 )
-            /* Obtain the DNS server address. */
-            FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, &ulIPAddress );
-        #endif
 
         BaseType_t bHasDot = llmnr_has_dot( pcHostName );
         /* For local resolution, mDNS uses names ending with the string ".local" */
@@ -650,13 +646,7 @@
                         }
                     #endif
                 }
-                else
             #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
-            {
-                /* Use DNS server. */
-                pxAddress->sin_addr.xIP_IPv4 = ulIPAddress;     /*TODO */
-                pxAddress->sin_port = dnsDNS_PORT;
-            }
 
             if( xNeed_Endpoint == pdTRUE )
             {

@@ -100,7 +100,7 @@
         do
         {
             /* Use do/while to be able break out the flow */
-             if( pxNetworkBuffer != NULL )
+            if( pxNetworkBuffer != NULL )
             {
                 uxIPHeaderSize = ipSIZE_OF_IPv6_HEADER;
                 /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -194,12 +194,12 @@
                 else
                 {
                     /* Sending data without a socket, probably replying with a RST flag
-                    * Just swap the two sequence numbers. */
+                     * Just swap the two sequence numbers. */
                     vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
                 }
 
                 /* When xIsIPv6 is true: Let lint know that
-                * 'pxIPHeader_IPv6' is not NULL. */
+                 * 'pxIPHeader_IPv6' is not NULL. */
                 configASSERT( pxIPHeader_IPv6 != NULL );
 
                 /* An extra test to convey the MISRA checker. */
@@ -218,11 +218,11 @@
                         ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxNetworkBuffer->pucEthernetBuffer, ulTotalLength, pdTRUE );
 
                         /* A calculated checksum of 0 must be inverted as 0 means the checksum
-                        * is disabled. */
+                         * is disabled. */
 
                         /* _HT_ The above is a very old comment.  It is only true for
-                        * UDP packets.  However, theoretically usChecksum can never be zero
-                        * and so the if-statement won't be executed. */
+                         * UDP packets.  However, theoretically usChecksum can never be zero
+                         * and so the if-statement won't be executed. */
                         if( pxProtocolHeaders->xTCPHeader.usChecksum == 0U )
                         {
                             pxProtocolHeaders->xTCPHeader.usChecksum = 0xffffU;
@@ -250,10 +250,10 @@
                 ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxEthernetHeader->xDestinationAddress ) );
 
                 /*
-                * Use helper variables for memcpy() to remain
-                * compliant with MISRA Rule 21.15.  These should be
-                * optimized away.
-                */
+                 * Use helper variables for memcpy() to remain
+                 * compliant with MISRA Rule 21.15.  These should be
+                 * optimized away.
+                 */
                 /* The source MAC addresses is fixed to 'ipLOCAL_MAC_ADDRESS'. */
                 pvCopySource = ipLOCAL_MAC_ADDRESS;
                 pvCopyDest = &pxEthernetHeader->xSourceAddress;
@@ -282,7 +282,7 @@
                 if( xDoRelease == pdFALSE )
                 {
                     /* Swap-back some fields, as pxBuffer probably points to a socket field
-                    * containing the packet header. */
+                     * containing the packet header. */
                     vFlip_16( pxTCPPacket->xTCPHeader.usSourcePort, pxTCPPacket->xTCPHeader.usDestinationPort );
 
                     if( pxIPHeader_IPv6 != NULL )
@@ -295,7 +295,7 @@
                     /* Nothing to do: the buffer has been passed to DMA and will be released after use */
                 }
             } /* if( pxNetworkBuffer != NULL ) */
-        } while ( ipFALSE_BOOL );
+        } while( ipFALSE_BOOL );
     }
     /*-----------------------------------------------------------*/
 
@@ -344,7 +344,7 @@
         {
             pxSocket->pxEndPoint = pxEndPoint;
         }
-    
+
         switch( eReturned )
         {
             case eARPCacheHit:    /* An ARP table lookup found a valid entry. */
@@ -497,7 +497,7 @@
  * @return pdFAIL always indicating that the packet was not consumed.
  */
     BaseType_t prvTCPSendSpecialPktHelper_IPV6( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                   uint8_t ucTCPFlags )
+                                                uint8_t ucTCPFlags )
     {
         #if ( ipconfigIGNORE_UNKNOWN_PACKETS == 1 )
             /* Configured to ignore unknown packets just suppress a compiler warning. */

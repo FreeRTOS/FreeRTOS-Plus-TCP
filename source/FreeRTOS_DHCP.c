@@ -1545,7 +1545,7 @@
             if( pxEndPoint->xDHCPData.ulPreferredIPAddress != 0U )
             {
                 /* Fill in the IPv4 address. */
-                pvCopySource = &(pxEndPoint->xDHCPData.ulPreferredIPAddress);
+                pvCopySource = &( pxEndPoint->xDHCPData.ulPreferredIPAddress );
                 pvCopyDest = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ] );
                 ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulPreferredIPAddress ) );
             }

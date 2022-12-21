@@ -125,7 +125,7 @@
     {
         if( ( xSocketToListen != NULL ) && ( xSocketToListen != pxSocket ) )
         {
-            ( void ) FreeRTOS_listen( ( Socket_t ) xSocketToListen, (BaseType_t)(xSocketToListen->u.xTCP.usBacklog) );
+            ( void ) FreeRTOS_listen( ( Socket_t ) xSocketToListen, ( BaseType_t ) ( xSocketToListen->u.xTCP.usBacklog ) );
         }
 
         xSocketToListen = pxSocket;
