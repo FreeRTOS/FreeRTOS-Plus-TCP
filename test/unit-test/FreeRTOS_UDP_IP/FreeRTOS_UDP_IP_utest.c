@@ -115,94 +115,93 @@ void test_vProcessGeneratedUDPPacket_CantSendPacket( void )
 }
 
 
-// /*
-//  * @brief Test what if there is a cache miss and the packet is smaller
-//  *        than the minimum number of bytes required in the packet.
-//  */
-// void test_vProcessGeneratedUDPPacket_CacheMiss_PacketSmaller( void )
-// {
-//     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
-//     NetworkBufferDescriptor_t xLocalNetworkBuffer;
-//     UDPPacket_t * pxUDPPacket;
-//     uint32_t ulIPAddr = 0x1234ABCD, ulLocalIPAddress = 0xAABBCCDD;
-//     struct xNetworkEndPoint xEndPoint;
-//     struct xNetworkInterface xInterface;
+/*
+ * @brief Test what if there is a cache miss and the packet is smaller
+ *        than the minimum number of bytes required in the packet.
+ */
+void test_vProcessGeneratedUDPPacket_CacheMiss_PacketSmaller( void )
+{
+    uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
+    NetworkBufferDescriptor_t xLocalNetworkBuffer;
+    UDPPacket_t * pxUDPPacket;
+    uint32_t ulIPAddr = 0x1234ABCD, ulLocalIPAddress = 0xAABBCCDD;
+    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkInterface xInterface;
 
-//     vConfigureInterfaceAndEndpoints(&xLocalNetworkBuffer, &xEndPoint, &xInterface);
+    vConfigureInterfaceAndEndpoints(&xLocalNetworkBuffer, &xEndPoint, &xInterface);
 
-//     xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
+    xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
+    xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
 
-//     /* Cleanup the ethernet buffer. */
-//     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
+    /* Cleanup the ethernet buffer. */
+    memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
 
-//     /* Map the UDP packet onto the start of the frame. */
-//     pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
+    /* Map the UDP packet onto the start of the frame. */
+    pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
 
-//     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
-//     eARPGetCacheEntry_ReturnMemThruPtr_pulIPAddress( &ulLocalIPAddress, sizeof( ulLocalIPAddress ) );
-//     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint(&xEndPoint);
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
+    eARPGetCacheEntry_ReturnMemThruPtr_pulIPAddress( &ulLocalIPAddress, sizeof( ulLocalIPAddress ) );
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint(&xEndPoint);
 
-//     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(&xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(&xEndPoint);
 
-//     vARPRefreshCacheEntry_Ignore( );
-//     vARPGenerateRequestPacket_Expect( &xLocalNetworkBuffer );
+    vARPRefreshCacheEntry_Ignore( );
+    vARPGenerateRequestPacket_Expect( &xLocalNetworkBuffer );
 
-//     xNetworkInterfaceOutput_ExpectAndReturn( &xInterfaces[ 0 ], &xLocalNetworkBuffer, pdTRUE, pdTRUE );
+    xNetworkInterfaceOutput_ExpectAndReturn( &xInterface, &xLocalNetworkBuffer, pdTRUE, pdTRUE );
 
-//     /* Make sure that the packet is smaller than minimum packet length. */
-//     xLocalNetworkBuffer.xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 2;
+    /* Make sure that the packet is smaller than minimum packet length. */
+    xLocalNetworkBuffer.xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 2;
 
-//     vProcessGeneratedUDPPacket_IPv4( &xLocalNetworkBuffer );
+    vProcessGeneratedUDPPacket_IPv4( &xLocalNetworkBuffer );
 
-//     TEST_ASSERT_EQUAL( ulLocalIPAddress, xLocalNetworkBuffer.xIPAddress.xIP_IPv4 );
-// }
+    TEST_ASSERT_EQUAL( ulLocalIPAddress, xLocalNetworkBuffer.xIPAddress.xIP_IPv4 );
+}
 
-// /*
-//  * @brief Test when there is a cache miss, but the packet is of
-//  *        appropriate size.
-//  */
-// void test_vProcessGeneratedUDPPacket_CacheMiss_PacketNotSmaller( void )
-// {
-//     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
-//     NetworkBufferDescriptor_t xLocalNetworkBuffer;
-//     UDPPacket_t * pxUDPPacket;
-//     uint32_t ulIPAddr = 0x1234ABCD, ulLocalIPAddress = 0xAABBCCDD;
-//     struct xNetworkEndPoint xEndPoint;
-//     struct xNetworkInterface xInterface;
+/*
+ * @brief Test when there is a cache miss, but the packet is of
+ *        appropriate size.
+ */
+void test_vProcessGeneratedUDPPacket_CacheMiss_PacketNotSmaller( void )
+{
+    uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
+    NetworkBufferDescriptor_t xLocalNetworkBuffer;
+    UDPPacket_t * pxUDPPacket;
+    uint32_t ulIPAddr = 0x1234ABCD, ulLocalIPAddress = 0xAABBCCDD;
+    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkInterface xInterface;
 
-//     xEndPoint.pxNetworkInterface = &xInterface;
-//     xEndPoint.pxNext = NULL;
-//     xLocalNetworkBuffer.pxEndPoint = &xEndPoint;
-//     xInterface.pxEndPoint = &xEndPoint;
-//     xInterface.pxNext = NULL;
+    vConfigureInterfaceAndEndpoints(&xLocalNetworkBuffer, &xEndPoint, &xInterface);
 
-//     pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
-//     pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
+    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
-//     //xInterfaces[ 0 ].pfOutput = xNetworkInterfaceOutput_CMockExpectAndReturn;
-//     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
-//     xLocalNetworkBuffer.xDataLength = sizeof( UDPPacket_t );
+    xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
+    xLocalNetworkBuffer.xDataLength = sizeof( UDPPacket_t );
 
 
-//     // /* Cleanup the ethernet buffer. */
-//     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
+    // /* Cleanup the ethernet buffer. */
+    memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
 
-//     // /* Map the UDP packet onto the start of the frame. */
+    // /* Map the UDP packet onto the start of the frame. */
 
-//     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
-//     eARPGetCacheEntry_ReturnMemThruPtr_pulIPAddress( &ulLocalIPAddress, sizeof( ulLocalIPAddress ) );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
+    eARPGetCacheEntry_ReturnMemThruPtr_pulIPAddress( &ulLocalIPAddress, sizeof( ulLocalIPAddress ) );
 
-//     vARPRefreshCacheEntry_Expect( NULL, ulLocalIPAddress, NULL );
-//     vARPGenerateRequestPacket_Expect( &xLocalNetworkBuffer );
+    vARPRefreshCacheEntry_Expect( NULL, ulLocalIPAddress, NULL );
 
-//     xNetworkInterfaceOutput_ExpectAndReturn( &xInterfaces[ 0 ], &xLocalNetworkBuffer, pdTRUE, pdTRUE );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(&xEndPoint);
 
-//     xLocalNetworkBuffer.xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES + 2;
+    vARPGenerateRequestPacket_Expect( &xLocalNetworkBuffer );
 
-//     vProcessGeneratedUDPPacket_IPv4( &xLocalNetworkBuffer );
+    xNetworkInterfaceOutput_ExpectAndReturn( &xInterface, &xLocalNetworkBuffer, pdTRUE, pdTRUE );
 
-//     TEST_ASSERT_EQUAL( ulLocalIPAddress, xLocalNetworkBuffer.xIPAddress.xIP_IPv4 );
-// }
+    xLocalNetworkBuffer.xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES + 2;
+
+    vProcessGeneratedUDPPacket_IPv4( &xLocalNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( ulLocalIPAddress, xLocalNetworkBuffer.xIPAddress.xIP_IPv4 );
+}
 
 /*
  * @brief Test when ARP cache returned an unknown value.
@@ -236,102 +235,104 @@ void test_vProcessGeneratedUDPPacket_UnknownARPReturn( void )
     /* Nothing to assert on since there was no modification. */
 }
 
-// /*
-//  * @brief Test when there is a cache hit but the packet does not have
-//  *        ICMP data.
-//  */
-// void test_vProcessGeneratedUDPPacket_CacheHit_NoICMP( void )
-// {
-//     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
-//     NetworkBufferDescriptor_t xLocalNetworkBuffer;
-//     UDPPacket_t * pxUDPPacket;
-//     uint32_t ulIPAddr = 0x1234ABCD;
-//     struct xNetworkEndPoint xEndPoint;
-//     struct xNetworkInterface xInterface;
+/*
+ * @brief Test when there is a cache hit but the packet does not have
+ *        ICMP data.
+ */
+void test_vProcessGeneratedUDPPacket_CacheHit_NoICMP( void )
+{
+    uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
+    NetworkBufferDescriptor_t xLocalNetworkBuffer;
+    UDPPacket_t * pxUDPPacket;
+    uint32_t ulIPAddr = 0x1234ABCD;
+    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkInterface xInterface;
 
-//     xEndPoint.pxNetworkInterface = &xInterface;
-//     xEndPoint.pxNext = NULL;
-//     xLocalNetworkBuffer.pxEndPoint = &xEndPoint;
-//     xInterface.pxEndPoint = &xEndPoint;
-//     xInterface.pxNext = NULL;
-//     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.pxNext = NULL;
+    xLocalNetworkBuffer.pxEndPoint = &xEndPoint;
+    xInterface.pxEndPoint = &xEndPoint;
+    xInterface.pxNext = NULL;
+    xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
 
-//     xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
-//     /* Not ICMP data. */
-//     xLocalNetworkBuffer.usPort = ipPACKET_CONTAINS_ICMP_DATA + 1;
-//     xLocalNetworkBuffer.usBoundPort = 0x1023;
-//     xLocalNetworkBuffer.xDataLength = sizeof( UDPPacket_t );
+    xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
+    /* Not ICMP data. */
+    xLocalNetworkBuffer.usPort = ipPACKET_CONTAINS_ICMP_DATA + 1;
+    xLocalNetworkBuffer.usBoundPort = 0x1023;
+    xLocalNetworkBuffer.xDataLength = sizeof( UDPPacket_t );
 
-//     /* Cleanup the ethernet buffer. */
-//     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
+    /* Cleanup the ethernet buffer. */
+    memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
 
-//     /* Map the UDP packet onto the start of the frame. */
-//     pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
+    /* Map the UDP packet onto the start of the frame. */
+    pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
 
-//     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
 
-//     uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
-//     usGenerateChecksum_ExpectAndReturn( 0U, NULL, ipSIZE_OF_IPv4_HEADER, 0 );
-//     usGenerateChecksum_IgnoreArg_pucNextData();
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    usGenerateChecksum_ExpectAndReturn( 0U, NULL, ipSIZE_OF_IPv4_HEADER, 0 );
+    usGenerateChecksum_IgnoreArg_pucNextData();
 
-//     xNetworkInterfaceOutput_ExpectAndReturn( &xInterface, &xLocalNetworkBuffer, pdTRUE, pdTRUE );
+    xNetworkInterfaceOutput_ExpectAndReturn( &xInterface, &xLocalNetworkBuffer, pdTRUE, pdTRUE );
 
-//     vProcessGeneratedUDPPacket_IPv4( &xLocalNetworkBuffer );
+    vProcessGeneratedUDPPacket_IPv4( &xLocalNetworkBuffer );
 
-//     TEST_ASSERT_EQUAL( xLocalNetworkBuffer.usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
-//     TEST_ASSERT_EQUAL( xLocalNetworkBuffer.usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
-//     TEST_ASSERT_EQUAL( 0, pxUDPPacket->xUDPHeader.usChecksum );
-// }
+    TEST_ASSERT_EQUAL( xLocalNetworkBuffer.usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
+    TEST_ASSERT_EQUAL( xLocalNetworkBuffer.usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( 0, pxUDPPacket->xUDPHeader.usChecksum );
+}
 
-// /*
-//  * @brief Test cache hit when the packet is ICMP packet and has an LLMNR
-//  *        IP address with a UDP socket option.
-//  */
-// void test_vProcessGeneratedUDPPacket_CacheHit_ICMPPacket_LLMNR_UDPChkSumOption( void )
-// {
-//     uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
-//     NetworkBufferDescriptor_t xLocalNetworkBuffer;
-//     UDPPacket_t * pxUDPPacket;
-//     uint32_t ulIPAddr = ipLLMNR_IP_ADDR;
-//     uint8_t ucSocketOptions = FREERTOS_SO_UDPCKSUM_OUT;
-//     struct xNetworkEndPoint xEndPoint;
-//     struct xNetworkInterface xInterface;
+/*
+ * @brief Test cache hit when the packet is ICMP packet and has an LLMNR
+ *        IP address with a UDP socket option.
+ */
+void test_vProcessGeneratedUDPPacket_CacheHit_ICMPPacket_LLMNR_UDPChkSumOption( void )
+{
+    uint8_t pucLocalEthernetBuffer[ ipconfigTCP_MSS ];
+    NetworkBufferDescriptor_t xLocalNetworkBuffer;
+    UDPPacket_t * pxUDPPacket;
+    uint32_t ulIPAddr = ipLLMNR_IP_ADDR;
+    uint8_t ucSocketOptions = FREERTOS_SO_UDPCKSUM_OUT;
+    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkInterface xInterface;
 
-//     xEndPoint.pxNetworkInterface = &xInterface;
-//     xEndPoint.pxNext = NULL;
-//     xLocalNetworkBuffer.pxEndPoint = &xEndPoint;
-//     xInterface.pxEndPoint = &xEndPoint;
-//     xInterface.pxNext = NULL;
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.pxNext = NULL;
+    xLocalNetworkBuffer.pxEndPoint = &xEndPoint;
+    xInterface.pxEndPoint = &xEndPoint;
+    xInterface.pxNext = NULL;
 
-//     /* Cleanup the ethernet buffer. */
-//     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
-//     xInterfaces[ 0 ].pfOutput = xNetworkInterfaceOutput_CMockExpectAndReturn;
-//     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
-//     xLocalNetworkBuffer.pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] = ucSocketOptions;
+    /* Cleanup the ethernet buffer. */
+    memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
+    xInterfaces[ 0 ].pfOutput = xNetworkInterfaceOutput_CMockExpectAndReturn;
+    xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
+    xLocalNetworkBuffer.pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] = ucSocketOptions;
 
-//     xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
-//     xLocalNetworkBuffer.usPort = ipPACKET_CONTAINS_ICMP_DATA;
-//     xLocalNetworkBuffer.usBoundPort = 0x1023;
-//     xLocalNetworkBuffer.xDataLength = sizeof( UDPPacket_t );
+    xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
+    xLocalNetworkBuffer.usPort = ipPACKET_CONTAINS_ICMP_DATA;
+    xLocalNetworkBuffer.usBoundPort = 0x1023;
+    xLocalNetworkBuffer.xDataLength = sizeof( UDPPacket_t );
 
-//     /* Map the UDP packet onto the start of the frame. */
-//     pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
+    /* Map the UDP packet onto the start of the frame. */
+    pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
 
-//     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
 
-//     usGenerateChecksum_ExpectAndReturn( 0U, NULL, ipSIZE_OF_IPv4_HEADER, 0 );
-//     usGenerateChecksum_IgnoreArg_pucNextData();
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn(ipSIZE_OF_IPv4_HEADER);
 
-//     usGenerateProtocolChecksum_ExpectAndReturn( pucLocalEthernetBuffer, xLocalNetworkBuffer.xDataLength, pdTRUE, 0 );
+    usGenerateChecksum_ExpectAndReturn( 0U, NULL, ipSIZE_OF_IPv4_HEADER, 0 );
+    usGenerateChecksum_IgnoreArg_pucNextData();
 
-//     xNetworkInterfaceOutput_ExpectAndReturn( &xInterface, &xLocalNetworkBuffer, pdTRUE, pdTRUE );
+    usGenerateProtocolChecksum_ExpectAndReturn( pucLocalEthernetBuffer, xLocalNetworkBuffer.xDataLength, pdTRUE, 0 );
 
-//     vProcessGeneratedUDPPacket_IPv4( &xLocalNetworkBuffer );
+    xNetworkInterfaceOutput_ExpectAndReturn( &xInterface, &xLocalNetworkBuffer, pdTRUE, pdTRUE );
 
-//     TEST_ASSERT_EQUAL( xLocalNetworkBuffer.usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
-//     TEST_ASSERT_EQUAL( ipPROTOCOL_ICMP, pxUDPPacket->xIPHeader.ucProtocol );
-//     TEST_ASSERT_EQUAL( 0, pxUDPPacket->xUDPHeader.usChecksum );
-// }
+    vProcessGeneratedUDPPacket_IPv4( &xLocalNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( xLocalNetworkBuffer.usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_ICMP, pxUDPPacket->xIPHeader.ucProtocol );
+    TEST_ASSERT_EQUAL( 0, pxUDPPacket->xUDPHeader.usChecksum );
+}
 
 /*
  * @brief Test the asserts in the function.
