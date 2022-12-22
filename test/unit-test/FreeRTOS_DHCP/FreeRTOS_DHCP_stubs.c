@@ -12,10 +12,16 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
+
+NetworkInterface_t xInterfaces[ 1 ];
+
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 /** @brief The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
+
+Socket_t xDHCPSocket;
 
 UDPPacketHeader_t xDefaultPartUDPPacketHeader =
 {
@@ -79,7 +85,8 @@ size_t xPortGetMinimumEverFreeHeapSize( void )
 }
 
 
-BaseType_t xApplicationDNSQueryHook( const char * pcName )
+BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
+                                                    const char * pcName )
 {
 }
 
@@ -99,7 +106,8 @@ uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 BaseType_t xNetworkInterfaceInitialise( void )
 {
 }
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                         struct xNetworkEndPoint * pxEndPoint  )
 {
 }
 void vApplicationDaemonTaskStartupHook( void )
