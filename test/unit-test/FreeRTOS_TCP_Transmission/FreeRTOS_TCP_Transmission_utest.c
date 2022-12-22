@@ -154,6 +154,8 @@ void test_prvTCPSendPacket_Syn_State( void )
     pxSocket->u.xTCP.ucRepCount = 1;
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1000 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1234 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2345 );
@@ -217,6 +219,7 @@ void test_prvTCPSendPacket_Other_State_Zero_To_Send( void )
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
     pxSocket->u.xTCP.xLastAliveTime = 1000;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     xTaskGetTickCount_ExpectAndReturn( 2000 );
 
     BytesSent = prvTCPSendPacket( pxSocket );
@@ -252,6 +255,8 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
     pxSocket->u.xTCP.ucRepCount = 0;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 20 );
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &NewNetworkBuffer );
     /*vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs(); */
@@ -298,6 +303,7 @@ void test_prvTCPSendRepeated_Zero_To_Send( void )
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 0 );
 
     BytesSent = prvTCPSendRepeated( pxSocket, &pxNetworkBuffer );
@@ -328,6 +334,7 @@ void test_prvTCPSendRepeated_Repeat_8( void )
     pxSocket->u.xTCP.ucRepCount = 1;
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     for( RepeatCount = 0; RepeatCount < SEND_REPEATED_COUNT; RepeatCount++ )
     {
         ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 20 ); /* data length may sent */
