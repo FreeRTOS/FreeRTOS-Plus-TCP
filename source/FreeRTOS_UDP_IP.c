@@ -288,13 +288,13 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {
-        xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
+        xReturn = xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
                                         usPort, pxIsWaitingForARPResolution );
     }
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
-        xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
+        xReturn = xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
                                         usPort, pxIsWaitingForARPResolution );
     }
 
