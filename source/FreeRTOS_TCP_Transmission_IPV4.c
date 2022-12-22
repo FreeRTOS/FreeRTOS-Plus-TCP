@@ -216,6 +216,10 @@
 
                 if( usFrameType == ipIPv6_FRAME_TYPE )
                 {
+
+                    /* Map the ethernet buffer onto a IPHeader_IPv6_t struct for easy access to the fields. */
+                    pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
                     /* When xIsIPv6 is true: Let lint know that
                      * 'pxIPHeader_IPv6' is not NULL. */
                     configASSERT( pxIPHeader_IPv6 != NULL );
@@ -250,6 +254,9 @@
                 }
                 else
                 {
+                    /* Map the ethernet buffer onto a IPHeader_t struct for easy access to the fields. */
+                    pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
                     pxIPHeader->ucTimeToLive = ( uint8_t ) ipconfigTCP_TIME_TO_LIVE;
                     pxIPHeader->usLength = FreeRTOS_htons( ulLen );
 

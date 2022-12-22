@@ -71,16 +71,3 @@ void vPortExitCritical( void )
 {
 }
 
-NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPAddress )
-{
-}
-
-/*
- * Find the best fitting end-point to reach a given IP-address.
- * Find an end-point whose IP-address is in the same network as the IP-address provided.
- * 'ulWhere' is temporary and or debugging only.
- */
-NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
-                                                    uint32_t ulWhere )
-{
-}
