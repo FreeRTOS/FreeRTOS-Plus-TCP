@@ -402,21 +402,6 @@ void test_xIsDHCPSocket( void )
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
 
-void test_vDHCPSetPreferredIPAddress( void )
-{
-    uint32_t ulReturn;
-    uint32_t ulIPAddress = 0xABCDEFAB;
-    uint32_t ulSecondIP = 0xAABBCCDD;
-
-    xDHCPData.ulPreferredIPAddress = ulSecondIP;
-
-    ulReturn = vDHCPSetPreferredIPAddress( ulIPAddress );
-    TEST_ASSERT_EQUAL( ulSecondIP, ulReturn );
-
-    ulReturn = vDHCPSetPreferredIPAddress( ulSecondIP );
-    TEST_ASSERT_EQUAL( ulIPAddress, ulReturn );
-}
-
 void test_eGetDHCPState( void )
 {
     DHCPData_t xTestData;

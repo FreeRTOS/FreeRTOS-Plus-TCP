@@ -16,6 +16,8 @@ struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
 
 NetworkInterface_t xInterfaces[ 1 ];
 
+DHCPData_t xDHCPData;
+
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 /** @brief The expected IP version and header length coded into the IP header itself. */
