@@ -104,7 +104,7 @@
         do
         {
             /* Use do/while to be able to break out of the flow */
-           
+
             if( pxNetworkBuffer != NULL )
             {
                 {
@@ -185,7 +185,6 @@
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxProtocolHeaders = ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] );
 
-    
                 if( pxNetworkBuffer->pxEndPoint == NULL )
                 {
                     prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
@@ -211,14 +210,14 @@
                 else
                 {
                     /* Sending data without a socket, probably replying with a RST flag
-                    * Just swap the two sequence numbers. */
+                     * Just swap the two sequence numbers. */
                     vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
                 }
 
                 if( usFrameType == ipIPv6_FRAME_TYPE )
                 {
                     /* When xIsIPv6 is true: Let lint know that
-                    * 'pxIPHeader_IPv6' is not NULL. */
+                     * 'pxIPHeader_IPv6' is not NULL. */
                     configASSERT( pxIPHeader_IPv6 != NULL );
 
                     /* An extra test to convey the MISRA checker. */
@@ -237,11 +236,11 @@
                             ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxNetworkBuffer->pucEthernetBuffer, ulTotalLength, pdTRUE );
 
                             /* A calculated checksum of 0 must be inverted as 0 means the checksum
-                            * is disabled. */
+                             * is disabled. */
 
                             /* _HT_ The above is a very old comment.  It is only true for
-                            * UDP packets.  However, theoretically usChecksum can never be zero
-                            * and so the if-statement won't be executed. */
+                             * UDP packets.  However, theoretically usChecksum can never be zero
+                             * and so the if-statement won't be executed. */
                             if( pxProtocolHeaders->xTCPHeader.usChecksum == 0U )
                             {
                                 pxProtocolHeaders->xTCPHeader.usChecksum = 0xffffU;
@@ -257,9 +256,9 @@
                     if( ( pxSocket == NULL ) || ( *ipLOCAL_IP_ADDRESS_POINTER == 0U ) )
                     {
                         /* When pxSocket is NULL, this function is called by prvTCPSendReset()
-                        * and the IP-addresses must be swapped.
-                        * Also swap the IP-addresses in case the IP-tack doesn't have an
-                        * IP-address yet, i.e. when ( *ipLOCAL_IP_ADDRESS_POINTER == 0U ). */
+                         * and the IP-addresses must be swapped.
+                         * Also swap the IP-addresses in case the IP-tack doesn't have an
+                         * IP-address yet, i.e. when ( *ipLOCAL_IP_ADDRESS_POINTER == 0U ). */
                         ulSourceAddress = pxIPHeader->ulDestinationIPAddress;
                     }
                     else
@@ -275,8 +274,8 @@
                     usPacketIdentifier++;
 
                     /* The stack doesn't support fragments, so the fragment offset field must always be zero.
-                    * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
-                    */
+                     * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
+                     */
                     #if ( ipconfigFORCE_IP_DONT_FRAGMENT != 0 )
                         pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
                     #else
@@ -334,10 +333,10 @@
                 ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxEthernetHeader->xDestinationAddress ) );
 
                 /*
-                * Use helper variables for memcpy() to remain
-                * compliant with MISRA Rule 21.15.  These should be
-                * optimized away.
-                */
+                 * Use helper variables for memcpy() to remain
+                 * compliant with MISRA Rule 21.15.  These should be
+                 * optimized away.
+                 */
                 /* The source MAC addresses is fixed to 'ipLOCAL_MAC_ADDRESS'. */
                 pvCopySource = ipLOCAL_MAC_ADDRESS;
                 pvCopyDest = &pxEthernetHeader->xSourceAddress;
@@ -366,7 +365,7 @@
                 if( xDoRelease == pdFALSE )
                 {
                     /* Swap-back some fields, as pxBuffer probably points to a socket field
-                    * containing the packet header. */
+                     * containing the packet header. */
                     vFlip_16( pxTCPPacket->xTCPHeader.usSourcePort, pxTCPPacket->xTCPHeader.usDestinationPort );
 
                     if( xIsIPv6 == pdTRUE )
@@ -395,7 +394,7 @@
                     /* Nothing to do: the buffer has been passed to DMA and will be released after use */
                 }
             } /* if( pxNetworkBuffer != NULL ) */
-        } while ( ipFALSE_BOOL );
+        } while( ipFALSE_BOOL );
     }
     /*-----------------------------------------------------------*/
 
@@ -563,7 +562,7 @@
  * @return pdFAIL always indicating that the packet was not consumed.
  */
     BaseType_t prvTCPSendSpecialPktHelper_IPV4( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                   uint8_t ucTCPFlags )
+                                                uint8_t ucTCPFlags )
     {
         #if ( ipconfigIGNORE_UNKNOWN_PACKETS == 1 )
             /* Configured to ignore unknown packets just suppress a compiler warning. */

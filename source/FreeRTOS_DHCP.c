@@ -148,15 +148,6 @@
     static BaseType_t xProcessCheckOption( ProcessSet_t * pxSet );
 
 
-/*
- * After DHCP has failed to answer, prepare everything to start searching
- * for (trying-out) LinkLayer IP-addresses, using the random method: Send
- * a gratuitous ARP request and wait if another device responds to it.
- */
-    #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-        static void prvPrepareLinkLayerIPLookUp( void );
-    #endif
-
 /*-----------------------------------------------------------*/
 
 /**
@@ -1545,7 +1536,7 @@
             if( pxEndPoint->xDHCPData.ulPreferredIPAddress != 0U )
             {
                 /* Fill in the IPv4 address. */
-                pvCopySource = &(pxEndPoint->xDHCPData.ulPreferredIPAddress);
+                pvCopySource = &( pxEndPoint->xDHCPData.ulPreferredIPAddress );
                 pvCopyDest = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ] );
                 ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulPreferredIPAddress ) );
             }

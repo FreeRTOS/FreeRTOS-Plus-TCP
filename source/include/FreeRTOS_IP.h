@@ -299,6 +299,24 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
                             const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                             const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 
+
+/*
+ * Returns the addresses stored in an end-point structure.
+ * This function already existed in the release with the single-interface.
+ * Only the first parameters is new: an end-point
+ */
+void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
+                                        uint32_t * pulNetMask,
+                                        uint32_t * pulGatewayAddress,
+                                        uint32_t * pulDNSServerAddress,
+                                        struct xNetworkEndPoint * pxEndPoint );
+
+void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
+                                        const uint32_t * pulNetMask,
+                                        const uint32_t * pulGatewayAddress,
+                                        const uint32_t * pulDNSServerAddress,
+                                        struct xNetworkEndPoint * pxEndPoint );
+
 TaskHandle_t FreeRTOS_GetIPTaskHandle( void );
 
 void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,

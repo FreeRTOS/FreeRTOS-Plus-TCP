@@ -744,8 +744,6 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
         FreeRTOS_ClearARP( pxEndPoint );
     }
 
-    
-
     /* The network has been disconnected (or is being initialised for the first
      * time).  Perform whatever hardware processing is necessary to bring it up
      * again, or wait for it to be available again.  This is hardware dependent. */

@@ -70,7 +70,7 @@
                     ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
                 }
             #endif
-            
+
             BaseType_t xResult;
 
             xResult = xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ),
