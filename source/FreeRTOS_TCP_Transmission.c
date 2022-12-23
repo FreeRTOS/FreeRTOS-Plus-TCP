@@ -139,7 +139,6 @@
             else if( prvTCPMakeSurePrepared( pxSocket ) == pdTRUE )
             {
                 ProtocolHeaders_t * pxProtocolHeaders;
-                const UBaseType_t uxHeaderSize = uxIPHeaderSizeSocket( pxSocket );
 
                 /* Or else, if the connection has been prepared, or can be prepared
                  * now, proceed to send the packet with the SYN flag.
@@ -147,9 +146,9 @@
                  * the Ethernet address of the peer or the gateway is found. */
 
                 /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
-                pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
+                pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
 
                 /* About to send a SYN packet.  Call prvSetSynAckOptions() to set
                  * the proper options: The size of MSS and whether SACK's are
@@ -249,7 +248,7 @@
                              uint32_t ulLen,
                              BaseType_t xReleaseAfterSend )
     {
-        NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
+        const NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
 
         if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
         {
@@ -261,6 +260,151 @@
         }
     }
     /*-----------------------------------------------------------*/
+
+/**
+ * @brief Called by prvTCPReturnPacket(), this function will set the the window
+ *        size on this side: 'xTCPHeader.usWindow'.
+ * @param[in] pxSocket: The socket on which the packet is being sent.
+ * @param[in] pxNetworkBuffer: The network buffer carrying the outgoing message.
+ * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
+ */
+    void prvTCPReturn_CheckTCPWindow( FreeRTOS_Socket_t * pxSocket,
+                                      const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                      size_t uxIPHeaderSize )
+    {
+        /* Calculate the space in the RX buffer in order to advertise the
+         * size of this socket's reception window. */
+        const TCPWindow_t * pxTCPWindow = &( pxSocket->u.xTCP.xTCPWindow );
+        uint32_t ulFrontSpace, ulSpace, ulWinSize;
+        ProtocolHeaders_t * pxProtocolHeaders;
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] ) );
+
+        if( pxSocket->u.xTCP.rxStream != NULL )
+        {
+            /* An RX stream was created already, see how much space is
+             * available. */
+            ulFrontSpace = ( uint32_t ) uxStreamBufferFrontSpace( pxSocket->u.xTCP.rxStream );
+        }
+        else
+        {
+            /* No RX stream has been created, the full stream size is
+             * available. */
+            ulFrontSpace = ( uint32_t ) pxSocket->u.xTCP.uxRxStreamSize;
+        }
+
+        /* Take the minimum of the RX buffer space and the RX window size. */
+        ulSpace = FreeRTOS_min_uint32( pxTCPWindow->xSize.ulRxWindowLength, ulFrontSpace );
+
+        if( ( pxSocket->u.xTCP.bits.bLowWater != pdFALSE_UNSIGNED ) || ( pxSocket->u.xTCP.bits.bRxStopped != pdFALSE_UNSIGNED ) )
+        {
+            /* The low-water mark was reached, meaning there was little
+             * space left.  The socket will wait until the application has read
+             * or flushed the incoming data, and 'zero-window' will be
+             * advertised. */
+            ulSpace = 0U;
+        }
+
+        /* If possible, advertise an RX window size of at least 1 MSS, otherwise
+         * the peer might start 'zero window probing', i.e. sending small packets
+         * (1, 2, 4, 8... bytes). */
+        if( ( ulSpace < pxSocket->u.xTCP.usMSS ) && ( ulFrontSpace >= pxSocket->u.xTCP.usMSS ) )
+        {
+            ulSpace = pxSocket->u.xTCP.usMSS;
+        }
+
+        /* Avoid overflow of the 16-bit win field. */
+        #if ( ipconfigUSE_TCP_WIN != 0 )
+            {
+                ulWinSize = ( ulSpace >> pxSocket->u.xTCP.ucMyWinScaleFactor );
+            }
+        #else
+            {
+                ulWinSize = ulSpace;
+            }
+        #endif
+
+        if( ulWinSize > 0xfffcU )
+        {
+            ulWinSize = 0xfffcU;
+        }
+
+        pxProtocolHeaders->xTCPHeader.usWindow = FreeRTOS_htons( ( uint16_t ) ulWinSize );
+
+        /* The new window size has been advertised, switch off the flag. */
+        pxSocket->u.xTCP.bits.bWinChange = pdFALSE_UNSIGNED;
+
+        /* Later on, when deciding to delay an ACK, a precise estimate is needed
+         * of the free RX space.  At this moment, 'ulHighestRxAllowed' would be the
+         * highest sequence number minus 1 that the socket will accept. */
+        pxSocket->u.xTCP.ulHighestRxAllowed = pxTCPWindow->rx.ulCurrentSequenceNumber + ulSpace;
+    }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Called by prvTCPReturnPacket(), this function sets the sequence and ack numbers
+ *        in the TCP-header.
+ * @param[in] pxSocket: The socket on which the packet is being sent.
+ * @param[in] pxNetworkBuffer: The network buffer carrying the outgoing message.
+ * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
+ * @param[in] ulLen: The size of the packet minus the size of the Ethernet header.
+ * @return
+ */
+    void prvTCPReturn_SetSequenceNumber( FreeRTOS_Socket_t * pxSocket,
+                                         const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                         size_t uxIPHeaderSize,
+                                         uint32_t ulLen )
+    {
+        ProtocolHeaders_t * pxProtocolHeaders;
+        const TCPWindow_t * pxTCPWindow = &( pxSocket->u.xTCP.xTCPWindow );
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] ) );
+        #if ( ipconfigTCP_KEEP_ALIVE == 1 )
+            if( pxSocket->u.xTCP.bits.bSendKeepAlive != pdFALSE_UNSIGNED )
+            {
+                /* Sending a keep-alive packet, send the current sequence number
+                 * minus 1, which will be recognised as a keep-alive packet and
+                 * responded to by acknowledging the last byte. */
+                pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bWaitKeepAlive = pdTRUE_UNSIGNED;
+
+                pxProtocolHeaders->xTCPHeader.ulSequenceNumber = pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber - 1U;
+                pxProtocolHeaders->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
+            }
+            else
+        #endif /* if ( ipconfigTCP_KEEP_ALIVE == 1 ) */
+        {
+            pxProtocolHeaders->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber );
+
+            if( ( pxProtocolHeaders->xTCPHeader.ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_FIN ) != 0U )
+            {
+                /* Suppress FIN in case this packet carries earlier data to be
+                 * retransmitted. */
+                uint32_t ulDataLen = ( uint32_t ) ( ulLen - ( ipSIZE_OF_TCP_HEADER + uxIPHeaderSizeSocket( pxSocket ) ) );
+
+                if( ( pxTCPWindow->ulOurSequenceNumber + ulDataLen ) != pxTCPWindow->tx.ulFINSequenceNumber )
+                {
+                    pxProtocolHeaders->xTCPHeader.ucTCPFlags &= ( ( uint8_t ) ~tcpTCP_FLAG_FIN );
+                    FreeRTOS_debug_printf( ( "Suppress FIN for %lu + %lu < %lu\n",
+                                             pxTCPWindow->ulOurSequenceNumber - pxTCPWindow->tx.ulFirstSequenceNumber,
+                                             ulDataLen,
+                                             pxTCPWindow->tx.ulFINSequenceNumber - pxTCPWindow->tx.ulFirstSequenceNumber ) );
+                }
+            }
+        }
+
+        /* Tell which sequence number is expected next time */
+        pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( pxTCPWindow->rx.ulCurrentSequenceNumber );
+    }
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Create the TCP window for the given socket.
@@ -536,14 +680,14 @@
  * @param[in] pxNetworkBuffer: The network buffer carrying the outgoing message.
  * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
  */
-    void prvTCPReturn_SetEndPoint( FreeRTOS_Socket_t * pxSocket,
+    void prvTCPReturn_SetEndPoint( const FreeRTOS_Socket_t * pxSocket,
                                    NetworkBufferDescriptor_t * pxNetworkBuffer,
                                    size_t uxIPHeaderSize )
     {
-        IPHeader_t * pxIPHeader = NULL;
+        const IPHeader_t * pxIPHeader = NULL;
 
         #if ( ipconfigUSE_IPV6 != 0 )
-            IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
+            const IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
         #endif
 
         if( ( pxSocket != NULL ) && ( pxSocket->pxEndPoint != NULL ) )
@@ -557,6 +701,9 @@
             #if ( ipconfigUSE_IPV6 != 0 )
                 if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
                 {
+                    /* MISRA Ref 11.3.1 [Misaligned access] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
                     pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPHeader_IPv6->xDestinationAddress ) );
 
@@ -572,6 +719,9 @@
             {
                 /*_RB_ Was FreeRTOS_FindEndPointOnIP_IPv4() but changed to FreeRTOS_FindEndPointOnNetMask()
                  * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
                 pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPHeader->ulDestinationIPAddress, 8 );
 
@@ -631,7 +781,7 @@
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
         pxTCPWindow = &( pxSocket->u.xTCP.xTCPWindow );
@@ -1116,11 +1266,11 @@
             {
                 if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
                 {
-                    xReturn = prvTCPSendSpecialPacketHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
+                    xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
                 }
                 else
                 {
-                    xReturn = prvTCPSendSpecialPacketHelper_IPV4( pxNetworkBuffer, ucTCPFlags );
+                    xReturn = prvTCPSendSpecialPktHelper_IPV4( pxNetworkBuffer, ucTCPFlags );
                 }
             }
         #endif /* !ipconfigIGNORE_UNKNOWN_PACKETS */

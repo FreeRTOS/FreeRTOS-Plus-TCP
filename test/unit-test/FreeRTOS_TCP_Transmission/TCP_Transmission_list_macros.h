@@ -24,43 +24,42 @@
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
+#ifndef LIST_MACRO_H
+#define LIST_MACRO_H
 
-#ifndef FREERTOS_TCP_UTILS_H
-#define FREERTOS_TCP_UTILS_H
-
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
+#include <FreeRTOS.h>
+#include <portmacro.h>
+#include <list.h>
 
 /*
- * For logging and debugging: make a string showing the TCP flags.
+ * Return or send a packet to the other party.
  */
-#if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-    const char * prvTCPFlagMeaning( UBaseType_t xFlags );
-#endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
+                              NetworkBufferDescriptor_t * pxDescriptor,
+                              uint32_t ulLen,
+                              BaseType_t xReleaseAfterSend );
 
 /*
- * Set the initial value for MSS (Maximum Segment Size) to be used.
+ * Let ARP look-up the MAC-address of the peer and initialise the first SYN
+ * packet.
  */
-void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket );
+BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket );
 
 /*
- * Set the initial value for MSS (Maximum Segment Size) to be used.
+ * Let ARP look-up the MAC-address of the peer and initialise the first SYN
+ * packet.
  */
-void prvSocketSetMSS_IPV4( FreeRTOS_Socket_t * pxSocket );
+BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket );
 
 /*
- * Set the initial value for MSS (Maximum Segment Size) to be used.
+ * Return or send a packet to the other party.
  */
-void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket );
+void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
+                              NetworkBufferDescriptor_t * pxDescriptor,
+                              uint32_t ulLen,
+                              BaseType_t xReleaseAfterSend );
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    } /* extern "C" */
-#endif
-/* *INDENT-ON* */
+BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                    BaseType_t xReleaseAfterSend );
 
-#endif /* FREERTOS_TCP_UTILS_H */
+#endif /* ifndef LIST_MACRO_H */

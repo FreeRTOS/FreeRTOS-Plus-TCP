@@ -78,10 +78,4 @@ void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 #undef listLIST_IS_INITIALISED
 BaseType_t listLIST_IS_INITIALISED( List_t * pxList );
 
-/*
- * Returns pdTRUE if the IP task has been created and is initialised.  Otherwise
- * returns pdFALSE.
- */
-BaseType_t xIPIsNetworkTaskReady( void );
-
 #endif /* ifndef LIST_MACRO_H */

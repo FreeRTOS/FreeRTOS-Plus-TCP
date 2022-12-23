@@ -72,6 +72,8 @@ extern UBaseType_t uxLastMinBufferCount;
 extern size_t uxMinLastSize;
 extern UBaseType_t uxLastMinQueueSpace;
 
+extern NetworkInterface_t xInterfaces[ 1 ];
+
 void test_pxPacketBuffer_to_NetworkBuffer( void )
 {
     NetworkBufferDescriptor_t * pxReturn;
@@ -83,17 +85,22 @@ void test_pxPacketBuffer_to_NetworkBuffer( void )
 
 void test_prvProcessNetworkDownEvent_Pass( void )
 {
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint;
+
     xCallEventHook = pdFALSE;
+
+    xInterfaces[ 0 ].pfInitialise = xNetworkInterfaceInitialise_CMockExpectAndReturn;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
-    FreeRTOS_ClearARP_Expect();
+    FreeRTOS_ClearARP_Expect( &xEndPoint );
 
-    xNetworkInterfaceInitialise_ExpectAndReturn( pdPASS );
+    xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces[ 0 ], pdPASS );
 
-    vIPNetworkUpCalls_Expect();
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
-    prvProcessNetworkDownEvent();
+    prvProcessNetworkDownEvent( &xInterface );
 }
 
 void test_FreeRTOS_round_up( void )

@@ -12,6 +12,8 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
+
 NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
@@ -57,7 +59,10 @@ size_t xPortGetMinimumEverFreeHeapSize( void )
 }
 
 
-BaseType_t xApplicationDNSQueryHook( const char * pcName )
+/* Even though the function is defined in main.c, the rule is violated. */
+        /* misra_c_2012_rule_8_6_violation */
+extern BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
+                                            const char * pcName )
 {
 }
 
@@ -77,7 +82,9 @@ uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
                                              uint16_t usDestinationPort )
 {
 }
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+/* This function shall be defined by the application. */
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                        struct xNetworkEndPoint * pxEndPoint ) 
 {
 }
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
@@ -139,5 +146,86 @@ void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
 {
 }
 void vConfigureTimerForRunTimeStats( void )
+{
+}
+/*
+ * Find the end-point with given IP-address.
+*/
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
+                                                    uint32_t ulWhere ) 
+{
+}
+/* Return pdTRUE if the IPv4 address is a multicast address. */
+BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress ) 
+{
+}
+/* Set the MAC-address that belongs to a given IPv4 multi-cast address. */
+void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
+                                  MACAddress_t * pxMACAddress ) 
+{
+}
+/*
+ * Get the first end-point belonging to a given interface.  When pxInterface is
+ * NULL, the very first end-point will be returned.
+ */
+NetworkEndPoint_t * FreeRTOS_FirstEndPoint( const NetworkInterface_t * pxInterface ) 
+{
+}
+/*
+ * Get the next end-point.  When pxInterface is null, all end-points can be
+ * iterated.
+ */
+NetworkEndPoint_t * FreeRTOS_NextEndPoint( const NetworkInterface_t * pxInterface,
+                                            NetworkEndPoint_t * pxEndPoint ) 
+{
+}
+/*
+ * Find the best fitting end-point to reach a given IP-address.
+ * Find an end-point whose IP-address is in the same network as the IP-address provided.
+ * 'ulWhere' is temporary and or debugging only.
+ */
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
+                                                    uint32_t ulWhere ) 
+{
+}
+/* Find an end-point that has a defined gateway.
+ * xIPType should equal ipTYPE_IPv4 or ipTYPE_IPv6. */
+NetworkEndPoint_t * FreeRTOS_FindGateWay( BaseType_t xIPType ) 
+{
+}
+/**
+ * @brief Send an ND advertisement.
+ * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
+ */
+void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint )
+{
+}
+/*
+ * Get the first Network Interface.
+ */
+NetworkInterface_t * FreeRTOS_FirstNetworkInterface( void ) 
+{
+}
+/*
+ * Find the best fitting end-point to reach a given IP-address on a given interface
+ * 'ulWhere' is temporary and or debugging only.
+ */
+NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask( const NetworkInterface_t * pxInterface,
+                                                            uint32_t ulIPAddress,
+                                                            uint32_t ulWhere )
+{
+}
+/*
+ * Find the end-point with given MAC-address.
+ * The search can be limited by supplying a particular interface.
+ */
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnMAC( const MACAddress_t * pxMACAddress,
+                                                const NetworkInterface_t * pxInterface )
+{
+}
+/*
+ * Get the next Network Interface.
+ */
+NetworkInterface_t * FreeRTOS_NextNetworkInterface( const NetworkInterface_t * pxInterface )
 {
 }

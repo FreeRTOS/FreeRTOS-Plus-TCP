@@ -25,42 +25,25 @@
  * http://www.FreeRTOS.org
  */
 
-#ifndef FREERTOS_TCP_UTILS_H
-#define FREERTOS_TCP_UTILS_H
+#ifndef LIST_MACRO_H
+#define LIST_MACRO_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
+#include <FreeRTOS.h>
+#include <portmacro.h>
+#include <list.h>
 
-
-/*
- * For logging and debugging: make a string showing the TCP flags.
- */
-#if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-    const char * prvTCPFlagMeaning( UBaseType_t xFlags );
-#endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
-
-/*
- * Set the initial value for MSS (Maximum Segment Size) to be used.
- */
-void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * Set the initial value for MSS (Maximum Segment Size) to be used.
- */
-void prvSocketSetMSS_IPV4( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * Set the initial value for MSS (Maximum Segment Size) to be used.
+/**
+ * @brief Set the MSS (Maximum segment size) associated with the given socket.
+ *
+ * @param[in] pxSocket: The socket whose MSS is to be set.
  */
 void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket );
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    } /* extern "C" */
-#endif
-/* *INDENT-ON* */
+/**
+ * @brief Set the MSS (Maximum segment size) associated with the given socket.
+ *
+ * @param[in] pxSocket: The socket whose MSS is to be set.
+ */
+void prvSocketSetMSS_IPV4( FreeRTOS_Socket_t * pxSocket );
 
-#endif /* FREERTOS_TCP_UTILS_H */
+#endif /* ifndef LIST_MACRO_H */

@@ -60,7 +60,7 @@
 
 typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
                                 void * /* pvSearchID */,
-                                uint32_t /* ulIPAddress */ );
+                                struct freertos_addrinfo * /* pxAddressInfo */ );
 
 /* ===========================   GLOBAL VARIABLES =========================== */
 static int callback_called = 0;
@@ -104,6 +104,8 @@ void tearDown( void )
 void test_xDNSDoCallback_success_not_equal_identifier( void )
 {
     BaseType_t ret;
+    ParseSet_t pxSet;
+    struct freertos_addrinfo pxAddress;
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 ); /* xEnd */
     vTaskSuspendAll_Expect();
@@ -114,7 +116,7 @@ void test_xDNSDoCallback_success_not_equal_identifier( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
-    ret = xDNSDoCallback( 123, "test", 123456 );
+    ret = xDNSDoCallback( &pxSet, &pxAddress );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
@@ -124,6 +126,8 @@ void test_xDNSDoCallback_success_not_equal_identifier( void )
 void test_xDNSDoCallback_success_equal_identifier( void )
 {
     BaseType_t ret;
+    ParseSet_t pxSet;
+    struct freertos_addrinfo pxAddress;
 
     dnsCallback.pCallbackFunction = dns_callback;
 
@@ -140,7 +144,7 @@ void test_xDNSDoCallback_success_equal_identifier( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
-    ret = xDNSDoCallback( 123, "test", 123456 );
+    ret = xDNSDoCallback( &pxSet, &pxAddress );
     TEST_ASSERT_EQUAL( pdTRUE, ret );
     TEST_ASSERT_EQUAL( 1, callback_called );
 }
@@ -151,6 +155,8 @@ void test_xDNSDoCallback_success_equal_identifier( void )
 void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
 {
     BaseType_t ret;
+    ParseSet_t pxSet;
+    struct freertos_addrinfo pxAddress;
 
     dnsCallback.pCallbackFunction = dns_callback;
 
@@ -170,7 +176,7 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     /* API Call */
-    ret = xDNSDoCallback( 123, "test", 123456 );
+    ret = xDNSDoCallback( &pxSet, &pxAddress );
 
     /* Validations */
     TEST_ASSERT_EQUAL( pdTRUE, ret );
@@ -195,7 +201,7 @@ void test_vDNSSetCallback_success( void )
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     /* API Call */
-    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123 );
+    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
 
     /* Validations */
     TEST_ASSERT_EQUAL( 0, strcmp( dnsCallback.pcName, "hostname" ) );
@@ -224,7 +230,7 @@ void test_vDNSSetCallback_success_empty_list( void )
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     /* API Call */
-    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123 );
+    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
 
     /* Validations */
     TEST_ASSERT_EQUAL( 0, strcmp( dnsCallback.pcName, "hostname" ) );
@@ -244,7 +250,7 @@ void test_vDNSSetCallback_malloc_failed( void )
     pvPortMalloc_ExpectAnyArgsAndReturn( NULL );
 
     /* API Call */
-    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123 );
+    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
 }
 
 

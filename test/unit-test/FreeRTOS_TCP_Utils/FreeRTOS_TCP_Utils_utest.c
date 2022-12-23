@@ -89,7 +89,7 @@ void test_prvSocketSetMSS_Reduced( void )
 {
     pxSocket = &xSocket;
 
-    pxSocket->u.xTCP.ulRemoteIP = 0xC0C0C0C0;
+    pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 = 0xC0C0C0C0;
 
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1400 );
     prvSocketSetMSS( pxSocket );
@@ -101,7 +101,7 @@ void test_prvSocketSetMSS_Normal( void )
 {
     pxSocket = &xSocket;
 
-    pxSocket->u.xTCP.ulRemoteIP = 0x0;
+    pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 = 0x0;
 
     prvSocketSetMSS( pxSocket );
     TEST_ASSERT_EQUAL( ipconfigNETWORK_MTU - 40U, pxSocket->u.xTCP.usMSS );

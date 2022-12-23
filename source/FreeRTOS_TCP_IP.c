@@ -125,7 +125,7 @@
     {
         if( ( xSocketToListen != NULL ) && ( xSocketToListen != pxSocket ) )
         {
-            ( void ) FreeRTOS_listen( ( Socket_t ) xSocketToListen, xSocketToListen->u.xTCP.usBacklog );
+            ( void ) FreeRTOS_listen( ( Socket_t ) xSocketToListen, ( BaseType_t ) ( xSocketToListen->u.xTCP.usBacklog ) );
         }
 
         xSocketToListen = pxSocket;
@@ -252,7 +252,7 @@
  *       Called in two places: after receiving a packet and after a state change.
  *       The socket's alive timer may be reset.
  */
-    void prvTCPTouchSocket( FreeRTOS_Socket_t * pxSocket )
+    void prvTCPTouchSocket( struct xSOCKET * pxSocket )
     {
         #if ( ipconfigTCP_HANG_PROTECTION == 1 )
             {
@@ -289,7 +289,7 @@
         BaseType_t bBefore = tcpNOW_CONNECTED( ( BaseType_t ) pxSocket->u.xTCP.eTCPState ); /* Was it connected ? */
         BaseType_t bAfter = tcpNOW_CONNECTED( ( BaseType_t ) eTCPState );                   /* Is it connected now ? */
 
-        BaseType_t xPreviousState = ( BaseType_t ) pxSocket->u.xTCP.eTCPState;
+        eIPTCPState_t xPreviousState = pxSocket->u.xTCP.eTCPState;
 
         #if ( ipconfigUSE_CALLBACKS == 1 )
             FreeRTOS_Socket_t * xConnected = NULL;
@@ -517,7 +517,7 @@
  *
  * @return The number of clock ticks before the timer expires.
  */
-    TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket )
+    TickType_t prvTCPNextTimeout( struct xSOCKET * pxSocket )
     {
         TickType_t ulDelayMs = ( TickType_t ) tcpMAXIMUM_TCP_WAKEUP_TIME_MS;
 
@@ -603,13 +603,16 @@
     BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t * pxDescriptor )
     {
         /* Function might modify the parameter. */
-        NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
+        const NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
 
         configASSERT( pxNetworkBuffer != NULL );
         configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
         BaseType_t xResult = pdPASS;
 
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
         {
             xResult = xProcessReceivedTCPPacket_IPV6( pxDescriptor );
