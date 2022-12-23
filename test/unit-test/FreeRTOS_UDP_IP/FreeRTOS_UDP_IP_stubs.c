@@ -98,27 +98,6 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
 {
 }
 
-// /*
-//  * Find the best fitting end-point to reach a given IP-address.
-//  * Find an end-point whose IP-address is in the same network as the IP-address provided.
-//  * 'ulWhere' is temporary and or debugging only.
-//  */
-// NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
-//                                                     uint32_t ulWhere )
-// {
-// }
-
-// /**
-//  * @brief Process the generated UDP packet and do other checks before sending the
-//  *        packet such as ARP cache check and address resolution.
-//  *
-//  * @param[in] pxNetworkBuffer: The network buffer carrying the packet.
-//  */
-// void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetworkBuffer )
-// {
-// }
-
-
 /**
  * @brief Process the received UDP packet.
  *
