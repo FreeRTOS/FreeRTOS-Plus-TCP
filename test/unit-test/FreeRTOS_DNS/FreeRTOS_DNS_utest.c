@@ -137,128 +137,137 @@ void test_FreeRTOS_gethostbyname_fail_allocate_network_buffer( void )
     TEST_ASSERT_EQUAL( 0, ret );
 }
 
-// /**
-//  * @brief ensure that when a NULL address is received a zero is returned
-//  */
-// void test_FreeRTOS_gethostbyname_fail_NULL_address( void )
-// {
-//     uint32_t ret;
+/**
+ * @brief ensure that when a NULL address is received a zero is returned
+ */
+void test_FreeRTOS_gethostbyname_fail_NULL_address( void )
+{
+    uint32_t ret;
 
-//     ret = FreeRTOS_gethostbyname( NULL );
-//     TEST_ASSERT_EQUAL( 0, ret );
-// }
+    ret = FreeRTOS_gethostbyname( NULL );
+    TEST_ASSERT_EQUAL( 0, ret );
+}
 
-// /**
-//  * @brief ensure that when the function receives a long (longer than
-//  *        ipconfigDNS_CACHE_NAME_LENGTH ) hostname, a zero is returned
-//  */
-// void test_FreeRTOS_gethostbyname_fail_long_address( void )
-// {
-//     uint32_t ret;
-//     char address[ ipconfigDNS_CACHE_NAME_LENGTH + 3 ];
+/**
+ * @brief ensure that when the function receives a long (longer than
+ *        ipconfigDNS_CACHE_NAME_LENGTH ) hostname, a zero is returned
+ */
+void test_FreeRTOS_gethostbyname_fail_long_address( void )
+{
+    uint32_t ret;
+    char address[ ipconfigDNS_CACHE_NAME_LENGTH + 3 ];
 
-//     memset( address, 'a', ipconfigDNS_CACHE_NAME_LENGTH );
-//     address[ ipconfigDNS_CACHE_NAME_LENGTH + 3 ] = '\0';
-
-
-//     ret = FreeRTOS_gethostbyname( address );
-//     TEST_ASSERT_EQUAL( 0, ret );
-// }
-
-// /**
-//  * @brief Ensures that when the supplied address is in the dotted format, it is
-//  *        translated to the numerical form and no lookup is performed
-//  */
-// void test_FreeRTOS_gethostbyname_success_dot_address( void )
-// {
-//     uint32_t ret;
-
-//     FreeRTOS_inet_addr_ExpectAndReturn( DOTTED_ADDRESS, 12345 );
-//     xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
-
-//     ret = FreeRTOS_gethostbyname( DOTTED_ADDRESS );
-//     TEST_ASSERT_EQUAL( 12345, ret );
-// }
-
-// /**
-//  * @brief Ensures that if the address is not in the dotted form and found in the cache,
-//  * it is returned to the caller
-//  */
-// void test_FreeRTOS_gethostbyname_success_address_in_cache( void )
-// {
-//     uint32_t ret;
-
-//     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-//     FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 12345 );
-
-//     ret = FreeRTOS_gethostbyname( GOOD_ADDRESS );
-//     TEST_ASSERT_EQUAL( 12345, ret );
-// }
+    memset( address, 'a', ipconfigDNS_CACHE_NAME_LENGTH );
+    address[ ipconfigDNS_CACHE_NAME_LENGTH + 3 ] = '\0';
 
 
-// /**
-//  * @brief Ensures that the code can handle when the client can't create a socket
-//  */
-// void test_FreeRTOS_gethostbyname_fail_NULL_socket( void )
-// {
-//     uint32_t ret;
-//     NetworkBufferDescriptor_t xNetworkBuffer;
-//     uint32_t ulNumber = 0;
+    ret = FreeRTOS_gethostbyname( address );
+    TEST_ASSERT_EQUAL( 0, ret );
+}
 
-//     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-//     FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
-//     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
-//     xApplicationGetRandomNumber_ReturnThruPtr_pulNumber( &ulNumber );
+/**
+ * @brief Ensures that when the supplied address is in the dotted format, it is
+ *        translated to the numerical form and no lookup is performed
+ */
+void test_FreeRTOS_gethostbyname_success_dot_address( void )
+{
+    uint32_t ret;
 
-//     DNS_CreateSocket_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_inet_addr_ExpectAndReturn( DOTTED_ADDRESS, 12345 );
 
-//     ret = FreeRTOS_gethostbyname( GOOD_ADDRESS );
-//     TEST_ASSERT_EQUAL( 0, ret );
-// }
+    xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
+    ulChar2u32_IgnoreAndReturn(12345);
+    ret = FreeRTOS_gethostbyname( DOTTED_ADDRESS );
+    TEST_ASSERT_EQUAL( 12345, ret );
+}
 
-// /**
-//  * @brief Ensures that when the dns request fails the function returns zero to
-//  *        the caller
-//  */
-// void test_FreeRTOS_gethostbyname_fail_send_dns_request( void )
-// {
-//     int i;
-//     uint32_t ret;
-//     uint32_t ulNumber = 0;
-//     NetworkBufferDescriptor_t xNetworkBuffer;
+/**
+ * @brief Ensures that if the address is not in the dotted form and found in the cache,
+ * it is returned to the caller
+ */
+void test_FreeRTOS_gethostbyname_success_address_in_cache( void )
+{
+    uint32_t ret;
 
-//     xNetworkBuffer.xDataLength = 2280;
-//     xNetworkBuffer.pucEthernetBuffer = malloc( 2280 );
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 12345 );
 
-//     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-//     FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
-//     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
-//     xApplicationGetRandomNumber_ReturnThruPtr_pulNumber( &ulNumber );
+    ret = FreeRTOS_gethostbyname( GOOD_ADDRESS );
+    TEST_ASSERT_EQUAL( 12345, ret );
+}
 
-//     DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
 
-//     /* prvGetHostByNameOp */
-//     for( i = 0; i < ipconfigDNS_REQUEST_ATTEMPTS; i++ )
-//     {
-//         FreeRTOS_GetAddressConfiguration_ExpectAnyArgs();
-//         /* in prvGetHostByName */
-//         /* in prvGetPayloadBuffer */
-//         pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
-//         /* back in prvGetHostByName */
-//         /* prvFillSockAddress */
-//         /* back prvGetHostByNameOp */
-//         DNS_SendRequest_ExpectAnyArgsAndReturn( pdFAIL );
-//         vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
-//     }
+/**
+ * @brief Ensures that the code can handle when the client can't create a socket
+ */
+void test_FreeRTOS_gethostbyname_fail_NULL_socket( void )
+{
+    uint32_t ret;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint32_t ulNumber = 0;
 
-//     /* back in prvGetHostByName */
-//     DNS_CloseSocket_ExpectAnyArgs();
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ReturnThruPtr_pulNumber( &ulNumber );
 
-//     ret = FreeRTOS_gethostbyname( GOOD_ADDRESS );
-//     TEST_ASSERT_EQUAL( 0, ret );
+    DNS_CreateSocket_ExpectAnyArgsAndReturn( NULL );
 
-//     free( xNetworkBuffer.pucEthernetBuffer );
-// }
+    ret = FreeRTOS_gethostbyname( GOOD_ADDRESS );
+    TEST_ASSERT_EQUAL( 0, ret );
+}
+
+/**
+ * @brief Ensures that when the dns request fails the function returns zero to
+ *        the caller
+ */
+void test_FreeRTOS_gethostbyname_fail_send_dns_request( void )
+{
+    int i;
+    uint32_t ret;
+    uint32_t ulNumber = 0;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[0] = 0xC0C0C0C0;
+    xEndPoint.ipv4_settings.ucDNSIndex = 0;
+    xNetworkBuffer.xDataLength = 2280;
+    
+    xNetworkBuffer.pucEthernetBuffer = malloc( 2280 );
+
+    DNS_BindSocket_IgnoreAndReturn(0);
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ReturnThruPtr_pulNumber( &ulNumber );
+
+    DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
+
+    /* prvGetHostByNameOp */
+    for( i = 0; i < ipconfigDNS_REQUEST_ATTEMPTS; i++ )
+    {
+        FreeRTOS_FirstEndPoint_IgnoreAndReturn(&xEndPoint);
+        FreeRTOS_NextEndPoint_IgnoreAndReturn(NULL);
+        //FreeRTOS_GetAddressConfiguration_ExpectAnyArgs();
+        /* in prvGetHostByName */
+        /* in prvGetPayloadBuffer */
+        pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+        /* back in prvGetHostByName */
+        /* prvFillSockAddress */
+        /* back prvGetHostByNameOp */
+        DNS_SendRequest_ExpectAnyArgsAndReturn( pdFAIL );
+        vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
+        //vReleaseNetworkBufferAndDescriptor_ReturnMemThruPtr_pxNetworkBuffer(&xNetworkBuffer, sizeof(NetworkBufferDescriptor_t));
+    }
+
+    /* back in prvGetHostByName */
+    DNS_CloseSocket_ExpectAnyArgs();
+
+    ret = FreeRTOS_gethostbyname( GOOD_ADDRESS );
+    TEST_ASSERT_EQUAL( 0, ret );
+
+    free( xNetworkBuffer.pucEthernetBuffer );
+}
 
 // /**
 //  * @brief Ensures when reading the dns reply fails, the test would try the set
@@ -409,179 +418,189 @@ void test_FreeRTOS_gethostbyname_fail_allocate_network_buffer( void )
 //     free( xReceiveBuffer.pucPayloadBuffer );
 // }
 
-// /**
-//  * @brief Ensures that DNS_ParseDNSReply is called, this function always returns
-//  *        pdFAIL
-//  * @warning Function not really tested besides code coverage
-//  */
-// void test_ulDNSHandlePacket_success( void )
-// {
-//     uint32_t ret;
-//     NetworkBufferDescriptor_t xNetworkBuffer;
+/**
+ * @brief Ensures that DNS_ParseDNSReply is called, this function always returns
+ *        pdFAIL
+ * @warning Function not really tested besides code coverage
+ */
+void test_ulDNSHandlePacket_success( void )
+{
+    uint32_t ret;
+    NetworkBufferDescriptor_t xNetworkBuffer;
 
-//     xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t );
-//     xNetworkBuffer.pucEthernetBuffer = malloc( sizeof( UDPPacket_t ) +
-//                                                sizeof( DNSMessage_t ) );
-//     DNS_ParseDNSReply_ExpectAnyArgsAndReturn( 0 );
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + sizeof( DNSMessage_t );
+    xNetworkBuffer.pucEthernetBuffer = malloc( sizeof( UDPPacket_t ) +
+                                               sizeof( DNSMessage_t ) );
 
-//     ret = ulDNSHandlePacket( &xNetworkBuffer );
-//     TEST_ASSERT_EQUAL( pdFAIL, ret );
-//     free( xNetworkBuffer.pucEthernetBuffer );
-// }
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    DNS_ParseDNSReply_ExpectAnyArgsAndReturn( 0 );
 
-// /**
-//  * @brief This function always returns pdFAIL
-//  * @warning Function not really tested besides code coverage
-//  */
-// void test_ulDNSHandlePacket_fail_small_buffer( void )
-// {
-//     uint32_t ret;
-//     NetworkBufferDescriptor_t xNetworkBuffer;
+    ret = ulDNSHandlePacket( &xNetworkBuffer );
+    TEST_ASSERT_EQUAL( pdFAIL, ret );
+    free( xNetworkBuffer.pucEthernetBuffer );
+}
 
-//     xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) - 2;
-//     xNetworkBuffer.pucEthernetBuffer = malloc( sizeof( UDPPacket_t ) - 2 );
+/**
+ * @brief This function always returns pdFAIL
+ * @warning Function not really tested besides code coverage
+ */
+void test_ulDNSHandlePacket_fail_small_buffer( void )
+{
+    uint32_t ret;
+    NetworkBufferDescriptor_t xNetworkBuffer;
 
-//     ret = ulDNSHandlePacket( &xNetworkBuffer );
-//     TEST_ASSERT_EQUAL( pdFAIL, ret );
-//     free( xNetworkBuffer.pucEthernetBuffer );
-// }
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) - 2;
+    xNetworkBuffer.pucEthernetBuffer = malloc( sizeof( UDPPacket_t ) - 2 );
 
-// /**
-//  * @brief Always returns pdFAIL, trying different scenarios to have move
-//  *        coverage
-//  * @warning Function not really tested besides code coverage
-//  */
-// void test_ulDNSHandlePacket_fail_small_buffer2( void )
-// {
-//     uint32_t ret;
-//     NetworkBufferDescriptor_t xNetworkBuffer;
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
 
-//     xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + 2;
-//     xNetworkBuffer.pucEthernetBuffer = malloc( sizeof( UDPPacket_t ) + 2 );
+    ret = ulDNSHandlePacket( &xNetworkBuffer );
+    TEST_ASSERT_EQUAL( pdFAIL, ret );
+    free( xNetworkBuffer.pucEthernetBuffer );
+}
 
-//     ret = ulDNSHandlePacket( &xNetworkBuffer );
-//     TEST_ASSERT_EQUAL( pdFAIL, ret );
-//     free( xNetworkBuffer.pucEthernetBuffer );
-// }
+/**
+ * @brief Always returns pdFAIL, trying different scenarios to have move
+ *        coverage
+ * @warning Function not really tested besides code coverage
+ */
+void test_ulDNSHandlePacket_fail_small_buffer2( void )
+{
+    uint32_t ret;
+    NetworkBufferDescriptor_t xNetworkBuffer;
 
-// /**
-//  * @brief Functions always returns pdFAIL
-//  * @warning Function not really tested besides code coverage
-//  */
-// void test_ulNBNSHandlePacket_success( void )
-// {
-//     uint32_t ret;
-//     NetworkBufferDescriptor_t xNetworkBuffer;
-//     size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + 2;
+    xNetworkBuffer.pucEthernetBuffer = malloc( sizeof( UDPPacket_t ) + 2 );
 
-//     xNetworkBuffer.xDataLength = uxBytesNeeded;
-//     xNetworkBuffer.pucEthernetBuffer = malloc( uxBytesNeeded );
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
 
-//     DNS_TreatNBNS_ExpectAnyArgs();
-//     ret = ulNBNSHandlePacket( &xNetworkBuffer );
-//     TEST_ASSERT_EQUAL( pdFAIL, ret );
-//     free( xNetworkBuffer.pucEthernetBuffer );
-// }
+    ret = ulDNSHandlePacket( &xNetworkBuffer );
+    TEST_ASSERT_EQUAL( pdFAIL, ret );
+    free( xNetworkBuffer.pucEthernetBuffer );
+}
 
-// /**
-//  * @brief Functions always returns pdFAIL
-//  * @warning Function not really tested besides code coverage
-//  */
-// void test_ulNBNSHandlePacket_fail_small_buffer( void )
-// {
-//     uint32_t ret;
-//     NetworkBufferDescriptor_t xNetworkBuffer;
-//     size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
+/**
+ * @brief Functions always returns pdFAIL
+ * @warning Function not really tested besides code coverage
+ */
+void test_ulNBNSHandlePacket_success( void )
+{
+    uint32_t ret;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
 
-//     xNetworkBuffer.xDataLength = uxBytesNeeded - 5;
-//     xNetworkBuffer.pucEthernetBuffer = malloc( uxBytesNeeded - 5 );
+    xNetworkBuffer.xDataLength = uxBytesNeeded;
+    xNetworkBuffer.pucEthernetBuffer = malloc( uxBytesNeeded );
 
-//     ret = ulNBNSHandlePacket( &xNetworkBuffer );
-//     TEST_ASSERT_EQUAL( pdFAIL, ret );
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    DNS_TreatNBNS_ExpectAnyArgs();
 
-//     free( xNetworkBuffer.pucEthernetBuffer );
-// }
+    ret = ulNBNSHandlePacket( &xNetworkBuffer );
+    TEST_ASSERT_EQUAL( pdFAIL, ret );
+    free( xNetworkBuffer.pucEthernetBuffer );
+}
 
-// /**
-//  * @brief Ensures that vDNSCheckCallback is called
-//  */
-// void test_FreeRTOS_gethostbyname_cancel_success( void )
-// {
-//     void * pvSearchID = NULL;
+/**
+ * @brief Functions always returns pdFAIL
+ * @warning Function not really tested besides code coverage
+ */
+void test_ulNBNSHandlePacket_fail_small_buffer( void )
+{
+    uint32_t ret;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
 
-//     vDNSCheckCallBack_ExpectAnyArgs();
-//     FreeRTOS_gethostbyname_cancel( pvSearchID );
-// }
+    xNetworkBuffer.xDataLength = uxBytesNeeded - 5;
+    xNetworkBuffer.pucEthernetBuffer = malloc( uxBytesNeeded - 5 );
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
 
-// /**
-//  * @brief Ensures that if pCallback is not null and the hostname is not in the
-//  *        cache, the application support random number generation,
-//  *        the callback function is set
-//  */
-// void test_FreeRTOS_gethostbyname_a_set_callback( void )
-// {
-//     uint32_t ret;
-//     int pvSearchID = 32;
-//     NetworkBufferDescriptor_t xNetworkBuffer;
+    ret = ulNBNSHandlePacket( &xNetworkBuffer );
+    TEST_ASSERT_EQUAL( pdFAIL, ret );
 
-//     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-//     FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
-//     xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
-//     vDNSSetCallBack_ExpectAnyArgs();
-//     DNS_CreateSocket_ExpectAnyArgsAndReturn( NULL );
+    free( xNetworkBuffer.pucEthernetBuffer );
+}
 
-//     ret = FreeRTOS_gethostbyname_a( GOOD_ADDRESS,
-//                                     dns_callback,
-//                                     &pvSearchID,
-//                                     0 );
-//     TEST_ASSERT_EQUAL( 0, ret );
-//     TEST_ASSERT_EQUAL( 0, callback_called );
-// }
+/**
+ * @brief Ensures that vDNSCheckCallback is called
+ */
+void test_FreeRTOS_gethostbyname_cancel_success( void )
+{
+    void * pvSearchID = NULL;
 
-// /**
-//  * @brief Ensures that if the application has no random number generation
-//  *        support, and ip is zero, no action is performed
-//  */
-// void test_FreeRTOS_gethostbyname_a_no_set_callback( void )
-// {
-//     uint32_t ret;
-//     int pvSearchID = 32;
-//     NetworkBufferDescriptor_t xNetworkBuffer;
-
-//     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-//     FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
-//     xApplicationGetRandomNumber_IgnoreAndReturn( pdFALSE );
-
-//     ret = FreeRTOS_gethostbyname_a( GOOD_ADDRESS,
-//                                     dns_callback,
-//                                     &pvSearchID,
-//                                     0 );
-//     TEST_ASSERT_EQUAL( 0, ret );
-//     TEST_ASSERT_EQUAL( 0, callback_called );
-// }
+    vDNSCheckCallBack_ExpectAnyArgs();
+    FreeRTOS_gethostbyname_cancel( pvSearchID );
+}
 
 
-// /**
-//  * @brief Ensures that if the function receives a callback, and ip address is
-//  *        not zero, the callback is called
-//  */
-// void test_FreeRTOS_gethostbyname_a_callback( void )
-// {
-//     uint32_t ret;
-//     int pvSearchID = 32;
+/**
+ * @brief Ensures that if pCallback is not null and the hostname is not in the
+ *        cache, the application support random number generation,
+ *        the callback function is set
+ */
+void test_FreeRTOS_gethostbyname_a_set_callback( void )
+{
+    uint32_t ret;
+    int pvSearchID = 32;
+    NetworkBufferDescriptor_t xNetworkBuffer;
 
-//     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-//     FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 5 );
-//     xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
+    vDNSSetCallBack_ExpectAnyArgs();
+    DNS_CreateSocket_ExpectAnyArgsAndReturn( NULL );
 
-//     ret = FreeRTOS_gethostbyname_a( GOOD_ADDRESS,
-//                                     dns_callback,
-//                                     &pvSearchID,
-//                                     0 );
-//     TEST_ASSERT_EQUAL( 5, ret );
-//     TEST_ASSERT_EQUAL( 1, callback_called );
-// }
+    ret = FreeRTOS_gethostbyname_a( GOOD_ADDRESS,
+                                    dns_callback,
+                                    &pvSearchID,
+                                    0 );
+    TEST_ASSERT_EQUAL( 0, ret );
+    TEST_ASSERT_EQUAL( 0, callback_called );
+}
+
+/**
+ * @brief Ensures that if the application has no random number generation
+ *        support, and ip is zero, no action is performed
+ */
+void test_FreeRTOS_gethostbyname_a_no_set_callback( void )
+{
+    uint32_t ret;
+    int pvSearchID = 32;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    xApplicationGetRandomNumber_IgnoreAndReturn( pdFALSE );
+
+    ret = FreeRTOS_gethostbyname_a( GOOD_ADDRESS,
+                                    dns_callback,
+                                    &pvSearchID,
+                                    0 );
+    TEST_ASSERT_EQUAL( 0, ret );
+    TEST_ASSERT_EQUAL( 0, callback_called );
+}
+
+
+/**
+ * @brief Ensures that if the function receives a callback, and ip address is
+ *        not zero, the callback is called
+ */
+void test_FreeRTOS_gethostbyname_a_callback( void )
+{
+    uint32_t ret;
+    int pvSearchID = 32;
+
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 5 );
+    xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
+
+    ret = FreeRTOS_gethostbyname_a( GOOD_ADDRESS,
+                                    dns_callback,
+                                    &pvSearchID,
+                                    0 );
+    TEST_ASSERT_EQUAL( 5, ret );
+    TEST_ASSERT_EQUAL( 1, callback_called );
+}
 
 // /**
 //  * @brief Ensures that if vDNSSetCallBack is called the client is put in
@@ -593,6 +612,7 @@ void test_FreeRTOS_gethostbyname_fail_allocate_network_buffer( void )
 //     uint32_t ret;
 //     uint32_t ulNumber = 34;
 //     int pvSearchID = 32;
+//     NetworkEndPoint_t xEndPoint;
 //     NetworkBufferDescriptor_t xNetworkBuffer;
 //     struct xDNSBuffer xReceiveBuffer;
 //     size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
@@ -606,6 +626,7 @@ void test_FreeRTOS_gethostbyname_fail_allocate_network_buffer( void )
 //     DNSMessage_t * header = ( DNSMessage_t * ) xReceiveBuffer.pucPayloadBuffer;
 //     header->usIdentifier = 12;
 
+//     DNS_BindSocket_IgnoreAndReturn(0);
 //     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
 //     FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
 //     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
@@ -616,9 +637,13 @@ void test_FreeRTOS_gethostbyname_fail_allocate_network_buffer( void )
 //     DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
 //     /* prvGetHostByNameOp */
 //     /* prvFillSockAddress */
-//     FreeRTOS_GetAddressConfiguration_ExpectAnyArgs();
+//     //FreeRTOS_GetAddressConfiguration_ExpectAnyArgs();
 //     /* in prvSendBuffer */
 //     /* in prvGetPayloadBuffer */
+
+//     FreeRTOS_FirstEndPoint_IgnoreAndReturn(&xEndPoint);
+//     FreeRTOS_NextEndPoint_IgnoreAndReturn(NULL);
+
 //     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
 
 //     /* back in prvSendBuffer */
