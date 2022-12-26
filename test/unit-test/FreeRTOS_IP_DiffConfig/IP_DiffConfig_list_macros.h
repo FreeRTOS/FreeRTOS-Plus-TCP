@@ -72,6 +72,52 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eEvent );
+/**
+ * @brief Work on the RA/SLAAC processing.
+ * @param[in] xDoReset: WHen true, the state-machine will be reset and initialised.
+ * @param[in] pxEndPoint: The end-point for which the RA/SLAAC process should be done..
+ */
+void vRAProcess( BaseType_t xDoReset,
+                 NetworkEndPoint_t * pxEndPoint );
+
+/* This function shall be defined by the application. */
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                     struct xNetworkEndPoint * pxEndPoint );
+
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialise the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                      struct xNetworkInterface * pxInterface );
+
+
+/* The function 'prvAllowIPPacket()' checks if a IPv6 packets should be processed. */
+eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
+                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                               UBaseType_t uxHeaderLength );
+
+
+/* Return IPv6 header extension order number */
+BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
+                               uint8_t ucNextHeader );
+
+
+
+/** @brief Handle the IPv6 extension headers. */
+eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                      BaseType_t xDoRemove );
+
+/* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
+ * It handles all ICMP messages except the PING requests. */
+eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
+/* Return pdTRUE if all end-points are up.
+ * When pxInterface is null, all end-points will be checked. */
+BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface );
+
+BaseType_t xNetworkInterfaceOutput( struct xNetworkInterface * pxInterface,
+                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                    BaseType_t xReleaseAfterSend );
 
 #endif /* ifndef LIST_MACRO_H */
