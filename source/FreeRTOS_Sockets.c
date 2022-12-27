@@ -1395,13 +1395,17 @@ static int32_t prvSendTo_ActualSend( const FreeRTOS_Socket_t * pxSocket,
     TimeOut_t xTimeOut;
     NetworkBufferDescriptor_t * pxNetworkBuffer;
 
-    if( ( ( ( UBaseType_t ) xFlags & ( UBaseType_t ) FREERTOS_MSG_DONTWAIT ) != 0U ) ||
-        ( xIsCallingFromIPTask() != pdFALSE ) )
-    {
-        /* The caller wants a non-blocking operation. When called by the IP-task,
-         * the operation should always be non-blocking. */
-        xTicksToWait = ( TickType_t ) 0U;
-    }
+    #if ( ipconfigUSE_CALLBACKS != 0 )
+        {
+            if( ( ( ( UBaseType_t ) xFlags & ( UBaseType_t ) FREERTOS_MSG_DONTWAIT ) != 0U ) ||
+                ( xIsCallingFromIPTask() != pdFALSE ) )
+            {
+                /* The caller wants a non-blocking operation. When called by the IP-task,
+                 * the operation should always be non-blocking. */
+                xTicksToWait = ( TickType_t ) 0U;
+            }
+        }
+    #endif /* ipconfigUSE_CALLBACKS */
 
     if( ( ( UBaseType_t ) xFlags & ( UBaseType_t ) FREERTOS_ZERO_COPY ) == 0U )
     {
@@ -2910,7 +2914,7 @@ FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
 
 /*-----------------------------------------------------------*/
 
-#define sockDIGIT_COUNT    ( 3U ) /**< Each nibble is expressed in at most 3 digits such as "192". */
+#define sockDIGIT_COUNT    ( 3U )    /**< Each nibble is expressed in at most 3 digits such as "192". */
 
 /**
  * @brief Convert the 32-bit representation of the IP-address to the dotted decimal
@@ -3644,10 +3648,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             if( pxClientSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
             {
-                *pxAddressLength = sizeof( struct freertos_sockaddr );
-
                 if( pxAddress != NULL )
                 {
+                    *pxAddressLength = sizeof( struct freertos_sockaddr );
+
                     pxAddress->sin_family = FREERTOS_AF_INET6;
                     /* Copy IP-address and port number. */
                     ( void ) memcpy( pxAddress->sin_addr.xIP_IPv6.ucBytes, pxClientSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
@@ -3656,10 +3660,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             }
             else
             {
-                *pxAddressLength = sizeof( struct freertos_sockaddr );
-
                 if( pxAddress != NULL )
                 {
+                    *pxAddressLength = sizeof( struct freertos_sockaddr );
+
                     pxAddress->sin_family = FREERTOS_AF_INET4;
                     /* Copy IP-address and port number. */
                     pxAddress->sin_addr.xIP_IPv4 = FreeRTOS_ntohl( pxClientSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
@@ -4237,14 +4241,18 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 /* Only in the first round, check for non-blocking. */
                 xRemainingTime = pxSocket->xSendBlockTime;
 
-                if( xIsCallingFromIPTask() != pdFALSE )
-                {
-                    /* If this send function is called from within a
-                     * call-back handler it may not block, otherwise
-                     * chances would be big to get a deadlock: the IP-task
-                     * waiting for itself. */
-                    xRemainingTime = ( TickType_t ) 0U;
-                }
+                #if ( ipconfigUSE_CALLBACKS != 0 )
+                    {
+                        if( xIsCallingFromIPTask() != pdFALSE )
+                        {
+                            /* If this send function is called from within a
+                             * call-back handler it may not block, otherwise
+                             * chances would be big to get a deadlock: the IP-task
+                             * waiting for itself. */
+                            xRemainingTime = ( TickType_t ) 0U;
+                        }
+                    }
+                #endif /* ipconfigUSE_CALLBACKS */
 
                 if( xRemainingTime == ( TickType_t ) 0U )
                 {
@@ -4304,13 +4312,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         BaseType_t xByteCount = -pdFREERTOS_ERRNO_EINVAL;
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
 
-        if( pvBuffer != NULL )
-        {
-            /* Check if this is a valid TCP socket, affirm that it is not closed or closing,
-             * affirm that there was not malloc-problem, test if uxDataLength is non-zero,
-             * and if the connection is not in a confirmed FIN state. */
-            xByteCount = ( BaseType_t ) prvTCPSendCheck( pxSocket, uxDataLength );
-        }
+
+        /* Check if this is a valid TCP socket, affirm that it is not closed or closing,
+         * affirm that there was not malloc-problem, test if uxDataLength is non-zero,
+         * and if the connection is not in a confirmed FIN state. */
+        xByteCount = ( BaseType_t ) prvTCPSendCheck( pxSocket, uxDataLength );
 
         if( xByteCount > 0 )
         {
