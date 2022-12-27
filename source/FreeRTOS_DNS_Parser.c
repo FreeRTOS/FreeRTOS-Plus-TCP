@@ -161,12 +161,6 @@
                     break;
                 }
 
-                if( ( uxNameLen + uxCount ) >= uxDestLen )
-                {
-                    uxIndex = 0U;
-                    break;
-                }
-
                 while( uxCount-- != 0U )
                 {
                     if( uxNameLen >= uxDestLen )
