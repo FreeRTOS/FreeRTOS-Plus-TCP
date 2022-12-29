@@ -49,13 +49,13 @@ void setup_isr( xemacpsif_s * xemacpsif )
      */
     XEmacPs * xInstancePtr = &( xemacpsif->emacps );
 
-    xInstancePtr->SendHandler = ( XEmacPs_Handler ) emacps_send_handler;
+    xInstancePtr->SendHandler = emacps_send_handler;
     xInstancePtr->SendRef = ( void * ) xemacpsif;
 
-    xInstancePtr->RecvHandler = ( XEmacPs_Handler ) emacps_recv_handler;
+    xInstancePtr->RecvHandler = emacps_recv_handler;
     xInstancePtr->RecvRef = ( void * ) xemacpsif;
 
-    xInstancePtr->ErrorHandler = ( XEmacPs_ErrHandler ) emacps_error_handler;
+    xInstancePtr->ErrorHandler = emacps_error_handler;
     xInstancePtr->ErrorRef = ( void * ) xemacpsif;
 }
 
