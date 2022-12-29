@@ -704,7 +704,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
 /**
  * @brief The select() statement: wait for an event to occur on any of the sockets
- *        included in a socket set.
+ *        included in a socket set and return its event bits when the event occurs.
  *
  * @param[in] xSocketSet: The socket set including the sockets on which we are
  *                        waiting for an event to occur.
@@ -712,7 +712,11 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  *                   If the value is 'portMAX_DELAY' then the function will wait
  *                   indefinitely for an event to occur.
  *
- * @return The socket which might have triggered the event bit.
+ * @return The event bits (event flags) value for the socket set in which an
+ *          event occurred. If any socket is signalled during the call, using
+ *          FreeRTOS_SignalSocket() or FreeRTOS_SignalSocketFromISR(), then eSELECT_INTR
+ *          is returned.
+ *
  */
     BaseType_t FreeRTOS_select( SocketSet_t xSocketSet,
                                 TickType_t xBlockTimeTicks )
@@ -5133,6 +5137,10 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
  *        and return the value -pdFREERTOS_ERRNO_EINTR ( -4 ).
  *
  * @param[in] xSocket: The socket that will be signalled.
+ *
+ * @return If xSocket is an invalid socket (NULL) or if the socket set is invalid (NULL)
+ *         and/or if event group is invalid/not created, then, -pdFREERTOS_ERRNO_EINVAL
+ *         is returned. On successful sending of a signal, 0 is returned.
  */
     BaseType_t FreeRTOS_SignalSocket( Socket_t xSocket )
     {
