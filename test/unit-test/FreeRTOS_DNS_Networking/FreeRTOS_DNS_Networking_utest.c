@@ -124,7 +124,7 @@ void test_CreateSocket_success( void )
                                      FREERTOS_IPPROTO_UDP,
                                      ( Socket_t ) 235 );
     xSocketValid_ExpectAndReturn( ( Socket_t ) 235, pdTRUE );
-    FreeRTOS_bind_ExpectAnyArgsAndReturn( 0 );
+    //FreeRTOS_bind_ExpectAnyArgsAndReturn( 0 );
     FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( 0 );
     FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( 0 );
 
@@ -133,25 +133,25 @@ void test_CreateSocket_success( void )
     TEST_ASSERT_EQUAL( ( Socket_t ) 235, s );
 }
 
-/**
- * @brief Ensure that when bind fails null is returned
- */
-void test_CreateSocket_bind_fail( void )
-{
-    Socket_t s;
+// /**
+//  * @brief Ensure that when bind fails null is returned
+//  */
+// void test_CreateSocket_bind_fail( void )
+// {
+//     Socket_t s;
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET,
-                                     FREERTOS_SOCK_DGRAM,
-                                     FREERTOS_IPPROTO_UDP,
-                                     ( Socket_t ) 235 );
-    xSocketValid_ExpectAndReturn( ( Socket_t ) 235, pdTRUE );
-    FreeRTOS_bind_ExpectAnyArgsAndReturn( 1 );
-    FreeRTOS_closesocket_ExpectAndReturn( ( Socket_t ) 235, 0 );
+//     FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET,
+//                                      FREERTOS_SOCK_DGRAM,
+//                                      FREERTOS_IPPROTO_UDP,
+//                                      ( Socket_t ) 235 );
+//     xSocketValid_ExpectAndReturn( ( Socket_t ) 235, pdTRUE );
+//     FreeRTOS_bind_ExpectAnyArgsAndReturn( 1 );
+//     FreeRTOS_closesocket_ExpectAndReturn( ( Socket_t ) 235, 0 );
 
-    s = DNS_CreateSocket( 235 );
+//     s = DNS_CreateSocket( 235 );
 
-    TEST_ASSERT_EQUAL( NULL, s );
-}
+//     TEST_ASSERT_EQUAL( NULL, s );
+// }
 
 /**
  * @brief  Happy path!
