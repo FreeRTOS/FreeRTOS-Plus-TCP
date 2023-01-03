@@ -36,6 +36,8 @@
 
 #define ipconfigUSE_IPV4            ( 1 )
 
+#define ipconfigUSE_IPV6            ( 1 )
+
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
@@ -55,12 +57,14 @@
 
 /* Define the byte order of the target MCU (the MCU FreeRTOS+TCP is executing
  * on).  Valid options are pdFREERTOS_BIG_ENDIAN and pdFREERTOS_LITTLE_ENDIAN. */
-#define ipconfigBYTE_ORDER                         pdFREERTOS_LITTLE_ENDIAN
+#define ipconfigBYTE_ORDER    pdFREERTOS_LITTLE_ENDIAN
+
+#define FreeRTOS_htons( usIn )    ( ( uint16_t ) ( ( ( usIn ) << 8U ) | ( ( usIn ) >> 8U ) ) )
 
 /* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
  * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
  * stack repeating the checksum calculations. */
-#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     0
+#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     1
 
 /* Several API's will block until the result is known, or the action has been
  * performed, for example FreeRTOS_send() and FreeRTOS_recv().  The timeouts can be
@@ -77,7 +81,7 @@
  * a socket.
  */
 #define ipconfigUSE_DNS_CACHE                      ( 1 )
-#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 1 )
+#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 2 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
 #define ipconfigDNS_CACHE_NAME_LENGTH              ( 254 )
@@ -136,7 +140,7 @@ extern uint32_t ulRand();
  * set to 1 if a valid configuration cannot be obtained from a DHCP server for any
  * reason.  The static configuration used is that passed into the stack by the
  * FreeRTOS_IPInit() function call. */
-#define ipconfigUSE_DHCP                         0
+#define ipconfigUSE_DHCP                         1
 #define ipconfigDHCP_REGISTER_HOSTNAME           1
 #define ipconfigDHCP_USES_UNICAST                1
 
@@ -335,8 +339,5 @@ extern uint32_t ulRand();
 #define portINLINE
 
 #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
-
-#define ipconfigCHECK_IP_QUEUE_SPACE    ( 1 )
-#define ipconfigZERO_COPY_TX_DRIVER     ( 1 )
 
 #endif /* FREERTOS_IP_CONFIG_H */

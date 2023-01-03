@@ -72,3 +72,9 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
         0x00, 0x00, 0x00, 0x00               /* Source IP address. */
     }
 };
+
+struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
+                                               BaseType_t xFamily,
+                                               const uint8_t * pucAddress )
+{
+}

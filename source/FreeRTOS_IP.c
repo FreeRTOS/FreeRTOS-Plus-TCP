@@ -226,6 +226,9 @@ static NetworkInterface_t xInterfaces[ 1 ];
  * @param[in] pvParameters: Not used.
  */
 
+/** @brief Stores interface structures. */
+static NetworkInterface_t xInterfaces[ 1 ];
+
 /* MISRA Ref 8.13.1 [Not decorating a pointer to const parameter with const] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-813 */
 /* coverity[misra_c_2012_rule_8_13_violation] */
