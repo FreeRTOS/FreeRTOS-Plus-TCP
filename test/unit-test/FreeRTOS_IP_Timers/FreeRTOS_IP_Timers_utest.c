@@ -289,17 +289,20 @@ void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired2( void )
 
 void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 {
+    struct xNetworkEndPoint pxEndPoint;
+    pxEndPoint.pxNext = NULL;
+    
     xARPTimer.bActive = pdFALSE;
-    xDHCPTimer.bActive = pdTRUE;
+    //xDHCPTimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
+    
+    pxEndPoint.xDHCP_RATimer.bExpired = pdTRUE;
 
-    xDHCPTimer.bExpired = pdTRUE;
+    vTaskSetTimeOutState_Expect( &( pxEndPoint.xDHCP_RATimer.xTimeOut ) );
 
-    vTaskSetTimeOutState_Expect( &( xDHCPTimer.xTimeOut ) );
-
-    xSendDHCPEvent_ExpectAnyArgsAndReturn( pdTRUE );
+    xSendDHCPEvent_ExpectAndReturn( &pxEndPoint , pdTRUE );
 
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
 
@@ -454,14 +457,14 @@ void test_vDHCP_RATimerReload( void )
     NetworkEndPoint_t pxEndPoint;
     TickType_t xTime = 0x12A;
 
-    vTaskSetTimeOutState_Expect( &xDHCPTimer.xTimeOut );
+    vTaskSetTimeOutState_Expect( &pxEndPoint.xDHCP_RATimer.xTimeOut );
 
     vDHCP_RATimerReload( &pxEndPoint, xTime );
 
-    TEST_ASSERT_EQUAL( 0x12A, xDHCPTimer.ulReloadTime );
-    TEST_ASSERT_EQUAL( xTime, xDHCPTimer.ulRemainingTime );
-    TEST_ASSERT_EQUAL( pdTRUE, xDHCPTimer.bActive );
-    TEST_ASSERT_EQUAL( pdFALSE, xDHCPTimer.bExpired );
+    TEST_ASSERT_EQUAL( 0x12A, pxEndPoint.xDHCP_RATimer.ulReloadTime );
+    TEST_ASSERT_EQUAL( xTime, pxEndPoint.xDHCP_RATimer.ulRemainingTime );
+    TEST_ASSERT_EQUAL( pdTRUE, pxEndPoint.xDHCP_RATimer.bActive );
+    TEST_ASSERT_EQUAL( pdFALSE, pxEndPoint.xDHCP_RATimer.bExpired );
 }
 
 void test_vDNSTimerReload( void )
@@ -609,7 +612,7 @@ void test_vIPSetDHCP_RATimerEnableState_False( void )
 
     vIPSetDHCP_RATimerEnableState( &xEndPoint, xEnableState );
 
-    TEST_ASSERT_EQUAL( xEnableState, xDHCPTimer.bActive );
+    TEST_ASSERT_EQUAL( xEnableState, xEndPoint.xDHCP_RATimer.bActive );
 }
 
 void test_vIPSetDHCP_RATimerEnableState_True( void )
@@ -619,7 +622,7 @@ void test_vIPSetDHCP_RATimerEnableState_True( void )
 
     vIPSetDHCP_RATimerEnableState( &xEndPoint, xEnableState );
 
-    TEST_ASSERT_EQUAL( xEnableState, xDHCPTimer.bActive );
+    TEST_ASSERT_EQUAL( xEnableState, xEndPoint.xDHCP_RATimer.bActive );
 }
 
 void test_vIPSetDNSTimerEnableState_False( void )
