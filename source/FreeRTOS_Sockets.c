@@ -3086,7 +3086,7 @@ const char * FreeRTOS_inet_ntop( BaseType_t xAddressFamily,
  *         When the character is not valid, socketINVALID_HEX_CHAR will be returned.
  */
 
-static uint8_t ucASCIIToHex( char cChar )
+uint8_t ucASCIIToHex( char cChar )
 {
     char cValue = cChar;
     uint8_t ucNew;
