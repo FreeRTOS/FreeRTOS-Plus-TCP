@@ -1094,6 +1094,8 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
             if( pxNetworkBuffer != NULL )
             {
                 pxNetworkBuffer->xIPAddress.xIP_IPv4 = ulIPAddress;
+                pxNetworkBuffer->pxEndPoint = pxEndPoint;
+                pxNetworkBuffer->pxInterface = pxInterface;
                 vARPGenerateRequestPacket( pxNetworkBuffer );
 
                 #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
@@ -1116,7 +1118,11 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
                 {
                     iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
                     /* Only the IP-task is allowed to call this function directly. */
-                    ( void ) xNetworkInterfaceOutput( pxNetworkBuffer, pdTRUE );
+                    if(pxInterface != NULL)
+                    {
+                        (void)pxNetworkBuffer->pxInterface->pfOutput(pxNetworkBuffer->pxInterface, pxNetworkBuffer, pdTRUE);
+                    }
+                
                 }
                 else
                 {
