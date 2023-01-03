@@ -879,6 +879,24 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
             xEndPoints[ 0 ].bits.bWantDHCP = pdTRUE;
         }
     #endif /* ipconfigUSE_DHCP */
+    
+    #if (ipconfigUSE_DHCP != 0)
+        {
+            
+            *ipLOCAL_IP_ADDRESS_POINTER = 0x00U;
+        }
+    #else
+        {
+            
+            *ipLOCAL_IP_ADDRESS_POINTER = xEndPoints[0].ipv4_defaults.ulIPAddress;
+            
+            if (xEndPoints[0].ipv4_settings.ulGatewayAddress != 0U)
+            {
+                configASSERT(((*ipLOCAL_IP_ADDRESS_POINTER) & xEndPoints[0].ipv4_settings.ulNetMask) == (xEndPoints[0].ipv4_settings.ulGatewayAddress & xEndPoints[0].ipv4_settings.ulNetMask));
+            }
+        }
+    #endif 
+
 
     /* There must be at least one interface and one end-point. */
     configASSERT( FreeRTOS_FirstNetworkInterface() != NULL );
