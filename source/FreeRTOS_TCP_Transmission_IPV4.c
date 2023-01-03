@@ -147,6 +147,7 @@
                 #endif
                 pxNetworkBuffer->pucEthernetBuffer = pxSocket->u.xTCP.xPacket.u.ucLastPacket;
                 pxNetworkBuffer->xDataLength = sizeof( pxSocket->u.xTCP.xPacket.u.ucLastPacket );
+                pxIPHeader = ((IPHeader_t*)&(pxNetworkBuffer->pucEthernetBuffer[ipSIZE_OF_ETH_HEADER]));
                 xDoRelease = pdFALSE;
             }
 
