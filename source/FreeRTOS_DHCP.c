@@ -205,14 +205,7 @@
             EP_DHCPData.eDHCPState = eInitialWait;
         }
 
-        if( ( EP_DHCPData.eDHCPState != EP_DHCPData.eExpectedState ) && ( xReset == pdFALSE ) )
-        {
-            /* When the DHCP event was generated, the DHCP client was
-            * in a different state.  Therefore, ignore this event. */
-            FreeRTOS_debug_printf( ( "DHCP wrong state: expect: %d got: %d : ignore\n",
-                                     eExpectedState, EP_DHCPData.eDHCPState ) );
-        }
-        else if( xDHCPv4Socket != NULL ) /* If there is a socket, check for incoming messages first. */
+        if( xDHCPv4Socket != NULL ) /* If there is a socket, check for incoming messages first. */
         {
             uint8_t * pucUDPPayload;
             const DHCPMessage_IPv4_t * pxDHCPMessage;
@@ -295,7 +288,7 @@
             /* do nothing, coverity happy */
         }
 
-        if( xDoProcess != pdFALSE )
+        if( ( pxEndPoint != NULL ) && ( xDoProcess != pdFALSE ) )
         {
             /* Process the end-point, but do not expect incoming packets. */
             vDHCPProcessEndPoint( xReset, pdFALSE, pxEndPoint );
