@@ -420,7 +420,7 @@
                 if( ( xSet.pxDNSMessageHeader->usFlags & dnsRX_FLAGS_MASK )
                     == dnsEXPECTED_RX_FLAGS )
                 {
-                    ulIPAddress = parseDNSAnswer( &( xSet ), ppxAddressInfo );
+                    ulIPAddress = parseDNSAnswer( &( xSet ), ppxAddressInfo, &uxBytesRead );
                 }
 
                 #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
@@ -624,10 +624,12 @@
  * @brief perform a dns lookup in the local cache {TODO WRONG}
  * @param[in] pxSet: a set of variables that are shared among the helper functions.
  * @param[out] ppxAddressInfo: a linked list storing the DNS answers.
+ * @param[out] uxBytesRead total bytes consumed by the function
  * @return pdTRUE when successful, otherwise pdFALSE.
  */
     uint32_t parseDNSAnswer( ParseSet_t * pxSet,
-                             struct freertos_addrinfo ** ppxAddressInfo )
+                             struct freertos_addrinfo ** ppxAddressInfo, 
+                             size_t * uxBytesRead)
     {
         uint16_t x;
         size_t uxResult;
@@ -659,6 +661,11 @@
                 break;
             }
 
+            if( uxBytesRead != NULL )
+            {
+                *uxBytesRead += uxResult;
+            }
+            
             pxSet->pucByte = &( pxSet->pucByte[ uxResult ] );
             pxSet->uxSourceBytesRemaining -= uxResult;
 
@@ -679,6 +686,10 @@
                 if( pxSet->uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ) )
                 {
                     xDoAccept = pdTRUE;
+                }
+                else
+                {
+                    xDoAccept = pdFALSE;
                 }
             }
             else if( pxSet->usType == ( uint16_t ) dnsTYPE_A_HOST )
@@ -1003,8 +1014,7 @@
             /* Important: tell NIC driver how many bytes must be sent */
             pxNetworkBuffer->xDataLength = uxDataLength;
 
-            /* This function will fill in the eth addresses and send the packet */
-            vReturnEthernetFrame( pxNetworkBuffer, pdFALSE ); /*TODO is needed for IPv4? Only present on ipv6 */
+            /*TODO is needed for IPv4? Only present on ipv6 */
         }
 
     #endif /* ipconfigUSE_NBNS == 1 || ipconfigUSE_LLMNR == 1 */

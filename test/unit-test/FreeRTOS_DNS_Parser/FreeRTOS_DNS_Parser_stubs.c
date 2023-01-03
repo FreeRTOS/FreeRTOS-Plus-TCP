@@ -84,37 +84,6 @@ struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
     ( void ) xFamily;
     pvBuffer = malloc( sizeof( *pxAddrInfo ) );
 
-    // if( pvBuffer != NULL )
-    // {
-    //     pxAddrInfo = ( struct freertos_addrinfo * ) pvBuffer;
-
-    //     ( void ) memset( pxAddrInfo, 0, sizeof( *pxAddrInfo ) );
-    //     pxAddrInfo->ai_canonname = pxAddrInfo->xPrivateStorage.ucName;
-    //     ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName, pcName, sizeof( pxAddrInfo->xPrivateStorage.ucName ) );
-
-    //     #if ( ipconfigUSE_IPv6 == 0 )
-    //         pxAddrInfo->ai_addr = &( pxAddrInfo->xPrivateStorage.sockaddr );
-    //     #else
-    //         pxAddrInfo->ai_addr = ( ( xFreertosSocAddr * ) &( pxAddrInfo->xPrivateStorage.sockaddr ) );
-
-    //         if( xFamily == ( BaseType_t ) FREERTOS_AF_INET6 )
-    //         {
-    //             pxAddrInfo->ai_family = FREERTOS_AF_INET6;
-    //             pxAddrInfo->ai_addrlen = ipSIZE_OF_IPv6_ADDRESS;
-    //             ( void ) memcpy( pxAddrInfo->xPrivateStorage.sockaddr.sin_addrv6.ucBytes, pucAddress, ipSIZE_OF_IPv6_ADDRESS );
-    //         }
-    //         else
-    //     #endif /* ( ipconfigUSE_IPv6 == 0 ) */
-    //     {
-    //         /* ulChar2u32 reads from big-endian to host-endian. */
-    //         uint32_t ulIPAddress = ulChar2u32( pucAddress );
-    //         /* Translate to network-endian. */
-    //         pxAddrInfo->ai_addr->sin_addr.xIP_IPv4 = FreeRTOS_htonl( ulIPAddress );
-    //         pxAddrInfo->ai_family = FREERTOS_AF_INET4;
-    //         pxAddrInfo->ai_addrlen = ipSIZE_OF_IPv4_ADDRESS;
-    //     }
-    // }
-
     return pxAddrInfo;
 
 }
