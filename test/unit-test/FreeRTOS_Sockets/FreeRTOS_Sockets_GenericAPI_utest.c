@@ -326,13 +326,14 @@ void test_FreeRTOS_socket_TCPSocket_ProtocolDependent( void )
 
     xEventGroupCreate_ExpectAndReturn( xEventGroup );
 
+    FreeRTOS_round_up_ExpectAndReturn( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS, 0xAABB );
+    FreeRTOS_max_size_t_ExpectAndReturn( 1U, ( uint32_t ) ( ipconfigTCP_RX_BUFFER_LENGTH / 2U ) / ipconfigTCP_MSS, 0x1234 );
+    FreeRTOS_max_size_t_ExpectAndReturn( 1U, ( uint32_t ) ( 0xAABB / 2U ) / ipconfigTCP_MSS, 0x3456 );
+
     vListInitialiseItem_Expect( &( pxSocket->xBoundSocketListItem ) );
 
     listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xBoundSocketListItem ), pxSocket );
 
-    FreeRTOS_round_up_ExpectAndReturn( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS, 0xAABB );
-    FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( ipconfigTCP_RX_BUFFER_LENGTH / 2U ) / ipconfigTCP_MSS, 0x1234 );
-    FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( 0xAABB / 2U ) / ipconfigTCP_MSS, 0x3456 );
 
     xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
 
@@ -371,13 +372,13 @@ void test_FreeRTOS_socket_TCPSocket( void )
 
     xEventGroupCreate_ExpectAndReturn( xEventGroup );
 
+    FreeRTOS_round_up_ExpectAndReturn( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS, 0xAABB );
+    FreeRTOS_max_size_t_ExpectAndReturn( 1U, ( uint32_t ) ( ipconfigTCP_RX_BUFFER_LENGTH / 2U ) / ipconfigTCP_MSS, 0x1234 );
+    FreeRTOS_max_size_t_ExpectAndReturn( 1U, ( uint32_t ) ( 0xAABB / 2U ) / ipconfigTCP_MSS, 0x3456 );
+
     vListInitialiseItem_Expect( &( pxSocket->xBoundSocketListItem ) );
 
     listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xBoundSocketListItem ), pxSocket );
-
-    FreeRTOS_round_up_ExpectAndReturn( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS, 0xAABB );
-    FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( ipconfigTCP_RX_BUFFER_LENGTH / 2U ) / ipconfigTCP_MSS, 0x1234 );
-    FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( 0xAABB / 2U ) / ipconfigTCP_MSS, 0x3456 );
 
     xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
 
@@ -1854,8 +1855,6 @@ void test_FreeRTOS_setsockopt_WinPropsInvalidRxStream( void )
     xSocket.u.xTCP.rxStream = 0x1234;
     xSocket.u.xTCP.usMSS = 0x12;
 
-    FreeRTOS_round_up_ExpectAndReturn( vOptionValue.lTxBufSize, xSocket.u.xTCP.usMSS, 0xAB );
-
     xReturn = FreeRTOS_setsockopt( &xSocket, lLevel, lOptionName, &vOptionValue, uxOptionLength );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
@@ -2619,12 +2618,12 @@ void test_FreeRTOS_GetLocalAddress( void )
     memset( &xAddress, 0, sizeof( xAddress ) );
 
     xSocket.usLocalPort = 0xAB12;
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABFC8769;
+    xSocket.xLocalAddress.xIP_IPv4 = 0xABFC8769;
 
     uxReturn = FreeRTOS_GetLocalAddress( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( sizeof( xAddress ), uxReturn );
-    TEST_ASSERT_EQUAL( 0xABFC8769, xAddress.sin_addr.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 0xABFC8769 ), xAddress.sin_addr.xIP_IPv4 );
     TEST_ASSERT_EQUAL( FreeRTOS_htons( 0xAB12 ), xAddress.sin_port );
 }
 
@@ -2944,6 +2943,8 @@ void test_vTCPNetStat_IPStackInit( void )
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xSocket );
 
     xTaskGetTickCount_ExpectAndReturn( 0x10 );
+
+    uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     /* Second Iteration. */
     xSocket2.u.xTCP.eTCPState = eTCP_LISTEN;

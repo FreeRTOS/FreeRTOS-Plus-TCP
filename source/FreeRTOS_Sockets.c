@@ -1397,8 +1397,7 @@ static int32_t prvSendTo_ActualSend( const FreeRTOS_Socket_t * pxSocket,
 
     #if ( ipconfigUSE_CALLBACKS != 0 )
         {
-            if( ( ( ( UBaseType_t ) xFlags & ( UBaseType_t ) FREERTOS_MSG_DONTWAIT ) != 0U ) ||
-                ( xIsCallingFromIPTask() != pdFALSE ) )
+            if( xIsCallingFromIPTask() != pdFALSE )
             {
                 /* The caller wants a non-blocking operation. When called by the IP-task,
                  * the operation should always be non-blocking. */
@@ -1406,6 +1405,11 @@ static int32_t prvSendTo_ActualSend( const FreeRTOS_Socket_t * pxSocket,
             }
         }
     #endif /* ipconfigUSE_CALLBACKS */
+
+    if( ( ( UBaseType_t ) xFlags & ( UBaseType_t ) FREERTOS_MSG_DONTWAIT ) != 0U )
+    {
+        xTicksToWait = ( TickType_t ) 0;
+    }
 
     if( ( ( UBaseType_t ) xFlags & ( UBaseType_t ) FREERTOS_ZERO_COPY ) == 0U )
     {
@@ -2702,6 +2706,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                      * sleeps. */
                     case FREERTOS_SO_SET_SEMAPHORE:
                         pxSocket->pxUserSemaphore = *( ipPOINTER_CAST( SemaphoreHandle_t *, pvOptionValue ) );
+                        xReturn = 0;
                         break;
                 #endif /* ipconfigSOCKET_HAS_USER_SEMAPHORE */
 
@@ -5467,6 +5472,12 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
         char pcRemoteIp[ 40 ];
         int xIPWidth = 16;
 
+        #if ( ipconfigTCP_KEEP_ALIVE == 1 )
+            TickType_t age = xTaskGetTickCount() - pxSocket->u.xTCP.xLastAliveTime;
+        #else
+            TickType_t age = 0U;
+        #endif
+
         if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
         {
             xIPWidth = 32;
@@ -5533,8 +5544,8 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
         {
             /* Casting a "MiniListItem_t" to a "ListItem_t".
              * This is safe because only its address is being accessed, not its fields. */
-            const ListItem_t * pxEndTCP = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
-            const ListItem_t * pxEndUDP = ( ( const ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
+            const ListItem_t * pxEndTCP = listGET_END_MARKER( &xBoundTCPSocketsList );
+            const ListItem_t * pxEndUDP = listGET_END_MARKER( &xBoundUDPSocketsList );
 
             FreeRTOS_printf( ( "Prot Port IP-Remote       : Port  R/T Status       Alive  tmout Child\n" ) );
 
