@@ -360,7 +360,11 @@
 
                 /* Send! */
                 iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-                ( void ) xNetworkInterfaceOutput( pxNetworkBuffer, xDoRelease );
+                NetworkInterface_t* pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+                if(pxInterface != NULL)
+                {
+                    (void)pxInterface->pfOutput(pxInterface, pxNetworkBuffer, xDoRelease);
+                }
 
                 if( xDoRelease == pdFALSE )
                 {
