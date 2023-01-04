@@ -905,16 +905,18 @@
                                          NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         FreeRTOS_Socket_t * pxNewSocket = NULL;
-
+#if (ipconfigUSE_IPV6 != 0)
         if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
         {
             pxNewSocket = prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
         }
         else
         {
+#endif
             pxNewSocket = prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
+#if (ipconfigUSE_IPV6 != 0)
         }
-
+#endif
         return pxNewSocket;
     }
     /*-----------------------------------------------------------*/
