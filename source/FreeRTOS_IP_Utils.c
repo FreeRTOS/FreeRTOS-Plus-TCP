@@ -203,11 +203,12 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         pxNewBuffer->pxInterface = pxNetworkBuffer->pxInterface;
         pxNewBuffer->pxEndPoint = pxNetworkBuffer->pxEndPoint;
         ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, uxLengthToCopy );
-
+#if (ipconfigUSE_IPV6!=0)
         if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
         {
             ( void ) memcpy( pxNewBuffer->xIPAddress.xIP_IPv6.ucBytes, pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
         }
+#endif
     }
 
     return pxNewBuffer;
@@ -378,11 +379,12 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
             #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
         }
     }
-
+#if (ipconfigUSE_IPV6!=0)
     else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
     {
         xReturn = prvChecksumICMPv6Checks( uxBufferLength, pxSet );
     }
+#endif
     else
     {
         /* Unhandled protocol, other than ICMP, IGMP, UDP, or TCP. */
@@ -441,6 +443,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                                           const uint8_t * pucEthernetBuffer,
                                           struct xPacketSummary * pxSet )
 {
+#if ( ipconfigUSE_IPV6 != 0 )
     if( pxSet->xIsIPv6 != pdFALSE )
     {
         uint32_t pulHeader[ 2 ];
@@ -465,13 +468,14 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                                                 ( const uint8_t * ) pulHeader,
                                                 ( size_t ) ( sizeof( pulHeader ) ) );
     }
-
+#endif
     if( ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) || ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
     {
         /* ICMP/IGMP do not have a pseudo header for CRC-calculation. */
         pxSet->usChecksum = ( uint16_t )
                             ( ~usGenerateChecksum( 0U, &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength ] ), ( size_t ) pxSet->usProtocolBytes ) );
     }
+#if ( ipconfigUSE_IPV6 != 0 )
     else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
     {
         pxSet->usChecksum = ( uint16_t )
@@ -479,6 +483,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                                                    ( uint8_t * ) &( pxSet->pxProtocolHeaders->xTCPHeader ),
                                                    ( size_t ) pxSet->usProtocolBytes ) );
     }
+#endif
     else
     {
         if( pxSet->xIsIPv6 != pdFALSE )
@@ -502,7 +507,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
             /* And then continue at the IPv4 source and destination addresses. */
             pxSet->usChecksum = ( uint16_t )
                                 ( ~usGenerateChecksum( pxSet->usChecksum,
-                                                       ipPOINTER_CAST( const uint8_t *, &( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ) ),
+                                                       (const uint8_t *) &( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ) ,
                                                        ulByteCount ) );
         }
 
@@ -778,7 +783,7 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
                 else /* Yes this else ought to be here. */
             #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
-            #if ( ipconfigUSE_RA != 0 )
+            #if ( ipconfigUSE_RA != 0 && ipconfigUSE_IPV6 != 0 )
                 if( END_POINT_USES_RA( pxEndPoint ) )
                 {
                     /* Reset the RA/SLAAC process for this end-point. */
@@ -914,7 +919,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         xSet.pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
-
+#if ( ipconfigUSE_IPV6 != 0 )
         if( xSet.pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
         {
             /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -932,6 +937,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
         else
         {
+#endif
             xResult = prvChecksumIPv4Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
 
             if( xResult != 0 )
@@ -939,8 +945,9 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                 DEBUG_SET_TRACE_VARIABLE( xLocation, xResult );
                 break;
             }
+#if ( ipconfigUSE_IPV6 != 0 )
         }
-
+#endif
         {
             xResult = prvChecksumProtocolChecks( uxBufferLength, &( xSet ) );
 
