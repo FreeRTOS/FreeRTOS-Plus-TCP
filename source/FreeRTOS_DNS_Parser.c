@@ -1028,6 +1028,13 @@
  * @param[in] uxBufferLength: Length of the Buffer.
  * @param[in] ulIPAddress: IP address of the sender.
  */
+/**
+ * @brief Respond to an NBNS query or an NBNS reply.
+ *
+ * @param[in] pucPayload: the UDP payload of the NBNS message.
+ * @param[in] uxBufferLength: Length of the Buffer.
+ * @param[in] ulIPAddress: IP address of the sender.
+ */
         void DNS_TreatNBNS( uint8_t * pucPayload,
                             size_t uxBufferLength,
                             uint32_t ulIPAddress )
@@ -1112,7 +1119,8 @@
                 #endif /* ipconfigUSE_DNS_CACHE */
 
                 if( ( ( usFlags & dnsNBNS_FLAGS_RESPONSE ) == 0U ) &&
-                    ( usType == dnsNBNS_TYPE_NET_BIOS ) )
+                    ( usType == dnsNBNS_TYPE_NET_BIOS ) &&
+                    ( xApplicationDNSQueryHook( &( xEndPoint ), ( const char * ) ucNBNSName ) != pdFALSE ))
                 {
                     uint16_t usLength;
                     DNSMessage_t * pxMessage;
@@ -1142,23 +1150,21 @@
                             }
                         #endif
 
-                        if( xApplicationDNSQueryHook( &( xEndPoint ), ( const char * ) ucNBNSName ) != pdFALSE )
-                        {
-                            /* The field xDataLength was set to the total length of the UDP packet,
-                             * i.e. the payload size plus sizeof( UDPPacket_t ). */
-                            pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, pxNetworkBuffer->xDataLength + sizeof( NBNSAnswer_t ) );
+                        /* The field xDataLength was set to the total length of the UDP packet,
+                            * i.e. the payload size plus sizeof( UDPPacket_t ). */
+                        pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, pxNetworkBuffer->xDataLength + sizeof( NBNSAnswer_t ) );
 
-                            if( pxNewBuffer != NULL )
-                            {
-                                pucUDPPayloadBuffer = &( pxNewBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] );
-                                pxNetworkBuffer = pxNewBuffer;
-                            }
-                            else
-                            {
-                                /* Just prevent that a reply will be sent */
-                                pxNetworkBuffer = NULL;
-                            }
+                        if( pxNewBuffer != NULL )
+                        {
+                            pucUDPPayloadBuffer = &( pxNewBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] );
+                            pxNetworkBuffer = pxNewBuffer;
                         }
+                        else
+                        {
+                            /* Just prevent that a reply will be sent */
+                            pxNetworkBuffer = NULL;
+                        }
+                        
                     }
 
                     /* Should not occur: pucUDPPayloadBuffer is part of a xNetworkBufferDescriptor */
