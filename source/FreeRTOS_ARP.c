@@ -1027,7 +1027,9 @@ void vARPAgeCache( void )
             {
                 if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
                 {
+                #if (ipconfigUSE_IPV6!=0)
                     FreeRTOS_OutputAdvertiseIPv6( pxEndPoint );
+                #endif
                 }
                 else
                 {
