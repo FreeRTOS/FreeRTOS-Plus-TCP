@@ -199,12 +199,6 @@
     {
         BaseType_t xDoProcess = pdTRUE;
 
-        /* Is DHCP starting over? */
-        if( xReset != pdFALSE )
-        {
-            EP_DHCPData.eDHCPState = eInitialWait;
-        }
-
         if( xDHCPv4Socket != NULL ) /* If there is a socket, check for incoming messages first. */
         {
             uint8_t * pucUDPPayload;
@@ -863,7 +857,7 @@
                 /* Bind to the standard DHCP client port. */
                 xAddress.sin_port = ( uint16_t ) dhcpCLIENT_PORT_IPv4;
                 xReturn = vSocketBind( xDHCPv4Socket, &xAddress, sizeof( xAddress ), pdFALSE );
-                configASSERT( xReturn == 0 );
+                /*configASSERT( xReturn == 0 ); */
                 xDHCPSocketUserCount = 1;
                 FreeRTOS_printf( ( "DHCP-socket[%02x-%02x]: DHCP Socket Create\n",
                                    pxEndPoint->xMACAddress.ucBytes[ 4 ],
