@@ -249,15 +249,18 @@
                              BaseType_t xReleaseAfterSend )
     {
         const NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
-
+#if (ipconfigUSE_IPV6 != 0)
         if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
         {
             prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
         }
         else
         {
+#endif
             prvTCPReturnPacket_IPV4( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+#if (ipconfigUSE_IPV6 != 0)
         }
+#endif
     }
     /*-----------------------------------------------------------*/
 
@@ -461,7 +464,9 @@
 
         if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
         {
+#if (ipconfigUSE_IPV6 != 0)
             xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
+#endif
         }
         else
         {
@@ -1264,14 +1269,18 @@
             ( void ) ucTCPFlags;
         #else
             {
+        #if (ipconfigUSE_IPV6 != 0)
                 if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
                 {
                     xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
                 }
                 else
                 {
+         #endif
                     xReturn = prvTCPSendSpecialPktHelper_IPV4( pxNetworkBuffer, ucTCPFlags );
+         #if (ipconfigUSE_IPV6 != 0)
                 }
+         #endif
             }
         #endif /* !ipconfigIGNORE_UNKNOWN_PACKETS */
 
