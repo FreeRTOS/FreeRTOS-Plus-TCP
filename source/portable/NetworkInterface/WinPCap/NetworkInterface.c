@@ -780,7 +780,7 @@ static void prvInterruptSimulatorTask( void * pvParameters )
 
                             pxNetworkBuffer->pxInterface = pxMyInterface;
                             pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer->pucEthernetBuffer );
-                            pxNetworkBuffer->pxEndPoint = &pxNetworkEndPoints[0]; //temporary change for single end point
+                            pxNetworkBuffer->pxEndPoint = pxNetworkEndPoints; //temporary change for single end point
 
                             /* Data was received and stored.  Send a message to
                              * the IP task to let it know. */
