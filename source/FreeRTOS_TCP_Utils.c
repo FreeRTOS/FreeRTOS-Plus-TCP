@@ -91,7 +91,9 @@
     {
         if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
         {
+#if (ipconfigUSE_IPV6!=0)
             prvSocketSetMSS_IPV6( pxSocket );
+#endif
         }
         else
         {
