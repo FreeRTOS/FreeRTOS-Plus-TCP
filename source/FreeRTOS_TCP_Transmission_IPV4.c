@@ -87,7 +87,9 @@
         TCPPacket_t * pxTCPPacket = NULL;
         ProtocolHeaders_t * pxProtocolHeaders = NULL;
         IPHeader_t * pxIPHeader = NULL;
+#if (ipconfigUSE_IPV6!=0)
         IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
+#endif
         BaseType_t xDoRelease = xReleaseAfterSend;
         EthernetHeader_t * pxEthernetHeader = NULL;
         uint32_t ulSourceAddress;
@@ -121,7 +123,7 @@
                 {
                     break;
                 }
-
+#if (ipconfigUSE_IPV6!=0)
                 if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
                 {
                     xIsIPv6 = pdTRUE;
@@ -130,8 +132,11 @@
                 }
                 else
                 {
+#endif
                     usFrameType = ipIPv4_FRAME_TYPE;
+#if (ipconfigUSE_IPV6!=0)
                 }
+#endif
             }
 
             /* For sending, a pseudo network buffer will be used, as explained above. */
@@ -214,7 +219,7 @@
                      * Just swap the two sequence numbers. */
                     vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
                 }
-
+#if (ipconfigUSE_IPV6!=0)
                 if( usFrameType == ipIPv6_FRAME_TYPE )
                 {
                     /* When xIsIPv6 is true: Let lint know that
@@ -251,6 +256,7 @@
                 }
                 else
                 {
+#endif
                     pxIPHeader->ucTimeToLive = ( uint8_t ) ipconfigTCP_TIME_TO_LIVE;
                     pxIPHeader->usLength = FreeRTOS_htons( ulLen );
 
@@ -294,8 +300,9 @@
                             ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxTCPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
                         }
                     #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
+#if (ipconfigUSE_IPV6!=0)
                 }
-
+#endif
                 vFlip_16( pxProtocolHeaders->xTCPHeader.usSourcePort, pxProtocolHeaders->xTCPHeader.usDestinationPort );
 
                 /* Important: tell NIC driver how many bytes must be sent. */
@@ -375,10 +382,12 @@
 
                     if( xIsIPv6 == pdTRUE )
                     {
+#if (ipconfigUSE_IPV6!=0)
                         if( pxIPHeader_IPv6 != NULL )
                         {
                             ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxIPHeader_IPv6->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                         }
+#endif
                     }
                     else
                     {
