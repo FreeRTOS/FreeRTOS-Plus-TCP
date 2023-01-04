@@ -47,17 +47,16 @@ void setup_isr( xemacpsif_s * xemacpsif )
     /*
      * Setup callbacks
      */
-    XEmacPs_SetHandler( &xemacpsif->emacps, XEMACPS_HANDLER_DMASEND,
-                        ( void * ) emacps_send_handler,
-                        ( void * ) xemacpsif );
+    XEmacPs * xInstancePtr = &( xemacpsif->emacps );
 
-    XEmacPs_SetHandler( &xemacpsif->emacps, XEMACPS_HANDLER_DMARECV,
-                        ( void * ) emacps_recv_handler,
-                        ( void * ) xemacpsif );
+    xInstancePtr->SendHandler = emacps_send_handler;
+    xInstancePtr->SendRef = ( void * ) xemacpsif;
 
-    XEmacPs_SetHandler( &xemacpsif->emacps, XEMACPS_HANDLER_ERROR,
-                        ( void * ) emacps_error_handler,
-                        ( void * ) xemacpsif );
+    xInstancePtr->RecvHandler = emacps_recv_handler;
+    xInstancePtr->RecvRef = ( void * ) xemacpsif;
+
+    xInstancePtr->ErrorHandler = emacps_error_handler;
+    xInstancePtr->ErrorRef = ( void * ) xemacpsif;
 }
 
 void start_emacps( xemacpsif_s * xemacps )
