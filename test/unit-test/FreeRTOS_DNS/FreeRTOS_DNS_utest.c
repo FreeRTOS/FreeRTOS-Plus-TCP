@@ -291,7 +291,8 @@ void test_FreeRTOS_gethostbyname_fail_read_dns_reply_null( void )
     xNetworkBuffer.pucEthernetBuffer = malloc( 2280 + ipBUFFER_PADDING );
     xNetworkBuffer.pucEthernetBuffer += ipBUFFER_PADDING;
 
-    DNS_BindSocket_IgnoreAndReturn(0);
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn(&xEndPoint);
+    FreeRTOS_NextEndPoint_IgnoreAndReturn(NULL);
     FreeRTOS_inet_addr_ExpectAndReturn( LLMNR_ADDRESS, 0 );
     FreeRTOS_dnslookup_ExpectAndReturn( LLMNR_ADDRESS, 0 );
     xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
@@ -306,9 +307,6 @@ void test_FreeRTOS_gethostbyname_fail_read_dns_reply_null( void )
         {
             DNS_BindSocket_ExpectAnyArgsAndReturn(0);
         }
-
-        FreeRTOS_FirstEndPoint_IgnoreAndReturn(&xEndPoint);
-        FreeRTOS_NextEndPoint_IgnoreAndReturn(NULL);
 
         /* in prvGetHostByName */
         /* in prvGetPayloadBuffer */

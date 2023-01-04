@@ -897,7 +897,25 @@
         UBaseType_t uxHostType;
         NetworkEndPoint_t * pxEndPoint;
 
+        IPPreference_t xDNS_IP_Preference_Temp = xDNS_IP_Preference;
+        if( xFamily == FREERTOS_AF_INET6 )
+        {
+            xDNS_IP_Preference = 
+            #if ( ipconfigUSE_IPV6 != 0 )
+                xPreferenceIPv6;
+            #else
+                xPreferenceIPv4;
+            #endif
+        }
+        else 
+        {
+            xDNS_IP_Preference = xPreferenceIPv4;
+        }
+
         pxEndPoint = prvFillSockAddress( &xAddress, pcHostName );
+
+        xDNS_IP_Preference = xDNS_IP_Preference_Temp;
+
         xAddress.sin_family = xFamily;
 
         if( pxEndPoint != NULL )
