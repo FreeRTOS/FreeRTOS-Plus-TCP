@@ -245,18 +245,10 @@ void my_sleep( uint32_t uxTicks )
 u32 phymapemac0[ 32 ];
 u32 phymapemac1[ 32 ];
 
-static uint16_t prvAR803x_debug_reg_read( XEmacPs * xemacpsp,
-                                          uint32_t phy_addr,
-                                          u16 reg );
 static uint16_t prvAR803x_debug_reg_write( XEmacPs * xemacpsp,
                                            uint32_t phy_addr,
                                            u16 reg,
                                            u16 value );
-static int prvAR803x_debug_reg_mask( XEmacPs * xemacpsp,
-                                     uint32_t phy_addr,
-                                     u16 reg,
-                                     u16 clear,
-                                     u16 set );
 static void prvSET_AR803x_TX_Timing( XEmacPs * xemacpsp,
                                      uint32_t phy_addr );
 
@@ -832,29 +824,8 @@ static uint32_t get_AR8035_phy_speed( XEmacPs * xemacpsp,
     }
 }
 
-static void ar8035Tick( XEmacPs * xemacpsp,
-                        uint32_t phy_addr )
-{
-    uint16_t value;
-    BaseType_t linkState;
-
-    /*Read basic status register */
-    value = XEmacPs_PhyRead2( xemacpsp, phy_addr, IEEE_STATUS_REG_OFFSET );
-    /*Retrieve current link state */
-    linkState = ( value & IEEE_STAT_LINK_STATUS ) ? TRUE : FALSE;
-}
-
 #define AR803X_DEBUG_ADDR    0x1D
 #define AR803X_DEBUG_DATA    0x1E
-static uint16_t prvAR803x_debug_reg_read( XEmacPs * xemacpsp,
-                                          uint32_t phy_addr,
-                                          u16 reg )
-{
-    XEmacPs_PhyWrite( xemacpsp, phy_addr, AR803X_DEBUG_ADDR, reg );
-
-    return XEmacPs_PhyRead2( xemacpsp, phy_addr, AR803X_DEBUG_DATA );
-}
-
 static uint16_t prvAR803x_debug_reg_write( XEmacPs * xemacpsp,
                                            uint32_t phy_addr,
                                            u16 reg,
@@ -863,29 +834,6 @@ static uint16_t prvAR803x_debug_reg_write( XEmacPs * xemacpsp,
     XEmacPs_PhyWrite( xemacpsp, phy_addr, AR803X_DEBUG_ADDR, reg );
 
     return XEmacPs_PhyWrite( xemacpsp, phy_addr, AR803X_DEBUG_DATA, value );
-}
-
-static int prvAR803x_debug_reg_mask( XEmacPs * xemacpsp,
-                                     uint32_t phy_addr,
-                                     u16 reg,
-                                     u16 clear,
-                                     u16 set )
-{
-    u16 val;
-    int ret;
-
-    ret = prvAR803x_debug_reg_read( xemacpsp, phy_addr, reg );
-
-    if( ret < 0 )
-    {
-        return ret;
-    }
-
-    val = ret & 0xffff;
-    val &= ~clear;
-    val |= set;
-
-    return XEmacPs_PhyWrite( xemacpsp, phy_addr, AR803X_DEBUG_DATA, val );
 }
 
 static uint32_t ar8035CheckStatus( XEmacPs * xemacpsp,
@@ -970,6 +918,9 @@ static uint32_t ar8035CheckStatus( XEmacPs * xemacpsp,
 /*		nicNotifyLinkChange(interface); */
     }
 
+    /* Just to prevent compiler warnings about unused variable. */
+    ( void ) linkState;
+
     return linkSpeed;
 }
 
@@ -1015,7 +966,11 @@ static uint32_t get_IEEE_phy_speed_US( XEmacPs * xemacpsp,
     XEmacPs_PhyRead( xemacpsp, phy_addr, PHY_IDENTIFIER_1_REG,
                      &phy_identity );
 
-    FreeRTOS_printf( ( "Start %s PHY autonegotiation. ID = 0x%04X\n", pcGetPHIName( phy_identity ), phy_identity ) );
+    const char * pcPHYName = pcGetPHIName( phy_identity );
+    FreeRTOS_printf( ( "Start %s PHY autonegotiation. ID = 0x%04X\n", pcPHYName, phy_identity ) );
+
+    /* Just to prevent compiler warnings about unused variablies. */
+    ( void ) pcPHYName;
 
     switch( phy_identity )
     {

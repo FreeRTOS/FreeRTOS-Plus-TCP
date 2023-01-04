@@ -126,6 +126,9 @@ int is_tx_space_available( xemacpsif_s * xemacpsif )
 {
     size_t uxCount;
 
+    /* Just to prevent compiler warnings about unused parameters. */
+    ( void ) xemacpsif;
+
     if( xTXDescriptorSemaphore != NULL )
     {
         uxCount = ( ( UBaseType_t ) ipconfigNIC_N_TX_DESC ) - uxSemaphoreGetCount( xTXDescriptorSemaphore );
