@@ -613,15 +613,18 @@
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
+#if (ipconfigUSE_IPV6 != 0)
         if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
         {
             xResult = xProcessReceivedTCPPacket_IPV6( pxDescriptor );
         }
         else
         {
+#endif
             xResult = xProcessReceivedTCPPacket_IPV4( pxDescriptor );
+#if (ipconfigUSE_IPV6 != 0)
         }
-
+#endif
         return xResult;
     }
     /*-----------------------------------------------------------*/
