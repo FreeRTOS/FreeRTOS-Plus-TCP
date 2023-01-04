@@ -680,12 +680,14 @@
 
             if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
             {
+#if (ipconfigUSE_IPV6!=0)
                 pxSet->uxAddressLength = ipSIZE_OF_IPv6_ADDRESS;
 
                 if( pxSet->uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ) )
                 {
                     xDoAccept = pdTRUE;
                 }
+#endif
             }
             else if( pxSet->usType == ( uint16_t ) dnsTYPE_A_HOST )
             {
@@ -722,6 +724,7 @@
                 if( FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ) ==
                     ( uint16_t ) pxSet->uxAddressLength )
                 {
+#if (ipconfigUSE_IPV6!=0)
                     if( ( pxSet->uxAddressLength == ipSIZE_OF_IPv6_ADDRESS ) && ( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST ) )
                     {
                         ( void ) memcpy( xIP_Address.xAddress_IPv6.ucBytes,
@@ -741,6 +744,7 @@
                     }
                     else
                     {
+#endif
                         void * pvCopyDest;
                         const void * pvCopySource;
 
@@ -765,8 +769,9 @@
 
                         xIP_Address.ulIPAddress = pxSet->ulIPAddress;
                         xIP_Address.xIs_IPv6 = pdFALSE;
+#if (ipconfigUSE_IPV6!=0)
                     }
-
+#endif
                     if( pxNewAddress != NULL )
                     {
                         if( *( ppxAddressInfo ) == NULL )
