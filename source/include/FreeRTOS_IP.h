@@ -28,6 +28,11 @@
 #ifndef FREERTOS_IP_H
 #define FREERTOS_IP_H
 
+ /* Using FREERTOS_PLUS_TCP_VERSION as the susbstitute of the
+ downward compatibility*/
+
+#define FREERTOS_PLUS_TCP_VERSION 10
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
