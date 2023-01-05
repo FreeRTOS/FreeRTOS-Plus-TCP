@@ -464,7 +464,6 @@
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-#if (ipconfigUSE_IPV6 != 0)
         if( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
         {
             /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -480,7 +479,6 @@
         }
         else
         {
-#endif
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
@@ -488,9 +486,7 @@
 
             usLength = FreeRTOS_htons( pxIPHeader->usLength );
             lLength = ( int32_t ) usLength;
-#if (ipconfigUSE_IPV6 != 0)
         }
-#endif
         if( lReceiveLength > lLength )
         {
             /* More bytes were received than the reported length, often because of
