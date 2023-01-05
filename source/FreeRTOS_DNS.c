@@ -685,7 +685,6 @@
             {
                 if( ENDPOINT_IS_IPv6( pxEndPoint ) )
                 {
-             #if (ipconfigUSE_IPV6!=0)
                     uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
                     uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
 
@@ -701,7 +700,6 @@
                                          ipSIZE_OF_IPv6_ADDRESS );
                         break;
                     }
-               #endif
                 }
                 else
                 {
@@ -801,13 +799,11 @@
         /* Calculate the size of the headers. */
         if( pxAddress->sin_family == FREERTOS_AF_INET6 )
         {
-        #if (ipconfigUSE_IPV6!=0)
             uxHeaderBytes = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER;
 
             /* Note that 'dnsTYPE_ANY_HOST' could be used here as well,
              * but for testing, we want an IPv6 address. */
             uxHostType = dnsTYPE_AAAA_HOST;
-        #endif
         }
         else
         {
@@ -833,20 +829,14 @@
             #endif
 
             /* A two-step conversion to conform to MISRA. */
-#if (ipconfigUSE_IPV6!=0)
             size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-#else       
-             size_t uxIndex = ipUDP_PAYLOAD_OFFSET_IPv4;
-#endif
             BaseType_t xIndex = ( BaseType_t ) uxIndex;
 
             /* Later when translating form UDP payload to a Network Buffer,
              * it is important to know whether this is an IPv4 packet. */
             if( pxAddress->sin_family == FREERTOS_AF_INET6 )
             {
-#if (ipconfigUSE_IPV6!=0)
                 xDNSBuf.pucPayloadBuffer[ -xIndex ] = ( uint8_t ) ipTYPE_IPv6;
-#endif
             }
             else
             {
