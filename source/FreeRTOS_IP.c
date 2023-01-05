@@ -918,9 +918,7 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
                 break;
             }
         }
-#if(ipconfigUSE_IPV6!=0)
     }
-#endif
     /* At least one IPv4 end-point must be defined. */
     configASSERT( pxFirstEndPoint != NULL );
 
