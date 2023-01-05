@@ -1222,18 +1222,14 @@ int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
 
         if( pxNetworkBuffer != NULL )
         {
-#if ( ipconfigUSE_IPV6 != 0 )
             if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
             {
                 uxPayloadOffset = xRecv_Update_IPv6( pxNetworkBuffer, pxSourceAddress );
             }
             else
             {
-#endif
                 uxPayloadOffset = xRecv_Update_IPv4( pxNetworkBuffer, pxSourceAddress );
-#if ( ipconfigUSE_IPV6 != 0 )
             }
-#endif
             xAddressLength = sizeof( struct freertos_sockaddr );
 
             if( pxSourceAddressLength != NULL )
@@ -1325,9 +1321,7 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
 
     if( pxDestinationAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
     {
-#if (ipconfigUSE_IPV6!=0)
         ( void ) xSend_UDP_Update_IPv6( pxNetworkBuffer, pxDestinationAddress );
-#endif
     }
     else
     {
@@ -1500,10 +1494,8 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
 
     if( pxDestinationAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
     {
-#if ( ipconfigUSE_IPV6 != 0 )
         uxMaxPayloadLength = ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER );
         uxPayloadOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER;
-#endif
     }
     else
     {
@@ -3017,11 +3009,9 @@ BaseType_t FreeRTOS_inet_pton( BaseType_t xAddressFamily,
         case FREERTOS_AF_INET:
             xResult = FreeRTOS_inet_pton4( pcSource, pvDestination );
             break;
-#if (configUSE_IPV6!=0)
         case FREERTOS_AF_INET6:
             xResult = FreeRTOS_inet_pton6( pcSource, pvDestination );
             break;
-#endif
         default:
             xResult = -pdFREERTOS_ERRNO_EAFNOSUPPORT;
             break;
@@ -3059,11 +3049,9 @@ const char * FreeRTOS_inet_ntop( BaseType_t xAddressFamily,
         case FREERTOS_AF_INET4:
             pcResult = FreeRTOS_inet_ntop4( pvSource, pcDestination, uxSize );
             break;
-#if (configUSE_IPV6!=0)
         case FREERTOS_AF_INET6:
             pcResult = FreeRTOS_inet_ntop6( pvSource, pcDestination, uxSize );
             break;
-#endif
         default:
             /* errno should be set to pdFREERTOS_ERRNO_EAFNOSUPPORT. */
             pcResult = NULL;
@@ -3148,7 +3136,6 @@ void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
  *
  * @return pdTRUE in case the string got parsed correctly, otherwise pdFALSE.
  */
-#if (ipconfigUSE_IPV6!=0)
 BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
                                 uint8_t * pucTarget )
 {
@@ -3213,7 +3200,6 @@ BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
 
     return xResult;
 }
-#endif
 /*-----------------------------------------------------------*/
 
 /**
@@ -3651,7 +3637,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         if( pxClientSocket != NULL )
         {
-#if (ipconfigUSE_IPV6 != 0)
             if( pxClientSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
             {
                 *pxAddressLength = sizeof( struct freertos_sockaddr );
@@ -3666,7 +3651,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             }
             else
             {
-#endif
                 *pxAddressLength = sizeof( struct freertos_sockaddr );
 
                 if( pxAddress != NULL )
@@ -3676,9 +3660,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     pxAddress->sin_addr.xIP_IPv4 = FreeRTOS_ntohl( pxClientSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
                     pxAddress->sin_port = FreeRTOS_ntohs( pxClientSocket->u.xTCP.usRemotePort );
                 }
-#if (ipconfigUSE_IPV6 != 0)
             }
-#endif
         }
 
         return pxClientSocket;
@@ -4629,9 +4611,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 {
                     if( ulRemoteIP.xIP_IPv4 == 0 )
                     {
-#if (ipconfigUSE_IPV6!=0)
                         pxResult = pxTCPSocketLookup_IPv6( pxSocket, &ulRemoteIP.xIP_IPv6, ulRemoteIP.xIP_IPv4 );
-#endif
                     }
                     else
                     {
@@ -5070,18 +5050,14 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     {
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
         BaseType_t xResult;
-#if (ipconfigUSE_IPV6 != 0)
         if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
         {
             xResult = ( BaseType_t ) ipTYPE_IPv6;
         }
         else
         {
-#endif
             xResult = ( BaseType_t ) ipTYPE_IPv4;
-#if (ipconfigUSE_IPV6 != 0)
         }
-#endif
         return xResult;
     }
 
@@ -5432,12 +5408,10 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
         char pcRemoteIp[ 40 ];
         int xIPWidth = 16;
         int age = 0;
-#if (ipconfigUSE_IPV6 != 0)
         if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
         {
             xIPWidth = 32;
         }
-#endif
         char ucChildText[ 16 ] = "";
 
         if( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eTCP_LISTEN )
