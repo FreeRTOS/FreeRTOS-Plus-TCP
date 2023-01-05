@@ -907,10 +907,8 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
     configASSERT( FreeRTOS_FirstNetworkInterface() != NULL );
 
     pxFirstEndPoint = FreeRTOS_FirstEndPoint( NULL );
-#if(ipconfigUSE_IPV6!=0)
     if( ENDPOINT_IS_IPv6( pxFirstEndPoint ) )
     {
-#endif
         for( ;
              pxFirstEndPoint != NULL;
              pxFirstEndPoint = FreeRTOS_NextEndPoint( NULL, pxFirstEndPoint ) )
