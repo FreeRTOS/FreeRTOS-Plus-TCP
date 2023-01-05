@@ -228,7 +228,6 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
                         /* ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS is defined as 0,
                          * and so UDP packets carrying a protocol checksum of 0, will
                          * be dropped. */
-#if (ipconfigUSE_IPV6!=0)
                         if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                         {
                             const IPHeader_IPv6_t * pxIPPacket_IPv6;
@@ -247,15 +246,12 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
                         }
                         else
                         {
-#endif
                             ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
                             /* MISRA Ref 11.3.1 [Misaligned access] */
                             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                             /* coverity[misra_c_2012_rule_11_3_violation] */
                             pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ( size_t ) ipSIZE_OF_IPv4_HEADER ] ) );
-#if (ipconfigUSE_IPV6!=0) 
                         }
-#endif
                         /* Identify the next protocol. */
                         if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
                         {
