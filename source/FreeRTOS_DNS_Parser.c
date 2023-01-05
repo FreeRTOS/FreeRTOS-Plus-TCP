@@ -1118,38 +1118,42 @@
                     }
                 #endif /* ipconfigUSE_DNS_CACHE */
 
+                /* Someone is looking for a device with ucNBNSName,
+                * prepare a positive reply. */
+                pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucUDPPayloadBuffer );
+
+                if( ( xBufferAllocFixedSize == pdFALSE ) &&
+                    ( pxNetworkBuffer != NULL ) )
+                {
+                    if( pxNetworkBuffer->pxEndPoint == NULL )
+                    {
+                        pxNetworkBuffer->pxEndPoint = prvFindEndPointOnNetMask( pxNetworkBuffer );
+                    }
+
+                    if( pxNetworkBuffer->pxEndPoint != NULL )
+                    {
+                        ( void ) memcpy( &xEndPoint, pxNetworkBuffer->pxEndPoint, sizeof( xEndPoint ) );
+                    }
+
+                    #if ( ipconfigUSE_IPV6 != 0 )
+                        {
+                            xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
+                        }
+                    #endif
+                }
+
                 if( ( ( usFlags & dnsNBNS_FLAGS_RESPONSE ) == 0U ) &&
                     ( usType == dnsNBNS_TYPE_NET_BIOS ) &&
-                    ( xApplicationDNSQueryHook( &( xEndPoint ), ( const char * ) ucNBNSName ) != pdFALSE ))
+                    ( pxNetworkBuffer != NULL ) &&
+                    ( xApplicationDNSQueryHook( &( xEndPoint ), ( const char * ) ucNBNSName ) != pdFALSE ) )
                 {
                     uint16_t usLength;
                     DNSMessage_t * pxMessage;
                     NBNSAnswer_t * pxAnswer;
                     NetworkBufferDescriptor_t * pxNewBuffer = NULL;
 
-                    /* Someone is looking for a device with ucNBNSName,
-                     * prepare a positive reply. */
-                    pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucUDPPayloadBuffer );
-
-                    if( ( xBufferAllocFixedSize == pdFALSE ) &&
-                        ( pxNetworkBuffer != NULL ) )
+                    if( xBufferAllocFixedSize == pdFALSE )
                     {
-                        if( pxNetworkBuffer->pxEndPoint == NULL )
-                        {
-                            pxNetworkBuffer->pxEndPoint = prvFindEndPointOnNetMask( pxNetworkBuffer );
-                        }
-
-                        if( pxNetworkBuffer->pxEndPoint != NULL )
-                        {
-                            ( void ) memcpy( &xEndPoint, pxNetworkBuffer->pxEndPoint, sizeof( xEndPoint ) );
-                        }
-
-                        #if ( ipconfigUSE_IPV6 != 0 )
-                            {
-                                xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
-                            }
-                        #endif
-
                         /* The field xDataLength was set to the total length of the UDP packet,
                             * i.e. the payload size plus sizeof( UDPPacket_t ). */
                         pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, pxNetworkBuffer->xDataLength + sizeof( NBNSAnswer_t ) );
@@ -1163,9 +1167,8 @@
                         {
                             /* Just prevent that a reply will be sent */
                             pxNetworkBuffer = NULL;
-                        }
-                        
-                    }
+                        }   
+                    }                   
 
                     /* Should not occur: pucUDPPayloadBuffer is part of a xNetworkBufferDescriptor */
                     if( pxNetworkBuffer != NULL )

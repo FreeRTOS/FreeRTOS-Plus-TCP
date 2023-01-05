@@ -525,6 +525,7 @@ void test_DNS_TreatNBNS_success( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
 
     DNS_TreatNBNS( pucPayload,
                    300,
@@ -715,9 +716,12 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer3( void )
     size_t uxBufferLength = 300;
     uint32_t ulIPAddress;
 
+    NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkBufferDescriptor_t pxNetworkBuffer;
     NetworkBufferDescriptor_t pxNetworkBuffer_dup;
+    struct xNetworkEndPoint xEndPoint;   
 
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
     uint8_t buffer[ 300 ];
 
     pxNetworkBuffer_dup.pucEthernetBuffer = buffer;
@@ -727,6 +731,7 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer3( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usFlags */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_CLASS_IN );           /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
 
     DNS_TreatNBNS( pucPayload,
                    uxBufferLength,
@@ -741,6 +746,10 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer3( void )
 void test_DNS_TreatNBNS_success_empty_char_nbns_name( void )
 {
     uint8_t pucPayload[ 300 ];
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    struct xNetworkEndPoint xEndPoint;   
+
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
 
     pucPayload[ ( dnsNBNS_ENCODED_NAME_LENGTH - 2 ) +
                 offsetof( NBNSRequest_t, ucName ) ] = 2 + 0x41U;
@@ -751,6 +760,7 @@ void test_DNS_TreatNBNS_success_empty_char_nbns_name( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( 1 );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
 
     DNS_TreatNBNS( pucPayload,
                    300,
@@ -765,8 +775,11 @@ void test_DNS_TreatNBNS_success_empty_char_nbns_name( void )
 void test_DNS_TreatNBNS_success_empty_char_nbns_name2( void )
 {
     uint8_t pucPayload[ 300 ];
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    struct xNetworkEndPoint xEndPoint;   
 
-
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
+    
     pucPayload[ ( dnsNBNS_ENCODED_NAME_LENGTH - 2 ) +
                 offsetof( NBNSRequest_t, ucName ) ] = 2 + 0x41U;
 
@@ -795,6 +808,7 @@ void test_DNS_TreatNBNS_success_empty_char_nbns_name2( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( 1 );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
 
     DNS_TreatNBNS( pucPayload,
                    300,
