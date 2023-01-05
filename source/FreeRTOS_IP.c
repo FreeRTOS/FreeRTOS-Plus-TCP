@@ -592,7 +592,7 @@ static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint )
             }
         }
     #endif /* ipconfigUSE_DHCPv6 */
-    #if ( ipconfigUSE_RA == 1 && ipconfigUSE_IPV6 != 0 )
+    #if ( ipconfigUSE_RA == 1 )
         {
             if( ( xIsIPv6 == pdTRUE ) && ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED ) )
             {
@@ -792,7 +792,6 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
 
     if( pxNetworkBuffer != NULL )
     {
-#if (ipconfigUSE_IPV6!=0)
         if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER ) /*TODO seems incorrect */
         {
             uint8_t * pucIPType;
@@ -830,15 +829,12 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
         }
         else
         {
-#endif
             /* Set the actual packet size in case a bigger buffer was returned. */
             pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t ) + uxRequestedSizeBytes;
             /* Skip 3 headers. */
             pvReturn = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] );
         }
-#if (ipconfigUSE_IPV6!=0)
     }
-#endif
     else
     {
         pvReturn = NULL;
@@ -1409,14 +1405,12 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
          * the buffer without taking any other action. */
         eReturn = eReleaseBuffer;
     }
-#if (ipconfigUSE_IPV6!=0)
     if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
         ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
     {
         /* The packet is a request for LLMNR - process it. */
         eReturn = eProcessBuffer;
     }
-#endif
     #if ( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES == 1 )
         {
             uint16_t usFrameType;
@@ -1492,9 +1486,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     break;
 
                 case ipIPv4_FRAME_TYPE:
-#if (ipconfigUSE_IPV6!=0)
                 case ipIPv6_FRAME_TYPE:
-#endif
                     /* The Ethernet frame contains an IP packet. */
                     if( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) )
                     {
@@ -1597,7 +1589,6 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     size_t uxMinSize = ipSIZE_OF_ETH_HEADER + ( size_t ) uxIPHeaderSizePacket( pxNetworkBuffer ) + ipSIZE_OF_UDP_HEADER;
     size_t uxLength;
     uint16_t usLength;
-#if (ipconfigUSE_IPV6!=0)
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
         const ProtocolHeaders_t * pxProtocolHeaders;
@@ -1608,7 +1599,6 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
         pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
         pxUDPHeader = &( pxProtocolHeaders->xUDPHeader );
     }
-#endif
     usLength = FreeRTOS_ntohs( pxUDPHeader->usLength );
     uxLength = ( size_t ) usLength;
 
@@ -1684,7 +1674,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
     const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
     UBaseType_t uxHeaderLength;
     uint8_t ucProtocol;
-#if (ipconfigUSE_IPV6!=0)
     const IPHeader_IPv6_t * pxIPHeader_IPv6;
 
 
@@ -1710,7 +1699,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
     }
     else
     {
-#endif
         size_t uxLength = ( size_t ) pxIPHeader->ucVersionHeaderLength;
 
         /* Check if the IP headers are acceptable and if it has our destination.
@@ -1738,9 +1726,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                 }
             #endif
         }
-#if (ipconfigUSE_IPV6!=0)
     }
-#endif
     /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
     /* coverity[misra_c_2012_rule_14_3_violation] */
@@ -1755,7 +1741,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
              * The extra space is used for IP-options. */
             eReturn = prvCheckIP4HeaderOptions( pxNetworkBuffer );
         }
-#if (ipconfigUSE_IPV6!=0)
         if( ( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
             ( xGetExtensionOrder( ucProtocol, 0U ) > 0 ) )
         {
@@ -1766,7 +1751,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                 ucProtocol = pxIPHeader_IPv6->ucNextHeader;
             }
         }
-#endif
         /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
         /* coverity[misra_c_2012_rule_14_3_violation] */
@@ -1783,13 +1767,11 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                  *  xProcessReceivedUDPPacket(), as soon as it's know that the message
                  *  will be handled.  This will prevent the ARP cache getting
                  *  overwritten with the IP address of useless broadcast packets. */
-#if (ipconfigUSE_IPV6!=0)
                 if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                 {
                     vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
                 }
                 else
-#endif
 
                 if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
                 {
@@ -1828,11 +1810,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                             }
                         #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
                         break;
-#if (ipconfigUSE_IPV6!=0)
                     case ipPROTOCOL_ICMP_IPv6:
                         eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
                         break;
-#endif
                     case ipPROTOCOL_UDP:
                         /* The IP packet contained a UDP frame. */
 
@@ -2069,18 +2049,14 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
-#if (ipconfigUSE_IPV6!=0)
             if( ( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType == ipIPv6_FRAME_TYPE )
             {
                 /* To do */
             }
             else
             {
-#endif
                 pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPPacket->xIPHeader.ulDestinationIPAddress, 7 );
-#if (ipconfigUSE_IPV6!=0)
             }
-#endif
         }
 
         if( pxNetworkBuffer->pxEndPoint != NULL )
@@ -2265,18 +2241,14 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     const EthernetHeader_t * pxHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
-#if (ipconfigUSE_IPV6!=0)
     if( pxHeader->usFrameType == ( uint16_t ) ipIPv6_FRAME_TYPE )
     {
         uxResult = ipSIZE_OF_IPv6_HEADER;
     }
     else
     {
-#endif
         uxResult = ipSIZE_OF_IPv4_HEADER;
-#if (ipconfigUSE_IPV6!=0)
     }
-#endif
     return uxResult;
 }
 /*-----------------------------------------------------------*/
@@ -2292,9 +2264,7 @@ size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
 
     if( ( pxSocket != NULL ) && ( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED ) )
     {
-#if (ipconfigUSE_IPV6!=0)
         uxResult = ipSIZE_OF_IPv6_HEADER;
-#endif
     }
     else
     {
