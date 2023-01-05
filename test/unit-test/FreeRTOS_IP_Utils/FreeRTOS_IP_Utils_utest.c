@@ -565,7 +565,7 @@ void test_usGenerateProtocolChecksum_UDPWrongCRCIncomingPacket( void )
     BaseType_t xOutgoingPacket = pdFALSE;
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
-    uint16_t usLength = ucVersionHeaderLength;
+    uint16_t usLength = ucVersionHeaderLength + ipSIZE_OF_UDP_HEADER;
     size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
@@ -756,7 +756,7 @@ void test_usGenerateProtocolChecksum_UDPIncorrectCRC( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
-    pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0x01;
+    pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0x00;
 
     prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
 
