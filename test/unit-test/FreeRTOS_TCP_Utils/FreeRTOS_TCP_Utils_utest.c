@@ -87,8 +87,11 @@ void test_prvTCPFlagMeaning_FlagGroup2( void )
 /* Test for prvSocketSetMSS function. */
 void test_prvSocketSetMSS_Reduced( void )
 {
+    NetworkEndPoint_t xEndPoint;
+
     pxSocket = &xSocket;
 
+    pxSocket->pxEndPoint = &xEndPoint;
     pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 = 0xC0C0C0C0;
 
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1400 );
@@ -99,8 +102,13 @@ void test_prvSocketSetMSS_Reduced( void )
 /* Test for prvSocketSetMSS function. */
 void test_prvSocketSetMSS_Normal( void )
 {
+    NetworkEndPoint_t xEndPoint;
+
     pxSocket = &xSocket;
 
+    xEndPoint.ipv4_settings.ulIPAddress = 0;
+    xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
+    pxSocket->pxEndPoint = &xEndPoint;
     pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 = 0x0;
 
     prvSocketSetMSS( pxSocket );
