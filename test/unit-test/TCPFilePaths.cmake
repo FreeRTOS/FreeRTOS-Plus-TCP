@@ -24,6 +24,7 @@ set( TCP_SOURCES
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_IP.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_IP_IPV4.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_Transmission.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_Transmission_IPV4.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_Reception.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_State_Handling.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_Utils.c"

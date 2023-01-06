@@ -154,6 +154,8 @@ void test_prvTCPSendPacket_Syn_State( void )
     pxSocket->u.xTCP.ucRepCount = 1;
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1000 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1234 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2345 );
@@ -217,6 +219,7 @@ void test_prvTCPSendPacket_Other_State_Zero_To_Send( void )
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
     pxSocket->u.xTCP.xLastAliveTime = 1000;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     xTaskGetTickCount_ExpectAndReturn( 2000 );
 
     BytesSent = prvTCPSendPacket( pxSocket );
@@ -252,6 +255,8 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
     pxSocket->u.xTCP.ucRepCount = 0;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 20 );
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &NewNetworkBuffer );
     /*vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs(); */
@@ -298,6 +303,7 @@ void test_prvTCPSendRepeated_Zero_To_Send( void )
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 0 );
 
     BytesSent = prvTCPSendRepeated( pxSocket, &pxNetworkBuffer );
@@ -309,6 +315,7 @@ void test_prvTCPSendRepeated_Repeat_8( void )
 {
     int32_t BytesSent = 0;
     UBaseType_t RepeatCount = 0;
+    struct xNetworkEndPoint xEndPoint;
 
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
@@ -327,10 +334,13 @@ void test_prvTCPSendRepeated_Repeat_8( void )
     pxSocket->u.xTCP.ucKeepRepCount = 1;
     pxSocket->u.xTCP.ucRepCount = 1;
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
+    pxSocket->pxEndPoint = &xEndPoint;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     for( RepeatCount = 0; RepeatCount < SEND_REPEATED_COUNT; RepeatCount++ )
     {
-        ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 20 ); /* data length may sent */
+        ulTCPWindowTxGet_IgnoreAndReturn( 20 ); /* data length may sent */
         uxStreamBufferDistance_ExpectAnyArgsAndReturn( 500 );
         uxStreamBufferGet_ExpectAnyArgsAndReturn( 20 );
         FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1000 );
@@ -365,6 +375,8 @@ void test_prvTCPReturnPacket_Null_Buffer_Null_Rx_Stream_KL( void )
     pxTCPWindow->xSize.ulRxWindowLength = 500;
     pxTCPWindow->rx.ulCurrentSequenceNumber = 0;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
@@ -391,6 +403,7 @@ void test_prvTCPReturnPacket_Null_Socket( void )
     uint32_t RxSequenceNumber = pxTCPPacket->xTCPHeader.ulSequenceNumber;
     uint32_t OurSequenceNumber = pxTCPPacket->xTCPHeader.ulAckNr;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
@@ -419,6 +432,7 @@ void test_prvTCPReturnPacket_Null_Socket_Relase_True( void )
     uint32_t RxSequenceNumber = pxTCPPacket->xTCPHeader.ulSequenceNumber;
     uint32_t OurSequenceNumber = pxTCPPacket->xTCPHeader.ulAckNr;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
@@ -438,6 +452,7 @@ void test_prvTCPReturnPacket_No_KL( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    struct xNetworkEndPoint xEndPoint;
 
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
@@ -452,7 +467,9 @@ void test_prvTCPReturnPacket_No_KL( void )
     pxTCPWindow->xSize.ulRxWindowLength = 500;
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
+    pxSocket->pxEndPoint = &xEndPoint;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
@@ -490,6 +507,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP( void )
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     *ipLOCAL_IP_ADDRESS_POINTER = 0xC0C0C0C0;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
@@ -533,6 +551,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_GT_Eth_Packet_Length( void )
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     *ipLOCAL_IP_ADDRESS_POINTER = 0xC0C0C0C0;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
@@ -581,6 +600,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_ARP_Not_Hit( void )
     pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes[ 5 ] = 0xBC;
     *ipLOCAL_IP_ADDRESS_POINTER = 0xC0C0C0C0;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
@@ -623,6 +643,8 @@ void test_prvTCPReturnPacket_No_KL_Fin_Suppress_Rx_Stop( void )
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxTCPPacket->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_FIN;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
@@ -662,6 +684,8 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Low_Water( void )
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxTCPPacket->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_FIN;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
@@ -701,6 +725,8 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Big_Win( void )
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxTCPPacket->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_FIN;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 0x10000 );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 0x10000 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
@@ -828,6 +854,8 @@ void test_prvTCPBufferResize_Fixed_Size_With_Buffer( void )
 
     xBufferAllocFixedSize = pdTRUE;
 
+    uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn(ipSIZE_OF_IPv4_HEADER);
+
     pReturn = prvTCPBufferResize( pxSocket, pxNetworkBuffer, 500, 0 );
     TEST_ASSERT_EQUAL_PTR( pxNetworkBuffer, pReturn );
     TEST_ASSERT_EQUAL( 554, pReturn->xDataLength );
@@ -866,6 +894,7 @@ void test_prvTCPBufferResize_Without_Buffer( void )
     NetworkBufferDescriptor_t NewNetworkBuffer;
     NewNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
 
+    uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn(ipSIZE_OF_IPv4_HEADER);
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &NewNetworkBuffer );
 
     pReturn = prvTCPBufferResize( pxSocket, NULL, 500, 0 );
@@ -886,6 +915,7 @@ void test_prvTCPBufferResize_Without_Buffer_Null_New_Buffer( void )
     NetworkBufferDescriptor_t NewNetworkBuffer;
     NewNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
 
+    uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn(ipSIZE_OF_IPv4_HEADER);
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     pReturn = prvTCPBufferResize( pxSocket, NULL, 500, 0 );
@@ -906,6 +936,7 @@ void test_prvTCPBufferResize_With_Buffer_LT_Needed_GT_Last_Packet( void )
     NetworkBufferDescriptor_t NewNetworkBuffer;
     NewNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
 
+    uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn(ipSIZE_OF_IPv4_HEADER);
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &NewNetworkBuffer );
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
 
@@ -928,6 +959,7 @@ void test_prvTCPBufferResize_With_Buffer_LT_Needed_LT_Last_Packet( void )
     NetworkBufferDescriptor_t NewNetworkBuffer;
     NewNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
 
+    uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn(ipSIZE_OF_IPv4_HEADER);
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &NewNetworkBuffer );
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
 
@@ -950,6 +982,7 @@ void test_prvTCPBufferResize_With_Buffer_GT_Needed( void )
     NewNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
 
     pxNetworkBuffer->xDataLength = 200;
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
 
     pReturn = prvTCPBufferResize( pxSocket, pxNetworkBuffer, 10, 0 );
     TEST_ASSERT_EQUAL_PTR( pxNetworkBuffer, pReturn );
@@ -973,6 +1006,7 @@ void test_prvTCPPrepareSend_State_Syn_Zero_Data( void )
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 0 );
 
     BytesSent = prvTCPPrepareSend( pxSocket, &pxNetworkBuffer, 0 );
@@ -996,6 +1030,7 @@ void test_prvTCPPrepareSend_State_Syn_Zero_Data_Win_Change( void )
     pxSocket->u.xTCP.usMSS = 1000;
     pxSocket->u.xTCP.bits.bWinChange = pdTRUE;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 0 );
 
     BytesSent = prvTCPPrepareSend( pxSocket, &pxNetworkBuffer, 0 );
@@ -1020,6 +1055,7 @@ void test_prvTCPPrepareSend_State_Syn_Zero_Data_Keep_Alive( void )
     pxSocket->u.xTCP.bits.bWinChange = pdFALSE;
     pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 0 );
 
     BytesSent = prvTCPPrepareSend( pxSocket, &pxNetworkBuffer, 0 );
@@ -1047,6 +1083,7 @@ void test_prvTCPPrepareSend_State_Established_Zero_Data_KLCount1_Age_GT_Max( voi
     pxSocket->u.xTCP.ucKeepRepCount = 1;
     pxSocket->u.xTCP.xLastAliveTime = 1000;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     xTaskGetTickCount_ExpectAndReturn( 6000 );
 
@@ -1074,6 +1111,7 @@ void test_prvTCPPrepareSend_State_Established_Null_Buffer_Zero_Data_KLCount0_Age
     pxSocket->u.xTCP.ucKeepRepCount = 0;
     pxSocket->u.xTCP.xLastAliveTime = 1000;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     xTaskGetTickCount_ExpectAndReturn( 5000 );
 
     BytesSent = prvTCPPrepareSend( pxSocket, &pxNetworkBuffer, 0 );
@@ -1100,6 +1138,7 @@ void test_prvTCPPrepareSend_State_Established_Null_Buffer_Zero_Data_KLCount1_Age
     pxSocket->u.xTCP.ucKeepRepCount = 1;
     pxSocket->u.xTCP.xLastAliveTime = 1000;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     xTaskGetTickCount_ExpectAndReturn( 6000 );
 
@@ -1129,6 +1168,8 @@ void test_prvTCPPrepareSend_State_Established_Zero_Data_KLCount1_Age_GT_Max_Win_
     pxSocket->u.xTCP.bits.bUserShutdown = pdFALSE;
     pxSocket->u.xTCP.ucKeepRepCount = 1;
     pxSocket->u.xTCP.xLastAliveTime = 1000;
+
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
 
     BytesSent = prvTCPPrepareSend( pxSocket, &pxNetworkBuffer, 0 );
     TEST_ASSERT_EQUAL( 40, BytesSent );
@@ -1161,7 +1202,7 @@ void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_No_Buffer( void )
     pxSocket->u.xTCP.bits.bUserShutdown = pdFALSE;
     pxSocket->u.xTCP.ucKeepRepCount = 1;
 
-
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 500 ); /* data length may sent */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
@@ -1195,6 +1236,7 @@ void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_MSS_0_KLCount4( void
     pxSocket->u.xTCP.ucKeepRepCount = 4;
     pxSocket->u.xTCP.xLastAliveTime = 1000;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     vTCPStateChange_ExpectAnyArgs();
 
     BytesSent = prvTCPPrepareSend( pxSocket, &pxNetworkBuffer, 0 );
@@ -1226,7 +1268,7 @@ void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_Not_Close_Not_ShutDo
     pxSocket->u.xTCP.bits.bUserShutdown = pdFALSE;
     pxSocket->u.xTCP.ucKeepRepCount = 1;
 
-
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 500 ); /* data length may sent */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( pxNetworkBuffer );
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
@@ -1262,6 +1304,7 @@ void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_Req_Close_Req_ShutDo
     pxSocket->u.xTCP.ucKeepRepCount = 1;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 500 ); /* data length may sent */
     uxStreamBufferDistance_ExpectAnyArgsAndReturn( 500 );
     uxStreamBufferGet_ExpectAnyArgsAndReturn( 20 );
@@ -1299,6 +1342,7 @@ void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_Req_Close_Req_ShutDo
     pxSocket->u.xTCP.ucKeepRepCount = 1;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 500 ); /* data length may sent */
     uxStreamBufferDistance_ExpectAnyArgsAndReturn( 500 );
     uxStreamBufferGet_ExpectAnyArgsAndReturn( 20 );
@@ -1335,7 +1379,7 @@ void test_prvTCPPrepareSend_State_Established_Non_Zero_Data_Req_Close_Req_ShutDo
     pxSocket->u.xTCP.ucKeepRepCount = 1;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
 
-
+    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 500 ); /* data length may sent */
     uxStreamBufferDistance_ExpectAnyArgsAndReturn( 500 );
     uxStreamBufferGet_ExpectAnyArgsAndReturn( 200 );
@@ -1404,6 +1448,8 @@ void test_prvSetOptions_Zero_Option_Syn_State_No_MSS_Change( void )
     pxTCPWindow->ucOptionLength = 0;
     pxTCPHeader->ucTCPOffset = 0x50;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+
     OptionLength = prvSetOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( 0, OptionLength );
     TEST_ASSERT_EQUAL( 0x50, pxTCPHeader->ucTCPOffset );
@@ -1427,6 +1473,8 @@ void test_prvSetOptions_Zero_Option_Syn_State_MSS_Change( void )
     pxTCPWindow->ucOptionLength = 0;
     pxTCPHeader->ucTCPOffset = 0x50;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+
     OptionLength = prvSetOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( 0, OptionLength );
     TEST_ASSERT_EQUAL( 0x50, pxTCPHeader->ucTCPOffset );
@@ -1448,6 +1496,8 @@ void test_prvSetOptions_Zero_Option_Establish_State_No_MSS_Change( void )
     pxSocket->u.xTCP.bits.bMssChange = pdFALSE;
     pxTCPWindow->ucOptionLength = 0;
     pxTCPHeader->ucTCPOffset = 0x50;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
 
     OptionLength = prvSetOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( 0, OptionLength );
@@ -1471,6 +1521,8 @@ void test_prvSetOptions_Zero_Option_Establish_State_MSS_Change( void )
     pxTCPWindow->ucOptionLength = 0;
     pxTCPHeader->ucTCPOffset = 0x50;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+
     OptionLength = prvSetOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( 4, OptionLength );
     TEST_ASSERT_EQUAL( 0x60, pxTCPHeader->ucTCPOffset );
@@ -1492,6 +1544,8 @@ void test_prvSetOptions_Establish_State_MSS_Change( void )
     pxSocket->u.xTCP.bits.bMssChange = pdTRUE;
     pxTCPWindow->ucOptionLength = 12;
     pxTCPHeader->ucTCPOffset = 0x50;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
 
     OptionLength = prvSetOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( 12, OptionLength );
@@ -1517,6 +1571,8 @@ void test_prvSendData_Zero_Sent( void )
     pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
     pxSocket->u.xTCP.pxAckMessage = NULL;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
 
     BytesSent = prvSendData( pxSocket, &pxNetworkBuffer, 1500, 40 );
     TEST_ASSERT_EQUAL( 0, BytesSent );
@@ -1544,6 +1600,7 @@ void test_prvSendData_Zero_Sent_AckMsg_Not_Null_Small_Length( void )
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
     pxSocket->u.xTCP.pxAckMessage = &AckMessage;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
 
     BytesSent = prvSendData( pxSocket, &pxNetworkBuffer, 100, 40 );
@@ -1570,6 +1627,8 @@ void test_prvSendData_Zero_Sent_AckMsg_Not_Null_Same_NetBuffer_Log( void )
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
     pxSocket->u.xTCP.pxAckMessage = pxNetworkBuffer;
     xTCPWindowLoggingLevel = 2;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
 
     BytesSent = prvSendData( pxSocket, &pxNetworkBuffer, 100, 40 );
     TEST_ASSERT_EQUAL( 0, BytesSent );
@@ -1609,6 +1668,7 @@ void test_prvSendData_AckMsg_Not_Null_Small_Length( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
@@ -1654,6 +1714,8 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
 
+    
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
@@ -1698,6 +1760,7 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State_Data_To_Send( voi
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
@@ -1742,6 +1805,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
@@ -1787,6 +1851,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Log( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
@@ -1832,6 +1897,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Rcv_Zero( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
@@ -1857,6 +1923,7 @@ void test_prvTCPSendSpecialPacketHelper( void )
     pxTCPPacket->xTCPHeader.ucTCPFlags = 0;
     pxTCPPacket->xTCPHeader.ucTCPOffset = 0;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
@@ -1881,6 +1948,7 @@ void test_prvTCPSendChallengeAck( void )
     pxTCPPacket->xTCPHeader.ucTCPFlags = 0;
     pxTCPPacket->xTCPHeader.ucTCPOffset = 0;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
@@ -1905,6 +1973,7 @@ void test_prvTCPSendReset( void )
     pxTCPPacket->xTCPHeader.ucTCPFlags = 0;
     pxTCPPacket->xTCPHeader.ucTCPOffset = 0;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
