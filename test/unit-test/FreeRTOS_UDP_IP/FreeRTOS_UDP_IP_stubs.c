@@ -42,6 +42,9 @@
 
 NetworkInterface_t xInterfaces[ 1 ];
 
+/** @brief The expected IP version and header length coded into the IP header itself. */
+#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
+
 /*
  * @brief Send a neighbour solicitation.
  * @param[in] pxIPAddress: A network buffer big enough to hold the ICMP packet.
@@ -94,44 +97,6 @@ void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBu
 void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
 }
-
-/**
- * @brief Process the received UDP packet.
- *
- * @param[in] pxNetworkBuffer: The network buffer carrying the UDP packet.
- * @param[in] usPort: The port number on which this packet was received.
- * @param[out] pxIsWaitingForARPResolution: If the packet is awaiting ARP resolution,
- *             this pointer will be set to pdTRUE. pdFALSE otherwise.
- *
- * @return pdPASS in case the UDP packet could be processed. Else pdFAIL is returned.
- */
-BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                           uint16_t usPort,
-                                           BaseType_t * pxIsWaitingForARPResolution )
-{
-}
-
-
-/*
- * Find the best fitting end-point to reach a given IP-address.
- * Find an end-point whose IP-address is in the same network as the IP-address provided.
- * 'ulWhere' is temporary and or debugging only.
- */
-NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
-                                                    uint32_t ulWhere )
-{
-}
-
-/**
- * @brief Process the generated UDP packet and do other checks before sending the
- *        packet such as ARP cache check and address resolution.
- *
- * @param[in] pxNetworkBuffer: The network buffer carrying the packet.
- */
-void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetworkBuffer )
-{
-}
-
 
 /**
  * @brief Process the received UDP packet.

@@ -28,7 +28,8 @@ set( TCP_SOURCES
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_Utils.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_WIN.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_Tiny_TCP.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_UDP_IP.c" )
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_UDP_IP.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_UDP_IPv4.c" )
 
 # TCP library Include directories.
 set( TCP_INCLUDE_DIRS
