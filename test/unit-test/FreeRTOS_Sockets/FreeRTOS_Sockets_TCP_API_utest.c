@@ -896,6 +896,8 @@ void test_FreeRTOS_send_ExactSpaceInStreamBuffer( void )
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdPASS );
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+
     xReturn = FreeRTOS_send( &xSocket, pvBuffer, uxDataLength, xFlags );
 
     TEST_ASSERT_EQUAL( uxDataLength, xReturn );
@@ -912,6 +914,7 @@ void test_FreeRTOS_send_ExactSpaceInStreamBuffer( void )
     uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, pvBuffer, uxDataLength, uxDataLength );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdPASS );
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xReturn = FreeRTOS_send( &xSocket, pvBuffer, uxDataLength, xFlags );
 
     TEST_ASSERT_EQUAL( uxDataLength, xReturn );
@@ -947,6 +950,7 @@ void test_FreeRTOS_send_MoreSpaceInStreamBuffer( void )
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdPASS );
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xReturn = FreeRTOS_send( &xSocket, pvBuffer, uxDataLength, xFlags );
 
     TEST_ASSERT_EQUAL( uxDataLength, xReturn );
@@ -1032,6 +1036,7 @@ void test_FreeRTOS_send_LessSpaceInStreamBuffer_EventuallySpaceAvailable( void )
     uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, &pvBuffer[ 80 ], 20, 20 );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdFALSE );
+    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
 
     xReturn = FreeRTOS_send( &xSocket, pvBuffer, uxDataLength, xFlags );
 
@@ -1117,6 +1122,8 @@ void test_FreeRTOS_send_IPTaskWithNULLBuffer( void )
     uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength - 20 );
 
     uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, NULL, uxDataLength - 20, uxDataLength - 20 );
+
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
