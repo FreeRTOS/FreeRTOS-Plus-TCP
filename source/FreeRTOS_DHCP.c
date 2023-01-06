@@ -795,11 +795,7 @@
  */
     static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
     {
-        if( ( EP_DHCPData.xDHCPSocket == NULL ) || ( EP_DHCPData.xDHCPSocket != xDHCPv4Socket ) )
-        {
-            /* the socket can not be closed. */
-        }
-        else if( xDHCPSocketUserCount > 0 )
+        if( xDHCPv4Socket != NULL && xDHCPSocketUserCount > 0 )
         {
             xDHCPSocketUserCount--;
 
@@ -810,8 +806,6 @@
                 ( void ) vSocketClose( xDHCPv4Socket );
                 xDHCPv4Socket = NULL;
             }
-
-            EP_DHCPData.xDHCPSocket = NULL;
         }
         else
         {
@@ -835,7 +829,7 @@
         BaseType_t xReturn;
         TickType_t xTimeoutTime = ( TickType_t ) 0;
 
-        if( ( xDHCPv4Socket != NULL ) && ( EP_DHCPData.xDHCPSocket == xDHCPv4Socket ) )
+        if( xDHCPv4Socket != NULL )
         {
             /* the socket is still valid. */
         }
@@ -879,8 +873,6 @@
         {
             xDHCPSocketUserCount++;
         }
-
-        EP_DHCPData.xDHCPSocket = xDHCPv4Socket;
     }
     /*-----------------------------------------------------------*/
 
