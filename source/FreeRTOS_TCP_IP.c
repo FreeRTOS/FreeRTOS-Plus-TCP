@@ -484,7 +484,7 @@
                 {
                     FreeRTOS_debug_printf( ( "Socket %u -> %xip:%u State %s->%s\n",
                                              pxSocket->usLocalPort,
-                                             ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
+                                             ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
                                              pxSocket->u.xTCP.usRemotePort,
                                              FreeRTOS_GetTCPStateName( ( UBaseType_t ) xPreviousState ),
                                              FreeRTOS_GetTCPStateName( ( UBaseType_t ) eTCPState ) ) );
@@ -544,7 +544,7 @@
             }
 
             FreeRTOS_debug_printf( ( "Connect[%xip:%u]: next timeout %u: %u ms\n",
-                                     ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, pxSocket->u.xTCP.usRemotePort,
+                                     ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4, pxSocket->u.xTCP.usRemotePort,
                                      pxSocket->u.xTCP.ucRepCount, ( unsigned ) ulDelayMs ) );
             pxSocket->u.xTCP.usTimeout = ( uint16_t ) ipMS_TO_MIN_TICKS( ulDelayMs );
         }
@@ -613,11 +613,11 @@
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
-        {
-            xResult = xProcessReceivedTCPPacket_IPV6( pxDescriptor );
-        }
-        else
+            if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
+            {
+                xResult = xProcessReceivedTCPPacket_IPV6( pxDescriptor );
+            }
+            else
         {
             xResult = xProcessReceivedTCPPacket_IPV4( pxDescriptor );
         }

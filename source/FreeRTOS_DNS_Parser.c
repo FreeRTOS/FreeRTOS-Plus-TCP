@@ -61,7 +61,7 @@
         {
             NetworkEndPoint_t * pxEndPoint;
 
-            #if ( ipconfigUSE_IPV6 != 0 )
+            #if ( ipconfigUSE_IPv6 != 0 )
                 IPPacket_IPv6_t * xIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
                 if( xIPPacket_IPv6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
@@ -69,7 +69,7 @@
                     pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &xIPPacket_IPv6->xIPHeader.xSourceAddress );
                 }
                 else
-            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
             {
                 IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
@@ -99,9 +99,7 @@
     {
         size_t uxNameLen = 0U;
         size_t uxIndex = 0U;
-        size_t uxReturnIndex = 0U;
         size_t uxSourceLen = pxSet->uxSourceBytesRemaining;
-        size_t uxOffset;
         const uint8_t * pucByte = pxSet->pucByte;
 
         /* uxCount gets the values from pucByte and counts down to 0.
@@ -470,18 +468,18 @@
                          * to write into it. */
                         ( void ) memcpy( &( xEndPoint ), pxEndPoint, sizeof( xEndPoint ) );
 
-                        #if ( ipconfigUSE_IPV6 != 0 )
+                        #if ( ipconfigUSE_IPv6 != 0 )
                             {
                                 /*logging*/
-                                FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest[%s]: type %04X\n", pxSet->pcName, pxSet->usType ) );
+                                FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest[%s]: type %04X\n", xSet.pcName, xSet.usType ) );
 
                                 xEndPoint.usDNSType = xSet.usType;
                             }
-                        #endif /* ( ipconfigUSE_IPV6 != 0 ) */
+                        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
                         /* If this is not a reply to our DNS request, it might an LLMNR
                          * request. */
-                        if( xApplicationDNSQueryHook( &xEndPoint, xSet.pcName ) != pdFALSE )
+                        if( xApplicationDNSQueryHook( &xEndPoint, xSet.pcName ) )
                         {
                             int16_t usLength;
                             NetworkBufferDescriptor_t * pxNewBuffer = NULL;
@@ -494,17 +492,17 @@
                                 if( xBufferAllocFixedSize == pdFALSE )
                                 {
                                     size_t uxDataLength = uxBufferLength +
-                                                            sizeof( UDPHeader_t ) +
-                                                            sizeof( EthernetHeader_t ) +
-                                                            uxIPHeaderSizePacket( pxNetworkBuffer );
+                                                          sizeof( UDPHeader_t ) +
+                                                          sizeof( EthernetHeader_t ) +
+                                                          uxIPHeaderSizePacket( pxNetworkBuffer );
 
-                                    #if ( ipconfigUSE_IPV6 != 0 )
+                                    #if ( ipconfigUSE_IPv6 != 0 )
                                         if( xSet.usType == dnsTYPE_AAAA_HOST )
                                         {
                                             uxExtraLength = sizeof( LLMNRAnswer_t ) + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress );
                                         }
                                         else
-                                    #endif /* ( ipconfigUSE_IPV6 != 0 ) */
+                                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
                                     {
                                         uxExtraLength = sizeof( LLMNRAnswer_t );
                                     }
@@ -512,8 +510,8 @@
                                     /* Set the size of the outgoing packet. */
                                     pxNetworkBuffer->xDataLength = uxDataLength;
                                     pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
-                                                                                            uxDataLength +
-                                                                                            uxExtraLength );
+                                                                                          uxDataLength +
+                                                                                          uxExtraLength );
 
                                     if( pxNewBuffer != NULL )
                                     {
@@ -563,22 +561,22 @@
 
                                 usLength = ( int16_t ) ( sizeof( *pxAnswer ) + ( size_t ) ( xSet.pucByte - pucNewBuffer ) );
 
-                                if( xSet.usType == dnsTYPE_AAAA_HOST )
-                                {
-                                    size_t uxDistance;
-                                    NetworkEndPoint_t * pxReplyEndpoint = FreeRTOS_FirstEndPoint_IPv6( NULL );
-
-                                    if( pxReplyEndpoint == NULL )
+                                    if( xSet.usType == dnsTYPE_AAAA_HOST )
                                     {
-                                        break;
-                                    }
+                                        size_t uxDistance;
+                                        NetworkEndPoint_t * pxReplyEndpoint = FreeRTOS_FirstEndPoint_IPv6( NULL );
 
-                                    vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, ipSIZE_OF_IPv6_ADDRESS );
-                                    ( void ) memcpy( &( pxAnswer->ulIPAddress ), pxReplyEndpoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                                    uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
-                                    usLength = ipNUMERIC_CAST( int16_t, sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress ) );
-                                }
-                                else
+                                        if( pxReplyEndpoint == NULL )
+                                        {
+                                            break;
+                                        }
+
+                                        vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, ipSIZE_OF_IPv6_ADDRESS );
+                                        ( void ) memcpy( &( pxAnswer->ulIPAddress ), pxReplyEndpoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                                        uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
+                                        usLength = ipNUMERIC_CAST( int16_t, sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress ) );
+                                    }
+                                    else
                                 {
                                     /*logging*/
                                     FreeRTOS_printf( ( "LLMNR return IPv4 %lxip\n", FreeRTOS_ntohl( xEndPoint.ipv4_settings.ulIPAddress ) ) );
@@ -597,7 +595,6 @@
                                 }
                             }
                         }
-                        
                         else
                         {
                             /* Not an expected reply. */
@@ -647,7 +644,7 @@
 
         for( x = 0U; x < pxSet->pxDNSMessageHeader->usAnswers; x++ )
         {
-            BaseType_t xDoAccept;
+            BaseType_t xDoAccept = pdFALSE;
 
             if( pxSet->usNumARecordsStored >= usCount )
             {
@@ -722,24 +719,24 @@
                 if( FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ) ==
                     ( uint16_t ) pxSet->uxAddressLength )
                 {
-                    if( ( pxSet->uxAddressLength == ipSIZE_OF_IPv6_ADDRESS ) && ( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST ) )
-                    {
-                        ( void ) memcpy( xIP_Address.xAddress_IPv6.ucBytes,
-                                         &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] ),
-                                         ipSIZE_OF_IPv6_ADDRESS );
-
-                        if( ppxAddressInfo != NULL )
+                        if( ( pxSet->uxAddressLength == ipSIZE_OF_IPv6_ADDRESS ) && ( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST ) )
                         {
-                            pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET6, xIP_Address.xAddress_IPv6.ucBytes );
+                            ( void ) memcpy( xIP_Address.xAddress_IPv6.ucBytes,
+                                             &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] ),
+                                             ipSIZE_OF_IPv6_ADDRESS );
+
+                            if( ppxAddressInfo != NULL )
+                            {
+                                pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET6, xIP_Address.xAddress_IPv6.ucBytes );
+                            }
+
+                            xIP_Address.xIs_IPv6 = pdTRUE;
+
+                            /* Return non-zero to inform the caller that a valid
+                             * IPv6 address was found. */
+                            pxSet->ulIPAddress = 1U;
                         }
-
-                        xIP_Address.xIs_IPv6 = pdTRUE;
-
-                        /* Return non-zero to inform the caller that a valid
-                         * IPv6 address was found. */
-                        pxSet->ulIPAddress = 1U;
-                    }
-                    else
+                        else
                     {
                         void * pvCopyDest;
                         const void * pvCopySource;
@@ -787,7 +784,7 @@
                         {
                             BaseType_t xCallbackResult;
 
-                            #if ( ipconfigUSE_IPV6 != 0 )
+                            #if ( ipconfigUSE_IPv6 != 0 )
                                 {
                                     xCallbackResult = xDNSDoCallback( pxSet, ( ppxAddressInfo != NULL ) ? *( ppxAddressInfo ) : NULL );
                                 }
@@ -795,7 +792,7 @@
                                 {
                                     xCallbackResult = xDNSDoCallback( pxSet, pxSet->ulIPAddress );
                                 }
-                            #endif /* ( ipconfigUSE_IPV6 != 0 ) */
+                            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
                             /* See if any asynchronous call was made to FreeRTOS_gethostbyname_a() */
                             if( xCallbackResult != pdFALSE )
@@ -808,7 +805,7 @@
                     #endif /* ipconfigDNS_USE_CALLBACKS == 1 */
                     #if ( ipconfigUSE_DNS_CACHE == 1 )
                         {
-                            char cBuffer[ 16 ];
+                            char cBuffer[ 40 ];
 
                             /* The reply will only be stored in the DNS cache when the
                              * request was issued by this device. */
@@ -825,8 +822,6 @@
 
                             if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
                             {
-                                char cBuffer[ 40 ];
-
                                 ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) xIP_Address.xAddress_IPv6.ucBytes, cBuffer, sizeof( cBuffer ) );
                                 FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s been stored\n",
                                                    ( unsigned ) pxSet->pxDNSMessageHeader->usIdentifier,
@@ -841,7 +836,7 @@
                                                              cBuffer,
                                                              ( socklen_t ) sizeof( cBuffer ) );
                                 /* Show what has happened. */
-                                FreeRTOS_printf( ( "DNS[0x%04lX]: The answer to '%s' (%s) will%s be stored\n",
+                                FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s be stored\n",
                                                    pxSet->pxDNSMessageHeader->usIdentifier,
                                                    pxSet->pcName,
                                                    cBuffer,
@@ -929,27 +924,27 @@
                             pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxUDPPacket->xIPHeader;
 
-            if( ( ( uxIPHeaderLength == ipSIZE_OF_IPv6_HEADER ) && ( ( pxIPHeader->ucVersionHeaderLength & 0xf0U ) == 0x60U ) ) )
-            {
-                UDPPacket_IPv6_t * xUDPPacket_IPv6;
-                IPHeader_IPv6_t * pxIPHeader_IPv6;
-
-                xUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-                pxIPHeader_IPv6 = &( xUDPPacket_IPv6->xIPHeader );
-                pxUDPHeader = &xUDPPacket_IPv6->xUDPHeader;
-
-                pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
-
+                if( ( ( uxIPHeaderLength == ipSIZE_OF_IPv6_HEADER ) && ( ( pxIPHeader->ucVersionHeaderLength & 0xf0U ) == 0x60U ) ) )
                 {
-                    ( void ) memcpy( pxIPHeader_IPv6->xDestinationAddress.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                    ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                }
+                    UDPPacket_IPv6_t * xUDPPacket_IPv6;
+                    IPHeader_IPv6_t * pxIPHeader_IPv6;
 
-                xUDPPacket_IPv6->xUDPHeader.usLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
-                vFlip_16( pxUDPHeader->usSourcePort, pxUDPHeader->usDestinationPort );
-                uxDataLength = ( size_t ) lNetLength + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER + ipSIZE_OF_ETH_HEADER;
-            }
-            else
+                    xUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+                    pxIPHeader_IPv6 = &( xUDPPacket_IPv6->xIPHeader );
+                    pxUDPHeader = &xUDPPacket_IPv6->xUDPHeader;
+
+                    pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
+
+                    {
+                        ( void ) memcpy( pxIPHeader_IPv6->xDestinationAddress.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    }
+
+                    xUDPPacket_IPv6->xUDPHeader.usLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
+                    vFlip_16( pxUDPHeader->usSourcePort, pxUDPHeader->usDestinationPort );
+                    uxDataLength = ( size_t ) lNetLength + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER + ipSIZE_OF_ETH_HEADER;
+                }
+                else
             {
                 pxUDPHeader = &pxUDPPacket->xUDPHeader;
                 /* HT: started using defines like 'ipSIZE_OF_xxx' */
@@ -990,7 +985,7 @@
 
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
                 {
-                    #if ( ipconfigUSE_IPV6 != 0 )
+                    #if ( ipconfigUSE_IPv6 != 0 )
                         /* IPv6 IP-headers have no checksum field. */
                         if( ( pxIPHeader->ucVersionHeaderLength & 0xf0U ) != 0x60U )
                     #endif
@@ -1091,7 +1086,7 @@
                             IPv46_Address_t xIPAddress;
 
                             xIPAddress.ulIPAddress = ulIPAddress;
-                            #if ( ipconfigUSE_IPV6 != 0 )
+                            #if ( ipconfigUSE_IPv6 != 0 )
                                 {
                                     xIPAddress.xIs_IPv6 = pdFALSE;
                                 }
@@ -1132,7 +1127,7 @@
                             ( void ) memcpy( &xEndPoint, pxNetworkBuffer->pxEndPoint, sizeof( xEndPoint ) );
                         }
 
-                        #if ( ipconfigUSE_IPV6 != 0 )
+                        #if ( ipconfigUSE_IPv6 != 0 )
                             {
                                 xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
                             }

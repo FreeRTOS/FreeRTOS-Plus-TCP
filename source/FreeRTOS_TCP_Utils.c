@@ -32,16 +32,19 @@
  * Endianness: in this module all ports and IP addresses are stored in
  * host byte-order, except fields in the IP-packets
  */
+
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Routing.h"
 
 #include "FreeRTOS_TCP_Utils.h"
 
@@ -60,7 +63,6 @@
  *
  * @return The string containing the flags.
  */
-
         static char retString[ 10 ];
         const char * prvTCPFlagMeaning( UBaseType_t xFlags )
         {
@@ -78,9 +80,8 @@
                                ( ( uxFlags & ( size_t ) tcpTCP_FLAG_CWR ) != 0 ) ? 'C' : '.' ); /* 0x0080: Congestion Window Reduced */
             return retString;
         }
-        /*-----------------------------------------------------------*/
-
-    #endif /* ipconfigHAS_DEBUG_PRINTF */
+    #endif /* #if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
+    /*-----------------------------------------------------------*/
 
 /**
  * @brief Set the MSS (Maximum segment size) associated with the given socket.

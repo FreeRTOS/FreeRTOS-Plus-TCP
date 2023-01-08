@@ -51,6 +51,7 @@
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_DHCP.h"
+#include "FreeRTOS_ND.h"
 #include "FreeRTOS_IP_Utils.h"
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
@@ -59,11 +60,46 @@
     #include "FreeRTOS_DNS.h"
 #endif
 
+/* *INDENT-OFF* */
+    #if( ipconfigUSE_IPv6 != 0 )
+/* *INDENT-ON* */
+
+
 /** @brief The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 
 /*-----------------------------------------------------------*/
 
+/* _HT_ this is a temporary aid while testing. In case an end-0point is not found,
+ * this function will return the first end-point of the required type,
+ * either 'ipTYPE_IPv4' or 'ipTYPE_IPv6' */
+extern NetworkEndPoint_t* pxGetEndpoint( BaseType_t xIPType );
+
+NetworkEndPoint_t* pxGetEndpoint( BaseType_t xIPType )
+{
+    NetworkEndPoint_t * pxEndPoint;
+    
+    for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+         pxEndPoint != NULL;
+         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+    {
+        if( xIPType == ipTYPE_IPv6 )
+        {
+            if( pxEndPoint->bits.bIPv6 != 0U )
+            {
+                break;
+            }
+        }
+        else
+        {
+            if( pxEndPoint->bits.bIPv6 == 0U )
+            {
+                break;
+            }
+        }
+    }
+    return pxEndPoint;
+}
 /**
  * @brief This function is called in case the IP-address was not found,
  *        i.e. in the cache 'eARPCacheMiss' was returned.
@@ -88,7 +124,11 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
                            pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
                            ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
-
+        if( pxNetworkBuffer->pxEndPoint == NULL)
+        {
+            pxNetworkBuffer->pxEndPoint = pxGetEndpoint( ipTYPE_IPv6 );
+            FreeRTOS_printf( ( "prvStartLookup: Got an end-point: %s\n", pxNetworkBuffer->pxEndPoint ? "yes" : "no" ) );
+        }
         if( pxNetworkBuffer->pxEndPoint != NULL )
         {
             vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
@@ -100,10 +140,10 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
     }
     else
     {
-        ulIPAddress = pxNetworkBuffer->xIPAddress.xIP_IPv4;
+        ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
 
         FreeRTOS_printf( ( "Looking up %xip with%s end-point\n",
-                           ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->xIPAddress.xIP_IPv4 ),
+                           ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ),
                            ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
 
         /* Add an entry to the ARP table with a null hardware address.
@@ -112,12 +152,12 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         vARPRefreshCacheEntry( NULL, ulIPAddress, NULL );
 
         /* Generate an ARP for the required IP address. */
-        iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.xIP_IPv4 );
+        iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
 
         /* 'ulIPAddress' might have become the address of the Gateway.
          * Find the route again. */
 
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.xIP_IPv4, 11 );
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11 );
 
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
@@ -125,7 +165,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         }
         else
         {
-            pxNetworkBuffer->xIPAddress.xIP_IPv4 = ulIPAddress;
+            pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ulIPAddress;
             vARPGenerateRequestPacket( pxNetworkBuffer );
         }
     }
@@ -146,11 +186,8 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     UDPPacket_IPv6_t * pxUDPPacket_IPv6 = NULL;
     IPHeader_t * pxIPHeader;
     eARPLookupResult_t eReturned;
-    uint32_t ulIPAddress;
     size_t uxPayloadSize;
     /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-    const void * pvCopySource;
-    void * pvCopyDest;
     NetworkInterface_t * pxInterface = NULL;
     EthernetHeader_t * pxEthernetHeader = NULL;
     BaseType_t xLostBuffer = pdFALSE;
@@ -163,10 +200,6 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
-
-
-    BaseType_t xIsIPV6 = pdTRUE;
 
     /* Remember the original address. It might get replaced with
      * the address of the gateway. */
@@ -194,7 +227,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
                 uint8_t ucSocketOptions;
             #endif
-            iptraceSENDING_UDP_PACKET( pxNetworkBuffer->xIPAddress.xIP_IPv4 );
+            iptraceSENDING_UDP_PACKET( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
 
             /* Create short cuts to the data within the packet. */
             pxIPHeader = &( pxUDPPacket->xIPHeader );
@@ -337,7 +370,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
                 }
             #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
             iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-            ( void ) xNetworkInterfaceOutput( pxNetworkBuffer, pdTRUE );
+            ( void )pxInterface->pfOutput( pxInterface, pxNetworkBuffer, pdTRUE );
         }
         else
         {
@@ -374,13 +407,6 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
     UDPPacket_IPv6_t * pxUDPPacket_IPv6;
-
-    /* Map the ethernet buffer to the UDPPacket_t struct for easy access to the fields. */
-
-    /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-    /* coverity[misra_c_2012_rule_11_3_violation] */
-    const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     /* Caller must check for minimum packet size. */
     pxSocket = pxUDPSocketLookup( usPort );
@@ -422,8 +448,8 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
                         xSourceAddress.sin_port = pxNetworkBuffer->usPort;
                         destinationAddress.sin_port = usPort;
-                        ( void ) memcpy( xSourceAddress.sin_addr.xIP_IPv6.ucBytes, pxUDPPacket_IPv6->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                        ( void ) memcpy( destinationAddress.sin_addr.xIP_IPv6.ucBytes, pxUDPPacket_IPv6->xIPHeader.xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        ( void ) memcpy( xSourceAddress.sin_addr6.ucBytes, pxUDPPacket_IPv6->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        ( void ) memcpy( destinationAddress.sin_addr6.ucBytes, pxUDPPacket_IPv6->xIPHeader.xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                         xSourceAddress.sin_family = ( uint8_t ) FREERTOS_AF_INET6;
                         destinationAddress.sin_family = ( uint8_t ) FREERTOS_AF_INET6;
                         xSourceAddress.sin_len = ( uint8_t ) sizeof( xSourceAddress );
@@ -512,6 +538,12 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
         }
         else
         {
+            ProtocolHeaders_t * pxProtocolHeaders;
+            size_t uxIPLength;
+
+            uxIPLength = uxIPHeaderSizePacket( pxNetworkBuffer );
+            pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPLength ] ) );
+
             /* There is no socket listening to the target port, but still it might
              * be for this node. */
 
@@ -521,7 +553,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                  * does open a UDP socket to send a messages, this socket will be
                  * closed after a short timeout.  Messages that come late (after the
                  * socket is closed) will be treated here. */
-                if( FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usSourcePort ) == ( uint16_t ) ipDNS_PORT )
+                if( FreeRTOS_ntohs( pxProtocolHeaders->xUDPHeader.usSourcePort ) == ( uint16_t ) ipDNS_PORT )
                 {
                     xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
                 }
@@ -531,7 +563,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
             #if ( ipconfigUSE_LLMNR == 1 )
                 /* A LLMNR request, check for the destination port. */
                 if( ( usPort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) ||
-                    ( pxUDPPacket->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) )
+                    ( pxProtocolHeaders->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) )
                 {
                     xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
                 }
@@ -556,3 +588,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
     return xReturn;
 }
 /*-----------------------------------------------------------*/
+
+/* *INDENT-OFF* */
+    #endif /* ipconfigUSE_IPv6 != 0 ) */
+/* *INDENT-ON* */

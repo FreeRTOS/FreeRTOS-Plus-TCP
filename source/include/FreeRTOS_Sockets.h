@@ -173,13 +173,18 @@
  */
     struct freertos_sockaddr
     {
-        uint8_t sin_len;       /**< length of this structure. */
-        uint8_t sin_family;    /**< FREERTOS_AF_INET. */
-        uint16_t sin_port;     /**< The port. */
-        uint32_t sin_flowinfo; /**< IPv6 flow information, not used in this library. */
-        IP_Address_t sin_addr; /**< The IPv4/IPv6 address. */
+        uint8_t sin_len;          /**< length of this structure. */
+        uint8_t sin_family;       /**< FREERTOS_AF_INET. */
+        uint16_t sin_port;        /**< The port. */
+        uint32_t sin_flowinfo;    /**< IPv6 flow information, not used in this library. */
+        IP_Address_t sin_address; /**< The IPv4/IPv6 address. */
     };
-    /** Introduce a short name to make casting easier. */
+    #define sin_addr              sin_address.ulIP_IPv4
+    #define sin_addr4             sin_address.ulIP_IPv4
+    #define sin_addr6             sin_address.xIP_IPv6
+    #define freertos_sockaddr6    freertos_sockaddr
+
+/** Introduce a short name to make casting easier. */
     typedef struct freertos_sockaddr   xFreertosSocAddr;
 
 /* The socket type itself. */
@@ -480,11 +485,8 @@
                                      char * pcDestination,
                                      socklen_t uxSize );
 
-/**
- * @brief Convert an ASCII character to its corresponding hexadecimal value.
- *        Accepted characters are 0-9, a-f, and A-F.
- */
-    uint8_t ucASCIIToHex( char cChar );
+    BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
+                                    void * pvDestination );
 
 /** @brief This function converts a human readable string, representing an 48-bit MAC address,
  * into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba". */

@@ -51,7 +51,7 @@
 #include "NetworkBufferManagement.h"
 
 /* The entire module FreeRTOS_ND.c is skipped when IPv6 is not used. */
-#if ( ipconfigUSE_IPV6 != 0 )
+#if ( ipconfigUSE_IPv6 != 0 )
 
 /** @brief Type of Neighbour Advertisement packets. */
     #define ndICMPv6_FLAG_SOLICITED                       0x40000000U
@@ -623,7 +623,7 @@
             uint8_t * pucChar;
             IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
             NetworkEndPoint_t * pxEndPoint;
-            size_t uxPacketLength;
+            size_t uxPacketLength = 0U;
 
             pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( pxIPAddress );
 
@@ -713,6 +713,7 @@
                     ( void ) memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     /* Let vProcessGeneratedUDPPacket() know that this is an ICMP packet. */
                     pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
+                    /* 'uxPacketLength' is initialised due to the flow of the program. */
                     pxNetworkBuffer->xDataLength = uxPacketLength;
 
                     /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -1109,7 +1110,7 @@
                 ( void ) memcpy( pxIPAddress->ucBytes, pxPrefix->ucBytes, ( uxPrefixLength + 7U ) / 8U );
             }
 
-            pucSource = ipPOINTER_CAST( uint8_t *, pulRandom );
+            pucSource = ( uint8_t * ) pulRandom;
             size_t uxIndex = uxPrefixLength / 8U;
 
             if( ( uxPrefixLength % 8U ) != 0U )
@@ -1135,4 +1136,4 @@
     }
 /*-----------------------------------------------------------*/
 
-#endif /* ipconfigUSE_IPV6 */
+#endif /* ipconfigUSE_IPv6 */

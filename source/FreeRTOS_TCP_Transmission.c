@@ -250,11 +250,14 @@
     {
         const NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
 
-        if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
-        {
-            prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
-        }
-        else
+        #if ( ipconfigUSE_IPv6 == 1 )
+            /* _HT_ temporary change for debugging. */
+            if( ( pxNetworkBuffer != NULL ) && ( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER ) )
+            {
+                prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+            }
+            else
+        #endif /* ( ipconfigUSE_IPv6 == 0 ) */
         {
             prvTCPReturnPacket_IPV4( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
         }
@@ -459,11 +462,11 @@
     {
         BaseType_t xReturn = pdTRUE;
 
-        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
-        {
-            xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
-        }
-        else
+            if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+            {
+                xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
+            }
+            else
         {
             xReturn = prvTCPPrepareConnect_IPV4( pxSocket );
         }
@@ -587,7 +590,7 @@
                                                     UBaseType_t uxOptionsLength )
     {
         NetworkBufferDescriptor_t * pxReturn;
-        size_t uxNeeded, uxIPHeaderSize, uxTCPPacketSize;
+        size_t uxNeeded;
         BaseType_t xResize;
 
         if( xBufferAllocFixedSize != pdFALSE )
@@ -611,22 +614,12 @@
         {
             /* Network buffers are created with a variable size. See if it must
              * grow. */
-            uxIPHeaderSize = uxIPHeaderSizeSocket( pxSocket );
-            uxNeeded = ipSIZE_OF_ETH_HEADER + uxIPHeaderSize + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
+            uxNeeded = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
             uxNeeded += ( size_t ) lDataLen;
 
-            if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER ) 
+            if( uxNeeded < sizeof( pxSocket->u.xTCP.xPacket.u.ucLastPacket ) )
             {
-                uxTCPPacketSize = sizeof( TCPPacket_IPv6_t );
-            } 
-            else 
-            {
-                uxTCPPacketSize = sizeof( TCPPacket_t );
-            }
-
-            if( uxNeeded < uxTCPPacketSize )
-            {
-                uxNeeded = uxTCPPacketSize;
+                uxNeeded = sizeof( pxSocket->u.xTCP.xPacket.u.ucLastPacket );
             }
 
             /* In case we were called from a TCP timer event, a buffer must be
@@ -696,7 +689,7 @@
     {
         const IPHeader_t * pxIPHeader = NULL;
 
-        #if ( ipconfigUSE_IPV6 != 0 )
+        #if ( ipconfigUSE_IPv6 != 0 )
             const IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
         #endif
 
@@ -708,7 +701,6 @@
         {
             FreeRTOS_printf( ( "prvTCPReturnPacket: No pxEndPoint yet?\n" ) );
 
-            #if ( ipconfigUSE_IPV6 != 0 )
                 if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
                 {
                     /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -725,7 +717,6 @@
                     }
                 }
                 else
-            #endif /* ipconfigUSE_IPV6 */
             {
                 /*_RB_ Was FreeRTOS_FindEndPointOnIP_IPv4() but changed to FreeRTOS_FindEndPointOnNetMask()
                  * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */
@@ -1274,11 +1265,11 @@
             ( void ) ucTCPFlags;
         #else
             {
-                if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
-                {
-                    xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
-                }
-                else
+                    if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+                    {
+                        xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
+                    }
+                    else
                 {
                     xReturn = prvTCPSendSpecialPktHelper_IPV4( pxNetworkBuffer, ucTCPFlags );
                 }

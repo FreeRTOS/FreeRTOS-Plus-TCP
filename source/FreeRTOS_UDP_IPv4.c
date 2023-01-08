@@ -75,7 +75,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
     UDPPacket_t * pxUDPPacket;
     IPHeader_t * pxIPHeader;
     eARPLookupResult_t eReturned;
-    uint32_t ulIPAddress = pxNetworkBuffer->xIPAddress.xIP_IPv4;
+    uint32_t ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
     NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
     size_t uxPayloadSize;
     /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
@@ -115,7 +115,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
                 uint8_t ucSocketOptions;
             #endif
-            iptraceSENDING_UDP_PACKET( pxNetworkBuffer->xIPAddress.xIP_IPv4 );
+            iptraceSENDING_UDP_PACKET( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
 
             /* Create short cuts to the data within the packet. */
             pxIPHeader = &( pxUDPPacket->xIPHeader );
@@ -188,7 +188,8 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             }
 
             pxIPHeader->usLength = FreeRTOS_htons( pxIPHeader->usLength );
-            pxIPHeader->ulDestinationIPAddress = pxNetworkBuffer->xIPAddress.xIP_IPv4;
+            pxIPHeader->ulSourceIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
+            pxIPHeader->ulDestinationIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
 
             /* The stack doesn't support fragments, so the fragment offset field must always be zero.
              * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
@@ -203,7 +204,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
                 {
                     /* LLMNR messages are typically used on a LAN and they're
                      * not supposed to cross routers */
-                    if( pxNetworkBuffer->xIPAddress.xIP_IPv4 == ipLLMNR_IP_ADDR )
+                    if( pxNetworkBuffer->xIPAddress.ulIP_IPv4 == ipLLMNR_IP_ADDR )
                     {
                         pxIPHeader->ucTimeToLive = 0x01;
                     }
@@ -235,12 +236,12 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             vARPRefreshCacheEntry( NULL, ulIPAddress, NULL );
 
             /* Generate an ARP for the required IP address. */
-            iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.xIP_IPv4 );
+            iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
 
             /* 'ulIPAddress' might have become the address of the Gateway.
              * Find the route again. */
 
-            pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.xIP_IPv4, 11 );
+            pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11 );
 
             if( pxNetworkBuffer->pxEndPoint == NULL )
             {
@@ -248,7 +249,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             }
             else
             {
-                pxNetworkBuffer->xIPAddress.xIP_IPv4 = ulIPAddress;
+                pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ulIPAddress;
                 vARPGenerateRequestPacket( pxNetworkBuffer );
             }
         }
@@ -287,7 +288,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
                 }
             #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
             iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-            ( void ) xNetworkInterfaceOutput( pxInterface, pxNetworkBuffer, pdTRUE );
+            ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, pdTRUE );
         }
         else
         {
@@ -377,9 +378,9 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                         void * pcData = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
                         FOnUDPReceive_t xHandler = ( FOnUDPReceive_t ) pxSocket->u.xUDP.pxHandleReceive;
                         xSourceAddress.sin_port = pxNetworkBuffer->usPort;
-                        xSourceAddress.sin_addr.xIP_IPv4 = pxNetworkBuffer->xIPAddress.xIP_IPv4;
+                        xSourceAddress.sin_addr4 = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
                         destinationAddress.sin_port = usPort;
-                        destinationAddress.sin_addr.xIP_IPv4 = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
+                        destinationAddress.sin_addr4 = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
 
                         /* The value of 'xDataLength' was proven to be at least the size of a UDP packet in prvProcessIPPacket(). */
                         if( xHandler( ( Socket_t ) pxSocket,

@@ -128,27 +128,27 @@
     }
 /*-----------------------------------------------------------*/
 
-    uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
-                                  IPv6_Address_t * pxAddress_IPv6 )
-    {
-        IPv46_Address_t xIPv46_Address;
-        BaseType_t xResult;
-        uint32_t ulReturn = 0U;
-
-        /* Looking up an IPv6 address in the DNS cache. */
-        ( void ) memset( &xIPv46_Address, 0, sizeof xIPv46_Address );
-        /* Let FreeRTOS_ProcessDNSCache only return IPv6 addresses. */
-        xIPv46_Address.xIs_IPv6 = pdTRUE;
-        xResult = FreeRTOS_ProcessDNSCache( pcHostName, &xIPv46_Address, 0, pdTRUE, NULL );
-
-        if( xResult != pdFALSE )
+        uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
+                                      IPv6_Address_t * pxAddress_IPv6 )
         {
-            ( void ) memcpy( pxAddress_IPv6->ucBytes, xIPv46_Address.xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-            ulReturn = 1U;
-        }
+            IPv46_Address_t xIPv46_Address;
+            BaseType_t xResult;
+            uint32_t ulReturn = 0U;
 
-        return ulReturn;
-    }
+            /* Looking up an IPv6 address in the DNS cache. */
+            ( void ) memset( &xIPv46_Address, 0, sizeof xIPv46_Address );
+            /* Let FreeRTOS_ProcessDNSCache only return IPv6 addresses. */
+            xIPv46_Address.xIs_IPv6 = pdTRUE;
+            xResult = FreeRTOS_ProcessDNSCache( pcHostName, &xIPv46_Address, 0, pdTRUE, NULL );
+
+            if( xResult != pdFALSE )
+            {
+                ( void ) memcpy( pxAddress_IPv6->ucBytes, xIPv46_Address.xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                ulReturn = 1U;
+            }
+
+            return ulReturn;
+        }
 /*-----------------------------------------------------------*/
 
 /**
@@ -166,6 +166,8 @@
                                     BaseType_t xLookUp,
                                     struct freertos_addrinfo ** ppxAddressInfo )
     {
+        /* _HT_ we can as well remove the parameter 'xLookUp'. */
+        ( void ) xLookUp;
         ( void ) FreeRTOS_ProcessDNSCache( pcName,
                                            pxIP,
                                            ulTTL,
@@ -263,7 +265,7 @@
             FreeRTOS_debug_printf( ( "FreeRTOS_ProcessDNSCache: %s: '%s' @ %xip (TTL %u)\n",
                                      ( xLookUp != 0 ) ? "look-up" : "add",
                                      pcName,
-                                     ( unsigned ) FreeRTOS_ntohl( *pxlIP ),
+                                     ( unsigned ) FreeRTOS_ntohl( pxIP->ulIPAddress ),
                                      ( unsigned ) FreeRTOS_ntohl( ulTTL ) ) );
         }
 
@@ -294,10 +296,8 @@
 
             if( strcmp( xDNSCache[ uxIndex ].pcName, pcName ) == 0 )
             { /* hostname found */
-                #if ( ipconfigUSE_IPV6 != 0 )
-                    /* IPv6 is enabled, See if the cache entry has the correct type. */
-                    if( pxIP->xIs_IPv6 == xDNSCache[ uxIndex ].xAddresses[ 0 ].xIs_IPv6 )
-                #endif /* ipconfigUSE_IPV6 != 0 */
+                /* IPv6 is enabled, See if the cache entry has the correct type. */
+                if( pxIP->xIs_IPv6 == xDNSCache[ uxIndex ].xAddresses[ 0 ].xIs_IPv6 )
                 {
                     xReturn = pdTRUE;
                     *uxResult = uxIndex;
@@ -547,7 +547,7 @@
                     {
                         struct freertos_sockaddr * sockaddr = ( *( ppxAddressInfo ) )->ai_addr;
 
-                        ulIPAddress = sockaddr->sin_addr.xIP_IPv4;
+                        ulIPAddress = sockaddr->sin_addr;
                     }
                 }
                 else

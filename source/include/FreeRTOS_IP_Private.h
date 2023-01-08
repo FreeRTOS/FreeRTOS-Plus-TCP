@@ -200,9 +200,9 @@ typedef struct xARP_PACKET ARPPacket_t;
 #if ( ipconfigUSE_IPV4 != 0 )
     #include "FreeRTOS_IPv4_Private.h"
 #endif /* ipconfigUSE_IPV4 */
-#if ( ipconfigUSE_IPV6 != 0 )
+#if ( ipconfigUSE_IPv6 != 0 )
     #include "FreeRTOS_IPv6_Private.h"
-#endif /* ipconfigUSE_IPV6 */
+#endif /* ipconfigUSE_IPv6 */
 
 /**
  * Union for the protocol packet to save space. Any packet cannot have more than one
@@ -242,7 +242,7 @@ typedef struct IP_TASK_COMMANDS
 struct xPacketSummary
 {
     BaseType_t xIsIPv6;                          /**< pdTRUE for IPv6 packets. */
-    #if ipconfigUSE_IPV6
+    #if ipconfigUSE_IPv6
         const IPHeader_IPv6_t * pxIPPacket_IPv6; /**< A pointer to the IPv6 header. */
     #endif
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
@@ -412,16 +412,19 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
         ( right ) = tmp;         \
     } while( ipFALSE_BOOL )
 
-#ifndef _WINDOWS_
-    /** @brief Macro calculates the number of elements in an array as a size_t. */
-    #ifndef ARRAY_SIZE_X
+/** @brief Macro calculates the number of elements in an array as a size_t. */
+#ifndef ARRAY_SIZE_X
+    #ifndef _WINDOWS_
         #define ARRAY_SIZE_X( x )                            \
     ( { size_t uxCount = ( sizeof( x ) / sizeof( x[ 0 ] ) ); \
         BaseType_t xCount = ( BaseType_t ) uxCount;          \
         xCount; }                                            \
     )
+    #else
+        #define ARRAY_SIZE_X( x )    ( sizeof( x ) / sizeof( x[ 0 ] ) )
     #endif
 #endif
+
 /* WARNING: Do NOT use this macro when the array was received as a parameter. */
 #ifndef ARRAY_SIZE
     #define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
@@ -476,6 +479,14 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                       uint16_t usPort,
                                       BaseType_t * pxIsWaitingForARPResolution );
+
+BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                           uint16_t usPort,
+                                           BaseType_t * pxIsWaitingForARPResolution );
+
+BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                           uint16_t usPort,
+                                           BaseType_t * pxIsWaitingForARPResolution );
 
 /*
  * Initialize the socket list data structures for TCP and UDP.

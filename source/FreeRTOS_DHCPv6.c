@@ -43,7 +43,9 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 
-#if ( ipconfigUSE_IPV6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 ) /*TODO */
+/* *INDENT-OFF* */
+    #if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 )
+/* *INDENT-ON* */
 
     #include "FreeRTOS_Sockets.h"
     #include "FreeRTOS_DHCPv6.h"
@@ -991,7 +993,7 @@
                 }
 
                 ( void ) memset( &( xAddress ), 0, sizeof xAddress );
-                ( void ) FreeRTOS_inet_pton6( "ff02::1:2", xAddress.sin_addr.xIP_IPv6.ucBytes );
+                ( void ) FreeRTOS_inet_pton6( "ff02::1:2", xAddress.sin_addr6.ucBytes );
                 xAddress.sin_len = ( uint8_t ) sizeof xAddress; /* length of this structure. */
                 xAddress.sin_family = FREERTOS_AF_INET6;
                 xAddress.sin_port = FreeRTOS_htons( DHCPv6_SERVER_PORT );
@@ -1396,4 +1398,7 @@
         }
     #endif /* ( ipconfigHAS_DEBUG_PRINTF == 1 ) */
 
-#endif /* ( ipconfigUSE_IPV6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 ) */
+/* *INDENT-OFF* */
+    #endif /* ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 ) */
+/* *INDENT-ON* */
+

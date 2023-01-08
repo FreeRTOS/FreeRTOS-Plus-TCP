@@ -290,7 +290,8 @@ void vCheckNetworkTimers( void )
 
             /* Sockets will also be checked if there are TCP messages but the
             * message queue is empty (indicated by xWillSleep being true). */
-            if( ( xProcessedTCPMessage != pdFALSE ) && ( xWillSleep != pdFALSE ) )
+/*          if( ( xProcessedTCPMessage != pdFALSE ) && ( xWillSleep != pdFALSE ) ) */
+            if( xWillSleep != pdFALSE )
             {
                 xCheckTCPSockets = pdTRUE;
             }

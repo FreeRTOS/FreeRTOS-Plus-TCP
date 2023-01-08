@@ -66,9 +66,7 @@
     Socket_t DNS_CreateSocket( TickType_t uxReadTimeOut_ticks )
     {
         Socket_t xSocket;
-        struct freertos_sockaddr xAddress;
         TickType_t uxWriteTimeOut_ticks = ipconfigDNS_SEND_BLOCK_TIME_TICKS;
-        BaseType_t xReturn;
 
         /* This must be the first time this function has been called.  Create
          * the socket. */
@@ -105,24 +103,26 @@
                                 const struct xDNSBuffer * pxDNSBuf )
     {
         BaseType_t xReturn = pdFALSE;
+        BaseType_t xSent;
 
         iptraceSENDING_DNS_REQUEST();
 
         /* Send the DNS message. */
-        if( FreeRTOS_sendto( xDNSSocket,
-                             pxDNSBuf->pucPayloadBuffer,
-                             pxDNSBuf->uxPayloadLength,
-                             FREERTOS_ZERO_COPY,
-                             xAddress,
-                             ( socklen_t ) sizeof( *xAddress ) ) != 0 )
+        xSent = FreeRTOS_sendto( xDNSSocket,
+                                 pxDNSBuf->pucPayloadBuffer,
+                                 pxDNSBuf->uxPayloadLength,
+                                 FREERTOS_ZERO_COPY,
+                                 xAddress,
+                                 ( socklen_t )sizeof( *xAddress ) );
+        if( xSent == ( BaseType_t ) pxDNSBuf->uxPayloadLength )
         {
-            xReturn = pdTRUE;
+            xReturn = pdPASS;
         }
         else
         {
             /* The message was not sent so the stack will not be
              * releasing the zero copy - it must be released here. */
-            xReturn = pdFALSE;
+            xReturn = pdFAIL;
         }
 
         return xReturn;
@@ -135,20 +135,27 @@
  * @param xAddress address to read from
  * @param pxReceiveBuffer buffer to fill with received data
  */
-    void DNS_ReadReply( const ConstSocket_t xDNSSocket,
-                        struct freertos_sockaddr * xAddress,
-                        struct xDNSBuffer * pxReceiveBuffer )
+    BaseType_t DNS_ReadReply( const ConstSocket_t xDNSSocket,
+                              struct freertos_sockaddr * xAddress,
+                              struct xDNSBuffer * pxReceiveBuffer )
     {
+        BaseType_t xReturn;
         uint32_t ulAddressLength = ( uint32_t ) sizeof( struct freertos_sockaddr );
 
         /* Wait for the reply. */
-        pxReceiveBuffer->uxPayloadLength = ( size_t ) FreeRTOS_recvfrom( xDNSSocket,
-                                                                         &pxReceiveBuffer->pucPayloadBuffer,
-                                                                         0,
-                                                                         FREERTOS_ZERO_COPY,
-                                                                         xAddress,
-                                                                         &ulAddressLength );
-        pxReceiveBuffer->uxPayloadSize = pxReceiveBuffer->uxPayloadLength;
+        xReturn = FreeRTOS_recvfrom( xDNSSocket,
+                                     &pxReceiveBuffer->pucPayloadBuffer,
+                                     0,
+                                     FREERTOS_ZERO_COPY,
+                                     xAddress,
+                                     &ulAddressLength );
+        if( xReturn <= 0 )
+        {
+            /* 'pdFREERTOS_ERRNO_EWOULDBLOCK' is returned in case of a timeout. */
+            FreeRTOS_printf( ( "DNS_ReadReply returns %d\n", xReturn ) );
+        }
+
+        return xReturn;
     }
 /*-----------------------------------------------------------*/
 
