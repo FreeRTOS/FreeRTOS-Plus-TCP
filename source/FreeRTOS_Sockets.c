@@ -1220,11 +1220,11 @@ int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
 
         if( pxNetworkBuffer != NULL )
         {
-                if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
-                {
-                    uxPayloadOffset = xRecv_Update_IPv6( pxNetworkBuffer, pxSourceAddress );
-                }
-                else
+            if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+            {
+                uxPayloadOffset = xRecv_Update_IPv6( pxNetworkBuffer, pxSourceAddress );
+            }
+            else
             {
                 uxPayloadOffset = xRecv_Update_IPv4( pxNetworkBuffer, pxSourceAddress );
             }
@@ -1318,11 +1318,11 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
     int32_t lReturn = 0;
     IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
 
-        if( pxDestinationAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
-        {
-            ( void ) xSend_UDP_Update_IPv6( pxNetworkBuffer, pxDestinationAddress );
-        }
-        else
+    if( pxDestinationAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
+    {
+        ( void ) xSend_UDP_Update_IPv6( pxNetworkBuffer, pxDestinationAddress );
+    }
+    else
     {
         ( void ) xSend_UDP_Update_IPv4( pxNetworkBuffer, pxDestinationAddress );
     }
@@ -1490,12 +1490,12 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
     configASSERT( pxDestinationAddress != NULL );
     configASSERT( pvBuffer != NULL );
 
-        if( pxDestinationAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
-        {
-            uxMaxPayloadLength = ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER );
-            uxPayloadOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER;
-        }
-        else
+    if( pxDestinationAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
+    {
+        uxMaxPayloadLength = ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER );
+        uxPayloadOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER;
+    }
+    else
     {
         uxMaxPayloadLength = ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER );
         uxPayloadOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER;
@@ -3686,19 +3686,19 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         if( pxClientSocket != NULL )
         {
-                if( pxClientSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
-                {
-                    *pxAddressLength = sizeof( struct freertos_sockaddr );
+            if( pxClientSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+            {
+                *pxAddressLength = sizeof( struct freertos_sockaddr );
 
-                    if( pxAddress != NULL )
-                    {
-                        pxAddress->sin_family = FREERTOS_AF_INET6;
-                        /* Copy IP-address and port number. */
-                        ( void ) memcpy( pxAddress->sin_addr6.ucBytes, pxClientSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                        pxAddress->sin_port = FreeRTOS_ntohs( pxClientSocket->u.xTCP.usRemotePort );
-                    }
+                if( pxAddress != NULL )
+                {
+                    pxAddress->sin_family = FREERTOS_AF_INET6;
+                    /* Copy IP-address and port number. */
+                    ( void ) memcpy( pxAddress->sin_addr6.ucBytes, pxClientSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    pxAddress->sin_port = FreeRTOS_ntohs( pxClientSocket->u.xTCP.usRemotePort );
                 }
-                else
+            }
+            else
             {
                 *pxAddressLength = sizeof( struct freertos_sockaddr );
 
@@ -5100,11 +5100,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
         BaseType_t xResult;
 
-            if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
-            {
-                xResult = ( BaseType_t ) ipTYPE_IPv6;
-            }
-            else
+        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+        {
+            xResult = ( BaseType_t ) ipTYPE_IPv6;
+        }
+        else
         {
             xResult = ( BaseType_t ) ipTYPE_IPv4;
         }

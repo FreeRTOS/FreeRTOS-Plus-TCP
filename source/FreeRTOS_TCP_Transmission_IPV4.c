@@ -121,13 +121,13 @@
                     break;
                 }
 
-                    if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
-                    {
-                        xIsIPv6 = pdTRUE;
-                        uxIPHeaderSize = ipSIZE_OF_IPv6_HEADER;
-                        usFrameType = ipIPv6_FRAME_TYPE;
-                    }
-                    else
+                if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
+                {
+                    xIsIPv6 = pdTRUE;
+                    uxIPHeaderSize = ipSIZE_OF_IPv6_HEADER;
+                    usFrameType = ipIPv6_FRAME_TYPE;
+                }
+                else
                 {
                     usFrameType = ipIPv4_FRAME_TYPE;
                 }
@@ -215,43 +215,43 @@
                     vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
                 }
 
-                    if( usFrameType == ipIPv6_FRAME_TYPE )
-                    {
-                        /* When xIsIPv6 is true: Let lint know that
-                         * 'pxIPHeader_IPv6' is not NULL. */
-                        configASSERT( pxIPHeader_IPv6 != NULL );
-
-                        /* An extra test to convey the MISRA checker. */
-                        if( pxIPHeader_IPv6 != NULL )
-                        {
-                            pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( ulLen - sizeof( IPHeader_IPv6_t ) );
-
-                            ( void ) memcpy( &( pxIPHeader_IPv6->xDestinationAddress ), &( pxIPHeader_IPv6->xSourceAddress ), ipSIZE_OF_IPv6_ADDRESS );
-                            ( void ) memcpy( &( pxIPHeader_IPv6->xSourceAddress ), &( pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress ), ipSIZE_OF_IPv6_ADDRESS );
-                        }
-
-                        #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
-                            {
-                                /* calculate the TCP checksum for an outgoing packet. */
-                                uint32_t ulTotalLength = ulLen + ipSIZE_OF_ETH_HEADER;
-                                ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxNetworkBuffer->pucEthernetBuffer, ulTotalLength, pdTRUE );
-
-                                /* A calculated checksum of 0 must be inverted as 0 means the checksum
-                                 * is disabled. */
-
-                                /* _HT_ The above is a very old comment.  It is only true for
-                                 * UDP packets.  However, theoretically usChecksum can never be zero
-                                 * and so the if-statement won't be executed. */
-                                if( pxProtocolHeaders->xTCPHeader.usChecksum == 0U )
-                                {
-                                    pxProtocolHeaders->xTCPHeader.usChecksum = 0xffffU;
-                                }
-                            }
-                        #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 */
-                    }
-                    else
+                if( usFrameType == ipIPv6_FRAME_TYPE )
                 {
-                	/* _HT_ must get rid of 'ipLOCAL_IP_ADDRESS_POINTER'. */
+                    /* When xIsIPv6 is true: Let lint know that
+                     * 'pxIPHeader_IPv6' is not NULL. */
+                    configASSERT( pxIPHeader_IPv6 != NULL );
+
+                    /* An extra test to convey the MISRA checker. */
+                    if( pxIPHeader_IPv6 != NULL )
+                    {
+                        pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( ulLen - sizeof( IPHeader_IPv6_t ) );
+
+                        ( void ) memcpy( &( pxIPHeader_IPv6->xDestinationAddress ), &( pxIPHeader_IPv6->xSourceAddress ), ipSIZE_OF_IPv6_ADDRESS );
+                        ( void ) memcpy( &( pxIPHeader_IPv6->xSourceAddress ), &( pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress ), ipSIZE_OF_IPv6_ADDRESS );
+                    }
+
+                    #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
+                        {
+                            /* calculate the TCP checksum for an outgoing packet. */
+                            uint32_t ulTotalLength = ulLen + ipSIZE_OF_ETH_HEADER;
+                            ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxNetworkBuffer->pucEthernetBuffer, ulTotalLength, pdTRUE );
+
+                            /* A calculated checksum of 0 must be inverted as 0 means the checksum
+                             * is disabled. */
+
+                            /* _HT_ The above is a very old comment.  It is only true for
+                             * UDP packets.  However, theoretically usChecksum can never be zero
+                             * and so the if-statement won't be executed. */
+                            if( pxProtocolHeaders->xTCPHeader.usChecksum == 0U )
+                            {
+                                pxProtocolHeaders->xTCPHeader.usChecksum = 0xffffU;
+                            }
+                        }
+                    #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 */
+                }
+                else
+                {
+                    /* _HT_ must get rid of 'ipLOCAL_IP_ADDRESS_POINTER'. */
                     uint32_t ulSourceAddress = *ipLOCAL_IP_ADDRESS_POINTER;
                     uint32_t ulDestinationAddress;
 
@@ -370,8 +370,8 @@
                 configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
                 configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput != NULL );
 
-                NetworkInterface_t* pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
-                ( void )pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xReleaseAfterSend );
+                NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+                ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xReleaseAfterSend );
 
                 if( xDoRelease == pdFALSE )
                 {
@@ -379,14 +379,14 @@
                      * containing the packet header. */
                     vFlip_16( pxTCPPacket->xTCPHeader.usSourcePort, pxTCPPacket->xTCPHeader.usDestinationPort );
 
-                        if( xIsIPv6 == pdTRUE )
+                    if( xIsIPv6 == pdTRUE )
+                    {
+                        if( pxIPHeader_IPv6 != NULL )
                         {
-                            if( pxIPHeader_IPv6 != NULL )
-                            {
-                                ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxIPHeader_IPv6->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                            }
+                            ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxIPHeader_IPv6->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                         }
-                        else
+                    }
+                    else
                     {
                         if( pxIPHeader != NULL )
                         {

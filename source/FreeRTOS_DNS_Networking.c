@@ -113,7 +113,8 @@
                                  pxDNSBuf->uxPayloadLength,
                                  FREERTOS_ZERO_COPY,
                                  xAddress,
-                                 ( socklen_t )sizeof( *xAddress ) );
+                                 ( socklen_t ) sizeof( *xAddress ) );
+
         if( xSent == ( BaseType_t ) pxDNSBuf->uxPayloadLength )
         {
             xReturn = pdPASS;
@@ -149,6 +150,7 @@
                                      FREERTOS_ZERO_COPY,
                                      xAddress,
                                      &ulAddressLength );
+
         if( xReturn <= 0 )
         {
             /* 'pdFREERTOS_ERRNO_EWOULDBLOCK' is returned in case of a timeout. */

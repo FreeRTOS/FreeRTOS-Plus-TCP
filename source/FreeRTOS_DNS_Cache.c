@@ -128,27 +128,27 @@
     }
 /*-----------------------------------------------------------*/
 
-        uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
-                                      IPv6_Address_t * pxAddress_IPv6 )
+    uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
+                                  IPv6_Address_t * pxAddress_IPv6 )
+    {
+        IPv46_Address_t xIPv46_Address;
+        BaseType_t xResult;
+        uint32_t ulReturn = 0U;
+
+        /* Looking up an IPv6 address in the DNS cache. */
+        ( void ) memset( &xIPv46_Address, 0, sizeof xIPv46_Address );
+        /* Let FreeRTOS_ProcessDNSCache only return IPv6 addresses. */
+        xIPv46_Address.xIs_IPv6 = pdTRUE;
+        xResult = FreeRTOS_ProcessDNSCache( pcHostName, &xIPv46_Address, 0, pdTRUE, NULL );
+
+        if( xResult != pdFALSE )
         {
-            IPv46_Address_t xIPv46_Address;
-            BaseType_t xResult;
-            uint32_t ulReturn = 0U;
-
-            /* Looking up an IPv6 address in the DNS cache. */
-            ( void ) memset( &xIPv46_Address, 0, sizeof xIPv46_Address );
-            /* Let FreeRTOS_ProcessDNSCache only return IPv6 addresses. */
-            xIPv46_Address.xIs_IPv6 = pdTRUE;
-            xResult = FreeRTOS_ProcessDNSCache( pcHostName, &xIPv46_Address, 0, pdTRUE, NULL );
-
-            if( xResult != pdFALSE )
-            {
-                ( void ) memcpy( pxAddress_IPv6->ucBytes, xIPv46_Address.xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                ulReturn = 1U;
-            }
-
-            return ulReturn;
+            ( void ) memcpy( pxAddress_IPv6->ucBytes, xIPv46_Address.xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+            ulReturn = 1U;
         }
+
+        return ulReturn;
+    }
 /*-----------------------------------------------------------*/
 
 /**

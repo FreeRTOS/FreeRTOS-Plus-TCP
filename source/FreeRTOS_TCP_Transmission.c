@@ -462,11 +462,11 @@
     {
         BaseType_t xReturn = pdTRUE;
 
-            if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
-            {
-                xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
-            }
-            else
+        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+        {
+            xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
+        }
+        else
         {
             xReturn = prvTCPPrepareConnect_IPV4( pxSocket );
         }
@@ -701,22 +701,22 @@
         {
             FreeRTOS_printf( ( "prvTCPReturnPacket: No pxEndPoint yet?\n" ) );
 
-                if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
-                {
-                    /* MISRA Ref 11.3.1 [Misaligned access] */
-                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                    /* coverity[misra_c_2012_rule_11_3_violation] */
-                    pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-                    pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPHeader_IPv6->xDestinationAddress ) );
+            if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
+            {
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
+                pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPHeader_IPv6->xDestinationAddress ) );
 
-                    if( pxNetworkBuffer->pxEndPoint == NULL )
-                    {
-                        FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %pip => %pip\n",
-                                           pxIPHeader_IPv6->xSourceAddress.ucBytes,
-                                           pxIPHeader_IPv6->xDestinationAddress.ucBytes ) );
-                    }
+                if( pxNetworkBuffer->pxEndPoint == NULL )
+                {
+                    FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %pip => %pip\n",
+                                       pxIPHeader_IPv6->xSourceAddress.ucBytes,
+                                       pxIPHeader_IPv6->xDestinationAddress.ucBytes ) );
                 }
-                else
+            }
+            else
             {
                 /*_RB_ Was FreeRTOS_FindEndPointOnIP_IPv4() but changed to FreeRTOS_FindEndPointOnNetMask()
                  * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */
@@ -1265,11 +1265,11 @@
             ( void ) ucTCPFlags;
         #else
             {
-                    if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
-                    {
-                        xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
-                    }
-                    else
+                if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+                {
+                    xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
+                }
+                else
                 {
                     xReturn = prvTCPSendSpecialPktHelper_IPV4( pxNetworkBuffer, ucTCPFlags );
                 }

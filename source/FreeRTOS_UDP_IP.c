@@ -105,11 +105,11 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
     UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
 
-      if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-      {
-          eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
-      }
-      else
+    if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+    {
+        eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
+    }
+    else
     {
         pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
         ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
@@ -180,7 +180,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
             vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
 
             /* pxNetworkBuffer has been sent and released.
-            * Make sure it won't be used again.. */
+             * Make sure it won't be used again.. */
             *pxLostBuffer = pdTRUE;
         }
     }
@@ -236,11 +236,12 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-        if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-        {
-            vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-        }
-        else
+
+    if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+    {
+        vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
+    }
+    else
     {
         pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
         vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
@@ -284,11 +285,11 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
                                         usPort, pxIsWaitingForARPResolution );
     }
 
-        else if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-        {
-            xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
-                                            usPort, pxIsWaitingForARPResolution );
-        }
+    else if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+    {
+        xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
+                                        usPort, pxIsWaitingForARPResolution );
+    }
 
     return xReturn;
 }

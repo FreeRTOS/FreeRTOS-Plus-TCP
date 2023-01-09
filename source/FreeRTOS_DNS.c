@@ -317,11 +317,12 @@
     {
         struct freertos_addrinfo * pxNext;
         struct freertos_addrinfo * pxIterator = pxInfo;
+
         if( pxInfo != NULL )
         {
             configASSERT( pxLastInfo != pxInfo );
 
-            while(pxIterator != NULL)
+            while( pxIterator != NULL )
             {
                 pxNext = pxIterator->ai_next;
                 vPortFree( pxIterator );
@@ -578,30 +579,30 @@
         TickType_t uxIdentifier = 0U;
 
         #if ( ipconfigUSE_DNS_CACHE != 0 )
-        BaseType_t xLengthOk = pdFALSE;
+            BaseType_t xLengthOk = pdFALSE;
         #endif
 
         #if ( ipconfigUSE_DNS_CACHE != 0 )
             {
-        if( pcHostName != NULL )
-        {
-            size_t uxLength = strlen( pcHostName ) + 1U;
+                if( pcHostName != NULL )
+                {
+                    size_t uxLength = strlen( pcHostName ) + 1U;
 
-            if( uxLength <= ipconfigDNS_CACHE_NAME_LENGTH )
-            {
-                /* The name is not too long. */
-                xLengthOk = pdTRUE;
-            }
-            else
-            {
-                FreeRTOS_printf( ( "prvPrepareLookup: name is too long ( %lu > %lu )\n",
-                                   ( unsigned ) uxLength,
-                                   ( unsigned ) ipconfigDNS_CACHE_NAME_LENGTH ) );
-            }
-        }
+                    if( uxLength <= ipconfigDNS_CACHE_NAME_LENGTH )
+                    {
+                        /* The name is not too long. */
+                        xLengthOk = pdTRUE;
+                    }
+                    else
+                    {
+                        FreeRTOS_printf( ( "prvPrepareLookup: name is too long ( %lu > %lu )\n",
+                                           ( unsigned ) uxLength,
+                                           ( unsigned ) ipconfigDNS_CACHE_NAME_LENGTH ) );
+                    }
+                }
             }
 
-        if( ( pcHostName != NULL ) && ( xLengthOk != pdFALSE ) )
+            if( ( pcHostName != NULL ) && ( xLengthOk != pdFALSE ) )
         #else /* if ( ipconfigUSE_DNS_CACHE != 0 ) */
             if( pcHostName != NULL )
         #endif /* ( ipconfigUSE_DNS_CACHE != 0 ) */
@@ -705,12 +706,12 @@
 
             for( ; ; )
             {
-	            ucIndex++;
+                ucIndex++;
 
-    	        if( ucIndex >= ( uint8_t ) ipconfigENDPOINT_DNS_ADDRESS_COUNT )
-            	{
-	                ucIndex = 0U;
-            	}
+                if( ucIndex >= ( uint8_t ) ipconfigENDPOINT_DNS_ADDRESS_COUNT )
+                {
+                    ucIndex = 0U;
+                }
 
                 if( ( pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes[ 0 ] != 0U ) ||
                     ( ucInitialIndex == ucIndex ) )
@@ -738,12 +739,12 @@
 
         for( ; ; )
         {
-        	ucIndex++;
+            ucIndex++;
 
-        	if( ucIndex >= ( uint8_t ) ipconfigENDPOINT_DNS_ADDRESS_COUNT )
-        	{
-	            ucIndex = 0U;
-        	}
+            if( ucIndex >= ( uint8_t ) ipconfigENDPOINT_DNS_ADDRESS_COUNT )
+            {
+                ucIndex = 0U;
+            }
 
             if( ( pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ] != 0U ) ||
                 ( ucInitialIndex == ucIndex ) )
@@ -895,23 +896,23 @@
             #if ( ipconfigUSE_LLMNR == 1 )
                 {
                     /* The hostname doesn't have a dot. */
-                	if( bHasDot == pdFALSE )
-                	{
-	                    /* Use LLMNR addressing. */
+                    if( bHasDot == pdFALSE )
+                    {
+                        /* Use LLMNR addressing. */
                         pxAddress->sin_addr = ipLLMNR_IP_ADDR; /* Is in network byte order. */
-                    	pxAddress->sin_port = ipLLMNR_PORT;
-                    	pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
-                    	xNeed_Endpoint = pdTRUE;
-                    	#if ( ipconfigUSE_IPv6 != 0 )
-                        	if( xDNS_IP_Preference == xPreferenceIPv6 )
-                        	{
+                        pxAddress->sin_port = ipLLMNR_PORT;
+                        pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
+                        xNeed_Endpoint = pdTRUE;
+                        #if ( ipconfigUSE_IPv6 != 0 )
+                            if( xDNS_IP_Preference == xPreferenceIPv6 )
+                            {
                                 memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes,
-                                    ipLLMNR_IP_ADDR_IPv6.ucBytes,
-                                    ipSIZE_OF_IPv6_ADDRESS );
-                            	pxAddress->sin_family = FREERTOS_AF_INET6;
-                        	}
-                    	#endif
-                	}
+                                        ipLLMNR_IP_ADDR_IPv6.ucBytes,
+                                        ipSIZE_OF_IPv6_ADDRESS );
+                                pxAddress->sin_family = FREERTOS_AF_INET6;
+                            }
+                        #endif
+                    }
                 }
             #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
 
@@ -1087,7 +1088,7 @@
 
         if( xDNSBuf.pucPayloadBuffer != NULL )
         {
-//          xDNSBuf.uxPayloadSize = pxNetworkBuffer->xDataLength;
+/*          xDNSBuf.uxPayloadSize = pxNetworkBuffer->xDataLength; */
 
             #if ( ipconfigUSE_LLMNR == 1 )
                 {
@@ -1208,8 +1209,8 @@
                                         &xReceiveBuffer );
 
                 if( ( pxEndPoint != NULL ) &&
-                	( ( xBytes == -pdFREERTOS_ERRNO_EWOULDBLOCK ) ||
-                	  ( xBytes == 0 ) ) )
+                    ( ( xBytes == -pdFREERTOS_ERRNO_EWOULDBLOCK ) ||
+                      ( xBytes == 0 ) ) )
                 {
                     /* This search timed out, next time try with a different DNS. */
                     #if ( ipconfigUSE_IPv6 != 0 )
@@ -1226,17 +1227,17 @@
 
                 if( xReceiveBuffer.pucPayloadBuffer != NULL )
                 {
-					if( xBytes > 0 )
-					{
+                    if( xBytes > 0 )
+                    {
                         xReceiveBuffer.uxPayloadLength = xBytes;
-						ulIPAddress = prvDNSReply( &xReceiveBuffer, ppxAddressInfo, uxIdentifier, xRecvAddress.sin_port );
-					}
+                        ulIPAddress = prvDNSReply( &xReceiveBuffer, ppxAddressInfo, uxIdentifier, xRecvAddress.sin_port );
+                    }
+
                     /* Finished with the buffer.  The zero copy interface
                      * is being used, so the buffer must be freed by the
                      * task. */
                     FreeRTOS_ReleaseUDPPayloadBuffer( xReceiveBuffer.pucPayloadBuffer );
-				}
-
+                }
             } while( ipFALSE_BOOL );
         }
         else

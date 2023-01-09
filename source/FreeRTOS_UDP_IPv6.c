@@ -73,12 +73,12 @@
 /* _HT_ this is a temporary aid while testing. In case an end-0point is not found,
  * this function will return the first end-point of the required type,
  * either 'ipTYPE_IPv4' or 'ipTYPE_IPv6' */
-extern NetworkEndPoint_t* pxGetEndpoint( BaseType_t xIPType );
+extern NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType );
 
-NetworkEndPoint_t* pxGetEndpoint( BaseType_t xIPType )
+NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType )
 {
     NetworkEndPoint_t * pxEndPoint;
-    
+
     for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
          pxEndPoint != NULL;
          pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
@@ -98,8 +98,10 @@ NetworkEndPoint_t* pxGetEndpoint( BaseType_t xIPType )
             }
         }
     }
+
     return pxEndPoint;
 }
+
 /**
  * @brief This function is called in case the IP-address was not found,
  *        i.e. in the cache 'eARPCacheMiss' was returned.
@@ -124,11 +126,13 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
                            pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
                            ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
-        if( pxNetworkBuffer->pxEndPoint == NULL)
+
+        if( pxNetworkBuffer->pxEndPoint == NULL )
         {
             pxNetworkBuffer->pxEndPoint = pxGetEndpoint( ipTYPE_IPv6 );
             FreeRTOS_printf( ( "prvStartLookup: Got an end-point: %s\n", pxNetworkBuffer->pxEndPoint ? "yes" : "no" ) );
         }
+
         if( pxNetworkBuffer->pxEndPoint != NULL )
         {
             vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
@@ -370,7 +374,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
                 }
             #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
             iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-            ( void )pxInterface->pfOutput( pxInterface, pxNetworkBuffer, pdTRUE );
+            ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, pdTRUE );
         }
         else
         {

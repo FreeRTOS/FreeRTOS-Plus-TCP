@@ -561,22 +561,22 @@
 
                                 usLength = ( int16_t ) ( sizeof( *pxAnswer ) + ( size_t ) ( xSet.pucByte - pucNewBuffer ) );
 
-                                    if( xSet.usType == dnsTYPE_AAAA_HOST )
+                                if( xSet.usType == dnsTYPE_AAAA_HOST )
+                                {
+                                    size_t uxDistance;
+                                    NetworkEndPoint_t * pxReplyEndpoint = FreeRTOS_FirstEndPoint_IPv6( NULL );
+
+                                    if( pxReplyEndpoint == NULL )
                                     {
-                                        size_t uxDistance;
-                                        NetworkEndPoint_t * pxReplyEndpoint = FreeRTOS_FirstEndPoint_IPv6( NULL );
-
-                                        if( pxReplyEndpoint == NULL )
-                                        {
-                                            break;
-                                        }
-
-                                        vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, ipSIZE_OF_IPv6_ADDRESS );
-                                        ( void ) memcpy( &( pxAnswer->ulIPAddress ), pxReplyEndpoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                                        uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
-                                        usLength = ipNUMERIC_CAST( int16_t, sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress ) );
+                                        break;
                                     }
-                                    else
+
+                                    vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, ipSIZE_OF_IPv6_ADDRESS );
+                                    ( void ) memcpy( &( pxAnswer->ulIPAddress ), pxReplyEndpoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                                    uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
+                                    usLength = ipNUMERIC_CAST( int16_t, sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress ) );
+                                }
+                                else
                                 {
                                     /*logging*/
                                     FreeRTOS_printf( ( "LLMNR return IPv4 %lxip\n", FreeRTOS_ntohl( xEndPoint.ipv4_settings.ulIPAddress ) ) );
@@ -719,24 +719,24 @@
                 if( FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ) ==
                     ( uint16_t ) pxSet->uxAddressLength )
                 {
-                        if( ( pxSet->uxAddressLength == ipSIZE_OF_IPv6_ADDRESS ) && ( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST ) )
+                    if( ( pxSet->uxAddressLength == ipSIZE_OF_IPv6_ADDRESS ) && ( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST ) )
+                    {
+                        ( void ) memcpy( xIP_Address.xAddress_IPv6.ucBytes,
+                                         &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] ),
+                                         ipSIZE_OF_IPv6_ADDRESS );
+
+                        if( ppxAddressInfo != NULL )
                         {
-                            ( void ) memcpy( xIP_Address.xAddress_IPv6.ucBytes,
-                                             &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] ),
-                                             ipSIZE_OF_IPv6_ADDRESS );
-
-                            if( ppxAddressInfo != NULL )
-                            {
-                                pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET6, xIP_Address.xAddress_IPv6.ucBytes );
-                            }
-
-                            xIP_Address.xIs_IPv6 = pdTRUE;
-
-                            /* Return non-zero to inform the caller that a valid
-                             * IPv6 address was found. */
-                            pxSet->ulIPAddress = 1U;
+                            pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET6, xIP_Address.xAddress_IPv6.ucBytes );
                         }
-                        else
+
+                        xIP_Address.xIs_IPv6 = pdTRUE;
+
+                        /* Return non-zero to inform the caller that a valid
+                         * IPv6 address was found. */
+                        pxSet->ulIPAddress = 1U;
+                    }
+                    else
                     {
                         void * pvCopyDest;
                         const void * pvCopySource;
@@ -924,27 +924,27 @@
                             pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxUDPPacket->xIPHeader;
 
-                if( ( ( uxIPHeaderLength == ipSIZE_OF_IPv6_HEADER ) && ( ( pxIPHeader->ucVersionHeaderLength & 0xf0U ) == 0x60U ) ) )
+            if( ( ( uxIPHeaderLength == ipSIZE_OF_IPv6_HEADER ) && ( ( pxIPHeader->ucVersionHeaderLength & 0xf0U ) == 0x60U ) ) )
+            {
+                UDPPacket_IPv6_t * xUDPPacket_IPv6;
+                IPHeader_IPv6_t * pxIPHeader_IPv6;
+
+                xUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+                pxIPHeader_IPv6 = &( xUDPPacket_IPv6->xIPHeader );
+                pxUDPHeader = &xUDPPacket_IPv6->xUDPHeader;
+
+                pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
+
                 {
-                    UDPPacket_IPv6_t * xUDPPacket_IPv6;
-                    IPHeader_IPv6_t * pxIPHeader_IPv6;
-
-                    xUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-                    pxIPHeader_IPv6 = &( xUDPPacket_IPv6->xIPHeader );
-                    pxUDPHeader = &xUDPPacket_IPv6->xUDPHeader;
-
-                    pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
-
-                    {
-                        ( void ) memcpy( pxIPHeader_IPv6->xDestinationAddress.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                        ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                    }
-
-                    xUDPPacket_IPv6->xUDPHeader.usLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
-                    vFlip_16( pxUDPHeader->usSourcePort, pxUDPHeader->usDestinationPort );
-                    uxDataLength = ( size_t ) lNetLength + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER + ipSIZE_OF_ETH_HEADER;
+                    ( void ) memcpy( pxIPHeader_IPv6->xDestinationAddress.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 }
-                else
+
+                xUDPPacket_IPv6->xUDPHeader.usLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
+                vFlip_16( pxUDPHeader->usSourcePort, pxUDPHeader->usDestinationPort );
+                uxDataLength = ( size_t ) lNetLength + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER + ipSIZE_OF_ETH_HEADER;
+            }
+            else
             {
                 pxUDPHeader = &pxUDPPacket->xUDPHeader;
                 /* HT: started using defines like 'ipSIZE_OF_xxx' */

@@ -302,16 +302,16 @@ struct xNetworkInterface;
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialise the interface and end-point
  * objects.  See the description in FreeRTOS_Routing.h. */
-struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                      struct xNetworkInterface * pxInterface );
+    struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                          struct xNetworkInterface * pxInterface );
 
 /* The following function is only provided to allow backward compatibility
  * with the earlier version of FreeRTOS+TCP which had a single interface only. */
-BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
-                            const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ],
-                            const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
-                            const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
-                            const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
+    BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 
 /* The following 2 functions also assume that there is only 1 network interface.
  * The new function are called: FreeRTOS_GetEndPointConfiguration() and

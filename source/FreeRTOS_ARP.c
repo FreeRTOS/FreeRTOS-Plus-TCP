@@ -279,7 +279,7 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
                      * address of the node running this code? And does the MAC
                      * address claim that it is coming from this device itself? */
                     if( ( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) &&
-                        ( memcmp( ( void * )pxTargetEndPoint ->xMACAddress.ucBytes,
+                        ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes,
                                   ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
                                   ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
                     {
