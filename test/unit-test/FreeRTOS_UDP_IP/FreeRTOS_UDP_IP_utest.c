@@ -60,6 +60,21 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* The maximum segment size used by TCP, it is the maximum size of
+ * the TCP payload per packet.
+ * For IPv4: when MTU equals 1500, the MSS equals 1460.
+ * It is recommended to use the default value defined here.
+ *
+ * In FreeRTOS_TCP_IP.c, there is a local macro called 'tcpREDUCED_MSS_THROUGH_INTERNET'.
+ * When a TCP connection is made outside the local network, the MSS
+ * will be reduced to 'tcpREDUCED_MSS_THROUGH_INTERNET' before the connection
+ * is made.
+ */
+#ifndef ipconfigTCP_MSS
+    #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) )
+#endif
+
+
 extern NetworkInterface_t xInterfaces[ 1 ];
 
 static uint32_t ulFunctionCalled = 0;
