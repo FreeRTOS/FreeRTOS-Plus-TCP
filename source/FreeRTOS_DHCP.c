@@ -230,7 +230,7 @@
                 pxDHCPMessage = ( ( const DHCPMessage_IPv4_t * ) pucUDPPayload );
 
                 /* Sanity check. */
-                if( ( pxDHCPMessage->ulDHCPCookie == dhcpCOOKIE ) && ( pxDHCPMessage->ucOpcode == dhcpREPLY_OPCODE ) )
+                //if( ( pxDHCPMessage->ulDHCPCookie == dhcpCOOKIE ) && ( pxDHCPMessage->ucOpcode == dhcpREPLY_OPCODE ) )
                 {
                     pxIterator = pxNetworkEndPoints;
 
