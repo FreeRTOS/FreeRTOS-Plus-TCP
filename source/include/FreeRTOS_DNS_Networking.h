@@ -48,5 +48,14 @@
                         struct xDNSBuffer * pxReceiveBuffer );
 
     void DNS_CloseSocket( Socket_t xDNSSocket );
+
+/**
+ * @brief Bind the socket to a port number.
+ * @param[in] xSocket: the socket that must be bound.
+ * @param[in] usPort: the port number to bind to.
+ * @return The created socket - or NULL if the socket could not be created or could not be bound.
+ */
+    BaseType_t DNS_BindSocket( Socket_t xSocket,
+                               uint16_t usPort );
 #endif /* if ( ipconfigUSE_DNS != 0 ) */
 #endif /* ifndef FREERTOS_DNS_NETWORKING_H */
