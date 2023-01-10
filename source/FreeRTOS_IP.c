@@ -319,7 +319,7 @@ static void prvProcessIPEventsAndTimers( void )
 
                if( pxDescriptor->pxInterface != NULL )
                {
-                   ( void ) xNetworkInterfaceOutput( pxDescriptor->pxInterface, pxDescriptor, xReleaseAfterSend );
+                   ( void ) pxDescriptor->pxInterface->pfOutput( pxDescriptor->pxInterface, pxDescriptor, xReleaseAfterSend );
                }
            }
            break;
