@@ -129,6 +129,25 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks );
  */
 static void prvEMACHandlerTask( void * pvParameters );
 
+/* FreeRTOS+TCP/multi :
+ * Each network device has 3 access functions:
+ * - Initialise the device
+ * - Output a network packet
+ * - Return the PHY Link-Status (LS)
+ * They can be defined as static because the function addresses
+ * addresses will be stored in struct NetworkInterface_t. */
+
+static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                           NetworkBufferDescriptor_t * const pxBuffer,
+                                           BaseType_t xReleaseAfterSend );
+
+static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface );
+
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                NetworkInterface_t * pxInterface );
+
 /*-----------------------------------------------------------*/
 
 /* EMAC data/descriptions. */
@@ -182,13 +201,13 @@ typedef enum xEMAC_STATE
 
 static EMACState_t eEMACState = xEMAC_Init;
 
-BaseType_t xNetworkInterfaceInitialise( void )
+static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     uint32_t ulLinkSpeed, ulDMAReg;
     BaseType_t xStatus, xReturn = pdFAIL;
     XEmacPs * pxEMAC_PS = &( xEMACpsif.emacps );
     const TickType_t xWaitLinkDelay = pdMS_TO_TICKS( 1000U );
-
+    ( void )pxInterface;
     switch( eEMACState )
     {
         case xEMAC_Init:
@@ -317,9 +336,10 @@ BaseType_t xNetworkInterfaceInitialise( void )
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxBuffer,
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface, NetworkBufferDescriptor_t * const pxBuffer,
                                     BaseType_t bReleaseAfterSend )
 {
+    ( void )pxInterface;
     #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
         {
             ProtocolPacket_t * pxPacket;
@@ -437,10 +457,10 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
 #endif /* ( nicUSE_UNCACHED_MEMORY == 0 ) */
 /*-----------------------------------------------------------*/
 
-BaseType_t xGetPhyLinkStatus( void )
+static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
     BaseType_t xReturn;
-
+    ( void )pxInterface;
     if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) == 0uL )
     {
         xReturn = pdFALSE;
@@ -451,6 +471,29 @@ BaseType_t xGetPhyLinkStatus( void )
     }
 
     return xReturn;
+}
+/*-----------------------------------------------------------*/
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                NetworkInterface_t * pxInterface )
+{
+    static char pcName[ 17 ];
+
+/* This function pxFillInterfaceDescriptor() adds a network-interface.
+ * Make sure that the object pointed to by 'pxInterface'
+ * is declared static or global, and that it will remain to exist. */
+
+    snprintf( pcName, sizeof( pcName ), "eth%u", ( unsigned ) xEMACIndex );
+
+    memset( pxInterface, '\0', sizeof( *pxInterface ) );
+    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pfInitialise = xNetworkInterfaceInitialise;
+    pxInterface->pfOutput = xNetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xGetPhyLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+
+    return pxInterface;
 }
 /*-----------------------------------------------------------*/
 
