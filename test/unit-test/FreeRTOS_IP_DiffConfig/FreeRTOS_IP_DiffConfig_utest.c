@@ -151,35 +151,6 @@ void test_prvProcessIPEventsAndTimers_NoEventReceived( void )
     prvProcessIPEventsAndTimers();
 }
 
-void test_prvProcessIPEventsAndTimers_eNetworkDownEvent( void )
-{
-    IPStackEvent_t xReceivedEvent;
-    BaseType_t xQueueReturn = 100;
-    NetworkInterface_t xInterface;
-
-    xReceivedEvent.eEventType = eNetworkDownEvent;
-
-    xNetworkUp = pdTRUE;
-
-    uxQueueMinimumSpace = xQueueReturn - 10;
-
-    vCheckNetworkTimers_Expect();
-
-    xCalculateSleepTime_ExpectAndReturn( 0 );
-
-    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
-
-    uxQueueSpacesAvailable_ExpectAnyArgsAndReturn( xQueueReturn );
-
-    prvProcessNetworkDownEvent_Expect( &xInterface );
-
-    prvProcessIPEventsAndTimers();
-
-    TEST_ASSERT_EQUAL( pdFALSE, xNetworkUp );
-    TEST_ASSERT_EQUAL( xQueueReturn - 10, uxQueueMinimumSpace );
-}
-
 void test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL_LessSpace( void )
 {
     IPStackEvent_t xReceivedEvent;
