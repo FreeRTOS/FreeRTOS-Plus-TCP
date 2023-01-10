@@ -74,6 +74,11 @@ extern UBaseType_t uxLastMinQueueSpace;
 
 extern NetworkInterface_t xInterfaces[ 1 ];
 
+static BaseType_t xNetworkInterfaceInitialise_test(struct xNetworkInterface * pxDescriptor)
+{
+    return pdPASS;
+}
+
 void test_pxPacketBuffer_to_NetworkBuffer( void )
 {
     NetworkBufferDescriptor_t * pxReturn;
