@@ -771,7 +771,7 @@
                         xIP_Address.ulIPAddress = pxSet->ulIPAddress;
                         xIP_Address.xIs_IPv6 = pdFALSE;
                     }
-
+                    
                     if( pxNewAddress != NULL )
                     {
                         if( *( ppxAddressInfo ) == NULL )

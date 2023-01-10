@@ -249,8 +249,7 @@
                              BaseType_t xReleaseAfterSend )
     {
         const NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
-
-        if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+        if(pxNetworkBuffer != NULL && uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
         {
             prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
         }

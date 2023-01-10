@@ -167,6 +167,7 @@
             #if ( ipconfigUSE_RA != 0 )
                 bWantRA : 1, /**< This end-point wants to use RA/SLAAC to obtain an IP-address. */
             #endif /* ipconfigUSE_RA */
+            /* ipconfigUSE_IPV6 */
             #if ( ipconfigUSE_IPV6 != 0 )
                 bIPv6 : 1, /**< This end-point has an IP-address of type IPv6. */
             #endif /* ipconfigUSE_IPV6 */
