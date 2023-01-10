@@ -228,10 +228,10 @@
         }
         ( void ) xTaskResumeAll();
 
-        if( listLIST_IS_EMPTY( &xTempList ) != pdFALSE )
+        if( listLIST_IS_EMPTY( &xTempList ) == pdFALSE )
         {
             /* There is at least one item in xTempList which must be removed and deleted. */
-            xEnd = ( ( const ListItem_t * ) &( xTempList.xListEnd ) );
+            xEnd = listGET_END_MARKER( &xTempList );
 
             for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
                  pxIterator != xEnd;

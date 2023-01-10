@@ -79,8 +79,12 @@
                             uint32_t ulIPAddress );
     #endif
 
+/**
+ * Parse the DNS answer/response.
+ */
     uint32_t parseDNSAnswer( ParseSet_t * pxSet,
-                             struct freertos_addrinfo ** ppxAddressInfo );
+                             struct freertos_addrinfo ** ppxAddressInfo, 
+                             size_t * uxBytesRead);
 
 #endif /* if ( ipconfigUSE_DNS != 0 ) */
 #endif /* ifndef FREERTOS_DNS_PARSER_H */

@@ -1394,12 +1394,20 @@ static int32_t prvSendTo_ActualSend( const FreeRTOS_Socket_t * pxSocket,
     TimeOut_t xTimeOut;
     NetworkBufferDescriptor_t * pxNetworkBuffer;
 
-    if( ( ( ( UBaseType_t ) xFlags & ( UBaseType_t ) FREERTOS_MSG_DONTWAIT ) != 0U ) ||
-        ( xIsCallingFromIPTask() != pdFALSE ) )
+    #if ( ipconfigUSE_CALLBACKS != 0 )
+        {
+            if( xIsCallingFromIPTask() != pdFALSE )
+            {
+                /* The caller wants a non-blocking operation. When called by the IP-task,
+                 * the operation should always be non-blocking. */
+                xTicksToWait = ( TickType_t ) 0U;
+            }
+        }
+    #endif /* ipconfigUSE_CALLBACKS */
+
+    if( ( ( UBaseType_t ) xFlags & ( UBaseType_t ) FREERTOS_MSG_DONTWAIT ) != 0U )
     {
-        /* The caller wants a non-blocking operation. When called by the IP-task,
-         * the operation should always be non-blocking. */
-        xTicksToWait = ( TickType_t ) 0U;
+        xTicksToWait = ( TickType_t ) 0;
     }
 
     if( ( ( UBaseType_t ) xFlags & ( UBaseType_t ) FREERTOS_ZERO_COPY ) == 0U )
@@ -2697,6 +2705,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                      * sleeps. */
                     case FREERTOS_SO_SET_SEMAPHORE:
                         pxSocket->pxUserSemaphore = *( ipPOINTER_CAST( SemaphoreHandle_t *, pvOptionValue ) );
+                        xReturn = 0;
                         break;
                 #endif /* ipconfigSOCKET_HAS_USER_SEMAPHORE */
 
@@ -2909,7 +2918,7 @@ FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
 
 /*-----------------------------------------------------------*/
 
-#define sockDIGIT_COUNT    ( 3U ) /**< Each nibble is expressed in at most 3 digits such as "192". */
+#define sockDIGIT_COUNT    ( 3U )    /**< Each nibble is expressed in at most 3 digits such as "192". */
 
 /**
  * @brief Convert the 32-bit representation of the IP-address to the dotted decimal
@@ -3060,6 +3069,52 @@ const char * FreeRTOS_inet_ntop( BaseType_t xAddressFamily,
 
     return pcResult;
 }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Convert an ASCII character to its corresponding hexadecimal value.
+ *        Accepted characters are 0-9, a-f, and A-F.
+ *
+ * @param[in] cChar: The character to be converted.
+ *
+ * @return The hexadecimal value, between 0 and 15.
+ *         When the character is not valid, socketINVALID_HEX_CHAR will be returned.
+ */
+
+uint8_t ucASCIIToHex( char cChar )
+{
+    char cValue = cChar;
+    uint8_t ucNew;
+
+    if( ( cValue >= '0' ) && ( cValue <= '9' ) )
+    {
+        cValue -= ( char ) '0';
+        /* The value will be between 0 and 9. */
+        ucNew = ( uint8_t ) cValue;
+    }
+    else if( ( cValue >= 'a' ) && ( cValue <= 'f' ) )
+    {
+        cValue -= ( char ) 'a';
+        ucNew = ( uint8_t ) cValue;
+        /* The value will be between 10 and 15. */
+        ucNew += ( uint8_t ) 10;
+    }
+    else if( ( cValue >= 'A' ) && ( cValue <= 'F' ) )
+    {
+        cValue -= ( char ) 'A';
+        ucNew = ( uint8_t ) cValue;
+        /* The value will be between 10 and 15. */
+        ucNew += ( uint8_t ) 10;
+    }
+    else
+    {
+        /* The character does not represent a valid hex number, return 255. */
+        ucNew = ( uint8_t ) socketINVALID_HEX_CHAR;
+    }
+
+    return ucNew;
+}
+
 /*-----------------------------------------------------------*/
 
 /**
@@ -3639,10 +3694,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             if( pxClientSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
             {
-                *pxAddressLength = sizeof( struct freertos_sockaddr );
-
                 if( pxAddress != NULL )
                 {
+                    *pxAddressLength = sizeof( struct freertos_sockaddr );
+
                     pxAddress->sin_family = FREERTOS_AF_INET6;
                     /* Copy IP-address and port number. */
                     ( void ) memcpy( pxAddress->sin_addr.xIP_IPv6.ucBytes, pxClientSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
@@ -3651,10 +3706,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             }
             else
             {
-                *pxAddressLength = sizeof( struct freertos_sockaddr );
-
                 if( pxAddress != NULL )
                 {
+                    *pxAddressLength = sizeof( struct freertos_sockaddr );
+
                     pxAddress->sin_family = FREERTOS_AF_INET4;
                     /* Copy IP-address and port number. */
                     pxAddress->sin_addr.xIP_IPv4 = FreeRTOS_ntohl( pxClientSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
@@ -4232,14 +4287,18 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 /* Only in the first round, check for non-blocking. */
                 xRemainingTime = pxSocket->xSendBlockTime;
 
-                if( xIsCallingFromIPTask() != pdFALSE )
-                {
-                    /* If this send function is called from within a
-                     * call-back handler it may not block, otherwise
-                     * chances would be big to get a deadlock: the IP-task
-                     * waiting for itself. */
-                    xRemainingTime = ( TickType_t ) 0U;
-                }
+                #if ( ipconfigUSE_CALLBACKS != 0 )
+                    {
+                        if( xIsCallingFromIPTask() != pdFALSE )
+                        {
+                            /* If this send function is called from within a
+                             * call-back handler it may not block, otherwise
+                             * chances would be big to get a deadlock: the IP-task
+                             * waiting for itself. */
+                            xRemainingTime = ( TickType_t ) 0U;
+                        }
+                    }
+                #endif /* ipconfigUSE_CALLBACKS */
 
                 if( xRemainingTime == ( TickType_t ) 0U )
                 {
@@ -4299,13 +4358,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         BaseType_t xByteCount = -pdFREERTOS_ERRNO_EINVAL;
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
 
-        if( pvBuffer != NULL )
-        {
-            /* Check if this is a valid TCP socket, affirm that it is not closed or closing,
-             * affirm that there was not malloc-problem, test if uxDataLength is non-zero,
-             * and if the connection is not in a confirmed FIN state. */
-            xByteCount = ( BaseType_t ) prvTCPSendCheck( pxSocket, uxDataLength );
-        }
+
+        /* Check if this is a valid TCP socket, affirm that it is not closed or closing,
+         * affirm that there was not malloc-problem, test if uxDataLength is non-zero,
+         * and if the connection is not in a confirmed FIN state. */
+        xByteCount = ( BaseType_t ) prvTCPSendCheck( pxSocket, uxDataLength );
 
         if( xByteCount > 0 )
         {
@@ -5407,7 +5464,12 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
     {
         char pcRemoteIp[ 40 ];
         int xIPWidth = 16;
-        int age = 0;
+
+        #if ( ipconfigTCP_KEEP_ALIVE == 1 )
+            TickType_t age = xTaskGetTickCount() - pxSocket->u.xTCP.xLastAliveTime;
+        #else
+            TickType_t age = 0U;
+        #endif
         if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
         {
             xIPWidth = 32;
@@ -5473,8 +5535,8 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
         {
             /* Casting a "MiniListItem_t" to a "ListItem_t".
              * This is safe because only its address is being accessed, not its fields. */
-            const ListItem_t * pxEndTCP = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
-            const ListItem_t * pxEndUDP = ( ( const ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
+            const ListItem_t * pxEndTCP = listGET_END_MARKER( &xBoundTCPSocketsList );
+            const ListItem_t * pxEndUDP = listGET_END_MARKER( &xBoundUDPSocketsList );
 
             FreeRTOS_printf( ( "Prot Port IP-Remote       : Port  R/T Status       Alive  tmout Child\n" ) );
 
