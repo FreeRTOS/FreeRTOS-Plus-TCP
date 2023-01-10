@@ -83,24 +83,35 @@ void test_pxPacketBuffer_to_NetworkBuffer( void )
     TEST_ASSERT_EQUAL( NULL, pxReturn );
 }
 
-void test_prvProcessNetworkDownEvent_Pass( void )
+void test_prvProcessNetworkDownEvent_Pass_DHCP_Enabled( void )
 {
     NetworkInterface_t xInterface;
     NetworkEndPoint_t xEndPoint;
 
-    xCallEventHook = pdFALSE;
+    xCallEventHook = pdFALSE;  
 
-    xInterfaces[ 0 ].pfInitialise = xNetworkInterfaceInitialise_CMockExpectAndReturn;
+    xInterface.pfInitialise = xNetworkInterfaceInitialise_test;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
+    FreeRTOS_FirstEndPoint_ExpectAndReturn(&xInterface,&xEndPoint);
+    
     FreeRTOS_ClearARP_Expect( &xEndPoint );
 
-    xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces[ 0 ], pdPASS );
+    FreeRTOS_NextEndPoint_ExpectAndReturn(&xInterface,&xEndPoint,NULL);
 
-    vIPNetworkUpCalls_Expect( &xEndPoint );
+    xInterface.pfInitialise = xNetworkInterfaceInitialise_test;
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn(&xInterface,&xEndPoint);
+
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    vDHCPProcess_Expect(pdTRUE,&xEndPoint);
+
+    FreeRTOS_NextEndPoint_ExpectAndReturn(&xInterface,&xEndPoint,NULL);
 
     prvProcessNetworkDownEvent( &xInterface );
+    
 }
 
 void test_FreeRTOS_round_up( void )
@@ -155,4 +166,35 @@ void test_vPrintResourceStats_LastQueueNECurrentQueue( void )
 
     TEST_ASSERT_EQUAL( 10, uxMinLastSize );
     TEST_ASSERT_EQUAL( 10, uxLastMinQueueSpace );
+}
+
+void test_prvProcessNetworkDownEvent_Pass_DHCP_Disabled( void )
+{
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint;
+
+    xCallEventHook = pdFALSE;  
+
+    xInterface.pfInitialise = xNetworkInterfaceInitialise_test;
+
+    vIPSetARPTimerEnableState_Expect( pdFALSE );
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn(&xInterface,&xEndPoint);
+    
+    FreeRTOS_ClearARP_Expect( &xEndPoint );
+
+    FreeRTOS_NextEndPoint_ExpectAndReturn(&xInterface,&xEndPoint,NULL);
+
+    xInterface.pfInitialise = xNetworkInterfaceInitialise_test;
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn(&xInterface,&xEndPoint);
+
+    xEndPoint.bits.bWantDHCP = pdFALSE;
+
+    vIPNetworkUpCalls_Expect( &xEndPoint );
+
+    FreeRTOS_NextEndPoint_ExpectAndReturn(&xInterface,&xEndPoint,NULL);    
+
+    prvProcessNetworkDownEvent( &xInterface );
+    
 }
