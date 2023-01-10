@@ -440,6 +440,7 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
 BaseType_t xGetPhyLinkStatus( void )
 {
     BaseType_t xReturn;
+    
     if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) == 0uL )
     {
         xReturn = pdFALSE;
