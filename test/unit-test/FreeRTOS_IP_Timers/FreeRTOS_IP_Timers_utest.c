@@ -289,20 +289,19 @@ void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired2( void )
 
 void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 {
-    struct xNetworkEndPoint pxEndPoint;
-    pxEndPoint.pxNext = NULL;
+    struct xNetworkEndPoint xEndPoint;
+    xEndPoint.pxNext = NULL;
     
     xARPTimer.bActive = pdFALSE;
-    //xDHCPTimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
     
-    pxEndPoint.xDHCP_RATimer.bExpired = pdTRUE;
+    xEndPoint.xDHCP_RATimer.bExpired = pdTRUE;
 
-    vTaskSetTimeOutState_Expect( &( pxEndPoint.xDHCP_RATimer.xTimeOut ) );
+    vTaskSetTimeOutState_Expect( &( xEndPoint.xDHCP_RATimer.xTimeOut ) );
 
-    xSendDHCPEvent_ExpectAndReturn( &pxEndPoint , pdTRUE );
+    xSendDHCPEvent_ExpectAndReturn( &xEndPoint , pdTRUE );
 
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
 
