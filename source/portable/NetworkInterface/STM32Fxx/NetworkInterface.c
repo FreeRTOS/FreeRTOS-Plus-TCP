@@ -1308,6 +1308,11 @@ static void prvEMACHandlerTask( void * pvParameters )
         {
             /* Something has changed to a Link Status, need re-check. */
             prvEthernetUpdateConfig( pdFALSE );
+			
+			if(xGetPhyLinkStatus() == pdFALSE)
+            {
+            	FreeRTOS_NetworkDown();
+            }
         }
     }
 }
