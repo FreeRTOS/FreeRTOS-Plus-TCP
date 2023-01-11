@@ -453,17 +453,17 @@ void test_vARPTimerReload( void )
 
 void test_vDHCP_RATimerReload( void )
 {
-    NetworkEndPoint_t pxEndPoint;
+    NetworkEndPoint_t xEndPoint;
     TickType_t xTime = 0x12A;
 
-    vTaskSetTimeOutState_Expect( &pxEndPoint.xDHCP_RATimer.xTimeOut );
+    vTaskSetTimeOutState_Expect( &xEndPoint.xDHCP_RATimer.xTimeOut );
 
-    vDHCP_RATimerReload( &pxEndPoint, xTime );
+    vDHCP_RATimerReload( &xEndPoint, xTime );
 
-    TEST_ASSERT_EQUAL( 0x12A, pxEndPoint.xDHCP_RATimer.ulReloadTime );
-    TEST_ASSERT_EQUAL( xTime, pxEndPoint.xDHCP_RATimer.ulRemainingTime );
-    TEST_ASSERT_EQUAL( pdTRUE, pxEndPoint.xDHCP_RATimer.bActive );
-    TEST_ASSERT_EQUAL( pdFALSE, pxEndPoint.xDHCP_RATimer.bExpired );
+    TEST_ASSERT_EQUAL( 0x12A, xEndPoint.xDHCP_RATimer.ulReloadTime );
+    TEST_ASSERT_EQUAL( xTime, xEndPoint.xDHCP_RATimer.ulRemainingTime );
+    TEST_ASSERT_EQUAL( pdTRUE, xEndPoint.xDHCP_RATimer.bActive );
+    TEST_ASSERT_EQUAL( pdFALSE, xEndPoint.xDHCP_RATimer.bExpired );
 }
 
 void test_vDNSTimerReload( void )
