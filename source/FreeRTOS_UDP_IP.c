@@ -103,7 +103,6 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
     /* Map the UDP packet onto the start of the frame. */
     UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
-
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
         eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
@@ -115,7 +114,6 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
 
         eReturned = eARPGetCacheEntry( &( ulIPAddress ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
     }
-
     if( pxNetworkBuffer->pxEndPoint == NULL )
     {
         pxNetworkBuffer->pxEndPoint = pxEndPoint;
@@ -167,7 +165,6 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
 
 
     UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
         FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
@@ -214,7 +211,6 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
             vARPGenerateRequestPacket( pxNetworkBuffer );
         }
     }
-
     return eReturned;
 }
 /*-----------------------------------------------------------*/
@@ -243,15 +239,14 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
-        eReturned = vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
+        vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
     }
     else
     {
         pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-        eReturned = vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+        vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
     }
 }
 /*-----------------------------------------------------------*/
@@ -288,16 +283,14 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {
-        xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
+        xReturn = xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
                                         usPort, pxIsWaitingForARPResolution );
     }
-
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
-        xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
+        xReturn = xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
                                         usPort, pxIsWaitingForARPResolution );
     }
-
     return xReturn;
 }
 /*-----------------------------------------------------------*/

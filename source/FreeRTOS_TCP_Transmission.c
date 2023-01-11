@@ -249,8 +249,7 @@
                              BaseType_t xReleaseAfterSend )
     {
         const NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
-
-        if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+        if(pxNetworkBuffer != NULL && uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
         {
             prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
         }
@@ -587,7 +586,7 @@
                                                     UBaseType_t uxOptionsLength )
     {
         NetworkBufferDescriptor_t * pxReturn;
-        size_t uxNeeded;
+        size_t uxNeeded, uxIPHeaderSize, uxTCPPacketSize;
         BaseType_t xResize;
 
         if( xBufferAllocFixedSize != pdFALSE )
@@ -611,12 +610,22 @@
         {
             /* Network buffers are created with a variable size. See if it must
              * grow. */
-            uxNeeded = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
+            uxIPHeaderSize = uxIPHeaderSizeSocket( pxSocket );
+            uxNeeded = ipSIZE_OF_ETH_HEADER + uxIPHeaderSize + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
             uxNeeded += ( size_t ) lDataLen;
 
-            if( uxNeeded < sizeof( pxSocket->u.xTCP.xPacket.u.ucLastPacket ) )
+            if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER ) 
             {
-                uxNeeded = sizeof( pxSocket->u.xTCP.xPacket.u.ucLastPacket );
+                uxTCPPacketSize = sizeof( TCPPacket_IPv6_t );
+            } 
+            else 
+            {
+                uxTCPPacketSize = sizeof( TCPPacket_t );
+            }
+
+            if( uxNeeded < uxTCPPacketSize )
+            {
+                uxNeeded = uxTCPPacketSize;
             }
 
             /* In case we were called from a TCP timer event, a buffer must be

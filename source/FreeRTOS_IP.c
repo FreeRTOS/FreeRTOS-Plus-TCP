@@ -307,7 +307,7 @@ static void prvProcessIPEventsAndTimers( void )
             prvHandleEthernetPacket( ( NetworkBufferDescriptor_t * ) xReceivedEvent.pvData );
             break;
 
-        case eNetworkTxEvent: /*TODO */
+        case eNetworkTxEvent:
 
            {
                NetworkBufferDescriptor_t * pxDescriptor = ( NetworkBufferDescriptor_t * ) xReceivedEvent.pvData;
@@ -316,10 +316,9 @@ static void prvProcessIPEventsAndTimers( void )
                /* Send a network packet. The ownership will  be transferred to
                 * the driver, which will release it after delivery. */
                iptraceNETWORK_INTERFACE_OUTPUT( pxDescriptor->xDataLength, pxDescriptor->pucEthernetBuffer );
-
-               if( pxDescriptor->pxInterface != NULL )
+               if(pxDescriptor->pxInterface != NULL)
                {
-                   ( void ) pxDescriptor->pxInterface->pfOutput( pxDescriptor->pxInterface, pxDescriptor, xReleaseAfterSend );
+                    (void)pxDescriptor->pxInterface->pfOutput(pxDescriptor->pxInterface, pxDescriptor, pdTRUE);
                }
            }
            break;
@@ -882,12 +881,31 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
             xEndPoints[ 0 ].bits.bWantDHCP = pdTRUE;
         }
     #endif /* ipconfigUSE_DHCP */
+    
+    #if (ipconfigUSE_DHCP != 0)
+        {
+            
+            *ipLOCAL_IP_ADDRESS_POINTER = 0x00U;
+        }
+    #else
+        {
+            
+            *ipLOCAL_IP_ADDRESS_POINTER = xEndPoints[0].ipv4_defaults.ulIPAddress;
+            
+            if (xEndPoints[0].ipv4_settings.ulGatewayAddress != 0U)
+            {
+                configASSERT(((*ipLOCAL_IP_ADDRESS_POINTER) & xEndPoints[0].ipv4_settings.ulNetMask) == (xEndPoints[0].ipv4_settings.ulGatewayAddress & xEndPoints[0].ipv4_settings.ulNetMask));
+            }
+        }
+    #endif 
+    
+    /* The MAC address is stored in the start of the default packet header fragment, which is used when sending UDP packets. */
+    ( void ) memcpy( ipLOCAL_MAC_ADDRESS, ucMACAddress, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
     /* There must be at least one interface and one end-point. */
     configASSERT( FreeRTOS_FirstNetworkInterface() != NULL );
 
     pxFirstEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
     if( ENDPOINT_IS_IPv6( pxFirstEndPoint ) )
     {
         for( ;
@@ -900,7 +918,6 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
             }
         }
     }
-
     /* At least one IPv4 end-point must be defined. */
     configASSERT( pxFirstEndPoint != NULL );
 
@@ -1383,14 +1400,12 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
          * the buffer without taking any other action. */
         eReturn = eReleaseBuffer;
     }
-
     if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
         ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
     {
         /* The packet is a request for LLMNR - process it. */
         eReturn = eProcessBuffer;
     }
-
     #if ( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES == 1 )
         {
             uint16_t usFrameType;
@@ -1467,7 +1482,6 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
                 case ipIPv4_FRAME_TYPE:
                 case ipIPv6_FRAME_TYPE:
-
                     /* The Ethernet frame contains an IP packet. */
                     if( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) )
                     {
@@ -1571,7 +1585,6 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     size_t uxMinSize = ipSIZE_OF_ETH_HEADER + ( size_t ) uxIPHeaderSizePacket( pxNetworkBuffer ) + ipSIZE_OF_UDP_HEADER;
     size_t uxLength;
     uint16_t usLength;
-
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
         const ProtocolHeaders_t * pxProtocolHeaders;
@@ -1582,7 +1595,6 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
         pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
         pxUDPHeader = &( pxProtocolHeaders->xUDPHeader );
     }
-
     usLength = FreeRTOS_ntohs( pxUDPHeader->usLength );
     uxLength = ( size_t ) usLength;
 
@@ -1717,7 +1729,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
             #endif
         }
     }
-
     /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
     /* coverity[misra_c_2012_rule_14_3_violation] */
@@ -1732,7 +1743,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
              * The extra space is used for IP-options. */
             eReturn = prvCheckIP4HeaderOptions( pxNetworkBuffer );
         }
-
         if( ( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
             ( xGetExtensionOrder( ucProtocol, 0U ) > 0 ) )
         {
@@ -1743,7 +1753,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                 ucProtocol = pxIPHeader_IPv6->ucNextHeader;
             }
         }
-
         /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
         /* coverity[misra_c_2012_rule_14_3_violation] */
@@ -1765,7 +1774,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                     vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
                 }
                 else
-
 
                 if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
                 {
@@ -1804,11 +1812,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                             }
                         #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
                         break;
-
                     case ipPROTOCOL_ICMP_IPv6:
                         eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
                         break;
-
                     case ipPROTOCOL_UDP:
                         /* The IP packet contained a UDP frame. */
 
@@ -2237,7 +2243,6 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     const EthernetHeader_t * pxHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
     if( pxHeader->usFrameType == ( uint16_t ) ipIPv6_FRAME_TYPE )
     {
         uxResult = ipSIZE_OF_IPv6_HEADER;
@@ -2246,7 +2251,6 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         uxResult = ipSIZE_OF_IPv4_HEADER;
     }
-
     return uxResult;
 }
 /*-----------------------------------------------------------*/

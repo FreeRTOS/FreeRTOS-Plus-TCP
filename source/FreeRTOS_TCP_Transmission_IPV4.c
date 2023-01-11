@@ -121,7 +121,6 @@
                 {
                     break;
                 }
-
                 if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
                 {
                     xIsIPv6 = pdTRUE;
@@ -147,6 +146,7 @@
                 #endif
                 pxNetworkBuffer->pucEthernetBuffer = pxSocket->u.xTCP.xPacket.u.ucLastPacket;
                 pxNetworkBuffer->xDataLength = sizeof( pxSocket->u.xTCP.xPacket.u.ucLastPacket );
+                pxIPHeader = ((IPHeader_t*)&(pxNetworkBuffer->pucEthernetBuffer[ipSIZE_OF_ETH_HEADER]));
                 xDoRelease = pdFALSE;
             }
 
@@ -213,9 +213,12 @@
                      * Just swap the two sequence numbers. */
                     vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
                 }
-
                 if( usFrameType == ipIPv6_FRAME_TYPE )
                 {
+
+                    /* Map the ethernet buffer onto a IPHeader_IPv6_t struct for easy access to the fields. */
+                    pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
                     /* When xIsIPv6 is true: Let lint know that
                      * 'pxIPHeader_IPv6' is not NULL. */
                     configASSERT( pxIPHeader_IPv6 != NULL );
@@ -250,6 +253,9 @@
                 }
                 else
                 {
+                    /* Map the ethernet buffer onto a IPHeader_t struct for easy access to the fields. */
+                    pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
                     pxIPHeader->ucTimeToLive = ( uint8_t ) ipconfigTCP_TIME_TO_LIVE;
                     pxIPHeader->usLength = FreeRTOS_htons( ulLen );
 
@@ -294,7 +300,6 @@
                         }
                     #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
                 }
-
                 vFlip_16( pxProtocolHeaders->xTCPHeader.usSourcePort, pxProtocolHeaders->xTCPHeader.usDestinationPort );
 
                 /* Important: tell NIC driver how many bytes must be sent. */
@@ -360,7 +365,11 @@
 
                 /* Send! */
                 iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-                ( void ) xNetworkInterfaceOutput( pxNetworkBuffer, xDoRelease );
+                NetworkInterface_t* pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+                if(pxInterface != NULL)
+                {
+                    (void)pxInterface->pfOutput(pxInterface, pxNetworkBuffer, xDoRelease);
+                }
 
                 if( xDoRelease == pdFALSE )
                 {

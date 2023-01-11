@@ -71,12 +71,6 @@
         uint8_t * pucTarget;      /**< The array of bytes in which the resulting IPv6 address is written. */
     };
 
-/**
- * @brief Convert an ASCII character to its corresponding hexadecimal value.
- *        Accepted characters are 0-9, a-f, and A-F.
- */
-    uint8_t ucASCIIToHex( char cChar );
-
 /* @brief Converts a hex value to a readable hex character, e.g. 14 becomes 'e'.
  */
     char cHexToChar( uint16_t usValue );
