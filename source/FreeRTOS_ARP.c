@@ -524,9 +524,10 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
     BaseType_t xAllDone = pdFALSE;
     uint8_t ucMinAgeFound = 0U;
 
+    /* Only process the IP address if it is on the local network. */
+    BaseType_t xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 2 ) != NULL ) ? 1 : 0; /* ARP remote address. */
+
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
-        /* Only process the IP address if it is on the local network. */
-        BaseType_t xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 2 ) != NULL ) ? 1 : 0; /* ARP remote address. */
 
         /* Only process the IP address if it matches with one of the end-points. */
         if( xAddressIsLocal != 0 )
@@ -609,7 +610,12 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                      * network, than the MAC address of the gateway should not be
                      * overwritten. */
                     BaseType_t xOtherIsLocal = ( FreeRTOS_FindEndPointOnNetMask( xARPCache[ x ].ulIPAddress, 3 ) != NULL ) ? 1 : 0; /* ARP remote address. */
-                    xMacEntry = x;
+                    
+                    if( xAddressIsLocal == xOtherIsLocal )
+                    {
+                        xMacEntry = x;
+                    }
+                    
                 #else /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 ) */
                     xMacEntry = x;
                 #endif /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 ) */

@@ -648,6 +648,7 @@ void test_eARPProcessPacket_Reply_TargetIPSameAsLocalIP( void )
     vResetARPClashCounter();
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAndReturn(ulSenderProtocolAddress, 2, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
 
     xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
     xNetworkBuffer.pucEthernetBuffer = &xARPFrame;
@@ -697,6 +698,7 @@ void test_eARPProcessPacket_Reply_TargetIPNotSameAsLocalIP_ButEntryInCache( void
     vResetARPClashCounter();
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAndReturn(ulSenderProtocolAddress, 2, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
 
     xNetworkBuffer.pucEthernetBuffer = &xARPFrame;
     xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
@@ -1217,6 +1219,8 @@ void test_vARPRefreshCacheEntry_NULLMAC_NoMatchingEntry( void )
         xARPCache[ i ].ucValid = pdTRUE;
     }
 
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
+
     ulIPAddress = 0x00;
     /* Pass a NULL MAC Address and an IP address which will not match. */
     vARPRefreshCacheEntry( NULL, ulIPAddress, &xEndPoint );
@@ -1244,6 +1248,8 @@ void test_vARPRefreshCacheEntry_NULLMAC_MatchingEntry( void )
     }
 
     xARPCache[ 1 ].ulIPAddress = 0xAABBCCEE;
+
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
 
     ulIPAddress = 0xAABBCCEE;
     /* Pass a NULL MAC Address and an IP address which will match. */
@@ -1278,6 +1284,9 @@ void test_vARPRefreshCacheEntry_MACWontMatch_IPWillMatch( void )
     ulIPAddress = 0xAABBCCEE;
     memset( xMACAddress.ucBytes, 0x11, ipMAC_ADDRESS_LENGTH_BYTES );
     /* Pass a MAC Address which won't match and an IP address which will match. */
+
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
+
     vARPRefreshCacheEntry( &xMACAddress, ulIPAddress, &xEndPoint );
 
     /* Since no matching entry will be found with smallest age (i.e. oldest), 0th entry will be updated to have the below details. */
@@ -1311,6 +1320,9 @@ void test_vARPRefreshCacheEntry_MACAndIPWillMatch( void )
 
     ulIPAddress = 0xAABBCCEE;
     memset( xMACAddress.ucBytes, 0x11, ipMAC_ADDRESS_LENGTH_BYTES );
+
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
+
     /* Pass a MAC Address which will match and an IP address which will match too. */
     vARPRefreshCacheEntry( &xMACAddress, ulIPAddress, &xEndPoint );
 
@@ -1352,6 +1364,7 @@ void test_vARPRefreshCacheEntry_IPOnADifferentSubnet( void )
     /* Pass a MAC Address which will match and an IP address which will match too. */
 
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 124);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
 
     vARPRefreshCacheEntry( &xMACAddress, ulIPAddress, &xEndPoint );
 
@@ -1389,6 +1402,7 @@ void test_vARPRefreshCacheEntry_IPAndMACInDifferentLocations( void )
     memset( xARPCache[ xUseEntry + 1 ].xMACAddress.ucBytes, 0x22, sizeof( xMACAddress.ucBytes ) );
     memset( xMACAddress.ucBytes, 0x22, ipMAC_ADDRESS_LENGTH_BYTES );
 
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 124);
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 124);
 
     /* Pass a MAC and IP Address which won't match, but age is now a factor. */
