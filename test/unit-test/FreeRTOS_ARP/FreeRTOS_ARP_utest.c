@@ -1933,224 +1933,262 @@ void test_FreeRTOS_OutputARPRequest( void )
 }
 
 
-// void vStoreTimeValue( TimeOut_t * const timeout,
-//                       int32_t callbacks )
-// {
-//     timeout->xOverflowCount = 0;
-//     timeout->xTimeOnEntering = 100;
-// }
+void vStoreTimeValue( TimeOut_t * const timeout,
+                      int32_t callbacks )
+{
+    timeout->xOverflowCount = 0;
+    timeout->xTimeOnEntering = 100;
+}
 
-// void test_xARPWaitResolution_PrivateFunctionReturnsHit( void )
-// {
-//     uint32_t ulIPAddress = 0xAAAAAAAA;
-//     BaseType_t xResult;
-//     int i;
-//     struct xNetworkInterface *xInterface;
+void test_xARPWaitResolution_PrivateFunctionReturnsHit( void )
+{
+    uint32_t ulIPAddress = 0xAAAAAAAA;
+    BaseType_t xResult;
+    int i;
+    struct xNetworkInterface *xInterface;
+    NetworkEndPoint_t xEndPoint;
 
-//     /* Catch the assertion for calling from IP task. */
-//     /* =================================================== */
-//     /* Assertion on calling from IP-task */
-//     xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
-//     catch_assert( xARPWaitResolution( ulIPAddress, 0 ) );
-//     /* =================================================== */
-
-
-//     /* Make the resolution pass without any attempt by making
-//      * eARPGetCacheEntry return eARPCacheHit. */
-//     /* =================================================== */
-//     /* Assertion on calling from IP-task */
-//     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
-//     /* Not worried about what these functions do. */
-//     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 1UL );
-//     vSetMultiCastIPv4MacAddress_Ignore();
-//     xResult = xARPWaitResolution( ulIPAddress, 0 );
-//     TEST_ASSERT_EQUAL( xResult, 0 );
-//     /* =================================================== */
-// }
-
-// void test_xARPWaitResolution_GNWFailsNoTimeout( void )
-// {
-//     uint32_t ulIPAddress = 0xAAAAAAAA;
-//     BaseType_t xResult;
-//     int i;
-
-//     /* Make the resolution fail with maximum tryouts. */
-//     /* =================================================== */
-//     /* Make sure that no address matches the IP address. */
-//     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
-//     {
-//         xARPCache[ i ].ulIPAddress = 0xAAAAAAAA;
-//     }
-
-//     ulIPAddress = 0x00000031;
-//     /* Make both values (IP address and local IP pointer) different. */
-//     /* Get any address on the same netmask. */
-//     *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
-
-//     /* Assertion on calling from IP-task */
-//     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
-//     /* Not worried about what these functions do. */
-//     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-
-//     vTaskSetTimeOutState_Stub( vStoreTimeValue );
-
-//     /* Make sure that there are enough stubs for all the repetitive calls. */
-//     for( i = 0; i < ipconfigMAX_ARP_RETRANSMISSIONS; i++ )
-//     {
-//         pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
-//         vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
-//         xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-//         xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
-//     }
-
-//     xResult = xARPWaitResolution( ulIPAddress, 0 );
-//     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EADDRNOTAVAIL, xResult );
-//     /* =================================================== */
-// }
-
-// void test_xARPWaitResolution( void )
-// {
-//     uint32_t ulIPAddress = 0xAAAAAAAA;
-//     BaseType_t xResult;
-//     int i;
-
-//     /* Make the resolution fail after some attempts due to timeout. */
-//     /* =================================================== */
-//     /* Make sure that no address matches the IP address. */
-//     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
-//     {
-//         xARPCache[ i ].ulIPAddress = 0xAAAAAAAA;
-//     }
-
-//     ulIPAddress = 0x00000031;
-//     /* Make both values (IP address and local IP pointer) different. */
-//     /* Get any address on the same netmask. */
-//     *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
-
-//     /* Assertion on calling from IP-task */
-//     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
-//     /* Make eARPGetCacheEntry return a cache miss. */
-//     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-
-//     vTaskSetTimeOutState_Stub( vStoreTimeValue );
-
-//     /* Make sure that there are enough stubs for all the repetitive calls. */
-//     for( i = 0; i < ( ipconfigMAX_ARP_RETRANSMISSIONS - 1 ); i++ )
-//     {
-//         pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
-//         vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
-//         xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-//         xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
-//     }
-
-//     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
-//     vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
-//     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-//     xTaskCheckForTimeOut_IgnoreAndReturn( pdTRUE );
-
-//     xResult = xARPWaitResolution( ulIPAddress, 0 );
-//     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EADDRNOTAVAIL, xResult );
-//     /* =================================================== */
-
-//     /* Make the resolution pass after some attempts. */
-//     /* =================================================== */
-//     /* Make sure that no address matches the IP address. */
-//     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
-//     {
-//         xARPCache[ i ].ulIPAddress = 0xAAAAAAAA;
-//     }
-
-//     ulIPAddress = 0x00000031;
-//     /* Make both values (IP address and local IP pointer) different. */
-//     /* Get any address on the same netmask. */
-//     *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
-
-//     /* Assertion on calling from IP-task */
-//     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
-//     /* Not worried about what these functions do. */
-//     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-
-//     vTaskSetTimeOutState_Stub( vStoreTimeValue );
-
-//     /* Make sure that there are enough stubs for all the repetitive calls. */
-//     for( i = 0; i < ( ipconfigMAX_ARP_RETRANSMISSIONS - 2 ); i++ )
-//     {
-//         pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
-//         vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
-//         xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-//         xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
-//     }
-
-//     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
-//     vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
-//     /* Make eARPGetCacheEntry succeed. That is - make it return eARPCacheHit */
-//     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 1UL );
-//     vSetMultiCastIPv4MacAddress_Ignore();
-
-//     /* Make sure that there is no timeout. */
-//     xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
-
-//     xResult = xARPWaitResolution( ulIPAddress, 0 );
-//     TEST_ASSERT_EQUAL( 0, xResult );
-//     /* =================================================== */
-// }
-
-// void test_vARPGenerateRequestPacket( void )
-// {
-//     NetworkBufferDescriptor_t xNetworkBuffer;
-//     NetworkBufferDescriptor_t * const pxNetworkBuffer = &xNetworkBuffer;
-//     uint8_t ucBuffer[ sizeof( ARPPacket_t ) + ipBUFFER_PADDING ];
-
-//     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
-//     pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t );
-
-//     /* Catch some asserts. */
-//     catch_assert( vARPGenerateRequestPacket( NULL ) );
-
-//     pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t ) - 10;
-//     catch_assert( vARPGenerateRequestPacket( pxNetworkBuffer ) );
-
-//     pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t );
-//     vARPGenerateRequestPacket( pxNetworkBuffer );
-// }
+    /* Catch the assertion for calling from IP task. */
+    /* =================================================== */
+    /* Assertion on calling from IP-task */
+    xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
+    catch_assert( xARPWaitResolution( ulIPAddress, 0 ) );
+    /* =================================================== */
 
 
-// void test_FreeRTOS_ClearARP( void )
-// {
-//     struct xNetworkEndPoint xEndPoint;
-//     uint8_t ucArray[ sizeof( xARPCache ) ];
+    /* Make the resolution pass without any attempt by making
+     * eARPGetCacheEntry return eARPCacheHit. */
+    /* =================================================== */
+    /* Assertion on calling from IP-task */
+    xEndPoint.bits.bIPv6 = 0;
+    xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
+    /* Not worried about what these functions do. */
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 1UL );
+    vSetMultiCastIPv4MacAddress_Ignore();
+    FreeRTOS_FirstEndPoint_ExpectAndReturn(NULL, &xEndPoint);
 
-//     memset( ucArray, 0, sizeof( xARPCache ) );
+    xResult = xARPWaitResolution( ulIPAddress, 0 );
+    TEST_ASSERT_EQUAL( xResult, 0 );
+    /* =================================================== */
+}
 
-//     FreeRTOS_ClearARP(&xEndPoint);
-//     TEST_ASSERT_EQUAL_MEMORY( ucArray, xARPCache, sizeof( xARPCache ) );
-// }
+void test_xARPWaitResolution_GNWFailsNoTimeout( void )
+{
+    uint32_t ulIPAddress = 0xAAAAAAAA;
+    NetworkEndPoint_t xEndPoint;
+    NetworkInterface_t xInterface;
+    BaseType_t xResult;
+    int i;
+
+    /* Make the resolution fail with maximum tryouts. */
+    /* =================================================== */
+    /* Make sure that no address matches the IP address. */
+    for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
+    {
+        xARPCache[ i ].ulIPAddress = 0xAAAAAAAA;
+    }
+
+    ulIPAddress = 0x00000031;
+    /* Make both values (IP address and local IP pointer) different. */
+    /* Get any address on the same netmask. */
+    *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
+
+    /* Assertion on calling from IP-task */
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
+    xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
+    /* Not worried about what these functions do. */
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
+
+    vTaskSetTimeOutState_Stub( vStoreTimeValue );
+
+    /* Make sure that there are enough stubs for all the repetitive calls. */
+    for( i = 0; i < ipconfigMAX_ARP_RETRANSMISSIONS; i++ )
+    {
+        FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
+        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn((void *) 1234);
+        pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+        FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn(NULL);
+        vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
+        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
+        xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+        FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
+        xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
+    }
+
+    xResult = xARPWaitResolution( ulIPAddress, 0 );
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EADDRNOTAVAIL, xResult );
+    /* =================================================== */
+}
+
+void test_xARPWaitResolution( void )
+{
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint;
+    uint32_t ulIPAddress = 0xAAAAAAAA;
+    BaseType_t xResult;
+    int i;
+
+    /* Make the resolution fail after some attempts due to timeout. */
+    /* =================================================== */
+    /* Make sure that no address matches the IP address. */
+    for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
+    {
+        xARPCache[ i ].ulIPAddress = 0xAAAAAAAA;
+    }
+
+    ulIPAddress = 0x00000031;
+    /* Make both values (IP address and local IP pointer) different. */
+    /* Get any address on the same netmask. */
+    *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
+
+    /* Assertion on calling from IP-task */
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
+    xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
+    /* Not worried about what these functions do. */
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
+
+    vTaskSetTimeOutState_Stub( vStoreTimeValue );
+
+    /* Make sure that there are enough stubs for all the repetitive calls. */
+    for( i = 0; i < ( ipconfigMAX_ARP_RETRANSMISSIONS - 1 ); i++ )
+    {
+        FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
+        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn((void *) 1234);
+        pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+        FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn(NULL);
+        vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
+        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
+        xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+        FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
+        xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
+    }
+
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn((void *) 1234);
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+    FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn(NULL);
+    vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
+    xTaskCheckForTimeOut_IgnoreAndReturn( pdTRUE );
+
+    xResult = xARPWaitResolution( ulIPAddress, 0 );
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EADDRNOTAVAIL, xResult );
+    /* =================================================== */
+
+    /* Make the resolution pass after some attempts. */
+    /* =================================================== */
+    xEndPoint.bits.bIPv6 = 0;
+    /* Make sure that no address matches the IP address. */
+    for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
+    {
+        xARPCache[ i ].ulIPAddress = 0xAAAAAAAA;
+    }
+
+    ulIPAddress = 0x00000031;
+    /* Make both values (IP address and local IP pointer) different. */
+    /* Get any address on the same netmask. */
+    *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
+
+    /* Assertion on calling from IP-task */
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
+    xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
+    /* Not worried about what these functions do. */
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
+
+    vTaskSetTimeOutState_Stub( vStoreTimeValue );
+
+    /* Make sure that there are enough stubs for all the repetitive calls. */
+    for( i = 0; i < ( ipconfigMAX_ARP_RETRANSMISSIONS - 2 ); i++ )
+    {
+        FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
+        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn((void *) 1234);
+        pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+        FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn(NULL);
+        vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
+        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
+        xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+        FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
+        xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
+    }
+
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn((void *) 1234);
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+    FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn(NULL);
+    vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 1UL );
+    vSetMultiCastIPv4MacAddress_Ignore();
+    FreeRTOS_FirstEndPoint_ExpectAndReturn(NULL, &xEndPoint);
+    xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
+
+    xResult = xARPWaitResolution( ulIPAddress, 0 );
+    TEST_ASSERT_EQUAL( 0, xResult );
+    /* =================================================== */
+}
+
+void test_vARPGenerateRequestPacket( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * const pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucBuffer[ sizeof( ARPPacket_t ) + ipBUFFER_PADDING ];
+
+    pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
+    pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t );
+
+    /* Catch some asserts. */
+    catch_assert( vARPGenerateRequestPacket( NULL ) );
+
+    pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t ) - 10;
+    catch_assert( vARPGenerateRequestPacket( pxNetworkBuffer ) );
+
+    pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t );
+    vARPGenerateRequestPacket( pxNetworkBuffer );
+}
+
+
+void test_FreeRTOS_ClearARP( void )
+{
+    struct xNetworkEndPoint xEndPoint;
+    uint8_t ucArray[ sizeof( xARPCache ) ];
+
+    memset( ucArray, 0, sizeof( xARPCache ) );
+
+    FreeRTOS_ClearARP(NULL);
+    TEST_ASSERT_EQUAL_MEMORY( ucArray, xARPCache, sizeof( xARPCache ) );
+}
 
 
 
-// void test_FreeRTOS_PrintARPCache( void )
-// {
-//     int x;
+void test_FreeRTOS_PrintARPCache( void )
+{
+    int x;
 
-//     for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
-//     {
-//         /* Anything except 0. */
-//         xARPCache[ x ].ulIPAddress = 0xAA;
-//         /* Anything except 0. */
-//         xARPCache[ x ].ucAge = x;
-//     }
+    for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+    {
+        /* Anything except 0. */
+        xARPCache[ x ].ulIPAddress = 0xAA;
+        /* Anything except 0. */
+        xARPCache[ x ].ucAge = x;
+    }
 
-//     /* Nothing to actually unit-test here. */
-//     FreeRTOS_PrintARPCache();
+    /* Nothing to actually unit-test here. */
+    FreeRTOS_PrintARPCache();
 
-//     for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
-//     {
-//         /* Anything except 0. */
-//         xARPCache[ x ].ulIPAddress = 0x00;
-//         /* Anything except 0. */
-//         xARPCache[ x ].ucAge = x;
-//     }
+    for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+    {
+        /* Anything except 0. */
+        xARPCache[ x ].ulIPAddress = 0x00;
+        /* Anything except 0. */
+        xARPCache[ x ].ucAge = x;
+    }
 
-//     /* Nothing to actually unit-test here. */
-//     FreeRTOS_PrintARPCache();
-// }
+    /* Nothing to actually unit-test here. */
+    FreeRTOS_PrintARPCache();
+}
