@@ -120,7 +120,6 @@
                 {
                     break;
                 }
-
                 if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
                 {
                     xIsIPv6 = pdTRUE;
@@ -146,7 +145,7 @@
                 #endif
                 pxNetworkBuffer->pucEthernetBuffer = pxSocket->u.xTCP.xPacket.u.ucLastPacket;
                 pxNetworkBuffer->xDataLength = sizeof( pxSocket->u.xTCP.xPacket.u.ucLastPacket );
-                /* _HT_ pxNetworkBuffer may have changed, reload pxIPHeader. */
+                /* pxNetworkBuffer may have changed, reload pxIPHeader. */
                 pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
                 xDoRelease = pdFALSE;
             }
@@ -214,7 +213,6 @@
                      * Just swap the two sequence numbers. */
                     vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
                 }
-
                 if( usFrameType == ipIPv6_FRAME_TYPE )
                 {
                     /* When xIsIPv6 is true: Let lint know that
@@ -299,7 +297,6 @@
                         }
                     #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
                 }
-
                 vFlip_16( pxProtocolHeaders->xTCPHeader.usSourcePort, pxProtocolHeaders->xTCPHeader.usDestinationPort );
 
                 /* Important: tell NIC driver how many bytes must be sent. */
@@ -365,6 +362,8 @@
 
                 /* Send! */
                 iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+
+                /* _HT_ added some asserts that are useful while testing. */
                 configASSERT( pxNetworkBuffer != NULL );
                 configASSERT( pxNetworkBuffer->pxEndPoint != NULL );
                 configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );

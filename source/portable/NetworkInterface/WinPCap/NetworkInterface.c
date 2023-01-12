@@ -286,8 +286,8 @@ static size_t prvStreamBufferAdd( StreamBuffer_t * pxBuffer,
 /*-----------------------------------------------------------*/
 
 static BaseType_t xWinPcap_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                           BaseType_t bReleaseAfterSend )
+                                                   NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                   BaseType_t bReleaseAfterSend )
 {
     size_t xSpace;
 
@@ -830,6 +830,7 @@ static void prvInterruptSimulatorTask( void * pvParameters )
 
                             pxNetworkBuffer->pxInterface = pxMyInterface;
                             pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer->pucEthernetBuffer );
+                            pxNetworkBuffer->pxEndPoint = pxNetworkEndPoints; //temporary change for single end point
 
                             //if( pxNetworkBuffer->pxEndPoint == NULL )
                             {

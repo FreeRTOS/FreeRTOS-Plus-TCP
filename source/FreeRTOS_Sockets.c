@@ -1228,7 +1228,6 @@ int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
             {
                 uxPayloadOffset = xRecv_Update_IPv4( pxNetworkBuffer, pxSourceAddress );
             }
-
             xAddressLength = sizeof( struct freertos_sockaddr );
 
             if( pxSourceAddressLength != NULL )
@@ -3008,11 +3007,9 @@ BaseType_t FreeRTOS_inet_pton( BaseType_t xAddressFamily,
         case FREERTOS_AF_INET:
             xResult = FreeRTOS_inet_pton4( pcSource, pvDestination );
             break;
-
         case FREERTOS_AF_INET6:
             xResult = FreeRTOS_inet_pton6( pcSource, pvDestination );
             break;
-
         default:
             xResult = -pdFREERTOS_ERRNO_EAFNOSUPPORT;
             break;
@@ -3050,11 +3047,9 @@ const char * FreeRTOS_inet_ntop( BaseType_t xAddressFamily,
         case FREERTOS_AF_INET4:
             pcResult = FreeRTOS_inet_ntop4( pvSource, pcDestination, uxSize );
             break;
-
         case FREERTOS_AF_INET6:
             pcResult = FreeRTOS_inet_ntop6( pvSource, pcDestination, uxSize );
             break;
-
         default:
             /* errno should be set to pdFREERTOS_ERRNO_EAFNOSUPPORT. */
             pcResult = NULL;
@@ -5099,7 +5094,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     {
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
         BaseType_t xResult;
-
         if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
         {
             xResult = ( BaseType_t ) ipTYPE_IPv6;
@@ -5108,7 +5102,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             xResult = ( BaseType_t ) ipTYPE_IPv4;
         }
-
         return xResult;
     }
 
@@ -5464,7 +5457,6 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
         #else
             TickType_t age = 0U;
         #endif
-
         char ucChildText[ 16 ] = "";
 
         if( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eTCP_LISTEN )

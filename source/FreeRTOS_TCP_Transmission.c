@@ -250,14 +250,12 @@
     {
         const NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
 
-        #if ( ipconfigUSE_IPv6 == 1 )
-            /* _HT_ temporary change for debugging. */
-            if( ( pxNetworkBuffer != NULL ) && ( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER ) )
-            {
-                prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
-            }
-            else
-        #endif /* ( ipconfigUSE_IPv6 == 0 ) */
+        /* _HT_ temporary change for debugging. */
+        if( ( pxNetworkBuffer != NULL ) && ( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER ) )
+        {
+            prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+        }
+        else
         {
             prvTCPReturnPacket_IPV4( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
         }

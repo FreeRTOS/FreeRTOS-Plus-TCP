@@ -101,6 +101,13 @@ static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
 
 /*-----------------------------------------------------------*/
 
+
+static eARPLookupResult_t eARPGetCacheEntryGateWay(uint32_t* pulIPAddress,
+                                                   MACAddress_t* const pxMACAddress,
+                                                   struct xNetworkEndPoint** ppxEndPoint);
+
+/*-----------------------------------------------------------*/
+
 /** @brief The ARP cache. */
 _static ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
 
@@ -804,10 +811,7 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
 
     return eReturn;
 }
-/*-----------------------------------------------------------*/
 
-uint32_t ulAddressToLookup;
-uint32_t ulOrginal;
 
 /**
  * @brief The IPv4 address is apparently a web-address. Find a gateway..
@@ -817,18 +821,15 @@ uint32_t ulOrginal;
  *                          stored to the buffer provided.
  * @param[out] ppxEndPoint: The end-point of the gateway will be copy to the pointee.
  */
+
 static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
                                                     MACAddress_t * const pxMACAddress,
                                                     struct xNetworkEndPoint ** ppxEndPoint )
 {
     eARPLookupResult_t eReturn = eARPCacheMiss;
-/*  uint32_t ulAddressToLookup = *( pulIPAddress ); */
+    uint32_t ulAddressToLookup = *( pulIPAddress );
     NetworkEndPoint_t * pxEndPoint;
-
-/*  uint32_t ulOrginal = *pulIPAddress; */
-
-    ulAddressToLookup = *( pulIPAddress );
-    ulOrginal = *pulIPAddress;
+    uint32_t ulOrginal = *pulIPAddress;
 
     /* It is assumed that devices with the same netmask are on the same
      * LAN and don't need a gateway. */
@@ -1082,8 +1083,9 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 
             if( pxNetworkBuffer != NULL )
             {
+                pxNetworkBuffer->xIPAddress.xIP_IPv4 = ulIPAddress;
                 pxNetworkBuffer->pxEndPoint = pxEndPoint;
-                pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ulIPAddress;
+                pxNetworkBuffer->pxInterface = pxInterface;
                 vARPGenerateRequestPacket( pxNetworkBuffer );
 
                 #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
@@ -1106,7 +1108,10 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
                 {
                     iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
                     /* Only the IP-task is allowed to call this function directly. */
-                    pxEndPoint->pxNetworkInterface->pfOutput( pxEndPoint->pxNetworkInterface, pxNetworkBuffer, pdTRUE );
+                    if(pxInterface != NULL)
+                    {
+                        ( void ) pxEndPoint->pxNetworkInterface->pfOutput( pxEndPoint->pxNetworkInterface, pxNetworkBuffer, pdTRUE );
+                    }
                 }
                 else
                 {

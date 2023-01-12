@@ -127,7 +127,6 @@
         return xIPv46_Address.ulIPAddress;
     }
 /*-----------------------------------------------------------*/
-
     uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
                                   IPv6_Address_t * pxAddress_IPv6 )
     {

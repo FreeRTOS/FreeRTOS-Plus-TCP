@@ -288,7 +288,11 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
                 }
             #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
             iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-            ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, pdTRUE );
+
+            if( pxInterface != NULL )
+            {
+                ( void ) pxInterface->pfOutput(pxInterface, pxNetworkBuffer, pdTRUE );
+            }
         }
         else
         {
