@@ -524,9 +524,10 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
     BaseType_t xAllDone = pdFALSE;
     uint8_t ucMinAgeFound = 0U;
 
+    /* Only process the IP address if it is on the local network. */
+    BaseType_t xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 2 ) != NULL ) ? 1 : 0; /* ARP remote address. */
+
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
-        /* Only process the IP address if it is on the local network. */
-        BaseType_t xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 2 ) != NULL ) ? 1 : 0; /* ARP remote address. */
 
         /* Only process the IP address if it matches with one of the end-points. */
         if( xAddressIsLocal != 0 )
@@ -609,6 +610,12 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                      * network, than the MAC address of the gateway should not be
                      * overwritten. */
                     BaseType_t xOtherIsLocal = ( FreeRTOS_FindEndPointOnNetMask( xARPCache[ x ].ulIPAddress, 3 ) != NULL ) ? 1 : 0; /* ARP remote address. */
+                    
+                    if( xAddressIsLocal == xOtherIsLocal )
+                    {
+                        xMacEntry = x;
+                    }
+                    
                 #else /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 ) */
                     xMacEntry = x;
                 #endif /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 ) */
@@ -794,8 +801,7 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
         (void)memcpy(pxMACAddress->ucBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES);
         eReturn = eARPCacheHit;
     }
-    else if( ( *pulIPAddress == ipBROADCAST_IP_ADDRESS ) ||                      /* Is it the general broadcast address 255.255.255.255?  */
-             ( *pulIPAddress == pxEndPoint->ipv4_settings.ulBroadcastAddress ) ) /* Or a local broadcast address, eg 192.168.1.255? */
+    else if( (FreeRTOS_ntohl(ulAddressToLookup) & 0xffU) == 0xffU )   /* Or a local broadcast address, eg 192.168.1.255? */
     {
         /* This is a broadcast so it uses the broadcast MAC address. */
         ( void ) memcpy( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
