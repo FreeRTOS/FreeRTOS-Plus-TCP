@@ -88,58 +88,58 @@ uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
 };
 
 
-// /* test for prvTCPMakeSurePrepared function */
-// void test_prvTCPMakeSurePrepared_Not_Ready( void )
-// {
-//     BaseType_t xResult = 0;
+/* test for prvTCPMakeSurePrepared function */
+void test_prvTCPMakeSurePrepared_Not_Ready( void )
+{
+    BaseType_t xResult = 0;
 
-//     pxSocket = &xSocket;
-//     pxNetworkBuffer = &xNetworkBuffer;
-//     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
 
-//     pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
+    pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
 
-//     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
-//     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
-//     prvSocketSetMSS_ExpectAnyArgs();
-//     vTCPWindowCreate_ExpectAnyArgs();
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
+    prvSocketSetMSS_ExpectAnyArgs();
+    vTCPWindowCreate_ExpectAnyArgs();
 
-//     xResult = prvTCPMakeSurePrepared( pxSocket );
-//     TEST_ASSERT_EQUAL( pdTRUE, xResult );
-// }
+    xResult = prvTCPMakeSurePrepared( pxSocket );
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+}
 
-// /* test for prvTCPMakeSurePrepared function */
-// void test_prvTCPMakeSurePrepared_Not_Ready_Error_Connect( void )
-// {
-//     BaseType_t xResult = 0;
+/* test for prvTCPMakeSurePrepared function */
+void test_prvTCPMakeSurePrepared_Not_Ready_Error_Connect( void )
+{
+    BaseType_t xResult = 0;
 
-//     pxSocket = &xSocket;
-//     pxNetworkBuffer = &xNetworkBuffer;
-//     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
 
-//     pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
+    pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
 
-//     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
-//     FreeRTOS_OutputARPRequest_ExpectAnyArgs();
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
+    FreeRTOS_OutputARPRequest_ExpectAnyArgs();
 
-//     xResult = prvTCPMakeSurePrepared( pxSocket );
-//     TEST_ASSERT_EQUAL( pdFALSE, xResult );
-// }
+    xResult = prvTCPMakeSurePrepared( pxSocket );
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+}
 
-// /* test for prvTCPMakeSurePrepared function */
-// void test_prvTCPMakeSurePrepared_Ready( void )
-// {
-//     BaseType_t xResult = 0;
+/* test for prvTCPMakeSurePrepared function */
+void test_prvTCPMakeSurePrepared_Ready( void )
+{
+    BaseType_t xResult = 0;
 
-//     pxSocket = &xSocket;
-//     pxNetworkBuffer = &xNetworkBuffer;
-//     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
 
-//     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
+    pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
 
-//     xResult = prvTCPMakeSurePrepared( pxSocket );
-//     TEST_ASSERT_EQUAL( pdTRUE, xResult );
-// }
+    xResult = prvTCPMakeSurePrepared( pxSocket );
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+}
 
 
 BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
