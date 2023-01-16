@@ -1,0 +1,2 @@
+/usr/bin/ar qc lib/libFreeRTOS_IP_Utils_real.a CMakeFiles/FreeRTOS_IP_Utils_real.dir/Annexed_TCP_Sources/FreeRTOS_IP_Utils.c.o CMakeFiles/FreeRTOS_IP_Utils_real.dir/Annexed_TCP_Sources/FreeRTOS_IPv4_Utils.c.o
+/usr/bin/ranlib lib/libFreeRTOS_IP_Utils_real.a

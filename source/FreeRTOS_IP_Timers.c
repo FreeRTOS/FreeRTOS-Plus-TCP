@@ -148,7 +148,7 @@ TickType_t xCalculateSleepTime( void )
     #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
         {
             const NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
-
+            
             while( pxEndPoint != NULL )
             {
                 if( pxEndPoint->xDHCP_RATimer.bActive != pdFALSE_UNSIGNED )
@@ -161,6 +161,7 @@ TickType_t xCalculateSleepTime( void )
 
                 pxEndPoint = pxEndPoint->pxNext;
             }
+            
         }
     #endif /* ipconfigUSE_DHCP */
 
@@ -245,7 +246,7 @@ void vCheckNetworkTimers( void )
                         }
                     #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
-                    #if ( ipconfigUSE_RA != 0 )
+                    #if ( ipconfigUSE_RA != 0 && ipconfigUSE_IPV6 != 0 )
                         if( END_POINT_USES_RA( pxEndPoint ) )
                         {
                             vRAProcess( pdFALSE, pxEndPoint );

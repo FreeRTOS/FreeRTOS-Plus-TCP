@@ -57,6 +57,7 @@
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_FreeRTOS_UDP_IP.h"
+#include "mock_FreeRTOS_IP_Private.h"
 
 #include "FreeRTOS_ICMP.h"
 
@@ -64,6 +65,7 @@
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
+
 
 void test_ProcessICMPPacket_CatchAssert( void )
 {
@@ -115,6 +117,8 @@ void test_ProcessICMPPacket_EchoRequest( void )
     pxIPHeader = &( pxICMPPacket->xIPHeader );
 
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REQUEST;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( 0 );
 
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0xAA );
 

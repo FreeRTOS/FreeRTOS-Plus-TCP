@@ -1,0 +1,108 @@
+Start testing: Jan 16 07:54 UTC
+----------------------------------------------------------
+1/1 Testing: FreeRTOS_IP_Utils_utest
+1/1 Test: FreeRTOS_IP_Utils_utest
+Command: "/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/build/bin/tests/FreeRTOS_IP_Utils_utest"
+Directory: /home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/build
+"FreeRTOS_IP_Utils_utest" start time: Jan 16 07:54 UTC
+Output:
+----------------------------------------------------------
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:172:test_xSendDHCPEvent:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:186:test_vSetMultiCastIPv4MacAddress:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:201:test_pxDuplicateNetworkBufferWithDescriptor_NULLReturned:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:216:test_pxDuplicateNetworkBufferWithDescriptor_LargerBufferReturned:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:249:test_pxDuplicateNetworkBufferWithDescriptor_SmallerBufferReturned:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:282:test_prvPacketBuffer_to_NetworkBuffer_NULLParam:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:293:test_prvPacketBuffer_to_NetworkBuffer_Unalligned:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:309:test_prvPacketBuffer_to_NetworkBuffer_Alligned:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:328:test_pxUDPPayloadBuffer_to_NetworkBuffer:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:347:test_xIsCallingFromIPTask_NotCallingFromIPTask:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:360:test_xIsCallingFromIPTask_IsCallingFromIPTask:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:383:test_prvProcessNetworkDownEvent_Pass:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:435:test_prvProcessNetworkDownEvent_Fail:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:454:test_vPreCheckConfigs_CatchAssert1:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:461:test_vPreCheckConfigs_CatchAssert2:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:469:test_vPreCheckConfigs_CatchAssert3:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:478:test_vPreCheckConfigs:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:488:test_usGenerateProtocolChecksum_AllZeroedInput:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:503:test_usGenerateProtocolChecksum_InvalidLength:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:519:test_usGenerateProtocolChecksum_InvalidLength2:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:540:test_usGenerateProtocolChecksum_InvalidLength3:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:565:test_usGenerateProtocolChecksum_UDPWrongCRCIncomingPacket:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:591:test_usGenerateProtocolChecksum_UDPInvalidLength:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:617:test_usGenerateProtocolChecksum_UDPOutgoingPacket:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:643:test_usGenerateProtocolChecksum_UDPNonZeroChecksum:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:674:test_usGenerateProtocolChecksum_UDPCorrectCRCOutgoingPacket:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:737:test_usGenerateProtocolChecksum_UDPCorrectCRC:FAIL: Expected 65535 Was 40703
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:741:test_usGenerateProtocolChecksum_UDPIncorrectCRC:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:800:test_usGenerateProtocolChecksum_TCPCorrectCRC:FAIL: Expected 65535 Was 4660
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:835:test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacket:FAIL: Expected 65535 Was 4660
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:867:test_usGenerateProtocolChecksum_TCPCorrectCRC_IncomingPacket:FAIL: Expected 65535 Was 4660
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:898:test_usGenerateProtocolChecksum_TCPIncorrectCRC_IncomingPacket:FAIL: Expected 0 Was 4660
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:901:test_usGenerateProtocolChecksum_TCPInvalidLength:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:932:test_usGenerateProtocolChecksum_TCPInvalidLength2:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:963:test_usGenerateProtocolChecksum_TCPInvalidLength3:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:994:test_usGenerateProtocolChecksum_ICMPInvalidLength:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1023:test_usGenerateProtocolChecksum_ICMPInvalidLength2:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1052:test_usGenerateProtocolChecksum_ICMPInvalidLength3:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1081:test_usGenerateProtocolChecksum_ICMPOutgoingChecksum:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1137:test_usGenerateProtocolChecksum_ICMPIncomingIncorrectCRC:FAIL: Expected 0 Was 65535
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1141:test_usGenerateProtocolChecksum_ICMPIncomingCorrectCRC:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1173:test_usGenerateProtocolChecksum_IGMPInvalidLength:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1202:test_usGenerateProtocolChecksum_IGMPInvalidLength2:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1231:test_usGenerateProtocolChecksum_IGMPInvalidLength3:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1260:test_usGenerateProtocolChecksum_IGMPOutgoingChecksum:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1316:test_usGenerateProtocolChecksum_IGMPIncomingIncorrectCRC:FAIL: Expected 0 Was 65535
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1320:test_usGenerateProtocolChecksum_IGMPIncomingCorrectCRC:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1352:test_usGenerateChecksum_UnallignedAccess:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1375:test_usGenerateChecksum_OneByteToChecksum:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1398:test_usGenerateChecksum_OneByteAllignedButZeroLength:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1421:test_usGenerateChecksum_TwoByteAlligned:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1444:test_usGenerateChecksum_TwoByteAllignedTwoLength:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1467:test_usGenerateChecksum_FourByteAlligned:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1490:test_usGenerateChecksum_FourByteAllignedSumOverflow:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1513:test_usGenerateChecksum_FourByteAllignedSumOverflow2:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1536:test_vPrintResourceStats_BufferCountMore:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1544:test_vPrintResourceStats_BufferCountLess:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1552:test_vPrintResourceStats_LastBuffer_NE_0:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1565:test_vPrintResourceStats_MinSizeIsBigger:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1578:test_FreeRTOS_strerror_r_Invalid:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1593:test_FreeRTOS_strerror_r_EADDRINUSE:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1608:test_FreeRTOS_strerror_r_ENOMEM:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1623:test_FreeRTOS_strerror_r_EADDRNOTAVAIL:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1638:test_FreeRTOS_strerror_r_ENOPROTOOPT:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1653:test_FreeRTOS_strerror_r_EBADF:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1668:test_FreeRTOS_strerror_r_ENOSPC:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1683:test_FreeRTOS_strerror_r_ECANCELED:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1698:test_FreeRTOS_strerror_r_ENOTCONN:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1713:test_FreeRTOS_strerror_r_EINPROGRESS:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1728:test_FreeRTOS_strerror_r_EOPNOTSUPP:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1743:test_FreeRTOS_strerror_r_EINTR:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1758:test_FreeRTOS_strerror_r_ETIMEDOUT:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1773:test_FreeRTOS_strerror_r_EINVAL:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1788:test_FreeRTOS_strerror_r_EWOULDBLOCK:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1803:test_FreeRTOS_strerror_r_EISCONN:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1818:test_FreeRTOS_strerror_r_ZeroLengthBuffer:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1833:test_FreeRTOS_max_int32:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1856:test_FreeRTOS_max_uint32:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1879:test_FreeRTOS_max_size_t:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1902:test_FreeRTOS_min_int32:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1925:test_FreeRTOS_min_uint32:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1948:test_FreeRTOS_min_size_t:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:1971:test_FreeRTOS_round_up:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:2001:test_FreeRTOS_round_down:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:2031:test_ulChar2u32:PASS
+/home/ubuntu/Temp/unit_test/FreeRTOS-Plus-TCP/test/unit-test/FreeRTOS_IP_Utils/FreeRTOS_IP_Utils_utest.c:2041:test_usChar2u16:PASS
+
+-----------------------
+86 Tests 7 Failures 0 Ignored 
+FAIL
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Failed.
+"FreeRTOS_IP_Utils_utest" end time: Jan 16 07:54 UTC
+"FreeRTOS_IP_Utils_utest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Jan 16 07:54 UTC
