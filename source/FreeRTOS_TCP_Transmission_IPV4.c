@@ -121,6 +121,7 @@
                 {
                     break;
                 }
+
                 if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
                 {
                     xIsIPv6 = pdTRUE;
@@ -146,7 +147,7 @@
                 #endif
                 pxNetworkBuffer->pucEthernetBuffer = pxSocket->u.xTCP.xPacket.u.ucLastPacket;
                 pxNetworkBuffer->xDataLength = sizeof( pxSocket->u.xTCP.xPacket.u.ucLastPacket );
-                pxIPHeader = ((IPHeader_t*)&(pxNetworkBuffer->pucEthernetBuffer[ipSIZE_OF_ETH_HEADER]));
+                pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
                 xDoRelease = pdFALSE;
             }
 
@@ -213,9 +214,9 @@
                      * Just swap the two sequence numbers. */
                     vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
                 }
+
                 if( usFrameType == ipIPv6_FRAME_TYPE )
                 {
-
                     /* Map the ethernet buffer onto a IPHeader_IPv6_t struct for easy access to the fields. */
                     pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
@@ -300,6 +301,7 @@
                         }
                     #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
                 }
+
                 vFlip_16( pxProtocolHeaders->xTCPHeader.usSourcePort, pxProtocolHeaders->xTCPHeader.usDestinationPort );
 
                 /* Important: tell NIC driver how many bytes must be sent. */
@@ -365,10 +367,11 @@
 
                 /* Send! */
                 iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-                NetworkInterface_t* pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
-                if(pxInterface != NULL)
+                NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+
+                if( pxInterface != NULL )
                 {
-                    (void)pxInterface->pfOutput(pxInterface, pxNetworkBuffer, xDoRelease);
+                    ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xDoRelease );
                 }
 
                 if( xDoRelease == pdFALSE )

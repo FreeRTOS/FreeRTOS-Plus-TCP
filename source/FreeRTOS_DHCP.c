@@ -490,11 +490,11 @@
              * '192.168.1.255'. */
             EP_IPv4_SETTINGS.ulBroadcastAddress = EP_DHCPData.ulOfferedIPAddress | ~( EP_IPv4_SETTINGS.ulNetMask );
             EP_DHCPData.eDHCPState = eLeasedAddress;
-            
+
             *ipLOCAL_IP_ADDRESS_POINTER = EP_IPv4_SETTINGS.ulIPAddress;
-            
+
             iptraceDHCP_SUCCEDEED( EP_DHCPData.ulOfferedIPAddress );
-            
+
             /* DHCP failed, the default configured IP-address will be used
              * Now call vIPNetworkUpCalls() to send the network-up event and
              * start the ARP timer. */

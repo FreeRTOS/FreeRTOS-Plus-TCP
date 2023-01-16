@@ -158,7 +158,7 @@
     IPPreference_t xDNS_IP_Preference = xPreferenceIPv4;
 
 /** @brief Used for additional error checking when asserts are enabled. */
-        _static struct freertos_addrinfo * pxLastInfo = NULL;
+    _static struct freertos_addrinfo * pxLastInfo = NULL;
 /*-----------------------------------------------------------*/
 
 /**
@@ -894,12 +894,12 @@
 
         if( xFamily == FREERTOS_AF_INET6 )
         {
-            xDNS_IP_Preference = 
-            #if ( ipconfigUSE_IPV6 != 0 )
-                xPreferenceIPv6;
-            #else
-                xPreferenceIPv4;
-            #endif
+            xDNS_IP_Preference =
+                #if ( ipconfigUSE_IPV6 != 0 )
+                    xPreferenceIPv6;
+                #else
+                    xPreferenceIPv4;
+                #endif
         }
 
         pxEndPoint = prvFillSockAddress( &xAddress, pcHostName );

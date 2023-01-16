@@ -111,9 +111,9 @@ void test_xDNSDoCallback_success_not_equal_identifier( void )
     pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
     pxSet.pxDNSMessageHeader->usIdentifier = 123;
     char pc_name[] = "test";
-    strcpy(pxSet.pcName, pc_name);
+    strcpy( pxSet.pcName, pc_name );
 
-    listGET_LIST_ITEM_OWNER_IgnoreAndReturn((DNSCallback_t *) 1234);
+    listGET_LIST_ITEM_OWNER_IgnoreAndReturn( ( DNSCallback_t * ) 1234 );
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 ); /* xEnd */
     vTaskSuspendAll_Expect();
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
@@ -140,12 +140,12 @@ void test_xDNSDoCallback_success_equal_identifier( void )
     pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
     pxSet.pxDNSMessageHeader->usIdentifier = 123;
     char pc_name[] = "test";
-    strcpy(pxSet.pcName, pc_name);
+    strcpy( pxSet.pcName, pc_name );
 
     dnsCallback.pCallbackFunction = dns_callback;
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
-    
+
     vTaskSuspendAll_Expect();
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
 
@@ -175,7 +175,7 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
     pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
     pxSet.pxDNSMessageHeader->usIdentifier = 123;
     char pc_name[] = "test";
-    strcpy(pxSet.pcName, pc_name);
+    strcpy( pxSet.pcName, pc_name );
     dnsCallback.pCallbackFunction = dns_callback;
 
     /* Expectations */
@@ -421,7 +421,7 @@ void test_vDNSCheckCallback_success_search_id_null_timeout2( void )
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
     vListInsertEnd_ExpectAnyArgs();
-        
+
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
 

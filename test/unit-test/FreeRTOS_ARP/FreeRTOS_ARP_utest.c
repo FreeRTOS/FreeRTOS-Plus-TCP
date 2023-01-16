@@ -1238,7 +1238,7 @@ void test_eARPGetCacheEntryByMac_catchAssert( void )
     eARPLookupResult_t eResult;
     MACAddress_t xMACAddress = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
     int i;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     /* Hit some asserts */
     catch_assert( eARPGetCacheEntryByMac( NULL, &ulIPAddress, &xInterface ) );
@@ -1251,7 +1251,7 @@ void test_eARPGetCacheEntryByMac_NoMatchingEntries( void )
     eARPLookupResult_t eResult;
     MACAddress_t xMACAddress = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
     int i;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     /* =================================================== */
     /* Make sure no entry matches. */
@@ -1273,7 +1273,7 @@ void test_eARPGetCacheEntryByMac_OneMatchingEntry( void )
     eARPLookupResult_t eResult;
     MACAddress_t xMACAddress = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
     int i;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     /* =================================================== */
     /* Make sure one entry matches. */
@@ -1296,7 +1296,7 @@ void test_eARPGetCacheEntry_CatchAssert( void )
 {
     uint32_t ulIPAddress;
     MACAddress_t xMACAddress;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     catch_assert( eARPGetCacheEntry( NULL, &xMACAddress, &xInterface ) );
     catch_assert( eARPGetCacheEntry( &ulIPAddress, NULL, &xInterface ) );
@@ -1308,7 +1308,7 @@ void test_eARPGetCacheEntry_IPMatchesBroadcastAddr( void )
     MACAddress_t xMACAddress;
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     /* =================================================== */
     ulIPAddress = xNetworkAddressing.ulBroadcastAddress;
@@ -1326,7 +1326,7 @@ void test_eARPGetCacheEntry_IPMatchesOtherBroadcastAddr( void )
     MACAddress_t xMACAddress;
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     /* =================================================== */
     ulIPAddress = ipBROADCAST_IP_ADDRESS;
@@ -1344,7 +1344,7 @@ void test_eARPGetCacheEntry_LocalIPIsZero( void )
     MACAddress_t xMACAddress;
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     /* =================================================== */
     *ipLOCAL_IP_ADDRESS_POINTER = 0;
@@ -1362,7 +1362,7 @@ void test_eARPGetCacheEntry_LocalIPMatchesReceivedIP( void )
     MACAddress_t xMACAddress;
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     /* =================================================== */
     *ipLOCAL_IP_ADDRESS_POINTER = 0x1234;
@@ -1380,7 +1380,7 @@ void test_eARPGetCacheEntry_MatchingInvalidEntry( void )
     MACAddress_t xMACAddress;
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     /* =================================================== */
     ulIPAddress = 0x4321;
@@ -1403,7 +1403,7 @@ void test_eARPGetCacheEntry_MatchingValidEntry( void )
     MACAddress_t xMACAddress;
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     /* =================================================== */
     ulIPAddress = 0x4321;
@@ -1427,7 +1427,7 @@ void test_eARPGetCacheEntry_GatewayAddressZero( void )
     MACAddress_t xMACAddress;
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     /* =================================================== */
     for( int i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -1452,7 +1452,7 @@ void test_eARPGetCacheEntry_AddressNotOnLocalAddress( void )
     MACAddress_t xMACAddress;
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     /* =================================================== */
     ulIPAddress = 0;
@@ -1473,7 +1473,7 @@ void test_eARPGetCacheEntry_NoCacheHit( void )
     MACAddress_t xMACAddress;
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     /* =================================================== */
     for( int i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -1624,7 +1624,7 @@ void test_xARPWaitResolution_PrivateFunctionReturnsHit( void )
     uint32_t ulIPAddress = 0xAAAAAAAA;
     BaseType_t xResult;
     int i;
-    struct xNetworkInterface *xInterface;
+    struct xNetworkInterface * xInterface;
 
     /* Catch the assertion for calling from IP task. */
     /* =================================================== */
@@ -1801,7 +1801,7 @@ void test_FreeRTOS_ClearARP( void )
 
     memset( ucArray, 0, sizeof( xARPCache ) );
 
-    FreeRTOS_ClearARP(&xEndPoint);
+    FreeRTOS_ClearARP( &xEndPoint );
     TEST_ASSERT_EQUAL_MEMORY( ucArray, xARPCache, sizeof( xARPCache ) );
 }
 

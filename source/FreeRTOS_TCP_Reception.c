@@ -487,6 +487,7 @@
             usLength = FreeRTOS_htons( pxIPHeader->usLength );
             lLength = ( int32_t ) usLength;
         }
+
         if( lReceiveLength > lLength )
         {
             /* More bytes were received than the reported length, often because of
