@@ -326,12 +326,7 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
 
-    /* NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]); */
-    /*IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings); */
 
-    /* Clear default values. */
-    /*memset( &xDefaultAddressing, 0, sizeof( xDefaultAddressing ) ); */
-    /* memset( xIPv4Addressing, 0, sizeof( IPV4Parameters_t ) ); */
     FreeRTOS_FillEndPoint_Ignore();
     FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
     pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
@@ -363,19 +358,7 @@ void test_FreeRTOS_IPInit_HappyPath( void )
 
     xReturn = FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
 
-    /*NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]); */
-    /*IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings); */
-
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
-    /*TODO to be checked in routing */
-    /* TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] ), xIPv4Addressing->ulIPAddress ); */
-    /*TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] ), xIPv4Addressing->ulNetMask ); */
-    /*TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] ), xIPv4Addressing->ulGatewayAddress ); */
-    /* TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] ), xIPv4Addressing->ulDNSServerAddresses[0] ); */
-    /* TEST_ASSERT_EQUAL( ( ( xIPv4Addressing->ulIPAddress & xIPv4Addressing->ulNetMask ) | ~(xIPv4Addressing->ulNetMask) ), xIPv4Addressing->ulBroadcastAddress ); */
-    /*TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, xIPv4Addressing, sizeof( xDefaultAddressing ) ); TODO: verify if xDefaultAddressing is used */
-    /*TEST_ASSERT_EQUAL( 0, *ipLOCAL_IP_ADDRESS_POINTER ); */
-    /*TEST_ASSERT_EQUAL_MEMORY( ucMACAddress, ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES ); */
     TEST_ASSERT_EQUAL( xTaskHandleToSet, FreeRTOS_GetIPTaskHandle() );
 }
 

@@ -311,7 +311,6 @@ static void prvProcessIPEventsAndTimers( void )
 
            {
                NetworkBufferDescriptor_t * pxDescriptor = ( NetworkBufferDescriptor_t * ) xReceivedEvent.pvData;
-               BaseType_t xReleaseAfterSend = pdTRUE;
 
                /* Send a network packet. The ownership will  be transferred to
                 * the driver, which will release it after delivery. */
@@ -2075,7 +2074,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
             ( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
             /* Send! */
             iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-            ( void ) xNetworkInterfaceOutput( pxInterface, pxNetworkBuffer, xReleaseAfterSend );
+            ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xReleaseAfterSend );
         }
     }
 }
