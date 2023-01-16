@@ -230,7 +230,7 @@
                 pxDHCPMessage = ( ( const DHCPMessage_IPv4_t * ) pucUDPPayload );
 
                 /* Sanity check. */
-                //if( ( pxDHCPMessage->ulDHCPCookie == dhcpCOOKIE ) && ( pxDHCPMessage->ucOpcode == dhcpREPLY_OPCODE ) )
+                if( ( pxDHCPMessage->ulDHCPCookie == dhcpCOOKIE ) && ( pxDHCPMessage->ucOpcode == dhcpREPLY_OPCODE ) )
                 {
                     pxIterator = pxNetworkEndPoints;
 
@@ -1209,6 +1209,9 @@
         const uint32_t ulMandatoryOptions = 2U; /* DHCP server address, and the correct DHCP message type must be present in the options. */
         ProcessSet_t xSet;
 
+        const void * pvCopySource;
+        void * pvCopyDest;
+
         ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
 
         /* Passing the address of a pointer (pucUDPPayload) because FREERTOS_ZERO_COPY is used. */
@@ -1267,13 +1270,17 @@
                             vProcessHandleOption( pxEndPoint, &( xSet ), xExpectedMessageType );
                         }
 
-                        /* Jump over the data to find the next option code. */
-                        if( ( xSet.uxLength == 0U ) || ( xResult < 0 ) )
+                        if( xResult != 0 )
                         {
-                            break;
+                            if( ( xSet.uxLength == 0U ) || ( xResult < 0 ) )
+                            {
+                                break;
+                            }
+
+                            xSet.uxIndex += xSet.uxLength;
+
                         }
 
-                        xSet.uxIndex += xSet.uxLength;
                     }
 
                     /* Were all the mandatory options received? */
