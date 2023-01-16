@@ -120,6 +120,7 @@
                 {
                     break;
                 }
+
                 if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
                 {
                     xIsIPv6 = pdTRUE;
@@ -213,6 +214,7 @@
                      * Just swap the two sequence numbers. */
                     vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
                 }
+
                 if( usFrameType == ipIPv6_FRAME_TYPE )
                 {
                     /* When xIsIPv6 is true: Let lint know that
@@ -297,6 +299,7 @@
                         }
                     #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
                 }
+
                 vFlip_16( pxProtocolHeaders->xTCPHeader.usSourcePort, pxProtocolHeaders->xTCPHeader.usDestinationPort );
 
                 /* Important: tell NIC driver how many bytes must be sent. */

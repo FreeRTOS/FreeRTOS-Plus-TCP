@@ -337,10 +337,7 @@
                     if( pxNetworkBuffer != NULL )
                     {
                         pxNetworkBuffer->pxEndPoint = xNDCache[ x ].pxEndPoint;
-                        if (pxNetworkBuffer->pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED)
-                        {
-                            vNDSendNeighbourSolicitation( pxNetworkBuffer, &( xNDCache[ x ].xIPAddress ) );
-                        }
+                        vNDSendNeighbourSolicitation( pxNetworkBuffer, &( xNDCache[ x ].xIPAddress ) );
                     }
                 }
 
@@ -665,6 +662,7 @@
                 ( void ) memset( pxNetworkBuffer->pucEthernetBuffer, 0, pxNetworkBuffer->xDataLength );
 
                 pxNetworkBuffer->pxEndPoint = pxEndPoint;
+                pxNetworkBuffer->pxInterface = pxEndPoint->pxNetworkInterface;
                 /* MISRA Ref 11.3.1 [Misaligned access] */
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */

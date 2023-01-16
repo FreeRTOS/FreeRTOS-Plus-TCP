@@ -186,9 +186,8 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
  */
 void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
-    UDPPacket_t * pxUDPPacket;
-    UDPPacket_IPv6_t * pxUDPPacket_IPv6 = NULL;
-    IPHeader_t * pxIPHeader;
+    UDPPacket_IPv6_t * pxUDPPacket_IPv6;
+    IPHeader_IPv6_t * pxIPHeader_IPv6;
     eARPLookupResult_t eReturned;
     size_t uxPayloadSize;
     /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
@@ -203,7 +202,8 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     /* MISRA Ref 11.3.1 [Misaligned access] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
-    pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxIPHeader_IPv6 = &( pxUDPPacket_IPv6->xIPHeader );
 
     /* Remember the original address. It might get replaced with
      * the address of the gateway. */
@@ -212,16 +212,16 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     #if ipconfigSUPPORT_OUTGOING_PINGS == 1
         if( pxNetworkBuffer->usPort == ( uint16_t ) ipPACKET_CONTAINS_ICMP_DATA )
         {
-            uxPayloadSize = pxNetworkBuffer->xDataLength - sizeof( ICMPPacket_t );
+            uxPayloadSize = pxNetworkBuffer->xDataLength - sizeof( ICMPPacket_IPv6_t );
         }
         else
     #endif
     {
-        uxPayloadSize = pxNetworkBuffer->xDataLength - sizeof( UDPPacket_t );
+        uxPayloadSize = pxNetworkBuffer->xDataLength - sizeof( UDPPacket_IPv6_t );
     }
 
     /* Look in the IPv6 MAC-address cache for the target IP-address. */
-    eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ),
+    eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket_IPv6->xEthernetHeader.xDestinationAddress ),
                                   &( pxEndPoint ) );
 
     if( eReturned != eCantSendPacket )
@@ -233,31 +233,35 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
             #endif
             iptraceSENDING_UDP_PACKET( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
 
-            /* Create short cuts to the data within the packet. */
-            pxIPHeader = &( pxUDPPacket->xIPHeader );
+            pxNetworkBuffer->pxEndPoint = pxEndPoint;
 
             #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
                 /* Is it possible that the packet is not actually a UDP packet
                  * after all, but an ICMP packet. */
-                if( pxNetworkBuffer->usPort != ( uint16_t ) ipPACKET_CONTAINS_ICMP_DATA )
+                if( pxNetworkBuffer->usPort == ( uint16_t ) ipPACKET_CONTAINS_ICMP_DATA )
+                {
+                    pxIPHeader_IPv6->ucVersionTrafficClass = 0x60;
+                    pxIPHeader_IPv6->ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+                    pxIPHeader_IPv6->ucHopLimit = 128;
+                }
+                else
             #endif /* ipconfigSUPPORT_OUTGOING_PINGS */
             {
                 UDPHeader_t * pxUDPHeader = NULL;
 
-                pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
                 pxUDPHeader = &( pxUDPPacket_IPv6->xUDPHeader );
 
-                pxUDPPacket_IPv6->xIPHeader.ucVersionTrafficClass = 0x60;
-                pxUDPPacket_IPv6->xIPHeader.ucTrafficClassFlow = 0;
-                pxUDPPacket_IPv6->xIPHeader.usFlowLabel = 0;
-                pxUDPPacket_IPv6->xIPHeader.ucHopLimit = 255;
+                pxIPHeader_IPv6->ucVersionTrafficClass = 0x60;
+                pxIPHeader_IPv6->ucTrafficClassFlow = 0;
+                pxIPHeader_IPv6->usFlowLabel = 0;
+                pxIPHeader_IPv6->ucHopLimit = 255;
                 pxUDPHeader->usLength = ( uint16_t ) ( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ) );
 
-                pxUDPPacket_IPv6->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
-                pxUDPPacket_IPv6->xIPHeader.usPayloadLength = ( uint16_t ) ( pxNetworkBuffer->xDataLength - sizeof( IPPacket_IPv6_t ) );
+                pxIPHeader_IPv6->ucNextHeader = ipPROTOCOL_UDP;
+                pxIPHeader_IPv6->usPayloadLength = ( uint16_t ) ( pxNetworkBuffer->xDataLength - sizeof( IPPacket_IPv6_t ) );
                 /* The total transmit size adds on the Ethernet header. */
-                pxUDPPacket_IPv6->xIPHeader.usPayloadLength = FreeRTOS_htons( pxUDPPacket_IPv6->xIPHeader.usPayloadLength );
+                pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( pxIPHeader_IPv6->usPayloadLength );
 
                 pxUDPHeader->usDestinationPort = pxNetworkBuffer->usPort;
                 pxUDPHeader->usSourcePort = pxNetworkBuffer->usBoundPort;
@@ -282,7 +286,6 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
 
             if( pxNetworkBuffer->pxEndPoint != NULL )
             {
-                IPHeader_IPv6_t * pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
                 ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes,
                                  pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
                                  ipSIZE_OF_IPv6_ADDRESS );
@@ -298,24 +301,24 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
             #if ipconfigSUPPORT_OUTGOING_PINGS == 1
                 if( pxNetworkBuffer->usPort == ( uint16_t ) ipPACKET_CONTAINS_ICMP_DATA )
                 {
-                    pxIPHeader->ucProtocol = ipPROTOCOL_ICMP;
-                    pxIPHeader->usLength = ( uint16_t ) ( uxPayloadSize + sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) );
+                    pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( sizeof( ICMPEcho_IPv6_t ) + uxPayloadSize );
                 }
                 else
             #endif /* ipconfigSUPPORT_OUTGOING_PINGS */
             {
-                pxIPHeader->usLength = ( uint16_t ) ( uxPayloadSize + sizeof( IPHeader_t ) + sizeof( UDPHeader_t ) );
+                pxIPHeader_IPv6->ucNextHeader = ipPROTOCOL_UDP;
+                pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( sizeof( UDPHeader_t ) + uxPayloadSize );
             }
 
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
                 {
                     if( ( ucSocketOptions & ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT ) != 0U )
                     {
-                        ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxUDPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
+                        ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxUDPPacket_IPv6, pxNetworkBuffer->xDataLength, pdTRUE );
                     }
                     else
                     {
-                        pxUDPPacket->xUDPHeader.usChecksum = 0U;
+                        pxUDPPacket_IPv6->xUDPHeader.usChecksum = 0U;
                     }
                 }
             #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */

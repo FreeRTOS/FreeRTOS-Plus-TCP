@@ -1411,7 +1411,7 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 /*-----------------------------------------------------------*/
 
 NetworkInterface_t * pxSTM32Fxx_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface )
+                                                         NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
 

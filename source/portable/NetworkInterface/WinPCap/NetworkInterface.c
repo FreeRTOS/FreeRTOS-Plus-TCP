@@ -170,12 +170,12 @@ static volatile uint32_t ulWinPCAPSendFailures = 0;
 
 static BaseType_t xWinPcap_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 static BaseType_t xWinPcap_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                           BaseType_t bReleaseAfterSend );
+                                                   NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                   BaseType_t bReleaseAfterSend );
 static BaseType_t xWinPcap_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
 NetworkInterface_t * pxWinPcap_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface );
+                                                        NetworkInterface_t * pxInterface );
 
 /*-----------------------------------------------------------*/
 
@@ -347,7 +347,7 @@ static BaseType_t xWinPcap_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 
 
 NetworkInterface_t * pxWinPcap_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface )
+                                                        NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
 
@@ -830,7 +830,6 @@ static void prvInterruptSimulatorTask( void * pvParameters )
 
                             pxNetworkBuffer->pxInterface = pxMyInterface;
                             pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer->pucEthernetBuffer );
-                            pxNetworkBuffer->pxEndPoint = pxNetworkEndPoints; //temporary change for single end point
 
                             //if( pxNetworkBuffer->pxEndPoint == NULL )
                             {
@@ -920,13 +919,16 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                                     }
                                     break;
 								}
-                                if(pxNetworkBuffer->pxEndPoint == NULL)
+                                if( pxNetworkBuffer->pxEndPoint == NULL )
                                 {
                                     pxNetworkBuffer->pxEndPoint = pxGetEndpoint( ucType );
-                                    FreeRTOS_printf( ("No end-point for \"%s\". Using 0x%p type IPv%d\n",
-                                        pcDescription,
-                                        pxNetworkBuffer->pxEndPoint,
-                                        ucType == ipTYPE_IPv6 ? 6 : 4 ) );
+                                    if(strncasecmp( "ARP", pcDescription, 3 ) != 0)
+                                    {
+                                        FreeRTOS_printf( ("No end-point for \"%s\". Using 0x%p type IPv%d\n",
+                                            pcDescription,
+                                            pxNetworkBuffer->pxEndPoint,
+                                            ucType == ipTYPE_IPv6 ? 6 : 4) );
+                                    }
                                     // pxNetworkBuffer->pxEndPoint = FreeRTOS_FirstEndPoint( pxMyInterface ); /*temporary change for single end point */
                                 }
                             }

@@ -158,7 +158,7 @@
     IPPreference_t xDNS_IP_Preference = xPreferenceIPv4;
 
 /** @brief Used for additional error checking when asserts are enabled. */
-        _static struct freertos_addrinfo * pxLastInfo = NULL;
+    _static struct freertos_addrinfo * pxLastInfo = NULL;
 /*-----------------------------------------------------------*/
 
 /**
@@ -1048,12 +1048,15 @@
  * @param [in] pcHostName
  * @param [in] uxIdentifier  matches sent and received packets
  * @param [in] xDNSSocket a valid socket
+ * @param [in] xFamily indicae what type of record is needed:
+ *             FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
  * @param [in] pxAddress address structure
  * @returns pdTRUE if sending the data was successful, pdFALSE otherwise.
  */
     static BaseType_t prvSendBuffer( const char * pcHostName,
                                      TickType_t uxIdentifier,
                                      Socket_t xDNSSocket,
+                                     BaseType_t xFamily,
                                      const struct freertos_sockaddr * pxAddress )
     {
         BaseType_t uxReturn = pdFAIL;
@@ -1066,14 +1069,20 @@
         if( pxAddress->sin_family == FREERTOS_AF_INET6 )
         {
             uxHeaderBytes = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER;
+        }
+        else
+        {
+            uxHeaderBytes = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER;
+        }
 
+        if( xFamily == FREERTOS_AF_INET6 )
+        {
             /* Note that 'dnsTYPE_ANY_HOST' could be used here as well,
              * but for testing, we want an IPv6 address. */
             uxHostType = dnsTYPE_AAAA_HOST;
         }
         else
         {
-            uxHeaderBytes = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER;
             uxHostType = dnsTYPE_A_HOST;
         }
 
@@ -1157,7 +1166,9 @@
         BaseType_t xBytes;
         NetworkEndPoint_t * pxEndPoint;
 
-        xAddress.sin_family = xFamily;
+        /* Make sure all fields of the 'sockaddr' are cleared. */
+        ( void ) memset( ( void * ) &xAddress, 0, sizeof( xAddress ) );
+
         pxEndPoint = prvFillSockAddress( &xAddress, pcHostName );
 
         if( pxEndPoint != NULL )
@@ -1189,6 +1200,7 @@
                 uxReturn = prvSendBuffer( pcHostName,
                                           uxIdentifier,
                                           xDNSSocket,
+                                          xFamily,
                                           &xAddress );
 
                 if( uxReturn == pdFAIL )

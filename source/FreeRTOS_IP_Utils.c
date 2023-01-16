@@ -466,6 +466,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                                                 ( const uint8_t * ) pulHeader,
                                                 ( size_t ) ( sizeof( pulHeader ) ) );
     }
+
     if( ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) || ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
     {
         /* ICMP/IGMP do not have a pseudo header for CRC-calculation. */
@@ -915,6 +916,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         xSet.pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
+
         if( xSet.pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
         {
             /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -940,6 +942,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                 break;
             }
         }
+
         {
             xResult = prvChecksumProtocolChecks( uxBufferLength, &( xSet ) );
 

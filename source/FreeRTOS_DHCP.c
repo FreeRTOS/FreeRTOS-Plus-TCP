@@ -495,7 +495,7 @@
             *ipLOCAL_IP_ADDRESS_POINTER = EP_IPv4_SETTINGS.ulIPAddress;
 
             iptraceDHCP_SUCCEDEED( EP_DHCPData.ulOfferedIPAddress );
-            
+
             /* DHCP failed, the default configured IP-address will be used
              * Now call vIPNetworkUpCalls() to send the network-up event and
              * start the ARP timer. */
