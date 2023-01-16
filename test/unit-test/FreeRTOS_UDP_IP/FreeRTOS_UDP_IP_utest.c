@@ -253,7 +253,6 @@ void test_vProcessGeneratedUDPPacket_CacheHit_NoICMP( void )
     xLocalNetworkBuffer.pxEndPoint = &xEndPoint;
     xInterface.pxEndPoint = &xEndPoint;
     xInterface.pxNext = NULL;
-    xInterface.pfOutput = &NetworkInterfaceOutputFunction_Stub;
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
 
     xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
