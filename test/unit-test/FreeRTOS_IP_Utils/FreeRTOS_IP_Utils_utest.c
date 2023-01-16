@@ -56,7 +56,6 @@
 #include "mock_FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
-#include "mock_FreeRTOS_IPv4_Utils.h"
 #include "mock_FreeRTOS_UDP_IP.h"
 #include "mock_FreeRTOS_Routing.h"
 #include "FreeRTOS_IP_Utils.h"
@@ -188,8 +187,6 @@ void test_vSetMultiCastIPv4MacAddress( void )
 {
     uint32_t ulIP = 0xABCDEF12;
     MACAddress_t xMACAddress;
-
-    vSetMultiCastIPv4MacAddress_Stub(stub_vSetMultiCastIPv4MacAddress);
 
     vSetMultiCastIPv4MacAddress( ulIP, &xMACAddress );
 
@@ -373,6 +370,16 @@ void test_xIsCallingFromIPTask_IsCallingFromIPTask( void )
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
 
+static BaseType_t xNetworkInterfaceInitialise_fail_test(struct xNetworkInterface* pxDescriptor)
+{
+    return pdFAIL;
+}
+
+static BaseType_t xNetworkInterfaceInitialise_pass_test(struct xNetworkInterface* pxDescriptor)
+{
+    return pdPASS;
+}
+
 void test_prvProcessNetworkDownEvent_Pass( void )
 {
     NetworkInterface_t xInterface;
@@ -380,7 +387,7 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     xCallEventHook = pdFALSE;
 
-    xInterfaces[ 0 ].pfInitialise = xNetworkInterfaceInitialise_CMockExpectAndReturn;
+    xInterfaces[ 0 ].pfInitialise = xNetworkInterfaceInitialise_pass_test;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
@@ -390,11 +397,17 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     FreeRTOS_NextEndPoint_ExpectAndReturn(&xInterfaces[0],&xEndPoint,NULL);
     
-    FreeRTOS_FirstEndPoint_ExpectAndReturn(&xInterfaces[ 0 ],NULL);
+    xInterface.pfInitialise = xNetworkInterfaceInitialise_pass_test;
 
-    xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces[0], pdPASS );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn(&xInterface,&xEndPoint);
 
-    prvProcessNetworkDownEvent( &xInterfaces[0] );
+    xEndPoint.bits.bWantDHCP = pdFALSE;
+
+    vIPNetworkUpCalls_Expect( &xEndPoint );
+
+    FreeRTOS_NextEndPoint_ExpectAndReturn(&xInterface,&xEndPoint,NULL);
+
+    prvProcessNetworkDownEvent( &xInterface );
 
     /* Run again to trigger a different path in the code. */
 
@@ -408,11 +421,11 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     FreeRTOS_NextEndPoint_ExpectAndReturn(&xInterfaces[0],&xEndPoint,NULL);
 
-    xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces[0], pdPASS );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn(&xInterfaces[ 0 ],&xEndPoint);    
 
-    FreeRTOS_FirstEndPoint_ExpectAndReturn(&xInterfaces[ 0 ],&xEndPoint);
+    xEndPoint.bits.bWantDHCP = pdTRUE;
 
-    vDHCPProcess_Expect( pdTRUE, eInitialWait );
+    vDHCPProcess_Expect(pdTRUE,&xEndPoint);
 
     FreeRTOS_NextEndPoint_ExpectAndReturn(&xInterfaces[0],&xEndPoint,NULL);
 
@@ -425,24 +438,16 @@ void test_prvProcessNetworkDownEvent_Fail( void )
     NetworkEndPoint_t xEndPoint;
 
     xCallEventHook = pdFALSE;
-    xInterfaces[ 0 ].pfInitialise = xNetworkInterfaceInitialise_CMockExpectAndReturn;
+    xInterfaces[ 0 ].pfInitialise = xNetworkInterfaceInitialise_fail_test;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn(&xInterfaces[ 0 ],&xEndPoint);
 
-    vApplicationIPNetworkEventHook_Expect( eNetworkDown, &xEndPoint );
-
     FreeRTOS_ClearARP_Expect( &xEndPoint );
 
     FreeRTOS_NextEndPoint_ExpectAndReturn(&xInterfaces[0],&xEndPoint,NULL);
-
-    //xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces[0], pdFAIL );
-
-    //vTaskDelay_ExpectAnyArgs();
-
-    //FreeRTOS_NetworkDown_Expect( &xEndPoint );
-
+    
     prvProcessNetworkDownEvent( &xInterfaces[0] );
 }
 
@@ -488,7 +493,7 @@ void test_usGenerateProtocolChecksum_AllZeroedInput( void )
     BaseType_t xOutgoingPacket;    
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -506,7 +511,6 @@ void test_usGenerateProtocolChecksum_InvalidLength( void )
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE ;
     
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( usReturn, ipINVALID_LENGTH );
@@ -526,7 +530,7 @@ void test_usGenerateProtocolChecksum_InvalidLength2( void )
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -550,7 +554,7 @@ void test_usGenerateProtocolChecksum_InvalidLength3( void )
 
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
     
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -577,7 +581,7 @@ void test_usGenerateProtocolChecksum_UDPWrongCRCIncomingPacket( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -603,7 +607,7 @@ void test_usGenerateProtocolChecksum_UDPInvalidLength( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -629,7 +633,7 @@ void test_usGenerateProtocolChecksum_UDPOutgoingPacket( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -660,7 +664,7 @@ void test_usGenerateProtocolChecksum_UDPNonZeroChecksum( void )
 
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0x1234;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -694,7 +698,7 @@ void test_usGenerateProtocolChecksum_UDPCorrectCRCOutgoingPacket( void )
 
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0x00;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -726,7 +730,7 @@ void test_usGenerateProtocolChecksum_UDPCorrectCRC( void )
 
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0x1234;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -758,7 +762,7 @@ void test_usGenerateProtocolChecksum_UDPIncorrectCRC( void )
 
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0x00;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -789,7 +793,7 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRC( void )
 
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0x1234;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -824,7 +828,7 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacket( void )
 
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0x0000;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -856,7 +860,7 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRC_IncomingPacket( void )
 
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0xa9ff;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -887,7 +891,7 @@ void test_usGenerateProtocolChecksum_TCPIncorrectCRC_IncomingPacket( void )
 
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0x1234;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -918,7 +922,7 @@ void test_usGenerateProtocolChecksum_TCPInvalidLength( void )
 
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0x1234;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -949,7 +953,7 @@ void test_usGenerateProtocolChecksum_TCPInvalidLength2( void )
 
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0x1234;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -980,7 +984,7 @@ void test_usGenerateProtocolChecksum_TCPInvalidLength3( void )
 
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0x1234;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -1009,7 +1013,7 @@ void test_usGenerateProtocolChecksum_ICMPInvalidLength( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -1038,7 +1042,7 @@ void test_usGenerateProtocolChecksum_ICMPInvalidLength2( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -1067,7 +1071,7 @@ void test_usGenerateProtocolChecksum_ICMPInvalidLength3( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -1096,7 +1100,7 @@ void test_usGenerateProtocolChecksum_ICMPOutgoingChecksum( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -1126,7 +1130,7 @@ void test_usGenerateProtocolChecksum_ICMPIncomingIncorrectCRC( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -1159,7 +1163,7 @@ void test_usGenerateProtocolChecksum_ICMPIncomingCorrectCRC( void )
     /* Fill in the checksum. */
     pxProtPack->xICMPPacket.xICMPHeader.usChecksum = FreeRTOS_htons( 0xFFFF );
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -1188,7 +1192,7 @@ void test_usGenerateProtocolChecksum_IGMPInvalidLength( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_IGMP;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -1217,7 +1221,7 @@ void test_usGenerateProtocolChecksum_IGMPInvalidLength2( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_IGMP;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -1246,7 +1250,7 @@ void test_usGenerateProtocolChecksum_IGMPInvalidLength3( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_IGMP;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -1275,7 +1279,7 @@ void test_usGenerateProtocolChecksum_IGMPOutgoingChecksum( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_IGMP;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -1305,7 +1309,7 @@ void test_usGenerateProtocolChecksum_IGMPIncomingIncorrectCRC( void )
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_IGMP;
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -1338,7 +1342,7 @@ void test_usGenerateProtocolChecksum_IGMPIncomingCorrectCRC( void )
     /* Fill in the checksum. */
     pxProtPack->xICMPPacket.xICMPHeader.usChecksum = FreeRTOS_htons( 0xFFFF );
 
-    prvChecksumIPv4Checks_Stub(stub_prvChecksumIPv4Checks);
+     
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
