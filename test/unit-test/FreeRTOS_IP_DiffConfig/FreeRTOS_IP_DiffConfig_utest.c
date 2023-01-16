@@ -78,9 +78,9 @@ extern BaseType_t xNetworkUp;
 extern UBaseType_t uxQueueMinimumSpace;
 
 BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
-BaseType_t NetworkInterfaceOutputFunction_Stub ( struct xNetworkInterface * pxDescriptor,
-                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                                BaseType_t xReleaseAfterSend )
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
 {
     NetworkInterfaceOutputFunction_Stub_Called++;
     return 0;

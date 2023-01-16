@@ -80,9 +80,9 @@ void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer
 
 BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
 
-BaseType_t NetworkInterfaceOutputFunction_Stub ( struct xNetworkInterface * pxDescriptor,
-                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                                BaseType_t xReleaseAfterSend )
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
 {
     NetworkInterfaceOutputFunction_Stub_Called++;
     return 0;
@@ -1601,7 +1601,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     xEndPoint.pxNetworkInterface = &xInterfaces;
-    xEndPoint.pxNetworkInterface->pfOutput =  &NetworkInterfaceOutputFunction_Stub;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     pxARPWaitingNetworkBuffer = &xARPWaitingBuffer;
@@ -2980,10 +2980,10 @@ void test_vReturnEthernetFrame( void )
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
-    
+
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    
+
     memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
 
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
@@ -3025,7 +3025,7 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->pxEndPoint = pxEndPoint;
     xEndPoint.pxNetworkInterface = &xInterfaces;
-    xEndPoint.pxNetworkInterface->pfOutput =  &NetworkInterfaceOutputFunction_Stub;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
     memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
 
