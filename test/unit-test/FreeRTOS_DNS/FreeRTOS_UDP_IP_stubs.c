@@ -96,30 +96,3 @@ BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
 {
 }
 
-/*
- * Get the first end-point belonging to a given interface.  When pxInterface is
- * NULL, the very first end-point will be returned.
- */
-NetworkEndPoint_t * FreeRTOS_FirstEndPoint( const NetworkInterface_t * pxInterface )
-{
-}
-
-/*
- * Get the next end-point.  When pxInterface is null, all end-points can be
- * iterated.
- */
-NetworkEndPoint_t * FreeRTOS_NextEndPoint( const NetworkInterface_t * pxInterface,
-                                           NetworkEndPoint_t * pxEndPoint )
-{
-}
-
-/**
- * @brief Bind the socket to a port number.
- * @param[in] xSocket: the socket that must be bound.
- * @param[in] usPort: the port number to bind to.
- * @return The created socket - or NULL if the socket could not be created or could not be bound.
- */
-BaseType_t DNS_BindSocket( Socket_t xSocket,
-                           uint16_t usPort )
-{
-}

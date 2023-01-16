@@ -228,7 +228,6 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
                         /* ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS is defined as 0,
                          * and so UDP packets carrying a protocol checksum of 0, will
                          * be dropped. */
-
                         if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                         {
                             const IPHeader_IPv6_t * pxIPPacket_IPv6;
@@ -253,7 +252,6 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
                             /* coverity[misra_c_2012_rule_11_3_violation] */
                             pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ( size_t ) ipSIZE_OF_IPv4_HEADER ] ) );
                         }
-
                         /* Identify the next protocol. */
                         if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
                         {

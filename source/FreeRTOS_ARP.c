@@ -96,6 +96,13 @@ static void vProcessARPPacketReply( const ARPPacket_t * pxARPFrame,
 
 /*-----------------------------------------------------------*/
 
+
+static eARPLookupResult_t eARPGetCacheEntryGateWay(uint32_t* pulIPAddress,
+                                                   MACAddress_t* const pxMACAddress,
+                                                   struct xNetworkEndPoint** ppxEndPoint);
+
+/*-----------------------------------------------------------*/
+
 /** @brief The ARP cache. */
 _static ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
 
@@ -779,6 +786,14 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
             }
         }
     }
+    else if (pxEndPoint != NULL) /* ARP lookup loop-back? */
+    {
+        /* Targeted at this device? Make sure that xNetworkInterfaceOutput()
+         * in NetworkInterface.c calls xCheckLoopback(). */
+        *(ppxEndPoint) = pxEndPoint;
+        (void)memcpy(pxMACAddress->ucBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES);
+        eReturn = eARPCacheHit;
+    }
     else if( ( *pulIPAddress == ipBROADCAST_IP_ADDRESS ) ||                      /* Is it the general broadcast address 255.255.255.255?  */
              ( *pulIPAddress == pxEndPoint->ipv4_settings.ulBroadcastAddress ) ) /* Or a local broadcast address, eg 192.168.1.255? */
     {
@@ -799,86 +814,105 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
          * can be done. */
         eReturn = eCantSendPacket;
     }
-    else if( pxEndPoint != NULL ) /* ARP lookup loop-back? */
-    {
-        /* The address of this device. May be useful for the loopback device. */
-        eReturn = eARPCacheHit;
-        *( ppxEndPoint ) = pxEndPoint;
-        ( void ) memcpy( pxMACAddress->ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( pxMACAddress->ucBytes ) );
-    }
     else
     {
-        eReturn = eARPCacheMiss;
-
-        /* It is assumed that devices with the same netmask are on the same
-         * LAN and don't need a gateway. */
-        pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulAddressToLookup, 4 );
-
-        if( pxEndPoint == NULL )
-        {
-            /* No matching end-point is found, look for a gateway. */
-            #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 1 )
-                eReturn = prvCacheLookup( *pulIPAddress, pxMACAddress, ppxEndPoint );
-
-                if( eReturn == eARPCacheHit )
-                {
-                    /* The stack is configured to store 'remote IP addresses', i.e. addresses
-                     * belonging to a different the netmask.  prvCacheLookup() returned a hit, so
-                     * the MAC address is known. */
-                }
-                else
-            #endif
-            {
-                /* The IP address is off the local network, so look up the
-                 * hardware address of the router, if any. */
-                *( ppxEndPoint ) = FreeRTOS_FindGateWay( ( BaseType_t ) ipTYPE_IPv4 );
-
-                if( *( ppxEndPoint ) != NULL )
-                {
-                    /* 'ipv4_settings' can be accessed safely, because 'ipTYPE_IPv4' was provided. */
-                    ulAddressToLookup = ( *ppxEndPoint )->ipv4_settings.ulGatewayAddress;
-                }
-                else
-                {
-                    ulAddressToLookup = *pulIPAddress;
-                }
-            }
-        }
-        else
-        {
-            /* The IP address is on the local network, so lookup the requested
-             * IP address directly. */
-            ulAddressToLookup = *pulIPAddress;
-        }
-
-        #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 1 )
-            if( eReturn == eARPCacheMiss ) /*lint !e774: (Info -- Boolean within 'if' always evaluates to True, depending on configuration. */
-        #else
-            /* No cache look-up was done, so the result is still 'eARPCacheMiss'. */
-        #endif
-        {
-            if( ulAddressToLookup == 0U )
-            {
-                /* The address is not on the local network, and there is not a
-                 * router. */
-                eReturn = eCantSendPacket;
-            }
-            else
-            {
-                eReturn = prvCacheLookup( ulAddressToLookup, pxMACAddress, ppxEndPoint );
-
-                if( eReturn == eARPCacheMiss )
-                {
-                    /* It might be that the ARP has to go to the gateway. */
-                    *pulIPAddress = ulAddressToLookup;
-                }
-            }
-        }
+        eReturn = eARPGetCacheEntryGateWay(pulIPAddress, pxMACAddress, ppxEndPoint);
     }
 
     return eReturn;
 }
 
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief The IPv4 address is apparently a web-address. Find a gateway..
+ * @param[in] pulIPAddress: The target IP-address. It may be replaced with the IP
+ *                          address of a gateway.
+ * @param[in] pxMACAddress: In case the MAC-address is found in cache, it will be
+ *                          stored to the buffer provided.
+ * @param[out] ppxEndPoint: The end-point of the gateway will be copy to the pointee.
+ */
+static eARPLookupResult_t eARPGetCacheEntryGateWay(uint32_t* pulIPAddress,
+    MACAddress_t* const pxMACAddress,
+    struct xNetworkEndPoint** ppxEndPoint)
+{
+    eARPLookupResult_t eReturn = eARPCacheMiss;
+    uint32_t ulAddressToLookup = *(pulIPAddress);
+    NetworkEndPoint_t* pxEndPoint;
+    uint32_t ulOrginal = *pulIPAddress;
+
+    /* It is assumed that devices with the same netmask are on the same
+     * LAN and don't need a gateway. */
+    pxEndPoint = FreeRTOS_FindEndPointOnNetMask(ulAddressToLookup, 4);
+
+    if (pxEndPoint == NULL)
+    {
+        /* No matching end-point is found, look for a gateway. */
+#if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 1 )
+        eReturn = prvCacheLookup(ulAddressToLookup, pxMACAddress, ppxEndPoint);
+
+        if (eReturn == eARPCacheHit)
+        {
+            /* The stack is configured to store 'remote IP addresses', i.e. addresses
+             * belonging to a different the netmask.  prvCacheLookup() returned a hit, so
+             * the MAC address is known. */
+        }
+        else
+#endif
+        {
+            /* The IP address is off the local network, so look up the
+             * hardware address of the router, if any. */
+            *(ppxEndPoint) = FreeRTOS_FindGateWay((BaseType_t)ipTYPE_IPv4);
+
+            if (*(ppxEndPoint) != NULL)
+            {
+                /* 'ipv4_settings' can be accessed safely, because 'ipTYPE_IPv4' was provided. */
+                ulAddressToLookup = (*ppxEndPoint)->ipv4_settings.ulGatewayAddress;
+            }
+            else
+            {
+                ulAddressToLookup = *pulIPAddress;
+            }
+
+            FreeRTOS_printf(("Using gateway %lxip\n", FreeRTOS_ntohl(ulAddressToLookup)));
+        }
+    }
+    else
+    {
+        /* The IP address is on the local network, so lookup the requested
+         * IP address directly. */
+        ulAddressToLookup = *pulIPAddress;
+    }
+
+#if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 1 )
+    if (eReturn == eARPCacheMiss)
+#endif
+    {
+        if (ulAddressToLookup == 0U)
+        {
+            /* The address is not on the local network, and there is not a
+             * router. */
+            eReturn = eCantSendPacket;
+        }
+        else
+        {
+            eReturn = prvCacheLookup(ulAddressToLookup, pxMACAddress, ppxEndPoint);
+
+            if ((eReturn != eARPCacheHit) || (ulOrginal != ulAddressToLookup))
+            {
+                FreeRTOS_printf(("ARP %lxip %s using %lxip\n",
+                    FreeRTOS_ntohl(ulOrginal),
+                    (eReturn == eARPCacheHit) ? "hit" : "miss",
+                    FreeRTOS_ntohl(ulAddressToLookup)));
+            }
+
+            /* It might be that the ARP has to go to the gateway. */
+            *pulIPAddress = ulAddressToLookup;
+        }
+    }
+
+    return eReturn;
+}
 /*-----------------------------------------------------------*/
 
 /**
@@ -1060,6 +1094,8 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
             if( pxNetworkBuffer != NULL )
             {
                 pxNetworkBuffer->xIPAddress.xIP_IPv4 = ulIPAddress;
+                pxNetworkBuffer->pxEndPoint = pxEndPoint;
+                pxNetworkBuffer->pxInterface = pxInterface;
                 vARPGenerateRequestPacket( pxNetworkBuffer );
 
                 #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
@@ -1082,7 +1118,11 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
                 {
                     iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
                     /* Only the IP-task is allowed to call this function directly. */
-                    ( void ) xNetworkInterfaceOutput( pxNetworkBuffer, pdTRUE );
+                    if(pxInterface != NULL)
+                    {
+                        (void)pxNetworkBuffer->pxInterface->pfOutput(pxNetworkBuffer->pxInterface, pxNetworkBuffer, pdTRUE);
+                    }
+                
                 }
                 else
                 {

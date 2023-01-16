@@ -210,7 +210,7 @@
             /* When the DHCP event was generated, the DHCP client was
             * in a different state.  Therefore, ignore this event. */
             FreeRTOS_debug_printf( ( "DHCP wrong state: expect: %d got: %d : ignore\n",
-                                     eExpectedState, EP_DHCPData.eDHCPState ) );
+                                     EP_DHCPData.eExpectedState, EP_DHCPData.eDHCPState ) );
         }
         else if( xDHCPv4Socket != NULL ) /* If there is a socket, check for incoming messages first. */
         {
@@ -490,9 +490,11 @@
              * '192.168.1.255'. */
             EP_IPv4_SETTINGS.ulBroadcastAddress = EP_DHCPData.ulOfferedIPAddress | ~( EP_IPv4_SETTINGS.ulNetMask );
             EP_DHCPData.eDHCPState = eLeasedAddress;
-
+            
+            *ipLOCAL_IP_ADDRESS_POINTER = EP_IPv4_SETTINGS.ulIPAddress;
+            
             iptraceDHCP_SUCCEDEED( EP_DHCPData.ulOfferedIPAddress );
-
+            
             /* DHCP failed, the default configured IP-address will be used
              * Now call vIPNetworkUpCalls() to send the network-up event and
              * start the ARP timer. */

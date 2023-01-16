@@ -1165,7 +1165,7 @@ static int32_t prvRecvFrom_CopyPacket( uint8_t * pucEthernetBuffer,
          * the received data can be copied, but a pointer that must be set to
          * point to the buffer in which the received data has already been
          * placed. */
-        *( ( void ** ) pvBuffer ) = ipPOINTER_CAST( void *, pucEthernetBuffer );
+        *( ( void ** ) pvBuffer ) = (void *) pucEthernetBuffer ;
     }
 
     return lReturn;
@@ -1230,7 +1230,6 @@ int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
             {
                 uxPayloadOffset = xRecv_Update_IPv4( pxNetworkBuffer, pxSourceAddress );
             }
-
             xAddressLength = sizeof( struct freertos_sockaddr );
 
             if( pxSourceAddressLength != NULL )
@@ -2192,7 +2191,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
         }
         else
         {
-            ulNewValue = *( ipPOINTER_CAST( const uint32_t *, pvOptionValue ) );
+            ulNewValue = *( (const uint32_t *) pvOptionValue ) ;
 
             if( lOptionName == FREERTOS_SO_SNDBUF )
             {
@@ -2328,7 +2327,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                 break; /* will return -pdFREERTOS_ERRNO_EINVAL */
             }
 
-            pxProps = ipPOINTER_CAST( const WinProperties_t *, pvOptionValue );
+            pxProps = (const WinProperties_t *) pvOptionValue ;
 
             /* Validity of txStream will be checked by the function below. */
             xReturn = prvSockopt_so_buffer( pxSocket, FREERTOS_SO_SNDBUF, &( pxProps->lTxBufSize ) );
@@ -2386,7 +2385,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                                                 const void * pvOptionValue )
     {
         BaseType_t xReturn = -pdFREERTOS_ERRNO_EINVAL;
-        const LowHighWater_t * pxLowHighWater = ipPOINTER_CAST( const LowHighWater_t *, pvOptionValue );
+        const LowHighWater_t * pxLowHighWater = (const LowHighWater_t *) pvOptionValue ;
 
         if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
         {
@@ -3019,11 +3018,9 @@ BaseType_t FreeRTOS_inet_pton( BaseType_t xAddressFamily,
         case FREERTOS_AF_INET:
             xResult = FreeRTOS_inet_pton4( pcSource, pvDestination );
             break;
-
         case FREERTOS_AF_INET6:
             xResult = FreeRTOS_inet_pton6( pcSource, pvDestination );
             break;
-
         default:
             xResult = -pdFREERTOS_ERRNO_EAFNOSUPPORT;
             break;
@@ -3061,11 +3058,9 @@ const char * FreeRTOS_inet_ntop( BaseType_t xAddressFamily,
         case FREERTOS_AF_INET4:
             pcResult = FreeRTOS_inet_ntop4( pvSource, pcDestination, uxSize );
             break;
-
         case FREERTOS_AF_INET6:
             pcResult = FreeRTOS_inet_ntop6( pvSource, pcDestination, uxSize );
             break;
-
         default:
             /* errno should be set to pdFREERTOS_ERRNO_EAFNOSUPPORT. */
             pcResult = NULL;
@@ -3860,7 +3855,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             xByteCount = ( BaseType_t )
                          uxStreamBufferGet( pxSocket->u.xTCP.rxStream,
                                             0U,
-                                            ipPOINTER_CAST( uint8_t *, pvBuffer ),
+                                            (uint8_t *)pvBuffer ,
                                             ( size_t ) uxBufferLength,
                                             xIsPeek );
 
@@ -3882,7 +3877,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         else
         {
             /* Zero-copy reception of data: pvBuffer is a pointer to a pointer. */
-            xByteCount = ( BaseType_t ) uxStreamBufferGetPtr( pxSocket->u.xTCP.rxStream, ipPOINTER_CAST( uint8_t * *, pvBuffer ) );
+            xByteCount = ( BaseType_t ) uxStreamBufferGetPtr( pxSocket->u.xTCP.rxStream, (uint8_t * *) pvBuffer );
         }
 
         return xByteCount;
@@ -4214,8 +4209,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         TickType_t xRemainingTime;
         BaseType_t xTimed = pdFALSE;
         TimeOut_t xTimeOut;
-        const uint8_t * pucSource = ipPOINTER_CAST( const uint8_t *, pvBuffer );
-
+        const uint8_t * pucSource = (const uint8_t *) pvBuffer ;
+        
         /* While there are still bytes to be sent. */
         while( xBytesLeft > 0 )
         {
@@ -5112,7 +5107,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     {
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
         BaseType_t xResult;
-
         if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
         {
             xResult = ( BaseType_t ) ipTYPE_IPv6;
@@ -5121,7 +5115,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             xResult = ( BaseType_t ) ipTYPE_IPv4;
         }
-
         return xResult;
     }
 
@@ -5477,12 +5470,10 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
         #else
             TickType_t age = 0U;
         #endif
-
         if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
         {
             xIPWidth = 32;
         }
-
         char ucChildText[ 16 ] = "";
 
         if( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eTCP_LISTEN )
@@ -5515,7 +5506,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
                            pxSocket->u.xTCP.usRemotePort, /* Port on remote machine */
                            ( pxSocket->u.xTCP.rxStream != NULL ) ? 1 : 0,
                            ( pxSocket->u.xTCP.txStream != NULL ) ? 1 : 0,
-                           FreeRTOS_GetTCPStateName( pxSocket->u.xTCP.ucTCPState ),
+                           FreeRTOS_GetTCPStateName(pxSocket->u.xTCP.eTCPState),
                            ( unsigned ) ( ( age > 999999U ) ? 999999U : age ), /* Format 'age' for printing */
                            pxSocket->u.xTCP.usTimeout,
                            ucChildText ) );
