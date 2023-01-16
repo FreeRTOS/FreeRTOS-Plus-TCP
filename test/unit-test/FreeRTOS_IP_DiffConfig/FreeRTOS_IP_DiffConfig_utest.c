@@ -77,6 +77,15 @@ extern BaseType_t xNetworkDownEventPending;
 extern BaseType_t xNetworkUp;
 extern UBaseType_t uxQueueMinimumSpace;
 
+BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
+BaseType_t NetworkInterfaceOutputFunction_Stub ( struct xNetworkInterface * pxDescriptor,
+                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                                BaseType_t xReleaseAfterSend )
+{
+    NetworkInterfaceOutputFunction_Stub_Called++;
+    return 0;
+}
+
 static uint8_t ReleaseTCPPayloadBuffer[ 1500 ];
 static BaseType_t ReleaseTCPPayloadBufferxByteCount = 100;
 static size_t StubuxStreamBufferGetPtr_ReturnBadAddress( StreamBuffer_t * pxBuffer,
@@ -1039,6 +1048,10 @@ void test_vReturnEthernetFrame_DuplicationSuccess( void )
     memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
 
     memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    xEndPoint.pxNetworkInterface = &xInterfaces;
+    xInterfaces->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
 
@@ -1046,14 +1059,13 @@ void test_vReturnEthernetFrame_DuplicationSuccess( void )
 
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxEndPoint );
 
-    xNetworkInterfaceOutput_ExpectAndReturn( NULL, &xDuplicateNetworkBuffer, pdTRUE, pdTRUE );
-
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
     TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, xDuplicateNetworkBuffer.xDataLength );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x22, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
     TEST_ASSERT_EQUAL_MEMORY( ipLOCAL_MAC_ADDRESS, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
+    TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
 void test_vReturnEthernetFrame( void )
@@ -1075,10 +1087,12 @@ void test_vReturnEthernetFrame( void )
     memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    xEndPoint.pxNetworkInterface = &xInterfaces;
+    xInterfaces->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxEndPoint );
-
-    xNetworkInterfaceOutput_ExpectAndReturn( NULL, pxNetworkBuffer, xReleaseAfterSend, pdTRUE );
 
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
@@ -1086,6 +1100,7 @@ void test_vReturnEthernetFrame( void )
     TEST_ASSERT_EACH_EQUAL_UINT8( 0, &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ], 10 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x22, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
     TEST_ASSERT_EQUAL_MEMORY( ipLOCAL_MAC_ADDRESS, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
+    TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
 void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
@@ -1107,10 +1122,12 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
     memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    xEndPoint.pxNetworkInterface = &xInterfaces;
+    xInterfaces->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxEndPoint );
-
-    xNetworkInterfaceOutput_ExpectAndReturn( NULL, pxNetworkBuffer, xReleaseAfterSend, pdTRUE );
 
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
@@ -1118,6 +1135,7 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAA, &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ], 10 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x22, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
     TEST_ASSERT_EQUAL_MEMORY( ipLOCAL_MAC_ADDRESS, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
+    TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
 void test_uxGetMinimumIPQueueSpace( void )

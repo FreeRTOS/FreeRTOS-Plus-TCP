@@ -32,6 +32,16 @@ extern NetworkInterface_t xInterfaces[ 1 ];
 
 static const char * pcHostName = "Unit-Test";
 
+BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+BaseType_t NetworkInterfaceOutputFunction_Stub ( struct xNetworkInterface * pxDescriptor,
+                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                                BaseType_t xReleaseAfterSend )
+{
+    NetworkInterfaceOutputFunction_Stub_Called++;
+    return 0;
+}
+
 static NetworkBufferDescriptor_t * pxGlobalNetworkBuffer[ 10 ];
 static uint8_t GlobalBufferCounter = 0;
 static NetworkBufferDescriptor_t * GetNetworkBuffer( size_t SizeOfEthBuf,

@@ -253,6 +253,7 @@ void test_vProcessGeneratedUDPPacket_CacheHit_NoICMP( void )
     xLocalNetworkBuffer.pxEndPoint = &xEndPoint;
     xInterface.pxEndPoint = &xEndPoint;
     xInterface.pxNext = NULL;
+    xInterface.pfOutput = &NetworkInterfaceOutputFunction_Stub;
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
 
     xLocalNetworkBuffer.xIPAddress.xIP_IPv4 = ulIPAddr;
@@ -273,7 +274,7 @@ void test_vProcessGeneratedUDPPacket_CacheHit_NoICMP( void )
     usGenerateChecksum_ExpectAndReturn( 0U, NULL, ipSIZE_OF_IPv4_HEADER, 0 );
     usGenerateChecksum_IgnoreArg_pucNextData();
 
-    xNetworkInterfaceOutput_ExpectAndReturn( &xInterface, &xLocalNetworkBuffer, pdTRUE, pdTRUE );
+    //xNetworkInterfaceOutput_ExpectAndReturn( &xInterface, &xLocalNetworkBuffer, pdTRUE, pdTRUE );
 
     vProcessGeneratedUDPPacket( &xLocalNetworkBuffer );
 

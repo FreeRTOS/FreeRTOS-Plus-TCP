@@ -72,14 +72,21 @@
 
 extern NetworkInterface_t xInterfaces[ 1 ];
 
-extern NetworkInterface_t xInterfaces[ 1 ];
-
 void prvIPTask( void * pvParameters );
 void prvProcessIPEventsAndTimers( void );
 eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                              NetworkBufferDescriptor_t * const pxNetworkBuffer );
 void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
+BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+BaseType_t NetworkInterfaceOutputFunction_Stub ( struct xNetworkInterface * pxDescriptor,
+                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                                BaseType_t xReleaseAfterSend )
+{
+    NetworkInterfaceOutputFunction_Stub_Called++;
+    return 0;
+}
 
 extern BaseType_t xIPTaskInitialised;
 extern BaseType_t xNetworkDownEventPending;
@@ -325,7 +332,6 @@ void test_FreeRTOS_IPInit_HappyPath( void )
 
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
-
 
     FreeRTOS_FillEndPoint_Ignore();
     FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
@@ -1589,9 +1595,14 @@ void test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame( void )
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
     uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
+    struct xNetworkEndPoint xEndPoint;
 
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    xEndPoint.pxNetworkInterface = &xInterfaces;
+    xEndPoint.pxNetworkInterface->pfOutput =  &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     pxARPWaitingNetworkBuffer = &xARPWaitingBuffer;
 
@@ -1603,9 +1614,9 @@ void test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame( void )
 
     eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eReturnEthernetFrame );
 
-    xNetworkInterfaceOutput_ExpectAndReturn( NULL, pxNetworkBuffer, pdTRUE, pdPASS );
-
     prvProcessEthernetPacket( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
 void test_prvProcessEthernetPacket_ARPFrameType_eFrameConsumed( void )
@@ -1825,6 +1836,7 @@ void test_prvAllowIPPacketIPv4_NotMatchingIP( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = NULL;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -2967,15 +2979,18 @@ void test_vReturnEthernetFrame( void )
     BaseType_t xReleaseAfterSend;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
-    const NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
-
-    /*struct xNetworkInterface xInterface, *pxInterface = &xInterface; */
-
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    
     pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    
     memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
 
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->pxEndPoint = pxEndPoint;
+    xEndPoint.pxNetworkInterface = &xInterfaces;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
 
@@ -2987,14 +3002,13 @@ void test_vReturnEthernetFrame( void )
 
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxNetworkBuffer->pxEndPoint );
 
-    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn( pdTRUE );
-
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
     TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0, &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ], 10 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x22, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
     TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
+    TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
 void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
@@ -3010,6 +3024,9 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
 
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->pxEndPoint = pxEndPoint;
+    xEndPoint.pxNetworkInterface = &xInterfaces;
+    xEndPoint.pxNetworkInterface->pfOutput =  &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
     memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
@@ -3020,14 +3037,13 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
 
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxNetworkBuffer->pxEndPoint );
 
-    xNetworkInterfaceOutput_ExpectAnyArgsAndReturn( pdTRUE );
-
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
     TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAA, &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ], 10 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x22, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
     TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
+    TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
 void test_FreeRTOS_GetIPAddress( void ) /*TODO */
