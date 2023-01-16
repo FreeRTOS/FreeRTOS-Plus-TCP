@@ -74,8 +74,8 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
 };
 
 struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
-                                            BaseType_t xFamily,
-                                            const uint8_t * pucAddress ) 
+                                           BaseType_t xFamily,
+                                           const uint8_t * pucAddress )
 {
     struct freertos_addrinfo * pxAddrInfo = NULL;
     void * pvBuffer;
@@ -85,5 +85,4 @@ struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
     pvBuffer = malloc( sizeof( *pxAddrInfo ) );
 
     return pxAddrInfo;
-
 }

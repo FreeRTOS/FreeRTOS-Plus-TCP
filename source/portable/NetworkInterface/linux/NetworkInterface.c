@@ -132,7 +132,8 @@ NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
 static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     BaseType_t ret = pdFAIL;
-    (void) pxInterface;
+
+    ( void ) pxInterface;
     pcap_if_t * pxAllNetworkInterfaces;
 
     /* Query the computer the simulation is being executed on to find the
@@ -171,15 +172,16 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
  *        selected interface
  * @return pdTRUE if successful else pdFALSE
  */
-static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface, 
-                                            NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                            BaseType_t bReleaseAfterSend )
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                           BaseType_t bReleaseAfterSend )
 {
     size_t xSpace;
 
     iptraceNETWORK_INTERFACE_TRANSMIT();
     configASSERT( xIsCallingFromIPTask() == pdTRUE );
-    (void) pxInterface;
+    ( void ) pxInterface;
+
     /* Both the length of the data being sent and the actual data being sent
      *  are placed in the thread safe buffer used to pass data between the FreeRTOS
      *  tasks and the pthread that sends data via the pcap library.  Drop
@@ -314,6 +316,7 @@ NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
     return pxInterface;
 }
 /*-----------------------------------------------------------*/
+
 /*!
  * @brief  print network interfaces available on the system
  * @param[in]   pxAllNetworkInterfaces interface structure list to print
@@ -920,10 +923,10 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                         if( pxNetworkBuffer != NULL )
                         {
                             xRxEvent.pvData = ( void * ) pxNetworkBuffer;
-                            
+
                             pxNetworkBuffer->pxInterface = pxMyInterface;
                             pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer->pucEthernetBuffer );
-                            pxNetworkBuffer->pxEndPoint = pxNetworkEndPoints; //temporary change for single end point
+                            pxNetworkBuffer->pxEndPoint = pxNetworkEndPoints; /*temporary change for single end point */
 
                             /* Data was received and stored.  Send a message to
                              * the IP task to let it know. */

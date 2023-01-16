@@ -95,4 +95,3 @@ BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
                                 void * pvDestination )
 {
 }
-

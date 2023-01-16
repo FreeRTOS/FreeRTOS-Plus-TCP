@@ -28,9 +28,19 @@ extern DHCPData_t xDHCPData;
 
 extern NetworkInterface_t xInterfaces[ 1 ];
 
-#define EP_DHCPData                     xDHCPData
+#define EP_DHCPData    xDHCPData
 
 static const char * pcHostName = "Unit-Test";
+
+BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+    NetworkInterfaceOutputFunction_Stub_Called++;
+    return 0;
+}
 
 static NetworkBufferDescriptor_t * pxGlobalNetworkBuffer[ 10 ];
 static uint8_t GlobalBufferCounter = 0;
@@ -413,7 +423,7 @@ void test_eGetDHCPState( void )
     {
         /* Modify the global state. */
         xDHCPData.eDHCPState = i;
-        eReturn = eGetDHCPState(&xEndPoint);
+        eReturn = eGetDHCPState( &xEndPoint );
         TEST_ASSERT_EQUAL( i, eReturn );
     }
 }
@@ -421,6 +431,7 @@ void test_eGetDHCPState( void )
 void test_vDHCPProcess_NotResetAndIncorrectState( void )
 {
     struct xNetworkEndPoint xEndPoint;
+
     xDHCPData.eDHCPState = eSendDHCPRequest;
     vDHCPProcess( pdFALSE, &xEndPoint );
 
@@ -467,7 +478,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketCreationFail( v
         /* return an invalid socket. */
         FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, FREERTOS_INVALID_SOCKET );
         /* See if the timer is reloaded. */
-        vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpINITIAL_TIMER_PERIOD );
+        vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
         vDHCPProcess( pdTRUE, i );
 
@@ -515,7 +526,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void 
         /* Then expect the socket to be closed. */
         vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
         /* See if the timer is reloaded. */
-        vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpINITIAL_TIMER_PERIOD );
+        vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
         vDHCPProcess( pdTRUE, i );
 
@@ -561,7 +572,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketSuccess( void )
         /* Make sure that binding fails. Return anything except zero. */
         vSocketBind_ExpectAnyArgsAndReturn( 0 );
         /* See if the timer is reloaded. */
-        vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpINITIAL_TIMER_PERIOD );
+        vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
         vDHCPProcess( pdTRUE, i );
 
@@ -601,7 +612,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithSocketAlreadyCreated( void )
         /* Make random number generation pass. */
         xApplicationGetRandomNumber_ExpectAndReturn( &( xDHCPData.ulTransactionId ), pdTRUE );
         /* See if the timer is reloaded. */
-        vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpINITIAL_TIMER_PERIOD );
+        vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
         vDHCPProcess( pdTRUE, i );
 
@@ -635,7 +646,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNULL( void )
     /* Make sure that the user indicates anything else than the desired options. */
     xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, ( eDHCPContinue + eDHCPUseDefaults ) << 2 );
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
     vIPNetworkUpCalls_Ignore();
 
     vDHCPProcess( pdFALSE, &xEndPoint );
@@ -665,7 +676,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNonNULL( void )
     /* Make sure that the user indicates anything else than the desired options. */
     xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, ( eDHCPContinue + eDHCPUseDefaults ) << 2 );
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
     /* Ignore the call. */
     vIPNetworkUpCalls_Ignore();
     /* Expect the socket to be closed. */
@@ -700,7 +711,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookDefaultReturn( void )
     /* Make sure that the user indicates anything else than the desired options. */
     xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, eDHCPUseDefaults );
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
     /* Ignore the call. */
     vIPNetworkUpCalls_Ignore();
     /* Expect the socket to be closed. */
@@ -756,7 +767,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNULL( void )
     /* Make sure that the user indicates anything else than the desired options. */
     xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, eDHCPContinue );
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
     /* Ignore the call. */
     vIPNetworkUpCalls_Ignore();
 
@@ -2205,7 +2216,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnDe
     /* Return continue. */
     xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreRequest, ulClientIPAddress, eDHCPUseDefaults );
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
     vIPNetworkUpCalls_Ignore();
     /* Expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( xDHCPSocket, NULL );
@@ -2294,7 +2305,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnEr
     /* Return continue. */
     xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreRequest, ulClientIPAddress, ( eDHCPContinue + eDHCPUseDefaults ) << 1 );
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
     vIPNetworkUpCalls_Ignore();
     /* Expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( xDHCPSocket, NULL );
@@ -2736,7 +2747,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -2745,7 +2756,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpDEFAULT_LEASE_TIME );
+    vDHCP_RATimerReload_Expect( &xEndPoint, dhcpDEFAULT_LEASE_TIME );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -2830,7 +2841,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeLessTh
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -2839,7 +2850,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeLessTh
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpMINIMUM_LEASE_TIME );
+    vDHCP_RATimerReload_Expect( &xEndPoint, dhcpMINIMUM_LEASE_TIME );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -2922,7 +2933,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_CorrectServer_AptLeaseTime
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -2931,7 +2942,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_CorrectServer_AptLeaseTime
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpMINIMUM_LEASE_TIME + 10 );
+    vDHCP_RATimerReload_Expect( &xEndPoint, dhcpMINIMUM_LEASE_TIME + 10 );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -3052,8 +3063,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     uint32_t ulDNSServer = 0xC0010101;       /* 192.1.1.1 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint;
-    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
-    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
+    NetworkEndPoint_t * xEndPoints = FreeRTOS_FirstEndPoint( &xInterfaces[ 0 ] );
+    IPV4Parameters_t * xIPv4Addressing = &( xEndPoints->ipv4_settings );
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -3148,7 +3159,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -3157,7 +3168,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ) );
+    vDHCP_RATimerReload_Expect( &xEndPoint, configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ) );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -3195,8 +3206,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     uint32_t ulDNSServer = 0xC0010101;       /* 192.1.1.1 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint;
-    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
-    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
+    NetworkEndPoint_t * xEndPoints = FreeRTOS_FirstEndPoint( &xInterfaces[ 0 ] );
+    IPV4Parameters_t * xIPv4Addressing = &( xEndPoints->ipv4_settings );
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -3291,7 +3302,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -3300,7 +3311,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ) );
+    vDHCP_RATimerReload_Expect( &xEndPoint, configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ) );
 
     vDHCPProcess( pdFALSE, eWaitingAcknowledge );
 
@@ -3404,7 +3415,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IPv4ServerIncorrectLength( void )
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -3516,7 +3527,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_SubnetMaskIncorrectLength( void )
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -3635,7 +3646,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_GatewayIncorrectLength( void )
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -3764,7 +3775,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength( void )
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -3889,7 +3900,7 @@ void test_vDHCPProcess_eGetLinkLayerAddress_Timeout_NoARPIPClash( void )
 
     xTaskGetTickCount_ExpectAndReturn( EP_DHCPData.xDHCPTxPeriod + EP_DHCPData.xDHCPTxTime + 100 );
 
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     vDHCPProcess( pdFALSE, eGetLinkLayerAddress );
 
@@ -3952,7 +3963,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkDown( void )
     /* The network is not up. */
     FreeRTOS_IsNetworkUp_ExpectAndReturn( 0 );
     /* Expect the DHCP timer to be reloaded. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  pdMS_TO_TICKS( 5000U ) );
+    vDHCP_RATimerReload_Expect( &xEndPoint, pdMS_TO_TICKS( 5000U ) );
 
     vDHCPProcess( pdFALSE, eLeasedAddress );
 
@@ -3983,7 +3994,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGPass_GNBfail( v
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     /* Expect the timer to be set. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpINITIAL_TIMER_PERIOD );
+    vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
 
     vDHCPProcess( pdFALSE, eLeasedAddress );
 
@@ -4019,7 +4030,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGFail( void )
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
     /* Expect the timer to be set. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpINITIAL_TIMER_PERIOD );
+    vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
 
     vDHCPProcess( pdFALSE, eLeasedAddress );
 
@@ -4058,7 +4069,7 @@ void test_vDHCPProcess_eNotUsingLeasedAddress( void )
     xDHCPData.eDHCPState = eNotUsingLeasedAddress;
 
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
 
     vDHCPProcess( pdFALSE, eNotUsingLeasedAddress );
 

@@ -70,4 +70,3 @@ void vPortEnterCritical( void )
 void vPortExitCritical( void )
 {
 }
-

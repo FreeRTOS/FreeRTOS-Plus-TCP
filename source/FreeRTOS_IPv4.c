@@ -252,6 +252,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
                             /* coverity[misra_c_2012_rule_11_3_violation] */
                             pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ( size_t ) ipSIZE_OF_IPv4_HEADER ] ) );
                         }
+
                         /* Identify the next protocol. */
                         if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
                         {
