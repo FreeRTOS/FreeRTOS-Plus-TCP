@@ -99,6 +99,7 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1( void )
     xSocket.u.xTCP.pxAckMessage = ( void * ) &xSocket;
 
     prvTCPAddTxData_Expect( &xSocket );
+    uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     prvTCPReturnPacket_Expect( &xSocket, xSocket.u.xTCP.pxAckMessage, ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER, ipconfigZERO_COPY_TX_DRIVER );
 

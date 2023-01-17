@@ -127,7 +127,6 @@
         return xIPv46_Address.ulIPAddress;
     }
 /*-----------------------------------------------------------*/
-
     uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
                                   IPv6_Address_t * pxAddress_IPv6 )
     {
@@ -263,7 +262,7 @@
             FreeRTOS_debug_printf( ( "FreeRTOS_ProcessDNSCache: %s: '%s' @ %xip (TTL %u)\n",
                                      ( xLookUp != 0 ) ? "look-up" : "add",
                                      pcName,
-                                     ( unsigned ) FreeRTOS_ntohl( *pxlIP ),
+                                     ( unsigned ) FreeRTOS_ntohl( ( *pxIP ).ulIPAddress ),
                                      ( unsigned ) FreeRTOS_ntohl( ulTTL ) ) );
         }
 

@@ -20,15 +20,22 @@ set( TCP_SOURCES
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_IP_Utils.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_IP_Timers.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_Sockets.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_IPv4_Sockets.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_IPv6_Sockets.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_Stream_Buffer.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_IP.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_IP_IPV4.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_Transmission.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_Transmission_IPV4.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_Reception.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_State_Handling.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_State_Handling_IPV4.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_Utils.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_Utils_IPV4.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_WIN.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_Tiny_TCP.c"
-     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_UDP_IP.c" )
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_UDP_IP.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_UDP_IPv4.c" )
 
 # TCP library Include directories.
 set( TCP_INCLUDE_DIRS

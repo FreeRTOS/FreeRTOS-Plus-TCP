@@ -52,6 +52,7 @@ set(real_source_files "")
 # list the files you would like to test here
 list(APPEND real_source_files
             ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${project_name}.c
+            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${project_name}_IPV4.c
 	)
 
 set(real_include_directories "")

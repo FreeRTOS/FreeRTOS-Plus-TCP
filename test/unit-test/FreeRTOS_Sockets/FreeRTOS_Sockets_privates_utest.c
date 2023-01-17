@@ -53,8 +53,10 @@
 #include "mock_FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
+#include "mock_FreeRTOS_Routing.h"
 
 #include "FreeRTOS_Sockets.h"
+
 
 #include "FreeRTOS_Sockets_stubs.c"
 #include "catch_assert.h"
@@ -263,7 +265,6 @@ void test_prvDetermineSocketSize_IPTaskNotInit( void )
  */
 void test_prvDetermineSocketSize_CatchAssert( void )
 {
-    BaseType_t xReturn;
     BaseType_t xDomain = FREERTOS_AF_INET + 1, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_IPPROTO_UDP;
     size_t xSocketSize;
 
@@ -580,8 +581,12 @@ void test_vSocketBind_TCP( void )
 
     listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
 
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+
     vListInsertEnd_Expect( NULL, &( xSocket.xBoundSocketListItem ) );
     vListInsertEnd_IgnoreArg_pxList();
+
+
 
     xReturn = vSocketBind( &xSocket, &xBindAddress, uxAddressLength, xInternal );
 
@@ -657,6 +662,8 @@ void test_vSocketBind_NonZeroPortNumber( void )
 
     listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
 
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+
     vListInsertEnd_Expect( NULL, &( xSocket.xBoundSocketListItem ) );
     vListInsertEnd_IgnoreArg_pxList();
 
@@ -694,6 +701,8 @@ void test_vSocketBind_GotNULLItem( void )
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( xListStart, xBindAddress.sin_port );
 
     listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
+
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
     vListInsertEnd_Expect( NULL, &( xSocket.xBoundSocketListItem ) );
     vListInsertEnd_IgnoreArg_pxList();
@@ -758,6 +767,8 @@ void test_vSocketBind_TCPGotAProperValue( void )
 
     listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
 
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+
     vListInsertEnd_Expect( NULL, &( xSocket.xBoundSocketListItem ) );
     vListInsertEnd_IgnoreArg_pxList();
 
@@ -795,6 +806,8 @@ void test_vSocketBind_TCPGotAProperValuePortZero( void )
     listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &( xBoundTCPSocketsList.xListEnd ) );
 
     listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), FreeRTOS_htons( 1024 ) );
+
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
     vListInsertEnd_Expect( NULL, &( xSocket.xBoundSocketListItem ) );
     vListInsertEnd_IgnoreArg_pxList();

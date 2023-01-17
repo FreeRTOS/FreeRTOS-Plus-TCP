@@ -165,11 +165,9 @@
                 bWantDHCP : 1,  /**< This end-point wants to use DHCPv4 to obtain an IP-address. */
             #endif /* ipconfigUSE_DHCP */
             #if ( ipconfigUSE_RA != 0 )
-                bWantRA : 1, /**< This end-point wants to use RA/SLAAC to obtain an IP-address. */
+                bWantRA : 1,       /**< This end-point wants to use RA/SLAAC to obtain an IP-address. */
             #endif /* ipconfigUSE_RA */
-            #if ( ipconfigUSE_IPV6 != 0 )
-                bIPv6 : 1, /**< This end-point has an IP-address of type IPv6. */
-            #endif /* ipconfigUSE_IPV6 */
+            bIPv6 : 1,             /**< This end-point has an IP-address of type IPv6. */
             #if ( ipconfigUSE_NETWORK_EVENT_HOOK != 0 )
                 bCallDownHook : 1, /**< The network down hook-must be called for this end-point. */
             #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */

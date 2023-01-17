@@ -378,7 +378,6 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
             #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
         }
     }
-
     else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
     {
         xReturn = prvChecksumICMPv6Checks( uxBufferLength, pxSet );
@@ -502,7 +501,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
             /* And then continue at the IPv4 source and destination addresses. */
             pxSet->usChecksum = ( uint16_t )
                                 ( ~usGenerateChecksum( pxSet->usChecksum,
-                                                       ipPOINTER_CAST( const uint8_t *, &( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ) ),
+                                                       ( const uint8_t * ) &( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ),
                                                        ulByteCount ) );
         }
 
@@ -788,13 +787,11 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
             #endif /* ( #if( ipconfigUSE_IPV6 != 0 ) */
 
             {
-                #if ( ipconfigUSE_IPV6 != 0 )
-                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                    {
-                        ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
-                    }
-                    else
-                #endif
+                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                {
+                    ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
+                }
+                else
                 {
                     ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
                 }

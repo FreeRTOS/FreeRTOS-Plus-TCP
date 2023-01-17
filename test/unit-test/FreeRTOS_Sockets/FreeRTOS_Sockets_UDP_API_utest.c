@@ -53,6 +53,7 @@
 #include "mock_FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
+#include "mock_FreeRTOS_IP_Private.c"
 
 #include "FreeRTOS_Sockets.h"
 
@@ -63,6 +64,9 @@
 
 extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;
+
+#define ipMAX_UDP_PAYLOAD_LENGTH    ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER )
+
 
 BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
                            BaseType_t xProtocol,
@@ -437,6 +441,8 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_JustUDPHeader( void )
 
     vTaskSetTimeOutState_ExpectAnyArgs();
 
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     xEventGroupWaitBits_ExpectAndReturn( xGlobalSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xGlobalSocket->xReceiveBlockTime, 0 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
@@ -486,6 +492,9 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100( void )
 
     xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
     xGlobalSocket->xReceiveBlockTime = 0x123;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
@@ -545,6 +554,9 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall( void
 
     xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
     xGlobalSocket->xReceiveBlockTime = 0x123;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
@@ -605,6 +617,9 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek(
 
     xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
     xGlobalSocket->xReceiveBlockTime = 0x123;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
@@ -660,6 +675,9 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek_
 
     xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
     xGlobalSocket->xReceiveBlockTime = 0x123;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
@@ -712,6 +730,9 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_ZeroC
 
     xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
     xGlobalSocket->xReceiveBlockTime = 0x123;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
@@ -763,6 +784,9 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBegining_Packet100SizeSmall_Zero
 
     xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
     xGlobalSocket->xReceiveBlockTime = 0x123;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );

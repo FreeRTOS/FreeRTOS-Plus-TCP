@@ -32,24 +32,10 @@
 #include <list.h>
 
 /*
- * Return or send a packet to the other party.
- */
-void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
-                              NetworkBufferDescriptor_t * pxDescriptor,
-                              uint32_t ulLen,
-                              BaseType_t xReleaseAfterSend );
-
-/*
  * Let ARP look-up the MAC-address of the peer and initialise the first SYN
  * packet.
  */
 BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * Let ARP look-up the MAC-address of the peer and initialise the first SYN
- * packet.
- */
-BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Return or send a packet to the other party.
@@ -61,5 +47,15 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
 
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     BaseType_t xReleaseAfterSend );
+
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPAddress );
+
+/*
+ * Find the best fitting end-point to reach a given IP-address.
+ * Find an end-point whose IP-address is in the same network as the IP-address provided.
+ * 'ulWhere' is temporary and or debugging only.
+ */
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
+                                                    uint32_t ulWhere );
 
 #endif /* ifndef LIST_MACRO_H */

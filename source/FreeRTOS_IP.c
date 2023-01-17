@@ -164,7 +164,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
  */
 static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer );
 
-static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                     const IPHeader_t * pxIPHeader );
 
 /*-----------------------------------------------------------*/
 
@@ -309,7 +310,7 @@ static void prvProcessIPEventsAndTimers( void )
             prvHandleEthernetPacket( ( NetworkBufferDescriptor_t * ) xReceivedEvent.pvData );
             break;
 
-        case eNetworkTxEvent: /*TODO */
+        case eNetworkTxEvent:
 
            {
                NetworkBufferDescriptor_t * pxDescriptor = ( NetworkBufferDescriptor_t * ) xReceivedEvent.pvData;
@@ -317,9 +318,12 @@ static void prvProcessIPEventsAndTimers( void )
                /* Send a network packet. The ownership will  be transferred to
                 * the driver, which will release it after delivery. */
                iptraceNETWORK_INTERFACE_OUTPUT( pxDescriptor->xDataLength, pxDescriptor->pucEthernetBuffer );
-               ( void ) xNetworkInterfaceOutput( pxDescriptor, pdTRUE );
-           }
 
+               if( pxDescriptor->pxInterface != NULL )
+               {
+                   ( void ) pxDescriptor->pxInterface->pfOutput( pxDescriptor->pxInterface, pxDescriptor, pdTRUE );
+               }
+           }
            break;
 
         case eARPTimerEvent:
@@ -749,6 +753,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
     {
         /* Message was sent so it is not pending. */
         pxNetworkInterface->bits.bCallDownEvent = pdFALSE;
+        xNetworkDownEventPending = pdFALSE;
     }
 
     iptraceNETWORK_DOWN();
@@ -879,6 +884,24 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
             xEndPoints[ 0 ].bits.bWantDHCP = pdTRUE;
         }
     #endif /* ipconfigUSE_DHCP */
+
+    #if ( ipconfigUSE_DHCP != 0 )
+        {
+            *ipLOCAL_IP_ADDRESS_POINTER = 0x00U;
+        }
+    #else
+        {
+            *ipLOCAL_IP_ADDRESS_POINTER = xEndPoints[ 0 ].ipv4_defaults.ulIPAddress;
+
+            if( xEndPoints[ 0 ].ipv4_settings.ulGatewayAddress != 0U )
+            {
+                configASSERT( ( ( *ipLOCAL_IP_ADDRESS_POINTER ) & xEndPoints[ 0 ].ipv4_settings.ulNetMask ) == ( xEndPoints[ 0 ].ipv4_settings.ulGatewayAddress & xEndPoints[ 0 ].ipv4_settings.ulNetMask ) );
+            }
+        }
+    #endif /* if ( ipconfigUSE_DHCP != 0 ) */
+
+    /* The MAC address is stored in the start of the default packet header fragment, which is used when sending UDP packets. */
+    ( void ) memcpy( ipLOCAL_MAC_ADDRESS, ucMACAddress, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
     /* There must be at least one interface and one end-point. */
     configASSERT( FreeRTOS_FirstNetworkInterface() != NULL );
@@ -1553,9 +1576,10 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
  *         eFrameConsumed ( the buffer has now been released ).
  */
 
-static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                     const IPHeader_t * pxIPHeader )
 {
-    eFrameProcessingResult_t eReturn = eReleaseBuffer;
+    eFrameProcessingResult_t eReturn = eProcessBuffer;
     BaseType_t xIsWaitingARPResolution = pdFALSE;
     /* The IP packet contained a UDP frame. */
     /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -1585,8 +1609,18 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     /* Note the header values required prior to the checksum
      * generation as the checksum pseudo header may clobber some of
      * these values. */
-    if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
-        ( uxLength >= sizeof( UDPHeader_t ) ) )
+
+    if( ( pxNetworkBuffer->xDataLength < uxMinSize ) ||
+        ( ( ( size_t ) usLength ) < sizeof( UDPHeader_t ) ) )
+    {
+        eReturn = eReleaseBuffer;
+    }
+    else if( usLength > ( FreeRTOS_ntohs( pxIPHeader->usLength ) - uxIPHeaderSizePacket( pxNetworkBuffer ) ) )
+    {
+        /* The UDP packet is bigger than the IP-payload. Something is wrong, drop the packet. */
+        eReturn = eReleaseBuffer;
+    }
+    else
     {
         size_t uxPayloadSize_1, uxPayloadSize_2;
 
@@ -1629,10 +1663,6 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
                 eReturn = eWaitingARPResolution;
             }
         }
-    }
-    else
-    {
-        /* Length checks failed, the buffer will be released. */
     }
 
     return eReturn;
@@ -1756,7 +1786,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                 }
                 else
 
-
                 if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
                 {
                     eReturn = eWaitingARPResolution;
@@ -1802,7 +1831,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                     case ipPROTOCOL_UDP:
                         /* The IP packet contained a UDP frame. */
 
-                        eReturn = prvProcessUDPPacket( pxNetworkBuffer );
+                        eReturn = prvProcessUDPPacket( pxNetworkBuffer, pxIPHeader );
                         break;
 
                         #if ipconfigUSE_TCP == 1

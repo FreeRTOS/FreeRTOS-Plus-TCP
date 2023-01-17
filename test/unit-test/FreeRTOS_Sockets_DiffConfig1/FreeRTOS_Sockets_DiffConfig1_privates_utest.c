@@ -47,7 +47,6 @@
 #include "FreeRTOSIPConfig.h"
 
 #include "mock_FreeRTOS_IP.h"
-#include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_ARP.h"
 #include "mock_NetworkBufferManagement.h"
 #include "mock_NetworkInterface.h"
@@ -55,77 +54,12 @@
 #include "mock_FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
+#include "mock_FreeRTOS_Routing.h"
 
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 
 #include "catch_assert.h"
-
-extern List_t xBoundUDPSocketsList;
-extern List_t xBoundTCPSocketsList;
-
-BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
-                           BaseType_t xProtocol,
-                           BaseType_t xIsBound );
-
-uint8_t ucASCIIToHex( char cChar );
-
-BaseType_t bMayConnect( FreeRTOS_Socket_t const * pxSocket );
-
-static uint32_t xRandomNumberToReturn;
-static BaseType_t xRNGStatus;
-static UBaseType_t uxGlobalCallbackCount;
-static BaseType_t xLocalReceiveCallback_Return;
-static uint8_t xLocalReceiveCallback_Called = 0;
-
-static FreeRTOS_Socket_t xGlobalSocket;
-
-static void vUserCallbackLocal( FreeRTOS_Socket_t * xSocket )
-{
-    uxGlobalCallbackCount++;
-}
-
-static BaseType_t xStubApplicationGetRandomNumber( uint32_t * xRndNumber,
-                                                   int count )
-{
-    ( void ) count;
-    *xRndNumber = xRandomNumberToReturn;
-    return xRNGStatus;
-}
-
-static void vpxListFindListItemWithValue_NotFound( void )
-{
-    xIPIsNetworkTaskReady_ExpectAndReturn( pdFALSE );
-}
-
-static void vpxListFindListItemWithValue_Found( const List_t * pxList,
-                                                TickType_t xWantedItemValue,
-                                                const ListItem_t * pxReturn )
-{
-    xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
-
-    listGET_NEXT_ExpectAndReturn( &( pxList->xListEnd ), pxReturn );
-
-    listGET_LIST_ITEM_VALUE_ExpectAndReturn( pxReturn, xWantedItemValue );
-}
-
-static BaseType_t xStubForEventGroupWaitBits( EventGroupHandle_t xEventGroup,
-                                              const EventBits_t uxBitsToWaitFor,
-                                              const BaseType_t xClearOnExit,
-                                              const BaseType_t xWaitForAllBits,
-                                              TickType_t xTicksToWait,
-                                              int CallbackCount )
-{
-    xGlobalSocket.u.xTCP.eTCPState = eESTABLISHED;
-}
-
-static BaseType_t xLocalReceiveCallback( Socket_t xSocket,
-                                         void * pvData,
-                                         size_t xLength )
-{
-    xLocalReceiveCallback_Called++;
-    return xLocalReceiveCallback_Return;
-}
 
 /*
  * @brief Binding successful.
@@ -137,6 +71,7 @@ void test_vSocketBind_TCP( void )
     struct freertos_sockaddr xBindAddress;
     size_t uxAddressLength;
     BaseType_t xInternal = pdFALSE;
+    NetworkEndPoint_t xEndPoint;
 
     memset( &xBindAddress, 0xFC, sizeof( xBindAddress ) );
     memset( &xSocket, 0, sizeof( xSocket ) );

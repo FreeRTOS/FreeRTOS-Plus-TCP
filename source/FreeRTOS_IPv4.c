@@ -228,7 +228,6 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
                         /* ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS is defined as 0,
                          * and so UDP packets carrying a protocol checksum of 0, will
                          * be dropped. */
-
                         if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                         {
                             const IPHeader_IPv6_t * pxIPPacket_IPv6;
