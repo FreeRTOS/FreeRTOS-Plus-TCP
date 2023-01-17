@@ -106,15 +106,6 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
 eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                       BaseType_t xDoRemove );
 
-/* Return true if a given end-point is up and running.
-* When FreeRTOS_IsNetworkUp() is called with NULL as a parameter,
-* it will return pdTRUE when all end-points are up. */
-BaseType_t FreeRTOS_IsEndPointUp( const struct xNetworkEndPoint * pxEndPoint );
-
-/* Return pdTRUE if all end-points are up.
- * When pxInterface is null, all end-points will be checked. */
-BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface );
-
 extern void FreeRTOS_ClearND( void );
 
 /* Return pdTRUE if the IPv6 address is a multicast address. */

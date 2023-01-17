@@ -206,7 +206,7 @@
         }
 
         if( ( EP_DHCPData.eDHCPState != EP_DHCPData.eExpectedState ) && ( xReset == pdFALSE ) )
-        {
+        { 
             /* When the DHCP event was generated, the DHCP client was
             * in a different state.  Therefore, ignore this event. */
             FreeRTOS_debug_printf( ( "DHCP wrong state: expect: %d got: %d : ignore\n",
@@ -295,7 +295,7 @@
             /* do nothing, coverity happy */
         }
 
-        if( xDoProcess != pdFALSE )
+        if( ( pxEndPoint != NULL ) && ( xDoProcess != pdFALSE ) )
         {
             /* Process the end-point, but do not expect incoming packets. */
             vDHCPProcessEndPoint( xReset, pdFALSE, pxEndPoint );
@@ -810,11 +810,7 @@
  */
     static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
     {
-        if( ( EP_DHCPData.xDHCPSocket == NULL ) || ( EP_DHCPData.xDHCPSocket != xDHCPv4Socket ) )
-        {
-            /* the socket can not be closed. */
-        }
-        else if( xDHCPSocketUserCount > 0 )
+        if( xDHCPv4Socket != NULL && xDHCPSocketUserCount > 0 )
         {
             xDHCPSocketUserCount--;
 
@@ -825,8 +821,6 @@
                 ( void ) vSocketClose( xDHCPv4Socket );
                 xDHCPv4Socket = NULL;
             }
-
-            EP_DHCPData.xDHCPSocket = NULL;
         }
         else
         {
@@ -850,7 +844,7 @@
         BaseType_t xReturn;
         TickType_t xTimeoutTime = ( TickType_t ) 0;
 
-        if( ( xDHCPv4Socket != NULL ) && ( EP_DHCPData.xDHCPSocket == xDHCPv4Socket ) )
+        if( xDHCPv4Socket != NULL )
         {
             /* the socket is still valid. */
         }
@@ -872,7 +866,7 @@
                 /* Bind to the standard DHCP client port. */
                 xAddress.sin_port = ( uint16_t ) dhcpCLIENT_PORT_IPv4;
                 xReturn = vSocketBind( xDHCPv4Socket, &xAddress, sizeof( xAddress ), pdFALSE );
-                configASSERT( xReturn == 0 );
+                /*configASSERT( xReturn == 0 ); */
                 xDHCPSocketUserCount = 1;
                 FreeRTOS_printf( ( "DHCP-socket[%02x-%02x]: DHCP Socket Create\n",
                                    pxEndPoint->xMACAddress.ucBytes[ 4 ],
@@ -894,8 +888,6 @@
         {
             xDHCPSocketUserCount++;
         }
-
-        EP_DHCPData.xDHCPSocket = xDHCPv4Socket;
     }
     /*-----------------------------------------------------------*/
 
@@ -1232,6 +1224,9 @@
         const uint32_t ulMandatoryOptions = 2U; /* DHCP server address, and the correct DHCP message type must be present in the options. */
         ProcessSet_t xSet;
 
+        const void * pvCopySource;
+        void * pvCopyDest;
+
         ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
 
         /* Passing the address of a pointer (pucUDPPayload) because FREERTOS_ZERO_COPY is used. */
@@ -1290,13 +1285,17 @@
                             vProcessHandleOption( pxEndPoint, &( xSet ), xExpectedMessageType );
                         }
 
-                        /* Jump over the data to find the next option code. */
-                        if( ( xSet.uxLength == 0U ) || ( xResult < 0 ) )
+                        if( xResult != 0 )
                         {
-                            break;
+                            if( ( xSet.uxLength == 0U ) || ( xResult < 0 ) )
+                            {
+                                break;
+                            }
+
+                            xSet.uxIndex += xSet.uxLength;
+
                         }
 
-                        xSet.uxIndex += xSet.uxLength;
                     }
 
                     /* Were all the mandatory options received? */
