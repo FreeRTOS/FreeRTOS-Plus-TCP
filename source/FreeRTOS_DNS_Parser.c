@@ -424,7 +424,7 @@
                 if( ( xSet.pxDNSMessageHeader->usFlags & dnsRX_FLAGS_MASK )
                     == dnsEXPECTED_RX_FLAGS )
                 {
-                    ulIPAddress = parseDNSAnswer( &( xSet ), ppxAddressInfo );
+                    ulIPAddress = parseDNSAnswer( &( xSet ), ppxAddressInfo, &uxBytesRead );
                 }
 
                 #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
@@ -826,7 +826,7 @@
                             if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
                             {
                                 ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) xIP_Address.xAddress_IPv6.ucBytes, cBuffer, sizeof( cBuffer ) );
-                                FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s been stored\n",
+                                FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s be stored\n",
                                                    ( unsigned ) pxSet->pxDNSMessageHeader->usIdentifier,
                                                    pxSet->pcName,
                                                    cBuffer,
