@@ -291,7 +291,7 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     vDHCPProcess_Expect( pdTRUE, eInitialWait );
 
-    prvProcessNetworkDownEvent( &xInterface );
+    prvProcessNetworkDownEvent( &xInterfaces );
 
     /* Run again to trigger a different path in the code. */
 
@@ -305,7 +305,7 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     vDHCPProcess_Expect( pdTRUE, eInitialWait );
 
-    prvProcessNetworkDownEvent( &xInterface );
+    prvProcessNetworkDownEvent( &xInterfaces );
 }
 
 void test_prvProcessNetworkDownEvent_Fail( void )
@@ -326,7 +326,7 @@ void test_prvProcessNetworkDownEvent_Fail( void )
 
     FreeRTOS_NetworkDown_Expect( &xEndPoint );
 
-    prvProcessNetworkDownEvent( &xInterface );
+    prvProcessNetworkDownEvent( &xInterfaces );
 }
 
 void test_vPreCheckConfigs_CatchAssert1( void )
