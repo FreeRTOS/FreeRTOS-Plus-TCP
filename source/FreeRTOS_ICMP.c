@@ -177,6 +177,9 @@
             }
         #else
             {
+                /* Just to prevent compiler warnings about unused parameters. */
+                ( void ) pxNetworkBuffer;
+
                 /* Many EMAC peripherals will only calculate the ICMP checksum
                  * correctly if the field is nulled beforehand. */
                 pxICMPHeader->usChecksum = 0U;

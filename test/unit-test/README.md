@@ -33,7 +33,7 @@ Go to the root directory of the FreeRTOS+TCP repo and run the following script:
 #!/bin/bash
 # This script should be run from the root directory of the FreeRTOS+TCP repo.
 
-if [[ ! -f FreeRTOS_IP.c ]]; then
+if [[ ! -d source ]]; then
     echo "Please run this script from the root directory of the FreeRTOS+TCP repo."
     exit 1
 fi

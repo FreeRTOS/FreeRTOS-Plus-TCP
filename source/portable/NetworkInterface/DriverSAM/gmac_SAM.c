@@ -89,11 +89,20 @@
 #endif
 
 #if ( GMAC_RX_BUFFERS <= 1 )
-    #error Configuration error
+    #error Configuration error, GMAC_RX_BUFFERS must be at least 2
 #endif
 
 #if ( GMAC_TX_BUFFERS <= 1 )
-    #error Configuration error
+    #error Configuration error, GMAC_TX_BUFFERS must be at least 2
+#endif
+
+/* Interesting bits in the Transmission Status Register. */
+#define TSR_TSR_BITS    ( GMAC_TSR_TXCOMP | GMAC_TSR_COL | GMAC_TSR_RLE | GMAC_TSR_UND )
+
+#if ( GMAC_STATS != 0 )
+    #warning Statistics are enabled
+    struct SGmacStats gmacStats;
+    TransmitStats_t xTransmitStats;
 #endif
 
 /**
@@ -102,8 +111,8 @@
  * See \ref gmac_quickstart.
  *
  * Driver for the GMAC (Ethernet Media Access Controller).
- * This file contains basic functions for the GMAC, with support for all modes, settings
- * and clock speeds.
+ * This file contains basic functions for the GMAC, with support for all modes,
+ * settings and clock speeds.
  *
  * \section dependencies Dependencies
  * This driver does not depend on other modules.
@@ -111,8 +120,18 @@
  * @{
  */
 
-#define NETWORK_BUFFER_SIZE    1536
-
+/*
+ *     When BufferAllocation_1.c is used, the network buffer space
+ *     is declared statically as 'ucNetworkPackets[]'.
+ *     Like the DMA descriptors, this array is located in a non-cached area.
+ *     Here an example of the total size:
+ *
+ *         #define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    24
+ *         #define GMAC_FRAME_LENTGH_MAX                     1536
+ *         Hidden space for back-pointer and IP-type         16
+ *
+ *     Total size: 24 * ( 1536 + 16 ) = 37248 bytes
+ */
 __attribute__( ( aligned( 32 ) ) )
 __attribute__( ( section( ".first_data" ) ) )
 uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * NETWORK_BUFFER_SIZE ];
@@ -488,12 +507,6 @@ static uint32_t gmac_dev_poll( gmac_device_t * p_gmac_dev )
     int32_t ulIndex = p_gmac_dev->ul_rx_idx;
     gmac_rx_descriptor_t * pxHead = &gs_rx_desc[ ulIndex ];
 
-/*	#warning Just for debugging */
-/*	if((pxHead->addr.val & GMAC_RXD_OWNERSHIP) != 0) */
-/*	{ */
-/*		NVIC_DisableIRQ( GMAC_IRQn ); */
-/*	} */
-
     #if ( ipconfigZERO_COPY_RX_DRIVER == 0 )
         {
             /* Discard any incomplete frames */
@@ -616,7 +629,7 @@ uint32_t gmac_dev_read( gmac_device_t * p_gmac_dev,
     /* Read +2 bytes because buffers are aligned at -2 bytes */
     bytesLeft = min( bytesLeft + 2, ( int32_t ) ul_frame_size );
 
-    #if ( __DCACHE_PRESENT != 0 ) && defined( CONF_BOARD_ENABLE_CACHE )
+    #if ( NETWORK_BUFFERS_CACHED != 0 ) && ( __DCACHE_PRESENT != 0 ) && defined( CONF_BOARD_ENABLE_CACHE )
         SCB_InvalidateDCache();
     #endif
 
@@ -670,20 +683,20 @@ uint32_t gmac_dev_read( gmac_device_t * p_gmac_dev,
         pxHead = &gs_rx_desc[ nextIdx ];
         pxHead->addr.val &= ~( GMAC_RXD_OWNERSHIP );
         circ_inc32( &nextIdx, GMAC_RX_BUFFERS );
+
+        if( pxHead->addr.val )
+        {
+            /* Just read it back to make sure that
+             * it was written to SRAM. */
+        }
     } while( ( pxHead->status.val & GMAC_RXD_EOF ) == 0 );
 
     p_gmac_dev->ul_rx_idx = nextIdx;
 
     *p_rcv_size = bytesLeft;
 
-/*	#warning Just for debugging */
-/*	NVIC_EnableIRQ( GMAC_IRQn ); */
-
     return GMAC_OK;
 }
-
-extern void vGMACGenerateChecksum( uint8_t * apBuffer,
-                                   size_t uxLength );
 
 /**
  * \brief Send ulLength bytes from pcFrom. This copies the buffer to one of the
@@ -705,6 +718,8 @@ uint32_t gmac_dev_write( gmac_device_t * p_gmac_dev,
 
     Gmac * p_hw = p_gmac_dev->p_hw;
 
+    configASSERT( p_buffer != NULL );
+    configASSERT( ul_size >= ipconfigETHERNET_MINIMUM_PACKET_BYTES );
 
     /* Check parameter */
     if( ul_size > GMAC_TX_UNITSIZE )
@@ -739,11 +754,11 @@ uint32_t gmac_dev_write( gmac_device_t * p_gmac_dev,
                 memcpy( ( void * ) p_tx_td->addr, p_buffer, ul_size );
             }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
-        vGMACGenerateChecksum( ( uint8_t * ) p_tx_td->addr, ( size_t ) ul_size );
+        {
+            /* Needs to be called for SAM4E series only. */
+            vGMACGenerateChecksum( ( uint8_t * ) p_tx_td->addr, ( size_t ) ul_size );
+        }
     }
-
-    /*#warning Trying out */
-    gmac_start_transmission( p_hw );
 
     /* Update transmit descriptor status */
 
@@ -761,6 +776,12 @@ uint32_t gmac_dev_write( gmac_device_t * p_gmac_dev,
         /* GMAC_TXD_USED will now be cleared. */
         p_tx_td->status.val =
             ul_size | GMAC_TXD_LAST;
+    }
+
+    if( p_tx_td->status.val )
+    {
+        /* Just read it back to make sure that
+         * it was written to SRAM. */
     }
 
     circ_inc32( &p_gmac_dev->l_tx_head, GMAC_TX_BUFFERS );
@@ -862,9 +883,6 @@ void gmac_dev_halt( Gmac * p_gmac )
  */
 
 #if ( GMAC_STATS != 0 )
-    extern int logPrintf( const char * pcFormat,
-                          ... );
-
     void gmac_show_irq_counts()
     {
         int index;
@@ -873,7 +891,7 @@ void gmac_dev_halt( Gmac * p_gmac )
         {
             if( gmacStats.intStatus[ intPairs[ index ].index ] )
             {
-                logPrintf( "%s : %6u\n", intPairs[ index ].name, gmacStats.intStatus[ intPairs[ index ].index ] );
+                FreeRTOS_printf( ( "%s : %6u\n", intPairs[ index ].name, gmacStats.intStatus[ intPairs[ index ].index ] ) );
             }
         }
     }
@@ -922,7 +940,7 @@ void gmac_handler( gmac_device_t * p_gmac_dev )
     }
 
     /* TX packet */
-    if( ( ul_isr & GMAC_ISR_TCOMP ) || ( ul_tsr & ( GMAC_TSR_TXCOMP | GMAC_TSR_COL | GMAC_TSR_RLE | GMAC_TSR_UND ) ) )
+    if( ( ul_isr & GMAC_ISR_TCOMP ) || ( ( ul_tsr & TSR_TSR_BITS ) != 0U ) )
     {
         ul_tx_status_flag = GMAC_TSR_TXCOMP;
         /* A frame transmitted */
@@ -968,7 +986,8 @@ void gmac_handler( gmac_device_t * p_gmac_dev )
 
         if( ul_tsr & GMAC_TSR_RLE )
         {
-            /* Notify upper layer RLE */
+            /* Notify upper layer RLE
+             * (GMAC_TSR) Retry Limit Exceeded */
             xTxCallback( ul_tx_status_flag, NULL );
         }
 
