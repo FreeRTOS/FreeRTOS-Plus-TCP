@@ -43,9 +43,9 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ICMP.h"
 #include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
@@ -139,6 +139,7 @@
     {
         ICMPHeader_t * pxICMPHeader;
         IPHeader_t * pxIPHeader;
+        uint32_t ulIPAddress;
 
         pxICMPHeader = &( pxICMPPacket->xICMPHeader );
         pxIPHeader = &( pxICMPPacket->xIPHeader );
@@ -151,8 +152,9 @@
          * tell that the ping was received - even if the ping reply contains
          * invalid data. */
         pxICMPHeader->ucTypeOfMessage = ( uint8_t ) ipICMP_ECHO_REPLY;
+        ulIPAddress = pxIPHeader->ulDestinationIPAddress;
         pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
-        pxIPHeader->ulSourceIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+        pxIPHeader->ulSourceIPAddress = ulIPAddress;
         /* Update the TTL field. */
         pxIPHeader->ucTimeToLive = ipconfigICMP_TIME_TO_LIVE;
 

@@ -51,6 +51,7 @@
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_DHCP.h"
+#include "FreeRTOS_ND.h"
 #include "FreeRTOS_IP_Utils.h"
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
@@ -111,7 +112,7 @@ static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const 
     else
     {
         pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-        ulIPAddress = pxNetworkBuffer->xIPAddress.xIP_IPv4;
+        ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
 
         eReturned = eARPGetCacheEntry( &( ulIPAddress ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
     }
@@ -133,7 +134,7 @@ static void prvFindIPv4Endpoint( NetworkBufferDescriptor_t * const pxNetworkBuff
 {
     if( pxNetworkBuffer->pxEndPoint == NULL )
     {
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.xIP_IPv4, 10 );
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 10 );
 
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
@@ -171,7 +172,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
         FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
-                           pxNetworkBuffer->xIPv6Address.ucBytes,
+                           pxNetworkBuffer->_xIPv6Address.ucBytes,
                            ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
 
         if( pxNetworkBuffer->pxEndPoint != NULL )
@@ -185,10 +186,10 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
     }
     else
     {
-        ulIPAddress = pxNetworkBuffer->xIPAddress.xIP_IPv4;
+        ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
 
         FreeRTOS_printf( ( "Looking up %xip with%s end-point\n",
-                           ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->xIPAddress.xIP_IPv4 ),
+                           ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ),
                            ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
 
         /* Add an entry to the ARP table with a null hardware address.
@@ -197,12 +198,12 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         vARPRefreshCacheEntry( NULL, ulIPAddress, NULL );
 
         /* Generate an ARP for the required IP address. */
-        iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.xIP_IPv4 );
+        iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
 
         /* 'ulIPAddress' might have become the address of the Gateway.
          * Find the route again. */
 
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.xIP_IPv4, 11 );
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11 );
 
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
@@ -210,7 +211,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         }
         else
         {
-            pxNetworkBuffer->xIPAddress.xIP_IPv4 = ulIPAddress;
+            pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ulIPAddress;
             vARPGenerateRequestPacket( pxNetworkBuffer );
         }
     }
@@ -228,14 +229,6 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
 void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     UDPPacket_t * pxUDPPacket;
-    IPHeader_t * pxIPHeader;
-    eARPLookupResult_t eReturned;
-    uint32_t ulIPAddress;
-    size_t uxPayloadSize;
-    /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-    const void * pvCopySource;
-    void * pvCopyDest;
-    BaseType_t xLostBuffer = pdFALSE;
 
     /* Map the UDP packet onto the start of the frame. */
 
@@ -288,14 +281,18 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {
-        xReturn = xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
-                                                  usPort, pxIsWaitingForARPResolution );
+        xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
+                                        usPort, pxIsWaitingForARPResolution );
+    }
+    else if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+    {
+        xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
+                                        usPort, pxIsWaitingForARPResolution );
     }
 
-    if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+    if( *pxIsWaitingForARPResolution != 0 )
     {
-        xReturn = xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
-                                                  usPort, pxIsWaitingForARPResolution );
+        xReturn = pdFAIL;
     }
 
     return xReturn;

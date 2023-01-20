@@ -250,6 +250,7 @@
     {
         const NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
 
+        /* _HT_ temporary change for debugging. */
         if( ( pxNetworkBuffer != NULL ) && ( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER ) )
         {
             prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
@@ -587,7 +588,7 @@
                                                     UBaseType_t uxOptionsLength )
     {
         NetworkBufferDescriptor_t * pxReturn;
-        size_t uxNeeded, uxIPHeaderSize, uxTCPPacketSize;
+        size_t uxNeeded;
         BaseType_t xResize;
 
         if( xBufferAllocFixedSize != pdFALSE )
@@ -611,22 +612,12 @@
         {
             /* Network buffers are created with a variable size. See if it must
              * grow. */
-            uxIPHeaderSize = uxIPHeaderSizeSocket( pxSocket );
-            uxNeeded = ipSIZE_OF_ETH_HEADER + uxIPHeaderSize + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
+            uxNeeded = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
             uxNeeded += ( size_t ) lDataLen;
 
-            if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
+            if( uxNeeded < sizeof( pxSocket->u.xTCP.xPacket.u.ucLastPacket ) )
             {
-                uxTCPPacketSize = sizeof( TCPPacket_IPv6_t );
-            }
-            else
-            {
-                uxTCPPacketSize = sizeof( TCPPacket_t );
-            }
-
-            if( uxNeeded < uxTCPPacketSize )
-            {
-                uxNeeded = uxTCPPacketSize;
+                uxNeeded = sizeof( pxSocket->u.xTCP.xPacket.u.ucLastPacket );
             }
 
             /* In case we were called from a TCP timer event, a buffer must be
@@ -696,7 +687,7 @@
     {
         const IPHeader_t * pxIPHeader = NULL;
 
-        #if ( ipconfigUSE_IPV6 != 0 )
+        #if ( ipconfigUSE_IPv6 != 0 )
             const IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
         #endif
 
@@ -708,24 +699,22 @@
         {
             FreeRTOS_printf( ( "prvTCPReturnPacket: No pxEndPoint yet?\n" ) );
 
-            #if ( ipconfigUSE_IPV6 != 0 )
-                if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
-                {
-                    /* MISRA Ref 11.3.1 [Misaligned access] */
-                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                    /* coverity[misra_c_2012_rule_11_3_violation] */
-                    pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-                    pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPHeader_IPv6->xDestinationAddress ) );
+            if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
+            {
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
+                pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPHeader_IPv6->xDestinationAddress ) );
 
-                    if( pxNetworkBuffer->pxEndPoint == NULL )
-                    {
-                        FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %pip => %pip\n",
-                                           pxIPHeader_IPv6->xSourceAddress.ucBytes,
-                                           pxIPHeader_IPv6->xDestinationAddress.ucBytes ) );
-                    }
+                if( pxNetworkBuffer->pxEndPoint == NULL )
+                {
+                    FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %pip => %pip\n",
+                                       pxIPHeader_IPv6->xSourceAddress.ucBytes,
+                                       pxIPHeader_IPv6->xDestinationAddress.ucBytes ) );
                 }
-                else
-            #endif /* ipconfigUSE_IPV6 */
+            }
+            else
             {
                 /*_RB_ Was FreeRTOS_FindEndPointOnIP_IPv4() but changed to FreeRTOS_FindEndPointOnNetMask()
                  * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */

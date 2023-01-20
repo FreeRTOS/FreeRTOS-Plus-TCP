@@ -68,6 +68,15 @@ typedef enum
     eCantSendPacket    /* 2 There is no IP address, or an ARP is still in progress, so the packet cannot be sent. */
 } eARPLookupResult_t;
 
+/** @brief A structure used internally in FreeRTOS_ARP.c.
+ * It is used as a parameter for the function prvFindCachEntry().*/
+typedef struct xCacheLocation
+{
+    BaseType_t xIpEntry;  /**< The index of the matching IP-address. */
+    BaseType_t xMacEntry; /**< The index of the matching MAC-address. */
+    BaseType_t xUseEntry; /**< The index of the first free location. */
+} CacheLocation_t;
+
 /*
  * If ulIPAddress is already in the ARP cache table then reset the age of the
  * entry back to its maximum value.  If ulIPAddress is not already in the ARP

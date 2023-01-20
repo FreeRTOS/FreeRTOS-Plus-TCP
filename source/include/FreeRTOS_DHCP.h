@@ -209,6 +209,7 @@ struct xDHCP_DATA
     /* Maintains the DHCP state machine state. */
     eDHCPState_t eDHCPState;       /**< The current state of the DHCP state machine. */
     eDHCPState_t eExpectedState;   /**< If the state is not equal the the expected state, no cycle needs to be done. */
+    Socket_t xDHCPSocket;          /**< The UDP/DHCP socket, or NULL. */
 };
 
 typedef struct xDHCP_DATA DHCPData_t;

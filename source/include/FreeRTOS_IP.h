@@ -28,11 +28,6 @@
 #ifndef FREERTOS_IP_H
 #define FREERTOS_IP_H
 
-/* Using FREERTOS_PLUS_TCP_VERSION as the susbstitute of the
- * downward compatibility*/
-
-#define FREERTOS_PLUS_TCP_VERSION    10
-
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
@@ -171,6 +166,9 @@ typedef struct xNETWORK_BUFFER
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
         struct xNETWORK_BUFFER * pxNextBuffer; /**< Possible optimisation for expert users - requires network driver support. */
     #endif
+
+#define _ulIPAddress     xIPAddress.xIP_IPv4
+#define _xIPv6Address    xIPAddress.xIP_IPv6
 } NetworkBufferDescriptor_t;
 
 #include "pack_struct_start.h"
@@ -292,26 +290,42 @@ uint32_t FreeRTOS_round_down( uint32_t a,
  * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/FreeRTOS_TCP_API_Functions.html
  */
 
+/* FreeRTOS_IPStart() replaces the earlier FreeRTOS_IPInit().  It assumes
+ * that network interfaces and IP-addresses have been added using the functions
+ * from FreeRTOS_Routing.h. */
+BaseType_t FreeRTOS_IPStart( void );
+
+struct xNetworkInterface;
+
+#if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialise the interface and end-point
  * objects.  See the description in FreeRTOS_Routing.h. */
-struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                      struct xNetworkInterface * pxInterface );
+    struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                          struct xNetworkInterface * pxInterface );
 
-BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
-                            const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ],
-                            const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
-                            const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
-                            const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
+/* The following function is only provided to allow backward compatibility
+ * with the earlier version of FreeRTOS+TCP which had a single interface only. */
+    BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 
-/* Return true if a given end-point is up and running.
-* When FreeRTOS_IsNetworkUp() is called with NULL as a parameter,
-* it will return pdTRUE when all end-points are up. */
-BaseType_t FreeRTOS_IsEndPointUp( const struct xNetworkEndPoint * pxEndPoint );
+/* The following 2 functions also assume that there is only 1 network interface.
+ * The new function are called: FreeRTOS_GetEndPointConfiguration() and
+ * FreeRTOS_SetEndPointConfiguration(), see below. */
+    void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
+                                           uint32_t * pulNetMask,
+                                           uint32_t * pulGatewayAddress,
+                                           uint32_t * pulDNSServerAddress );
 
-/* Return pdTRUE if all end-points are up.
- * When pxInterface is null, all end-points will be checked. */
-BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface );
+    void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
+                                           const uint32_t * pulNetMask,
+                                           const uint32_t * pulGatewayAddress,
+                                           const uint32_t * pulDNSServerAddress );
+#endif /* if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
 
 /*
  * Returns the addresses stored in an end-point structure.
@@ -348,17 +362,6 @@ void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
                                        const uint32_t * pulNetMask,
                                        const uint32_t * pulGatewayAddress,
                                        const uint32_t * pulDNSServerAddress );
-void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
-                                        uint32_t * pulNetMask,
-                                        uint32_t * pulGatewayAddress,
-                                        uint32_t * pulDNSServerAddress,
-                                        struct xNetworkEndPoint * pxEndPoint );
-
-void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
-                                        const uint32_t * pulNetMask,
-                                        const uint32_t * pulGatewayAddress,
-                                        const uint32_t * pulDNSServerAddress,
-                                        struct xNetworkEndPoint * pxEndPoint );
 
 /* MISRA defining 'FreeRTOS_SendPingRequest' should be dependent on 'ipconfigSUPPORT_OUTGOING_PINGS'.
  * In order not to break some existing project, define it unconditionally. */
@@ -371,8 +374,12 @@ const uint8_t * FreeRTOS_GetMACAddress( void );
 void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     /* This function shall be defined by the application. */
-    void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                         struct xNetworkEndPoint * pxEndPoint );
+    #if ( ipconfigMULTI_INTERFACE != 0 ) && ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
+        void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                             struct xNetworkEndPoint * pxEndPoint );
+    #else
+        void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
+    #endif
 #endif
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
     void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
@@ -491,9 +498,9 @@ extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 #if ipconfigUSE_IPV4
     #include "FreeRTOS_IPv4.h"
 #endif /* ipconfigUSE_IPV4 */
-#if ipconfigUSE_IPV6
+#if ipconfigUSE_IPv6
     #include "FreeRTOS_IPv6.h"
-#endif /* ipconfigUSE_IPV6 */
+#endif /* ipconfigUSE_IPv6 */
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

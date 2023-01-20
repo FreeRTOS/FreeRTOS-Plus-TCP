@@ -39,13 +39,16 @@
  */
     Socket_t DNS_CreateSocket( TickType_t uxReadTimeOut_ticks );
 
+    BaseType_t DNS_BindSocket( Socket_t xSocket,
+                               uint16_t usPort );
+
     BaseType_t DNS_SendRequest( Socket_t xDNSSocket,
                                 const struct freertos_sockaddr * xAddress,
                                 const struct xDNSBuffer * pxDNSBuf );
 
-    void DNS_ReadReply( const ConstSocket_t xDNSSocket,
-                        struct freertos_sockaddr * xAddress,
-                        struct xDNSBuffer * pxReceiveBuffer );
+    BaseType_t DNS_ReadReply( const ConstSocket_t xDNSSocket,
+                              struct freertos_sockaddr * xAddress,
+                              struct xDNSBuffer * pxReceiveBuffer );
 
     void DNS_CloseSocket( Socket_t xDNSSocket );
 

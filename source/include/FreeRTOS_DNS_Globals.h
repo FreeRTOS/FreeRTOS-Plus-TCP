@@ -76,6 +76,8 @@
 /* Host types. */
     #define dnsTYPE_A_HOST            0x01U /**< DNS type A host. */
     #define dnsTYPE_AAAA_HOST         0x001CU
+    #define dnsTYPE_ANY_HOST          0x00FFU
+
     #define dnsCLASS_IN               0x01U /**< DNS class IN (Internet). */
 
 /* Maximum hostname length as defined in RFC 1035 section 3.1. */
@@ -297,7 +299,6 @@
     {
         uint8_t * pucPayloadBuffer; /**< Buffer pointer */
         size_t uxPayloadLength;     /**< Payload size */
-        size_t uxPayloadSize;       /**< Total buffer size */
     } DNSBuffer_t;
 
 /** @brief A struct that can hold either an IPv4 or an IPv6 address. */

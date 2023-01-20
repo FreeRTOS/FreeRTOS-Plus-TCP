@@ -229,7 +229,7 @@ void * xSend_UDP_Update_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
     /* coverity[misra_c_2012_rule_11_3_violation] */
     UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-    pxNetworkBuffer->xIPAddress.xIP_IPv4 = pxDestinationAddress->sin_addr.xIP_IPv4;
+    pxNetworkBuffer->xIPAddress.ulIP_IPv4 = pxDestinationAddress->sin_address.ulIP_IPv4;
     /* Map the UDP packet onto the start of the frame. */
     pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
@@ -251,7 +251,7 @@ size_t xRecv_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
     if( pxSourceAddress != NULL )
     {
         pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET;
-        pxSourceAddress->sin_addr.xIP_IPv4 = pxNetworkBuffer->xIPAddress.xIP_IPv4;
+        pxSourceAddress->sin_address.ulIP_IPv4 = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
         pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
     }
 
