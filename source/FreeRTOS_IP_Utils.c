@@ -515,6 +515,10 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
         {
             pxSet->usChecksum = ( uint16_t ) ipCORRECT_CRC;
         }
+        else
+        {
+            pxSet->usChecksum = ( uint16_t ) ipWRONG_CRC;
+        }
     }
     else
     {
@@ -547,7 +551,7 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
         *( pxSet->pusChecksum ) = pxSet->usChecksum;
     }
 
-    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+    #if ( ipconfigHAS_DEBUG_PRINTF == 0 )
         else if( ( xOutgoingPacket == pdFALSE ) && ( pxSet->usChecksum != ipCORRECT_CRC ) )
         {
             uint16_t usGot, usCalculated;
@@ -634,13 +638,13 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
         /* To help the translation from a UDP payload pointer to a networkBuffer,
          * a byte was stored at a certain negative offset (-48 bytes).
          * It must have a value of either 0x4x or 0x6x. */
-        /*configASSERT( ( ucIPType == ipTYPE_IPv4 ) || ( ucIPType == ipTYPE_IPv6 ) ); */
+        configASSERT( ( ucIPType == ipTYPE_IPv4 ) || ( ucIPType == ipTYPE_IPv6 ) );
 
         if( ucIPType == ipTYPE_IPv6 )
         {
             uxOffset = sizeof( UDPPacket_IPv6_t );
         }
-        else         /* ucIPType == ipTYPE_IPv4 */
+        else /* ucIPType == ipTYPE_IPv4 */
         {
             uxOffset = sizeof( UDPPacket_t );
         }
@@ -777,7 +781,7 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
                     vRAProcess( pdTRUE, pxEndPoint );
                 }
                 else
-            #endif /* ( #if( ipconfigUSE_IPV6 != 0 ) */
+            #endif
 
             {
                 if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
@@ -985,6 +989,11 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         /* For outgoing packets, set the checksum in the packet,
          * for incoming packets: show logging in case an error occurred. */
         prvChecksumProtocolSetChecksum( xOutgoingPacket, pucEthernetBuffer, uxBufferLength, &( xSet ) );
+
+        if( xOutgoingPacket != pdFALSE )
+        {
+            xSet.usChecksum = ( uint16_t ) ipCORRECT_CRC;
+        }
     } while( ipFALSE_BOOL );
 
     #if ( ipconfigHAS_PRINTF == 1 )
