@@ -23,14 +23,24 @@
 
 #include "FreeRTOSIPConfig.h"
 
-extern Socket_t xDHCPSocket;
+extern Socket_t xDHCPv4Socket;
 extern DHCPData_t xDHCPData;
 
 extern NetworkInterface_t xInterfaces[ 1 ];
+extern BaseType_t xDHCPSocketUserCount;
 
-#define EP_DHCPData                     xDHCPData
 
 static const char * pcHostName = "Unit-Test";
+
+BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+    NetworkInterfaceOutputFunction_Stub_Called++;
+    return 0;
+}
 
 static NetworkBufferDescriptor_t * pxGlobalNetworkBuffer[ 10 ];
 static uint8_t GlobalBufferCounter = 0;
@@ -169,6 +179,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsFalseCookieNoTimeo
     }
 
     memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( 0x01ABCDEF );
 
     return xSizeofUDPBuffer;
 }
@@ -234,7 +245,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccessCorrectTxID( Socket
     /* Put in correct DHCP opcode. */
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
     /* Put in correct DHCP Tx ID. */
-    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( EP_DHCPData.ulTransactionId );
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( xDHCPData.ulTransactionId );
 
     return xSizeofUDPBuffer;
 }
@@ -258,7 +269,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrType( S
     /* Put in correct DHCP opcode. */
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
     /* Put in correct DHCP Tx ID. */
-    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( EP_DHCPData.ulTransactionId );
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( xDHCPData.ulTransactionId );
     /* Put in address type as ethernet. */
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucAddressType = ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET;
 
@@ -284,7 +295,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrLen( So
     /* Put in correct DHCP opcode. */
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
     /* Put in correct DHCP Tx ID. */
-    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( EP_DHCPData.ulTransactionId );
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( xDHCPData.ulTransactionId );
     /* Put in address type as ethernet. */
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucAddressType = ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET;
     /* Put in correct address length. */
@@ -313,7 +324,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalHostAddr( Soc
     /* Put in correct DHCP opcode. */
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
     /* Put in correct DHCP Tx ID. */
-    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( EP_DHCPData.ulTransactionId );
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( xDHCPData.ulTransactionId );
     /* Put in address type as ethernet. */
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucAddressType = ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET;
     /* Put in correct address length. */
@@ -343,7 +354,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_NonLocalHostAddr( 
     /* Put in correct DHCP opcode. */
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
     /* Put in correct DHCP Tx ID. */
-    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( EP_DHCPData.ulTransactionId + 1 );
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( xDHCPData.ulTransactionId + 1 );
     /* Put in address type as ethernet. */
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucAddressType = ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET;
     /* Put in correct address length. */
@@ -373,7 +384,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalMACAddrNotMat
     /* Put in correct DHCP opcode. */
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
     /* Put in correct DHCP Tx ID. */
-    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( EP_DHCPData.ulTransactionId );
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( xDHCPData.ulTransactionId );
     /* Put in address type as ethernet. */
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucAddressType = ( uint8_t ) dhcpADDRESS_TYPE_ETHERNET;
     /* Put in correct address length. */
@@ -389,7 +400,8 @@ void test_xIsDHCPSocket( void )
     BaseType_t xReturn;
     struct xSOCKET xTestSocket;
 
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
 
     /************************************/
     /* Test by NOT giving DHCP socket. */
@@ -398,8 +410,9 @@ void test_xIsDHCPSocket( void )
 
     /************************************/
     /* Test by giving DHCP socket. */
-    xReturn = xIsDHCPSocket( xDHCPSocket );
+    xReturn = xIsDHCPSocket( xDHCPv4Socket );
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
+    xDHCPv4Socket = NULL;
 }
 
 void test_eGetDHCPState( void )
@@ -407,106 +420,119 @@ void test_eGetDHCPState( void )
     DHCPData_t xTestData;
     eDHCPState_t eReturn;
     int i;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint, * pxEndPoint = &xEndPoint;
 
     for( i = 0; i < sizeof( xTestData.eDHCPState ); i++ )
     {
         /* Modify the global state. */
-        xDHCPData.eDHCPState = i;
-        eReturn = eGetDHCPState(&xEndPoint);
+        pxEndPoint->xDHCPData.eDHCPState = i;
+        eReturn = eGetDHCPState( &xEndPoint );
         TEST_ASSERT_EQUAL( i, eReturn );
     }
 }
 
 void test_vDHCPProcess_NotResetAndIncorrectState( void )
 {
-    struct xNetworkEndPoint xEndPoint;
-    xDHCPData.eDHCPState = eSendDHCPRequest;
-    vDHCPProcess( pdFALSE, &xEndPoint );
+    struct xNetworkEndPoint xEndPoint, * pxEndPoint = &xEndPoint;
+
+    pxEndPoint->xDHCPData.eDHCPState = eSendDHCPRequest;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* Since the expected state is incorrect, the state
      * should remain the same. */
-    TEST_ASSERT_EQUAL( eSendDHCPRequest, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eSendDHCPRequest, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_ResetAndIncorrectStateWithRNGFail( void )
 {
-    xDHCPData.eDHCPState = eSendDHCPRequest;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint, * pxEndPoint = &xEndPoint;
+
+    pxEndPoint->xDHCPData.eDHCPState = eSendDHCPRequest;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
 
     /* Make random number generation fail. */
-    xApplicationGetRandomNumber_ExpectAndReturn( &( xDHCPData.ulTransactionId ), pdFALSE );
-    vDHCPProcess( pdTRUE, &xEndPoint );
+    xApplicationGetRandomNumber_ExpectAndReturn( &( pxEndPoint->xDHCPData.ulTransactionId ), pdFALSE );
+    vDHCPProcess( pdTRUE, pxEndPoint );
 
     /* Expected state is incorrect, but we are trying to reset
      * the DHCP the state machine. */
-    TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketCreationFail( void )
 {
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Test all the valid and invalid entries. */
     for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should get assigned to a given value. */
-        xDHCPSocket = NULL;
+        xDHCPv4Socket = NULL;
         /* Put any state. */
-        xDHCPData.eDHCPState = eSendDHCPRequest;
+        pxEndPoint->xDHCPData.eDHCPState = eSendDHCPRequest;
+        pxEndPoint->xDHCPData.eExpectedState = i;
         /* This should be reset to 0. */
-        xDHCPData.xUseBroadcast = 1;
+        pxEndPoint->xDHCPData.xUseBroadcast = 1;
         /* This should be reset as well */
-        xDHCPData.ulOfferedIPAddress = 0xAAAAAAAA;
+        pxEndPoint->xDHCPData.ulOfferedIPAddress = 0xAAAAAAAA;
         /* And this too. */
-        xDHCPData.ulDHCPServerAddress = 0xABABABAB;
+        pxEndPoint->xDHCPData.ulDHCPServerAddress = 0xABABABAB;
 
 
         /* Make random number generation pass. */
-        xApplicationGetRandomNumber_ExpectAndReturn( &( xDHCPData.ulTransactionId ), pdTRUE );
+        xApplicationGetRandomNumber_ExpectAndReturn( &( pxEndPoint->xDHCPData.ulTransactionId ), pdTRUE );
         /* return an invalid socket. */
         FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, FREERTOS_INVALID_SOCKET );
+
+        xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
         /* See if the timer is reloaded. */
-        vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpINITIAL_TIMER_PERIOD );
+        vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
-        vDHCPProcess( pdTRUE, i );
+        /*catch_assert( vDHCPProcess( pdTRUE, pxEndPoint ) ); */
+        vDHCPProcess( pdTRUE, pxEndPoint );
 
         /* Expected state is incorrect, but we are trying to reset
          * the DHCP the state machine. */
-        TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xDHCPData.eDHCPState );
-        TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
-        TEST_ASSERT_EQUAL( 0, xDHCPData.xUseBroadcast );
+        TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, pxEndPoint->xDHCPData.eDHCPState );
+        TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
+        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.xUseBroadcast );
         /* This should be reset as well */
-        TEST_ASSERT_EQUAL( 0, xDHCPData.ulOfferedIPAddress );
+        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.ulOfferedIPAddress );
         /* And this too. */
-        TEST_ASSERT_EQUAL( 0, xDHCPData.ulDHCPServerAddress );
+        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.ulDHCPServerAddress );
     }
 }
 
 void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void )
 {
     struct xSOCKET xTestSocket;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
     /* Test all the valid and invalid entries. */
     for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should get assigned to a given value. */
-        xDHCPSocket = NULL;
+        xDHCPv4Socket = NULL;
         /* Put any state. */
-        xDHCPData.eDHCPState = eSendDHCPRequest;
+        pxEndPoint->xDHCPData.eDHCPState = eSendDHCPRequest;
+        pxEndPoint->xDHCPData.eExpectedState = i;
         /* This should be reset to 0. */
-        xDHCPData.xUseBroadcast = 1;
+        pxEndPoint->xDHCPData.xUseBroadcast = 1;
         /* This should be reset as well */
-        xDHCPData.ulOfferedIPAddress = 0xAAAAAAAA;
+        pxEndPoint->xDHCPData.ulOfferedIPAddress = 0xAAAAAAAA;
         /* And this too. */
-        xDHCPData.ulDHCPServerAddress = 0xABABABAB;
+        pxEndPoint->xDHCPData.ulDHCPServerAddress = 0xABABABAB;
 
 
         /* Make random number generation pass. */
-        xApplicationGetRandomNumber_ExpectAndReturn( &( xDHCPData.ulTransactionId ), pdTRUE );
+        xApplicationGetRandomNumber_ExpectAndReturn( &( pxEndPoint->xDHCPData.ulTransactionId ), pdTRUE );
         /* Return a valid socket. */
         FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xTestSocket );
+
+        xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
         /* Ignore the inputs to setting the socket options. */
         FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
         FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
@@ -515,274 +541,311 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void 
         /* Then expect the socket to be closed. */
         vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
         /* See if the timer is reloaded. */
-        vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpINITIAL_TIMER_PERIOD );
+        vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
-        vDHCPProcess( pdTRUE, i );
+        /*catch_assert( vDHCPProcess( pdTRUE, pxEndPoint ) ); */
+        vDHCPProcess( pdTRUE, pxEndPoint );
 
         /* Expected state is incorrect, but we are trying to reset
          * the DHCP the state machine. */
-        TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xDHCPData.eDHCPState );
-        TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
-        TEST_ASSERT_EQUAL( 0, xDHCPData.xUseBroadcast );
+        TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, pxEndPoint->xDHCPData.eDHCPState );
+        TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
+        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.xUseBroadcast );
         /* This should be reset as well */
-        TEST_ASSERT_EQUAL( 0, xDHCPData.ulOfferedIPAddress );
+        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.ulOfferedIPAddress );
         /* And this too. */
-        TEST_ASSERT_EQUAL( 0, xDHCPData.ulDHCPServerAddress );
+        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.ulDHCPServerAddress );
     }
 }
 
 void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketSuccess( void )
 {
     struct xSOCKET xTestSocket;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Test all the valid and invalid entries. */
     for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should get assigned to a given value. */
-        xDHCPSocket = NULL;
+        xDHCPv4Socket = NULL;
         /* Put any state. */
-        xDHCPData.eDHCPState = eSendDHCPRequest;
+        pxEndPoint->xDHCPData.eDHCPState = eSendDHCPRequest;
+        pxEndPoint->xDHCPData.eExpectedState = i;
         /* This should be reset to 0. */
-        xDHCPData.xUseBroadcast = 1;
+        pxEndPoint->xDHCPData.xUseBroadcast = 1;
         /* This should be reset as well */
-        xDHCPData.ulOfferedIPAddress = 0xAAAAAAAA;
+        pxEndPoint->xDHCPData.ulOfferedIPAddress = 0xAAAAAAAA;
         /* And this too. */
-        xDHCPData.ulDHCPServerAddress = 0xABABABAB;
+        pxEndPoint->xDHCPData.ulDHCPServerAddress = 0xABABABAB;
 
 
         /* Make random number generation pass. */
-        xApplicationGetRandomNumber_ExpectAndReturn( &( xDHCPData.ulTransactionId ), pdTRUE );
+        xApplicationGetRandomNumber_ExpectAndReturn( &( pxEndPoint->xDHCPData.ulTransactionId ), pdTRUE );
         /* Return a valid socket. */
         FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xTestSocket );
+
+        xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
+
         /* Ignore the inputs to setting the socket options. */
         FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
         FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
         /* Make sure that binding fails. Return anything except zero. */
         vSocketBind_ExpectAnyArgsAndReturn( 0 );
         /* See if the timer is reloaded. */
-        vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpINITIAL_TIMER_PERIOD );
+        vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
-        vDHCPProcess( pdTRUE, i );
+        vDHCPProcess( pdTRUE, pxEndPoint );
 
         /* Expected state is incorrect, but we are trying to reset
          * the DHCP the state machine. */
-        TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xDHCPData.eDHCPState );
-        TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
-        TEST_ASSERT_EQUAL( 0, xDHCPData.xUseBroadcast );
+        TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, pxEndPoint->xDHCPData.eDHCPState );
+        TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
+        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.xUseBroadcast );
         /* This should be reset as well */
-        TEST_ASSERT_EQUAL( 0, xDHCPData.ulOfferedIPAddress );
+        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.ulOfferedIPAddress );
         /* And this too. */
-        TEST_ASSERT_EQUAL( 0, xDHCPData.ulDHCPServerAddress );
+        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.ulDHCPServerAddress );
     }
 }
 
 void test_vDHCPProcess_ResetAndIncorrectStateWithSocketAlreadyCreated( void )
 {
     struct xSOCKET xTestSocket;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Test all the valid and invalid entries. */
     for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should remain unchanged. */
-        xDHCPSocket = &xTestSocket;
+        xDHCPv4Socket = &xTestSocket;
+        xDHCPSocketUserCount = 1;
         /* Put any state. */
-        xDHCPData.eDHCPState = eSendDHCPRequest;
+        pxEndPoint->xDHCPData.eDHCPState = eSendDHCPRequest;
+        pxEndPoint->xDHCPData.eExpectedState = i;
         /* This should be reset to 0. */
-        xDHCPData.xUseBroadcast = 1;
+        pxEndPoint->xDHCPData.xUseBroadcast = 1;
         /* This should be reset as well */
-        xDHCPData.ulOfferedIPAddress = 0xAAAAAAAA;
+        pxEndPoint->xDHCPData.ulOfferedIPAddress = 0xAAAAAAAA;
         /* And this too. */
-        xDHCPData.ulDHCPServerAddress = 0xABABABAB;
+        pxEndPoint->xDHCPData.ulDHCPServerAddress = 0xABABABAB;
         /* And this should be updated. */
-        xDHCPData.xDHCPTxPeriod = 0;
+        pxEndPoint->xDHCPData.xDHCPTxPeriod = 0;
 
+        /* Expect these arguments. */
+        FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+        /* Ignore the buffer argument though. */
+        FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
         /* Make random number generation pass. */
-        xApplicationGetRandomNumber_ExpectAndReturn( &( xDHCPData.ulTransactionId ), pdTRUE );
+        xApplicationGetRandomNumber_ExpectAndReturn( &( pxEndPoint->xDHCPData.ulTransactionId ), pdTRUE );
         /* See if the timer is reloaded. */
-        vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpINITIAL_TIMER_PERIOD );
+        vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
-        vDHCPProcess( pdTRUE, i );
+        vDHCPProcess( pdTRUE, pxEndPoint );
 
         /* Expected state is incorrect, but we are trying to reset
          * the DHCP the state machine. */
-        TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xDHCPData.eDHCPState );
-        TEST_ASSERT_EQUAL( xDHCPSocket, &xTestSocket );
-        TEST_ASSERT_EQUAL( 0, xDHCPData.xUseBroadcast );
+        TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, pxEndPoint->xDHCPData.eDHCPState );
+        TEST_ASSERT_EQUAL( xDHCPv4Socket, &xTestSocket );
+        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.xUseBroadcast );
         /* This should be reset as well */
-        TEST_ASSERT_EQUAL( 0, xDHCPData.ulOfferedIPAddress );
+        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.ulOfferedIPAddress );
         /* And this too. */
-        TEST_ASSERT_EQUAL( 0, xDHCPData.ulDHCPServerAddress );
+        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.ulDHCPServerAddress );
         /* This should be updated. */
-        TEST_ASSERT_EQUAL( dhcpINITIAL_DHCP_TX_PERIOD, xDHCPData.xDHCPTxPeriod );
+        TEST_ASSERT_EQUAL( dhcpINITIAL_DHCP_TX_PERIOD, pxEndPoint->xDHCPData.xDHCPTxPeriod );
     }
 }
 
 void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNULL( void )
 {
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* The DHCP socket is NULL. */
-    xDHCPSocket = NULL;
+    xDHCPv4Socket = NULL;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
     /* Make sure that the local IP address is uninitialised. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    xNetworkAddressing.ulDefaultIPAddress = 0x12345678;
+    pxEndPoint->ipv4_defaults.ulIPAddress = 0x12345678;
 
     /* Make sure that the user indicates anything else than the desired options. */
-    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, ( eDHCPContinue + eDHCPUseDefaults ) << 2 );
+    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress, ( eDHCPContinue + eDHCPUseDefaults ) << 2 );
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
     vIPNetworkUpCalls_Ignore();
 
-    vDHCPProcess( pdFALSE, &xEndPoint );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be NULL */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* The state should indicate that we are not using leased address. */
-    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xDHCPData.eDHCPState );
-    /* Make sure that the local IP address pointer indicates that. */
-    TEST_ASSERT_EQUAL( xNetworkAddressing.ulDefaultIPAddress, *ipLOCAL_IP_ADDRESS_POINTER );
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
+    /* Make sure that the Endpoint IP address pointer indicates that. */
+    /*TEST_ASSERT_EQUAL( pxEndPoint->ipv4_defaults.ulIPAddress, *ipLOCAL_IP_ADDRESS_POINTER ); */
+    TEST_ASSERT_EQUAL( pxEndPoint->ipv4_defaults.ulIPAddress, pxEndPoint->ipv4_settings.ulIPAddress );
 }
 
 void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNonNULL( void )
 {
     struct xSOCKET xTestSocket;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
     /* Make sure that the local IP address is uninitialised. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    xNetworkAddressing.ulDefaultIPAddress = 0x12345678;
+    pxEndPoint->ipv4_defaults.ulIPAddress = 0x12345678;
 
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+    /* Ignore the buffer argument though. */
+    FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, ( eDHCPContinue + eDHCPUseDefaults ) << 2 );
+    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress, ( eDHCPContinue + eDHCPUseDefaults ) << 2 );
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
     /* Ignore the call. */
     vIPNetworkUpCalls_Ignore();
     /* Expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( xDHCPSocket, NULL );
+    vSocketClose_ExpectAndReturn( xDHCPv4Socket, NULL );
 
-    vDHCPProcess( pdFALSE, &xEndPoint );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be NULL */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* The state should indicate that we are not using leased address. */
-    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that the local IP address pointer indicates that. */
-    TEST_ASSERT_EQUAL( xNetworkAddressing.ulDefaultIPAddress, *ipLOCAL_IP_ADDRESS_POINTER );
+    TEST_ASSERT_EQUAL( pxEndPoint->ipv4_defaults.ulIPAddress, pxEndPoint->ipv4_settings.ulIPAddress );
 }
 
 void test_vDHCPProcess_CorrectStateDHCPHookDefaultReturn( void )
 {
     struct xSOCKET xTestSocket;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
     /* Make sure that the local IP address is uninitialised. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    memset( &xNetworkAddressing, 0xAA, sizeof( xNetworkAddressing ) );
+    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
     /* Put a verifiable value. */
-    memset( &xDefaultAddressing, 0xBB, sizeof( xDefaultAddressing ) );
+    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
 
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+    /* Ignore the buffer argument though. */
+    FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, eDHCPUseDefaults );
+    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress, eDHCPUseDefaults );
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
     /* Ignore the call. */
     vIPNetworkUpCalls_Ignore();
     /* Expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( xDHCPSocket, NULL );
+    vSocketClose_ExpectAndReturn( xDHCPv4Socket, NULL );
 
-    vDHCPProcess( pdFALSE, &xEndPoint );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be NULL */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* The state should indicate that we are not using leased address. */
-    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that the network addressing struct is updated to show that. */
-    TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, &xNetworkAddressing, sizeof( xDefaultAddressing ) );
+    TEST_ASSERT_EQUAL_MEMORY( &pxEndPoint->ipv4_defaults, &pxEndPoint->ipv4_settings, sizeof( IPV4Parameters_t ) );
     /* Make sure that the local IP address pointer indicates that. */
-    TEST_ASSERT_EQUAL( xNetworkAddressing.ulDefaultIPAddress, *ipLOCAL_IP_ADDRESS_POINTER );
+    TEST_ASSERT_EQUAL( pxEndPoint->ipv4_defaults.ulIPAddress, pxEndPoint->ipv4_settings.ulIPAddress );
 }
 
 /* GNW = getNetworkBufferWithDescriptor */
 void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButGNWFails( void )
 {
     struct xSOCKET xTestSocket;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
 
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+    /* Ignore the buffer argument though. */
+    FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, eDHCPContinue );
+    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress, eDHCPContinue );
     xTaskGetTickCount_ExpectAndReturn( 100 );
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning NULL will mean the prvSendDHCPDiscover fail. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
-    vDHCPProcess( pdFALSE, &xEndPoint );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be NULL */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we are not using leased address. */
-    TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNULL( void )
 {
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = NULL;
+    xDHCPv4Socket = NULL;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
 
     /* Make sure that the user indicates anything else than the desired options. */
-    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, eDHCPContinue );
+    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress, eDHCPContinue );
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
     /* Ignore the call. */
     vIPNetworkUpCalls_Ignore();
 
-    vDHCPProcess( pdFALSE, &xEndPoint );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be NULL */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* The state should indicate that we are not using leased address. */
-    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
     /* Not using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
 
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+    /* Ignore the buffer argument though. */
+    FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, eDHCPContinue );
+    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress, eDHCPContinue );
     /* Return the time value. */
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
     /* Get the hostname. */
@@ -794,31 +857,37 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast( v
     /* Since the send failed, a call to release the buffer should be there. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Stub( ReleaseUDPBuffer );
 
-    vDHCPProcess( pdFALSE, &xEndPoint );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be NULL */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, pxEndPoint->xDHCPData.eDHCPState );
     /* The time value should be as expected. */
-    TEST_ASSERT_EQUAL( xTimeValue, xDHCPData.xDHCPTxTime );
+    TEST_ASSERT_EQUAL( xTimeValue, pxEndPoint->xDHCPData.xDHCPTxTime );
 }
 
 void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsUseBroadCast( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
     /* Not using broadcast. */
-    xDHCPData.xUseBroadcast = pdTRUE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdTRUE;
 
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+    /* Ignore the buffer argument though. */
+    FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, eDHCPContinue );
+    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress, eDHCPContinue );
     /* Return the time value. */
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
     /* Get the hostname. */
@@ -830,32 +899,38 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsUseBroadCast( 
     /* Since the send failed, a call to release the buffer should be there. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Stub( ReleaseUDPBuffer );
 
-    vDHCPProcess( pdFALSE, &xEndPoint );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be NULL */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, pxEndPoint->xDHCPData.eDHCPState );
     /* The time value should be as expected. */
-    TEST_ASSERT_EQUAL( xTimeValue, xDHCPData.xDHCPTxTime );
+    TEST_ASSERT_EQUAL( xTimeValue, pxEndPoint->xDHCPData.xDHCPTxTime );
 }
 
 void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCast( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
     /* Using broadcast. */
-    xDHCPData.xUseBroadcast = pdTRUE;
-    xDHCPData.ulPreferredIPAddress = 0x00;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdTRUE;
+    pxEndPoint->xDHCPData.ulPreferredIPAddress = 0x00;
 
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+    /* Ignore the buffer argument though. */
+    FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, eDHCPContinue );
+    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress, eDHCPContinue );
     /* Return the time value. */
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
     /* Get the hostname. */
@@ -865,14 +940,14 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     /* Make the call to FreeRTOS_send succeed. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
-    vDHCPProcess( pdFALSE, &xEndPoint );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be NULL */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
     /* The time value should be as expected. */
-    TEST_ASSERT_EQUAL( xTimeValue, xDHCPData.xDHCPTxTime );
+    TEST_ASSERT_EQUAL( xTimeValue, pxEndPoint->xDHCPData.xDHCPTxTime );
 
     /* Free the allocated memory. */
     ReleaseNetworkBuffer();
@@ -882,18 +957,24 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
     /* Using broadcast. */
-    xDHCPData.xUseBroadcast = pdTRUE;
-    xDHCPData.ulPreferredIPAddress = 0x01;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdTRUE;
+    pxEndPoint->xDHCPData.ulPreferredIPAddress = 0x01;
 
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+    /* Ignore the buffer argument though. */
+    FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, xNetworkAddressing.ulDefaultIPAddress, eDHCPContinue );
+    xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress, eDHCPContinue );
     /* Return the time value. */
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
     /* Get the hostname. */
@@ -903,14 +984,14 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     /* Make the call to FreeRTOS_send succeed. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
-    vDHCPProcess( pdFALSE, &xEndPoint );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be NULL */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
     /* The time value should be as expected. */
-    TEST_ASSERT_EQUAL( xTimeValue, xDHCPData.xDHCPTxTime );
+    TEST_ASSERT_EQUAL( xTimeValue, pxEndPoint->xDHCPData.xDHCPTxTime );
 
     /* Free the allocated memory. */
     ReleaseNetworkBuffer();
@@ -919,34 +1000,48 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
 void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWFails( void )
 {
     struct xSOCKET xTestSocket;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eSendDHCPRequest;
+    pxEndPoint->xDHCPData.eDHCPState = eSendDHCPRequest;
+    pxEndPoint->xDHCPData.eExpectedState = eSendDHCPRequest;
 
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+    /* Ignore the buffer argument though. */
+    FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Get the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Return NULL network buffer. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
-    vDHCPProcess( pdFALSE, eSendDHCPRequest );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be NULL */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eSendDHCPRequest, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eSendDHCPRequest, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendFails( void )
 {
     struct xSOCKET xTestSocket;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eSendDHCPRequest;
+    pxEndPoint->xDHCPData.eDHCPState = eSendDHCPRequest;
+    pxEndPoint->xDHCPData.eExpectedState = eSendDHCPRequest;
 
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+    /* Ignore the buffer argument though. */
+    FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Get the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
@@ -956,12 +1051,12 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendFails( void )
     /* ReleaseUDPPayloadBuffer will be called. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Stub( ReleaseUDPBuffer );
 
-    vDHCPProcess( pdFALSE, eSendDHCPRequest );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be still allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eSendDHCPRequest, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eSendDHCPRequest, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 
@@ -969,12 +1064,19 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendSucceeds( void
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eSendDHCPRequest;
+    pxEndPoint->xDHCPData.eDHCPState = eSendDHCPRequest;
+    pxEndPoint->xDHCPData.eExpectedState = eSendDHCPRequest;
 
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+    /* Ignore the buffer argument though. */
+    FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Get the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
@@ -984,72 +1086,77 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendSucceeds( void
     /* Return the time value. */
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
 
-    vDHCPProcess( pdFALSE, eSendDHCPRequest );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be still allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingAcknowledge, xDHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL( xTimeValue, xDHCPData.xDHCPTxTime );
-    TEST_ASSERT_EQUAL( dhcpINITIAL_DHCP_TX_PERIOD, xDHCPData.xDHCPTxPeriod );
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge, pxEndPoint->xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( xTimeValue, pxEndPoint->xDHCPData.xDHCPTxTime );
+    TEST_ASSERT_EQUAL( dhcpINITIAL_DHCP_TX_PERIOD, pxEndPoint->xDHCPData.xDHCPTxPeriod );
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromFailsNoTimeout( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
 
     /* Expect these arguments. */
-    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPSocket, NULL, 0UL, FREERTOS_ZERO_COPY, NULL, NULL, 0 );
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod );
 
-
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be still allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
-void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutGiveUp( void )
+void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutGiveUp( void ) /*prvCloseDHCPSocket */
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we exceed the period - and give up. */
-    xDHCPData.xDHCPTxPeriod = ipconfigMAXIMUM_DISCOVER_TX_PERIOD;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = ipconfigMAXIMUM_DISCOVER_TX_PERIOD;
 
     /* Expect these arguments. */
-    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPSocket, NULL, 0UL, FREERTOS_ZERO_COPY, NULL, NULL, 0 );
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
 
-    /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference greater than the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
+    xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod + 100 );
 
     /* Time will be stored in DHCP state machine. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
+    xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod + 100 );
 
     /* Make all calls to the RNG succeed. */
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1057,81 +1164,87 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutGiveUp( void )
 
 
     /* Closing the DHCP socket. */
-    vSocketClose_ExpectAndReturn( xDHCPSocket, 0 );
+    vSocketClose_ExpectAndReturn( xDHCPv4Socket, 0 );
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
 
     /* Ignore the call to this function. */
     vARPSendGratuitous_Ignore();
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eGetLinkLayerAddress, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eGetLinkLayerAddress, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGFail( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) - 1;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) - 1;
 
     /* Expect these arguments. Return a 0 to fail. */
-    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPSocket, NULL, 0UL, FREERTOS_ZERO_COPY, NULL, NULL, 0 );
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
 
-    /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference greater than the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
+    xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod + 100 );
 
     /* Make all calls to the RNG fail. */
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
     /* make sure that the period is increased by a factor of two. */
-    TEST_ASSERT_EQUAL( ( ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) - 1 ) << 1, xDHCPData.xDHCPTxPeriod );
+    TEST_ASSERT_EQUAL( ( ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) - 1 ) << 1, pxEndPoint->xDHCPData.xDHCPTxPeriod );
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassUseBroadcast( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) - 1;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) - 1;
     /* Using broadcast. */
-    xDHCPData.xUseBroadcast = pdTRUE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdTRUE;
 
     /* Expect these arguments. Return a 0 to fail. */
-    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPSocket, NULL, 0UL, FREERTOS_ZERO_COPY, NULL, NULL, 0 );
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
 
-    /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference greater than the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
+    xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod + 100 );
 
     /* Make all calls to the RNG succeed. */
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1145,40 +1258,43 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassUseBroa
     /* Send succeeds. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
     /* make sure that the period is increased by a factor of two. */
-    TEST_ASSERT_EQUAL( ( ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) - 1 ) << 1, xDHCPData.xDHCPTxPeriod );
+    TEST_ASSERT_EQUAL( ( ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) - 1 ) << 1, pxEndPoint->xDHCPData.xDHCPTxPeriod );
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassNoBroadcast( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) - 1;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) - 1;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
 
     /* Expect these arguments. Return a 0 to fail. */
-    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPSocket, NULL, 0UL, FREERTOS_ZERO_COPY, NULL, NULL, 0 );
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
 
-    /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference greater than the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
+    xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod + 100 );
 
     /* Make all calls to the RNG succeed. */
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1190,325 +1306,369 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassNoBroad
     /* Returning a NULL network buffer. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eInitialWait, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eInitialWait, pxEndPoint->xDHCPData.eDHCPState );
     /* make sure that the period is increased by a factor of two. */
-    TEST_ASSERT_EQUAL( ( ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) - 1 ) << 1, xDHCPData.xDHCPTxPeriod );
+    TEST_ASSERT_EQUAL( ( ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) - 1 ) << 1, pxEndPoint->xDHCPData.xDHCPTxPeriod );
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsFalseCookieNoTimeout( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.ulTransactionId = 0;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsFalseCookieNoTimeout );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsFalseOpcodeNoTimeout( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsFalseOpcodeNoTimeout );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
-
-
 
 void test_vDHCPProcess_eWaitingOfferRecvfromSucceedsCorrectCookieAndOpcodeNoTimeout( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which won't match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsCorrectCookieAndOpcodeNoTimeout );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromLessBytesNoTimeout( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
+    /* Set the transaction ID which won't match. */
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_eWaitingOfferRecvfromLessBytesNoTimeout );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromSuccessCorrectTxID( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccessCorrectTxID );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromSuccess_CorrectAddrType( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrType );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromSuccess_CorrectAddrLen_BroadcastAddress( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrLen );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromSuccess_CorrectAddrLen_LocalHostAddress( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalHostAddr );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromSuccess_CorrectAddrLen_NonLocalHostAddress( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_NonLocalHostAddr );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferRecvfromSuccess_CorrectAddrLen_LocalMACNotmatching( void )
@@ -1516,19 +1676,24 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSuccess_CorrectAddrLen_LocalMACNotma
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
     MACAddress_t xBackup;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     memcpy( &xBackup, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
 
@@ -1539,18 +1704,18 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSuccess_CorrectAddrLen_LocalMACNotma
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     memcpy( ipLOCAL_MAC_ADDRESS, &xBackup, sizeof( MACAddress_t ) );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageWithoutOptionsNoTimeout( void )
@@ -1559,6 +1724,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageWithoutOptionsNoTimeout( v
     TickType_t xTimeValue = 1234;
     uint8_t DHCPMsg[ sizeof( struct xDHCPMessage_IPv4 ) ];
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
@@ -1568,33 +1734,37 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageWithoutOptionsNoTimeout( v
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 
@@ -1606,6 +1776,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageIncorrectOptionsNoTimeout(
     const BaseType_t xTotalLength = sizeof( struct xDHCPMessage_IPv4 ) + 3U;
     uint8_t DHCPMsg[ xTotalLength ];
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -1626,33 +1797,37 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageIncorrectOptionsNoTimeout(
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageMissingLengthByteNoTimeout( void )
@@ -1664,6 +1839,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageMissingLengthByteNoTimeout
     const BaseType_t xTotalLength = sizeof( struct xDHCPMessage_IPv4 ) + 1U + 1U;
     uint8_t DHCPMsg[ xTotalLength ];
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -1685,33 +1861,37 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageMissingLengthByteNoTimeout
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageIncorrectLengthByteNoTimeout( void )
@@ -1723,6 +1903,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageIncorrectLengthByteNoTimeo
     const BaseType_t xTotalLength = sizeof( struct xDHCPMessage_IPv4 ) + 1U + 3U;
     uint8_t DHCPMsg[ xTotalLength ];
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -1746,33 +1927,37 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageIncorrectLengthByteNoTimeo
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetNACKNoTimeout( void )
@@ -1784,6 +1969,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetNACKNoTimeout( void )
     const BaseType_t xTotalLength = sizeof( struct xDHCPMessage_IPv4 ) + 1U + 3U + 1U;
     uint8_t DHCPMsg[ xTotalLength ];
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -1809,33 +1995,37 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetNACKNoTimeout( void )
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetACKNoTimeout( void )
@@ -1847,6 +2037,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetACKNoTimeout( void )
     const BaseType_t xTotalLength = sizeof( struct xDHCPMessage_IPv4 ) + 1U + 3U + 1U;
     uint8_t DHCPMsg[ xTotalLength ];
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -1872,33 +2063,37 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetACKNoTimeout( void )
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageOneOptionNoTimeout( void )
@@ -1910,6 +2105,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageOneOptionNoTimeout( void )
     const BaseType_t xTotalLength = sizeof( struct xDHCPMessage_IPv4 ) + 1U + 3U + 1U;
     uint8_t DHCPMsg[ xTotalLength ];
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -1935,33 +2131,37 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageOneOptionNoTimeout( void )
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
+    /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that we still in the state from where we started. */
-    TEST_ASSERT_EQUAL( eWaitingOffer, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingOffer, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendFails( void )
@@ -1975,8 +2175,9 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendFails( void 
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
-    xDHCPData.ulOfferedIPAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulOfferedIPAddress = DHCPServerAddress;
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -2014,17 +2215,23 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendFails( void 
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+    /* Make sure that the address matches. */
+    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -2037,12 +2244,12 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendFails( void 
     /* Returning NULL will mean the prvSendDHCPRequest fails. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that sending failed. */
-    TEST_ASSERT_EQUAL( eSendDHCPRequest, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eSendDHCPRequest, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 
@@ -2057,8 +2264,9 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendSucceeds( vo
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
-    xDHCPData.ulOfferedIPAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulOfferedIPAddress = DHCPServerAddress;
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -2096,17 +2304,21 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendSucceeds( vo
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -2122,21 +2334,20 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendSucceeds( vo
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* The state should indicate that sending failed. */
-    TEST_ASSERT_EQUAL( eWaitingAcknowledge, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge, pxEndPoint->xDHCPData.eDHCPState );
     /* The time should be updated. */
-    TEST_ASSERT_EQUAL( xTimeValue, xDHCPData.xDHCPTxTime );
+    TEST_ASSERT_EQUAL( xTimeValue, pxEndPoint->xDHCPData.xDHCPTxTime );
 }
 
 void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnDefaultSendSucceeds( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
-    NetworkEndPoint_t xEndPoint;
 
     /* Create a bit longer DHCP message but keep it empty. */
     const BaseType_t xTotalLength = sizeof( struct xDHCPMessage_IPv4 ) + 1U /* Padding */ + 3U /* DHCP offer */ + 6U /* Server IP address */ + 1U /* End */;
@@ -2144,11 +2355,12 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnDe
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
-    xDHCPData.ulOfferedIPAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulOfferedIPAddress = DHCPServerAddress;
 
     /* Rest the network addressing values. */
-    memset( &( xNetworkAddressing ), 0, sizeof( xNetworkAddressing ) );
+    memset( &( pxEndPoint->ipv4_settings ), 0, sizeof( IPV4Parameters_t ) );
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -2186,17 +2398,21 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnDe
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    pxNetworkEndPoints = pxEndPoint;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -2205,39 +2421,39 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnDe
     /* Return continue. */
     xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreRequest, ulClientIPAddress, eDHCPUseDefaults );
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
     vIPNetworkUpCalls_Ignore();
     /* Expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( xDHCPSocket, NULL );
+    vSocketClose_ExpectAndReturn( xDHCPv4Socket, NULL );
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* The state should indicate that sending failed. */
-    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xDHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL_MEMORY( &( xNetworkAddressing ), &( xDefaultAddressing ), sizeof( xNetworkAddressing ) );
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL_MEMORY( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( IPV4Parameters_t ) );
 }
 
 void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnErrorSendSucceeds( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Create a bit longer DHCP message but keep it empty. */
     const BaseType_t xTotalLength = sizeof( struct xDHCPMessage_IPv4 ) + 1U /* Padding */ + 3U /* DHCP offer */ + 6U /* Server IP address */ + 1U /* End */;
     uint8_t DHCPMsg[ xTotalLength ];
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
-    uint8_t testMemory[ sizeof( xNetworkAddressing ) ];
+    uint8_t testMemory[ sizeof( IPV4Parameters_t ) ];
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
 
-    xDHCPData.ulOfferedIPAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulOfferedIPAddress = DHCPServerAddress;
 
     /* Rest the network addressing values. */
-    memset( &( xNetworkAddressing ), 0, sizeof( xNetworkAddressing ) );
-    memset( &( testMemory ), 0, sizeof( xNetworkAddressing ) );
+    memset( &( xEndPoint ), 0, sizeof( NetworkEndPoint_t ) );
+    memset( &( testMemory ), 0, sizeof( IPV4Parameters_t ) );
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -2275,17 +2491,22 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnEr
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+    /* Make sure that the address matches. */
+    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -2294,18 +2515,18 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnEr
     /* Return continue. */
     xApplicationDHCPHook_ExpectAndReturn( eDHCPPhasePreRequest, ulClientIPAddress, ( eDHCPContinue + eDHCPUseDefaults ) << 1 );
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
     vIPNetworkUpCalls_Ignore();
     /* Expect the socket to be closed. */
-    vSocketClose_ExpectAndReturn( xDHCPSocket, NULL );
+    vSocketClose_ExpectAndReturn( xDHCPv4Socket, NULL );
 
-    vDHCPProcess( pdFALSE, eWaitingOffer );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* The state should indicate that sending failed. */
-    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xDHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL_MEMORY( &( xNetworkAddressing ), &( testMemory ), sizeof( xNetworkAddressing ) );
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL_MEMORY( &( pxEndPoint->ipv4_settings ), &( testMemory ), sizeof( IPV4Parameters_t ) );
 }
 
 
@@ -2319,13 +2540,14 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerNoTimeout( vo
     uint8_t DHCPMsg[ xTotalLength ];
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
-    uint8_t testMemory[ sizeof( xNetworkAddressing ) ];
+    uint8_t testMemory[ sizeof( IPV4Parameters_t ) ];
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
 
     /* Rest the network addressing values. */
-    memset( &( xNetworkAddressing ), 0, sizeof( xNetworkAddressing ) );
-    memset( &( testMemory ), 0, sizeof( xNetworkAddressing ) );
+    memset( &( pxEndPoint->ipv4_settings ), 0, sizeof( IPV4Parameters_t ) );
+    memset( &( testMemory ), 0, sizeof( IPV4Parameters_t ) );
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -2363,36 +2585,34 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerNoTimeout( vo
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put incorrect address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress + 1234;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress + 1234;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
     /* Release the UDP buffer. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
-    /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
-
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* Still waiting on acknowledge. */
-    TEST_ASSERT_EQUAL( eWaitingAcknowledge, xDHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL_MEMORY( &( xNetworkAddressing ), &( testMemory ), sizeof( xNetworkAddressing ) );
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge, pxEndPoint->xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL_MEMORY( &( pxEndPoint->ipv4_settings ), &( testMemory ), sizeof( IPV4Parameters_t ) );
 }
 
 void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfails( void )
@@ -2405,12 +2625,13 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfai
     uint8_t DHCPMsg[ xTotalLength ];
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
-    uint8_t testMemory[ sizeof( xNetworkAddressing ) ];
+    uint8_t testMemory[ sizeof( IPV4Parameters_t ) ];
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Rest the network addressing values. */
-    memset( &( xNetworkAddressing ), 0, sizeof( xNetworkAddressing ) );
-    memset( &( testMemory ), 0, sizeof( xNetworkAddressing ) );
+    memset( &( pxEndPoint->ipv4_settings ), 0, sizeof( IPV4Parameters_t ) );
+    memset( &( testMemory ), 0, sizeof( IPV4Parameters_t ) );
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -2448,28 +2669,25 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfai
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put incorrect address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress + 1234;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress + 1234;
 
-    /* Get a stub. */
-    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
-    /* Release the UDP buffer. */
-    FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
-
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
+    xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod + 100 );
     /* Return time second time which can be verified. */
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
 
@@ -2478,15 +2696,15 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfai
     /* Returning a NULL so that prvSendDHCPRequest fails. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdFALSE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* Still waiting on acknowledge. */
-    TEST_ASSERT_EQUAL( eSendDHCPRequest, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eSendDHCPRequest, pxEndPoint->xDHCPData.eDHCPState );
     /* The time value should be stored in the state machine. */
-    TEST_ASSERT_EQUAL( xTimeValue, xDHCPData.xDHCPTxTime );
-    TEST_ASSERT_EQUAL_MEMORY( &( xNetworkAddressing ), &( testMemory ), sizeof( xNetworkAddressing ) );
+    TEST_ASSERT_EQUAL( xTimeValue, pxEndPoint->xDHCPData.xDHCPTxTime );
+    TEST_ASSERT_EQUAL_MEMORY( &( pxEndPoint->ipv4_settings ), &( testMemory ), sizeof( IPV4Parameters_t ) );
 }
 
 void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBsucceeds( void )
@@ -2500,6 +2718,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBsuc
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
 
     /* Set the header - or at least the start of DHCP message. */
@@ -2538,28 +2757,28 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBsuc
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put incorrect address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress + 1234;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress + 1234;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
-    /* Release the UDP buffer. */
-    FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
+    xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod + 100 );
     /* Return time second time which can be verified. */
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
 
@@ -2570,13 +2789,13 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBsuc
     /* Send succeeds. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdFALSE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* Still waiting on acknowledge. */
-    TEST_ASSERT_EQUAL( eWaitingAcknowledge, xDHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL( xTimeValue, xDHCPData.xDHCPTxTime );
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge, pxEndPoint->xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( xTimeValue, pxEndPoint->xDHCPData.xDHCPTxTime );
 }
 
 void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutPeriodLess( void )
@@ -2590,6 +2809,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutPeriod
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
 
     /* Set the header - or at least the start of DHCP message. */
@@ -2628,37 +2848,37 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutPeriod
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure we exceed the period - and thus, give up. */
-    xDHCPData.xDHCPTxPeriod = ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) + 1;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = ( ipconfigMAXIMUM_DISCOVER_TX_PERIOD >> 1 ) + 1;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put incorrect address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress + 1234;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress + 1234;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
-    /* Release the UDP buffer. */
-    FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
+    xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod + 100 );
 
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdFALSE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* Period exceeded. We should now be in initial state. */
-    TEST_ASSERT_EQUAL( eInitialWait, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eInitialWait, pxEndPoint->xDHCPData.eDHCPState );
     /* Period exceeded, should have initial value */
-    TEST_ASSERT_EQUAL( 100, xDHCPData.xDHCPTxTime );
+    TEST_ASSERT_EQUAL( 100, pxEndPoint->xDHCPData.xDHCPTxTime );
 }
 
 
@@ -2666,7 +2886,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Create a bit longer DHCP message but keep it empty. */
     const BaseType_t xTotalLength = sizeof( struct xDHCPMessage_IPv4 ) + 1U /* Padding */ + 3U /* DHCP offer */ + 6U /* Server IP address */ + 1U /* End */;
@@ -2712,22 +2932,26 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put correct address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
+    /* Make sure that the address matches. */
+    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
 
     /* Reset the lease time so that it will be set to default
      * value later. */
-    xDHCPData.ulLeaseTime = 0;
+    pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -2736,7 +2960,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -2745,14 +2969,14 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpDEFAULT_LEASE_TIME );
+    vDHCP_RATimerReload_Expect( &xEndPoint, dhcpDEFAULT_LEASE_TIME );
 
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* Should now be using leased address. */
-    TEST_ASSERT_EQUAL( eLeasedAddress, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 
@@ -2767,7 +2991,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeLessTh
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
 
     /* Set the header - or at least the start of DHCP message. */
@@ -2806,22 +3030,24 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeLessTh
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put correct address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
 
     /* Reset the lease time so that it will be set to minimum
      * value later. */
-    xDHCPData.ulLeaseTime = dhcpMINIMUM_LEASE_TIME - 10;
+    pxEndPoint->xDHCPData.ulLeaseTime = dhcpMINIMUM_LEASE_TIME - 10;
 
     /* Reset this value so that it can be verified later. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -2830,7 +3056,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeLessTh
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -2839,15 +3065,15 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeLessTh
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpMINIMUM_LEASE_TIME );
+    vDHCP_RATimerReload_Expect( &xEndPoint, dhcpMINIMUM_LEASE_TIME );
 
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* Should now be using leased address. */
-    TEST_ASSERT_EQUAL( eLeasedAddress, xDHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL( dhcpMINIMUM_LEASE_TIME, xDHCPData.ulLeaseTime );
+    TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( dhcpMINIMUM_LEASE_TIME, pxEndPoint->xDHCPData.ulLeaseTime );
 }
 
 
@@ -2862,7 +3088,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_CorrectServer_AptLeaseTime
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -2900,20 +3126,22 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_CorrectServer_AptLeaseTime
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put correct address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
     /* Reset the lease time to an appropriate value. */
-    xDHCPData.ulLeaseTime = dhcpMINIMUM_LEASE_TIME + 10;
+    pxEndPoint->xDHCPData.ulLeaseTime = dhcpMINIMUM_LEASE_TIME + 10;
 
     /* Reset this value so that it can be verified later. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -2922,7 +3150,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_CorrectServer_AptLeaseTime
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -2931,16 +3159,16 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_CorrectServer_AptLeaseTime
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpMINIMUM_LEASE_TIME + 10 );
+    vDHCP_RATimerReload_Expect( &xEndPoint, dhcpMINIMUM_LEASE_TIME + 10 );
 
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* Should now be using leased address. */
-    TEST_ASSERT_EQUAL( eLeasedAddress, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that this is not changed. */
-    TEST_ASSERT_EQUAL( dhcpMINIMUM_LEASE_TIME + 10, xDHCPData.ulLeaseTime );
+    TEST_ASSERT_EQUAL( dhcpMINIMUM_LEASE_TIME + 10, pxEndPoint->xDHCPData.ulLeaseTime );
 }
 
 void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_NACK( void )
@@ -2954,6 +3182,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_NACK( void )
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
 
     /* Set the header - or at least the start of DHCP message. */
@@ -2992,40 +3221,38 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_NACK( void )
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put correct address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
     /* Reset the lease time to an appropriate value. */
-    xDHCPData.ulLeaseTime = dhcpMINIMUM_LEASE_TIME + 10;
+    pxEndPoint->xDHCPData.ulLeaseTime = dhcpMINIMUM_LEASE_TIME + 10;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
 
     /* Reset this value so that it can be verified later. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
     /* Release the UDP buffer. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
-    /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod );
-
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* Should now be reset after NACK. */
-    TEST_ASSERT_EQUAL( eInitialWait, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eInitialWait, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 
@@ -3051,9 +3278,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     uint32_t ulLeaseTime = 0x00000096;       /* 150 seconds */
     uint32_t ulDNSServer = 0xC0010101;       /* 192.1.1.1 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
-    NetworkEndPoint_t xEndPoint;
-    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
-    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->ipv4_settings );
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -3126,20 +3352,22 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put correct address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
     /* Reset the lease time. */
-    xDHCPData.ulLeaseTime = 0;
+    pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -3148,7 +3376,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -3157,16 +3385,16 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ) );
+    vDHCP_RATimerReload_Expect( &xEndPoint, configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ) );
 
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* Should now be using leased address. */
-    TEST_ASSERT_EQUAL( eLeasedAddress, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that this is not changed. */
-    TEST_ASSERT_EQUAL( configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ), xDHCPData.ulLeaseTime );
+    TEST_ASSERT_EQUAL( configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ), pxEndPoint->xDHCPData.ulLeaseTime );
     TEST_ASSERT_EQUAL( xIPv4Addressing->ulGatewayAddress, ulGateway );
     TEST_ASSERT_EQUAL( xIPv4Addressing->ulNetMask, ulSubnetMask );
 }
@@ -3194,9 +3422,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     uint32_t ulLeaseTime = 0x00000096;       /* 150 seconds */
     uint32_t ulDNSServer = 0xC0010101;       /* 192.1.1.1 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
-    NetworkEndPoint_t xEndPoint;
-    NetworkEndPoint_t *xEndPoints = FreeRTOS_FirstEndPoint(&xInterfaces[0]);
-    IPV4Parameters_t *xIPv4Addressing = &(xEndPoints->ipv4_settings);
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->ipv4_settings );
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -3269,20 +3496,22 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put correct address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
     /* Reset the lease time. */
-    xDHCPData.ulLeaseTime = 0;
+    pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -3291,7 +3520,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -3300,16 +3529,16 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     vARPSendGratuitous_Expect();
 
     /* Expect the timer to be reloaded. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ) );
+    vDHCP_RATimerReload_Expect( &xEndPoint, configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ) );
 
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* Should now be using leased address. */
-    TEST_ASSERT_EQUAL( eLeasedAddress, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that this is not changed. */
-    TEST_ASSERT_EQUAL( configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ), xDHCPData.ulLeaseTime );
+    TEST_ASSERT_EQUAL( configTICK_RATE_HZ * ( FreeRTOS_ntohl( ulLeaseTime ) >> 1 ), pxEndPoint->xDHCPData.ulLeaseTime );
     TEST_ASSERT_EQUAL( xIPv4Addressing->ulGatewayAddress, ulGateway );
     TEST_ASSERT_EQUAL( xIPv4Addressing->ulNetMask, ulSubnetMask );
 }
@@ -3334,7 +3563,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IPv4ServerIncorrectLength( void )
     uint32_t ulGateway = 0xC0A80001;         /* 192.168.0.1 */
     uint32_t ulLeaseTime = 0x00000096;       /* 150 seconds */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -3382,20 +3611,22 @@ void test_vDHCPProcess_eWaitingAcknowledge_IPv4ServerIncorrectLength( void )
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put correct address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
     /* Reset the lease time. */
-    xDHCPData.ulLeaseTime = 0;
+    pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -3404,7 +3635,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IPv4ServerIncorrectLength( void )
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -3415,14 +3646,14 @@ void test_vDHCPProcess_eWaitingAcknowledge_IPv4ServerIncorrectLength( void )
     /* Expect the timer to be reloaded. */
     vDHCP_RATimerReload_Ignore();
 
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* Should now be using leased address. */
-    TEST_ASSERT_EQUAL( eLeasedAddress, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that this is not changed. */
-    TEST_ASSERT_EQUAL( dhcpDEFAULT_LEASE_TIME, xDHCPData.ulLeaseTime );
+    TEST_ASSERT_EQUAL( dhcpDEFAULT_LEASE_TIME, pxEndPoint->xDHCPData.ulLeaseTime );
 }
 
 
@@ -3446,7 +3677,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_SubnetMaskIncorrectLength( void )
     uint32_t ulGateway = 0xC0A80001;         /* 192.168.0.1 */
     uint32_t ulLeaseTime = 0x00000096;       /* 150 seconds */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -3494,20 +3725,22 @@ void test_vDHCPProcess_eWaitingAcknowledge_SubnetMaskIncorrectLength( void )
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put correct address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
     /* Reset the lease time. */
-    xDHCPData.ulLeaseTime = 0;
+    pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -3516,7 +3749,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_SubnetMaskIncorrectLength( void )
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -3527,14 +3760,14 @@ void test_vDHCPProcess_eWaitingAcknowledge_SubnetMaskIncorrectLength( void )
     /* Expect the timer to be reloaded. */
     vDHCP_RATimerReload_Ignore();
 
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* Should now be using leased address. */
-    TEST_ASSERT_EQUAL( eLeasedAddress, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that this is not changed. */
-    TEST_ASSERT_EQUAL( dhcpDEFAULT_LEASE_TIME, xDHCPData.ulLeaseTime );
+    TEST_ASSERT_EQUAL( dhcpDEFAULT_LEASE_TIME, pxEndPoint->xDHCPData.ulLeaseTime );
 }
 
 void test_vDHCPProcess_eWaitingAcknowledge_GatewayIncorrectLength( void )
@@ -3557,7 +3790,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_GatewayIncorrectLength( void )
     uint32_t ulGateway = 0xC0A80001;         /* 192.168.0.1 */
     uint32_t ulLeaseTime = 0x00000096;       /* 150 seconds */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -3613,20 +3846,22 @@ void test_vDHCPProcess_eWaitingAcknowledge_GatewayIncorrectLength( void )
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put correct address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
     /* Reset the lease time. */
-    xDHCPData.ulLeaseTime = 0;
+    pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -3635,7 +3870,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_GatewayIncorrectLength( void )
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -3646,14 +3881,14 @@ void test_vDHCPProcess_eWaitingAcknowledge_GatewayIncorrectLength( void )
     /* Expect the timer to be reloaded. */
     vDHCP_RATimerReload_Ignore();
 
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* Should now be using leased address. */
-    TEST_ASSERT_EQUAL( eLeasedAddress, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that this is not changed. */
-    TEST_ASSERT_EQUAL( dhcpDEFAULT_LEASE_TIME, xDHCPData.ulLeaseTime );
+    TEST_ASSERT_EQUAL( dhcpDEFAULT_LEASE_TIME, pxEndPoint->xDHCPData.ulLeaseTime );
 }
 
 
@@ -3677,7 +3912,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength( void )
     uint32_t ulGateway = 0xC0A80001;         /* 192.168.0.1 */
     uint32_t ulLeaseTime = 0x00000096;       /* 150 seconds */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -3742,20 +3977,22 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength( void )
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put correct address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
     /* Reset the lease time. */
-    xDHCPData.ulLeaseTime = 0;
+    pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -3764,7 +4001,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength( void )
 
     /* Expect this function to be called since we now have
      * successfully acquired an IP address. */
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
     /* Then expect the socket to be closed. */
     vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
@@ -3775,14 +4012,14 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength( void )
     /* Expect the timer to be reloaded. */
     vDHCP_RATimerReload_Ignore();
 
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* DHCP socket should be unallocated */
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
     /* Should now be using leased address. */
-    TEST_ASSERT_EQUAL( eLeasedAddress, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that this is not changed. */
-    TEST_ASSERT_EQUAL( dhcpDEFAULT_LEASE_TIME, xDHCPData.ulLeaseTime );
+    TEST_ASSERT_EQUAL( dhcpDEFAULT_LEASE_TIME, pxEndPoint->xDHCPData.ulLeaseTime );
 }
 
 
@@ -3800,6 +4037,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectLengthofpacket( void )
     uint32_t ulGateway = 0xC0A80001;         /* 192.168.0.1 */
     uint32_t ulLeaseTime = 0x00000096;       /* 150 seconds */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -3829,33 +4067,33 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectLengthofpacket( void )
     ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eDHCPState = eWaitingAcknowledge;
+    pxEndPoint->xDHCPData.eExpectedState = eWaitingAcknowledge;
     /* Not Using broadcast. */
-    xDHCPData.xUseBroadcast = pdFALSE;
+    pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
-    xDHCPData.ulTransactionId = 0x01ABCDEF;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Put correct address. */
-    xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
+    pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
     /* Reset the lease time. */
-    xDHCPData.ulLeaseTime = 0;
+    pxEndPoint->xDHCPData.ulLeaseTime = 0;
     /* Put some time values. */
-    xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     /* Make sure that we don't exceed the period - and thus, don't give up. */
-    xDHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
 
     /* Reset this value so that it can be verified later. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
-    /* Release the UDP buffer. */
-    FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
 
-    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod  */
+    /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
-    xTaskGetTickCount_ExpectAndReturn( xDHCPData.xDHCPTxTime + xDHCPData.xDHCPTxPeriod + 100 );
+    xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod + 100 );
     /* Return time second time which can be verified. */
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
 
@@ -3866,51 +4104,57 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectLengthofpacket( void )
     /* Send succeeds. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
-    vDHCPProcess( pdFALSE, eWaitingAcknowledge );
+    vDHCPProcessEndPoint( pdFALSE, pdFALSE, pxEndPoint );
 
     /* DHCP socket should be allocated */
-    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
     /* Should still be stuck in waiting for ack state. */
-    TEST_ASSERT_EQUAL( eWaitingAcknowledge, xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eGetLinkLayerAddress_Timeout_NoARPIPClash( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
-    EP_DHCPData.xDHCPTxTime = 100;
-    EP_DHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eGetLinkLayerAddress;
+    pxEndPoint->xDHCPData.eDHCPState = eGetLinkLayerAddress;
+    pxEndPoint->xDHCPData.eExpectedState = eGetLinkLayerAddress;
 
     xARPHadIPClash = pdFALSE;
+    xDHCPv4Socket = NULL;
 
-    xTaskGetTickCount_ExpectAndReturn( EP_DHCPData.xDHCPTxPeriod + EP_DHCPData.xDHCPTxTime + 100 );
+    xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxPeriod + pxEndPoint->xDHCPData.xDHCPTxTime + 100 );
 
-    vIPNetworkUpCalls_Expect(&xEndPoint);
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
-    vDHCPProcess( pdFALSE, eGetLinkLayerAddress );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, EP_DHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
 }
 
-void test_vDHCPProcess_eGetLinkLayerAddress_Timeout_ARPIPClash( void )
+void test_vDHCPProcess_eGetLinkLayerAddress_Timeout_ARPIPClash( void ) /* prvPrepareLinkLayerIPLookUp + prvCloseDHCPSocket */
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
+    struct xNetworkEndPoint xEndPoint, * pxEndPoint = &xEndPoint;
 
-    EP_DHCPData.xDHCPTxTime = 100;
-    EP_DHCPData.xDHCPTxPeriod = 100;
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
     /* Put the required state. */
-    xDHCPData.eDHCPState = eGetLinkLayerAddress;
+    pxEndPoint->xDHCPData.eDHCPState = eGetLinkLayerAddress;
+    pxEndPoint->xDHCPData.eExpectedState = eGetLinkLayerAddress;
     /* This should be nullified. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
+    xDHCPSocketUserCount = 1;
 
     xARPHadIPClash = pdTRUE;
 
-    xTaskGetTickCount_ExpectAndReturn( EP_DHCPData.xDHCPTxPeriod + EP_DHCPData.xDHCPTxTime + 100 );
+    xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxPeriod + pxEndPoint->xDHCPData.xDHCPTxTime + 100 );
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
@@ -3919,61 +4163,68 @@ void test_vDHCPProcess_eGetLinkLayerAddress_Timeout_ARPIPClash( void )
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     vARPSendGratuitous_Expect();
 
-    vDHCPProcess( pdFALSE, eGetLinkLayerAddress );
+    vDHCPProcessEndPoint( pdFALSE, pdFALSE, pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eGetLinkLayerAddress, EP_DHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( eGetLinkLayerAddress, pxEndPoint->xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
 }
 
 void test_vDHCPProcess_eGetLinkLayerAddress_NoTimeout( void )
 {
-    EP_DHCPData.xDHCPTxTime = 100;
-    EP_DHCPData.xDHCPTxPeriod = 100;
-    /* Put the required state. */
-    xDHCPData.eDHCPState = eGetLinkLayerAddress;
+    struct xNetworkEndPoint xEndPoint, * pxEndPoint = &xEndPoint;
 
+    pxEndPoint->xDHCPData.xDHCPTxTime = 100;
+    pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
+    /* Put the required state. */
+    pxEndPoint->xDHCPData.eDHCPState = eGetLinkLayerAddress;
+    pxEndPoint->xDHCPData.eExpectedState = eGetLinkLayerAddress;
+    xDHCPv4Socket = NULL;
     xARPHadIPClash = pdTRUE;
 
     /* Make it so that there is no timeout. */
-    xTaskGetTickCount_ExpectAndReturn( EP_DHCPData.xDHCPTxPeriod + EP_DHCPData.xDHCPTxTime );
+    xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxPeriod + pxEndPoint->xDHCPData.xDHCPTxTime );
 
-    vDHCPProcess( pdFALSE, eGetLinkLayerAddress );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eGetLinkLayerAddress, EP_DHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eGetLinkLayerAddress, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 
-void test_vDHCPProcess_eLeasedAddress_NetworkDown( void )
+void test_vDHCPProcess_eLeasedAddress_EndPointDown( void )
 {
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    struct xSOCKET xTestSocket;
+
     /* Put the required state. */
-    xDHCPData.eDHCPState = eLeasedAddress;
-    NetworkEndPoint_t xEndPoint;
+    pxEndPoint->xDHCPData.eDHCPState = eLeasedAddress;
+    pxEndPoint->xDHCPData.eExpectedState = eLeasedAddress;
 
-    /* The network is not up. */
-    FreeRTOS_IsNetworkUp_ExpectAndReturn( 0 );
+    FreeRTOS_IsEndPointUp_IgnoreAndReturn( pdFALSE );
+
     /* Expect the DHCP timer to be reloaded. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  pdMS_TO_TICKS( 5000U ) );
+    vDHCP_RATimerReload_Expect( &xEndPoint, pdMS_TO_TICKS( 5000U ) );
 
-    vDHCPProcess( pdFALSE, eLeasedAddress );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* Still in this phase. */
-    TEST_ASSERT_EQUAL( eLeasedAddress, EP_DHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGPass_GNBfail( void )
 {
     struct xSOCKET xTestSocket;
     BaseType_t xTimeValue = 300;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Socket is already created. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
 
     /* Put the required state. */
-    xDHCPData.eDHCPState = eLeasedAddress;
+    pxEndPoint->xDHCPData.eDHCPState = eLeasedAddress;
+    pxEndPoint->xDHCPData.eExpectedState = eLeasedAddress;
 
-    /* The network is up. */
-    FreeRTOS_IsNetworkUp_ExpectAndReturn( 1 );
+    FreeRTOS_IsEndPointUp_IgnoreAndReturn( pdTRUE );
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
@@ -3983,30 +4234,31 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGPass_GNBfail( v
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     /* Expect the timer to be set. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpINITIAL_TIMER_PERIOD );
+    vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
 
-    vDHCPProcess( pdFALSE, eLeasedAddress );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* Need to send DHCP request. */
-    TEST_ASSERT_EQUAL( eSendDHCPRequest, EP_DHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL( xTimeValue, EP_DHCPData.xDHCPTxTime );
-    TEST_ASSERT_EQUAL( dhcpINITIAL_DHCP_TX_PERIOD, EP_DHCPData.xDHCPTxPeriod );
+    TEST_ASSERT_EQUAL( eSendDHCPRequest, pxEndPoint->xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( xTimeValue, pxEndPoint->xDHCPData.xDHCPTxTime );
+    TEST_ASSERT_EQUAL( dhcpINITIAL_DHCP_TX_PERIOD, pxEndPoint->xDHCPData.xDHCPTxPeriod );
 }
 
 void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGFail( void )
 {
     struct xSOCKET xTestSocket;
     BaseType_t xTimeValue = 300;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Socket is already created. */
-    xDHCPSocket = &xTestSocket;
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
 
     /* Put the required state. */
-    xDHCPData.eDHCPState = eLeasedAddress;
+    pxEndPoint->xDHCPData.eDHCPState = eLeasedAddress;
+    pxEndPoint->xDHCPData.eExpectedState = eLeasedAddress;
 
-    /* The network is up. */
-    FreeRTOS_IsNetworkUp_ExpectAndReturn( 1 );
+    FreeRTOS_IsEndPointUp_IgnoreAndReturn( pdTRUE );
 
     /* Make RNG fail. */
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
@@ -4019,60 +4271,67 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGFail( void )
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
     /* Expect the timer to be set. */
-    vDHCP_RATimerReload_Expect(&xEndPoint,  dhcpINITIAL_TIMER_PERIOD );
+    vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
 
-    vDHCPProcess( pdFALSE, eLeasedAddress );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* Sent DHCP request - waiting ACK. */
-    TEST_ASSERT_EQUAL( eWaitingAcknowledge, EP_DHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL( xTimeValue, EP_DHCPData.xDHCPTxTime );
-    TEST_ASSERT_EQUAL( dhcpINITIAL_DHCP_TX_PERIOD, EP_DHCPData.xDHCPTxPeriod );
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge, pxEndPoint->xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( xTimeValue, pxEndPoint->xDHCPData.xDHCPTxTime );
+    TEST_ASSERT_EQUAL( dhcpINITIAL_DHCP_TX_PERIOD, pxEndPoint->xDHCPData.xDHCPTxPeriod );
 }
 
 void test_vDHCPProcess_eLeasedAddress_NetworkUp_SocketNotCreated_RNGPass_GNBfail( void )
 {
+    struct xNetworkEndPoint xEndPoint, * pxEndPoint = &xEndPoint;
+
     /* Socket not created. */
-    xDHCPSocket = NULL;
+    xDHCPv4Socket = NULL;
 
     /* Put the required state. */
-    xDHCPData.eDHCPState = eLeasedAddress;
+    pxEndPoint->xDHCPData.eDHCPState = eLeasedAddress;
+    pxEndPoint->xDHCPData.eExpectedState = eLeasedAddress;
 
-    /* The network is up. */
-    FreeRTOS_IsNetworkUp_ExpectAndReturn( 1 );
+    FreeRTOS_IsEndPointUp_IgnoreAndReturn( pdTRUE );
 
     /* Return invalid socket. */
     FreeRTOS_socket_ExpectAnyArgsAndReturn( FREERTOS_INVALID_SOCKET );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
 
-    vDHCPProcess( pdFALSE, eLeasedAddress );
+    vDHCPProcess( pdFALSE, pxEndPoint );
 
     /* Still here. */
-    TEST_ASSERT_EQUAL( eLeasedAddress, EP_DHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL( NULL, xDHCPSocket );
+    TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
 }
 
 void test_vDHCPProcess_eNotUsingLeasedAddress( void )
 {
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     /* Put the required state. */
-    xDHCPData.eDHCPState = eNotUsingLeasedAddress;
+    pxEndPoint->xDHCPData.eDHCPState = eNotUsingLeasedAddress;
+    pxEndPoint->xDHCPData.eExpectedState = eNotUsingLeasedAddress;
 
     /* Expect the timer to be disabled. */
-    vIPSetDHCP_RATimerEnableState_Expect(&xEndPoint,  pdFALSE );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
 
-    vDHCPProcess( pdFALSE, eNotUsingLeasedAddress );
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* Continue not using DHCP. */
-    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, EP_DHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
 }
 
 void test_vDHCPProcess_IncorrectState( void )
 {
-    /* Put a non-existent state. */
-    xDHCPData.eDHCPState = ( eNotUsingLeasedAddress << 1 );
+    struct xNetworkEndPoint xEndPoint, * pxEndPoint = &xEndPoint;
 
-    vDHCPProcess( pdFALSE, ( eNotUsingLeasedAddress << 1 ) );
+    /* Put a non-existent state. */
+    pxEndPoint->xDHCPData.eDHCPState = ( eNotUsingLeasedAddress << 1 );
+    pxEndPoint->xDHCPData.eExpectedState = ( eNotUsingLeasedAddress << 1 );
+
+    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
     /* Continue not using DHCP. */
-    TEST_ASSERT_EQUAL( ( eNotUsingLeasedAddress << 1 ), EP_DHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL( ( eNotUsingLeasedAddress << 1 ), pxEndPoint->xDHCPData.eDHCPState );
 }

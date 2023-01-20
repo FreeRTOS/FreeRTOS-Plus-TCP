@@ -961,7 +961,7 @@
  * functions.
  */
 #ifndef ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM
-    #define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM    1
+    #define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM    0
 #endif
 
 /* The macro 'ipconfigSOCKET_HAS_USER_SEMAPHORE' is rarely used, yet it

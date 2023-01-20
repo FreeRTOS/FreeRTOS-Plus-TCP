@@ -91,8 +91,9 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
  * It handles all ICMP messages except the PING requests. */
 eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxBuffer,
-                                    BaseType_t bReleaseAfterSend );
+BaseType_t xNetworkInterfaceOutput( struct xNetworkInterface * pxInterface,
+                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                    BaseType_t xReleaseAfterSend );
 
 /**
  * @brief Work on the RA/SLAAC processing.

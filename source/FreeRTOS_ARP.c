@@ -514,8 +514,6 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                             struct xNetworkEndPoint * pxEndPoint )
 {
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
-        /* Only process the IP address if it is on the local network. */
-        BaseType_t xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 2 ) != NULL ) ? 1 : 0; /* ARP remote address. */
 
         /* Only process the IP address if it matches with one of the end-points. */
         if( xAddressIsLocal != 0 )

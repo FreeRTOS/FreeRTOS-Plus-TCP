@@ -95,7 +95,7 @@ size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket );
 
 BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescriptor );
 
-//BaseType_t xProcessReceivedTCPPacket_IPV4( NetworkBufferDescriptor_t * pxDescriptor );
+/*BaseType_t xProcessReceivedTCPPacket_IPV4( NetworkBufferDescriptor_t * pxDescriptor ); */
 
 /* Get the size of the IP-header.
  * 'usFrameType' must be filled in if IPv6is to be recognised. */
