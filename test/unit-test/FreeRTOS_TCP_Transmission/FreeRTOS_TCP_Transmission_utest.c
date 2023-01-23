@@ -451,7 +451,6 @@ void test_prvTCPReturnPacket_Null_Socket( void )
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
-    //xNetworkInterfaceOutput_ExpectAnyArgsAndReturn( pdTRUE );
 
     prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdFALSE );
 
@@ -489,7 +488,6 @@ void test_prvTCPReturnPacket_Null_Socket_Relase_True( void )
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
-    //xNetworkInterfaceOutput_ExpectAnyArgsAndReturn( pdTRUE );
 
     prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdTRUE );
 
@@ -682,7 +680,6 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_ARP_Not_Hit( void )
 
     uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
-    //FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(&xEndPoint);
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
