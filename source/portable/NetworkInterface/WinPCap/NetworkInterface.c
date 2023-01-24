@@ -601,7 +601,7 @@ void pcap_callback( u_char * user,
          * only if 'ipconfigUSE_DUMP_PACKETS' is defined.
          * Otherwise, there is no action. */
         iptraceDUMP_PACKET( ( const uint8_t * ) pkt_data, ( size_t ) pkt_header->caplen, pdTRUE );
-        
+
         /* NOTE. The prvStreamBufferAdd function is used here in place of
          * uxStreamBufferAdd since the uxStreamBufferAdd call will suspend
          * the FreeRTOS scheduler to atomically update the head and front
@@ -780,7 +780,7 @@ static void prvInterruptSimulatorTask( void * pvParameters )
 
                             pxNetworkBuffer->pxInterface = pxMyInterface;
                             pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer->pucEthernetBuffer );
-                            pxNetworkBuffer->pxEndPoint = pxNetworkEndPoints; //temporary change for single end point
+                            pxNetworkBuffer->pxEndPoint = pxNetworkEndPoints; /*temporary change for single end point */
 
                             /* Data was received and stored.  Send a message to
                              * the IP task to let it know. */

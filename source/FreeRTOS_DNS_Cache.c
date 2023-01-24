@@ -262,7 +262,7 @@
             FreeRTOS_debug_printf( ( "FreeRTOS_ProcessDNSCache: %s: '%s' @ %xip (TTL %u)\n",
                                      ( xLookUp != 0 ) ? "look-up" : "add",
                                      pcName,
-                                     ( unsigned ) FreeRTOS_ntohl( (*pxIP ).ulIPAddress),
+                                     ( unsigned ) FreeRTOS_ntohl( ( *pxIP ).ulIPAddress ),
                                      ( unsigned ) FreeRTOS_ntohl( ulTTL ) ) );
         }
 

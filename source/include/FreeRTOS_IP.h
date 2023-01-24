@@ -28,10 +28,10 @@
 #ifndef FREERTOS_IP_H
 #define FREERTOS_IP_H
 
- /* Using FREERTOS_PLUS_TCP_VERSION as the susbstitute of the
- downward compatibility*/
+/* Using FREERTOS_PLUS_TCP_VERSION as the susbstitute of the
+ * downward compatibility*/
 
-#define FREERTOS_PLUS_TCP_VERSION 10
+#define FREERTOS_PLUS_TCP_VERSION    10
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
@@ -304,6 +304,14 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
                             const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                             const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 
+/* Return true if a given end-point is up and running.
+* When FreeRTOS_IsNetworkUp() is called with NULL as a parameter,
+* it will return pdTRUE when all end-points are up. */
+BaseType_t FreeRTOS_IsEndPointUp( const struct xNetworkEndPoint * pxEndPoint );
+
+/* Return pdTRUE if all end-points are up.
+ * When pxInterface is null, all end-points will be checked. */
+BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface );
 
 /*
  * Returns the addresses stored in an end-point structure.
@@ -340,17 +348,17 @@ void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
                                        const uint32_t * pulNetMask,
                                        const uint32_t * pulGatewayAddress,
                                        const uint32_t * pulDNSServerAddress );
-void FreeRTOS_GetEndPointConfiguration(uint32_t* pulIPAddress,
-                                       uint32_t* pulNetMask,
-                                       uint32_t* pulGatewayAddress,
-                                       uint32_t* pulDNSServerAddress,
-                                       struct xNetworkEndPoint* pxEndPoint);
+void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
+                                        uint32_t * pulNetMask,
+                                        uint32_t * pulGatewayAddress,
+                                        uint32_t * pulDNSServerAddress,
+                                        struct xNetworkEndPoint * pxEndPoint );
 
-void FreeRTOS_SetEndPointConfiguration(const uint32_t* pulIPAddress,
-                                       const uint32_t* pulNetMask,
-                                       const uint32_t* pulGatewayAddress,
-                                       const uint32_t* pulDNSServerAddress,
-                                       struct xNetworkEndPoint* pxEndPoint);
+void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
+                                        const uint32_t * pulNetMask,
+                                        const uint32_t * pulGatewayAddress,
+                                        const uint32_t * pulDNSServerAddress,
+                                        struct xNetworkEndPoint * pxEndPoint );
 
 /* MISRA defining 'FreeRTOS_SendPingRequest' should be dependent on 'ipconfigSUPPORT_OUTGOING_PINGS'.
  * In order not to break some existing project, define it unconditionally. */

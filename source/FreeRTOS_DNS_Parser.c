@@ -488,9 +488,9 @@
                                 if( xBufferAllocFixedSize == pdFALSE )
                                 {
                                     size_t uxDataLength = uxBufferLength +
-                                                            sizeof( UDPHeader_t ) +
-                                                            sizeof( EthernetHeader_t ) +
-                                                            uxIPHeaderSizePacket( pxNetworkBuffer );
+                                                          sizeof( UDPHeader_t ) +
+                                                          sizeof( EthernetHeader_t ) +
+                                                          uxIPHeaderSizePacket( pxNetworkBuffer );
 
                                     #if ( ipconfigUSE_IPV6 != 0 )
                                         if( xSet.usType == dnsTYPE_AAAA_HOST )
@@ -506,8 +506,8 @@
                                     /* Set the size of the outgoing packet. */
                                     pxNetworkBuffer->xDataLength = uxDataLength;
                                     pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
-                                                                                            uxDataLength +
-                                                                                            uxExtraLength );
+                                                                                          uxDataLength +
+                                                                                          uxExtraLength );
 
                                     if( pxNewBuffer != NULL )
                                     {
@@ -591,7 +591,7 @@
                                 }
                             }
                         }
-                        
+
                         else
                         {
                             /* Not an expected reply. */
@@ -628,8 +628,8 @@
  * @return pdTRUE when successful, otherwise pdFALSE.
  */
     uint32_t parseDNSAnswer( ParseSet_t * pxSet,
-                             struct freertos_addrinfo ** ppxAddressInfo, 
-                             size_t * uxBytesRead)
+                             struct freertos_addrinfo ** ppxAddressInfo,
+                             size_t * uxBytesRead )
     {
         uint16_t x;
         size_t uxResult;
@@ -665,7 +665,7 @@
             {
                 *uxBytesRead += uxResult;
             }
-            
+
             pxSet->pucByte = &( pxSet->pucByte[ uxResult ] );
             pxSet->uxSourceBytesRemaining -= uxResult;
 
@@ -771,7 +771,7 @@
                         xIP_Address.ulIPAddress = pxSet->ulIPAddress;
                         xIP_Address.xIs_IPv6 = pdFALSE;
                     }
-                    
+
                     if( pxNewAddress != NULL )
                     {
                         if( *( ppxAddressInfo ) == NULL )
@@ -1028,6 +1028,7 @@
  * @param[in] uxBufferLength: Length of the Buffer.
  * @param[in] ulIPAddress: IP address of the sender.
  */
+
 /**
  * @brief Respond to an NBNS query or an NBNS reply.
  *
@@ -1119,7 +1120,7 @@
                 #endif /* ipconfigUSE_DNS_CACHE */
 
                 /* Someone is looking for a device with ucNBNSName,
-                * prepare a positive reply. */
+                 * prepare a positive reply. */
                 pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucUDPPayloadBuffer );
 
                 if( ( xBufferAllocFixedSize == pdFALSE ) &&
@@ -1155,7 +1156,7 @@
                     if( xBufferAllocFixedSize == pdFALSE )
                     {
                         /* The field xDataLength was set to the total length of the UDP packet,
-                            * i.e. the payload size plus sizeof( UDPPacket_t ). */
+                         * i.e. the payload size plus sizeof( UDPPacket_t ). */
                         pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, pxNetworkBuffer->xDataLength + sizeof( NBNSAnswer_t ) );
 
                         if( pxNewBuffer != NULL )
@@ -1167,8 +1168,8 @@
                         {
                             /* Just prevent that a reply will be sent */
                             pxNetworkBuffer = NULL;
-                        }   
-                    }                   
+                        }
+                    }
 
                     /* Should not occur: pucUDPPayloadBuffer is part of a xNetworkBufferDescriptor */
                     if( pxNetworkBuffer != NULL )

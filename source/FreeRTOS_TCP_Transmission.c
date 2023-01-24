@@ -249,7 +249,8 @@
                              BaseType_t xReleaseAfterSend )
     {
         const NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
-        if(pxNetworkBuffer != NULL && uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+
+        if( ( pxNetworkBuffer != NULL ) && ( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER ) )
         {
             prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
         }
@@ -614,11 +615,11 @@
             uxNeeded = ipSIZE_OF_ETH_HEADER + uxIPHeaderSize + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
             uxNeeded += ( size_t ) lDataLen;
 
-            if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER ) 
+            if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
             {
                 uxTCPPacketSize = sizeof( TCPPacket_IPv6_t );
-            } 
-            else 
+            }
+            else
             {
                 uxTCPPacketSize = sizeof( TCPPacket_t );
             }

@@ -61,7 +61,7 @@ size_t xPortGetMinimumEverFreeHeapSize( void )
 
 
 BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
-                                                    const char * pcName )
+                                     const char * pcName )
 {
 }
 
@@ -86,7 +86,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 }
 /* This function shall be defined by the application. */
 void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                        struct xNetworkEndPoint * pxEndPoint )
+                                     struct xNetworkEndPoint * pxEndPoint )
 {
 }
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
@@ -162,5 +162,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
  * @brief Send an ND advertisement.
  * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
  */
-void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint ) {}
+void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint )
+{
+}
 /*-----------------------------------------------------------*/
