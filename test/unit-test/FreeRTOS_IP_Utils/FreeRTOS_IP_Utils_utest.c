@@ -254,7 +254,7 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer( void )
     pxAddrOfNetBuffer->pucEthernetBuffer += ( uxOffset + ipBUFFER_PADDING );
 
     pucIPType = ( pxAddrOfNetBuffer->pucEthernetBuffer ) - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-    *pucIPType = ipTYPE_IPv4;
+    *pucIPType =  ( const uint8_t * ) ipTYPE_IPv4;
 
     pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pxAddrOfNetBuffer->pucEthernetBuffer );
 
@@ -1147,7 +1147,7 @@ void test_usGenerateProtocolChecksum_IGMPIncomingIncorrectCRC( void )
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
-    /*TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn ); */
+    TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
     TEST_ASSERT_EQUAL( 0, pxProtPack->xICMPPacket.xICMPHeader.usChecksum );
 }
 
