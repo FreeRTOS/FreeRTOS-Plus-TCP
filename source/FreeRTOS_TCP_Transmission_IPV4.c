@@ -92,7 +92,7 @@
         EthernetHeader_t * pxEthernetHeader = NULL;
         uint32_t ulSourceAddress;
         NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
-        NetworkBufferDescriptor_t xTempBuffer;
+        NetworkBufferDescriptor_t xTempBuffer = {0};
         /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
         MACAddress_t xMACAddress;
         const void * pvCopySource = NULL;
