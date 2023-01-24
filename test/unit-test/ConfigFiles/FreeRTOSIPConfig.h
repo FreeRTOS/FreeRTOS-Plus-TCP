@@ -64,6 +64,11 @@
  * stack repeating the checksum calculations. */
 #define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     0
 
+/* This is to allow vApplicationIPNetworkEventHook to be called with endpoint
+ * input params */
+#define ipconfigMULTI_INTERFACE 1
+#define ipconfigCOMPATIBLE_WITH_SINGLE 0
+
 /* Several API's will block until the result is known, or the action has been
  * performed, for example FreeRTOS_send() and FreeRTOS_recv().  The timeouts can be
  * set per socket, using setsockopt().  If not set, the times below will be
