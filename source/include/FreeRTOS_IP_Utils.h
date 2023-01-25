@@ -64,9 +64,9 @@
 #if ipconfigUSE_IPV4
     #include "FreeRTOS_IPv4_Utils.h"
 #endif /* ipconfigUSE_IPV4 */
-#if ipconfigUSE_IPV6
+#if ipconfigUSE_IPv6
     #include "FreeRTOS_IPv6_Utils.h"
-#endif /* ipconfigUSE_IPV6 */
+#endif /* ipconfigUSE_IPv6 */
 
 #if ( ipconfigUSE_DHCP != 0 )
 

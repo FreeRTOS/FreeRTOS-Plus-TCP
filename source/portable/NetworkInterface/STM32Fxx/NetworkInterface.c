@@ -200,19 +200,18 @@ static BaseType_t prvNetworkInterfaceInput( void );
  * - Return the PHY Link-Status (LS)
  * They can be defined as static because the function addresses
  * will be stored in struct NetworkInterface_t.  The latter will be done in
- * the function pxFillInterfaceDescriptor(). */
+ * the function pxSTM32Fxx_FillInterfaceDescriptor(). */
 
-static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+static BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 
-static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                            NetworkBufferDescriptor_t * const pxBuffer,
                                            BaseType_t bReleaseAfterSend );
 
-static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface );
+static BaseType_t xSTM32F_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+NetworkInterface_t * pxSTM32Fxx_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                 NetworkInterface_t * pxInterface );
-
 
 /*
  * Check if a given packet should be accepted.
@@ -238,9 +237,11 @@ static void vClearTXBuffers( void );
 #if ( ipconfigUSE_LLMNR == 1 )
     static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 #endif
+
 #if ( ipconfigUSE_MDNS == 1 )
     static const uint8_t xMDNS_MACAddressIPv4[] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb };
 #endif
+
 static EthernetPhy_t xPhyObject;
 
 /* Ethernet handle. */
@@ -336,6 +337,30 @@ const PhyProperties_t xPHYProperties =
 
 /*-----------------------------------------------------------*/
 
+BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
+{
+	return xSTM32F_NetworkInterfaceInitialise( pxInterface );
+}
+
+BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                    NetworkBufferDescriptor_t * const pxBuffer,
+                                    BaseType_t bReleaseAfterSend )
+{
+	return xSTM32F_NetworkInterfaceOutput( pxInterface, pxBuffer, bReleaseAfterSend );
+}
+
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                         NetworkInterface_t * pxInterface )
+{
+	return pxSTM32Fxx_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+
+}
+
+BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
+{
+	return xSTM32F_GetPhyLinkStatus( pxInterface );
+}
+
 void HAL_ETH_RxCpltCallback( ETH_HandleTypeDef * heth )
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -414,11 +439,11 @@ static void vClearTXBuffers()
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
+BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     HAL_StatusTypeDef hal_eth_init_status;
-    BaseType_t xResult = pdPASS;
-    Network_EndPoint_t * pxEndPoint;
+    BaseType_t xResult;
+    NetworkEndPoint_t * pxEndPoint;
 
     #if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 )
         BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
@@ -749,7 +774,7 @@ static void prvDMARxDescListInit()
 #endif /* if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) */
 /*-----------------------------------------------------------*/
 
-static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                            NetworkBufferDescriptor_t * const pxDescriptor,
                                            BaseType_t bReleaseAfterSend )
 {
@@ -778,19 +803,19 @@ static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
             {
                 const IPPacket_t * pxIPPacket;
 
-                pxIPPacket = ipPOINTER_CAST( const IPPacket_t *, pxDescriptor->pucEthernetBuffer );
+                pxIPPacket = ( const IPPacket_t * ) pxDescriptor->pucEthernetBuffer;
                 #if ( ipconfigUSE_IPv6 != 0 )
                     if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                     {
                         const IPHeader_IPv6_t * pxIPPacket_IPv6;
 
-                        pxIPPacket_IPv6 = ipPOINTER_CAST( const IPHeader_IPv6_t *, &( pxDescriptor->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                        pxIPPacket_IPv6 = ( const IPHeader_IPv6_t * ) &( pxDescriptor->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
 
                         if( pxIPPacket_IPv6->ucNextHeader == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 )
                         {
                             ICMPHeader_IPv6_t * pxICMPHeader_IPv6;
 
-                            pxICMPHeader_IPv6 = ipPOINTER_CAST( ICMPHeader_IPv6_t *, &( pxDescriptor->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
+                            pxICMPHeader_IPv6 = ( ICMPHeader_IPv6_t * ) &( pxDescriptor->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] );
                             pxICMPHeader_IPv6->usChecksum = 0U;
                         }
                     }
@@ -803,7 +828,7 @@ static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                     {
                         ICMPHeader_t * pxICMPHeader;
 
-                        pxICMPHeader = ipPOINTER_CAST( ICMPHeader_t *, &( pxDescriptor->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+                        pxICMPHeader = ( ICMPHeader_t * ) &( pxDescriptor->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] );
                         pxICMPHeader->usChecksum = ( uint16_t ) 0U;
                     }
                 }
@@ -919,10 +944,11 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
             /* Check it later. */
             return pdTRUE;
 
+	#if( ipconfigUSE_IPv6 != 0 )
         case ipIPv6_FRAME_TYPE:
             /* Check it later. */
             return pdTRUE;
-
+	#endif
         case ipIPv4_FRAME_TYPE:
             /* Check it here. */
             break;
@@ -1343,7 +1369,7 @@ static void prvEthernetUpdateConfig( BaseType_t xForce )
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
+static BaseType_t xSTM32F_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
     BaseType_t xReturn;
 
@@ -1384,12 +1410,12 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 
 /*-----------------------------------------------------------*/
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface )
+NetworkInterface_t * pxSTM32Fxx_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                         NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
 
-/* This function pxFillInterfaceDescriptor() adds a network-interface.
+/* This function pxSTM32Fxx_FillInterfaceDescriptor() adds a network-interface.
  * Make sure that the object pointed to by 'pxInterface'
  * is declared static or global, and that it will remain to exist. */
 
@@ -1398,9 +1424,9 @@ NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
     memset( pxInterface, '\0', sizeof( *pxInterface ) );
     pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
     pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
-    pxInterface->pfInitialise = xNetworkInterfaceInitialise;
-    pxInterface->pfOutput = xNetworkInterfaceOutput;
-    pxInterface->pfGetPhyLinkStatus = xGetPhyLinkStatus;
+    pxInterface->pfInitialise = xSTM32F_NetworkInterfaceInitialise;
+    pxInterface->pfOutput = xSTM32F_NetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xSTM32F_GetPhyLinkStatus;
 
     FreeRTOS_AddNetworkInterface( pxInterface );
 

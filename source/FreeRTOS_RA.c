@@ -52,7 +52,7 @@
 #include "NetworkBufferManagement.h"
 
 /* This define may exclude the entire source file. */
-#if ( ipconfigUSE_IPV6 != 0 ) && ( ipconfigUSE_RA != 0 )
+#if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 )
 
 /*-----------------------------------------------------------*/
 
@@ -691,4 +691,4 @@
     }
 /*-----------------------------------------------------------*/
 
-#endif /* ( ipconfigUSE_IPV6 != 0 ) && ( ipconfigUSE_RA != 0 ) */
+#endif /* ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_RA != 0 ) */

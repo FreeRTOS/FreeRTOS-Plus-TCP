@@ -39,7 +39,7 @@
 
 #include "FreeRTOS_ARP.h"
 
-#if ( ipconfigUSE_IPV6 != 0 )
+#if ( ipconfigUSE_IPv6 != 0 )
 /*-----------------------------------------------------------*/
 /* Miscellaneous structure and definitions. */
 /*-----------------------------------------------------------*/
@@ -203,7 +203,7 @@
         void FreeRTOS_PrintNDCache( void );
     #endif
 
-#endif /* ipconfigUSE_IPV6 != 0 */
+#endif /* ipconfigUSE_IPv6 != 0 */
 
 
 /* *INDENT-OFF* */

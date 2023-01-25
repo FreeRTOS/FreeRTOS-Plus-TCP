@@ -491,6 +491,7 @@
             EP_IPv4_SETTINGS.ulBroadcastAddress = EP_DHCPData.ulOfferedIPAddress | ~( EP_IPv4_SETTINGS.ulNetMask );
             EP_DHCPData.eDHCPState = eLeasedAddress;
 
+            /* _HT_ added temporarily for test */
             *ipLOCAL_IP_ADDRESS_POINTER = EP_IPv4_SETTINGS.ulIPAddress;
 
             iptraceDHCP_SUCCEDEED( EP_DHCPData.ulOfferedIPAddress );
@@ -1364,6 +1365,13 @@
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayloadBuffer );
 
+            {
+                uint8_t * pucIPType;
+
+                pucIPType = pucUDPPayloadBuffer - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+                *pucIPType = ipTYPE_IPv4;
+            }
+
             /* Most fields need to be zero. */
             ( void ) memset( pxDHCPMessage, 0x00, sizeof( DHCPMessage_IPv4_t ) );
 
@@ -1417,7 +1425,7 @@
                              ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
 
             /* Set the addressing. */
-            pxAddress->sin_addr.xIP_IPv4 = ipBROADCAST_IP_ADDRESS;
+            pxAddress->sin_addr = ipBROADCAST_IP_ADDRESS;
             pxAddress->sin_port = ( uint16_t ) dhcpSERVER_PORT_IPv4;
         }
 

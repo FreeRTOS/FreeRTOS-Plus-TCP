@@ -182,6 +182,10 @@
     #define iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( ulIPAddress )
 #endif
 
+#ifndef iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS
+    #define iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS( xIPAddress )
+#endif
+
 #ifndef iptraceSENDING_DHCP_DISCOVER
     #define iptraceSENDING_DHCP_DISCOVER()
 #endif
