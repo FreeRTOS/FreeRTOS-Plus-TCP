@@ -32,7 +32,10 @@
 
 #define _static
 
-#define TEST                        1
+#define TEST                            1
+
+#define ipconfigMULTI_INTERFACE         1
+#define ipconfigCOMPATIBLE_WITH_SINGLE  0
 
 #define ipconfigUSE_IPV4            ( 1 )
 
