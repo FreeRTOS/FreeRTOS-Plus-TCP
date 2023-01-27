@@ -15,6 +15,7 @@
 #include "mock_task.h"
 #include "mock_NetworkBufferManagement.h"
 #include "mock_FreeRTOS_DHCP_mock.h"
+#include "mock_FreeRTOS_IP_Common.h"
 
 #include "FreeRTOS_DHCP.h"
 
@@ -48,9 +49,9 @@ static NetworkBufferDescriptor_t * GetNetworkBuffer( size_t SizeOfEthBuf,
                                                      long unsigned int xTimeToBlock,
                                                      int callbacks )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = malloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = malloc( sizeof( NetworkBufferDescriptor_t ) + ipBUFFER_PADDING ) + ipBUFFER_PADDING;
 
-    pxNetworkBuffer->pucEthernetBuffer = malloc( SizeOfEthBuf );
+    pxNetworkBuffer->pucEthernetBuffer = malloc( SizeOfEthBuf + ipBUFFER_PADDING ) + ipBUFFER_PADDING;
 
     /* Ignore the callback count. */
     ( void ) callbacks;
@@ -66,9 +67,9 @@ static NetworkBufferDescriptor_t * GetNetworkBuffer( size_t SizeOfEthBuf,
 static void ReleaseNetworkBuffer( void )
 {
     /* Free the ethernet buffer. */
-    free( pxGlobalNetworkBuffer[ --GlobalBufferCounter ]->pucEthernetBuffer );
+    free( ((uint8_t *) pxGlobalNetworkBuffer[ --GlobalBufferCounter ]->pucEthernetBuffer) - ipBUFFER_PADDING );
     /* Free the network buffer. */
-    free( pxGlobalNetworkBuffer[ GlobalBufferCounter ] );
+    free( ((uint8_t *) pxGlobalNetworkBuffer[ GlobalBufferCounter ])  - ipBUFFER_PADDING );
 }
 
 static void ReleaseUDPBuffer( const void * temp,
