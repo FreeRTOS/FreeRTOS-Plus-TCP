@@ -60,8 +60,6 @@
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_TCP_Transmission_list_macros.h"
 
-#include "FreeRTOS_IPv4.h"
-#include "FreeRTOS_IPv4_Private.h"
 #include "FreeRTOS_TCP_IP.h"
 
 #include "catch_assert.h"
