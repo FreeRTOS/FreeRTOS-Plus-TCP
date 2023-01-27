@@ -36,7 +36,7 @@
 
 #define ipconfigUSE_IPV4            ( 1 )
 
-#define ipconfigUSE_IPV6            ( 1 )
+#define ipconfigUSE_IPv6            ( 1 )
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
