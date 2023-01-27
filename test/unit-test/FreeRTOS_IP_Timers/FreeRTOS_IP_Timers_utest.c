@@ -151,8 +151,8 @@ void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptOne1( void )
     xTCPTimer.bActive = pdTRUE;
 
     xARPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    xDHCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME - 10;
-    xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
+    xDHCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
+    xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME - 10;
     xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
 
     uxTicks = xCalculateSleepTime();
@@ -289,6 +289,8 @@ void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired2( void )
 
 void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 {
+    NetworkEndPoint_t xEndPoint;
+
     xARPTimer.bActive = pdFALSE;
     xDHCPTimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdFALSE;
@@ -297,7 +299,13 @@ void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 
     xDHCPTimer.bExpired = pdTRUE;
 
-    vTaskSetTimeOutState_Expect( &( xDHCPTimer.xTimeOut ) );
+    xEndPoint.pxNext = NULL;
+    xEndPoint.bits.bWantDHCP = pdTRUE_UNSIGNED;
+    xEndPoint.xDHCP_RATimer.bActive = pdTRUE;
+    xEndPoint.xDHCP_RATimer.bExpired = pdTRUE;
+    pxNetworkEndPoints = &xEndPoint;
+
+    vTaskSetTimeOutState_Expect( &( xEndPoint.xDHCP_RATimer.xTimeOut ) );
 
     xSendDHCPEvent_ExpectAnyArgsAndReturn( pdTRUE );
 
@@ -312,6 +320,7 @@ void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 
 void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
 {
+    NetworkEndPoint_t xEndPoint;
     xARPTimer.bActive = pdFALSE;
     xDHCPTimer.bActive = pdFALSE;
     xDNSTimer.bActive = pdTRUE;
@@ -319,6 +328,11 @@ void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
     xARPResolutionTimer.bActive = pdFALSE;
 
     xDNSTimer.bExpired = pdTRUE;
+
+    xEndPoint.pxNext = NULL;
+    xEndPoint.xDHCP_RATimer.bActive = pdFALSE;
+    xEndPoint.xDHCP_RATimer.bExpired = pdTRUE;
+    pxNetworkEndPoints = &xEndPoint;
 
     vTaskSetTimeOutState_Expect( &( xDHCPTimer.xTimeOut ) );
 
@@ -341,6 +355,7 @@ void test_vCheckNetworkTimers_AllTimersInactive_1( void )
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
 
+    pxNetworkEndPoints = NULL;
     xProcessedTCPMessage = pdTRUE;
 
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
@@ -451,17 +466,22 @@ void test_vARPTimerReload( void )
 
 void test_vDHCP_RATimerReload( void )
 {
-    NetworkEndPoint_t pxEndPoint;
     TickType_t xTime = 0x12A;
+    NetworkEndPoint_t xEndPoint;
 
-    vTaskSetTimeOutState_Expect( &xDHCPTimer.xTimeOut );
+    xEndPoint.pxNext = NULL;
+    xEndPoint.bits.bWantDHCP = pdTRUE_UNSIGNED;
+    xEndPoint.xDHCP_RATimer.bActive = pdTRUE;
+    xEndPoint.xDHCP_RATimer.bExpired = pdTRUE;
 
-    vDHCP_RATimerReload( &pxEndPoint, xTime );
+    vTaskSetTimeOutState_Expect( &( xEndPoint.xDHCP_RATimer.xTimeOut ) );
 
-    TEST_ASSERT_EQUAL( 0x12A, xDHCPTimer.ulReloadTime );
-    TEST_ASSERT_EQUAL( xTime, xDHCPTimer.ulRemainingTime );
-    TEST_ASSERT_EQUAL( pdTRUE, xDHCPTimer.bActive );
-    TEST_ASSERT_EQUAL( pdFALSE, xDHCPTimer.bExpired );
+    vDHCP_RATimerReload( &xEndPoint, xTime );
+
+    TEST_ASSERT_EQUAL( 0x12A, xEndPoint.xDHCP_RATimer.ulReloadTime );
+    TEST_ASSERT_EQUAL( xTime, xEndPoint.xDHCP_RATimer.ulRemainingTime );
+    TEST_ASSERT_EQUAL( pdTRUE, xEndPoint.xDHCP_RATimer.bActive );
+    TEST_ASSERT_EQUAL( pdFALSE, xEndPoint.xDHCP_RATimer.bExpired );
 }
 
 void test_vDNSTimerReload( void )
@@ -619,7 +639,7 @@ void test_vIPSetDHCP_RATimerEnableState_True( void )
 
     vIPSetDHCP_RATimerEnableState( &xEndPoint, xEnableState );
 
-    TEST_ASSERT_EQUAL( xEnableState, xDHCPTimer.bActive );
+    TEST_ASSERT_EQUAL( xEnableState, xEndPoint.xDHCP_RATimer.bActive );
 }
 
 void test_vIPSetDNSTimerEnableState_False( void )
