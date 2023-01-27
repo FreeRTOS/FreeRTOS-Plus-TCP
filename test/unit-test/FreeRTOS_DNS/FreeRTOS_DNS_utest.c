@@ -110,17 +110,20 @@ void test_FreeRTOS_gethostbyname_fail_allocate_network_buffer( void )
 {
     uint32_t ret;
     NetworkEndPoint_t xEndPoint;
+    struct xSOCKET xDNSSocket;
 
     xEndPoint.bits.bIPv6 = 0;
     xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 0xC0C0C0C0;
     xEndPoint.ipv4_settings.ucDNSIndex = 0;
+    xDNSSocket.usLocalPort = 0;
+
     DNS_BindSocket_IgnoreAndReturn( 0 );
 
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
     xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
 
-    DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
+    DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket);
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
@@ -189,7 +192,7 @@ void test_FreeRTOS_gethostbyname_success_address_in_cache( void )
     uint32_t ret;
 
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 12345 );
+    Prepare_CacheLookup_ExpectAnyArgsAndReturn( 12345 );
 
     ret = FreeRTOS_gethostbyname( GOOD_ADDRESS );
     TEST_ASSERT_EQUAL( 12345, ret );
@@ -206,7 +209,7 @@ void test_FreeRTOS_gethostbyname_fail_NULL_socket( void )
     uint32_t ulNumber = 0;
 
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnThruPtr_pulNumber( &ulNumber );
 
@@ -227,22 +230,24 @@ void test_FreeRTOS_gethostbyname_fail_send_dns_request( void )
     uint32_t ulNumber = 0;
     NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkEndPoint_t xEndPoint;
+    struct xSOCKET xDNSSocket;
 
     xEndPoint.bits.bIPv6 = 0;
     xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 0xC0C0C0C0;
     xEndPoint.ipv4_settings.ucDNSIndex = 0;
     xNetworkBuffer.xDataLength = 2280;
+    xDNSSocket.usLocalPort = 0;
 
     xNetworkBuffer.pucEthernetBuffer = malloc( 2280 + ipBUFFER_PADDING );
     xNetworkBuffer.pucEthernetBuffer += ipBUFFER_PADDING;
 
     DNS_BindSocket_IgnoreAndReturn( 0 );
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnThruPtr_pulNumber( &ulNumber );
 
-    DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
+    DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
 
     /* prvGetHostByNameOp */
     for( i = 0; i < ipconfigDNS_REQUEST_ATTEMPTS; i++ )
@@ -281,6 +286,7 @@ void test_FreeRTOS_gethostbyname_fail_read_dns_reply_null( void )
     NetworkBufferDescriptor_t xNetworkBuffer;
     struct xDNSBuffer xReceiveBuffer;
     NetworkEndPoint_t xEndPoint;
+    struct xSOCKET xDNSSocket;
 
     xEndPoint.bits.bIPv6 = 0;
     xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 0xC0C0C0C0;
@@ -290,22 +296,20 @@ void test_FreeRTOS_gethostbyname_fail_read_dns_reply_null( void )
     xNetworkBuffer.xDataLength = 2280;
     xNetworkBuffer.pucEthernetBuffer = malloc( 2280 + ipBUFFER_PADDING );
     xNetworkBuffer.pucEthernetBuffer += ipBUFFER_PADDING;
+    xDNSSocket.usLocalPort = 0;
 
+    DNS_BindSocket_IgnoreAndReturn( 0 );
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
     FreeRTOS_inet_addr_ExpectAndReturn( LLMNR_ADDRESS, 0 );
-    FreeRTOS_dnslookup_ExpectAndReturn( LLMNR_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
     xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
-    DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
+    DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
 
     /* prvGetHostByNameOp */
     /* prvFillSockAddress */
     for( i = 0; i < ipconfigDNS_REQUEST_ATTEMPTS; i++ )
     {
-        if( i == 0 )
-        {
-            DNS_BindSocket_ExpectAnyArgsAndReturn( 0 );
-        }
 
         /* in prvGetHostByName */
         /* in prvGetPayloadBuffer */
@@ -314,7 +318,7 @@ void test_FreeRTOS_gethostbyname_fail_read_dns_reply_null( void )
         /* back prvGetHostByNameOp */
         DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );
 
-        DNS_ReadReply_ExpectAnyArgs();
+        DNS_ReadReply_ExpectAnyArgsAndReturn(0);
         DNS_ReadReply_ReturnThruPtr_pxReceiveBuffer( &xReceiveBuffer );
     }
 
@@ -339,6 +343,7 @@ void test_FreeRTOS_gethostbyname_fail_send_dns_reply_zero( void )
     struct xDNSBuffer xReceiveBuffer;
     uint32_t ulNumber = 0;
     NetworkEndPoint_t xEndPoint;
+    struct xSOCKET xDNSSocket;
 
     uint8_t buffer[ 2280 + ipBUFFER_PADDING ];
 
@@ -355,34 +360,28 @@ void test_FreeRTOS_gethostbyname_fail_send_dns_reply_zero( void )
     xNetworkBuffer.pucEthernetBuffer = buffer;
     xNetworkBuffer.pucEthernetBuffer += ipBUFFER_PADDING;
     xNetworkBuffer.pxEndPoint = &xEndPoint;
+    xDNSSocket.usLocalPort = 0;
 
+    DNS_BindSocket_IgnoreAndReturn( 0 );
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnThruPtr_pulNumber( &ulNumber );
-    DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
+    DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
 
     /* prvGetHostByNameOp */
     /* prvFillSockAddress */
     for( i = 0; i < ipconfigDNS_REQUEST_ATTEMPTS; i++ )
     {
-        /* in prvGetHostByName */
-        /* in prvGetPayloadBuffer */
-        /* back in prvGetHostByName */
-        if( i == 0 )
-        {
-            DNS_BindSocket_ExpectAnyArgsAndReturn( 0 );
-        }
 
         pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
         /* back prvGetHostByNameOp */
         DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );
-        DNS_ReadReply_ExpectAnyArgs();
+        DNS_ReadReply_ExpectAnyArgsAndReturn(0);
         DNS_ReadReply_ReturnThruPtr_pxReceiveBuffer( &xReceiveBuffer );
-        /* prvDNSReply */
-        DNS_ParseDNSReply_ExpectAnyArgsAndReturn( 0 );
+
         FreeRTOS_ReleaseUDPPayloadBuffer_ExpectAnyArgs();
     }
 
@@ -407,6 +406,7 @@ void test_FreeRTOS_gethostbyname_succes( void )
     struct xDNSBuffer xReceiveBuffer;
     uint32_t ulNumber = 343;
     NetworkEndPoint_t xEndPoint;
+    struct xSOCKET xDNSSocket;
 
     uint8_t buffer[ 2280 + ipBUFFER_PADDING ];
 
@@ -418,6 +418,7 @@ void test_FreeRTOS_gethostbyname_succes( void )
     memset( xReceiveBuffer.pucPayloadBuffer, 0x00, 300 );
     DNSMessage_t * header = ( DNSMessage_t * ) xReceiveBuffer.pucPayloadBuffer;
     header->usIdentifier = 0;
+    xDNSSocket.usLocalPort = 0;
 
     xNetworkBuffer.xDataLength = 2280;
     xNetworkBuffer.pucEthernetBuffer = buffer;
@@ -426,11 +427,11 @@ void test_FreeRTOS_gethostbyname_succes( void )
 
     DNS_BindSocket_IgnoreAndReturn( 0 );
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnThruPtr_pulNumber( &ulNumber );
 
-    DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
+    DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
     /* in prvGetHostByName */
     /* in prvGetPayloadBuffer */
     /* prvGetHostByNameOp */
@@ -441,7 +442,7 @@ void test_FreeRTOS_gethostbyname_succes( void )
     /* prvFillSockAddress */
     /* back prvGetHostByNameOp */
     DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );
-    DNS_ReadReply_ExpectAnyArgs();
+    DNS_ReadReply_ExpectAnyArgsAndReturn(4);
     DNS_ReadReply_ReturnThruPtr_pxReceiveBuffer( &xReceiveBuffer );
     /* prvDNSReply */
     DNS_ParseDNSReply_ExpectAnyArgsAndReturn( 12345 );
@@ -582,9 +583,10 @@ void test_FreeRTOS_gethostbyname_a_set_callback( void )
     uint32_t ret;
     int pvSearchID = 32;
     NetworkBufferDescriptor_t xNetworkBuffer;
+    struct xSOCKET xDNSSocket;
 
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
     xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
     vDNSSetCallBack_ExpectAnyArgs();
     DNS_CreateSocket_ExpectAnyArgsAndReturn( NULL );
@@ -608,7 +610,7 @@ void test_FreeRTOS_gethostbyname_a_no_set_callback( void )
     NetworkBufferDescriptor_t xNetworkBuffer;
 
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
     xApplicationGetRandomNumber_IgnoreAndReturn( pdFALSE );
 
     ret = FreeRTOS_gethostbyname_a( GOOD_ADDRESS,
@@ -630,7 +632,7 @@ void test_FreeRTOS_gethostbyname_a_callback( void )
     int pvSearchID = 32;
 
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 5 );
+    Prepare_CacheLookup_ExpectAnyArgsAndReturn( 5 );
     xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
 
     ret = FreeRTOS_gethostbyname_a( GOOD_ADDRESS,
@@ -654,6 +656,7 @@ void test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
     NetworkEndPoint_t xEndPoint;
     NetworkBufferDescriptor_t xNetworkBuffer;
     struct xDNSBuffer xReceiveBuffer;
+    struct xSOCKET xDNSSocket;
     size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
 
     xNetworkBuffer.pucEthernetBuffer = malloc( uxBytesNeeded + ipBUFFER_PADDING );
@@ -665,16 +668,17 @@ void test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
     ( void ) memset( xReceiveBuffer.pucPayloadBuffer, 0x00, 300 );
     DNSMessage_t * header = ( DNSMessage_t * ) xReceiveBuffer.pucPayloadBuffer;
     header->usIdentifier = 12;
+    xDNSSocket.usLocalPort = 0;
 
     DNS_BindSocket_IgnoreAndReturn( 0 );
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-    FreeRTOS_dnslookup_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnThruPtr_pulNumber( &ulNumber );
     vDNSSetCallBack_ExpectAnyArgs();
 
     /* in prvGetHostByName */
-    DNS_CreateSocket_ExpectAnyArgsAndReturn( ( void * ) 23 );
+    DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
     /* prvGetHostByNameOp */
     /* prvFillSockAddress */
     /* in prvSendBuffer */
@@ -689,7 +693,7 @@ void test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
     DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );
 
     /* back in prvGetHostByNameOp */
-    DNS_ReadReply_ExpectAnyArgs();
+    DNS_ReadReply_ExpectAnyArgsAndReturn(4);
     DNS_ReadReply_ReturnThruPtr_pxReceiveBuffer( &xReceiveBuffer );
     /* prvDNSReply */
     DNS_ParseDNSReply_ExpectAnyArgsAndReturn( 12345 );
