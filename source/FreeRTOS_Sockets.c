@@ -5531,8 +5531,8 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
         {
             /* Casting a "MiniListItem_t" to a "ListItem_t".
              * This is safe because only its address is being accessed, not its fields. */
-            const ListItem_t * pxEndTCP = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
-            const ListItem_t * pxEndUDP = ( ( const ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
+            const ListItem_t * pxEndTCP = listGET_END_MARKER( &xBoundTCPSocketsList );
+            const ListItem_t * pxEndUDP = listGET_END_MARKER( &xBoundUDPSocketsList );
 
             FreeRTOS_printf( ( "Prot Port IP-Remote       : Port  R/T Status       Alive  tmout Child\n" ) );
 

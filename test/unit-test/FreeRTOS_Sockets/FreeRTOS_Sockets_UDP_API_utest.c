@@ -1005,6 +1005,52 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2( void )
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
+    vTaskSetTimeOutState_ExpectAnyArgs();
+
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxTotalDataLength + ipUDP_PAYLOAD_OFFSET_IPv4, 0, &xNetworkBuffer );
+
+    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
+
+    listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), 0xAADF );
+
+    xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
+
+    lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
+
+    TEST_ASSERT_EQUAL( ipMAX_UDP_PAYLOAD_LENGTH, lResult );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
+}
+
+/*
+ * @brief Sending from IP task without using zero copy. Checks if xIsCallingFromIPTask 
+ * gets called if xFlags's FREERTOS_MSG_DONTWAIT bit is unset.
+ */
+void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2_xFlagZero( void )
+{
+    int32_t lResult;
+    FreeRTOS_Socket_t xSocket;
+    char pvBuffer[ ipMAX_UDP_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = ipMAX_UDP_PAYLOAD_LENGTH;
+    BaseType_t xFlags = 0;
+    struct freertos_sockaddr xDestinationAddress;
+    socklen_t xDestinationAddressLength;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint8_t pucEthernetBuffer[ ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
+
+    memset( pucEthernetBuffer, 0, ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+
+    xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
+
+    xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket.u.xUDP.pxHandleSent = NULL;
+
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
     vTaskSetTimeOutState_ExpectAnyArgs();
@@ -1051,8 +1097,6 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy3( void )
     xSocket.u.xUDP.pxHandleSent = NULL;
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
-
-    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
     vTaskSetTimeOutState_ExpectAnyArgs();
 
