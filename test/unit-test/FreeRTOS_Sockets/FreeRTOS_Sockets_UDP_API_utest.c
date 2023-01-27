@@ -422,7 +422,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_JustUDPHeader( void )
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     xNetworkBuffer.xDataLength = sizeof( UDPPacket_t );
-    xNetworkBuffer.xIPAddress.xIP_IPv4 = 0x1234ABCD;
+    xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
     memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -457,7 +457,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_JustUDPHeader( void )
 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( xSourceAddress.sin_port, xNetworkBuffer.usPort );
-    TEST_ASSERT_EQUAL_UINT32( xSourceAddress.sin_addr.xIP_IPv4, xNetworkBuffer.xIPAddress.xIP_IPv4 );
+    TEST_ASSERT_EQUAL_UINT32( xSourceAddress.sin_address.ulIP_IPv4, xNetworkBuffer.xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, pvBuffer, ipconfigTCP_MSS );
 }
@@ -482,7 +482,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100( void )
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + 100;
-    xNetworkBuffer.xIPAddress.xIP_IPv4 = 0x1234ABCD;
+    xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
     memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -518,7 +518,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100( void )
 
     TEST_ASSERT_EQUAL( 100, lReturn );
     TEST_ASSERT_EQUAL( xSourceAddress.sin_port, xNetworkBuffer.usPort );
-    TEST_ASSERT_EQUAL_UINT32( xSourceAddress.sin_addr.xIP_IPv4, xNetworkBuffer.xIPAddress.xIP_IPv4 );
+    TEST_ASSERT_EQUAL_UINT32( xSourceAddress.sin_address.ulIP_IPv4, xNetworkBuffer.xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pvBuffer, 100 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, &pvBuffer[ 100 ], ipconfigTCP_MSS - 100 );
@@ -544,7 +544,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall( void
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + 100;
-    xNetworkBuffer.xIPAddress.xIP_IPv4 = 0x1234ABCD;
+    xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
     memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -580,7 +580,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall( void
 
     TEST_ASSERT_EQUAL( 50, lReturn );
     TEST_ASSERT_EQUAL( xSourceAddress.sin_port, xNetworkBuffer.usPort );
-    TEST_ASSERT_EQUAL_UINT32( xSourceAddress.sin_addr.xIP_IPv4, xNetworkBuffer.xIPAddress.xIP_IPv4 );
+    TEST_ASSERT_EQUAL_UINT32( xSourceAddress.sin_address.ulIP_IPv4, xNetworkBuffer.xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pvBuffer, uxBufferLength );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, &pvBuffer[ uxBufferLength ], ipconfigTCP_MSS - uxBufferLength );
@@ -607,7 +607,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek(
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + 100;
-    xNetworkBuffer.xIPAddress.xIP_IPv4 = 0x1234ABCD;
+    xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
     memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -639,7 +639,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek(
 
     TEST_ASSERT_EQUAL( 50, lReturn );
     TEST_ASSERT_EQUAL( xSourceAddress.sin_port, xNetworkBuffer.usPort );
-    TEST_ASSERT_EQUAL_UINT32( xSourceAddress.sin_addr.xIP_IPv4, xNetworkBuffer.xIPAddress.xIP_IPv4 );
+    TEST_ASSERT_EQUAL_UINT32( xSourceAddress.sin_address.ulIP_IPv4, xNetworkBuffer.xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pvBuffer, uxBufferLength );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, &pvBuffer[ uxBufferLength ], ipconfigTCP_MSS - uxBufferLength );
@@ -665,7 +665,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek_
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + 100;
-    xNetworkBuffer.xIPAddress.xIP_IPv4 = 0x1234ABCD;
+    xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
     memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -721,7 +721,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_ZeroC
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + 100;
-    xNetworkBuffer.xIPAddress.xIP_IPv4 = 0x1234ABCD;
+    xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
     memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -775,7 +775,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBegining_Packet100SizeSmall_Zero
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     xNetworkBuffer.xDataLength = sizeof( UDPPacket_t ) + 100;
-    xNetworkBuffer.xIPAddress.xIP_IPv4 = 0x1234ABCD;
+    xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
     memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -929,7 +929,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.xIP_IPv4, xDestinationAddress.sin_addr.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
 }
 
 /*
@@ -976,7 +976,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy1( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.xIP_IPv4, xDestinationAddress.sin_addr.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
 }
 
 /*
@@ -1023,7 +1023,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.xIP_IPv4, xDestinationAddress.sin_addr.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
 }
 
 /*
@@ -1070,7 +1070,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy3( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.xIP_IPv4, xDestinationAddress.sin_addr.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
 }
 
 /*
@@ -1113,7 +1113,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.xIP_IPv4, xDestinationAddress.sin_addr.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
 }
 
 static uint32_t ulCalled = 0;
@@ -1165,7 +1165,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_ValidFunctionPointer( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.xIP_IPv4, xDestinationAddress.sin_addr.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( 1, ulCalled );
 }
 
@@ -1211,7 +1211,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_SendingToIPTaskFails( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.xIP_IPv4, xDestinationAddress.sin_addr.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( 0, ulCalled );
 }
 
@@ -1263,6 +1263,6 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy_SendingToIPTaskFails( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.xIP_IPv4, xDestinationAddress.sin_addr.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( 0, ulCalled );
 }
