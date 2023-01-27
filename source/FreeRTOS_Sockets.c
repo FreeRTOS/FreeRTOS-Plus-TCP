@@ -3688,7 +3688,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             if( pxClientSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
             {
-                *pxAddressLength = sizeof( struct freertos_sockaddr );
+                if( pxAddressLength != NULL )
+                {
+                    *pxAddressLength = sizeof( struct freertos_sockaddr );
+                }
 
                 if( pxAddress != NULL )
                 {
@@ -3700,8 +3703,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             }
             else
             {
-                *pxAddressLength = sizeof( struct freertos_sockaddr );
-
+                if( pxAddressLength != NULL )
+                {
+                    *pxAddressLength = sizeof( struct freertos_sockaddr );
+                }
+                
                 if( pxAddress != NULL )
                 {
                     pxAddress->sin_family = FREERTOS_AF_INET4;

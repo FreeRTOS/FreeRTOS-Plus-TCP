@@ -1117,19 +1117,10 @@ void test_FreeRTOS_send_IPTaskWithNULLBuffer( void )
     xSocket.xSendBlockTime = 100;
 
     uxDataLength = 100;
-    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
-
-    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength - 20 );
-
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, NULL, uxDataLength - 20, uxDataLength - 20 );
-
-    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
-
-    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     xReturn = FreeRTOS_send( &xSocket, NULL, uxDataLength, xFlags );
 
-    TEST_ASSERT_EQUAL( uxDataLength - 20, xReturn );
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
 /*
