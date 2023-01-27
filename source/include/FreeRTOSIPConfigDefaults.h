@@ -185,6 +185,10 @@
     #define ipconfigCOMPATIBLE_WITH_SINGLE    ( 0 )
 #endif
 
+#ifndef ipconfigMULTI_INTERFACE
+    #define ipconfigMULTI_INTERFACE    ( 1 )
+#endif
+
 #if ( ipconfigUSE_TCP != 0 )
 
 /* Disable IPv6 by default. */

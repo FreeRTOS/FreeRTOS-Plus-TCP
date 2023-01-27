@@ -218,7 +218,7 @@
             const DHCPMessage_IPv4_t * pxDHCPMessage;
             BaseType_t lBytes;
 
-            for( ; ; )
+            for( ; xDHCPv4Socket!=NULL; )
             {
                 BaseType_t xRecvFlags = FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK;
                 NetworkEndPoint_t * pxIterator = NULL;
@@ -295,7 +295,7 @@
             /* do nothing, coverity happy */
         }
 
-        if( ( pxEndPoint != NULL ) && ( xDoProcess != pdFALSE ) )
+        if( /*( pxEndPoint != NULL ) &&*/ ( xDoProcess != pdFALSE ) )
         {
             /* Process the end-point, but do not expect incoming packets. */
             vDHCPProcessEndPoint( xReset, pdFALSE, pxEndPoint );

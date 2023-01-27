@@ -168,7 +168,7 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer );
 static void prvForwardTxPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                 BaseType_t xReleaseAfterSend );
 
-static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer, const IPHeader_t * pxIPHeader );
 
 /*-----------------------------------------------------------*/
 

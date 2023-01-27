@@ -46,10 +46,6 @@
  *  BaseType_t xGetPhyLinkStatus( struct xNetworkInterface *pxInterface );
  */
 
-/* _HT_ Must be removed again. */
-BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t bReleaseAfterSend );
 
 /* The following function is defined only when BufferAllocation_1.c is linked in the project. */
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] );

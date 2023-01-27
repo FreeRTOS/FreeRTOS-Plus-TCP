@@ -148,7 +148,7 @@ BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescrip
              * non-active states:  eCLOSED, eCLOSE_WAIT, eFIN_WAIT_2, eCLOSING, or
              * eTIME_WAIT. */
 
-            FreeRTOS_debug_printf( ( "TCP: No active socket on port %d (%xip:%d)\n", usLocalPort, ( unsigned ) ulRemoteIP.xIP_IPv4, usRemotePort ) );
+            FreeRTOS_debug_printf( ( "TCP: No active socket on port %d (%xip:%d)\n", usLocalPort, ( unsigned ) ulRemoteIP.ulIP_IPv4, usRemotePort ) );
 
             /* Send a RST to all packets that can not be handled.  As a result
              * the other party will get a ECONN error.  There are two exceptions:
@@ -181,7 +181,7 @@ BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescrip
                     #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
                         {
                             FreeRTOS_debug_printf( ( "TCP: Server can't handle flags: %s from %xip:%u to port %u\n",
-                                                     prvTCPFlagMeaning( ( UBaseType_t ) ucTCPFlags ), ( unsigned ) ulRemoteIP.xIP_IPv4, usRemotePort, usLocalPort ) );
+                                                     prvTCPFlagMeaning( ( UBaseType_t ) ucTCPFlags ), ( unsigned ) ulRemoteIP.ulIP_IPv4, usRemotePort, usLocalPort ) );
                         }
                     #endif /* ipconfigHAS_DEBUG_PRINTF */
 
@@ -211,7 +211,7 @@ BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescrip
                  * flag. */
                 if( ( ucTCPFlags & tcpTCP_FLAG_RST ) != 0U )
                 {
-                    FreeRTOS_debug_printf( ( "TCP: RST received from %xip:%u for %u\n", ( unsigned ) ulRemoteIP.xIP_IPv4, usRemotePort, usLocalPort ) );
+                    FreeRTOS_debug_printf( ( "TCP: RST received from %xip:%u for %u\n", ( unsigned ) ulRemoteIP.ulIP_IPv4, usRemotePort, usLocalPort ) );
 
                     /* Implement https://tools.ietf.org/html/rfc5961#section-3.2. */
                     if( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN )
@@ -251,7 +251,7 @@ BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescrip
                 else if( ( ( ucTCPFlags & tcpTCP_FLAG_CTRL ) == tcpTCP_FLAG_SYN ) && ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) )
                 {
                     /* SYN flag while this socket is already connected. */
-                    FreeRTOS_debug_printf( ( "TCP: SYN unexpected from %xip:%u\n", ( unsigned ) ulRemoteIP.xIP_IPv4, usRemotePort ) );
+                    FreeRTOS_debug_printf( ( "TCP: SYN unexpected from %xip:%u\n", ( unsigned ) ulRemoteIP.ulIP_IPv4, usRemotePort ) );
 
                     /* The packet cannot be handled. */
                     xResult = pdFAIL;

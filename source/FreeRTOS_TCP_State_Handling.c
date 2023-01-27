@@ -189,7 +189,7 @@
                         {
                             FreeRTOS_debug_printf( ( "Inactive socket closed: port %u rem %xip:%u status %s\n",
                                                      pxSocket->usLocalPort,
-                                                     ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
+                                                     ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
                                                      pxSocket->u.xTCP.usRemotePort,
                                                      FreeRTOS_GetTCPStateName( ( UBaseType_t ) pxSocket->u.xTCP.eTCPState ) ) );
                         }
@@ -440,7 +440,7 @@
                     FreeRTOS_debug_printf( ( "TCP: %s %u => %xip:%u set ESTAB (scaling %u)\n",
                                              ( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eCONNECT_SYN ) ? "active" : "passive",
                                              pxSocket->usLocalPort,
-                                             ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
+                                             ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
                                              pxSocket->u.xTCP.usRemotePort,
                                              ( unsigned ) pxSocket->u.xTCP.bits.bWinScaling ) );
                 }

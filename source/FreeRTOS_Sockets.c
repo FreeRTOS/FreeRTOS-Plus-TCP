@@ -1036,6 +1036,7 @@ static NetworkBufferDescriptor_t * prvRecvFromWaitForPacket( FreeRTOS_Socket_t c
         {
             /* Check to see if the socket is non blocking on the first
              * iteration.  */
+
             if( xRemainingTime == ( TickType_t ) 0 )
             {
                 #if ( ipconfigSUPPORT_SIGNALS != 0 )
