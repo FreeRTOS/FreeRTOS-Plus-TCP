@@ -60,6 +60,9 @@
 
         if( pxEndPoint != NULL )
         {
+            /* Compared to IPv4, an IPv6 header is 20 bytes longer.
+             * It must be subtracted from the MSS. */
+			size_t uxDifference = ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER;
             /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
             #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
                 {
@@ -71,19 +74,22 @@
                 }
             #endif
 
-            BaseType_t xResult;
-
-            xResult = xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ),
-                                            &( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6 ),
-                                            pxEndPoint->ipv6_settings.uxPrefixLength );
-
-            if( xResult != 0 )
+            if( ulMSS > uxDifference )
             {
+                ulMSS -= uxDifference;
+            }
+
+            IPv6_Type_t eType = xIPv6_GetIPType( &( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6 ) );
+
+            if( eType == eIPv6_Global )
+            {
+            	/* The packet will travel through Internet, make the MSS
+            	 * smaller. */
                 ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
             }
         }
 
-        FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %xip:%u\n", ( unsigned ) ulMSS, ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4, pxSocket->u.xTCP.usRemotePort ) );
+        FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %pip port %u\n", ( unsigned ) ulMSS, ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxSocket->u.xTCP.usRemotePort ) );
 
         pxSocket->u.xTCP.usMSS = ( uint16_t ) ulMSS;
     }
