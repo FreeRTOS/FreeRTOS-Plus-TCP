@@ -23,7 +23,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
-            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/list_macros.h"
+            "${MODULE_ROOT_DIR}/test/unit-test/FreeRTOS_UDP_IP/list_macros.h"
         )
 
 #set(mock_include_list "")

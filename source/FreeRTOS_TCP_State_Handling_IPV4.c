@@ -81,7 +81,6 @@
         const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
         FreeRTOS_Socket_t * pxReturn = NULL;
         uint32_t ulInitialSequenceNumber;
-        const NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
 
         /* Silently discard a SYN packet which was not specifically sent for this node. */
         if( pxTCPPacket->xIPHeader.ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
@@ -174,7 +173,7 @@
 
             pxReturn->bits.bIsIPv6 = pdFALSE_UNSIGNED;
             pxReturn->u.xTCP.usRemotePort = FreeRTOS_htons( pxTCPPacket->xTCPHeader.usSourcePort );
-            pxReturn->u.xTCP.xRemoteIP.xIP_IPv4 = FreeRTOS_htonl( pxTCPPacket->xIPHeader.ulSourceIPAddress );
+            pxReturn->u.xTCP.xRemoteIP.ulIP_IPv4 = FreeRTOS_htonl( pxTCPPacket->xIPHeader.ulSourceIPAddress );
             pxReturn->u.xTCP.xTCPWindow.ulOurSequenceNumber = ulInitialSequenceNumber;
 
             /* Here is the SYN action. */

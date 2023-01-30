@@ -186,6 +186,8 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
 
     if( pxNewBuffer != NULL )
     {
+        configASSERT( pxNewBuffer->pucEthernetBuffer != NULL );
+
         /* Get the minimum of both values to copy the data. */
         if( uxLengthToCopy > pxNetworkBuffer->xDataLength )
         {
@@ -197,14 +199,14 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         pxNewBuffer->xDataLength = uxNewLength;
 
         /* Copy the original packet information. */
-        pxNewBuffer->xIPAddress.xIP_IPv4 = pxNetworkBuffer->xIPAddress.xIP_IPv4;
+        pxNewBuffer->xIPAddress.ulIP_IPv4 = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
         pxNewBuffer->usPort = pxNetworkBuffer->usPort;
         pxNewBuffer->usBoundPort = pxNetworkBuffer->usBoundPort;
         pxNewBuffer->pxInterface = pxNetworkBuffer->pxInterface;
         pxNewBuffer->pxEndPoint = pxNetworkBuffer->pxEndPoint;
         ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, uxLengthToCopy );
 
-        if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+        if( uxIPHeaderSizePacket( pxNewBuffer ) == ipSIZE_OF_IPv6_HEADER )
         {
             ( void ) memcpy( pxNewBuffer->xIPAddress.xIP_IPv6.ucBytes, pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
         }
@@ -471,6 +473,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
         pxSet->usChecksum = ( uint16_t )
                             ( ~usGenerateChecksum( 0U, &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength ] ), ( size_t ) pxSet->usProtocolBytes ) );
     }
+
     else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
     {
         pxSet->usChecksum = ( uint16_t )
@@ -781,7 +784,7 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
                     vRAProcess( pdTRUE, pxEndPoint );
                 }
                 else
-            #endif
+            #endif /* ( #if( ipconfigUSE_IPv6 != 0 ) */
 
             {
                 if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
@@ -792,6 +795,8 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
                 {
                     ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
                 }
+
+                *ipLOCAL_IP_ADDRESS_POINTER = pxEndPoint->ipv4_settings.ulIPAddress;
 
                 /* DHCP or Router Advertisement are not enabled for this end-point.
                  * Perform any necessary 'network up' processing. */
@@ -964,7 +969,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
             #else /* if ( ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS == 0 ) */
                 {
                     /* Sender hasn't set the checksum, no use to calculate it. */
-                    usChecksum = ipCORRECT_CRC;
+                    xSet.usChecksum = ipCORRECT_CRC;
                 }
             #endif /* if ( ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS == 0 ) */
             DEBUG_SET_TRACE_VARIABLE( xLocation, 12 );
@@ -1277,7 +1282,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         else if( ( uxMinLastSize * ipMONITOR_PERCENTAGE_90 ) > ( uxMinSize * ipMONITOR_PERCENTAGE_100 ) )
         {
             uxMinLastSize = uxMinSize;
-            FreeRTOS_printf( ( "Heap: current %lu lowest %lu\n", xPortGetFreeHeapSize(), uxMinSize ) );
+            FreeRTOS_printf( ( "Heap: current %u lowest %u\n", ( unsigned ) xPortGetFreeHeapSize(), ( unsigned ) uxMinSize ) );
         }
         else
         {

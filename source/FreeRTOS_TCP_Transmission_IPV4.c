@@ -90,9 +90,8 @@
         IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
         BaseType_t xDoRelease = xReleaseAfterSend;
         EthernetHeader_t * pxEthernetHeader = NULL;
-        uint32_t ulSourceAddress;
         NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
-        NetworkBufferDescriptor_t xTempBuffer;
+        NetworkBufferDescriptor_t xTempBuffer = {0};
         /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
         MACAddress_t xMACAddress;
         const void * pvCopySource = NULL;
@@ -147,6 +146,7 @@
                 #endif
                 pxNetworkBuffer->pucEthernetBuffer = pxSocket->u.xTCP.xPacket.u.ucLastPacket;
                 pxNetworkBuffer->xDataLength = sizeof( pxSocket->u.xTCP.xPacket.u.ucLastPacket );
+                /* pxNetworkBuffer may have changed, reload pxIPHeader. */
                 pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
                 xDoRelease = pdFALSE;
             }
@@ -217,9 +217,6 @@
 
                 if( usFrameType == ipIPv6_FRAME_TYPE )
                 {
-                    /* Map the ethernet buffer onto a IPHeader_IPv6_t struct for easy access to the fields. */
-                    pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-
                     /* When xIsIPv6 is true: Let lint know that
                      * 'pxIPHeader_IPv6' is not NULL. */
                     configASSERT( pxIPHeader_IPv6 != NULL );
@@ -254,26 +251,27 @@
                 }
                 else
                 {
-                    /* Map the ethernet buffer onto a IPHeader_t struct for easy access to the fields. */
-                    pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                    /* _HT_ must get rid of 'ipLOCAL_IP_ADDRESS_POINTER'. */
+                    uint32_t ulSourceAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+                    uint32_t ulDestinationAddress;
 
                     pxIPHeader->ucTimeToLive = ( uint8_t ) ipconfigTCP_TIME_TO_LIVE;
                     pxIPHeader->usLength = FreeRTOS_htons( ulLen );
 
-                    if( ( pxSocket == NULL ) || ( *ipLOCAL_IP_ADDRESS_POINTER == 0U ) )
+                    if( pxSocket != NULL )
+                    {
+                        ulDestinationAddress = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
+                    }
+                    else
                     {
                         /* When pxSocket is NULL, this function is called by prvTCPSendReset()
                          * and the IP-addresses must be swapped.
                          * Also swap the IP-addresses in case the IP-tack doesn't have an
                          * IP-address yet, i.e. when ( *ipLOCAL_IP_ADDRESS_POINTER == 0U ). */
-                        ulSourceAddress = pxIPHeader->ulDestinationIPAddress;
-                    }
-                    else
-                    {
-                        ulSourceAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+                        ulDestinationAddress = pxIPHeader->ulSourceIPAddress;
                     }
 
-                    pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
+                    pxIPHeader->ulDestinationIPAddress = ulDestinationAddress;
                     pxIPHeader->ulSourceIPAddress = ulSourceAddress;
 
                     /* Just an increasing number. */
@@ -367,12 +365,15 @@
 
                 /* Send! */
                 iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-                NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
 
-                if( pxInterface != NULL )
-                {
-                    ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xDoRelease );
-                }
+                /* _HT_ added some asserts that are useful while testing. */
+                configASSERT( pxNetworkBuffer != NULL );
+                configASSERT( pxNetworkBuffer->pxEndPoint != NULL );
+                configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
+                configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput != NULL );
+
+                NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+                ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xReleaseAfterSend );
 
                 if( xDoRelease == pdFALSE )
                 {
@@ -442,7 +443,7 @@
             }
         #endif /* ipconfigHAS_PRINTF != 0 */
 
-        ulRemoteIP = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
+        ulRemoteIP = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
 
         /* Determine the ARP cache status for the requested IP address. */
         eReturned = eARPGetCacheEntry( &( ulRemoteIP ), &( xEthAddress ), &( pxSocket->pxEndPoint ) );
@@ -459,7 +460,7 @@
                 pxSocket->u.xTCP.ucRepCount++;
 
                 FreeRTOS_debug_printf( ( "ARP for %xip (using %xip): rc=%d %02X:%02X:%02X %02X:%02X:%02X\n",
-                                         ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
+                                         ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
                                          ( unsigned ) FreeRTOS_htonl( ulRemoteIP ),
                                          eReturned,
                                          xEthAddress.ucBytes[ 0 ],
@@ -480,7 +481,7 @@
             /* Get a difficult-to-predict initial sequence number for this 4-tuple. */
             ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
                                                                           pxSocket->usLocalPort,
-                                                                          pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
+                                                                          pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
                                                                           pxSocket->u.xTCP.usRemotePort );
 
             /* Check for a random number generation error. */
@@ -531,7 +532,7 @@
             /* Addresses and ports will be stored swapped because prvTCPReturnPacket
              * will swap them back while replying. */
             pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-            pxIPHeader->ulSourceIPAddress = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 );
+            pxIPHeader->ulSourceIPAddress = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
 
             pxTCPPacket->xTCPHeader.usSourcePort = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
             pxTCPPacket->xTCPHeader.usDestinationPort = FreeRTOS_htons( pxSocket->usLocalPort );

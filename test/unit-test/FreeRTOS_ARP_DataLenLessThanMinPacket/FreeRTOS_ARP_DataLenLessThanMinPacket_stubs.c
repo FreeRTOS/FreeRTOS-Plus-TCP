@@ -83,8 +83,7 @@ uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 {
 }
 /* This function shall be defined by the application. */
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                     struct xNetworkEndPoint * pxEndPoint )
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 {
 }
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
@@ -146,5 +145,12 @@ void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
 {
 }
 void vConfigureTimerForRunTimeStats( void )
+{
+}
+/**
+ * @brief Send an ND advertisement.
+ * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
+ */
+void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint ) 
 {
 }

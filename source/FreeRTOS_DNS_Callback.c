@@ -231,7 +231,7 @@
         if( listLIST_IS_EMPTY( &xTempList ) == pdFALSE )
         {
             /* There is at least one item in xTempList which must be removed and deleted. */
-            xEnd = listGET_END_MARKER( &xTempList );
+            xEnd = ( ( const ListItem_t * ) &( xTempList.xListEnd ) );
 
             for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
                  pxIterator != xEnd;

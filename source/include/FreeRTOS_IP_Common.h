@@ -43,10 +43,21 @@ typedef struct xIPv6_Address IPv6_Address_t;
 
 typedef union IP_Address
 {
-    uint32_t xIP_IPv4;       /**< IPv4 address */
+    uint32_t ulIP_IPv4;      /**< IPv4 address */
     IPv6_Address_t xIP_IPv6; /**< IPv6 address */
 } IP_Address_t;
 
+struct xNetworkEndPoint;
+struct xNetworkInterface;
+
+/* Return true if a given end-point is up and running.
+* When FreeRTOS_IsNetworkUp() is called with NULL as a parameter,
+* it will return pdTRUE when all end-points are up. */
+BaseType_t FreeRTOS_IsEndPointUp( const struct xNetworkEndPoint * pxEndPoint );
+
+/* Return pdTRUE if all end-points are up.
+ * When pxInterface is null, all end-points will be checked. */
+BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

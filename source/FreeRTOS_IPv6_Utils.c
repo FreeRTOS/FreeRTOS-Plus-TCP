@@ -42,6 +42,10 @@
 
 /*-----------------------------------------------------------*/
 
+/* *INDENT-OFF* */
+#if( ipconfigUSE_IPv6 != 0 )
+/* *INDENT-ON* */
+
 /**
  * @brief Set multicast MAC address.
  *
@@ -157,3 +161,7 @@ BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
     return xReturn;
 }
 /*-----------------------------------------------------------*/
+
+/* *INDENT-OFF* */
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+/* *INDENT-ON* */
