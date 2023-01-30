@@ -191,62 +191,65 @@
             eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
         }
 
-if(eReturn == eARPCacheMiss)
-{
-    FreeRTOS_printf( ( "eNDGetCacheEntry: lookup %pip miss\n", pxIPAddress->ucBytes ) );
-}
+        if( eReturn == eARPCacheMiss )
+        {
+            FreeRTOS_printf( ( "eNDGetCacheEntry: lookup %pip miss\n", pxIPAddress->ucBytes ) );
+        }
 
         if( eReturn == eARPCacheMiss )
         {
-			IPv6_Type_t eIPType = xIPv6_GetIPType ( pxIPAddress );
+            IPv6_Type_t eIPType = xIPv6_GetIPType( pxIPAddress );
 
-			pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( pxIPAddress );
+            pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( pxIPAddress );
 
             if( pxEndPoint != NULL )
             {
                 *( ppxEndPoint ) = pxEndPoint;
                 FreeRTOS_printf( ( "eNDGetCacheEntry: FindEndPointOnIP failed for %pip (endpoint %pip)\n",
-                    pxIPAddress->ucBytes,
-                    pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
+                                   pxIPAddress->ucBytes,
+                                   pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
             }
             else
             {
-                if(eIPType == eIPv6_LinkLocal)
+                if( eIPType == eIPv6_LinkLocal )
                 {
-                    for(pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-                        pxEndPoint != NULL;
-                        pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ))
+                    for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+                         pxEndPoint != NULL;
+                         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
                     {
-                        IPv6_Type_t eMyType = xIPv6_GetIPType( &(pxEndPoint->ipv6_settings.xIPAddress) );
-                        if(eMyType == eIPType)
+                        IPv6_Type_t eMyType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+
+                        if( eMyType == eIPType )
                         {
                             eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
                             break;
                         }
                     }
-                    FreeRTOS_printf( ("eNDGetCacheEntry: LinkLocal %pip \"%s\"\n", pxIPAddress->ucBytes,
-                        (eReturn == eARPCacheHit) ? "hit" : "miss") );
+
+                    FreeRTOS_printf( ( "eNDGetCacheEntry: LinkLocal %pip \"%s\"\n", pxIPAddress->ucBytes,
+                                       ( eReturn == eARPCacheHit ) ? "hit" : "miss" ) );
                 }
                 else
                 {
                     pxEndPoint = FreeRTOS_FindGateWay( ( BaseType_t ) ipTYPE_IPv6 );
-					if( pxEndPoint != NULL )
-					{
-						( void ) memcpy( pxIPAddress->ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-						FreeRTOS_printf( ( "eNDGetCacheEntry: Using gw %pip\n", pxIPAddress->ucBytes ) );
-						FreeRTOS_printf( ( "eNDGetCacheEntry: From addr %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
 
-						/* See if the gateway has an entry in the cache. */
-						eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
+                    if( pxEndPoint != NULL )
+                    {
+                        ( void ) memcpy( pxIPAddress->ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        FreeRTOS_printf( ( "eNDGetCacheEntry: Using gw %pip\n", pxIPAddress->ucBytes ) );
+                        FreeRTOS_printf( ( "eNDGetCacheEntry: From addr %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
 
-						if( *ppxEndPoint != NULL )
-						{
-							FreeRTOS_printf( ( "eNDGetCacheEntry: found end-point %pip\n", ( *ppxEndPoint )->ipv6_settings.xIPAddress.ucBytes ) );
-						}
+                        /* See if the gateway has an entry in the cache. */
+                        eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
 
-						*( ppxEndPoint ) = pxEndPoint;
-					}
-				}
+                        if( *ppxEndPoint != NULL )
+                        {
+                            FreeRTOS_printf( ( "eNDGetCacheEntry: found end-point %pip\n", ( *ppxEndPoint )->ipv6_settings.xIPAddress.ucBytes ) );
+                        }
+
+                        *( ppxEndPoint ) = pxEndPoint;
+                    }
+                }
             }
         }
 
