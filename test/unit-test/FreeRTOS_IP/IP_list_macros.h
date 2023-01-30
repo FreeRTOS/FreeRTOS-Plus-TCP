@@ -91,10 +91,6 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
  * It handles all ICMP messages except the PING requests. */
 eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
-BaseType_t xNetworkInterfaceOutput( struct xNetworkInterface * pxInterface,
-                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t xReleaseAfterSend );
-
 /**
  * @brief Work on the RA/SLAAC processing.
  * @param[in] xDoReset: WHen true, the state-machine will be reset and initialised.
@@ -103,4 +99,20 @@ BaseType_t xNetworkInterfaceOutput( struct xNetworkInterface * pxInterface,
 void vRAProcess( BaseType_t xDoReset,
                  NetworkEndPoint_t * pxEndPoint );
 
+
+void vNDAgeCache( void );
+
+
+/*
+ * If ulIPAddress is already in the ND cache table then reset the age of the
+ * entry back to its maximum value.  If ulIPAddress is not already in the ND
+ * cache table then add it - replacing the oldest current entry if there is not
+ * a free space available.
+ */
+    void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
+                               const IPv6_Address_t * pxIPAddress,
+                               NetworkEndPoint_t * pxEndPoint );
+                               
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                NetworkInterface_t * pxInterface );
 #endif /* ifndef LIST_MACRO_H */
