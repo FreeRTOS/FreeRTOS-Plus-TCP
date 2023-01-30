@@ -533,6 +533,14 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
         /* StreamSize is expressed in number of bytes */
         /* Round up buffer sizes to nearest multiple of MSS */
         pxSocket->u.xTCP.usMSS = ( uint16_t ) ipconfigTCP_MSS;
+        if(pxSocket->bits.bIsIPv6 != 0U)
+        {
+			uint16_t usDifference = ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER;
+			if( pxSocket->u.xTCP.usMSS > usDifference )
+			{
+	            pxSocket->u.xTCP.usMSS -= ( uint16_t )usDifference;
+			}
+        }
         pxSocket->u.xTCP.uxRxStreamSize = ( size_t ) ipconfigTCP_RX_BUFFER_LENGTH;
         pxSocket->u.xTCP.uxTxStreamSize = ( size_t ) FreeRTOS_round_up( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS );
         /* Use half of the buffer size of the TCP windows */
@@ -650,6 +658,14 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             ( void ) memset( pxSocket, 0, uxSocketSize );
 
             pxSocket->xEventGroup = xEventGroup;
+            if( xDomain == ( uint8_t )FREERTOS_AF_INET6 )
+            {
+                pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
+            }
+            else
+            {
+                pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+            }
 
             /* Initialise the socket's members.  The semaphore will be created
              * if the socket is bound to an address, for now the pointer to the
@@ -685,15 +701,6 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             pxSocket->xSendBlockTime = ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME;
             pxSocket->ucSocketOptions = ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT;
             pxSocket->ucProtocol = ( uint8_t ) xProtocolCpy; /* protocol: UDP or TCP */
-
-            if( xDomain == ( uint8_t ) FREERTOS_AF_INET6 )
-            {
-                pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
-            }
-            else
-            {
-                pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
-            }
 
             xReturn = pxSocket;
         }
@@ -3504,20 +3511,18 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
                     FreeRTOS_printf( ( "FreeRTOS_connect: %u to %pip port %u\n",
                                        pxSocket->usLocalPort, pxAddress->sin_addr6.ucBytes, FreeRTOS_ntohs( pxAddress->sin_port ) ) );
-                    ( void ) memcpy( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxAddress->sin_addr6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
+                    ( void ) memcpy( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxAddress->sin_addr6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 }
                 else
                 {
                     pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
                     FreeRTOS_printf( ( "FreeRTOS_connect: %u to %lxip:%u\n",
                                        pxSocket->usLocalPort, FreeRTOS_ntohl( pxAddress->sin_addr ), FreeRTOS_ntohs( pxAddress->sin_port ) ) );
+                    pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_addr );
                 }
 
                 /* Port on remote machine. */
                 pxSocket->u.xTCP.usRemotePort = FreeRTOS_ntohs( pxAddress->sin_port );
-
-                /* IP address of remote machine. */
-                pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_addr );
 
                 /* (client) internal state: socket wants to send a connect. */
                 vTCPStateChange( pxSocket, eCONNECT_SYN );
