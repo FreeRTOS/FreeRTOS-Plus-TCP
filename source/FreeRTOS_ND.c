@@ -191,35 +191,62 @@
             eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
         }
 
+if(eReturn == eARPCacheMiss)
+{
+    FreeRTOS_printf( ( "eNDGetCacheEntry: lookup %pip miss\n", pxIPAddress->ucBytes ) );
+}
+
         if( eReturn == eARPCacheMiss )
         {
-            pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( pxIPAddress );
+			IPv6_Type_t eIPType = xIPv6_GetIPType ( pxIPAddress );
+
+			pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( pxIPAddress );
 
             if( pxEndPoint != NULL )
             {
                 *( ppxEndPoint ) = pxEndPoint;
-                FreeRTOS_printf( ( "eNDGetCacheEntry: FindEndPointOnIP %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
+                FreeRTOS_printf( ( "eNDGetCacheEntry: FindEndPointOnIP failed for %pip (endpoint %pip)\n",
+                    pxIPAddress->ucBytes,
+                    pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
             }
             else
             {
-                pxEndPoint = FreeRTOS_FindGateWay( ( BaseType_t ) ipTYPE_IPv6 );
-
-                if( pxEndPoint != NULL )
+                if(eIPType == eIPv6_LinkLocal)
                 {
-                    ( void ) memcpy( pxIPAddress->ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                    FreeRTOS_printf( ( "eNDGetCacheEntry: Using gw %pip\n", pxIPAddress->ucBytes ) );
-                    FreeRTOS_printf( ( "eNDGetCacheEntry: From addr %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
-
-                    /* See if the gateway has an entry in the cache. */
-                    eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
-
-                    if( *ppxEndPoint != NULL )
+                    for(pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+                        pxEndPoint != NULL;
+                        pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ))
                     {
-                        FreeRTOS_printf( ( "prvNDCacheLookup: found end-point %pip\n", ( *ppxEndPoint )->ipv6_settings.xIPAddress.ucBytes ) );
+                        IPv6_Type_t eMyType = xIPv6_GetIPType( &(pxEndPoint->ipv6_settings.xIPAddress) );
+                        if(eMyType == eIPType)
+                        {
+                            eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
+                            break;
+                        }
                     }
-
-                    *( ppxEndPoint ) = pxEndPoint;
+                    FreeRTOS_printf( ("eNDGetCacheEntry: LinkLocal %pip \"%s\"\n", pxIPAddress->ucBytes,
+                        (eReturn == eARPCacheHit) ? "hit" : "miss") );
                 }
+                else
+                {
+                    pxEndPoint = FreeRTOS_FindGateWay( ( BaseType_t ) ipTYPE_IPv6 );
+					if( pxEndPoint != NULL )
+					{
+						( void ) memcpy( pxIPAddress->ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+						FreeRTOS_printf( ( "eNDGetCacheEntry: Using gw %pip\n", pxIPAddress->ucBytes ) );
+						FreeRTOS_printf( ( "eNDGetCacheEntry: From addr %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
+
+						/* See if the gateway has an entry in the cache. */
+						eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
+
+						if( *ppxEndPoint != NULL )
+						{
+							FreeRTOS_printf( ( "eNDGetCacheEntry: found end-point %pip\n", ( *ppxEndPoint )->ipv6_settings.xIPAddress.ucBytes ) );
+						}
+
+						*( ppxEndPoint ) = pxEndPoint;
+					}
+				}
             }
         }
 
@@ -337,6 +364,7 @@
                     if( pxNetworkBuffer != NULL )
                     {
                         pxNetworkBuffer->pxEndPoint = xNDCache[ x ].pxEndPoint;
+                        /* _HT_ From here I am suspecting a network buffer leak */
                         vNDSendNeighbourSolicitation( pxNetworkBuffer, &( xNDCache[ x ].xIPAddress ) );
                     }
                 }
@@ -431,7 +459,7 @@
                 if( xNDCache[ x ].ucValid != ( uint8_t ) 0U )
                 {
                     /* See if the MAC-address also matches, and we're all happy */
-                    FreeRTOS_printf( ( "ND %2ld: %3u - %pip : %02x:%02x:%02x : %02x:%02x:%02x\n",
+                    FreeRTOS_printf( ( "ND %2ld: age %3u - %pip MAC %02x-%02x-%02x-%02x-%02x-%02x\n",
                                        x,
                                        xNDCache[ x ].ucAge,
                                        xNDCache[ x ].xIPAddress.ucBytes,
