@@ -890,8 +890,7 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                 xEndPoints[ 0 ].bits.bWantDHCP = pdTRUE;
             }
         #endif /* ipconfigUSE_DHCP */
-        FreeRTOS_IPStart();
-        return 1;
+        return FreeRTOS_IPStart();
     }
 #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
 /*-----------------------------------------------------------*/
