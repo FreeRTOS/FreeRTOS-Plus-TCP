@@ -77,8 +77,6 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
 /**
- * <<<<<<< HEAD
- * =======
  * @brief Reduce the age counter in each entry within the ND cache.  An entry is no
  * longer considered valid and is deleted if its age reaches zero.
  * Just before getting to zero, 3 times a neighbour solicitation will be sent.
@@ -139,9 +137,5 @@ eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t *
 /* Return pdTRUE if all end-points are up.
  * When pxInterface is null, all end-points will be checked. */
 BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface );
-
-BaseType_t xNetworkInterfaceOutput( struct xNetworkInterface * pxInterface,
-                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t xReleaseAfterSend );
 
 #endif /* ifndef LIST_MACRO_H */
