@@ -210,7 +210,7 @@
         }
 
         if( ( EP_DHCPData.eDHCPState != EP_DHCPData.eExpectedState ) && ( xReset == pdFALSE ) )
-        { 
+        {
             /* When the DHCP event was generated, the DHCP client was
             * in a different state.  Therefore, ignore this event. */
             FreeRTOS_debug_printf( ( "DHCP wrong state: expect: %d got: %d : ignore\n",

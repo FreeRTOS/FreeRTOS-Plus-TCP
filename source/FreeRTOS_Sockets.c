@@ -533,14 +533,17 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
         /* StreamSize is expressed in number of bytes */
         /* Round up buffer sizes to nearest multiple of MSS */
         pxSocket->u.xTCP.usMSS = ( uint16_t ) ipconfigTCP_MSS;
-        if(pxSocket->bits.bIsIPv6 != 0U)
+
+        if( pxSocket->bits.bIsIPv6 != 0U )
         {
-			uint16_t usDifference = ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER;
-			if( pxSocket->u.xTCP.usMSS > usDifference )
-			{
-	            pxSocket->u.xTCP.usMSS -= ( uint16_t )usDifference;
-			}
+            uint16_t usDifference = ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER;
+
+            if( pxSocket->u.xTCP.usMSS > usDifference )
+            {
+                pxSocket->u.xTCP.usMSS -= ( uint16_t ) usDifference;
+            }
         }
+
         pxSocket->u.xTCP.uxRxStreamSize = ( size_t ) ipconfigTCP_RX_BUFFER_LENGTH;
         pxSocket->u.xTCP.uxTxStreamSize = ( size_t ) FreeRTOS_round_up( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS );
         /* Use half of the buffer size of the TCP windows */
@@ -658,7 +661,8 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             ( void ) memset( pxSocket, 0, uxSocketSize );
 
             pxSocket->xEventGroup = xEventGroup;
-            if( xDomain == ( uint8_t )FREERTOS_AF_INET6 )
+
+            if( xDomain == ( uint8_t ) FREERTOS_AF_INET6 )
             {
                 pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
             }
