@@ -168,8 +168,7 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer );
 static void prvForwardTxPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                 BaseType_t xReleaseAfterSend );
 
-static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer, 
-                                                    const IPHeader_t * pxIPHeader );
+static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 /*-----------------------------------------------------------*/
 
@@ -1577,10 +1576,9 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
  *         eFrameConsumed ( the buffer has now been released ).
  */
 
-static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                     const IPHeader_t * pxIPHeader )
+static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
-    eFrameProcessingResult_t eReturn = eProcessBuffer;
+    eFrameProcessingResult_t eReturn = eReleaseBuffer;
     BaseType_t xIsWaitingARPResolution = pdFALSE;
     /* The IP packet contained a UDP frame. */
     /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -1610,18 +1608,8 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     /* Note the header values required prior to the checksum
      * generation as the checksum pseudo header may clobber some of
      * these values. */
-
-    if( ( pxNetworkBuffer->xDataLength < uxMinSize ) ||
-        ( ( ( size_t ) usLength ) < sizeof( UDPHeader_t ) ) )
-    {
-        eReturn = eReleaseBuffer;
-    }
-    else if( usLength > ( FreeRTOS_ntohs( pxIPHeader->usLength ) - uxIPHeaderSizePacket( pxNetworkBuffer ) ) )
-    {
-        /* The UDP packet is bigger than the IP-payload. Something is wrong, drop the packet. */
-        eReturn = eReleaseBuffer;
-    }
-    else
+    if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
+        ( uxLength >= sizeof( UDPHeader_t ) ) )
     {
         size_t uxPayloadSize_1, uxPayloadSize_2;
 
@@ -1664,6 +1652,10 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
                 eReturn = eWaitingARPResolution;
             }
         }
+    }
+    else
+    {
+        /* Length checks failed, the buffer will be released. */
     }
 
     return eReturn;
@@ -1827,7 +1819,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                     case ipPROTOCOL_UDP:
                         /* The IP packet contained a UDP frame. */
 
-                        eReturn = prvProcessUDPPacket( pxNetworkBuffer, pxIPHeader );
+                        eReturn = prvProcessUDPPacket( pxNetworkBuffer );
                         break;
 
                         #if ipconfigUSE_TCP == 1
