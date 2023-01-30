@@ -133,7 +133,7 @@
                  * status 'eCLOSE_WAIT'. */
                 FreeRTOS_debug_printf( ( "Connect: giving up %xip:%u\n",
                                          ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4, /* IP address of remote machine. */
-                                         pxSocket->u.xTCP.usRemotePort ) );                /* Port on remote machine. */
+                                         pxSocket->u.xTCP.usRemotePort ) );                 /* Port on remote machine. */
                 vTCPStateChange( pxSocket, eCLOSE_WAIT );
             }
             else if( prvTCPMakeSurePrepared( pxSocket ) == pdTRUE )
@@ -916,7 +916,7 @@
                     {
                         FreeRTOS_debug_printf( ( "keep-alive: giving up %xip:%u\n",
                                                  ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4, /* IP address of remote machine. */
-                                                 pxSocket->u.xTCP.usRemotePort ) );                /* Port on remote machine. */
+                                                 pxSocket->u.xTCP.usRemotePort ) );                 /* Port on remote machine. */
                         vTCPStateChange( pxSocket, eCLOSE_WAIT );
                         lDataLen = -1;
                     }

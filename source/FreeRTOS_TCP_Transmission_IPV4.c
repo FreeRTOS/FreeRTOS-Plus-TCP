@@ -100,7 +100,7 @@
         const void * pvCopySource = NULL;
         void * pvCopyDest = NULL;
         const size_t uxIPHeaderSize = ipSIZE_OF_IPv4_HEADER;
-		uint32_t ulDestinationIPAddress;
+        uint32_t ulDestinationIPAddress;
 
         do
         {
@@ -110,6 +110,7 @@
                 /* Either 'pxNetworkBuffer' or 'pxSocket' should be defined. */
                 break;
             }
+
             /* For sending, a pseudo network buffer will be used, as explained above. */
 
             if( pxNetworkBuffer == NULL )

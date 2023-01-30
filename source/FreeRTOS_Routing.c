@@ -734,7 +734,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                        IPv6_Type_t eIPType = xIPv6_GetIPType( &( pxIPPacket_IPv6->xIPHeader.xSourceAddress ) );
                        pxEndPoint = pxNetworkEndPoints;
 
-                       for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface  );
+                       for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface );
                             pxEndPoint != NULL;
                             pxEndPoint = FreeRTOS_NextEndPoint( pxNetworkInterface, pxEndPoint ) )
                        {
@@ -1000,6 +1000,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 break;
             }
         }
+
         return eResult;
     }
 /*-----------------------------------------------------------*/

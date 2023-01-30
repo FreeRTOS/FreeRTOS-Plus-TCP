@@ -108,9 +108,10 @@
             /* Use do/while to be able to break out of the flow */
             if( ( pxNetworkBuffer == NULL ) && ( pxSocket == NULL ) )
             {
-				/* Either 'pxNetworkBuffer' or 'pxSocket' should be defined. */
+                /* Either 'pxNetworkBuffer' or 'pxSocket' should be defined. */
                 break;
             }
+
             /* For sending, a pseudo network buffer will be used, as explained above. */
 
             if( pxNetworkBuffer == NULL )
@@ -240,7 +241,7 @@
                 }
                 else
                 {
-                pvCopySource = &pxEthernetHeader->xSourceAddress;
+                    pvCopySource = &pxEthernetHeader->xSourceAddress;
                 }
 
                 /* Fill in the destination MAC addresses. */
@@ -348,6 +349,7 @@
         {
             pxSocket->pxEndPoint = pxEndPoint;
         }
+
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
