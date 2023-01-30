@@ -263,7 +263,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
                                       uint16_t usPort,
                                       BaseType_t * pxIsWaitingForARPResolution )
 {
-    BaseType_t xReturn = pdPASS;
+    BaseType_t xReturn = pdFAIL;
     FreeRTOS_Socket_t * pxSocket;
 
     configASSERT( pxNetworkBuffer != NULL );
@@ -281,12 +281,12 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {
-        xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
+        xReturn = xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
                                         usPort, pxIsWaitingForARPResolution );
     }
     else if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
-        xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
+        xReturn = xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
                                         usPort, pxIsWaitingForARPResolution );
     }
 

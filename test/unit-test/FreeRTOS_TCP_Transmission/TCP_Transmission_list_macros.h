@@ -45,9 +45,6 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
                               uint32_t ulLen,
                               BaseType_t xReleaseAfterSend );
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t xReleaseAfterSend );
-
 NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPAddress );
 
 /*
