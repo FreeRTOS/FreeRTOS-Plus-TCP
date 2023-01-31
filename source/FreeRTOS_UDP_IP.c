@@ -282,12 +282,12 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {
         xReturn = xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
-                                        usPort, pxIsWaitingForARPResolution );
+                                                  usPort, pxIsWaitingForARPResolution );
     }
     else if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
         xReturn = xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
-                                        usPort, pxIsWaitingForARPResolution );
+                                                  usPort, pxIsWaitingForARPResolution );
     }
 
     return xReturn;

@@ -205,13 +205,13 @@ static BaseType_t prvNetworkInterfaceInput( void );
 static BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 
 static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                           NetworkBufferDescriptor_t * const pxBuffer,
-                                           BaseType_t bReleaseAfterSend );
+                                                  NetworkBufferDescriptor_t * const pxBuffer,
+                                                  BaseType_t bReleaseAfterSend );
 
 static BaseType_t xSTM32F_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
 NetworkInterface_t * pxSTM32Fxx_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface );
+                                                         NetworkInterface_t * pxInterface );
 
 /*
  * Check if a given packet should be accepted.
@@ -339,26 +339,25 @@ const PhyProperties_t xPHYProperties =
 
 BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
-	return xSTM32F_NetworkInterfaceInitialise( pxInterface );
+    return xSTM32F_NetworkInterfaceInitialise( pxInterface );
 }
 
 BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                     NetworkBufferDescriptor_t * const pxBuffer,
                                     BaseType_t bReleaseAfterSend )
 {
-	return xSTM32F_NetworkInterfaceOutput( pxInterface, pxBuffer, bReleaseAfterSend );
+    return xSTM32F_NetworkInterfaceOutput( pxInterface, pxBuffer, bReleaseAfterSend );
 }
 
 NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                         NetworkInterface_t * pxInterface )
+                                                NetworkInterface_t * pxInterface )
 {
-	return pxSTM32Fxx_FillInterfaceDescriptor( xEMACIndex, pxInterface );
-
+    return pxSTM32Fxx_FillInterfaceDescriptor( xEMACIndex, pxInterface );
 }
 
 BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
-	return xSTM32F_GetPhyLinkStatus( pxInterface );
+    return xSTM32F_GetPhyLinkStatus( pxInterface );
 }
 
 void HAL_ETH_RxCpltCallback( ETH_HandleTypeDef * heth )
@@ -775,8 +774,8 @@ static void prvDMARxDescListInit()
 /*-----------------------------------------------------------*/
 
 static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                           NetworkBufferDescriptor_t * const pxDescriptor,
-                                           BaseType_t bReleaseAfterSend )
+                                                  NetworkBufferDescriptor_t * const pxDescriptor,
+                                                  BaseType_t bReleaseAfterSend )
 {
     BaseType_t xReturn = pdFAIL;
     uint32_t ulTransmitSize = 0;
@@ -944,11 +943,11 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
             /* Check it later. */
             return pdTRUE;
 
-	#if( ipconfigUSE_IPv6 != 0 )
-        case ipIPv6_FRAME_TYPE:
-            /* Check it later. */
-            return pdTRUE;
-	#endif
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipIPv6_FRAME_TYPE:
+                    /* Check it later. */
+                    return pdTRUE;
+            #endif
         case ipIPv4_FRAME_TYPE:
             /* Check it here. */
             break;

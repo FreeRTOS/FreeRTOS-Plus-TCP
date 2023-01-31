@@ -24,9 +24,9 @@
 
 static uint32_t uInterfaceOut_Called = 0;
 
-BaseType_t xNetworkInterfaceOutput_ARP_Stub( NetworkInterface_t * pxInterface, 
-                                            NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                            BaseType_t bReleaseAfterSend ) 
+BaseType_t xNetworkInterfaceOutput_ARP_Stub( NetworkInterface_t * pxInterface,
+                                             NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                             BaseType_t bReleaseAfterSend )
 {
     uInterfaceOut_Called = 1;
 
@@ -49,13 +49,13 @@ void test_FreeRTOS_OutputARPRequest_MinimumPacketSizeLessThanARPPacket( void )
 
     /* =================================================== */
 
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
-    
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAndReturn(ulIPAddress, 25, &xEndPoint);
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
+
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAndReturn( ulIPAddress, 25, &xEndPoint );
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
     xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
-    
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn(&xInterface, NULL);
+
+    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xInterface, NULL );
 
     FreeRTOS_OutputARPRequest( ulIPAddress );
 

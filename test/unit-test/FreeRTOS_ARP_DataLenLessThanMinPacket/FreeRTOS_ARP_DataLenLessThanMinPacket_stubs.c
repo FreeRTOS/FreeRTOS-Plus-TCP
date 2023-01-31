@@ -148,10 +148,11 @@ void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
 void vConfigureTimerForRunTimeStats( void )
 {
 }
+
 /**
  * @brief Send an ND advertisement.
  * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
  */
-void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint ) 
+void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint )
 {
 }

@@ -144,9 +144,9 @@ void test_prvTCPMakeSurePrepared_Ready( void )
 
 BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
 
-BaseType_t NetworkInterfaceOutputFunction_Stub ( struct xNetworkInterface * pxDescriptor,
-                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                                BaseType_t xReleaseAfterSend )
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
 {
     NetworkInterfaceOutputFunction_Stub_Called++;
     return 0;
@@ -275,8 +275,8 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
     NewNetworkBuffer.pxEndPoint = &xEndPoint;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
-    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
-    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 20 );
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &NewNetworkBuffer );
     /*vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs(); */
@@ -1880,7 +1880,7 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State_Data_To_Send( voi
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
-    
+
     BytesSent = prvSendData( pxSocket, &pxNetworkBuffer, 100, 50 );
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
     TEST_ASSERT_EQUAL( 50, BytesSent );
@@ -2133,7 +2133,7 @@ void test_prvTCPSendReset( void )
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
-    
+
     Return = prvTCPSendReset( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
     TEST_ASSERT_EQUAL( pdFALSE, Return );

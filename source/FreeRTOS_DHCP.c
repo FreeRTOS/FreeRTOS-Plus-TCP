@@ -206,7 +206,7 @@
         }
 
         if( ( EP_DHCPData.eDHCPState != EP_DHCPData.eExpectedState ) && ( xReset == pdFALSE ) )
-        { 
+        {
             /* When the DHCP event was generated, the DHCP client was
             * in a different state.  Therefore, ignore this event. */
             FreeRTOS_debug_printf( ( "DHCP wrong state: expect: %d got: %d : ignore\n",
@@ -218,7 +218,7 @@
             const DHCPMessage_IPv4_t * pxDHCPMessage;
             BaseType_t lBytes;
 
-            for( ; xDHCPv4Socket!=NULL; )
+            for( ; xDHCPv4Socket != NULL; )
             {
                 BaseType_t xRecvFlags = FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK;
                 NetworkEndPoint_t * pxIterator = NULL;
@@ -811,7 +811,7 @@
  */
     static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
     {
-        if( xDHCPv4Socket != NULL && xDHCPSocketUserCount > 0 )
+        if( ( xDHCPv4Socket != NULL ) && ( xDHCPSocketUserCount > 0 ) )
         {
             xDHCPSocketUserCount--;
 
@@ -1294,9 +1294,7 @@
                             }
 
                             xSet.uxIndex += xSet.uxLength;
-
                         }
-
                     }
 
                     /* Were all the mandatory options received? */
