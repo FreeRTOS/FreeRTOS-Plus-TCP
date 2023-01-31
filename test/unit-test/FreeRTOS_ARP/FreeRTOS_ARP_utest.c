@@ -100,7 +100,7 @@ void test_xCheckLoopback_IncorrectMACAddress( void )
     /* But let the MAC address be different. */
     memset( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, 0xAA, ipMAC_ADDRESS_LENGTH_BYTES );
     /* bReleaseAfterSend parameter doesn't matter here. */
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn(&xEndPoint);
     xResult = xCheckLoopback( pxNetworkBuffer, pdFALSE );
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
     /* =================================================== */
@@ -113,18 +113,21 @@ void test_xCheckLoopback_HappyCase( void )
     uint8_t ucBuffer[ sizeof( IPPacket_t ) + ipBUFFER_PADDING ];
     BaseType_t xResult;
     NetworkEndPoint_t xEndPoint;
+    uint8_t ucBytes[ ipMAC_ADDRESS_LENGTH_BYTES ] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
 
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
     pxNetworkBuffer->xDataLength = sizeof( IPPacket_t );
+    
 
     IPPacket_t * pxIPPacket = ( IPPacket_t * ) ( pxNetworkBuffer->pucEthernetBuffer );
 
     /* =================================================== */
     /* Let the frame-type be IPv4. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn(&xEndPoint);
     /* Make the MAC address same. */
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipLOCAL_MAC_ADDRESS, ipMAC_ADDRESS_LENGTH_BYTES );
+    memcpy(pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucBytes, ipMAC_ADDRESS_LENGTH_BYTES);
+    memcpy(xEndPoint.xMACAddress.ucBytes, ucBytes, ipMAC_ADDRESS_LENGTH_BYTES);
     pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( pxNetworkBuffer, pxNetworkBuffer->xDataLength, pxNetworkBuffer );
     xSendEventStructToIPTask_IgnoreAndReturn( pdTRUE );
 
@@ -140,18 +143,19 @@ void test_xCheckLoopback_DuplicationFails( void )
     uint8_t ucBuffer[ sizeof( IPPacket_t ) + ipBUFFER_PADDING ];
     BaseType_t xResult;
     NetworkEndPoint_t xEndPoint;
+    uint8_t ucBytes[ ipMAC_ADDRESS_LENGTH_BYTES ] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
 
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
     pxNetworkBuffer->xDataLength = sizeof( IPPacket_t );
 
     IPPacket_t * pxIPPacket = ( IPPacket_t * ) ( pxNetworkBuffer->pucEthernetBuffer );
 
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn(&xEndPoint);
     /* =================================================== */
     /* Let the frame-type be IPv4. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     /* Make the MAC address same. */
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipLOCAL_MAC_ADDRESS, ipMAC_ADDRESS_LENGTH_BYTES );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
     /* Make buffer duplication fail. */
     pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( pxNetworkBuffer, pxNetworkBuffer->xDataLength, NULL );
     xResult = xCheckLoopback( pxNetworkBuffer, pdFALSE );
@@ -167,6 +171,7 @@ void test_xCheckLoopback_SendEventToIPTaskFails( void )
     uint8_t ucBuffer[ sizeof( IPPacket_t ) + ipBUFFER_PADDING ];
     BaseType_t xResult;
     NetworkEndPoint_t xEndPoint;
+    uint8_t ucBytes[ ipMAC_ADDRESS_LENGTH_BYTES ] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
 
     pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
     pxNetworkBuffer->xDataLength = sizeof( IPPacket_t );
@@ -174,12 +179,12 @@ void test_xCheckLoopback_SendEventToIPTaskFails( void )
     IPPacket_t * pxIPPacket = ( IPPacket_t * ) ( pxNetworkBuffer->pucEthernetBuffer );
 
 
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn(&xEndPoint);
     /* =================================================== */
     /* Let the frame-type be IPv4. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     /* Make the MAC address same. */
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipLOCAL_MAC_ADDRESS, ipMAC_ADDRESS_LENGTH_BYTES );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
 
     xSendEventStructToIPTask_IgnoreAndReturn( pdFALSE );
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
@@ -307,7 +312,7 @@ void test_eARPProcessPacket_SourceMACIsBroadcast( void )
     memcpy( &( xARPFrame.xARPHeader.xSenderHardwareAddress ), &xBroadcastMACAddress, sizeof( MACAddress_t ) );
     pxNetworkBuffer->pucEthernetBuffer = &xARPFrame;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
     eResult = eARPProcessPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
@@ -333,7 +338,7 @@ void test_eARPProcessPacket_SourceMACIsMulticast( void )
 
     xARPFrame.xARPHeader.xSenderHardwareAddress.ucBytes[ 0 ] = 0x01;
     pxNetworkBuffer->pucEthernetBuffer = &xARPFrame;
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
 
     eResult = eARPProcessPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -364,7 +369,7 @@ void test_eARPProcessPacket_IPIsLocalLoopBack( void )
             sizeof( ulSenderProtocolAddress ) );
     pxNetworkBuffer->pucEthernetBuffer = &xARPFrame;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
     eResult = eARPProcessPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
@@ -394,7 +399,7 @@ void test_eARPProcessPacket_SenderIPLessThanLoopBack( void )
             sizeof( ulSenderProtocolAddress ) );
     pxNetworkBuffer->pucEthernetBuffer = &xARPFrame;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
     eResult = eARPProcessPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
@@ -421,7 +426,7 @@ void test_eARPProcessPacket_LocalIPisZero( void )
 
     /* When the local IP address is 0, we should not process any ARP Packets. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0UL;
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
     eResult = eARPProcessPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
@@ -450,7 +455,7 @@ void test_eARPProcessPacket_InvalidOperation( void )
     /* Add invalid operation */
     xARPFrame.xARPHeader.usOperation = ipARP_REQUEST | ipARP_REPLY;
     pxNetworkBuffer->pucEthernetBuffer = &xARPFrame;
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
     eResult = eARPProcessPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
@@ -478,10 +483,13 @@ void test_eARPProcessPacket_Request_DifferentIP( void )
     xARPFrame.xARPHeader.usOperation = ipARP_REQUEST;
     xARPFrame.xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 0x11;
     pxNetworkBuffer->pucEthernetBuffer = &xARPFrame;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn(1);
     eResult = eARPProcessPacket( pxNetworkBuffer );
-    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+    TEST_ASSERT_EQUAL( eReturnEthernetFrame, eResult );
     /* =================================================== */
 }
 
@@ -511,10 +519,13 @@ void test_eARPProcessPacket_Request_SenderMACSameAsLocalMAC( void )
     xARPFrame.xARPHeader.usOperation = ipARP_REQUEST;
     xARPFrame.xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER;
     pxNetworkBuffer->pucEthernetBuffer = &xARPFrame;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn(1);
     eResult = eARPProcessPacket( pxNetworkBuffer );
-    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+    TEST_ASSERT_EQUAL( eReturnEthernetFrame, eResult );
     /* =================================================== */
 }
 
@@ -549,10 +560,11 @@ void test_eARPProcessPacket_Request_SenderAndTargetDifferent( void )
     xNetworkBuffer.pucEthernetBuffer = &xARPFrame;
     xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
     xNetworkBuffer.pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
 
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
-    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( 1 );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn(1);
     eResult = eARPProcessPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReturnEthernetFrame, eResult );
     /* =================================================== */
@@ -585,33 +597,16 @@ void test_eARPProcessPacket_Request_SenderAndTargetSame( void )
     /* Reset the private variable uxARPClashCounter. */
     vResetARPClashCounter();
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAndReturn( *ipLOCAL_IP_ADDRESS_POINTER, 2, &xEndPoint );
-
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAndReturn( *ipLOCAL_IP_ADDRESS_POINTER, 25, &xEndPoint );
-
-    /* For this unit-test, we do not concern ourselves with whether the ARP request
-     * is actually sent or not. Effort is all that matters. */
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xInterface, NULL );
-
-    /* The value returned doesn't matter as this will determine when would the
-     * next timeout for Gratuitous ARP occur. And for this unit-test, that doesn't
-     * matter. */
-    xTaskGetTickCount_ExpectAndReturn( 100 );
-
-    /* This function will setup the timeout which is used to limit the number of defensive
-     * ARPs. */
-    vTaskSetTimeOutState_ExpectAnyArgs();
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAndReturn(*ipLOCAL_IP_ADDRESS_POINTER, 2, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn(1);
 
     xNetworkBuffer.pucEthernetBuffer = &xARPFrame;
     xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
     xNetworkBuffer.pxEndPoint = &xEndPoint;
-
+    xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
+    
     eResult = eARPProcessPacket( &xNetworkBuffer );
-    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+    TEST_ASSERT_EQUAL( eReturnEthernetFrame, eResult );
     /* =================================================== */
 }
 
@@ -647,10 +642,11 @@ void test_eARPProcessPacket_Reply_TargetIPSameAsLocalIP( void )
     /* Reset the private variable uxARPClashCounter. */
     vResetARPClashCounter();
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAndReturn( ulSenderProtocolAddress, 2, &xEndPoint );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAndReturn(ulSenderProtocolAddress, 2, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
 
     xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
+    xEndPoint.ipv4_settings.ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
     xNetworkBuffer.pucEthernetBuffer = &xARPFrame;
     xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
     xNetworkBuffer.pxEndPoint = &xEndPoint;
@@ -697,9 +693,10 @@ void test_eARPProcessPacket_Reply_TargetIPNotSameAsLocalIP_ButEntryInCache( void
     /* Reset the private variable uxARPClashCounter. */
     vResetARPClashCounter();
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAndReturn( ulSenderProtocolAddress, 2, &xEndPoint );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAndReturn(ulSenderProtocolAddress, 2, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
 
+    xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
     xNetworkBuffer.pucEthernetBuffer = &xARPFrame;
     xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
     xNetworkBuffer.pxEndPoint = &xEndPoint;
@@ -740,30 +737,13 @@ void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
     vResetARPClashCounter();
 
     xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
+    xEndPoint.ipv4_settings.ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
     xNetworkBuffer.pucEthernetBuffer = &xARPFrame;
     xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
-
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAndReturn( *ipLOCAL_IP_ADDRESS_POINTER, 25, &xEndPoint );
-
-    /* For this unit-test, we do not concern ourselves with whether the ARP request
-     * is actually sent or not. Effort is all that matters. */
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xInterface, NULL );
-
-    /* The value returned doesn't matter as this will determine when would the
-     * next timeout for Gratuitous ARP occur. And for this unit-test, that doesn't
-     * matter. */
-    xTaskGetTickCount_ExpectAndReturn( 100 );
-
-    /* This function will setup the timeout which is used to limit the number of defensive
-     * ARPs. */
-    vTaskSetTimeOutState_ExpectAnyArgs();
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn(1);
 
     /* Reset the flag. */
     xARPHadIPClash = pdFALSE;
@@ -775,10 +755,9 @@ void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
 
     /* Reset the flag. */
     xARPHadIPClash = pdFALSE;
-    /* Let there be no timeout. */
-    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFAIL );
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn(1);
 
     /* Call it again and do not expect the task functions to be called. */
     eResult = eARPProcessPacket( &xNetworkBuffer );
@@ -818,7 +797,7 @@ void test_eARPProcessPacket_Reply_DifferentIP( void )
     xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
 
     eResult = eARPProcessPacket( &xNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -860,7 +839,7 @@ void test_eARPProcessPacket_Reply_DifferentIP_WaitingBufferNonNull( void )
     /* Reset the private variable uxARPClashCounter. */
     vResetARPClashCounter();
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
 
     xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
     xNetworkBuffer.pucEthernetBuffer = &xARPFrame;
@@ -912,7 +891,7 @@ void test_eARPProcessPacket_Reply_WaitingBufferNonNull_MatchingAddress1( void )
     /* Reset the private variable uxARPClashCounter. */
     vResetARPClashCounter();
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
 
     xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
     xNetworkBuffer.pucEthernetBuffer = &xARPFrame;
@@ -969,7 +948,7 @@ void test_eARPProcessPacket_Reply_WaitingBufferNonNull_MatchingAddress2( void )
     /* Reset the private variable uxARPClashCounter. */
     vResetARPClashCounter();
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
 
     xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
     xNetworkBuffer.pucEthernetBuffer = &xARPFrame;
@@ -1061,7 +1040,7 @@ void test_xCheckRequiresARPResolution_NotOnLocalNetwork( void )
     uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
     BaseType_t xResult;
     NetworkInterface_t xInterface;
-
+    
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
 
@@ -1110,15 +1089,15 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_NotInCache( void )
         xARPCache[ x ].ulIPAddress = 0;
     }
 
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
 
     /* For this unit-test, we do not concern ourselves with whether the ARP request
      * is actually sent or not. Effort is all that matters. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xInterface, NULL );
+    
+    FreeRTOS_NextNetworkInterface_ExpectAndReturn(&xInterface, NULL);
 
     xResult = xCheckRequiresARPResolution( pxNetworkBuffer );
 
@@ -1127,6 +1106,7 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_NotInCache( void )
 
 void test_xCheckRequiresARPResolution_OnLocalNetwork_InCache( void )
 {
+    struct xNetworkEndPoint xEndPoint;
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
     uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
     BaseType_t xResult;
@@ -1137,10 +1117,13 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_InCache( void )
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD1234;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
+    xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
 
     /* Make sure there is a match. */
-    pxIPHeader->ulSourceIPAddress = *ipLOCAL_IP_ADDRESS_POINTER & xNetworkAddressing.ulNetMask;
+    pxIPHeader->ulSourceIPAddress = xEndPoint.ipv4_settings.ulIPAddress & xEndPoint.ipv4_settings.ulNetMask;
+
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
 
     /* And that the IP is not in ARP cache. */
     for( uint16_t x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
@@ -1219,7 +1202,7 @@ void test_vARPRefreshCacheEntry_NULLMAC_NoMatchingEntry( void )
         xARPCache[ i ].ucValid = pdTRUE;
     }
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
 
     ulIPAddress = 0x00;
     /* Pass a NULL MAC Address and an IP address which will not match. */
@@ -1249,7 +1232,7 @@ void test_vARPRefreshCacheEntry_NULLMAC_MatchingEntry( void )
 
     xARPCache[ 1 ].ulIPAddress = 0xAABBCCEE;
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
 
     ulIPAddress = 0xAABBCCEE;
     /* Pass a NULL MAC Address and an IP address which will match. */
@@ -1285,7 +1268,7 @@ void test_vARPRefreshCacheEntry_MACWontMatch_IPWillMatch( void )
     memset( xMACAddress.ucBytes, 0x11, ipMAC_ADDRESS_LENGTH_BYTES );
     /* Pass a MAC Address which won't match and an IP address which will match. */
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
 
     vARPRefreshCacheEntry( &xMACAddress, ulIPAddress, &xEndPoint );
 
@@ -1321,7 +1304,7 @@ void test_vARPRefreshCacheEntry_MACAndIPWillMatch( void )
     ulIPAddress = 0xAABBCCEE;
     memset( xMACAddress.ucBytes, 0x11, ipMAC_ADDRESS_LENGTH_BYTES );
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
 
     /* Pass a MAC Address which will match and an IP address which will match too. */
     vARPRefreshCacheEntry( &xMACAddress, ulIPAddress, &xEndPoint );
@@ -1363,8 +1346,8 @@ void test_vARPRefreshCacheEntry_IPOnADifferentSubnet( void )
     memset( xMACAddress.ucBytes, 0x11, ipMAC_ADDRESS_LENGTH_BYTES );
     /* Pass a MAC Address which will match and an IP address which will match too. */
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( ( void * ) 124 );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 124);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
 
     vARPRefreshCacheEntry( &xMACAddress, ulIPAddress, &xEndPoint );
 
@@ -1402,8 +1385,8 @@ void test_vARPRefreshCacheEntry_IPAndMACInDifferentLocations( void )
     memset( xARPCache[ xUseEntry + 1 ].xMACAddress.ucBytes, 0x22, sizeof( xMACAddress.ucBytes ) );
     memset( xMACAddress.ucBytes, 0x22, ipMAC_ADDRESS_LENGTH_BYTES );
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( ( void * ) 124 );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( ( void * ) 124 );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 124);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 124);
 
     /* Pass a MAC and IP Address which won't match, but age is now a factor. */
     vARPRefreshCacheEntry( &xMACAddress, ulIPAddress, &xEndPoint );
@@ -1419,41 +1402,41 @@ void test_vARPRefreshCacheEntry_IPAndMACInDifferentLocations( void )
     /* =================================================== */
 }
 
-/* void test_vARPRefreshCacheEntry_IPAndMACInDifferentLocations1( void ) */
-/* { */
-/*     MACAddress_t xMACAddress; */
-/*     uint32_t ulIPAddress; */
-/*     int i; */
-/*     BaseType_t xUseEntry; */
-/*     struct xNetworkEndPoint xEndPoint; */
+// void test_vARPRefreshCacheEntry_IPAndMACInDifferentLocations1( void )
+// {
+//     MACAddress_t xMACAddress;
+//     uint32_t ulIPAddress;
+//     int i;
+//     BaseType_t xUseEntry;
+//     struct xNetworkEndPoint xEndPoint;
 
-/*     / * =================================================== * / */
-/*     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ ) */
-/*     { */
-/*         xARPCache[ i ].ulIPAddress = 0xAABBCCDD; */
-/*         xARPCache[ i ].ucAge = i + 1; */
-/*         xARPCache[ i ].ucValid = pdFALSE; */
-/*         memset( xARPCache[ i ].xMACAddress.ucBytes, 0x34, sizeof( xMACAddress.ucBytes ) ); */
-/*     } */
+//     /* =================================================== */
+//     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
+//     {
+//         xARPCache[ i ].ulIPAddress = 0xAABBCCDD;
+//         xARPCache[ i ].ucAge = i + 1;
+//         xARPCache[ i ].ucValid = pdFALSE;
+//         memset( xARPCache[ i ].xMACAddress.ucBytes, 0x34, sizeof( xMACAddress.ucBytes ) );
+//     }
 
-/*     xUseEntry = 0; */
+//     xUseEntry = 0;
 
-/*     / * Make sure an entry matches. * / */
-/*     xARPCache[ xUseEntry ].ulIPAddress = 0xAABBCCEA; */
-/*     ulIPAddress = 0xAABBCCEE; */
+//     /* Make sure an entry matches. */
+//     xARPCache[ xUseEntry ].ulIPAddress = 0xAABBCCEA;
+//     ulIPAddress = 0xAABBCCEE;
 
-/*     / * Also make sure that a MAC address matches. But a different one. * / */
-/*     memset( xARPCache[ xUseEntry + 1 ].xMACAddress.ucBytes, 0x22, sizeof( xMACAddress.ucBytes ) ); */
-/*     memset( xMACAddress.ucBytes, 0x22, ipMAC_ADDRESS_LENGTH_BYTES ); */
+//     /* Also make sure that a MAC address matches. But a different one. */
+//     memset( xARPCache[ xUseEntry + 1 ].xMACAddress.ucBytes, 0x22, sizeof( xMACAddress.ucBytes ) );
+//     memset( xMACAddress.ucBytes, 0x22, ipMAC_ADDRESS_LENGTH_BYTES );
 
-/*     / * Pass a MAC and IP Address which won't match, but age is now a factor. * / */
-/*     vARPRefreshCacheEntry( &xMACAddress, ulIPAddress, &xEndPoint ); */
+//     /* Pass a MAC and IP Address which won't match, but age is now a factor. */
+//     vARPRefreshCacheEntry( &xMACAddress, ulIPAddress, &xEndPoint );
 
-/*     / * Since no matching entry will be found with smallest age (i.e. oldest), 0th entry will be updated to have the below details. * / */
-/*     TEST_ASSERT_EQUAL( xARPCache[ xUseEntry + 1 ].ulIPAddress, ulIPAddress ); */
-/*     TEST_ASSERT_EQUAL_MESSAGE( ipconfigMAX_ARP_AGE, xARPCache[ xUseEntry + 1 ].ucAge, "Test 9" ); */
-/*     TEST_ASSERT_EQUAL( ( uint8_t ) pdTRUE, xARPCache[ xUseEntry + 1 ].ucValid ); */
-/* } */
+//     /* Since no matching entry will be found with smallest age (i.e. oldest), 0th entry will be updated to have the below details. */
+//     TEST_ASSERT_EQUAL( xARPCache[ xUseEntry + 1 ].ulIPAddress, ulIPAddress );
+//     TEST_ASSERT_EQUAL_MESSAGE( ipconfigMAX_ARP_AGE, xARPCache[ xUseEntry + 1 ].ucAge, "Test 9" );
+//     TEST_ASSERT_EQUAL( ( uint8_t ) pdTRUE, xARPCache[ xUseEntry + 1 ].ucValid );
+// }
 
 void test_eARPGetCacheEntryByMac_catchAssert( void )
 {
@@ -1531,18 +1514,18 @@ void test_eARPGetCacheEntry_IPMatchesBroadcastAddr( void )
     MACAddress_t xMACAddress;
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
-    struct xNetworkEndPoint * pxEndPoint, xEndPoint;
+    struct xNetworkEndPoint *pxEndPoint, xEndPoint;
 
     /* =================================================== */
-    ulIPAddress = FreeRTOS_ntohl( xNetworkAddressing.ulBroadcastAddress );
+    ulIPAddress = FreeRTOS_ntohl(xNetworkAddressing.ulBroadcastAddress);
     /* Not worried about what these functions do. */
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(&xEndPoint);
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
-
+    
     TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 3" );
-    TEST_ASSERT_EQUAL( pxEndPoint, &xEndPoint );
+    TEST_ASSERT_EQUAL(pxEndPoint, &xEndPoint);
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &xBroadcastMACAddress, &xMACAddress, sizeof( xMACAddress ), "Test 3" );
     /* =================================================== */
 }
@@ -1554,14 +1537,14 @@ void test_eARPGetCacheEntry_IPMatchesOtherBroadcastAddr( void )
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
     struct xNetworkInterface * xInterface;
-    struct xNetworkEndPoint * pxEndPoint, xEndPoint;
+    struct xNetworkEndPoint *pxEndPoint, xEndPoint;
 
     /* =================================================== */
-    ulIPAddress = FreeRTOS_ntohl( ipBROADCAST_IP_ADDRESS );
+    ulIPAddress = FreeRTOS_ntohl(ipBROADCAST_IP_ADDRESS);
     /* Not worried about what these functions do. */
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(&xEndPoint);
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &xInterface );
     TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 3" );
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &xBroadcastMACAddress, &xMACAddress, sizeof( xMACAddress ), "Test 3" );
@@ -1575,15 +1558,16 @@ void test_eARPGetCacheEntry_LocalIPIsZero( void )
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
     struct xNetworkInterface * xInterface;
-    struct xNetworkEndPoint * pxEndPoint, xEndPoint;
+    struct xNetworkEndPoint *pxEndPoint, xEndPoint;
 
     /* =================================================== */
     *ipLOCAL_IP_ADDRESS_POINTER = 0;
     ulIPAddress = 0x1234;
     /* Not worried about what these functions do. */
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &xInterface );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 4, (void *) 0x1234);
+    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
     TEST_ASSERT_EQUAL_MESSAGE( eCantSendPacket, eResult, "Test 4" );
     /* =================================================== */
 }
@@ -1595,16 +1579,17 @@ void test_eARPGetCacheEntry_LocalIPMatchesReceivedIP( void )
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
     struct xNetworkInterface * xInterface;
-    struct xNetworkEndPoint * pxEndPoint, xEndPoint;
+    struct xNetworkEndPoint *pxEndPoint, xEndPoint;
 
     /* =================================================== */
     *ipLOCAL_IP_ADDRESS_POINTER = 0x1234;
     ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
     /* Not worried about what these functions do. */
     xEndPoint.ipv4_settings.ulIPAddress = 0x1234;
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &xInterface );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 4, (void *) 0x1234);
+    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
     TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 5" );
     /* =================================================== */
 }
@@ -1616,7 +1601,7 @@ void test_eARPGetCacheEntry_MatchingInvalidEntry( void )
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
     struct xNetworkInterface * xInterface;
-    struct xNetworkEndPoint * pxEndPoint, xEndPoint;
+    struct xNetworkEndPoint *pxEndPoint, xEndPoint;
 
     /* =================================================== */
     ulIPAddress = 0x4321;
@@ -1628,10 +1613,10 @@ void test_eARPGetCacheEntry_MatchingInvalidEntry( void )
     xARPCache[ 1 ].ucValid = pdFALSE;
     /* Not worried about what these functions do. */
     xEndPoint.ipv4_settings.ulGatewayAddress = xNetworkAddressing.ulGatewayAddress;
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
-    FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
+    FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn(&xEndPoint);
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &xInterface );
     TEST_ASSERT_EQUAL_MESSAGE( eCantSendPacket, eResult, "Test 6" );
     /* =================================================== */
@@ -1644,7 +1629,7 @@ void test_eARPGetCacheEntry_MatchingValidEntry( void )
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
     struct xNetworkInterface * xInterface;
-    struct xNetworkEndPoint * pxEndPoint, xEndPoint;
+    struct xNetworkEndPoint *pxEndPoint, xEndPoint;
 
     /* =================================================== */
     ulIPAddress = 0x4321;
@@ -1656,10 +1641,10 @@ void test_eARPGetCacheEntry_MatchingValidEntry( void )
     xARPCache[ 1 ].ucValid = pdTRUE;
     /* Not worried about what these functions do. */
     xEndPoint.ipv4_settings.ulGatewayAddress = xNetworkAddressing.ulGatewayAddress;
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
-    FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
+    FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn(&xEndPoint);
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &xInterface );
     TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 7" );
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &xARPCache[ 1 ].xMACAddress, &xMACAddress, sizeof( xMACAddress ), "Test 7" );
@@ -1673,7 +1658,7 @@ void test_eARPGetCacheEntry_GatewayAddressZero( void )
     eARPLookupResult_t eResult;
     uint32_t ulSavedGatewayAddress;
     struct xNetworkInterface * xInterface;
-    struct xNetworkEndPoint * pxEndPoint, xEndPoint;
+    struct xNetworkEndPoint *pxEndPoint, xEndPoint;
 
     /* =================================================== */
     for( int i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -1686,10 +1671,10 @@ void test_eARPGetCacheEntry_GatewayAddressZero( void )
     ulIPAddress = 0x4321;
     /* Not worried about what these functions do. */
     xEndPoint.ipv4_settings.ulGatewayAddress = 0;
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
-    FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
+    FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn(NULL);
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &xInterface );
 
     TEST_ASSERT_EQUAL_MESSAGE( eARPCacheMiss, eResult, "Test 9" );
@@ -1711,10 +1696,10 @@ void test_eARPGetCacheEntry_AddressNotOnLocalAddress( void )
     *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
 
     /* Not worried about what these functions do. */
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
-    FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
+    FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn(NULL);
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &xInterface );
     TEST_ASSERT_EQUAL_MESSAGE( eCantSendPacket, eResult, "Test 11" );
     /* =================================================== */
@@ -1744,9 +1729,9 @@ void test_eARPGetCacheEntry_NoCacheHit( void )
      * and on different net masks. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0x1234;
     /* Not worried about what these functions do. */
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(NULL);
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &xInterface );
     xNetworkAddressing.ulGatewayAddress = ulSavedGatewayAddress;
     TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
@@ -1772,57 +1757,57 @@ void test_vARPAgeCache( void )
     pxNetworkEndPoints = &xEndPoint;
     xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
     xEndPoint.ipv4_settings.ulIPAddress = 0x1234;
-
+    
     /* =================================================== */
     /* Let the value returned first time be 0 such that the variable is reset. */
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
     pxNetworkEndPoints = &xEndPoint;
 
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
 
-
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xInterface, NULL );
+    
+    FreeRTOS_NextNetworkInterface_ExpectAndReturn(&xInterface, NULL);
 
     vARPAgeCache();
     /* =================================================== */
 
-    /* / * =================================================== * / */
-    /* / * Make second entry invalid but with age > 1. * / */
+    // /* =================================================== */
+    // /* Make second entry invalid but with age > 1. */
     xARPCache[ ucEntryToCheck ].ucAge = 1;
     xARPCache[ ucEntryToCheck ].ucValid = pdFALSE;
     /* Set an IP address */
     xARPCache[ ucEntryToCheck ].ulIPAddress = 0xAAAAAAAA;
+    
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
 
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
 
-
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xInterface, NULL );
+    
+    FreeRTOS_NextNetworkInterface_ExpectAndReturn(&xInterface, NULL);
 
     /* Let the value returned first time be 100. */
     xTaskGetTickCount_ExpectAndReturn( 100 );
 
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
 
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xInterface, NULL );
+    FreeRTOS_NextNetworkInterface_ExpectAndReturn(&xInterface, NULL);
 
     vARPAgeCache();
     /* =================================================== */
@@ -1834,16 +1819,16 @@ void test_vARPAgeCache( void )
     /* Set an IP address */
     xARPCache[ ucEntryToCheck ].ulIPAddress = 0xAAAAAAAA;
 
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
 
-
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xInterface, NULL );
+    
+    FreeRTOS_NextNetworkInterface_ExpectAndReturn(&xInterface, NULL);
 
     /* Let the value returned first time be 100. */
     xTaskGetTickCount_ExpectAndReturn( 100 );
@@ -1862,16 +1847,16 @@ void test_vARPAgeCache( void )
     /* Let the value returned third time be 100000. */
     xTaskGetTickCount_ExpectAndReturn( 100000 );
 
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
 
-
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xInterface, NULL );
+    
+    FreeRTOS_NextNetworkInterface_ExpectAndReturn(&xInterface, NULL);
 
     vARPAgeCache();
     /* =================================================== */
@@ -1884,10 +1869,12 @@ void test_vARPSendGratuitous( void )
     vARPSendGratuitous();
 }
 
-BaseType_t xNetworkInterfaceOutput_ARP_Stub( NetworkInterface_t * pxInterface,
-                                             NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                             BaseType_t bReleaseAfterSend )
+uint32_t  xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
+BaseType_t xNetworkInterfaceOutput_ARP_STUB( NetworkInterface_t * pxInterface, 
+                                            NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                            BaseType_t bReleaseAfterSend ) 
 {
+    xNetworkInterfaceOutput_ARP_STUB_CallCount++;
     return pdTRUE_UNSIGNED;
 }
 
@@ -1901,48 +1888,55 @@ void test_FreeRTOS_OutputARPRequest( void )
 
     xNetworkBuffer.pucEthernetBuffer = ucBuffer;
     xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
-    xInterface.pfOutput = xNetworkInterfaceOutput_ARP_Stub;
-
+    
     xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
     xEndPoint.ipv4_settings.ulIPAddress = 0x1234;
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.pxNetworkInterface->pfOutput = xNetworkInterfaceOutput_ARP_STUB;
 
     /* =================================================== */
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
+    xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
 
     xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
 
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xInterface, NULL );
-
+    FreeRTOS_NextNetworkInterface_ExpectAndReturn(&xInterface, NULL);
+    
     FreeRTOS_OutputARPRequest( ulIPAddress );
+    TEST_ASSERT_EQUAL( xNetworkInterfaceOutput_ARP_STUB_CallCount, 1 );
     /* =================================================== */
 
     /* =================================================== */
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
+    xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
-
+    
 
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
     xSendEventStructToIPTask_IgnoreAndReturn( pdFALSE );
     vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xInterface, NULL );
+    FreeRTOS_NextNetworkInterface_ExpectAndReturn(&xInterface, NULL);
     FreeRTOS_OutputARPRequest( ulIPAddress );
+    TEST_ASSERT_EQUAL( xNetworkInterfaceOutput_ARP_STUB_CallCount, 0 );
     /* =================================================== */
 
     /* =================================================== */
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
+    xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(&xEndPoint);
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
     xSendEventStructToIPTask_IgnoreAndReturn( pdPASS );
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xInterface, NULL );
+    FreeRTOS_NextNetworkInterface_ExpectAndReturn(&xInterface, NULL);
     FreeRTOS_OutputARPRequest( ulIPAddress );
+    TEST_ASSERT_EQUAL( xNetworkInterfaceOutput_ARP_STUB_CallCount, 0 );
     /* =================================================== */
 }
 
@@ -1977,10 +1971,10 @@ void test_xARPWaitResolution_PrivateFunctionReturnsHit( void )
     xEndPoint.bits.bIPv6 = 0;
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
     /* Not worried about what these functions do. */
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 1UL );
     vSetMultiCastIPv4MacAddress_Ignore();
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn(NULL, &xEndPoint);
 
     xResult = xARPWaitResolution( ulIPAddress, 0 );
     TEST_ASSERT_EQUAL( xResult, 0 );
@@ -2009,25 +2003,25 @@ void test_xARPWaitResolution_GNWFailsNoTimeout( void )
     *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
 
     /* Assertion on calling from IP-task */
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
     /* Not worried about what these functions do. */
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( ( void * ) 1234 );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
 
     vTaskSetTimeOutState_Stub( vStoreTimeValue );
 
     /* Make sure that there are enough stubs for all the repetitive calls. */
     for( i = 0; i < ipconfigMAX_ARP_RETRANSMISSIONS; i++ )
     {
-        FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
-        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( ( void * ) 1234 );
+        FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
+        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn((void *) 1234);
         pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
-        FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn( NULL );
+        FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn(NULL);
         vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
-        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
         xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-        FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( ( void * ) 1234 );
+        FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
         xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
     }
 
@@ -2058,36 +2052,36 @@ void test_xARPWaitResolution( void )
     *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
 
     /* Assertion on calling from IP-task */
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
     /* Not worried about what these functions do. */
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( ( void * ) 1234 );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
 
     vTaskSetTimeOutState_Stub( vStoreTimeValue );
 
     /* Make sure that there are enough stubs for all the repetitive calls. */
     for( i = 0; i < ( ipconfigMAX_ARP_RETRANSMISSIONS - 1 ); i++ )
     {
-        FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
-        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( ( void * ) 1234 );
+        FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
+        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn((void *) 1234);
         pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
-        FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn( NULL );
+        FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn(NULL);
         vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
-        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
         xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-        FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( ( void * ) 1234 );
+        FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
         xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
     }
 
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( ( void * ) 1234 );
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn((void *) 1234);
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
-    FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn(NULL);
     vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( ( void * ) 1234 );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
     xTaskCheckForTimeOut_IgnoreAndReturn( pdTRUE );
 
     xResult = xARPWaitResolution( ulIPAddress, 0 );
@@ -2097,7 +2091,6 @@ void test_xARPWaitResolution( void )
     /* Make the resolution pass after some attempts. */
     /* =================================================== */
     xEndPoint.bits.bIPv6 = 0;
-
     /* Make sure that no address matches the IP address. */
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
     {
@@ -2110,37 +2103,37 @@ void test_xARPWaitResolution( void )
     *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
 
     /* Assertion on calling from IP-task */
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
     /* Not worried about what these functions do. */
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( ( void * ) 1234 );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
 
     vTaskSetTimeOutState_Stub( vStoreTimeValue );
 
     /* Make sure that there are enough stubs for all the repetitive calls. */
     for( i = 0; i < ( ipconfigMAX_ARP_RETRANSMISSIONS - 2 ); i++ )
     {
-        FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
-        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( ( void * ) 1234 );
+        FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
+        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn((void *) 1234);
         pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
-        FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn( NULL );
+        FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn(NULL);
         vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
-        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
         xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-        FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( ( void * ) 1234 );
+        FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn((void *) 1234);
         xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
     }
 
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( ( void * ) 1234 );
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn(&xInterface);
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn((void *) 1234);
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
-    FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_NextNetworkInterface_ExpectAnyArgsAndReturn(NULL);
     vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn(NULL);
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 1UL );
     vSetMultiCastIPv4MacAddress_Ignore();
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn(NULL, &xEndPoint);
     xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
 
     xResult = xARPWaitResolution( ulIPAddress, 0 );
@@ -2175,7 +2168,7 @@ void test_FreeRTOS_ClearARP( void )
 
     memset( ucArray, 0, sizeof( xARPCache ) );
 
-    FreeRTOS_ClearARP( NULL );
+    FreeRTOS_ClearARP(NULL);
     TEST_ASSERT_EQUAL_MEMORY( ucArray, xARPCache, sizeof( xARPCache ) );
 }
 

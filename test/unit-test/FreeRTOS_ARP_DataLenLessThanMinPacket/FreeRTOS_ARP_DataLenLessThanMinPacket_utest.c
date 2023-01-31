@@ -47,6 +47,8 @@ void test_FreeRTOS_OutputARPRequest_MinimumPacketSizeLessThanARPPacket( void )
 
     xInterface.pfOutput = xNetworkInterfaceOutput_ARP_Stub;
 
+    xEndPoint.pxNetworkInterface = &xInterface;
+
     /* =================================================== */
 
     FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );

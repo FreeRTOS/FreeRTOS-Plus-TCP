@@ -32,8 +32,5 @@
 #include <portmacro.h>
 #include <list.h>
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxBuffer,
-                                    BaseType_t bReleaseAfterSend );
-
 
 #endif /* ifndef LIST_MACRO_H */
