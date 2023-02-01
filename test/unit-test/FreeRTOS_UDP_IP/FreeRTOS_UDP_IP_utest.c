@@ -329,7 +329,6 @@ void test_vProcessGeneratedUDPPacket_CacheHit_ICMPPacket_LLMNR_UDPChkSumOption( 
 
     /* Cleanup the ethernet buffer. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
-    xInterfaces[ 0 ].pfOutput = xNetworkInterfaceOutput_CMockExpectAndReturn;
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] = ucSocketOptions;
 
