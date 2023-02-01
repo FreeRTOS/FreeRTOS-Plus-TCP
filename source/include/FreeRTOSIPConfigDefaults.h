@@ -185,6 +185,10 @@
     #define ipconfigCOMPATIBLE_WITH_SINGLE    ( 0 )
 #endif
 
+#ifndef ipconfigMULTI_INTERFACE
+    #define ipconfigMULTI_INTERFACE    ( 1 )
+#endif
+
 #if ( ipconfigUSE_TCP != 0 )
 
 /* Disable IPv6 by default. */
@@ -227,8 +231,8 @@
 
 /* Include all API's and code that is needed for the IPv4 protocol.
  * When defined as zero, the application should uses IPv6. */
-#ifndef ipconfigUSE_IPV4
-    #define ipconfigUSE_IPV4    ( 1 )
+#ifndef ipconfigUSE_IPv4
+    #define ipconfigUSE_IPv4    ( 1 )
 #endif
 
 /* Include all API's and code that is needed for the IPv6 protocol.
