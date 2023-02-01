@@ -197,9 +197,9 @@ struct xARP_PACKET
 typedef struct xARP_PACKET ARPPacket_t;
 
 
-#if ( ipconfigUSE_IPV4 != 0 )
+#if ( ipconfigUSE_IPv4 != 0 )
     #include "FreeRTOS_IPv4_Private.h"
-#endif /* ipconfigUSE_IPV4 */
+#endif /* ipconfigUSE_IPv4 */
 #if ( ipconfigUSE_IPv6 != 0 )
     #include "FreeRTOS_IPv6_Private.h"
 #endif /* ipconfigUSE_IPv6 */

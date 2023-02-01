@@ -57,6 +57,22 @@ struct xNetworkInterface * pxNetworkInterfaces = NULL;
 static NetworkEndPoint_t * FreeRTOS_AddEndPoint( NetworkInterface_t * pxInterface,
                                                  NetworkEndPoint_t * pxEndPoint );
 
+struct xIPv6_Couple
+{
+    IPv6_Type_t eType;
+    uint16_t usMask;
+    uint16_t usExpected;
+};
+
+static const struct xIPv6_Couple xIPCouples[] =
+{
+/*    IP-type          Mask     Value */
+    { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
+    { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
+    { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
+    { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
+};
+
 /*-----------------------------------------------------------*/
 
 /**
@@ -542,8 +558,8 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         /* This was only for debugging. */
         if( ( pxEndPoint == NULL ) && ( ulWhere != 1U ) && ( ulWhere != 2U ) )
         {
-            FreeRTOS_printf( ( "FreeRTOS_FindEndPointOnNetMask[%ld]: No match for %lxip\n",
-                               ulWhere, FreeRTOS_ntohl( ulIPAddress ) ) );
+            FreeRTOS_printf( ( "FreeRTOS_FindEndPointOnNetMask[%d]: No match for %xip\n",
+                               ( unsigned ) ulWhere, ( unsigned ) FreeRTOS_ntohl( ulIPAddress ) ) );
         }
 
         return pxEndPoint;
@@ -714,23 +730,23 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                        /* coverity[misra_c_2012_rule_11_3_violation] */
                        const IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( const IPPacket_IPv6_t * ) pucEthernetBuffer );
-
+                       IPv6_Type_t eMyType;
+                       IPv6_Type_t eIPType = xIPv6_GetIPType( &( pxIPPacket_IPv6->xIPHeader.xSourceAddress ) );
                        pxEndPoint = pxNetworkEndPoints;
 
-                       while( pxEndPoint != NULL )
+                       for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface );
+                            pxEndPoint != NULL;
+                            pxEndPoint = FreeRTOS_NextEndPoint( pxNetworkInterface, pxEndPoint ) )
                        {
-                           if( ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) &&
-                               ( pxEndPoint->pxNetworkInterface == pxNetworkInterface ) )
+                           if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
                            {
-                               /* This is a IPv6 end-point on the same interface,
-                                * and with a matching IP-address. */
-                               if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), &( pxIPPacket_IPv6->xIPHeader.xDestinationAddress ), pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
+                               eMyType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+
+                               if( eMyType == eIPType )
                                {
                                    break;
                                }
                            }
-
-                           pxEndPoint = pxEndPoint->pxNext;
                        }
 
                        #if ( ipconfigUSE_LLMNR != 0 )
@@ -967,6 +983,28 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     }
 /*-----------------------------------------------------------*/
 
+    IPv6_Type_t xIPv6_GetIPType( IPv6_Address_t * pxAddress )
+    {
+        IPv6_Type_t eResult = eIPv6_Unknown;
+        BaseType_t xIndex;
+
+        for( xIndex = 0; xIndex < ARRAY_SIZE( xIPCouples ); xIndex++ )
+        {
+            uint16_t usAddress =
+                ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
+                ( ( uint16_t ) pxAddress->ucBytes[ 1 ] );
+
+            if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
+            {
+                eResult = xIPCouples[ xIndex ].eType;
+                break;
+            }
+        }
+
+        return eResult;
+    }
+/*-----------------------------------------------------------*/
+
 #else /* ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) */
 
 /* Here below the most important function of FreeRTOS_Routing.c in a short
@@ -1058,7 +1096,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  * @return The end-point that has the given MAC-address.
  */
     NetworkEndPoint_t * FreeRTOS_FindEndPointOnMAC( const MACAddress_t * pxMACAddress,
-                                                    NetworkInterface_t * pxInterface )
+                                                    const NetworkInterface_t * pxInterface )
     {
         NetworkEndPoint_t * pxResult = NULL;
 

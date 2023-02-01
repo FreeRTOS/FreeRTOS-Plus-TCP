@@ -324,6 +324,23 @@
     void vSetSocketEndpoint( Socket_t xSocket,
                              NetworkEndPoint_t * pxEndPoint );
 
+    typedef enum
+    {
+        eIPv6_Global,    /* 001           */
+        eIPv6_LinkLocal, /* 1111 1110 10  */
+        eIPv6_SiteLocal, /* 1111 1110 11  */
+        eIPv6_Multicast, /* 1111 1111     */
+        eIPv6_Unknown,   /* Not implemented. */
+    }
+    IPv6_Type_t;
+
+/**
+ * @brief Check the type of an IPv16 address.
+ *
+ * @return A value from enum IPv6_Type_t.
+ */
+    IPv6_Type_t xIPv6_GetIPType( IPv6_Address_t * pxAddress );
+
     #ifdef __cplusplus
         } /* extern "C" */
     #endif
