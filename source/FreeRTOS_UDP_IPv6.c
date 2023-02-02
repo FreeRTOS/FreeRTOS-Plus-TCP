@@ -580,7 +580,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
             #if ( ipconfigUSE_NBNS == 1 )
                 /* a NetBIOS request, check for the destination port */
                 if( ( usPort == FreeRTOS_ntohs( ipNBNS_PORT ) ) ||
-                    ( pxUDPPacket->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipNBNS_PORT ) ) )
+                    ( pxUDPPacket_IPv6->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipNBNS_PORT ) ) )
                 {
                     xReturn = ( BaseType_t ) ulNBNSHandlePacket( pxNetworkBuffer );
                 }

@@ -210,6 +210,15 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
                     }
                 }
             #endif
+            #if ( ipconfigUSE_MDNS == 1 )
+                {
+                    /* mDNS messages have a hop-count of 255, see RFC 6762, section 11. */
+                    if( pxNetworkBuffer->xIPAddress.ulIP_IPv4 == ipMDNS_IP_ADDRESS )
+                    {
+                        pxIPHeader->ucTimeToLive = 0xffU;
+                    }
+                }
+            #endif
 
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
                 {
@@ -493,6 +502,27 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                 }
                 else
             #endif /* ipconfigUSE_LLMNR */
+
+            #if ( ipconfigUSE_MDNS == 1 )
+                /* A MDNS request, check for the destination port. */
+                if( ( usPort == FreeRTOS_ntohs( ipMDNS_PORT ) ) ||
+                    ( pxUDPPacket->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipMDNS_PORT ) ) )
+                {
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                        if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+                        {
+                        }
+                        else
+                    #endif
+                    {
+                        vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress,
+                                               pxNetworkBuffer->pxEndPoint );
+                    }
+
+                    xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
+                }
+                else
+            #endif /* ipconfigUSE_MDNS */
 
             #if ( ipconfigUSE_NBNS == 1 )
                 /* a NetBIOS request, check for the destination port */

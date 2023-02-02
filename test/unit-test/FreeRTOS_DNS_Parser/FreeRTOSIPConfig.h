@@ -34,7 +34,7 @@
 
 #define TEST                        1
 
-#define ipconfigUSE_IPV4            ( 1 )
+#define ipconfigUSE_IPv4            ( 1 )
 
 #define ipconfigUSE_IPV6            ( 1 )
 

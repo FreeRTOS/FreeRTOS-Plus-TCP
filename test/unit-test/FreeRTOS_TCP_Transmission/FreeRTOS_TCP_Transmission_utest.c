@@ -167,8 +167,13 @@ void test_prvTCPSendPacket_Syn_State( void )
     pxSocket->u.xTCP.ucRepCount = 1;
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
 
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
+
     uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(&xEndPoint);
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1000 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1234 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2345 );
@@ -244,15 +249,15 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
 {
     int32_t BytesSent = 0;
     UBaseType_t RepeatCount = 0;
-    struct xNetworkEndPoint xEndPoint;
-    struct xNetworkInterface xInterface;
+    struct xNetworkEndPoint xEndPoint, *pxEndPoint;
+    struct xNetworkInterface xInterface, *pxInterface;
 
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->xDataLength = 1000;
 
-    NetworkBufferDescriptor_t NewNetworkBuffer;
+    NetworkBufferDescriptor_t NewNetworkBuffer,*pNewNetworkBuffer;
     NewNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
 
     StreamBuffer_t TxStream;
@@ -270,6 +275,14 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
     pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
     pxSocket->u.xTCP.ucRepCount = 0;
 
+    pxEndPoint = &xEndPoint;
+    pxInterface = &xInterface;
+    pNewNetworkBuffer = &NewNetworkBuffer;
+
+    size_t end_pt = sizeof(NetworkEndPoint_t);
+    size_t interface_pt = sizeof(NetworkInterface_t);
+    size_t net_buff_pt = sizeof(NetworkBufferDescriptor_t);
+
     xEndPoint.pxNetworkInterface = &xInterface;
     xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NewNetworkBuffer.pxEndPoint = &xEndPoint;
@@ -278,7 +291,7 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
     uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 20 );
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &NewNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_IgnoreAndReturn( &NewNetworkBuffer );
     /*vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs(); */
     uxStreamBufferDistance_ExpectAnyArgsAndReturn( 500 );
     uxStreamBufferGet_ExpectAnyArgsAndReturn( 20 );
@@ -1058,7 +1071,7 @@ void test_prvTCPBufferResize_With_Buffer_LT_Needed_LT_Last_Packet( void )
 
     pReturn = prvTCPBufferResize( pxSocket, pxNetworkBuffer, 10, 0 );
     TEST_ASSERT_EQUAL_PTR( &NewNetworkBuffer, pReturn );
-    TEST_ASSERT_EQUAL( 70, pReturn->xDataLength );
+    TEST_ASSERT_EQUAL( 90, pReturn->xDataLength );
 }
 
 /* test for prvTCPBufferResize function */

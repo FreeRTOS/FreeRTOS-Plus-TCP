@@ -189,7 +189,7 @@
                         {
                             FreeRTOS_debug_printf( ( "Inactive socket closed: port %u rem %xip:%u status %s\n",
                                                      pxSocket->usLocalPort,
-                                                     ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
+                                                     ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
                                                      pxSocket->u.xTCP.usRemotePort,
                                                      FreeRTOS_GetTCPStateName( ( UBaseType_t ) pxSocket->u.xTCP.eTCPState ) ) );
                         }
@@ -238,7 +238,7 @@
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                                                  &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                                  &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
         TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
         uint8_t ucIntermediateResult = 0, ucTCPFlags = pxTCPHeader->ucTCPFlags;
         TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -437,10 +437,15 @@
 
             #if ( ipconfigUSE_TCP_WIN == 1 )
                 {
-                    FreeRTOS_debug_printf( ( "TCP: %s %u => %xip:%u set ESTAB (scaling %u)\n",
+                    char pcBuffer[ 40 ]; /* Space to print an IP-address. */
+                    FreeRTOS_inet_ntop( ( pxSocket->bits.bIsIPv6 != 0 ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET,
+                                        ( void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+                                        pcBuffer,
+                                        sizeof( pcBuffer ) );
+                    FreeRTOS_debug_printf( ( "TCP: %s %u => %s port %u set ESTAB (scaling %u)\n",
                                              ( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eCONNECT_SYN ) ? "active" : "passive",
                                              pxSocket->usLocalPort,
-                                             ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv4,
+                                             pcBuffer,
                                              pxSocket->u.xTCP.usRemotePort,
                                              ( unsigned ) pxSocket->u.xTCP.bits.bWinScaling ) );
                 }
@@ -707,7 +712,7 @@
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                                                  &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
+                                                  &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( *ppxNetworkBuffer ) ] ) );
         TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
         BaseType_t xSendLength = 0;
         uint32_t ulReceiveLength; /* Number of bytes contained in the TCP message. */

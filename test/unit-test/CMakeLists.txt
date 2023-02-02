@@ -128,7 +128,7 @@ foreach( file ${TCP_INCLUDES} )
 
     # Use this tool to process all conditional declarations.
     if(${MODIFIED_FILE} STREQUAL "FreeRTOS_Routing" OR ${MODIFIED_FILE} STREQUAL "FreeRTOS_IP_Private" )
-        execute_process( COMMAND unifdefall -U${Guard} -USEND_REPEATED_COUNT -UpdTRUE_SIGNED -UFreeRTOS_htonl -D__COVERITY__ -DTEST -DipconfigUSE_IPV6 -DipconfigUSE_RA -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
+        execute_process( COMMAND unifdefall -U${Guard} -USEND_REPEATED_COUNT -UpdTRUE_SIGNED -UFreeRTOS_htonl -D__COVERITY__ -DTEST -DipconfigUSE_IPv6 -DipconfigUSE_RA -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
                             -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
                             -I ${UNIT_TEST_DIR}/ConfigFiles
                             -I ${MODULE_ROOT_DIR}/source/include
