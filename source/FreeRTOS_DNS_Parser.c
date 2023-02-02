@@ -433,7 +433,7 @@
                      * pcRequestedName is assigned with this statement
                      * "pcRequestedName = ( char * ) pucByte;" */
                     else if( ( xSet.usQuestions != ( uint16_t ) 0U ) &&
-                             ( xSet.usType == dnsTYPE_A_HOST ) &&
+                             ( ( xSet.usType == dnsTYPE_A_HOST ) || ( xSet.usType == dnsTYPE_AAAA_HOST ) ) &&
                              ( xSet.usClass == dnsCLASS_IN ) )
                     {
                         NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -444,6 +444,9 @@
                         /* This test could be replaced with a assert(). */
                         if( pxNetworkBuffer == NULL )
                         {
+                            /* _HT_ just while testing. When the program gets here,
+                             * pucUDPPayloadBuffer was invalid. */
+                            configASSERT( pdFALSE );
                             break;
                         }
 
@@ -554,8 +557,8 @@
                                 pxAnswer->ucNameOffset = ( uint8_t ) ( xSet.pcRequestedName - ( char * ) pucNewBuffer );
 
                                 #ifndef _lint
-                                    vSetField16( pxAnswer, LLMNRAnswer_t, usType, dnsTYPE_A_HOST ); /* Type A: host */
-                                    vSetField16( pxAnswer, LLMNRAnswer_t, usClass, dnsCLASS_IN );   /* 1: Class IN */
+                                    vSetField16( pxAnswer, LLMNRAnswer_t, usType, xSet.usType );  /* Type A or AAAA: host */
+                                    vSetField16( pxAnswer, LLMNRAnswer_t, usClass, dnsCLASS_IN ); /* 1: Class IN */
                                     vSetField32( pxAnswer, LLMNRAnswer_t, ulTTL, dnsLLMNR_TTL_VALUE );
                                 #endif /* lint */
 
@@ -564,17 +567,11 @@
                                 if( xSet.usType == dnsTYPE_AAAA_HOST )
                                 {
                                     size_t uxDistance;
-                                    NetworkEndPoint_t * pxReplyEndpoint = FreeRTOS_FirstEndPoint_IPv6( NULL );
-
-                                    if( pxReplyEndpoint == NULL )
-                                    {
-                                        break;
-                                    }
-
                                     vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, ipSIZE_OF_IPv6_ADDRESS );
-                                    ( void ) memcpy( &( pxAnswer->ulIPAddress ), pxReplyEndpoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                                    ( void ) memcpy( &( pxAnswer->ulIPAddress ), xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                                     uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
-                                    usLength = ipNUMERIC_CAST( int16_t, sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress ) );
+                                    /* An extra 12 bytes will be sent compared to an A-record. */
+                                    usLength = ( int16_t ) sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress );
                                 }
                                 else
                                 {

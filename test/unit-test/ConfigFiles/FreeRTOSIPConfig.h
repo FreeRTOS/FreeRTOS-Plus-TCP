@@ -32,9 +32,12 @@
 
 #define _static
 
-#define TEST                        1
+#define TEST                            1
 
-#define ipconfigUSE_IPV4            ( 1 )
+#define ipconfigMULTI_INTERFACE         1
+#define ipconfigCOMPATIBLE_WITH_SINGLE  0
+
+#define ipconfigUSE_IPv4            ( 1 )
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
@@ -230,7 +233,7 @@ extern uint32_t ulRand();
 #define ipconfigUSE_TCP                                ( 1 )
 
 /* USE_WIN: Let TCP use windowing mechanism. */
-#define ipconfigUSE_TCP_WIN                            ( 1 )
+#define ipconfigUSE_TCP_WIN                             1 
 
 /* The MTU is the maximum number of bytes the payload of a network frame can
  * contain.  For normal Ethernet V2 frames the maximum MTU is 1500.  Setting a
