@@ -175,13 +175,7 @@
 
             configASSERT( pxReturn->pxEndPoint != NULL );
 
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
-            {
-                pxReturn->bits.bIsIPv6 = pdTRUE_UNSIGNED;
-            }
+            pxReturn->bits.bIsIPv6 = pdTRUE_UNSIGNED;
 
             const IPHeader_IPv6_t * pxIPHeader_IPv6;
             /* MISRA Ref 11.3.1 [Misaligned access] */

@@ -83,8 +83,7 @@ uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 {
 }
 /* This function shall be defined by the application. */
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                     struct xNetworkEndPoint * pxEndPoint )
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 {
 }
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )

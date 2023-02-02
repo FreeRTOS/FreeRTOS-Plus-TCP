@@ -514,6 +514,8 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                             struct xNetworkEndPoint * pxEndPoint )
 {
     #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
+        /* Only process the IP address if it is on the local network. */
+        BaseType_t xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 2 ) != NULL ) ? 1 : 0; /* ARP remote address. */
 
         /* Only process the IP address if it matches with one of the end-points. */
         if( xAddressIsLocal != 0 )
@@ -1077,20 +1079,15 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     const NetworkEndPoint_t * pxEndPoint;
-    const NetworkInterface_t * pxInterface;
 
-    for( pxInterface = FreeRTOS_FirstNetworkInterface();
-         pxInterface != NULL;
-         pxInterface = FreeRTOS_NextNetworkInterface( pxInterface ) )
+    /* Send an ARP request to every end-point which has the type IPv4,
+     * and which already has an IP-address assigned. */
+    for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+         pxEndPoint != NULL;
+         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
     {
-        pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulIPAddress, 25 );
-
-        if( pxEndPoint == NULL )
-        {
-            pxEndPoint = FreeRTOS_InterfaceEndPointOnNetMask( pxInterface, ulIPAddress, 26 );
-        }
-
-        if( pxEndPoint != NULL )
+        if( ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) &&
+            ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
         {
             /* This is called from the context of the IP event task, so a block time
              * must not be used. */
@@ -1100,7 +1097,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
             {
                 pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ulIPAddress;
                 pxNetworkBuffer->pxEndPoint = pxEndPoint;
-                pxNetworkBuffer->pxInterface = pxInterface;
+                pxNetworkBuffer->pxInterface = pxEndPoint->pxNetworkInterface;
                 vARPGenerateRequestPacket( pxNetworkBuffer );
 
                 #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
@@ -1124,7 +1121,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
                     iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
 
                     /* Only the IP-task is allowed to call this function directly. */
-                    if( pxInterface != NULL )
+                    if( pxEndPoint->pxNetworkInterface != NULL )
                     {
                         ( void ) pxEndPoint->pxNetworkInterface->pfOutput( pxEndPoint->pxNetworkInterface, pxNetworkBuffer, pdTRUE );
                     }

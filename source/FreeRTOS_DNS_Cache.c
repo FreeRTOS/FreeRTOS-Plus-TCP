@@ -561,6 +561,7 @@
     #endif /* ( ipconfigUSE_DNS_CACHE == 1 ) */
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
 /**
  * @brief For debugging only: prints the contents of the DNS cache table.
  */
@@ -611,6 +612,7 @@
             }
         }
     }
+#endif
     /*-----------------------------------------------------------*/
 
 
