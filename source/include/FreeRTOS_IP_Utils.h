@@ -61,9 +61,9 @@
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
-#if ipconfigUSE_IPV4
+#if ipconfigUSE_IPv4
     #include "FreeRTOS_IPv4_Utils.h"
-#endif /* ipconfigUSE_IPV4 */
+#endif /* ipconfigUSE_IPv4 */
 #if ipconfigUSE_IPv6
     #include "FreeRTOS_IPv6_Utils.h"
 #endif /* ipconfigUSE_IPv6 */

@@ -105,13 +105,18 @@ int main( void )
      * vApplicationIPNetworkEventHook() below).  The address values passed in here
      * are used if ipconfigUSE_DHCP is set to 0, or if ipconfigUSE_DHCP is set to 1
      * but a DHCP server cannot be contacted. */
-    FreeRTOS_printf( ( "FreeRTOS_IPInit\n" ) );
-    FreeRTOS_IPInit(
-        ucIPAddress,
-        ucNetMask,
-        ucGatewayAddress,
-        ucDNSServerAddress,
-        ucMACAddress );
+    #if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+        FreeRTOS_printf( ( "FreeRTOS_IPInit\n" ) );
+        FreeRTOS_IPInit(
+            ucIPAddress,
+            ucNetMask,
+            ucGatewayAddress,
+            ucDNSServerAddress,
+            ucMACAddress );
+    #else
+        FreeRTOS_printf( ( "FreeRTOS_IPStart\n" ) );
+        FreeRTOS_IPStart();
+    #endif
 
     vTaskStartScheduler();
 
