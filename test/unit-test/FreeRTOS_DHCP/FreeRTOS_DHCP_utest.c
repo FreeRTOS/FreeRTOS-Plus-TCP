@@ -487,6 +487,8 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketCreationFail( v
         FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, FREERTOS_INVALID_SOCKET );
 
         xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
+        xSocketValid_ExpectAnyArgsAndReturn( pdFALSE );
+        
         /* See if the timer is reloaded. */
         vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
@@ -534,28 +536,16 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void 
         FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xTestSocket );
 
         xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
+        xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
+
         /* Ignore the inputs to setting the socket options. */
         FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
         FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
         /* Make sure that binding fails. Return anything except zero. */
         vSocketBind_ExpectAnyArgsAndReturn( pdTRUE );
-        /* Then expect the socket to be closed. */
-        vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
-        /* See if the timer is reloaded. */
-        vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
-        /* Try all kinds of states. */
-        /*catch_assert( vDHCPProcess( pdTRUE, pxEndPoint ) ); */
-        vDHCPProcess( pdTRUE, pxEndPoint );
 
-        /* Expected state is incorrect, but we are trying to reset
-         * the DHCP the state machine. */
-        TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, pxEndPoint->xDHCPData.eDHCPState );
-        TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
-        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.xUseBroadcast );
-        /* This should be reset as well */
-        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.ulOfferedIPAddress );
-        /* And this too. */
-        TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.ulDHCPServerAddress );
+        catch_assert( vDHCPProcess( pdTRUE, pxEndPoint ) );
+
     }
 }
 
@@ -585,6 +575,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketSuccess( void )
         /* Return a valid socket. */
         FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xTestSocket );
 
+        xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
         xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
 
         /* Ignore the inputs to setting the socket options. */
@@ -4298,6 +4289,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SocketNotCreated_RNGPass_GNBfail
     /* Return invalid socket. */
     FreeRTOS_socket_ExpectAnyArgsAndReturn( FREERTOS_INVALID_SOCKET );
     xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
+    xSocketValid_ExpectAnyArgsAndReturn( pdFALSE );
 
     vDHCPProcess( pdFALSE, pxEndPoint );
 
