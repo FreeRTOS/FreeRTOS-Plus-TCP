@@ -290,6 +290,8 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                 }
 
                 pxReturn->xDataLength = xRequestedSizeBytes;
+                pxReturn->pxInterface = NULL;
+                pxReturn->pxEndPoint = NULL;
 
                 #if ( ipconfigTCP_IP_SANITY != 0 )
                     {

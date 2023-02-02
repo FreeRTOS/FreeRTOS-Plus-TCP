@@ -91,8 +91,11 @@ void test_prvSocketSetMSS_Reduced( void )
 
     pxSocket = &xSocket;
 
+    pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
     pxSocket->pxEndPoint = &xEndPoint;
-    pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 = 0xC0C0C0C0;
+    pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = 0xC0C0C0C0;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC1C1C1C1;
+    xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
 
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1400 );
     prvSocketSetMSS( pxSocket );
@@ -106,10 +109,11 @@ void test_prvSocketSetMSS_Normal( void )
 
     pxSocket = &xSocket;
 
+    pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
     xEndPoint.ipv4_settings.ulIPAddress = 0;
     xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
     pxSocket->pxEndPoint = &xEndPoint;
-    pxSocket->u.xTCP.xRemoteIP.xIP_IPv4 = 0x0;
+    pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = 0x0;
 
     prvSocketSetMSS( pxSocket );
     TEST_ASSERT_EQUAL( ipconfigNETWORK_MTU - 40U, pxSocket->u.xTCP.usMSS );

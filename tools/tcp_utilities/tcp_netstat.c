@@ -103,7 +103,7 @@ BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
                             size_t uxCount = pxMetrics->xTCPSocketList.uxCount;
 
                             pxMetrics->xTCPSocketList.xTCPList[ uxCount ].usLocalPort = pxSocket->usLocalPort;
-                            pxMetrics->xTCPSocketList.xTCPList[ uxCount ].ulRemoteIP = pxSocket->u.xTCP.ulRemoteIP;
+                            pxMetrics->xTCPSocketList.xTCPList[ uxCount ].ulRemoteIP = pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4;
                             pxMetrics->xTCPSocketList.xTCPList[ uxCount ].usRemotePort = pxSocket->u.xTCP.usRemotePort;
                             pxMetrics->xTCPSocketList.uxCount++;
                         }

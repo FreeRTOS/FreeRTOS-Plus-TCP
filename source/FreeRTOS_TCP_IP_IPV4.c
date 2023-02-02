@@ -122,7 +122,7 @@
         const IPHeader_t * pxIPHeader;
 
         /* Check for a minimum packet size. */
-        if( pxNetworkBuffer->xDataLength < ( ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER ) )
+        if( pxNetworkBuffer->xDataLength < ( ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER ) )
         {
             xResult = pdFAIL;
         }

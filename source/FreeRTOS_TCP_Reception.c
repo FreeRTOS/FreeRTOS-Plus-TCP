@@ -96,7 +96,7 @@
     BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
                                 const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
-        size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+        size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer );
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -108,7 +108,7 @@
         BaseType_t xHasSYNFlag;
         BaseType_t xReturn = pdPASS;
         /* Offset in the network packet where the first option byte is stored. */
-        size_t uxOptionOffset = uxTCPHeaderOffset + ( sizeof( TCPHeader_t ) - sizeof( pxTCPHeader->ucOptdata ) );
+        size_t uxOptionOffset = uxTCPHeaderOffset + ipSIZE_OF_TCP_HEADER;
         size_t uxOptionsLength;
         int32_t lResult;
         uint8_t ucLength;
@@ -433,7 +433,7 @@
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
         const TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
         int32_t lLength, lTCPHeaderLength, lReceiveLength, lUrgentLength;
 
@@ -542,12 +542,12 @@
                                uint32_t ulReceiveLength )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-
+        size_t uxIPOffset = uxIPHeaderSizePacket( pxNetworkBuffer );
         /* MISRA Ref 11.3.1 [Misaligned access] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
-                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPOffset ] ) );
         const TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
         TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
         uint32_t ulSequenceNumber, ulSpace;
