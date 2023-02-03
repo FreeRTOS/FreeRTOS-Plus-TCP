@@ -1004,8 +1004,6 @@
             /* Important: tell NIC driver how many bytes must be sent */
             pxNetworkBuffer->xDataLength = uxDataLength;
 
-            /* This function will fill in the eth addresses and send the packet */
-            vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );
         }
 
     #endif /* ipconfigUSE_NBNS == 1 || ipconfigUSE_LLMNR == 1 */
@@ -1185,6 +1183,7 @@
                         usLength = ( uint16_t ) ( sizeof( NBNSAnswer_t ) + ( size_t ) offsetof( NBNSRequest_t, usType ) );
 
                         prepareReplyDNSMessage( pxNetworkBuffer, ( BaseType_t ) usLength );
+                        
                         /* This function will fill in the eth addresses and send the packet */
                         vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );
 
