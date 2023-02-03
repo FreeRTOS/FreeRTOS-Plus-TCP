@@ -669,6 +669,9 @@ void test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
     DNSMessage_t * header = ( DNSMessage_t * ) xReceiveBuffer.pucPayloadBuffer;
     header->usIdentifier = 12;
     xDNSSocket.usLocalPort = 0;
+    xEndPoint.bits.bIPv6 = pdFALSE;
+    xEndPoint.ipv4_settings.ucDNSIndex = 0;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[0] = 0xC0C0C0C0;
 
     DNS_BindSocket_IgnoreAndReturn( 0 );
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
