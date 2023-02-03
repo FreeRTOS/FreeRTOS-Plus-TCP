@@ -234,7 +234,7 @@ void test_FreeRTOS_accept_NotReuseSocket( void )
 
     xServerSocket.u.xTCP.pxPeerSocket = &xPeerSocket;
     xPeerSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
-    xPeerSocket.u.xTCP.xRemoteIP.xIP_IPv4 = 0xAABBCCDD;
+    xPeerSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = 0xAABBCCDD;
     xPeerSocket.u.xTCP.usRemotePort = 0x1234;
 
     vTaskSuspendAll_Expect();
@@ -246,7 +246,7 @@ void test_FreeRTOS_accept_NotReuseSocket( void )
     TEST_ASSERT_EQUAL( &xPeerSocket, pxReturn );
     TEST_ASSERT_EQUAL( NULL, xServerSocket.u.xTCP.pxPeerSocket );
     TEST_ASSERT_EQUAL( pdFALSE, xPeerSocket.u.xTCP.bits.bPassAccept );
-    TEST_ASSERT_EQUAL( FreeRTOS_ntohl( xPeerSocket.u.xTCP.xRemoteIP.xIP_IPv4 ), xAddress.sin_addr.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohl( xPeerSocket.u.xTCP.xRemoteIP.ulIP_IPv4 ), xAddress.sin_address.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xPeerSocket.u.xTCP.usRemotePort ), xAddress.sin_port );
     TEST_ASSERT_EQUAL( sizeof( xAddress ), xAddressLength );
 }
@@ -270,7 +270,7 @@ void test_FreeRTOS_accept_ReuseSocket( void )
     xServerSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
     xServerSocket.u.xTCP.pxPeerSocket = &xPeerSocket;
     xServerSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
-    xServerSocket.u.xTCP.xRemoteIP.xIP_IPv4 = 0xAABBCCDD;
+    xServerSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = 0xAABBCCDD;
     xServerSocket.u.xTCP.usRemotePort = 0x1234;
 
     vTaskSuspendAll_Expect();
@@ -279,7 +279,7 @@ void test_FreeRTOS_accept_ReuseSocket( void )
     pxReturn = FreeRTOS_accept( &xServerSocket, &xAddress, &xAddressLength );
     TEST_ASSERT_EQUAL( &xServerSocket, pxReturn );
     TEST_ASSERT_EQUAL( pdFALSE, xServerSocket.u.xTCP.bits.bPassAccept );
-    TEST_ASSERT_EQUAL( FreeRTOS_ntohl( xServerSocket.u.xTCP.xRemoteIP.xIP_IPv4 ), xAddress.sin_addr.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohl( xServerSocket.u.xTCP.xRemoteIP.ulIP_IPv4 ), xAddress.sin_address.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xServerSocket.u.xTCP.usRemotePort ), xAddress.sin_port );
     TEST_ASSERT_EQUAL( sizeof( xAddress ), xAddressLength );
 }
@@ -303,7 +303,7 @@ void test_FreeRTOS_accept_ReuseSocket_NULLAddress( void )
     xServerSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
     xServerSocket.u.xTCP.pxPeerSocket = &xPeerSocket;
     xServerSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
-    xServerSocket.u.xTCP.xRemoteIP.xIP_IPv4 = 0xAABBCCDD;
+    xServerSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = 0xAABBCCDD;
     xServerSocket.u.xTCP.usRemotePort = 0x1234;
 
     vTaskSuspendAll_Expect();
@@ -334,7 +334,7 @@ void test_FreeRTOS_accept_ReuseSocket_Timeout( void )
     xServerSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
     xServerSocket.u.xTCP.pxPeerSocket = &xPeerSocket;
     xServerSocket.u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
-    xServerSocket.u.xTCP.xRemoteIP.xIP_IPv4 = 0xAABBCCDD;
+    xServerSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = 0xAABBCCDD;
     xServerSocket.u.xTCP.usRemotePort = 0x1234;
     xServerSocket.xReceiveBlockTime = 0xAA;
 
@@ -1117,19 +1117,10 @@ void test_FreeRTOS_send_IPTaskWithNULLBuffer( void )
     xSocket.xSendBlockTime = 100;
 
     uxDataLength = 100;
-    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
-
-    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength - 20 );
-
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, NULL, uxDataLength - 20, uxDataLength - 20 );
-
-    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
-
-    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     xReturn = FreeRTOS_send( &xSocket, NULL, uxDataLength, xFlags );
 
-    TEST_ASSERT_EQUAL( uxDataLength - 20, xReturn );
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
 /*
