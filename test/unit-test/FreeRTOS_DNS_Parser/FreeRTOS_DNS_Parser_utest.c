@@ -296,7 +296,7 @@ void test_DNS_ReadNameField_short_destination( void )
 
     ret = DNS_ReadNameField( &xSet, 12 );
     TEST_ASSERT_EQUAL( 0, ret );
-    TEST_ASSERT_EQUAL_STRING( "FreeRTOS.Plu", xSet.pcName );
+    TEST_ASSERT_EQUAL_STRING( "FreeRTOS.", xSet.pcName );
 }
 
 /**
@@ -525,7 +525,7 @@ void test_DNS_TreatNBNS_success( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( NULL );
 
     DNS_TreatNBNS( pucPayload,
                    300,
@@ -674,7 +674,7 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer2( void )
     size_t uxBufferLength = 300;
     uint32_t ulIPAddress;
 
-    xBufferAllocFixedSize = pdTRUE;
+    xBufferAllocFixedSize = pdFALSE;
     NetworkBufferDescriptor_t pxNetworkBuffer;
     NetworkBufferDescriptor_t pxNetworkBuffer_dup;
     struct xNetworkEndPoint xEndPoint;
@@ -695,10 +695,12 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer2( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );      /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNetworkBuffer_dup );
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 4 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 4 );
-    vReturnEthernetFrame_Expect( &pxNetworkBuffer, pdFALSE ); /* goal */
+    vReturnEthernetFrame_Expect( &pxNetworkBuffer_dup, pdFALSE ); /* goal */
+    vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
 
     DNS_TreatNBNS( pucPayload,
                    uxBufferLength,
@@ -731,7 +733,6 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer3( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usFlags */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_CLASS_IN );           /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
 
     DNS_TreatNBNS( pucPayload,
                    uxBufferLength,
@@ -760,7 +761,6 @@ void test_DNS_TreatNBNS_success_empty_char_nbns_name( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( 1 );
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
 
     DNS_TreatNBNS( pucPayload,
                    300,
@@ -808,7 +808,6 @@ void test_DNS_TreatNBNS_success_empty_char_nbns_name2( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( 1 );
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
 
     DNS_TreatNBNS( pucPayload,
                    300,
@@ -1508,13 +1507,13 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer( void )
     hook_return = pdTRUE;
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( NULL );
 
-    ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
+    catch_assert(DNS_ParseDNSReply( pucUDPPayloadBuffer,
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort ));
 
-    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    //TEST_ASSERT_EQUAL( pdFALSE, ret );
     /*ASSERT_DNS_QUERY_HOOK_CALLED(); */
 }
 
