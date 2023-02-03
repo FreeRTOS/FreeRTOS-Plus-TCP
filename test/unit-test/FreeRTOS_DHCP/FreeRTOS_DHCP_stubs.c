@@ -172,9 +172,4 @@ void vConfigureTimerForRunTimeStats( void )
 }
 
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t bReleaseAfterSend )
-{
-    return pdPASS;
-}
 /*-----------------------------------------------------------*/
