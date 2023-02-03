@@ -105,7 +105,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
 
     /* All is cleared, also the IPv6 flag. */
-    /* pxEndPoint->bits.bIPv6 = pdFALSE; */
+    pxEndPoint->bits.bIPv6 = pdFALSE;
 
     ulIPAddress = FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] );
     pxEndPoint->ipv4_settings.ulNetMask = FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] );
