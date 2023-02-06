@@ -82,6 +82,22 @@ static void prvSetMACAddress( void );
 
 /*-----------------------------------------------------------*/
 
+/*
+ * A pointer to the network interface is needed later when receiving packets.
+ */
+static NetworkInterface_t * pxMyInterface;
+
+static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                           BaseType_t bReleaseAfterSend );
+static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface );
+
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                NetworkInterface_t * pxInterface );
+
+/*-----------------------------------------------------------*/
+
 static const struct smsc9220_eth_dev_cfg_t SMSC9220_ETH_DEV_CFG =
 {
     .base = SMSC9220_BASE
@@ -144,7 +160,11 @@ static void prvRxTask( void * pvParameters )
         while( ( ulDataRead = prvLowLevelInput( &pxNetworkBuffer ) ) != 0UL )
         {
             xRxEvent.pvData = ( void * ) pxNetworkBuffer;
-
+            
+            pxNetworkBuffer->pxInterface = pxMyInterface;
+            pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer->pucEthernetBuffer );
+            pxNetworkBuffer->pxEndPoint = pxNetworkEndPoints; /*temporary change for single end point */
+            
             if( xSendEventStructToIPTask( &xRxEvent, ( TickType_t ) 0 ) == pdFAIL )
             {
                 vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
@@ -218,13 +238,13 @@ void EthernetISR( void )
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceInitialise( void )
+static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     const uint32_t ulEthernetIRQ = 13UL;
     BaseType_t xReturn = pdFAIL;
     enum smsc9220_error_t err;
-
+    ( void ) pxInterface;
     if( xRxTaskHandle == NULL )
     {
         /* Task has not been created before. */
@@ -296,13 +316,14 @@ BaseType_t xNetworkInterfaceInitialise( void )
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t xReleaseAfterSend )
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                           BaseType_t xReleaseAfterSend )
 {
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     enum smsc9220_error_t error = SMSC9220_ERROR_NONE;
     BaseType_t xReturn = pdFAIL, x;
-
+    ( void ) pxInterface;
     for( x = 0; x < niMAX_TX_ATTEMPTS; x++ )
     {
         if( pxNetworkBuffer->xDataLength < SMSC9220_ETH_MAX_FRAME_SIZE )
@@ -355,12 +376,13 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xGetPhyLinkStatus( void )
+
+static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     uint32_t ulPHYBasicStatusValue;
     BaseType_t xLinkStatusUp;
-
+    ( void ) pxInterface;
     /* Get current status */
     smsc9220_phy_regread( dev, SMSC9220_PHY_REG_OFFSET_BSTATUS,
                           &ulPHYBasicStatusValue );
@@ -368,3 +390,33 @@ BaseType_t xGetPhyLinkStatus( void )
                                ( 1ul << ( PHY_REG_BSTATUS_LINK_STATUS_INDEX ) ) );
     return xLinkStatusUp;
 }
+
+/*-----------------------------------------------------------*/
+
+
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                NetworkInterface_t * pxInterface )
+{
+    static char pcName[ 17 ];
+
+/* This function pxFillInterfaceDescriptor() adds a network-interface.
+ * Make sure that the object pointed to by 'pxInterface'
+ * is declared static or global, and that it will remain to exist. */
+
+    pxMyInterface = pxInterface;
+
+    snprintf( pcName, sizeof( pcName ), "eth%ld", xEMACIndex );
+
+    memset( pxInterface, '\0', sizeof( *pxInterface ) );
+    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pfInitialise = xNetworkInterfaceInitialise;
+    pxInterface->pfOutput = xNetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xGetPhyLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+
+    return pxInterface;
+}
+/*-----------------------------------------------------------*/
+
