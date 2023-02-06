@@ -144,9 +144,9 @@ void test_prvTCPMakeSurePrepared_Ready( void )
 
 BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
 
-BaseType_t NetworkInterfaceOutputFunction_Stub ( struct xNetworkInterface * pxDescriptor,
-                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                                BaseType_t xReleaseAfterSend )
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
 {
     NetworkInterfaceOutputFunction_Stub_Called++;
     return 0;
@@ -173,7 +173,7 @@ void test_prvTCPSendPacket_Syn_State( void )
 
     uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn(&xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1000 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1234 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2345 );
@@ -249,15 +249,15 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
 {
     int32_t BytesSent = 0;
     UBaseType_t RepeatCount = 0;
-    struct xNetworkEndPoint xEndPoint, *pxEndPoint;
-    struct xNetworkInterface xInterface, *pxInterface;
+    struct xNetworkEndPoint xEndPoint, * pxEndPoint;
+    struct xNetworkInterface xInterface, * pxInterface;
 
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->xDataLength = 1000;
 
-    NetworkBufferDescriptor_t NewNetworkBuffer,*pNewNetworkBuffer;
+    NetworkBufferDescriptor_t NewNetworkBuffer, * pNewNetworkBuffer;
     NewNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
 
     StreamBuffer_t TxStream;
@@ -279,17 +279,17 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
     pxInterface = &xInterface;
     pNewNetworkBuffer = &NewNetworkBuffer;
 
-    size_t end_pt = sizeof(NetworkEndPoint_t);
-    size_t interface_pt = sizeof(NetworkInterface_t);
-    size_t net_buff_pt = sizeof(NetworkBufferDescriptor_t);
+    size_t end_pt = sizeof( NetworkEndPoint_t );
+    size_t interface_pt = sizeof( NetworkInterface_t );
+    size_t net_buff_pt = sizeof( NetworkBufferDescriptor_t );
 
     xEndPoint.pxNetworkInterface = &xInterface;
     xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NewNetworkBuffer.pxEndPoint = &xEndPoint;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
-    uxIPHeaderSizeSocket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
-    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 20 );
     pxGetNetworkBufferWithDescriptor_IgnoreAndReturn( &NewNetworkBuffer );
     /*vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs(); */
@@ -1893,7 +1893,7 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State_Data_To_Send( voi
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
-    
+
     BytesSent = prvSendData( pxSocket, &pxNetworkBuffer, 100, 50 );
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
     TEST_ASSERT_EQUAL( 50, BytesSent );
@@ -2146,7 +2146,7 @@ void test_prvTCPSendReset( void )
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
-    
+
     Return = prvTCPSendReset( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
     TEST_ASSERT_EQUAL( pdFALSE, Return );

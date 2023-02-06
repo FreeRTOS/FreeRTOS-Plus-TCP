@@ -160,11 +160,11 @@ static void prvRxTask( void * pvParameters )
         while( ( ulDataRead = prvLowLevelInput( &pxNetworkBuffer ) ) != 0UL )
         {
             xRxEvent.pvData = ( void * ) pxNetworkBuffer;
-            
+
             pxNetworkBuffer->pxInterface = pxMyInterface;
             pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer->pucEthernetBuffer );
             pxNetworkBuffer->pxEndPoint = pxNetworkEndPoints; /*temporary change for single end point */
-            
+
             if( xSendEventStructToIPTask( &xRxEvent, ( TickType_t ) 0 ) == pdFAIL )
             {
                 vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
@@ -244,7 +244,9 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
     const uint32_t ulEthernetIRQ = 13UL;
     BaseType_t xReturn = pdFAIL;
     enum smsc9220_error_t err;
+
     ( void ) pxInterface;
+
     if( xRxTaskHandle == NULL )
     {
         /* Task has not been created before. */
@@ -323,7 +325,9 @@ static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     enum smsc9220_error_t error = SMSC9220_ERROR_NONE;
     BaseType_t xReturn = pdFAIL, x;
+
     ( void ) pxInterface;
+
     for( x = 0; x < niMAX_TX_ATTEMPTS; x++ )
     {
         if( pxNetworkBuffer->xDataLength < SMSC9220_ETH_MAX_FRAME_SIZE )
@@ -382,6 +386,7 @@ static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     uint32_t ulPHYBasicStatusValue;
     BaseType_t xLinkStatusUp;
+
     ( void ) pxInterface;
     /* Get current status */
     smsc9220_phy_regread( dev, SMSC9220_PHY_REG_OFFSET_BSTATUS,
@@ -419,4 +424,3 @@ NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
     return pxInterface;
 }
 /*-----------------------------------------------------------*/
-

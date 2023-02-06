@@ -3716,7 +3716,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 {
                     *pxAddressLength = sizeof( struct freertos_sockaddr );
                 }
-                
+
                 if( pxAddress != NULL )
                 {
                     pxAddress->sin_family = FREERTOS_AF_INET4;
