@@ -23,7 +23,35 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     return pxNetworkBuffer;
 }
 
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+    return 0;
+}
+
 void harness()
 {
+    /*
+    For this proof, its assumed that the endpoints and interfaces are correctly
+    initialised and the pointers are set correctly.
+    Assumes two endpoints and interface is present.
+    */
+
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints != NULL );
+    pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
+    __CPROVER_assume( pxNetworkEndPoints->pxNext->pxNext == NULL );
+
+    /* Interface init. */
+    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
+    pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkEndPoints->pxNetworkInterface;
+    __CPROVER_assume( pxNetworkEndPoints->pxNext->pxNetworkInterface != NULL );
+
+    pxNetworkEndPoints->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    /* No assumption is added for pfOutput as its pointed to a static object/memory location. */
+    
     vARPAgeCache();
 }
