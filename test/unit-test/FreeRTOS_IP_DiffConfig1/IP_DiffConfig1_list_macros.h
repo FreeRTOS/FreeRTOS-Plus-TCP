@@ -115,4 +115,8 @@ void vNDAgeCache( void );
                                
 NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                 NetworkInterface_t * pxInterface );
+
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+                                    struct xNetworkEndPoint * pxEndPoint );
+
 #endif /* ifndef LIST_MACRO_H */

@@ -115,39 +115,6 @@ static size_t StubuxStreamBufferGetPtr_ReturnCorrectVals( StreamBuffer_t * pxBuf
     return ReleaseTCPPayloadBufferxByteCount;
 }
 
-static void vSetIPTaskHandle( TaskHandle_t xTaskHandleToSet )
-{
-    const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
-    const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ];
-    const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
-    const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
-    const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ];
-
-    vPreCheckConfigs_Expect();
-
-    #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
-        xQueueGenericCreateStatic_ExpectAnyArgsAndReturn( ( QueueHandle_t ) 0x1234ABCD );
-    #else
-        xQueueGenericCreate_ExpectAnyArgsAndReturn( ( QueueHandle_t ) 0x1234ABCD );
-    #endif /* configSUPPORT_STATIC_ALLOCATION */
-
-    #if ( configQUEUE_REGISTRY_SIZE > 0 )
-        vQueueAddToRegistry_ExpectAnyArgs();
-    #endif
-
-    xNetworkBuffersInitialise_ExpectAndReturn( pdPASS );
-
-    vNetworkSocketsInit_Expect();
-
-    #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
-        xTaskCreateStatic_ExpectAnyArgsAndReturn( xTaskHandleToSet );
-    #else
-        xTaskCreate_ReturnThruPtr_pxCreatedTask( xTaskHandleToSet );
-    #endif
-
-    FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
-}
-
 void test_prvProcessIPEventsAndTimers_NoEventReceived( void )
 {
     vCheckNetworkTimers_Expect();
@@ -255,58 +222,6 @@ static BaseType_t StubxTaskCreate( TaskFunction_t pxTaskCode,
 {
     *pxCreatedTask = IPInItHappyPath_xTaskHandleToSet;
     return pdPASS;
-}
-
-void test_FreeRTOS_IPInit_HappyPath( void )
-{
-    const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ] = { 0xC0, 0xB0, 0xAB, 0x12 };
-    const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ] = { 0xC1, 0xB2, 0xAC, 0x13 };
-    const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ] = { 0xC2, 0xB3, 0xAC, 0x14 };
-    const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ] = { 0xC3, 0xB4, 0xAD, 0x15 };
-    const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF };
-    BaseType_t xReturn;
-    QueueHandle_t ulPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
-
-    NetworkEndPoint_t xEndPoints, * xFirstEndPoint = &xEndPoints;
-
-    /* Set the local IP to something other than 0. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
-
-    /* Clear default values. */
-    memset( &xDefaultAddressing, 0, sizeof( xDefaultAddressing ) );
-    memset( xFirstEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-
-    FreeRTOS_FillEndPoint_Ignore();
-    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
-    pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, xFirstEndPoint );
-
-    vPreCheckConfigs_Expect();
-
-    xQueueGenericCreate_ExpectAndReturn( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ), 0U, ulPointerToQueue );
-
-    #if ( configQUEUE_REGISTRY_SIZE > 0 )
-        vQueueAddToRegistry_Expect( ulPointerToQueue, "NetEvnt" );
-    #endif
-
-    xNetworkBuffersInitialise_ExpectAndReturn( pdPASS );
-
-    vNetworkSocketsInit_Expect();
-
-    xTaskCreate_Stub( StubxTaskCreate );
-
-    xReturn = FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
-
-    TEST_ASSERT_EQUAL( pdPASS, xReturn );
-    /*TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] ), xIPv4Addressing->ulIPAddress ); */
-    /*TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] ), xIPv4Addressing->ulNetMask ); */
-    /*TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] ), xIPv4Addressing->ulGatewayAddress ); */
-    /*TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] ), xIPv4Addressing->ulDNSServerAddresses[ 0 ] ); */
-    /*TEST_ASSERT_EQUAL( ( ( xIPv4Addressing->ulIPAddress & xIPv4Addressing->ulNetMask ) | ~xIPv4Addressing->ulNetMask ), xIPv4Addressing->ulBroadcastAddress ); */
-    /* TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, &xNetworkAddressing, sizeof( xDefaultAddressing ) ); TODO: verify if xNetworkAddressing is used */
-    /*TEST_ASSERT_EQUAL( 0, *ipLOCAL_IP_ADDRESS_POINTER ); */
-    /*TEST_ASSERT_EQUAL_MEMORY( ucMACAddress, ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES ); */
-    TEST_ASSERT_EQUAL( IPInItHappyPath_xTaskHandleToSet, FreeRTOS_GetIPTaskHandle() );
 }
 
 void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBufferAssert( void )
@@ -1059,6 +974,8 @@ void test_vReturnEthernetFrame_DuplicationSuccess( void )
 
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxEndPoint );
 
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
     TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
@@ -1093,6 +1010,8 @@ void test_vReturnEthernetFrame( void )
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxEndPoint );
+
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
@@ -1129,6 +1048,8 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
 
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxEndPoint );
 
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+    
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
     TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );

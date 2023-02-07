@@ -115,7 +115,7 @@ void test_ProcessICMPPacket_EchoRequest( void )
     pxIPHeader = &( pxICMPPacket->xIPHeader );
 
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REQUEST;
-    
+
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( 0 );
 
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0xAA );

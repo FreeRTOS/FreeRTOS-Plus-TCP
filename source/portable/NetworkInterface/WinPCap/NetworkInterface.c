@@ -755,7 +755,7 @@ static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer )
 }
 /*-----------------------------------------------------------*/
 
-extern NetworkEndPoint_t* pxGetEndpoint( BaseType_t xIPType );
+extern NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType );
 
 static void prvInterruptSimulatorTask( void * pvParameters )
 {
@@ -831,105 +831,113 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                             pxNetworkBuffer->pxInterface = pxMyInterface;
                             pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer->pucEthernetBuffer );
 
-                            //if( pxNetworkBuffer->pxEndPoint == NULL )
+                            /*if( pxNetworkBuffer->pxEndPoint == NULL ) */
                             {
-								char pcDescription[ 129 ] = "unknown";
-								const EthernetHeader_t * pxEthernetHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
+                                char pcDescription[ 129 ] = "unknown";
+                                const EthernetHeader_t * pxEthernetHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
                                 uint8_t ucType = ipTYPE_IPv4;
-								switch( pxEthernetHeader->usFrameType )
-								{
-								case ipARP_FRAME_TYPE:
-									{
-										const ProtocolPacket_t * pxPacket = ( ( const ProtocolPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-										snprintf( pcDescription, sizeof pcDescription, "ARP frame for %xip",
-											FreeRTOS_ntohl( pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress ) );
-									}
-									break;
-								case ipPROTOCOL_ICMP:
-									snprintf( pcDescription, sizeof pcDescription, "ICMP frame" );
-									break;
-								case ipIPv4_FRAME_TYPE:
-									{
-										const IPPacket_t * pxIPPacket;
-										uint8_t ucProtocol;
-										pxIPPacket = ( const IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-							            ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
-										if( ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
-										{
-											const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
-																							&( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
-											uint32_t ulLocalIP, ulRemoteIP;
-											uint16_t usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
-											uint16_t usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
-											const IPHeader_t * pxIPHeader;
-											pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-											ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
-											ulRemoteIP = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
 
-											snprintf( pcDescription, sizeof pcDescription, "TCP v4 packet %xip port%u to %xip: port %u",
-												ulRemoteIP, usRemotePort, ulLocalIP, usLocalPort );
-										}
-										else if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
-										{
-											snprintf( pcDescription, sizeof pcDescription, "UDP v4 packet" );
-                                            const UDPPacket_t* pxUDPPacket = (( UDPPacket_t* )pxNetworkBuffer->pucEthernetBuffer);
-                                            if( pxUDPPacket->xIPHeader.ulSourceIPAddress == 0x642c6276U )
-                                            {
-                                                FreeRTOS_printf( ("Received UDP packet from %xip\n",
-                                                    ( unsigned )(FreeRTOS_htonl( pxUDPPacket->xIPHeader.ulSourceIPAddress ))) );
-                                            }
-										}
-										else
-										{
-                                            snprintf( pcDescription, sizeof pcDescription, "v4 packet protocol %02X", ucProtocol );
-										}
-									}
-									break;
-								case ipIPv6_FRAME_TYPE:
-									{
-										const IPHeader_IPv6_t * pxIPHeader_IPv6;
-										uint8_t ucProtocol;
+                                switch( pxEthernetHeader->usFrameType )
+                                {
+                                    case ipARP_FRAME_TYPE:
+                                       {
+                                           const ProtocolPacket_t * pxPacket = ( ( const ProtocolPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+                                           snprintf( pcDescription, sizeof pcDescription, "ARP frame for %xip",
+                                                     FreeRTOS_ntohl( pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress ) );
+                                       }
+                                       break;
 
-                                        ucType = ipTYPE_IPv6;
-										pxIPHeader_IPv6 = ( const IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
+                                    case ipPROTOCOL_ICMP:
+                                        snprintf( pcDescription, sizeof pcDescription, "ICMP frame" );
+                                        break;
 
-										ucProtocol = pxIPHeader_IPv6->ucNextHeader;
+                                    case ipIPv4_FRAME_TYPE:
+                                       {
+                                           const IPPacket_t * pxIPPacket;
+                                           uint8_t ucProtocol;
+                                           pxIPPacket = ( const IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+                                           ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
 
-										if( ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
-										{
-											snprintf( pcDescription, sizeof pcDescription, "TCP v6 packet" );
-										}
-										else if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
-										{
-											snprintf( pcDescription, sizeof pcDescription, "UDP v6 packet" );
-										}
-                                        else if(ucProtocol == ( uint8_t )ipPROTOCOL_ICMP_IPv6)
-                                        {
-                                            snprintf( pcDescription, sizeof pcDescription, "ICMP v6 packet" );
-                                        }
-                                        else
-										{
-											snprintf( pcDescription, sizeof pcDescription, "v6 packet protocol %02X", ucProtocol );
-										}
-									}
-									break;
-								default:
-                                    {
+                                           if( ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
+                                           {
+                                               const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
+                                                                                               &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
+                                               uint32_t ulLocalIP, ulRemoteIP;
+                                               uint16_t usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
+                                               uint16_t usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
+                                               const IPHeader_t * pxIPHeader;
+                                               pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                                               ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
+                                               ulRemoteIP = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
+
+                                               snprintf( pcDescription, sizeof pcDescription, "TCP v4 packet %xip port%u to %xip: port %u",
+                                                         ulRemoteIP, usRemotePort, ulLocalIP, usLocalPort );
+                                           }
+                                           else if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
+                                           {
+                                               snprintf( pcDescription, sizeof pcDescription, "UDP v4 packet" );
+                                               const UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+
+                                               if( pxUDPPacket->xIPHeader.ulSourceIPAddress == 0x642c6276U )
+                                               {
+                                                   FreeRTOS_printf( ( "Received UDP packet from %xip\n",
+                                                                      ( unsigned ) ( FreeRTOS_htonl( pxUDPPacket->xIPHeader.ulSourceIPAddress ) ) ) );
+                                               }
+                                           }
+                                           else
+                                           {
+                                               snprintf( pcDescription, sizeof pcDescription, "v4 packet protocol %02X", ucProtocol );
+                                           }
+                                       }
+                                       break;
+
+                                    case ipIPv6_FRAME_TYPE:
+                                       {
+                                           const IPHeader_IPv6_t * pxIPHeader_IPv6;
+                                           uint8_t ucProtocol;
+
+                                           ucType = ipTYPE_IPv6;
+                                           pxIPHeader_IPv6 = ( const IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
+
+                                           ucProtocol = pxIPHeader_IPv6->ucNextHeader;
+
+                                           if( ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
+                                           {
+                                               snprintf( pcDescription, sizeof pcDescription, "TCP v6 packet" );
+                                           }
+                                           else if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
+                                           {
+                                               snprintf( pcDescription, sizeof pcDescription, "UDP v6 packet" );
+                                           }
+                                           else if( ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 )
+                                           {
+                                               snprintf( pcDescription, sizeof pcDescription, "ICMP v6 packet" );
+                                           }
+                                           else
+                                           {
+                                               snprintf( pcDescription, sizeof pcDescription, "v6 packet protocol %02X", ucProtocol );
+                                           }
+                                       }
+                                       break;
+
+                                    default:
                                         snprintf( pcDescription, sizeof pcDescription, "Unknown frame %04x", pxEthernetHeader->usFrameType );
-                                    }
-                                    break;
-								}
+                                        break;
+                                }
+
                                 if( pxNetworkBuffer->pxEndPoint == NULL )
                                 {
                                     pxNetworkBuffer->pxEndPoint = pxGetEndpoint( ucType );
-                                    if(strncasecmp( "ARP", pcDescription, 3 ) != 0)
+
+                                    if( strncasecmp( "ARP", pcDescription, 3 ) != 0 )
                                     {
-                                        FreeRTOS_printf( ("No end-point for \"%s\". Using 0x%p type IPv%d\n",
-                                            pcDescription,
-                                            pxNetworkBuffer->pxEndPoint,
-                                            ucType == ipTYPE_IPv6 ? 6 : 4) );
+                                        FreeRTOS_printf( ( "No end-point for \"%s\". Using 0x%p type IPv%d\n",
+                                                           pcDescription,
+                                                           pxNetworkBuffer->pxEndPoint,
+                                                           ucType == ipTYPE_IPv6 ? 6 : 4 ) );
                                     }
-                                    // pxNetworkBuffer->pxEndPoint = FreeRTOS_FirstEndPoint( pxMyInterface ); /*temporary change for single end point */
+
+                                    /* pxNetworkBuffer->pxEndPoint = FreeRTOS_FirstEndPoint( pxMyInterface ); / *temporary change for single end point * / */
                                 }
                             }
 
