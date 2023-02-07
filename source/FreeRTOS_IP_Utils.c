@@ -554,19 +554,18 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
         *( pxSet->pusChecksum ) = pxSet->usChecksum;
     }
 
-    #if ( ipconfigHAS_DEBUG_PRINTF == 0 )
+    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
         else if( ( xOutgoingPacket == pdFALSE ) && ( pxSet->usChecksum != ipCORRECT_CRC ) )
         {
-            uint16_t usGot, usCalculated;
+            uint16_t usGot;
             usGot = *pxSet->pusChecksum;
-            usCalculated = ~usGenerateProtocolChecksum( ( uint8_t * ) pucEthernetBuffer, uxBufferLength, pdTRUE );
             FreeRTOS_debug_printf( ( "usGenerateProtocolChecksum[%s]: len %d ID %04X: from %xip to %xip cal %04X got %04X\n",
                                      pxSet->pcType,
                                      pxSet->usProtocolBytes,
                                      FreeRTOS_ntohs( pxSet->pxIPPacket->xIPHeader.usIdentification ),
                                      ( unsigned ) FreeRTOS_ntohl( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ),
                                      ( unsigned ) FreeRTOS_ntohl( pxSet->pxIPPacket->xIPHeader.ulDestinationIPAddress ),
-                                     FreeRTOS_ntohs( usCalculated ),
+                                     FreeRTOS_ntohs( pxSet->usChecksum ),
                                      FreeRTOS_ntohs( usGot ) ) );
         }
         else
