@@ -41,18 +41,36 @@ void vPortFree( void * pv )
  * This function function writes a buffer to the network.  We stub it
  * out here, and assume it has no side effects relevant to memory safety.
  */
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
-                                    BaseType_t bReleaseAfterSend )
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
 {
-    if( bReleaseAfterSend != pdFALSE )
+    if( xReleaseAfterSend != pdFALSE )
     {
-        vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
     }
 }
 
 void harness()
 {
     BaseType_t xRes = xNetworkBuffersInitialise();
+
+    /*
+    For this proof, its assumed that the endpoints and interfaces are correctly
+    initialised and the pointers are set correctly.
+    Assumes two endpoints and interface is present.
+    */
+
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints != NULL );
+    __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
+
+    /* Interface init. */
+    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
+
+    pxNetworkEndPoints->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    /* No assumption is added for pfOutput as its pointed to a static object/memory location. */
 
     if( xRes == pdPASS )
     {
