@@ -1409,6 +1409,7 @@ void test_xProcessReceivedTCPPacket_Minimal_Data_Length( void )
     pxNetworkBuffer->xDataLength = 40;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     Return = xProcessReceivedTCPPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdFALSE, Return );
@@ -1421,11 +1422,12 @@ void test_xProcessReceivedTCPPacket_No_Socket( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( NULL );
 
@@ -1441,12 +1443,13 @@ void test_xProcessReceivedTCPPacket_No_Active_Socket( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eCLOSE_WAIT;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdFALSE );
@@ -1463,12 +1466,13 @@ void test_xProcessReceivedTCPPacket_No_Active_Socket_Send_Reset( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eCLOSE_WAIT;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdFALSE );
@@ -1486,12 +1490,13 @@ void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_No_Rst( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1508,12 +1513,13 @@ void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_Rst( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1531,12 +1537,13 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_Null_Socket( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1554,7 +1561,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_Something( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
@@ -1562,6 +1569,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_Something( void )
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x50;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1584,7 +1592,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_None( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
@@ -1592,6 +1600,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_None( void )
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x50;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1614,7 +1623,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Check_Failed( void 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
@@ -1622,6 +1631,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Check_Failed( void 
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x80;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1644,7 +1654,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Sent_Something_Buff
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
@@ -1652,6 +1662,7 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Sent_Something_Buff
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x80;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1675,12 +1686,13 @@ void test_xProcessReceivedTCPPacket_Establish_State_Syn( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eESTABLISHED;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1697,7 +1709,7 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_Change_State( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
@@ -1705,6 +1717,7 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_Change_State( void )
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 1 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1726,7 +1739,7 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_SeqNo_Wrong( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
@@ -1734,6 +1747,7 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_SeqNo_Wrong( void )
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1750,7 +1764,7 @@ void test_xProcessReceivedTCPPacket_SynReceived_State_Rst( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eSYN_RECEIVED;
@@ -1760,6 +1774,7 @@ void test_xProcessReceivedTCPPacket_SynReceived_State_Rst( void )
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
@@ -1783,7 +1798,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Change_State( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eESTABLISHED;
@@ -1792,6 +1807,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Change_State( void )
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1814,7 +1830,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_InRange( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eESTABLISHED;
@@ -1823,6 +1839,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_InRange( void )
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1842,7 +1859,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange1( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eESTABLISHED;
@@ -1851,6 +1868,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange1( void )
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1869,7 +1887,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange2( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eESTABLISHED;
@@ -1878,6 +1896,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange2( void )
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1896,7 +1915,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Ack( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eESTABLISHED;
@@ -1906,6 +1925,7 @@ void test_xProcessReceivedTCPPacket_Establish_State_Ack( void )
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
