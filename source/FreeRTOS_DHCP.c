@@ -422,21 +422,21 @@
                 FreeRTOS_debug_printf( ( "vDHCPProcess: giving up %lu > %lu ticks\n", EP_DHCPData.xDHCPTxPeriod, ipconfigMAXIMUM_DISCOVER_TX_PERIOD ) );
 
                 #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-                {
-                    /* Only use a fake Ack if the default IP address == 0x00
-                     * and the link local addressing is used.  Start searching
-                     * a free LinkLayer IP-address.  Next state will be
-                     * 'eGetLinkLayerAddress'. */
-                    prvPrepareLinkLayerIPLookUp( pxEndPoint );
+                    {
+                        /* Only use a fake Ack if the default IP address == 0x00
+                         * and the link local addressing is used.  Start searching
+                         * a free LinkLayer IP-address.  Next state will be
+                         * 'eGetLinkLayerAddress'. */
+                        prvPrepareLinkLayerIPLookUp( pxEndPoint );
 
-                    /* Setting an IP address manually so set to not using
-                     * leased address mode. */
-                    EP_DHCPData.eDHCPState = eGetLinkLayerAddress;
-                }
+                        /* Setting an IP address manually so set to not using
+                         * leased address mode. */
+                        EP_DHCPData.eDHCPState = eGetLinkLayerAddress;
+                    }
                 #else
-                {
-                    xGivingUp = pdTRUE;
-                }
+                    {
+                        xGivingUp = pdTRUE;
+                    }
                 #endif /* ipconfigDHCP_FALL_BACK_AUTO_IP */
             }
         }
@@ -1432,31 +1432,31 @@
             ( void ) memcpy( &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET ] ), pucOptionsArray, *pxOptionsArraySize );
 
             #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
-            {
-                /* With this option, the hostname can be registered as well which makes
-                 * it easier to lookup a device in a router's list of DHCP clients. */
-
-                /* Point to where the OPTION_END was stored to add data. */
-                pucPtr = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + ( *pxOptionsArraySize - 1U ) ] );
-                pucPtr[ 0U ] = dhcpIPv4_DNS_HOSTNAME_OPTIONS_CODE;
-                pucPtr[ 1U ] = ( uint8_t ) uxNameLength;
-
-                /*
-                 * Use helper variables for memcpy() to remain
-                 * compliant with MISRA Rule 21.15.  These should be
-                 * optimized away.
-                 */
-                if( pucHostName != NULL )
                 {
-                    pvCopySource = pucHostName;
-                    pvCopyDest = &pucPtr[ 2U ];
+                    /* With this option, the hostname can be registered as well which makes
+                     * it easier to lookup a device in a router's list of DHCP clients. */
 
-                    ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
+                    /* Point to where the OPTION_END was stored to add data. */
+                    pucPtr = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + ( *pxOptionsArraySize - 1U ) ] );
+                    pucPtr[ 0U ] = dhcpIPv4_DNS_HOSTNAME_OPTIONS_CODE;
+                    pucPtr[ 1U ] = ( uint8_t ) uxNameLength;
+
+                    /*
+                     * Use helper variables for memcpy() to remain
+                     * compliant with MISRA Rule 21.15.  These should be
+                     * optimized away.
+                     */
+                    if( pucHostName != NULL )
+                    {
+                        pvCopySource = pucHostName;
+                        pvCopyDest = &pucPtr[ 2U ];
+
+                        ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
+                    }
+
+                    pucPtr[ 2U + uxNameLength ] = ( uint8_t ) dhcpOPTION_END_BYTE;
+                    *pxOptionsArraySize += ( size_t ) ( 2U + uxNameLength );
                 }
-
-                pucPtr[ 2U + uxNameLength ] = ( uint8_t ) dhcpOPTION_END_BYTE;
-                *pxOptionsArraySize += ( size_t ) ( 2U + uxNameLength );
-            }
             #endif /* if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) */
 
             /* Map in the client identifier. */

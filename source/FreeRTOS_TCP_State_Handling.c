@@ -186,13 +186,13 @@
                 if( xAge > ( ( TickType_t ) ipconfigTCP_HANG_PROTECTION_TIME * ( TickType_t ) configTICK_RATE_HZ ) )
                 {
                     #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-                    {
-                        FreeRTOS_debug_printf( ( "Inactive socket closed: port %u rem %xip:%u status %s\n",
-                                                 pxSocket->usLocalPort,
-                                                 ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
-                                                 pxSocket->u.xTCP.usRemotePort,
-                                                 FreeRTOS_GetTCPStateName( ( UBaseType_t ) pxSocket->u.xTCP.eTCPState ) ) );
-                    }
+                        {
+                            FreeRTOS_debug_printf( ( "Inactive socket closed: port %u rem %xip:%u status %s\n",
+                                                     pxSocket->usLocalPort,
+                                                     ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
+                                                     pxSocket->u.xTCP.usRemotePort,
+                                                     FreeRTOS_GetTCPStateName( ( UBaseType_t ) pxSocket->u.xTCP.eTCPState ) ) );
+                        }
                     #endif /* ipconfigHAS_DEBUG_PRINTF */
 
                     /* Move to eCLOSE_WAIT, user may close the socket. */
@@ -436,19 +436,19 @@
             pxTCPWindow->ulOurSequenceNumber = pxTCPWindow->tx.ulFirstSequenceNumber + 1U;
 
             #if ( ipconfigUSE_TCP_WIN == 1 )
-            {
-                char pcBuffer[ 40 ];     /* Space to print an IP-address. */
-                ( void ) FreeRTOS_inet_ntop( ( pxSocket->bits.bIsIPv6 != 0U ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET,
-                                             ( void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+                {
+                    char pcBuffer[ 40 ]; /* Space to print an IP-address. */
+                    ( void ) FreeRTOS_inet_ntop( ( pxSocket->bits.bIsIPv6 != 0U ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET,
+                                                 ( void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+                                                 pcBuffer,
+                                                 sizeof( pcBuffer ) );
+                    FreeRTOS_debug_printf( ( "TCP: %s %u => %s port %u set ESTAB (scaling %u)\n",
+                                             ( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eCONNECT_SYN ) ? "active" : "passive",
+                                             pxSocket->usLocalPort,
                                              pcBuffer,
-                                             sizeof( pcBuffer ) );
-                FreeRTOS_debug_printf( ( "TCP: %s %u => %s port %u set ESTAB (scaling %u)\n",
-                                         ( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eCONNECT_SYN ) ? "active" : "passive",
-                                         pxSocket->usLocalPort,
-                                         pcBuffer,
-                                         pxSocket->u.xTCP.usRemotePort,
-                                         ( unsigned ) pxSocket->u.xTCP.bits.bWinScaling ) );
-            }
+                                             pxSocket->u.xTCP.usRemotePort,
+                                             ( unsigned ) pxSocket->u.xTCP.bits.bWinScaling ) );
+                }
             #endif /* ipconfigUSE_TCP_WIN */
 
             if( ( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN ) || ( ulReceiveLength != 0U ) )
@@ -461,15 +461,15 @@
             }
 
             #if ( ipconfigUSE_TCP_WIN != 0 )
-            {
-                if( pxSocket->u.xTCP.bits.bWinScaling == pdFALSE_UNSIGNED )
                 {
-                    /* The other party did not send a scaling factor.
-                     * A shifting factor in this side must be canceled. */
-                    pxSocket->u.xTCP.ucMyWinScaleFactor = 0;
-                    pxSocket->u.xTCP.ucPeerWinScaleFactor = 0;
+                    if( pxSocket->u.xTCP.bits.bWinScaling == pdFALSE_UNSIGNED )
+                    {
+                        /* The other party did not send a scaling factor.
+                         * A shifting factor in this side must be canceled. */
+                        pxSocket->u.xTCP.ucMyWinScaleFactor = 0;
+                        pxSocket->u.xTCP.ucPeerWinScaleFactor = 0;
+                    }
                 }
-            }
             #endif /* ipconfigUSE_TCP_WIN */
 
             /* This was the third step of connecting: SYN, SYN+ACK, ACK so now the
@@ -520,10 +520,10 @@
         usWindow = FreeRTOS_ntohs( pxTCPHeader->usWindow );
         pxSocket->u.xTCP.ulWindowSize = ( uint32_t ) usWindow;
         #if ( ipconfigUSE_TCP_WIN != 0 )
-        {
-            pxSocket->u.xTCP.ulWindowSize =
-                ( pxSocket->u.xTCP.ulWindowSize << pxSocket->u.xTCP.ucPeerWinScaleFactor );
-        }
+            {
+                pxSocket->u.xTCP.ulWindowSize =
+                    ( pxSocket->u.xTCP.ulWindowSize << pxSocket->u.xTCP.ucPeerWinScaleFactor );
+            }
         #endif /* ipconfigUSE_TCP_WIN */
 
         if( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_ACK ) == 0U )
@@ -550,23 +550,23 @@
                     pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_SEND;
 
                     #if ipconfigSUPPORT_SELECT_FUNCTION == 1
-                    {
-                        if( ( pxSocket->xSelectBits & ( ( EventBits_t ) eSELECT_WRITE ) ) != 0U )
                         {
-                            pxSocket->xEventBits |= ( ( EventBits_t ) eSELECT_WRITE ) << SOCKET_EVENT_BIT_COUNT;
+                            if( ( pxSocket->xSelectBits & ( ( EventBits_t ) eSELECT_WRITE ) ) != 0U )
+                            {
+                                pxSocket->xEventBits |= ( ( EventBits_t ) eSELECT_WRITE ) << SOCKET_EVENT_BIT_COUNT;
+                            }
                         }
-                    }
                     #endif
 
                     /* In case the socket owner has installed an OnSent handler,
                      * call it now. */
                     #if ( ipconfigUSE_CALLBACKS == 1 )
-                    {
-                        if( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xTCP.pxHandleSent ) )
                         {
-                            pxSocket->u.xTCP.pxHandleSent( ( Socket_t ) pxSocket, ulCount );
+                            if( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xTCP.pxHandleSent ) )
+                            {
+                                pxSocket->u.xTCP.pxHandleSent( ( Socket_t ) pxSocket, ulCount );
+                            }
                         }
-                    }
                     #endif /* ipconfigUSE_CALLBACKS == 1  */
                 }
             }
@@ -963,30 +963,30 @@
         pxNewSocket->u.xTCP.uxTxWinSize = pxSocket->u.xTCP.uxTxWinSize;
 
         #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE == 1 )
-        {
-            pxNewSocket->pxUserSemaphore = pxSocket->pxUserSemaphore;
-        }
+            {
+                pxNewSocket->pxUserSemaphore = pxSocket->pxUserSemaphore;
+            }
         #endif /* ipconfigSOCKET_HAS_USER_SEMAPHORE */
 
         #if ( ipconfigUSE_CALLBACKS == 1 )
-        {
-            /* In case call-backs are used, copy them from parent to child. */
-            pxNewSocket->u.xTCP.pxHandleConnected = pxSocket->u.xTCP.pxHandleConnected;
-            pxNewSocket->u.xTCP.pxHandleReceive = pxSocket->u.xTCP.pxHandleReceive;
-            pxNewSocket->u.xTCP.pxHandleSent = pxSocket->u.xTCP.pxHandleSent;
-        }
+            {
+                /* In case call-backs are used, copy them from parent to child. */
+                pxNewSocket->u.xTCP.pxHandleConnected = pxSocket->u.xTCP.pxHandleConnected;
+                pxNewSocket->u.xTCP.pxHandleReceive = pxSocket->u.xTCP.pxHandleReceive;
+                pxNewSocket->u.xTCP.pxHandleSent = pxSocket->u.xTCP.pxHandleSent;
+            }
         #endif /* ipconfigUSE_CALLBACKS */
 
         #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-        {
-            /* Child socket of listening sockets will inherit the Socket Set
-             * Otherwise the owner has no chance of including it into the set. */
-            if( pxSocket->pxSocketSet != NULL )
             {
-                pxNewSocket->pxSocketSet = pxSocket->pxSocketSet;
-                pxNewSocket->xSelectBits = pxSocket->xSelectBits | ( ( EventBits_t ) eSELECT_READ ) | ( ( EventBits_t ) eSELECT_EXCEPT );
+                /* Child socket of listening sockets will inherit the Socket Set
+                 * Otherwise the owner has no chance of including it into the set. */
+                if( pxSocket->pxSocketSet != NULL )
+                {
+                    pxNewSocket->pxSocketSet = pxSocket->pxSocketSet;
+                    pxNewSocket->xSelectBits = pxSocket->xSelectBits | ( ( EventBits_t ) eSELECT_READ ) | ( ( EventBits_t ) eSELECT_EXCEPT );
+                }
             }
-        }
         #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
         /* And bind it to the same local port as its parent. */
@@ -994,30 +994,30 @@
         xAddress.sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
 
         #if ( ipconfigTCP_HANG_PROTECTION == 1 )
-        {
-            /* Only when there is anti-hanging protection, a socket may become an
-             * orphan temporarily.  Once this socket is really connected, the owner of
-             * the server socket will be notified. */
-
-            /* When bPassQueued is true, the socket is an orphan until it gets
-             * connected. */
-            pxNewSocket->u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
-            pxNewSocket->u.xTCP.pxPeerSocket = pxSocket;
-        }
-        #else
-        {
-            /* A reference to the new socket may be stored and the socket is marked
-             * as 'passable'. */
-
-            /* When bPassAccept is true, this socket may be returned in a call to
-             * accept(). */
-            pxNewSocket->u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
-
-            if( pxSocket->u.xTCP.pxPeerSocket == NULL )
             {
-                pxSocket->u.xTCP.pxPeerSocket = pxNewSocket;
+                /* Only when there is anti-hanging protection, a socket may become an
+                 * orphan temporarily.  Once this socket is really connected, the owner of
+                 * the server socket will be notified. */
+
+                /* When bPassQueued is true, the socket is an orphan until it gets
+                 * connected. */
+                pxNewSocket->u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+                pxNewSocket->u.xTCP.pxPeerSocket = pxSocket;
             }
-        }
+        #else
+            {
+                /* A reference to the new socket may be stored and the socket is marked
+                 * as 'passable'. */
+
+                /* When bPassAccept is true, this socket may be returned in a call to
+                 * accept(). */
+                pxNewSocket->u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
+
+                if( pxSocket->u.xTCP.pxPeerSocket == NULL )
+                {
+                    pxSocket->u.xTCP.pxPeerSocket = pxNewSocket;
+                }
+            }
         #endif /* if ( ipconfigTCP_HANG_PROTECTION == 1 ) */
 
         pxSocket->u.xTCP.usChildCount++;

@@ -28,7 +28,7 @@
 #ifndef PLUS_TCP_DEMO_CLI_H
 
     #if __cplusplus
-    extern "C" {
+        extern "C" {
     #endif
 
 /*

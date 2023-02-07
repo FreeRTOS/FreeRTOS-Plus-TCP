@@ -160,12 +160,12 @@ static BaseType_t xESP32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInte
     }
 
     #if ( ipconfigHAS_PRINTF != 0 )
-    {
-        /* Call a function that monitors resources: the amount of free network
-         * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
-         * for more detailed comments. */
-        vPrintResourceStats();
-    }
+        {
+            /* Call a function that monitors resources: the amount of free network
+             * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
+             * for more detailed comments. */
+            vPrintResourceStats();
+        }
     #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
     if( xReleaseAfterSend == pdTRUE )
@@ -202,9 +202,9 @@ esp_err_t wlanif_input( void * netif,
     const TickType_t xDescriptorWaitTime = pdMS_TO_TICKS( 250 );
 
     #if ( ipconfigHAS_PRINTF != 0 )
-    {
-        vPrintResourceStats();
-    }
+        {
+            vPrintResourceStats();
+        }
     #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
     if( eConsiderFrameForProcessing( buffer ) != eProcessBuffer )

@@ -87,7 +87,7 @@
 
 /* Setup LLMNR specific multicast address. */
 #if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
-static uint8_t ucLLMNR_MAC_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
+    static uint8_t ucLLMNR_MAC_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 #endif
 
 /* Receive task refresh time */
@@ -333,20 +333,20 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                 else
                 {
                     #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
-                    {
-                        /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
-                         * It must therefore be implemented in software. */
-                        pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pxBufferDescriptor->pucEthernetBuffer );
+                        {
+                            /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
+                             * It must therefore be implemented in software. */
+                            pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pxBufferDescriptor->pucEthernetBuffer );
 
-                        if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
-                        {
-                            xICMPChecksumResult = usGenerateProtocolChecksum( pxBufferDescriptor->pucEthernetBuffer, pxBufferDescriptor->xDataLength, pdFALSE );
+                            if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
+                            {
+                                xICMPChecksumResult = usGenerateProtocolChecksum( pxBufferDescriptor->pucEthernetBuffer, pxBufferDescriptor->xDataLength, pdFALSE );
+                            }
+                            else
+                            {
+                                xICMPChecksumResult = ipCORRECT_CRC; /* Reset the result value in case this is not an ICMP packet. */
+                            }
                         }
-                        else
-                        {
-                            xICMPChecksumResult = ipCORRECT_CRC;     /* Reset the result value in case this is not an ICMP packet. */
-                        }
-                    }
                     #endif /* if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 
                     /* See if the data contained in the received Ethernet frame needs
@@ -437,16 +437,16 @@ BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
     if( xATSAM5x_PHYGetLinkStatus( NULL ) )
     {
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 )
-        {
-            /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
-             * It must therefore be implemented in software. */
-            const IPPacket_t * pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pxDescriptor->pucEthernetBuffer );
-
-            if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
             {
-                ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
+                /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
+                 * It must therefore be implemented in software. */
+                const IPPacket_t * pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pxDescriptor->pucEthernetBuffer );
+
+                if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
+                {
+                    ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
+                }
             }
-        }
         #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) */
 
         mac_async_write( &ETH_MAC, pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength );
@@ -519,27 +519,27 @@ static void prvGMACInit()
 
     /* Enable traffic for LLMNR, if defined. */
     #if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
-    {
-        mac_async_set_filter_ex( &ETH_MAC, ucLLMNR_MAC_address );
-    }
+        {
+            mac_async_set_filter_ex( &ETH_MAC, ucLLMNR_MAC_address );
+        }
     #endif
 
 
     #if ( ipconfigUSE_IPv6 != 0 )
-    {
-        /* Allow all nodes IPv6 multicast MAC */
-        uint8_t ucMACAddressAllNodes[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33, 0x33, 0, 0, 0, 1 };
-        mac_async_set_filter_ex( &ETH_MAC, ucMACAddressAllNodes );
-
-        #if ( ipconfigUSE_LLMNR == 1 )
         {
-            uint8_t ucMACAddressLLMNRIPv6[ ipMAC_ADDRESS_LENGTH_BYTES ];
-            /* Avoid warning */
-            memcpy( ucMACAddressLLMNRIPv6, xLLMNR_MacAdressIPv6.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
-            mac_async_set_filter_ex( &ETH_MAC, ucMACAddressLLMNRIPv6 );
+            /* Allow all nodes IPv6 multicast MAC */
+            uint8_t ucMACAddressAllNodes[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33, 0x33, 0, 0, 0, 1 };
+            mac_async_set_filter_ex( &ETH_MAC, ucMACAddressAllNodes );
+
+            #if ( ipconfigUSE_LLMNR == 1 )
+                {
+                    uint8_t ucMACAddressLLMNRIPv6[ ipMAC_ADDRESS_LENGTH_BYTES ];
+                    /* Avoid warning */
+                    memcpy( ucMACAddressLLMNRIPv6, xLLMNR_MacAdressIPv6.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+                    mac_async_set_filter_ex( &ETH_MAC, ucMACAddressLLMNRIPv6 );
+                }
+            #endif /* ipconfigUSE_LLMNR */
         }
-        #endif /* ipconfigUSE_LLMNR */
-    }
     #endif /* ipconfigUSE_IPv6 */
 
     for( pxEndPointIter = FreeRTOS_FirstEndPoint( pxMyInterface );
@@ -547,19 +547,19 @@ static void prvGMACInit()
          pxEndPointIter = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPointIter ) )
     {
         #if ( ipconfigUSE_IPv6 != 0 )
-        {
-            if( pxEndPointIter->bits.bIPv6 != pdFALSE_UNSIGNED )
             {
-                /* Allow traffic from IPv6 solicited-node multicast MAC address for
-                 * each endpoint */
-                uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
+                if( pxEndPointIter->bits.bIPv6 != pdFALSE_UNSIGNED )
+                {
+                    /* Allow traffic from IPv6 solicited-node multicast MAC address for
+                     * each endpoint */
+                    uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
 
-                ucMACAddress[ 3 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 13 ];
-                ucMACAddress[ 4 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 14 ];
-                ucMACAddress[ 5 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 15 ];
-                mac_async_set_filter_ex( &ETH_MAC, ucMACAddress );
+                    ucMACAddress[ 3 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 13 ];
+                    ucMACAddress[ 4 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 14 ];
+                    ucMACAddress[ 5 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+                    mac_async_set_filter_ex( &ETH_MAC, ucMACAddress );
+                }
             }
-        }
         #endif /* ipconfigUSE_IPv6 */
 
         /* Allow endpoint MAC */

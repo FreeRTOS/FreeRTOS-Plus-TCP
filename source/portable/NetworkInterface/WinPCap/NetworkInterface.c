@@ -460,16 +460,16 @@ static pcap_if_t * prvPrintAvailableNetworkInterfaces( void )
                 printf( "              (%s)\n", prvRemoveSpaces( cBuffer, sizeof( cBuffer ), xInterface->description ? xInterface->description : "No description" ) );
                 printf( "\n" );
                 #ifdef configNETWORK_INTERFACE_TYPE_TO_USE
-                {
-                    if( xInterface->description != NULL )
                     {
-                        if( xDesiredAdapter( xInterface->description ) )
+                        if( xInterface->description != NULL )
                         {
-                            printf( "The description of adapter %d matches with '%s'\n", lInterfaceNumber, configNETWORK_INTERFACE_TYPE_TO_USE );
-                            xConfigNetworkInterfaceToUse = lInterfaceNumber;
+                            if( xDesiredAdapter( xInterface->description ) )
+                            {
+                                printf( "The description of adapter %d matches with '%s'\n", lInterfaceNumber, configNETWORK_INTERFACE_TYPE_TO_USE );
+                                xConfigNetworkInterfaceToUse = lInterfaceNumber;
+                            }
                         }
                     }
-                }
                 #endif /* ifdef configNETWORK_INTERFACE_TYPE_TO_USE */
                 lInterfaceNumber++;
             }
@@ -848,9 +848,9 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                         pxNetworkBuffer->xDataLength = ( size_t ) pxHeader->len;
 
                         #if ( niDISRUPT_PACKETS == 1 )
-                        {
-                            pxNetworkBuffer = vRxFaultInjection( pxNetworkBuffer, pucPacketData );
-                        }
+                            {
+                                pxNetworkBuffer = vRxFaultInjection( pxNetworkBuffer, pucPacketData );
+                            }
                         #endif /* niDISRUPT_PACKETS */
 
                         if( pxNetworkBuffer != NULL )

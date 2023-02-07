@@ -979,9 +979,9 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                         pxNetworkBuffer->xDataLength = ( size_t ) pxHeader->len;
 
                         #if ( niDISRUPT_PACKETS == 1 )
-                        {
-                            pxNetworkBuffer = vRxFaultInjection( pxNetworkBuffer, pucPacketData );
-                        }
+                            {
+                                pxNetworkBuffer = vRxFaultInjection( pxNetworkBuffer, pucPacketData );
+                            }
                         #endif /* niDISRUPT_PACKETS */
 
                         if( pxNetworkBuffer != NULL )

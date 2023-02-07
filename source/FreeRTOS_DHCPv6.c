@@ -773,15 +773,15 @@ static void vDHCPv6ProcessEndPoint( BaseType_t xReset,
     else
     {
         #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-        {
-            static eDHCPState_t lastState = eNotUsingLeasedAddress;
-
-            if( lastState != EP_DHCPData.eDHCPState )
             {
-                lastState = EP_DHCPData.eDHCPState;
-                FreeRTOS_debug_printf( ( "vDHCPv6ProcessEndPoint: enter %s (%d)\n", prvStateName( EP_DHCPData.eDHCPState ), EP_DHCPData.eDHCPState ) );
+                static eDHCPState_t lastState = eNotUsingLeasedAddress;
+
+                if( lastState != EP_DHCPData.eDHCPState )
+                {
+                    lastState = EP_DHCPData.eDHCPState;
+                    FreeRTOS_debug_printf( ( "vDHCPv6ProcessEndPoint: enter %s (%d)\n", prvStateName( EP_DHCPData.eDHCPState ), EP_DHCPData.eDHCPState ) );
+                }
             }
-        }
         #endif /* ( ipconfigHAS_DEBUG_PRINTF == 1 ) */
 
         xGivingUp = xDHCPv6ProcessEndPoint_HandleState( pxEndPoint, pxDHCPMessage );

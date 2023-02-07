@@ -49,7 +49,7 @@
     #include "event_groups.h"
 
     #ifdef __cplusplus
-    extern "C" {
+        extern "C" {
     #endif
 
     #ifndef INC_FREERTOS_H

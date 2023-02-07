@@ -62,7 +62,7 @@ You should see an output similar to this:
 
 ```
 -----------------------
-6 Tests 0 Failures 0 Ignored
+6 Tests 0 Failures 0 Ignored 
 OK
 Capturing coverage data from .
 ... <Skipped some lines here for the sake of brevity>
@@ -76,7 +76,7 @@ And also:
 
 ```
 Reading tracefile test/unit-test/build/coverage.info
-                                |Lines       |Functions  |Branches
+                                |Lines       |Functions  |Branches    
 Filename                        |Rate     Num|Rate    Num|Rate     Num
 ======================================================================
 [/home/hein/freertos_plus_tcp/]
