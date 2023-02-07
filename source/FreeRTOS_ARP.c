@@ -189,72 +189,91 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
         /* The field ulTargetProtocolAddress is well-aligned, a 32-bits copy. */
         ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
 
-        #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
-            {
-                pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulSenderProtocolAddress, 2 ); /* Clash detection. */
-            }
-        #endif
-
-        traceARP_PACKET_RECEIVED();
-
-        /* Some extra logging while still testing. */
-        #if ( ipconfigHAS_PRINTF != 0 )
-            if( pxARPHeader->usOperation == ( uint16_t ) ipARP_REPLY )
-            {
-                FreeRTOS_printf( ( "ipARP_REPLY from %xip to %xip end-point %xip\n",
-                                   ( unsigned ) FreeRTOS_ntohl( ulSenderProtocolAddress ),
-                                   ( unsigned ) FreeRTOS_ntohl( ulTargetProtocolAddress ),
-                                   ( unsigned ) FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) );
-            }
-        #endif /* ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
-
-        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-            if( ( pxARPHeader->usOperation == ( uint16_t ) ipARP_REQUEST ) &&
-                ( ulSenderProtocolAddress != ulTargetProtocolAddress ) &&
-                ( pxTargetEndPoint != NULL ) )
-            {
-                FreeRTOS_debug_printf( ( "ipARP_REQUEST from %xip to %xip end-point %xip\n",
-                                         ( unsigned ) FreeRTOS_ntohl( ulSenderProtocolAddress ),
-                                         ( unsigned ) FreeRTOS_ntohl( ulTargetProtocolAddress ),
-                                         ( unsigned ) ( FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) ) );
-            }
-        #endif /* ( ipconfigHAS_PRINTF != 0 ) */
-
-        /* ulTargetProtocolAddress won't be used unless logging is enabled. */
-        ( void ) ulTargetProtocolAddress;
-
-        /* Don't do anything if the local IP address is zero because
-         * that means a DHCP request has not completed. */
-        if( ( pxTargetEndPoint != NULL ) && ( pxTargetEndPoint->bits.bEndPointUp != pdFALSE_UNSIGNED ) )
+        /* Check whether the lowest bit of the highest byte is 1 to check for
+         * multicast address or even a broadcast address (FF:FF:FF:FF:FF:FF). */
+        if( ( pxARPHeader->xSenderHardwareAddress.ucBytes[ 0 ] & 0x01U ) == 0x01U )
         {
-            switch( pxARPHeader->usOperation )
-            {
-                case ipARP_REQUEST:
-                    vARPProcessPacketRequest( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
-                    eReturn = eReturnEthernetFrame;
-                    break;
-
-                case ipARP_REPLY:
-                    vProcessARPPacketReply( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
-                    break;
-
-                default:
-                    /* Invalid. */
-                    break;
-            }
+            /* Senders address is a multicast OR broadcast address which is not
+             * allowed for an ARP packet. Drop the packet. See RFC 1812 section
+             * 3.3.2. */
+            iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
         }
-
-        /* Process received ARP frame to see if there is a clash. */
-        #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
-            {
-                if( pxSourceEndPoint != NULL )
+        else if( ( ipFIRST_LOOPBACK_IPv4 <= ( FreeRTOS_ntohl( ulSenderProtocolAddress ) ) ) &&
+                 ( ( FreeRTOS_ntohl( ulSenderProtocolAddress ) ) < ipLAST_LOOPBACK_IPv4 ) )
+        {
+            /* The local loopback addresses must never appear outside a host. See RFC 1122
+             * section 3.2.1.3. */
+            iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
+        }
+        else
+        {
+            #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
                 {
-                    xARPHadIPClash = pdTRUE;
-                    /* Remember the MAC-address of the other device which has the same IP-address. */
-                    ( void ) memcpy( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( xARPClashMacAddress.ucBytes ) );
+                    pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulSenderProtocolAddress, 2 ); /* Clash detection. */
+                }
+            #endif
+
+            traceARP_PACKET_RECEIVED();
+
+            /* Some extra logging while still testing. */
+            #if ( ipconfigHAS_PRINTF != 0 )
+                if( pxARPHeader->usOperation == ( uint16_t ) ipARP_REPLY )
+                {
+                    FreeRTOS_printf( ( "ipARP_REPLY from %xip to %xip end-point %xip\n",
+                                       ( unsigned ) FreeRTOS_ntohl( ulSenderProtocolAddress ),
+                                       ( unsigned ) FreeRTOS_ntohl( ulTargetProtocolAddress ),
+                                       ( unsigned ) FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) );
+                }
+            #endif /* ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
+
+            #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+                if( ( pxARPHeader->usOperation == ( uint16_t ) ipARP_REQUEST ) &&
+                    ( ulSenderProtocolAddress != ulTargetProtocolAddress ) &&
+                    ( pxTargetEndPoint != NULL ) )
+                {
+                    FreeRTOS_debug_printf( ( "ipARP_REQUEST from %xip to %xip end-point %xip\n",
+                                             ( unsigned ) FreeRTOS_ntohl( ulSenderProtocolAddress ),
+                                             ( unsigned ) FreeRTOS_ntohl( ulTargetProtocolAddress ),
+                                             ( unsigned ) ( FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) ) );
+                }
+            #endif /* ( ipconfigHAS_PRINTF != 0 ) */
+
+            /* ulTargetProtocolAddress won't be used unless logging is enabled. */
+            ( void ) ulTargetProtocolAddress;
+
+            /* Don't do anything if the local IP address is zero because
+             * that means a DHCP request has not completed. */
+            if( ( pxTargetEndPoint != NULL ) && ( pxTargetEndPoint->bits.bEndPointUp != pdFALSE_UNSIGNED ) )
+            {
+                switch( pxARPHeader->usOperation )
+                {
+                    case ipARP_REQUEST:
+                        vARPProcessPacketRequest( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
+                        eReturn = eReturnEthernetFrame;
+                        break;
+
+                    case ipARP_REPLY:
+                        vProcessARPPacketReply( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
+                        break;
+
+                    default:
+                        /* Invalid. */
+                        break;
                 }
             }
-        #endif /* ipconfigARP_USE_CLASH_DETECTION */
+
+            /* Process received ARP frame to see if there is a clash. */
+            #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
+                {
+                    if( ( pxSourceEndPoint != NULL ) && ( pxSourceEndPoint->ipv4_settings.ulIPAddress == ulSenderProtocolAddress ) )
+                    {
+                        xARPHadIPClash = pdTRUE;
+                        /* Remember the MAC-address of the other device which has the same IP-address. */
+                        ( void ) memcpy( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( xARPClashMacAddress.ucBytes ) );
+                    }
+                }
+            #endif /* ipconfigARP_USE_CLASH_DETECTION */
+        }
     }
     else
     {
