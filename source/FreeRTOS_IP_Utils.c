@@ -518,6 +518,10 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
         {
             pxSet->usChecksum = ( uint16_t ) ipCORRECT_CRC;
         }
+        else
+        {
+            pxSet->usChecksum = ( uint16_t ) ipWRONG_CRC;
+        }
     }
     else
     {
@@ -553,16 +557,15 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
         else if( ( xOutgoingPacket == pdFALSE ) && ( pxSet->usChecksum != ipCORRECT_CRC ) )
         {
-            uint16_t usGot, usCalculated;
+            uint16_t usGot;
             usGot = *pxSet->pusChecksum;
-            usCalculated = ~usGenerateProtocolChecksum( ( uint8_t * ) pucEthernetBuffer, uxBufferLength, pdTRUE );
             FreeRTOS_debug_printf( ( "usGenerateProtocolChecksum[%s]: len %d ID %04X: from %xip to %xip cal %04X got %04X\n",
                                      pxSet->pcType,
                                      pxSet->usProtocolBytes,
                                      FreeRTOS_ntohs( pxSet->pxIPPacket->xIPHeader.usIdentification ),
                                      ( unsigned ) FreeRTOS_ntohl( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ),
                                      ( unsigned ) FreeRTOS_ntohl( pxSet->pxIPPacket->xIPHeader.ulDestinationIPAddress ),
-                                     FreeRTOS_ntohs( usCalculated ),
+                                     FreeRTOS_ntohs( pxSet->usChecksum ),
                                      FreeRTOS_ntohs( usGot ) ) );
         }
         else
@@ -616,44 +619,37 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
         /* The input here is a pointer to a payload buffer.  Subtract
          * the total size of a UDP/IP packet plus the size of the header in
          * the network buffer, usually 8 + 2 bytes. */
-        #if ( ipconfigUSE_IPv6 != 0 )
-            {
-                uintptr_t uxTypeOffset;
-                const uint8_t * pucIPType;
-                uint8_t ucIPType;
 
-                /* When IPv6 is supported, find out the type of the packet.
-                 * It is stored 48 bytes before the payload buffer as 0x40 or 0x60. */
-                uxTypeOffset = void_ptr_to_uintptr( pvBuffer );
-                uxTypeOffset -= ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-                /* MISRA Ref 11.4.3 [Casting pointer to int for verification] */
-                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
-                /* coverity[misra_c_2012_rule_11_4_violation] */
-                pucIPType = ( const uint8_t * ) uxTypeOffset;
+        uintptr_t uxTypeOffset;
+        const uint8_t * pucIPType;
+        uint8_t ucIPType;
 
-                /* For an IPv4 packet, pucIPType points to 6 bytes before the pucEthernetBuffer,
-                 * for a IPv6 packet, pucIPType will point to the first byte of the IP-header: 'ucVersionTrafficClass'. */
-                ucIPType = pucIPType[ 0 ] & 0xf0U;
+        /* When IPv6 is supported, find out the type of the packet.
+         * It is stored 48 bytes before the payload buffer as 0x40 or 0x60. */
+        uxTypeOffset = void_ptr_to_uintptr( pvBuffer );
+        uxTypeOffset -= ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+        /* MISRA Ref 11.4.3 [Casting pointer to int for verification] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+        /* coverity[misra_c_2012_rule_11_4_violation] */
+        pucIPType = ( const uint8_t * ) uxTypeOffset;
 
-                /* To help the translation from a UDP payload pointer to a networkBuffer,
-                 * a byte was stored at a certain negative offset (-48 bytes).
-                 * It must have a value of either 0x4x or 0x6x. */
-                configASSERT( ( ucIPType == ipTYPE_IPv4 ) || ( ucIPType == ipTYPE_IPv6 ) );
+        /* For an IPv4 packet, pucIPType points to 6 bytes before the pucEthernetBuffer,
+         * for a IPv6 packet, pucIPType will point to the first byte of the IP-header: 'ucVersionTrafficClass'. */
+        ucIPType = pucIPType[ 0 ] & 0xf0U;
 
-                if( ucIPType == ipTYPE_IPv6 )
-                {
-                    uxOffset = sizeof( UDPPacket_IPv6_t );
-                }
-                else /* ucIPType == ipTYPE_IPv4 */
-                {
-                    uxOffset = sizeof( UDPPacket_t );
-                }
-            }
-        #else /* if ( ipconfigUSE_IPv6 != 0 ) */
-            {
-                uxOffset = sizeof( UDPPacket_t );
-            }
-        #endif /* ipconfigUSE_IPv6 */
+        /* To help the translation from a UDP payload pointer to a networkBuffer,
+         * a byte was stored at a certain negative offset (-48 bytes).
+         * It must have a value of either 0x4x or 0x6x. */
+        configASSERT( ( ucIPType == ipTYPE_IPv4 ) || ( ucIPType == ipTYPE_IPv6 ) );
+
+        if( ucIPType == ipTYPE_IPv6 )
+        {
+            uxOffset = sizeof( UDPPacket_IPv6_t );
+        }
+        else /* ucIPType == ipTYPE_IPv4 */
+        {
+            uxOffset = sizeof( UDPPacket_t );
+        }
 
         pxResult = prvPacketBuffer_to_NetworkBuffer( pvBuffer, uxOffset );
     }
@@ -997,6 +993,11 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         /* For outgoing packets, set the checksum in the packet,
          * for incoming packets: show logging in case an error occurred. */
         prvChecksumProtocolSetChecksum( xOutgoingPacket, pucEthernetBuffer, uxBufferLength, &( xSet ) );
+
+        if( xOutgoingPacket != pdFALSE )
+        {
+            xSet.usChecksum = ( uint16_t ) ipCORRECT_CRC;
+        }
     } while( ipFALSE_BOOL );
 
     #if ( ipconfigHAS_PRINTF == 1 )

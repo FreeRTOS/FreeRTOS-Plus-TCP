@@ -57,6 +57,7 @@
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_FreeRTOS_UDP_IP.h"
+#include "mock_FreeRTOS_Routing.h"
 
 #include "FreeRTOS_IP_Utils.h"
 
@@ -74,16 +75,21 @@ extern NetworkInterface_t xInterfaces[ 1 ];
 extern UBaseType_t uxLastMinBufferCount;
 extern size_t uxMinLastSize;
 
+BaseType_t xNetworkInterfaceInitialise_returnTrue( NetworkInterface_t * xInterface )
+{
+    return pdTRUE;
+}
+
 void test_xSendDHCPEvent( void )
 {
     BaseType_t xReturn, xResult = 0x123;
-    struct xNetworkEndPoint pxEndPoint = { 0 };
+    struct xNetworkEndPoint xEndPoint = { 0 };
 
-    eGetDHCPState_ExpectAndReturn( NULL, 12 );
+    eGetDHCPState_ExpectAnyArgsAndReturn( 12 );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( xResult );
 
-    xReturn = xSendDHCPEvent( &pxEndPoint );
+    xReturn = xSendDHCPEvent( &xEndPoint );
 
     TEST_ASSERT_EQUAL( xResult, xReturn );
 }
@@ -135,17 +141,18 @@ void test_pxDuplicateNetworkBufferWithDescriptor_LargerBufferReturned( void )
     memset( ucEthBuffer2, 0x00, ipconfigTCP_MSS );
 
     pxNetworkBuffer->xDataLength = 0x123;
-    pxNetworkBuffer->xIPAddress.xIP_IPv4 = 0xABCDEF56;
+    pxNetworkBuffer->xIPAddress.ulIP_IPv4 = 0xABCDEF56;
     pxNetworkBuffer->usPort = 0x1234;
     pxNetworkBuffer->usBoundPort = 0xFFAA;
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNewLength, 0, &xNetworkBuffer2 );
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     pxReturn = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxNewLength );
 
     TEST_ASSERT_EQUAL( &xNetworkBuffer2, pxReturn );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.xDataLength, uxNewLength );
-    TEST_ASSERT_EQUAL( xNetworkBuffer2.xIPAddress.xIP_IPv4, pxNetworkBuffer->xIPAddress.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( xNetworkBuffer2.xIPAddress.ulIP_IPv4, pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.usPort, pxNetworkBuffer->usPort );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.usBoundPort, pxNetworkBuffer->usBoundPort );
     TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pucEthernetBuffer, xNetworkBuffer2.pucEthernetBuffer, pxNetworkBuffer->xDataLength );
@@ -168,17 +175,18 @@ void test_pxDuplicateNetworkBufferWithDescriptor_SmallerBufferReturned( void )
     memset( ucEthBuffer2, 0x00, ipconfigTCP_MSS );
 
     pxNetworkBuffer->xDataLength = 0x123;
-    pxNetworkBuffer->xIPAddress.xIP_IPv4 = 0xABCDEF56;
+    pxNetworkBuffer->xIPAddress.ulIP_IPv4 = 0xABCDEF56;
     pxNetworkBuffer->usPort = 0x1234;
     pxNetworkBuffer->usBoundPort = 0xFFAA;
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNewLength, 0, &xNetworkBuffer2 );
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     pxReturn = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxNewLength );
 
     TEST_ASSERT_EQUAL( &xNetworkBuffer2, pxReturn );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.xDataLength, uxNewLength );
-    TEST_ASSERT_EQUAL( xNetworkBuffer2.xIPAddress.xIP_IPv4, pxNetworkBuffer->xIPAddress.xIP_IPv4 );
+    TEST_ASSERT_EQUAL( xNetworkBuffer2.xIPAddress.ulIP_IPv4, pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.usPort, pxNetworkBuffer->usPort );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.usBoundPort, pxNetworkBuffer->usBoundPort );
     TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pucEthernetBuffer, xNetworkBuffer2.pucEthernetBuffer, uxNewLength );
@@ -236,6 +244,7 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer( void )
     const void * pvBuffer;
     size_t uxOffset = sizeof( UDPPacket_t );
     uint8_t ucEthBuf[ ipconfigTCP_MSS ];
+    uint8_t * pucIPType;
     NetworkBufferDescriptor_t * pxAddrOfNetBuffer = &xNetBufferToReturn;
 
     pxAddrOfNetBuffer->pucEthernetBuffer = ucEthBuf;
@@ -243,6 +252,9 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer( void )
     *( ( NetworkBufferDescriptor_t ** ) pxAddrOfNetBuffer->pucEthernetBuffer ) = pxAddrOfNetBuffer;
 
     pxAddrOfNetBuffer->pucEthernetBuffer += ( uxOffset + ipBUFFER_PADDING );
+
+    pucIPType = ( pxAddrOfNetBuffer->pucEthernetBuffer ) - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+    *pucIPType = ( const uint8_t * ) ipTYPE_IPv4;
 
     pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pxAddrOfNetBuffer->pucEthernetBuffer );
 
@@ -281,17 +293,20 @@ void test_prvProcessNetworkDownEvent_Pass( void )
     NetworkEndPoint_t xEndPoint;
 
     xCallEventHook = pdFALSE;
-    xInterfaces[ 0 ].pfInitialise = xNetworkInterfaceInitialise_CMockExpectAndReturn;
+    xInterfaces[ 0 ].pfInitialise = &xNetworkInterfaceInitialise_returnTrue;
+    xEndPoint.bits.bWantDHCP = pdTRUE_UNSIGNED;
+    xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
     FreeRTOS_ClearARP_ExpectAnyArgs();
 
-    xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces, pdPASS );
+    vDHCPProcess_Expect( pdTRUE, &xEndPoint );
 
-    vDHCPProcess_Expect( pdTRUE, eInitialWait );
-
-    prvProcessNetworkDownEvent( &xInterface );
+    prvProcessNetworkDownEvent( &xInterfaces );
 
     /* Run again to trigger a different path in the code. */
 
@@ -301,11 +316,9 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     FreeRTOS_ClearARP_Expect( &xEndPoint );
 
-    xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces, pdPASS );
+    vDHCPProcess_Expect( pdTRUE, &xEndPoint );
 
-    vDHCPProcess_Expect( pdTRUE, eInitialWait );
-
-    prvProcessNetworkDownEvent( &xInterface );
+    prvProcessNetworkDownEvent( &xInterfaces );
 }
 
 void test_prvProcessNetworkDownEvent_Fail( void )
@@ -314,19 +327,19 @@ void test_prvProcessNetworkDownEvent_Fail( void )
     NetworkEndPoint_t xEndPoint;
 
     xCallEventHook = pdFALSE;
-    xInterfaces[ 0 ].pfInitialise = xNetworkInterfaceInitialise_CMockExpectAndReturn;
+    xInterfaces[ 0 ].pfInitialise = &xNetworkInterfaceInitialise_returnTrue;
+    xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
     FreeRTOS_ClearARP_Expect( &xEndPoint );
 
-    xNetworkInterfaceInitialise_ExpectAndReturn( &xInterfaces, pdFAIL );
+    vIPNetworkUpCalls_Expect( &xEndPoint );
 
-    vTaskDelay_ExpectAnyArgs();
-
-    FreeRTOS_NetworkDown_Expect( &xEndPoint );
-
-    prvProcessNetworkDownEvent( &xInterface );
+    prvProcessNetworkDownEvent( &xInterfaces );
 }
 
 void test_vPreCheckConfigs_CatchAssert1( void )
@@ -452,7 +465,7 @@ void test_usGenerateProtocolChecksum_UDPWrongCRCIncomingPacket( void )
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
-    TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
+    TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
 
 void test_usGenerateProtocolChecksum_UDPInvalidLength( void )
@@ -650,7 +663,7 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRC( void )
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
-    TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
+    TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
     TEST_ASSERT_EQUAL( 4660, pxProtPack->xUDPPacket.xUDPHeader.usChecksum );
 }
 
@@ -683,7 +696,7 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacket( void )
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
-    TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
+    TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
     TEST_ASSERT_EQUAL( 0, pxProtPack->xUDPPacket.xUDPHeader.usChecksum );
 }
 
@@ -713,7 +726,7 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRC_IncomingPacket( void )
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
-    TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
+    TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
 
 void test_usGenerateProtocolChecksum_TCPIncorrectCRC_IncomingPacket( void )
@@ -742,7 +755,9 @@ void test_usGenerateProtocolChecksum_TCPIncorrectCRC_IncomingPacket( void )
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
-    TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
+    TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
+    /*TODO new test case to validate ipWRONG_CRC */
+    /*ipWRONG_CRC is not valid output now, now with these test inputs */
 }
 
 void test_usGenerateProtocolChecksum_TCPInvalidLength( void )

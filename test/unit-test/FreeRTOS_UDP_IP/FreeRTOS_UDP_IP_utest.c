@@ -131,9 +131,11 @@ void test_vProcessGeneratedUDPPacket_CantSendPacket( void )
     /* Nothing to assert on since there was no modification. */
 }
 
-BaseType_t NetworkInterfaceOutputFunction_Stub ( struct xNetworkInterface * pxDescriptor,
-                                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                    BaseType_t xReleaseAfterSend ) {}
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+}
 
 
 /*
@@ -329,7 +331,6 @@ void test_vProcessGeneratedUDPPacket_CacheHit_ICMPPacket_LLMNR_UDPChkSumOption( 
 
     /* Cleanup the ethernet buffer. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
-    xInterfaces[ 0 ].pfOutput = xNetworkInterfaceOutput_CMockExpectAndReturn;
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] = ucSocketOptions;
 
@@ -704,7 +705,7 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_BufferFull1( void )
     xLocalNetworkBuffer.pxEndPoint = &xEndPoint;
     xLocalNetworkBuffer.pxEndPoint->pxNetworkInterface = &xInterface;
     xLocalNetworkBuffer.pxEndPoint->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
-    
+
     xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
     TEST_ASSERT_EQUAL( pdFALSE, xIsWaitingARPResolution );
