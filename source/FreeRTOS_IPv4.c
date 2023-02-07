@@ -383,7 +383,7 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
                             static BaseType_t xCount = 0;
 
                             /* Exclude this from branch coverage as this is only used for debugging. */
-                            if( xCount < 5 ) /* LCOV_EXCL_BR_LINE */
+                            if( xCount < 5 )             /* LCOV_EXCL_BR_LINE */
                             {
                                 FreeRTOS_printf( ( "prvAllowIPPacket: UDP packet from %xip without CRC dropped\n",
                                                    FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
@@ -457,7 +457,7 @@ enum eFrameProcessingResult prvCheckIP4HeaderOptions( struct xNETWORK_BUFFER * c
         pxIPHeader->usLength = FreeRTOS_htons( FreeRTOS_ntohs( pxIPHeader->usLength ) - optlen );
 
         /* Rewrite the Version/IHL byte to indicate that this packet has no IP options. */
-        pxIPHeader->ucVersionHeaderLength = ( uint8_t ) ( ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
+        pxIPHeader->ucVersionHeaderLength = ( uint8_t ) ( ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) |     /* High nibble is the version. */
                                                           ( ( ipSIZE_OF_IPv4_HEADER >> 2 ) & 0x0FU ) );
     }
     #else /* if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 ) */

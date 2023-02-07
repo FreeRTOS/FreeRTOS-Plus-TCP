@@ -437,7 +437,7 @@
 
             #if ( ipconfigUSE_TCP_WIN == 1 )
             {
-                char pcBuffer[ 40 ]; /* Space to print an IP-address. */
+                char pcBuffer[ 40 ];     /* Space to print an IP-address. */
                 ( void ) FreeRTOS_inet_ntop( ( pxSocket->bits.bIsIPv6 != 0U ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET,
                                              ( void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
                                              pcBuffer,
