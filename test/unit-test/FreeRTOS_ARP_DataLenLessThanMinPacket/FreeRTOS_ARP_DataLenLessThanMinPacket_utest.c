@@ -24,9 +24,9 @@
 
 static uint32_t uInterfaceOut_Called = 0;
 
-BaseType_t xNetworkInterfaceOutput_ARP_Stub( NetworkInterface_t * pxInterface, 
-                                            NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                            BaseType_t bReleaseAfterSend ) 
+BaseType_t xNetworkInterfaceOutput_ARP_Stub( NetworkInterface_t * pxInterface,
+                                             NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                             BaseType_t bReleaseAfterSend )
 {
     uInterfaceOut_Called = 1;
 

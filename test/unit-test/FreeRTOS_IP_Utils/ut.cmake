@@ -16,7 +16,6 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Timers.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv4_Utils.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ICMP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
@@ -59,6 +58,7 @@ set(real_source_files "")
 # list the files you would like to test here
 list(APPEND real_source_files
             ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${project_name}.c
+            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/FreeRTOS_IPv4_Utils.c
 	)
 
 set(real_include_directories "")
