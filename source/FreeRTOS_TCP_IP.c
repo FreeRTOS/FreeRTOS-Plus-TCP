@@ -445,26 +445,41 @@
             }
         }
 
+        /* Fill in the new state. */
+        pxSocket->u.xTCP.eTCPState = eTCPState;
+
         if( ( eTCPState == eCLOSED ) ||
             ( eTCPState == eCLOSE_WAIT ) )
         {
             /* Socket goes to status eCLOSED because of a RST.
              * When nobody owns the socket yet, delete it. */
-            if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
-                ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
+            vTaskSuspendAll();
             {
-                FreeRTOS_debug_printf( ( "vTCPStateChange: Closing socket\n" ) );
-
-                if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
+                    ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
                 {
-                    configASSERT( xIsCallingFromIPTask() != pdFALSE );
-                    vSocketCloseNextTime( pxSocket );
+                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                    {
+                        pxSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
+                        pxSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
+                    }
+
+                    xTaskResumeAll();
+
+                    FreeRTOS_printf( ( "vTCPStateChange: Closing socket\n" ) );
+
+                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                    {
+                        configASSERT( xIsCallingFromIPTask() != pdFALSE );
+                        vSocketCloseNextTime( pxSocket );
+                    }
+                }
+                else
+                {
+                    xTaskResumeAll();
                 }
             }
         }
-
-        /* Fill in the new state. */
-        pxSocket->u.xTCP.eTCPState = eTCPState;
 
         if( ( eTCPState == eCLOSE_WAIT ) && ( pxSocket->u.xTCP.bits.bReuseSocket == pdTRUE_UNSIGNED ) )
         {
