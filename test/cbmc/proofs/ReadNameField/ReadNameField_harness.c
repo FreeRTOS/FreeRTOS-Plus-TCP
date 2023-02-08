@@ -24,10 +24,8 @@
 * Signature of function under test
 ****************************************************************/
 
-size_t DNS_ReadNameField( const uint8_t * pucByte,
-                          size_t uxRemainingBytes,
-                          char * pcName,
-                          size_t uxDestLen );
+size_t DNS_ReadNameField( ParseSet_t * pxSet,
+                            size_t uxDestLen );
 
 /****************************************************************
 * The function under test is not defined in all configurations
@@ -41,10 +39,8 @@ size_t DNS_ReadNameField( const uint8_t * pucByte,
 
 /*  DNS_ReadNameField is not defined in this configuration, stub it. */
 
-    size_t DNS_ReadNameField( const uint8_t * pucByte,
-                              size_t uxRemainingBytes,
-                              char * pcName,
-                              size_t uxDestLen )
+    size_t DNS_ReadNameField( ParseSet_t * pxSet,
+                                size_t uxDestLen );
     {
         return 0;
     }
@@ -69,9 +65,10 @@ void harness()
 
     size_t uxRemainingBytes;
     size_t uxDestLen;
+    ParseSet_t pxSet;
 
-    uint8_t * pucByte = malloc( uxRemainingBytes );
-    char * pcName = malloc( uxDestLen );
+    pxSet.pucByte = malloc( uxRemainingBytes );
+    //pxSet.pcRequestedName = malloc( uxDestLen );
 
     /* Preconditions */
 
@@ -81,8 +78,8 @@ void harness()
     __CPROVER_assume( uxRemainingBytes <= NETWORK_BUFFER_SIZE );
     __CPROVER_assume( uxDestLen <= NAME_SIZE );
 
-    __CPROVER_assume( pucByte != NULL );
-    __CPROVER_assume( pcName != NULL );
+    __CPROVER_assume( pxSet.pucByte != NULL );
+    //__CPROVER_assume( pxSet.pcRequestedName != NULL );
 
     /* Avoid overflow on uxSourceLen - 1U with uxSourceLen == uxRemainingBytes */
     /*__CPROVER_assume(uxRemainingBytes > 0); */
@@ -90,9 +87,9 @@ void harness()
     /* Avoid overflow on uxDestLen - 1U */
     __CPROVER_assume( uxDestLen > 0 );
 
-    size_t index = DNS_ReadNameField( pucByte,
-                                      uxRemainingBytes,
-                                      pcName,
+    
+
+    size_t index = DNS_ReadNameField( &pxSet,
                                       uxDestLen );
 
     /* Postconditions */
