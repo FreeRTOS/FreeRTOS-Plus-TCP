@@ -621,7 +621,7 @@
                     if( ulIPAddress != 0UL )
                     {
                         #if ( ipconfigUSE_IPv6 != 0 )
-                            if( ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 )
+                            if( ( ppxAddressInfo != NULL) && ( *ppxAddressInfo != NULL) && ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 )
                             {
                                 FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %pip\n",
                                                    pcHostName, ( *ppxAddressInfo )->xPrivateStorage.sockaddr.sin_address.xIP_IPv6.ucBytes ) );
@@ -729,27 +729,30 @@
  */
     static void prvIncreaseDNS4Index( NetworkEndPoint_t * pxEndPoint )
     {
-        uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
-        uint8_t ucInitialIndex = ucIndex;
-
-        for( ; ; )
+        if ( pxEndPoint != NULL)
         {
-            ucIndex++;
+            uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
+            uint8_t ucInitialIndex = ucIndex;
 
-            if( ucIndex >= ( uint8_t ) ipconfigENDPOINT_DNS_ADDRESS_COUNT )
+            for( ; ; )
             {
-                ucIndex = 0U;
+                ucIndex++;
+
+                if( ucIndex >= ( uint8_t ) ipconfigENDPOINT_DNS_ADDRESS_COUNT )
+                {
+                    ucIndex = 0U;
+                }
+
+                if( ( pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ] != 0U ) ||
+                    ( ucInitialIndex == ucIndex ) )
+                {
+                    break;
+                }
             }
 
-            if( ( pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ] != 0U ) ||
-                ( ucInitialIndex == ucIndex ) )
-            {
-                break;
-            }
+            FreeRTOS_printf( ( "prvIncreaseDNS4Index: from %d to %d\n", ( int ) ucInitialIndex, ( int ) ucIndex ) );
+            pxEndPoint->ipv4_settings.ucDNSIndex = ucIndex;
         }
-
-        FreeRTOS_printf( ( "prvIncreaseDNS4Index: from %d to %d\n", ( int ) ucInitialIndex, ( int ) ucIndex ) );
-        pxEndPoint->ipv4_settings.ucDNSIndex = ucIndex;
     }
 /*-----------------------------------------------------------*/
 
@@ -950,10 +953,10 @@
                     if( ( xDNS_IP_Preference == xPreferenceIPv6 ) && ENDPOINT_IS_IPv6( pxEndPoint ) )
                     {
                         uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
-                        uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
+                        uint8_t * ucBytes = &(pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes);
 
                         /* Test if the DNS entry is in used. */
-                        if( ( ucBytes[ 0 ] != 0U ) && ( ucBytes[ 1 ] != 0U ) )
+                        if( ( ucBytes ) && ( ucBytes[ 0 ] != 0U ) && ( ucBytes[ 1 ] != 0U ) )
                         {
                             pxAddress->sin_family = FREERTOS_AF_INET6;
                             pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );
@@ -1171,78 +1174,78 @@
 
         pxEndPoint = prvFillSockAddress( &xAddress, pcHostName );
 
-        if( pxEndPoint != NULL )
+        if( pxEndPoint != NULL && xDNSSocket != NULL)
         {
             do
             {
-                if( xDNSSocket->usLocalPort == 0U )
-                {
-                    /* Bind the client socket to a random port number. */
-                    uint16_t usPort = 0U;
-                    #if ( ipconfigUSE_MDNS == 1 )
-                        if( xAddress.sin_port == FreeRTOS_htons( ipMDNS_PORT ) )
-                        {
-                            /* For a mDNS lookup, bind to the mDNS port 5353. */
-                            usPort = FreeRTOS_htons( ipMDNS_PORT );
-                        }
-                    #endif
+                // if( xDNSSocket->usLocalPort == 0U )
+                // {
+                //     /* Bind the client socket to a random port number. */
+                //     uint16_t usPort = 0U;
+                //     #if ( ipconfigUSE_MDNS == 1 )
+                //         if( xAddress.sin_port == FreeRTOS_htons( ipMDNS_PORT ) )
+                //         {
+                //             /* For a mDNS lookup, bind to the mDNS port 5353. */
+                //             usPort = FreeRTOS_htons( ipMDNS_PORT );
+                //         }
+                //     #endif
 
-                    if( DNS_BindSocket( xDNSSocket, usPort ) != 0 )
-                    {
-                        FreeRTOS_printf( ( "DNS bind to %u failed\n", FreeRTOS_ntohs( usPort ) ) );
-                        break;
-                    }
-                }
+                //     if( DNS_BindSocket( xDNSSocket, usPort ) != 0 )
+                //     {
+                //         FreeRTOS_printf( ( "DNS bind to %u failed\n", FreeRTOS_ntohs( usPort ) ) );
+                //         break;
+                //     }
+                // }
 
-                uxReturn = prvSendBuffer( pcHostName,
-                                          uxIdentifier,
-                                          xDNSSocket,
-                                          xFamily,
-                                          &xAddress );
+                // uxReturn = prvSendBuffer( pcHostName,
+                //                           uxIdentifier,
+                //                           xDNSSocket,
+                //                           xFamily,
+                //                           &xAddress );
 
-                if( uxReturn == pdFAIL )
-                {
-                    break;
-                }
+                // if( uxReturn == pdFAIL )
+                // {
+                //     break;
+                // }
 
-                /* Create the message in the obtained buffer. */
+                // /* Create the message in the obtained buffer. */
 
-                /* receive a dns reply message */
-                xBytes = DNS_ReadReply( xDNSSocket,
-                                        &xRecvAddress,
-                                        &xReceiveBuffer );
+                // /* receive a dns reply message */
+                // xBytes = DNS_ReadReply( xDNSSocket,
+                //                         &xRecvAddress,
+                //                         &xReceiveBuffer );
 
-                if( ( uxReadTimeOut_ticks > 0 ) &&
-                    ( pxEndPoint != NULL ) &&
-                    ( ( xBytes == -pdFREERTOS_ERRNO_EWOULDBLOCK ) ||
-                      ( xBytes == 0 ) ) )
-                {
-                    /* This search timed out, next time try with a different DNS. */
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        if( xAddress.sin_family == FREERTOS_AF_INET6 )
-                        {
-                            prvIncreaseDNS6Index( pxEndPoint );
-                        }
-                        else
-                    #endif
-                    {
-                        prvIncreaseDNS4Index( pxEndPoint );
-                    }
-                }
+                // if( ( uxReadTimeOut_ticks > 0 ) &&
+                //     ( pxEndPoint != NULL ) &&
+                //     ( ( xBytes == -pdFREERTOS_ERRNO_EWOULDBLOCK ) ||
+                //       ( xBytes == 0 ) ) )
+                // {
+                //     /* This search timed out, next time try with a different DNS. */
+                //     #if ( ipconfigUSE_IPv6 != 0 )
+                //         if( xAddress.sin_family == FREERTOS_AF_INET6 )
+                //         {
+                //             prvIncreaseDNS6Index( pxEndPoint );
+                //         }
+                //         else
+                //     #endif
+                //     {
+                //         prvIncreaseDNS4Index( pxEndPoint );
+                //     }
+                // }
 
-                if( xReceiveBuffer.pucPayloadBuffer != NULL )
-                {
-                    if( xBytes > 0 )
-                    {
-                        xReceiveBuffer.uxPayloadLength = xBytes;
-                        ulIPAddress = prvDNSReply( &xReceiveBuffer, ppxAddressInfo, uxIdentifier, xRecvAddress.sin_port );
-                    }
+                // if( xReceiveBuffer.pucPayloadBuffer != NULL )
+                // {
+                //     if( xBytes > 0 )
+                //     {
+                //         xReceiveBuffer.uxPayloadLength = xBytes;
+                //         ulIPAddress = prvDNSReply( &xReceiveBuffer, ppxAddressInfo, uxIdentifier, xRecvAddress.sin_port );
+                //     }
 
-                    /* Finished with the buffer.  The zero copy interface
-                     * is being used, so the buffer must be freed by the
-                     * task. */
-                    FreeRTOS_ReleaseUDPPayloadBuffer( xReceiveBuffer.pucPayloadBuffer );
-                }
+                //     /* Finished with the buffer.  The zero copy interface
+                //      * is being used, so the buffer must be freed by the
+                //      * task. */
+                //     FreeRTOS_ReleaseUDPPayloadBuffer( xReceiveBuffer.pucPayloadBuffer );
+                // }
             } while( ipFALSE_BOOL );
         }
         else

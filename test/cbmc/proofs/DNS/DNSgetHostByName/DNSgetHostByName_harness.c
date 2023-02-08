@@ -22,15 +22,17 @@
 uint32_t FreeRTOS_dnslookup( const char * pcHostName );
 Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks );
 void DNS_CloseSocket( Socket_t xDNSSocket );
-void DNS_ReadReply( Socket_t xDNSSocket,
+BaseType_t DNS_ReadReply( const ConstSocket_t xDNSSocket,
                     struct freertos_sockaddr * xAddress,
                     struct xDNSBuffer * pxDNSBuf );
 uint32_t DNS_SendRequest( Socket_t xDNSSocket,
                           struct freertos_sockaddr * xAddress,
                           struct xDNSBuffer * pxDNSBuf );
 uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                            size_t xBufferLength,
-                            BaseType_t xExpected );
+                            size_t uxBufferLength,
+                            struct freertos_addrinfo ** ppxAddressInfo,
+                            BaseType_t xExpected,
+                            uint16_t usPort );
 
 /****************************************************************
 * We abstract:
@@ -61,8 +63,10 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
 ****************************************************************/
 
 uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                            size_t xBufferLength,
-                            BaseType_t xExpected )
+                            size_t uxBufferLength,
+                            struct freertos_addrinfo ** ppxAddressInfo,
+                            BaseType_t xExpected,
+                            uint16_t usPort )
 {
     uint32_t size;
 
@@ -94,10 +98,11 @@ uint32_t DNS_SendRequest( Socket_t xDNSSocket,
 * We stub out this function which returned a dns_buffer filled with random data
 *
 ****************************************************************/
-void DNS_ReadReply( Socket_t xDNSSocket,
+BaseType_t DNS_ReadReply( const ConstSocket_t xDNSSocket,
                     struct freertos_sockaddr * xAddress,
                     struct xDNSBuffer * pxDNSBuf )
 {
+    BaseType_t ret;
     int len;
 
     pxDNSBuf->pucPayloadBuffer = safeMalloc( len );
@@ -107,7 +112,9 @@ void DNS_ReadReply( Socket_t xDNSSocket,
     __CPROVER_assume( len < CBMC_MAX_OBJECT_SIZE );
     __CPROVER_assume( pxDNSBuf->pucPayloadBuffer != NULL );
 
-    __CPROVER_havoc_slice( pxDNSBuf->pucPayloadBuffer, pxDNSBuf->uxPayloadSize );
+    __CPROVER_havoc_slice( pxDNSBuf->pucPayloadBuffer, pxDNSBuf->uxPayloadLength );
+
+    return ret;
 }
 
 
@@ -132,6 +139,13 @@ uint32_t FreeRTOS_dnslookup( const char * pcHostName )
     return ret;
 }
 
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+    BaseType_t ret;
+    return ret;
+}
 
 /****************************************************************
 * Abstract prvCreateDNSMessage
@@ -144,7 +158,8 @@ uint32_t FreeRTOS_dnslookup( const char * pcHostName )
 
 size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
                             const char * pcHostName,
-                            TickType_t uxIdentifier )
+                            TickType_t uxIdentifier,
+                            UBaseType_t uxHostType )
 {
     __CPROVER_havoc_object( pucUDPPayloadBuffer );
     size_t size;
@@ -159,6 +174,16 @@ size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
 void harness()
 {
     size_t len;
+
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints != NULL );
+    __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
+
+    /* Interface init. */
+    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
+
+    pxNetworkEndPoints->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
     __CPROVER_assume( len <= MAX_HOSTNAME_LEN );
     char * pcHostName = safeMalloc( len );
