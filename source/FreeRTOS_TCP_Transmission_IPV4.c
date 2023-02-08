@@ -190,24 +190,19 @@
                 {
                     prvTCPReturn_CheckTCPWindow( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
                     prvTCPReturn_SetSequenceNumber( pxSocket, pxNetworkBuffer, uxIPHeaderSize, ulLen );
+                    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
+                    pxIPHeader->ulSourceIPAddress = pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress;
                 }
                 else
                 {
                     /* Sending data without a socket, probably replying with a RST flag
                      * Just swap the two sequence numbers. */
                     vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
+                    vFlip_32( pxIPHeader->ulDestinationIPAddress, pxIPHeader->ulSourceIPAddress );
                 }
 
                 pxIPHeader->ucTimeToLive = ( uint8_t ) ipconfigTCP_TIME_TO_LIVE;
                 pxIPHeader->usLength = FreeRTOS_htons( ulLen );
-
-                /* IP-addresses in sockets are stored in native endian order. */
-                if( pxSocket != NULL )
-                {
-                    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
-                }
-
-                pxIPHeader->ulSourceIPAddress = pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress;
 
                 /* Just an increasing number. */
                 pxIPHeader->usIdentification = FreeRTOS_htons( usPacketIdentifier );
