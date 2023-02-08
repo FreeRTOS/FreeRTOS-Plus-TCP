@@ -75,7 +75,12 @@ BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType )
 void harness()
 {
     BaseType_t xReset;
-    eDHCPState_t eExpectedState;
+    //eDHCPState_t eExpectedState;
+
+    NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
+    __CPROVER_assume( pxNetworkEndPoint_Temp->pxNext == NULL );
+    //pxNetworkEndPoint_Temp->xDHCPData.eExpectedState = eExpectedState;
 
     /****************************************************************
     * Initialize the counter used to bound the number of times
@@ -100,5 +105,5 @@ void harness()
         __CPROVER_assume( xDHCPSocket != NULL );
     }
 
-    vDHCPProcess( xReset, eExpectedState );
+    vDHCPProcess( xReset, pxNetworkEndPoint_Temp );
 }
