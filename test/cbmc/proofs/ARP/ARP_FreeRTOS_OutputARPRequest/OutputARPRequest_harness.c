@@ -72,10 +72,34 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     return &xNetworkBuffer;
 }
 
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+
+}
+
 
 void harness()
 {
     uint32_t ulIPAddress;
+
+    /*
+    For this proof, its assumed that the endpoints and interfaces are correctly
+    initialised and the pointers are set correctly.
+    Assumes one endpoint and interface is present.
+    */
+
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints != NULL );
+    __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
+
+    /* Interface init. */
+    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
+
+    pxNetworkEndPoints->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    /* No assumption is added for pfOutput as its pointed to a static object/memory location. */
 
     FreeRTOS_OutputARPRequest( ulIPAddress );
 }
