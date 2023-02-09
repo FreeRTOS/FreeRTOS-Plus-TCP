@@ -49,6 +49,11 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 
 void harness()
 {
+
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints != NULL );
+    __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
+    
     FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
 
     __CPROVER_assume( pxSocket != NULL );
