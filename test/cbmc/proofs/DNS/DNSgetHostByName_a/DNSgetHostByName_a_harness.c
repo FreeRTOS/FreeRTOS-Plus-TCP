@@ -48,8 +48,10 @@
 ****************************************************************/
 
 uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                            size_t xBufferLength,
-                            BaseType_t xExpected )
+                                size_t uxBufferLength,
+                                struct freertos_addrinfo ** ppxAddressInfo,
+                                BaseType_t xExpected,
+                                uint16_t usPort )
 {
     __CPROVER_assert( pucUDPPayloadBuffer != NULL,
                       "Precondition: pucUDPPayloadBuffer != NULL" );
@@ -69,7 +71,8 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
 
 size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
                             const char * pcHostName,
-                            TickType_t uxIdentifier )
+                            TickType_t uxIdentifier,
+                            UBaseType_t uxHostType )
 {
     __CPROVER_assert( pucUDPPayloadBuffer != NULL,
                       "Precondition: pucUDPPayloadBuffer != NULL" );
