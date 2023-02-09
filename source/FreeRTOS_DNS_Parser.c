@@ -585,6 +585,7 @@
                                 prepareReplyDNSMessage( pxNetworkBuffer, usLength );
                                 /* This function will fill in the eth addresses and send the packet */
                                 vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );
+                                
                                 if( pxNewBuffer != NULL )
                                 {
                                     vReleaseNetworkBufferAndDescriptor( pxNewBuffer );
@@ -1005,7 +1006,6 @@
 
             /* This function will fill in the eth addresses and send the packet */
             vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );
-
         }
 
     #endif /* ipconfigUSE_NBNS == 1 || ipconfigUSE_LLMNR == 1 */
