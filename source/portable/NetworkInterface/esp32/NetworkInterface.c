@@ -221,7 +221,7 @@ esp_err_t wlanif_input( void * netif,
         /* Set the packet size, in case a larger buffer was returned. */
         pxNetworkBuffer->xDataLength = len;
         pxNetworkBuffer->pxInterface = pxMyInterface;
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxInterface, pcBuffer );
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pcBuffer );
 
         /* Copy the packet data. */
         memcpy( pxNetworkBuffer->pucEthernetBuffer, buffer, len );
