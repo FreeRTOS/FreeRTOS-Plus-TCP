@@ -189,7 +189,7 @@ static BaseType_t xSTM32H_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
 
 static BaseType_t xSTM32H_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
-NetworkInterface_t * pxSTM32Hxx_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+NetworkInterface_t * pxSTM32H_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                          NetworkInterface_t * pxInterface );
 /*-----------------------------------------------------------*/
 
@@ -383,7 +383,7 @@ static BaseType_t xSTM32H_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
 /*-----------------------------------------------------------*/
 
-NetworkInterface_t * pxSTM32Hxx_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+NetworkInterface_t * pxSTM32H_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                          NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
