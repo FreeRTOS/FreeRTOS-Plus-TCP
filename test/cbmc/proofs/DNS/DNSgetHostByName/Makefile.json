@@ -13,6 +13,7 @@
   "CBMCFLAGS":
   [
     "--unwind 1",
+    "--unwindset strchr.0:{HOSTNAME_UNWIND}", 
     "--unwindset prvFillSockAddress.0:2,prvFillSockAddress.1:2",
     "--unwindset prvCreateDNSMessage.0:{HOSTNAME_UNWIND},prvCreateDNSMessage.1:{HOSTNAME_UNWIND},strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},strcmp.0:{HOSTNAME_UNWIND},strcpy.0:{HOSTNAME_UNWIND}",
     "--unwindset prvGetHostByNameOp_WithRetry.0:{HOSTNAME_UNWIND}",
