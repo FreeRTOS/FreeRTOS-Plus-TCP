@@ -87,13 +87,13 @@ static void prvSetMACAddress( void );
  */
 static NetworkInterface_t * pxMyInterface;
 
-static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
-static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+static BaseType_t xMPS2_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+static BaseType_t xMPS2_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                            NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                            BaseType_t bReleaseAfterSend );
-static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface );
+static BaseType_t xMPS2_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+NetworkInterface_t * pxMPS2_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                 NetworkInterface_t * pxInterface );
 
 /*-----------------------------------------------------------*/
@@ -238,7 +238,7 @@ void EthernetISR( void )
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
+static BaseType_t xMPS2_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     const uint32_t ulEthernetIRQ = 13UL;
@@ -318,7 +318,7 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+static BaseType_t xMPS2_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                            NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                            BaseType_t xReleaseAfterSend )
 {
@@ -381,7 +381,7 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 /*-----------------------------------------------------------*/
 
 
-static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
+static BaseType_t xMPS2_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     uint32_t ulPHYBasicStatusValue;
@@ -399,7 +399,7 @@ static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 /*-----------------------------------------------------------*/
 
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+NetworkInterface_t * pxMPS2_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                 NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
@@ -415,9 +415,9 @@ NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
     memset( pxInterface, '\0', sizeof( *pxInterface ) );
     pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
     pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
-    pxInterface->pfInitialise = xNetworkInterfaceInitialise;
-    pxInterface->pfOutput = xNetworkInterfaceOutput;
-    pxInterface->pfGetPhyLinkStatus = xGetPhyLinkStatus;
+    pxInterface->pfInitialise = xMPS2_NetworkInterfaceInitialise;
+    pxInterface->pfOutput = xMPS2_NetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xMPS2_GetPhyLinkStatus;
 
     FreeRTOS_AddNetworkInterface( pxInterface );
 
