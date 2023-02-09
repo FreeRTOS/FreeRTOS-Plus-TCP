@@ -48,16 +48,17 @@ void test_FreeRTOS_OutputARPRequest_MinimumPacketSizeLessThanARPPacket( void )
     xInterface.pfOutput = xNetworkInterfaceOutput_ARP_Stub;
 
     xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
 
     /* =================================================== */
 
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xInterface );
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAndReturn( ulIPAddress, 25, &xEndPoint );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn(NULL, &xEndPoint);
+    
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
     xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
-
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xInterface, NULL );
+    
+    FreeRTOS_NextEndPoint_ExpectAndReturn(NULL, &xEndPoint, NULL);
 
     FreeRTOS_OutputARPRequest( ulIPAddress );
 
