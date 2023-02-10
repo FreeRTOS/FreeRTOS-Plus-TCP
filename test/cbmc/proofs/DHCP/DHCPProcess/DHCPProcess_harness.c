@@ -75,7 +75,16 @@ BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType )
 void harness()
 {
     BaseType_t xReset;
+    BaseType_t xDoCheck;
     //eDHCPState_t eExpectedState;
+
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints != NULL );
+    __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
+
+    /* Interface init. */
+    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
 
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
@@ -105,5 +114,8 @@ void harness()
         __CPROVER_assume( xDHCPSocket != NULL );
     }
 
-    vDHCPProcess( xReset, pxNetworkEndPoint_Temp );
+    //vDHCPProcess( xReset, pxNetworkEndPoint_Temp );
+
+    vDHCPProcessEndPoint( xReset, xDoCheck, pxNetworkEndPoint_Temp );
+    
 }

@@ -128,7 +128,7 @@
  */
     static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint );
 
-    static void vDHCPProcessEndPoint( BaseType_t xReset,
+    void vDHCPProcessEndPoint( BaseType_t xReset,
                                       BaseType_t xDoCheck,
                                       NetworkEndPoint_t * pxEndPoint );
 
@@ -650,7 +650,7 @@
  * @param[in] pxEndPoint: The end-point for which the DHCP state machine should
  *                        make one cycle.
  */
-    static void vDHCPProcessEndPoint( BaseType_t xReset,
+    void vDHCPProcessEndPoint( BaseType_t xReset,
                                       BaseType_t xDoCheck,
                                       NetworkEndPoint_t * pxEndPoint )
     {
