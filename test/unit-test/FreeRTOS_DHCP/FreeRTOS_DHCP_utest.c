@@ -67,9 +67,9 @@ static NetworkBufferDescriptor_t * GetNetworkBuffer( size_t SizeOfEthBuf,
 static void ReleaseNetworkBuffer( void )
 {
     /* Free the ethernet buffer. */
-    free( ((uint8_t *) pxGlobalNetworkBuffer[ --GlobalBufferCounter ]->pucEthernetBuffer) - ipBUFFER_PADDING );
+    free( ( ( uint8_t * ) pxGlobalNetworkBuffer[ --GlobalBufferCounter ]->pucEthernetBuffer ) - ipBUFFER_PADDING );
     /* Free the network buffer. */
-    free( ((uint8_t *) pxGlobalNetworkBuffer[ GlobalBufferCounter ])  - ipBUFFER_PADDING );
+    free( ( ( uint8_t * ) pxGlobalNetworkBuffer[ GlobalBufferCounter ] ) - ipBUFFER_PADDING );
 }
 
 static void ReleaseUDPBuffer( const void * temp,
@@ -488,7 +488,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketCreationFail( v
 
         xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
         xSocketValid_ExpectAnyArgsAndReturn( pdFALSE );
-        
+
         /* See if the timer is reloaded. */
         vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
         /* Try all kinds of states. */
@@ -545,7 +545,6 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void 
         vSocketBind_ExpectAnyArgsAndReturn( pdTRUE );
 
         catch_assert( vDHCPProcess( pdTRUE, pxEndPoint ) );
-
     }
 }
 

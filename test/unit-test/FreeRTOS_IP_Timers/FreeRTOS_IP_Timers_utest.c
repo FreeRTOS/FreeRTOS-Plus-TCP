@@ -321,6 +321,7 @@ void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
 {
     NetworkEndPoint_t xEndPoint;
+
     xARPTimer.bActive = pdFALSE;
     xDHCPTimer.bActive = pdFALSE;
     xDNSTimer.bActive = pdTRUE;
