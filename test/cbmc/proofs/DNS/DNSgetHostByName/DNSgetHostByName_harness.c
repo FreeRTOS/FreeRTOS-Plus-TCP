@@ -105,11 +105,12 @@ BaseType_t DNS_ReadReply( const ConstSocket_t xDNSSocket,
     BaseType_t ret;
     int len;
 
+    __CPROVER_assume( len > sizeof(DNSMessage_t) && len < CBMC_MAX_OBJECT_SIZE );
+
     pxDNSBuf->pucPayloadBuffer = safeMalloc( len );
 
     pxDNSBuf->uxPayloadLength = len;
 
-    __CPROVER_assume( len < CBMC_MAX_OBJECT_SIZE );
     __CPROVER_assume( pxDNSBuf->pucPayloadBuffer != NULL );
 
     __CPROVER_havoc_slice( pxDNSBuf->pucPayloadBuffer, pxDNSBuf->uxPayloadLength );
@@ -168,6 +169,22 @@ size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
     size_t size;
 
     return size;
+}
+
+/*We assume that the pxGetNetworkBufferWithDescriptor function is implemented correctly and returns a valid data structure. */
+/*This is the mock to mimic the correct expected behavior. If this allocation fails, this might invalidate the proof. */
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
+                                                              TickType_t xBlockTimeTicks )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) malloc( sizeof( NetworkBufferDescriptor_t ) );
+
+    __CPROVER_assume( pxNetworkBuffer != NULL );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( (uint8_t *) malloc( xRequestedSizeBytes + ipUDP_PAYLOAD_IP_TYPE_OFFSET ) ) + ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
+    return pxNetworkBuffer;
 }
 
 /****************************************************************
