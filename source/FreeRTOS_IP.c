@@ -1607,7 +1607,12 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     /* Note the header values required prior to the checksum
      * generation as the checksum pseudo header may clobber some of
      * these values. */
-    if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
+    if( usLength > ( FreeRTOS_ntohs( pxIPHeader->usLength ) - uxIPHeaderSizePacket( pxNetworkBuffer ) ) )
+    {
+        /* The UDP packet is bigger than the IP-payload. Something is wrong, drop the packet. */
+        eReturn = eReleaseBuffer;
+    }
+    else if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
         ( uxLength >= sizeof( UDPHeader_t ) ) )
     {
         size_t uxPayloadSize_1, uxPayloadSize_2;
