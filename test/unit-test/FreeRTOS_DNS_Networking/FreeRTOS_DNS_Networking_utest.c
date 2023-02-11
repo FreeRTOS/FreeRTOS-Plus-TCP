@@ -141,6 +141,7 @@ void test_SendRequest_success( void )
     uint32_t ret;
     struct freertos_sockaddr xAddress;
     struct xDNSBuffer pxDNSBuf;
+
     pxDNSBuf.uxPayloadLength = 1024;
 
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( pxDNSBuf.uxPayloadLength );

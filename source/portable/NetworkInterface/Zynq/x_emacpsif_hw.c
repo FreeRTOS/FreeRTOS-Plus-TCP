@@ -31,12 +31,13 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Routing.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
 #include "Zynq/x_emacpsif.h"
 
-extern TaskHandle_t xEMACTaskHandle;
+extern TaskHandle_t xEMACTaskHandles[ XPAR_XEMACPS_NUM_INSTANCES ];
 
 /*** IMPORTANT: Define PEEP in xemacpsif.h and sys_arch_raw.c
  *** to run it on a PEEP board
@@ -66,7 +67,6 @@ void start_emacps( xemacpsif_s * xemacps )
     XEmacPs_Start( &xemacps->emacps );
 }
 
-extern struct xtopology_t xXTopology;
 
 volatile int error_msg_count = 0;
 volatile const char * last_err_msg = "";
@@ -88,8 +88,10 @@ void emacps_error_handler( void * arg,
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     xemacpsif_s * xemacpsif;
     BaseType_t xNextHead = xErrorHead;
+    BaseType_t xEMACIndex;
 
     xemacpsif = ( xemacpsif_s * ) ( arg );
+    xEMACIndex = xemacpsif->emacps.Config.DeviceId;
 
     if( ( Direction != XEMACPS_SEND ) || ( ErrorWord != XEMACPS_TXSR_USEDREAD_MASK ) )
     {
@@ -110,9 +112,9 @@ void emacps_error_handler( void * arg,
             xemacpsif->isr_events |= EMAC_IF_ERR_EVENT;
         }
 
-        if( xEMACTaskHandle != NULL )
+        if( xEMACTaskHandles[ xEMACIndex ] != NULL )
         {
-            vTaskNotifyGiveFromISR( xEMACTaskHandle, &xHigherPriorityTaskWoken );
+            vTaskNotifyGiveFromISR( xEMACTaskHandles[ xEMACIndex ], &xHigherPriorityTaskWoken );
         }
     }
 
@@ -150,18 +152,13 @@ static void emacps_handle_error( void * arg,
                                  u32 ErrorWord )
 {
     xemacpsif_s * xemacpsif;
-    struct xtopology_t * xtopologyp;
     XEmacPs * xemacps;
+    BaseType_t xEMACIndex;
 
     xemacpsif = ( xemacpsif_s * ) ( arg );
 
-    xtopologyp = &xXTopology;
-
     xemacps = &xemacpsif->emacps;
-
-    /* Do not appear to be used. */
-    ( void ) xemacps;
-    ( void ) xtopologyp;
+    xEMACIndex = xemacps->Config.DeviceId;
 
     last_err_msg = NULL;
 
@@ -174,7 +171,7 @@ static void emacps_handle_error( void * arg,
                 if( ( ErrorWord & XEMACPS_RXSR_HRESPNOK_MASK ) != 0 )
                 {
                     last_err_msg = "Receive DMA error";
-                    xNetworkInterfaceInitialise();
+                    vInitialiseOnIndex( xEMACIndex );
                 }
 
                 if( ( ErrorWord & XEMACPS_RXSR_RXOVR_MASK ) != 0 )
@@ -196,7 +193,7 @@ static void emacps_handle_error( void * arg,
                 if( ( ErrorWord & XEMACPS_TXSR_HRESPNOK_MASK ) != 0 )
                 {
                     last_err_msg = "Transmit DMA error";
-                    xNetworkInterfaceInitialise();
+                    vInitialiseOnIndex( xEMACIndex );
                 }
 
                 if( ( ErrorWord & XEMACPS_TXSR_URUN_MASK ) != 0 )
