@@ -1025,7 +1025,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2( void )
 }
 
 /*
- * @brief Sending from IP task without using zero copy. Checks if xIsCallingFromIPTask 
+ * @brief Sending from IP task without using zero copy. Checks if xIsCallingFromIPTask
  * gets called if xFlags's FREERTOS_MSG_DONTWAIT bit is unset.
  */
 void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2_xFlagZero( void )
