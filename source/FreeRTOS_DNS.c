@@ -1353,7 +1353,7 @@
  * @param[in,out] pucUDPPayloadBuffer The zero copy buffer where the DNS message will be created.
  * @param[in] pcHostName Hostname to be looked up.
  * @param[in] uxIdentifier Identifier to match sent and received packets
- * @param[in] uxHostType: dnsTYPE_A_HOST ( IPv4 ) or dnsTYPE_AAA_HOST ( IPv6 ).
+ * @param[in] uxHostType: dnsTYPE_A_HOST ( IPv4 ) or dnsTYPE_AAAA_HOST ( IPv6 ).
  * @return Total size of the generated message, which is the space from the last written byte
  *         to the beginning of the buffer.
  */

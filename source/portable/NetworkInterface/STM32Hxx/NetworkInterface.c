@@ -4,10 +4,8 @@
  */
 
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
- *
- * SPDX-License-Identifier: MIT
+ * FreeRTOS+TCP V2.3.2
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -183,17 +181,16 @@ static size_t uxGetOwnCount( ETH_HandleTypeDef * heth );
  * They can be defined as static because the function addresses
  * addresses will be stored in struct NetworkInterface_t. */
 
-static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 
-static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                           NetworkBufferDescriptor_t * const pxBuffer,
-                                           BaseType_t xReleaseAfterSend );
+static BaseType_t xSTM32H_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                  NetworkBufferDescriptor_t * const pxBuffer,
+                                                  BaseType_t xReleaseAfterSend );
 
-static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface );
+static BaseType_t xSTM32H_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface );
-
+NetworkInterface_t * pxSTM32H_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                         NetworkInterface_t * pxInterface );
 /*-----------------------------------------------------------*/
 
 static EthernetPhy_t xPhyObject;
@@ -229,9 +226,9 @@ static uint8_t * pucGetRXBuffer( size_t uxSize )
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
+static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
-    BaseType_t xResult = pdFAIL;
+    BaseType_t xResult;
     NetworkEndPoint_t * pxEndPoint;
     HAL_StatusTypeDef xHalEthInitStatus;
     size_t uxIndex = 0;
@@ -239,6 +236,7 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
     if( xMacInitStatus == eMACInit )
     {
         pxMyInterface = pxInterface;
+
         pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
         configASSERT( pxEndPoint != NULL );
 
@@ -260,73 +258,69 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
 
         xHalEthInitStatus = HAL_ETH_Init( &( xEthHandle ) );
 
-        if( xHalEthInitStatus == HAL_OK )
-        {
-            /* Configuration for HAL_ETH_Transmit(_IT). */
-            memset( &( xTxConfig ), 0, sizeof( ETH_TxPacketConfig ) );
-            xTxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD;
+        /* Only for inspection by debugger. */
+        ( void ) xHalEthInitStatus;
 
-            #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+        /* Configuration for HAL_ETH_Transmit(_IT). */
+        memset( &( xTxConfig ), 0, sizeof( ETH_TxPacketConfig ) );
+        xTxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD;
+
+        #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+            {
+                /*xTxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC; */
+                xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_CSUM;
+                xTxConfig.ChecksumCtrl = ETH_DMATXNDESCRF_CIC_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
+            }
+        #else
+            {
+                xTxConfig.ChecksumCtrl = ETH_CHECKSUM_DISABLE;
+            }
+        #endif
+        xTxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
+
+        /* This counting semaphore will count the number of free TX DMA descriptors. */
+        xTXDescriptorSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) ETH_TX_DESC_CNT, ( UBaseType_t ) ETH_TX_DESC_CNT );
+        configASSERT( xTXDescriptorSemaphore );
+
+        xTransmissionMutex = xSemaphoreCreateMutex();
+        configASSERT( xTransmissionMutex );
+
+        /* Assign Rx memory buffers to a DMA Rx descriptor */
+        for( uxIndex = 0; uxIndex < ETH_RX_DESC_CNT; uxIndex++ )
+        {
+            uint8_t * pucBuffer;
+
+            #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
                 {
-                    /*xTxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC; */
-                    xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_CSUM;
-                    xTxConfig.ChecksumCtrl = ETH_DMATXNDESCRF_CIC_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
+                    pucBuffer = pucGetRXBuffer( ETH_RX_BUF_SIZE );
+                    configASSERT( pucBuffer != NULL );
                 }
             #else
                 {
-                    xTxConfig.ChecksumCtrl = ETH_CHECKSUM_DISABLE;
+                    pucBuffer = Rx_Buff[ uxIndex ];
                 }
             #endif
-            xTxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
 
-            /* This counting semaphore will count the number of free TX DMA descriptors. */
-            xTXDescriptorSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) ETH_TX_DESC_CNT, ( UBaseType_t ) ETH_TX_DESC_CNT );
-            configASSERT( xTXDescriptorSemaphore );
+            HAL_ETH_DescAssignMemory( &( xEthHandle ), uxIndex, pucBuffer, NULL );
+        }
 
-            xTransmissionMutex = xSemaphoreCreateMutex();
-            configASSERT( xTransmissionMutex );
+        /* Configure the MDIO Clock */
+        HAL_ETH_SetMDIOClockRange( &( xEthHandle ) );
 
-            /* Assign Rx memory buffers to a DMA Rx descriptor */
-            for( uxIndex = 0; uxIndex < ETH_RX_DESC_CNT; uxIndex++ )
-            {
-                uint8_t * pucBuffer;
+        /* Initialize the MACB and set all PHY properties */
+        prvMACBProbePhy();
 
-                #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
-                    {
-                        pucBuffer = pucGetRXBuffer( ETH_RX_BUF_SIZE );
-                        configASSERT( pucBuffer != NULL );
-                    }
-                #else
-                    {
-                        pucBuffer = Rx_Buff[ uxIndex ];
-                    }
-                #endif
+        /* Force a negotiation with the Switch or Router and wait for LS. */
+        prvEthernetUpdateConfig( pdTRUE );
 
-                HAL_ETH_DescAssignMemory( &( xEthHandle ), uxIndex, pucBuffer, NULL );
-            }
-
-            /* Configure the MDIO Clock */
-            HAL_ETH_SetMDIOClockRange( &( xEthHandle ) );
-
-            /* Initialize the MACB and set all PHY properties */
-            prvMACBProbePhy();
-
-            /* Force a negotiation with the Switch or Router and wait for LS. */
-            prvEthernetUpdateConfig( pdTRUE );
-
-            /* The deferred interrupt handler task is created at the highest
-             *  possible priority to ensure the interrupt handler can return directly
-             *  to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
-             *  notify the task when there is something to process. */
-            if( xTaskCreate( prvEMACHandlerTask, niEMAC_HANDLER_TASK_NAME, niEMAC_HANDLER_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &( xEMACTaskHandle ) ) == pdPASS )
-            {
-                /* The task was created successfully. */
-                xMacInitStatus = eMACPass;
-            }
-            else
-            {
-                xMacInitStatus = eMACFailed;
-            }
+        /* The deferred interrupt handler task is created at the highest
+         *  possible priority to ensure the interrupt handler can return directly
+         *  to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
+         *  notify the task when there is something to process. */
+        if( xTaskCreate( prvEMACHandlerTask, niEMAC_HANDLER_TASK_NAME, niEMAC_HANDLER_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &( xEMACTaskHandle ) ) == pdPASS )
+        {
+            /* The task was created successfully. */
+            xMacInitStatus = eMACPass;
         }
         else
         {
@@ -334,7 +328,12 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
         }
     } /* ( xMacInitStatus == eMACInit ) */
 
-    if( xMacInitStatus == eMACPass )
+    if( xMacInitStatus != eMACPass )
+    {
+        /* EMAC initialisation failed, return pdFAIL. */
+        xResult = pdFAIL;
+    }
+    else
     {
         if( xPhyObject.ulLinkStatusMask != 0uL )
         {
@@ -348,18 +347,14 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
             xResult = pdFAIL;
         }
     }
-    else
-    {
-        xResult = pdFAIL;
-    }
 
     return xResult;
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
+static BaseType_t xSTM32H_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
-    BaseType_t xReturn = pdFAIL;
+    BaseType_t xReturn;
 
     if( xPhyObject.ulLinkStatusMask != 0U )
     {
@@ -374,12 +369,26 @@ static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 }
 /*-----------------------------------------------------------*/
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface )
+#if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                    NetworkInterface_t * pxInterface )
+    {
+        pxSTM32Hxx_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+    }
+
+#endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+/*-----------------------------------------------------------*/
+
+NetworkInterface_t * pxSTM32H_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                         NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
 
-/* This function pxFillInterfaceDescriptor() adds a network-interface.
+/* This function pxSTM32Hxx_FillInterfaceDescriptor() adds a network-interface.
  * Make sure that the object pointed to by 'pxInterface'
  * is declared static or global, and that it will remain to exist. */
 
@@ -388,9 +397,9 @@ NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
     memset( pxInterface, '\0', sizeof( *pxInterface ) );
     pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
     pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
-    pxInterface->pfInitialise = xNetworkInterfaceInitialise;
-    pxInterface->pfOutput = xNetworkInterfaceOutput;
-    pxInterface->pfGetPhyLinkStatus = xGetPhyLinkStatus;
+    pxInterface->pfInitialise = xSTM32H_NetworkInterfaceInitialise;
+    pxInterface->pfOutput = xSTM32H_NetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xSTM32H_GetPhyLinkStatus;
 
     FreeRTOS_AddNetworkInterface( pxInterface );
 
@@ -398,19 +407,19 @@ NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                           NetworkBufferDescriptor_t * const pxDescriptor,
-                                           BaseType_t xReleaseAfterSend )
+static BaseType_t xSTM32H_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                  NetworkBufferDescriptor_t * const pxBuffer,
+                                                  BaseType_t xReleaseAfterSend )
 {
     BaseType_t xResult = pdFAIL;
     TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 100U );
     uint8_t * pucTXBuffer;
 
-    if( xGetPhyLinkStatus() == pdPASS )
+    if( xGetPhyLinkStatus( pxInterface ) == = pdPASS )
     {
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
             /* Zero-copy method, pass the buffer. */
-            pucTXBuffer = pxDescriptor->pucEthernetBuffer;
+            pucTXBuffer = pxBuffer->pucEthernetBuffer;
 
             /* As the buffer is passed to the driver, it must exist.
              * The library takes care of this. */
@@ -418,17 +427,17 @@ static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
         #else
             pucTXBuffer = Tx_Buff[ xEthHandle.TxDescList.CurTxDesc ];
             /* The copy method, left here for educational purposes. */
-            configASSERT( pxDescriptor->xDataLength <= sizeof( Tx_Buff[ 0 ] ) );
+            configASSERT( pxBuffer->xDataLength <= sizeof( Tx_Buff[ 0 ] ) );
         #endif
 
         ETH_BufferTypeDef xTransmitBuffer =
         {
             .buffer = pucTXBuffer,
-            .len    = pxDescriptor->xDataLength,
+            .len    = pxBuffer->xDataLength,
             .next   = NULL /* FreeRTOS+TCP does not use linked buffers. */
         };
         /* This is the total length, which is equal to the buffer. */
-        xTxConfig.Length = pxDescriptor->xDataLength;
+        xTxConfig.Length = pxBuffer->xDataLength;
         xTxConfig.TxBuffer = &( xTransmitBuffer );
 
         /* This counting semaphore counts the number of free TX DMA descriptors. */
@@ -454,7 +463,7 @@ static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                     }
                 #else
                     {
-                        memcpy( pucTXBuffer, pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength );
+                        memcpy( pucTXBuffer, pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength );
 
                         /* A memory barrier to make sure that the outgoing packets has been written
                          * to the physical memory. */
@@ -478,7 +487,7 @@ static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
 
     if( xReleaseAfterSend != pdFALSE )
     {
-        vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+        vReleaseNetworkBufferAndDescriptor( pxBuffer );
     }
 
     return xResult;
@@ -864,6 +873,8 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 }
 /*-----------------------------------------------------------*/
 
+#define __NOP()    __ASM volatile ( "nop" )
+
 static void vClearOptionBit( volatile uint32_t * pulValue,
                              uint32_t ulValue )
 {
@@ -980,13 +991,13 @@ static void prvEMACHandlerTask( void * pvParameters )
             xResult += prvNetworkInterfaceInput();
         }
 
-        if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != pdFALSE )
+        if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != 0 )
         {
             /*
              * The function xPhyCheckLinkStatus() returns pdTRUE if the
              * Link Status has changes since it was called the last time.
              */
-            if( xGetPhyLinkStatus() == pdFALSE )
+            if( xGetPhyLinkStatus( pxMyInterface ) == pdFALSE )
             {
                 /* Stop the DMA transfer. */
                 HAL_ETH_Stop_IT( &( xEthHandle ) );
@@ -1003,4 +1014,5 @@ static void prvEMACHandlerTask( void * pvParameters )
         }
     }
 }
+
 /*-----------------------------------------------------------*/

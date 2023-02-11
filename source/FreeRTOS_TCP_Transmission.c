@@ -1295,7 +1295,7 @@
         #endif /* !ipconfigIGNORE_UNKNOWN_PACKETS */
 
         /* The packet was not consumed. */
-        return pdFAIL;
+        return xReturn;
     }
     /*-----------------------------------------------------------*/
 

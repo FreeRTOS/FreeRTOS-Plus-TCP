@@ -89,7 +89,7 @@
                                   uint32_t ulLen,
                                   BaseType_t xReleaseAfterSend )
     {
-        TCPPacket_t * pxTCPPacket = NULL;
+        TCPPacket_IPv6_t * pxTCPPacket = NULL;
         ProtocolHeaders_t * pxProtocolHeaders = NULL;
         IPHeader_IPv6_t * pxIPHeader = NULL;
         BaseType_t xDoRelease = xReleaseAfterSend;
@@ -163,7 +163,7 @@
                 /* MISRA Ref 11.3.1 [Misaligned access] */
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
-                pxTCPPacket = ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+                pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
                 pxEthernetHeader = ( EthernetHeader_t * ) &( pxTCPPacket->xEthernetHeader );
                 /* MISRA Ref 11.3.1 [Misaligned access] */
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -186,28 +186,28 @@
                     }
                 }
 
-                /* Fill the packet, using hton translations. */
+                /* Fill the packet, swapping from- and to-addresses. */
                 if( pxSocket != NULL )
                 {
                     prvTCPReturn_CheckTCPWindow( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
                     prvTCPReturn_SetSequenceNumber( pxSocket, pxNetworkBuffer, uxIPHeaderSize, ulLen );
+                    ( void ) memcpy( pxIPHeader->xDestinationAddress.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 }
                 else
                 {
+                    IPv6_Address_t xTempAddress;
+
                     /* Sending data without a socket, probably replying with a RST flag
                      * Just swap the two sequence numbers. */
                     vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
+                    ( void ) memcpy( xTempAddress.ucBytes, pxIPHeader->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    ( void ) memcpy( pxIPHeader->xDestinationAddress.ucBytes, pxIPHeader->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, xTempAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 }
 
                 /* In IPv6, the "payload length" does not include the size of the IP-header */
                 pxIPHeader->usPayloadLength = FreeRTOS_htons( ulLen - sizeof( IPHeader_IPv6_t ) );
-
-                if( pxSocket != NULL )
-                {
-                    ( void ) memcpy( pxIPHeader->xDestinationAddress.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                }
-
-                ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
                 #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
                     {
@@ -229,7 +229,6 @@
                     }
                 #endif
 
-                pvCopySource = &pxEthernetHeader->xSourceAddress;
                 memcpy( xDestinationIPAddress.ucBytes, pxIPHeader->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 eARPLookupResult_t eResult;
 
@@ -323,8 +322,8 @@
  */
     BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
     {
-        TCPPacket_t * pxTCPPacket = NULL;
-        const IPHeader_t * pxIPHeader = NULL;
+        TCPPacket_IPv6_t * pxTCPPacket = NULL;
+        IPHeader_IPv6_t * pxIPHeader = NULL;
         eARPLookupResult_t eReturned;
         IP_Address_t xRemoteIP;
         MACAddress_t xEthAddress;
@@ -407,10 +406,13 @@
         {
             /* The MAC-address of the peer (or gateway) has been found,
              * now prepare the initial TCP packet and some fields in the socket. Map
-             * the buffer onto the TCPPacket_t struct to easily access it's field. */
+             * the buffer onto the TCPPacket_IPv6_t struct to easily access it's field. */
 
-            pxTCPPacket = ( ( TCPPacket_t * ) pxSocket->u.xTCP.xPacket.u.ucLastPacket );
-            pxIPHeader = &pxTCPPacket->xIPHeader;
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            pxTCPPacket = ( ( TCPPacket_IPv6_t * ) pxSocket->u.xTCP.xPacket.u.ucLastPacket );
+            pxIPHeader = &( pxTCPPacket->xIPHeader );
 
             /* reset the retry counter to zero. */
             pxSocket->u.xTCP.ucRepCount = 0U;
@@ -424,15 +426,10 @@
 
             /* Write the Ethernet address in Source, because it will be swapped by
              * prvTCPReturnPacket(). */
-            ( void ) memcpy( ( void * ) ( &pxTCPPacket->xEthernetHeader.xSourceAddress ), ( const void * ) ( &xEthAddress ), sizeof( xEthAddress ) );
+            ( void ) memcpy( ( void * ) ( &( pxTCPPacket->xEthernetHeader.xSourceAddress ) ), ( const void * ) ( &xEthAddress ), sizeof( xEthAddress ) );
 
             if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
             {
-                /* MISRA Ref 11.3.1 [Misaligned access] */
-                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                /* coverity[misra_c_2012_rule_11_3_violation] */
-                IPHeader_IPv6_t * pxIPHeader = ( ( IPHeader_IPv6_t * ) &( pxTCPPacket->xIPHeader ) );
-
                 /* 'ipIPv4_FRAME_TYPE' is already in network-byte-order. */
                 pxTCPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
