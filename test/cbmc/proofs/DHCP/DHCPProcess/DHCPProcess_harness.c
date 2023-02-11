@@ -114,8 +114,8 @@ void harness()
         __CPROVER_assume( xDHCPSocket != NULL );
     }
 
-    //vDHCPProcess( xReset, pxNetworkEndPoint_Temp );
+    vDHCPProcess( xReset, pxNetworkEndPoint_Temp );
 
-    vDHCPProcessEndPoint( xReset, xDoCheck, pxNetworkEndPoint_Temp );
+    //vDHCPProcessEndPoint( xReset, xDoCheck, pxNetworkEndPoint_Temp );
     
 }
