@@ -1,3 +1,5 @@
+#include "cbmc.h"
+
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 #include "queue.h"
@@ -53,15 +55,15 @@ void harness()
      */
     uint8_t ucBUFFER_SIZE;
 
-    __CPROVER_assume( ucBUFFER_SIZE >= sizeof( ARPPacket_t ) && ucBUFFER_SIZE < 2 * sizeof( ARPPacket_t ) );
-    void * xBuffer = malloc( ucBUFFER_SIZE );
+    __CPROVER_assume( ucBUFFER_SIZE < CBMC_MAX_OBJECT_SIZE );
+    void * xBuffer = malloc( ucBUFFER_SIZE + sizeof( ARPPacket_t ) );
 
     __CPROVER_assume( xBuffer != NULL );
 
     NetworkBufferDescriptor_t xNetworkBuffer2;
 
     xNetworkBuffer2.pucEthernetBuffer = xBuffer;
-    xNetworkBuffer2.xDataLength = ucBUFFER_SIZE;
+    xNetworkBuffer2.xDataLength = ucBUFFER_SIZE + sizeof(ARPPacket_t);
 
     /*
     This proof assumes one end point is present.
