@@ -89,8 +89,52 @@ size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
 
 void func( const char * pcHostName,
            void * pvSearchID,
-           uint32_t ulIPAddress )
+           struct freertos_addrinfo * pxAddressInfo )
 {
+
+}
+
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+    BaseType_t ret;
+    return ret;
+}
+
+/*We assume that the pxGetNetworkBufferWithDescriptor function is implemented correctly and returns a valid data structure. */
+/*This is the mock to mimic the correct expected behavior. If this allocation fails, this might invalidate the proof. */
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
+                                                              TickType_t xBlockTimeTicks )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) malloc( sizeof( NetworkBufferDescriptor_t ) );
+
+    __CPROVER_assume( pxNetworkBuffer != NULL );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( (uint8_t *) malloc( xRequestedSizeBytes + ipUDP_PAYLOAD_IP_TYPE_OFFSET ) ) + ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
+    return pxNetworkBuffer;
+}
+
+Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
+{
+
+    Socket_t sock = safeMalloc( sizeof(struct xSOCKET) );
+    __CPROVER_assume(sock != NULL); //TODO: _TJ_: can we assume socket creation always succeed like this?
+
+    return sock;
+
+}
+
+uint32_t Prepare_CacheLookup( const char * pcHostName,
+                                      BaseType_t xFamily,
+                                      struct freertos_addrinfo ** ppxAddressInfo )
+{
+    ( * ppxAddressInfo ) = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo ) );
+    __CPROVER_assume( ( * ppxAddressInfo ) != NULL );
+    __CPROVER_assume( ( * ppxAddressInfo )->ai_next == NULL );
 }
 
 /****************************************************************
@@ -101,6 +145,18 @@ void harness()
 {
     size_t len;
 
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints != NULL );
+    __CPROVER_assume( pxNetworkEndPoints->ipv6_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT ); //TODO: _TJ_: how to validate this in src?
+    __CPROVER_assume( pxNetworkEndPoints->ipv4_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT ); //TODO: _TJ_: how to validate this in src?
+    __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
+
+    /* Interface init. */
+    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
+
+    //pxNetworkEndPoints->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+
     __CPROVER_assume( len <= MAX_HOSTNAME_LEN );
     char * pcHostName = safeMalloc( len );
 
@@ -108,7 +164,7 @@ void harness()
     __CPROVER_assume( pcHostName != NULL );
     pcHostName[ len - 1 ] = NULL;
 
-    FOnDNSEvent pCallback = func;
+    FOnDNSEvent pCallback = &func;
     TickType_t xTimeout;
     void * pvSearchID;
 
