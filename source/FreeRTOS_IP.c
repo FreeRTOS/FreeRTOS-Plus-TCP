@@ -1652,11 +1652,6 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
             }
         }
     }
-    else if( usLength > ( FreeRTOS_ntohs( pxIPHeader->usLength ) - uxIPHeaderSizePacket( pxNetworkBuffer ) ) )
-    {
-        /* The UDP packet is bigger than the IP-payload. Something is wrong, drop the packet. */
-        eReturn = eReleaseBuffer;
-    }
     else
     {
         /* Length checks failed, the buffer will be released. */
@@ -1822,8 +1817,18 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
 
                     case ipPROTOCOL_UDP:
                         /* The IP packet contained a UDP frame. */
-
-                        eReturn = prvProcessUDPPacket( pxNetworkBuffer );
+                        const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+                        uint16_t usLength;
+                        usLength = FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength );
+                        if( usLength > ( FreeRTOS_ntohs( pxIPHeader->usLength ) - uxIPHeaderSizePacket( pxNetworkBuffer ) ) )
+                        {
+                            /* The UDP packet is bigger than the IP-payload. Something is wrong, drop the packet. */
+                            eReturn = eReleaseBuffer;
+                        }
+                        else
+                        {
+                            eReturn = prvProcessUDPPacket( pxNetworkBuffer );
+                        }
                         break;
 
                         #if ipconfigUSE_TCP == 1
