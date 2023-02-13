@@ -1822,7 +1822,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                         eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
                         break;
 
-                    case ipPROTOCOL_UDP:                        
+                    case ipPROTOCOL_UDP:
+                        /* The IP packet contained a UDP frame. */
+                        
                         eReturn = prvProcessUDPPacket( pxNetworkBuffer );                        
                         break;
 
