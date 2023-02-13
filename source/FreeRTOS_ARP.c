@@ -142,7 +142,7 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
     /* coverity[misra_c_2012_rule_11_3_violation] */
     ARPPacket_t * pxARPFrame = ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     eFrameProcessingResult_t eReturn = eReleaseBuffer;
-    ARPHeader_t * pxARPHeader;
+    const ARPHeader_t * pxARPHeader;
     uint32_t ulTargetProtocolAddress, ulSenderProtocolAddress;
 
     /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
@@ -153,17 +153,6 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
     #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
         NetworkEndPoint_t * pxSourceEndPoint;
     #endif
-
-    /* Next defensive request must not be sent for arpIP_CLASH_RESET_TIMEOUT_MS
-     * period. */
-    static TickType_t uxARPClashTimeoutPeriod = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
-
-    /* This local variable is used to keep track of number of ARP requests sent and
-     * also to limit the requests to arpIP_CLASH_MAX_RETRIES per arpIP_CLASH_RESET_TIMEOUT_MS
-     * period. */
-    static UBaseType_t uxARPClashCounter = 0U;
-    /* The time at which the last ARP clash was sent. */
-    static TimeOut_t xARPClashTimeOut;
 
     pxARPHeader = &( pxARPFrame->xARPHeader );
 
@@ -467,7 +456,7 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
     /* coverity[misra_c_2012_rule_11_3_violation] */
     const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
-    IPV4Parameters_t * pxIPv4Settings = &( pxNetworkBuffer->pxEndPoint->ipv4_settings );
+    const IPV4Parameters_t * pxIPv4Settings = &( pxNetworkBuffer->pxEndPoint->ipv4_settings );
 
     if( ( pxIPHeader->ulSourceIPAddress & pxIPv4Settings->ulNetMask ) == ( pxIPv4Settings->ulIPAddress & pxIPv4Settings->ulNetMask ) )
     {

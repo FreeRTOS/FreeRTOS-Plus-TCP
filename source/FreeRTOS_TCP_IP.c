@@ -450,7 +450,7 @@
                         pxSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
                     }
 
-                    xTaskResumeAll();
+                    ( void ) xTaskResumeAll();
 
                     FreeRTOS_printf( ( "vTCPStateChange: Closing socket\n" ) );
 
@@ -462,7 +462,7 @@
                 }
                 else
                 {
-                    xTaskResumeAll();
+                    ( void ) xTaskResumeAll();
                 }
             }
         }

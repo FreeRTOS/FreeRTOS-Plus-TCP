@@ -457,7 +457,7 @@
             size_t uxNumIPAddresses = 1U;
             IPv46_Address_t * pxAddresses;
             struct freertos_addrinfo * pxNewAddress;
-            struct freertos_addrinfo * pxLastAddress;
+            const struct freertos_addrinfo * pxLastAddress;
             struct freertos_addrinfo ** ppxLastAddress = &( pxLastAddress );
 
             #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
@@ -480,7 +480,7 @@
                 }
                 else
                 {
-                    uint8_t * ucBytes = ( uint8_t * ) &( pxAddresses->ulIPAddress );
+                    const uint8_t * ucBytes = ( uint8_t * ) &( pxAddresses->ulIPAddress );
 
                     pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET4, ucBytes );
                 }
@@ -545,7 +545,7 @@
                 {
                     if( ( ppxAddressInfo != NULL ) && ( *( ppxAddressInfo ) != NULL ) )
                     {
-                        struct freertos_sockaddr * sockaddr = ( *( ppxAddressInfo ) )->ai_addr;
+                        const struct freertos_sockaddr * sockaddr = ( *( ppxAddressInfo ) )->ai_addr;
 
                         ulIPAddress = sockaddr->sin_addr;
                     }
@@ -573,7 +573,7 @@
 
             for( xEntry = 0; xEntry < ipconfigDNS_CACHE_ENTRIES; xEntry++ )
             {
-                DNSCacheRow_t * pxRow = &( xDNSCache[ xEntry ] );
+                const DNSCacheRow_t * pxRow = &( xDNSCache[ xEntry ] );
 
                 if( pxRow->pcName[ 0 ] != ( char ) 0 )
                 {

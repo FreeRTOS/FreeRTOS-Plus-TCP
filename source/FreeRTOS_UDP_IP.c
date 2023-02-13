@@ -264,7 +264,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
                                       BaseType_t * pxIsWaitingForARPResolution )
 {
     BaseType_t xReturn = pdFAIL;
-    FreeRTOS_Socket_t * pxSocket;
+    const FreeRTOS_Socket_t * pxSocket;
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );

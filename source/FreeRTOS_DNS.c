@@ -525,7 +525,7 @@
 
                 if( ( ulIPAddress != 0U ) && ( ppxAddressInfo != NULL ) )
                 {
-                    uint8_t * ucBytes = ( uint8_t * ) &( ulIPAddress );
+                    const uint8_t * ucBytes = ( uint8_t * ) &( ulIPAddress );
 
                     *( ppxAddressInfo ) = pxNew_AddrInfo( pcHostName, FREERTOS_AF_INET4, ucBytes );
                 }
@@ -754,30 +754,6 @@
 /*-----------------------------------------------------------*/
 
 /*!
- * @brief If LLMNR is being used then determine if the host name includes a '.'
- *        if not then LLMNR can be used as the lookup method.
- * @param [in] pcHostName hostname to check
- * @returns true if the hostname is a dotted format, else false
- *
- */
-    static BaseType_t llmnr_has_dot( const char * pcHostName )
-    {
-        BaseType_t bHasDot = pdFALSE;
-        const char * pucPtr;
-
-        for( pucPtr = pcHostName; *pucPtr != ( char ) 0; pucPtr++ )
-        {
-            if( *pucPtr == '.' )
-            {
-                bHasDot = pdTRUE;
-                break;
-            }
-        }
-
-        return bHasDot;
-    }
-
-/*!
  * @brief create a payload buffer and return it through the parameter
  * @param [out] ppxNetworkBuffer network buffer to create
  * @param [in] pcHostName hostname to get its length
@@ -845,7 +821,7 @@
         /* For local resolution, mDNS uses names ending with the string ".local" */
         BaseType_t bHasDot = pdFALSE;
         BaseType_t bHasLocal = pdFALSE;
-        char * pcDot = strchr( pcHostName, '.' );
+        const char * pcDot = strchr( pcHostName, '.' );
 
         if( pcDot != NULL )
         {
@@ -950,7 +926,7 @@
                     if( ( xDNS_IP_Preference == xPreferenceIPv6 ) && ENDPOINT_IS_IPv6( pxEndPoint ) )
                     {
                         uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
-                        uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
+                        const uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
 
                         /* Test if the DNS entry is in used. */
                         if( ( ucBytes[ 0 ] != 0U ) && ( ucBytes[ 1 ] != 0U ) )
@@ -1379,6 +1355,7 @@
         const void * pvCopySource;
         void * pvCopyDest;
 
+	( void ) uxHostType;
         /* Copy in the const part of the header. Intentionally using different
          * pointers with memcpy() to put the information in to correct place. */
 

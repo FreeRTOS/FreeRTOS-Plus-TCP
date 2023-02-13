@@ -119,7 +119,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
     uint32_t ulIPAddress;
 
 
-    UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    const UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
@@ -413,7 +413,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
-    UDPPacket_IPv6_t * pxUDPPacket_IPv6;
+    const UDPPacket_IPv6_t * pxUDPPacket_IPv6;
 
     /* Caller must check for minimum packet size. */
     pxSocket = pxUDPSocketLookup( usPort );
@@ -545,7 +545,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
         }
         else
         {
-            ProtocolHeaders_t * pxProtocolHeaders;
+            const ProtocolHeaders_t * pxProtocolHeaders;
             size_t uxIPLength;
 
             uxIPLength = uxIPHeaderSizePacket( pxNetworkBuffer );

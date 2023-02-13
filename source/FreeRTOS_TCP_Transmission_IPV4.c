@@ -348,7 +348,6 @@
         MACAddress_t xEthAddress;
         BaseType_t xReturn = pdTRUE;
         uint32_t ulInitialSequenceNumber = 0;
-        NetworkEndPoint_t * pxEndPoint = pxSocket->pxEndPoint;
 
         #if ( ipconfigHAS_PRINTF != 0 )
             {

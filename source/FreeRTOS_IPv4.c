@@ -175,7 +175,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
              * define, so that the checksum won't be checked again here */
             if( eReturn == eProcessBuffer )
             {
-                NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxIPPacket->xEthernetHeader.xSourceAddress ), NULL );
+                const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxIPPacket->xEthernetHeader.xSourceAddress ), NULL );
 
                 /* Do not check the checksum of loop-back messages. */
                 if( pxEndPoint == NULL )
