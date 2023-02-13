@@ -75,10 +75,22 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
     return eResult;
 }
 
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+    BaseType_t ret;
+    return ret;
+}
+
 
 void harness()
 {
     size_t xRequestedSizeBytes;
+
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints != NULL );
+    __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
 
     /* Assume that the size of packet must be greater than that of UDP-Packet and less than
      * that of the Ethernet Frame Size. */
@@ -90,6 +102,22 @@ void harness()
     /* The buffer cannot be NULL for the function call. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    /*
+    This proof assumes one end point is present.
+    */
+    pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkBuffer->pxEndPoint != NULL );
+    __CPROVER_assume( pxNetworkBuffer->pxEndPoint->pxNext == NULL );
+
+    /* Interface init. */
+    pxNetworkBuffer->pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    __CPROVER_assume( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
+    
+    pxNetworkEndPoints->pxNetworkInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+    __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
+
+    pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
     vProcessGeneratedUDPPacket( pxNetworkBuffer );
 }
