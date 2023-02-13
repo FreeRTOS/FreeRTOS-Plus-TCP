@@ -7,6 +7,7 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Reception.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_IP.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_WIN.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_Stream_Buffer.goto",
@@ -15,5 +16,6 @@
   ],
   "DEF":
   [
+    "ipconfigUSE_TCP=1"
   ]
 }
