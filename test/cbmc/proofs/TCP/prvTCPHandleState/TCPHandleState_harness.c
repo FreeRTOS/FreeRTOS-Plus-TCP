@@ -37,6 +37,8 @@
 
 #include "../../utility/memory_assignments.c"
 
+extern FreeRTOS_Socket_t * xSocketToListen;
+
 /* Abstraction of xTaskGetCurrentTaskHandle */
 TaskHandle_t xTaskGetCurrentTaskHandle( void )
 {
@@ -86,9 +88,12 @@ void harness()
     NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
     size_t bufferSize = sizeof( NetworkBufferDescriptor_t );
 
+    FreeRTOS_Socket_t xSck;
+    xSocketToListen = &xSck;
+
     if( ensure_memory_is_valid( pxNetworkBuffer, bufferSize ) )
     {
-        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) );
+        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) + ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) + sizeof(TCPHeader_t) );
     }
 
     if( ensure_memory_is_valid( pxSocket, socketSize ) &&

@@ -65,9 +65,10 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 void harness()
 {
     FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
+    __CPROVER_assume( pxSocket->u.xTCP.pxPeerSocket != NULL );
     NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
     size_t socketSize = sizeof( FreeRTOS_Socket_t );
-    size_t bufferSize = sizeof( TCPPacket_t );
+    size_t bufferSize = sizeof( TCPPacket_t ) + ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) + sizeof( TCPHeader_t ) ;
 
     if( ensure_memory_is_valid( pxNetworkBuffer, sizeof( *pxNetworkBuffer ) ) )
     {
