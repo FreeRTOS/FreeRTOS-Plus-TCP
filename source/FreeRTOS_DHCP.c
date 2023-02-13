@@ -286,7 +286,7 @@
                     /* PAss the address of a pointer pucUDPPayload, because zero-copy is used. */
                     lBytes = FreeRTOS_recvfrom( xDHCPv4Socket, &( pucUDPPayload ), 0, FREERTOS_ZERO_COPY, NULL, NULL );
 
-                    if( lBytes > 0 )
+                    if( lBytes > 0 && pucUDPPayload != NULL )
                     {
                         /* Remove it now, destination not found. */
                         FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
@@ -1316,8 +1316,10 @@
                     }
                 }
             }
-
-            FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
+            if (pucUDPPayload != NULL)
+            {
+                FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
+            }
         } /* if( lBytes > 0 ) */
 
         return xReturn;
@@ -1478,7 +1480,7 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        if( pucUDPPayloadBuffer != NULL )
+        if( xDHCPv4Socket != FREERTOS_INVALID_SOCKET && xDHCPv4Socket != NULL && pucUDPPayloadBuffer != NULL )
         {
             /* Copy in the IP address being requested. */
 
@@ -1505,7 +1507,10 @@
             {
                 /* The packet was not successfully queued for sending and must be
                  * returned to the stack. */
-                FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
+                if (pucUDPPayloadBuffer != NULL)
+                {
+                    FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
+                }
             }
             else
             {
@@ -1547,7 +1552,7 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        if( pucUDPPayloadBuffer != NULL )
+        if( xDHCPv4Socket != FREERTOS_INVALID_SOCKET && xDHCPv4Socket != NULL && pucUDPPayloadBuffer != NULL )
         {
             const void * pvCopySource;
             void * pvCopyDest;
@@ -1587,7 +1592,10 @@
             {
                 /* The packet was not successfully queued for sending and must be
                  * returned to the stack. */
-                FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
+                if (pucUDPPayloadBuffer != NULL) 
+                {
+                    FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
+                }
             }
             else
             {
