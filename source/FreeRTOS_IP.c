@@ -1579,6 +1579,8 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 {
     eFrameProcessingResult_t eReturn = eReleaseBuffer;
     BaseType_t xIsWaitingARPResolution = pdFALSE;
+    const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
     /* The IP packet contained a UDP frame. */
     /* MISRA Ref 11.3.1 [Misaligned access] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -1607,7 +1609,12 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     /* Note the header values required prior to the checksum
      * generation as the checksum pseudo header may clobber some of
      * these values. */
-    if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
+    if( usLength > ( FreeRTOS_ntohs( pxIPHeader->usLength ) - uxIPHeaderSizePacket( pxNetworkBuffer ) ) )
+    {
+        /* The UDP packet is bigger than the IP-payload. Something is wrong, drop the packet. */
+        eReturn = eReleaseBuffer;
+    }
+    else if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
         ( uxLength >= sizeof( UDPHeader_t ) ) )
     {
         size_t uxPayloadSize_1, uxPayloadSize_2;
@@ -1815,22 +1822,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                         eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
                         break;
 
-                    case ipPROTOCOL_UDP:
-                        /* The IP packet contained a UDP frame. */
-                        {
-                            const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-                            uint16_t usLength;
-                            usLength = FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength );
-                            if( usLength > ( FreeRTOS_ntohs( pxIPHeader->usLength ) - uxIPHeaderSizePacket( pxNetworkBuffer ) ) )
-                            {
-                                /* The UDP packet is bigger than the IP-payload. Something is wrong, drop the packet. */
-                                eReturn = eReleaseBuffer;
-                            }
-                            else
-                            {
-                                eReturn = prvProcessUDPPacket( pxNetworkBuffer );
-                            }
-                        }
+                    case ipPROTOCOL_UDP:                        
+                        eReturn = prvProcessUDPPacket( pxNetworkBuffer );                        
                         break;
 
                         #if ipconfigUSE_TCP == 1
