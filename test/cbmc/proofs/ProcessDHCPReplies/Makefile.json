@@ -26,6 +26,8 @@
   "CBMCFLAGS": [
       # "--nondet-static",
       "--unwind 1",
+      "--unwindset vProcessHandleOption.0:6",
+      "--unwindset vProcessHandleOption.1:6",
       "--unwindset memcmp.0:7,prvProcessDHCPReplies.0:{BUFFER_PAYLOAD}"
   ],
 
