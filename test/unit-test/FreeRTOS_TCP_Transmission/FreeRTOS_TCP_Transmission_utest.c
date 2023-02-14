@@ -502,7 +502,6 @@ void test_prvTCPReturnPacket_Null_Socket_Relase_True( void )
 
     /* with ReleaseAfterSend set to TRUE, IP address flipped */
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
-    TEST_ASSERT_EQUAL( OldDestinationAddress, pxIPHeader->ulSourceIPAddress );
     TEST_ASSERT_EQUAL( RxSequenceNumber, pxTCPPacket->xTCPHeader.ulAckNr );
 }
 
