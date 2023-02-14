@@ -3,7 +3,7 @@
   "CBMCFLAGS":
   [
       "--unwind 1",
-      "--unwindset FreeRTOS_InterfaceEndPointOnNetMask.0:2",
+      "--unwindset FreeRTOS_InterfaceEndPointOnNetMask.0:3",
       "--unwindset prvFindCacheEntry.0:7,memcmp.0:17"
   ],
   "OBJS":
