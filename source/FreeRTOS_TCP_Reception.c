@@ -74,7 +74,7 @@
  * Skip past TCP header options when doing Selective ACK, until there are no
  * more options left.
  */
-        _static void prvReadSackOption( const uint8_t * const pucPtr,
+        static void prvReadSackOption( const uint8_t * const pucPtr,
                                        size_t uxIndex,
                                        FreeRTOS_Socket_t * const pxSocket );
     #endif /* ( ipconfigUSE_TCP_WIN == 1 ) */
@@ -369,7 +369,7 @@
  * @param[in] uxIndex: Index of options in the TCP packet options.
  * @param[in] pxSocket: Socket handling the TCP connection.
  */
-        _static void prvReadSackOption( const uint8_t * const pucPtr,
+        static void prvReadSackOption( const uint8_t * const pucPtr,
                                        size_t uxIndex,
                                        FreeRTOS_Socket_t * const pxSocket )
         {
