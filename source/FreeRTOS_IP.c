@@ -390,11 +390,11 @@ static void prvProcessIPEventsAndTimers( void )
              * and update the socket field xSocketBits. */
             #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
                 #if ( ipconfigSELECT_USES_NOTIFY != 0 )
-                    {
-                        SocketSelectMessage_t * pxMessage = ( ( SocketSelectMessage_t * ) xReceivedEvent.pvData );
-                        vSocketSelect( pxMessage->pxSocketSet );
-                        ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
-                    }
+                   {
+                       SocketSelectMessage_t * pxMessage = ( ( SocketSelectMessage_t * ) xReceivedEvent.pvData );
+                       vSocketSelect( pxMessage->pxSocketSet );
+                       ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
+                   }
                 #else
                     {
                         vSocketSelect( ( ( SocketSelect_t * ) xReceivedEvent.pvData ) );
@@ -405,7 +405,6 @@ static void prvProcessIPEventsAndTimers( void )
 
         case eSocketSignalEvent:
             #if ( ipconfigSUPPORT_SIGNALS != 0 )
-
                 /* Some task wants to signal the user of this socket in
                  * order to interrupt a call to recv() or a call to select(). */
                 ( void ) FreeRTOS_SignalSocket( ( Socket_t ) xReceivedEvent.pvData );
@@ -414,7 +413,6 @@ static void prvProcessIPEventsAndTimers( void )
 
         case eTCPTimerEvent:
             #if ( ipconfigUSE_TCP == 1 )
-
                 /* Simply mark the TCP timer as expired so it gets processed
                  * the next time prvCheckNetworkTimers() is called. */
                 vIPSetTCPTimerExpiredState( pdTRUE );
@@ -448,13 +446,13 @@ static void prvProcessIPEventsAndTimers( void )
 
         case eSocketSetDeleteEvent:
             #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-                {
-                    SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
+               {
+                   SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
 
-                    iptraceMEM_STATS_DELETE( pxSocketSet );
-                    vEventGroupDelete( pxSocketSet->xSelectGroup );
-                    vPortFree( ( void * ) pxSocketSet );
-                }
+                   iptraceMEM_STATS_DELETE( pxSocketSet );
+                   vEventGroupDelete( pxSocketSet->xSelectGroup );
+                   vPortFree( ( void * ) pxSocketSet );
+               }
             #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
             break;
 
@@ -1805,9 +1803,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                          * went wrong because it will not be able to validate what it
                          * receives. */
                         #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                            {
-                                eReturn = ProcessICMPPacket( pxNetworkBuffer );
-                            }
+                            eReturn = ProcessICMPPacket( pxNetworkBuffer );
                         #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
                         break;
 
@@ -1822,17 +1818,17 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                         break;
 
                         #if ipconfigUSE_TCP == 1
-                            case ipPROTOCOL_TCP:
+                                case ipPROTOCOL_TCP:
 
-                                if( xProcessReceivedTCPPacket( pxNetworkBuffer ) == pdPASS )
-                                {
-                                    eReturn = eFrameConsumed;
-                                }
+                                    if( xProcessReceivedTCPPacket( pxNetworkBuffer ) == pdPASS )
+                                    {
+                                        eReturn = eFrameConsumed;
+                                    }
 
-                                /* Setting this variable will cause xTCPTimerCheck()
-                                 * to be called just before the IP-task blocks. */
-                                xProcessedTCPMessage++;
-                                break;
+                                    /* Setting this variable will cause xTCPTimerCheck()
+                                     * to be called just before the IP-task blocks. */
+                                    xProcessedTCPMessage++;
+                                    break;
                         #endif /* if ipconfigUSE_TCP == 1 */
                     default:
                         /* Not a supported frame type. */
