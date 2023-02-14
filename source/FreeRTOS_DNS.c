@@ -1283,10 +1283,10 @@
                                               xFamily,
                                               uxReadTimeOut_ticks );
 
-            if( ulIPAddress != 0U )
-            { /* ip found, no need to retry */
-                break;
-            }
+            // if( ulIPAddress != 0U )
+            // { /* ip found, no need to retry */
+            //     break;
+            // }
         }
 
         return ulIPAddress;
