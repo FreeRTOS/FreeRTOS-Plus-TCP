@@ -88,6 +88,40 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
 {
     return 0;
 }
+
+
+/*We assume that the pxGetNetworkBufferWithDescriptor function is implemented correctly and returns a valid data structure. */
+/*This is the mock to mimic the correct expected behavior. If this allocation fails, this might invalidate the proof. */
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
+                                                              TickType_t xBlockTimeTicks )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) malloc( sizeof( NetworkBufferDescriptor_t ) );
+
+    __CPROVER_assume( pxNetworkBuffer != NULL );
+    __CPROVER_assume( xRequestedSizeBytes > (dhcpFIRST_OPTION_BYTE_OFFSET + sizeof( MACAddress_t ) + ipIP_TYPE_OFFSET) );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( (uint8_t *) malloc( xRequestedSizeBytes + ( ipIP_TYPE_OFFSET) )) + ipIP_TYPE_OFFSET;
+    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
+    return pxNetworkBuffer;
+}
+
+void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
+{
+    __CPROVER_assert( pvBuffer != NULL,
+                      "FreeRTOS precondition: pvBuffer != NULL" );
+}
+
+/*  CALLED BY FREERTOS
+ *  Hook to return a human-readable name */
+const char * pcApplicationHostnameHook( void )
+{
+    const char * name;
+
+    name = "hostname";
+    return name;
+}
 /****************************************************************
 * The proof of vDHCPProcess
 ****************************************************************/
@@ -138,8 +172,6 @@ void harness()
 
     xDHCPv4Socket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
     
-    vDHCPProcess( xReset, pxNetworkEndPoint_Temp );
-
-    //vDHCPProcessEndPoint( xReset, xDoCheck, pxNetworkEndPoint_Temp );
+    vDHCPProcessEndPoint( xReset, xDoCheck, pxNetworkEndPoint_Temp );
     
 }
