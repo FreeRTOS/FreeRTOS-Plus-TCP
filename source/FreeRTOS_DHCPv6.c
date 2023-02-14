@@ -998,7 +998,7 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
             xAddress.sin_family = FREERTOS_AF_INET6;
             xAddress.sin_port = FreeRTOS_htons( DHCPv6_SERVER_PORT );
 
-            struct freertos_sockaddr * pxAddress = ( ( sockaddr4_t * ) &( xAddress ) );
+            struct freertos_sockaddr * pxAddress = ( ( struct freertos_sockaddr * ) &( xAddress ) );
 
             ( void ) FreeRTOS_sendto( EP_DHCPData.xDHCPSocket, ( const void * ) xMessage.ucContents, xMessage.uxIndex, 0, pxAddress, sizeof xAddress );
         }

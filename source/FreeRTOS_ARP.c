@@ -92,7 +92,7 @@ static void vARPProcessPacketRequest( ARPPacket_t * pxARPFrame,
                                       NetworkEndPoint_t * pxTargetEndPoint,
                                       uint32_t ulSenderProtocolAddress );
 
-static void vProcessARPPacketReply( const ARPPacket_t * pxARPFrame,
+static void vARPProcessPacketReply( const ARPPacket_t * pxARPFrame,
                                     NetworkEndPoint_t * pxTargetEndPoint,
                                     uint32_t ulSenderProtocolAddress );
 
@@ -248,12 +248,20 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
                 switch( pxARPHeader->usOperation )
                 {
                     case ipARP_REQUEST:
-                        vARPProcessPacketRequest( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
-                        eReturn = eReturnEthernetFrame;
+
+                        if( ( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) &&
+                            ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes,
+                                      ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
+                                      ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
+                        {
+                            vARPProcessPacketRequest( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
+                            eReturn = eReturnEthernetFrame;
+                        }
+
                         break;
 
                     case ipARP_REPLY:
-                        vProcessARPPacketReply( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
+                        vARPProcessPacketReply( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
                         break;
 
                     default:
@@ -367,7 +375,7 @@ static void vARPProcessPacketRequest( ARPPacket_t * pxARPFrame,
  * @param[in] pxTargetEndPoint: The end-point on which it is received.
  * @param[in] ulSenderProtocolAddress: The IPv4 address involved.
  */
-static void vProcessARPPacketReply( const ARPPacket_t * pxARPFrame,
+static void vARPProcessPacketReply( const ARPPacket_t * pxARPFrame,
                                     NetworkEndPoint_t * pxTargetEndPoint,
                                     uint32_t ulSenderProtocolAddress )
 {
@@ -899,7 +907,7 @@ static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
                 ulAddressToLookup = *pulIPAddress;
             }
 
-            FreeRTOS_printf( ( "Using gateway %lxip\n", FreeRTOS_ntohl( ulAddressToLookup ) ) );
+            /*FreeRTOS_printf( ( "Using gateway %lxip\n", FreeRTOS_ntohl( ulAddressToLookup ) ) ); */
         }
     }
     else
@@ -926,10 +934,10 @@ static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
 
             if( ( eReturn != eARPCacheHit ) || ( ulOrginal != ulAddressToLookup ) )
             {
-                FreeRTOS_printf( ( "ARP %xip %s using %xip\n",
-                                   ( unsigned ) FreeRTOS_ntohl( ulOrginal ),
-                                   ( eReturn == eARPCacheHit ) ? "hit" : "miss",
-                                   ( unsigned ) FreeRTOS_ntohl( ulAddressToLookup ) ) );
+                FreeRTOS_debug_printf( ( "ARP %xip %s using %xip\n",
+                                         ( unsigned ) FreeRTOS_ntohl( ulOrginal ),
+                                         ( eReturn == eARPCacheHit ) ? "hit" : "miss",
+                                         ( unsigned ) FreeRTOS_ntohl( ulAddressToLookup ) ) );
             }
 
             /* It might be that the ARP has to go to the gateway. */

@@ -48,6 +48,8 @@
 /* The following function is defined only when BufferAllocation_1.c is linked in the project. */
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] );
 
+BaseType_t xGetPhyLinkStatus( struct xNetworkInterface * pxInterface );
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */
