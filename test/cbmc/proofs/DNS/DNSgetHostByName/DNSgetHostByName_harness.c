@@ -127,7 +127,7 @@ Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
 {
 
     Socket_t sock = safeMalloc( sizeof(struct xSOCKET) );
-    __CPROVER_assume(sock != NULL); //TODO: _TJ_: can we assume socket creation always succeed like this?
+    __CPROVER_assume(sock != NULL); 
 
     return sock;
 
@@ -197,8 +197,8 @@ void harness()
 
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
-    __CPROVER_assume( pxNetworkEndPoints->ipv6_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT ); //TODO: _TJ_: how to validate this in src?
-    __CPROVER_assume( pxNetworkEndPoints->ipv4_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT ); //TODO: _TJ_: how to validate this in src?
+    __CPROVER_assume( pxNetworkEndPoints->ipv6_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT ); //TODO: _TJ_: verfiy
+    __CPROVER_assume( pxNetworkEndPoints->ipv4_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT ); //TODO: _TJ_: verfiy
     __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
 
     /* Interface init. */
