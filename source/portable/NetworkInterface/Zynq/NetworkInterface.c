@@ -112,7 +112,7 @@ static NetworkInterface_t * pxMyInterfaces[ XPAR_XEMACPS_NUM_INSTANCES ];
 #endif
 
 #ifndef nicUSE_UNCACHED_MEMORY
-    #define nicUSE_UNCACHED_MEMORY             1
+    #define nicUSE_UNCACHED_MEMORY    1
 #endif
 
 /*-----------------------------------------------------------*/
@@ -294,10 +294,10 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
             }
         #endif /* ipconfigUSE_LLMNR == 1 */
 
-#if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
-		XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAdress.ucBytes );
-		XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MACAdressIPv6.ucBytes );
-#endif
+        #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+            XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAdress.ucBytes );
+            XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MACAdressIPv6.ucBytes );
+        #endif
 
         pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint );
 
@@ -386,18 +386,18 @@ static BaseType_t xZynqNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
              * the protocol checksum to have a value of zero. */
             pxPacket = ( ProtocolPacket_t * ) ( pxBuffer->pucEthernetBuffer );
 
-		#if ( ipconfigUSE_IPv6 != 0 )
-			ICMPPacket_IPv6_t * pxICMPPacket = ( ICMPPacket_IPv6_t * ) pxBuffer->pucEthernetBuffer;
+            #if ( ipconfigUSE_IPv6 != 0 )
+                ICMPPacket_IPv6_t * pxICMPPacket = ( ICMPPacket_IPv6_t * ) pxBuffer->pucEthernetBuffer;
 
-			if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
-				( pxICMPPacket->xIPHeader.ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
-			{
-				/* The EMAC will calculate the checksum of the IP-header.
-				 * It can only calculate protocol checksums of UDP and TCP,
-				 * so for ICMP and other protocols it must be done manually. */
-				usGenerateProtocolChecksum( pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength, pdTRUE );
-			}
-		#endif
+                if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
+                    ( pxICMPPacket->xIPHeader.ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
+                {
+                    /* The EMAC will calculate the checksum of the IP-header.
+                     * It can only calculate protocol checksums of UDP and TCP,
+                     * so for ICMP and other protocols it must be done manually. */
+                    usGenerateProtocolChecksum( pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength, pdTRUE );
+                }
+            #endif
 
             if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
                 ( pxPacket->xICMPPacket.xIPHeader.ucProtocol == ipPROTOCOL_ICMP ) )
@@ -474,19 +474,19 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
 /*-----------------------------------------------------------*/
 
 #if ( nicUSE_UNCACHED_MEMORY == 0 )
-	void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-	{
-	    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
-	    uint8_t * ucRAMBuffer = ucNetworkPackets;
-	    uint32_t ul;
-	
-	    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-	    {
-	        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-	        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-	        ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
-	    }
-	}
+    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+    {
+        static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
+        uint8_t * ucRAMBuffer = ucNetworkPackets;
+        uint32_t ul;
+
+        for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+        {
+            pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
+            *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
+            ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
+        }
+    }
 #else /* if ( nicUSE_UNCACHED_MEMORY == 0 ) */
     void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
     {

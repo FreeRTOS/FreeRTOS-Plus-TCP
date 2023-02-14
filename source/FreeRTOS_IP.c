@@ -1613,7 +1613,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
         eReturn = eReleaseBuffer;
     }
     else if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
-        ( uxLength >= sizeof( UDPHeader_t ) ) )
+             ( uxLength >= sizeof( UDPHeader_t ) ) )
     {
         size_t uxPayloadSize_1, uxPayloadSize_2;
 
