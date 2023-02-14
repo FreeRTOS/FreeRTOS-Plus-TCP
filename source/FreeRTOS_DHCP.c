@@ -94,7 +94,7 @@
 /*
  * Interpret message received on the DHCP socket.
  */
-    _static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
+    static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
                                              NetworkEndPoint_t * pxEndPoint );
 
 /*
@@ -1224,7 +1224,7 @@
  *
  * @return pdPASS: if DHCP options are received correctly; pdFAIL: Otherwise.
  */
-    _static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
+    static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
                                              NetworkEndPoint_t * pxEndPoint )
     {
         uint8_t * pucUDPPayload;

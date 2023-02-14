@@ -19,7 +19,7 @@
 * Signature of function under test
 ****************************************************************/
 
-BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
+BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
                                              NetworkEndPoint_t * pxEndPoint );
 
 /****************************************************************
@@ -38,5 +38,5 @@ void harness()
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
     __CPROVER_assume( pxNetworkEndPoint_Temp->pxNext == NULL );
 
-    prvProcessDHCPReplies( xExpectedMessageType, pxNetworkEndPoint_Temp );
+    __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( xExpectedMessageType, pxNetworkEndPoint_Temp );
 }

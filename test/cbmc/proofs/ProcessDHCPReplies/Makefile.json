@@ -26,11 +26,14 @@
   "CBMCFLAGS": [
       # "--nondet-static",
       "--unwind 1",
-      "--unwindset vProcessHandleOption.0:6",
-      "--unwindset vProcessHandleOption.1:6",
-      "--unwindset memcmp.0:7,prvProcessDHCPReplies.0:{BUFFER_PAYLOAD}"
+      "--unwindset __CPROVER_file_local_FreeRTOS_DHCP_c_vProcessHandleOption.0:6",
+      "--unwindset __CPROVER_file_local_FreeRTOS_DHCP_c_vProcessHandleOption.1:6",
+      "--unwindset memcmp.0:7,__CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies.0:{BUFFER_PAYLOAD}"
   ],
-
+  "OPT":
+  [
+      "--export-file-local-symbols"
+  ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
