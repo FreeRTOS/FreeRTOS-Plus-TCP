@@ -1978,6 +1978,7 @@ void test_xARPWaitResolution_GNWFailsNoTimeout( void )
     int i;
 
     xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
     /* Make the resolution fail with maximum tryouts. */
     /* =================================================== */
     /* Make sure that no address matches the IP address. */
@@ -2027,6 +2028,7 @@ void test_xARPWaitResolution( void )
     int i;
 
     xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
     /* Make the resolution fail after some attempts due to timeout. */
     /* =================================================== */
     /* Make sure that no address matches the IP address. */
