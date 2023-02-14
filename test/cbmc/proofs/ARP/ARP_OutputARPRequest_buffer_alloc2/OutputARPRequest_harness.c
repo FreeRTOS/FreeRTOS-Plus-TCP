@@ -45,6 +45,10 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
                                                 NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                 BaseType_t xReleaseAfterSend )
 {
+
+    __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
+    
     if( xReleaseAfterSend != pdFALSE )
     {
         vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );

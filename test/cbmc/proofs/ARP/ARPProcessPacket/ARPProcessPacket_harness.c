@@ -50,12 +50,11 @@ void harness()
 
     /*
      * The assumption made here is that the buffer pointed by pucEthernetBuffer
-     * is at least allocated to sizeof(ARPPacket_t) size but eventually a even larger buffer.
+     * is at least allocated to sizeof(ARPPacket_t) size but eventually an even larger buffer.
      * This is not checked inside eARPProcessPacket.
      */
     uint8_t ucBUFFER_SIZE;
 
-    __CPROVER_assume( ucBUFFER_SIZE < CBMC_MAX_OBJECT_SIZE );
     void * xBuffer = malloc( ucBUFFER_SIZE + sizeof( ARPPacket_t ) );
 
     __CPROVER_assume( xBuffer != NULL );
