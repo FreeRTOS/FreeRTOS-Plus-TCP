@@ -157,8 +157,6 @@
 /* TODO: Fix IPv6 DNS query in Windows Simulator. */
     IPPreference_t xDNS_IP_Preference = xPreferenceIPv4;
 
-/** @brief Used for additional error checking when asserts are enabled. */
-    _static struct freertos_addrinfo * pxLastInfo = NULL;
 /*-----------------------------------------------------------*/
 
 /**
@@ -315,7 +313,6 @@
 
         if( pxInfo != NULL )
         {
-            configASSERT( pxLastInfo != pxInfo );
 
             while( pxIterator != NULL )
             {
@@ -325,7 +322,6 @@
             }
         }
 
-        pxLastInfo = NULL;
     }
 /*-----------------------------------------------------------*/
 
