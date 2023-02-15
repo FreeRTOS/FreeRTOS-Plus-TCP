@@ -211,7 +211,7 @@ void test_prvCheckOptions_MSS_WSF( void )
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     usChar2u16_ExpectAnyArgsAndReturn( 500 );
-    
+
     xReturn = prvCheckOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
@@ -241,7 +241,7 @@ void test_prvCheckOptions_MSS_WSF_Bad_Option( void )
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     usChar2u16_ExpectAnyArgsAndReturn( 500 );
-    
+
     xReturn = prvCheckOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }

@@ -567,7 +567,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP( void )
 
     MACAddress_t NewSourceMacAddr = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
 
-    memcpy(xEndPoint.xMACAddress.ucBytes, NewSourceMacAddr.ucBytes, sizeof(xEndPoint.xMACAddress.ucBytes));
+    memcpy( xEndPoint.xMACAddress.ucBytes, NewSourceMacAddr.ucBytes, sizeof( xEndPoint.xMACAddress.ucBytes ) );
 
     pxSocket->u.xTCP.rxStream = ( StreamBuffer_t * ) 0x12345678;
     pxSocket->u.xTCP.uxRxStreamSize = 1500;
@@ -615,7 +615,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_GT_Eth_Packet_Length( void )
     struct xNetworkEndPoint xEndPoint;
     struct xNetworkInterface xInterface;
 
-    memcpy(xEndPoint.xMACAddress.ucBytes, NewSourceMacAddr.ucBytes, sizeof(xEndPoint.xMACAddress.ucBytes));
+    memcpy( xEndPoint.xMACAddress.ucBytes, NewSourceMacAddr.ucBytes, sizeof( xEndPoint.xMACAddress.ucBytes ) );
 
     xEndPoint.pxNetworkInterface = &xInterface;
     xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;

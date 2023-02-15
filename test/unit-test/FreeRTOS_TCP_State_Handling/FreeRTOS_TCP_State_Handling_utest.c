@@ -364,7 +364,7 @@ void test_prvHandleSynReceived_Exp_SYN_State_ConnectSyn( void )
 
     uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     vTCPWindowInit_ExpectAnyArgs();
-    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn((void *) 0x1234);
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( void * ) 0x1234 );
     vTCPStateChange_ExpectAnyArgs();
 
     xSendLength = prvHandleSynReceived( pxSocket,
@@ -454,7 +454,7 @@ void test_prvHandleSynReceived_Exp_ACK_State_Synreceived_Zero_Data( void )
     pxTCPHeader->ulSequenceNumber = 0;
 
     uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn((void *) 0x1234);
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( void * ) 0x1234 );
     vTCPStateChange_ExpectAnyArgs();
 
     xSendLength = prvHandleSynReceived( pxSocket,
@@ -486,7 +486,7 @@ void test_prvHandleSynReceived_Exp_ACK_State_Synreceived_Non_Zero_Data_WinScalin
     pxTCPHeader->ulSequenceNumber = 0;
 
     uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn((void *) 0x1234);
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( void * ) 0x1234 );
     vTCPStateChange_ExpectAnyArgs();
 
     xSendLength = prvHandleSynReceived( pxSocket,

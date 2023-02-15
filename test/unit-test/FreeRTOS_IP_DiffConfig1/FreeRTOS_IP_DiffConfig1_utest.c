@@ -80,8 +80,8 @@ void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer
 static BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
 
 static BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
-                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                BaseType_t xReleaseAfterSend )
+                                                       NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                       BaseType_t xReleaseAfterSend )
 {
     NetworkInterfaceOutputFunction_Stub_Called++;
     return 0;
