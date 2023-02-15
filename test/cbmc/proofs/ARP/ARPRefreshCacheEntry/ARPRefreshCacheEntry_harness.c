@@ -21,13 +21,13 @@ void harness()
     __CPROVER_assume( pxNetworkEndPoints != NULL );
     pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
-    __CPROVER_assume( pxNetworkEndPoints->pxNext->pxNext == NULL );
+    pxNetworkEndPoints->pxNext->pxNext = NULL;
 
     /* Interface init. */
     pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
     pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkEndPoints->pxNetworkInterface;
-    __CPROVER_assume( pxNetworkEndPoints->pxNext->pxNetworkInterface != NULL );
+    pxNetworkEndPoints->pxNext->pxNetworkInterface = NULL;
 
 
     NetworkEndPoint_t * pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );

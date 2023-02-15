@@ -31,7 +31,7 @@ void harness()
     */
     xNetworkBuffer2.pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( xNetworkBuffer2.pxEndPoint != NULL );
-    __CPROVER_assume( xNetworkBuffer2.pxEndPoint->pxNext == NULL );
+    xNetworkBuffer2.pxEndPoint->pxNext = NULL;
 
     /* vARPGenerateRequestPacket asserts buffer has room for a packet */
     __CPROVER_assume( xNetworkBuffer2.xDataLength >= sizeof( ARPPacket_t ) );
