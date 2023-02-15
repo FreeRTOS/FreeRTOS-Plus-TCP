@@ -79,6 +79,8 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
                                                 NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                 BaseType_t xReleaseAfterSend )
 {
+    __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
     BaseType_t ret;
     return ret;
 }
@@ -90,7 +92,9 @@ void harness()
 
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
-    __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
+    pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
+    __CPROVER_assume( pxNetworkEndPoints->pxNext->pxNext == NULL );
 
     /* Assume that the size of packet must be greater than that of UDP-Packet and less than
      * that of the Ethernet Frame Size. */
@@ -115,7 +119,9 @@ void harness()
     __CPROVER_assume( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
     
     pxNetworkEndPoints->pxNetworkInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+    pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
     __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
+    __CPROVER_assume( pxNetworkEndPoints->pxNext->pxNetworkInterface != NULL );
 
     pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
