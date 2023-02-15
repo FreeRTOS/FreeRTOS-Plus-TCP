@@ -1068,8 +1068,6 @@
 
         if( xDNSBuf.pucPayloadBuffer != NULL )
         {
-/*          xDNSBuf.uxPayloadSize = pxNetworkBuffer->xDataLength; */
-
             #if ( ipconfigUSE_LLMNR == 1 )
                 {
                     if( FreeRTOS_ntohs( pxAddress->sin_port ) == ipLLMNR_PORT )
@@ -1355,7 +1353,8 @@
         const void * pvCopySource;
         void * pvCopyDest;
 
-	( void ) uxHostType;
+        ( void ) uxHostType;
+
         /* Copy in the const part of the header. Intentionally using different
          * pointers with memcpy() to put the information in to correct place. */
 

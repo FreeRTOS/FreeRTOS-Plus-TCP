@@ -34,9 +34,6 @@
 #include "FreeRTOSIPConfigDefaults.h"
 #include "IPTraceMacroDefaults.h"
 
-/* FreeRTOS+TCP includes. */
-/*#include "FreeRTOS_IP.h" */
-
 #define dnsPARSE_ERROR              0UL
 
 #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )

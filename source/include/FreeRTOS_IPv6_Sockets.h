@@ -44,9 +44,6 @@
  */
     #define socketINVALID_HEX_CHAR    ( 0xffU )
 
-/* For compatibility with the expected Berkeley sockets naming. */
-/*    #define socklen_t                 uint32_t */
-
 /** @brief The struct sNTOP6_Set is a set of parameters used by  the function FreeRTOS_inet_ntop6().
  * It passes this set to a few helper functions. */
     struct sNTOP6_Set

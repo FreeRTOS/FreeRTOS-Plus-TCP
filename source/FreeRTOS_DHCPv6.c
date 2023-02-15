@@ -496,7 +496,6 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
              * have not already been created. */
             prvInitialiseDHCPv6( pxEndPoint );
             EP_DHCPData.eDHCPState = eWaitingSendFirstDiscover;
-            /*EP_DHCPData.eExpectedState = eWaitingSendFirstDiscover; */
             break;
 
         case eWaitingSendFirstDiscover:
