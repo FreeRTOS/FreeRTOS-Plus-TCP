@@ -6,7 +6,7 @@
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--unwindset FreeRTOS_FindEndPointOnIP_IPv4.0:2"
+    "--unwindset FreeRTOS_FindEndPointOnIP_IPv4.0:3"
   ],
   "OBJS":
   [

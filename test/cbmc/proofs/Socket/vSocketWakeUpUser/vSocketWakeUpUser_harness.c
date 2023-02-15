@@ -132,7 +132,10 @@ EventBits_t xEventGroupSetBits( EventGroupHandle_t xEventGroup,
 
 void SocketWakeupCallback_Stub( struct xSOCKET * pxSocket )
 {
-    
+
+    __CPROVER_assert( pxSocket != NULL,
+                      "The pxSocket cannot be NULL" );
+
 }
 
 void harness()

@@ -52,7 +52,9 @@ void harness()
 
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
-    __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
+    pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
+    __CPROVER_assume( pxNetworkEndPoints->pxNext->pxNext == NULL );
     
     FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
 
