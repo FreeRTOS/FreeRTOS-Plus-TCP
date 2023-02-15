@@ -818,6 +818,8 @@
  */
     static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
     {
+        ( void ) pxEndPoint;
+
         if( ( xDHCPv4Socket != NULL ) && ( xDHCPSocketUserCount > 0 ) )
         {
             xDHCPSocketUserCount--;
