@@ -50,6 +50,8 @@
 #define ipFR_TCP_VERSION_MINOR     0
 /* Development builds are always version 999. */
 #define ipFR_TCP_VERSION_BUILD     999
+/* Using TCP version to support backward compatibility in the Demo files. */
+#define FREERTOS_PLUS_TCP_VERSION   10
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */
