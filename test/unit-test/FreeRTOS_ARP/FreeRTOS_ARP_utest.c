@@ -1550,51 +1550,8 @@ void test_eARPGetCacheEntry_IPMatchesOtherBroadcastAddr( void )
     /* =================================================== */
 }
 
-// TODO: _TJ_: the following 2 tests are commented out for now as the required changes in the
-//             src are yet to be added 
-
-// void test_eARPGetCacheEntry_LocalIPIsZero( void )
-// {
-//     uint32_t ulIPAddress;
-//     MACAddress_t xMACAddress;
-//     eARPLookupResult_t eResult;
-//     uint32_t ulSavedGatewayAddress;
-//     struct xNetworkInterface * xInterface;
-//     struct xNetworkEndPoint * pxEndPoint, xEndPoint;
-
-//     /* =================================================== */
-//     *ipLOCAL_IP_ADDRESS_POINTER = 0;
-//     ulIPAddress = 0x1234;
-//     /* Not worried about what these functions do. */
-//     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-//     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-//     FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 4, ( void * ) 0x1234 );
-//     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
-//     TEST_ASSERT_EQUAL_MESSAGE( eCantSendPacket, eResult, "Test 4" );
-//     /* =================================================== */
-// }
-
-// void test_eARPGetCacheEntry_LocalIPMatchesReceivedIP( void )
-// {
-//     uint32_t ulIPAddress;
-//     MACAddress_t xMACAddress;
-//     eARPLookupResult_t eResult;
-//     uint32_t ulSavedGatewayAddress;
-//     struct xNetworkInterface * xInterface;
-//     struct xNetworkEndPoint * pxEndPoint, xEndPoint;
-
-//     /* =================================================== */
-//     *ipLOCAL_IP_ADDRESS_POINTER = 0x1234;
-//     ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-//     /* Not worried about what these functions do. */
-//     xEndPoint.ipv4_settings.ulIPAddress = 0x1234;
-//     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
-//     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
-//     FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 4, ( void * ) 0x1234 );
-//     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
-//     TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 5" );
-//     /* =================================================== */
-// }
+// TODO: _TJ_: For the timebeing test_eARPGetCacheEntry_LocalIPIsZero and test_eARPGetCacheEntry_LocalIPMatchesReceivedIP
+//             test cases are removed as we need to reevaluate if those cases are required for IPv6
 
 void test_eARPGetCacheEntry_MatchingInvalidEntry( void )
 {
