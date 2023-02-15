@@ -94,7 +94,7 @@ void harness()
     __CPROVER_assume( pxNetworkEndPoints != NULL );
     pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
-    __CPROVER_assume( pxNetworkEndPoints->pxNext->pxNext == NULL );
+    pxNetworkEndPoints->pxNext->pxNext = NULL;
 
     /* Assume that the size of packet must be greater than that of UDP-Packet and less than
      * that of the Ethernet Frame Size. */
@@ -112,7 +112,7 @@ void harness()
     */
     pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkBuffer->pxEndPoint != NULL );
-    __CPROVER_assume( pxNetworkBuffer->pxEndPoint->pxNext == NULL );
+    pxNetworkBuffer->pxEndPoint->pxNext = NULL;
 
     /* Interface init. */
     pxNetworkBuffer->pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
