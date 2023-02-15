@@ -155,4 +155,3 @@
     #endif
 
 #endif /* __NETIF_XAXIEMACIF_H__ */
-

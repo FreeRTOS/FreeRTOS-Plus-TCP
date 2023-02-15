@@ -1049,7 +1049,7 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxEndPoint );
 
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
-    
+
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
     TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
