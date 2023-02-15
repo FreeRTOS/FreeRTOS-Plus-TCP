@@ -463,7 +463,7 @@
             #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
                 uxNumIPAddresses = ( size_t ) xDNSCache[ uxIndex ].ucNumIPAddresses;
 
-                if( uxNumIPAddresses > ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY )
+                if( uxNumIPAddresses > ( size_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY )
                 {
                     /* Make this a configASSERT()? */
                     uxNumIPAddresses = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;

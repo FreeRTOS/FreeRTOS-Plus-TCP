@@ -1042,7 +1042,7 @@
         UBaseType_t uxHostType;
 
         /* Calculate the size of the headers. */
-        if( pxAddress->sin_family == FREERTOS_AF_INET6 )
+        if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
         {
             uxHeaderBytes = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER;
         }
@@ -1083,7 +1083,7 @@
 
             /* Later when translating form UDP payload to a Network Buffer,
              * it is important to know whether this is an IPv4 packet. */
-            if( pxAddress->sin_family == FREERTOS_AF_INET6 )
+            if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
             {
                 xDNSBuf.pucPayloadBuffer[ -xIndex ] = ( uint8_t ) ipTYPE_IPv6;
             }
@@ -1186,14 +1186,14 @@
                                         &xRecvAddress,
                                         &xReceiveBuffer );
 
-                if( ( uxReadTimeOut_ticks > 0 ) &&
+                if( ( uxReadTimeOut_ticks > 0U ) &&
                     ( pxEndPoint != NULL ) &&
                     ( ( xBytes == -pdFREERTOS_ERRNO_EWOULDBLOCK ) ||
                       ( xBytes == 0 ) ) )
                 {
                     /* This search timed out, next time try with a different DNS. */
                     #if ( ipconfigUSE_IPv6 != 0 )
-                        if( xAddress.sin_family == FREERTOS_AF_INET6 )
+                        if( xAddress.sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
                         {
                             prvIncreaseDNS6Index( pxEndPoint );
                         }

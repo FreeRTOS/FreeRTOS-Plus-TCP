@@ -83,7 +83,7 @@ NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType )
          pxEndPoint != NULL;
          pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
     {
-        if( xIPType == ipTYPE_IPv6 )
+        if( xIPType == ( BaseType_t ) ipTYPE_IPv6 )
         {
             if( pxEndPoint->bits.bIPv6 != 0U )
             {
