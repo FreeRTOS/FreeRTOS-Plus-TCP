@@ -1,8 +1,6 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
- *
- * SPDX-License-Identifier: MIT
+ * FreeRTOS+FAT V2.3.3
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,8 +19,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * http://aws.amazon.com/freertos
- * http://www.FreeRTOS.org
+ * https://www.FreeRTOS.org
+ * https://github.com/FreeRTOS
+ *
  */
 
 /*
@@ -59,7 +58,6 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 
-#include "Zynq/x_emacpsif.h"
 #include "Zynq/x_topology.h"
 #include "xstatus.h"
 
@@ -70,18 +68,30 @@
 
 #include "uncached_memory.h"
 
-/* Reserve 1 MB of memory. */
-#define uncMEMORY_SIZE         0x100000uL
+#if ( ipconfigULTRASCALE == 1 )
+    /* Reserve 2 MB of memory. */
+    #define uncMINIMAL_MEMORY_SIZE    0x200000U
+    #ifndef uncMEMORY_SIZE
+        #define uncMEMORY_SIZE        uncMINIMAL_MEMORY_SIZE
+    #endif
+    #define DDR_MEMORY_END            ( XPAR_PSU_DDR_0_S_AXI_HIGHADDR )
+    #define uncMEMORY_ATTRIBUTE       NORM_NONCACHE | INNER_SHAREABLE
+#else
+    /* Reserve 1 MB of memory. */
+    #define uncMINIMAL_MEMORY_SIZE    0x100000U
+    #ifndef uncMEMORY_SIZE
+        #define uncMEMORY_SIZE        uncMINIMAL_MEMORY_SIZE
+    #endif
+    #define DDR_MEMORY_END            ( XPAR_PS7_DDR_0_S_AXI_HIGHADDR + 1 )
+    #define uncMEMORY_ATTRIBUTE       0x1C02
+#endif /* ( ipconfigULTRASCALE == 1 ) */
 
 /* Make sure that each pointer has an alignment of 4 KB. */
-#define uncALIGNMENT_SIZE      0x1000uL
-
-#define DDR_MEMORY_END         ( XPAR_PS7_DDR_0_S_AXI_HIGHADDR + 1 )
-
-#define uncMEMORY_ATTRIBUTE    0x1C02
+#define uncALIGNMENT_SIZE    0x1000uL
 
 static void vInitialiseUncachedMemory( void );
 
+static uint8_t pucUncachedMemory[ uncMEMORY_SIZE ] __attribute__( ( aligned( uncMEMORY_SIZE ) ) );
 static uint8_t * pucHeadOfMemory;
 static uint32_t ulMemorySize;
 static uint8_t * pucStartOfMemory = NULL;
@@ -141,12 +151,9 @@ uint8_t * pucGetUncachedMemory( uint32_t ulSize )
 static void vInitialiseUncachedMemory()
 {
     /* At the end of program's space... */
-    pucStartOfMemory = ( uint8_t * ) &( _end );
+    pucStartOfMemory = pucUncachedMemory;
 
-    /* Align the start address to 1 MB boundary. */
-    pucStartOfMemory = ( uint8_t * ) ( ( ( uint32_t ) pucStartOfMemory + uncMEMORY_SIZE ) & ( ~( uncMEMORY_SIZE - 1 ) ) );
-
-    if( ( ( u32 ) pucStartOfMemory ) + uncMEMORY_SIZE > DDR_MEMORY_END )
+    if( ( ( uintptr_t ) pucStartOfMemory ) + uncMEMORY_SIZE > DDR_MEMORY_END )
     {
         FreeRTOS_printf( ( "vInitialiseUncachedMemory: Can not allocate uncached memory\n" ) );
     }
@@ -155,7 +162,16 @@ static void vInitialiseUncachedMemory()
         /* Some objects want to be stored in uncached memory. Hence the 1 MB
          * address range that starts after "_end" is made uncached by setting
          * appropriate attributes in the translation table. */
-        Xil_SetTlbAttributes( ( uint32_t ) pucStartOfMemory, uncMEMORY_ATTRIBUTE );
+        uint32_t ulBytesLeft = uncMEMORY_SIZE;
+        uint8_t * puc = pucStartOfMemory;
+
+        while( ulBytesLeft > 0U )
+        {
+            uint32_t ulCurrentSize = ( ulBytesLeft > uncMINIMAL_MEMORY_SIZE ) ? uncMINIMAL_MEMORY_SIZE : ulBytesLeft;
+            Xil_SetTlbAttributes( ( uintptr_t ) puc, uncMEMORY_ATTRIBUTE );
+            ulBytesLeft -= ulCurrentSize;
+            puc += ulCurrentSize;
+        }
 
         /* For experiments in the SDIO driver, make the remaining uncached memory
          * public */

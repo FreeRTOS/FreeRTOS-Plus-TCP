@@ -80,8 +80,8 @@ void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer
 static BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
 
 static BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
-                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                BaseType_t xReleaseAfterSend )
+                                                       NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                       BaseType_t xReleaseAfterSend )
 {
     NetworkInterfaceOutputFunction_Stub_Called++;
     return 0;
@@ -140,7 +140,7 @@ static void vSetIPTaskHandle( TaskHandle_t xTaskHandleToSet )
     #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
         xQueueGenericCreateStatic_ExpectAnyArgsAndReturn( ( QueueHandle_t ) 0x1234ABCD );
     #else
-        xQueueGenericCreate__ExpectAnyArgsAndReturn( ( QueueHandle_t ) 0x1234ABCD );
+        xQueueGenericCreate_ExpectAnyArgsAndReturn( ( QueueHandle_t ) 0x1234ABCD );
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
     #if ( configQUEUE_REGISTRY_SIZE > 0 )
@@ -198,7 +198,7 @@ void test_FreeRTOS_IPInit_HappyPath( void )
         xQueueGenericCreateStatic_IgnoreArg_pucQueueStorage();
         xQueueGenericCreateStatic_IgnoreArg_pxStaticQueue();
     #else
-        xQueueGenericCreate__ExpectAndReturn( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ), ulPointerToQueue );
+        xQueueGenericCreate_ExpectAndReturn( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ), 0, ulPointerToQueue );
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
     #if ( configQUEUE_REGISTRY_SIZE > 0 )
@@ -250,7 +250,7 @@ void test_FreeRTOS_IPInit_QueueCreationFails( void )
         xQueueGenericCreateStatic_IgnoreArg_pucQueueStorage();
         xQueueGenericCreateStatic_IgnoreArg_pxStaticQueue();
     #else
-        xQueueGenericCreate__ExpectAndReturn( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ), pxPointerToQueue );
+        xQueueGenericCreate_ExpectAndReturn( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ), 0, pxPointerToQueue );
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
     xReturn = FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
@@ -287,7 +287,7 @@ void test_FreeRTOS_IPInit_BufferCreationFails( void )
         xQueueGenericCreateStatic_IgnoreArg_pucQueueStorage();
         xQueueGenericCreateStatic_IgnoreArg_pxStaticQueue();
     #else
-        xQueueGenericCreate__ExpectAndReturn( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ), pxPointerToQueue );
+        xQueueGenericCreate_ExpectAndReturn( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ), 0, pxPointerToQueue );
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
     #if ( configQUEUE_REGISTRY_SIZE > 0 )
@@ -332,7 +332,7 @@ void test_FreeRTOS_IPInit_TaskCreationFails( void )
         xQueueGenericCreateStatic_IgnoreArg_pucQueueStorage();
         xQueueGenericCreateStatic_IgnoreArg_pxStaticQueue();
     #else
-        xQueueGenericCreate__ExpectAndReturn( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ), pxPointerToQueue );
+        xQueueGenericCreate_ExpectAndReturn( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ), 0, pxPointerToQueue );
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
     #if ( configQUEUE_REGISTRY_SIZE > 0 )

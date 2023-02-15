@@ -202,6 +202,7 @@
         /* The function is called by the IP-task, so pxEndPoint
          * should be non-NULL. */
         configASSERT( pxEndPoint != NULL );
+        configASSERT( pxEndPoint->bits.bIPv6 == 0 );
 
         /* Is DHCP starting over? */
         if( xReset != pdFALSE )

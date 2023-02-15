@@ -1507,13 +1507,13 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer( void )
     hook_return = pdTRUE;
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( NULL );
 
-    catch_assert(DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                             uxBufferLength,
-                             &pxAddressInfo,
-                             xExpected,
-                             usPort ));
+    catch_assert( DNS_ParseDNSReply( pucUDPPayloadBuffer,
+                                     uxBufferLength,
+                                     &pxAddressInfo,
+                                     xExpected,
+                                     usPort ) );
 
-    //TEST_ASSERT_EQUAL( pdFALSE, ret );
+    /*TEST_ASSERT_EQUAL( pdFALSE, ret ); */
     /*ASSERT_DNS_QUERY_HOOK_CALLED(); */
 }
 

@@ -1183,7 +1183,7 @@
                         usLength = ( uint16_t ) ( sizeof( NBNSAnswer_t ) + ( size_t ) offsetof( NBNSRequest_t, usType ) );
 
                         prepareReplyDNSMessage( pxNetworkBuffer, ( BaseType_t ) usLength );
-                        
+
                         /* This function will fill in the eth addresses and send the packet */
                         vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );
 
