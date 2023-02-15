@@ -137,7 +137,7 @@ void harness()
     __CPROVER_assume( pxNetworkEndPoints != NULL );
     pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
-    __CPROVER_assume( pxNetworkEndPoints->pxNext->pxNext == NULL );
+    pxNetworkEndPoints->pxNext->pxNext = NULL;
 
     /* Interface init. */
     pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
@@ -148,7 +148,7 @@ void harness()
 
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
-    __CPROVER_assume( pxNetworkEndPoint_Temp->pxNext == NULL );
+    pxNetworkEndPoint_Temp->pxNext = NULL;
     //pxNetworkEndPoint_Temp->xDHCPData.eExpectedState = eExpectedState;
 
     /****************************************************************

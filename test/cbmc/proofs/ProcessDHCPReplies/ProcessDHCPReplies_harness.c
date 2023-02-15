@@ -36,7 +36,7 @@ void harness()
 
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
-    __CPROVER_assume( pxNetworkEndPoint_Temp->pxNext == NULL );
+    pxNetworkEndPoint_Temp->pxNext = NULL;
 
     __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( xExpectedMessageType, pxNetworkEndPoint_Temp );
 }
