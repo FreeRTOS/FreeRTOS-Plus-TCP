@@ -71,7 +71,7 @@ void harness()
 
     /* Interface init. */
     pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
-    pxNetworkEndPoints->pxNetworkInterface = NULL;
+    pxNetworkEndPoints->pxNetworkInterface->pxNext = NULL;
 
     pxNetworkEndPoints->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     /* No assumption is added for pfOutput as its pointed to a static object/memory location. */
