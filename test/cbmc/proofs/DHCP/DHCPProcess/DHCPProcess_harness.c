@@ -63,14 +63,15 @@ void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
 * The signature of the function under test.
 ****************************************************************/
 
-void vDHCPProcess( BaseType_t xReset,
-                    struct xNetworkEndPoint * pxEndPoint );
+void __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( BaseType_t xReset,
+                            BaseType_t xDoCheck,
+                            NetworkEndPoint_t * pxEndPoint );
 
 /****************************************************************
 * Abstract prvProcessDHCPReplies proved memory safe in ProcessDHCPReplies.
 ****************************************************************/
 
-BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
+BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
                                              NetworkEndPoint_t * pxEndPoint )
 {
     return nondet_BaseType();
@@ -177,6 +178,6 @@ void harness()
 
     xDHCPv4Socket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
     
-    vDHCPProcessEndPoint( xReset, xDoCheck, pxNetworkEndPoint_Temp );
+    __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( xReset, xDoCheck, pxNetworkEndPoint_Temp );
     
 }
