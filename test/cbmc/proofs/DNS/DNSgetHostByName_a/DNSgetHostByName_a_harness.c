@@ -111,21 +111,29 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) malloc( sizeof( NetworkBufferDescriptor_t ) );
 
-    __CPROVER_assume( pxNetworkBuffer != NULL );
-
-    pxNetworkBuffer->pucEthernetBuffer = ( (uint8_t *) malloc( xRequestedSizeBytes + ipUDP_PAYLOAD_IP_TYPE_OFFSET ) ) + ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
-
-    pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
+    if( pxNetworkBuffer != NULL )
+    {
+        pxNetworkBuffer->pucEthernetBuffer = malloc( xRequestedSizeBytes + ipUDP_PAYLOAD_IP_TYPE_OFFSET );
+        if( pxNetworkBuffer->pucEthernetBuffer == NULL )
+        {
+            free( pxNetworkBuffer );
+            pxNetworkBuffer = NULL;
+        }
+        else 
+        {
+            pxNetworkBuffer->pucEthernetBuffer = ( (uint8_t *) pxNetworkBuffer->pucEthernetBuffer ) + ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+            pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
+        }
+    }
+    
     return pxNetworkBuffer;
 }
 
 Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
 {
 
-    Socket_t sock = safeMalloc( sizeof(struct xSOCKET) );
-    __CPROVER_assume(sock != NULL); 
-    return sock;
+    Socket_t xSock = safeMalloc( sizeof(struct xSOCKET) );
+    return xSock;
 
 }
 
