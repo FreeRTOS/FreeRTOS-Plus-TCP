@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_Sockets_IPv6.c
+ * @file FreeRTOS_IPv6_Sockets.c
  * @brief Implements the Sockets API based on Berkeley sockets for the FreeRTOS+TCP network stack.
  *        Sockets are used by the application processes to interact with the IP-task which in turn
  *        interacts with the hardware.

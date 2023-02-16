@@ -57,11 +57,12 @@ struct xNetworkInterface * pxNetworkInterfaces = NULL;
 static NetworkEndPoint_t * FreeRTOS_AddEndPoint( NetworkInterface_t * pxInterface,
                                                  NetworkEndPoint_t * pxEndPoint );
 
+/** @brief A util struct to list the IPv6 IP types, prefix and type bit mask */
 struct xIPv6_Couple
 {
-    IPv6_Type_t eType;
-    uint16_t usMask;
-    uint16_t usExpected;
+    IPv6_Type_t eType;      /**< IPv6 IP type enum */
+    uint16_t usMask;        /**< IPv6 IP type bit mask */
+    uint16_t usExpected;    /**< IPv6 IP type prefix */
 };
 
 static const struct xIPv6_Couple xIPCouples[] =
