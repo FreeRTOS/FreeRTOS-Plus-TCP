@@ -617,7 +617,7 @@
                     if( ulIPAddress != 0UL )
                     {
                         #if ( ipconfigUSE_IPv6 != 0 )
-                            if( ( ppxAddressInfo != NULL) && ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 )
+                            if( ( ppxAddressInfo != NULL ) && ( ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 ) )
                             {
                                 FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %pip\n",
                                                    pcHostName, ( *ppxAddressInfo )->xPrivateStorage.sockaddr.sin_address.xIP_IPv6.ucBytes ) );

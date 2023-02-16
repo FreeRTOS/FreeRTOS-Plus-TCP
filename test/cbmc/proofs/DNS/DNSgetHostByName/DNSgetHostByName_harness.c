@@ -105,7 +105,7 @@ BaseType_t DNS_ReadReply( const ConstSocket_t xDNSSocket,
     BaseType_t ret;
     int len;
 
-    __CPROVER_assume( len > sizeof(DNSMessage_t) && len < CBMC_MAX_OBJECT_SIZE );
+    __CPROVER_assume( ( len > sizeof( DNSMessage_t ) ) && ( len < CBMC_MAX_OBJECT_SIZE ) );
 
     pxDNSBuf->pucPayloadBuffer = safeMalloc( len );
 
@@ -127,7 +127,7 @@ Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
 {
 
     Socket_t sock = safeMalloc( sizeof(struct xSOCKET) );
-    __CPROVER_assume(sock != NULL); 
+    __CPROVER_assume( sock != NULL ); 
 
     return sock;
 
