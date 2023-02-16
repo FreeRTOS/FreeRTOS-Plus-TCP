@@ -735,6 +735,7 @@ prvcachelookup
 prvchecknetworktimers
 prvcheckoptions
 prvcheckrxdata
+prvclosedhcpsocket
 prvcopydatatoqueue
 prvcreatednsmessage
 prvcreatesectors
@@ -743,6 +744,7 @@ prvdnsreply
 prvemacdeferredinterrupthandlertask
 prvemachandlertask
 prvfillsockaddress
+prvfindcacheentry
 prvfindendpointonnetmask
 prvgethostbyname
 prvgethostbynameop
@@ -755,6 +757,7 @@ prviptask
 prvlinkstatuschange
 prvnotifyqueuesetcontainer
 prvparsednsreply
+prvpreparelinklayeriplookup
 prvpreparelookup
 prvprocessdhcpreplies
 prvprocessdnscache
@@ -922,6 +925,7 @@ pxlastaddress
 pxlength
 pxlist
 pxlistfindlistitemwithvalue
+pxlocation
 pxlostbuffer
 pxmacaddress
 pxmessage
@@ -962,6 +966,7 @@ pxsockettodelete
 pxsourceaddress
 pxsourceaddresslength
 pxsourceendpoint
+pxtargetendpoint
 pxtcp
 pxtcpheader
 pxtcppacket
@@ -1007,6 +1012,7 @@ renesas
 reqlength
 resetpins
 resp
+ret
 retrytransmission
 retval
 revents
@@ -1357,6 +1363,7 @@ ulreserved
 ulreturn
 ulrxwindowlength
 ulsenderprotocoladdress
+ulsendlength
 ulsequencenumber
 ulsize
 ulskipcount
@@ -1513,6 +1520,7 @@ uxnumberofbytestosend
 uxoffset
 uxoptionlength
 uxoptionslength
+uxpacketlength
 uxpayloaddatalength
 uxpayloadlength
 uxpayloadoffset
@@ -1557,6 +1565,7 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
+varprefreshcacheentry
 varpsendgratuitous
 vcastconstpointerto
 vcastconstptrto
@@ -1674,9 +1683,11 @@ xdhcpsocketusercount
 xdhcptxperiod
 xdhcptxtime
 xdmarxdescriptors
+xdnsbuf
 xdnscache
 xdnsmessage
 xdnssocket
+xdoaccept
 xdocheck
 xdolog
 xdomain
@@ -1728,6 +1739,7 @@ xilinx
 xindex
 xinternal
 xipaddress
+xipentry
 xipheader
 xipheadersize
 xiptaskhandle
@@ -1735,6 +1747,7 @@ xiptaskinitialised
 xiptracevalues
 xiptype
 xisbound
+xiscallingfromiptask
 xisforrx
 xisinputstream
 xiswaitingarpresolution
@@ -1756,6 +1769,7 @@ xlookup
 xlwipconfig
 xmacaddress
 xmacbroadcast
+xmacentry
 xmaxtime
 xmessage
 xmicreldevice
@@ -1772,6 +1786,7 @@ xnetworkinterfaceinitialise
 xnetworkinterfaceoutput
 xnetworkparams
 xnetworktimer
+xnetworkup
 xontcpconnect
 xontcpreceive
 xontcpsent
@@ -1794,6 +1809,7 @@ xprefix
 xprefixaddress
 xpriorityqueue
 xprivatestorage
+xprocessedtcpmessage
 xprocessreceivedtcppacket
 xprocessreceivedudppacket
 xprotocol
@@ -1881,6 +1897,7 @@ xudp
 xudpheader
 xudppacket
 xusebroadcast
+xuseentry
 xwaitallbits
 xwaitingpacketslist
 xwaitqueue
