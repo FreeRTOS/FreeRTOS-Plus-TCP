@@ -145,7 +145,7 @@ void harness()
     __CPROVER_assume( pxSocket != NULL );
     __CPROVER_assume( pxSocket != FREERTOS_INVALID_SOCKET );
 
-    pxSocket->pxUserWakeCallback = &SocketWakeupCallback_Stub; 
+    pxSocket->pxUserWakeCallback = SocketWakeupCallback_Stub; 
 
     pxSocket->pxSocketSet = safeMalloc( sizeof( struct xSOCKET_SET ) );
 
