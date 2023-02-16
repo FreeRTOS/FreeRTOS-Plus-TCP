@@ -81,7 +81,7 @@
 
 /*-----------------------------------------------------------*/
 
-/*
+/**
  * @brief The number of end-points that are making use of the UDP-socket.
  */
     static BaseType_t xDHCPSocketUserCount = 0;
@@ -1332,6 +1332,7 @@
  * @param[out] xOpcode: Opcode to be filled in the packet. Will always be 'dhcpREQUEST_OPCODE'.
  * @param[in] pucOptionsArray: The options to be added to the packet.
  * @param[in,out] pxOptionsArraySize: Byte count of the options. Its value might change.
+ * @param[in] pxEndPoint: The end-point for which the request will be sent.
  *
  * @return Ethernet buffer of the partially created DHCP packet.
  */
@@ -1448,7 +1449,7 @@
 /**
  * @brief Create and send a DHCP request message through the DHCP socket.
  *
- * param[in] pxEndPoint: The end-point for which the request will be sent.
+ * @param[in] pxEndPoint: The end-point for which the request will be sent.
  */
     static BaseType_t prvSendDHCPRequest( const NetworkEndPoint_t * pxEndPoint )
     {

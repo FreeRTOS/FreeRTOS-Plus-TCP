@@ -542,7 +542,11 @@
  * @brief Check if hostname is already known. If not, call prvGetHostByName() to send a DNS request.
  *
  * @param[in] pcHostName: The hostname whose IP address is being queried.
- * @param[in] pCallback: The callback function which will be called upon DNS response.
+ * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
+ *                will be stored.
+ * @param [in] xFamily indicae what type of record is needed:
+ *             FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
+ * @param[in] pCallbackFunction: The callback function which will be called upon DNS response.
  * @param[in] pvSearchID: Search ID for the callback function.
  * @param[in] uxTimeout: Timeout for the callback function.
  * @return The IP-address corresponding to the hostname.
@@ -781,6 +785,7 @@
  * @brief create a payload buffer and return it through the parameter
  * @param [out] ppxNetworkBuffer network buffer to create
  * @param [in] pcHostName hostname to get its length
+ * @param [in] uxHeaderBytes Size of the header (IPv4/IPv6)
  * @returns pointer address to the payload buffer
  *
  */
@@ -986,7 +991,10 @@
 /*!
  * @brief return ip address from the dns reply message
  * @param [in] pxReceiveBuffer received buffer from the DNS server
+ * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
+ *                will be stored.
  * @param [in] uxIdentifier matches sent and received packets
+ * @param [in] usPort Port from which DNS reply was read
  * @returns ip address or zero on error
  *
  */
@@ -1149,6 +1157,11 @@
  * @param [in] pcHostName hostname to get its ip address
  * @param [in] uxIdentifier Identifier to match sent and received packets
  * @param [in] xDNSSocket socket
+ * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
+ *                will be stored.
+ * @param[in] xFamily: Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
+ * @param[in] uxReadTimeOut_ticks The timeout in ticks for waiting. In case the user has supplied
+ *                                 a call-back function, this value should be zero.
  * @returns ip address or zero on error
  */
     static uint32_t prvGetHostByNameOp( const char * pcHostName,
@@ -1261,6 +1274,11 @@
  * @param [in] pcHostName hostname to get its ip address
  * @param [in] uxIdentifier Identifier to match sent and received packets
  * @param [in] xDNSSocket socket
+ * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
+ *                will be stored.
+ * @param[in] xFamily: Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
+ * @param[in] uxReadTimeOut_ticks The timeout in ticks for waiting. In case the user has supplied
+ *                                 a call-back function, this value should be zero.
  * @returns ip address or zero on error
  *
  */
