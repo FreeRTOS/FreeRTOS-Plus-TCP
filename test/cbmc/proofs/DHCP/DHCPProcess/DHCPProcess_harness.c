@@ -139,25 +139,29 @@ void harness()
 {
     BaseType_t xReset;
     BaseType_t xDoCheck;
-    //eDHCPState_t eExpectedState;
 
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
-    pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
-    __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
-    pxNetworkEndPoints->pxNext->pxNext = NULL;
 
     /* Interface init. */
     pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
-    pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkEndPoints->pxNetworkInterface;
-    __CPROVER_assume( pxNetworkEndPoints->pxNext->pxNetworkInterface != NULL );
 
+    if( nondet_bool() )
+    {
+        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+        __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
+        pxNetworkEndPoints->pxNext->pxNext = NULL;
+        pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkEndPoints->pxNetworkInterface;
+    }
+    else
+    {
+        pxNetworkEndPoints->pxNext = NULL;
+    }
 
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
     pxNetworkEndPoint_Temp->pxNext = NULL;
-    //pxNetworkEndPoint_Temp->xDHCPData.eExpectedState = eExpectedState;
 
     /****************************************************************
     * Initialize the counter used to bound the number of times
