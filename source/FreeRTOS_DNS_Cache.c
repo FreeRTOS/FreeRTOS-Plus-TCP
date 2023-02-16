@@ -136,7 +136,7 @@
         uint32_t ulReturn = 0U;
 
         /* Looking up an IPv6 address in the DNS cache. */
-        ( void ) memset( &xIPv46_Address, 0, sizeof xIPv46_Address );
+        ( void ) memset( &xIPv46_Address, 0, sizeof( xIPv46_Address ) );
         /* Let FreeRTOS_ProcessDNSCache only return IPv6 addresses. */
         xIPv46_Address.xIs_IPv6 = pdTRUE;
         xResult = FreeRTOS_ProcessDNSCache( pcHostName, &xIPv46_Address, 0, pdTRUE, NULL );
