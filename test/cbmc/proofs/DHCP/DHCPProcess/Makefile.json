@@ -41,8 +41,6 @@
   "CBMCFLAGS": [
     "--unwind 4",
     "--unwindset strlen.0:11,memcmp.0:7",
-    "--unwindset __CPROVER_file_local_FreeRTOS_DHCP_c_vProcessHandleOption.0:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
-    "--unwindset __CPROVER_file_local_FreeRTOS_DHCP_c_vProcessHandleOption.1:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
     "--nondet-static --flush"
   ],
   "OPT":

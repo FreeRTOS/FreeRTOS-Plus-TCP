@@ -120,6 +120,9 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
 {
     __CPROVER_assert( pvBuffer != NULL,
                       "FreeRTOS precondition: pvBuffer != NULL" );
+
+    /* Free buffer after adjusting offsets. */
+    free( ( ( ( uint8_t * ) pvBuffer ) - ( ipUDP_PAYLOAD_OFFSET_IPv4 + ipIP_TYPE_OFFSET ) ) );
 }
 
 /*  CALLED BY FREERTOS
@@ -185,8 +188,6 @@ void harness()
         prvCreateDHCPSocket( pxNetworkEndPoint_Temp );
         
     }
-
-    __CPROVER_assume( xDHCPv4Socket != NULL );
 
     xDHCPv4Socket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
     
