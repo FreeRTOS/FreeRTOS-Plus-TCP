@@ -428,7 +428,6 @@
                 }
 
                 #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-
                     /* No need to check that pcRequestedName != NULL since sQuestions != 0, then
                      * pcRequestedName is assigned with this statement
                      * "pcRequestedName = ( char * ) pucByte;" */
@@ -1003,7 +1002,6 @@
 
             /* Important: tell NIC driver how many bytes must be sent */
             pxNetworkBuffer->xDataLength = uxDataLength;
-
         }
 
     #endif /* ipconfigUSE_NBNS == 1 || ipconfigUSE_LLMNR == 1 */
