@@ -458,7 +458,7 @@
             IPv46_Address_t * pxAddresses;
             struct freertos_addrinfo * pxNewAddress;
             const struct freertos_addrinfo * pxLastAddress;
-            struct freertos_addrinfo ** ppxLastAddress = &( pxLastAddress );
+            struct freertos_addrinfo ** ppxLastAddress = ( struct freertos_addrinfo * ) &( pxLastAddress );
 
             #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
                 uxNumIPAddresses = ( size_t ) xDNSCache[ uxIndex ].ucNumIPAddresses;

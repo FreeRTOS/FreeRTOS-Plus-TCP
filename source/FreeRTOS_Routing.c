@@ -731,7 +731,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                        /* coverity[misra_c_2012_rule_11_3_violation] */
                        const IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( const IPPacket_IPv6_t * ) pucEthernetBuffer );
                        IPv6_Type_t eMyType;
-                       IPv6_Type_t eIPType = xIPv6_GetIPType( &( pxIPPacket_IPv6->xIPHeader.xSourceAddress ) );
+                       IPv6_Type_t eIPType = xIPv6_GetIPType( ( IPv6_Address_t * ) &( pxIPPacket_IPv6->xIPHeader.xSourceAddress ) );
                        pxEndPoint = pxNetworkEndPoints;
 
                        for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface );

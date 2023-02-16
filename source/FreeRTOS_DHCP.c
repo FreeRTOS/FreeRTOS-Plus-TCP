@@ -1502,7 +1502,7 @@
             FreeRTOS_debug_printf( ( "vDHCPProcess: reply %xip\n", ( unsigned ) FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
             iptraceSENDING_DHCP_REQUEST();
 
-            xDHCPv4Socket->pxEndPoint = pxEndPoint;
+            xDHCPv4Socket->pxEndPoint = ( NetworkEndPoint_t * ) pxEndPoint;
 
             if( FreeRTOS_sendto( xDHCPv4Socket, pucUDPPayloadBuffer, sizeof( DHCPMessage_IPv4_t ) + uxOptionsLength, FREERTOS_ZERO_COPY, &xAddress, ( socklen_t ) sizeof( xAddress ) ) == 0 )
             {
@@ -1579,7 +1579,7 @@
                 uxOptionsLength -= dhcpOPTION_50_SIZE;
             }
 
-            xDHCPv4Socket->pxEndPoint = pxEndPoint;
+            xDHCPv4Socket->pxEndPoint = ( NetworkEndPoint_t * ) pxEndPoint;
 
             if( FreeRTOS_sendto( xDHCPv4Socket,
                                  pucUDPPayloadBuffer,

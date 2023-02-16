@@ -188,7 +188,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
                      * https://en.wikipedia.org/wiki/IPv4_header_checksum#Verifying_the_IPv4_header_checksum
                      * and this RFC: https://tools.ietf.org/html/rfc1624#page-4
                      */
-                    if( usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength ) != ipCORRECT_CRC )
+                    if( usGenerateChecksum( 0U, ( const uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength ) != ipCORRECT_CRC )
                     {
                         /* Check sum in IP-header not correct. */
                         eReturn = eReleaseBuffer;
