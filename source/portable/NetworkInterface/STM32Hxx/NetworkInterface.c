@@ -304,9 +304,6 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
             HAL_ETH_DescAssignMemory( &( xEthHandle ), uxIndex, pucBuffer, NULL );
         }
 
-        /* Configure the MDIO Clock */
-        HAL_ETH_SetMDIOClockRange( &( xEthHandle ) );
-
         /* Initialize the MACB and set all PHY properties */
         prvMACBProbePhy();
 
