@@ -87,7 +87,15 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
                         size_t uxAddressLength,
                         BaseType_t xInternal )
 {
-    return 0;
+    /* Return value is set to zero assuming socket bind will succeed. If it doesnt, it
+    will hit an assert in the function.  */
+    BaseType_t xRet = 0;
+    __CPROVER_assert( pxSocket != NULL,
+                    "FreeRTOS precondition: pxSocket != NULL" );
+    __CPROVER_assert( pxBindAddress != NULL,
+                      "FreeRTOS precondition: pxBindAddress != NULL" );
+
+    return xRet;
 }
 
 
