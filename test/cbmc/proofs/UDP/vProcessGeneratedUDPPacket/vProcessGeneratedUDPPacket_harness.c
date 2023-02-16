@@ -89,13 +89,7 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
 void harness()
 {
     size_t xRequestedSizeBytes;
-
-    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
-    __CPROVER_assume( pxNetworkEndPoints != NULL );
-    pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
-    __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
-    pxNetworkEndPoints->pxNext->pxNext = NULL;
-
+    
     /* Assume that the size of packet must be greater than that of UDP-Packet and less than
      * that of the Ethernet Frame Size. */
     __CPROVER_assume( xRequestedSizeBytes >= sizeof( UDPPacket_t ) && xRequestedSizeBytes <= ipTOTAL_ETHERNET_FRAME_SIZE );
@@ -117,11 +111,22 @@ void harness()
     /* Interface init. */
     pxNetworkBuffer->pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
-    
+
+    /* Add few endpoints */
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints != NULL );
     pxNetworkEndPoints->pxNetworkInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
-    pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
-    __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
-    __CPROVER_assume( pxNetworkEndPoints->pxNext->pxNetworkInterface != NULL );
+    if( nondet_bool() )
+    {
+        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+        __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
+        pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+        pxNetworkEndPoints->pxNext->pxNext = NULL;
+    }
+    else
+    {
+        pxNetworkEndPoints->pxNext = NULL;
+    }
 
     pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
