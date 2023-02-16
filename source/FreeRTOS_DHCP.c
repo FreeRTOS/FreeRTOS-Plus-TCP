@@ -1350,7 +1350,11 @@
 
         #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
             const char * pucHostName = pcApplicationHostnameHook();
-            size_t uxNameLength = strlen( pucHostName );
+            size_t uxNameLength = 0;
+            if( pucHostName != NULL )
+            {
+                uxNameLength = strlen( pucHostName );
+            }
             uint8_t * pucPtr;
 
 /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
@@ -1425,10 +1429,13 @@
                      * compliant with MISRA Rule 21.15.  These should be
                      * optimized away.
                      */
-                    pvCopySource = pucHostName;
-                    pvCopyDest = &pucPtr[ 2U ];
+                    if( pucHostName != NULL )
+                    {
+                        pvCopySource = pucHostName;
+                        pvCopyDest = &pucPtr[ 2U ];
 
-                    ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
+                        ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
+                    }
                     pucPtr[ 2U + uxNameLength ] = ( uint8_t ) dhcpOPTION_END_BYTE;
                     *pxOptionsArraySize += ( size_t ) ( 2U + uxNameLength );
                 }

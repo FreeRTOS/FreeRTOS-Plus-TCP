@@ -129,10 +129,18 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
  *  Hook to return a human-readable name */
 const char * pcApplicationHostnameHook( void )
 {
-    const char * name;
+    size_t xHostNameLength;
+    __CPROVER_assume( ( xHostNameLength > 0 ) && ( xHostNameLength <= MAX_HOSTNAME_LEN ) );
+    char * pcHost = malloc( xHostNameLength );  
+    
+    __CPROVER_assume( pcHost != NULL );
 
-    name = "hostname";
-    return name;
+    memset(pcHost, 'a', xHostNameLength);
+    // if( pcHost != NULL)
+    // {
+        pcHost[ xHostNameLength - 1 ] = '\0';
+    // }
+    return pcHost;
 }
 /****************************************************************
 * The proof of vDHCPProcess
