@@ -681,10 +681,6 @@
                     }
                 }
             }
-            if( pxEndPoint == NULL )
-            {
-	            return -1;
-            }
 
             if( uxNumberOfBytesToSend < ( ( ipconfigNETWORK_MTU - sizeof( IPHeader_IPv6_t ) ) - sizeof( ICMPEcho_IPv6_t ) ) )
             {
@@ -695,7 +691,12 @@
                 xEnoughSpace = pdFALSE;
             }
 
-            if( ( uxGetNumberOfFreeNetworkBuffers() >= 3U ) && ( uxNumberOfBytesToSend >= 1U ) && ( xEnoughSpace != pdFALSE ) )
+            if( pxEndPoint == NULL )
+            {
+                FreeRTOS_printf( ( "SendPingRequestIPv6: no end-point found for %pip\n",
+                    pxIPAddress->ucBytes  ) );
+            }
+            else if( ( uxGetNumberOfFreeNetworkBuffers() >= 3U ) && ( uxNumberOfBytesToSend >= 1U ) && ( xEnoughSpace != pdFALSE ) )
             {
                 uxPacketLength = sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) + sizeof( ICMPEcho_IPv6_t ) + uxNumberOfBytesToSend;
 
@@ -775,7 +776,7 @@
             }
             else
             {
-                /* Either no proper end-pint found, or allocating the network buffer failed. */
+                /* There was not enough space to allocate a network buffer. */
             }
 
             return xReturn;
