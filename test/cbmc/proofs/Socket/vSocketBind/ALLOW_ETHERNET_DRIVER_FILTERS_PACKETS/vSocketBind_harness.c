@@ -50,11 +50,19 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 void harness()
 {
 
+    /* Add few endpoints */
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
-    pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
-    __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
-    pxNetworkEndPoints->pxNext->pxNext = NULL;
+    if( nondet_bool() )
+    {
+        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+        __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
+        pxNetworkEndPoints->pxNext->pxNext = NULL;
+    }
+    else
+    {
+        pxNetworkEndPoints->pxNext = NULL;
+    }
     
     FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
 
