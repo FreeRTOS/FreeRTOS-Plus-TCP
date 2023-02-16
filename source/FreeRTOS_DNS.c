@@ -821,7 +821,7 @@
         /* For local resolution, mDNS uses names ending with the string ".local" */
         BaseType_t bHasDot = pdFALSE;
         BaseType_t bHasLocal = pdFALSE;
-        const char * pcDot = strchr( pcHostName, '.' );
+        const char * pcDot = ( const char * ) strchr( pcHostName, '.' );
 
         if( pcDot != NULL )
         {
@@ -1208,7 +1208,7 @@
                 {
                     if( xBytes > 0 )
                     {
-                        xReceiveBuffer.uxPayloadLength = xBytes;
+                        xReceiveBuffer.uxPayloadLength = ( size_t ) xBytes;
                         ulIPAddress = prvDNSReply( &xReceiveBuffer, ppxAddressInfo, uxIdentifier, xRecvAddress.sin_port );
                     }
 

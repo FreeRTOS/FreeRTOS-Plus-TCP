@@ -129,7 +129,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
 
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
-            pxNetworkBuffer->pxEndPoint = pxGetEndpoint( ipTYPE_IPv6 );
+            pxNetworkBuffer->pxEndPoint = pxGetEndpoint( ( BaseType_t ) ipTYPE_IPv6 );
             FreeRTOS_printf( ( "prvStartLookup: Got an end-point: %s\n", pxNetworkBuffer->pxEndPoint ? "yes" : "no" ) );
         }
 

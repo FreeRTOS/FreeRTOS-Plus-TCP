@@ -356,7 +356,7 @@
             if( ppxAddressInfo != NULL )
             {
                 /* Copy all entries from position 'uxIndex' to a linked struct addrinfo. */
-                prvReadDNSCache( uxIndex, ppxAddressInfo );
+                prvReadDNSCache( ( BaseType_t ) uxIndex, ppxAddressInfo );
             }
         }
         else
