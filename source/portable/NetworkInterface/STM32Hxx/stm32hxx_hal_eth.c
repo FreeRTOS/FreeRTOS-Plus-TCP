@@ -2172,56 +2172,6 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
         }
 
 /**
- * @brief  Configures the Clock range of ETH MDIO interface.
- * @param  heth: pointer to a ETH_HandleTypeDef structure that contains
- *         the configuration information for ETHERNET module
- * @retval None
- */
-        void HAL_ETH_SetMDIOClockRange( ETH_HandleTypeDef * heth )
-        {
-            uint32_t tmpreg, hclk;
-
-            /* Get the ETHERNET MACMDIOAR value */
-            tmpreg = ( heth->Instance )->MACMDIOAR;
-
-            /* Clear CSR Clock Range bits */
-            tmpreg &= ~ETH_MACMDIOAR_CR;
-
-            /* Get hclk frequency value */
-            hclk = HAL_RCC_GetHCLKFreq();
-
-            /* Set CR bits depending on hclk value */
-            if( ( hclk >= 20000000U ) && ( hclk < 35000000U ) )
-            {
-                /* CSR Clock Range between 20-35 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMDIOAR_CR_DIV16;
-            }
-            else if( ( hclk >= 35000000U ) && ( hclk < 60000000U ) )
-            {
-                /* CSR Clock Range between 35-60 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMDIOAR_CR_DIV26;
-            }
-            else if( ( hclk >= 60000000U ) && ( hclk < 100000000U ) )
-            {
-                /* CSR Clock Range between 60-100 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMDIOAR_CR_DIV42;
-            }
-            else if( ( hclk >= 100000000U ) && ( hclk < 150000000U ) )
-            {
-                /* CSR Clock Range between 100-150 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMDIOAR_CR_DIV62;
-            }
-            else /* (hclk >= 150000000)&&(hclk <= 200000000) */
-            {
-                /* CSR Clock Range between 150-200 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMDIOAR_CR_DIV102;
-            }
-
-            /* Configure the CSR Clock Range */
-            ( heth->Instance )->MACMDIOAR = ( uint32_t ) tmpreg;
-        }
-
-/**
  * @brief  Set the ETH MAC (L2) Filters configuration.
  * @param  heth: pointer to a ETH_HandleTypeDef structure that contains
  *         the configuration information for ETHERNET module
