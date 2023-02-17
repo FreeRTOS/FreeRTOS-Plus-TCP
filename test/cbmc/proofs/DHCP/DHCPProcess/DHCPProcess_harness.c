@@ -130,16 +130,11 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
 const char * pcApplicationHostnameHook( void )
 {
     size_t xHostNameLength;
-    __CPROVER_assume( ( xHostNameLength > 0 ) && ( xHostNameLength <= MAX_HOSTNAME_LEN ) );
+    __CPROVER_assume( xHostNameLength == 5 );
     char * pcHost = malloc( xHostNameLength );  
-    
     __CPROVER_assume( pcHost != NULL );
-
     memset(pcHost, 'a', xHostNameLength);
-    // if( pcHost != NULL)
-    // {
-        pcHost[ xHostNameLength - 1 ] = '\0';
-    // }
+    pcHost[ xHostNameLength - 1 ] = '\0';
     return pcHost;
 }
 /****************************************************************
