@@ -42,6 +42,8 @@ size_t DNS_ReadNameField( ParseSet_t * pxSet,
     size_t DNS_ReadNameField( ParseSet_t * pxSet,
                                 size_t uxDestLen );
     {
+        __CPROVER_assert( pxSet != NULL,
+                      "pxSet shouldnt be NULL" );
         return 0;
     }
 
