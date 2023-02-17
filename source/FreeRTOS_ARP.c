@@ -1443,5 +1443,4 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
 
         FreeRTOS_printf( ( "Arp has %ld entries\n", xCount ) );
     }
-
 #endif /* ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
