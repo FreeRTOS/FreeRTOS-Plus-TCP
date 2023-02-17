@@ -89,12 +89,12 @@ static NetworkInterface_t * pxMyInterface;
 
 static BaseType_t xMPS2_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 static BaseType_t xMPS2_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                           BaseType_t bReleaseAfterSend );
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t bReleaseAfterSend );
 static BaseType_t xMPS2_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
 NetworkInterface_t * pxMPS2_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface );
+                                                     NetworkInterface_t * pxInterface );
 
 /*-----------------------------------------------------------*/
 
@@ -319,8 +319,8 @@ static BaseType_t xMPS2_NetworkInterfaceInitialise( NetworkInterface_t * pxInter
 /*-----------------------------------------------------------*/
 
 static BaseType_t xMPS2_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                           BaseType_t xReleaseAfterSend )
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
 {
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     enum smsc9220_error_t error = SMSC9220_ERROR_NONE;
@@ -400,7 +400,7 @@ static BaseType_t xMPS2_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 
 
 NetworkInterface_t * pxMPS2_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface )
+                                                     NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
 
