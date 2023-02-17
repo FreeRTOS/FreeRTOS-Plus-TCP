@@ -91,7 +91,10 @@ void func( const char * pcHostName,
            void * pvSearchID,
            struct freertos_addrinfo * pxAddressInfo )
 {
-
+    __CPROVER_assert( pcHostName != NULL,
+                      "Precondition: pcHostName != NULL" );
+    __CPROVER_assert( pvSearchID != NULL,
+                      "Precondition: pvSearchID != NULL" );
 }
 
 BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
@@ -182,6 +185,7 @@ void harness()
     FOnDNSEvent pCallback = &func;
     TickType_t xTimeout;
     void * pvSearchID;
+    __CPROVER_assume( pvSearchID != NULL );
 
     FreeRTOS_gethostbyname_a( pcHostName, pCallback, pvSearchID, xTimeout );
 }
