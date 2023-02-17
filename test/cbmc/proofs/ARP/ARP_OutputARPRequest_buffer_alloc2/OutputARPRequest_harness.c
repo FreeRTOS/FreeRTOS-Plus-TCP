@@ -48,6 +48,7 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
 
     __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
     __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL." );
     
     if( xReleaseAfterSend != pdFALSE )
     {
@@ -73,7 +74,7 @@ void harness()
     pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
     pxNetworkEndPoints->pxNetworkInterface->pxNext = NULL;
 
-    pxNetworkEndPoints->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    pxNetworkEndPoints->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;
     /* No assumption is added for pfOutput as its pointed to a static object/memory location. */
 
     if( xRes == pdPASS )
