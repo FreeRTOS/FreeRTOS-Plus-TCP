@@ -65,6 +65,16 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
         xRetSocket->u.xTCP.txStream = safeMalloc( sizeof( StreamBuffer_t ) );
         xRetSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( StreamBuffer_t ) );
 
+        /* This bit depicts whether the socket was supposed to be reused or not. */
+        if( xRetSocket->u.xTCP.pxPeerSocket == NULL )
+        {
+            xRetSocket->u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+        }
+        else
+        {
+            xRetSocket->u.xTCP.bits.bReuseSocket = pdFALSE_UNSIGNED;
+        }
+
         if( xIsCallingFromIPTask() == pdFALSE )
         {
             xRetSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
@@ -94,13 +104,13 @@ void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
 
-    if( pxNetworkBuffer )
-    {
-        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) );
-    }
+    /* To avoid asserting on the network buffer being NULL. */
+    __CPROVER_assume( pxNetworkBuffer != NULL );
 
-    if( pxNetworkBuffer && pxNetworkBuffer->pucEthernetBuffer )
-    {
-        xProcessReceivedTCPPacket( pxNetworkBuffer );
-    }
+    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) );
+
+    /* To avoid asserting on the ethernet buffer being NULL. */
+    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    xProcessReceivedTCPPacket( pxNetworkBuffer );
 }

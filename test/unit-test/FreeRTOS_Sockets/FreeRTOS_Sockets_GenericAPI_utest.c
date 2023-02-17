@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -2729,7 +2729,7 @@ void test_FreeRTOS_connect_Timeout( void )
     /* No timeout the first time. */
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
 
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_CONNECT, pdTRUE, pdFALSE, xSocket.xReceiveBlockTime, pdTRUE );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_CONNECT | eSOCKET_CLOSED, pdTRUE, pdFALSE, xSocket.xReceiveBlockTime, pdTRUE );
 
     /* Timed out! */
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
@@ -2737,6 +2737,39 @@ void test_FreeRTOS_connect_Timeout( void )
     xResult = FreeRTOS_connect( &xSocket, &xAddress, xAddressLength );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ETIMEDOUT, xResult );
+}
+
+/*
+ * @brief Timeout in connection.
+ */
+void test_FreeRTOS_connect_SocketClosed( void )
+{
+    BaseType_t xResult;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xAddress;
+    socklen_t xAddressLength;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    /* Non 0 value to show blocking. */
+    xSocket.xReceiveBlockTime = 0x123;
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+
+    vTCPStateChange_Expect( &xSocket, eCONNECT_SYN );
+    xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdPASS );
+
+    /* Using a local variable. */
+    vTaskSetTimeOutState_ExpectAnyArgs();
+
+    /* No timeout the first time. */
+    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
+
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_CONNECT | eSOCKET_CLOSED, pdTRUE, pdFALSE, xSocket.xReceiveBlockTime, eSOCKET_CLOSED );
+
+    xResult = FreeRTOS_connect( &xSocket, &xAddress, xAddressLength );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOTCONN, xResult );
 }
 
 /*
@@ -2868,6 +2901,89 @@ void test_FreeRTOS_maywrite_HappyPath( void )
 
     xReturn = FreeRTOS_maywrite( &xSocket );
     TEST_ASSERT_EQUAL( 0x3344, xReturn );
+}
+
+/*
+ * @brief Test setting socket ID when the socket is NULL.
+ */
+void test_xSocketSetSocketID_NULLSocket( void )
+{
+    BaseType_t xReturn;
+
+    xReturn = xSocketSetSocketID( NULL, NULL );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+}
+
+/*
+ * @brief Test setting socket ID when the socket is invalid.
+ */
+void test_xSocketSetSocketID_InvalidSocket( void )
+{
+    BaseType_t xReturn;
+
+    xReturn = xSocketSetSocketID( FREERTOS_INVALID_SOCKET, NULL );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+}
+
+/*
+ * @brief Test setting socket ID when the socket is Valid.
+ */
+void test_xSocketSetSocketID_ValidSocket( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t AnchorVariable;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xReturn = xSocketSetSocketID( &xSocket, &AnchorVariable );
+
+    TEST_ASSERT_EQUAL( 0, xReturn );
+    TEST_ASSERT_EQUAL( &AnchorVariable, xSocket.pvSocketID );
+}
+
+/*
+ * @brief Test setting socket ID when the socket is NULL.
+ */
+void test_pvSocketGetSocketID_NULLSocket( void )
+{
+    void * pvReturn;
+
+    pvReturn = pvSocketGetSocketID( NULL );
+
+    TEST_ASSERT_EQUAL( NULL, pvReturn );
+}
+
+/*
+ * @brief Test setting socket ID when the socket is invalid.
+ */
+void test_pvSocketGetSocketID_InvalidSocket( void )
+{
+    void * pvReturn;
+
+    pvReturn = pvSocketGetSocketID( FREERTOS_INVALID_SOCKET );
+
+    TEST_ASSERT_EQUAL( NULL, pvReturn );
+}
+
+/*
+ * @brief Test setting socket ID when the socket is Valid.
+ */
+void test_pvSocketGetSocketID_ValidSocket( void )
+{
+    BaseType_t pvReturn;
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t AnchorVariable;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.pvSocketID = &AnchorVariable;
+
+    pvReturn = pvSocketGetSocketID( &xSocket );
+
+    TEST_ASSERT_EQUAL( &AnchorVariable, pvReturn );
 }
 
 /*

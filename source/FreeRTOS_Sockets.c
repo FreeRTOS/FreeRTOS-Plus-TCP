@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -404,7 +404,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     if( prvDetermineSocketSize( xDomain, xType, xProtocolCpy, &uxSocketSize ) == pdFAIL )
     {
         /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
         /* coverity[misra_c_2012_rule_11_4_violation] */
         xReturn = FREERTOS_INVALID_SOCKET;
     }
@@ -414,12 +414,16 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
         * size depends on the type of socket: UDP sockets need less space. A
         * define 'pvPortMallocSocket' will used to allocate the necessary space.
         * By default it points to the FreeRTOS function 'pvPortMalloc()'. */
+
+        /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-412. */
+        /* coverity[misra_c_2012_directive_4_12_violation] */
         pxSocket = ( ( FreeRTOS_Socket_t * ) pvPortMallocSocket( uxSocketSize ) );
 
         if( pxSocket == NULL )
         {
             /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             xReturn = FREERTOS_INVALID_SOCKET;
             iptraceFAILED_TO_CREATE_SOCKET();
@@ -433,7 +437,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                 vPortFreeSocket( pxSocket );
 
                 /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
                 /* coverity[misra_c_2012_rule_11_4_violation] */
                 xReturn = FREERTOS_INVALID_SOCKET;
                 iptraceFAILED_TO_CREATE_EVENT_GROUP();
@@ -528,6 +532,9 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     {
         SocketSelect_t * pxSocketSet;
 
+        /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-412. */
+        /* coverity[misra_c_2012_directive_4_12_violation] */
         pxSocketSet = ( ( SocketSelect_t * ) pvPortMalloc( sizeof( *pxSocketSet ) ) );
 
         if( pxSocketSet != NULL )
@@ -697,7 +704,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
 /**
  * @brief The select() statement: wait for an event to occur on any of the sockets
- *        included in a socket set.
+ *        included in a socket set and return its event bits when the event occurs.
  *
  * @param[in] xSocketSet: The socket set including the sockets on which we are
  *                        waiting for an event to occur.
@@ -705,7 +712,11 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  *                   If the value is 'portMAX_DELAY' then the function will wait
  *                   indefinitely for an event to occur.
  *
- * @return The socket which might have triggered the event bit.
+ * @return The event bits (event flags) value for the socket set in which an
+ *          event occurred. If any socket is signalled during the call, using
+ *          FreeRTOS_SignalSocket() or FreeRTOS_SignalSocketFromISR(), then eSELECT_INTR
+ *          is returned.
+ *
  */
     BaseType_t FreeRTOS_select( SocketSet_t xSocketSet,
                                 TickType_t xBlockTimeTicks )
@@ -3102,6 +3113,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* And wait for the result */
             for( ; ; )
             {
+                EventBits_t uxEvents;
+
                 if( xTimed == pdFALSE )
                 {
                     /* Only in the first round, check for non-blocking */
@@ -3139,7 +3152,18 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 }
 
                 /* Go sleeping until we get any down-stream event */
-                ( void ) xEventGroupWaitBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_CONNECT, pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, xRemainingTime );
+                uxEvents = xEventGroupWaitBits( pxSocket->xEventGroup,
+                                                ( EventBits_t ) eSOCKET_CONNECT | ( EventBits_t ) eSOCKET_CLOSED,
+                                                pdTRUE /*xClearOnExit*/,
+                                                pdFALSE /*xWaitAllBits*/,
+                                                xRemainingTime );
+
+                if( ( uxEvents & eSOCKET_CLOSED ) != 0U )
+                {
+                    xResult = -pdFREERTOS_ERRNO_ENOTCONN;
+                    FreeRTOS_debug_printf( ( "FreeRTOS_connect() stopped due to an error\n" ) );
+                    break;
+                }
             }
         }
 
@@ -3286,8 +3310,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     break;
                 }
 
-                /* Go sleeping until we get any down-stream event */
-                ( void ) xEventGroupWaitBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_ACCEPT, pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, xRemainingTime );
+                /* Put the calling task to 'sleep' until a down-stream event is received. */
+                ( void ) xEventGroupWaitBits( pxSocket->xEventGroup,
+                                              ( EventBits_t ) eSOCKET_ACCEPT,
+                                              pdTRUE /*xClearOnExit*/,
+                                              pdFALSE /*xWaitAllBits*/,
+                                              xRemainingTime );
             }
         }
 
@@ -4218,6 +4246,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         uxSize = ( sizeof( *pxBuffer ) + uxLength ) - sizeof( pxBuffer->ucArray );
 
+        /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-412. */
+        /* coverity[misra_c_2012_directive_4_12_violation] */
         pxBuffer = ( ( StreamBuffer_t * ) pvPortMallocLarge( uxSize ) );
 
         if( pxBuffer == NULL )
@@ -4780,6 +4811,49 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 #endif /* ipconfigUSE_TCP */
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Set the value of the SocketID of a socket.
+ * @param[in] xSocket: The socket whose ID should be set.
+ * @param[in] pvSocketID: The new value for the SocketID.
+ * @return Zero if the socket was valid, otherwise -EINVAL.
+ */
+BaseType_t xSocketSetSocketID( const Socket_t xSocket,
+                               void * pvSocketID )
+{
+    FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
+    BaseType_t xReturn = -pdFREERTOS_ERRNO_EINVAL;
+
+    if( xSocketValid( pxSocket ) )
+    {
+        xReturn = 0;
+        pxSocket->pvSocketID = pvSocketID;
+    }
+
+    return xReturn;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Retrieve the SocketID that is associated with a socket.
+ * @param[in] xSocket: The socket whose ID should be returned.
+ * @return The current value of pvSocketID, or NULL in case
+ *         the socket pointer is not valid or when the ID was not
+ *         yet set.
+ */
+void * pvSocketGetSocketID( const ConstSocket_t xSocket )
+{
+    const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
+    void * pvReturn = NULL;
+
+    if( xSocketValid( pxSocket ) )
+    {
+        pvReturn = pxSocket->pvSocketID;
+    }
+
+    return pvReturn;
+}
+/*-----------------------------------------------------------*/
+
 #if ( ( ipconfigHAS_PRINTF != 0 ) && ( ipconfigUSE_TCP == 1 ) )
 
 /**
@@ -5063,6 +5137,10 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
  *        and return the value -pdFREERTOS_ERRNO_EINTR ( -4 ).
  *
  * @param[in] xSocket: The socket that will be signalled.
+ *
+ * @return If xSocket is an invalid socket (NULL) or if the socket set is invalid (NULL)
+ *         and/or if event group is invalid/not created, then, -pdFREERTOS_ERRNO_EINVAL
+ *         is returned. On successful sending of a signal, 0 is returned.
  */
     BaseType_t FreeRTOS_SignalSocket( Socket_t xSocket )
     {

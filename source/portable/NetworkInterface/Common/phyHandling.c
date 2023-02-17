@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -56,7 +56,7 @@
 #define phyMAX_PHY_ADDRESS    31
 
 #if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #warning please use the new defines with 'ipconfig' prefix
+    #error please use the new defines with 'ipconfig' prefix
 #endif
 
 #ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS

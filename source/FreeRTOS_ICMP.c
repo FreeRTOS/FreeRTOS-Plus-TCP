@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -177,6 +177,9 @@
             }
         #else
             {
+                /* Just to prevent compiler warnings about unused parameters. */
+                ( void ) pxNetworkBuffer;
+
                 /* Many EMAC peripherals will only calculate the ICMP checksum
                  * correctly if the field is nulled beforehand. */
                 pxICMPHeader->usChecksum = 0U;

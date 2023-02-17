@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -1185,9 +1185,26 @@
             FreeRTOS_debug_printf( ( "vDHCPProcess: discover\n" ) );
             iptraceSENDING_DHCP_DISCOVER();
 
-            pvCopySource = &xDHCPData.ulPreferredIPAddress;
-            pvCopyDest = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ] );
-            ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulPreferredIPAddress ) );
+            if( xDHCPData.ulPreferredIPAddress != 0U )
+            {
+                /* Fill in the IPv4 address. */
+                pvCopySource = &xDHCPData.ulPreferredIPAddress;
+                pvCopyDest = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpREQUESTED_IP_ADDRESS_OFFSET ] );
+                ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulPreferredIPAddress ) );
+            }
+            else
+            {
+                /* Remove option-50 from the list because it is not used. */
+                size_t uxCopyLength;
+                /* Exclude this line from branch coverage as the not-taken condition will never happen unless the code is modified */
+                configASSERT( uxOptionsLength > ( dhcpOPTION_50_OFFSET + dhcpOPTION_50_SIZE ) ); /* LCOV_EXCL_BR_LINE */
+                uxCopyLength = uxOptionsLength - ( dhcpOPTION_50_OFFSET + dhcpOPTION_50_SIZE );
+                pvCopySource = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpOPTION_50_OFFSET + dhcpOPTION_50_SIZE ] );
+                pvCopyDest = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + dhcpOPTION_50_OFFSET ] );
+                ( void ) memmove( pvCopyDest, pvCopySource, uxCopyLength );
+                /* Send 6 bytes less than foreseen. */
+                uxOptionsLength -= dhcpOPTION_50_SIZE;
+            }
 
             if( FreeRTOS_sendto( xDHCPSocket,
                                  pucUDPPayloadBuffer,

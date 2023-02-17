@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -241,6 +241,9 @@ void vCheckNetworkTimers( void )
 
         /* See if any socket was planned to be closed. */
         vSocketCloseNextTime( NULL );
+
+        /* See if any reusable socket needs to go back to 'eTCP_LISTEN' state. */
+        vSocketListenNextTime( NULL );
     #endif /* ipconfigUSE_TCP == 1 */
 }
 /*-----------------------------------------------------------*/

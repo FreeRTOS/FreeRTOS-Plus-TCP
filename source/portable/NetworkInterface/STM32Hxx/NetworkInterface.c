@@ -5,7 +5,7 @@
 
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -277,9 +277,6 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
                 HAL_ETH_DescAssignMemory( &( xEthHandle ), uxIndex, pucBuffer, NULL );
             }
-
-            /* Configure the MDIO Clock */
-            HAL_ETH_SetMDIOClockRange( &( xEthHandle ) );
 
             /* Initialize the MACB and set all PHY properties */
             prvMACBProbePhy();
