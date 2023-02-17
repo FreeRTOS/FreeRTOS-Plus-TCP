@@ -81,8 +81,8 @@ void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer
 static BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
 
 static BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
-                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                BaseType_t xReleaseAfterSend )
+                                                       NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                       BaseType_t xReleaseAfterSend )
 {
     NetworkInterfaceOutputFunction_Stub_Called++;
     return 0;
@@ -1386,7 +1386,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame( void )
 
     eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eReturnEthernetFrame );
 
-    xIsCallingFromIPTask_ExpectAndReturn(pdTRUE);
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     prvProcessEthernetPacket( pxNetworkBuffer );
 
@@ -2273,7 +2273,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMP2( void )
 
     vARPRefreshCacheEntry_ExpectAnyArgs();
 
-    ProcessICMPPacket_ExpectAndReturn(pxNetworkBuffer, eProcessBuffer);
+    ProcessICMPPacket_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
 
     /* Set the protocol to be ICMP. */
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
