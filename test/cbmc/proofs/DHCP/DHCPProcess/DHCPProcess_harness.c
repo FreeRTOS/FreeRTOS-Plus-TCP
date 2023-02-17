@@ -125,18 +125,6 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
     free( ( ( ( uint8_t * ) pvBuffer ) - ( ipUDP_PAYLOAD_OFFSET_IPv4 + ipIP_TYPE_OFFSET ) ) );
 }
 
-/*  CALLED BY FREERTOS
- *  Hook to return a human-readable name */
-const char * pcApplicationHostnameHook( void )
-{
-    size_t xHostNameLength;
-    __CPROVER_assume( xHostNameLength == 5 );
-    char * pcHost = malloc( xHostNameLength );  
-    __CPROVER_assume( pcHost != NULL );
-    memset(pcHost, 'a', xHostNameLength);
-    pcHost[ xHostNameLength - 1 ] = '\0';
-    return pcHost;
-}
 /****************************************************************
 * The proof of vDHCPProcess
 ****************************************************************/

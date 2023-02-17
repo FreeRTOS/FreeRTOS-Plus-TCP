@@ -30,21 +30,16 @@
   "ENTRY": "DHCPProcess",
 
   # Minimal buffer size for maximum coverage, see harness for details.
-  "MAX_HOSTNAME_LEN": 5,
-  "HOSTNAME_UNWIND": "__eval {MAX_HOSTNAME_LEN} + 1",
   "BUFFER_SIZE": 299,
   "ENDPOINT_DNS_ADDRESS_COUNT": 5,
 
   # The number of times GetNetworkBufferWithDescriptor can be allowed to fail
   # (plus 1).
   "FAILURE_BOUND": 2,
-  "ENDPOINT_DNS_ADDRESS_COUNT_UNWIND": "__eval {ENDPOINT_DNS_ADDRESS_COUNT} + 1",
 
   "CBMCFLAGS": [
     "--unwind 4",
-    "--unwindset strlen.0:{HOSTNAME_UNWIND},memcmp.0:7",
-    "--unwindset __CPROVER_file_local_FreeRTOS_DHCP_c_vProcessHandleOption.0:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
-    "--unwindset __CPROVER_file_local_FreeRTOS_DHCP_c_vProcessHandleOption.1:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
+    "--unwindset strlen.0:11,memcmp.0:7",
     "--nondet-static --flush"
   ],
   "OPT":
@@ -60,14 +55,11 @@
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_ARP.goto"
   ],
-
   "DEF":
   [
     "BUFFER_SIZE={BUFFER_SIZE}",
     "ipconfigDHCP_REGISTER_HOSTNAME=1",
     "CBMC_REQUIRE_NETWORKBUFFER_ETHERNETBUFFER_NONNULL=1",
-    "CBMC_GETNETWORKBUFFER_FAILURE_BOUND={FAILURE_BOUND}",
-    "ipconfigENDPOINT_DNS_ADDRESS_COUNT={ENDPOINT_DNS_ADDRESS_COUNT}",
-    "MAX_HOSTNAME_LEN={MAX_HOSTNAME_LEN}"
+    "CBMC_GETNETWORKBUFFER_FAILURE_BOUND={FAILURE_BOUND}"
   ]
 }
