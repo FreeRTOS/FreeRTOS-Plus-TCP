@@ -1469,7 +1469,7 @@
 
                 if( ( ucFlagsReceived & tcpTCP_FLAG_SYN ) != 0U )
                 {
-                    /* A synchronise packet is received. It counts as 1 pseudo byte of data,
+                    /* A synchronize packet is received. It counts as 1 pseudo byte of data,
                      * so increase the variable with 1. Before sending a reply, the values of
                      * 'ulSequenceNumber' and 'ulAckNr' will be swapped. */
                     uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulSequenceNumber );
