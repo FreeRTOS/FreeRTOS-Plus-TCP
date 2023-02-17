@@ -159,6 +159,9 @@ void harness()
 
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
+
+    /* Asserts are added in the src code to make sure ucDNSIndex 
+    will be less than ipconfigENDPOINT_DNS_ADDRESS_COUNT  */
     __CPROVER_assume( pxNetworkEndPoints->ipv6_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT ); //TODO: _TJ_: verfiy
     __CPROVER_assume( pxNetworkEndPoints->ipv4_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT ); //TODO: _TJ_: verfiy
     __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );

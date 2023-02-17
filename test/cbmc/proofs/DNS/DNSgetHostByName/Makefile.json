@@ -8,14 +8,16 @@
 
   "callback": 0,
   "MAX_HOSTNAME_LEN": 10,
+  "ENDPOINT_DNS_ADDRESS_COUNT": 5,
   "HOSTNAME_UNWIND": "__eval {MAX_HOSTNAME_LEN} + 1",
+  "ENDPOINT_DNS_ADDRESS_COUNT_UNWIND": "__eval {ENDPOINT_DNS_ADDRESS_COUNT} + 1"
 
   "CBMCFLAGS":
   [
     "--unwind 1",
     "--unwindset strchr.0:{HOSTNAME_UNWIND}", 
-    "--unwindset prvIncreaseDNS4Index.0:6",
-    "--unwindset prvIncreaseDNS6Index.0:6",
+    "--unwindset prvIncreaseDNS4Index.0:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
+    "--unwindset prvIncreaseDNS6Index.0:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
     "--unwindset prvFillSockAddress.0:2,prvFillSockAddress.1:2",
     "--unwindset prvCreateDNSMessage.0:{HOSTNAME_UNWIND},prvCreateDNSMessage.1:{HOSTNAME_UNWIND},strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},strcmp.0:{HOSTNAME_UNWIND},strcpy.0:{HOSTNAME_UNWIND}",
     "--unwindset prvGetHostByNameOp_WithRetry.0:{HOSTNAME_UNWIND}",
@@ -35,6 +37,7 @@
   [
     "ipconfigUSE_IPv6=1",
     "ipconfigDNS_USE_CALLBACKS={callback}",
-    "MAX_HOSTNAME_LEN={MAX_HOSTNAME_LEN}"
+    "MAX_HOSTNAME_LEN={MAX_HOSTNAME_LEN}",
+    "ipconfigENDPOINT_DNS_ADDRESS_COUNT={ENDPOINT_DNS_ADDRESS_COUNT}"
   ]
 }
