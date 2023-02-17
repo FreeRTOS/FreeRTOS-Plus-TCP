@@ -260,7 +260,7 @@
             }
         }
 
-        #if( ipconfigHAS_DEBUG_PRINTF != 0 )
+        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
             if( ( xLookUp == pdFALSE ) || ( pxIP->ulIPAddress != 0U ) )
             {
                 char pcAddress[ 40 ];
