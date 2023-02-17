@@ -71,5 +71,7 @@ void harness()
     __CPROVER_assume( xNetworkBuffer2.pxEndPoint != NULL );
     xNetworkBuffer2.pxEndPoint->pxNext = NULL;
 
+    /* eARPProcessPacket will be called in the source code only after checking if
+    xNetworkBuffer2.pucEthernetBuffer is not NULL, hence, __CPROVER_assume( xBuffer != NULL );   */
     eARPProcessPacket( &xNetworkBuffer2 );
 }
