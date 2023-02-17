@@ -93,7 +93,8 @@ void harness()
 
     if( ensure_memory_is_valid( pxNetworkBuffer, bufferSize ) )
     {
-        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) + ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) + sizeof(TCPHeader_t) );
+        /* Allocates min. buffer size required for the proof */
+        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) + uxIPHeaderSizeSocket( pxSocket ) );
     }
 
     if( ensure_memory_is_valid( pxSocket, socketSize ) &&
