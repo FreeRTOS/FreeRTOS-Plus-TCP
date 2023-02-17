@@ -674,6 +674,7 @@
                     if( pxEndPoint->bits.bIPv6 != 0U )
                     {
                         BaseType_t xGot = ( xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) ) == eIPv6_Global ) ? 1 : 0;
+
                         if( xWanted == xGot )
                         {
                             break;
@@ -694,7 +695,7 @@
             if( pxEndPoint == NULL )
             {
                 FreeRTOS_printf( ( "SendPingRequestIPv6: no end-point found for %pip\n",
-                    pxIPAddress->ucBytes  ) );
+                                   pxIPAddress->ucBytes ) );
             }
             else if( ( uxGetNumberOfFreeNetworkBuffers() >= 3U ) && ( uxNumberOfBytesToSend >= 1U ) && ( xEnoughSpace != pdFALSE ) )
             {

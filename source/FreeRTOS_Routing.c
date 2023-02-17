@@ -779,7 +779,8 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 break;
             }
         }
-        #if( ipconfigHAS_PRINTF != 0 )
+
+        #if ( ipconfigHAS_PRINTF != 0 )
             if( pxReturn == NULL )
             {
                 char pcBufferFrom[ 40 ];
@@ -907,8 +908,9 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 return pxEndPoint;
             }
         }
+
         /* _HT_ It is my intention to remove the rest of the code,
-          because when pxEasyFit() returns NULL, the packet can not be handled. */
+         * because when pxEasyFit() returns NULL, the packet can not be handled. */
 
         /* Probably an ARP packet or a broadcast. */
         switch( pxPacket->xUDPPacket.xEthernetHeader.usFrameType )
@@ -1214,10 +1216,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             }
 
             FreeRTOS_debug_printf( ( "xIPv6_GetIPType: 0x%02x%02x: type %s (%pip)\n",
-                               pxAddress->ucBytes[ 0 ],
-                               pxAddress->ucBytes[ 1 ],
-                               pcName,
-                               pxAddress->ucBytes ) );
+                                     pxAddress->ucBytes[ 0 ],
+                                     pxAddress->ucBytes[ 1 ],
+                                     pcName,
+                                     pxAddress->ucBytes ) );
         #endif /* if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
         return eResult;
