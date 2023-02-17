@@ -53,8 +53,9 @@
 /* The entire module FreeRTOS_ND.c is skipped when IPv6 is not used. */
 #if ( ipconfigUSE_IPv6 != 0 )
 
-/** @brief Type of Neighbour Advertisement packets. */
+/** @brief Type of Neighbour Advertisement packets - SOLICITE. */
     #define ndICMPv6_FLAG_SOLICITED                       0x40000000U
+/** @brief Type of Neighbour Advertisement packets - UPDATE. */
     #define ndICMPv6_FLAG_UPDATE                          0x20000000U
 
 /** @brief A block time of 0 simply means "don't block". */
@@ -70,11 +71,12 @@
  */
     #define ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION    ( 3U )
 
-/** @brief All nodes on the local network segment: IP- and MAC-address. */
+/** @brief All nodes on the local network segment: IP address. */
     /* MISRA Ref 8.9.1 [File scoped variables] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
     /* coverity[misra_c_2012_rule_8_9_violation] */
     static const uint8_t pcLOCAL_ALL_NODES_MULTICAST_IP[ ipSIZE_OF_IPv6_ADDRESS ] = { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }; /* ff02:1 */
+/** @brief All nodes on the local network segment: MAC address. */
     static const uint8_t pcLOCAL_ALL_NODES_MULTICAST_MAC[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33, 0x33, 0x00, 0x00, 0x00, 0x01 };
 
 /** @brief See if the MAC-address can be resolved because it is a multi-cast address. */
@@ -779,6 +781,8 @@
     #endif /* ipconfigSUPPORT_OUTGOING_PINGS == 1 */
 /*-----------------------------------------------------------*/
 
+
+    #if ( ipconfigHAS_PRINTF == 1 )
 /**
  * @brief Returns a printable string for the major ICMPv6 message types.  Used for
  *        debugging only.
@@ -787,7 +791,6 @@
  *
  * @return A null-terminated string that represents the type the kind of message.
  */
-    #if ( ipconfigHAS_PRINTF == 1 )
         static const char * pcMessageType( BaseType_t xType )
         {
             const char * pcReturn;

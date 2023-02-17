@@ -2366,7 +2366,16 @@ PREDEFINED             = DOXYGEN=1 \
                          ipconfigDNS_USE_CALLBACKS=1 \
                          ipconfigSUPPORT_SELECT_FUNCTION=1 \
                          ipconfigUSE_TCP=1 \
-                         ipconfigUSE_TCP_WIN=1
+                         ipconfigUSE_TCP_WIN=1 \
+                         ipconfigUSE_IPv4=1 \
+                         ipconfigUSE_IPv6=1 \
+                         ipconfigUSE_DHCPv6=1 \
+                         ipconfigUSE_DNS_CACHE=1 \
+                         ipconfigREPLY_TO_INCOMING_PINGS=1 \
+                         ipconfigSUPPORT_OUTGOING_PINGS=1 
+
+
+
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

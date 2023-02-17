@@ -23,6 +23,11 @@
  * http://www.FreeRTOS.org
  */
 
+/**
+ * @file FreeRTOS_Routing.c
+ * @brief Implements endpoint interfaces functions and utilities.
+ */
+
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
