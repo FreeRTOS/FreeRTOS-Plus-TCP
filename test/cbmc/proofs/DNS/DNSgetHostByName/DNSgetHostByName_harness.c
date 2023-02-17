@@ -121,6 +121,7 @@ BaseType_t DNS_ReadReply( const ConstSocket_t xDNSSocket,
 
 void DNS_CloseSocket( Socket_t xDNSSocket )
 {
+    __CPROVER_assert( xDNSSocket != NULL, "The xDNSSocket cannot be NULL." );
 }
 
 Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
