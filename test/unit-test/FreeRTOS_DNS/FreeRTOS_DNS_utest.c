@@ -343,7 +343,7 @@ void test_FreeRTOS_gethostbyname_fail_send_dns_reply_zero( void )
     uint32_t ulNumber = 0;
     NetworkEndPoint_t xEndPoint;
     struct xSOCKET xDNSSocket;
-    uint8_t pucPayloadBuffer_Arr[300];
+    uint8_t pucPayloadBuffer_Arr[ 300 ];
 
     uint8_t buffer[ 2280 + ipBUFFER_PADDING ];
 
@@ -354,6 +354,7 @@ void test_FreeRTOS_gethostbyname_fail_send_dns_reply_zero( void )
     xReceiveBuffer.uxPayloadLength = 300;
     memset( xReceiveBuffer.pucPayloadBuffer, 0x00, 300 );
     DNSMessage_t * header = ( DNSMessage_t * ) xReceiveBuffer.pucPayloadBuffer;
+
     header->usIdentifier = 0;
 
     xNetworkBuffer.xDataLength = 2280;
@@ -391,7 +392,6 @@ void test_FreeRTOS_gethostbyname_fail_send_dns_reply_zero( void )
     TEST_ASSERT_EQUAL( 0, ret );
 
     xNetworkBuffer.pucEthernetBuffer -= ipBUFFER_PADDING;
-
 }
 
 /**
@@ -416,6 +416,7 @@ void test_FreeRTOS_gethostbyname_succes( void )
     xReceiveBuffer.uxPayloadLength = 300;
     memset( xReceiveBuffer.pucPayloadBuffer, 0x00, 300 );
     DNSMessage_t * header = ( DNSMessage_t * ) xReceiveBuffer.pucPayloadBuffer;
+
     header->usIdentifier = 0;
     xDNSSocket.usLocalPort = 0;
 
@@ -666,6 +667,7 @@ void test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
     ( void ) memset( xNetworkBuffer.pucEthernetBuffer, 0x00, uxBytesNeeded );
     ( void ) memset( xReceiveBuffer.pucPayloadBuffer, 0x00, 300 );
     DNSMessage_t * header = ( DNSMessage_t * ) xReceiveBuffer.pucPayloadBuffer;
+
     header->usIdentifier = 12;
     xDNSSocket.usLocalPort = 0;
     xEndPoint.bits.bIPv6 = pdFALSE;
