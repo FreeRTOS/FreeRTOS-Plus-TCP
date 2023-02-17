@@ -100,6 +100,7 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
 {
     __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
     __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL." );
     BaseType_t ret;
     return ret;
 }
@@ -144,6 +145,8 @@ uint32_t Prepare_CacheLookup( const char * pcHostName,
     ( * ppxAddressInfo ) = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo ) );
     __CPROVER_assume( ( * ppxAddressInfo ) != NULL );
     __CPROVER_assume( ( * ppxAddressInfo )->ai_next == NULL );
+    uint32_t ulRet;
+    return ulRet;
 }
 
 /****************************************************************

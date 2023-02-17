@@ -127,8 +127,6 @@ Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
 {
 
     Socket_t sock = safeMalloc( sizeof(struct xSOCKET) );
-    __CPROVER_assume( sock != NULL ); 
-
     return sock;
 
 }
@@ -149,6 +147,7 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
 {
     __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
     __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL." );
     BaseType_t ret;
     return ret;
 }
