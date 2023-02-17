@@ -1086,13 +1086,13 @@ void vARPSendGratuitous( void )
 void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    const NetworkEndPoint_t * pxEndPoint;
+    NetworkEndPoint_t * pxEndPoint;
 
     /* Send an ARP request to every end-point which has the type IPv4,
      * and which already has an IP-address assigned. */
     for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
          pxEndPoint != NULL;
-         pxEndPoint = ( const NetworkEndPoint_t * ) FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
     {
         if( ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) &&
             ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
@@ -1104,7 +1104,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
             if( pxNetworkBuffer != NULL )
             {
                 pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ulIPAddress;
-                pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) pxEndPoint;
+                pxNetworkBuffer->pxEndPoint = pxEndPoint;
                 pxNetworkBuffer->pxInterface = pxEndPoint->pxNetworkInterface;
                 vARPGenerateRequestPacket( pxNetworkBuffer );
 

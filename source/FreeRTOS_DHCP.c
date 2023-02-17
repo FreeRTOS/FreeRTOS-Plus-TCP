@@ -89,7 +89,7 @@
 /*
  * Generate a DHCP discover message and send it on the DHCP socket.
  */
-    static BaseType_t prvSendDHCPDiscover( const NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Interpret message received on the DHCP socket.
@@ -100,7 +100,7 @@
 /*
  * Generate a DHCP request packet, and send it on the DHCP socket.
  */
-    static BaseType_t prvSendDHCPRequest( const NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Prepare to start a DHCP transaction.  This initialises some state variables
@@ -1452,7 +1452,7 @@
  *
  * param[in] pxEndPoint: The end-point for which the request will be sent.
  */
-    static BaseType_t prvSendDHCPRequest( const NetworkEndPoint_t * pxEndPoint )
+    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint )
     {
         BaseType_t xResult = pdFAIL;
         uint8_t * pucUDPPayloadBuffer;
@@ -1502,7 +1502,7 @@
             FreeRTOS_debug_printf( ( "vDHCPProcess: reply %xip\n", ( unsigned ) FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
             iptraceSENDING_DHCP_REQUEST();
 
-            xDHCPv4Socket->pxEndPoint = ( NetworkEndPoint_t * ) pxEndPoint;
+            xDHCPv4Socket->pxEndPoint = pxEndPoint;
 
             if( FreeRTOS_sendto( xDHCPv4Socket, pucUDPPayloadBuffer, sizeof( DHCPMessage_IPv4_t ) + uxOptionsLength, FREERTOS_ZERO_COPY, &xAddress, ( socklen_t ) sizeof( xAddress ) ) == 0 )
             {
@@ -1527,7 +1527,7 @@
  *
  * @return: pdPASS if the DHCP discover message was sent successfully, pdFAIL otherwise.
  */
-    static BaseType_t prvSendDHCPDiscover( const NetworkEndPoint_t * pxEndPoint )
+    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint )
     {
         BaseType_t xResult = pdFAIL;
         uint8_t * pucUDPPayloadBuffer;
@@ -1579,7 +1579,7 @@
                 uxOptionsLength -= dhcpOPTION_50_SIZE;
             }
 
-            xDHCPv4Socket->pxEndPoint = ( NetworkEndPoint_t * ) pxEndPoint;
+            xDHCPv4Socket->pxEndPoint = pxEndPoint;
 
             if( FreeRTOS_sendto( xDHCPv4Socket,
                                  pucUDPPayloadBuffer,
