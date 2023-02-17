@@ -140,7 +140,7 @@ uint8_t ucBitConfig_read_8( BitConfig_t * pxConfig )
 {
     uint8_t ucResult = 0xffU;
     const size_t uxNeeded = sizeof ucResult;
-    uint8_t pucData[ uxNeeded ];
+    uint8_t pucData[ sizeof ucResult ];
 
     if( xBitConfig_read_uc( pxConfig, pucData, uxNeeded ) != pdFALSE )
     {
@@ -162,7 +162,7 @@ uint16_t usBitConfig_read_16( BitConfig_t * pxConfig )
 {
     uint16_t usResult = 0xffffU;
     const size_t uxNeeded = sizeof usResult;
-    uint8_t pucData[ uxNeeded ];
+    uint8_t pucData[ sizeof usResult ];
 
     if( xBitConfig_read_uc( pxConfig, pucData, uxNeeded ) != pdFALSE )
     {
@@ -185,7 +185,7 @@ uint32_t ulBitConfig_read_32( BitConfig_t * pxConfig )
 {
     uint32_t ulResult = 0xffffffffU;
     const size_t uxNeeded = sizeof ulResult;
-    uint8_t pucData[ uxNeeded ];
+    uint8_t pucData[ sizeof ulResult ];
 
     if( xBitConfig_read_uc( pxConfig, pucData, uxNeeded ) != pdFALSE )
     {
@@ -262,7 +262,7 @@ void vBitConfig_write_16( BitConfig_t * pxConfig,
                           uint16_t usValue )
 {
     const size_t uxNeeded = sizeof usValue;
-    uint8_t pucData[ uxNeeded ];
+    uint8_t pucData[ sizeof usValue ];
 
     pucData[ 0 ] = ( uint8_t ) ( ( usValue >> 8 ) & 0xFFU );
     pucData[ 1 ] = ( uint8_t ) ( usValue & 0xFFU );
@@ -283,7 +283,7 @@ void vBitConfig_write_32( BitConfig_t * pxConfig,
                           uint32_t ulValue )
 {
     const size_t uxNeeded = sizeof ulValue;
-    uint8_t pucData[ uxNeeded ];
+    uint8_t pucData[ sizeof ulValue ];
 
     pucData[ 0 ] = ( uint8_t ) ( ( ulValue >> 24 ) & 0xFFU );
     pucData[ 1 ] = ( uint8_t ) ( ( ulValue >> 16 ) & 0xFFU );
