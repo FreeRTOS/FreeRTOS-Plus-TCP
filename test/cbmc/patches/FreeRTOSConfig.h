@@ -127,7 +127,7 @@
  * is set to 2 so the formatting functions are included without the stdio.h being
  * included in tasks.c.  That is because this project defines its own sprintf()
  * functions. */
-#define configUSE_STATS_FORMATTING_FUNCTIONS    1
+#define configUSE_STATS_FORMATTING_FUNCTIONS    0
 
 /* Assert call defined for debug builds. */
 extern void vAssertCalled( const char * pcFile,
