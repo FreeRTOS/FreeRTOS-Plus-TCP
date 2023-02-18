@@ -1474,7 +1474,7 @@
                      * 'ulSequenceNumber' and 'ulAckNr' will be swapped. */
                     uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulSequenceNumber );
                     ulSequenceNumber++;
-                    pxTCPPacket->xTCPHeader.ulSequenceNumber = FreeRTOS_ntohl( ulSequenceNumber );
+                    pxTCPPacket->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( ulSequenceNumber );
                 }
 
                 prvTCPReturnPacket( NULL, pxNetworkBuffer, ulSendLength, pdFALSE );
