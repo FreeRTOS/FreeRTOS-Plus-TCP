@@ -1606,6 +1606,7 @@ vsocketclose
 vsocketclosenexttime
 vsocketlistennexttime
 vsocketselect
+vsocketvalid
 vsocketwakeupuser
 vtasklist
 vtasknotifygivefromisr

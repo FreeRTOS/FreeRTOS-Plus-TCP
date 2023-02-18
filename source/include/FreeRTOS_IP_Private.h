@@ -36,7 +36,6 @@
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
-#include "FreeRTOS_Sockets.h"
 #include "IPTraceMacroDefaults.h"
 #include "FreeRTOS_Stream_Buffer.h"
 #include "FreeRTOS_Routing.h"
@@ -98,7 +97,6 @@ typedef struct xNetworkAddressingParameters
 
 extern BaseType_t xTCPWindowLoggingLevel;
 extern QueueHandle_t xNetworkEventQueue;
-typedef struct xSOCKET FreeRTOS_Socket_t;
 
 /*-----------------------------------------------------------*/
 /* Protocol headers.                                         */
@@ -267,6 +265,10 @@ struct xPacketSummary
 #define ipFRAGMENTATION_PARAMETERS_OFFSET    ( 6 )
 #define ipSOCKET_OPTIONS_OFFSET              ( 6 )
 
+#if ( ( ipconfigUSE_TCP == 1 ) && !defined( ipTCP_TIMER_PERIOD_MS ) )
+    /** @brief When initialising the TCP timer, give it an initial time-out of 1 second. */
+    #define ipTCP_TIMER_PERIOD_MS    ( 1000U )
+#endif
 
 #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
 
@@ -323,12 +325,6 @@ struct xPacketSummary
 extern const MACAddress_t xBroadcastMACAddress; /* all 0xff's */
 extern uint16_t usPacketIdentifier;
 
-/** @brief The list that contains mappings between sockets and port numbers.
- *         Accesses to this list must be protected by critical sections of
- *         some kind.
- */
-extern List_t xBoundUDPSocketsList;
-
 /**
  * Define a default UDP packet header (declared in FreeRTOS_UDP_IP.c)
  */
@@ -363,11 +359,6 @@ extern struct xNetworkEndPoint * pxNetworkEndPoints;
 /* A list of all network interfaces: */
 extern struct xNetworkInterface * pxNetworkInterfaces;
 
-/* Defined in FreeRTOS_Sockets.c */
-#if ( ipconfigUSE_TCP == 1 )
-    extern List_t xBoundTCPSocketsList;
-#endif
-
 /* The local IP address is accessed from within xDefaultPartUDPPacketHeader,
  * rather than duplicated in its own variable. */
 #define ipLOCAL_IP_ADDRESS_POINTER     ( ( uint32_t * ) &( xDefaultPartUDPPacketHeader.ulWords[ 20U / sizeof( uint32_t ) ] ) )
@@ -379,10 +370,6 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
 /* ICMP packets are sent using the same function as UDP packets.  The port
  * number is used to distinguish between the two, as 0 is an invalid UDP port. */
 #define ipPACKET_CONTAINS_ICMP_DATA    ( 0 )
-
-/* For now, the lower 8 bits in 'xEventBits' will be reserved for the above
- * socket events. */
-#define SOCKET_EVENT_BIT_COUNT         8
 
 #define vSetField16( pxBase, xType, xField, usValue )                                                        \
     {                                                                                                        \
@@ -469,8 +456,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
                              const uint8_t * pucNextData,
                              size_t uxByteCount );
 
-/* Socket related private functions. */
-
 /*
  * The caller must ensure that pxNetworkBuffer->xDataLength is the UDP packet
  * payload size (excluding packet headers) and that the packet in pucEthernetBuffer
@@ -489,263 +474,10 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                                            BaseType_t * pxIsWaitingForARPResolution );
 
 /*
- * Initialize the socket list data structures for TCP and UDP.
- */
-void vNetworkSocketsInit( void );
-
-/*
  * Returns pdTRUE if the IP task has been created and is initialised.  Otherwise
  * returns pdFALSE.
  */
 BaseType_t xIPIsNetworkTaskReady( void );
-
-#if ( ipconfigSOCKET_HAS_USER_WAKE_CALLBACK == 1 )
-    struct xSOCKET;
-    typedef void (* SocketWakeupCallback_t)( struct xSOCKET * pxSocket );
-#endif
-
-#if ( ipconfigUSE_TCP == 1 )
-
-/*
- * Actually a user thing, but because xBoundTCPSocketsList, let it do by the
- * IP-task
- */
-    #if ( ipconfigHAS_PRINTF != 0 )
-        void vTCPNetStat( void );
-    #endif
-
-/*
- * At least one socket needs to check for timeouts
- */
-    TickType_t xTCPTimerCheck( BaseType_t xWillSleep );
-
-/**
- * Every TCP socket has a buffer space just big enough to store
- * the last TCP header received.
- * As a reference of this field may be passed to DMA, force the
- * alignment to 8 bytes.
- */
-    typedef union
-    {
-        struct
-        {
-            uint64_t ullAlignmentWord; /**< Increase the alignment of this union by adding a 64-bit variable. */
-        } a;                           /**< A struct to increase alignment. */
-        struct
-        {
-            /* The next field only serves to give 'ucLastPacket' a correct
-             * alignment of 8 + 2.  See comments in FreeRTOS_IP.h */
-            uint8_t ucFillPacket[ ipconfigPACKET_FILLER_SIZE ];
-            uint8_t ucLastPacket[ TCP_PACKET_SIZE ];
-        } u; /**< The structure to give an alignment of 8 + 2 */
-    } LastTCPPacket_t;
-
-/**
- * Note that the values of all short and long integers in these structs
- * are being stored in the native-endian way
- * Translation should take place when accessing any structure which defines
- * network packets, such as IPHeader_t and TCPHeader_t
- */
-    typedef struct TCPSOCKET
-    {
-        IP_Address_t xRemoteIP; /**< IP address of remote machine */
-        uint16_t usRemotePort;  /**< Port on remote machine */
-        struct
-        {
-            /* Most compilers do like bit-flags */
-            uint32_t
-                bMssChange : 1,        /**< This socket has seen a change in MSS */
-                bPassAccept : 1,       /**< when true, this socket may be returned in a call to accept() */
-                bPassQueued : 1,       /**< when true, this socket is an orphan until it gets connected
-                                        * Why an orphan? Because it may not be returned in a accept() call until it
-                                        * gets the state eESTABLISHED */
-                bReuseSocket : 1,      /**< When a listening socket gets a connection, do not create a new instance but keep on using it */
-                bCloseAfterSend : 1,   /**< As soon as the last byte has been transmitted, finalise the connection
-                                        * Useful in e.g. FTP connections, where the last data bytes are sent along with the FIN flag */
-                bUserShutdown : 1,     /**< User requesting a graceful shutdown */
-                bCloseRequested : 1,   /**< Request to finalise the connection */
-                bLowWater : 1,         /**< high-water level has been reached. Cleared as soon as 'rx-count < lo-water' */
-                bWinChange : 1,        /**< The value of bLowWater has changed, must send a window update */
-                bSendKeepAlive : 1,    /**< When this flag is true, a TCP keep-alive message must be send */
-                bWaitKeepAlive : 1,    /**< When this flag is true, a TCP keep-alive reply is expected */
-                bConnPrepared : 1,     /**< Connecting socket: Message has been prepared */
-            #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-                bConnPassed : 1,       /**< Connecting socket: Socket has been passed in a successful select()  */
-            #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
-            bFinAccepted : 1,          /**< This socket has received (or sent) a FIN and accepted it */
-                bFinSent : 1,          /**< We've sent out a FIN */
-                bFinRecv : 1,          /**< We've received a FIN from our peer */
-                bFinAcked : 1,         /**< Our FIN packet has been acked */
-                bFinLast : 1,          /**< The last ACK (after FIN and FIN+ACK) has been sent or will be sent by the peer */
-                bRxStopped : 1,        /**< Application asked to temporarily stop reception */
-                bMallocError : 1,      /**< There was an error allocating a stream */
-                bWinScaling : 1;       /**< A TCP-Window Scaling option was offered and accepted in the SYN phase. */
-        } bits;                        /**< The bits structure */
-        uint32_t ulHighestRxAllowed;   /**< The highest sequence number that we can receive at any moment */
-        uint16_t usTimeout;            /**< Time (in ticks) after which this socket needs attention */
-        uint16_t usMSS;                /**< Current Maximum Segment Size */
-        uint16_t usChildCount;         /**< In case of a listening socket: number of connections on this port number */
-        uint16_t usBacklog;            /**< In case of a listening socket: maximum number of concurrent connections on this port number */
-        uint8_t ucRepCount;            /**< Send repeat count, for retransmissions
-                                        * This counter is separate from the xmitCount in the
-                                        * TCP win segments */
-        eIPTCPState_t eTCPState;       /**< TCP state: see eTCP_STATE */
-        struct xSOCKET * pxPeerSocket; /**< for server socket: child, for child socket: parent */
-        #if ( ipconfigTCP_KEEP_ALIVE == 1 )
-            uint8_t ucKeepRepCount;
-            TickType_t xLastAliveTime; /**< The last value of keepalive time.*/
-        #endif /* ipconfigTCP_KEEP_ALIVE */
-        #if ( ipconfigTCP_HANG_PROTECTION == 1 )
-            TickType_t xLastActTime;                  /**< The last time when hang-protection was done.*/
-        #endif /* ipconfigTCP_HANG_PROTECTION */
-        size_t uxLittleSpace;                         /**< The value deemed as low amount of space. */
-        size_t uxEnoughSpace;                         /**< The value deemed as enough space. */
-        size_t uxRxStreamSize;                        /**< The Receive stream size */
-        size_t uxTxStreamSize;                        /**< The transmit stream size */
-        StreamBuffer_t * rxStream;                    /**< The pointer to the receive stream buffer. */
-        StreamBuffer_t * txStream;                    /**< The pointer to the transmit stream buffer. */
-        #if ( ipconfigUSE_TCP_WIN == 1 )
-            NetworkBufferDescriptor_t * pxAckMessage; /**< The pointer to the ACK message */
-        #endif /* ipconfigUSE_TCP_WIN */
-        LastTCPPacket_t xPacket;                      /**< Buffer space to store the last TCP header received. */
-        uint8_t tcpflags;                             /**< TCP flags */
-        #if ( ipconfigUSE_TCP_WIN != 0 )
-            uint8_t ucMyWinScaleFactor;               /**< Scaling factor of this device. */
-            uint8_t ucPeerWinScaleFactor;             /**< Scaling factor of the peer. */
-        #endif
-        #if ( ipconfigUSE_CALLBACKS == 1 )
-            FOnTCPReceive_t pxHandleReceive;  /**<
-                                               * In case of a TCP socket:
-                                               * typedef void (* FOnTCPReceive_t) (Socket_t xSocket, void *pData, size_t xLength );
-                                               */
-            FOnTCPSent_t pxHandleSent;        /**< Function pointer to handle a successful send event.  */
-            FOnConnected_t pxHandleConnected; /**< Actually type: typedef void (* FOnConnected_t) (Socket_t xSocket, BaseType_t ulConnected ); */
-        #endif /* ipconfigUSE_CALLBACKS */
-        uint32_t ulWindowSize;                /**< Current Window size advertised by peer */
-        size_t uxRxWinSize;                   /**< Fixed value: size of the TCP reception window */
-        size_t uxTxWinSize;                   /**< Fixed value: size of the TCP transmit window */
-
-        TCPWindow_t xTCPWindow;               /**< The TCP window struct*/
-    } IPTCPSocket_t;
-
-#endif /* ipconfigUSE_TCP */
-
-/**
- * Structure to hold the information about a UDP socket.
- */
-typedef struct UDPSOCKET
-{
-    List_t xWaitingPacketsList;   /**< Incoming packets */
-    #if ( ipconfigUDP_MAX_RX_PACKETS > 0 )
-        UBaseType_t uxMaxPackets; /**< Protection: limits the number of packets buffered per socket */
-    #endif /* ipconfigUDP_MAX_RX_PACKETS */
-    #if ( ipconfigUSE_CALLBACKS == 1 )
-        FOnUDPReceive_t pxHandleReceive; /**<
-                                          * In case of a UDP socket:
-                                          * typedef void (* FOnUDPReceive_t) (Socket_t xSocket, void *pData, size_t xLength, struct freertos_sockaddr *pxAddr );
-                                          */
-        FOnUDPSent_t pxHandleSent;       /**< Function pointer to handle the events after a successful send. */
-    #endif /* ipconfigUSE_CALLBACKS */
-} IPUDPSocket_t;
-
-/* Formally typedef'd as eSocketEvent_t. */
-enum eSOCKET_EVENT
-{
-    eSOCKET_RECEIVE = 0x0001,
-    eSOCKET_SEND = 0x0002,
-    eSOCKET_ACCEPT = 0x0004,
-    eSOCKET_CONNECT = 0x0008,
-    eSOCKET_BOUND = 0x0010,
-    eSOCKET_CLOSED = 0x0020,
-    eSOCKET_INTR = 0x0040,
-    eSOCKET_ALL = 0x007F,
-};
-
-
-/**
- * Structure to hold information for a socket.
- */
-struct xSOCKET
-{
-    EventBits_t xEventBits;         /**< The eventbits to keep track of events. */
-    EventGroupHandle_t xEventGroup; /**< The event group for this socket. */
-
-    /* Most compilers do like bit-flags */
-    struct
-    {
-        uint32_t bIsIPv6 : 1; /**< Non-zero in case the connection is using IPv6. */
-        uint32_t bSomeFlag : 1;
-    }
-    bits;
-
-    ListItem_t xBoundSocketListItem;       /**< Used to reference the socket from a bound sockets list. */
-    TickType_t xReceiveBlockTime;          /**< if recv[to] is called while no data is available, wait this amount of time. Unit in clock-ticks */
-    TickType_t xSendBlockTime;             /**< if send[to] is called while there is not enough space to send, wait this amount of time. Unit in clock-ticks */
-
-    IP_Address_t xLocalAddress;            /**< Local IP address */
-    uint16_t usLocalPort;                  /**< Local port on this machine */
-    uint8_t ucSocketOptions;               /**< Socket options */
-    uint8_t ucProtocol;                    /**< choice of FREERTOS_IPPROTO_UDP/TCP */
-    #if ( ipconfigSOCKET_HAS_USER_SEMAPHORE == 1 )
-        SemaphoreHandle_t pxUserSemaphore; /**< The user semaphore */
-    #endif /* ipconfigSOCKET_HAS_USER_SEMAPHORE */
-    #if ( ipconfigSOCKET_HAS_USER_WAKE_CALLBACK == 1 )
-        SocketWakeupCallback_t pxUserWakeCallback; /**< Pointer to the callback function. */
-    #endif /* ipconfigSOCKET_HAS_USER_WAKE_CALLBACK */
-
-    #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-        struct xSOCKET_SET * pxSocketSet; /**< Pointer to the socket set structure */
-        EventBits_t xSelectBits;          /**< User may indicate which bits are interesting for this socket. */
-
-        EventBits_t xSocketBits;          /**< These bits indicate the events which have actually occurred.
-                                           * They are maintained by the IP-task */
-    #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
-    struct xNetworkEndPoint * pxEndPoint; /**< The end-point to which the socket is bound. */
-    /* TCP/UDP specific fields: */
-    /* Before accessing any member of this structure, it should be confirmed */
-    /* that the protocol corresponds with the type of structure */
-
-    union
-    {
-        IPUDPSocket_t xUDP;           /**< Union member: UDP socket*/
-        #if ( ipconfigUSE_TCP == 1 )
-            IPTCPSocket_t xTCP;       /**< Union member: TCP socket */
-
-            uint64_t ullTCPAlignment; /**< Make sure that xTCP is 8-bytes aligned by
-                                       * declaring a 64-bit variable in the same union */
-        #endif /* ipconfigUSE_TCP */
-    }
-    u; /**< Union of TCP/UDP socket */
-};
-
-#if ( ipconfigUSE_TCP == 1 )
-
-/*
- * Close the socket another time.
- */
-    void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * Postpone a call to listen() by the IP-task.
- */
-    void vSocketListenNextTime( FreeRTOS_Socket_t * pxSocket );
-
-/*
- * Lookup a TCP socket, using a multiple matching: both port numbers and
- * return IP address.
- */
-    FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
-                                           UBaseType_t uxLocalPort,
-                                           IP_Address_t ulRemoteIP,
-                                           UBaseType_t uxRemotePort );
-
-#endif /* ipconfigUSE_TCP */
-
-
-/*
- * Look up a local socket by finding a match with the local port.
- */
-FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort );
 
 /*
  * Calculate the upper-layer checksum
@@ -766,34 +498,6 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                            BaseType_t xReleaseAfterSend );
 
 /*
- * The internal version of bind()
- * If 'ulInternal' is true, it is called by the driver
- * The TCP driver needs to bind a socket at the moment a listening socket
- * creates a new connected socket
- */
-BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
-                        struct freertos_sockaddr * pxBindAddress,
-                        size_t uxAddressLength,
-                        BaseType_t xInternal );
-
-/*
- * Internal function to add streaming data to a TCP socket. If ulIn == true,
- * data will be added to the rxStream, otherwise to the tXStream.  Normally data
- * will be written with ulOffset == 0, meaning: at the end of the FIFO.  When
- * packet come in out-of-order, an offset will be used to put it in front and
- * the head will not change yet.
- */
-int32_t lTCPAddRxdata( FreeRTOS_Socket_t * pxSocket,
-                       size_t uxOffset,
-                       const uint8_t * pcData,
-                       uint32_t ulByteCount );
-
-/*
- * Currently called for any important event.
- */
-void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket );
-
-/*
  * Some helping function, their meaning should be clear.
  * Going by MISRA rules, these utility functions should not be defined
  * if they are not being used anywhere. But their use depends on the
@@ -802,16 +506,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket );
 extern uint32_t ulChar2u32( const uint8_t * pucPtr );
 
 extern uint16_t usChar2u16( const uint8_t * pucPtr );
-
-/* Check a single socket for retransmissions and timeouts */
-BaseType_t xTCPSocketCheck( FreeRTOS_Socket_t * pxSocket );
-
-BaseType_t xTCPCheckNewClient( FreeRTOS_Socket_t * pxSocket );
-
-/* Defined in FreeRTOS_Sockets.c
- * Close a socket
- */
-void * vSocketClose( FreeRTOS_Socket_t * pxSocket );
 
 /*
  * Send the event eEvent to the IP task event queue, using a block time of
@@ -837,45 +531,9 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
 /* Get the size of the IP-header.
  * 'usFrameType' must be filled in if IPv6is to be recognised. */
 size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
-/*-----------------------------------------------------------*/
-
-/* Get the size of the IP-header.
- * The socket is checked for its type: IPv4 or IPv6. */
-size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket );
-/*-----------------------------------------------------------*/
-
-/*
- * Internal: Sets a new state for a TCP socket and performs the necessary
- * actions like calling a OnConnected handler to notify the socket owner.
- */
-#if ( ipconfigUSE_TCP == 1 )
-    void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
-                          enum eTCP_STATE eTCPState );
-#endif /* ipconfigUSE_TCP */
 
 /* Returns pdTRUE is this function is called from the IP-task */
 BaseType_t xIsCallingFromIPTask( void );
-
-#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-
-/** @brief Structure for event groups of the Socket Select functions */
-    typedef struct xSOCKET_SET
-    {
-        /** @brief Event group for the socket select function.
-         */
-        EventGroupHandle_t xSelectGroup;
-    } SocketSelect_t;
-
-    extern void vSocketSelect( const SocketSelect_t * pxSocketSet );
-
-/** @brief Define the data that must be passed for a 'eSocketSelectEvent'. */
-    typedef struct xSocketSelectMessage
-    {
-        TaskHandle_t xTaskhandle;     /**< Task handle for use in the socket select functionality. */
-        SocketSelect_t * pxSocketSet; /**< The event group for the socket select functionality. */
-    } SocketSelectMessage_t;
-
-#endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
 /* Send the network-up event and start the ARP timer. */
 void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint );

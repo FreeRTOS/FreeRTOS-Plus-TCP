@@ -46,8 +46,12 @@
 #include "FreeRTOS_ICMP.h"
 #include "FreeRTOS_IP_Timers.h"
 #include "FreeRTOS_IP_Utils.h"
-#include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_Sockets_Private.h"
+#if ( ipconfigUSE_TCP == 1)
+	#include "FreeRTOS_TCP_Sockets.h"
+#endif
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
@@ -72,11 +76,6 @@
 
 #ifndef iptraceIP_TASK_STARTING
     #define iptraceIP_TASK_STARTING()    do {} while( ipFALSE_BOOL ) /**< Empty definition in case iptraceIP_TASK_STARTING is not defined. */
-#endif
-
-#if ( ( ipconfigUSE_TCP == 1 ) && !defined( ipTCP_TIMER_PERIOD_MS ) )
-    /** @brief When initialising the TCP timer, give it an initial time-out of 1 second. */
-    #define ipTCP_TIMER_PERIOD_MS    ( 1000U )
 #endif
 
 /** @brief Defines how often the ARP timer callback function is executed.  The time is
@@ -384,11 +383,11 @@ static void prvProcessIPEventsAndTimers( void )
              * and update the socket field xSocketBits. */
             #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
                 #if ( ipconfigSELECT_USES_NOTIFY != 0 )
-                    {
-                        SocketSelectMessage_t * pxMessage = ( ( SocketSelectMessage_t * ) xReceivedEvent.pvData );
-                        vSocketSelect( pxMessage->pxSocketSet );
-                        ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
-                    }
+                   {
+                       SocketSelectMessage_t * pxMessage = ( ( SocketSelectMessage_t * ) xReceivedEvent.pvData );
+                       vSocketSelect( pxMessage->pxSocketSet );
+                       ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
+                   }
                 #else
                     {
                         vSocketSelect( ( ( SocketSelect_t * ) xReceivedEvent.pvData ) );
@@ -399,7 +398,6 @@ static void prvProcessIPEventsAndTimers( void )
 
         case eSocketSignalEvent:
             #if ( ipconfigSUPPORT_SIGNALS != 0 )
-
                 /* Some task wants to signal the user of this socket in
                  * order to interrupt a call to recv() or a call to select(). */
                 ( void ) FreeRTOS_SignalSocket( ( Socket_t ) xReceivedEvent.pvData );
@@ -408,7 +406,6 @@ static void prvProcessIPEventsAndTimers( void )
 
         case eTCPTimerEvent:
             #if ( ipconfigUSE_TCP == 1 )
-
                 /* Simply mark the TCP timer as expired so it gets processed
                  * the next time prvCheckNetworkTimers() is called. */
                 vIPSetTCPTimerExpiredState( pdTRUE );
@@ -435,20 +432,20 @@ static void prvProcessIPEventsAndTimers( void )
 
             /* FreeRTOS_netstat() was called to have the IP-task print an
              * overview of all sockets and their connections */
-            #if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigHAS_PRINTF == 1 ) )
-                vTCPNetStat();
-            #endif /* ipconfigUSE_TCP */
+            #if ( ipconfigHAS_PRINTF == 1 )
+                vNetStat();
+            #endif /* ipconfigHAS_PRINTF */
             break;
 
         case eSocketSetDeleteEvent:
             #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-                {
-                    SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
+               {
+                   SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
 
-                    iptraceMEM_STATS_DELETE( pxSocketSet );
-                    vEventGroupDelete( pxSocketSet->xSelectGroup );
-                    vPortFree( ( void * ) pxSocketSet );
-                }
+                   iptraceMEM_STATS_DELETE( pxSocketSet );
+                   vEventGroupDelete( pxSocketSet->xSelectGroup );
+                   vPortFree( ( void * ) pxSocketSet );
+               }
             #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
             break;
 
@@ -2268,28 +2265,6 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     const EthernetHeader_t * pxHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     if( pxHeader->usFrameType == ( uint16_t ) ipIPv6_FRAME_TYPE )
-    {
-        uxResult = ipSIZE_OF_IPv6_HEADER;
-    }
-    else
-    {
-        uxResult = ipSIZE_OF_IPv4_HEADER;
-    }
-
-    return uxResult;
-}
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Get the size of the IP-header, by checking if the socket bIsIPv6 set.
- * @param[in] pxSocket: The socket.
- * @return The size of the corresponding IP-header.
- */
-size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
-{
-    size_t uxResult;
-
-    if( ( pxSocket != NULL ) && ( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED ) )
     {
         uxResult = ipSIZE_OF_IPv6_HEADER;
     }

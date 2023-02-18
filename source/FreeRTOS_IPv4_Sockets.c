@@ -45,11 +45,147 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_Sockets_Private.h"
 #include "FreeRTOS_IPv4_Sockets.h"
 
 
 /** @brief The number of octets that make up an IP address. */
 #define socketMAX_IP_ADDRESS_OCTETS    ( 4U )
+
+/**
+ * @brief Convert the IP address from "w.x.y.z" (dotted decimal) format to the 32-bit format.
+ *
+ * @param[in] pcIPAddress: The character string pointer holding the IP-address in the "W.X.Y.Z"
+ *                         (dotted decimal) format.
+ *
+ * @return The 32-bit representation of IP(v4) address.
+ */
+uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
+{
+    uint32_t ulReturn = 0U;
+
+    /* inet_pton AF_INET target is a 4-byte 'struct in_addr'. */
+    if( pdFAIL == FreeRTOS_inet_pton4( pcIPAddress, &( ulReturn ) ) )
+    {
+        /* Return 0 if translation failed. */
+        ulReturn = 0U;
+    }
+
+    return ulReturn;
+}
+/*-----------------------------------------------------------*/
+
+#define sockDIGIT_COUNT    ( 3U ) /**< Each nibble is expressed in at most 3 digits such as "192". */
+
+/**
+ * @brief Convert the 32-bit representation of the IP-address to the dotted decimal
+ *        notation after some checks.
+ *        A safe alternative is FreeRTOS_inet_ntop4().
+ *
+ * @param[in] ulIPAddress: 32-bit representation of the IP-address.
+ * @param[out] pcBuffer: The buffer where the dotted decimal representation will be
+ *                      stored if all checks pass. The buffer must be at least 16
+ *                      bytes long.
+ *
+ * @return The pointer returned will be same as pcBuffer and will have the address
+ *         stored in the location.
+ */
+const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
+                                 char * pcBuffer )
+{
+    socklen_t uxNibble;
+    socklen_t uxIndex = 0;
+    const uint8_t * pucAddress = ( const uint8_t * ) &( ulIPAddress );
+    const char * pcResult = pcBuffer;
+
+    for( uxNibble = 0; uxNibble < ipSIZE_OF_IPv4_ADDRESS; uxNibble++ )
+    {
+        uint8_t pucDigits[ sockDIGIT_COUNT ];
+        uint8_t ucValue = pucAddress[ uxNibble ];
+        socklen_t uxSource = ( socklen_t ) sockDIGIT_COUNT - ( socklen_t ) 1U;
+
+        for( ; ; )
+        {
+            pucDigits[ uxSource ] = ucValue % ( uint8_t ) 10U;
+            ucValue /= ( uint8_t ) 10U;
+
+            if( uxSource == 1U )
+            {
+                break;
+            }
+
+            uxSource--;
+        }
+
+        pucDigits[ 0 ] = ucValue;
+
+        /* Skip leading zeros. */
+        for( uxSource = 0; uxSource < ( ( socklen_t ) sockDIGIT_COUNT - ( socklen_t ) 1U ); uxSource++ )
+        {
+            if( pucDigits[ uxSource ] != 0U )
+            {
+                break;
+            }
+        }
+
+        for( ; uxSource < ( socklen_t ) sockDIGIT_COUNT; uxSource++ )
+        {
+            pcBuffer[ uxIndex ] = ( char ) ( pucDigits[ uxSource ] + ( char ) '0' );
+            uxIndex++;
+        }
+
+        if( uxNibble < ( ipSIZE_OF_IPv4_ADDRESS - 1U ) )
+        {
+            pcBuffer[ uxIndex ] = '.';
+        }
+        else
+        {
+            pcBuffer[ uxIndex ] = '\0';
+        }
+
+        uxIndex++;
+    }
+
+    return pcResult;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Convert the 32-bit representation of the IP-address to the dotted decimal format.
+ *
+ * @param[in] pvSource: The pointer to the 32-bit representation of the IP-address.
+ * @param[out] pcDestination: The pointer to a character array where the string of the
+ *                           dotted decimal IP format.
+ * @param[in] uxSize: Size of the character array. This value makes sure that the code
+ *                    doesn't write beyond it's bounds.
+ *
+ * @return The pointer to the string holding the dotted decimal format of the IP-address. If
+ *         everything passes correctly, then the pointer being returned is the same as
+ *         pcDestination, else a NULL is returned.
+ */
+const char * FreeRTOS_inet_ntop4( const void * pvSource,
+                                  char * pcDestination,
+                                  socklen_t uxSize )
+{
+    uint32_t ulIPAddress;
+    void * pvCopyDest;
+    const char * pcReturn;
+
+    if( uxSize < 16U )
+    {
+        /* There must be space for "255.255.255.255". */
+        pcReturn = NULL;
+    }
+    else
+    {
+        pvCopyDest = ( void * ) &ulIPAddress;
+        ( void ) memcpy( pvCopyDest, pvSource, sizeof( ulIPAddress ) );
+        ( void ) FreeRTOS_inet_ntoa( ulIPAddress, pcDestination );
+        pcReturn = pcDestination;
+    }
+
+    return pcReturn;
+}
 
 /**
  * @brief This function converts the character string pcSource into a network address
@@ -176,43 +312,6 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
     return xResult;
 }
 /*-----------------------------------------------------------*/
-
-/**
- * @brief Convert the 32-bit representation of the IP-address to the dotted decimal format.
- *
- * @param[in] pvSource: The pointer to the 32-bit representation of the IP-address.
- * @param[out] pcDestination: The pointer to a character array where the string of the
- *                           dotted decimal IP format.
- * @param[in] uxSize: Size of the character array. This value makes sure that the code
- *                    doesn't write beyond it's bounds.
- *
- * @return The pointer to the string holding the dotted decimal format of the IP-address. If
- *         everything passes correctly, then the pointer being returned is the same as
- *         pcDestination, else a NULL is returned.
- */
-const char * FreeRTOS_inet_ntop4( const void * pvSource,
-                                  char * pcDestination,
-                                  socklen_t uxSize )
-{
-    uint32_t ulIPAddress;
-    void * pvCopyDest;
-    const char * pcReturn;
-
-    if( uxSize < 16U )
-    {
-        /* There must be space for "255.255.255.255". */
-        pcReturn = NULL;
-    }
-    else
-    {
-        pvCopyDest = ( void * ) &ulIPAddress;
-        ( void ) memcpy( pvCopyDest, pvSource, sizeof( ulIPAddress ) );
-        ( void ) FreeRTOS_inet_ntoa( ulIPAddress, pcDestination );
-        pcReturn = pcDestination;
-    }
-
-    return pcReturn;
-}
 
 /**
  * @brief Called by prvSendUDPPacket(), this function will UDP packet

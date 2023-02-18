@@ -34,6 +34,9 @@
 #include "FreeRTOS.h"
 
 #include "FreeRTOS_DNS_Networking.h"
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_Sockets_Private.h"
+#include "FreeRTOS_UDP_Sockets.h"
 
 #if ( ipconfigUSE_DNS != 0 )
 

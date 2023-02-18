@@ -66,7 +66,7 @@
 extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;
 
-BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
+BaseType_t vSocketValid( const FreeRTOS_Socket_t * pxSocket,
                            BaseType_t xProtocol,
                            BaseType_t xIsBound );
 
@@ -162,17 +162,17 @@ void test_prvFindSelectedSocket_SendSuccess( void )
 /*
  * @brief Invalid or NULL socket test.
  */
-void test_prvValidSocket_InvalidOrNULLSocket( void )
+void test_vSocketValid_InvalidOrNULLSocket( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) FREERTOS_INVALID_SOCKET;
     BaseType_t xProtocol = FREERTOS_IPPROTO_UDP, xIsBound = pdFALSE;
 
-    xReturn = prvValidSocket( NULL, xProtocol, xIsBound );
+    xReturn = vSocketValid( NULL, xProtocol, xIsBound );
 
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 
-    xReturn = prvValidSocket( pxSocket, xProtocol, xIsBound );
+    xReturn = vSocketValid( pxSocket, xProtocol, xIsBound );
 
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }
@@ -180,7 +180,7 @@ void test_prvValidSocket_InvalidOrNULLSocket( void )
 /*
  * @brief Socket bound variable set, but the socket is not actually bound.
  */
-void test_prvValidSocket_SocketBoundSetButNotBound( void )
+void test_vSocketValid_SocketBoundSetButNotBound( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
@@ -190,7 +190,7 @@ void test_prvValidSocket_SocketBoundSetButNotBound( void )
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
 
-    xReturn = prvValidSocket( &xSocket, xProtocol, xIsBound );
+    xReturn = vSocketValid( &xSocket, xProtocol, xIsBound );
 
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }
@@ -198,7 +198,7 @@ void test_prvValidSocket_SocketBoundSetButNotBound( void )
 /*
  * @brief Socket bound variable reset, but the socket is actually bound.
  */
-void test_prvValidSocket_SocketBoundResetButBound( void )
+void test_vSocketValid_SocketBoundResetButBound( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
@@ -208,7 +208,7 @@ void test_prvValidSocket_SocketBoundResetButBound( void )
 
     xSocket.ucProtocol = xProtocol;
 
-    xReturn = prvValidSocket( &xSocket, xProtocol, xIsBound );
+    xReturn = vSocketValid( &xSocket, xProtocol, xIsBound );
 
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
@@ -216,7 +216,7 @@ void test_prvValidSocket_SocketBoundResetButBound( void )
 /*
  * @brief Invalid protocol present in the socket structure.
  */
-void test_prvValidSocket_InvalidProtocol( void )
+void test_vSocketValid_InvalidProtocol( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
@@ -228,7 +228,7 @@ void test_prvValidSocket_InvalidProtocol( void )
 
     xSocket.ucProtocol = xProtocol + 1;
 
-    xReturn = prvValidSocket( &xSocket, xProtocol, xIsBound );
+    xReturn = vSocketValid( &xSocket, xProtocol, xIsBound );
 
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }

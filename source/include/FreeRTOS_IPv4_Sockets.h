@@ -38,6 +38,34 @@
 /* FreeRTOS includes. */
     #include "FreeRTOS.h"
 
+/* Convert a null-terminated string in dot-decimal-notation (d.d.d.d)
+ * to a 32-bit unsigned integer. */
+    uint32_t FreeRTOS_inet_addr( const char * pcIPAddress );
+
+    #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
+
+/* Converts an IP address expressed as four separate numeric octets into an
+ * IP address expressed as a 32-bit number in network byte order */
+        #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
+    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24UL ) |                                  \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16UL ) |                                  \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8UL ) |                                   \
+      ( ( uint32_t ) ( ucOctet0 ) ) )
+
+    #else /* ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN ) */
+
+        #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
+    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24UL ) |                                  \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16UL ) |                                  \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8UL ) |                                   \
+      ( ( uint32_t ) ( ucOctet3 ) ) )
+
+    #endif /* ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
+
+/* Converts an IP address expressed as a 32-bit number in network byte order
+ * to a string in decimal dot notation. */
+    const char * FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
+                                     char * pcBuffer );
 
 /* Translate from 192.168.1.1 to a 32-bit number. */
     BaseType_t FreeRTOS_inet_pton4( const char * pcSource,

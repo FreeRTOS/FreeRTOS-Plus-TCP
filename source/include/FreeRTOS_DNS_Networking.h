@@ -28,7 +28,7 @@
 #define FREERTOS_DNS_NETWORKING_H
 
 #include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_Sockets_Private.h"
 #include "FreeRTOS_DNS_Globals.h"
 
 #if ( ipconfigUSE_DNS != 0 )

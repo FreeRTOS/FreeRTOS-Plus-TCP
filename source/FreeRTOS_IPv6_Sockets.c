@@ -41,6 +41,8 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_Sockets_Private.h"
 #include "FreeRTOS_IPv6_Sockets.h"
 
 /* *INDENT-OFF* */

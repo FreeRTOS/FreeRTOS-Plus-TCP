@@ -44,6 +44,12 @@
 #include "FreeRTOS_IP_Timers.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_UDP_IP.h"
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_Sockets_Private.h"
+#include "FreeRTOS_IPv4_Sockets.h"
+#if ( ipconfigUSE_IPv6 != 0 )
+	#include "FreeRTOS_IPv6_Sockets.h"
+#endif
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_DHCP.h"
 #include "NetworkBufferManagement.h"

@@ -48,7 +48,6 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
 
 #include "phyHandling.h"
 

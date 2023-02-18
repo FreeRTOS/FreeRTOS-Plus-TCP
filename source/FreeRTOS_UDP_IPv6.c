@@ -45,8 +45,8 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets_Private.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_DNS.h"

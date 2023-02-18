@@ -25,13 +25,8 @@
  * http://www.FreeRTOS.org
  */
 
-/**
- * @file FreeRTOS_ICMP.h
- * @brief Header file for Internet Control Message Protocol for the FreeRTOS+TCP network stack.
- */
-
-#ifndef FREERTOS_ICMP_H
-#define FREERTOS_ICMP_H
+#ifndef FREERTOS_UDP_SOCKETS_H
+#define FREERTOS_UDP_SOCKETS_H
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
@@ -39,38 +34,33 @@
 #endif
 /* *INDENT-ON* */
 
-/* Standard includes. */
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
 
-/* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_ARP.h"
-#include "FreeRTOS_UDP_IP.h"
-#include "FreeRTOS_DHCP.h"
-#include "NetworkInterface.h"
-#include "NetworkBufferManagement.h"
-#include "FreeRTOS_DNS.h"
+#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 1 )
+/* Returns true if an UDP socket exists bound to mentioned port number. */
+    BaseType_t xPortHasUDPSocket( uint16_t usPortNr );
+#endif
 
-/* ICMP protocol definitions. */
-#define ipICMP_ECHO_REQUEST    ( ( uint8_t ) 8 )              /**< ICMP echo request. */
-#define ipICMP_ECHO_REPLY      ( ( uint8_t ) 0 )              /**< ICMP echo reply. */
+/* Send data to a UDP socket. */
+int32_t FreeRTOS_sendto( Socket_t xSocket,
+                         const void * pvBuffer,
+                         size_t uxTotalDataLength,
+                         BaseType_t xFlags,
+                         const struct freertos_sockaddr * pxDestinationAddress,
+                         socklen_t xDestinationAddressLength );
 
-#if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+/* Receive data from a UDP socket */
+int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
+                           void * pvBuffer,
+                           size_t uxBufferLength,
+                           BaseType_t xFlags,
+                           struct freertos_sockaddr * pxSourceAddress,
+                           socklen_t * pxSourceAddressLength );
 
-/*
- * Process incoming ICMP packets.
- */
-    eFrameProcessingResult_t ProcessICMPPacket( const NetworkBufferDescriptor_t * const pxNetworkBuffer );
-#endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
+/* Function to get the local address and IP port. */
+size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
+                                 struct freertos_sockaddr * pxAddress );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
@@ -78,4 +68,5 @@
 #endif
 /* *INDENT-ON* */
 
-#endif /* FREERTOS_ICMP_H */
+#endif /* FREERTOS_UDP_SOCKETS_H */
+
