@@ -1891,7 +1891,7 @@ void test_prvTCPSendSpecialPacketHelper_flagSYN( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
     TEST_ASSERT_EQUAL( tcpTCP_FLAG_ACK, pxTCPPacket->xTCPHeader.ucTCPFlags );
     TEST_ASSERT_EQUAL( 0x50, pxTCPPacket->xTCPHeader.ucTCPOffset );
-    TEST_ASSERT_EQUAL( ulSequenceNumber + 1, FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulSequenceNumber ) );
+    TEST_ASSERT_EQUAL( ulSequenceNumber + 1, FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulAckNr ) );
 }
 
 /* test prvTCPSendChallengeAck function */
