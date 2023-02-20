@@ -6,3 +6,5 @@
 	path = test/FreeRTOS-Kernel
 	url = https://github.com/FreeRTOS/FreeRTOS-Kernel
 	update = none
+[submodule "."]
+	url = https://github.com/tony-josi-aws/FreeRTOS-Plus-TCP.git

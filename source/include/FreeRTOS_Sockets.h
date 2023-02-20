@@ -431,7 +431,7 @@
                                                   const struct freertos_sockaddr * pxDest );
 
 /* Sent callback handler for a UDP Socket */
-        typedef void (* FOnUDPSent_t )( Socket_t xSocket,
+        typedef void (* FOnUDPSent_t )( ConstSocket_t xSocket,
                                         size_t xLength );
 
 /* The following values are used in the lOptionName parameter of setsockopt()

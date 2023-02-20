@@ -1134,7 +1134,7 @@ void vARPSendGratuitous( void )
 void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    const NetworkEndPoint_t * pxEndPoint;
+    NetworkEndPoint_t * pxEndPoint;
 
     /* Send an ARP request to every end-point which has the type IPv4,
      * and which already has an IP-address assigned. */
