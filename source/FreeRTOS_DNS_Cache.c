@@ -566,7 +566,7 @@
 /**
  * @brief For debugging only: prints the contents of the DNS cache table.
  */
-        void vShowDNSCacheTable()
+        void vShowDNSCacheTable( void )
         {
             UBaseType_t xEntry;
             UBaseType_t xSubEntry;

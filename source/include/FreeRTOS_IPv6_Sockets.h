@@ -94,8 +94,6 @@
  * Convert a string like 'fe80::8d11:cd9b:8b66:4a80'
  * to a 16-byte IPv6 address
  */
-    BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
-                                    void * pvDestination );
     const char * FreeRTOS_inet_ntop6( const void * pvSource,
                                       char * pcDestination,
                                       socklen_t uxSize );

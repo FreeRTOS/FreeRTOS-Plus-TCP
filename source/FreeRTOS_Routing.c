@@ -64,15 +64,6 @@ struct xIPv6_Couple
     uint16_t usExpected;
 };
 
-static const struct xIPv6_Couple xIPCouples[] =
-{
-/*    IP-type          Mask     Value */
-    { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
-    { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
-    { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
-    { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
-};
-
 /*-----------------------------------------------------------*/
 
 /**
@@ -987,6 +978,14 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         IPv6_Type_t eResult = eIPv6_Unknown;
         BaseType_t xIndex;
+        const struct xIPv6_Couple xIPCouples[] =
+        {
+            /*    IP-type          Mask     Value */
+            { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
+            { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
+            { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
+            { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
+        };
 
         for( xIndex = 0; xIndex < ARRAY_SIZE( xIPCouples ); xIndex++ )
         {
