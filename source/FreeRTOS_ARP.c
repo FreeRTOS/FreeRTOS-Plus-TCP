@@ -252,12 +252,6 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
         }
         else
         {
-            /* #if ( ipconfigARP_USE_CLASH_DETECTION != 0 ) */
-            /*     { */
-            /*         pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulSenderProtocolAddress, 2 ); / * Clash detection. * / */
-            /*     } */
-            /* #endif */
-
             traceARP_PACKET_RECEIVED();
 
             /* Some extra logging while still testing. */
