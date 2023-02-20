@@ -895,6 +895,7 @@ pxdnsbuf
 pxdnsmessageheader
 pxdnsserveraddress
 pxduplicatenetworkbufferwithdescriptor
+pxeasyfit
 pxendpoint
 pxevent
 pxeventbits
@@ -1274,6 +1275,7 @@ ulacknumber
 ulactuallength
 uladdresstolookup
 ulalignbits
+ulapplicationgetnextsequencenumber
 ularpremovecacheentrybymac
 ulborn
 ulbroadcastaddress
@@ -1311,6 +1313,7 @@ ulhighestsequencenumber
 uliaid
 ulin
 ulindex
+ulinitialsequencenumber
 ulinternal
 ulinterruptcause
 ulinterruptmask
