@@ -1069,7 +1069,7 @@
  * @param [in] pcHostName
  * @param [in] uxIdentifier  matches sent and received packets
  * @param [in] xDNSSocket a valid socket
- * @param [in] xFamily indicae what type of record is needed:
+ * @param [in] xFamily indicate what type of record is needed:
  *             FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
  * @param [in] pxAddress address structure
  * @returns pdTRUE if sending the data was successful, pdFALSE otherwise.

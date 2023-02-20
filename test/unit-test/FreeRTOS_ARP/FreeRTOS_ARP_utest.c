@@ -362,6 +362,7 @@ void test_eARPProcessPacket_IPIsLocalLoopBack( void )
     xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
 
     uint32_t ulSenderProtocolAddress = FreeRTOS_htonl( ipFIRST_LOOPBACK_IPv4 + 10 );
+
     memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress,
             &ulSenderProtocolAddress,
             sizeof( ulSenderProtocolAddress ) );
@@ -391,6 +392,7 @@ void test_eARPProcessPacket_SenderIPLessThanLoopBack( void )
     xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
 
     uint32_t ulSenderProtocolAddress = FreeRTOS_htonl( ipFIRST_LOOPBACK_IPv4 - 10 );
+
     memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress,
             &ulSenderProtocolAddress,
             sizeof( ulSenderProtocolAddress ) );
@@ -634,6 +636,7 @@ void test_eARPProcessPacket_Reply_TargetIPSameAsLocalIP( void )
     xARPFrame.xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER;
 
     uint32_t ulSenderProtocolAddress = 0xFFAAEEBB;
+
     memcpy( &( xARPFrame.xARPHeader.ucSenderProtocolAddress ), &ulSenderProtocolAddress, sizeof( uint32_t ) );
 
     /* Reset the private variable uxARPClashCounter. */
@@ -681,6 +684,7 @@ void test_eARPProcessPacket_Reply_TargetIPNotSameAsLocalIP_ButEntryInCache( void
     xARPFrame.xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 1;
 
     uint32_t ulSenderProtocolAddress = 0xFFAAEEBB;
+
     memcpy( &( xARPFrame.xARPHeader.ucSenderProtocolAddress ), &ulSenderProtocolAddress, sizeof( uint32_t ) );
 
     xARPCache[ 0 ].ulIPAddress = ulSenderProtocolAddress;
@@ -1393,6 +1397,7 @@ void test_vARPRefreshCacheEntry_IPAndMACInDifferentLocations( void )
     TEST_ASSERT_EQUAL( ( uint8_t ) pdTRUE, xARPCache[ xUseEntry + 1 ].ucValid );
 
     uint8_t MemoryCompare[ sizeof( ARPCacheRow_t ) ];
+
     memset( MemoryCompare, 0, sizeof( ARPCacheRow_t ) );
     TEST_ASSERT_EQUAL_MEMORY( MemoryCompare, &xARPCache[ xUseEntry ], sizeof( ARPCacheRow_t ) );
     /* =================================================== */
@@ -1550,8 +1555,8 @@ void test_eARPGetCacheEntry_IPMatchesOtherBroadcastAddr( void )
     /* =================================================== */
 }
 
-// TODO: _TJ_: For the timebeing test_eARPGetCacheEntry_LocalIPIsZero and test_eARPGetCacheEntry_LocalIPMatchesReceivedIP
-//             test cases are removed as we need to reevaluate if those cases are required for IPv6
+/* TODO: _TJ_: For the time being test_eARPGetCacheEntry_LocalIPIsZero and test_eARPGetCacheEntry_LocalIPMatchesReceivedIP */
+/*             test cases are removed as we need to reevaluate if those cases are required for IPv6 */
 
 void test_eARPGetCacheEntry_MatchingInvalidEntry( void )
 {
@@ -1936,6 +1941,7 @@ void test_xARPWaitResolution_GNWFailsNoTimeout( void )
 
     xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
     xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+
     /* Make the resolution fail with maximum tryouts. */
     /* =================================================== */
     /* Make sure that no address matches the IP address. */
@@ -1986,6 +1992,7 @@ void test_xARPWaitResolution( void )
 
     xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
     xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+
     /* Make the resolution fail after some attempts due to timeout. */
     /* =================================================== */
     /* Make sure that no address matches the IP address. */

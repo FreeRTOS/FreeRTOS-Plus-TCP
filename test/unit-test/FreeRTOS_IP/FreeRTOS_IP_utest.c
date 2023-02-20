@@ -2828,7 +2828,7 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
-void test_FreeRTOS_GetIPAddress( void ) /*TODO */
+void test_FreeRTOS_GetIPAddress( void ) /* TODO */
 {
     uint32_t ulIPAddress;
 
@@ -2854,20 +2854,20 @@ void test_FreeRTOS_IsNetworkUp( void )
 
 
     xEndPoint.bits.bEndPointUp = pdTRUE;
-    /*xNetworkUp = pdTRUE; */
-    /*xReturn = FreeRTOS_IsNetworkUp(); */
+    /* xNetworkUp = pdTRUE; */
+    /* xReturn = FreeRTOS_IsNetworkUp(); */
     xReturn = FreeRTOS_IsEndPointUp( &xEndPoint );
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 
-    /*xNetworkUp = pdFALSE; */
-    /*xReturn = FreeRTOS_IsNetworkUp(); */
+    /* xNetworkUp = pdFALSE; */
+    /* xReturn = FreeRTOS_IsNetworkUp(); */
     xEndPoint.bits.bEndPointUp = pdFALSE;
     xReturn = FreeRTOS_IsEndPointUp( &xEndPoint );
 
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 
-    /*xReturn = FreeRTOS_IsNetworkUp(); TODO to be checked in routing */
-    /*TEST_ASSERT_EQUAL( pdFALSE, xReturn ); */
+    /* xReturn = FreeRTOS_IsNetworkUp(); TODO to be checked in routing */
+    /* TEST_ASSERT_EQUAL( pdFALSE, xReturn ); */
 }
 
 void test_CastingFunctions( void )

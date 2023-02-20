@@ -203,7 +203,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     NetworkInterface_t * pxInterface = NULL;
     EthernetHeader_t * pxEthernetHeader = NULL;
     BaseType_t xLostBuffer = pdFALSE;
-    NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
     IPv6_Address_t xIPv6Address;
 
     /* Map the UDP packet onto the start of the frame. */
@@ -221,7 +221,8 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     #if ipconfigSUPPORT_OUTGOING_PINGS == 1
         if( pxNetworkBuffer->usPort == ( uint16_t ) ipPACKET_CONTAINS_ICMP_DATA )
         {
-            uxPayloadSize = pxNetworkBuffer->xDataLength - sizeof( ICMPPacket_IPv6_t );
+            size_t uxHeadersSize = sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) + sizeof( ICMPHeader_t );
+            uxPayloadSize = pxNetworkBuffer->xDataLength - uxHeadersSize;
         }
         else
     #endif
@@ -276,6 +277,13 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
                 pxUDPHeader->usSourcePort = pxNetworkBuffer->usBoundPort;
                 pxUDPHeader->usLength = FreeRTOS_htons( pxUDPHeader->usLength );
                 pxUDPHeader->usChecksum = 0U;
+
+                if( pxNetworkBuffer->pxEndPoint != NULL )
+                {
+                    ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes,
+                                     pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                     ipSIZE_OF_IPv6_ADDRESS );
+                }
             }
 
             /* memcpy() the constant parts of the header information into
@@ -292,13 +300,6 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
              * and
              *  xIPHeader.usHeaderChecksum
              */
-
-            if( pxNetworkBuffer->pxEndPoint != NULL )
-            {
-                ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes,
-                                 pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
-                                 ipSIZE_OF_IPv6_ADDRESS );
-            }
 
             /* Save options now, as they will be overwritten by memcpy */
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )

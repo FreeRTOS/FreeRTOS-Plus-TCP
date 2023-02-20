@@ -1513,8 +1513,8 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer( void )
                                      xExpected,
                                      usPort ) );
 
-    /*TEST_ASSERT_EQUAL( pdFALSE, ret ); */
-    /*ASSERT_DNS_QUERY_HOOK_CALLED(); */
+    /* TEST_ASSERT_EQUAL( pdFALSE, ret ); */
+    /* ASSERT_DNS_QUERY_HOOK_CALLED(); */
 }
 
 /**

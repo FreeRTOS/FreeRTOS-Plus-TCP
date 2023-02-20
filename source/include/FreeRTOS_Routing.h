@@ -339,7 +339,10 @@
  *
  * @return A value from enum IPv6_Type_t.
  */
-    IPv6_Type_t xIPv6_GetIPType( IPv6_Address_t * pxAddress );
+    IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress );
+    const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
+                                 char * pcBuffer,
+                                 size_t uxSize );
 
     #ifdef __cplusplus
         } /* extern "C" */

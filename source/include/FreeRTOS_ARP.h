@@ -69,7 +69,7 @@ typedef enum
 } eARPLookupResult_t;
 
 /** @brief A structure used internally in FreeRTOS_ARP.c.
- * It is used as a parameter for the function prvFindCachEntry().*/
+ * It is used as a parameter for the function prvFindCacheEntry().*/
 typedef struct xCacheLocation
 {
     BaseType_t xIpEntry;  /**< The index of the matching IP-address. */
