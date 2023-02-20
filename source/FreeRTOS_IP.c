@@ -2093,6 +2093,10 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                     vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
                 }
             }
+            else
+            {
+                /* do nothing, coverity happy */
+            }
         }
     }
 }

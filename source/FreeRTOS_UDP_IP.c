@@ -155,6 +155,10 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
         xReturn = xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
                                                   usPort, pxIsWaitingForARPResolution );
     }
+    else
+    {
+        /* do nothing, coverity happy */
+    }
 
     return xReturn;
 }

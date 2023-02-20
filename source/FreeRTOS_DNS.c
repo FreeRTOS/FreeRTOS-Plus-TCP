@@ -949,6 +949,10 @@
                         break;
                     }
                 }
+                else
+                {
+                    /* do nothing, coverity happy */
+                }
             }
         }
 
