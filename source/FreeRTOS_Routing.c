@@ -70,6 +70,10 @@ struct xIPv6_Couple
     uint16_t usExpected;    /**< IPv6 IP type prefix */
 };
 
+/**
+ * @brief Util data structure to hold the bit mask and value/ID of the different
+ * IPv6 address types.
+*/
 static const struct xIPv6_Couple xIPCouples[] =
 {
 /*    IP-type          Mask     Value */
@@ -87,12 +91,11 @@ static const struct xIPv6_Couple xIPCouples[] =
  * @param[in] pxNetworkInterface: The interface to which it belongs.
  * @param[in] pxEndPoint: Space for the new end-point. This memory is dedicated for the
  *                        end-point and should not be freed or get any other purpose.
- * @param[in] pxIPAddress: The IP-address.
- * @param[in] pxNetPrefix: The prefix which shall be used for this end-point.
- * @param[in] uxPrefixLength: The length of the above end-point.
- * @param[in] pxGatewayAddress: The IP-address of a device on the LAN which can serve as
+ * @param[in] ucIPAddress: The IP-address.
+ * @param[in] ucNetMask: The prefix which shall be used for this end-point.
+ * @param[in] ucGatewayAddress: The IP-address of a device on the LAN which can serve as
  *                              as a gateway to the Internet.
- * @param[in] pxDNSServerAddress: The IP-address of a DNS server.
+ * @param[in] ucDNSServerAddress: The IP-address of a DNS server.
  * @param[in] ucMACAddress: The MAC address of the end-point.
  */
 void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
@@ -381,6 +384,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  * @brief Find the end-point which has a given IPv4 address.
  *
  * @param[in] ulIPAddress: The IP-address of interest, or 0 if any IPv4 end-point may be returned.
+ * @param[in] ulWhere: For maintaining routing statistics ulWhere acts as an index to the data structure
+ *                     that keep track of the number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' 
+ *                     has been called from a particular location. Used only if 
+ *                     ipconfigHAS_ROUTING_STATISTICS is enabled.
  *
  * @return The end-point found or NULL.
  */
@@ -498,7 +505,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  * @brief Find an end-point that handles a given IPv4-address.
  *
  * @param[in] ulIPAddress: The IP-address for which an end-point is looked-up.
- *
+ * @param[in] ulWhere: For maintaining routing statistics ulWhere acts as an index to the data structure
+ *                     that keep track of the number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' 
+ *                     has been called from a particular location. Used only if 
+ *                     ipconfigHAS_ROUTING_STATISTICS is enabled.
+ * 
  * @return An end-point that has the same network mask as the given IP-address.
  */
     NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
@@ -516,6 +527,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  *                         pxInterface is NULL.
  * @param[in] ulIPAddress: The IP-address for which an end-point is looked-up.
  *
+ * @param[in] ulWhere: For maintaining routing statistics ulWhere acts as an index to the data structure
+ *                     that keep track of the number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' 
+ *                     has been called from a particular location. Used only if 
+ *                     ipconfigHAS_ROUTING_STATISTICS is enabled.
+ * 
  * @return An end-point that has the same network mask as the given IP-address.
  */
     NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask( const NetworkInterface_t * pxInterface,
@@ -989,6 +1005,12 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     }
 /*-----------------------------------------------------------*/
 
+    /**
+     * @brief Returns the IP type of the given IPv6 address.
+     *
+     * @param[in] pxAddress: The IPv6 address whose type needs to be returned.
+     * @returns The IP type of the given address. 
+     */
     IPv6_Type_t xIPv6_GetIPType( IPv6_Address_t * pxAddress )
     {
         IPv6_Type_t eResult = eIPv6_Unknown;
