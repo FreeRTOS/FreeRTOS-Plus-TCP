@@ -169,8 +169,8 @@ typedef struct xNETWORK_BUFFER
         struct xNETWORK_BUFFER * pxNextBuffer; /**< Possible optimisation for expert users - requires network driver support. */
     #endif
 
-#define _ulIPAddress     xIPAddress.xIP_IPv4
-#define _xIPv6Address    xIPAddress.xIP_IPv6
+#define ul_IPAddress     xIPAddress.xIP_IPv4
+#define x_IPv6Address    xIPAddress.xIP_IPv6
 } NetworkBufferDescriptor_t;
 
 #include "pack_struct_start.h"

@@ -1003,7 +1003,6 @@
 
             /* Important: tell NIC driver how many bytes must be sent */
             pxNetworkBuffer->xDataLength = uxDataLength;
-
         }
 
     #endif /* ipconfigUSE_NBNS == 1 || ipconfigUSE_LLMNR == 1 */

@@ -792,7 +792,8 @@
     {
         NetworkEndPoint_t * pxEndPoint = NULL;
         BaseType_t xNeed_Endpoint = pdFALSE;
-        IPPreference_t xDNS_IP_Preference = xPreferenceIPv4;
+
+        xDNS_IP_Preference = xPreferenceIPv4;
 
         #if ( ipconfigUSE_LLMNR != 1 )
             ( void ) pcHostName;
