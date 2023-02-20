@@ -695,10 +695,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 /**
  * @brief Check IP-type, IP- and MAC-address found in the network packet.
  */
-    #define rMATCH_MAC_ADDR    0 /* Find an endpoint with a matching MAC-address. */
-    #define rMATCH_IP_TYPE     1 /* Find an endpoint with a matching IP-type, v4 or v6. */
-    #define rMATCH_IP_ADDR     2 /* Find an endpoint with a matching IP-address. */
-    #define rMATCH_COUNT       3 /* The number of methods. */
+    #define rMATCH_MAC_ADDR    0 /**< Find an endpoint with a matching MAC-address. */
+    #define rMATCH_IP_TYPE     1 /**< Find an endpoint with a matching IP-type, v4 or v6. */
+    #define rMATCH_IP_ADDR     2 /**< Find an endpoint with a matching IP-address. */
+    #define rMATCH_COUNT       3 /**< The number of methods. */
 
     NetworkEndPoint_t * pxEasyFit( const NetworkInterface_t * pxNetworkInterface,
                                    const uint16_t usFrameType,
@@ -706,6 +706,17 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                    const IP_Address_t * pxIPAddressTo,
                                    const MACAddress_t * pxMACAddress );
 
+    /**
+     * @brief Find an end-point that handles an incoming packet based on its type, source/destination & MAC address.
+     *
+     * @param[in] pxNetworkInterface: The interface via which the packet was received.
+     * @param[in] usFrameType: Frame type of the packet.
+     * @param[in] pxIPAddressFrom: Source IP address of the packet.
+     * @param[in] pxIPAddressTo: Destination IP address of the packet.
+     * @param[in] pxMACAddress: Destination MAC address of the packet.
+     *
+     * @return An end-point that handles the packet.
+     */
     NetworkEndPoint_t * pxEasyFit( const NetworkInterface_t * pxNetworkInterface,
                                    const uint16_t usFrameType,
                                    const IP_Address_t * pxIPAddressFrom,
@@ -1254,6 +1265,16 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     }
 /*-----------------------------------------------------------*/
 
+    /**
+     * @brief Returns the string representation of the IP address of the end point.
+     *
+     * @param[in] pxEndPoint: End point for which IP address needs to be returned.
+     * @param[in] pcBuffer: A char buffer of required size to which the string will be written.
+     * @param[in] uxSize: Size of the char buffer - pcBuffer.
+     * 
+     * @returns The pointer to the char buffer that contains the string representation of the end point IP address.
+     *          The string will be "NULL" if the end point pointer is NULL. 
+     */
     const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
                                  char * pcBuffer,
                                  size_t uxSize )

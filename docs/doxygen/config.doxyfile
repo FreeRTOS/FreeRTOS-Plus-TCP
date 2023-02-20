@@ -2372,7 +2372,8 @@ PREDEFINED             = DOXYGEN=1 \
                          ipconfigUSE_DHCPv6=1 \
                          ipconfigUSE_DNS_CACHE=1 \
                          ipconfigREPLY_TO_INCOMING_PINGS=1 \
-                         ipconfigSUPPORT_OUTGOING_PINGS=1 
+                         ipconfigSUPPORT_OUTGOING_PINGS=1 \
+                         ipconfigUSE_RA=1 
 
 
 
