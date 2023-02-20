@@ -189,6 +189,16 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
         /* The field ulTargetProtocolAddress is well-aligned, a 32-bits copy. */
         ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
 
+        if( uxARPClashCounter != 0U )
+        {
+            /* Has the timeout been reached? */
+            if( xTaskCheckForTimeOut( &xARPClashTimeOut, &uxARPClashTimeoutPeriod ) == pdTRUE )
+            {
+                /* We have waited long enough, reset the counter. */
+                uxARPClashCounter = 0;
+            }
+        }
+
         /* Check whether the lowest bit of the highest byte is 1 to check for
          * multicast address or even a broadcast address (FF:FF:FF:FF:FF:FF). */
         if( ( pxARPHeader->xSenderHardwareAddress.ucBytes[ 0 ] & 0x01U ) == 0x01U )
@@ -205,14 +215,44 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
              * section 3.2.1.3. */
             iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
         }
-        else
+        /* Check whether there is a clash with another device for this IP address. */
+        else if( ( pxTargetEndPoint != NULL ) && ( ulSenderProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) )
         {
+            if( uxARPClashCounter < arpIP_CLASH_MAX_RETRIES )
+            {
+                /* Increment the counter. */
+                uxARPClashCounter++;
+
+                /* Send out a defensive ARP request. */
+                FreeRTOS_OutputARPRequest( pxTargetEndPoint->ipv4_settings.ulIPAddress );
+
+                /* Since an ARP Request for this IP was just sent, do not send a gratuitous
+                 * ARP for arpGRATUITOUS_ARP_PERIOD. */
+                xLastGratuitousARPTime = xTaskGetTickCount();
+
+                /* Note the time at which this request was sent. */
+                vTaskSetTimeOutState( &xARPClashTimeOut );
+
+                /* Reset the time-out period to the given value. */
+                uxARPClashTimeoutPeriod = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
+            }
+
+            /* Process received ARP frame to see if there is a clash. */
             #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
                 {
-                    pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulSenderProtocolAddress, 2 ); /* Clash detection. */
-                }
-            #endif
+                    pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulSenderProtocolAddress, 2 );
 
+                    if( ( pxSourceEndPoint != NULL ) && ( pxSourceEndPoint->ipv4_settings.ulIPAddress == ulSenderProtocolAddress ) )
+                    {
+                        xARPHadIPClash = pdTRUE;
+                        /* Remember the MAC-address of the other device which has the same IP-address. */
+                        ( void ) memcpy( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( xARPClashMacAddress.ucBytes ) );
+                    }
+                }
+            #endif /* ipconfigARP_USE_CLASH_DETECTION */
+        }
+        else
+        {
             traceARP_PACKET_RECEIVED();
 
             /* Some extra logging while still testing. */
@@ -269,18 +309,6 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
                         break;
                 }
             }
-
-            /* Process received ARP frame to see if there is a clash. */
-            #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
-                {
-                    if( ( pxSourceEndPoint != NULL ) && ( pxSourceEndPoint->ipv4_settings.ulIPAddress == ulSenderProtocolAddress ) )
-                    {
-                        xARPHadIPClash = pdTRUE;
-                        /* Remember the MAC-address of the other device which has the same IP-address. */
-                        ( void ) memcpy( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( xARPClashMacAddress.ucBytes ) );
-                    }
-                }
-            #endif /* ipconfigARP_USE_CLASH_DETECTION */
         }
     }
     else

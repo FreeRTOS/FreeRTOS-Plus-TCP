@@ -104,6 +104,15 @@ enum eSOCKET_EVENT
 #endif
 
 /*
+ * Before creating a socket, check the validity of the parameters used
+ * and find the size of the socket space, which is different for UDP and TCP
+ */
+BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
+                                          BaseType_t xType,
+                                          BaseType_t xProtocol,
+                                          size_t * pxSocketSize );
+
+/*
  * Look up a local socket by finding a match with the local port.
  */
 FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort );
@@ -443,6 +452,22 @@ struct xSOCKET
 	u; /**< Union of TCP/UDP socket */
 };
 
+/** @brief Handle the socket options FREERTOS_SO_RCVTIMEO and
+ *         FREERTOS_SO_SNDTIMEO.
+ */
+void prvSetOptionTimeout( FreeRTOS_Socket_t * pxSocket,
+                                 const void * pvOptionValue,
+                                 BaseType_t xForSend );
+
+#if ( ipconfigUSE_CALLBACKS == 1 )
+
+/**
+ * @brief Set a callback function for either a TCP or a UDP socket.
+ */
+    BaseType_t prvSetOptionCallback( FreeRTOS_Socket_t * pxSocket,
+                                            int32_t lOptionName,
+                                            const void * pvOptionValue );
+#endif /* ( ipconfigUSE_CALLBACKS == 1 ) */
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
@@ -460,6 +485,9 @@ struct xSOCKET
         TaskHandle_t xTaskhandle;     /**< Task handle for use in the socket select functionality. */
         SocketSelect_t * pxSocketSet; /**< The event group for the socket select functionality. */
     } SocketSelectMessage_t;
+
+/* Executed by the IP-task, it will check all sockets belonging to a set */
+    void prvFindSelectedSocket( SocketSelect_t * pxSocketSet );
 
     void vSocketSelect( const SocketSelect_t * pxSocketSet );
 
