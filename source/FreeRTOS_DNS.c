@@ -557,7 +557,7 @@
  * @param[in] pcHostName: The hostname whose IP address is being queried.
  * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
  *                will be stored.
- * @param [in] xFamily indicae what type of record is needed:
+ * @param [in] xFamily indicate what type of record is needed:
  *             FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
  * @param[in] pCallbackFunction: The callback function which will be called upon DNS response.
  * @param[in] pvSearchID: Search ID for the callback function.

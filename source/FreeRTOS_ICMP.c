@@ -135,7 +135,7 @@
  *
  * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
  * @param pxNetworkBuffer: Pointer to the network buffer containing the ICMP packet.
- * @returns Funtion returns eReturnEthernetFrame.
+ * @returns Function returns eReturnEthernetFrame.
  */
     static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
                                                                const NetworkBufferDescriptor_t * const pxNetworkBuffer )

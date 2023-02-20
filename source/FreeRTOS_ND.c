@@ -53,7 +53,7 @@
 /* The entire module FreeRTOS_ND.c is skipped when IPv6 is not used. */
 #if ( ipconfigUSE_IPv6 != 0 )
 
-/** @brief Type of Neighbour Advertisement packets - SOLICITE. */
+/** @brief Type of Neighbour Advertisement packets - SOLICIT. */
     #define ndICMPv6_FLAG_SOLICITED                       0x40000000U
 /** @brief Type of Neighbour Advertisement packets - UPDATE. */
     #define ndICMPv6_FLAG_UPDATE                          0x20000000U

@@ -240,7 +240,6 @@ eestablished
 eevent
 eeventtype
 eexpectedstate
-eexpectedstate
 eframeconsumed
 eg
 egetlinklayeraddress
@@ -300,6 +299,7 @@ esocketsetdeleteevent
 esocketsignalevent
 espressif
 estacktxevent
+estatus
 esuccess
 etcpacceptevent
 etcpnetstat
@@ -900,7 +900,6 @@ pxendpoint
 pxevent
 pxeventbits
 pxfrom
-pxfrom
 pxgatewayaddress
 pxgetnetworkbuffer
 pxgetnetworkbufferwithdescriptor
@@ -918,11 +917,14 @@ pxinfo
 pxinterface
 pxip
 pxipaddress
+pxipaddressfrom
+pxipaddressto
 pxipheader
 pxippacket
 pxiswaitingforarpresolution
 pxiterator
 pxlastaddress
+pxleft
 pxlength
 pxlist
 pxlistfindlistitemwithvalue
@@ -1219,7 +1221,6 @@ uclinklayeripaddress
 ucmacaddress
 ucmaxresponsetime
 ucmessagetype
-ucmessagetype
 ucmywinscalefactor
 ucname
 ucnamecode
@@ -1427,6 +1428,7 @@ usdnstype
 usduidtype
 uselapsedtime
 userdaata
+usexpected
 usflags
 usflowlabel
 usfragmentoffset
@@ -1443,6 +1445,7 @@ usinitmss
 uslength
 uslifetime
 uslocalport
+usmask
 usmss
 usmssinit
 usnbflags
@@ -1473,6 +1476,7 @@ usurgent
 usvalue
 uswindow
 utf
+util
 uuid
 uxaddresslength
 uxarpclashcounter
@@ -1494,6 +1498,7 @@ uxflags
 uxfront
 uxgetminimumipqueuespace
 uxhead
+uxheaderbytes
 uxheaderlength
 uxhostlen
 uxhosttype
@@ -1531,6 +1536,7 @@ uxpayloadsize
 uxprefixlength
 uxprotocolheaderlength
 uxptr
+uxreloadtime
 uxremainingbytes
 uxremainingtime
 uxremaningtime
@@ -1551,7 +1557,6 @@ uxstreambuffermidspace
 uxtail
 uxtargetindex
 uxtaskgetsystemstate
-uxtickstowait
 uxtickstowait
 uxtimeout
 uxtimeoutstate
@@ -1669,7 +1674,6 @@ xclientid
 xclientsocket
 xcolon
 xconnected
-xcount
 xcount
 xcurlength
 xcurstart
