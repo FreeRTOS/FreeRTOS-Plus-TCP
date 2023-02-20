@@ -117,7 +117,7 @@
             {
                 pxNetworkBuffer = &xTempBuffer;
 
-                memset( &xTempBuffer, 0, sizeof( xTempBuffer ) );
+                ( void ) memset( &xTempBuffer, 0, sizeof( xTempBuffer ) );
                 #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
                     {
                         pxNetworkBuffer->pxNextBuffer = NULL;

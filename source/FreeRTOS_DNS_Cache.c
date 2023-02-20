@@ -592,18 +592,18 @@
                              * either IPv4 or IPv6. */
                             if( pxRow->xAddresses[ 0 ].xIs_IPv6 != pdFALSE )
                             {
-                                FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
-                                                    ( const void * ) pxRow->xAddresses[ xSubEntry ].xAddress_IPv6.ucBytes,
-                                                    pcAddress,
-                                                    sizeof( pcAddress ) );
+                                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
+                                                             ( const void * ) pxRow->xAddresses[ xSubEntry ].xAddress_IPv6.ucBytes,
+                                                             pcAddress,
+                                                             sizeof( pcAddress ) );
                             }
                             else
                         #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
                         {
-                            FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
-                                                ( const void * ) &( pxRow->xAddresses[ xSubEntry ].ulIPAddress ),
-                                                pcAddress,
-                                                sizeof( pcAddress ) );
+                            ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
+                                                         ( const void * ) &( pxRow->xAddresses[ xSubEntry ].ulIPAddress ),
+                                                         pcAddress,
+                                                         sizeof( pcAddress ) );
                         }
 
                         FreeRTOS_printf( ( "      %2u: %s\n",
