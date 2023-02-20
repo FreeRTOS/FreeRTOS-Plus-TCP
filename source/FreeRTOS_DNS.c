@@ -1193,7 +1193,6 @@
                                         &xReceiveBuffer );
 
                 if( ( uxReadTimeOut_ticks > 0U ) &&
-                    ( pxEndPoint != NULL ) &&
                     ( ( xBytes == -pdFREERTOS_ERRNO_EWOULDBLOCK ) ||
                       ( xBytes == 0 ) ) )
                 {
