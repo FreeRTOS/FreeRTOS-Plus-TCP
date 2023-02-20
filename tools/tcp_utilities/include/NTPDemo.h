@@ -24,55 +24,32 @@
  */
 
 /*
- * tcp_mem_stats.h
+ * A simple demo for NTP using FreeRTOS+TCP
  */
 
+#ifndef NTPDEMO_H
 
-#ifndef TCP_MEM_STATS_H
+#define NTPDEMO_H
 
-    #define TCP_MEM_STATS_H
+void vStartNTPTask( uint16_t usTaskStackSize,
+                    UBaseType_t uxTaskPriority );
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
+/*
+ * xIPVersion = 4 or 6.
+ * xAsynchronous = true for asynchronous DNS lookups.
+ * xLogging = true to get more logging.
+ */
+void vNTPSetNTPType( BaseType_t aIPType,
+                     BaseType_t xAsynchronous,
+                     BaseType_t xLogging );
 
-    typedef enum xTCP_MEMORY
-    {
-        tcpSOCKET_TCP,
-        tcpSOCKET_UDP,
-        tcpSOCKET_SET,
-        tcpSEMAPHORE,
-        tcpRX_STREAM_BUFFER,
-        tcpTX_STREAM_BUFFER,
-        tcpNETWORK_BUFFER,
-    } TCP_MEMORY_t;
+/* Delete the IP-addresses of the NTP server to force a DNS lookup. */
+void vNTPClearCache( void );
 
-    #if ( ipconfigUSE_TCP_MEM_STATS != 0 )
+/* Check if the NTP task is running. */
+BaseType_t xNTPTaskIsRunning( void );
 
-        void vTCPMemStatCreate( TCP_MEMORY_t xMemType,
-                                void * pxObject,
-                                size_t uxSize );
+extern BaseType_t xNTPHasTime;
+extern uint32_t ulNTPTime;
 
-        void vTCPMemStatDelete( void * pxObject );
-
-        void vTCPMemStatClose( void );
-
-        #define iptraceMEM_STATS_CREATE( xMemType, pxObject, uxSize ) \
-    vTCPMemStatCreate( xMemType, pxObject, uxSize )
-
-        #define iptraceMEM_STATS_DELETE( pxObject ) \
-    vTCPMemStatDelete( pxObject )
-
-        #define iptraceMEM_STATS_CLOSE() \
-    vTCPMemStatClose()
-    #else /* if ( ipconfigUSE_TCP_MEM_STATS != 0 ) */
-
-/* The header file 'IPTraceMacroDefaults.h' will define the default empty macro's. */
-
-    #endif /* ipconfigUSE_TCP_MEM_STATS != 0 */
-
-    #ifdef __cplusplus
-        } /* extern "C" */
-    #endif
-
-#endif /* TCP_MEM_STATS_H */
+#endif /* ifndef NTPDEMO_H */

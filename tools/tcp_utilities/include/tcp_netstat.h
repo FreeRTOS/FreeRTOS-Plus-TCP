@@ -1,8 +1,6 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
- *
- * SPDX-License-Identifier: MIT
+ * FreeRTOS+TCP V2.3.0
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -101,7 +99,7 @@ typedef struct
     TCPSocketList_t xTCPSocketList;
     UDPSocketList_t xUDPSocketList;
     IOCounters_t xInput;
-    IOCounters_t xOutput;
+    IOCounters_t XOutput;
 } MetricsType_t;
 
 extern BaseType_t vGetMetrics( MetricsType_t * pxMetrics );
