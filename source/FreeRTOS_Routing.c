@@ -1210,7 +1210,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  * @param[in] pxAddress: The IPv6 address whose type needs to be returned.
  * @returns The IP type of the given address.
  */
-    IPv6_Type_t xIPv6_GetIPType( IPv6_Address_t * pxAddress )
+    IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
     {
         IPv6_Type_t eResult = eIPv6_Unknown;
         BaseType_t xIndex;
