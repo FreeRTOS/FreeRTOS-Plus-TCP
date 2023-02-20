@@ -790,6 +790,7 @@
 
 
     #if ( ipconfigHAS_PRINTF == 1 )
+
 /**
  * @brief Returns a printable string for the major ICMPv6 message types.  Used for
  *        debugging only.

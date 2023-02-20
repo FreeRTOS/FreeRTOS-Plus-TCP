@@ -817,7 +817,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
  * @param[in,out] pxMACAddress: Pointer to a MACAddress_t variable where the MAC address
  *                          will be stored, if found.
  * @param[out] ppxEndPoint: Pointer to the end-point of the gateway will be stored.
- * 
+ *
  * @return If the IP address exists, copy the associated MAC address into pxMACAddress,
  *         refresh the ARP cache entry's age, and return eARPCacheHit. If the IP
  *         address does not exist in the ARP cache return eARPCacheMiss. If the packet

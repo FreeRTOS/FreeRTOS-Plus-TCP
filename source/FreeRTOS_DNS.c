@@ -102,9 +102,10 @@
 
 /*-----------------------------------------------------------*/
     #if ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 )
-        /**
-        * @brief The IPv6 link-scope multicast address
-        */
+
+/**
+ * @brief The IPv6 link-scope multicast address
+ */
         const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6 =
         {
             #ifndef _MSC_VER
@@ -122,17 +123,19 @@
                 0x00, 0x03,
             }
         };
-        /**
-        * @brief The IPv6 link-scope multicast MAC address
-        */
+
+/**
+ * @brief The IPv6 link-scope multicast MAC address
+ */
         const
         const MACAddress_t xLLMNR_MacAdressIPv6 = { { 0x33, 0x33, 0x00, 0x01, 0x00, 0x03 } };
     #endif /* ipconfigUSE_LLMNR && ipconfigUSE_IPv6 */
 
     #if ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 )
-        /**
-        * @brief multicast DNS IPv6 address
-        */
+
+/**
+ * @brief multicast DNS IPv6 address
+ */
         const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
         {
             #ifndef _MSC_VER
@@ -151,11 +154,11 @@
             }
         };
 
-        /**
-        * @brief The IPv6 multicast DNS MAC address. 
-        * The MAC-addresses are provided here in case a network
-        * interface needs it.
-        */
+/**
+ * @brief The IPv6 multicast DNS MAC address.
+ * The MAC-addresses are provided here in case a network
+ * interface needs it.
+ */
         const MACAddress_t xMDNS_MACAdressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
     #endif /* ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) */
 

@@ -127,6 +127,7 @@
         return xIPv46_Address.ulIPAddress;
     }
 /*-----------------------------------------------------------*/
+
 /**
  * @brief Perform a dns lookup in the local cache (IPv6)
  * @param pcHostName The lookup name
@@ -540,14 +541,15 @@
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_DNS_CACHE == 1 )
-        /**
-         * @brief Lookup the given hostname in the DNS cache
-         * @param[in] pcHostName: THe host name to lookup
-         * @param[in] xFamily: IP type FREERTOS_AF_INET6 / FREERTOS_AF_INET4
-         * @param[out] ppxAddressInfo: Target to store the DNS entries.
-         * @returns This function returns either a valid IPv4 address, or
-         *                          in case of an IPv6 lookup, it will return a non-zero.
-         */
+
+/**
+ * @brief Lookup the given hostname in the DNS cache
+ * @param[in] pcHostName: THe host name to lookup
+ * @param[in] xFamily: IP type FREERTOS_AF_INET6 / FREERTOS_AF_INET4
+ * @param[out] ppxAddressInfo: Target to store the DNS entries.
+ * @returns This function returns either a valid IPv4 address, or
+ *                          in case of an IPv6 lookup, it will return a non-zero.
+ */
         uint32_t Prepare_CacheLookup( const char * pcHostName,
                                       BaseType_t xFamily,
                                       struct freertos_addrinfo ** ppxAddressInfo )

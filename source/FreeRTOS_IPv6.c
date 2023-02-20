@@ -47,19 +47,19 @@
 
 /**
  * This variable is initialized by the system to contain the wildcard IPv6 address.
-*/
+ */
 const struct xIPv6_Address in6addr_any = { 0 };
 
 /**
  * This variable is initialized by the system to contain the loopback IPv6 address.
-*/
+ */
 const struct xIPv6_Address in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
 
 /**
  * @brief Check whether this IPv6 address is a multicast address or not.
  *
  * @param[in] pxIPAddress: The IP address to be checked.
- * 
+ *
  * @return Returns pdTRUE if pxIPAddress is a multicast address, pdFALSE if not .
  */
 BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
@@ -82,15 +82,15 @@ BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Compares 2 IPv6 addresses and checks if the one 
+ * @brief Compares 2 IPv6 addresses and checks if the one
  * on the left can handle the one on right. Note that 'xCompareIPv6_Address' will also check if 'pxRight' is
  * the special unicast address: ff02::1:ffnn:nnnn, where nn:nnnn are
- * the last 3 bytes of the IPv6 address. 
+ * the last 3 bytes of the IPv6 address.
  *
  * @param[in] pxLeft: First IP address.
  * @param[in] pxRight: Second IP address.
  * @param[in] uxPrefixLength: The IP address prefix length in bits.
- * 
+ *
  * @return Returns 0 if it can handle it, else non zero .
  */
 BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,

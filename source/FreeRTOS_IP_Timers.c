@@ -388,11 +388,12 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_TCP == 1 )
-    /**
-     * @brief Sets the reload time of the TCP timer and restarts it.
-     *
-     * @param[in] xTime: Time to be reloaded into the TCP timer.
-     */
+
+/**
+ * @brief Sets the reload time of the TCP timer and restarts it.
+ *
+ * @param[in] xTime: Time to be reloaded into the TCP timer.
+ */
     void vTCPTimerReload( TickType_t xTime )
     {
         prvIPTimerReload( &xTCPTimer, xTime );

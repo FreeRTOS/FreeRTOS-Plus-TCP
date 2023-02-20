@@ -77,21 +77,21 @@
 
 /* IPv6 option numbers. */
 /** @brief IPv6 DHCP option number - Solicit */
-#define DHCPv6_message_Type_Solicit                1U
+#define DHCPv6_message_Type_Solicit      1U
 /** @brief IPv6 DHCP option number - Advertise */
-#define DHCPv6_message_Type_Advertise              2U
+#define DHCPv6_message_Type_Advertise    2U
 /** @brief IPv6 DHCP option number - Request */
-#define DHCPv6_message_Type_Request                3U
+#define DHCPv6_message_Type_Request      3U
 /** @brief IPv6 DHCP option number - Confirm */
-#define DHCPv6_message_Type_Confirm                4U
+#define DHCPv6_message_Type_Confirm      4U
 /** @brief IPv6 DHCP option number - Renew  */
-#define DHCPv6_message_Type_Renew                  5U
+#define DHCPv6_message_Type_Renew        5U
 /** @brief IPv6 DHCP option number - Reply */
-#define DHCPv6_message_Type_Reply                  7U
+#define DHCPv6_message_Type_Reply        7U
 /** @brief IPv6 DHCP option number - Release */
-#define DHCPv6_message_Type_Release                8U
+#define DHCPv6_message_Type_Release      8U
 /** @brief IPv6 DHCP option number - Decline */
-#define DHCPv6_message_Type_Decline                9U
+#define DHCPv6_message_Type_Decline      9U
 
 /* Note: IA stands for "Identity_Association". */
 /** @brief IPv6 DHCP option - Client Identifier */
@@ -209,7 +209,7 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
 
 /**
  * @brief DHCP IPv6 message object
-*/
+ */
 static DHCPMessage_IPv6_t xDHCPMessage;
 
 /**
@@ -218,7 +218,7 @@ static DHCPMessage_IPv6_t xDHCPMessage;
  * @param[in] pxEndPoint: The end-point for which vDHCPv6Process() is called.
  *
  * @return DHCP state of the given endpoint
- * 
+ *
  */
 eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint * pxEndPoint )
 {

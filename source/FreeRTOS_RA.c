@@ -245,14 +245,14 @@
     }
 /*-----------------------------------------------------------*/
 
-    /**
-     * @brief Read a received RA reply and return the prefix option from the packet.
-     *
-     * @param[in] pxNetworkBuffer: The buffer that contains the message.
-     * 
-     * @returns Returns the ICMP prefix option pointer, pointing to its location in the
-     *          input RA reply message buffer.  
-     */
+/**
+ * @brief Read a received RA reply and return the prefix option from the packet.
+ *
+ * @param[in] pxNetworkBuffer: The buffer that contains the message.
+ *
+ * @returns Returns the ICMP prefix option pointer, pointing to its location in the
+ *          input RA reply message buffer.
+ */
     static ICMPPrefixOption_IPv6_t * vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         size_t uxIndex = 0U;
@@ -440,17 +440,17 @@
     }
 /*-----------------------------------------------------------*/
 
-    /**
-     * @brief Handles the RA wait state and calculates the new timer reload value
-     *        based on the wait state. Also checks if any timer has expired. If its found that
-     *        there is no other device using the same IP-address vIPNetworkUpCalls() is called
-     *        to send the network up event.
-     *
-     * @param[in] pxEndPoint: The end point for which RA assignment is required.
-     * @param[out] uxReloadTime: Timer reload value in ticks.
-     *
-     * @return New timer reload value.
-     */
+/**
+ * @brief Handles the RA wait state and calculates the new timer reload value
+ *        based on the wait state. Also checks if any timer has expired. If its found that
+ *        there is no other device using the same IP-address vIPNetworkUpCalls() is called
+ *        to send the network up event.
+ *
+ * @param[in] pxEndPoint: The end point for which RA assignment is required.
+ * @param[out] uxReloadTime: Timer reload value in ticks.
+ *
+ * @return New timer reload value.
+ */
     static TickType_t xRAProcess_HandleWaitStates( NetworkEndPoint_t * pxEndPoint,
                                                    TickType_t uxReloadTime )
     {
@@ -535,14 +535,14 @@
     }
 /*-----------------------------------------------------------*/
 
-    /**
-     * @brief Handles the RA states other than the wait states.
-     *
-     * @param[in] pxEndPoint: The end point for which RA assignment is required.
-     * @param[out] uxReloadTime: Timer reload value in ticks.
-     *
-     * @return New timer reload value.
-     */
+/**
+ * @brief Handles the RA states other than the wait states.
+ *
+ * @param[in] pxEndPoint: The end point for which RA assignment is required.
+ * @param[out] uxReloadTime: Timer reload value in ticks.
+ *
+ * @return New timer reload value.
+ */
     static TickType_t xRAProcess_HandleOtherStates( NetworkEndPoint_t * pxEndPoint,
                                                     TickType_t uxReloadTime )
     {
