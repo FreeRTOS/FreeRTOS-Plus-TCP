@@ -79,6 +79,8 @@ BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( BaseType_
 
 BaseType_t xSocketValid( const ConstSocket_t xSocket )
 {
+    /* This proof assumes that the socket will be valid to make the proof run
+    without causing asserts in the DHCP source [configASSERT( xSocketValid( xDHCPv4Socket ) == pdTRUE );] */
     return pdTRUE;
 }
 
