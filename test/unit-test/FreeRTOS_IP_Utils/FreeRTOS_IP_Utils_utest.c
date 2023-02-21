@@ -329,6 +329,7 @@ void test_prvProcessNetworkDownEvent_Fail( void )
     xCallEventHook = pdFALSE;
     xInterfaces[ 0 ].pfInitialise = &xNetworkInterfaceInitialise_returnTrue;
     xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
+    xEndPoint.bits.bWantDHCP = pdFALSE_UNSIGNED;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
