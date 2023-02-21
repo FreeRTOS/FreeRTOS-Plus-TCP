@@ -300,6 +300,7 @@ void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
     xDHCPTimer.bExpired = pdTRUE;
 
     xEndPoint.pxNext = NULL;
+    xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
     xEndPoint.bits.bWantDHCP = pdTRUE_UNSIGNED;
     xEndPoint.xDHCP_RATimer.bActive = pdTRUE;
     xEndPoint.xDHCP_RATimer.bExpired = pdTRUE;
@@ -331,6 +332,7 @@ void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
     xDNSTimer.bExpired = pdTRUE;
 
     xEndPoint.pxNext = NULL;
+    xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
     xEndPoint.xDHCP_RATimer.bActive = pdFALSE;
     xEndPoint.xDHCP_RATimer.bExpired = pdTRUE;
     pxNetworkEndPoints = &xEndPoint;
@@ -474,6 +476,7 @@ void test_vDHCP_RATimerReload( void )
     xEndPoint.bits.bWantDHCP = pdTRUE_UNSIGNED;
     xEndPoint.xDHCP_RATimer.bActive = pdTRUE;
     xEndPoint.xDHCP_RATimer.bExpired = pdTRUE;
+    xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
 
     vTaskSetTimeOutState_Expect( &( xEndPoint.xDHCP_RATimer.xTimeOut ) );
 
@@ -628,6 +631,7 @@ void test_vIPSetDHCP_RATimerEnableState_False( void )
     struct xNetworkEndPoint xEndPoint;
     BaseType_t xEnableState = pdFALSE;
 
+    xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
     vIPSetDHCP_RATimerEnableState( &xEndPoint, xEnableState );
 
     TEST_ASSERT_EQUAL( xEnableState, xDHCPTimer.bActive );
@@ -638,6 +642,7 @@ void test_vIPSetDHCP_RATimerEnableState_True( void )
     struct xNetworkEndPoint xEndPoint;
     BaseType_t xEnableState = pdTRUE;
 
+    xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
     vIPSetDHCP_RATimerEnableState( &xEndPoint, xEnableState );
 
     TEST_ASSERT_EQUAL( xEnableState, xEndPoint.xDHCP_RATimer.bActive );
