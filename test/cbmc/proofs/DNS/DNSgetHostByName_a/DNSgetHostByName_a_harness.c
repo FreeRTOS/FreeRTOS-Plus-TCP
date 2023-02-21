@@ -95,6 +95,8 @@ void func( const char * pcHostName,
                       "Precondition: pcHostName != NULL" );
     __CPROVER_assert( pvSearchID != NULL,
                       "Precondition: pvSearchID != NULL" );
+    __CPROVER_assert( pxAddressInfo != NULL,
+                      "Precondition: pxAddressInfo != NULL" );
 }
 
 BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
@@ -172,8 +174,6 @@ void harness()
     /* Interface init. */
     pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
-
-    //pxNetworkEndPoints->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
     __CPROVER_assume( len <= MAX_HOSTNAME_LEN );
     char * pcHostName = safeMalloc( len );
