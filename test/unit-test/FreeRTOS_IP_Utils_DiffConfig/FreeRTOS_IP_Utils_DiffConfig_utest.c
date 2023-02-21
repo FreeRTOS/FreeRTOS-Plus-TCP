@@ -179,6 +179,7 @@ void test_prvProcessNetworkDownEvent_Pass_DHCP_Disabled( void )
     NetworkEndPoint_t xEndPoint;
 
     xCallEventHook = pdFALSE;
+    xEndPoint.bits.bCallDownHook = 1;
 
     xInterface.pfInitialise = xNetworkInterfaceInitialise_test;
 
@@ -186,6 +187,7 @@ void test_prvProcessNetworkDownEvent_Pass_DHCP_Disabled( void )
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( &xInterface, &xEndPoint );
 
+    vApplicationIPNetworkEventHook_Expect( eNetworkDown, &xEndPoint );
     FreeRTOS_ClearARP_Expect( &xEndPoint );
 
     FreeRTOS_NextEndPoint_ExpectAndReturn( &xInterface, &xEndPoint, NULL );
@@ -195,6 +197,7 @@ void test_prvProcessNetworkDownEvent_Pass_DHCP_Disabled( void )
     FreeRTOS_FirstEndPoint_ExpectAndReturn( &xInterface, &xEndPoint );
 
     xEndPoint.bits.bWantDHCP = pdFALSE;
+    xEndPoint.bits.bWantRA = pdFALSE;
 
     vIPNetworkUpCalls_Expect( &xEndPoint );
 
