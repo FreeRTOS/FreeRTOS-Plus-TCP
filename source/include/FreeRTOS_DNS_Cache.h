@@ -50,7 +50,7 @@
     void vShowDNSCacheTable( void );
 
     BaseType_t FreeRTOS_dns_update( const char * pcName,
-                                    IPv46_Address_t * pulIP,
+                                    IPv46_Address_t * pxIP,
                                     uint32_t ulTTL,
                                     BaseType_t xLookUp,
                                     struct freertos_addrinfo ** ppxAddressInfo );

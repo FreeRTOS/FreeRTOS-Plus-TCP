@@ -152,6 +152,11 @@
         const MACAddress_t xMDNS_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } };
     #endif /* ipconfigUSE_MDNS == 1 */
 
+    /** @brief This global variable is being used to indicate to the driver which IP type
+ *         is preferred for name service lookup, either IPv6 or IPv4. */
+/* TODO: Fix IPv6 DNS query in Windows Simulator. */
+    IPPreference_t xDNS_IP_Preference = xPreferenceIPv4;
+
 /*-----------------------------------------------------------*/
 
 /**
@@ -792,8 +797,6 @@
     {
         NetworkEndPoint_t * pxEndPoint = NULL;
         BaseType_t xNeed_Endpoint = pdFALSE;
-
-        xDNS_IP_Preference = xPreferenceIPv4;
 
         #if ( ipconfigUSE_LLMNR != 1 )
             ( void ) pcHostName;
