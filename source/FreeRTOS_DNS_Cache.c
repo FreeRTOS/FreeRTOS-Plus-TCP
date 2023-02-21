@@ -260,14 +260,38 @@
             }
         }
 
-        if( ( xLookUp == pdFALSE ) || ( pxIP->ulIPAddress != 0U ) )
-        {
-            FreeRTOS_debug_printf( ( "FreeRTOS_ProcessDNSCache: %s: '%s' @ %xip (TTL %u)\n",
-                                     ( xLookUp != 0 ) ? "look-up" : "add",
-                                     pcName,
-                                     ( unsigned ) FreeRTOS_ntohl( pxIP->ulIPAddress ),
-                                     ( unsigned ) FreeRTOS_ntohl( ulTTL ) ) );
-        }
+        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+            if( ( xLookUp == pdFALSE ) || ( pxIP->ulIPAddress != 0U ) )
+            {
+                char pcAddress[ 40 ];
+                IP_Address_t xAddress;
+                BaseType_t xFamily = FREERTOS_AF_INET;
+
+                if( pxIP->xIs_IPv6 != 0U )
+                {
+                    ( void ) memcpy( xAddress.xIP_IPv6.ucBytes, pxIP->xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+                    if( pxIP->xIs_IPv6 != 0U )
+                    {
+                        xFamily = FREERTOS_AF_INET6;
+                    }
+                }
+                else
+                {
+                    xAddress.ulIP_IPv4 = pxIP->ulIPAddress;
+                }
+
+                ( void ) FreeRTOS_inet_ntop( xFamily,
+                                             ( const void * ) xAddress.xIP_IPv6.ucBytes,
+                                             pcAddress,
+                                             ( socklen_t ) sizeof( pcAddress ) );
+                FreeRTOS_debug_printf( ( "FreeRTOS_ProcessDNSCache: %s: '%s' @ %s (TTL %u)\n",
+                                         ( xLookUp != 0 ) ? "look-up" : "add",
+                                         pcName,
+                                         pcAddress,
+                                         ( unsigned ) FreeRTOS_ntohl( ulTTL ) ) );
+            }
+        #endif /* ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
         return xResult;
     }
