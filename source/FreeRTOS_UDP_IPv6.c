@@ -414,7 +414,10 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
-    UDPPacket_IPv6_t * pxUDPPacket_IPv6;
+    /* When refreshing the ARP/ND cache with received UDP packets we must be
+     * careful;  hundreds of broadcast messages may pass and if we're not
+     * handling them, no use to fill the cache with those IP addresses. */
+    UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t* ) pxNetworkBuffer->pucEthernetBuffer );
 
     /* Caller must check for minimum packet size. */
     pxSocket = pxUDPSocketLookup( usPort );
@@ -425,20 +428,17 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
     {
         if( pxSocket != NULL )
         {
-            if( *ipLOCAL_IP_ADDRESS_POINTER != 0U )
+            if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
             {
-                /* When refreshing the ARP/ND cache with received UDP packets we must be
-                 * careful;  hundreds of broadcast messages may pass and if we're not
-                 * handling them, no use to fill the ARP cache with those IP addresses. */
-                pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-                vNDRefreshCacheEntry( &( pxUDPPacket_IPv6->xEthernetHeader.xSourceAddress ), &( pxUDPPacket_IPv6->xIPHeader.xSourceAddress ),
-                                      pxNetworkBuffer->pxEndPoint );
+                /* Mark this packet as waiting for ARP resolution. */
+                *pxIsWaitingForARPResolution = pdTRUE;
+
+                /* Return a fail to show that the frame will not be processed right now. */
+                xReturn = pdFAIL;
+                break;
             }
-            else
-            {
-                /* During DHCP, IP address is not assigned and therefore ARP verification
-                 * is not possible. */
-            }
+            vNDRefreshCacheEntry( &( pxUDPPacket_IPv6->xEthernetHeader.xSourceAddress ), &( pxUDPPacket_IPv6->xIPHeader.xSourceAddress ),
+                                  pxNetworkBuffer->pxEndPoint );
 
             #if ( ipconfigUSE_CALLBACKS == 1 )
                 {

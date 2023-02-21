@@ -505,16 +505,26 @@
         #else
             {
                 /* Map the ethernet buffer onto the TCPPacket_t struct for easy access to the fields. */
-                uint32_t ulSendLength = ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */
+
                 /* MISRA Ref 11.3.1 [Misaligned access] */
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
-                TCPPacket_IPv6_t * pxTCPPacket_IPv6 = ( ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+                TCPPacket_IPv6_t * pxTCPPacket = ( ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+                const uint32_t ulSendLength =
+                    ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER; /* Plus 0 options. */
 
-                if( pxTCPPacket_IPv6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+                uint8_t ucFlagsReceived = pxTCPPacket->xTCPHeader.ucTCPFlags;
+                pxTCPPacket->xTCPHeader.ucTCPFlags = ucTCPFlags;
+                pxTCPPacket->xTCPHeader.ucTCPOffset = ( ipSIZE_OF_TCP_HEADER ) << 2;
+
+                if( ( ucFlagsReceived & tcpTCP_FLAG_SYN ) != 0U )
                 {
-                    pxTCPPacket_IPv6->xTCPHeader.ucTCPFlags = ucTCPFlags;
-                    pxTCPPacket_IPv6->xTCPHeader.ucTCPOffset = ( ipSIZE_OF_TCP_HEADER ) << 2;
+                    /* A synchronise packet is received. It counts as 1 pseudo byte of data,
+                     * so increase the variable with 1. Before sending a reply, the values of
+                     * 'ulSequenceNumber' and 'ulAckNr' will be swapped. */
+                    uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulSequenceNumber );
+                    ulSequenceNumber++;
+                    pxTCPPacket->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( ulSequenceNumber );
                 }
 
                 prvTCPReturnPacket( NULL, pxNetworkBuffer, ulSendLength, pdFALSE );

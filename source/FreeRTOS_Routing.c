@@ -698,10 +698,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         BaseType_t xIndex;
         BaseType_t xIsIPv6 = ( usFrameType == ipIPv6_FRAME_TYPE ) ? pdTRUE : pdFALSE;
         BaseType_t xGatewayTarget = pdFALSE;
-        IPv6_Type_t xTargetType = eIPv6_LinkLocal;
+        BaseType_t xTargetGlobal = pdFALSE;
 
         if( xIsIPv6 == pdTRUE )
         {
+            /* Generic GW address fe80::1. */
             static const uint8_t ucBytes[ 16 ] =
             {
                 0xfe, 0x80, 0x00, 0x00,
@@ -718,7 +719,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                    pxIPAddressTo->xIP_IPv6.ucBytes ) );
             }
 
-            xTargetType = xIPv6_GetIPType( &( pxIPAddressTo->xIP_IPv6 ) );
+            xTargetGlobal = ( xIPv6_GetIPType( &( pxIPAddressTo->xIP_IPv6 ) ) == eIPv6_Global ) ? pdTRUE : pdFALSE;
         }
 
         for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface );
@@ -735,16 +736,14 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 if( xIsIPv6 != 0 )
                 {
                     IPv6_Type_t xEndpointType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+                    BaseType_t xEndpointGlobal = ( xEndpointType == eIPv6_Global ) ? pdTRUE : pdFALSE;
 
-                    if( ( memcmp( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxIPAddressTo->xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 ) ||
-                        ( ( xGatewayTarget == pdTRUE ) && ( xEndpointType == eIPv6_LinkLocal ) ) )
+                    if( ( memcmp( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxIPAddressTo->xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 ) )
                     {
                         pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
                         xCount[ rMATCH_IP_ADDR ]++;
                     }
-
-                    if( ( xTargetType == eIPv6_Multicast ) &&
-                        ( xEndpointType == eIPv6_LinkLocal ) )
+                    else if( xTargetGlobal == xEndpointGlobal )
                     {
                         pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
                         xCount[ rMATCH_IP_ADDR ]++;
@@ -761,11 +760,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
                 if( xSameMACAddress == pdTRUE )
                 {
-                    if( ( pxFound[ rMATCH_MAC_ADDR ] == NULL ) || ( xIsIPv6 != ( uint32_t ) pxFound[ rMATCH_MAC_ADDR ]->bits.bIPv6 ) )
-                    {
-                        xCount[ rMATCH_MAC_ADDR ]++;
-                    }
-
+                    xCount[ rMATCH_MAC_ADDR ]++;
                     pxFound[ rMATCH_MAC_ADDR ] = pxEndPoint;
                 }
             }
@@ -797,9 +792,9 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
                 FreeRTOS_printf( ( "EasyFit[%s]: %d %d %d ( %s ->%s ) %s\n",
                                    ( usFrameType == ipIPv6_FRAME_TYPE ) ? "IPv6" : ( usFrameType == ipIPv4_FRAME_TYPE ) ? "IPv4" : ( usFrameType == ipARP_FRAME_TYPE ) ? "ARP" : "UNK",
-                                   xCount[ 0 ],
-                                   xCount[ 1 ],
-                                   xCount[ 2 ],
+                                   ( unsigned ) xCount[ 0 ],
+                                   ( unsigned ) xCount[ 1 ],
+                                   ( unsigned ) xCount[ 2 ],
                                    pcBufferFrom,
                                    pcBufferTo,
                                    ( pxReturn == NULL ) ? "BAD" : "Good" ) );
@@ -888,7 +883,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                     xIPAddressFrom.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
                 }
 
-                FreeRTOS_printf( ( "pxEasyFit: ARP %xip -> %xip\n", FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
+                FreeRTOS_printf( ( "pxEasyFit: ARP %xip -> %xip\n", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
             }
             else /* ipIPv4_FRAME_TYPE */
             {

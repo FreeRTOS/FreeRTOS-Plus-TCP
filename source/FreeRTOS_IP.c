@@ -1772,31 +1772,32 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
              * entry. */
             if( ucProtocol != ( uint8_t ) ipPROTOCOL_UDP )
             {
-                /* Refresh the ARP cache with the IP/MAC-address of the received
-                 *  packet.  For UDP packets, this will be done later in
-                 *  xProcessReceivedUDPPacket(), as soon as it's know that the message
-                 *  will be handled.  This will prevent the ARP cache getting
-                 *  overwritten with the IP address of useless broadcast packets. */
-                if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-                {
-                    vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
-                }
-                else
-
                 if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
                 {
                     eReturn = eWaitingARPResolution;
                 }
                 else
                 {
-                    /* IP address is not on the same subnet, ARP table can be updated.
-                     * Refresh the ARP cache with the IP/MAC-address of the received
-                     *  packet. For UDP packets, this will be done later in
+                    /* Refresh the ARP cache with the IP/MAC-address of the received
+                     *  packet.  For UDP packets, this will be done later in
                      *  xProcessReceivedUDPPacket(), as soon as it's know that the message
                      *  will be handled.  This will prevent the ARP cache getting
-                     *  overwritten with the IP address of useless broadcast packets.
-                     */
-                    vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+                     *  overwritten with the IP address of useless broadcast packets. */
+                    if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+                    {
+                        vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
+                    }
+                    else
+                    {
+                        /* IP address is not on the same subnet, ARP table can be updated.
+                         * Refresh the ARP cache with the IP/MAC-address of the received
+                         *  packet. For UDP packets, this will be done later in
+                         *  xProcessReceivedUDPPacket(), as soon as it's know that the message
+                         *  will be handled.  This will prevent the ARP cache getting
+                         *  overwritten with the IP address of useless broadcast packets.
+                         */
+                        vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+                    }
                 }
             }
 
@@ -1812,7 +1813,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                          * went wrong because it will not be able to validate what it
                          * receives. */
                         #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                            eReturn = ProcessICMPPacket( pxNetworkBuffer );
+                            {
+                                eReturn = ProcessICMPPacket( pxNetworkBuffer );
+                            }
                         #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
                         break;
 
