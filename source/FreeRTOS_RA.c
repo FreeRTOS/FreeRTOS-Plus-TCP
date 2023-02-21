@@ -309,7 +309,7 @@
                    break;
 
                 default:
-                    FreeRTOS_printf( ( "RA: Type %02x not implemented\n", ucType ) );
+                    FreeRTOS_printf( ( "RA: Type 0x%02x not implemented\n", ucType ) );
                     break;
             }
 
@@ -345,46 +345,49 @@
         }
         else
         {
-            #if ( ipconfigHAS_PRINTF == 1 )
-                {
-                    const ICMPRouterAdvertisement_IPv6_t * pxAdvertisement = ( ( const ICMPRouterAdvertisement_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
-                    FreeRTOS_printf( ( "RA: Type %02x Srv %02x Checksum %04x Hops %d Flags %02x Life %d\n",
-                                       pxAdvertisement->ucTypeOfMessage,
-                                       pxAdvertisement->ucTypeOfService,
-                                       FreeRTOS_ntohs( pxAdvertisement->usChecksum ),
-                                       pxAdvertisement->ucHopLimit,
-                                       pxAdvertisement->ucFlags,
-                                       FreeRTOS_ntohs( pxAdvertisement->usLifetime ) ) );
-                }
-            #endif /* ( ipconfigHAS_PRINTF == 1 ) */
+            const ICMPRouterAdvertisement_IPv6_t * pxAdvertisement = ( ( const ICMPRouterAdvertisement_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
+            FreeRTOS_printf( ( "RA: Type %02x Srv %02x Checksum %04x Hops %d Flags %02x Life %d\n",
+                               pxAdvertisement->ucTypeOfMessage,
+                               pxAdvertisement->ucTypeOfService,
+                               FreeRTOS_ntohs( pxAdvertisement->usChecksum ),
+                               pxAdvertisement->ucHopLimit,
+                               pxAdvertisement->ucFlags,
+                               FreeRTOS_ntohs( pxAdvertisement->usLifetime ) ) );
 
-            pxPrefixOption = vReceiveRA_ReadReply( pxNetworkBuffer );
-
-            configASSERT( pxNetworkBuffer->pxInterface != NULL );
-
-            if( pxPrefixOption != NULL )
+            if( pxAdvertisement->usLifetime != 0U )
             {
-                NetworkEndPoint_t * pxEndPoint;
+                pxPrefixOption = vReceiveRA_ReadReply( pxNetworkBuffer );
 
-                for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkBuffer->pxInterface );
-                     pxEndPoint != NULL;
-                     pxEndPoint = FreeRTOS_NextEndPoint( pxNetworkBuffer->pxInterface, pxEndPoint ) )
+                configASSERT( pxNetworkBuffer->pxInterface != NULL );
+
+                if( pxPrefixOption != NULL )
                 {
-                    if( ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED ) && ( pxEndPoint->xRAData.eRAState == eRAStateWait ) )
-                    {
-                        pxEndPoint->ipv6_settings.uxPrefixLength = pxPrefixOption->ucPrefixLength;
-                        ( void ) memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxPrefixOption->ucPrefix, ipSIZE_OF_IPv6_ADDRESS );
-                        ( void ) memcpy( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    NetworkEndPoint_t * pxEndPoint;
 
-                        pxEndPoint->xRAData.bits.bRouterReplied = pdTRUE_UNSIGNED;
-                        pxEndPoint->xRAData.uxRetryCount = 0U;
-                        pxEndPoint->xRAData.ulPreferredLifeTime = FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime );
-                        /* Force taking a new random IP-address. */
-                        pxEndPoint->xRAData.bits.bIPAddressInUse = pdTRUE_UNSIGNED;
-                        pxEndPoint->xRAData.eRAState = eRAStateIPTest;
-                        vRAProcess( pdFALSE, pxEndPoint );
+                    for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkBuffer->pxInterface );
+                         pxEndPoint != NULL;
+                         pxEndPoint = FreeRTOS_NextEndPoint( pxNetworkBuffer->pxInterface, pxEndPoint ) )
+                    {
+                        if( ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED ) && ( pxEndPoint->xRAData.eRAState == eRAStateWait ) )
+                        {
+                            pxEndPoint->ipv6_settings.uxPrefixLength = pxPrefixOption->ucPrefixLength;
+                            ( void ) memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxPrefixOption->ucPrefix, ipSIZE_OF_IPv6_ADDRESS );
+                            ( void ) memcpy( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+                            pxEndPoint->xRAData.bits.bRouterReplied = pdTRUE_UNSIGNED;
+                            pxEndPoint->xRAData.uxRetryCount = 0U;
+                            pxEndPoint->xRAData.ulPreferredLifeTime = FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime );
+                            /* Force taking a new random IP-address. */
+                            pxEndPoint->xRAData.bits.bIPAddressInUse = pdTRUE_UNSIGNED;
+                            pxEndPoint->xRAData.eRAState = eRAStateIPTest;
+                            vRAProcess( pdFALSE, pxEndPoint );
+                        }
                     }
                 }
+            }
+            else
+            {
+                /* The life-time field contains zero. */
             }
         }
     }
