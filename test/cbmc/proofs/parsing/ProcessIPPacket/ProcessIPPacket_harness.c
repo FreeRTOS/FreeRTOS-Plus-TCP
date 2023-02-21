@@ -63,8 +63,9 @@ void harness()
 
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
-    /* Pointer to the start of the Ethernet frame. It should be able to access the whole Ethernet frame.*/
-    pxNetworkBuffer->pucEthernetBuffer = malloc( ipTOTAL_ETHERNET_FRAME_SIZE );
+    /* Points to ethernet buffer offset by ipIP_TYPE_OFFSET, this make sure the buffer allocation is similar
+    to the pxGetNetworkBufferWithDescriptor */
+    pxNetworkBuffer->pucEthernetBuffer = ( ( ( uint8_t * ) malloc( ipTOTAL_ETHERNET_FRAME_SIZE ) ) + ipIP_TYPE_OFFSET );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     /* Minimum length of the pxNetworkBuffer->xDataLength is at least the size of the IPPacket_t. */

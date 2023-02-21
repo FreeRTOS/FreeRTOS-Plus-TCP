@@ -1606,6 +1606,14 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     {
         eReturn = eReleaseBuffer;
     }
+    else if( ( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
+             ( ipFIRST_LOOPBACK_IPv4 <= ( FreeRTOS_ntohl( pxUDPPacket->xIPHeader.ulDestinationIPAddress ) ) ) &&
+             ( ( FreeRTOS_ntohl( pxUDPPacket->xIPHeader.ulDestinationIPAddress ) ) < ipLAST_LOOPBACK_IPv4 ) )
+    {
+        /* The local loopback addresses must never appear outside a host. See RFC 1122
+         * section 3.2.1.3. */
+        eReturn = eReleaseBuffer;
+    }
     else if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
              ( uxLength >= sizeof( UDPHeader_t ) ) )
     {
@@ -1804,9 +1812,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                          * went wrong because it will not be able to validate what it
                          * receives. */
                         #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                            {
-                                eReturn = ProcessICMPPacket( pxNetworkBuffer );
-                            }
+                            eReturn = ProcessICMPPacket( pxNetworkBuffer );
                         #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
                         break;
 

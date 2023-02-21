@@ -226,7 +226,7 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t xRequestedSizeBytes,
 }
 
 /****************************************************************
-* Abstract FreeRTOS_GetUDPPayloadBuffer
+* Abstract FreeRTOS_ReleaseUDPPayloadBuffer
 * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/FreeRTOS_ReleaseUDPPayloadBuffer.html
 ****************************************************************/
 
