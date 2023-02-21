@@ -314,7 +314,9 @@
 
         #if ( ipconfigUSE_LLMNR == 1 )
             uint16_t usType = 0U;
+            ( void ) usType;
             uint16_t usClass = 0U;
+            ( void ) usClass;
         #endif
         #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
             xSet.xDoStore = xExpected;
@@ -446,7 +448,7 @@
                         {
                             /* _HT_ just while testing. When the program gets here,
                              * pucUDPPayloadBuffer was invalid. */
-                            configASSERT( pdFALSE );
+                            FreeRTOS_printf( ( "DNS_ParseDNSReply: pucUDPPayloadBuffer was invalid\n" ) );
                             break;
                         }
 
