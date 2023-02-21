@@ -22,7 +22,7 @@
 uint32_t FreeRTOS_dnslookup( const char * pcHostName );
 Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks );
 void DNS_CloseSocket( Socket_t xDNSSocket );
-BaseType_t DNS_ReadReply( const ConstSocket_t xDNSSocket,
+BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
                     struct freertos_sockaddr * xAddress,
                     struct xDNSBuffer * pxDNSBuf );
 uint32_t DNS_SendRequest( Socket_t xDNSSocket,
@@ -98,7 +98,7 @@ uint32_t DNS_SendRequest( Socket_t xDNSSocket,
 * We stub out this function which returned a dns_buffer filled with random data
 *
 ****************************************************************/
-BaseType_t DNS_ReadReply( const ConstSocket_t xDNSSocket,
+BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
                     struct freertos_sockaddr * xAddress,
                     struct xDNSBuffer * pxDNSBuf )
 {
