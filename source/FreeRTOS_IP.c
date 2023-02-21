@@ -205,16 +205,10 @@ static TaskHandle_t xIPTaskHandle = NULL;
 /** @brief Set to pdTRUE when the IP task is ready to start processing packets. */
 static BaseType_t xIPTaskInitialised = pdFALSE;
 
-/** @brief Stores interface structures. */
-static NetworkInterface_t xInterfaces[ 1 ];
-
 #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
     /** @brief Keep track of the lowest amount of space in 'xNetworkEventQueue'. */
     static UBaseType_t uxQueueMinimumSpace = ipconfigEVENT_QUEUE_LENGTH;
 #endif
-
-/** @brief Stores the network interfaces */
-static NetworkInterface_t xInterfaces[ 1 ];
 
 /*-----------------------------------------------------------*/
 
@@ -1607,8 +1601,21 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     /* Note the header values required prior to the checksum
      * generation as the checksum pseudo header may clobber some of
      * these values. */
-    if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
-        ( uxLength >= sizeof( UDPHeader_t ) ) )
+    if( ( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
+        ( usLength > ( FreeRTOS_ntohs( pxUDPPacket->xIPHeader.usLength ) - uxIPHeaderSizePacket( pxNetworkBuffer ) ) ) )
+    {
+        eReturn = eReleaseBuffer;
+    }
+    else if( ( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
+             ( ipFIRST_LOOPBACK_IPv4 <= ( FreeRTOS_ntohl( pxUDPPacket->xIPHeader.ulDestinationIPAddress ) ) ) &&
+             ( ( FreeRTOS_ntohl( pxUDPPacket->xIPHeader.ulDestinationIPAddress ) ) < ipLAST_LOOPBACK_IPv4 ) )
+    {
+        /* The local loopback addresses must never appear outside a host. See RFC 1122
+         * section 3.2.1.3. */
+        eReturn = eReleaseBuffer;
+    }
+    else if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
+             ( uxLength >= sizeof( UDPHeader_t ) ) )
     {
         size_t uxPayloadSize_1, uxPayloadSize_2;
 
@@ -1805,9 +1812,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                          * went wrong because it will not be able to validate what it
                          * receives. */
                         #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                            {
-                                eReturn = ProcessICMPPacket( pxNetworkBuffer );
-                            }
+                            eReturn = ProcessICMPPacket( pxNetworkBuffer );
                         #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
                         break;
 

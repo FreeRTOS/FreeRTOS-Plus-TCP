@@ -69,25 +69,25 @@
 #include "uncached_memory.h"
 
 #if ( ipconfigULTRASCALE == 1 )
-	/* Reserve 2 MB of memory. */
-	#define uncMINIMAL_MEMORY_SIZE     0x200000U
-	#ifndef uncMEMORY_SIZE
-		#define uncMEMORY_SIZE		   uncMINIMAL_MEMORY_SIZE
-	#endif
-	#define DDR_MEMORY_END		   ( XPAR_PSU_DDR_0_S_AXI_HIGHADDR )
-	#define uncMEMORY_ATTRIBUTE	   NORM_NONCACHE | INNER_SHAREABLE
+    /* Reserve 2 MB of memory. */
+    #define uncMINIMAL_MEMORY_SIZE    0x200000U
+    #ifndef uncMEMORY_SIZE
+        #define uncMEMORY_SIZE        uncMINIMAL_MEMORY_SIZE
+    #endif
+    #define DDR_MEMORY_END            ( XPAR_PSU_DDR_0_S_AXI_HIGHADDR )
+    #define uncMEMORY_ATTRIBUTE       NORM_NONCACHE | INNER_SHAREABLE
 #else
-	/* Reserve 1 MB of memory. */
-	#define uncMINIMAL_MEMORY_SIZE     0x100000U
-	#ifndef uncMEMORY_SIZE
-		#define uncMEMORY_SIZE		   uncMINIMAL_MEMORY_SIZE
-	#endif
-	#define DDR_MEMORY_END		   ( XPAR_PS7_DDR_0_S_AXI_HIGHADDR + 1 )
-	#define uncMEMORY_ATTRIBUTE	   0x1C02
+    /* Reserve 1 MB of memory. */
+    #define uncMINIMAL_MEMORY_SIZE    0x100000U
+    #ifndef uncMEMORY_SIZE
+        #define uncMEMORY_SIZE        uncMINIMAL_MEMORY_SIZE
+    #endif
+    #define DDR_MEMORY_END            ( XPAR_PS7_DDR_0_S_AXI_HIGHADDR + 1 )
+    #define uncMEMORY_ATTRIBUTE       0x1C02
 #endif /* ( ipconfigULTRASCALE == 1 ) */
 
 /* Make sure that each pointer has an alignment of 4 KB. */
-#define uncALIGNMENT_SIZE      0x1000uL
+#define uncALIGNMENT_SIZE    0x1000uL
 
 static void vInitialiseUncachedMemory( void );
 
@@ -151,9 +151,9 @@ uint8_t * pucGetUncachedMemory( uint32_t ulSize )
 static void vInitialiseUncachedMemory()
 {
     /* At the end of program's space... */
-	pucStartOfMemory = pucUncachedMemory;
+    pucStartOfMemory = pucUncachedMemory;
 
-	if( ( ( uintptr_t ) pucStartOfMemory ) + uncMEMORY_SIZE > DDR_MEMORY_END )
+    if( ( ( uintptr_t ) pucStartOfMemory ) + uncMEMORY_SIZE > DDR_MEMORY_END )
     {
         FreeRTOS_printf( ( "vInitialiseUncachedMemory: Can not allocate uncached memory\n" ) );
     }
@@ -162,15 +162,16 @@ static void vInitialiseUncachedMemory()
         /* Some objects want to be stored in uncached memory. Hence the 1 MB
          * address range that starts after "_end" is made uncached by setting
          * appropriate attributes in the translation table. */
-		uint32_t ulBytesLeft = uncMEMORY_SIZE;
-		uint8_t *puc = pucStartOfMemory;
-		while( ulBytesLeft > 0U )
-		{
-			uint32_t ulCurrentSize = ( ulBytesLeft > uncMINIMAL_MEMORY_SIZE ) ? uncMINIMAL_MEMORY_SIZE : ulBytesLeft;
-			Xil_SetTlbAttributes( ( uintptr_t ) puc, uncMEMORY_ATTRIBUTE );
-			ulBytesLeft -= ulCurrentSize;
-			puc += ulCurrentSize;
-		}
+        uint32_t ulBytesLeft = uncMEMORY_SIZE;
+        uint8_t * puc = pucStartOfMemory;
+
+        while( ulBytesLeft > 0U )
+        {
+            uint32_t ulCurrentSize = ( ulBytesLeft > uncMINIMAL_MEMORY_SIZE ) ? uncMINIMAL_MEMORY_SIZE : ulBytesLeft;
+            Xil_SetTlbAttributes( ( uintptr_t ) puc, uncMEMORY_ATTRIBUTE );
+            ulBytesLeft -= ulCurrentSize;
+            puc += ulCurrentSize;
+        }
 
         /* For experiments in the SDIO driver, make the remaining uncached memory
          * public */
