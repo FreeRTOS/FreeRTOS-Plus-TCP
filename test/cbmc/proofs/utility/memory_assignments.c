@@ -20,6 +20,7 @@ FreeRTOS_Socket_t * ensure_FreeRTOS_Socket_t_is_allocated()
         pxSocket->u.xTCP.rxStream = safeMalloc( sizeof( StreamBuffer_t ) );
         pxSocket->u.xTCP.txStream = safeMalloc( sizeof( StreamBuffer_t ) );
         pxSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+        pxSocket->pxEndPoint = safeMalloc( sizeof( NetworkEndPoint_t ) );
     }
 
     return pxSocket;
