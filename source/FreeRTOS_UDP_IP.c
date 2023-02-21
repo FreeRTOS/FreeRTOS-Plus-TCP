@@ -278,6 +278,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 
     /* Caller must check for minimum packet size. */
     pxSocket = pxUDPSocketLookup( usPort );
+    ( void ) pxSocket;
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {

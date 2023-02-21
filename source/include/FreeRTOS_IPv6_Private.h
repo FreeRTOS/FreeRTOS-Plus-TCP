@@ -149,7 +149,7 @@ struct xIP_HEADER_IPv6
     uint8_t ucHopLimit;                 /**< Replaces the time to live from IPv4.    7 +  1 =  8 */
     IPv6_Address_t xSourceAddress;      /**< The IPv6 address of the sender.         8 + 16 = 24 */
     IPv6_Address_t xDestinationAddress; /**< The IPv6 address of the receiver.      24 + 16 = 40 */
-}
+};
 #include "pack_struct_end.h"
 typedef struct xIP_HEADER_IPv6 IPHeader_IPv6_t;
 
@@ -161,7 +161,7 @@ struct xICMPEcho_IPv6
     uint16_t usChecksum;       /**< Checksum.             2 +  2 = 4 */
     uint16_t usIdentifier;     /**< Identifier.           4 +  2 = 6 */
     uint16_t usSequenceNumber; /**< Sequence number.      6 +  2 = 8 */
-}
+};
 #include "pack_struct_end.h"
 typedef struct xICMPEcho_IPv6 ICMPEcho_IPv6_t;
 
@@ -172,7 +172,7 @@ struct xICMPRouterSolicitation_IPv6
     uint8_t ucTypeOfService; /**<  1 +  1 =  2 */
     uint16_t usChecksum;     /**<  2 +  2 =  4 */
     uint32_t ulReserved;     /**<  4 +  4 =  8 */
-}
+};
 #include "pack_struct_end.h"
 typedef struct xICMPRouterSolicitation_IPv6 ICMPRouterSolicitation_IPv6_t;
 
@@ -188,7 +188,7 @@ typedef struct xICMPRouterSolicitation_IPv6 ICMPRouterSolicitation_IPv6_t;
         uint16_t usLifetime;           /*  6 +  2 =  8 */
         uint16_t usReachableTime[ 2 ]; /*  8 +  4 = 12 */
         uint16_t usRetransTime[ 2 ];   /* 12 +  4 = 16 */
-    }
+    };
     #include "pack_struct_end.h"
     typedef struct xICMPRouterAdvertisement_IPv6 ICMPRouterAdvertisement_IPv6_t;
 
@@ -203,7 +203,7 @@ typedef struct xICMPRouterSolicitation_IPv6 ICMPRouterSolicitation_IPv6_t;
         uint32_t ulPreferredLifeTime; /*  8 +  4 = 12 */
         uint32_t ulReserved;          /* 12 +  4 = 16 */
         uint8_t ucPrefix[ 16 ];       /* 16 + 16 = 32 */
-    }
+    };
     #include "pack_struct_end.h"
     typedef struct xICMPPrefixOption_IPv6 ICMPPrefixOption_IPv6_t;
 #endif /* ipconfigUSE_RA != 0 */
@@ -217,7 +217,7 @@ struct xIP_PACKET_IPv6
 {
     EthernetHeader_t xEthernetHeader;
     IPHeader_IPv6_t xIPHeader;
-}
+};
 #include "pack_struct_end.h"
 typedef struct xIP_PACKET_IPv6 IPPacket_IPv6_t;
 
@@ -227,7 +227,7 @@ struct xICMP_PACKET_IPv6
     EthernetHeader_t xEthernetHeader;
     IPHeader_IPv6_t xIPHeader;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
-}
+};
 #include "pack_struct_end.h"
 typedef struct xICMP_PACKET_IPv6 ICMPPacket_IPv6_t;
 
@@ -237,7 +237,7 @@ struct xUDP_PACKET_IPv6
     EthernetHeader_t xEthernetHeader; /*  0 + 14 = 14 */
     IPHeader_IPv6_t xIPHeader;        /* 14 + 40 = 54 */
     UDPHeader_t xUDPHeader;           /* 54 +  8 = 62 */
-}
+};
 #include "pack_struct_end.h"
 typedef struct xUDP_PACKET_IPv6 UDPPacket_IPv6_t;
 
@@ -247,7 +247,7 @@ struct xTCP_PACKET_IPv6
     EthernetHeader_t xEthernetHeader; /*  0 + 14 = 14 */
     IPHeader_IPv6_t xIPHeader;        /* 14 + 40 = 54 */
     TCPHeader_t xTCPHeader;           /* 54 + 32 = 86 */
-}
+};
 #include "pack_struct_end.h"
 typedef struct xTCP_PACKET_IPv6 TCPPacket_IPv6_t;
 

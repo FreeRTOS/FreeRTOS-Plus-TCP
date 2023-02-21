@@ -64,7 +64,7 @@ struct xIP_HEADER
     uint16_t usHeaderChecksum;            /**< Checksum of the IP-header                 10 + 2 = 12 */
     uint32_t ulSourceIPAddress;           /**< IP address of the source                  12 + 4 = 16 */
     uint32_t ulDestinationIPAddress;      /**< IP address of the destination             16 + 4 = 20 */
-}
+};
 #include "pack_struct_end.h"
 typedef struct xIP_HEADER IPHeader_t;
 
@@ -77,7 +77,7 @@ struct xIP_PACKET
 {
     EthernetHeader_t xEthernetHeader;
     IPHeader_t xIPHeader;
-}
+};
 #include "pack_struct_end.h"
 typedef struct xIP_PACKET IPPacket_t;
 
@@ -87,7 +87,7 @@ struct xICMP_PACKET
     EthernetHeader_t xEthernetHeader; /**< The Ethernet header of an ICMP packet. */
     IPHeader_t xIPHeader;             /**< The IP header of an ICMP packet. */
     ICMPHeader_t xICMPHeader;         /**< The ICMP header of an ICMP packet. */
-}
+};
 #include "pack_struct_end.h"
 typedef struct xICMP_PACKET ICMPPacket_t;
 
@@ -98,7 +98,7 @@ struct xUDP_PACKET
     EthernetHeader_t xEthernetHeader; /**< UDP-Packet ethernet header  0 + 14 = 14 */
     IPHeader_t xIPHeader;             /**< UDP-Packet IP header        14 + 20 = 34 */
     UDPHeader_t xUDPHeader;           /**< UDP-Packet UDP header       34 +  8 = 42 */
-}
+};
 #include "pack_struct_end.h"
 typedef struct xUDP_PACKET UDPPacket_t;
 
@@ -108,7 +108,7 @@ struct xTCP_PACKET
     EthernetHeader_t xEthernetHeader; /**< The ethernet header  0 + 14 = 14 */
     IPHeader_t xIPHeader;             /**< The IP header        14 + 20 = 34 */
     TCPHeader_t xTCPHeader;           /**< The TCP header       34 + 32 = 66 */
-}
+};
 #include "pack_struct_end.h"
 typedef struct xTCP_PACKET TCPPacket_t;
 
