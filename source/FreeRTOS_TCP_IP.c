@@ -86,7 +86,7 @@
     /* MISRA Ref 8.9.1 [File scoped variables] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
     /* coverity[misra_c_2012_rule_8_9_violation] */
-    static FreeRTOS_Socket_t * xSocketToListen = NULL;
+    _static FreeRTOS_Socket_t * xSocketToListen = NULL;
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
