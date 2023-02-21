@@ -122,6 +122,7 @@ BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
 void DNS_CloseSocket( Socket_t xDNSSocket )
 {
     __CPROVER_assert( xDNSSocket != NULL, "The xDNSSocket cannot be NULL." );
+    free( xDNSSocket );
 }
 
 Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
@@ -206,17 +207,17 @@ void harness()
 {
     size_t len;
 
-    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
     
     /* Asserts are added in the src code to make sure ucDNSIndex 
     will be less than ipconfigENDPOINT_DNS_ADDRESS_COUNT  */
     __CPROVER_assume( pxNetworkEndPoints->ipv6_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT ); 
     __CPROVER_assume( pxNetworkEndPoints->ipv4_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT ); 
-    __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
+    pxNetworkEndPoints->pxNext = NULL;
 
     /* Interface init. */
-    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
 
     pxNetworkEndPoints->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
