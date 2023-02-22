@@ -62,16 +62,18 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
                                                 BaseType_t xReleaseAfterSend )
 {
     BaseType_t xRet;
+
     __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
     __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
     __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The Ethernet buffer cannot be NULL." );
-    
+
     return xRet;
 }
 
 void harness()
 {
     NetworkBufferDescriptor_t * const pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( ipTOTAL_ETHERNET_FRAME_SIZE, 0 );
+
     /* The network buffer cannot be NULL for this function call. If it is, it will hit an assert in the function. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
 

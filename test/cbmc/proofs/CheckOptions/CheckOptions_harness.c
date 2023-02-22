@@ -47,9 +47,9 @@ size_t uxIPHeaderSizePacket_uxResult;
 ****************************************************************/
 
 int32_t __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                                                              size_t uxTotalLength,
-                                                                              FreeRTOS_Socket_t * const pxSocket,
-                                                                              BaseType_t xHasSYNFlag )
+                                                                                     size_t uxTotalLength,
+                                                                                     FreeRTOS_Socket_t * const pxSocket,
+                                                                                     BaseType_t xHasSYNFlag )
 {
     /* CBMC model of pointers limits the size of the buffer */
 
@@ -73,12 +73,10 @@ int32_t __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOpti
     return index;
 }
 
-size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer ) 
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
-
     __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer shouldnt be NULL" );
     return uxIPHeaderSizePacket_uxResult;
-
 }
 
 /****************************************************************
@@ -90,7 +88,7 @@ void harness()
     /* Give buffer_size an unconstrained value */
     size_t buf_size;
 
-    if(nondet_bool()) 
+    if( nondet_bool() )
     {
         uxIPHeaderSizePacket_uxResult = ipSIZE_OF_IPv6_HEADER;
     }

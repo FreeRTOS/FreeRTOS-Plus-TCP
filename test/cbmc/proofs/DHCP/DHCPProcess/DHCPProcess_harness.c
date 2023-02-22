@@ -58,21 +58,20 @@ void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
 
 
 
-
 /****************************************************************
 * The signature of the function under test.
 ****************************************************************/
 
 void __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( BaseType_t xReset,
-                            BaseType_t xDoCheck,
-                            NetworkEndPoint_t * pxEndPoint );
+                                                                BaseType_t xDoCheck,
+                                                                NetworkEndPoint_t * pxEndPoint );
 
 /****************************************************************
 * Abstract prvProcessDHCPReplies proved memory safe in ProcessDHCPReplies.
 ****************************************************************/
 
 BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
-                                             NetworkEndPoint_t * pxEndPoint )
+                                                                       NetworkEndPoint_t * pxEndPoint )
 {
     return nondet_BaseType();
 }
@@ -80,7 +79,7 @@ BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( BaseType_
 BaseType_t xSocketValid( const ConstSocket_t xSocket )
 {
     /* This proof assumes that the socket will be valid to make the proof run
-    without causing asserts in the DHCP source [configASSERT( xSocketValid( xDHCPv4Socket ) == pdTRUE );] */
+     * without causing asserts in the DHCP source [configASSERT( xSocketValid( xDHCPv4Socket ) == pdTRUE );] */
     return pdTRUE;
 }
 
@@ -90,10 +89,11 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
                         BaseType_t xInternal )
 {
     /* Return value is set to zero assuming socket bind will succeed. If it doesn't, it
-    will hit an assert in the function.  */
+     * will hit an assert in the function.  */
     BaseType_t xRet = 0;
+
     __CPROVER_assert( pxSocket != NULL,
-                    "FreeRTOS precondition: pxSocket != NULL" );
+                      "FreeRTOS precondition: pxSocket != NULL" );
     __CPROVER_assert( pxBindAddress != NULL,
                       "FreeRTOS precondition: pxBindAddress != NULL" );
 
@@ -109,9 +109,9 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) malloc( sizeof( NetworkBufferDescriptor_t ) );
 
     __CPROVER_assume( pxNetworkBuffer != NULL );
-    __CPROVER_assume( xRequestedSizeBytes > (dhcpFIRST_OPTION_BYTE_OFFSET + sizeof( MACAddress_t ) + ipIP_TYPE_OFFSET) );
+    __CPROVER_assume( xRequestedSizeBytes > ( dhcpFIRST_OPTION_BYTE_OFFSET + sizeof( MACAddress_t ) + ipIP_TYPE_OFFSET ) );
 
-    pxNetworkBuffer->pucEthernetBuffer = ( (uint8_t *) malloc( xRequestedSizeBytes + ( ipIP_TYPE_OFFSET) )) + ipIP_TYPE_OFFSET;
+    pxNetworkBuffer->pucEthernetBuffer = ( ( uint8_t * ) malloc( xRequestedSizeBytes + ( ipIP_TYPE_OFFSET ) ) ) + ipIP_TYPE_OFFSET;
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
@@ -179,11 +179,9 @@ void harness()
            ( xReset != pdFALSE ) ) )
     {
         prvCreateDHCPSocket( pxNetworkEndPoint_Temp );
-        
     }
 
     xDHCPv4Socket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
-    
+
     __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( xReset, xDoCheck, pxNetworkEndPoint_Temp );
-    
 }
