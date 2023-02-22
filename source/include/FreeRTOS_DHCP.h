@@ -156,7 +156,7 @@ struct xDHCPMessage_IPv4
     uint8_t ucBootFileName[ dhcpBOOT_FILE_NAME_LENGTH ];                   /**< Boot file full directory path. */
     uint32_t ulDHCPCookie;                                                 /**< Magic cookie option. */
     /* Option bytes from here on. */
-};
+}
 #include "pack_struct_end.h"
 typedef struct xDHCPMessage_IPv4 DHCPMessage_IPv4_t;
 

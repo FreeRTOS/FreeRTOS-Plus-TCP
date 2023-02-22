@@ -110,7 +110,7 @@ struct xETH_HEADER
     MACAddress_t xDestinationAddress; /**< Destination address  0 + 6 = 6  */
     MACAddress_t xSourceAddress;      /**< Source address       6 + 6 = 12 */
     uint16_t usFrameType;             /**< The EtherType field 12 + 2 = 14 */
-};
+}
 #include "pack_struct_end.h"
 typedef struct xETH_HEADER EthernetHeader_t;
 
@@ -126,7 +126,7 @@ struct xARP_HEADER
     uint8_t ucSenderProtocolAddress[ 4 ]; /**< Internetwork address of sender                14 +  4 = 18  */
     MACAddress_t xTargetHardwareAddress;  /**< Media address of the intended receiver        18 +  6 = 24  */
     uint32_t ulTargetProtocolAddress;     /**< Internetwork address of the intended receiver 24 +  4 = 28  */
-};
+}
 #include "pack_struct_end.h"
 typedef struct xARP_HEADER ARPHeader_t;
 
@@ -138,7 +138,7 @@ struct xICMP_HEADER
     uint16_t usChecksum;       /**< The checksum of whole ICMP packet 2 + 2 = 4 */
     uint16_t usIdentifier;     /**< Used in some types of ICMP        4 + 2 = 6 */
     uint16_t usSequenceNumber; /**< Used in some types of ICMP        6 + 2 = 8 */
-};
+}
 #include "pack_struct_end.h"
 typedef struct xICMP_HEADER ICMPHeader_t;
 
@@ -153,7 +153,7 @@ struct xICMPHeader_IPv6
     uint8_t ucOptionType;        /**< The option type.     24 +  1 = 25 */
     uint8_t ucOptionLength;      /**< The option length.   25 +  1 = 26 */
     uint8_t ucOptionBytes[ 6 ];  /**< Option bytes.        26 +  6 = 32 */
-};
+}
 #include "pack_struct_end.h"
 typedef struct xICMPHeader_IPv6 ICMPHeader_IPv6_t;
 
@@ -164,7 +164,7 @@ struct xUDP_HEADER
     uint16_t usDestinationPort; /**< The destination port                 2 + 2 = 4 */
     uint16_t usLength;          /**< The size of the whole UDP packet     4 + 2 = 6 */
     uint16_t usChecksum;        /**< The checksum of the whole UDP Packet 6 + 2 = 8 */
-};
+}
 #include "pack_struct_end.h"
 typedef struct xUDP_HEADER UDPHeader_t;
 
@@ -183,7 +183,7 @@ struct xTCP_HEADER
     #if ipconfigUSE_TCP == 1
         uint8_t ucOptdata[ ipSIZE_TCP_OPTIONS ]; /**< The options + 12 = 32 */
     #endif
-};
+}
 #include "pack_struct_end.h"
 typedef struct xTCP_HEADER TCPHeader_t;
 
@@ -192,7 +192,7 @@ struct xARP_PACKET
 {
     EthernetHeader_t xEthernetHeader; /**< The ethernet header of an ARP Packet  0 + 14 = 14 */
     ARPHeader_t xARPHeader;           /**< The ARP header of an ARP Packet       14 + 28 = 42 */
-};
+}
 #include "pack_struct_end.h"
 typedef struct xARP_PACKET ARPPacket_t;
 

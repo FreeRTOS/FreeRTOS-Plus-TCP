@@ -169,7 +169,7 @@
         uint16_t usClass;      /**< Class of DNS answer record. */
         uint32_t ulTTL;        /**< Number of seconds the result can be cached. */
         uint16_t usDataLength; /**< Length of the data field. */
-    };
+    }
     #include "pack_struct_end.h"
     typedef struct xDNSAnswerRecord DNSAnswerRecord_t;
 
@@ -184,7 +184,7 @@
         uint16_t usAnswers;       /**< Number of answers being provided in this query. */
         uint16_t usAuthorityRRs;  /**< Authoritative name server resource records. */
         uint16_t usAdditionalRRs; /**< Additional resource records.*/
-    };
+    }
     #include "pack_struct_end.h"
     typedef struct xDNSMessage DNSMessage_t;
 
@@ -231,7 +231,7 @@
             uint32_t ulTTL;        /**< Seconds till this entry can be cached. */
             uint16_t usDataLength; /**< Length of the address in this record. */
             uint32_t ulIPAddress;  /**< The IP-address. */
-        };
+        }
         #include "pack_struct_end.h"
         typedef struct xLLMNRAnswer LLMNRAnswer_t;
     #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
