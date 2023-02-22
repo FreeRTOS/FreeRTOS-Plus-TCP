@@ -211,6 +211,7 @@ earpcachehit
 earpcachemiss
 earpgetcacheentry
 earpgetcacheentrybymac
+earpprocesspacket
 earptimerevent
 ec
 ecantsendpacket
@@ -934,6 +935,7 @@ pxmacaddress
 pxmessage
 pxnetprefix
 pxnetworkbuffer
+pxnetworkendpoints
 pxnetworkinterface
 pxnewlistitem
 pxnewsocket
@@ -1663,6 +1665,7 @@ xboundsocketlistitem
 xboundtcpsocketslist
 xboundudpsocketslist
 xbroadcastmacaddress
+xbuffer
 xbufferlength
 xbufferlistitem
 xbytecount
@@ -1860,6 +1863,7 @@ xsizewithoutdata
 xsocket
 xsocketbits
 xsocketset
+xsocketvalid
 xsource
 xsourceaddress
 xstatus
