@@ -987,7 +987,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
         };
 
-        for( xIndex = 0; xIndex < ARRAY_SIZE( xIPCouples ); xIndex++ )
+        for( xIndex = 0; xIndex < ARRAY_SIZE_X( xIPCouples ); xIndex++ )
         {
             uint16_t usAddress =
                 ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |

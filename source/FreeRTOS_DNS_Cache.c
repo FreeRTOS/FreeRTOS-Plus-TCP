@@ -76,7 +76,7 @@
 
 /** returns the index of the hostname entry in the dns cache. */
     static BaseType_t prvFindEntryIndex( const char * pcName,
-                                         IPv46_Address_t * pxIP,
+                                         const IPv46_Address_t * pxIP,
                                          UBaseType_t * uxResult );
 
 /** get entry at \p index from the cache. */
@@ -88,13 +88,13 @@
 /** update entry at \p index in the cache. */
     static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
-                                     IPv46_Address_t * pxIP,
+                                     const IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds );
 
 /** insert entry in the cache. */
     static void prvInsertCacheEntry( const char * pcName,
                                      uint32_t ulTTL,
-                                     IPv46_Address_t * pxIP,
+                                     const IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds );
 
     #if ( ipconfigUSE_DNS_CACHE == 1 )
@@ -280,7 +280,7 @@
  * @returns res pdTRUE if index in found else pdFALSE
  */
     static BaseType_t prvFindEntryIndex( const char * pcName,
-                                         IPv46_Address_t * pxIP,
+                                         const IPv46_Address_t * pxIP,
                                          UBaseType_t * uxResult )
     {
         BaseType_t xReturn = pdFALSE;
@@ -380,7 +380,7 @@
  */
     static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
-                                     IPv46_Address_t * pxIP,
+                                     const IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
         uint32_t ulIPAddressIndex = 0;
@@ -411,7 +411,7 @@
  */
     static void prvInsertCacheEntry( const char * pcName,
                                      uint32_t ulTTL,
-                                     IPv46_Address_t * pxIP,
+                                     const IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
         /* Add or update the item. */
@@ -455,9 +455,9 @@
         {
             size_t uxIPAddressIndex;
             size_t uxNumIPAddresses = 1U;
-            IPv46_Address_t * pxAddresses;
+            const IPv46_Address_t * pxAddresses;
             struct freertos_addrinfo * pxNewAddress;
-            struct freertos_addrinfo * pxLastAddress;
+            const struct freertos_addrinfo * pxLastAddress;
             struct freertos_addrinfo ** ppxLastAddress = &( pxLastAddress );
 
             #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
@@ -480,7 +480,7 @@
                 }
                 else
                 {
-                    const uint8_t * ucBytes = ( uint8_t * ) &( pxAddresses->ulIPAddress );
+                    const uint8_t * ucBytes = &( pxAddresses->ulIPAddress );
 
                     pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET4, ucBytes );
                 }

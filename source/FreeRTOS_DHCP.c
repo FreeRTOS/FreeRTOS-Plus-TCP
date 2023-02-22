@@ -121,12 +121,12 @@
 /*
  * Create the DHCP socket, if it has not been created already.
  */
-    _static void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
+    _static void prvCreateDHCPSocket( const NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Close the DHCP socket, only when not in use anymore (i.e. xDHCPSocketUserCount = 0).
  */
-    static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint );
+    static void prvCloseDHCPSocket( const NetworkEndPoint_t * pxEndPoint );
 
     static void vDHCPProcessEndPoint( BaseType_t xReset,
                                       BaseType_t xDoCheck,
@@ -816,7 +816,7 @@
  *        using it.
  * @param[in] pxEndPoint: The end-point that stops using the socket.
  */
-    static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
+    static void prvCloseDHCPSocket( const NetworkEndPoint_t * pxEndPoint )
     {
         ( void ) pxEndPoint;
 
@@ -849,7 +849,7 @@
  * @brief Create a DHCP socket with the defined timeouts. The same socket
  *        will be shared among all end-points that need DHCP.
  */
-    _static void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint )
+    _static void prvCreateDHCPSocket( const NetworkEndPoint_t * pxEndPoint )
     {
         struct freertos_sockaddr xAddress;
         BaseType_t xReturn;

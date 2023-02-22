@@ -152,7 +152,7 @@
         const MACAddress_t xMDNS_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } };
     #endif /* ipconfigUSE_MDNS == 1 */
 
-    /** @brief This global variable is being used to indicate to the driver which IP type
+/** @brief This global variable is being used to indicate to the driver which IP type
  *         is preferred for name service lookup, either IPv6 or IPv4. */
 /* TODO: Fix IPv6 DNS query in Windows Simulator. */
     IPPreference_t xDNS_IP_Preference = xPreferenceIPv4;
@@ -310,7 +310,7 @@
     {
         struct freertos_addrinfo * pxNext;
         struct freertos_addrinfo * pxIterator = pxInfo;
-        struct freertos_addrinfo * pxLastInfo = NULL;
+        const struct freertos_addrinfo * pxLastInfo = NULL;
 
         if( pxInfo != NULL )
         {
@@ -796,7 +796,10 @@
                                                    const char * pcHostName )
     {
         NetworkEndPoint_t * pxEndPoint = NULL;
-        BaseType_t xNeed_Endpoint = pdFALSE;
+
+        #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 )
+            BaseType_t xNeed_Endpoint = pdFALSE;
+        #endif
 
         #if ( ipconfigUSE_LLMNR != 1 )
             ( void ) pcHostName;
@@ -820,7 +823,7 @@
         /* For local resolution, mDNS uses names ending with the string ".local" */
         BaseType_t bHasDot = pdFALSE;
         BaseType_t bHasLocal = pdFALSE;
-        const char * pcDot = ( const char * ) strchr( pcHostName, '.' );
+        const char * pcDot = ( const char * ) strchr( pcHostName, ( int32_t ) '.' );
 
         if( pcDot != NULL )
         {
@@ -886,33 +889,35 @@
                 }
             #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
 
-            if( xNeed_Endpoint == pdTRUE )
-            {
-                for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-                     pxEndPoint != NULL;
-                     pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+            #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 )
+                if( xNeed_Endpoint == pdTRUE )
                 {
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        if( xDNS_IP_Preference == xPreferenceIPv6 )
-                        {
-                            if( ENDPOINT_IS_IPv6( pxEndPoint ) )
+                    for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+                         pxEndPoint != NULL;
+                         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+                    {
+                        #if ( ipconfigUSE_IPv6 != 0 )
+                            if( xDNS_IP_Preference == xPreferenceIPv6 )
                             {
-                                break;
+                                if( ENDPOINT_IS_IPv6( pxEndPoint ) )
+                                {
+                                    break;
+                                }
                             }
-                        }
-                        else
-                        {
-                            if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                            else
                             {
-                                break;
+                                if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                                {
+                                    break;
+                                }
                             }
-                        }
-                    #else /* if ( ipconfigUSE_IPv6 != 0 ) */
-                        /* IPv6 is not included, so all end-points are IPv4. */
-                        break;
-                    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+                        #else /* if ( ipconfigUSE_IPv6 != 0 ) */
+                            /* IPv6 is not included, so all end-points are IPv4. */
+                            break;
+                        #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+                    }
                 }
-            }
+            #endif /* if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) */
         }
         else
         {
