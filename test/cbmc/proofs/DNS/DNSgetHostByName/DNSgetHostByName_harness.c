@@ -107,7 +107,7 @@ BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
 
     __CPROVER_assume( ( len > sizeof( DNSMessage_t ) ) && ( len < CBMC_MAX_OBJECT_SIZE ) );
 
-    pxDNSBuf->pucPayloadBuffer = safeMalloc( len );
+    pxDNSBuf->pucPayloadBuffer = malloc( len );
 
     pxDNSBuf->uxPayloadLength = len;
 
@@ -128,7 +128,7 @@ void DNS_CloseSocket( Socket_t xDNSSocket )
 Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
 {
 
-    Socket_t sock = safeMalloc( sizeof(struct xSOCKET) );
+    Socket_t sock = malloc( sizeof(struct xSOCKET) );
     return sock;
 
 }
@@ -207,7 +207,7 @@ void harness()
 {
     size_t len;
 
-    pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
     
     /* Asserts are added in the src code to make sure ucDNSIndex 
@@ -217,13 +217,13 @@ void harness()
     pxNetworkEndPoints->pxNext = NULL;
 
     /* Interface init. */
-    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
+    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
 
     pxNetworkEndPoints->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
     __CPROVER_assume( len <= MAX_HOSTNAME_LEN );
-    char * pcHostName = safeMalloc( len );
+    char * pcHostName = malloc( len );
 
     __CPROVER_assume( len > 0 ); /* prvProcessDNSCache strcmp */
     __CPROVER_assume( pcHostName != NULL );
