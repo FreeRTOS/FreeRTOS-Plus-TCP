@@ -409,6 +409,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                                            uint16_t usPort,
                                            BaseType_t * pxIsWaitingForARPResolution )
 {
+    /* Returning pdPASS means that the packet was consumed, released. */
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
 
