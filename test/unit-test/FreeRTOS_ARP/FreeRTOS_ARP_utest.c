@@ -380,7 +380,7 @@ void test_eARPProcessPacket_SenderIPLessThanLoopBack( void )
     NetworkBufferDescriptor_t * const pxNetworkBuffer = &xNetworkBuffer;
     uint8_t ucBuffer[ sizeof( IPPacket_t ) + ipBUFFER_PADDING ];
     eFrameProcessingResult_t eResult;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0};
 
     memset( &xARPFrame, 0, sizeof( ARPPacket_t ) );
 
@@ -397,8 +397,8 @@ void test_eARPProcessPacket_SenderIPLessThanLoopBack( void )
             &ulSenderProtocolAddress,
             sizeof( ulSenderProtocolAddress ) );
     pxNetworkBuffer->pucEthernetBuffer = &xARPFrame;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
     eResult = eARPProcessPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
@@ -411,7 +411,7 @@ void test_eARPProcessPacket_LocalIPisZero( void )
     NetworkBufferDescriptor_t * const pxNetworkBuffer = &xNetworkBuffer;
     uint8_t ucBuffer[ sizeof( IPPacket_t ) + ipBUFFER_PADDING ];
     eFrameProcessingResult_t eResult;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0};
 
     memset( &xARPFrame, 0, sizeof( ARPPacket_t ) );
 
@@ -422,9 +422,9 @@ void test_eARPProcessPacket_LocalIPisZero( void )
     xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
     pxNetworkBuffer->pucEthernetBuffer = &xARPFrame;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    xEndPoint.ipv4_settings.ulIPAddress = 0;
 
-    /* When the local IP address is 0, we should not process any ARP Packets. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0UL;
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
     eResult = eARPProcessPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
