@@ -191,7 +191,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
             const IPv6_Address_t * pxDestinationIPAddress = &( pxIPv6Header->xDestinationAddress );
 
             /* Is the packet for this IP address? */
-            if( ( FreeRTOS_FindEndPointOnIP_IPv6( pxDestinationIPAddress ) != NULL ) ||
+            if( ( pxNetworkBuffer->pxEndPoint != NULL ) ||
                 /* Is it the multicast address FF00::/8 ? */
                 ( xIsIPv6Multicast( pxDestinationIPAddress ) != pdFALSE ) ||
                 /* Or (during DHCP negotiation) we have no IP-address yet? */

@@ -553,6 +553,10 @@
 
     #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
 
+    #include "FreeRTOS_IP_Private.h"
+    #include "FreeRTOS_IPv4_Sockets.h"
+    #include "FreeRTOS_IPv6_Sockets.h"
+
     #ifdef __cplusplus
         } /* extern "C" */
     #endif

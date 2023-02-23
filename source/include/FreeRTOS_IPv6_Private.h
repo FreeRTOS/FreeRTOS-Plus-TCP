@@ -224,9 +224,9 @@ typedef struct xIP_PACKET_IPv6 IPPacket_IPv6_t;
 #include "pack_struct_start.h"
 struct xICMP_PACKET_IPv6
 {
-    EthernetHeader_t xEthernetHeader;
-    IPHeader_IPv6_t xIPHeader;
-    ICMPHeader_IPv6_t xICMPHeaderIPv6;
+    EthernetHeader_t xEthernetHeader;  /*  0 + 14 = 14 */
+    IPHeader_IPv6_t xIPHeader;         /* 14 + 40 = 54 */
+    ICMPHeader_IPv6_t xICMPHeaderIPv6; /* 54 +  8 = 62 */
 }
 #include "pack_struct_end.h"
 typedef struct xICMP_PACKET_IPv6 ICMPPacket_IPv6_t;

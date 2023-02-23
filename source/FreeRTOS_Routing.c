@@ -731,10 +731,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         BaseType_t xIndex;
         BaseType_t xIsIPv6 = ( usFrameType == ipIPv6_FRAME_TYPE ) ? pdTRUE : pdFALSE;
         BaseType_t xGatewayTarget = pdFALSE;
-        IPv6_Type_t xTargetType = eIPv6_LinkLocal;
+        BaseType_t xTargetGlobal = pdFALSE;
 
         if( xIsIPv6 == pdTRUE )
         {
+            /* Generic GW address fe80::1. */
             static const uint8_t ucBytes[ 16 ] =
             {
                 0xfe, 0x80, 0x00, 0x00,
@@ -751,7 +752,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                    pxIPAddressTo->xIP_IPv6.ucBytes ) );
             }
 
-            xTargetType = xIPv6_GetIPType( &( pxIPAddressTo->xIP_IPv6 ) );
+            xTargetGlobal = ( xIPv6_GetIPType( &( pxIPAddressTo->xIP_IPv6 ) ) == eIPv6_Global ) ? pdTRUE : pdFALSE;
         }
 
         for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface );
@@ -760,7 +761,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         {
             BaseType_t xSameMACAddress = ( memcmp( pxEndPoint->xMACAddress.ucBytes, pxMACAddress->ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ? pdTRUE : pdFALSE;
 
-            if( xIsIPv6 == ( uint32_t ) pxEndPoint->bits.bIPv6 )
+            if( xIsIPv6 == ( BaseType_t ) pxEndPoint->bits.bIPv6 )
             {
                 pxFound[ rMATCH_IP_TYPE ] = pxEndPoint;
                 xCount[ rMATCH_IP_TYPE ]++;
@@ -769,18 +770,20 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 {
                     IPv6_Type_t xEndpointType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
 
-                    if( ( memcmp( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxIPAddressTo->xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 ) ||
-                        ( ( xGatewayTarget == pdTRUE ) && ( xEndpointType == eIPv6_LinkLocal ) ) )
+                    if( xEndpointType != eIPv6_Unknown )
                     {
-                        pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
-                        xCount[ rMATCH_IP_ADDR ]++;
-                    }
+                        BaseType_t xEndpointGlobal = ( xEndpointType == eIPv6_Global ) ? pdTRUE : pdFALSE;
 
-                    if( ( xTargetType == eIPv6_Multicast ) &&
-                        ( xEndpointType == eIPv6_LinkLocal ) )
-                    {
-                        pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
-                        xCount[ rMATCH_IP_ADDR ]++;
+                        if( ( memcmp( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxIPAddressTo->xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 ) )
+                        {
+                            pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
+                            xCount[ rMATCH_IP_ADDR ]++;
+                        }
+                        else if( xTargetGlobal == xEndpointGlobal )
+                        {
+                            pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
+                            xCount[ rMATCH_IP_ADDR ]++;
+                        }
                     }
                 }
                 else
@@ -794,11 +797,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
                 if( xSameMACAddress == pdTRUE )
                 {
-                    if( ( pxFound[ rMATCH_MAC_ADDR ] == NULL ) || ( xIsIPv6 != ( uint32_t ) pxFound[ rMATCH_MAC_ADDR ]->bits.bIPv6 ) )
-                    {
-                        xCount[ rMATCH_MAC_ADDR ]++;
-                    }
-
+                    xCount[ rMATCH_MAC_ADDR ]++;
                     pxFound[ rMATCH_MAC_ADDR ] = pxEndPoint;
                 }
             }
@@ -830,9 +829,9 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
                 FreeRTOS_printf( ( "EasyFit[%s]: %d %d %d ( %s ->%s ) %s\n",
                                    ( usFrameType == ipIPv6_FRAME_TYPE ) ? "IPv6" : ( usFrameType == ipIPv4_FRAME_TYPE ) ? "IPv4" : ( usFrameType == ipARP_FRAME_TYPE ) ? "ARP" : "UNK",
-                                   xCount[ 0 ],
-                                   xCount[ 1 ],
-                                   xCount[ 2 ],
+                                   ( unsigned ) xCount[ 0 ],
+                                   ( unsigned ) xCount[ 1 ],
+                                   ( unsigned ) xCount[ 2 ],
                                    pcBufferFrom,
                                    pcBufferTo,
                                    ( pxReturn == NULL ) ? "BAD" : "Good" ) );
@@ -921,7 +920,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                     xIPAddressFrom.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
                 }
 
-                FreeRTOS_printf( ( "pxEasyFit: ARP %xip -> %xip\n", FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
+                FreeRTOS_printf( ( "pxEasyFit: ARP %xip -> %xip\n", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
             }
             else /* ipIPv4_FRAME_TYPE */
             {
@@ -935,151 +934,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                     &xIPAddressFrom,
                                     &xIPAddressTo,
                                     &xMACAddress );
-
-            if( pxEndPoint )
-            {
-                return pxEndPoint;
-            }
         }
-
-        /* _HT_ It is my intention to remove the rest of the code,
-         * because when pxEasyFit() returns NULL, the packet can not be handled. */
-
-        /* Probably an ARP packet or a broadcast. */
-        switch( pxPacket->xUDPPacket.xEthernetHeader.usFrameType )
-        {
-            #if ( ipconfigUSE_IPv6 != 0 )
-                case ipIPv6_FRAME_TYPE:
-                   {
-                       IPv6_Type_t eMyType;
-                       IPv6_Type_t eIPType = xIPv6_GetIPType( &( pxIPPacket_IPv6->xIPHeader.xSourceAddress ) );
-                       pxEndPoint = pxNetworkEndPoints;
-
-                       for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface );
-                            pxEndPoint != NULL;
-                            pxEndPoint = FreeRTOS_NextEndPoint( pxNetworkInterface, pxEndPoint ) )
-                       {
-                           if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                           {
-                               eMyType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
-
-                               if( eMyType == eIPType )
-                               {
-                                   break;
-                               }
-                           }
-                       }
-
-                       #if ( ipconfigUSE_LLMNR != 0 )
-                           {
-                               if( pxEndPoint == NULL )
-                               {
-                                   if( xCompareIPv6_Address( &( ipLLMNR_IP_ADDR_IPv6 ), &( pxIPPacket_IPv6->xIPHeader.xDestinationAddress ), ( size_t ) 8U * ipSIZE_OF_IPv6_ADDRESS ) == 0 )
-                                   {
-                                       pxEndPoint = FreeRTOS_FirstEndPoint_IPv6( pxNetworkInterface );
-                                   }
-                               }
-                           }
-                       #endif
-                   }
-                   break;
-            #endif /* ipconfigUSE_IPv6 */
-            case ipARP_FRAME_TYPE:
-                pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress, 3U );
-                name = "ARP";
-                break;
-
-            case ipIPv4_FRAME_TYPE:
-               {
-                   /* An IPv4 UDP or TCP packet. */
-                   uint32_t ulIPSourceAddress = pxPacket->xUDPPacket.xIPHeader.ulSourceIPAddress;
-                   uint32_t ulIPTargetAddress = pxPacket->xUDPPacket.xIPHeader.ulDestinationIPAddress;
-                   uint32_t ulMatchAddress;
-                   BaseType_t xIPBroadcast;
-                   BaseType_t xDone = pdFALSE;
-
-                   if( ( FreeRTOS_ntohl( ulIPTargetAddress ) & 0xffuL ) == 0xffuL )
-                   {
-                       xIPBroadcast = pdTRUE;
-                   }
-                   else
-                   {
-                       xIPBroadcast = pdFALSE;
-                   }
-
-                   if( pxPacket->xUDPPacket.xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
-                   {
-                       name = "UDP";
-                   }
-                   else
-                   {
-                       name = "TCP";
-                   }
-
-                   if( ulIPTargetAddress == ~0U )
-                   {
-                       ulMatchAddress = ulIPSourceAddress;
-                   }
-                   else
-                   {
-                       ulMatchAddress = ulIPTargetAddress;
-                   }
-
-                   for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface );
-                        pxEndPoint != NULL;
-                        pxEndPoint = FreeRTOS_NextEndPoint( pxNetworkInterface, pxEndPoint ) )
-                   {
-                       ( void ) name;
-                       #if ( ipconfigUSE_IPv6 != 0 )
-                           if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                           {
-                               continue;
-                           }
-                       #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
-                       if( pxEndPoint->ipv4_settings.ulIPAddress == ulIPTargetAddress )
-                       {
-                           /* The perfect match. */
-                           xDone = pdTRUE;
-                       }
-                       else
-                       if( ( xIPBroadcast != pdFALSE ) &&
-                           ( ( ( pxEndPoint->ipv4_settings.ulIPAddress ^ ulMatchAddress ) & pxEndPoint->ipv4_settings.ulNetMask ) == 0U ) )
-                       {
-                           xDone = pdTRUE;
-                       }
-                       else
-                       if( xIsIPv4Multicast( ulIPTargetAddress ) != pdFALSE )
-                       {
-                           /* Target is a multicast address. */
-                           xDone = pdTRUE;
-                       }
-                       else
-                       {
-                           /* This end-point doesn't match with the packet. */
-                       }
-
-                       if( xDone != pdFALSE )
-                       {
-                           break;
-                       }
-                   }
-
-                   if( ( xIPBroadcast != 0 ) && ( pxEndPoint == NULL ) )
-                   {
-                       pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface );
-                   }
-               }
-               break;
-
-            default:
-                /* Frame type not supported. */
-                FreeRTOS_printf( ( "Frametpye %04x not supported.\n", FreeRTOS_ntohs( pxPacket->xUDPPacket.xEthernetHeader.usFrameType ) ) );
-                break;
-        } /* switch usFrameType */
-
-        ( void ) name;
-
         return pxEndPoint;
     }
 /*-----------------------------------------------------------*/
@@ -1108,7 +963,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 if( ( xIPType == ( BaseType_t ) ipTYPE_IPv6 ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
                 {
                     /* Check if the IP-address is non-zero. */
-                    if( memcmp( in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 ) /* access to ipv6_settings is checked. */
+                    if( memcmp( in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
                     {
                         break;
                     }
@@ -1116,7 +971,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 else
                 if( ( xIPType == ( BaseType_t ) ipTYPE_IPv4 ) && ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) )
                 {
-                    if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) /* access to ipv4_settings is checked. */
+                    if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U )
                     {
                         break;
                     }
