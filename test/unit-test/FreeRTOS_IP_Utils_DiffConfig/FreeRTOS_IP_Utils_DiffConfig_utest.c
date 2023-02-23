@@ -92,7 +92,7 @@ void test_pxPacketBuffer_to_NetworkBuffer( void )
 void test_prvProcessNetworkDownEvent_Pass_DHCP_Enabled( void )
 {
     NetworkInterface_t xInterface;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0};
 
     xCallEventHook = pdFALSE;
 
@@ -176,7 +176,7 @@ void test_vPrintResourceStats_LastQueueNECurrentQueue( void )
 void test_prvProcessNetworkDownEvent_Pass_DHCP_Disabled( void )
 {
     NetworkInterface_t xInterface;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0};
 
     xCallEventHook = pdFALSE;
     xEndPoint.bits.bCallDownHook = 1;

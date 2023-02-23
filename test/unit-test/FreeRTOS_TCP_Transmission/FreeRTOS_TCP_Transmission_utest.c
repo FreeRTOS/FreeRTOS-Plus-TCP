@@ -156,7 +156,7 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
 void test_prvTCPSendPacket_Syn_State( void )
 {
     int32_t BytesSent = 0;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     pxSocket = &xSocket;
@@ -347,7 +347,7 @@ void test_prvTCPSendRepeated_Repeat_8( void )
 {
     int32_t BytesSent = 0;
     UBaseType_t RepeatCount = 0;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     pxSocket = &xSocket;
@@ -396,7 +396,7 @@ void test_prvTCPReturnPacket_Null_Buffer_Null_Rx_Stream_KL( void )
 {
     pxSocket = &xSocket;
     pxNetworkBuffer = NULL;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -434,7 +434,7 @@ void test_prvTCPReturnPacket_Null_Buffer_Null_Rx_Stream_KL( void )
 /* test for prvTCPReturnPacket function */
 void test_prvTCPReturnPacket_Null_Socket( void )
 {
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -471,7 +471,7 @@ void test_prvTCPReturnPacket_Null_Socket( void )
 /* test for prvTCPReturnPacket function */
 void test_prvTCPReturnPacket_Null_Socket_Relase_True( void )
 {
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -512,7 +512,7 @@ void test_prvTCPReturnPacket_No_KL( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -557,7 +557,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -612,7 +612,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_GT_Eth_Packet_Length( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     MACAddress_t NewSourceMacAddr = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, NewSourceMacAddr.ucBytes, sizeof( xEndPoint.xMACAddress.ucBytes ) );
@@ -664,7 +664,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_ARP_Not_Hit( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     MACAddress_t NewDestMacAddr = { { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC } };
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -719,7 +719,7 @@ void test_prvTCPReturnPacket_No_KL_Fin_Suppress_Rx_Stop( void )
 
 
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -766,7 +766,7 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Low_Water( void )
 
 
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -814,7 +814,7 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Big_Win( void )
 
 
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -1759,7 +1759,7 @@ void test_prvSendData_AckMsg_Not_Null_Small_Length( void )
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     NetworkBufferDescriptor_t AckMessage;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -1812,7 +1812,7 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State( void )
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -1865,7 +1865,7 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State_Data_To_Send( voi
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -1917,7 +1917,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send( void )
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -1969,7 +1969,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Log( void )
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -2022,7 +2022,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Rcv_Zero( void )
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -2072,7 +2072,7 @@ void test_prvTCPSendSpecialPacketHelper( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -2104,7 +2104,7 @@ void test_prvTCPSendChallengeAck( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
@@ -2136,7 +2136,7 @@ void test_prvTCPSendReset( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;

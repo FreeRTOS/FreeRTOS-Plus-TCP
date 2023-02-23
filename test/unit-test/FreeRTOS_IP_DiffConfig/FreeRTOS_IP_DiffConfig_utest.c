@@ -927,7 +927,7 @@ void test_vReturnEthernetFrame_DuplicationFailed( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
     BaseType_t xReleaseAfterSend = pdFALSE;
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0}, * pxEndPoint = &xEndPoint;
 
     xNetworkBuffer.xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
 
@@ -946,7 +946,7 @@ void test_vReturnEthernetFrame_DuplicationSuccess( void )
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
     struct xNetworkInterface xInterface;
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0}, * pxEndPoint = &xEndPoint;
 
     pxNetworkBuffer = &xNetworkBuffer;
     memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
@@ -991,7 +991,7 @@ void test_vReturnEthernetFrame( void )
     BaseType_t xReleaseAfterSend = pdTRUE;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0}, * pxEndPoint = &xEndPoint;
 
     pxNetworkBuffer = &xNetworkBuffer;
     memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
@@ -1002,6 +1002,7 @@ void test_vReturnEthernetFrame( void )
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
     memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
     memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
+    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
@@ -1028,7 +1029,7 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
     BaseType_t xReleaseAfterSend = pdTRUE;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0}, * pxEndPoint = &xEndPoint;
 
     pxNetworkBuffer = &xNetworkBuffer;
     memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
@@ -1039,7 +1040,8 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
     memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
     memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
-
+    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     xEndPoint.pxNetworkInterface = &xInterfaces;

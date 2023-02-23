@@ -34,7 +34,7 @@ static void vResetARPClashCounter( void )
 {
     ARPPacket_t xARPFrame = {0};
     eFrameProcessingResult_t eResult;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     NetworkBufferDescriptor_t xNetworkBuffer = {0};
 
     memset( &xARPFrame, 0, sizeof( ARPPacket_t ) );
@@ -576,7 +576,7 @@ void test_eARPProcessPacket_Request_SenderAndTargetSame( void )
     ARPPacket_t xARPFrame = {0};
     eFrameProcessingResult_t eResult;
     NetworkInterface_t xInterface;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     NetworkBufferDescriptor_t xNetworkBuffer = {0};
 
     memset( &xARPFrame, 0, sizeof( ARPPacket_t ) );
@@ -626,7 +626,7 @@ void test_eARPProcessPacket_Reply_TargetIPSameAsLocalIP( void )
     ARPPacket_t xARPFrame = {0};
     eFrameProcessingResult_t eResult;
     NetworkInterface_t xInterface;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     NetworkBufferDescriptor_t xNetworkBuffer = {0};
 
     memset( &xARPFrame, 0, sizeof( ARPPacket_t ) );
@@ -673,7 +673,7 @@ void test_eARPProcessPacket_Reply_TargetIPNotSameAsLocalIP_ButEntryInCache( void
     ARPPacket_t xARPFrame = {0};
     eFrameProcessingResult_t eResult;
     NetworkInterface_t xInterface;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     NetworkBufferDescriptor_t xNetworkBuffer = {0};
 
     memset( &xARPFrame, 0, sizeof( ARPPacket_t ) );
@@ -784,7 +784,7 @@ void test_eARPProcessPacket_Reply_DifferentIP( void )
     ARPPacket_t xARPFrame = {0};
     eFrameProcessingResult_t eResult;
     NetworkInterface_t xInterface;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     NetworkBufferDescriptor_t xNetworkBuffer = {0};
 
     memset( &xARPFrame, 0, sizeof( ARPPacket_t ) );
@@ -823,7 +823,7 @@ void test_eARPProcessPacket_Reply_DifferentIP_WaitingBufferNonNull( void )
     NetworkBufferDescriptor_t xLocalBuffer;
     uint8_t pucLocalEthernetBuffer[ 1500 ];
     NetworkInterface_t xInterface;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     NetworkBufferDescriptor_t xNetworkBuffer = {0};
 
     memset( &xARPFrame, 0, sizeof( ARPPacket_t ) );
@@ -867,7 +867,7 @@ void test_eARPProcessPacket_Reply_WaitingBufferNonNull_MatchingAddress1( void )
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t xLocalBuffer;
     NetworkInterface_t xInterface;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     NetworkBufferDescriptor_t xNetworkBuffer = {0};
 
     uint8_t pucLocalEthernetBuffer[ 1500 ];
@@ -923,7 +923,7 @@ void test_eARPProcessPacket_Reply_WaitingBufferNonNull_MatchingAddress2( void )
     NetworkBufferDescriptor_t xLocalBuffer;
     uint8_t pucLocalEthernetBuffer[ 1500 ];
     NetworkInterface_t xInterface;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     NetworkBufferDescriptor_t xNetworkBuffer = {0};
 
     IPPacket_t * pxARPWaitingIPPacket = ( ( IPPacket_t * ) pucLocalEthernetBuffer );
@@ -1041,7 +1041,7 @@ void test_xIsIPInARPCache_MatchingIP2( void )
 
 void test_xCheckRequiresARPResolution_NotOnLocalNetwork( void )
 {
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
     uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
     BaseType_t xResult;
@@ -1068,7 +1068,7 @@ void test_xCheckRequiresARPResolution_NotOnLocalNetwork( void )
 
 void test_xCheckRequiresARPResolution_OnLocalNetwork_NotInCache( void )
 {
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     NetworkInterface_t xInterface;
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
     uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
@@ -1111,7 +1111,7 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_NotInCache( void )
 
 void test_xCheckRequiresARPResolution_OnLocalNetwork_InCache( void )
 {
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
     uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
     BaseType_t xResult;
@@ -1198,7 +1198,7 @@ void test_vARPRefreshCacheEntry_NULLMAC_NoMatchingEntry( void )
     uint32_t ulIPAddress;
     int i;
     BaseType_t xUseEntry;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
 
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
     {
@@ -1225,7 +1225,7 @@ void test_vARPRefreshCacheEntry_NULLMAC_MatchingEntry( void )
     uint32_t ulIPAddress;
     int i;
     BaseType_t xUseEntry;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
 
     /* =================================================== */
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -1255,7 +1255,7 @@ void test_vARPRefreshCacheEntry_MACWontMatch_IPWillMatch( void )
     uint32_t ulIPAddress;
     int i;
     BaseType_t xUseEntry;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
 
     /* =================================================== */
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -1290,7 +1290,7 @@ void test_vARPRefreshCacheEntry_MACAndIPWillMatch( void )
     uint32_t ulIPAddress;
     int i;
     BaseType_t xUseEntry;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
 
     /* =================================================== */
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -1328,7 +1328,7 @@ void test_vARPRefreshCacheEntry_IPOnADifferentSubnet( void )
     uint32_t ulIPAddress;
     int i;
     BaseType_t xUseEntry;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
 
     /* =================================================== */
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -1369,7 +1369,7 @@ void test_vARPRefreshCacheEntry_IPAndMACInDifferentLocations( void )
     uint32_t ulIPAddress;
     int i;
     BaseType_t xUseEntry;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
 
     /* =================================================== */
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -1414,7 +1414,7 @@ void test_vARPRefreshCacheEntry_IPAndMACInDifferentLocations1( void )
     uint32_t ulIPAddress;
     int i;
     BaseType_t xUseEntry;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
 
     /* =================================================== */
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
@@ -2124,7 +2124,7 @@ void test_vARPGenerateRequestPacket( void )
 
 void test_FreeRTOS_ClearARP( void )
 {
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     uint8_t ucArray[ sizeof( xARPCache ) ];
 
     memset( ucArray, 0, sizeof( xARPCache ) );

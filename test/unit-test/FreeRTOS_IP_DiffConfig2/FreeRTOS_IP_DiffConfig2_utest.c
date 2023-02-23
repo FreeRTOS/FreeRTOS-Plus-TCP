@@ -171,7 +171,7 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     BaseType_t xReturn;
     QueueHandle_t ulPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
 
-    NetworkEndPoint_t xEndPoints, * xFirstEndPoint = &xEndPoints;
+    NetworkEndPoint_t xEndPoints = {0}, * xFirstEndPoint = &xEndPoints;
 
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;

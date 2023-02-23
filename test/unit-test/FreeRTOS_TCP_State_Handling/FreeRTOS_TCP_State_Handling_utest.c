@@ -1560,7 +1560,7 @@ void test_prvHandleListen_Not_For_Me( void )
 void test_prvHandleListen_Reuse_Socket( void )
 {
     FreeRTOS_Socket_t * pxReturn = NULL;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0};
 
     pxSocket = &xSocket;
 

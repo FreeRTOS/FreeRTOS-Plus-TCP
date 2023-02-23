@@ -290,7 +290,7 @@ void test_xIsCallingFromIPTask_IsCallingFromIPTask( void )
 void test_prvProcessNetworkDownEvent_Pass( void )
 {
     NetworkInterface_t xInterface;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0};
 
     xCallEventHook = pdFALSE;
     xInterfaces[ 0 ].pfInitialise = &xNetworkInterfaceInitialise_returnTrue;
@@ -324,7 +324,7 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 void test_prvProcessNetworkDownEvent_Fail( void )
 {
     NetworkInterface_t xInterface;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0};
 
     xCallEventHook = pdFALSE;
     xInterfaces[ 0 ].pfInitialise = &xNetworkInterfaceInitialise_returnTrue;

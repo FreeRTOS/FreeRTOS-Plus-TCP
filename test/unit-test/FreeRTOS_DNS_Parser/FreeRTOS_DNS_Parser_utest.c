@@ -471,7 +471,7 @@ void test_prepareReplyDNSMessage_success( void )
     NetworkBufferDescriptor_t pxNetworkBuffer;
     uint8_t ether_buffer[ 300 ];
     size_t uxDataLength;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0};
 
     pxNetworkBuffer.pucEthernetBuffer = ether_buffer;
     pxNetworkBuffer.xDataLength = 300;
@@ -515,7 +515,7 @@ void test_DNS_TreatNBNS_success( void )
     uint8_t pucPayload[ 300 ];
     size_t uxBufferLength;
     uint32_t ulIPAddress;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     NetworkBufferDescriptor_t xNetworkBuffer;
     uint16_t * pusFlags, offset_of_uc = offsetof( NBNSRequest_t, usFlags );
 
@@ -636,7 +636,7 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
 
     NetworkBufferDescriptor_t pxNetworkBuffer;
     NetworkBufferDescriptor_t pxNetworkBuffer_dup;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
 
     pxNetworkBuffer.pxEndPoint = &xEndPoint;
 
@@ -677,7 +677,7 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer2( void )
     xBufferAllocFixedSize = pdFALSE;
     NetworkBufferDescriptor_t pxNetworkBuffer;
     NetworkBufferDescriptor_t pxNetworkBuffer_dup;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
 
     pxNetworkBuffer.pxEndPoint = &xEndPoint;
 
@@ -721,7 +721,7 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer3( void )
     NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkBufferDescriptor_t pxNetworkBuffer;
     NetworkBufferDescriptor_t pxNetworkBuffer_dup;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
 
     xNetworkBuffer.pxEndPoint = &xEndPoint;
     uint8_t buffer[ 300 ];
@@ -748,7 +748,7 @@ void test_DNS_TreatNBNS_success_empty_char_nbns_name( void )
 {
     uint8_t pucPayload[ 300 ];
     NetworkBufferDescriptor_t xNetworkBuffer;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
 
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
@@ -776,7 +776,7 @@ void test_DNS_TreatNBNS_success_empty_char_nbns_name2( void )
 {
     uint8_t pucPayload[ 300 ];
     NetworkBufferDescriptor_t xNetworkBuffer;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
 
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
@@ -1078,7 +1078,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_xBufferAllocFixesize( void )
 
     xBufferAllocFixedSize = pdTRUE;
     uint8_t * nullAddress = NULL;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0};
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
@@ -1159,7 +1159,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0};
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
@@ -1388,7 +1388,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
     uint32_t ret;
     uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
     struct freertos_addrinfo * pxAddressInfo;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = {0};
     uint16_t usPort;
 
     memset( pucUDPPayloadBuffer, 0x0, 250 );
@@ -1528,7 +1528,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2( void )
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = {0};
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
