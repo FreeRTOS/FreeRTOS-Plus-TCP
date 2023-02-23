@@ -634,6 +634,9 @@
         /* Function might modify the parameter. */
         NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
 
+        configASSERT( pxNetworkBuffer != NULL );
+        configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
         /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -652,9 +655,6 @@
         BaseType_t xResult = pdPASS;
 
         const IPHeader_t * pxIPHeader;
-
-        configASSERT( pxNetworkBuffer != NULL );
-        configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
         /* Check for a minimum packet size. */
         if( pxNetworkBuffer->xDataLength < ( ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER ) )
