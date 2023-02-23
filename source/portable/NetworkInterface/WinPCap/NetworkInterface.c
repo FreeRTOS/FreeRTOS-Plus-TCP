@@ -860,7 +860,7 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                             pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer->pucEthernetBuffer );
 
                             /* Just for now, make sure that there is a valid end-point. */
-                            if(pxNetworkBuffer->pxEndPoint == NULL)
+                            if( pxNetworkBuffer->pxEndPoint == NULL )
                             {
                                 FreeRTOS_printf( ( "Network interface: dropped packet\n" ) );
                                 vReleaseNetworkBufferAndDescriptor( BUFFER_FROM_WHERE_CALL( 153 ) pxNetworkBuffer );

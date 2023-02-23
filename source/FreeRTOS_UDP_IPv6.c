@@ -415,10 +415,11 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
     /* When refreshing the ARP/ND cache with received UDP packets we must be
      * careful;  hundreds of broadcast messages may pass and if we're not
      * handling them, no use to fill the cache with those IP addresses. */
-    UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t* ) pxNetworkBuffer->pucEthernetBuffer );
+    UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     /* Caller must check for minimum packet size. */
     pxSocket = pxUDPSocketLookup( usPort );
@@ -438,6 +439,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                 xReturn = pdFAIL;
                 break;
             }
+
             vNDRefreshCacheEntry( &( pxUDPPacket_IPv6->xEthernetHeader.xSourceAddress ), &( pxUDPPacket_IPv6->xIPHeader.xSourceAddress ),
                                   pxNetworkBuffer->pxEndPoint );
 

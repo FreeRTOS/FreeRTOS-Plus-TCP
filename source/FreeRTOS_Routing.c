@@ -736,6 +736,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 if( xIsIPv6 != 0 )
                 {
                     IPv6_Type_t xEndpointType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+
                     if( xEndpointType != eIPv6_Unknown )
                     {
                         BaseType_t xEndpointGlobal = ( xEndpointType == eIPv6_Global ) ? pdTRUE : pdFALSE;
@@ -900,8 +901,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                     &xIPAddressFrom,
                                     &xIPAddressTo,
                                     &xMACAddress );
-
-                   }
+        }
         return pxEndPoint;
     }
 /*-----------------------------------------------------------*/
