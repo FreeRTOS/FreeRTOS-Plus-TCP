@@ -641,12 +641,12 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
     uint32_t ulIPAddress;
 
     NetworkBufferDescriptor_t pxNetworkBuffer = {0};
-    NetworkBufferDescriptor_t pxNetworkBuffer_dup;
+    NetworkBufferDescriptor_t pxNetworkBuffer_dup = {0};
     struct xNetworkEndPoint xEndPoint = {0};
 
     pxNetworkBuffer.pxEndPoint = &xEndPoint;
 
-    uint8_t buffer[ 300 ];
+    uint8_t buffer[ 300 ] = {0};
 
     pxNetworkBuffer_dup.pucEthernetBuffer = buffer;
     pxNetworkBuffer_dup.xDataLength = 300;
@@ -677,6 +677,7 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
 void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer2( void )
 {
     uint8_t pucPayload[ 300 ] = {0};
+    uint8_t ether_buffer[ 300 ] = {0};
     size_t uxBufferLength = 300;
     uint32_t ulIPAddress;
 
@@ -687,7 +688,7 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer2( void )
 
     pxNetworkBuffer.pxEndPoint = &xEndPoint;
 
-    uint8_t buffer[ 300 ];
+    uint8_t buffer[ 300 ] = {0};
 
     pxNetworkBuffer.pucEthernetBuffer = buffer;
     pxNetworkBuffer.xDataLength = 300;
