@@ -1078,7 +1078,8 @@ void test_DNS_ParseDNSReply_ansswer_record_too_many_answers( void )
 void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_xBufferAllocFixesize( void )
 {
     uint32_t ret;
-    uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
+    uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
+    uint8_t *pucUDPPayloadBuffer = ((uint8_t *)udp_buffer) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
@@ -1090,11 +1091,11 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_xBufferAllocFixesize( void )
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
     NetworkBufferDescriptor_t pxNetworkBuffer = {0};
-    pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
 
     NetworkBufferDescriptor_t pxNewBuffer;
-    pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNewBuffer.pucEthernetBuffer = udp_buffer;
     pxNewBuffer.xDataLength = uxBufferLength;
 
     char dns[ 64 ];
@@ -1105,7 +1106,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_xBufferAllocFixesize( void )
 
     DNSMessage_t * dns_header;
 
-    dns_header = &pucUDPPayloadBuffer;
+    dns_header = pucUDPPayloadBuffer;
 
     dns_header->usQuestions = FreeRTOS_htons( 1 );
     dns_header->usAnswers = FreeRTOS_htons( 2 );
@@ -1162,7 +1163,8 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_xBufferAllocFixesize( void )
 void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
 {
     uint32_t ret;
-    uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
+    uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
+    uint8_t *pucUDPPayloadBuffer = ((uint8_t *)udp_buffer) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
@@ -1171,11 +1173,11 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
     NetworkBufferDescriptor_t pxNetworkBuffer = {0};
-    pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
 
     NetworkBufferDescriptor_t pxNewBuffer;
-    pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNewBuffer.pucEthernetBuffer = udp_buffer;
     pxNewBuffer.xDataLength = uxBufferLength;
 
     char dns[ 64 ];
@@ -1186,7 +1188,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
 
     DNSMessage_t * dns_header;
 
-    dns_header = &pucUDPPayloadBuffer;
+    dns_header = pucUDPPayloadBuffer;
 
     dns_header->usQuestions = FreeRTOS_htons( 1 );
     dns_header->usAnswers = FreeRTOS_htons( 2 );
@@ -1210,7 +1212,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
     beg += 38;
 
     uint8_t * pucNewBuffer = NULL;
-    pucNewBuffer = &( pucUDPPayloadBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+    pucNewBuffer = &( pucUDPPayloadBuffer[ 0 ] );
     LLMNRAnswer_t * pxAnswer = &( pucNewBuffer[ 56 ] ); /* xOffset1 = 56 */
 
     xEndPoint.ipv4_settings.ulIPAddress = 11;
@@ -1252,7 +1254,8 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
 void test_DNS_ParseDNSReply_ansswer_lmmnr_reply2( void )
 {
     uint32_t ret;
-    uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
+    uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
+    uint8_t *pucUDPPayloadBuffer = ((uint8_t *)udp_buffer) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
@@ -1260,11 +1263,11 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply2( void )
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
     NetworkBufferDescriptor_t pxNetworkBuffer = {0};
-    pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
 
     NetworkBufferDescriptor_t pxNewBuffer;
-    pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNewBuffer.pucEthernetBuffer = udp_buffer;
     pxNewBuffer.xDataLength = uxBufferLength;
 
     char dns[ 64 ];
@@ -1275,7 +1278,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply2( void )
 
     DNSMessage_t * dns_header;
 
-    dns_header = &pucUDPPayloadBuffer;
+    dns_header = pucUDPPayloadBuffer;
 
     dns_header->usQuestions = FreeRTOS_htons( 1 ); /* 0000000100000000 */
     dns_header->usAnswers = FreeRTOS_htons( 2 );   /* 0000001000000000 */
@@ -1322,7 +1325,8 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply2( void )
 void test_DNS_ParseDNSReply_ansswer_lmmnr_reply3( void )
 {
     uint32_t ret;
-    uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
+    uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
+    uint8_t *pucUDPPayloadBuffer = ((uint8_t *)udp_buffer) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
@@ -1330,11 +1334,11 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply3( void )
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
     NetworkBufferDescriptor_t pxNetworkBuffer = {0};
-    pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
 
     NetworkBufferDescriptor_t pxNewBuffer;
-    pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNewBuffer.pucEthernetBuffer = udp_buffer;
     pxNewBuffer.xDataLength = uxBufferLength;
 
     char dns[ 64 ];
@@ -1345,7 +1349,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply3( void )
 
     DNSMessage_t * dns_header;
 
-    dns_header = &pucUDPPayloadBuffer;
+    dns_header = pucUDPPayloadBuffer;
 
     dns_header->usQuestions = FreeRTOS_htons( 1 );
     dns_header->usAnswers = FreeRTOS_htons( 2 );
@@ -1393,7 +1397,8 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply3( void )
 void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
 {
     uint32_t ret;
-    uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
+    uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
+    uint8_t *pucUDPPayloadBuffer = ((uint8_t *)udp_buffer) + ipUDP_PAYLOAD_OFFSET_IPv4;
     struct freertos_addrinfo * pxAddressInfo;
     struct xNetworkEndPoint xEndPoint = {0};
     uint16_t usPort;
@@ -1402,12 +1407,12 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
     size_t uxBufferLength = 250;
 
     NetworkBufferDescriptor_t pxNetworkBuffer = {0};
-    pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
     pxNetworkBuffer.pxEndPoint = &xEndPoint;
 
     NetworkBufferDescriptor_t pxNewBuffer;
-    pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNewBuffer.pucEthernetBuffer = udp_buffer;
     pxNewBuffer.xDataLength = uxBufferLength;
 
     char dns[ 64 ];
@@ -1418,7 +1423,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
 
     DNSMessage_t * dns_header;
 
-    dns_header = &pucUDPPayloadBuffer;
+    dns_header = pucUDPPayloadBuffer;
 
     dns_header->usQuestions = FreeRTOS_htons( 1 );
     dns_header->usAnswers = FreeRTOS_htons( 2 );
@@ -1464,17 +1469,18 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
 void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer( void )
 {
     uint32_t ret;
-    uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
+    uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
+    uint8_t *pucUDPPayloadBuffer = ((uint8_t *)udp_buffer) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
     NetworkBufferDescriptor_t pxNetworkBuffer = {0};
 
-    pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
 
     NetworkBufferDescriptor_t pxNewBuffer;
-    pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNewBuffer.pucEthernetBuffer = udp_buffer;
     pxNewBuffer.xDataLength = uxBufferLength;
 
     char dns[ 64 ];
@@ -1486,7 +1492,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer( void )
 
     DNSMessage_t * dns_header;
 
-    dns_header = &pucUDPPayloadBuffer;
+    dns_header = pucUDPPayloadBuffer;
 
     dns_header->usQuestions = FreeRTOS_htons( 1 );
     dns_header->usAnswers = FreeRTOS_htons( 2 );
@@ -1531,7 +1537,8 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer( void )
 void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2( void )
 {
     uint32_t ret;
-    uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
+    uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
+    uint8_t *pucUDPPayloadBuffer = ((uint8_t *)udp_buffer) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
@@ -1540,12 +1547,12 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2( void )
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
     NetworkBufferDescriptor_t pxNetworkBuffer = {0};
-    pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
     pxNetworkBuffer.pxEndPoint = &xEndPoint;
 
     NetworkBufferDescriptor_t pxNewBuffer;
-    pxNewBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
+    pxNewBuffer.pucEthernetBuffer = udp_buffer;
     pxNewBuffer.xDataLength = uxBufferLength;
 
     char dns[ 64 ];
@@ -1556,7 +1563,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2( void )
 
     DNSMessage_t * dns_header;
 
-    dns_header = &pucUDPPayloadBuffer;
+    dns_header = pucUDPPayloadBuffer;
 
     dns_header->usQuestions = FreeRTOS_htons( 1 );
     dns_header->usAnswers = FreeRTOS_htons( 2 );
