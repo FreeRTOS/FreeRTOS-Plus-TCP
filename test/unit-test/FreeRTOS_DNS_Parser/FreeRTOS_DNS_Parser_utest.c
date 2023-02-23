@@ -128,7 +128,7 @@ void test_DNS_ReadNameField_success_empty_uxRemainingBytes( void )
 {
     uint8_t pucByte[ 300 ];
     size_t ret;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     size_t uxDestLen;
 
     memset( pucByte, 0x00, 300 );
@@ -144,7 +144,7 @@ void test_DNS_ReadNameField_fail_offset_dns_name( void )
 {
     uint8_t pucByte[ 300 ] = { 0 };
     size_t ret;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     size_t uxDestLen;
 
     memset( pucByte, 0x00, 300 );
@@ -163,7 +163,7 @@ void test_DNS_ReadNameField_success_fully_coded_gt_uint16( void )
 {
     uint8_t pucByte[ 300 ] = { 0 };
     size_t ret;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
 
     memset( pucByte, 0x00, 300 );
     pucByte[ 0 ] = dnsNAME_IS_OFFSET;
@@ -182,7 +182,7 @@ void test_DNS_ReadNameField_zero_size_walk_over_nothing_to_do( void )
 {
     uint8_t pucByte[ 300 ] = { 0 };
     size_t ret;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
 
     memset( pucByte, 0x00, 300 );
     xSet.pucByte = pucByte;
@@ -204,7 +204,7 @@ void test_DNS_ReadNameField_walk_over_copy_name( void )
     uint8_t pucByte[ 300 ] = { 0 };
     char pcName[ 300 ] = { 0 };
     size_t ret;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
 
     memset( pucByte, 0x00, 300 );
     xSet.pucByte = pucByte;
@@ -227,7 +227,7 @@ void test_DNS_ReadNameField_walk_over_exact_source_length( void )
     uint8_t pucByte[ 300 ] = { 0 };
     char pcName[ 300 ] = { 0 };
     size_t ret;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     size_t uxDestLen;
 
     memset( pucByte, 0x00, 300 );
@@ -255,7 +255,7 @@ void test_DNS_ReadNameField_walk_over_copy_2_names( void )
 {
     uint8_t pucByte[ 300 ] = { 0 };
     char pcName[ 300 ] = { 0 };
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     size_t ret;
 
     memset( pucByte, 0x00, 300 );
@@ -282,7 +282,7 @@ void test_DNS_ReadNameField_short_destination( void )
 {
     uint8_t pucByte[ 300 ] = { 0 };
     char pcName[ 300 ] = { 0 };
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
 
     memset( pucByte, 0x00, 300 );
     memset( xSet.pcName, 0x00, sizeof( xSet.pcName ) );
@@ -308,7 +308,7 @@ void test_DNS_ReadNameField_short_source( void )
 {
     uint8_t pucByte[ 300 ] = { 0 };
     char pcName[ 300 ] = { 0 };
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
 
     memset( pucByte, 0x00, 300 );
     memset( xSet.pcName, 0x00, sizeof( xSet.pcName ) );
@@ -333,7 +333,7 @@ void test_DNS_ReadNameField_fail_name_len_gt_destlen( void )
 {
     uint8_t pucByte[ 15 ] = { 0 };
     char pcName[ 10 ] = { 0 };
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     size_t uxDestLen;
 
     memset( pucByte, 0x00, 15 );
@@ -468,8 +468,8 @@ void test_DNS_SkipNameField_small_buffer( void )
  */
 void test_prepareReplyDNSMessage_success( void )
 {
-    NetworkBufferDescriptor_t pxNetworkBuffer;
-    uint8_t ether_buffer[ 300 ];
+    NetworkBufferDescriptor_t pxNetworkBuffer = {0};
+    uint8_t ether_buffer[ 300 ] = {0};
     size_t uxDataLength;
     NetworkEndPoint_t xEndPoint = {0};
 
@@ -512,7 +512,7 @@ void test_prepareReplyDNSMessage_success( void )
  */
 void test_DNS_TreatNBNS_success( void )
 {
-    uint8_t pucPayload[ 300 ];
+    uint8_t pucPayload[ 300 ] = {0};
     size_t uxBufferLength;
     uint32_t ulIPAddress;
     struct xNetworkEndPoint xEndPoint = {0};
@@ -538,7 +538,7 @@ void test_DNS_TreatNBNS_success( void )
  */
 void test_DNS_TreatNBNS_success_nbns_mask( void )
 {
-    uint8_t pucPayload[ 300 ];
+    uint8_t pucPayload[ 300 ] = {0};
     size_t uxBufferLength;
     uint32_t ulIPAddress;
 
@@ -556,17 +556,20 @@ void test_DNS_TreatNBNS_success_nbns_mask( void )
  */
 void test_DNS_TreatNBNS_success_nbns_query_trailing_space( void )
 {
-    uint8_t pucPayload[ 300 ];
+    uint8_t pucPayload[ 300 ] = {0};
+    uint8_t ether_buffer[ 300 ] = {0};
     size_t uxBufferLength;
     uint32_t ulIPAddress;
 
-    NetworkBufferDescriptor_t pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer = {0};
+    pxNetworkBuffer.pucEthernetBuffer = ether_buffer;
 
     hook_return = pdTRUE;
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     DNS_TreatNBNS( pucPayload,
@@ -581,17 +584,20 @@ void test_DNS_TreatNBNS_success_nbns_query_trailing_space( void )
  */
 void test_DNS_TreatNBNS_success_nbns_query( void )
 {
-    uint8_t pucPayload[ 300 ];
+    uint8_t pucPayload[ 300 ] = {0};
+    uint8_t ether_buffer[ 300 ] = {0};
     size_t uxBufferLength;
     uint32_t ulIPAddress;
 
-    NetworkBufferDescriptor_t pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer = {0};
+    pxNetworkBuffer.pucEthernetBuffer = ether_buffer;
 
     hook_return = pdTRUE;
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     DNS_TreatNBNS( pucPayload,
@@ -606,7 +612,7 @@ void test_DNS_TreatNBNS_success_nbns_query( void )
  */
 void test_DNS_TreatNBNS_success_nbns_query_network_buffer_null( void )
 {
-    uint8_t pucPayload[ 300 ];
+    uint8_t pucPayload[ 300 ] = {0};
     size_t uxBufferLength = 300;
     uint32_t ulIPAddress;
 
@@ -630,11 +636,11 @@ void test_DNS_TreatNBNS_success_nbns_query_network_buffer_null( void )
  */
 void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
 {
-    uint8_t pucPayload[ 300 ];
+    uint8_t pucPayload[ 300 ] = {0};
     size_t uxBufferLength = 300;
     uint32_t ulIPAddress;
 
-    NetworkBufferDescriptor_t pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer = {0};
     NetworkBufferDescriptor_t pxNetworkBuffer_dup;
     struct xNetworkEndPoint xEndPoint = {0};
 
@@ -670,12 +676,12 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
  */
 void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer2( void )
 {
-    uint8_t pucPayload[ 300 ];
+    uint8_t pucPayload[ 300 ] = {0};
     size_t uxBufferLength = 300;
     uint32_t ulIPAddress;
 
     xBufferAllocFixedSize = pdFALSE;
-    NetworkBufferDescriptor_t pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer = {0};
     NetworkBufferDescriptor_t pxNetworkBuffer_dup;
     struct xNetworkEndPoint xEndPoint = {0};
 
@@ -714,12 +720,12 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer2( void )
  */
 void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer3( void )
 {
-    uint8_t pucPayload[ 300 ];
+    uint8_t pucPayload[ 300 ] = {0};
     size_t uxBufferLength = 300;
     uint32_t ulIPAddress;
 
     NetworkBufferDescriptor_t xNetworkBuffer;
-    NetworkBufferDescriptor_t pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer = {0};
     NetworkBufferDescriptor_t pxNetworkBuffer_dup;
     struct xNetworkEndPoint xEndPoint = {0};
 
@@ -746,7 +752,7 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer3( void )
  */
 void test_DNS_TreatNBNS_success_empty_char_nbns_name( void )
 {
-    uint8_t pucPayload[ 300 ];
+    uint8_t pucPayload[ 300 ] = {0};
     NetworkBufferDescriptor_t xNetworkBuffer;
     struct xNetworkEndPoint xEndPoint = {0};
 
@@ -774,7 +780,7 @@ void test_DNS_TreatNBNS_success_empty_char_nbns_name( void )
  */
 void test_DNS_TreatNBNS_success_empty_char_nbns_name2( void )
 {
-    uint8_t pucPayload[ 300 ];
+    uint8_t pucPayload[ 300 ] = {0};
     NetworkBufferDescriptor_t xNetworkBuffer;
     struct xNetworkEndPoint xEndPoint = {0};
 
@@ -1082,7 +1088,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_xBufferAllocFixesize( void )
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
-    NetworkBufferDescriptor_t pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer = {0};
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
 
@@ -1163,7 +1169,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
-    NetworkBufferDescriptor_t pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer = {0};
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
 
@@ -1212,10 +1218,10 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
     hook_return = pdTRUE;
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNewBuffer );
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
-
     usGenerateChecksum_ExpectAnyArgsAndReturn( 1234 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 123 );
 
@@ -1252,7 +1258,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply2( void )
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
-    NetworkBufferDescriptor_t pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer = {0};
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
 
@@ -1322,7 +1328,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply3( void )
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
-    NetworkBufferDescriptor_t pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer = {0};
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
 
@@ -1394,7 +1400,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
     memset( pucUDPPayloadBuffer, 0x0, 250 );
     size_t uxBufferLength = 250;
 
-    NetworkBufferDescriptor_t pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer = {0};
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
     pxNetworkBuffer.pxEndPoint = &xEndPoint;
@@ -1461,7 +1467,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer( void )
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
-    NetworkBufferDescriptor_t pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer = {0};
 
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
@@ -1532,7 +1538,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2( void )
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
-    NetworkBufferDescriptor_t pxNetworkBuffer;
+    NetworkBufferDescriptor_t pxNetworkBuffer = {0};
     pxNetworkBuffer.pucEthernetBuffer = pucUDPPayloadBuffer;
     pxNetworkBuffer.xDataLength = uxBufferLength;
     pxNetworkBuffer.pxEndPoint = &xEndPoint;
@@ -1601,7 +1607,7 @@ void test_parseDNSAnswer_no_answers( void )
     size_t uxsourceBytesRemaining = 300;
     size_t uxBytesRead = 0;
     char pcName[ 300 ];
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     struct freertos_addrinfo * pxAddressInfo;
 
     xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
@@ -1631,7 +1637,7 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
     char pcName[ 300 ];
     DNSAnswerRecord_t * pxDNSAnswerRecord;
     uint32_t ip_address = 1234;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     struct freertos_addrinfo * pxAddressInfo, * pxAddressInfo_2;
 
     xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
@@ -1681,7 +1687,7 @@ void test_parseDNSAnswer_recordstored_gt_count2( void )
     uint32_t ip_address = 1234;
     uint32_t ip_address2 = 2345;
     int index = 0;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     volatile struct freertos_addrinfo * pxAddressInfo = NULL;
 
     memset( pucByte, 0x00, uxsourceBytesRemaining );
@@ -1756,7 +1762,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
     uint32_t ip_address = 5678;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     struct freertos_addrinfo * pxAddressInfo;
 
     memset( pucByte, 0x00, uxsourceBytesRemaining );
@@ -1801,7 +1807,7 @@ void test_parseDNSAnswer_do_store_false( void )
     char pcName[ 300 ];
     BaseType_t xDoStore = pdFALSE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     struct freertos_addrinfo * pxAddressInfo;
 
     memset( pucByte, 0x00, 300 );
@@ -1847,7 +1853,7 @@ void test_parseDNSAnswer_dnsanswerrecord_datalength_ne_addresslength( void )
     char pcName[ 300 ];
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     struct freertos_addrinfo * pxAddressInfo;
 
     memset( pucByte, 0x00, uxsourceBytesRemaining );
@@ -1889,7 +1895,7 @@ void test_parseDNSAnswer_remaining_gt_datalength( void )
     char pcName[ 300 ];
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     struct freertos_addrinfo * pxAddressInfo;
 
     memset( pucByte, 0x00, 300 );
@@ -1931,7 +1937,7 @@ void test_parseDNSAnswer_remaining_lt_uint16( void )
     char pcName[ 300 ];
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     struct freertos_addrinfo * pxAddressInfo;
 
     memset( pucByte, 0x00, 300 );
@@ -1971,7 +1977,7 @@ void test_parseDNSAnswer_remaining_lt_dnsanswerrecord( void )
     char pcName[ 300 ];
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
-    ParseSet_t xSet;
+    ParseSet_t xSet = {0};
     struct freertos_addrinfo * pxAddressInfo;
 
     memset( pucByte, 0x00, 300 );
