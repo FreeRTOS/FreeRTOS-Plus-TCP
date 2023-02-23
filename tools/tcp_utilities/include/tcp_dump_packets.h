@@ -1,8 +1,6 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
- *
- * SPDX-License-Identifier: MIT
+ * FreeRTOS+TCP V2.3.1
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -59,8 +57,7 @@
 #define flag_FRAME_6                0x00020000UL
 #define flag_Unknown_FRAME          0x00040000UL
 
-/**
- * Structure to hold information about one dump entry.
+/** @brief Structure to hold information about one dump entry.
  */
 typedef struct xDumpEntry
 {
@@ -69,18 +66,12 @@ typedef struct xDumpEntry
     size_t uxCount;  /**< The count of the entry */
 } DumpEntry_t;
 
-/**
- * Structure to hold information of all the entries in this data dump.
- */
+/** @brief Structure to hold information of all the entries in this data dump. */
 typedef struct xDumpEntries
 {
     size_t uxEntryCount;                          /**< The number of entries*/
     DumpEntry_t xEntries[ dumpMAX_DUMP_ENTRIES ]; /**< Array of struct for all the entries */
 } DumpEntries_t;
-
-/*
- *
- */
 
 #if ( ipconfigUSE_DUMP_PACKETS != 0 )
 
