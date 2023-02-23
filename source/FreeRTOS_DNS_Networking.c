@@ -154,7 +154,7 @@
         if( xReturn <= 0 )
         {
             /* 'pdFREERTOS_ERRNO_EWOULDBLOCK' is returned in case of a timeout. */
-            FreeRTOS_printf( ( "DNS_ReadReply returns %d\n", xReturn ) );
+            FreeRTOS_printf( ( "DNS_ReadReply returns %d\n", ( int ) xReturn ) );
         }
 
         return xReturn;

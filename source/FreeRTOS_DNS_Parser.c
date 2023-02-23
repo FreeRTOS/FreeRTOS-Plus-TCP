@@ -438,6 +438,7 @@
                     {
                         NetworkBufferDescriptor_t * pxNetworkBuffer;
                         NetworkEndPoint_t * pxEndPoint, xEndPoint;
+                        size_t uxUDPOffset;
 
                         pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucUDPPayloadBuffer );
 
@@ -449,6 +450,9 @@
                             configASSERT( pdFALSE );
                             break;
                         }
+
+                        uxUDPOffset = ( size_t ) ( pucUDPPayloadBuffer - pxNetworkBuffer->pucEthernetBuffer );
+                        configASSERT( ( uxUDPOffset == ipUDP_PAYLOAD_OFFSET_IPv4 ) || ( uxUDPOffset == ipUDP_PAYLOAD_OFFSET_IPv6 ) );
 
                         if( pxNetworkBuffer->pxEndPoint == NULL )
                         {
@@ -480,8 +484,8 @@
                             }
                         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                        /* If this is not a reply to our DNS request, it might an LLMNR
-                         * request. */
+                        /* If this is not a reply to our DNS request, it might be an mDNS or an LLMNR
+                         * request. Ask the application if it uses the name. */
                         if( xApplicationDNSQueryHook( &xEndPoint, xSet.pcName ) )
                         {
                             int16_t usLength;
@@ -524,7 +528,7 @@
                                         xOffset2 = ( BaseType_t ) ( ( ( uint8_t * ) xSet.pcRequestedName ) - pucUDPPayloadBuffer );
 
                                         pxNetworkBuffer = pxNewBuffer;
-                                        pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+                                        pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ uxUDPOffset ] );
 
                                         xSet.pucByte = &( pucNewBuffer[ xOffset1 ] );
                                         xSet.pcRequestedName = ( char * ) &( pucNewBuffer[ xOffset2 ] );
@@ -538,7 +542,7 @@
                                 }
                                 else
                                 {
-                                    pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
+                                    pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ uxUDPOffset ] );
                                 }
                             }
 
@@ -575,11 +579,11 @@
                                 }
                                 else
                                 {
-                                    /*logging*/
-                                    FreeRTOS_printf( ( "LLMNR return IPv4 %lxip\n", FreeRTOS_ntohl( xEndPoint.ipv4_settings.ulIPAddress ) ) );
+                                    size_t uxDistance;
                                     vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, ( uint16_t ) sizeof( pxAnswer->ulIPAddress ) );
                                     vSetField32( pxAnswer, LLMNRAnswer_t, ulIPAddress, FreeRTOS_ntohl( xEndPoint.ipv4_settings.ulIPAddress ) );
-                                    usLength = ( int16_t ) ( sizeof( *pxAnswer ) + ( size_t ) ( xSet.pucByte - pucNewBuffer ) );
+                                    uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
+                                    usLength = ( int16_t ) ( sizeof( *pxAnswer ) + uxDistance );
                                 }
 
                                 prepareReplyDNSMessage( pxNetworkBuffer, usLength );
@@ -956,14 +960,15 @@
                 if( pxIPHeader->ulDestinationIPAddress == ipMDNS_IP_ADDRESS )
                 {
                     pxIPHeader->ulDestinationIPAddress = ipMDNS_IP_ADDRESS;
+                    pxIPHeader->ucTimeToLive = ipMDNS_TIME_TO_LIVE;
                 }
                 else
                 {
                     pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
+                    pxIPHeader->ucTimeToLive = ipconfigUDP_TIME_TO_LIVE;
                 }
 
                 pxIPHeader->ulSourceIPAddress = ( pxEndPoint != NULL ) ? pxEndPoint->ipv4_settings.ulIPAddress : 0U;
-                pxIPHeader->ucTimeToLive = ipconfigUDP_TIME_TO_LIVE;
                 pxIPHeader->usIdentification = FreeRTOS_htons( usPacketIdentifier );
 
                 /* The stack doesn't support fragments, so the fragment offset field must always be zero.

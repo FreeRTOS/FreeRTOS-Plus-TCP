@@ -45,6 +45,8 @@
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_Routing.h"
 #include "FreeRTOS_ND.h"
+#include "FreeRTOS_IP_Timers.h"
+
 #if ( ipconfigUSE_LLMNR == 1 )
     #include "FreeRTOS_DNS.h"
 #endif /* ipconfigUSE_LLMNR */
@@ -204,7 +206,11 @@
 
             if( pxEndPoint != NULL )
             {
-                *( ppxEndPoint ) = pxEndPoint;
+                if( ppxEndPoint != NULL )
+                {
+                    *( ppxEndPoint ) = pxEndPoint;
+                }
+
                 FreeRTOS_printf( ( "eNDGetCacheEntry: FindEndPointOnIP failed for %pip (endpoint %pip)\n",
                                    pxIPAddress->ucBytes,
                                    pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
@@ -338,45 +344,47 @@
                  * When the age reaches zero it is no longer considered valid. */
                 ( xNDCache[ x ].ucAge )--;
 
-                /* If the entry is not yet valid, then it is waiting an ND
-                 * advertisement, and the ND solicitation should be retransmitted. */
-                if( xNDCache[ x ].ucValid == ( uint8_t ) pdFALSE )
-                {
-                    xDoSolicitate = pdTRUE;
-                }
-                else if( xNDCache[ x ].ucAge <= ( uint8_t ) ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION )
-                {
-                    /* This entry will get removed soon.  See if the MAC address is
-                     * still valid to prevent this happening. */
-                    iptraceND_TABLE_ENTRY_WILL_EXPIRE( xNDCache[ x ].xIPAddress );
-                    xDoSolicitate = pdTRUE;
-                }
-                else
-                {
-                    /* The age has just ticked down, with nothing to do. */
-                }
-
-                if( xDoSolicitate != pdFALSE )
-                {
-                    size_t uxNeededSize;
-                    NetworkBufferDescriptor_t * pxNetworkBuffer;
-
-                    uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPHeader_IPv6_t );
-                    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxNeededSize, 0U );
-
-                    if( pxNetworkBuffer != NULL )
-                    {
-                        pxNetworkBuffer->pxEndPoint = xNDCache[ x ].pxEndPoint;
-                        /* _HT_ From here I am suspecting a network buffer leak */
-                        vNDSendNeighbourSolicitation( pxNetworkBuffer, &( xNDCache[ x ].xIPAddress ) );
-                    }
-                }
-
                 if( xNDCache[ x ].ucAge == 0U )
                 {
                     /* The entry is no longer valid.  Wipe it out. */
                     iptraceND_TABLE_ENTRY_EXPIRED( xNDCache[ x ].xIPAddress );
                     ( void ) memset( &( xNDCache[ x ] ), 0, sizeof( xNDCache[ x ] ) );
+                }
+                else
+                {
+                    /* If the entry is not yet valid, then it is waiting an ND
+                     * advertisement, and the ND solicitation should be retransmitted. */
+                    if( xNDCache[ x ].ucValid == ( uint8_t ) pdFALSE )
+                    {
+                        xDoSolicitate = pdTRUE;
+                    }
+                    else if( xNDCache[ x ].ucAge <= ( uint8_t ) ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION )
+                    {
+                        /* This entry will get removed soon.  See if the MAC address is
+                         * still valid to prevent this happening. */
+                        iptraceND_TABLE_ENTRY_WILL_EXPIRE( xNDCache[ x ].xIPAddress );
+                        xDoSolicitate = pdTRUE;
+                    }
+                    else
+                    {
+                        /* The age has just ticked down, with nothing to do. */
+                    }
+
+                    if( xDoSolicitate != pdFALSE )
+                    {
+                        size_t uxNeededSize;
+                        NetworkBufferDescriptor_t * pxNetworkBuffer;
+
+                        uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPHeader_IPv6_t );
+                        pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxNeededSize, 0U );
+
+                        if( pxNetworkBuffer != NULL )
+                        {
+                            pxNetworkBuffer->pxEndPoint = xNDCache[ x ].pxEndPoint;
+                            /* _HT_ From here I am suspecting a network buffer leak */
+                            vNDSendNeighbourSolicitation( pxNetworkBuffer, &( xNDCache[ x ].xIPAddress ) );
+                        }
+                    }
                 }
             }
         }
@@ -419,7 +427,12 @@
             {
                 ( void ) memcpy( pxMACAddress->ucBytes, xNDCache[ x ].xMACAddress.ucBytes, sizeof( MACAddress_t ) );
                 eReturn = eARPCacheHit;
-                *ppxEndPoint = xNDCache[ x ].pxEndPoint;
+
+                if( ppxEndPoint != NULL )
+                {
+                    *ppxEndPoint = xNDCache[ x ].pxEndPoint;
+                }
+
                 FreeRTOS_debug_printf( ( "prvCacheLookup6[ %d ] %pip with %02x:%02x:%02x:%02x:%02x:%02x\n",
                                          ( int ) x,
                                          pxAddressToLookup->ucBytes,
@@ -440,7 +453,11 @@
         if( eReturn == eARPCacheMiss )
         {
             FreeRTOS_printf( ( "prvNDCacheLookup %pip Miss\n", pxAddressToLookup->ucBytes ) );
-            *ppxEndPoint = NULL;
+
+            if( ppxEndPoint != NULL )
+            {
+                *ppxEndPoint = NULL;
+            }
         }
 
         return eReturn;
@@ -462,8 +479,10 @@
                 if( xNDCache[ x ].ucValid != ( uint8_t ) 0U )
                 {
                     /* See if the MAC-address also matches, and we're all happy */
-                    FreeRTOS_printf( ( "ND %2ld: age %3u - %pip MAC %02x-%02x-%02x-%02x-%02x-%02x\n",
-                                       x,
+                    char pcBuffer[ 40 ];
+
+                    FreeRTOS_printf( ( "ND %2d: age %3u - %pip MAC %02x-%02x-%02x-%02x-%02x-%02x endPoint %s\n",
+                                       ( int ) x,
                                        xNDCache[ x ].ucAge,
                                        xNDCache[ x ].xIPAddress.ucBytes,
                                        xNDCache[ x ].xMACAddress.ucBytes[ 0 ],
@@ -471,7 +490,8 @@
                                        xNDCache[ x ].xMACAddress.ucBytes[ 2 ],
                                        xNDCache[ x ].xMACAddress.ucBytes[ 3 ],
                                        xNDCache[ x ].xMACAddress.ucBytes[ 4 ],
-                                       xNDCache[ x ].xMACAddress.ucBytes[ 5 ] ) );
+                                       xNDCache[ x ].xMACAddress.ucBytes[ 5 ],
+                                       pcEndpointName( xNDCache[ x ].pxEndPoint, pcBuffer, sizeof( pcBuffer ) ) ) );
                     xCount++;
                 }
             }
@@ -694,6 +714,7 @@
 
             if( pxEndPoint == NULL )
             {
+                /* No endpoint found for the target IP-address. */
                 FreeRTOS_printf( ( "SendPingRequestIPv6: no end-point found for %pip\n",
                                    pxIPAddress->ucBytes ) );
             }
@@ -777,7 +798,7 @@
             }
             else
             {
-                /* There was not enough space to allocate a network buffer. */
+                /* Either no proper end-pint found, or allocating the network buffer failed. */
             }
 
             return xReturn;
@@ -852,6 +873,42 @@
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief When a neighbour advertisement has ben received, check if 'pxARPWaitingNetworkBuffer'
+ *        was waiting for this new address look-up. If so, feed it to the IP-task as a new
+ *        incoming packet.
+ */
+    static void prvCheckWaitingBuffer( const IPv6_Address_t * pxIPv6Address )
+    {
+        const IPPacket_IPv6_t * pxIPPacket = ( ( IPPacket_IPv6_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
+        const IPHeader_IPv6_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+
+        if( memcmp( pxIPv6Address->ucBytes, pxIPHeader->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
+        {
+            FreeRTOS_printf( ( "Waiting done\n" ) );
+            IPStackEvent_t xEventMessage;
+            const TickType_t xDontBlock = ( TickType_t ) 0;
+
+            xEventMessage.eEventType = eNetworkRxEvent;
+            xEventMessage.pvData = ( void * ) pxARPWaitingNetworkBuffer;
+
+            if( xSendEventStructToIPTask( &xEventMessage, xDontBlock ) != pdPASS )
+            {
+                /* Failed to send the message, so release the network buffer. */
+                vReleaseNetworkBufferAndDescriptor( BUFFER_FROM_WHERE_CALL( 140 ) pxARPWaitingNetworkBuffer );
+            }
+
+            /* Clear the buffer. */
+            pxARPWaitingNetworkBuffer = NULL;
+
+            /* Found an ARP resolution, disable ARP resolution timer. */
+            vIPSetARPResolutionTimerEnableState( pdFALSE );
+
+            iptrace_DELAYED_ARP_REQUEST_REPLIED();
+        }
+    }
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Process an ICMPv6 packet and send replies when applicable.
  *
  * @param[in] pxNetworkBuffer: The Ethernet packet which contains an IPv6 message.
@@ -873,12 +930,13 @@
             {
                 if( pxICMPHeader_IPv6->ucTypeOfMessage != ipICMP_PING_REQUEST_IPv6 )
                 {
-                    FreeRTOS_printf( ( "ICMPv6 %d (%s) from %pip to %pip end-point = %d\n",
+                    char pcAddress[ 40 ];
+                    FreeRTOS_printf( ( "ICMPv6_recv %d (%s) from %pip to %pip end-point = %s\n",
                                        pxICMPHeader_IPv6->ucTypeOfMessage,
                                        pcMessageType( ( BaseType_t ) pxICMPHeader_IPv6->ucTypeOfMessage ),
                                        pxICMPPacket->xIPHeader.xSourceAddress.ucBytes,
                                        pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes,
-                                       ( ( pxEndPoint != NULL ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) ) ? 1 : 0 ) );
+                                       pcEndpointName( pxEndPoint, pcAddress, sizeof( pcAddress ) ) ) );
                 }
             }
         #endif /* ( ipconfigHAS_PRINTF == 1 ) */
@@ -1020,6 +1078,12 @@
                          * This is important during SLAAC. */
                         vReceiveNA( pxNetworkBuffer );
                     #endif
+
+                    if( ( pxARPWaitingNetworkBuffer != NULL ) &&
+                        ( uxIPHeaderSizePacket( pxARPWaitingNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER ) )
+                    {
+                        prvCheckWaitingBuffer( &( pxICMPHeader_IPv6->xIPv6Address ) );
+                    }
 
                     break;
 

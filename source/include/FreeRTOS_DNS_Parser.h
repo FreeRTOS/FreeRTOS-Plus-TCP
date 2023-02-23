@@ -69,7 +69,7 @@
 /*
  * The NBNS and the LLMNR protocol share this reply function.
  */
-    #if ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) )
+    #if ( ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) )
         void prepareReplyDNSMessage( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                      BaseType_t lNetLength );
     #endif
