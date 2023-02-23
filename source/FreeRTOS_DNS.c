@@ -157,8 +157,6 @@
 /* TODO: Fix IPv6 DNS query in Windows Simulator. */
     IPPreference_t xDNS_IP_Preference = xPreferenceIPv4;
 
-/** @brief Used for additional error checking when asserts are enabled. */
-    _static struct freertos_addrinfo * pxLastInfo = NULL;
 /*-----------------------------------------------------------*/
 
 /**
@@ -315,7 +313,6 @@
 
         if( pxInfo != NULL )
         {
-            configASSERT( pxLastInfo != pxInfo );
 
             while( pxIterator != NULL )
             {
@@ -325,7 +322,6 @@
             }
         }
 
-        pxLastInfo = NULL;
     }
 /*-----------------------------------------------------------*/
 
@@ -621,7 +617,7 @@
                     if( ulIPAddress != 0UL )
                     {
                         #if ( ipconfigUSE_IPv6 != 0 )
-                            if( ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 )
+                            if( ( ppxAddressInfo != NULL ) && ( ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 ) )
                             {
                                 FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %pip\n",
                                                    pcHostName, ( *ppxAddressInfo )->xPrivateStorage.sockaddr.sin_address.xIP_IPv6.ucBytes ) );
@@ -663,7 +659,7 @@
                                                  ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
                             }
                         }
-                        else if( ppxAddressInfo != NULL )
+                        else if( ( ppxAddressInfo != NULL ) && ( *( ppxAddressInfo ) != NULL ) )
                         {
                             /* The IP address is known, do the call-back now. */
                             pCallbackFunction( pcHostName, pvSearchID, *( ppxAddressInfo ) );
@@ -950,6 +946,7 @@
                     if( ( xDNS_IP_Preference == xPreferenceIPv6 ) && ENDPOINT_IS_IPv6( pxEndPoint ) )
                     {
                         uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
+                        configASSERT(ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT);
                         uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
 
                         /* Test if the DNS entry is in used. */
@@ -967,6 +964,7 @@
                 #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
                 {
                     uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
+                    configASSERT(ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT);
                     uint32_t ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ];
 
                     if( ( ulIPAddress != 0U ) && ( ulIPAddress != ipBROADCAST_IP_ADDRESS ) )
