@@ -212,8 +212,8 @@ add_compile_options(
 include(FetchContent)
 
 FetchContent_Declare( freertos_kernel
-  GIT_REPOSITORY https://github.com/phelter/FreeRTOS-Kernel.git #https://github.com/FreeRTOS/FreeRTOS-Kernel.git
-  GIT_TAG        feature/fixing-clang-gnu-compiler-warnings #master
+  GIT_REPOSITORY https://github.com/FreeRTOS/FreeRTOS-Kernel.git
+  GIT_TAG        main
 )
 
 FetchContent_Declare( cmock
