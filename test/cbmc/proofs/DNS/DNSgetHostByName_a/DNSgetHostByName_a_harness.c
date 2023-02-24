@@ -48,10 +48,10 @@
 ****************************************************************/
 
 uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                                size_t uxBufferLength,
-                                struct freertos_addrinfo ** ppxAddressInfo,
-                                BaseType_t xExpected,
-                                uint16_t usPort )
+                            size_t uxBufferLength,
+                            struct freertos_addrinfo ** ppxAddressInfo,
+                            BaseType_t xExpected,
+                            uint16_t usPort )
 {
     __CPROVER_assert( pucUDPPayloadBuffer != NULL,
                       "Precondition: pucUDPPayloadBuffer != NULL" );
@@ -120,36 +120,36 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     if( pxNetworkBuffer != NULL )
     {
         pxNetworkBuffer->pucEthernetBuffer = malloc( xRequestedSizeBytes + ipUDP_PAYLOAD_IP_TYPE_OFFSET );
+
         if( pxNetworkBuffer->pucEthernetBuffer == NULL )
         {
             free( pxNetworkBuffer );
             pxNetworkBuffer = NULL;
         }
-        else 
+        else
         {
-            pxNetworkBuffer->pucEthernetBuffer = ( (uint8_t *) pxNetworkBuffer->pucEthernetBuffer ) + ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+            pxNetworkBuffer->pucEthernetBuffer = ( ( uint8_t * ) pxNetworkBuffer->pucEthernetBuffer ) + ipUDP_PAYLOAD_IP_TYPE_OFFSET;
             pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
         }
     }
-    
+
     return pxNetworkBuffer;
 }
 
 Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
 {
+    Socket_t xSock = safeMalloc( sizeof( struct xSOCKET ) );
 
-    Socket_t xSock = safeMalloc( sizeof(struct xSOCKET) );
     return xSock;
-
 }
 
 uint32_t Prepare_CacheLookup( const char * pcHostName,
-                                      BaseType_t xFamily,
-                                      struct freertos_addrinfo ** ppxAddressInfo )
+                              BaseType_t xFamily,
+                              struct freertos_addrinfo ** ppxAddressInfo )
 {
-    ( * ppxAddressInfo ) = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo ) );
-    __CPROVER_assume( ( * ppxAddressInfo ) != NULL );
-    __CPROVER_assume( ( * ppxAddressInfo )->ai_next == NULL );
+    ( *ppxAddressInfo ) = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo ) );
+    __CPROVER_assume( ( *ppxAddressInfo ) != NULL );
+    __CPROVER_assume( ( *ppxAddressInfo )->ai_next == NULL );
     uint32_t ulRet;
     return ulRet;
 }
@@ -165,8 +165,8 @@ void harness()
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
 
-    /* Asserts are added in the src code to make sure ucDNSIndex 
-    will be less than ipconfigENDPOINT_DNS_ADDRESS_COUNT  */
+    /* Asserts are added in the src code to make sure ucDNSIndex
+     * will be less than ipconfigENDPOINT_DNS_ADDRESS_COUNT  */
     __CPROVER_assume( pxNetworkEndPoints->ipv6_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
     __CPROVER_assume( pxNetworkEndPoints->ipv4_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
     __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );

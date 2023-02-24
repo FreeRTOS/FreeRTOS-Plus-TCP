@@ -23,8 +23,8 @@ uint32_t FreeRTOS_dnslookup( const char * pcHostName );
 Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks );
 void DNS_CloseSocket( Socket_t xDNSSocket );
 BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
-                    struct freertos_sockaddr * xAddress,
-                    struct xDNSBuffer * pxDNSBuf );
+                          struct freertos_sockaddr * xAddress,
+                          struct xDNSBuffer * pxDNSBuf );
 uint32_t DNS_SendRequest( Socket_t xDNSSocket,
                           struct freertos_sockaddr * xAddress,
                           struct xDNSBuffer * pxDNSBuf );
@@ -99,8 +99,8 @@ uint32_t DNS_SendRequest( Socket_t xDNSSocket,
 *
 ****************************************************************/
 BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
-                    struct freertos_sockaddr * xAddress,
-                    struct xDNSBuffer * pxDNSBuf )
+                          struct freertos_sockaddr * xAddress,
+                          struct xDNSBuffer * pxDNSBuf )
 {
     BaseType_t ret;
     int len;
@@ -127,10 +127,9 @@ void DNS_CloseSocket( Socket_t xDNSSocket )
 
 Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
 {
+    Socket_t sock = malloc( sizeof( struct xSOCKET ) );
 
-    Socket_t sock = malloc( sizeof(struct xSOCKET) );
     return sock;
-
 }
 
 uint32_t FreeRTOS_dnslookup( const char * pcHostName )
@@ -184,18 +183,19 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     if( pxNetworkBuffer != NULL )
     {
         pxNetworkBuffer->pucEthernetBuffer = malloc( xRequestedSizeBytes + ipUDP_PAYLOAD_IP_TYPE_OFFSET );
+
         if( pxNetworkBuffer->pucEthernetBuffer == NULL )
         {
             free( pxNetworkBuffer );
             pxNetworkBuffer = NULL;
         }
-        else 
+        else
         {
-            pxNetworkBuffer->pucEthernetBuffer = ( (uint8_t *) pxNetworkBuffer->pucEthernetBuffer ) + ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+            pxNetworkBuffer->pucEthernetBuffer = ( ( uint8_t * ) pxNetworkBuffer->pucEthernetBuffer ) + ipUDP_PAYLOAD_IP_TYPE_OFFSET;
             pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
         }
     }
-    
+
     return pxNetworkBuffer;
 }
 
@@ -209,11 +209,11 @@ void harness()
 
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
-    
-    /* Asserts are added in the src code to make sure ucDNSIndex 
-    will be less than ipconfigENDPOINT_DNS_ADDRESS_COUNT  */
-    __CPROVER_assume( pxNetworkEndPoints->ipv6_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT ); 
-    __CPROVER_assume( pxNetworkEndPoints->ipv4_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT ); 
+
+    /* Asserts are added in the src code to make sure ucDNSIndex
+     * will be less than ipconfigENDPOINT_DNS_ADDRESS_COUNT  */
+    __CPROVER_assume( pxNetworkEndPoints->ipv6_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
+    __CPROVER_assume( pxNetworkEndPoints->ipv4_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
     pxNetworkEndPoints->pxNext = NULL;
 
     /* Interface init. */
@@ -230,5 +230,4 @@ void harness()
     pcHostName[ len - 1 ] = NULL;
 
     FreeRTOS_gethostbyname( pcHostName );
-
 }

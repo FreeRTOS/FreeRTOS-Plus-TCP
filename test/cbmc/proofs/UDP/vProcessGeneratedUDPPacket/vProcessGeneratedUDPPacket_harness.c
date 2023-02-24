@@ -90,7 +90,7 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
 void harness()
 {
     size_t xRequestedSizeBytes;
-    
+
     /* Assume that the size of packet must be greater than that of UDP-Packet and less than
      * that of the Ethernet Frame Size. */
     __CPROVER_assume( xRequestedSizeBytes >= sizeof( UDPPacket_t ) && xRequestedSizeBytes <= ipTOTAL_ETHERNET_FRAME_SIZE );
@@ -103,9 +103,9 @@ void harness()
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     /*
-    Add an end point to the network buffer present. Its assumed that the
-    network interface layer correctly assigns the end point to the generated buffer.
-    */
+     * Add an end point to the network buffer present. Its assumed that the
+     * network interface layer correctly assigns the end point to the generated buffer.
+     */
     pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkBuffer->pxEndPoint != NULL );
     pxNetworkBuffer->pxEndPoint->pxNext = NULL;
@@ -118,6 +118,7 @@ void harness()
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
     pxNetworkEndPoints->pxNetworkInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+
     if( nondet_bool() )
     {
         pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );

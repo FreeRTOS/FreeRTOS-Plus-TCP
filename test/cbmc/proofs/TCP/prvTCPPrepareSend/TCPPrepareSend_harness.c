@@ -63,7 +63,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 }
 
 /* Get rid of configASSERT in FreeRTOS_TCP_IP.c */
-BaseType_t xIsCallingFromIPTask( void ) 
+BaseType_t xIsCallingFromIPTask( void )
 {
     return pdTRUE;
 }
@@ -71,6 +71,7 @@ BaseType_t xIsCallingFromIPTask( void )
 void harness()
 {
     FreeRTOS_Socket_t * pxSocket = malloc( sizeof( FreeRTOS_Socket_t ) );
+
     __CPROVER_assume( pxSocket != NULL );
     pxSocket->u.xTCP.rxStream = malloc( sizeof( StreamBuffer_t ) );
     pxSocket->u.xTCP.txStream = malloc( sizeof( StreamBuffer_t ) );
@@ -79,7 +80,7 @@ void harness()
     NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
     size_t socketSize = sizeof( FreeRTOS_Socket_t );
     /* Allocates min. buffer size required for the proof */
-    size_t bufferSize = sizeof( TCPPacket_t ) + uxIPHeaderSizeSocket( pxSocket ) ;
+    size_t bufferSize = sizeof( TCPPacket_t ) + uxIPHeaderSizeSocket( pxSocket );
 
     if( ensure_memory_is_valid( pxNetworkBuffer, sizeof( *pxNetworkBuffer ) ) )
     {

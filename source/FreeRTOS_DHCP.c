@@ -81,7 +81,7 @@
 
 /*-----------------------------------------------------------*/
 
-/*
+/**
  * @brief The number of end-points that are making use of the UDP-socket.
  */
     static BaseType_t xDHCPSocketUserCount = 0;
@@ -1317,6 +1317,7 @@
                     }
                 }
             }
+
             if( pucUDPPayload != NULL )
             {
                 FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
@@ -1334,6 +1335,7 @@
  * @param[out] xOpcode: Opcode to be filled in the packet. Will always be 'dhcpREQUEST_OPCODE'.
  * @param[in] pucOptionsArray: The options to be added to the packet.
  * @param[in,out] pxOptionsArraySize: Byte count of the options. Its value might change.
+ * @param[in] pxEndPoint: The end-point for which the request will be sent.
  *
  * @return Ethernet buffer of the partially created DHCP packet.
  */
@@ -1351,10 +1353,12 @@
         #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
             const char * pucHostName = pcApplicationHostnameHook();
             size_t uxNameLength = 0;
+
             if( pucHostName != NULL )
             {
                 uxNameLength = strlen( pucHostName );
             }
+
             uint8_t * pucPtr;
 
 /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
@@ -1436,6 +1440,7 @@
 
                         ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
                     }
+
                     pucPtr[ 2U + uxNameLength ] = ( uint8_t ) dhcpOPTION_END_BYTE;
                     *pxOptionsArraySize += ( size_t ) ( 2U + uxNameLength );
                 }
@@ -1457,7 +1462,7 @@
 /**
  * @brief Create and send a DHCP request message through the DHCP socket.
  *
- * param[in] pxEndPoint: The end-point for which the request will be sent.
+ * @param[in] pxEndPoint: The end-point for which the request will be sent.
  */
     static BaseType_t prvSendDHCPRequest( const NetworkEndPoint_t * pxEndPoint )
     {
@@ -1600,7 +1605,7 @@
             {
                 /* The packet was not successfully queued for sending and must be
                  * returned to the stack. */
-                if( pucUDPPayloadBuffer != NULL ) 
+                if( pucUDPPayloadBuffer != NULL )
                 {
                     FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
                 }

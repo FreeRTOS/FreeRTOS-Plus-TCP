@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_UDP_IP.c
+ * @file FreeRTOS_UDP_IPv4.c
  * @brief This file has the source code for the UDP-IP functionality of the FreeRTOS+TCP
  *        network stack.
  */

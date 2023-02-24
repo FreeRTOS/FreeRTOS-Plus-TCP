@@ -45,11 +45,10 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
                                                 NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                 BaseType_t xReleaseAfterSend )
 {
-
     __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
     __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
     __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL." );
-    
+
     if( xReleaseAfterSend != pdFALSE )
     {
         vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
@@ -61,10 +60,10 @@ void harness()
     BaseType_t xRes = xNetworkBuffersInitialise();
 
     /*
-    For this proof, its assumed that the endpoints and interfaces are correctly
-    initialised and the pointers are set correctly.
-    Assumes one endpoint and interface is present.
-    */
+     * For this proof, its assumed that the endpoints and interfaces are correctly
+     * initialised and the pointers are set correctly.
+     * Assumes one endpoint and interface is present.
+     */
 
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );

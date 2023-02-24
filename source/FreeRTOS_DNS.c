@@ -102,6 +102,10 @@
 
 /*-----------------------------------------------------------*/
     #if ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 )
+
+/**
+ * @brief The IPv6 link-scope multicast address
+ */
         const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6 =
         {
             #ifndef _MSC_VER
@@ -119,10 +123,19 @@
                 0x00, 0x03,
             }
         };
+
+/**
+ * @brief The IPv6 link-scope multicast MAC address
+ */
+        const
         const MACAddress_t xLLMNR_MacAdressIPv6 = { { 0x33, 0x33, 0x00, 0x01, 0x00, 0x03 } };
     #endif /* ipconfigUSE_LLMNR && ipconfigUSE_IPv6 */
 
     #if ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 )
+
+/**
+ * @brief multicast DNS IPv6 address
+ */
         const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
         {
             #ifndef _MSC_VER
@@ -141,8 +154,11 @@
             }
         };
 
-/* The MAC-addresses are provided here in case a network
- * interface needs it. */
+/**
+ * @brief The IPv6 multicast DNS MAC address.
+ * The MAC-addresses are provided here in case a network
+ * interface needs it.
+ */
         const MACAddress_t xMDNS_MACAdressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
     #endif /* ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) */
 
@@ -313,7 +329,6 @@
 
         if( pxInfo != NULL )
         {
-
             while( pxIterator != NULL )
             {
                 pxNext = pxIterator->ai_next;
@@ -321,7 +336,6 @@
                 pxIterator = pxNext;
             }
         }
-
     }
 /*-----------------------------------------------------------*/
 
@@ -542,7 +556,11 @@
  * @brief Check if hostname is already known. If not, call prvGetHostByName() to send a DNS request.
  *
  * @param[in] pcHostName: The hostname whose IP address is being queried.
- * @param[in] pCallback: The callback function which will be called upon DNS response.
+ * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
+ *                will be stored.
+ * @param [in] xFamily indicate what type of record is needed:
+ *             FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
+ * @param[in] pCallbackFunction: The callback function which will be called upon DNS response.
  * @param[in] pvSearchID: Search ID for the callback function.
  * @param[in] uxTimeout: Timeout for the callback function.
  * @return The IP-address corresponding to the hostname.
@@ -781,6 +799,7 @@
  * @brief create a payload buffer and return it through the parameter
  * @param [out] ppxNetworkBuffer network buffer to create
  * @param [in] pcHostName hostname to get its length
+ * @param [in] uxHeaderBytes Size of the header (IPv4/IPv6)
  * @returns pointer address to the payload buffer
  *
  */
@@ -950,7 +969,7 @@
                     if( ( xDNS_IP_Preference == xPreferenceIPv6 ) && ENDPOINT_IS_IPv6( pxEndPoint ) )
                     {
                         uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
-                        configASSERT(ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT);
+                        configASSERT( ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
                         uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
 
                         /* Test if the DNS entry is in used. */
@@ -968,7 +987,7 @@
                 #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
                 {
                     uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
-                    configASSERT(ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT);
+                    configASSERT( ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
                     uint32_t ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ];
 
                     if( ( ulIPAddress != 0U ) && ( ulIPAddress != ipBROADCAST_IP_ADDRESS ) )
@@ -988,7 +1007,10 @@
 /*!
  * @brief return ip address from the dns reply message
  * @param [in] pxReceiveBuffer received buffer from the DNS server
+ * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
+ *                will be stored.
  * @param [in] uxIdentifier matches sent and received packets
+ * @param [in] usPort Port from which DNS reply was read
  * @returns ip address or zero on error
  *
  */
@@ -1151,6 +1173,11 @@
  * @param [in] pcHostName hostname to get its ip address
  * @param [in] uxIdentifier Identifier to match sent and received packets
  * @param [in] xDNSSocket socket
+ * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
+ *                will be stored.
+ * @param[in] xFamily: Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
+ * @param[in] uxReadTimeOut_ticks The timeout in ticks for waiting. In case the user has supplied
+ *                                 a call-back function, this value should be zero.
  * @returns ip address or zero on error
  */
     static uint32_t prvGetHostByNameOp( const char * pcHostName,
@@ -1263,6 +1290,11 @@
  * @param [in] pcHostName hostname to get its ip address
  * @param [in] uxIdentifier Identifier to match sent and received packets
  * @param [in] xDNSSocket socket
+ * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
+ *                will be stored.
+ * @param[in] xFamily: Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
+ * @param[in] uxReadTimeOut_ticks The timeout in ticks for waiting. In case the user has supplied
+ *                                 a call-back function, this value should be zero.
  * @returns ip address or zero on error
  *
  */

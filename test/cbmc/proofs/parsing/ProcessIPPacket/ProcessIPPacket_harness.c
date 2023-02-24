@@ -64,7 +64,7 @@ void harness()
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
     /* Points to ethernet buffer offset by ipIP_TYPE_OFFSET, this make sure the buffer allocation is similar
-    to the pxGetNetworkBufferWithDescriptor */
+     * to the pxGetNetworkBufferWithDescriptor */
     pxNetworkBuffer->pucEthernetBuffer = ( ( ( uint8_t * ) malloc( ipTOTAL_ETHERNET_FRAME_SIZE ) ) + ipIP_TYPE_OFFSET );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 

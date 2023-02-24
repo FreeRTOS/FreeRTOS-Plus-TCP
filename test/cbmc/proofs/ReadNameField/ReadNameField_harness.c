@@ -25,7 +25,7 @@
 ****************************************************************/
 
 size_t DNS_ReadNameField( ParseSet_t * pxSet,
-                            size_t uxDestLen );
+                          size_t uxDestLen );
 
 /****************************************************************
 * The function under test is not defined in all configurations
@@ -40,10 +40,10 @@ size_t DNS_ReadNameField( ParseSet_t * pxSet,
 /*  DNS_ReadNameField is not defined in this configuration, stub it. */
 
     size_t DNS_ReadNameField( ParseSet_t * pxSet,
-                                size_t uxDestLen );
+                              size_t uxDestLen );
     {
         __CPROVER_assert( pxSet != NULL,
-                      "pxSet shouldnt be NULL" );
+                          "pxSet shouldnt be NULL" );
         return 0;
     }
 
@@ -86,7 +86,7 @@ void harness()
     /* Avoid overflow on uxDestLen - 1U */
     __CPROVER_assume( uxDestLen > 0 );
 
-    
+
 
     size_t index = DNS_ReadNameField( &pxSet,
                                       uxDestLen );

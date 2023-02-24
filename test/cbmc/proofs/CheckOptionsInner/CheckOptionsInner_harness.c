@@ -25,8 +25,8 @@
 ****************************************************************/
 
 void __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvReadSackOption( const uint8_t * const pucPtr,
-                        size_t uxIndex,
-                        FreeRTOS_Socket_t * const pxSocket );
+                                                                      size_t uxIndex,
+                                                                      FreeRTOS_Socket_t * const pxSocket );
 
 /****************************************************************
 * Proof of prvReadSackOption function contract

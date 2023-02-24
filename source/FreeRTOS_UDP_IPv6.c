@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_UDP_IP.c
+ * @file FreeRTOS_UDP_IPv6.c
  * @brief This file has the source code for the UDP-IP functionality of the FreeRTOS+TCP
  *        network stack.
  */
@@ -75,6 +75,15 @@
  * either 'ipTYPE_IPv4' or 'ipTYPE_IPv6' */
 extern NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType );
 
+/**
+ * @brief Get the first end point of the type (IPv4/IPv6) from the list
+ *        the list of end points.
+ *
+ * @param[in] xIPType: IT type (ipTYPE_IPv6/ipTYPE_IPv4)
+ *
+ * @returns Pointer to the first end point of the given IP type from the
+ *          list of end points.
+ */
 NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType )
 {
     NetworkEndPoint_t * pxEndPoint;
@@ -109,7 +118,7 @@ NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType )
  *
  * @param[in] pxNetworkBuffer : The network buffer carrying the UDP or ICMP packet.
  *
- * @param[out] pxLostBuffer : The pointee will be set to true in case the network packet got released
+ * @param[out] pxLostBuffer : The pointer will be set to true in case the network packet got released
  *                            ( the ownership was taken ).
  */
 static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNetworkBuffer,

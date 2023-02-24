@@ -16,13 +16,13 @@ void harness()
     MACAddress_t xMACAddress;
     uint32_t ulIPAddress;
 
-    NetworkInterface_t **ppxInterface = ( NetworkInterface_t ** ) malloc( sizeof( NetworkInterface_t * ) );
+    NetworkInterface_t ** ppxInterface = ( NetworkInterface_t ** ) malloc( sizeof( NetworkInterface_t * ) );
 
-    if ( ppxInterface )
+    if( ppxInterface )
     {
         *ppxInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
         __CPROVER_assume( *ppxInterface != NULL );
     }
-    
+
     eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, ppxInterface );
 }
