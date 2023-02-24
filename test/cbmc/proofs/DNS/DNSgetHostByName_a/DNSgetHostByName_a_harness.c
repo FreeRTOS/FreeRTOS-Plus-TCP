@@ -95,8 +95,9 @@ void func( const char * pcHostName,
                       "Precondition: pcHostName != NULL" );
     __CPROVER_assert( pvSearchID != NULL,
                       "Precondition: pvSearchID != NULL" );
-    __CPROVER_assert( pxAddressInfo != NULL,
-                      "Precondition: pxAddressInfo != NULL" );
+
+    /* pxAddressInfo is not validated for not being NULL as
+     * pxAddressInfo could be NULL if there is a timeout or other errors. */
 }
 
 BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,

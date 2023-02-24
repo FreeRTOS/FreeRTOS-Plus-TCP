@@ -92,7 +92,7 @@ void test_pxPacketBuffer_to_NetworkBuffer( void )
 void test_prvProcessNetworkDownEvent_Pass_DHCP_Enabled( void )
 {
     NetworkInterface_t xInterface;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     xCallEventHook = pdFALSE;
 
@@ -176,9 +176,10 @@ void test_vPrintResourceStats_LastQueueNECurrentQueue( void )
 void test_prvProcessNetworkDownEvent_Pass_DHCP_Disabled( void )
 {
     NetworkInterface_t xInterface;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     xCallEventHook = pdFALSE;
+    xEndPoint.bits.bCallDownHook = 1;
 
     xInterface.pfInitialise = xNetworkInterfaceInitialise_test;
 
@@ -186,6 +187,7 @@ void test_prvProcessNetworkDownEvent_Pass_DHCP_Disabled( void )
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( &xInterface, &xEndPoint );
 
+    vApplicationIPNetworkEventHook_Expect( eNetworkDown, &xEndPoint );
     FreeRTOS_ClearARP_Expect( &xEndPoint );
 
     FreeRTOS_NextEndPoint_ExpectAndReturn( &xInterface, &xEndPoint, NULL );
@@ -195,6 +197,7 @@ void test_prvProcessNetworkDownEvent_Pass_DHCP_Disabled( void )
     FreeRTOS_FirstEndPoint_ExpectAndReturn( &xInterface, &xEndPoint );
 
     xEndPoint.bits.bWantDHCP = pdFALSE;
+    xEndPoint.bits.bWantRA = pdFALSE;
 
     vIPNetworkUpCalls_Expect( &xEndPoint );
 

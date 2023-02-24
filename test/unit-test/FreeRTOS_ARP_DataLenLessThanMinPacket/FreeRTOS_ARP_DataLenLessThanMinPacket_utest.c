@@ -36,10 +36,10 @@ BaseType_t xNetworkInterfaceOutput_ARP_Stub( NetworkInterface_t * pxInterface,
 
 void test_FreeRTOS_OutputARPRequest_MinimumPacketSizeLessThanARPPacket( void )
 {
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = { 0 };
     NetworkInterface_t xInterface;
     uint8_t ucBuffer[ sizeof( ARPPacket_t ) + ipBUFFER_PADDING + ipconfigETHERNET_MINIMUM_PACKET_BYTES ];
-    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
     uint32_t ulIPAddress = 0xAAAAAAAA;
 
     xNetworkBuffer.pucEthernetBuffer = ucBuffer;
