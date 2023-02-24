@@ -784,13 +784,13 @@ static void * prvLinuxPcapRecvThread( void * pvParam )
 {
     int ret;
 
-    ( void ) pvParam;
-
     /* Disable signals to this thread since this is a Linux pthread to be able to
      * printf and other blocking operations without being interrupted and put in
      * suspension mode by the linux port signals
      */
     sigset_t set;
+
+    ( void ) pvParam;
 
     sigfillset( &set );
     pthread_sigmask( SIG_SETMASK, &set, NULL );
@@ -823,11 +823,11 @@ static void * prvLinuxPcapSendThread( void * pvParam )
     uint8_t ucBuffer[ ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ];
     const time_t xMaxMSToWait = 1000;
 
-    ( void ) pvParam;
-
     /* disable signals to avoid treating this thread as a FreeRTOS task and putting
      * it to sleep by the scheduler */
     sigset_t set;
+
+    ( void ) pvParam;
 
     sigfillset( &set );
     pthread_sigmask( SIG_SETMASK, &set, NULL );
