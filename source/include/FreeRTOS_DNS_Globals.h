@@ -131,7 +131,7 @@
     #else
         #define ipMDNS_IP_ADDRESS    0xfb0000e0U /* 224.0.0.251 */
     #endif
-	#define ipMDNS_TIME_TO_LIVE      255U
+    #define ipMDNS_TIME_TO_LIVE      255U
     #define ipMDNS_PORT              5353U       /* Standard mDNS port. */
     #define ipLLMNR_PORT             5355        /* Standard LLMNR port. */
     #define ipDNS_PORT               53          /* Standard DNS port. */
