@@ -440,11 +440,11 @@ static void prvReadTime( struct SNtpPacket * pxPacket )
     #endif /* ( USE_PLUS_FAT != 0 ) */
 
     /*
-     *  378.067 [NTP client] NTP time: 9/11/2015 16:11:19.559 Diff -20 ms (289 ms)
-     *  379.441 [NTP client] NTP time: 9/11/2015 16:11:20.933 Diff 0 ms (263 ms)
+     *  378.067 [NTP client] NTP time: 9/11/2015 16:11:19.559 Difference -20 ms (289 ms)
+     *  379.441 [NTP client] NTP time: 9/11/2015 16:11:20.933 Difference 0 ms (263 ms)
      */
 
-    FreeRTOS_printf( ( "NTP time: %u/%u/%02u %2u:%02u:%02u.%03u Diff %d %s (%lu ms)\n",
+    FreeRTOS_printf( ( "NTP time: %u/%u/%02u %2u:%02u:%02u.%03u Difference %d %s (%lu ms)\n",
                        ( unsigned ) xTimeStruct.tm_mday,
                        ( unsigned ) xTimeStruct.tm_mon + 1,
                        ( unsigned ) xTimeStruct.tm_year + 1900,
