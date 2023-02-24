@@ -877,7 +877,7 @@
 /*-----------------------------------------------------------*/
 
 /**
- * @brief When a neighbour advertisement has ben received, check if 'pxARPWaitingNetworkBuffer'
+ * @brief When a neighbour advertisement has been received, check if 'pxARPWaitingNetworkBuffer'
  *        was waiting for this new address look-up. If so, feed it to the IP-task as a new
  *        incoming packet.
  */
