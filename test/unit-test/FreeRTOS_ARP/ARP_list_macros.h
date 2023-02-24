@@ -33,10 +33,10 @@
 #include <list.h>
 
 eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                        MACAddress_t * const pxMACAddress,
-                                        struct xNetworkEndPoint ** ppxEndPoint );
+                                     MACAddress_t * const pxMACAddress,
+                                     struct xNetworkEndPoint ** ppxEndPoint );
 
 void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    const IPv6_Address_t * pxIPAddress );
+                                   const IPv6_Address_t * pxIPAddress );
 
 #endif /* ifndef LIST_MACRO_H */

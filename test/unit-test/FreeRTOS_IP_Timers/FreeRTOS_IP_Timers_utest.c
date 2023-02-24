@@ -289,7 +289,7 @@ void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired2( void )
 
 void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 {
-    NetworkEndPoint_t xEndPoint = {0};
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     xARPTimer.bActive = pdFALSE;
     xDHCPTimer.bActive = pdTRUE;
@@ -321,7 +321,7 @@ void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 
 void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
 {
-    NetworkEndPoint_t xEndPoint = {0};
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     xARPTimer.bActive = pdFALSE;
     xDHCPTimer.bActive = pdFALSE;
@@ -470,7 +470,7 @@ void test_vARPTimerReload( void )
 void test_vDHCP_RATimerReload( void )
 {
     TickType_t xTime = 0x12A;
-    NetworkEndPoint_t xEndPoint = {0};
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     xEndPoint.pxNext = NULL;
     xEndPoint.bits.bWantDHCP = pdTRUE_UNSIGNED;
@@ -628,7 +628,7 @@ void test_vIPSetARPResolutionTimerEnableState_True( void )
 
 void test_vIPSetDHCP_RATimerEnableState_False( void )
 {
-    struct xNetworkEndPoint xEndPoint = {0};
+    struct xNetworkEndPoint xEndPoint = { 0 };
     BaseType_t xEnableState = pdFALSE;
 
     xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
@@ -639,7 +639,7 @@ void test_vIPSetDHCP_RATimerEnableState_False( void )
 
 void test_vIPSetDHCP_RATimerEnableState_True( void )
 {
-    struct xNetworkEndPoint xEndPoint = {0};
+    struct xNetworkEndPoint xEndPoint = { 0 };
     BaseType_t xEnableState = pdTRUE;
 
     xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;

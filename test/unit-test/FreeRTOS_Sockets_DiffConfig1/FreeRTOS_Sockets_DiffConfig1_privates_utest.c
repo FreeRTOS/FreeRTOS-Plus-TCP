@@ -71,7 +71,7 @@ void test_vSocketBind_TCP( void )
     struct freertos_sockaddr xBindAddress;
     size_t uxAddressLength;
     BaseType_t xInternal = pdFALSE;
-    NetworkEndPoint_t xEndPoint = {0};
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     memset( &xBindAddress, 0xFC, sizeof( xBindAddress ) );
     memset( &xSocket, 0, sizeof( xSocket ) );

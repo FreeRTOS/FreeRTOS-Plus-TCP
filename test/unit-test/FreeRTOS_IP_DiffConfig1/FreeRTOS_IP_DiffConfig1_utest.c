@@ -126,7 +126,7 @@ static void vSetIPTaskHandle( TaskHandle_t xTaskHandleToSet )
     const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
     const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ];
-    NetworkEndPoint_t xFirstEndPoint = {0}, * pxFirstEndPoint = &xFirstEndPoint;
+    NetworkEndPoint_t xFirstEndPoint = { 0 }, * pxFirstEndPoint = &xFirstEndPoint;
 
     pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
     FreeRTOS_FillEndPoint_Ignore();
@@ -180,7 +180,7 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     BaseType_t xReturn;
     QueueHandle_t ulPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
     TaskHandle_t xTaskHandleToSet = ( TaskHandle_t ) 0xCDBA9087;
-    NetworkEndPoint_t xFirstEndPoint = {0};
+    NetworkEndPoint_t xFirstEndPoint = { 0 };
 
 
     /* Set the local IP to something other than 0. */
@@ -230,7 +230,7 @@ void test_FreeRTOS_IPInit_QueueCreationFails( void )
     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF };
     BaseType_t xReturn;
     QueueHandle_t pxPointerToQueue = NULL;
-    NetworkEndPoint_t xFirstEndPoint = {0};
+    NetworkEndPoint_t xFirstEndPoint = { 0 };
 
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
@@ -267,7 +267,7 @@ void test_FreeRTOS_IPInit_BufferCreationFails( void )
     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF };
     BaseType_t xReturn;
     QueueHandle_t pxPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
-    NetworkEndPoint_t xFirstEndPoint = {0};
+    NetworkEndPoint_t xFirstEndPoint = { 0 };
 
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
@@ -312,7 +312,7 @@ void test_FreeRTOS_IPInit_TaskCreationFails( void )
     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF };
     BaseType_t xReturn;
     QueueHandle_t pxPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
-    NetworkEndPoint_t xFirstEndPoint = {0};
+    NetworkEndPoint_t xFirstEndPoint = { 0 };
 
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
