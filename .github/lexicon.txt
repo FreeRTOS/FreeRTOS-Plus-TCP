@@ -771,6 +771,7 @@ prvinitialisedhcp
 prviptask
 prvlinkstatuschange
 prvnotifyqueuesetcontainer
+prvntptask
 prvparsednsreply
 prvpreparelinklayeriplookup
 prvpreparelookup
@@ -975,6 +976,7 @@ pxprotpack
 pxreceivebuffer
 pxreplyendpoint
 pxresult
+pxresults
 pxright
 pxsegment
 pxset
@@ -1815,6 +1817,7 @@ xlistitemalreadyinfreelist
 xlocaladdress
 xlocalbuffer
 xlocalport
+xlogging
 xlookup
 xloop
 xlwipconfig
@@ -1825,6 +1828,7 @@ xmaxtime
 xmessage
 xmicreldevice
 xmitcount
+xml
 xnetworkaddressing
 xnetworkbuffer
 xnetworkbufferdescriptor
