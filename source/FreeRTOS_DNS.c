@@ -659,7 +659,7 @@
                                                  ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
                             }
                         }
-                        else if( ( ppxAddressInfo != NULL ) && ( *( ppxAddressInfo ) != NULL ) )
+                        else if( ppxAddressInfo != NULL )
                         {
                             /* The IP address is known, do the call-back now. */
                             pCallbackFunction( pcHostName, pvSearchID, *( ppxAddressInfo ) );

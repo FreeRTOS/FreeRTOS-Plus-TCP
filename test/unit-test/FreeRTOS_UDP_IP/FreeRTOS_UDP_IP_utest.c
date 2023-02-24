@@ -398,7 +398,6 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_NotForThisNode( void )
 
     /* No socket found. */
     pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
-    pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
 
     xResult = xProcessReceivedUDPPacket( &xLocalNetworkBuffer, usPort, &xIsWaitingARPResolution );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
