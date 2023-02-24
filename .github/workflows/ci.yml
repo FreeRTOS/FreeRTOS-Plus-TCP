@@ -51,7 +51,7 @@ jobs:
       - name: Clone This Repo
         uses: actions/checkout@v2
         with:
-            path: ./tcp
+          path: ./tcp
       - name: Install spell
         run: |
           sudo apt-get install spell
@@ -111,23 +111,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Update submodules
-        run: git submodule update --init --checkout
+      - name: Build Install Dependencies
+        run: |
+          sudo apt-get install -y libpcap-dev
       - name: Build checks (Enable all functionalities)
         run: |
-           cmake -S test/build-combination -B test/build-combination/build/ \
-            -DTEST_CONFIGURATION=ENABLE_ALL
-           make -C test/build-combination/build/
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL
+          cmake --build build --target freertos_plus_tcp_build_test
       - name: Build checks (Disable all functionalities)
         run: |
-           cmake -S test/build-combination -B test/build-combination/build/ \
-            -DTEST_CONFIGURATION=DISABLE_ALL
-           make -C test/build-combination/build/
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DISABLE_ALL
+          cmake --build build --target clean
+          cmake --build build --target freertos_plus_tcp_build_test
       - name: Build checks (Default configuration)
         run: |
-           cmake -S test/build-combination -B test/build-combination/build/ \
-            -DTEST_CONFIGURATION=DEFAULT_CONF
-           make -C test/build-combination/build/
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DEFAULT_CONF
+          cmake --build build --target clean
+          cmake --build build --target freertos_plus_tcp_build_test
 
   complexity:
     runs-on: ubuntu-latest
